@@ -1,12 +1,15 @@
 package org.gerbil.asbplayer;
 
+import org.gerbil.asbplayer.model.SubtitleResponse;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("api/subtitle")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RequestMapping(path = "subtitle", produces = "application/json")
 public class SubtitleController {
 
     private final SubtitleRepository subtitleRepository;
@@ -15,7 +18,7 @@ public class SubtitleController {
         this.subtitleRepository = subtitleRepository;
     }
 
-    @GetMapping(value = "{path}", produces = "application/json")
+    @GetMapping(value = "{path}")
     public SubtitleResponse subtitles(@PathVariable("path") String path) {
         return new SubtitleResponse(subtitleRepository.getSubtitles(path));
     }

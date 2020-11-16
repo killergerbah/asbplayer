@@ -1,4 +1,4 @@
-package org.gerbil.asbplayer;
+package org.gerbil.asbplayer.model;
 
 import java.util.List;
 

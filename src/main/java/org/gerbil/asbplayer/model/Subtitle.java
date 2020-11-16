@@ -1,4 +1,4 @@
-package org.gerbil.asbplayer;
+package org.gerbil.asbplayer.model;
 
 public final class Subtitle {
 

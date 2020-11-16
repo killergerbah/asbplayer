@@ -1,12 +1,10 @@
 package org.gerbil.asbplayer;
 
+import org.gerbil.asbplayer.model.Subtitle;
 import org.gerbil.jsubtitle.ass.AssFile;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
