@@ -25,7 +25,7 @@ const useModalStyles = makeStyles((theme) => ({
 
 function PlayerModal(props) {
     const classes = useModalStyles();
-    const player = (<Player api={props.api} file={props.file} />);
+    const player = (<Player api={props.api} media={props.media} />);
 
     return (
         <Modal className={classes.modal} open={props.open} onClose={props.onClose}>
@@ -35,16 +35,11 @@ function PlayerModal(props) {
 }
 
 function App() {
-    const [playingFile, setPlayingFile] = useState(null);
+    const [playingMedia, setPlayingMedia] = useState(null);
     const [playerOpen, setPlayerOpen] = useState(false);
 
-    const handleOpenAudio = (file) => {
-        setPlayingFile(file);
-        setPlayerOpen(true);
-    };
-
-    const handleOpenSubtitle = (file) => {
-        setPlayingFile(file);
+    const handleOpenMedia = (media) => {
+        setPlayingMedia(media);
         setPlayerOpen(true);
     };
 
@@ -54,8 +49,8 @@ function App() {
 
     return (
         <Container>
-            <Browser api={api} onOpenAudio={handleOpenAudio} onOpenSubtitle={handleOpenSubtitle}/>
-            {playingFile === null ? null : <PlayerModal open={playerOpen} onClose={handlePlayerClose} api={api} file={playingFile} />}
+            <Browser api={api} onOpenMedia={handleOpenMedia}/>
+            {playingMedia === null ? null : <PlayerModal open={playerOpen} onClose={handlePlayerClose} api={api} media={playingMedia} />}
         </Container>
   );
 }

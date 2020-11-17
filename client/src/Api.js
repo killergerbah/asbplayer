@@ -10,4 +10,8 @@ export default function Api() {
         return fetch(this.baseUrl + "/subtitle/" + encodeURI(path))
             .then(response => response.json())
     };
+
+    this.streamingUrl = function(path) {
+        return this.baseUrl + "/stream/" + encodeURI(path);
+    };
 }

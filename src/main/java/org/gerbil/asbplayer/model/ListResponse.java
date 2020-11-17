@@ -4,13 +4,13 @@ import java.util.List;
 
 public final class ListResponse {
 
-    private final List<File> files;
+    private final List<Item> items;
 
-    public ListResponse(List<File> files) {
-        this.files = files;
+    public ListResponse(List<Item> items) {
+        this.items = items;
     }
 
-    public List<File> getFiles() {
-        return files;
+    public List<Item> getItems() {
+        return items;
     }
 }

@@ -18,39 +18,33 @@ const useStyles = makeStyles({
   },
 });
 
-function File(props) {
-}
-
 export default function Browser(props) {
-    const [files, setFiles] = useState([]);
+    const [items, setItems] = useState([]);
     const classes = useStyles();
 
-    var fetchFiles = (path) => {
+    var fetchItems = (path) => {
          props.api.list(path)
-             .then(res => setFiles(res.files))
+             .then(res => setItems(res.items))
              .catch(console.error);
     };
 
-    var fetchRootFiles = () => {
-         fetchFiles('');
+    var fetchRootItems = () => {
+         fetchItems('');
     };
 
-    useEffect(fetchRootFiles, []);
+    useEffect(fetchRootItems, []);
 
-    if (files === null) {
+    if (items === null) {
         return null;
     }
 
-    var handleFileLink = (file) => {
-        switch (file.type) {
-            case "audio":
-                props.onOpenAudio(file);
-                break;
-            case "subtitle":
-                props.onOpenSubtitle(file);
+    var handleItem = (item) => {
+        switch (item.type) {
+            case "media":
+                props.onOpenMedia(item);
                 break;
             case "directory":
-                fetchFiles(file.path);
+                fetchItems(item.path);
                 break;
         }
     };
@@ -65,11 +59,11 @@ export default function Browser(props) {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {files.map(f => {
+                        {items.map(i => {
                             return (
-                                <TableRow key = {f.name}>
+                                <TableRow key = {i.name}>
                                     <TableCell>
-                                        <Link href="#" onClick={() => handleFileLink(f)}>{f.name}</Link>
+                                        <Link href="#" onClick={() => handleItem(i)}>{i.name}</Link>
                                     </TableCell>
                                 </TableRow>
                             );

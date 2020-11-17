@@ -11,7 +11,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableRow from '@material-ui/core/TableRow';
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef, createRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles({
@@ -86,18 +86,22 @@ function Clock() {
             this.accumulated = time;
         }
     };
+
+    this.progress = (max) => {
+        return this.time(max) / max;
+    }
 }
 
 function Controls(props) {
     const classes = useControlStyles();
     const [show, setShow] = useState(true);
-    const handleSeek = useCallback((e) => {
+    const handleSeek = (e) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const width = rect.right - rect.left;
         const progress = (e.pageX - rect.left) / width;
 
         props.onSeek(progress);
-    }, []);
+    };
 
     useEffect(() => {
         const timeLeftUntilHide = Math.max(0, 2000 - Date.now() + props.lastMouseMove);
@@ -110,7 +114,7 @@ function Controls(props) {
             }, timeLeftUntilHide);
             return () => clearTimeout(timeout);
         }
-    }, [props.lastMouseMove]);
+    }, [props.lastMouseMove, show]);
 
     return (
         <div className={classes.container}>
@@ -132,86 +136,121 @@ function Controls(props) {
     );
 }
 
-export default function Player(props) {
-    const [subtitles, setSubtitles] = useState([]);
-    const [playing, setPlaying] = useState(false);
-    const [selectedSubtitle, setSelectedSubtitle] = useState(0);
-    const [globalTime, setGlobalTime] = useState(Date.now());
-    const [lastMouseMove, setLastMouseMove] = useState(Date.now());
-    const clock = useMemo(() => new Clock(), []);
+function trackLength(subtitles) {
+    return subtitles.length > 0 ? subtitles[subtitles.length - 1].end - subtitles[0].start : 0;
+}
+
+function SubtitlePlayer(props) {
+    const clock = props.clock;
+    const subtitles = props.subtitles;
+    const subtitleRefs = useMemo(() => Array(subtitles.length).fill().map((_, i) => createRef()), [subtitles]);
+    const [selectedSubtitleIndex, setSelectedSubtitleIndex] = useState(0);
     const classes = useStyles();
-    const nextSubtitleRef = useRef(null);
-    const init = useCallback(() => {
-        if (props.file.type === 'subtitle') {
-            const advance = () => {
-            setGlobalTime(Date.now());
-        };
 
-        props.api.subtitles(props.file.path)
-            .then(res => {
-                setSubtitles(res.subtitles);
-            })
-            .catch(console.error);
-
-            const interval = setInterval(advance, 500);
-            return () => clearInterval(interval);
-        }
-    }, [props.api, props.file.path, props.file.type]);
-
-    useEffect(init, [init]);
-
-    const handlePlay = useCallback(() => {
-        setPlaying(true);
-        clock.start();
-    }, [clock]);
-
-    const handlePause = useCallback(() => {
-        setPlaying(false);
-        clock.stop();
-    }, [clock]);
-
-    const handleSeek = (progress) => {
-        const trackLength = subtitles.length > 0 ? subtitles[subtitles.length - 1].end - subtitles[0].start : 0;
-        clock.setTime(progress * trackLength);
-    };
-
-    const handleMouseMove = useCallback(() => {
-        setLastMouseMove(Date.now());
-    }, []);
-
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const length = trackLength(subtitles);
+            const progress = clock.progress(length);
+            const currentSubtitleIndex = subtitles.findIndex(s => s.end / length > progress);
+            if (currentSubtitleIndex !== -1 && currentSubtitleIndex !== selectedSubtitleIndex) {
+                 setSelectedSubtitleIndex(currentSubtitleIndex);
+                 const selectedSubtitleRef = subtitleRefs[currentSubtitleIndex];
+                 if (selectedSubtitleRef.current) {
+                     selectedSubtitleRef.current.scrollIntoView({block: "center", inline: "nearest", behavior: "smooth"});
+                 }
+            }
+        }, 500);
+        return () => clearInterval(interval);
+    }, [subtitles, clock, selectedSubtitleIndex, subtitleRefs])
 
     if (subtitles.length === 0) {
         return null;
     }
 
-    const trackLength = subtitles.length > 0 ? subtitles[subtitles.length - 1].end - subtitles[0].start : 0;
-    const progress = clock.time(trackLength) / trackLength;
-    const currentSubtitle = subtitles.findIndex(s => s.end / trackLength > progress);
+    return (
+        <TableContainer className={classes.container}>
+            <Table>
+                <TableBody>
+                    {subtitles.map((s, index) => {
+                        const selected = index === selectedSubtitleIndex;
+                        return (
+                            <TableRow ref={subtitleRefs[index]} key={index} selected={selected}><TableCell>{s.text}</TableCell></TableRow>
+                        );
+                    })}
+                </TableBody>
+            </Table>
+        </TableContainer>
+    );
+}
 
-    if (currentSubtitle !== selectedSubtitle) {
-         setSelectedSubtitle(currentSubtitle);
+export default function Player(props) {
+    const [subtitles, setSubtitles] = useState([]);
+    const [playing, setPlaying] = useState(false);
+    const [loaded, setLoaded] = useState(false);
+    const [lastMouseMove, setLastMouseMove] = useState(Date.now());
+    const audioRef = useRef(null);
+    const clock = useMemo(() => new Clock(), []);
+    const classes = useStyles();
+
+    const init = useCallback(() => {
+        if (props.media.subtitleFile) {
+            props.api.subtitles(props.media.subtitleFile.path)
+                .then(res => {
+                    setSubtitles(res.subtitles);
+                    setLoaded(true);
+                })
+                .catch(console.error);
+        } else {
+            setLoaded(true);
+        }
+    }, [props.api, props.media.subtitleFile]);
+
+    useEffect(init, [init]);
+
+    if (!loaded) {
+        return null;
     }
 
-    if (nextSubtitleRef.current) {
-        nextSubtitleRef.current.scrollIntoView({block: "center", inline: "nearest", behavior: "smooth"});
+    const handlePlay = () => {
+        setPlaying(true);
+        clock.start();
+        if (audioRef.current) {
+            audioRef.current.play();
+        }
+    };
+
+    const handlePause = () => {
+        setPlaying(false);
+        clock.stop();
+        if (audioRef.current) {
+            audioRef.current.pause();
+        }
+    };
+
+    const handleSeek = (progress) => {
+        const time = progress * trackLength(subtitles);
+        clock.setTime(time);
+        if (audioRef.current) {
+            audioRef.current.currentTime = time / 1000;
+        }
+    };
+
+    const handleMouseMove = () => {
+        setLastMouseMove(Date.now());
+    };
+
+    const length = trackLength(subtitles);
+    const progress = clock.progress(length);
+    let audio = null;
+    if (props.media.audioFile) {
+        audio =  (<audio ref={audioRef} src={props.api.streamingUrl(props.media.audioFile.path)} />);
     }
 
     return (
         <Paper square onMouseMove={handleMouseMove} className={classes.container}>
             <Controls playing={playing} progress={progress} onPlay={handlePlay} onPause={handlePause} onSeek={handleSeek} lastMouseMove={lastMouseMove} />
-            <TableContainer className={classes.container}>
-                <Table>
-                    <TableBody>
-                        {subtitles.map((s, index) => {
-                            const selected = index === selectedSubtitle;
-                            const next = index - 1 === selectedSubtitle;
-                            return (
-                                <TableRow ref={next ? nextSubtitleRef : null} key={index} selected={selected}><TableCell>{s.text}</TableCell></TableRow>
-                            );
-                        })}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+            <SubtitlePlayer subtitles={subtitles} clock={clock} />
+            {audio}
         </Paper>
     );
 }
