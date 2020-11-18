@@ -16,13 +16,6 @@ const theme = createMuiTheme({
     background: {
       default: '#fff',
     },
-  },
-  overrides: {
-    LinearProgress: {
-        determinate: {
-            transition: 'none'
-        }
-    }
   }
 });
 

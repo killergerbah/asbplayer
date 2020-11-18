@@ -48,12 +48,16 @@ const useControlStyles = makeStyles((theme) => ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        width: 30
     },
     progress: {
         top: '40%',
         height: '20%',
-        width: '99%',
-        transition: 'none'
+        marginRight: 10,
+    },
+    bar1Determinate: {
+        transition: 'none',
+        background: 'linear-gradient(to left, #e21e4a, #a92fff)',
     }
 }));
 
@@ -114,7 +118,7 @@ function Controls(props) {
                                 : <PlayArrowIcon onClick={props.onPlay} className={classes.playButton} />}
                         </Grid>
                         <Grid item xs>
-                            <LinearProgress onClick={handleSeek} className={classes.progress} variant="determinate" value={props.progress * 100} />
+                            <LinearProgress onClick={handleSeek} classes={{bar1Determinate: classes.bar1Determinate}} className={classes.progress} variant="determinate" value={props.progress * 100} />
                         </Grid>
                     </Grid>
                 </Paper>
@@ -176,6 +180,7 @@ export default function Player(props) {
     const [loaded, setLoaded] = useState(false);
     const [showControls, setShowControls] = useState(true);
     const [lastMouseMove, setLastMouseMove] = useState(Date.now());
+    const [globalTime, setGlobalTime] = useState(Date.now());
     const audioRef = useRef(null);
     const clock = useMemo(() => new Clock(), []);
     const classes = useStyles();
@@ -234,6 +239,7 @@ export default function Player(props) {
         if (audioRef.current) {
             audioRef.current.currentTime = time / 1000;
         }
+        setGlobalTime(Date.now());
     };
 
     const handleMouseMove = () => {
