@@ -63,7 +63,7 @@ export default function Browser(props) {
                             return (
                                 <TableRow key = {i.name}>
                                     <TableCell>
-                                        <Link href="#" onClick={() => handleItem(i)}>{i.name}</Link>
+                                        <Link component="button" variant="body2" onClick={() => handleItem(i)}>{i.name}</Link>
                                     </TableCell>
                                 </TableRow>
                             );

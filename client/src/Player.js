@@ -16,9 +16,10 @@ import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles({
     container: {
-        maxHeight: '90vh',
-        maxWidth: '90vw',
-        position: 'relative'
+        maxHeight: '100vh',
+        maxWidth: '100vw',
+        position: 'relative',
+        overflowX: 'hidden'
     },
     subtitle: {
         background: 'gray'
@@ -94,7 +95,6 @@ function Clock() {
 
 function Controls(props) {
     const classes = useControlStyles();
-    const [show, setShow] = useState(true);
     const handleSeek = (e) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const width = rect.right - rect.left;
@@ -103,22 +103,9 @@ function Controls(props) {
         props.onSeek(progress);
     };
 
-    useEffect(() => {
-        const timeLeftUntilHide = Math.max(0, 2000 - Date.now() + props.lastMouseMove);
-        if (timeLeftUntilHide > 0) {
-            if (!show) {
-                setShow(true);
-            }
-            const timeout = setTimeout(() => {
-                setShow(false);
-            }, timeLeftUntilHide);
-            return () => clearTimeout(timeout);
-        }
-    }, [props.lastMouseMove, show]);
-
     return (
         <div className={classes.container}>
-            <Fade in={show}>
+            <Fade in={props.show} timeout={200}>
                 <Paper square className={classes.paper}>
                     <Grid container direction="row">
                         <Grid item>
@@ -159,7 +146,7 @@ function SubtitlePlayer(props) {
                      selectedSubtitleRef.current.scrollIntoView({block: "center", inline: "nearest", behavior: "smooth"});
                  }
             }
-        }, 500);
+        }, 100);
         return () => clearInterval(interval);
     }, [subtitles, clock, selectedSubtitleIndex, subtitleRefs])
 
@@ -187,6 +174,7 @@ export default function Player(props) {
     const [subtitles, setSubtitles] = useState([]);
     const [playing, setPlaying] = useState(false);
     const [loaded, setLoaded] = useState(false);
+    const [showControls, setShowControls] = useState(true);
     const [lastMouseMove, setLastMouseMove] = useState(Date.now());
     const audioRef = useRef(null);
     const clock = useMemo(() => new Clock(), []);
@@ -199,13 +187,26 @@ export default function Player(props) {
                     setSubtitles(res.subtitles);
                     setLoaded(true);
                 })
-                .catch(console.error);
+                .catch(error => console.error(error));
         } else {
             setLoaded(true);
         }
     }, [props.api, props.media.subtitleFile]);
 
     useEffect(init, [init]);
+
+    useEffect(() => {
+        const timeLeftUntilHide = Math.max(0, 2000 - Date.now() + lastMouseMove);
+        if (timeLeftUntilHide > 0) {
+            if (!showControls) {
+                setShowControls(true);
+            }
+            const timeout = setTimeout(() => {
+                setShowControls(false);
+            }, timeLeftUntilHide);
+            return () => clearTimeout(timeout);
+        }
+    }, [lastMouseMove, showControls]);
 
     if (!loaded) {
         return null;
@@ -242,13 +243,14 @@ export default function Player(props) {
     const length = trackLength(subtitles);
     const progress = clock.progress(length);
     let audio = null;
+
     if (props.media.audioFile) {
         audio =  (<audio ref={audioRef} src={props.api.streamingUrl(props.media.audioFile.path)} />);
     }
 
     return (
         <Paper square onMouseMove={handleMouseMove} className={classes.container}>
-            <Controls playing={playing} progress={progress} onPlay={handlePlay} onPause={handlePause} onSeek={handleSeek} lastMouseMove={lastMouseMove} />
+            <Controls show={showControls} playing={playing} progress={progress} onPlay={handlePlay} onPause={handlePause} onSeek={handleSeek} lastMouseMove={lastMouseMove} />
             <SubtitlePlayer subtitles={subtitles} clock={clock} />
             {audio}
         </Paper>
