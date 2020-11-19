@@ -181,7 +181,6 @@ export default function Player(props) {
     const [playing, setPlaying] = useState(false);
     const [loaded, setLoaded] = useState(false);
     const [showControls, setShowControls] = useState(true);
-    const [lastMouseMove, setLastMouseMove] = useState(Date.now());
     const [globalTime, setGlobalTime] = useState(Date.now());
     const audioRef = useRef(null);
     const clock = useMemo(() => new Clock(), []);
@@ -208,19 +207,6 @@ export default function Player(props) {
     }, [props.api, subtitleFile]);
 
     useEffect(init, [init]);
-
-//    useEffect(() => {
-//        const timeLeftUntilHide = Math.max(0, 2000 - Date.now() + lastMouseMove);
-//        if (timeLeftUntilHide > 0) {
-//            if (!showControls) {
-//                setShowControls(true);
-//            }
-//            const timeout = setTimeout(() => {
-//                setShowControls(false);
-//            }, timeLeftUntilHide);
-//            return () => clearTimeout(timeout);
-//        }
-//    }, [lastMouseMove, showControls]);
 
     const handlePlay = useCallback(() => {
         setPlaying(true);
@@ -249,6 +235,20 @@ export default function Player(props) {
         setGlobalTime(Date.now());
     }, [clock, length]);
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const progress = clock.progress(length);
+            if (progress >= 1) {
+                clock.setTime(0);
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                }
+                setPlaying(false);
+            }
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [clock, length, audioRef]);
+    
     if (!loaded) {
         return null;
     }
