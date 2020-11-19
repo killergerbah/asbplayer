@@ -36,7 +36,8 @@ public class BrowserService {
         var itemGroups = new HashMap<String, List<File>>(fileNameList.length);
 
         for (var fileName : fileNameList) {
-            var file = fileProvider.file(fileName);
+            var path = Path.of(directoryPath, fileName).toString();
+            var file = fileProvider.file(path);
             var fileType = FileType.forFile(file);
 
             if (fileType == null) {

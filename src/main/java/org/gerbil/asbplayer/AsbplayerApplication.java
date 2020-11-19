@@ -20,7 +20,7 @@ public class AsbplayerApplication {
 	@Bean
 	@Qualifier("root")
 	public File filesystemRoot() {
-		return new File("E:\\condensed-audio\\Lucky Star");
+		return new File("E:\\");
 	}
 
 	@Bean

@@ -1,4 +1,5 @@
-import React, {useState, useEffect} from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Link from '@material-ui/core/Link';
@@ -21,18 +22,15 @@ const useStyles = makeStyles({
 export default function Browser(props) {
     const [items, setItems] = useState([]);
     const classes = useStyles();
+    const { path } = useParams();
 
-    var fetchItems = (path) => {
-         props.api.list(path)
+    var fetchRootItems = useCallback(() => {
+         props.api.list(path || '')
              .then(res => setItems(res.items))
              .catch(console.error);
-    };
+    }, [path, props.api]);
 
-    var fetchRootItems = () => {
-         fetchItems('');
-    };
-
-    useEffect(fetchRootItems, []);
+    useEffect(fetchRootItems, [fetchRootItems]);
 
     if (items === null) {
         return null;
@@ -44,8 +42,10 @@ export default function Browser(props) {
                 props.onOpenMedia(item);
                 break;
             case "directory":
-                fetchItems(item.path);
+                props.onOpenDirectory(item.path);
                 break;
+            default:
+                console.error("Unsupported item type " + item.type);
         }
     };
 

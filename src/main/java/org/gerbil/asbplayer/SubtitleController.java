@@ -3,9 +3,12 @@ package org.gerbil.asbplayer;
 import org.gerbil.asbplayer.model.SubtitleResponse;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
@@ -18,8 +21,9 @@ public class SubtitleController {
         this.subtitleRepository = subtitleRepository;
     }
 
-    @GetMapping(value = "{path}")
-    public SubtitleResponse subtitles(@PathVariable("path") String path) {
+    @GetMapping(path = "**")
+    public SubtitleResponse subtitles(HttpServletRequest request) {
+        var path = URLDecoder.decode(request.getRequestURL().toString().split("/subtitle/")[1], StandardCharsets.UTF_8);
         return new SubtitleResponse(subtitleRepository.getSubtitles(path));
     }
 }

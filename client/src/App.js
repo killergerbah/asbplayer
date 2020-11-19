@@ -10,9 +10,11 @@ import Browser from './Browser.js';
 import Player from './Player.js';
 import {
     Route,
+    Redirect,
     Switch,
     Link,
-    useHistory
+    useHistory,
+    useParams
 } from "react-router-dom";
 
 const useModalStyles = makeStyles((theme) => ({
@@ -32,18 +34,38 @@ function App() {
     const [playingMedia, setPlayingMedia] = useState(null);
     const history = useHistory();
     const handleOpenMedia = useCallback((media) => {
-        console.log('media=' + media);
         setPlayingMedia(media);
-        history.push('view');
+
+        var parameters = [];
+
+        if (media.audioFile) {
+            parameters.push('audio=' + encodeURIComponent(media.audioFile.path));
+        }
+
+        if (media.subtitleFile) {
+            parameters.push('subtitle=' + encodeURIComponent(media.subtitleFile.path));
+        }
+
+        history.push('/view?' + parameters.join('&'));
     }, [history]);
+
+    const handleOpenPath = useCallback((path) => {
+        history.push('/browse/' + encodeURIComponent(path))
+    }, [history]);
+
+    let { path } = useParams();
 
     return (
         <Switch>
-            <Route exact path="/">
-                <Browser api={api} onOpenMedia={(media) => handleOpenMedia(media)} />
+            <Route exact path="/" render={() => (<Redirect to="/browse" />)} />
+            <Route exact path="/browse">
+                <Browser api={api} onOpenDirectory={handleOpenPath} onOpenMedia={handleOpenMedia} />
             </Route>
-            <Route exact path="/view">
-                {playingMedia === null ? null : (<Player api={api} media={playingMedia} />)}
+            <Route exact path="/browse/:path+">
+                <Browser api={api} onOpenDirectory={handleOpenPath} onOpenMedia={handleOpenMedia} />
+            </Route>
+            <Route path="/view">
+                <Player api={api} />
             </Route>
         </Switch>
     );
