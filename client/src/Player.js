@@ -11,6 +11,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableRow from '@material-ui/core/TableRow';
+import Typography from '@material-ui/core/Typography';
 import { useEffect, useState, useMemo, useCallback, useRef, createRef, memo } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -21,11 +22,9 @@ const useStyles = makeStyles({
         position: 'relative',
         overflowX: 'hidden'
     },
-    subtitle: {
-        background: 'gray'
-    },
     selectedSubtitle: {
-        background: 'white'
+    },
+    subtitle: {
     }
 });
 
@@ -196,8 +195,14 @@ function SubtitlePlayer(props) {
                 <TableBody>
                     {props.subtitles.map((s, index) => {
                         const selected = index === selectedSubtitleIndex;
+                        const className = selected ? classes.selectedSubtitle : classes.subtitle;
+
                         return (
-                            <TableRow onClick={(e) => handleClick(index)} key={index} ref={subtitleRefs[index]} selected={selected}><TableCell>{s.text}</TableCell></TableRow>
+                            <TableRow onClick={(e) => handleClick(index)} key={index} ref={subtitleRefs[index]} selected={selected}>
+                                <TableCell className={className}>
+                                    <Typography variant="body1">{s.text}</Typography>
+                                </TableCell>
+                            </TableRow>
                         );
                     })}
                 </TableBody>
