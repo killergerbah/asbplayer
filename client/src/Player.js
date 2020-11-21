@@ -93,12 +93,17 @@ function Clock() {
     };
 
     this.progress = (max) => {
-        return max === 0 ? 0 : this.time(max) / max;
+        return max === 0 ? 0 : Math.min(1, this.time(max) / max);
     }
 }
 
 function Controls(props) {
     const classes = useControlStyles();
+    const [globalTime, setGlobalTime] = useState(Date.now());
+    const lastMousePositionRef = useRef({x: 0, y: 0});
+    const lastShowTimestampRef = useRef(Date.now());
+    const lastShowRef = useRef(true);
+
     const handleSeek = (e) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const width = rect.right - rect.left;
@@ -107,9 +112,29 @@ function Controls(props) {
         props.onSeek(progress);
     };
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setGlobalTime(Date.now());
+            lastMousePositionRef.current.x = props.mousePositionRef.current.x;
+            lastMousePositionRef.current.y = props.mousePositionRef.current.y;
+        }, 100);
+        return () => clearInterval(interval);
+    }, [props.mousePositionRef]);
+
+    const progress = props.clock.progress(props.length);
+    const show = Date.now() - lastShowTimestampRef.current < 2000
+        || Math.pow(props.mousePositionRef.current.x - lastMousePositionRef.current.x, 2)
+            + Math.pow(props.mousePositionRef.current.y - lastMousePositionRef.current.y, 2) > 100;
+
+    if (show && !lastShowRef.current) {
+        lastShowTimestampRef.current = Date.now();
+    }
+
+    lastShowRef.current = show;
+
     return (
         <div className={classes.container}>
-            <Fade in={props.show} timeout={200}>
+            <Fade in={show} timeout={200}>
                 <Paper square className={classes.paper}>
                     <Grid container direction="row">
                         <Grid item>
@@ -118,7 +143,7 @@ function Controls(props) {
                                 : <PlayArrowIcon onClick={props.onPlay} className={classes.playButton} />}
                         </Grid>
                         <Grid item xs>
-                            <LinearProgress onClick={handleSeek} classes={{bar1Determinate: classes.bar1Determinate}} className={classes.progress} variant="determinate" value={props.progress * 100} />
+                            <LinearProgress onClick={handleSeek} classes={{bar1Determinate: classes.bar1Determinate}} className={classes.progress} variant="determinate" value={progress * 100} />
                         </Grid>
                     </Grid>
                 </Paper>
@@ -156,6 +181,11 @@ function SubtitlePlayer(props) {
         return () => clearInterval(interval);
     }, [subtitles, clock, selectedSubtitleIndex, subtitleRefs, props.length])
 
+    const handleClick = (subtitleIndex) => {
+        const progress = props.subtitles[subtitleIndex].start / props.length;
+        props.onSeek(progress);
+    };
+
     if (subtitles.length === 0) {
         return null;
     }
@@ -167,7 +197,7 @@ function SubtitlePlayer(props) {
                     {props.subtitles.map((s, index) => {
                         const selected = index === selectedSubtitleIndex;
                         return (
-                            <TableRow key={index} ref={subtitleRefs[index]} selected={selected}><TableCell>{s.text}</TableCell></TableRow>
+                            <TableRow onClick={(e) => handleClick(index)} key={index} ref={subtitleRefs[index]} selected={selected}><TableCell>{s.text}</TableCell></TableRow>
                         );
                     })}
                 </TableBody>
@@ -182,6 +212,7 @@ export default function Player(props) {
     const [loaded, setLoaded] = useState(false);
     const [showControls, setShowControls] = useState(true);
     const [globalTime, setGlobalTime] = useState(Date.now());
+    const mousePositionRef = useRef({x:0, y:0});
     const audioRef = useRef(null);
     const clock = useMemo(() => new Clock(), []);
     const classes = useStyles();
@@ -208,38 +239,63 @@ export default function Player(props) {
 
     useEffect(init, [init]);
 
-    const handlePlay = useCallback(() => {
+    const play = (clock, audioRef) => {
         setPlaying(true);
         clock.start();
         if (audioRef.current) {
             audioRef.current.play();
         }
-    }, [clock, audioRef]);
+    };
 
-    const handlePause = useCallback(() => {
+    const pause = (clock, audioRef) => {
         setPlaying(false);
         clock.stop();
         if (audioRef.current) {
             audioRef.current.pause();
         }
-    }, [clock, audioRef]);
+    };
 
-    const length = trackLength(audioRef, subtitles);
-
-    const handleSeek = useCallback((progress) => {
+    const seek = (progress, clock, length, audioRef) => {
         const time = progress * length;
         clock.setTime(time);
         if (audioRef.current) {
             audioRef.current.currentTime = time / 1000;
         }
         setGlobalTime(Date.now());
+    };
+
+    const handlePlay = useCallback(() => {
+        play(clock, audioRef);
+    }, [clock]);
+
+    const handlePause = useCallback(() => {
+        pause(clock, audioRef);
+    }, [clock]);
+
+    const length = trackLength(audioRef, subtitles);
+
+    const handleSeek = useCallback((progress) => {
+        seek(progress, clock, length, audioRef);
     }, [clock, length]);
+
+    const handleSeekToSubtitle = useCallback((progress) => {
+        seek(progress, clock, length, audioRef);
+        if (playing) {
+            pause(clock, audioRef);
+        }
+    }, [clock, length, playing]);
+
+    const handleMouseMove = (e) => {
+        mousePositionRef.current.x = e.screenX;
+        mousePositionRef.current.y = e.screenY;
+    };
 
     useEffect(() => {
         const interval = setInterval(() => {
             const progress = clock.progress(length);
             if (progress >= 1) {
                 clock.setTime(0);
+                clock.stop();
                 if (audioRef.current) {
                     audioRef.current.pause();
                 }
@@ -248,12 +304,11 @@ export default function Player(props) {
         }, 1000);
         return () => clearInterval(interval);
     }, [clock, length, audioRef]);
-    
+
     if (!loaded) {
         return null;
     }
 
-    const progress = clock.progress(length);
     let audio = null;
 
     if (audioFile) {
@@ -261,9 +316,9 @@ export default function Player(props) {
     }
 
     return (
-        <Paper square className={classes.container}>
-            <Controls show={true} playing={playing} progress={progress} onPlay={handlePlay} onPause={handlePause} onSeek={handleSeek} />
-            <SubtitlePlayer subtitles={subtitles} clock={clock} length={length} />
+        <Paper onMouseMove={handleMouseMove} square className={classes.container}>
+            <Controls mousePositionRef={mousePositionRef} playing={playing} clock={clock} length={length} onPlay={handlePlay} onPause={handlePause} onSeek={handleSeek} />
+            <SubtitlePlayer subtitles={subtitles} clock={clock} length={length} onSeek={handleSeekToSubtitle} />
             {audio}
         </Paper>
     );

@@ -31,11 +31,8 @@ const useModalStyles = makeStyles((theme) => ({
 
 function App() {
     const api = useMemo(() => new Api(), []);
-    const [playingMedia, setPlayingMedia] = useState(null);
     const history = useHistory();
     const handleOpenMedia = useCallback((media) => {
-        setPlayingMedia(media);
-
         var parameters = [];
 
         if (media.audioFile) {
