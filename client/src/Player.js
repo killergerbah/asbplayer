@@ -282,6 +282,8 @@ export default function Player(props) {
         seek(progress, clock, length, audioRef);
         if (playing) {
             pause(clock, audioRef);
+        } else {
+            play(clock, audioRef);
         }
     }, [clock, length, playing]);
 
