@@ -23,8 +23,15 @@ const useStyles = makeStyles({
         overflowX: 'hidden'
     },
     selectedSubtitle: {
+        fontSize: 20
     },
     subtitle: {
+        fontSize: 20
+    },
+    timestamp: {
+        fontSize: 14,
+        color: '#aaaaaa',
+        textAlign: 'right'
     }
 });
 
@@ -151,6 +158,33 @@ function Controls(props) {
     );
 }
 
+function displayTime(milliseconds, totalMilliseconds) {
+    const seconds = milliseconds / 1000;
+    const totalSeconds = totalMilliseconds / 1000;
+    let parts;
+
+    if (totalSeconds >= 3600) {
+        parts = 3;
+    } else if (totalSeconds >= 60) {
+        parts = 2;
+    } else {
+        parts = 1;
+    }
+
+    const units = [];
+    let timeLeft = seconds;
+
+    for (let i = parts - 1; i >= 0; --i) {
+        const place = Math.pow(60, i);
+        let digit = Math.floor(timeLeft / place);
+        let timeUsed = place * digit;
+        timeLeft -= timeUsed;
+        units.push(digit);
+    }
+
+    return units.map((unit) => String(unit).padStart(2, '0')).join(':') + "." + (String((milliseconds % 1000) / 10)).padEnd(2, '0');
+}
+
 function trackLength(audioRef, subtitles) {
     const subtitlesLength = subtitles.length > 0 ? subtitles[subtitles.length - 1].end - subtitles[0].start : 0;
     const audioLength = audioRef.current ? 1000 * audioRef.current.duration : 0;
@@ -200,7 +234,10 @@ function SubtitlePlayer(props) {
                         return (
                             <TableRow onClick={(e) => handleClick(index)} key={index} ref={subtitleRefs[index]} selected={selected}>
                                 <TableCell className={className}>
-                                    <Typography variant="body1">{s.text}</Typography>
+                                    {s.text}
+                                </TableCell>
+                                <TableCell className={classes.timestamp}>
+                                    {s.displayTime}
                                 </TableCell>
                             </TableRow>
                         );
@@ -233,7 +270,10 @@ export default function Player(props) {
         if (subtitleFile) {
             props.api.subtitles(subtitleFile)
                 .then(res => {
-                    setSubtitles(res.subtitles);
+                    const length = res.subtitles.length > 0 ? res.subtitles[res.subtitles.length - 1].end - res.subtitles[0].start : 0;
+                    setSubtitles(res.subtitles.map((s) => {
+                        return {text: s.text, start: s.start, end: s.end, displayTime: displayTime(s.start, length)};
+                    }));
                     setLoaded(true);
                 })
                 .catch(error => console.error(error));
