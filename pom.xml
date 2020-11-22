@@ -107,7 +107,7 @@
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${basedir}/src/main/resources/static</outputDirectory>
+							<outputDirectory>target/classes/static</outputDirectory>
 							<resources>
 								<resource>
 									<directory>${basedir}/client/build</directory>
