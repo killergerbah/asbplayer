@@ -51,6 +51,11 @@
 	</dependencies>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>${basedir}/target/generated-resources</directory>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -101,13 +106,13 @@
 				<version>3.1.0</version>
 				<executions>
 					<execution>
-						<id>copy-resource-one</id>
-						<phase>install</phase>
+						<id>copy-client</id>
+						<phase>generate-resources</phase>
 						<goals>
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>target/classes/static</outputDirectory>
+							<outputDirectory>${basedir}/target/generated-resources/static</outputDirectory>
 							<resources>
 								<resource>
 									<directory>${basedir}/client/build</directory>
