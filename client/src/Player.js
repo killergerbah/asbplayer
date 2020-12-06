@@ -1,11 +1,6 @@
-import { useEffect, useState, useMemo, useCallback, useRef, createRef } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableRow from '@material-ui/core/TableRow';
 import Clock from './Clock';
 import Controls from './Controls';
 import SubtitlePlayer from './SubtitlePlayer';

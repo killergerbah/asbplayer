@@ -55,6 +55,37 @@ export default function SubtitlePlayer(props) {
         return () => clearInterval(interval);
     }, [subtitles, clock, selectedSubtitleIndex, subtitleRefs, props.length])
 
+    useEffect(() => {
+        function handleKey(event) {
+            event.preventDefault();
+
+            if (!subtitles || subtitles.length === 0) {
+                return;
+            }
+
+            let newSubtitleIndex;
+
+            if (event.keyCode === 37) {
+                newSubtitleIndex = Math.max(0, selectedSubtitleIndex - 1);
+            } else if (event.keyCode === 39) {
+                newSubtitleIndex = Math.min(props.subtitles.length - 1, selectedSubtitleIndex + 1);
+            } else {
+                return;
+            }
+
+            const progress = props.subtitles[newSubtitleIndex].start / props.length;
+
+            props.onSeek(progress);
+        };
+
+        window.addEventListener('keydown', handleKey);
+
+        return () => {
+            window.removeEventListener('keydown', handleKey);
+        };
+    }, [props, selectedSubtitleIndex, subtitles]);
+
+
     function handleClick(subtitleIndex) {
         const progress = props.subtitles[subtitleIndex].start / props.length;
         props.onSeek(progress);

@@ -74,6 +74,26 @@ export default function Controls(props) {
         return () => clearInterval(interval);
     }, [props.mousePositionRef, setShow, show]);
 
+    useEffect(() => {
+        function handleKey(event) {
+            event.preventDefault();
+
+            if (event.keyCode === 32) {
+                if (props.playing) {
+                    props.onPause();
+                } else {
+                    props.onPlay();
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKey);
+
+        return () => {
+            window.removeEventListener('keydown', handleKey);
+        };
+    }, [props]);
+
     const progress = props.clock.progress(props.length);
 
     return (
