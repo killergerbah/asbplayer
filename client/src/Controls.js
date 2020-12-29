@@ -76,9 +76,9 @@ export default function Controls(props) {
 
     useEffect(() => {
         function handleKey(event) {
-            event.preventDefault();
-
             if (event.keyCode === 32) {
+                event.preventDefault();
+
                 if (props.playing) {
                     props.onPause();
                 } else {

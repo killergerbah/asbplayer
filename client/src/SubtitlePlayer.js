@@ -57,8 +57,6 @@ export default function SubtitlePlayer(props) {
 
     useEffect(() => {
         function handleKey(event) {
-            event.preventDefault();
-
             if (!subtitles || subtitles.length === 0) {
                 return;
             }
@@ -72,6 +70,8 @@ export default function SubtitlePlayer(props) {
             } else {
                 return;
             }
+
+            event.preventDefault();
 
             const progress = props.subtitles[newSubtitleIndex].start / props.length;
 
