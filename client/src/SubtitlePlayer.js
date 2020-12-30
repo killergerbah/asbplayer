@@ -1,5 +1,7 @@
 import { useEffect, useState, useMemo, createRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import FileCopy from '@material-ui/icons/FileCopy';
+import IconButton from '@material-ui/core/IconButton';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -17,12 +19,19 @@ const useSubtitlePlayerStyles = makeStyles({
         fontSize: 20
     },
     subtitle: {
-        fontSize: 20
+        fontSize: 20,
+        width: '100%'
     },
     timestamp: {
         fontSize: 14,
         color: '#aaaaaa',
         textAlign: 'right'
+    },
+    copyButton: {
+        fontSize: 14,
+        color: '#aaaaaa',
+        textAlign: 'right',
+        padding: 0
     }
 });
 
@@ -91,6 +100,11 @@ export default function SubtitlePlayer(props) {
         props.onSeek(progress);
     };
 
+    function handleCopy(event, subtitleIndex) {
+        event.stopPropagation();
+        navigator.clipboard.writeText(props.subtitles[subtitleIndex].text);
+    };
+
     if (subtitles.length === 0) {
         return null;
     }
@@ -111,6 +125,11 @@ export default function SubtitlePlayer(props) {
                                 selected={selected}>
                                 <TableCell className={className}>
                                     {s.text}
+                                </TableCell>
+                                <TableCell className={classes.copyButton}>
+                                    <IconButton onClick={(e) => handleCopy(e, index)}>
+                                        <FileCopy />
+                                    </IconButton>
                                 </TableCell>
                                 <TableCell className={classes.timestamp}>
                                     {s.displayTime}
