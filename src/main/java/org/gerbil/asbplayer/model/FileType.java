@@ -21,7 +21,7 @@ public enum FileType {
 
         var fileName = file.getName();
 
-        if (fileName.endsWith(".ass")) {
+        if (fileName.endsWith(".ass") || fileName.endsWith(".srt")) {
             return SUBTITLE;
         }
 
