@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, createRef } from 'react';
+import { useCallback, useEffect, useState, useMemo, createRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
@@ -84,7 +84,7 @@ export default function SubtitlePlayer(props) {
 
             const progress = props.subtitles[newSubtitleIndex].start / props.length;
 
-            props.onSeek(progress);
+            props.onSeek(progress, false);
         };
 
         window.addEventListener('keydown', handleKey);
@@ -95,10 +95,10 @@ export default function SubtitlePlayer(props) {
     }, [props, selectedSubtitleIndex, subtitles]);
 
 
-    function handleClick(subtitleIndex) {
+    const handleClick = useCallback((subtitleIndex) => {
         const progress = props.subtitles[subtitleIndex].start / props.length;
-        props.onSeek(progress);
-    };
+        props.onSeek(progress, !props.playing && subtitleIndex === selectedSubtitleIndex);
+    }, [props, selectedSubtitleIndex]);
 
     function handleCopy(event, subtitleIndex) {
         event.stopPropagation();

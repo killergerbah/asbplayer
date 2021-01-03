@@ -97,6 +97,7 @@ export default function Player(props) {
     function pause(clock, audioRef) {
         setPlaying(false);
         clock.stop();
+
         if (audioRef.current) {
             audioRef.current.pause();
         }
@@ -127,15 +128,15 @@ export default function Player(props) {
         seek(progress, clock, length, audioRef);
     }, [clock, length, seek]);
 
-    const handleSeekToSubtitle = useCallback((progress) => {
+    const handleSeekToSubtitle = useCallback((progress, shouldPlay) => {
         seek(progress, clock, length, audioRef);
 
-        if (playing) {
-            pause(clock, audioRef);
-        } else {
+        if (shouldPlay) {
             play(clock, audioRef);
+        } else {
+            pause(clock, audioRef);
         }
-    }, [clock, length, playing, seek]);
+    }, [clock, length, seek]);
 
     function handleMouseMove(e) {
         mousePositionRef.current.x = e.screenX;
@@ -174,6 +175,7 @@ export default function Player(props) {
                 onPause={handlePause}
                 onSeek={handleSeek} />
             <SubtitlePlayer
+                playing={playing}
                 subtitles={subtitles}
                 clock={clock}
                 length={length}

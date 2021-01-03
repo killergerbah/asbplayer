@@ -11,6 +11,10 @@ export default function Clock() {
     };
 
     this.stop = () => {
+        if (!this.started) {
+            return;
+        }
+
         this.started = false;
         this.accumulated += Date.now() - this.startTime;
     };
