@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import AudiotrackIcon from '@material-ui/icons/Audiotrack';
 import FolderIcon from '@material-ui/icons/Folder';
 import Link from '@material-ui/core/Link';
+import MovieIcon from '@material-ui/icons/Movie';
 import SubtitlesIcon from '@material-ui/icons/Subtitles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -31,6 +32,7 @@ function ItemTypeIcons(props) {
     return (
         <div>
             {item.audioFile ? <AudiotrackIcon /> : null}
+            {item.videoFile ? <MovieIcon /> : null}
             {item.subtitleFile ? <SubtitlesIcon /> : null}
         </div>
     );

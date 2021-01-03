@@ -136,7 +136,7 @@ export default function Controls(props) {
 
     const handleSeek = useCallback((progress) => {
         props.onSeek(progress);
-    }, [props.onSeek]);
+    }, [props]);
 
     function handleMouseOver(e) {
         forceShowRef.current = true;

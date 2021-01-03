@@ -6,6 +6,7 @@ public enum FileType {
 
     SUBTITLE("subtitle"),
     AUDIO("audio"),
+    VIDEO("video"),
     DIRECTORY("directory");
 
     private final String name;
@@ -27,6 +28,10 @@ public enum FileType {
 
         if (fileName.endsWith(".mp3")) {
             return AUDIO;
+        }
+
+        if (fileName.endsWith(".mkv")) {
+            return VIDEO;
         }
 
         return null;

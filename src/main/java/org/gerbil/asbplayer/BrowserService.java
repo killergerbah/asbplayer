@@ -66,11 +66,17 @@ public class BrowserService {
                     var audioFile = files.stream()
                             .filter(f -> f.getType() == FileType.AUDIO)
                             .findFirst();
+
+                    var videoFile = files.stream()
+                            .filter(f -> f.getType() == FileType.VIDEO)
+                            .findFirst();
+
                     var subtitleFile = files.stream()
                             .filter(f -> f.getType() == FileType.SUBTITLE)
                             .findFirst();
-                    Optional<Item> mediaItem = audioFile.isPresent() || subtitleFile.isPresent()
-                            ? Optional.of(new MediaItem(groupName, audioFile.orElse(null), subtitleFile.orElse(null)))
+
+                    Optional<Item> mediaItem = audioFile.isPresent() || videoFile.isPresent() || subtitleFile.isPresent()
+                            ? Optional.of(new MediaItem(groupName, audioFile.orElse(null), videoFile.orElse(null), subtitleFile.orElse(null)))
                             : Optional.empty();
 
                     return Stream.concat(mediaItem.stream(), directoryItem.stream());

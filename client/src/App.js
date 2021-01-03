@@ -4,6 +4,7 @@ import Bar from './Bar.js';
 import CopyHistory from './CopyHistory.js';
 import Browser from './Browser.js';
 import Player from './Player.js';
+import VideoPlayer from './VideoPlayer.js';
 import {
     Route,
     Redirect,
@@ -25,6 +26,10 @@ function App() {
             parameters.push('audio=' + encodeURIComponent(media.audioFile.path));
         }
 
+        if (media.videoFile) {
+            parameters.push('video=' + encodeURIComponent(media.videoFile.path));
+        }
+
         if (media.subtitleFile) {
             parameters.push('subtitle=' + encodeURIComponent(media.subtitleFile.path));
         }
@@ -40,7 +45,7 @@ function App() {
 
     const handleCopy = useCallback((text, fileName) => {
         copiedSubtitles.push({
-            timestamp: new Date().getTime(),
+            timestamp: Date.now(),
             text: text,
             name: fileName
         });
@@ -78,7 +83,17 @@ function App() {
             onClose={handleCloseCopyHistory}
             onDelete={handleDeleteCopyHistoryItem} />
         <Switch>
-            <Route exact path="/" render={() => (<Redirect to="/browse" />)} />
+            <Route exact path="/" render={() => {
+                const params = new URLSearchParams(window.location.search);
+                const videoFile = params.get('video');
+                const channel = params.get('channel');
+
+                if (videoFile && channel) {
+                    return (<Redirect to={"/video?video=" + videoFile + "&channel=" + channel} />);
+                }
+
+                return (<Redirect to="/browse" />)
+            }} />
             <Route exact path="/browse">
                 <Bar onOpenCopyHistory={handleOpenCopyHistory} />
                 <Browser api={api} onOpenDirectory={handleOpenPath} onOpenMedia={handleOpenMedia} />
@@ -87,7 +102,10 @@ function App() {
                 <Bar onOpenCopyHistory={handleOpenCopyHistory} />
                 <Browser api={api} onOpenDirectory={handleOpenPath} onOpenMedia={handleOpenMedia} />
             </Route>
-            <Route path="/view">
+            <Route exact path="/video">
+                <VideoPlayer api={api} />
+            </Route>
+            <Route exact path="/view">
                 <Bar onOpenCopyHistory={handleOpenCopyHistory} />
                 <Player api={api} onCopy={handleCopy} />
             </Route>
