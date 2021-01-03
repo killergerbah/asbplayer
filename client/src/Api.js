@@ -2,7 +2,7 @@ export default function Api() {
     this.baseUrl = "http://localhost:8080";
 
     function encode(path) {
-        return path.replace('/', '\\').split('\\').map((part) => encodeURIComponent(part)).join('/');
+        return path.replaceAll('/', '\\').split('\\').map((part) => encodeURIComponent(part)).join('/');
     };
 
     this.list = function(path) {

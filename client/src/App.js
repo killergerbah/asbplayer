@@ -47,7 +47,7 @@ function App() {
     }, [history]);
 
     const handleOpenPath = useCallback((path) => {
-        history.push('/browse/' + encodeURIComponent(path))
+        history.push('/browse/' + path)
     }, [history]);
 
     let { path } = useParams();
