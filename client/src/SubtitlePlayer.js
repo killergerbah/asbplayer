@@ -100,13 +100,15 @@ export default function SubtitlePlayer(props) {
             lastScrollTimestampRef.current = Date.now();
         };
 
-        if (tableRef.current) {
-            tableRef.current.addEventListener('wheel', handleScroll);
+        const table = tableRef.current;
+
+        if (table) {
+            table.addEventListener('wheel', handleScroll);
         }
 
         return () => {
-            if (tableRef.current) {
-                tableRef.current.removeEventListener('wheel', handleScroll);
+            if (table) {
+                table.removeEventListener('wheel', handleScroll);
             }
         };
     }, [tableRef, lastScrollTimestampRef]);
