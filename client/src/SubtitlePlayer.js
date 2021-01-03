@@ -48,7 +48,14 @@ export default function SubtitlePlayer(props) {
         const interval = setInterval(() => {
             const length = props.length;
             const progress = clock.progress(length);
-            const currentSubtitleIndex = subtitles.findIndex(s => s.end / length > progress);
+            let currentSubtitleIndex = -1;
+
+            for (let i = subtitles.length - 1; i >=0; --i) {
+                if (progress >= subtitles[i].start / length) {
+                    currentSubtitleIndex = i;
+                    break;
+                }
+            }
 
             if (currentSubtitleIndex !== -1 && currentSubtitleIndex !== selectedSubtitleIndex) {
                 setSelectedSubtitleIndex(currentSubtitleIndex);
