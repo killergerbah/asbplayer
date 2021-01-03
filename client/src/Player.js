@@ -38,7 +38,7 @@ function displayTime(milliseconds, totalMilliseconds) {
         units.push(digit);
     }
 
-    return units.map((unit) => String(unit).padStart(2, '0')).join(':') + "." + (String((milliseconds % 1000) / 10)).padEnd(2, '0');
+    return units.map((unit) => String(unit).padStart(2, '0')).join(':') + "." + (String(milliseconds % 1000)).padEnd(3, '0');
 }
 
 function trackLength(audioRef, subtitles) {
