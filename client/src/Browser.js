@@ -1,8 +1,11 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
+import AudiotrackIcon from '@material-ui/icons/Audiotrack';
+import FolderIcon from '@material-ui/icons/Folder';
 import Paper from '@material-ui/core/Paper';
 import Link from '@material-ui/core/Link';
+import SubtitlesIcon from '@material-ui/icons/Subtitles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -18,6 +21,21 @@ const useStyles = makeStyles({
     maxHeight: '100vh',
   },
 });
+
+function ItemTypeIcons(props) {
+    const item = props.item;
+
+    if (item.type === "directory") {
+        return <div><FolderIcon /></div>
+    }
+
+    return (
+        <div>
+            {item.audioFile ? <AudiotrackIcon /> : null}
+            {item.subtitleFile ? <SubtitlesIcon /> : null}
+        </div>
+    );
+}
 
 export default function Browser(props) {
     const [items, setItems] = useState([]);
@@ -56,14 +74,18 @@ export default function Browser(props) {
                     <TableHead>
                         <TableRow>
                             <TableCell>Name</TableCell>
+                            <TableCell>Type</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {items.map(i => {
                             return (
-                                <TableRow key = {i.name}>
+                                <TableRow key={i.name}>
                                     <TableCell>
                                         <Link component="button" variant="body2" onClick={() => handleItem(i)}>{i.name}</Link>
+                                    </TableCell>
+                                    <TableCell>
+                                        <ItemTypeIcons item={i} />
                                     </TableCell>
                                 </TableRow>
                             );
