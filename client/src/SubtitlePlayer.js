@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo, createRef } from 'react';
+import { useCallback, useEffect, useState, useMemo, useRef, createRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
@@ -40,6 +40,8 @@ export default function SubtitlePlayer(props) {
     const subtitles = props.subtitles;
     const subtitleRefs = useMemo(() => Array(subtitles.length).fill().map((_, i) => createRef()), [subtitles]);
     const [selectedSubtitleIndex, setSelectedSubtitleIndex] = useState(0);
+    const lastScrollTimestampRef = useRef(0);
+    const tableRef = createRef();
     const classes = useSubtitlePlayerStyles();
 
     useEffect(() => {
@@ -49,16 +51,17 @@ export default function SubtitlePlayer(props) {
             const currentSubtitleIndex = subtitles.findIndex(s => s.end / length > progress);
 
             if (currentSubtitleIndex !== -1 && currentSubtitleIndex !== selectedSubtitleIndex) {
-                 setSelectedSubtitleIndex(currentSubtitleIndex);
-                 const selectedSubtitleRef = subtitleRefs[currentSubtitleIndex];
+                setSelectedSubtitleIndex(currentSubtitleIndex);
+                const selectedSubtitleRef = subtitleRefs[currentSubtitleIndex];
+                const allowScroll = Date.now() - lastScrollTimestampRef.current > 5000;
 
-                 if (selectedSubtitleRef.current) {
-                     selectedSubtitleRef.current.scrollIntoView({
+                if (selectedSubtitleRef.current && allowScroll) {
+                    selectedSubtitleRef.current.scrollIntoView({
                         block: "center",
                         inline: "nearest",
                         behavior: "smooth"
                     });
-                 }
+                }
             }
         }, 100);
         return () => clearInterval(interval);
@@ -81,9 +84,7 @@ export default function SubtitlePlayer(props) {
             }
 
             event.preventDefault();
-
             const progress = props.subtitles[newSubtitleIndex].start / props.length;
-
             props.onSeek(progress, false);
         };
 
@@ -93,6 +94,22 @@ export default function SubtitlePlayer(props) {
             window.removeEventListener('keydown', handleKey);
         };
     }, [props, selectedSubtitleIndex, subtitles]);
+
+    useEffect(() => {
+        function handleScroll(event) {
+            lastScrollTimestampRef.current = Date.now();
+        };
+
+        if (tableRef.current) {
+            tableRef.current.addEventListener('wheel', handleScroll);
+        }
+
+        return () => {
+            if (tableRef.current) {
+                tableRef.current.removeEventListener('wheel', handleScroll);
+            }
+        };
+    }, [tableRef, lastScrollTimestampRef]);
 
 
     const handleClick = useCallback((subtitleIndex) => {
@@ -110,7 +127,7 @@ export default function SubtitlePlayer(props) {
     }
 
     return (
-        <TableContainer className={classes.container}>
+        <TableContainer ref={tableRef} className={classes.container}>
             <Table>
                 <TableBody>
                     {props.subtitles.map((s, index) => {
