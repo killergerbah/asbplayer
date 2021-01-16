@@ -1,8 +1,8 @@
 package org.gerbil.asbplayer;
 
+import io.github.killergerbah.jsubtitle.ass.AssFile;
+import io.github.killergerbah.jsubtitle.srt.SrtSubtitle;
 import org.gerbil.asbplayer.model.Subtitle;
-import org.gerbil.jsubtitle.ass.AssFile;
-import org.gerbil.jsubtitle.srt.SrtSubtitle;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
