@@ -8,10 +8,10 @@ The application is written using React, with a Java-based server as a backend.
 ### Active immersion
 1. Stream target language media with no subtitles e.g. on Netflix.
 2. Play the subtitles in a separate browser tab using this application.
-3. If a word you don't know comes up, quickly switch to the application and use a popup
-dictionary to look up the word. 
+3. If a word you don't know comes up, quickly switch to the application and use a popup dictionary to look up the word. 
 4. Use the 'copy' button to copy the sentence for mining if desired.
 5. Works better if there are two monitors, one with the stream and the other with the subtitles.
+6. You can also use something like [Clipboard Inserter](https://chrome.google.com/webstore/detail/clipboard-inserter/deahejllghicakhplliloeheabddjajm) to collect copied sentences in another browser tab.
 
 ### Passive immersion
 
