@@ -6,6 +6,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class AsbplayerApplicationTests {
 
+	static {
+		System.setProperty("root", "test");
+	}
+
 	@Test
 	void contextLoads() {
 	}
