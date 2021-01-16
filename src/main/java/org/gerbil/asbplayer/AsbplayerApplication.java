@@ -1,6 +1,7 @@
 package org.gerbil.asbplayer;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.content.fs.config.EnableFilesystemStores;
@@ -13,6 +14,9 @@ import java.io.File;
 @EnableFilesystemStores
 public class AsbplayerApplication {
 
+	@Value("${root}")
+	private String root;
+
 	public static void main(String[] args) {
 		SpringApplication.run(AsbplayerApplication.class, args);
 	}
@@ -20,7 +24,7 @@ public class AsbplayerApplication {
 	@Bean
 	@Qualifier("root")
 	public File filesystemRoot() {
-		return new File("E:\\");
+		return new File(root);
 	}
 
 	@Bean
