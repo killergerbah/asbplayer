@@ -55,11 +55,12 @@ export default function Player(props) {
     const audioRef = useRef(null);
     const clock = useMemo(() => new Clock(), []);
     const classes = useStyles();
-    const { subtitleFile, audioFile } = useMemo(() => {
+    const { subtitleFile, audioFile, fileName } = useMemo(() => {
         const params = new URLSearchParams(window.location.search);
         return {
             audioFile: params.get('audio'),
-            subtitleFile: params.get('subtitle')
+            subtitleFile: params.get('subtitle'),
+            fileName: params.get('name')
         };
     }, []);
 
@@ -136,6 +137,10 @@ export default function Player(props) {
         }
     }, [clock, length, seek]);
 
+    const handleCopy = useCallback((text) => {
+        props.onCopy(text, fileName);
+    }, [props, fileName]);
+
     function handleMouseMove(e) {
         mousePositionRef.current.x = e.screenX;
         mousePositionRef.current.y = e.screenY;
@@ -177,7 +182,8 @@ export default function Player(props) {
                 subtitles={subtitles}
                 clock={clock}
                 length={length}
-                onSeek={handleSeekToSubtitle} />
+                onSeek={handleSeekToSubtitle}
+                onCopy={handleCopy} />
             {audioFile ? <audio ref={audioRef} src={props.api.streamingUrl(audioFile)} /> : null}
         </div>
     );

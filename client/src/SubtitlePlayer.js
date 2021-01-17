@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState, useMemo, useRef, createRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import MuiAlert from '@material-ui/lab/Alert';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
+import Snackbar from '@material-ui/core/Snackbar';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -40,6 +42,8 @@ export default function SubtitlePlayer(props) {
     const subtitles = props.subtitles;
     const subtitleRefs = useMemo(() => Array(subtitles.length).fill().map((_, i) => createRef()), [subtitles]);
     const [selectedSubtitleIndex, setSelectedSubtitleIndex] = useState(0);
+    const [copyAlertOpen, setCopyAlertOpen] = useState(false);
+    const [lastCopiedSubtitle, setLastCopiedSubtitle] = useState(null);
     const lastScrollTimestampRef = useRef(0);
     const tableRef = createRef();
     const classes = useSubtitlePlayerStyles();
@@ -126,45 +130,60 @@ export default function SubtitlePlayer(props) {
         props.onSeek(progress, !props.playing && subtitleIndex === selectedSubtitleIndex);
     }, [props, selectedSubtitleIndex]);
 
-    function handleCopy(event, subtitleIndex) {
+    const handleCopy = useCallback((event, subtitleIndex) => {
         event.stopPropagation();
-        navigator.clipboard.writeText(props.subtitles[subtitleIndex].text);
-    };
+        const text = props.subtitles[subtitleIndex].text;
+        navigator.clipboard.writeText(text);
+        props.onCopy(text);
+        setLastCopiedSubtitle(text);
+        setCopyAlertOpen(true);
+    }, [props]);
+
+    const handleCopyAlertClosed = useCallback(() => {
+        setCopyAlertOpen(false);
+    }, [setCopyAlertOpen]);
 
     if (subtitles.length === 0) {
         return null;
     }
 
     return (
-        <TableContainer ref={tableRef} className={classes.container}>
-            <Table>
-                <TableBody>
-                    {props.subtitles.map((s, index) => {
-                        const selected = index === selectedSubtitleIndex;
-                        const className = selected ? classes.selectedSubtitle : classes.subtitle;
+        <div>
+            <TableContainer ref={tableRef} className={classes.container}>
+                <Table>
+                    <TableBody>
+                        {props.subtitles.map((s, index) => {
+                            const selected = index === selectedSubtitleIndex;
+                            const className = selected ? classes.selectedSubtitle : classes.subtitle;
 
-                        return (
-                            <TableRow
-                                onClick={(e) => handleClick(index)}
-                                key={index}
-                                ref={subtitleRefs[index]}
-                                selected={selected}>
-                                <TableCell className={className}>
-                                    {s.text}
-                                </TableCell>
-                                <TableCell className={classes.copyButton}>
-                                    <IconButton onClick={(e) => handleCopy(e, index)}>
-                                        <FileCopy />
-                                    </IconButton>
-                                </TableCell>
-                                <TableCell className={classes.timestamp}>
-                                    {s.displayTime}
-                                </TableCell>
-                            </TableRow>
-                        );
-                    })}
-                </TableBody>
-            </Table>
-        </TableContainer>
+                            return (
+                                <TableRow
+                                    onClick={(e) => handleClick(index)}
+                                    key={index}
+                                    ref={subtitleRefs[index]}
+                                    selected={selected}>
+                                    <TableCell className={className}>
+                                        {s.text}
+                                    </TableCell>
+                                    <TableCell className={classes.copyButton}>
+                                        <IconButton onClick={(e) => handleCopy(e, index)}>
+                                            <FileCopy />
+                                        </IconButton>
+                                    </TableCell>
+                                    <TableCell className={classes.timestamp}>
+                                        {s.displayTime}
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+            <Snackbar open={copyAlertOpen} onClose={handleCopyAlertClosed} autoHideDuration={3000}>
+                <MuiAlert onClose={handleCopyAlertClosed} severity="success">
+                    Copied {lastCopiedSubtitle}
+                </MuiAlert>
+            </Snackbar>
+        </div>
     );
 }

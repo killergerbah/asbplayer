@@ -3,6 +3,7 @@ import React, { useCallback, useState, useMemo } from 'react';
 import theme from './theme';
 import Api from './Api.js';
 import Bar from './Bar.js';
+import CopyHistory from './CopyHistory.js';
 import Browser from './Browser.js';
 import Player from './Player.js';
 import {
@@ -17,6 +18,10 @@ import {
 function App() {
     const api = useMemo(() => new Api(), []);
     const history = useHistory();
+    const [copiedSubtitles, setCopiedSubtitles] = useState([]);
+    const [copyHistoryOpen, setCopyHistoryOpen] = useState(false);
+    const [copyHistoryAnchorEl, setCopyHistoryAnchorEl] = useState(null);
+
     const handleOpenMedia = useCallback((media) => {
         var parameters = [];
 
@@ -37,22 +42,44 @@ function App() {
         history.push('/browse/' + path);
     }, [history]);
 
+    const handleCopy = useCallback((text, fileName) => {
+        copiedSubtitles.push({
+            timestamp: new Date().getTime(),
+            text: text,
+            name: fileName
+        });
+        setCopiedSubtitles(copiedSubtitles);
+    }, [setCopiedSubtitles, copiedSubtitles]);
+
+    const handleOpenCopyHistory = useCallback((event) => {
+        setCopyHistoryOpen(!copyHistoryOpen);
+        setCopyHistoryAnchorEl(event.currentTarget);
+    }, [setCopyHistoryOpen, copyHistoryOpen, setCopyHistoryAnchorEl]);
+
+    const handleCloseCopyHistory = useCallback(() => {
+        setCopyHistoryOpen(false);
+        setCopyHistoryAnchorEl(null);
+    }, [setCopyHistoryOpen, setCopyHistoryAnchorEl]);
+
     return (
+        <div>
+        <CopyHistory items={copiedSubtitles} open={copyHistoryOpen} anchorEl={copyHistoryAnchorEl} onClose={handleCloseCopyHistory} />
         <Switch>
             <Route exact path="/" render={() => (<Redirect to="/browse" />)} />
             <Route exact path="/browse">
-                <Bar />
+                <Bar onOpenCopyHistory={handleOpenCopyHistory} />
                 <Browser api={api} onOpenDirectory={handleOpenPath} onOpenMedia={handleOpenMedia} />
             </Route>
             <Route exact path="/browse/:path+">
-                <Bar />
+                <Bar onOpenCopyHistory={handleOpenCopyHistory} />
                 <Browser api={api} onOpenDirectory={handleOpenPath} onOpenMedia={handleOpenMedia} />
             </Route>
             <Route path="/view">
-                <Bar />
-                <Player api={api} />
+                <Bar onOpenCopyHistory={handleOpenCopyHistory} />
+                <Player api={api} onCopy={handleCopy} />
             </Route>
         </Switch>
+        </div>
     );
 }
 

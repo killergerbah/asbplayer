@@ -17,9 +17,12 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Bar(props) {
     const classes = useStyles();
+
+    // If we are in browser
     let { path } = useParams();
 
     if (!path) {
+        // If we are in player
         const params = new URLSearchParams(window.location.search);
         path = params.get('name');
     }
@@ -30,6 +33,9 @@ export default function Bar(props) {
                 <Typography variant="h6" className={classes.title}>
                     {path || '/'}
                 </Typography>
+                <IconButton edge="end" color="inherit" aria-label="menu" onClick={props.onOpenCopyHistory}>
+                    <ListIcon />
+                </IconButton>
             </Toolbar>
         </AppBar>
     );
