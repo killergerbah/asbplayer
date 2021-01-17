@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 import AudiotrackIcon from '@material-ui/icons/Audiotrack';
 import FolderIcon from '@material-ui/icons/Folder';
-import Paper from '@material-ui/core/Paper';
 import Link from '@material-ui/core/Link';
 import SubtitlesIcon from '@material-ui/icons/Subtitles';
 import Table from '@material-ui/core/Table';
@@ -14,12 +13,12 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 
 const useStyles = makeStyles({
-  root: {
-    width: '100%',
-  },
-  container: {
-    maxHeight: '100vh',
-  },
+    root: {
+        width: '100%',
+        height: 'calc(100vh - 64px)',
+        position: 'relative',
+        overflowX: 'hidden'
+    }
 });
 
 function ItemTypeIcons(props) {
@@ -68,8 +67,8 @@ export default function Browser(props) {
     };
 
     return (
-        <Paper square className={classes.root}>
-            <TableContainer className={classes.container}>
+        <div className={classes.root}>
+            <TableContainer>
                 <Table stickyHeader>
                     <TableHead>
                         <TableRow>
@@ -93,6 +92,6 @@ export default function Browser(props) {
                     </TableBody>
                 </Table>
             </TableContainer>
-        </Paper>
+        </div>
     );
 }

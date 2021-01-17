@@ -1,11 +1,8 @@
 import { makeStyles } from '@material-ui/core/styles';
 import React, { useCallback, useState, useMemo } from 'react';
-import Container from '@material-ui/core/Container';
-import Modal from '@material-ui/core/Modal';
-import Typography from '@material-ui/core/Typography';
-import Box from '@material-ui/core/Box';
 import theme from './theme';
 import Api from './Api.js';
+import Bar from './Bar.js';
 import Browser from './Browser.js';
 import Player from './Player.js';
 import {
@@ -16,18 +13,6 @@ import {
     useHistory,
     useParams
 } from "react-router-dom";
-
-const useModalStyles = makeStyles((theme) => ({
-    container: {
-        outline: 'none'
-    },
-    modal: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        outline: 'none'
-    }
-}));
 
 function App() {
     const api = useMemo(() => new Api(), []);
@@ -43,25 +28,28 @@ function App() {
             parameters.push('subtitle=' + encodeURIComponent(media.subtitleFile.path));
         }
 
+        parameters.push('name=' + encodeURIComponent(media.name));
+
         history.push('/view?' + parameters.join('&'));
     }, [history]);
 
     const handleOpenPath = useCallback((path) => {
-        history.push('/browse/' + path)
+        history.push('/browse/' + path);
     }, [history]);
-
-    let { path } = useParams();
 
     return (
         <Switch>
             <Route exact path="/" render={() => (<Redirect to="/browse" />)} />
             <Route exact path="/browse">
+                <Bar />
                 <Browser api={api} onOpenDirectory={handleOpenPath} onOpenMedia={handleOpenMedia} />
             </Route>
             <Route exact path="/browse/:path+">
+                <Bar />
                 <Browser api={api} onOpenDirectory={handleOpenPath} onOpenMedia={handleOpenMedia} />
             </Route>
             <Route path="/view">
+                <Bar />
                 <Player api={api} />
             </Route>
         </Switch>

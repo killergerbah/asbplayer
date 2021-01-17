@@ -1,14 +1,12 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import Paper from '@material-ui/core/Paper';
 import Clock from './Clock';
 import Controls from './Controls';
 import SubtitlePlayer from './SubtitlePlayer';
 
 const useStyles = makeStyles({
-    container: {
-        height: '100vh',
-        width: '100vw',
+    root: {
+        height: 'calc(100vh - 64px)',
         position: 'relative',
         overflowX: 'hidden'
     }
@@ -165,7 +163,7 @@ export default function Player(props) {
     }
 
     return (
-        <Paper onMouseMove={handleMouseMove} square className={classes.container}>
+        <div onMouseMove={handleMouseMove} className={classes.root}>
             <Controls
                 mousePositionRef={mousePositionRef}
                 playing={playing}
@@ -181,6 +179,6 @@ export default function Player(props) {
                 length={length}
                 onSeek={handleSeekToSubtitle} />
             {audioFile ? <audio ref={audioRef} src={props.api.streamingUrl(audioFile)} /> : null}
-        </Paper>
+        </div>
     );
 }

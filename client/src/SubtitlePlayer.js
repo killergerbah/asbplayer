@@ -10,7 +10,7 @@ import TableRow from '@material-ui/core/TableRow';
 
 const useSubtitlePlayerStyles = makeStyles({
     container: {
-        height: '100vh',
+        height: 'calc(100vh - 64px)',
         width: '100vw',
         position: 'relative',
         overflowX: 'hidden'
