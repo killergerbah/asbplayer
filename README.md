@@ -37,6 +37,6 @@ along with condensed subtitles that can be played using this application.
 5. Find a subtitle file to play in the browser. If there is an audio file with the same name as the subtitle file then
 it will be used as the audio stream.
 
-![Player preview](https://i.imgur.com/AB6ItO9.gif)
+![Player preview](https://i.imgur.com/f0eFEsc.gif)
 
 
