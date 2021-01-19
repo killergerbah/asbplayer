@@ -12,7 +12,7 @@ export default function CopyHistory(props) {
         for (const item of props.items) {
             if (lastSeenItemName === null || lastSeenItemName !== item.name) {
                 lastSeenItemName = item.name;
-                content.push((<ListSubheader key={item.name}>{item.name}</ListSubheader>));
+                content.push((<ListSubheader disableSticky={true} key={item.name}>{item.name}</ListSubheader>));
             }
             content.push((<ListItem key={item.timestamp}>{item.text}</ListItem>));
         }
