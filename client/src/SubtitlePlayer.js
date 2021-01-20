@@ -43,7 +43,8 @@ const useAlertStyles = makeStyles({
         justifyContent: 'center',
         position: 'fixed',
         top: 80,
-        width: '100%'
+        width: '100%',
+        pointerEvents: 'none'
     }
 });
 
