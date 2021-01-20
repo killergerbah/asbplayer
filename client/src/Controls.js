@@ -130,18 +130,28 @@ export default function Controls(props) {
     const lastMousePositionRef = useRef({x: 0, y: 0});
     const lastShowTimestampRef = useRef(Date.now());
     const lastShowRef = useRef(true);
+    const forceShowRef = useRef(false);
     const [, updateState] = useState();
     const forceUpdate = useCallback(() => updateState({}), []);
 
-    function handleSeek(progress) {
+    const handleSeek = useCallback((progress) => {
         props.onSeek(progress);
+    }, [props.onSeek]);
+
+    function handleMouseOver(e) {
+        forceShowRef.current = true;
+    };
+
+    function handleMouseOut(e) {
+        forceShowRef.current = false;
     };
 
     useEffect(() => {
         const interval = setInterval(() => {
             const currentShow = Date.now() - lastShowTimestampRef.current < 2000
                 || Math.pow(props.mousePositionRef.current.x - lastMousePositionRef.current.x, 2)
-                    + Math.pow(props.mousePositionRef.current.y - lastMousePositionRef.current.y, 2) > 100;
+                    + Math.pow(props.mousePositionRef.current.y - lastMousePositionRef.current.y, 2) > 100
+                || forceShowRef.current;
 
             if (currentShow && !lastShowRef.current) {
                 lastShowTimestampRef.current = Date.now();
@@ -188,7 +198,7 @@ export default function Controls(props) {
     const progress = props.clock.progress(props.length);
 
     return (
-        <div className={classes.container}>
+        <div className={classes.container} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
             <Fade in={show} timeout={200}>
                 <div className={classes.paper}>
                     <ProgressBar
