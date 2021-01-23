@@ -1,9 +1,13 @@
 import { useCallback } from 'react';
 import Popover from '@material-ui/core/Popover';
+import IconButton from '@material-ui/core/IconButton';
+import DeleteIcon from '@material-ui/icons/Delete';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListSubheader from '@material-ui/core/ListSubheader';
-
 
 export default function CopyHistory(props) {
     const scrollToBottomRefCallback =  useCallback(element => {
@@ -25,11 +29,18 @@ export default function CopyHistory(props) {
                 content.push((<ListSubheader disableSticky={true} key={item.name}>{item.name}</ListSubheader>));
             }
 
-            if (i === props.items.length - 1) {
-                content.push((<ListItem ref={scrollToBottomRefCallback} key={item.timestamp}>{item.text}</ListItem>));
-            } else {
-                content.push((<ListItem key={item.timestamp}>{item.text}</ListItem>));
-            }
+            const ref = i === props.items.length - 1 ? scrollToBottomRefCallback : null;
+
+            content.push((
+                <ListItem ref={ref} key={item.timestamp}>
+                    <ListItemIcon>
+                        <IconButton onClick={() => props.onDelete(item)}>
+                            <DeleteIcon />
+                        </IconButton>
+                    </ListItemIcon>
+                    <ListItemText>{item.text}</ListItemText>
+                </ListItem>
+            ));
 
             ++i;
         }

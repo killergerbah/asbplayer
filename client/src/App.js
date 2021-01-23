@@ -1,6 +1,4 @@
-import { makeStyles } from '@material-ui/core/styles';
 import React, { useCallback, useState, useMemo } from 'react';
-import theme from './theme';
 import Api from './Api.js';
 import Bar from './Bar.js';
 import CopyHistory from './CopyHistory.js';
@@ -10,9 +8,7 @@ import {
     Route,
     Redirect,
     Switch,
-    Link,
-    useHistory,
-    useParams
+    useHistory
 } from "react-router-dom";
 
 function App() {
@@ -61,9 +57,26 @@ function App() {
         setCopyHistoryAnchorEl(null);
     }, [setCopyHistoryOpen, setCopyHistoryAnchorEl]);
 
+    const handleDeleteCopyHistoryItem = useCallback(item => {
+        const newCopiedSubtitles = [];
+
+        for (let subtitle of copiedSubtitles) {
+            if (item.timestamp !== subtitle.timestamp) {
+                newCopiedSubtitles.push(subtitle);
+            }
+        }
+
+        setCopiedSubtitles(newCopiedSubtitles);
+    }, [copiedSubtitles, setCopiedSubtitles]);
+
     return (
         <div>
-        <CopyHistory items={copiedSubtitles} open={copyHistoryOpen} anchorEl={copyHistoryAnchorEl} onClose={handleCloseCopyHistory} />
+        <CopyHistory
+            items={copiedSubtitles}
+            open={copyHistoryOpen}
+            anchorEl={copyHistoryAnchorEl}
+            onClose={handleCloseCopyHistory}
+            onDelete={handleDeleteCopyHistoryItem} />
         <Switch>
             <Route exact path="/" render={() => (<Redirect to="/browse" />)} />
             <Route exact path="/browse">
