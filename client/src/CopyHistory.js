@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import Popover from '@material-ui/core/Popover';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
+import FileCopyIcon from '@material-ui/icons/FileCopy';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -33,6 +34,11 @@ export default function CopyHistory(props) {
 
             content.push((
                 <ListItem ref={ref} key={item.timestamp}>
+                    <ListItemIcon>
+                        <IconButton onClick={(e) => navigator.clipboard.writeText(item.text)}>
+                            <FileCopyIcon />
+                        </IconButton>
+                    </ListItemIcon>
                     <ListItemIcon>
                         <IconButton onClick={() => props.onDelete(item)}>
                             <DeleteIcon />
