@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import Popover from '@material-ui/core/Popover';
+import AudiotrackIcon from '@material-ui/icons/Audiotrack';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
@@ -37,6 +38,11 @@ export default function CopyHistory(props) {
                     <ListItemIcon>
                         <IconButton onClick={(e) => navigator.clipboard.writeText(item.text)}>
                             <FileCopyIcon />
+                        </IconButton>
+                    </ListItemIcon>
+                    <ListItemIcon>
+                        <IconButton disabled={!item.audioFile} onClick={() => props.onClipAudio(item)}>
+                            <AudiotrackIcon />
                         </IconButton>
                     </ListItemIcon>
                     <ListItemIcon>

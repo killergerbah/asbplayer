@@ -42,7 +42,7 @@ export default function VideoPlayer(props) {
                     if (window.outerWidth) {
                         const desiredWidth = element.videoWidth + (window.outerWidth - window.innerWidth);
                         const desiredHeight = element.videoHeight + (window.outerHeight - window.innerHeight);
-                        const resizeRatio = Math.min(window.screen.width / desiredWidth, window.screen.height / desiredHeight);
+                        const resizeRatio = Math.max(1, Math.min(window.screen.width / desiredWidth, window.screen.height / desiredHeight));
 
                         window.resizeTo(
                             resizeRatio * desiredWidth,

@@ -182,9 +182,16 @@ export default function Player(props) {
         }
     }, [clock, subtitles, seek]);
 
-    const handleCopy = useCallback((text) => {
-        props.onCopy(text, fileName);
-    }, [props, fileName]);
+    const handleCopy = useCallback((text, start, end) => {
+        props.onCopy(
+            text,
+            start,
+            end,
+            fileName,
+            audioFile ? audioFile : videoFile,
+            videoFile
+        );
+    }, [props, fileName, audioFile, videoFile]);
 
     function handleMouseMove(e) {
         mousePositionRef.current.x = e.screenX;

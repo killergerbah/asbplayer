@@ -166,9 +166,10 @@ export default function SubtitlePlayer(props) {
 
     const handleCopy = useCallback((event, subtitleIndex) => {
         event.stopPropagation();
-        const text = props.subtitles[subtitleIndex].text;
+        const subtitle = props.subtitles[subtitleIndex];
+        const text = subtitle.text;
         navigator.clipboard.writeText(text);
-        props.onCopy(text);
+        props.onCopy(text, subtitle.start, subtitle.end);
         setLastCopiedSubtitle(text);
         setCopyAlertOpen(true);
     }, [props]);

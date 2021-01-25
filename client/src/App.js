@@ -43,11 +43,15 @@ function App() {
         history.push('/browse/' + path);
     }, [history]);
 
-    const handleCopy = useCallback((text, fileName) => {
+    const handleCopy = useCallback((text, start, end, fileName, audioFile, videoFile) => {
         copiedSubtitles.push({
             timestamp: Date.now(),
             text: text,
-            name: fileName
+            start: start,
+            end: end,
+            name: fileName,
+            audioFile: audioFile,
+            videoFile: videoFile
         });
         setCopiedSubtitles(copiedSubtitles);
     }, [setCopiedSubtitles, copiedSubtitles]);
@@ -74,6 +78,10 @@ function App() {
         setCopiedSubtitles(newCopiedSubtitles);
     }, [copiedSubtitles, setCopiedSubtitles]);
 
+    const handleClipAudio = useCallback(item => {
+        api.clipAudio(item.name, item.audioFile, item.start, item.end);
+    }, [api]);
+
     return (
         <div>
         <CopyHistory
@@ -81,7 +89,8 @@ function App() {
             open={copyHistoryOpen}
             anchorEl={copyHistoryAnchorEl}
             onClose={handleCloseCopyHistory}
-            onDelete={handleDeleteCopyHistoryItem} />
+            onDelete={handleDeleteCopyHistoryItem}
+            onClipAudio={handleClipAudio} />
         <Switch>
             <Route exact path="/" render={() => {
                 const params = new URLSearchParams(window.location.search);

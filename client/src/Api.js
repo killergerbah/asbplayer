@@ -18,4 +18,29 @@ export default function Api() {
     this.streamingUrl = function(path) {
         return this.baseUrl + "/stream/" + encode(path);
     };
+
+    this.clipAudio = function(fileName, path, start, end) {
+        return fetch(this.baseUrl + "/clip/audio", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                path: path,
+                start: start,
+                end: end
+            })
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            const a = document.createElement("a");
+            document.body.appendChild(a);
+            a.style = "display: none";
+            const url = window.URL.createObjectURL(blob);
+            a.href = url;
+            a.download = fileName + "_" + start + "_" + end + ".mp3";
+            a.click();
+            window.URL.revokeObjectURL(url);
+        });
+    }
 }
