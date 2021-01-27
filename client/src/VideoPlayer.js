@@ -1,5 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import Clock from './Clock';
+import Controls from './Controls';
+import PlayerChannel from './PlayerChannel';
 
 const useStyles = makeStyles({
     root: {
@@ -24,18 +27,18 @@ export default function VideoPlayer(props) {
             channel: params.get('channel')
         };
     }, []);
-    const broadcastChannelRef = useRef(new BroadcastChannel(channel));
+    const [playing, setPlaying] = useState(false);
+    const [length, setLength] = useState(0);
+    const clock = useMemo(() => new Clock(), []);
+    const mousePositionRef = useRef({x:0, y:0});
+    const playerChannelRef = useRef(new PlayerChannel(channel));
     const videoRef = useRef(null);
     const videoRefCallback = useCallback(element => {
         if (element) {
             videoRef.current = element;
 
-            function publishReady(duration) {
-                broadcastChannelRef.current.postMessage({command: 'ready', duration: duration});
-            }
-
             if (element.duration) {
-                publishReady(element.duration);
+                playerChannelRef.current.ready(element.duration);
             } else {
                 element.onloadeddata = (event) => {
                     // https://stackoverflow.com/questions/10385768/how-do-you-resize-a-browser-window-so-that-the-inner-width-is-a-specific-value
@@ -50,49 +53,84 @@ export default function VideoPlayer(props) {
                         );
                     }
 
-                    publishReady(element.duration);
+                    playerChannelRef.current.ready(element.duration);
                 };
             }
         }
     }, []);
 
     useEffect(() => {
-        broadcastChannelRef.current.onmessage = function(event) {
-            if (!videoRef.current) {
-                return;
-            }
-
-            switch (event.data.command) {
-                case "play":
-                    videoRef.current.play();
-                    break;
-                case "pause":
-                    videoRef.current.pause();
-                    break;
-                case "currentTime":
-                    videoRef.current.currentTime = event.data.value;
-                    break;
-                case "close":
-                    broadcastChannelRef.current.close();
-                    broadcastChannelRef.current = null;
-                    window.close();
-                    break;
-                default:
-                    console.error("Unrecognized event " + event.data.command);
-            }
-        };
+        playerChannelRef.current.onReady((duration) => {
+            setLength(duration);
+        });
+        playerChannelRef.current.onPlay(() => {
+            videoRef.current.play();
+            clock.start();
+            setPlaying(true);
+        });
+        playerChannelRef.current.onPause(() => {
+            videoRef.current.pause();
+            clock.stop();
+            setPlaying(false);
+        });
+        playerChannelRef.current.onCurrentTime((currentTime) => {
+            console.log("currentTime=" + currentTime);
+            videoRef.current.currentTime = currentTime;
+            clock.setTime(currentTime * 1000);
+        });
+        playerChannelRef.current.onClose(() => {
+            playerChannelRef.current.close();
+            playerChannelRef.current = null;
+            window.close();
+        });
 
         return () => {
-            if (broadcastChannelRef.current) {
-                broadcastChannelRef.current.close();
-                broadcastChannelRef.current = null;
+            if (playerChannelRef.current) {
+                playerChannelRef.current.close();
             }
+        }
+    }, [clock, setPlaying]);
+
+    const handlePlay = useCallback(() => {
+        if (playerChannelRef.current) {
+            console.log('play');
+            playerChannelRef.current.play();
         }
     }, []);
 
+    const handlePause = useCallback(() => {
+        if (playerChannelRef.current) {
+            playerChannelRef.current.pause();
+        }
+    }, []);
+
+    const handleSeek = useCallback((progress) => {
+        if (playerChannelRef.current) {
+            const time = progress * length;
+            playerChannelRef.current.currentTime = time / 1000;
+        }
+    }, [length]);
+
+    function handleMouseMove(e) {
+        mousePositionRef.current.x = e.screenX;
+        mousePositionRef.current.y = e.screenY;
+    };
+
     return (
-        <div className={classes.root}>
-            <video controls={1} className={classes.video} ref={videoRefCallback} src={props.api.streamingUrl(videoFile)} />
+        <div onMouseMove={handleMouseMove} className={classes.root}>
+            <video
+                nocontrols={1}
+                className={classes.video}
+                ref={videoRefCallback}
+                src={props.api.streamingUrl(videoFile)} />
+            <Controls
+                mousePositionRef={mousePositionRef}
+                playing={playing}
+                clock={clock}
+                length={length}
+                onPlay={handlePlay}
+                onPause={handlePause}
+                onSeek={handleSeek} />
         </div>
     );
 }

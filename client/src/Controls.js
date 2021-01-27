@@ -2,10 +2,8 @@ import { useCallback, useEffect, useState, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Fade from '@material-ui/core/Fade';
 import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
 import PauseIcon from '@material-ui/icons/Pause';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
-import LinearProgress from '@material-ui/core/LinearProgress';
 import Typography from '@material-ui/core/Typography';
 
 const useControlStyles = makeStyles((theme) => ({
@@ -27,7 +25,7 @@ const useControlStyles = makeStyles((theme) => ({
         marginLeft: 10
     },
     paper: {
-        background: "linear-gradient(to bottom, rgba(0,0,0,0), rgba(96,96,96,1))",
+        background: "linear-gradient(to bottom, rgba(0,0,0,0), rgba(0, 0, 0, 0.5))",
         position: 'relative',
         left: '-50%',
         zIndex: 10,
@@ -83,7 +81,7 @@ const useProgressBarStyles = makeStyles((theme) => ({
         position: 'absolute',
         top: 5,
         left: 2,
-        filter: 'drop-shadow(10px 10px 10px #cccccc)'
+        filter: 'drop-shadow(3px 3px 3px rgba(0,0,0,0.3))'
     }
 }));
 

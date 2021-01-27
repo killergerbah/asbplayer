@@ -1,15 +1,7 @@
-export default function VideoChannel(channel) {
+export default function PlayerChannel(channel) {
     this.channel = new BroadcastChannel(channel);
     this.time = 0;
     this.duration = 0;
-    this.isReady = false;
-    this.readyCallbacks = [];
-    this.onReady = function(callback) {
-        if (this.isReady) {
-            callback();
-        }
-        this.readyCallbacks.push(callback);
-    };
     this.playCallbacks = [];
     this.onPlay = function(callback) {
         this.playCallbacks.push(callback);
@@ -17,10 +9,18 @@ export default function VideoChannel(channel) {
     this.pauseCallbacks = [];
     this.onPause = function(callback) {
         this.pauseCallbacks.push(callback);
-    }
+    };
     this.currentTimeCallbacks = [];
     this.onCurrentTime = function(callback) {
         this.currentTimeCallbacks.push(callback);
+    };
+    this.closeCallbacks = [];
+    this.onClose = function(callback) {
+        this.closeCallbacks.push(callback);
+    };
+    this.readyCallbacks = [];
+    this.onReady = function(callback) {
+        this.readyCallbacks.push(callback);
     }
 
     const that = this;
@@ -28,11 +28,8 @@ export default function VideoChannel(channel) {
     this.channel.onmessage = function(event) {
         switch(event.data.command) {
             case 'ready':
-                that.duration = event.data.duration;
-                that.isReady = true;
-
                 for (let callback of that.readyCallbacks) {
-                    callback();
+                    callback(event.data.duration);
                 }
                 break;
             case 'play':
@@ -50,6 +47,11 @@ export default function VideoChannel(channel) {
                     callback(event.data.value);
                 }
                 break;
+            case 'close':
+                for (let callback of that.closeCallbacks) {
+                    callback();
+                }
+                break;
             default:
                 console.error('Unrecognized event ' + event.data.command);
         }
@@ -57,7 +59,7 @@ export default function VideoChannel(channel) {
 
     this.ready = function(duration) {
         this.channel.postMessage({command: 'ready', duration: duration});
-    };
+    }
 
     this.play = function() {
         this.channel.postMessage({command: 'play'});
@@ -68,9 +70,9 @@ export default function VideoChannel(channel) {
     };
 
     this.close = function() {
-        this.channel.postMessage({command: 'close'});
         this.channel.close();
-    };
+        this.channel = null;
+    }
 
     Object.defineProperty(this, "currentTime", {
         get: function() {

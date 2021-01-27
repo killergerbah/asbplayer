@@ -71,6 +71,20 @@ export default function Player(props) {
             fileName: params.get('name')
         };
     }, []);
+    const seek = useCallback((progress, clock, length, audioRef, videoRef) => {
+        const time = progress * length;
+        clock.setTime(time);
+
+        if (audioRef.current) {
+            audioRef.current.currentTime = time / 1000;
+        }
+
+        if (videoRef.current) {
+            videoRef.current.currentTime = time / 1000;
+        }
+
+        forceUpdate();
+    }, [forceUpdate]);
 
     const init = useCallback(() => {
         if (subtitleFile) {
@@ -79,20 +93,32 @@ export default function Player(props) {
                     const length = res.subtitles.length > 0
                         ? res.subtitles[res.subtitles.length - 1].end - res.subtitles[0].start
                         : 0;
-                    setSubtitles(res.subtitles.map((s) => {
+                    const mappedSubtitles = res.subtitles.map((s) => {
                         return {text: s.text, start: s.start, end: s.end, displayTime: displayTime(s.start, length)};
-                    }));
+                    });
+                    setSubtitles(mappedSubtitles);
 
                     if (videoFile) {
                         const channel = String(Date.now());
                         const videoChannel = new VideoChannel(channel);
                         videoRef.current = videoChannel;
-
-                        if (videoChannel.loaded) {
+                        videoRef.current.onReady(() => {
                             setLoaded(true);
-                        } else {
-                            videoChannel.onLoaded(() => setLoaded(true));
-                        }
+                            if (videoRef.current) {
+                                videoRef.current.ready(trackLength(audioRef, videoRef, mappedSubtitles));
+                            }
+                        });
+                        videoRef.current.onPlay(() => {
+                            play(clock, audioRef, videoRef);
+                        });
+                        videoRef.current.onPause(() => {
+                            pause(clock, audioRef, videoRef);
+                        });
+                        videoRef.current.onCurrentTime((currentTime) => {
+                            const length = trackLength(audioRef, videoRef, mappedSubtitles);
+                            const progress = currentTime * 1000 / length;
+                            seek(progress, clock, length, audioRef, videoRef);
+                        });
 
                         window.open(
                             '/?video=' + encodeURIComponent(videoFile) + '&channel=' + channel,
@@ -113,7 +139,7 @@ export default function Player(props) {
                 videoRef.current = null;
             }
         }
-    }, [props.api, subtitleFile, videoFile]);
+    }, [props.api, subtitleFile, videoFile, clock, seek]);
 
     useEffect(init, [init]);
 
@@ -142,21 +168,6 @@ export default function Player(props) {
             videoRef.current.pause();
         }
     };
-
-    const seek = useCallback((progress, clock, length, audioRef, videoRef) => {
-        const time = progress * length;
-        clock.setTime(time);
-
-        if (audioRef.current) {
-            audioRef.current.currentTime = time / 1000;
-        }
-
-        if (videoRef.current) {
-            videoRef.current.currentTime = time / 1000;
-        }
-
-        forceUpdate();
-    }, [forceUpdate]);
 
     const handlePlay = useCallback(() => {
         play(clock, audioRef, videoRef);
@@ -237,8 +248,7 @@ export default function Player(props) {
                 length={length}
                 onPlay={handlePlay}
                 onPause={handlePause}
-                onSeek={handleSeek}
-                video={videoFile ? true : false} />
+                onSeek={handleSeek} />
             <SubtitlePlayer
                 playing={playing}
                 subtitles={subtitles}
