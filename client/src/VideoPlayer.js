@@ -92,7 +92,7 @@ export default function VideoPlayer(props) {
 
     return (
         <div className={classes.root}>
-            <video className={classes.video} nocontrols={1} ref={videoRefCallback} src={props.api.streamingUrl(videoFile)} />
+            <video controls={1} className={classes.video} ref={videoRefCallback} src={props.api.streamingUrl(videoFile)} />
         </div>
     );
 }

@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState, useMemo, useRef, createRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import MuiAlert from '@material-ui/lab/Alert';
+import Alert from './Alert';
 import FileCopy from '@material-ui/icons/FileCopy';
-import Grow from '@material-ui/core/Grow';
 import IconButton from '@material-ui/core/IconButton';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -36,40 +35,6 @@ const useSubtitlePlayerStyles = makeStyles({
         padding: 0
     }
 });
-
-const useAlertStyles = makeStyles({
-    root: {
-        display: 'flex',
-        justifyContent: 'center',
-        position: 'fixed',
-        top: 80,
-        width: '100%',
-        pointerEvents: 'none'
-    }
-});
-
-function Alert(props) {
-    const classes = useAlertStyles();
-
-    useEffect(() => {
-        if (props.open) {
-            const timeout = setTimeout(props.onClose, props.autoHideDuration);
-            return () => clearTimeout(timeout);
-        }
-
-        return null;
-    }, [props.open, props.autoHideDuration, props.onClose]);
-
-    return (
-        <div className={classes.root}>
-            <Grow in={props.open}>
-               <MuiAlert severity="success">
-                   {props.children}
-               </MuiAlert>
-            </Grow>
-        </div>
-    );
-}
 
 export default function SubtitlePlayer(props) {
     const clock = props.clock;
@@ -214,7 +179,7 @@ export default function SubtitlePlayer(props) {
                     </TableBody>
                 </Table>
             </TableContainer>
-            <Alert open={copyAlertOpen} onClose={handleCopyAlertClosed} autoHideDuration={3000}>
+            <Alert open={copyAlertOpen} onClose={handleCopyAlertClosed} autoHideDuration={3000} severity="success">
                 Copied {lastCopiedSubtitle}
             </Alert>
         </div>

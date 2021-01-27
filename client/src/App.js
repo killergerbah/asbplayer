@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useMemo } from 'react';
+import Alert from './Alert.js';
 import Api from './Api.js';
 import Bar from './Bar.js';
 import CopyHistory from './CopyHistory.js';
@@ -18,6 +19,8 @@ function App() {
     const [copiedSubtitles, setCopiedSubtitles] = useState([]);
     const [copyHistoryOpen, setCopyHistoryOpen] = useState(false);
     const [copyHistoryAnchorEl, setCopyHistoryAnchorEl] = useState(null);
+    const [error, setError] = useState(null);
+    const [errorAlertOpen, setErrorAlertOpen] = useState(false);
 
     const handleOpenMedia = useCallback((media) => {
         var parameters = [];
@@ -79,11 +82,22 @@ function App() {
     }, [copiedSubtitles, setCopiedSubtitles]);
 
     const handleClipAudio = useCallback(item => {
-        api.clipAudio(item.name, item.audioFile, item.start, item.end);
+        api.clipAudio(item.name, item.audioFile, item.start, item.end)
+            .catch(e => {
+                setError(e.message);
+                setErrorAlertOpen(true);
+            });
     }, [api]);
+
+    const handleErrorAlertClosed = useCallback(() => {
+        setErrorAlertOpen(false);
+    }, [setErrorAlertOpen]);
 
     return (
         <div>
+        <Alert open={errorAlertOpen} onClose={handleErrorAlertClosed} autoHideDuration={3000} severity="error">
+            {error}
+        </Alert>
         <CopyHistory
             items={copiedSubtitles}
             open={copyHistoryOpen}

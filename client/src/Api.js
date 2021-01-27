@@ -31,7 +31,13 @@ export default function Api() {
                 end: end
             })
         })
-        .then(response => response.blob())
+        .then(response => {
+            if(response.status !== 200) {
+                throw new Error('Failed to clip audio: ' + response.status);
+            }
+
+            return response.blob();
+        })
         .then(blob => {
             const a = document.createElement("a");
             document.body.appendChild(a);

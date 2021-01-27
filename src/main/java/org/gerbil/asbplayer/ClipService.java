@@ -61,7 +61,12 @@ public class ClipService {
             throw new IllegalArgumentException("Unsupported file type");
         }
 
-        pb.inheritIO().start().waitFor();
+        int exitCode = pb.inheritIO().start().waitFor();
+
+        if (exitCode != 0) {
+            throw new IllegalStateException("ffmpeg failed with exit code " + exitCode);
+        }
+
         var outputPath = Path.of(outputPathString);
         var bytes = Files.readAllBytes(outputPath);
         Files.delete(outputPath);
