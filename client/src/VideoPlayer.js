@@ -8,7 +8,8 @@ const useStyles = makeStyles({
     root: {
         backgroundColor: 'black',
         width: '100%',
-        height: '100vh'
+        height: '100vh',
+        overflow: 'hidden'
     },
     video: {
         objectFit: "cover",
@@ -29,6 +30,8 @@ export default function VideoPlayer(props) {
     }, []);
     const [playing, setPlaying] = useState(false);
     const [length, setLength] = useState(0);
+    const [audioTracks, setAudioTracks] = useState(null);
+    const [selectedAudioTrack, setSelectedAudioTrack] = useState(null);
     const clock = useMemo(() => new Clock(), []);
     const mousePositionRef = useRef({x:0, y:0});
     const playerChannelRef = useRef(new PlayerChannel(channel));
@@ -53,11 +56,45 @@ export default function VideoPlayer(props) {
                         );
                     }
 
-                    playerChannelRef.current.ready(element.duration);
+                    let tracks;
+                    let selectedTrack;
+
+                    if (element.audioTracks) {
+                        tracks = [];
+
+                        for (let t of element.audioTracks) {
+                            tracks.push({
+                                id: t.id,
+                                label: t.label,
+                                language: t.language
+                            });
+                            
+                            if (t.enabled) {
+                                selectedTrack = t.id;
+                            }
+                        }
+                    } else {
+                        tracks = null;
+                        selectedTrack = null;
+                    }
+
+                    setAudioTracks(tracks);
+                    setSelectedAudioTrack(selectedTrack);
+                    playerChannelRef.current.ready(element.duration, tracks, selectedTrack);
                 };
             }
         }
-    }, []);
+    }, [setAudioTracks, setSelectedAudioTrack]);
+
+    function selectAudioTrack(id) {
+        for (let t of videoRef.current.audioTracks) {
+            if (t.id === id) {
+                t.enabled = true;
+            } else {
+                t.enabled = false;
+            }
+        }
+    }
 
     useEffect(() => {
         playerChannelRef.current.onReady((duration) => {
@@ -74,10 +111,16 @@ export default function VideoPlayer(props) {
             setPlaying(false);
         });
         playerChannelRef.current.onCurrentTime((currentTime) => {
-            console.log("currentTime=" + currentTime);
             videoRef.current.currentTime = currentTime;
             clock.setTime(currentTime * 1000);
         });
+        playerChannelRef.current.onAudioTrackSelected((id) => {
+            selectAudioTrack(id);
+
+            if (playerChannelRef.current) {
+                playerChannelRef.current.audioTrackSelected(id);
+            }
+        })
         playerChannelRef.current.onClose(() => {
             playerChannelRef.current.close();
             playerChannelRef.current = null;
@@ -92,8 +135,7 @@ export default function VideoPlayer(props) {
     }, [clock, setPlaying]);
 
     const handlePlay = useCallback(() => {
-        if (playerChannelRef.current) {
-            console.log('play');
+        if (playerChannelRef.current && videoRef.current) {
             playerChannelRef.current.play();
         }
     }, []);
@@ -116,9 +158,20 @@ export default function VideoPlayer(props) {
         mousePositionRef.current.y = e.screenY;
     };
 
+    function handleAudioTrackSelected(id) {
+        if (playerChannelRef.current) {
+            playerChannelRef.current.pause();
+            playerChannelRef.current.audioTrackSelected(id);
+        }
+
+        selectAudioTrack(id);
+        setSelectedAudioTrack(id);
+    };
+
     return (
         <div onMouseMove={handleMouseMove} className={classes.root}>
             <video
+                preload="audio"
                 nocontrols={1}
                 className={classes.video}
                 ref={videoRefCallback}
@@ -128,9 +181,12 @@ export default function VideoPlayer(props) {
                 playing={playing}
                 clock={clock}
                 length={length}
+                audioTracks={audioTracks}
+                selectedAudioTrack={selectedAudioTrack}
                 onPlay={handlePlay}
                 onPause={handlePause}
-                onSeek={handleSeek} />
+                onSeek={handleSeek}
+                onAudioTrackSelected={handleAudioTrackSelected} />
         </div>
     );
 }

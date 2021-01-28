@@ -22,6 +22,10 @@ export default function VideoChannel(channel) {
     this.onCurrentTime = function(callback) {
         this.currentTimeCallbacks.push(callback);
     }
+    this.audioTrackSelectedCallbacks = [];
+    this.onAudioTrackSelected = function(callback) {
+        this.audioTrackSelectedCallbacks.push(callback);
+    };
 
     const that = this;
 
@@ -30,6 +34,8 @@ export default function VideoChannel(channel) {
             case 'ready':
                 that.duration = event.data.duration;
                 that.isReady = true;
+                that.audioTracks = event.data.audioTracks;
+                that.selectedAudioTrack = event.data.selectedAudioTrack;
 
                 for (let callback of that.readyCallbacks) {
                     callback();
@@ -43,6 +49,11 @@ export default function VideoChannel(channel) {
             case 'pause':
                 for (let callback of that.pauseCallbacks) {
                     callback();
+                }
+                break;
+            case 'audioTrackSelected':
+                for (let callback of that.audioTrackSelectedCallbacks) {
+                    callback(event.data.id);
                 }
                 break;
             case 'currentTime':
@@ -66,6 +77,10 @@ export default function VideoChannel(channel) {
     this.pause = function() {
         this.channel.postMessage({command: 'pause'});
     };
+
+    this.audioTrackSelected = function(id) {
+        this.channel.postMessage({command: 'audioTrackSelected', id: id});
+    }
 
     this.close = function() {
         this.channel.postMessage({command: 'close'});

@@ -56,6 +56,8 @@ export default function Player(props) {
     const [playing, setPlaying] = useState(false);
     const [loaded, setLoaded] = useState(false);
     const [, updateState] = useState();
+    const [audioTracks, setAudioTracks] = useState(null);
+    const [selectedAudioTrack, setSelectedAudioTrack] = useState(null);
     const forceUpdate = useCallback(() => updateState({}), []);
     const mousePositionRef = useRef({x:0, y:0});
     const audioRef = useRef(null);
@@ -106,6 +108,11 @@ export default function Player(props) {
                             setLoaded(true);
                             if (videoRef.current) {
                                 videoRef.current.ready(trackLength(audioRef, videoRef, mappedSubtitles));
+
+                                if (videoRef.current.audioTracks && videoRef.current.audioTracks.length > 1) {
+                                    setAudioTracks(videoRef.current.audioTracks);
+                                    setSelectedAudioTrack(videoRef.current.selectedAudioTrack);
+                                }
                             }
                         });
                         videoRef.current.onPlay(() => {
@@ -118,6 +125,9 @@ export default function Player(props) {
                             const length = trackLength(audioRef, videoRef, mappedSubtitles);
                             const progress = currentTime * 1000 / length;
                             seek(progress, clock, length, audioRef, videoRef);
+                        });
+                        videoRef.current.onAudioTrackSelected((id) => {
+                            setSelectedAudioTrack(id);
                         });
 
                         window.open(
@@ -139,7 +149,7 @@ export default function Player(props) {
                 videoRef.current = null;
             }
         }
-    }, [props.api, subtitleFile, videoFile, clock, seek]);
+    }, [props.api, subtitleFile, videoFile, clock, seek, setSelectedAudioTrack]);
 
     useEffect(init, [init]);
 
@@ -209,6 +219,12 @@ export default function Player(props) {
         mousePositionRef.current.y = e.screenY;
     };
 
+    function handleAudioTrackSelected(id) {
+        if (videoRef.current) {
+            videoRef.current.audioTrackSelected(id);
+        }
+    };
+
     useEffect(() => {
         const interval = setInterval(() => {
             const length = trackLength(audioRef, videoRef, subtitles);
@@ -246,9 +262,12 @@ export default function Player(props) {
                 playing={playing}
                 clock={clock}
                 length={length}
+                audioTracks={audioTracks}
+                selectedAudioTrack={selectedAudioTrack}
                 onPlay={handlePlay}
                 onPause={handlePause}
-                onSeek={handleSeek} />
+                onSeek={handleSeek}
+                onAudioTrackSelected={handleAudioTrackSelected} />
             <SubtitlePlayer
                 playing={playing}
                 subtitles={subtitles}

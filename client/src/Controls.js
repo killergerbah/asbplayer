@@ -2,15 +2,20 @@ import { useCallback, useEffect, useState, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Fade from '@material-ui/core/Fade';
 import Grid from '@material-ui/core/Grid';
+import IconButton from '@material-ui/core/IconButton';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import Popover from '@material-ui/core/Popover';
 import PauseIcon from '@material-ui/icons/Pause';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
+import QueueMusicIcon from '@material-ui/icons/QueueMusic';
 import Typography from '@material-ui/core/Typography';
 
 const useControlStyles = makeStyles((theme) => ({
     container: {
         position: 'absolute',
         left: '50%',
-        width: '100%',
+        width: '50%',
         bottom: 0
     },
     buttonContainer: {
@@ -27,7 +32,8 @@ const useControlStyles = makeStyles((theme) => ({
     paper: {
         background: "linear-gradient(to bottom, rgba(0,0,0,0), rgba(0, 0, 0, 0.5))",
         position: 'relative',
-        left: '-50%',
+        left: '-100%',
+        width: '200%',
         zIndex: 10,
         padding: 10
     },
@@ -37,7 +43,7 @@ const useControlStyles = makeStyles((theme) => ({
         justifyContent: 'center',
         height: "100%",
     },
-    playButton: {
+    button: {
         color: 'white',
         width: 35,
         height: 30,
@@ -56,7 +62,7 @@ const useControlStyles = makeStyles((theme) => ({
 const useProgressBarStyles = makeStyles((theme) => ({
     container: {
         width: '100%',
-        background: 'rgba(0,0,0,0.5)',
+        background: 'rgba(30,30,30,0.7)',
         height: 5,
         marginBottom: 5,
         cursor: 'pointer'
@@ -122,9 +128,48 @@ function ProgressBar(props) {
     );
 }
 
+function AudioTrackSelector(props) {
+    if (!props.audioTracks || props.audioTracks.length === 0) {
+        return null;
+    }
+
+    const list = props.audioTracks.map((t) => {
+        return (
+            <ListItem
+                key={t.id}
+                selected={t.id === props.selectedAudioTrack}
+                button onClick={() => props.onAudioTrackSelected(t.id)}>
+                {t.language} {t.label}
+            </ListItem>
+        );
+    });
+
+    return (
+        <div>
+            <Popover
+                disableEnforceFocus={true}
+                open={props.open}
+                anchorEl={props.anchorEl}
+                onClose={props.onClose}
+                anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'center',
+                }}
+                transformOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'center',
+                }}>
+                <List>{list}</List>
+            </Popover>
+        </div>
+    );
+}
+
 export default function Controls(props) {
     const classes = useControlStyles();
     const [show, setShow] = useState(true);
+    const [audioTrackSelectorOpen, setAudioTrackSelectorOpen] = useState(false);
+    const [audioTrackSelectorAnchorEl, setAudioTrackSelectorAnchorEl] = useState(null);
     const lastMousePositionRef = useRef({x: 0, y: 0});
     const lastShowTimestampRef = useRef(Date.now());
     const lastShowRef = useRef(true);
@@ -193,7 +238,33 @@ export default function Controls(props) {
         return () => clearInterval(interval);
     }, [forceUpdate]);
 
+    const handleAudioTrackSelectorClosed = useCallback(() => {
+        setAudioTrackSelectorAnchorEl(null);
+        setAudioTrackSelectorOpen(false);
+    }, [setAudioTrackSelectorOpen, setAudioTrackSelectorAnchorEl]);
+
+    const handleAudioTrackSelectorOpened = useCallback((e) => {
+        setAudioTrackSelectorAnchorEl(e.currentTarget);
+        setAudioTrackSelectorOpen(true);
+    }, [setAudioTrackSelectorOpen, setAudioTrackSelectorAnchorEl]);
+
+    const handleAudioTrackSelected = useCallback((id) => {
+        props.onAudioTrackSelected(id);
+    }, [props]);
+
     const progress = props.clock.progress(props.length);
+
+    let audioTrackSelectorButton;
+
+    if (props.audioTracks && props.audioTracks.length > 1) {
+        audioTrackSelectorButton = (
+            <IconButton onClick={handleAudioTrackSelectorOpened}>
+                <QueueMusicIcon className={classes.button}  />
+            </IconButton>
+        );
+    } else {
+        audioTrackSelectorButton = null;
+    }
 
     return (
         <div className={classes.container} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
@@ -206,8 +277,8 @@ export default function Controls(props) {
                         <Grid item>
                             <div className={classes.playButtonContainer}>
                             {props.playing
-                                ? <PauseIcon onClick={props.onPause} className={classes.playButton} />
-                                : <PlayArrowIcon onClick={props.onPlay} className={classes.playButton} />}
+                                ? <PauseIcon onClick={props.onPause} className={classes.button} />
+                                : <PlayArrowIcon onClick={props.onPlay} className={classes.button} />}
                             </div>
                         </Grid>
                         <Grid item>
@@ -215,9 +286,19 @@ export default function Controls(props) {
                                 {displayTime(progress * props.length)}
                             </Typography>
                         </Grid>
+                        <Grid item>
+                            {audioTrackSelectorButton}
+                        </Grid>
                     </Grid>
                 </div>
             </Fade>
+            <AudioTrackSelector
+                open={audioTrackSelectorOpen && show}
+                anchorEl={audioTrackSelectorAnchorEl}
+                audioTracks={props.audioTracks}
+                selectedAudioTrack={props.selectedAudioTrack}
+                onClose={handleAudioTrackSelectorClosed}
+                onAudioTrackSelected={handleAudioTrackSelected} />
         </div>
     );
 }

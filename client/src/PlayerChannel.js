@@ -14,6 +14,10 @@ export default function PlayerChannel(channel) {
     this.onCurrentTime = function(callback) {
         this.currentTimeCallbacks.push(callback);
     };
+    this.audioTrackSelectedCallbacks = [];
+    this.onAudioTrackSelected = function(callback) {
+        this.audioTrackSelectedCallbacks.push(callback);
+    };
     this.closeCallbacks = [];
     this.onClose = function(callback) {
         this.closeCallbacks.push(callback);
@@ -47,6 +51,11 @@ export default function PlayerChannel(channel) {
                     callback(event.data.value);
                 }
                 break;
+            case 'audioTrackSelected':
+                for (let callback of that.audioTrackSelectedCallbacks) {
+                    callback(event.data.id);
+                }
+                break;
             case 'close':
                 for (let callback of that.closeCallbacks) {
                     callback();
@@ -57,8 +66,13 @@ export default function PlayerChannel(channel) {
         }
     };
 
-    this.ready = function(duration) {
-        this.channel.postMessage({command: 'ready', duration: duration});
+    this.ready = function(duration, audioTracks, selectedAudioTrack) {
+        this.channel.postMessage({
+            command: 'ready',
+            duration: duration,
+            audioTracks: audioTracks,
+            selectedAudioTrack: selectedAudioTrack
+        });
     }
 
     this.play = function() {
@@ -67,6 +81,10 @@ export default function PlayerChannel(channel) {
 
     this.pause = function() {
         this.channel.postMessage({command: 'pause'});
+    };
+
+    this.audioTrackSelected = function(id) {
+        this.channel.postMessage({command: 'audioTrackSelected', id: id});
     };
 
     this.close = function() {
