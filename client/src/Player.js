@@ -89,59 +89,77 @@ export default function Player(props) {
     }, [forceUpdate]);
 
     const init = useCallback(() => {
-        if (subtitleFile) {
-            props.api.subtitles(subtitleFile)
-                .then(res => {
-                    const length = res.subtitles.length > 0
-                        ? res.subtitles[res.subtitles.length - 1].end - res.subtitles[0].start
-                        : 0;
-                    const mappedSubtitles = res.subtitles.map((s) => {
-                        return {text: s.text, start: s.start, end: s.end, displayTime: displayTime(s.start, length)};
+        const subtitlePromise = new Promise((resolve, reject) => {
+            if (subtitleFile) {
+                props.api.subtitles(subtitleFile)
+                    .then(res => {
+                        const length = res.subtitles.length > 0
+                            ? res.subtitles[res.subtitles.length - 1].end - res.subtitles[0].start
+                            : 0;
+                        const mappedSubtitles = res.subtitles.map((s) => {
+                            return {text: s.text, start: s.start, end: s.end, displayTime: displayTime(s.start, length)};
+                        });
+                        setSubtitles(mappedSubtitles);
+                        resolve(mappedSubtitles);
+                    })
+                    .catch(reject);
+            } else {
+                resolve([]);
+            }
+        });
+
+        const videoPromise = new Promise((resolve, reject) => {
+            if (videoFile) {
+                const channel = String(Date.now());
+                const videoChannel = new VideoChannel(channel);
+                videoRef.current = videoChannel;
+                videoRef.current.onReady(() => {
+                    resolve();
+                });
+
+                window.open(
+                    '/?video=' + encodeURIComponent(videoFile) + '&channel=' + channel,
+                    'asbplayer-video',
+                    "resizable,width=800,height=450");
+            } else {
+                resolve();
+            }
+        });
+
+        Promise.all([subtitlePromise, videoPromise])
+            .then(v => {
+                const mappedSubtitles = v[0];
+
+                if (videoRef.current) {
+                    videoRef.current.ready(trackLength(audioRef, videoRef, mappedSubtitles));
+
+                    videoRef.current.onPlay(() => {
+                        play(clock, audioRef, videoRef);
                     });
-                    setSubtitles(mappedSubtitles);
 
-                    if (videoFile) {
-                        const channel = String(Date.now());
-                        const videoChannel = new VideoChannel(channel);
-                        videoRef.current = videoChannel;
-                        videoRef.current.onReady(() => {
-                            setLoaded(true);
-                            if (videoRef.current) {
-                                videoRef.current.ready(trackLength(audioRef, videoRef, mappedSubtitles));
+                    videoRef.current.onPause(() => {
+                        pause(clock, audioRef, videoRef);
+                    });
 
-                                if (videoRef.current.audioTracks && videoRef.current.audioTracks.length > 1) {
-                                    setAudioTracks(videoRef.current.audioTracks);
-                                    setSelectedAudioTrack(videoRef.current.selectedAudioTrack);
-                                }
-                            }
-                        });
-                        videoRef.current.onPlay(() => {
-                            play(clock, audioRef, videoRef);
-                        });
-                        videoRef.current.onPause(() => {
-                            pause(clock, audioRef, videoRef);
-                        });
-                        videoRef.current.onCurrentTime((currentTime) => {
-                            const length = trackLength(audioRef, videoRef, mappedSubtitles);
-                            const progress = currentTime * 1000 / length;
-                            seek(progress, clock, length, audioRef, videoRef);
-                        });
-                        videoRef.current.onAudioTrackSelected((id) => {
-                            setSelectedAudioTrack(id);
-                        });
+                    videoRef.current.onCurrentTime((currentTime) => {
+                        const length = trackLength(audioRef, videoRef, mappedSubtitles);
+                        const progress = currentTime * 1000 / length;
+                        seek(progress, clock, length, audioRef, videoRef);
+                    });
 
-                        window.open(
-                            '/?video=' + encodeURIComponent(videoFile) + '&channel=' + channel,
-                            'asbplayer-video',
-                            "resizable,width=800,height=450");
-                    } else {
-                        setLoaded(true);
+                    videoRef.current.onAudioTrackSelected((id) => {
+                        setSelectedAudioTrack(id);
+                    });
+
+
+                    if (videoRef.current.audioTracks && videoRef.current.audioTracks.length > 1) {
+                        setAudioTracks(videoRef.current.audioTracks);
+                        setSelectedAudioTrack(videoRef.current.selectedAudioTrack);
                     }
-                })
-                .catch(error => console.error(error));
-        } else {
-            setLoaded(true);
-        }
+                }
+
+                setLoaded(true);
+            });
 
         return () => {
             if (videoRef.current) {

@@ -68,7 +68,7 @@ export default function VideoPlayer(props) {
                                 label: t.label,
                                 language: t.language
                             });
-                            
+
                             if (t.enabled) {
                                 selectedTrack = t.id;
                             }
