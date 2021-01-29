@@ -151,7 +151,6 @@ export default function Player(props) {
                         setSelectedAudioTrack(id);
                     });
 
-
                     if (videoRef.current.audioTracks && videoRef.current.audioTracks.length > 1) {
                         setAudioTracks(videoRef.current.audioTracks);
                         setSelectedAudioTrack(videoRef.current.selectedAudioTrack);
@@ -228,7 +227,8 @@ export default function Player(props) {
             end,
             fileName,
             audioFile ? audioFile : videoFile,
-            videoFile
+            videoFile,
+            selectedAudioTrack
         );
     }, [props, fileName, audioFile, videoFile]);
 

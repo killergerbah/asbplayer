@@ -46,7 +46,7 @@ function App() {
         history.push('/browse/' + path);
     }, [history]);
 
-    const handleCopy = useCallback((text, start, end, fileName, audioFile, videoFile) => {
+    const handleCopy = useCallback((text, start, end, fileName, audioFile, videoFile, audioTrack) => {
         copiedSubtitles.push({
             timestamp: Date.now(),
             text: text,
@@ -54,7 +54,8 @@ function App() {
             end: end,
             name: fileName,
             audioFile: audioFile,
-            videoFile: videoFile
+            videoFile: videoFile,
+            audioTrack: audioTrack
         });
         setCopiedSubtitles(copiedSubtitles);
     }, [setCopiedSubtitles, copiedSubtitles]);
@@ -82,7 +83,7 @@ function App() {
     }, [copiedSubtitles, setCopiedSubtitles]);
 
     const handleClipAudio = useCallback(item => {
-        api.clipAudio(item.name, item.audioFile, item.start, item.end)
+        api.clipAudio(item.name, item.audioFile, item.start, item.end, item.audioTrack)
             .catch(e => {
                 setError(e.message);
                 setErrorAlertOpen(true);

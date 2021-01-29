@@ -26,6 +26,6 @@ public class ClipController {
         return ResponseEntity
                 .ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(clipService.clipAudio(request.getPath(), request.getStart(), request.getEnd()));
+                .body(clipService.clipAudio(request.getPath(), request.getStart(), request.getEnd(), request.getTrackId()));
     }
 }

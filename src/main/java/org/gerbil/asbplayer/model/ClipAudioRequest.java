@@ -5,6 +5,7 @@ public final class ClipAudioRequest {
     private String path;
     private long start;
     private long end;
+    private String trackId;
 
     public String getPath() {
         return path;
@@ -28,5 +29,13 @@ public final class ClipAudioRequest {
 
     public void setEnd(long end) {
         this.end = end;
+    }
+
+    public String getTrackId() {
+        return trackId;
+    }
+
+    public void setTrackId(String trackId) {
+        this.trackId = trackId;
     }
 }

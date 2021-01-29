@@ -19,7 +19,7 @@ public class ClipService {
         this.fileProvider = fileProvider;
     }
 
-    public byte[] clipAudio(String path, long start, long end) throws IOException, InterruptedException {
+    public byte[] clipAudio(String path, long start, long end, String trackId) throws IOException, InterruptedException {
         String ffmpeg = Loader.load(org.bytedeco.ffmpeg.ffmpeg.class);
         var file = fileProvider.file(path);
         var fileType = FileType.forFile(file);
@@ -40,23 +40,48 @@ public class ClipService {
                     outputPathString
             );
         } else if (fileType == FileType.VIDEO) {
-            pb = new ProcessBuilder(
-                    ffmpeg,
-                    "-ss",
-                    toSeconds(start),
-                    "-t",
-                    toSeconds(end - start),
-                    "-i",
-                    file.getAbsolutePath(),
-                    "-vn",
-                    "-ar",
-                    "44100",
-                    "-ab",
-                    "192k",
-                    "-f",
-                    "mp3",
-                    outputPathString
-            );
+            if (trackId == null) {
+                pb = new ProcessBuilder(
+                        ffmpeg,
+                        "-ss",
+                        toSeconds(start),
+                        "-t",
+                        toSeconds(end - start),
+                        "-i",
+                        file.getAbsolutePath(),
+                        "-vn",
+                        "-ac",
+                        "2",
+                        "-ar",
+                        "44100",
+                        "-ab",
+                        "192k",
+                        "-f",
+                        "mp3",
+                        outputPathString
+                );
+            } else {
+                pb = new ProcessBuilder(
+                        ffmpeg,
+                        "-ss",
+                        toSeconds(start),
+                        "-t",
+                        toSeconds(end - start),
+                        "-i",
+                        file.getAbsolutePath(),
+                        "-map",
+                        "0:" + trackId,
+                        "-ac",
+                        "2",
+                        "-ar",
+                        "44100",
+                        "-ab",
+                        "192k",
+                        "-f",
+                        "mp3",
+                        outputPathString
+                );
+            }
         } else {
             throw new IllegalArgumentException("Unsupported file type");
         }

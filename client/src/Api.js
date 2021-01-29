@@ -19,7 +19,7 @@ export default function Api() {
         return this.baseUrl + "/stream/" + encode(path);
     };
 
-    this.clipAudio = function(fileName, path, start, end) {
+    this.clipAudio = function(fileName, path, start, end, trackId) {
         return fetch(this.baseUrl + "/clip/audio", {
             method: 'POST',
             headers: {
@@ -28,7 +28,8 @@ export default function Api() {
             body: JSON.stringify({
                 path: path,
                 start: start,
-                end: end
+                end: end,
+                trackId: trackId
             })
         })
         .then(response => {
