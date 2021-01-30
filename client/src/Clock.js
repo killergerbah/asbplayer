@@ -1,39 +1,43 @@
-export default function Clock() {
-    this.accumulated = 0;
-    this.started = false;
+export default class Clock {
 
-    this.time = (max) => {
+    constructor() {
+        this.accumulated = 0;
+        this.started = false;
+    }
+
+
+    time(max) {
         if (this.started) {
             return Math.min(max, this.accumulated + Date.now() - this.startTime);
         }
 
         return Math.min(max, this.accumulated);
-    };
+    }
 
-    this.stop = () => {
+    stop() {
         if (!this.started) {
             return;
         }
 
         this.started = false;
         this.accumulated += Date.now() - this.startTime;
-    };
+    }
 
-    this.start = () => {
+    start() {
         this.startTime = Date.now();
         this.started = true;
-    };
+    }
 
-    this.setTime = (time) => {
+    setTime(time) {
         if (this.started) {
             this.startTime = Date.now();
             this.accumulated = time;
         } else {
             this.accumulated = time;
         }
-    };
+    }
 
-    this.progress = (max) => {
+    progress(max) {
         return max === 0 ? 0 : Math.min(1, this.time(max) / max);
     }
 }

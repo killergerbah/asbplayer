@@ -1,99 +1,106 @@
-export default function VideoChannel(channel) {
-    this.channel = new BroadcastChannel(channel);
-    this.time = 0;
-    this.duration = 0;
-    this.isReady = false;
-    this.readyCallbacks = [];
-    this.onReady = function(callback) {
+export default class VideoChannel {
+
+    constructor(channel) {
+        this.channel = new BroadcastChannel(channel);
+        this.time = 0;
+        this.duration = 0;
+        this.isReady = false;
+        this.readyCallbacks = [];
+        this.playCallbacks = [];
+        this.pauseCallbacks = [];
+        this.currentTimeCallbacks = [];
+        this.audioTrackSelectedCallbacks = [];
+
+        const that = this;
+
+        this.channel.onmessage = (event) => {
+            switch(event.data.command) {
+                case 'ready':
+                    that.duration = event.data.duration;
+                    that.isReady = true;
+                    that.audioTracks = event.data.audioTracks;
+                    that.selectedAudioTrack = event.data.selectedAudioTrack;
+
+                    for (let callback of that.readyCallbacks) {
+                        callback();
+                    }
+                    break;
+                case 'play':
+                    for (let callback of that.playCallbacks) {
+                        callback();
+                    }
+                    break;
+                case 'pause':
+                    for (let callback of that.pauseCallbacks) {
+                        callback();
+                    }
+                    break;
+                case 'audioTrackSelected':
+                    for (let callback of that.audioTrackSelectedCallbacks) {
+                        callback(event.data.id);
+                    }
+                    break;
+                case 'currentTime':
+                    for (let callback of that.currentTimeCallbacks) {
+                        callback(event.data.value);
+                    }
+                    break;
+                default:
+                    console.error('Unrecognized event ' + event.data.command);
+            }
+        };
+    }
+
+    get currentTime() {
+        return this.time;
+    }
+
+    set currentTime(value) {
+        this.time = value;
+        this.channel.postMessage({command: 'currentTime', value: this.time});
+    }
+
+    onReady(callback) {
         if (this.isReady) {
             callback();
         }
         this.readyCallbacks.push(callback);
-    };
-    this.playCallbacks = [];
-    this.onPlay = function(callback) {
+    }
+
+    onPlay(callback) {
         this.playCallbacks.push(callback);
-    };
-    this.pauseCallbacks = [];
-    this.onPause = function(callback) {
+    }
+
+    onPause(callback) {
         this.pauseCallbacks.push(callback);
     }
-    this.currentTimeCallbacks = [];
-    this.onCurrentTime = function(callback) {
+
+    onCurrentTime(callback) {
         this.currentTimeCallbacks.push(callback);
     }
-    this.audioTrackSelectedCallbacks = [];
-    this.onAudioTrackSelected = function(callback) {
+
+    onAudioTrackSelected(callback) {
         this.audioTrackSelectedCallbacks.push(callback);
-    };
+    }
 
-    const that = this;
-
-    this.channel.onmessage = function(event) {
-        switch(event.data.command) {
-            case 'ready':
-                that.duration = event.data.duration;
-                that.isReady = true;
-                that.audioTracks = event.data.audioTracks;
-                that.selectedAudioTrack = event.data.selectedAudioTrack;
-
-                for (let callback of that.readyCallbacks) {
-                    callback();
-                }
-                break;
-            case 'play':
-                for (let callback of that.playCallbacks) {
-                    callback();
-                }
-                break;
-            case 'pause':
-                for (let callback of that.pauseCallbacks) {
-                    callback();
-                }
-                break;
-            case 'audioTrackSelected':
-                for (let callback of that.audioTrackSelectedCallbacks) {
-                    callback(event.data.id);
-                }
-                break;
-            case 'currentTime':
-                for (let callback of that.currentTimeCallbacks) {
-                    callback(event.data.value);
-                }
-                break;
-            default:
-                console.error('Unrecognized event ' + event.data.command);
-        }
-    };
-
-    this.ready = function(duration) {
+    ready(duration) {
         this.channel.postMessage({command: 'ready', duration: duration});
-    };
+    }
 
-    this.play = function() {
+    play() {
         this.channel.postMessage({command: 'play'});
-    };
+    }
 
-    this.pause = function() {
+    pause() {
         this.channel.postMessage({command: 'pause'});
-    };
+    }
 
-    this.audioTrackSelected = function(id) {
+    audioTrackSelected(id) {
         this.channel.postMessage({command: 'audioTrackSelected', id: id});
     }
 
-    this.close = function() {
+    close() {
         this.channel.postMessage({command: 'close'});
         this.channel.close();
-    };
-
-    Object.defineProperty(this, "currentTime", {
-        get: function() {
-            return this.time;
-        },
-        set: function(value) {
-            this.time = value;
-            this.channel.postMessage({command: 'currentTime', value: this.time});
-        }
-    });
+    }
 }
