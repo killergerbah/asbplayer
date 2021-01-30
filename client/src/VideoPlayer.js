@@ -134,17 +134,17 @@ export default function VideoPlayer(props) {
         }
     }, [clock, setPlaying]);
 
-    const handlePlay = useCallback(() => {
+    function handlePlay() {
         if (playerChannelRef.current && videoRef.current) {
             playerChannelRef.current.play();
         }
-    }, []);
+    };
 
-    const handlePause = useCallback(() => {
+    function handlePause() {
         if (playerChannelRef.current) {
             playerChannelRef.current.pause();
         }
-    }, []);
+    };
 
     const handleSeek = useCallback((progress) => {
         if (playerChannelRef.current) {
@@ -171,7 +171,7 @@ export default function VideoPlayer(props) {
     return (
         <div onMouseMove={handleMouseMove} className={classes.root}>
             <video
-                preload="audio"
+                preload="auto"
                 nocontrols={1}
                 className={classes.video}
                 ref={videoRefCallback}
