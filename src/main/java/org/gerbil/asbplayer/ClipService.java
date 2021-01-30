@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class ClipService {
@@ -30,9 +31,9 @@ public class ClipService {
             pb = new ProcessBuilder(
                     ffmpeg,
                     "-ss",
-                    toSeconds(start),
+                    formatInterval(start),
                     "-t",
-                    toSeconds(end - start),
+                    formatInterval(end - start),
                     "-i",
                     file.getAbsolutePath(),
                     "-acodec",
@@ -44,9 +45,9 @@ public class ClipService {
                 pb = new ProcessBuilder(
                         ffmpeg,
                         "-ss",
-                        toSeconds(start),
+                        formatInterval(start),
                         "-t",
-                        toSeconds(end - start),
+                        formatInterval(end - start),
                         "-i",
                         file.getAbsolutePath(),
                         "-vn",
@@ -64,9 +65,9 @@ public class ClipService {
                 pb = new ProcessBuilder(
                         ffmpeg,
                         "-ss",
-                        toSeconds(start),
+                        formatInterval(start),
                         "-t",
-                        toSeconds(end - start),
+                        formatInterval(end - start),
                         "-i",
                         file.getAbsolutePath(),
                         "-map",
@@ -99,7 +100,12 @@ public class ClipService {
         return bytes;
     }
 
-    private String toSeconds(long milliseconds) {
-        return milliseconds / 1000 + "." + (milliseconds % 1000);
+    private String formatInterval(long milliseconds) {
+        // https://stackoverflow.com/questions/6710094/how-to-format-an-elapsed-time-interval-in-hhmmss-sss-format-in-java
+        final long hr = TimeUnit.MILLISECONDS.toHours(milliseconds);
+        final long min = TimeUnit.MILLISECONDS.toMinutes(milliseconds - TimeUnit.HOURS.toMillis(hr));
+        final long sec = TimeUnit.MILLISECONDS.toSeconds(milliseconds - TimeUnit.HOURS.toMillis(hr) - TimeUnit.MINUTES.toMillis(min));
+        final long ms = TimeUnit.MILLISECONDS.toMillis(milliseconds - TimeUnit.HOURS.toMillis(hr) - TimeUnit.MINUTES.toMillis(min) - TimeUnit.SECONDS.toMillis(sec));
+        return String.format("%02d:%02d:%02d.%03d", hr, min, sec, ms);
     }
 }
