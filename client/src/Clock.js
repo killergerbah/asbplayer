@@ -5,7 +5,6 @@ export default class Clock {
         this.started = false;
     }
 
-
     time(max) {
         if (this.started) {
             return Math.min(max, this.accumulated + Date.now() - this.startTime);

@@ -13,7 +13,7 @@ export default class PlayerChannel {
 
         const that = this;
 
-        this.channel.onmessage = function(event) {
+        this.channel.onmessage = (event) => {
             switch(event.data.command) {
                 case 'ready':
                     for (let callback of that.readyCallbacks) {
@@ -93,6 +93,10 @@ export default class PlayerChannel {
         });
     }
 
+    readyState(readyState) {
+        this.channel.postMessage({command: 'readyState', value: readyState});
+    }
+
     play() {
         this.channel.postMessage({command: 'play'});
     }
@@ -106,7 +110,9 @@ export default class PlayerChannel {
     }
 
     close() {
-        this.channel.close();
-        this.channel = null;
+        if (this.channel) {
+            this.channel.close();
+            this.channel = null;
+        }
     }
 }

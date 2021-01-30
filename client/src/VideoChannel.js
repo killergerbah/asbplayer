@@ -5,6 +5,7 @@ export default class VideoChannel {
         this.time = 0;
         this.duration = 0;
         this.isReady = false;
+        this.readyState = 0;
         this.readyCallbacks = [];
         this.playCallbacks = [];
         this.pauseCallbacks = [];
@@ -20,9 +21,17 @@ export default class VideoChannel {
                     that.isReady = true;
                     that.audioTracks = event.data.audioTracks;
                     that.selectedAudioTrack = event.data.selectedAudioTrack;
+                    that.readyState = 4;
 
                     for (let callback of that.readyCallbacks) {
                         callback();
+                    }
+                    break;
+                case 'readyState':
+                    console.log("readyState received " + event.data.value);
+                    that.readyState = event.data.value;
+                    if (that.readyState === 4) {
+                        that.oncanplay?.();
                     }
                     break;
                 case 'play':
@@ -57,6 +66,7 @@ export default class VideoChannel {
 
     set currentTime(value) {
         this.time = value;
+        this.readyState = 3;
         this.channel.postMessage({command: 'currentTime', value: this.time});
     }
 

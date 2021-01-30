@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Clock from './Clock';
 import Controls from './Controls';
+import MediaAdapter from './MediaAdapter';
 import SubtitlePlayer from './SubtitlePlayer';
 import VideoChannel from './VideoChannel';
 
@@ -54,6 +55,8 @@ function trackLength(audioRef, videoRef, subtitles) {
 export default function Player(props) {
     const [subtitles, setSubtitles] = useState([]);
     const [playing, setPlaying] = useState(false);
+    const playingRef = useRef();
+    playingRef.current = playing;
     const [loaded, setLoaded] = useState(false);
     const [, updateState] = useState();
     const [audioTracks, setAudioTracks] = useState(null);
@@ -63,6 +66,7 @@ export default function Player(props) {
     const audioRef = useRef(null);
     const videoRef = useRef(null);
     const clock = useMemo(() => new Clock(), []);
+    const mediaAdapter = useMemo(() => new MediaAdapter(audioRef, videoRef), []);
     const classes = useStyles();
     const { subtitleFile, audioFile, videoFile, fileName } = useMemo(() => {
         const params = new URLSearchParams(window.location.search);
@@ -73,20 +77,12 @@ export default function Player(props) {
             fileName: params.get('name')
         };
     }, []);
-    const seek = useCallback((progress, clock, length, audioRef, videoRef) => {
+    const seek = useCallback((progress, clock, length, callback) => {
         const time = progress * length;
         clock.setTime(time);
-
-        if (audioRef.current) {
-            audioRef.current.currentTime = time / 1000;
-        }
-
-        if (videoRef.current) {
-            videoRef.current.currentTime = time / 1000;
-        }
-
         forceUpdate();
-    }, [forceUpdate]);
+        mediaAdapter.seek(time / 1000).then((v) => callback());
+    }, [forceUpdate, mediaAdapter]);
 
     const init = useCallback(() => {
         const subtitlePromise = new Promise((resolve, reject) => {
@@ -134,17 +130,26 @@ export default function Player(props) {
                     videoRef.current.ready(trackLength(audioRef, videoRef, mappedSubtitles));
 
                     videoRef.current.onPlay(() => {
-                        play(clock, audioRef, videoRef);
+                        play(clock, mediaAdapter);
                     });
 
                     videoRef.current.onPause(() => {
-                        pause(clock, audioRef, videoRef);
+                        pause(clock, mediaAdapter);
                     });
 
                     videoRef.current.onCurrentTime((currentTime) => {
                         const length = trackLength(audioRef, videoRef, mappedSubtitles);
                         const progress = currentTime * 1000 / length;
-                        seek(progress, clock, length, audioRef, videoRef);
+
+                        if (playingRef.current) {
+                            clock.stop();
+                        }
+
+                        seek(progress, clock, length, (v) => {
+                            if (playingRef.current) {
+                                clock.start();
+                            }
+                        });
                     });
 
                     videoRef.current.onAudioTrackSelected((id) => {
@@ -166,59 +171,62 @@ export default function Player(props) {
                 videoRef.current = null;
             }
         }
-    }, [props.api, subtitleFile, videoFile, clock, seek, setSelectedAudioTrack]);
+    }, [props.api, subtitleFile, videoFile, clock, seek, setSelectedAudioTrack, mediaAdapter]);
 
     useEffect(init, [init]);
 
-    function play(clock, audioRef, videoRef) {
+    function play(clock, mediaAdapter) {
         setPlaying(true);
         clock.start();
-
-        if (audioRef.current) {
-            audioRef.current.play();
-        }
-
-        if (videoRef.current) {
-            videoRef.current.play();
-        }
+        mediaAdapter.play();
     };
 
-    function pause(clock, audioRef, videoRef) {
+    function pause(clock, mediaAdapter) {
         setPlaying(false);
         clock.stop();
-
-        if (audioRef.current) {
-            audioRef.current.pause();
-        }
-
-        if (videoRef.current) {
-            videoRef.current.pause();
-        }
+        mediaAdapter.pause();
     };
 
     const handlePlay = useCallback(() => {
-        play(clock, audioRef, videoRef);
-    }, [clock]);
+        play(clock, mediaAdapter);
+    }, [clock, mediaAdapter]);
 
     const handlePause = useCallback(() => {
-        pause(clock, audioRef, videoRef);
-    }, [clock]);
+        pause(clock, mediaAdapter);
+    }, [clock, mediaAdapter]);
 
     const handleSeek = useCallback((progress) => {
         const length = trackLength(audioRef, videoRef, subtitles);
-        seek(progress, clock, length, audioRef, videoRef);
+
+        if (playingRef.current) {
+            clock.stop();
+        }
+
+        seek(progress, clock, length, () => {
+            if (playingRef.current) {
+                clock.start();
+            }
+        });
     }, [clock, subtitles, seek]);
 
     const handleSeekToSubtitle = useCallback((progress, shouldPlay) => {
         const length = trackLength(audioRef, videoRef, subtitles);
-        seek(progress, clock, length, audioRef, videoRef);
 
-        if (shouldPlay) {
-            play(clock, audioRef, videoRef);
-        } else {
-            pause(clock, audioRef, videoRef);
+        if (!shouldPlay) {
+            pause(clock, mediaAdapter);
         }
-    }, [clock, subtitles, seek]);
+
+        if (playingRef.current) {
+            clock.stop();
+        }
+
+        seek(progress, clock, length, () => {
+            if (shouldPlay && !playingRef.current) {
+                // play method will start the clock again
+                play(clock, mediaAdapter);
+            }
+        });
+    }, [clock, subtitles, seek, mediaAdapter]);
 
     const handleCopy = useCallback((text, start, end) => {
         props.onCopy(
@@ -230,7 +238,7 @@ export default function Player(props) {
             videoFile,
             selectedAudioTrack
         );
-    }, [props, fileName, audioFile, videoFile]);
+    }, [props, fileName, audioFile, videoFile, selectedAudioTrack]);
 
     function handleMouseMove(e) {
         mousePositionRef.current.x = e.screenX;
@@ -251,21 +259,13 @@ export default function Player(props) {
             if (progress >= 1) {
                 clock.setTime(0);
                 clock.stop();
-
-                if (audioRef.current) {
-                    audioRef.current.pause();
-                }
-
-                if (videoRef.current) {
-                    videoRef.current.pause();
-                }
-
+                mediaAdapter.pause();
                 setPlaying(false);
             }
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [clock, subtitles, audioRef, videoRef]);
+    }, [clock, subtitles, mediaAdapter]);
 
     if (!loaded) {
         return null;

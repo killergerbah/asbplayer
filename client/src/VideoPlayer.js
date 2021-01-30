@@ -28,20 +28,22 @@ export default function VideoPlayer(props) {
             channel: params.get('channel')
         };
     }, []);
+    const playerChannel = useMemo(() => new PlayerChannel(channel), [channel]);
     const [playing, setPlaying] = useState(false);
+    const playingRef = useRef();
+    playingRef.current = playing;
     const [length, setLength] = useState(0);
     const [audioTracks, setAudioTracks] = useState(null);
     const [selectedAudioTrack, setSelectedAudioTrack] = useState(null);
     const clock = useMemo(() => new Clock(), []);
     const mousePositionRef = useRef({x:0, y:0});
-    const playerChannelRef = useRef(new PlayerChannel(channel));
     const videoRef = useRef(null);
     const videoRefCallback = useCallback(element => {
         if (element) {
             videoRef.current = element;
 
             if (element.duration) {
-                playerChannelRef.current.ready(element.duration);
+                playerChannel.ready(element.duration);
             } else {
                 element.onloadeddata = (event) => {
                     // https://stackoverflow.com/questions/10385768/how-do-you-resize-a-browser-window-so-that-the-inner-width-is-a-specific-value
@@ -80,11 +82,19 @@ export default function VideoPlayer(props) {
 
                     setAudioTracks(tracks);
                     setSelectedAudioTrack(selectedTrack);
-                    playerChannelRef.current.ready(element.duration, tracks, selectedTrack);
+                    playerChannel.ready(element.duration, tracks, selectedTrack);
+                };
+
+                element.oncanplay = (event) => {
+                    playerChannel.readyState(4);
+
+                    if (playingRef.current) {
+                        clock.start();
+                    }
                 };
             }
         }
-    }, [setAudioTracks, setSelectedAudioTrack]);
+    }, [setAudioTracks, setSelectedAudioTrack, clock, playerChannel]);
 
     function selectAudioTrack(id) {
         for (let t of videoRef.current.audioTracks) {
@@ -97,76 +107,80 @@ export default function VideoPlayer(props) {
     }
 
     useEffect(() => {
-        playerChannelRef.current.onReady((duration) => {
+        playerChannel.onReady((duration) => {
             setLength(duration);
         });
-        playerChannelRef.current.onPlay(() => {
+
+        playerChannel.onPlay(() => {
             videoRef.current.play();
             clock.start();
             setPlaying(true);
         });
-        playerChannelRef.current.onPause(() => {
+
+        playerChannel.onPause(() => {
             videoRef.current.pause();
             clock.stop();
             setPlaying(false);
         });
-        playerChannelRef.current.onCurrentTime((currentTime) => {
-            videoRef.current.currentTime = currentTime;
+
+        playerChannel.onCurrentTime((currentTime) => {
+            if (videoRef.current) {
+                videoRef.current.currentTime = currentTime;
+            }
+
+            if (videoRef.current?.readyState === 4) {
+                playerChannel.readyState(4);
+            }
+
+            clock.stop();
             clock.setTime(currentTime * 1000);
         });
-        playerChannelRef.current.onAudioTrackSelected((id) => {
-            selectAudioTrack(id);
 
-            if (playerChannelRef.current) {
-                playerChannelRef.current.audioTrackSelected(id);
-            }
-        })
-        playerChannelRef.current.onClose(() => {
-            playerChannelRef.current.close();
-            playerChannelRef.current = null;
+        playerChannel.onAudioTrackSelected((id) => {
+            selectAudioTrack(id);
+            playerChannel.audioTrackSelected(id);
+        });
+
+        playerChannel.onClose(() => {
+            playerChannel.close();
             window.close();
         });
 
         return () => {
-            if (playerChannelRef.current) {
-                playerChannelRef.current.close();
-            }
+            playerChannel.close();
         }
-    }, [clock, setPlaying]);
+    }, [clock, setPlaying, playerChannel]);
 
-    function handlePlay() {
-        if (playerChannelRef.current && videoRef.current) {
-            playerChannelRef.current.play();
+    const handlePlay = useCallback(() => {
+        if (videoRef.current) {
+            playerChannel.play();
         }
-    };
+    }, [playerChannel]);
 
-    function handlePause() {
-        if (playerChannelRef.current) {
-            playerChannelRef.current.pause();
-        }
-    };
+    const handlePause = useCallback(() => {
+        playerChannel.pause();
+    }, [playerChannel]);
 
     const handleSeek = useCallback((progress) => {
-        if (playerChannelRef.current) {
-            const time = progress * length;
-            playerChannelRef.current.currentTime = time / 1000;
-        }
-    }, [length]);
+            if (playingRef.current) {
+                clock.stop();
+            }
+
+        const time = progress * length;
+        playerChannel.currentTime = time / 1000;
+    }, [length, clock, playerChannel]);
 
     function handleMouseMove(e) {
         mousePositionRef.current.x = e.screenX;
         mousePositionRef.current.y = e.screenY;
     };
 
-    function handleAudioTrackSelected(id) {
-        if (playerChannelRef.current) {
-            playerChannelRef.current.pause();
-            playerChannelRef.current.audioTrackSelected(id);
-        }
-
+    const handleAudioTrackSelected = useCallback((id) => {
+        playerChannel.pause();
+        playerChannel.audioTrackSelected(id);
         selectAudioTrack(id);
         setSelectedAudioTrack(id);
-    };
+    }, [playerChannel]);
 
     return (
         <div onMouseMove={handleMouseMove} className={classes.root}>
