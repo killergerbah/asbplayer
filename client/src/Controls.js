@@ -250,6 +250,8 @@ export default function Controls(props) {
 
     const handleAudioTrackSelected = useCallback((id) => {
         props.onAudioTrackSelected(id);
+        setAudioTrackSelectorAnchorEl(null);
+        setAudioTrackSelectorOpen(false);
     }, [props]);
 
     const progress = props.clock.progress(props.length);

@@ -29,6 +29,26 @@ export default class MediaAdapter {
         return Promise.all([audioReadyPromise, videoReadyPromise]);
     }
 
+    onReady(callback) {
+        const audioReadyPromise = new Promise((resolve, reject) => {
+            if (this.audioRef.current) {
+                this._onAudioCanPlay(() => resolve());
+            } else {
+                resolve();
+            }
+        });
+
+        const videoReadyPromise = new Promise((resolve, reject) => {
+            if (this.videoRef.current) {
+                this._onVideoCanPlay(() => resolve());
+            } else {
+                resolve();
+            }
+        });
+
+        return Promise.all([audioReadyPromise, videoReadyPromise]);
+    }
+
     _onAudioCanPlay(callback) {
         this._onMediaCanPlay(this.audioRef, this.audioReadyResolves, callback);
     }

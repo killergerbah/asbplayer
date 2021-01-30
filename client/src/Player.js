@@ -153,6 +153,16 @@ export default function Player(props) {
                     });
 
                     videoRef.current.onAudioTrackSelected((id) => {
+                        if (playingRef.current) {
+                            clock.stop();
+                        }
+
+                        mediaAdapter.onReady(() => {
+                            if (playingRef.current) {
+                                clock.start();
+                            }
+                        });
+
                         setSelectedAudioTrack(id);
                     });
 
@@ -245,11 +255,20 @@ export default function Player(props) {
         mousePositionRef.current.y = e.screenY;
     };
 
-    function handleAudioTrackSelected(id) {
+    const handleAudioTrackSelected = useCallback((id) => {
+        const length = trackLength(audioRef, videoRef, subtitles);
+
         if (videoRef.current) {
             videoRef.current.audioTrackSelected(id);
         }
-    };
+
+        pause(clock, mediaAdapter);
+        seek(0, clock, length, () => {
+            if (playingRef.current) {
+                play(clock, mediaAdapter);
+            }
+        });
+    }, [clock, mediaAdapter, subtitles, seek]);
 
     useEffect(() => {
         const interval = setInterval(() => {

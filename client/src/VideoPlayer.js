@@ -161,9 +161,9 @@ export default function VideoPlayer(props) {
     }, [playerChannel]);
 
     const handleSeek = useCallback((progress) => {
-            if (playingRef.current) {
-                clock.stop();
-            }
+        if (playingRef.current) {
+            clock.stop();
+        }
 
         const time = progress * length;
         playerChannel.currentTime = time / 1000;
@@ -175,11 +175,16 @@ export default function VideoPlayer(props) {
     };
 
     const handleAudioTrackSelected = useCallback((id) => {
-        playerChannel.pause();
-        playerChannel.audioTrackSelected(id);
+        if (playingRef.current) {
+            clock.stop();
+            playerChannel.pause();
+        }
+
         selectAudioTrack(id);
         setSelectedAudioTrack(id);
-    }, [playerChannel]);
+        playerChannel.currentTime = 0;
+        playerChannel.audioTrackSelected(id);
+    }, [playerChannel, clock]);
 
     return (
         <div onMouseMove={handleMouseMove} className={classes.root}>
