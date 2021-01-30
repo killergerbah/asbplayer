@@ -6,12 +6,12 @@ export default function Api() {
     };
 
     this.list = function(path) {
-        return fetch(this.baseUrl + "/ls/" + encode(path))
+        return fetch(this.baseUrl + "/api/ls/" + encode(path))
             .then(response => response.json())
     };
 
     this.subtitles = function(path) {
-        return fetch(this.baseUrl + "/subtitle/" + encode(path))
+        return fetch(this.baseUrl + "/api/subtitle/" + encode(path))
             .then(response => response.json())
     };
 
@@ -20,7 +20,7 @@ export default function Api() {
     };
 
     this.clipAudio = function(fileName, path, start, end, trackId) {
-        return fetch(this.baseUrl + "/clip/audio", {
+        return fetch(this.baseUrl + "/api/clip/audio", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

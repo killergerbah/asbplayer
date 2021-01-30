@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*", methods = RequestMethod.POST)
-@RequestMapping(path = "clip", consumes = "application/json", produces = "application/octet-stream")
+@RequestMapping(path = "api/clip", consumes = "application/json", produces = "application/octet-stream")
 public class ClipController {
 
     private final ClipService clipService;

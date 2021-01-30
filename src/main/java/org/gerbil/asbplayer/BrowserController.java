@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
-@RequestMapping(path = "ls", produces = "application/json")
+@RequestMapping(path = "api/ls", produces = "application/json")
 public class BrowserController {
 
     private final BrowserService browserService;

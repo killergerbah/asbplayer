@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
-@RequestMapping(path = "subtitle", produces = "application/json")
+@RequestMapping(path = "api/subtitle", produces = "application/json")
 public class SubtitleController {
 
     private final SubtitleRepository subtitleRepository;
