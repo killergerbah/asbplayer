@@ -46,15 +46,14 @@ export default function VideoPlayer(props) {
                 playerChannel.ready(element.duration);
             } else {
                 element.onloadeddata = (event) => {
-                    // https://stackoverflow.com/questions/10385768/how-do-you-resize-a-browser-window-so-that-the-inner-width-is-a-specific-value
                     if (window.outerWidth) {
-                        const desiredWidth = element.videoWidth + (window.outerWidth - window.innerWidth);
-                        const desiredHeight = element.videoHeight + (window.outerHeight - window.innerHeight);
-                        const resizeRatio = Math.max(1, Math.min(window.screen.width / desiredWidth, window.screen.height / desiredHeight));
+                        const availWidth = window.screen.availWidth - (window.outerWidth - window.innerWidth);
+                        const availHeight = window.screen.availHeight - (window.outerHeight - window.innerHeight);
+                        const resizeRatio = Math.min(1, Math.min(availWidth / element.videoWidth, availHeight / element.videoHeight));
 
                         window.resizeTo(
-                            resizeRatio * desiredWidth,
-                            resizeRatio * desiredHeight
+                            resizeRatio * element.videoWidth + (window.outerWidth - window.innerWidth),
+                            resizeRatio * element.videoHeight + (window.outerHeight - window.innerHeight)
                         );
                     }
 

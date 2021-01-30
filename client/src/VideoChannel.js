@@ -28,7 +28,6 @@ export default class VideoChannel {
                     }
                     break;
                 case 'readyState':
-                    console.log("readyState received " + event.data.value);
                     that.readyState = event.data.value;
                     if (that.readyState === 4) {
                         that.oncanplay?.();
