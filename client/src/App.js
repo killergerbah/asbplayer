@@ -94,6 +94,11 @@ function App() {
         setErrorAlertOpen(false);
     }, [setErrorAlertOpen]);
 
+    const handleError = useCallback((message) => {
+        setError(message);
+        setErrorAlertOpen(true);
+    }, [setError, setErrorAlertOpen]);
+
     return (
         <div>
         <Alert open={errorAlertOpen} onClose={handleErrorAlertClosed} autoHideDuration={3000} severity="error">
@@ -127,7 +132,7 @@ function App() {
                 <Browser api={api} onOpenDirectory={handleOpenPath} onOpenMedia={handleOpenMedia} />
             </Route>
             <Route exact path="/video">
-                <VideoPlayer api={api} />
+                <VideoPlayer api={api} onError={handleError} />
             </Route>
             <Route exact path="/view">
                 <Bar onOpenCopyHistory={handleOpenCopyHistory} />

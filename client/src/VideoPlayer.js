@@ -19,6 +19,68 @@ const useStyles = makeStyles({
     }
 });
 
+function notifyReady(element, playerChannel, setAudioTracks, setSelectedAudioTrack) {
+    if (window.outerWidth && element.videoWidth > 0 && element.videoHeight > 0) {
+        const availWidth = window.screen.availWidth - (window.outerWidth - window.innerWidth);
+        const availHeight = window.screen.availHeight - (window.outerHeight - window.innerHeight);
+        const resizeRatio = Math.min(1, Math.min(availWidth / element.videoWidth, availHeight / element.videoHeight));
+
+        window.resizeTo(
+            resizeRatio * element.videoWidth + (window.outerWidth - window.innerWidth),
+            resizeRatio * element.videoHeight + (window.outerHeight - window.innerHeight)
+        );
+    }
+
+    let tracks;
+    let selectedTrack;
+
+    if (element.audioTracks) {
+        tracks = [];
+
+        for (let t of element.audioTracks) {
+            tracks.push({
+                id: t.id,
+                label: t.label,
+                language: t.language
+            });
+
+            if (t.enabled) {
+                selectedTrack = t.id;
+            }
+        }
+    } else {
+        tracks = null;
+        selectedTrack = null;
+    }
+
+    setAudioTracks(tracks);
+    setSelectedAudioTrack(selectedTrack);
+    playerChannel.ready(element.duration, tracks, selectedTrack);
+}
+
+function errorMessage(element) {
+    let error;
+    switch (element.error.code) {
+        case 1:
+            error = "Aborted";
+            break;
+        case 2:
+            error = "Network error";
+            break;
+        case 3:
+            error = "Decoding error";
+            break;
+        case 4:
+            error = "Source not supported";
+            break;
+        default:
+            error = "Unknown error";
+            break;
+    }
+
+    return error + ": " + (element.error.message || "<details missing>");
+}
+
 export default function VideoPlayer(props) {
     const classes = useStyles();
     const { videoFile, channel } = useMemo(() => {
@@ -42,58 +104,27 @@ export default function VideoPlayer(props) {
         if (element) {
             videoRef.current = element;
 
-            if (element.duration) {
-                playerChannel.ready(element.duration);
+            if (element.readyState === 4) {
+                notifyReady(element, playerChannel, setAudioTracks, setSelectedAudioTrack);
             } else {
                 element.onloadeddata = (event) => {
-                    if (window.outerWidth) {
-                        const availWidth = window.screen.availWidth - (window.outerWidth - window.innerWidth);
-                        const availHeight = window.screen.availHeight - (window.outerHeight - window.innerHeight);
-                        const resizeRatio = Math.min(1, Math.min(availWidth / element.videoWidth, availHeight / element.videoHeight));
-
-                        window.resizeTo(
-                            resizeRatio * element.videoWidth + (window.outerWidth - window.innerWidth),
-                            resizeRatio * element.videoHeight + (window.outerHeight - window.innerHeight)
-                        );
-                    }
-
-                    let tracks;
-                    let selectedTrack;
-
-                    if (element.audioTracks) {
-                        tracks = [];
-
-                        for (let t of element.audioTracks) {
-                            tracks.push({
-                                id: t.id,
-                                label: t.label,
-                                language: t.language
-                            });
-
-                            if (t.enabled) {
-                                selectedTrack = t.id;
-                            }
-                        }
-                    } else {
-                        tracks = null;
-                        selectedTrack = null;
-                    }
-
-                    setAudioTracks(tracks);
-                    setSelectedAudioTrack(selectedTrack);
-                    playerChannel.ready(element.duration, tracks, selectedTrack);
-                };
-
-                element.oncanplay = (event) => {
-                    playerChannel.readyState(4);
-
-                    if (playingRef.current) {
-                        clock.start();
-                    }
+                    notifyReady(element, playerChannel, setAudioTracks, setSelectedAudioTrack);
                 };
             }
+
+            element.oncanplay = (event) => {
+                playerChannel.readyState(4);
+
+                if (playingRef.current) {
+                    clock.start();
+                }
+            };
+
+            element.onerror = (event) => {
+                props.onError(errorMessage(element));
+            };
         }
-    }, [setAudioTracks, setSelectedAudioTrack, clock, playerChannel]);
+    }, [setAudioTracks, setSelectedAudioTrack, clock, playerChannel, props]);
 
     function selectAudioTrack(id) {
         for (let t of videoRef.current.audioTracks) {
