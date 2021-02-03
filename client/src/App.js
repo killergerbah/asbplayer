@@ -118,7 +118,7 @@ function App() {
                 const channel = params.get('channel');
 
                 if (videoFile && channel) {
-                    return (<Redirect to={"/video?video=" + videoFile + "&channel=" + channel} />);
+                    return (<Redirect to={"/video?video=" + encodeURIComponent(videoFile) + "&channel=" + channel} />);
                 }
 
                 return (<Redirect to="/browse" />)
