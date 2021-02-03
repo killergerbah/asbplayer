@@ -2,33 +2,28 @@ package org.gerbil.asbplayer;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class HomeController {
 
-    @RequestMapping(value = {"/"})
+    @GetMapping(value = {"/"})
     public String index() {
         return "index.html";
     }
 
-    @RequestMapping(value = {"/browse"})
-    public String browseRoot() {
-        return "/";
-    }
-
-    @RequestMapping(value = {"/browse/{**}"})
+    @GetMapping(value = {"/browse/**"})
     public String browse() {
         return "/";
     }
 
-    @RequestMapping(value = {"/view"})
+    @GetMapping(value = {"/view"})
     public String view() {
         return "/";
     }
 
-    @RequestMapping(value = {"/video"})
+    @GetMapping(value = {"/video"})
     public String video() {
         return "/";
     }

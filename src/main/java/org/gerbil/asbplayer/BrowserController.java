@@ -27,7 +27,7 @@ public class BrowserController {
     }
 
     @GetMapping(path = "**")
-    public ListResponse subtitles(HttpServletRequest request) {
+    public ListResponse list(HttpServletRequest request) {
         var path = URLDecoder.decode(request.getRequestURL().toString().split("/ls/")[1], StandardCharsets.UTF_8);
         return new ListResponse(browserService.list(path));
     }
