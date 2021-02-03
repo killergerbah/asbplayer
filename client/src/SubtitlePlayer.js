@@ -8,6 +8,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableRow from '@material-ui/core/TableRow';
+import Typography from '@material-ui/core/Typography';
 
 const useSubtitlePlayerStyles = makeStyles({
     container: {
@@ -33,6 +34,13 @@ const useSubtitlePlayerStyles = makeStyles({
         color: '#aaaaaa',
         textAlign: 'right',
         padding: 0
+    },
+    noSubtitles: {
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center"
     }
 });
 
@@ -143,13 +151,11 @@ export default function SubtitlePlayer(props) {
         setCopyAlertOpen(false);
     }, [setCopyAlertOpen]);
 
-    if (subtitles.length === 0) {
-        return null;
-    }
+    let subtitleTable;
 
-    return (
-        <div>
-            <TableContainer ref={tableRef} className={classes.container}>
+    if (props.subtitles.length > 0) {
+        subtitleTable = (
+            <TableContainer ref={tableRef}>
                 <Table>
                     <TableBody>
                         {props.subtitles.map((s, index) => {
@@ -157,28 +163,38 @@ export default function SubtitlePlayer(props) {
                             const className = selected ? classes.selectedSubtitle : classes.subtitle;
 
                             return (
-                                <TableRow
-                                    onClick={(e) => handleClick(index)}
-                                    key={index}
-                                    ref={subtitleRefs[index]}
-                                    selected={selected}>
-                                    <TableCell className={className}>
-                                        {s.text}
-                                    </TableCell>
-                                    <TableCell className={classes.copyButton}>
-                                        <IconButton onClick={(e) => handleCopy(e, index)}>
-                                            <FileCopy />
-                                        </IconButton>
-                                    </TableCell>
-                                    <TableCell className={classes.timestamp}>
-                                        {s.displayTime}
-                                    </TableCell>
-                                </TableRow>
+                               <TableRow
+                                   onClick={(e) => handleClick(index)}
+                                   key={index}
+                                   ref={subtitleRefs[index]}
+                                   selected={selected}>
+                                   <TableCell className={className}>
+                                       {s.text}
+                                   </TableCell>
+                                   <TableCell className={classes.copyButton}>
+                                       <IconButton onClick={(e) => handleCopy(e, index)}>
+                                           <FileCopy />
+                                       </IconButton>
+                                   </TableCell>
+                                   <TableCell className={classes.timestamp}>
+                                       {s.displayTime}
+                                   </TableCell>
+                               </TableRow>
                             );
                         })}
                     </TableBody>
                 </Table>
             </TableContainer>
+        );
+    } else {
+        subtitleTable = (
+            <Typography variant="body1" className={classes.noSubtitles}>No subtitles found.</Typography>
+        );
+    }
+
+    return (
+        <div className={classes.container}>
+            {subtitleTable}
             <Alert open={copyAlertOpen} onClose={handleCopyAlertClosed} autoHideDuration={3000} severity="success">
                 Copied {lastCopiedSubtitle}
             </Alert>
