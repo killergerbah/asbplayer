@@ -4,11 +4,12 @@ import AudiotrackIcon from '@material-ui/icons/Audiotrack';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
+import ForwardIcon from '@material-ui/icons/Forward';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListSubheader from '@material-ui/core/ListSubheader';
 
 export default function CopyHistory(props) {
@@ -41,16 +42,23 @@ export default function CopyHistory(props) {
                         </IconButton>
                     </ListItemIcon>
                     <ListItemIcon>
-                        <IconButton disabled={!item.audioFile} onClick={() => props.onClipAudio(item)}>
+                        <IconButton disabled={!item.audioFile && !item.videoFile} onClick={() => props.onClipAudio(item)}>
                             <AudiotrackIcon />
                         </IconButton>
                     </ListItemIcon>
                     <ListItemIcon>
+                        <IconButton onClick={() => props.onSelect(item)}>
+                            <ForwardIcon />
+                        </IconButton>
+                    </ListItemIcon>
+                    <ListItem>
+                        <ListItemText>{item.text}</ListItemText>
+                    </ListItem>
+                    <ListItemSecondaryAction>
                         <IconButton onClick={() => props.onDelete(item)}>
                             <DeleteIcon />
                         </IconButton>
-                    </ListItemIcon>
-                    <ListItemText>{item.text}</ListItemText>
+                    </ListItemSecondaryAction>
                 </ListItem>
             ));
 

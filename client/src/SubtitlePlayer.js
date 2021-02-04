@@ -47,7 +47,7 @@ const useSubtitlePlayerStyles = makeStyles({
 export default function SubtitlePlayer(props) {
     const clock = props.clock;
     const subtitles = props.subtitles;
-    const subtitleRefs = useMemo(() => Array(subtitles.length).fill().map((_, i) => createRef()), [subtitles]);
+    const subtitleRefs = useMemo(() => subtitles === null ? [] : Array(subtitles.length).fill().map((_, i) => createRef()), [subtitles]);
     const [selectedSubtitleIndex, setSelectedSubtitleIndex] = useState(0);
     const [copyAlertOpen, setCopyAlertOpen] = useState(false);
     const [lastCopiedSubtitle, setLastCopiedSubtitle] = useState(null);
@@ -56,6 +56,10 @@ export default function SubtitlePlayer(props) {
     const classes = useSubtitlePlayerStyles();
 
     useEffect(() => {
+        if (!subtitles) {
+            return;
+        }
+
         const interval = setInterval(() => {
             const length = props.length;
             const progress = clock.progress(length);
@@ -131,6 +135,30 @@ export default function SubtitlePlayer(props) {
         };
     }, [tableRef, lastScrollTimestampRef]);
 
+    useEffect(() => {
+        if (!props.jumpToSubtitle || !props.subtitles) {
+            return;
+        }
+
+        let jumpToIndex = -1;
+        let i = 0;
+
+        for (let s of props.subtitles) {
+            if (s.start === props.jumpToSubtitle.start && s.text === props.jumpToSubtitle.text) {
+                jumpToIndex = i;
+            }
+
+            ++i;
+        }
+
+        if (jumpToIndex !== -1) {
+            subtitleRefs[jumpToIndex].current.scrollIntoView({
+                 block: "center",
+                 inline: "nearest",
+                 behavior: "smooth"
+            });
+        }
+    }, [props.jumpToSubtitle, props.subtitles, subtitleRefs]);
 
     const handleClick = useCallback((subtitleIndex) => {
         const progress = props.subtitles[subtitleIndex].start / props.length;
@@ -153,7 +181,9 @@ export default function SubtitlePlayer(props) {
 
     let subtitleTable;
 
-    if (props.subtitles.length > 0) {
+    if (subtitles === null) {
+        subtitleTable = (<div />);
+    } else if (props.subtitles.length > 0) {
         subtitleTable = (
             <TableContainer ref={tableRef}>
                 <Table>

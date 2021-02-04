@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { useLocation } from "react-router-dom";
 import { makeStyles } from '@material-ui/core/styles';
 import Clock from './Clock';
 import Controls from './Controls';
@@ -42,7 +43,7 @@ function displayTime(milliseconds, totalMilliseconds) {
 }
 
 function trackLength(audioRef, videoRef, subtitles) {
-    const subtitlesLength = subtitles.length > 0 ? subtitles[subtitles.length - 1].end - subtitles[0].start : 0;
+    const subtitlesLength = subtitles === null ? 0 : (subtitles.length > 0 ? subtitles[subtitles.length - 1].end - subtitles[0].start : 0);
     const audioLength = audioRef.current && audioRef.current.duration
         ? 1000 * audioRef.current.duration
         : 0;
@@ -53,7 +54,7 @@ function trackLength(audioRef, videoRef, subtitles) {
 }
 
 export default function Player(props) {
-    const [subtitles, setSubtitles] = useState([]);
+    const [subtitles, setSubtitles] = useState(null);
     const [playing, setPlaying] = useState(false);
     const playingRef = useRef();
     playingRef.current = playing;
@@ -65,18 +66,29 @@ export default function Player(props) {
     const mousePositionRef = useRef({x:0, y:0});
     const audioRef = useRef(null);
     const videoRef = useRef(null);
-    const clock = useMemo(() => new Clock(), []);
     const mediaAdapter = useMemo(() => new MediaAdapter(audioRef, videoRef), []);
+    const clock = useMemo(() => new Clock(), []);
+
     const classes = useStyles();
-    const { subtitleFile, audioFile, videoFile, fileName } = useMemo(() => {
-        const params = new URLSearchParams(window.location.search);
-        return {
-            subtitleFile: params.get('subtitle'),
-            audioFile: params.get('audio'),
-            videoFile: params.get('video'),
-            fileName: params.get('name')
-        };
-    }, []);
+    const location = useLocation();
+    const [subtitleFile, setSubtitleFile] = useState(null);
+    const [audioFile, setAudioFile] = useState(null);
+    const [videoFile, setVideoFile] = useState(null);
+    const [fileName, setFileName] = useState(null);
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        setPlaying(false);
+        setLoaded(false);
+        mediaAdapter.pause();
+        clock.setTime(0);
+        clock.stop();
+        setSubtitleFile(params.get('subtitle'));
+        setAudioFile(params.get('audio'));
+        setVideoFile(params.get('video'));
+        setFileName(params.get('name'));
+    }, [location, setSubtitleFile, setAudioFile, setVideoFile, setFileName, mediaAdapter, clock]);
+
     const seek = useCallback((progress, clock, length, callback) => {
         const time = progress * length;
         clock.setTime(time);
@@ -115,7 +127,7 @@ export default function Player(props) {
 
                 window.open(
                     '/?video=' + encodeURIComponent(videoFile) + '&channel=' + channel,
-                    'asbplayer-video',
+                    'asbplayer-video-' + videoFile,
                     "resizable,width=800,height=450");
             } else {
                 resolve();
@@ -244,11 +256,12 @@ export default function Player(props) {
             start,
             end,
             fileName,
-            audioFile ? audioFile : videoFile,
+            audioFile,
             videoFile,
+            subtitleFile,
             selectedAudioTrack
         );
-    }, [props, fileName, audioFile, videoFile, selectedAudioTrack]);
+    }, [props, fileName, audioFile, videoFile, subtitleFile, selectedAudioTrack]);
 
     function handleMouseMove(e) {
         mousePositionRef.current.x = e.screenX;
@@ -310,6 +323,7 @@ export default function Player(props) {
                 subtitles={subtitles}
                 clock={clock}
                 length={length}
+                jumpToSubtitle={props.jumpToSubtitle}
                 onSeek={handleSeekToSubtitle}
                 onCopy={handleCopy} />
             {audioFile ? <audio ref={audioRef} src={props.api.streamingUrl(audioFile)} /> : null}
