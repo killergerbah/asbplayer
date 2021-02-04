@@ -49,18 +49,20 @@ export default function SubtitlePlayer(props) {
     const subtitles = props.subtitles;
     const subtitleRefs = useMemo(() => subtitles === null ? [] : Array(subtitles.length).fill().map((_, i) => createRef()), [subtitles]);
     const [selectedSubtitleIndex, setSelectedSubtitleIndex] = useState(0);
+    const selectedSubtitleIndexRef = useRef(0);
     const [copyAlertOpen, setCopyAlertOpen] = useState(false);
     const [lastCopiedSubtitle, setLastCopiedSubtitle] = useState(null);
     const lastScrollTimestampRef = useRef(0);
+    const requestAnimationRef = useRef();
     const tableRef = createRef();
     const classes = useSubtitlePlayerStyles();
 
     useEffect(() => {
-        if (!subtitles) {
+        if (!subtitles || subtitles.length === 0) {
             return;
         }
 
-        const interval = setInterval(() => {
+        const update = (time) => {
             const length = props.length;
             const progress = clock.progress(length);
             let currentSubtitleIndex = -1;
@@ -72,8 +74,9 @@ export default function SubtitlePlayer(props) {
                 }
             }
 
-            if (currentSubtitleIndex !== -1 && currentSubtitleIndex !== selectedSubtitleIndex) {
+            if (currentSubtitleIndex !== -1 && currentSubtitleIndex !== selectedSubtitleIndexRef.current) {
                 setSelectedSubtitleIndex(currentSubtitleIndex);
+                selectedSubtitleIndexRef.current = currentSubtitleIndex;
                 const selectedSubtitleRef = subtitleRefs[currentSubtitleIndex];
                 const allowScroll = Date.now() - lastScrollTimestampRef.current > 5000;
 
@@ -85,9 +88,14 @@ export default function SubtitlePlayer(props) {
                     });
                 }
             }
-        }, 100);
-        return () => clearInterval(interval);
-    }, [subtitles, clock, selectedSubtitleIndex, subtitleRefs, props.length])
+
+            requestAnimationRef.current = requestAnimationFrame(update);
+        };
+
+        requestAnimationRef.current = requestAnimationFrame(update);
+
+        return () => cancelAnimationFrame(requestAnimationRef.current);
+    }, [subtitles, clock, props.length, subtitleRefs]);
 
     useEffect(() => {
         function handleKey(event) {
