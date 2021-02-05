@@ -13,7 +13,6 @@ import Typography from '@material-ui/core/Typography';
 const useSubtitlePlayerStyles = makeStyles({
     container: {
         height: 'calc(100vh - 64px)',
-        width: '100vw',
         position: 'relative',
         overflowX: 'hidden'
     },

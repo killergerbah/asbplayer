@@ -99,6 +99,7 @@ export default function Player(props) {
     const init = useCallback(() => {
         const subtitlePromise = new Promise((resolve, reject) => {
             if (subtitleFile) {
+                setSubtitles(null);
                 props.api.subtitles(subtitleFile)
                     .then(res => {
                         const length = res.subtitles.length > 0
@@ -112,6 +113,7 @@ export default function Player(props) {
                     })
                     .catch(reject);
             } else {
+                setSubtitles([]);
                 resolve([]);
             }
         });

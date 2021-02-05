@@ -1,5 +1,7 @@
-import React, { useCallback, useState, useMemo, useEffect } from 'react';
+import React, { useCallback, useState, useMemo, useEffect, useLayoutEffect } from 'react';
 import { Route, Redirect, Switch, useHistory, useLocation } from "react-router-dom";
+import { makeStyles } from '@material-ui/core/styles';
+import clsx from 'clsx';
 import Alert from './Alert.js';
 import Api from './Api.js';
 import Bar from './Bar.js';
@@ -8,6 +10,35 @@ import Browser from './Browser.js';
 import Player from './Player.js';
 import VideoPlayer from './VideoPlayer.js';
 
+const useStyles = drawerWidth => makeStyles((theme) => ({
+    content: {
+        flexGrow: 1,
+        transition: theme.transitions.create('margin', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+        }),
+        marginRight: 0,
+    },
+    contentShift: {
+        transition: theme.transitions.create('margin', {
+            easing: theme.transitions.easing.easeOut,
+            duration: theme.transitions.duration.enteringScreen,
+        }),
+        marginRight: drawerWidth,
+    },
+}));
+
+function Content(props) {
+    const classes = useStyles(props.drawerWidth)();
+    return (
+        <main
+            className={clsx(classes.content, {
+                [classes.contentShift]: props.drawerOpen,
+            })}>
+        {props.children}
+        </main>
+    );
+}
 
 function openMedia(audioFile, videoFile, subtitleFile, fileName, history) {
     var parameters = [];
@@ -29,13 +60,32 @@ function openMedia(audioFile, videoFile, subtitleFile, fileName, history) {
     history.push('/view?' + parameters.join('&'));
 }
 
+// https://stackoverflow.com/questions/19014250/rerender-view-on-browser-resize-with-react
+function useWindowSize(off) {
+    const [size, setSize] = useState([0, 0]);
+    useLayoutEffect(() => {
+        function updateSize() {
+            if (off) {
+                return;
+            }
+
+            setSize([window.innerWidth, window.innerHeight]);
+        }
+        window.addEventListener('resize', updateSize);
+        updateSize();
+        return () => window.removeEventListener('resize', updateSize);
+    }, [off]);
+    return size;
+}
+
 function App() {
     const api = useMemo(() => new Api(), []);
     const history = useHistory();
     const location = useLocation();
+    const [width, ] = useWindowSize(location.pathname === '/video');
+    const drawerWidth = Math.max(300, width * 0.3);
     const [copiedSubtitles, setCopiedSubtitles] = useState([]);
     const [copyHistoryOpen, setCopyHistoryOpen] = useState(false);
-    const [copyHistoryAnchorEl, setCopyHistoryAnchorEl] = useState(null);
     const [error, setError] = useState(null);
     const [errorAlertOpen, setErrorAlertOpen] = useState(false);
     const [jumpToSubtitle, setJumpToSubtitle] = useState(null);
@@ -56,7 +106,8 @@ function App() {
     }, [history]);
 
     const handleCopy = useCallback((text, start, end, fileName, audioFile, videoFile, subtitleFile, audioTrack) => {
-        copiedSubtitles.push({
+        let newCopiedSubtitles = copiedSubtitles.slice();
+        newCopiedSubtitles.push({
             timestamp: Date.now(),
             text: text,
             start: start,
@@ -67,18 +118,16 @@ function App() {
             videoFile: videoFile,
             audioTrack: audioTrack
         });
-        setCopiedSubtitles(copiedSubtitles);
+        setCopiedSubtitles(newCopiedSubtitles);
     }, [setCopiedSubtitles, copiedSubtitles]);
 
     const handleOpenCopyHistory = useCallback((event) => {
         setCopyHistoryOpen(!copyHistoryOpen);
-        setCopyHistoryAnchorEl(event.currentTarget);
-    }, [setCopyHistoryOpen, copyHistoryOpen, setCopyHistoryAnchorEl]);
+    }, [setCopyHistoryOpen, copyHistoryOpen]);
 
     const handleCloseCopyHistory = useCallback(() => {
         setCopyHistoryOpen(false);
-        setCopyHistoryAnchorEl(null);
-    }, [setCopyHistoryOpen, setCopyHistoryAnchorEl]);
+    }, [setCopyHistoryOpen]);
 
     const handleDeleteCopyHistoryItem = useCallback(item => {
         const newCopiedSubtitles = [];
@@ -125,7 +174,7 @@ function App() {
             <CopyHistory
                 items={copiedSubtitles}
                 open={copyHistoryOpen}
-                anchorEl={copyHistoryAnchorEl}
+                drawerWidth={drawerWidth}
                 onClose={handleCloseCopyHistory}
                 onDelete={handleDeleteCopyHistoryItem}
                 onClipAudio={handleClipAudio}
@@ -143,19 +192,25 @@ function App() {
                     return (<Redirect to="/browse" />)
                 }} />
                 <Route exact path="/browse">
-                    <Bar onOpenCopyHistory={handleOpenCopyHistory} />
-                    <Browser api={api} onOpenDirectory={handleOpenPath} onOpenMedia={handleOpenMedia} />
+                    <Bar drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen} onOpenCopyHistory={handleOpenCopyHistory} />
+                    <Content drawerOpen={copyHistoryOpen}>
+                        <Browser api={api} onOpenDirectory={handleOpenPath} onOpenMedia={handleOpenMedia} />
+                    </Content>
                 </Route>
                 <Route exact path="/browse/:path+">
-                    <Bar onOpenCopyHistory={handleOpenCopyHistory} />
-                    <Browser api={api} onOpenDirectory={handleOpenPath} onOpenMedia={handleOpenMedia} />
+                    <Bar drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen} onOpenCopyHistory={handleOpenCopyHistory} />
+                    <Content drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen}>
+                        <Browser api={api} onOpenDirectory={handleOpenPath} onOpenMedia={handleOpenMedia} />
+                    </Content>
                 </Route>
                 <Route exact path="/video">
                     <VideoPlayer api={api} onError={handleError} />
                 </Route>
                 <Route exact path="/view">
-                    <Bar onOpenCopyHistory={handleOpenCopyHistory} />
-                    <Player api={api} onCopy={handleCopy} jumpToSubtitle={jumpToSubtitle} />
+                    <Bar drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen} onOpenCopyHistory={handleOpenCopyHistory} />
+                    <Content drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen}>
+                        <Player api={api} onCopy={handleCopy} jumpToSubtitle={jumpToSubtitle} />
+                    </Content>
                 </Route>
             </Switch>
         </div>

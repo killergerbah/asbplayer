@@ -1,18 +1,48 @@
 import { useCallback } from 'react';
-import Popover from '@material-ui/core/Popover';
+import { makeStyles } from '@material-ui/core/styles';
+import Divider from '@material-ui/core/Divider';
+import Drawer from '@material-ui/core/Drawer';
 import AudiotrackIcon from '@material-ui/icons/Audiotrack';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import ForwardIcon from '@material-ui/icons/Forward';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
 
+const useStyles = (drawerWidth) => makeStyles((theme) => ({
+    drawer: {
+        width: drawerWidth,
+        flexShrink: 0,
+    },
+    drawerPaper: {
+        width: drawerWidth,
+    },
+    drawerHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        position: 'static',
+        padding: theme.spacing(0, 1),
+        // necessary for content to be below app bar
+        ...theme.mixins.toolbar,
+        justifyContent: 'flex-start',
+    },
+    listContainer: {
+        position: 'relative',
+        height: '100%',
+        overflowY: 'auto'
+    },
+    listItemIconRoot: {
+        minWidth: 20
+    }
+}));
+
 export default function CopyHistory(props) {
+    const classes = useStyles(props.drawerWidth)();
     const scrollToBottomRefCallback =  useCallback(element => {
         if (element) {
             element.scrollIntoView();
@@ -36,29 +66,27 @@ export default function CopyHistory(props) {
 
             content.push((
                 <ListItem ref={ref} key={item.timestamp}>
-                    <ListItemIcon>
+                    <ListItemIcon classes={{root: classes.listItemIconRoot}}>
                         <IconButton onClick={(e) => navigator.clipboard.writeText(item.text)}>
-                            <FileCopyIcon />
+                            <FileCopyIcon fontSize="small" />
                         </IconButton>
                     </ListItemIcon>
-                    <ListItemIcon>
+                    <ListItemIcon classes={{root: classes.listItemIconRoot}}>
                         <IconButton disabled={!item.audioFile && !item.videoFile} onClick={() => props.onClipAudio(item)}>
-                            <AudiotrackIcon />
+                            <AudiotrackIcon fontSize="small" />
                         </IconButton>
                     </ListItemIcon>
-                    <ListItemIcon>
+                    <ListItemIcon classes={{root: classes.listItemIconRoot}}>
                         <IconButton onClick={() => props.onSelect(item)}>
-                            <ForwardIcon />
+                            <ForwardIcon fontSize="small" />
                         </IconButton>
                     </ListItemIcon>
-                    <ListItem>
-                        <ListItemText>{item.text}</ListItemText>
-                    </ListItem>
-                    <ListItemSecondaryAction>
+                    <ListItemText>{item.text}</ListItemText>
+                    <ListItemIcon classes={{root: classes.listItemIconRoot}}>
                         <IconButton onClick={() => props.onDelete(item)}>
-                            <DeleteIcon />
+                            <DeleteIcon fontSize="small" />
                         </IconButton>
-                    </ListItemSecondaryAction>
+                    </ListItemIcon>
                 </ListItem>
             ));
 
@@ -72,20 +100,23 @@ export default function CopyHistory(props) {
     const list = (<List>{content}</List>);
 
     return (
-        <Popover
-            disableEnforceFocus={true}
+        <Drawer
+            variant="persistent"
+            anchor="right"
             open={props.open}
-            anchorEl={props.anchorEl}
-            onClose={props.onClose}
-            anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'center',
-            }}
-            transformOrigin={{
-                vertical: 'top',
-                horizontal: 'center',
+            className={classes.drawer}
+            classes={{
+                paper: classes.drawerPaper,
             }}>
-            {list}
-        </Popover>
+            <div className={classes.drawerHeader}>
+                <IconButton onClick={props.onClose}>
+                    <ChevronRightIcon />
+                </IconButton>
+            </div>
+            <Divider />
+            <div className={classes.listContainer}>
+                {list}
+            </div>
+        </Drawer>
     );
 }
