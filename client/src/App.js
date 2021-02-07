@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import Alert from './Alert.js';
 import Api from './Api.js';
 import Bar from './Bar.js';
+import ChromeExtension from './ChromeExtension.js';
 import CopyHistory from './CopyHistory.js';
 import Browser from './Browser.js';
 import Player from './Player.js';
@@ -80,6 +81,7 @@ function useWindowSize(off) {
 
 function App() {
     const api = useMemo(() => new Api(), []);
+    const extension = useMemo(() => new ChromeExtension(), []);
     const history = useHistory();
     const location = useLocation();
     const [width, ] = useWindowSize(location.pathname === '/video');
@@ -99,7 +101,7 @@ function App() {
     const handleOpenMedia = useCallback((media) => {
         setJumpToSubtitle(null);
         openMedia(media.audioFile?.path, media.videoFile?.path, media.subtitleFile?.path, media.name, history);
-    }, [history, setJumpToSubtitle]);
+    }, [history]);
 
     const handleOpenPath = useCallback((path) => {
         history.push('/browse/' + path);
@@ -119,11 +121,11 @@ function App() {
             audioTrack: audioTrack
         });
         setCopiedSubtitles(newCopiedSubtitles);
-    }, [setCopiedSubtitles, copiedSubtitles]);
+    }, [copiedSubtitles]);
 
     const handleOpenCopyHistory = useCallback((event) => {
         setCopyHistoryOpen(!copyHistoryOpen);
-    }, [setCopyHistoryOpen, copyHistoryOpen]);
+    }, [copyHistoryOpen]);
 
     const handleCloseCopyHistory = useCallback(() => {
         setCopyHistoryOpen(false);
@@ -139,7 +141,7 @@ function App() {
         }
 
         setCopiedSubtitles(newCopiedSubtitles);
-    }, [copiedSubtitles, setCopiedSubtitles]);
+    }, [copiedSubtitles]);
 
     const handleClipAudio = useCallback(item => {
         api.clipAudio(item.name, item.audioFile || item.videoFile, item.start, item.end, item.audioTrack)
@@ -155,16 +157,16 @@ function App() {
         }
 
         setJumpToSubtitle({text: item.text, start: item.start});
-    }, [setJumpToSubtitle, history, subtitleFile]);
+    }, [ history, subtitleFile]);
 
     const handleErrorAlertClosed = useCallback(() => {
         setErrorAlertOpen(false);
-    }, [setErrorAlertOpen]);
+    }, []);
 
     const handleError = useCallback((message) => {
         setError(message);
         setErrorAlertOpen(true);
-    }, [setError, setErrorAlertOpen]);
+    }, []);
 
     return (
         <div>
@@ -209,7 +211,13 @@ function App() {
                 <Route exact path="/view">
                     <Bar drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen} onOpenCopyHistory={handleOpenCopyHistory} />
                     <Content drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen}>
-                        <Player api={api} onCopy={handleCopy} jumpToSubtitle={jumpToSubtitle} />
+                        <Player
+                            api={api}
+                            onCopy={handleCopy}
+                            onError={handleError}
+                            jumpToSubtitle={jumpToSubtitle}
+                            extension={extension}
+                        />
                     </Content>
                 </Route>
             </Switch>

@@ -55,7 +55,7 @@ function notifyReady(element, playerChannel, setAudioTracks, setSelectedAudioTra
 
     setAudioTracks(tracks);
     setSelectedAudioTrack(selectedTrack);
-    playerChannel.ready(element.duration, tracks, selectedTrack);
+    playerChannel.ready(element.duration, element.paused, tracks, selectedTrack);
 }
 
 function errorMessage(element) {

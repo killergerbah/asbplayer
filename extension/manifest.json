@@ -1,0 +1,27 @@
+{
+    "name": "asbplayer",
+    "description": "Sync asbplayer with streaming video",
+    "version": "1.0",
+    "manifest_version": 3,
+    "permissions": ["tabs"],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": ["*://*/*"],
+            "exclude_globs": ["*://localhost:*/*"],
+            "js": ["video.js"],
+            "all_frames": true
+        },
+        {
+            "matches": ["*://localhost:*/*"],
+            "js": ["asbplayer.js"],
+            "run_at": "document_start"
+        }
+    ],
+    "web_accessible_resources": [{
+        "resources": ["netflix.js"],
+        "matches": ["*://*/*"]
+    }]
+}

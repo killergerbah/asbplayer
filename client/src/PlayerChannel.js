@@ -15,6 +15,9 @@ export default class PlayerChannel {
 
         this.channel.onmessage = (event) => {
             switch(event.data.command) {
+                case 'init':
+                    // ignore, this is for the chrome extension
+                    break;
                 case 'ready':
                     for (let callback of that.readyCallbacks) {
                         callback(event.data.duration);
@@ -57,7 +60,7 @@ export default class PlayerChannel {
 
     set currentTime(value) {
         this.time = value;
-        this.channel.postMessage({command: 'currentTime', value: this.time});
+        this.channel.postMessage({command: 'currentTime', value: this.time, echo: true});
     }
 
     onPlay(callback) {
@@ -84,10 +87,12 @@ export default class PlayerChannel {
         this.readyCallbacks.push(callback);
     }
 
-    ready(duration, audioTracks, selectedAudioTrack) {
+    ready(duration, paused, audioTracks, selectedAudioTrack) {
         this.channel.postMessage({
             command: 'ready',
             duration: duration,
+            paused: paused,
+            currentTime: 0,
             audioTracks: audioTracks,
             selectedAudioTrack: selectedAudioTrack
         });
@@ -98,11 +103,11 @@ export default class PlayerChannel {
     }
 
     play() {
-        this.channel.postMessage({command: 'play'});
+        this.channel.postMessage({command: 'play', echo: true});
     }
 
     pause() {
-        this.channel.postMessage({command: 'pause'});
+        this.channel.postMessage({command: 'pause', echo: true});
     }
 
     audioTrackSelected(id) {

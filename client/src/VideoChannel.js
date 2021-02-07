@@ -1,7 +1,7 @@
 export default class VideoChannel {
 
-    constructor(channel) {
-        this.channel = new BroadcastChannel(channel);
+    constructor(protocol) {
+        this.protocol = protocol;
         this.time = 0;
         this.duration = 0;
         this.isReady = false;
@@ -14,7 +14,7 @@ export default class VideoChannel {
 
         const that = this;
 
-        this.channel.onmessage = (event) => {
+        this.protocol.onMessage = (event) => {
             switch(event.data.command) {
                 case 'ready':
                     that.duration = event.data.duration;
@@ -22,9 +22,10 @@ export default class VideoChannel {
                     that.audioTracks = event.data.audioTracks;
                     that.selectedAudioTrack = event.data.selectedAudioTrack;
                     that.readyState = 4;
+                    that.time = event.data.currentTime;
 
                     for (let callback of that.readyCallbacks) {
-                        callback();
+                        callback(event.data.paused);
                     }
                     break;
                 case 'readyState':
@@ -35,12 +36,12 @@ export default class VideoChannel {
                     break;
                 case 'play':
                     for (let callback of that.playCallbacks) {
-                        callback();
+                        callback(event.data.echo);
                     }
                     break;
                 case 'pause':
                     for (let callback of that.pauseCallbacks) {
-                        callback();
+                        callback(event.data.echo);
                     }
                     break;
                 case 'audioTrackSelected':
@@ -50,7 +51,7 @@ export default class VideoChannel {
                     break;
                 case 'currentTime':
                     for (let callback of that.currentTimeCallbacks) {
-                        callback(event.data.value);
+                        callback(event.data.value, event.data.echo);
                     }
                     break;
                 default:
@@ -66,7 +67,7 @@ export default class VideoChannel {
     set currentTime(value) {
         this.time = value;
         this.readyState = 3;
-        this.channel.postMessage({command: 'currentTime', value: this.time});
+        this.protocol.postMessage({command: 'currentTime', value: this.time});
     }
 
     onReady(callback) {
@@ -93,23 +94,27 @@ export default class VideoChannel {
     }
 
     ready(duration) {
-        this.channel.postMessage({command: 'ready', duration: duration});
+        this.protocol.postMessage({command: 'ready', duration: duration});
+    }
+
+    init() {
+        this.protocol.postMessage({command: 'init'});
     }
 
     play() {
-        this.channel.postMessage({command: 'play'});
+        this.protocol.postMessage({command: 'play'});
     }
 
     pause() {
-        this.channel.postMessage({command: 'pause'});
+        this.protocol.postMessage({command: 'pause'});
     }
 
     audioTrackSelected(id) {
-        this.channel.postMessage({command: 'audioTrackSelected', id: id});
+        this.protocol.postMessage({command: 'audioTrackSelected', id: id});
     }
 
     close() {
-        this.channel.postMessage({command: 'close'});
-        this.channel.close();
+        this.protocol.postMessage({command: 'close'});
+        this.protocol.close();
     }
 }

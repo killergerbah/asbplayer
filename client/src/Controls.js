@@ -10,6 +10,7 @@ import PauseIcon from '@material-ui/icons/Pause';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import QueueMusicIcon from '@material-ui/icons/QueueMusic';
 import Typography from '@material-ui/core/Typography';
+import VideocamIcon from '@material-ui/icons/Videocam';
 
 const useControlStyles = makeStyles((theme) => ({
     container: {
@@ -26,8 +27,7 @@ const useControlStyles = makeStyles((theme) => ({
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        height: '100%',
-        marginLeft: 10
+        height: '100%'
     },
     paper: {
         background: "linear-gradient(to bottom, rgba(0,0,0,0), rgba(0, 0, 0, 0.5))",
@@ -37,18 +37,11 @@ const useControlStyles = makeStyles((theme) => ({
         zIndex: 10,
         padding: 10
     },
-    playButtonContainer: {
-        display: 'flex',
-        flexDirection: "column",
-        justifyContent: 'center',
-        height: "100%",
+    activeButton: {
+        color: "#55ff55"
     },
     button: {
-        color: 'white',
-        width: 35,
-        height: 30,
-        marginBottom: 0,
-        cursor: 'pointer'
+        color: 'white'
     },
     progress: {
         margin: 5
@@ -165,11 +158,50 @@ function AudioTrackSelector(props) {
     );
 }
 
+function TabSelector(props) {
+    if (!props.tabs || props.tabs.length === 0) {
+        return null;
+    }
+
+    const list = props.tabs.map((t) => {
+        return (
+            <ListItem
+                key={t.id}
+                selected={t.id === props.selectedTab}
+                button onClick={() => props.onTabSelected(t.id)}>
+                {t.id} {t.title} {t.src}
+            </ListItem>
+        );
+    });
+
+    return (
+        <div>
+            <Popover
+                disableEnforceFocus={true}
+                open={props.open}
+                anchorEl={props.anchorEl}
+                onClose={props.onClose}
+                anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'center',
+                }}
+                transformOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'center',
+                }}>
+                <List>{list}</List>
+            </Popover>
+        </div>
+    );
+}
+
 export default function Controls(props) {
     const classes = useControlStyles();
     const [show, setShow] = useState(true);
     const [audioTrackSelectorOpen, setAudioTrackSelectorOpen] = useState(false);
-    const [audioTrackSelectorAnchorEl, setAudioTrackSelectorAnchorEl] = useState(null);
+    const [audioTrackSelectorAnchorEl, setAudioTrackSelectorAnchorEl] = useState();
+    const [tabSelectorOpen, setTabSelectorOpen] = useState(false);
+    const [tabSelectorAnchorEl, setTabSelectorAnchorEl] = useState();
     const lastMousePositionRef = useRef({x: 0, y: 0});
     const lastShowTimestampRef = useRef(Date.now());
     const lastShowRef = useRef(true);
@@ -241,12 +273,12 @@ export default function Controls(props) {
     const handleAudioTrackSelectorClosed = useCallback(() => {
         setAudioTrackSelectorAnchorEl(null);
         setAudioTrackSelectorOpen(false);
-    }, [setAudioTrackSelectorOpen, setAudioTrackSelectorAnchorEl]);
+    }, []);
 
     const handleAudioTrackSelectorOpened = useCallback((e) => {
         setAudioTrackSelectorAnchorEl(e.currentTarget);
         setAudioTrackSelectorOpen(true);
-    }, [setAudioTrackSelectorOpen, setAudioTrackSelectorAnchorEl]);
+    }, []);
 
     const handleAudioTrackSelected = useCallback((id) => {
         props.onAudioTrackSelected(id);
@@ -254,19 +286,23 @@ export default function Controls(props) {
         setAudioTrackSelectorOpen(false);
     }, [props]);
 
+    const handleTabSelectorClosed = useCallback(() => {
+        setTabSelectorAnchorEl(null);
+        setTabSelectorOpen(false);
+    }, []);
+
+    const handleTabSelectorOpened = useCallback((e) => {
+        setTabSelectorAnchorEl(e.currentTarget);
+        setTabSelectorOpen(true);
+    }, []);
+
+    const handleTabSelected = useCallback((id) => {
+        props.onTabSelected(id);
+        setTabSelectorAnchorEl(null);
+        setTabSelectorOpen(false);
+    }, [props]);
+
     const progress = props.clock.progress(props.length);
-
-    let audioTrackSelectorButton;
-
-    if (props.audioTracks && props.audioTracks.length > 1) {
-        audioTrackSelectorButton = (
-            <IconButton onClick={handleAudioTrackSelectorOpened}>
-                <QueueMusicIcon className={classes.button}  />
-            </IconButton>
-        );
-    } else {
-        audioTrackSelectorButton = null;
-    }
 
     return (
         <div className={classes.container} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
@@ -274,33 +310,58 @@ export default function Controls(props) {
                 <div className={classes.paper}>
                     <ProgressBar
                         onSeek={handleSeek}
-                        value={progress * 100} />
+                        value={progress * 100}
+                    />
                     <Grid container direction="row">
                         <Grid item>
-                            <div className={classes.playButtonContainer}>
-                            {props.playing
-                                ? <PauseIcon onClick={props.onPause} className={classes.button} />
-                                : <PlayArrowIcon onClick={props.onPlay} className={classes.button} />}
-                            </div>
+                            <IconButton
+                                onClick={() => props.playing ? props.onPause() : props.onPlay()}
+                            >
+                                {props.playing
+                                    ? <PauseIcon className={classes.button} />
+                                    : <PlayArrowIcon className={classes.button} />}
+                            </IconButton>
                         </Grid>
                         <Grid item>
                             <Typography variant="h6" className={classes.timeDisplay}>
                                 {displayTime(progress * props.length)}
                             </Typography>
                         </Grid>
+                        <Grid style={{flexGrow: 1}}item>
+                        </Grid>
                         <Grid item>
-                            {audioTrackSelectorButton}
+                            {props.audioTracks && props.audioTracks.length > 1 && (
+                                <IconButton onClick={handleAudioTrackSelectorOpened}>
+                                    <QueueMusicIcon className={classes.button}  />
+                                </IconButton>
+                            )}
+                        </Grid>
+                        <Grid item>
+                            {props.tabs && props.tabs.length > 0 && (
+                                <IconButton onClick={handleTabSelectorOpened}>
+                                    <VideocamIcon className={props.selectedTab ? classes.activeButton : classes.button}  />
+                                </IconButton>
+                            )}
                         </Grid>
                     </Grid>
                 </div>
             </Fade>
+            <TabSelector
+                open={tabSelectorOpen && show}
+                anchorEl={tabSelectorAnchorEl}
+                tabs={props.tabs}
+                selectedTab={props.selectedTab}
+                onClose={handleTabSelectorClosed}
+                onTabSelected={handleTabSelected}
+            />
             <AudioTrackSelector
                 open={audioTrackSelectorOpen && show}
                 anchorEl={audioTrackSelectorAnchorEl}
                 audioTracks={props.audioTracks}
                 selectedAudioTrack={props.selectedAudioTrack}
                 onClose={handleAudioTrackSelectorClosed}
-                onAudioTrackSelected={handleAudioTrackSelected} />
+                onAudioTrackSelected={handleAudioTrackSelected}
+            />
         </div>
     );
 }
