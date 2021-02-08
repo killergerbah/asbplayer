@@ -14,12 +14,13 @@ import java.io.File;
 @EnableFilesystemStores
 public class AsbplayerApplication {
 
-	@Value("${root}")
+	@Value("#{systemProperties['root'] ?: systemProperties['user.home']}")
 	private String root;
 
 	public static void main(String[] args) {
 		SpringApplication.run(AsbplayerApplication.class, args);
 	}
+
 
 	@Bean
 	@Qualifier("root")
