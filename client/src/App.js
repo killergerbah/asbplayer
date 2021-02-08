@@ -85,7 +85,7 @@ function App() {
     const history = useHistory();
     const location = useLocation();
     const [width, ] = useWindowSize(location.pathname === '/video');
-    const drawerWidth = Math.max(300, width * 0.3);
+    const drawerWidth = Math.max(400, width * 0.3);
     const [copiedSubtitles, setCopiedSubtitles] = useState([]);
     const [copyHistoryOpen, setCopyHistoryOpen] = useState(false);
     const [error, setError] = useState(null);

@@ -27,7 +27,8 @@ const useControlStyles = makeStyles((theme) => ({
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        height: '100%'
+        height: '100%',
+        cursor: 'default'
     },
     paper: {
         background: "linear-gradient(to bottom, rgba(0,0,0,0), rgba(0, 0, 0, 0.5))",
@@ -324,7 +325,7 @@ export default function Controls(props) {
                         </Grid>
                         <Grid item>
                             <Typography variant="h6" className={classes.timeDisplay}>
-                                {displayTime(progress * props.length)}
+                                {displayTime(progress * props.length)} / {displayTime(props.length)}
                             </Typography>
                         </Grid>
                         <Grid style={{flexGrow: 1}}item>
