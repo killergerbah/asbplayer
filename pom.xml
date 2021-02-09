@@ -16,6 +16,7 @@
 
     <properties>
         <java.version>11</java.version>
+        <ffmpeg.platform.version>4.3.1-1.5.4</ffmpeg.platform.version>
     </properties>
 
     <dependencies>
@@ -46,7 +47,7 @@
         <dependency>
             <groupId>org.bytedeco</groupId>
             <artifactId>ffmpeg-platform</artifactId>
-            <version>4.3.1-1.5.4</version>
+            <version>${ffmpeg.platform.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
