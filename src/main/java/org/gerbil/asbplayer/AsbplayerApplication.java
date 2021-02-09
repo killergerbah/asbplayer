@@ -14,22 +14,25 @@ import java.io.File;
 @EnableFilesystemStores
 public class AsbplayerApplication {
 
-	@Value("#{systemProperties['root'] ?: systemProperties['user.home']}")
-	private String root;
+    @Value("${root:#{null}}")
+    private String root;
 
-	public static void main(String[] args) {
-		SpringApplication.run(AsbplayerApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(AsbplayerApplication.class, args);
+    }
 
+    @Bean
+    @Qualifier("root")
+    public File filesystemRoot() {
+        if (root == null) {
+            root = System.getProperty("user.home");
+        }
 
-	@Bean
-	@Qualifier("root")
-	public File filesystemRoot() {
-		return new File(root);
-	}
+        return new File(root);
+    }
 
-	@Bean
-	public FileSystemResourceLoader fileSystemResourceLoader(@Qualifier("root") File fileSystemRoot) {
-		return new FileSystemResourceLoader(fileSystemRoot.getAbsolutePath());
-	}
+    @Bean
+    public FileSystemResourceLoader fileSystemResourceLoader(@Qualifier("root") File fileSystemRoot) {
+        return new FileSystemResourceLoader(fileSystemRoot.getAbsolutePath());
+    }
 }
