@@ -343,14 +343,14 @@ export default function Player(props) {
             } else {
                 let update = false;
 
-                for (let t1 of availableTabs) {
-                    for (let t2 of props.extension.tabs) {
-                        if (t1.id !== t2.id
-                            || t1.title !== t2.title
-                            || t1.src !== t2.src) {
-                            update = true;
-                            break;
-                        }
+                for (let i = 0; i < availableTabs.length; ++i) {
+                    const t1 = availableTabs[i];
+                    const t2 = props.extension.tabs[i];
+                    if (t1.id !== t2.id
+                        || t1.title !== t2.title
+                        || t1.src !== t2.src) {
+                        update = true;
+                        break;
                     }
                 }
 
