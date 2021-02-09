@@ -106,8 +106,8 @@ export default function Player(props) {
 
     useEffect(() => {
         const subtitlePromise = new Promise((resolve, reject) => {
+            setSubtitles(null);
             if (subtitleFile) {
-                setSubtitles(null);
                 props.api.subtitles(subtitleFile)
                     .then(res => {
                         const length = res.subtitles.length > 0
