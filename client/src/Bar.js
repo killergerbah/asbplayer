@@ -36,15 +36,6 @@ const useStyles = (drawerWidth) => makeStyles((theme) => ({
 export default function Bar(props) {
     const classes = useStyles(props.drawerWidth)();
 
-    // If we are in browser
-    let { path } = useParams();
-
-    if (!path) {
-        // If we are in player
-        const params = new URLSearchParams(window.location.search);
-        path = params.get('name');
-    }
-
     return (
         <AppBar
             position="static"
@@ -53,7 +44,7 @@ export default function Bar(props) {
             })}>
             <Toolbar>
                 <Typography variant="h6" className={classes.title}>
-                    {path || '/'}
+                    {props.title}
                 </Typography>
                 <IconButton
                     edge="end"

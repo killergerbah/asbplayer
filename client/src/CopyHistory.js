@@ -63,7 +63,7 @@ export default function CopyHistory(props) {
             }
 
             const ref = i === props.items.length - 1 ? scrollToBottomRefCallback : null;
-
+            console.log(item);
             content.push((
                 <ListItem ref={ref} key={item.timestamp}>
                     <ListItemIcon classes={{root: classes.listItemIconRoot}}>

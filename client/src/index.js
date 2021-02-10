@@ -8,7 +8,7 @@ import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 
 ReactDOM.render(
-    <BrowserRouter forceRefresh={false}>
+    <BrowserRouter basename={process.env.PUBLIC_URL} forceRefresh={false}>
         <ThemeProvider theme={theme}>
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <CssBaseline />

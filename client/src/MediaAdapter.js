@@ -1,99 +1,57 @@
 export default class MediaAdapter {
 
-    constructor(audioRef, videoRef) {
-        this.audioRef = audioRef;
-        this.videoRef = videoRef;
-        this.audioReadyResolves = [];
-        this.videoReadyResolves = [];
+    constructor(ref) {
+        this.ref = ref;
+        this.readyResolves = [];
     }
 
     seek(time) {
-        const audioReadyPromise = new Promise((resolve, reject) => {
-            if (this.audioRef.current) {
-                this.audioRef.current.currentTime = time;
-                this._onAudioCanPlay(() => resolve());
+        return new Promise((resolve, reject) => {
+            if (this.ref.current) {
+                this.ref.current.currentTime = time;
+                this._onMediaCanPlay(() => resolve());
             } else {
                 resolve();
             }
         });
+    }
 
-        const videoReadyPromise = new Promise((resolve, reject) => {
-            if (this.videoRef.current) {
-                this.videoRef.current.currentTime = time;
-                this._onVideoCanPlay(() => resolve());
+    onReady() {
+        return new Promise((resolve, reject) => {
+            if (this.ref.current) {
+                this._onMediaCanPlay(() => resolve());
             } else {
                 resolve();
             }
         });
-
-        return Promise.all([audioReadyPromise, videoReadyPromise]);
     }
 
-    onReady(callback) {
-        const audioReadyPromise = new Promise((resolve, reject) => {
-            if (this.audioRef.current) {
-                this._onAudioCanPlay(() => resolve());
-            } else {
-                resolve();
-            }
-        });
-
-        const videoReadyPromise = new Promise((resolve, reject) => {
-            if (this.videoRef.current) {
-                this._onVideoCanPlay(() => resolve());
-            } else {
-                resolve();
-            }
-        });
-
-        return Promise.all([audioReadyPromise, videoReadyPromise]);
-    }
-
-    _onAudioCanPlay(callback) {
-        this._onMediaCanPlay(this.audioRef, this.audioReadyResolves, callback);
-    }
-
-    _onVideoCanPlay(callback) {
-        this._onMediaCanPlay(this.videoRef, this.videoReadyResolves, callback);
-    }
-
-    _onMediaCanPlay(mediaRef, resolves, callback) {
-        if (mediaRef.readyState === 4) {
+    _onMediaCanPlay(callback) {
+        if (this.ref.readyState === 4) {
             callback();
             return;
         }
 
-        if (mediaRef.current && !mediaRef.current.oncanplay) {
-            mediaRef.current.oncanplay = (e) => {
-                for (let resolve of resolves) {
+        if (this.ref.current && !this.ref.current.oncanplay) {
+            this.ref.current.oncanplay = (e) => {
+                for (const resolve of this.readyResolves) {
                     resolve();
                 }
 
-                resolves.length = 0;
-                mediaRef.current.oncanplay = null;
+                this.readyResolves.length = 0;
+                this.ref.current.oncanplay = null;
             }
         }
 
-        resolves.push(callback);
+
+        this.readyResolves.push(callback);
     }
 
     play() {
-        if (this.audioRef.current) {
-            this.audioRef.current.play();
-        }
-
-        if (this.videoRef.current) {
-            this.videoRef.current.play();
-        }
+        this.ref.current?.play();
     }
 
     pause() {
-        if (this.audioRef.current) {
-            this.audioRef.current.pause();
-        }
-
-        if (this.videoRef.current) {
-            this.videoRef.current.pause();
-        }
+        this.ref.current?.pause();
     }
 }

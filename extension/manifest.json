@@ -15,7 +15,7 @@
             "all_frames": true
         },
         {
-            "matches": ["*://localhost:*/*"],
+            "matches": ["*://localhost:*/*", "*://killergerbah.github.io/asbplayer*"],
             "js": ["asbplayer.js"],
             "run_at": "document_start"
         }

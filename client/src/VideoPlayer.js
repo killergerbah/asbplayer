@@ -224,7 +224,7 @@ export default function VideoPlayer(props) {
                 nocontrols={1}
                 className={classes.video}
                 ref={videoRefCallback}
-                src={props.api.streamingUrl(videoFile)} />
+                src={videoFile} />
             <Controls
                 mousePositionRef={mousePositionRef}
                 playing={playing}

@@ -8,7 +8,6 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
 
 const useSubtitlePlayerStyles = makeStyles({
     container: {
@@ -46,7 +45,9 @@ const useSubtitlePlayerStyles = makeStyles({
 export default function SubtitlePlayer(props) {
     const clock = props.clock;
     const subtitles = props.subtitles;
-    const subtitleRefs = useMemo(() => subtitles === null ? [] : Array(subtitles.length).fill().map((_, i) => createRef()), [subtitles]);
+    const subtitleRefs = useMemo(() => subtitles
+        ? Array(subtitles.length).fill().map((_, i) => createRef())
+        : [], [subtitles]);
     const [selectedSubtitleIndex, setSelectedSubtitleIndex] = useState(0);
     const selectedSubtitleIndexRef = useRef(0);
     const [copyAlertOpen, setCopyAlertOpen] = useState(false);
@@ -58,7 +59,7 @@ export default function SubtitlePlayer(props) {
 
     useEffect(() => {
         if (!subtitles || subtitles.length === 0) {
-            return;
+            return () => cancelAnimationFrame(requestAnimationRef.current);
         }
 
         const update = (time) => {
@@ -130,15 +131,10 @@ export default function SubtitlePlayer(props) {
         };
 
         const table = tableRef.current;
-
-        if (table) {
-            table.addEventListener('wheel', handleScroll);
-        }
+        table?.addEventListener('wheel', handleScroll);
 
         return () => {
-            if (table) {
-                table.removeEventListener('wheel', handleScroll);
-            }
+            table?.removeEventListener('wheel', handleScroll);
         };
     }, [tableRef, lastScrollTimestampRef]);
 
@@ -188,9 +184,15 @@ export default function SubtitlePlayer(props) {
 
     let subtitleTable;
 
-    if (subtitles === null) {
-        subtitleTable = (<div />);
-    } else if (props.subtitles.length > 0) {
+    if (!props.subtitles) {
+        subtitleTable = (
+            <div className={classes.noSubtitles}>
+                Drag and drop srt, ass, mp3, or mkv files to load them.
+            </div>
+        );
+    } else if (props.subtitles.length === 0) {
+        subtitleTable = null;
+    } else {
         subtitleTable = (
             <TableContainer ref={tableRef}>
                 <Table>
@@ -222,10 +224,6 @@ export default function SubtitlePlayer(props) {
                     </TableBody>
                 </Table>
             </TableContainer>
-        );
-    } else {
-        subtitleTable = (
-            <Typography variant="body1" className={classes.noSubtitles}>No subtitles found.</Typography>
         );
     }
 

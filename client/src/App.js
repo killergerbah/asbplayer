@@ -1,5 +1,5 @@
-import React, { useCallback, useState, useMemo, useEffect, useLayoutEffect } from 'react';
-import { Route, Redirect, Switch, useHistory, useLocation } from "react-router-dom";
+import React, { useCallback, useState, useMemo, useLayoutEffect } from 'react';
+import { Route, Redirect, Switch, useLocation } from "react-router-dom";
 import { makeStyles } from '@material-ui/core/styles';
 import clsx from 'clsx';
 import Alert from './Alert.js';
@@ -7,7 +7,6 @@ import Api from './Api.js';
 import Bar from './Bar.js';
 import ChromeExtension from './ChromeExtension.js';
 import CopyHistory from './CopyHistory.js';
-import Browser from './Browser.js';
 import Player from './Player.js';
 import VideoPlayer from './VideoPlayer.js';
 
@@ -41,26 +40,6 @@ function Content(props) {
     );
 }
 
-function openMedia(audioFile, videoFile, subtitleFile, fileName, history) {
-    var parameters = [];
-
-    if (audioFile) {
-        parameters.push('audio=' + encodeURIComponent(audioFile));
-    }
-
-    if (videoFile) {
-        parameters.push('video=' + encodeURIComponent(videoFile));
-    }
-
-    if (subtitleFile) {
-        parameters.push('subtitle=' + encodeURIComponent(subtitleFile));
-    }
-
-    parameters.push('name=' + encodeURIComponent(fileName));
-
-    history.push('/view?' + parameters.join('&'));
-}
-
 // https://stackoverflow.com/questions/19014250/rerender-view-on-browser-resize-with-react
 function useWindowSize(off) {
     const [size, setSize] = useState([0, 0]);
@@ -82,34 +61,20 @@ function useWindowSize(off) {
 function App() {
     const api = useMemo(() => new Api(), []);
     const extension = useMemo(() => new ChromeExtension(), []);
-    const history = useHistory();
     const location = useLocation();
     const [width, ] = useWindowSize(location.pathname === '/video');
     const drawerWidth = Math.max(400, width * 0.3);
     const [copiedSubtitles, setCopiedSubtitles] = useState([]);
     const [copyHistoryOpen, setCopyHistoryOpen] = useState(false);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState();
     const [errorAlertOpen, setErrorAlertOpen] = useState(false);
-    const [jumpToSubtitle, setJumpToSubtitle] = useState(null);
-    const [subtitleFile, setSubtitleFile] = useState(null);
+    const [jumpToSubtitle, setJumpToSubtitle] = useState();
+    const [sources, setSources] = useState({});
+    const [fileName, setFileName] = useState();
+    const { subtitleFile } = sources;
 
-    useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        setSubtitleFile(params.get('subtitle'));
-    }, [location]);
-
-    const handleOpenMedia = useCallback((media) => {
-        setJumpToSubtitle(null);
-        openMedia(media.audioFile?.path, media.videoFile?.path, media.subtitleFile?.path, media.name, history);
-    }, [history]);
-
-    const handleOpenPath = useCallback((path) => {
-        history.push('/browse/' + path);
-    }, [history]);
-
-    const handleCopy = useCallback((text, start, end, fileName, audioFile, videoFile, subtitleFile, audioTrack) => {
-        let newCopiedSubtitles = copiedSubtitles.slice();
-        newCopiedSubtitles.push({
+    const handleCopy = useCallback((text, start, end, audioFile, videoFile, subtitleFile, audioTrack) => {
+        setCopiedSubtitles(copiedSubtitles => [...copiedSubtitles, {
             timestamp: Date.now(),
             text: text,
             start: start,
@@ -119,9 +84,8 @@ function App() {
             audioFile: audioFile,
             videoFile: videoFile,
             audioTrack: audioTrack
-        });
-        setCopiedSubtitles(newCopiedSubtitles);
-    }, [copiedSubtitles]);
+        }]);
+    }, [fileName]);
 
     const handleOpenCopyHistory = useCallback((event) => {
         setCopyHistoryOpen(!copyHistoryOpen);
@@ -143,22 +107,6 @@ function App() {
         setCopiedSubtitles(newCopiedSubtitles);
     }, [copiedSubtitles]);
 
-    const handleClipAudio = useCallback(item => {
-        api.clipAudio(item.name, item.audioFile || item.videoFile, item.start, item.end, item.audioTrack)
-            .catch(e => {
-                setError(e.message);
-                setErrorAlertOpen(true);
-            });
-    }, [api]);
-
-    const handleSelectCopyHistoryItem = useCallback((item) => {
-        if (subtitleFile !== item.subtitleFile) {
-            openMedia(item.audioFile, item.videoFile, item.subtitleFile, item.name, history);
-        }
-
-        setJumpToSubtitle({text: item.text, start: item.start});
-    }, [ history, subtitleFile]);
-
     const handleErrorAlertClosed = useCallback(() => {
         setErrorAlertOpen(false);
     }, []);
@@ -168,19 +116,120 @@ function App() {
         setErrorAlertOpen(true);
     }, []);
 
+    const handleClipAudio = useCallback(item => {
+        if (item.audioFile) {
+            api.clipAudioFromAudioFile(item.audioFile, item.start, item.end)
+                .catch(e => {
+                    handleError(e.message);
+                });
+        } else if (item.videoFile) {
+            api.clipAudioFromVideoFile(item.videoFile, item.start, item.end, item.audioTrack)
+                .catch(e => {
+                    handleError(e.message);
+                });
+        }
+    }, [api, handleError]);
+
+    const handleSelectCopyHistoryItem = useCallback((item) => {
+        if (subtitleFile !== item.subtitleFile) {
+            handleError("Subtitle file " + item.subtitleFile.name + " is not open.");
+            return;
+        }
+
+        setJumpToSubtitle({text: item.text, start: item.start});
+    }, [subtitleFile, handleError]);
+
+    function revokeUrls(sources) {
+        if (sources.audioFileUrl) {
+            URL.revokeObjectURL(sources.audioFileUrl);
+        }
+
+        if (sources.videoFileUrl) {
+            URL.revokeObjectURL(sources.videoFileUrl);
+        }
+    }
+
+    const handleDrop = useCallback((e) => {
+        e.preventDefault();
+
+        if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) {
+            return;
+        }
+
+        const file = e.dataTransfer.files[0];
+        const extensionStartIndex = file.name.lastIndexOf(".");
+
+        if (extensionStartIndex === -1) {
+            handleError("Unable to determine file type of " + file.name);
+            return;
+        }
+
+        const extension = file.name.substring(extensionStartIndex + 1, file.name.length);
+
+        switch (extension) {
+            case "ass":
+            case "srt":
+                setSources(previous => {
+                    return {
+                        subtitleFile: file,
+                        audioFile: previous.audioFile,
+                        audioFileUrl: previous.audioFileUrl,
+                        videoFile: previous.videoFile,
+                        videoFileUrl: previous.videoFileUrl
+                    };
+                });
+                setFileName(file.name);
+                break;
+            case "mkv":
+                setSources(previous => {
+                    revokeUrls(previous);
+
+                    return {
+                        subtitleFile: previous.subtitleFile,
+                        audioFile: null,
+                        audioFileUrl: null,
+                        videoFile: file,
+                        videoFileUrl: URL.createObjectURL(file)
+                    };
+                });
+                if (!sources.subtitleFile) {
+                    setFileName(file.name);
+                }
+                break;
+            case "mp3":
+                setSources(previous => {
+                    revokeUrls(previous);
+
+                    return {
+                        subtitleFile: previous.subtitleFile,
+                        audioFile: file,
+                        audioFileUrl: URL.createObjectURL(file),
+                        videoFile: null,
+                        videoFileUrl: null
+                    };
+                });
+                if (!sources.subtitleFile) {
+                    setFileName(fileName);
+                }
+                break;
+            default:
+                handleError("Unsupported file type " + extension);
+        }
+    }, [sources, fileName, handleError]);
+
     return (
-        <div>
-            <Alert open={errorAlertOpen} onClose={handleErrorAlertClosed} autoHideDuration={3000} severity="error">
+        <div
+            onDrop={handleDrop}
+            onDragOver={e => e.preventDefault()}
+        >
+            <Alert
+                open={errorAlertOpen}
+                onClose={handleErrorAlertClosed}
+                autoHideDuration={3000}
+                severity="error"
+            >
                 {error}
             </Alert>
-            <CopyHistory
-                items={copiedSubtitles}
-                open={copyHistoryOpen}
-                drawerWidth={drawerWidth}
-                onClose={handleCloseCopyHistory}
-                onDelete={handleDeleteCopyHistoryItem}
-                onClipAudio={handleClipAudio}
-                onSelect={handleSelectCopyHistoryItem} />
             <Switch>
                 <Route exact path="/" render={() => {
                     const params = new URLSearchParams(window.location.search);
@@ -191,34 +240,37 @@ function App() {
                         return (<Redirect to={"/video?video=" + encodeURIComponent(videoFile) + "&channel=" + channel} />);
                     }
 
-                    return (<Redirect to="/browse" />)
+                    return (
+                        <div>
+                            <CopyHistory
+                                items={copiedSubtitles}
+                                open={copyHistoryOpen}
+                                drawerWidth={drawerWidth}
+                                onClose={handleCloseCopyHistory}
+                                onDelete={handleDeleteCopyHistoryItem}
+                                onClipAudio={handleClipAudio}
+                                onSelect={handleSelectCopyHistoryItem} />
+                            <Bar
+                                title={fileName || "a subtitle player"}
+                                drawerWidth={drawerWidth}
+                                drawerOpen={copyHistoryOpen}
+                                onOpenCopyHistory={handleOpenCopyHistory}
+                            />
+                            <Content drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen}>
+                                <Player
+                                    api={api}
+                                    onCopy={handleCopy}
+                                    onError={handleError}
+                                    sources={sources}
+                                    jumpToSubtitle={jumpToSubtitle}
+                                    extension={extension}
+                                />
+                            </Content>
+                        </div>
+                    );
                 }} />
-                <Route exact path="/browse">
-                    <Bar drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen} onOpenCopyHistory={handleOpenCopyHistory} />
-                    <Content drawerOpen={copyHistoryOpen}>
-                        <Browser api={api} onOpenDirectory={handleOpenPath} onOpenMedia={handleOpenMedia} />
-                    </Content>
-                </Route>
-                <Route exact path="/browse/:path+">
-                    <Bar drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen} onOpenCopyHistory={handleOpenCopyHistory} />
-                    <Content drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen}>
-                        <Browser api={api} onOpenDirectory={handleOpenPath} onOpenMedia={handleOpenMedia} />
-                    </Content>
-                </Route>
                 <Route exact path="/video">
                     <VideoPlayer api={api} onError={handleError} />
-                </Route>
-                <Route exact path="/view">
-                    <Bar drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen} onOpenCopyHistory={handleOpenCopyHistory} />
-                    <Content drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen}>
-                        <Player
-                            api={api}
-                            onCopy={handleCopy}
-                            onError={handleError}
-                            jumpToSubtitle={jumpToSubtitle}
-                            extension={extension}
-                        />
-                    </Content>
                 </Route>
             </Switch>
         </div>
