@@ -137,7 +137,7 @@ export default function Player(props) {
                     const channelId = String(Date.now());
                     channel = new VideoChannel(new BroadcastChannelVideoProtocol(channelId));
                     window.open(
-                        '/?video=' + encodeURIComponent(videoFileUrl) + '&channel=' + channelId,
+                        process.env.PUBLIC_URL + '/?video=' + encodeURIComponent(videoFileUrl) + '&channel=' + channelId,
                         'asbplayer-video-' + videoFileUrl,
                         "resizable,width=800,height=450"
                     );
