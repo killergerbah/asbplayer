@@ -17,6 +17,6 @@ Try it at [https://killergerbah.github.io/asbplayer/](https://killergerbah.githu
   Chrome is the only browser that I know of that supports `mkv` playback.
 - Audio track selection for `mkv` files is available if experimental web platform features are enabled from [chrome://flags](chrome://flags).
  
-
+![Player preview](https://i.imgur.com/JoFl6Lu.gif)
 
 
