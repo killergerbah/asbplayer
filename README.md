@@ -1,42 +1,22 @@
 # asbplayer
 
-Browser-based subtitles/audio player intended as a language-learning tool. 
-The application is written using React, with a Java-based server as a backend.
+A browser-based subtitle file player with features intended to assist language learning.
 
-## Suggested use cases
+- Syncs subtitles with video playback in other tabs e.g. Netflix or CrunchyRoll as long as the extension is installed.
+- When synced, allows seeking directly to target subtitles.
+- Subtitles can be marked for sentence mining.
+- Can playback and sync with local audio and video files, as long as the browser supports the file format.
+- Supports audio clipping of local audio and video files.
 
-### Active immersion
-1. Stream target language media with no subtitles e.g. on Netflix.
-2. Play the subtitles in a separate browser tab using this application.
-3. If a word you don't know comes up, quickly switch to the application and use a popup dictionary to look up the word. 
-4. Use the 'copy' button to copy the sentence for mining if desired.
-5. Works better if there are two monitors, one with the stream and the other with the subtitles.
-6. Use the 'copy history' button in the top right to refer to copied sentences.
+Try it at [https://killergerbah.github.io/asbplayer/](https://killergerbah.github.io/asbplayer/).
 
-### Passive immersion
+## Browser compatibility
 
-1. Play audio/subtitles using the application and listen passively.
-2. If something you can't understand comes up, quickly refer to the transcription.
-3. Works well with a tool like [subs2cia](https://github.com/dxing97/subs2cia) which creates condensed audio
-along with condensed subtitles that can be played using this application.
+- The app has only been tested on Chrome version 88.
+- Video playback likely doesn't work on any other browser than Chrome, as currently only `mkv` files are allowed, and
+  Chrome is the only browser that I know of that supports `mkv` playback.
+- Audio track selection for `mkv` files is available if experimental web platform features are enabled from [chrome://flags](chrome://flags).
+ 
 
-## Running the application
-
-1. Ensure Java 11 is installed on your machine.
-2. Clone the repo.
-3. Run the server. In the command, replace `E:\condensed-audio` with the absolute path to the directory containing the
- audio/subtitles you want to play.
-    ```
-    # Windows
-    mvnw spring-boot:run -Dspring-boot.run.arguments="--root=E:\condensed-audio"
-    
-    # Mac/Linux
-    ./mvnw spring-boot:run -Dspring-boot.run.arguments="--root=E:\condensed-audio"
-    ```
-4. Access the application at `http://localhost:8080`
-5. Find a subtitle file to play in the browser. If there is an audio file with the same name as the subtitle file then
-it will be used as the audio stream.
-
-![Player preview](https://i.imgur.com/a0VZDV5.gif)
 
 
