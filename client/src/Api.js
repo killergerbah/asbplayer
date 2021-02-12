@@ -82,12 +82,12 @@ export default class Api {
             };
             recorder.start();
             setTimeout(() => {
-                recorder.stop();
                 media.pause();
+                recorder.stop();
                 const src = media.src;
                 media.src = null;
                 URL.revokeObjectURL(src);
-            }, end - start);
+            }, end - start + 100);
         };
     }
 
