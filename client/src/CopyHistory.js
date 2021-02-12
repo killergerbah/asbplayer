@@ -34,7 +34,8 @@ const useStyles = (drawerWidth) => makeStyles((theme) => ({
     listContainer: {
         position: 'relative',
         height: '100%',
-        overflowY: 'auto'
+        overflowY: 'auto',
+        overflowX: 'hidden'
     },
     listItemIconRoot: {
         minWidth: 20
