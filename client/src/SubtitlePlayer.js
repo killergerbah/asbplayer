@@ -187,7 +187,12 @@ export default function SubtitlePlayer(props) {
     if (!props.subtitles) {
         subtitleTable = (
             <div className={classes.noSubtitles}>
-                Drag and drop srt, ass, mp3, or mkv files to load them.
+                <span>
+                    Drag and drop srt, ass, mp3, or mkv files.
+                </span>
+                <span>
+                    Install the <a target="_blank" href="https://github.com/killergerbah/asbplayer/releases/tag/v0.1.0">extension</a> to sync subtitles with videos in other tabs.
+                </span>
             </div>
         );
     } else if (props.subtitles.length === 0) {
