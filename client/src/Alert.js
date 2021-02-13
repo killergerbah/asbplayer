@@ -10,7 +10,8 @@ const useAlertStyles = makeStyles({
         position: 'fixed',
         top: 80,
         width: '100%',
-        pointerEvents: 'none'
+        pointerEvents: 'none',
+        zIndex: 2000
     }
 });
 
