@@ -13,6 +13,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
+import Tooltip from '@material-ui/core/Tooltip';
 
 const useStyles = (drawerWidth) => makeStyles((theme) => ({
     drawer: {
@@ -64,23 +65,29 @@ export default function CopyHistory(props) {
             }
 
             const ref = i === props.items.length - 1 ? scrollToBottomRefCallback : null;
-            console.log(item);
+
             content.push((
                 <ListItem ref={ref} key={item.timestamp}>
                     <ListItemIcon classes={{root: classes.listItemIconRoot}}>
-                        <IconButton onClick={(e) => navigator.clipboard.writeText(item.text)}>
-                            <FileCopyIcon fontSize="small" />
-                        </IconButton>
+                        <Tooltip title="Copy">
+                            <IconButton onClick={(e) => navigator.clipboard.writeText(item.text)}>
+                                <FileCopyIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
                     </ListItemIcon>
                     <ListItemIcon classes={{root: classes.listItemIconRoot}}>
-                        <IconButton disabled={!item.audioFile && !item.videoFile} onClick={() => props.onClipAudio(item)}>
-                            <AudiotrackIcon fontSize="small" />
-                        </IconButton>
+                        <Tooltip title="Clip Audio">
+                            <IconButton disabled={!item.audioFile && !item.videoFile} onClick={() => props.onClipAudio(item)}>
+                                <AudiotrackIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
                     </ListItemIcon>
                     <ListItemIcon classes={{root: classes.listItemIconRoot}}>
-                        <IconButton onClick={() => props.onSelect(item)}>
-                            <ForwardIcon fontSize="small" />
-                        </IconButton>
+                        <Tooltip title="Jump To">
+                            <IconButton onClick={() => props.onSelect(item)}>
+                                <ForwardIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
                     </ListItemIcon>
                     <ListItemText>{item.text}</ListItemText>
                     <ListItemIcon classes={{root: classes.listItemIconRoot}}>
