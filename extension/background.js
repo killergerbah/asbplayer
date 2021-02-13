@@ -1,6 +1,5 @@
 const tabs = {};
 
-
 chrome.runtime.onMessage.addListener(
     (request, sender, sendResponse) => {
         if (request.sender === 'asbplayer-video') {
@@ -30,6 +29,27 @@ chrome.runtime.onMessage.addListener(
     }
 );
 
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.storage.sync.set({displaySubtitles: true});
+});
+
+chrome.action.onClicked.addListener((tab) => {
+    chrome.storage.sync.get('displaySubtitles', (data) => {
+        chrome.storage.sync.set({displaySubtitles: !data.displaySubtitles}, () => {
+            for (const tabId in tabs) {
+                chrome.tabs.sendMessage(tabs[tabId].tab.id, {
+                    sender: 'asbplayer-extension-to-video',
+                    message: {
+                        command: 'settings-updated'
+                    }
+                });
+            }
+        });
+    });
+});
+
+chrome.action.disable();
+
 setInterval(() => {
     const expired = Date.now() - 5000;
     const activeTabs = [];
@@ -37,8 +57,25 @@ setInterval(() => {
     for (const tabId in tabs) {
         const info = tabs[tabId];
         if (info.timestamp < expired) {
+            chrome.action.disable(info.tab.id, () => {
+                chrome.action.setBadgeText({
+                    text: null,
+                    tabId: info.tab.id
+                });
+                chrome.action.setTitle({
+                    title: 'asbplayer',
+                    tabId: info.tab.id
+                });
+            });
+
             delete tabs[tabId];
         } else {
+            chrome.action.enable(info.tab.id, () => {
+                chrome.action.setTitle({
+                    title: 'Toggle subs',
+                    tabId: info.tab.id
+                });
+            });
             activeTabs.push({
                 id: info.tab.id,
                 title: info.tab.title,

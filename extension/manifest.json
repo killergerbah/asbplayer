@@ -8,7 +8,10 @@
         "48": "icon48.png",
         "128": "icon128.png"
     },
-    "permissions": ["tabs"],
+    "permissions": ["tabs", "storage"],
+    "action": {
+        "default_title": "asbplayer"
+    },
     "background": {
         "service_worker": "background.js"
     },
@@ -17,10 +20,11 @@
             "matches": ["*://*/*"],
             "exclude_globs": ["*://killergerbah.github.io/asbplayer*"],
             "js": ["video.js"],
+            "css": ["video.css"],
             "all_frames": true
         },
         {
-            "matches": ["*://killergerbah.github.io/asbplayer*"],
+            "matches": ["*://killergerbah.github.io/asbplayer*", "*://localhost:*/*"],
             "js": ["asbplayer.js"],
             "run_at": "document_start"
         }

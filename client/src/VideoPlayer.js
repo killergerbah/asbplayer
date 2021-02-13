@@ -1,5 +1,4 @@
-import React from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Clock from './Clock';
 import Controls from './Controls';
@@ -264,8 +263,9 @@ export default function VideoPlayer(props) {
 
             for (let i = 0; i < subtitles.length; ++i) {
                 const s = subtitles[i];
+
                 if (now >= s.start && now < s.end) {
-                    showSubtitles.push(s);
+                    showSubtitles.push({...s, index: i});
                 }
 
                 if (now < s.start) {
@@ -295,7 +295,7 @@ export default function VideoPlayer(props) {
                 src={videoFile} />
             {subtitlesEnabled && (
                 <div className={classes.subtitle}>
-                    {showSubtitles.map(s => (<React.Fragment>{s.text}<br/></React.Fragment>))}
+                    {showSubtitles.map(s => (<React.Fragment key={s.index}>{s.text}<br/></React.Fragment>))}
                 </div>
             )}
             <Controls
