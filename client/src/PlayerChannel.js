@@ -10,6 +10,7 @@ export default class PlayerChannel {
         this.audioTrackSelectedCallbacks = [];
         this.closeCallbacks = [];
         this.readyCallbacks = [];
+        this.subtitlesCallbacks = [];
 
         const that = this;
 
@@ -46,6 +47,11 @@ export default class PlayerChannel {
                 case 'close':
                     for (let callback of that.closeCallbacks) {
                         callback();
+                    }
+                    break;
+                case 'subtitles':
+                    for (let callback  of that.subtitlesCallbacks) {
+                        callback(event.data.value);
                     }
                     break;
                 default:
@@ -85,6 +91,10 @@ export default class PlayerChannel {
 
     onReady(callback) {
         this.readyCallbacks.push(callback);
+    }
+
+    onSubtitles(callback) {
+        this.subtitlesCallbacks.push(callback);
     }
 
     ready(duration, paused, audioTracks, selectedAudioTrack) {

@@ -119,6 +119,7 @@ export default function Player(props) {
                     });
 
                     setSubtitles(subtitles);
+                    return subtitles;
                 })
                 .catch(e => onError(e));
         } else {
@@ -151,6 +152,10 @@ export default function Player(props) {
                 channel.onReady((paused) => {
                     lengthRef.current = trackLength(audioRef, videoRef, subtitles);
                     channel.ready(lengthRef.current);
+
+                    if (subtitles) {
+                        channel.subtitles(subtitles);
+                    }
 
                     channel.onPlay((echo) => {
                         play(clock, mediaAdapter, echo);

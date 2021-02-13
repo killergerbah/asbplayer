@@ -15,7 +15,7 @@ window.addEventListener('load', (event) => {
     const interval = setInterval(() => {
         const videoElements = document.getElementsByTagName('video');
 
-        for (let v of videoElements) {
+        for (const v of videoElements) {
             const bindingExists = bindings.filter(b => b.v === v).length > 0;
 
             if (!bindingExists) {
@@ -27,20 +27,18 @@ window.addEventListener('load', (event) => {
 
         let i = 0;
 
-        while (i < bindings.length) {
+        for (let i = bindings.length - 1; i >= 0; --i) {
             const b = bindings[i];
             let videoElementExists = false;
 
-            for (let v of videoElements) {
+            for (const v of videoElements) {
                 if (v === b.v) {
                     videoElementExists = true;
                     break;
                 }
             }
 
-            if (videoElementExists) {
-                ++i;
-            } else {
+            if (!videoElementExists) {
                 bindings.splice(i, 1);
                 b.unbind();
             }

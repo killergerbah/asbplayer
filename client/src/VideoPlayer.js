@@ -1,3 +1,4 @@
+import React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Clock from './Clock';
@@ -6,6 +7,7 @@ import PlayerChannel from './PlayerChannel';
 
 const useStyles = makeStyles({
     root: {
+        position: 'relative',
         backgroundColor: 'black',
         width: '100%',
         height: '100vh',
@@ -16,8 +18,33 @@ const useStyles = makeStyles({
         position: "absolute",
         width: "auto",
         height: "100%"
+    },
+    subtitle: {
+        position: 'absolute',
+        paddingLeft: 20,
+        paddingRight: 20,
+        width: '100%',
+        bottom: 100,
+        textAlign: 'center',
+        color: 'white',
+        textShadow: '0 0 2px black, 0 0 2px black, 0 0 2px black, 0 0 2px black',
+        fontSize: 36
     }
 });
+
+function arrayEquals(a, b) {
+    if (a.length !== b.length) {
+        return false;
+    }
+
+    for (let i = 0; i < a.length; ++i) {
+        if (a[i] !== b[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 function notifyReady(element, playerChannel, setAudioTracks, setSelectedAudioTrack) {
     if (window.outerWidth && element.videoWidth > 0 && element.videoHeight > 0) {
@@ -95,11 +122,16 @@ export default function VideoPlayer(props) {
     const playingRef = useRef();
     playingRef.current = playing;
     const [length, setLength] = useState(0);
-    const [audioTracks, setAudioTracks] = useState(null);
-    const [selectedAudioTrack, setSelectedAudioTrack] = useState(null);
+    const [audioTracks, setAudioTracks] = useState();
+    const [selectedAudioTrack, setSelectedAudioTrack] = useState();
+    const [subtitles, setSubtitles] = useState([]);
+    const [showSubtitles, setShowSubtitles] = useState([]);
+    const [subtitlesEnabled, setSubtitlesEnabled] = useState(true);
+    const showSubtitlesRef = useRef([]);
+    showSubtitlesRef.current = showSubtitles;
     const clock = useMemo(() => new Clock(), []);
     const mousePositionRef = useRef({x:0, y:0});
-    const videoRef = useRef(null);
+    const videoRef = useRef();
     const videoRefCallback = useCallback(element => {
         if (element) {
             videoRef.current = element;
@@ -176,6 +208,10 @@ export default function VideoPlayer(props) {
             window.close();
         });
 
+        playerChannel.onSubtitles((subtitles) => {
+            setSubtitles(subtitles);
+        });
+
         return () => {
             playerChannel.close();
         }
@@ -217,6 +253,38 @@ export default function VideoPlayer(props) {
         playerChannel.audioTrackSelected(id);
     }, [playerChannel, clock]);
 
+    useEffect(() => {
+        if (!subtitles || subtitles.length === 0) {
+            return;
+        }
+
+        const interval = setInterval(() => {
+            const now = 1000 * videoRef.current.currentTime;
+            const showSubtitles = [];
+
+            for (let i = 0; i < subtitles.length; ++i) {
+                const s = subtitles[i];
+                if (now >= s.start && now < s.end) {
+                    showSubtitles.push(s);
+                }
+
+                if (now < s.start) {
+                    break;
+                }
+            }
+
+            if (!arrayEquals(showSubtitles, showSubtitlesRef.current)) {
+                setShowSubtitles(showSubtitles);
+            }
+        }, 10)
+
+        return () => clearTimeout(interval);
+    }, [subtitles])
+
+    const handleSubtitlesToggle = useCallback(() => {
+        setSubtitlesEnabled(subtitlesEnabled => !subtitlesEnabled);
+    }, []);
+
     return (
         <div onMouseMove={handleMouseMove} className={classes.root}>
             <video
@@ -225,6 +293,11 @@ export default function VideoPlayer(props) {
                 className={classes.video}
                 ref={videoRefCallback}
                 src={videoFile} />
+            {subtitlesEnabled && (
+                <div className={classes.subtitle}>
+                    {showSubtitles.map(s => (<React.Fragment>{s.text}<br/></React.Fragment>))}
+                </div>
+            )}
             <Controls
                 mousePositionRef={mousePositionRef}
                 playing={playing}
@@ -232,10 +305,14 @@ export default function VideoPlayer(props) {
                 length={length}
                 audioTracks={audioTracks}
                 selectedAudioTrack={selectedAudioTrack}
+                subtitlesToggle={subtitles && subtitles.length > 0}
+                subtitlesEnabled={subtitlesEnabled}
                 onPlay={handlePlay}
                 onPause={handlePause}
                 onSeek={handleSeek}
-                onAudioTrackSelected={handleAudioTrackSelected} />
+                onAudioTrackSelected={handleAudioTrackSelected}
+                onSubtitlesToggle={handleSubtitlesToggle}
+            />
         </div>
     );
 }

@@ -9,6 +9,7 @@ import Popover from '@material-ui/core/Popover';
 import PauseIcon from '@material-ui/icons/Pause';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import QueueMusicIcon from '@material-ui/icons/QueueMusic';
+import SubtitlesIcon from '@material-ui/icons/Subtitles';
 import Typography from '@material-ui/core/Typography';
 import VideocamIcon from '@material-ui/icons/Videocam';
 
@@ -43,6 +44,9 @@ const useControlStyles = makeStyles((theme) => ({
     },
     button: {
         color: 'white'
+    },
+    disabledButton: {
+        color: 'disabled'
     },
     progress: {
         margin: 5
@@ -328,7 +332,14 @@ export default function Controls(props) {
                                 {displayTime(progress * props.length)} / {displayTime(props.length)}
                             </Typography>
                         </Grid>
-                        <Grid style={{flexGrow: 1}}item>
+                        <Grid style={{flexGrow: 1}} item>
+                        </Grid>
+                        <Grid item>
+                            {props.subtitlesToggle && (
+                                <IconButton onClick={(e) => props.onSubtitlesToggle()}>
+                                    <SubtitlesIcon className={props.subtitlesEnabled ? classes.button : classes.disabledButton} />
+                                </IconButton>
+                            )}
                         </Grid>
                         <Grid item>
                             {props.audioTracks && props.audioTracks.length > 1 && (
@@ -340,7 +351,7 @@ export default function Controls(props) {
                         <Grid item>
                             {props.tabs && props.tabs.length > 0 && (
                                 <IconButton onClick={handleTabSelectorOpened}>
-                                    <VideocamIcon className={props.selectedTab ? classes.activeButton : classes.button}  />
+                                    <VideocamIcon className={props.selectedTab ? classes.activeButton : classes.button} />
                                 </IconButton>
                             )}
                         </Grid>
