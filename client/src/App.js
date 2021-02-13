@@ -249,7 +249,8 @@ function App() {
                                 onClose={handleCloseCopyHistory}
                                 onDelete={handleDeleteCopyHistoryItem}
                                 onClipAudio={handleClipAudio}
-                                onSelect={handleSelectCopyHistoryItem} />
+                                onSelect={handleSelectCopyHistoryItem}
+                            />
                             <Bar
                                 title={fileName || "a subtitle player"}
                                 drawerWidth={drawerWidth}
