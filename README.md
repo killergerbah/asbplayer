@@ -3,7 +3,7 @@
 A browser-based subtitle file player with features intended to assist language learning.
 
 - Syncs subtitles with video playback in other tabs e.g. Netflix or CrunchyRoll as long as 
-  the [extension](https://github.com/killergerbah/asbplayer/releases/tag/v0.1.0) is installed.
+  the [extension](https://github.com/killergerbah/asbplayer/releases/tag/v0.2.0) is installed.
 - When synced, allows seeking directly to target subtitles.
 - Subtitles can be marked for sentence mining.
 - Can playback and sync with local audio and video files, as long as the browser supports the file format.

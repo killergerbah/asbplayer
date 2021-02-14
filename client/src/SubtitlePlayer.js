@@ -195,7 +195,7 @@ export default function SubtitlePlayer(props) {
                     Drag and drop srt, ass, mp3, or mkv files.
                 </span>
                 <span>
-                    Install the <a target="_blank" rel="noreferrer" href="https://github.com/killergerbah/asbplayer/releases/tag/v0.1.0">extension</a> to sync subtitles with videos in other tabs.
+                    Install the <a target="_blank" rel="noreferrer" href="https://github.com/killergerbah/asbplayer/releases/tag/v0.2.0">extension</a> to sync subtitles with videos in other tabs.
                 </span>
             </div>
         );
