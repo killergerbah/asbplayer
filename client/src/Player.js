@@ -364,7 +364,7 @@ export default function Player(props) {
 
     useEffect(() => {
         setTab(null);
-    }, [audioFile, videoFile, subtitleFile])
+    }, [audioFile, videoFile]);
 
     const length = lengthRef.current;
     const loaded = audioFileUrl || videoFileUrl || subtitles;
