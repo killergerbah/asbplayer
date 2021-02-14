@@ -149,6 +149,51 @@ function App() {
         }
     }
 
+    function extractSources(files) {
+        let subtitleFile = null;
+        let audioFile = null;
+        let videoFile = null;
+
+        for(const f of files) {
+            const extensionStartIndex = f.name.lastIndexOf(".");
+
+            if (extensionStartIndex === -1) {
+                throw new Error('Unable to determine extension of ' + f.name);
+            }
+
+            const extension = f.name.substring(extensionStartIndex + 1, f.name.length);
+            switch (extension) {
+                case "ass":
+                case "srt":
+                    if (subtitleFile) {
+                        throw new Error('Cannot open two subtitle files simultaneously');
+                    }
+                    subtitleFile = f;
+                    break;
+                case "mkv":
+                    if (videoFile) {
+                        throw new Error('Cannot open two video files simultaneously');
+                    }
+                    videoFile = f;
+                    break;
+                case "mp3":
+                    if (audioFile) {
+                        throw new Error('Cannot open two audio files simultaneously');
+                    }
+                    audioFile = f;
+                    break;
+                default:
+                    throw new Error("Unsupported extension " + extension);
+            }
+        }
+
+        if (videoFile && audioFile) {
+            throw new Error("Cannot load both an audio and video file simultaneously");
+        }
+
+        return {subtitleFile: subtitleFile, audioFile: audioFile, videoFile: videoFile}
+    }
+
     const handleDrop = useCallback((e) => {
         e.preventDefault();
 
@@ -156,66 +201,44 @@ function App() {
             return;
         }
 
-        const file = e.dataTransfer.files[0];
-        const extensionStartIndex = file.name.lastIndexOf(".");
+        try {
+            let {subtitleFile, audioFile, videoFile} = extractSources(e.dataTransfer.files);
 
-        if (extensionStartIndex === -1) {
-            handleError("Unable to determine file type of " + file.name);
-            return;
-        }
+            setSources(previous => {
+                let videoFileUrl = null;
+                let audioFileUrl = null;
 
-        const extension = file.name.substring(extensionStartIndex + 1, file.name.length);
-
-        switch (extension) {
-            case "ass":
-            case "srt":
-                setSources(previous => {
-                    return {
-                        subtitleFile: file,
-                        audioFile: previous.audioFile,
-                        audioFileUrl: previous.audioFileUrl,
-                        videoFile: previous.videoFile,
-                        videoFileUrl: previous.videoFileUrl
-                    };
-                });
-                setFileName(file.name);
-                break;
-            case "mkv":
-                setSources(previous => {
+                if (videoFile || audioFile) {
                     revokeUrls(previous);
 
-                    return {
-                        subtitleFile: previous.subtitleFile,
-                        audioFile: null,
-                        audioFileUrl: null,
-                        videoFile: file,
-                        videoFileUrl: URL.createObjectURL(file)
-                    };
-                });
-                if (!sources.subtitleFile) {
-                    setFileName(file.name);
+                    if (videoFile) {
+                        videoFileUrl = URL.createObjectURL(videoFile);
+                    } else if (audioFile) {
+                        audioFileUrl = URL.createObjectURL(audioFile);
+                    }
+                } else {
+                    videoFile = previous.videoFile;
+                    audioFile = previous.audioFile;
                 }
-                break;
-            case "mp3":
-                setSources(previous => {
-                    revokeUrls(previous);
 
-                    return {
-                        subtitleFile: previous.subtitleFile,
-                        audioFile: file,
-                        audioFileUrl: URL.createObjectURL(file),
-                        videoFile: null,
-                        videoFileUrl: null
-                    };
-                });
-                if (!sources.subtitleFile) {
-                    setFileName(fileName);
-                }
-                break;
-            default:
-                handleError("Unsupported file type " + extension);
+                const sources = {
+                    subtitleFile: subtitleFile || previous.subtitleFile,
+                    audioFile: audioFile,
+                    audioFileUrl: audioFileUrl,
+                    videoFile: videoFile,
+                    videoFileUrl: videoFileUrl
+                };
+
+                return sources;
+            });
+
+            if (subtitleFile) {
+                setFileName(subtitleFile.name);
+            }
+        } catch (e) {
+            handleError(e.message);
         }
-    }, [sources, fileName, handleError]);
+    }, [handleError]);
 
     return (
         <div
