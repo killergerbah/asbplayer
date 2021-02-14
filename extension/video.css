@@ -1,17 +1,19 @@
 .asbplayer-subtitles {
     position: absolute;
     text-align: center;
-    z-index: 1000000;
+    z-index: 2147483647;
     color: white;
     text-shadow: 0 0 2px black, 0 0 2px black, 0 0 2px black, 0 0 2px black;
     font-size: 24px;
+    user-select: text;
 }
 
 .asbplayer-fullscreen-subtitles {
     position: absolute;
     text-align: center;
-    z-index: 1000000;
+    z-index: 2147483647;
     color: white;
     text-shadow: 0 0 2px black, 0 0 2px black, 0 0 2px black, 0 0 2px black;
     font-size: 36px;
+    user-select: text;
 }

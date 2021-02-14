@@ -309,7 +309,6 @@ class Binding {
 
     _applyNonFullscreenStyles(div) {
         const rect = this.video.getBoundingClientRect();
-        div.style.paddingBottom = null;
         const buffer = Math.max(50, rect.height * 0.2);
         div.style.top = (rect.top + rect.height + window.pageYOffset - buffer) + "px";
         div.style.bottom = null;
@@ -324,12 +323,11 @@ class Binding {
             div.className = "asbplayer-fullscreen-subtitles";
             const rect = this.video.getBoundingClientRect();
             div.style.top = null;
-            div.style.bottom = "0px";
-            div.style.paddingBottom = "70px";
+            div.style.bottom = "70px";
             div.style.left = "0px";
             div.style.width = "100%";
             div.style.height = rect.height;
-            this.video.parentElement.appendChild(div);
+            this._findFullscreenSubtitlesContainer().appendChild(div);
             div.style.display = "none";
 
             function toggle() {
@@ -346,6 +344,26 @@ class Binding {
         }
 
         return this.fullscreenSubtitlesElement;
+    }
+
+    _findFullscreenSubtitlesContainer() {
+        console.log(document);
+
+        let current = this.video.parentElement;
+
+        if (!current) {
+            return document.body;
+        }
+
+        do {
+            if (current.getBoundingClientRect().height > 0) {
+                return current;
+            }
+
+            current = current.parentElement;
+        } while (current);
+
+        return document.body;
     }
 
     _arrayEquals(a, b) {
