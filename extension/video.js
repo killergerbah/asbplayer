@@ -314,7 +314,6 @@ class Binding {
     }
 
     _applyNonFullscreenStyles(div) {
-        console.log("apply styles");
         const rect = this.video.getBoundingClientRect();
         const buffer = Math.max(50, rect.height * 0.2);
         div.style.top = (rect.top + rect.height + window.pageYOffset - buffer) + "px";
