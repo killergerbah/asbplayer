@@ -66,7 +66,7 @@ export default function SubtitlePlayer(props) {
     // The clock is essentially a singleton, so it is fine as a dependency.
     useEffect(() => {
         const update = (time) => {
-            const subtitles = subtitleListRef.current;
+            const subtitles = subtitleListRef.current || [];
             const length = lengthRef.current;
             const progress = clock.progress(lengthRef.current);
 
