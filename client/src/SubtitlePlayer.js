@@ -45,11 +45,15 @@ const useSubtitlePlayerStyles = makeStyles({
 export default function SubtitlePlayer(props) {
     const clock = props.clock;
     const subtitles = props.subtitles;
+    const subtitleListRef = useRef();
+    subtitleListRef.current = subtitles;
     const subtitleRefs = useMemo(() => subtitles
         ? Array(subtitles.length).fill().map((_, i) => createRef())
         : [], [subtitles]);
     const [selectedSubtitleIndex, setSelectedSubtitleIndex] = useState(0);
     const selectedSubtitleIndexRef = useRef(0);
+    const lengthRef = useRef();
+    lengthRef.current = props.length;
     const [copyAlertOpen, setCopyAlertOpen] = useState(false);
     const [lastCopiedSubtitle, setLastCopiedSubtitle] = useState(null);
     const lastScrollTimestampRef = useRef(0);
@@ -57,16 +61,16 @@ export default function SubtitlePlayer(props) {
     const tableRef = createRef();
     const classes = useSubtitlePlayerStyles();
 
+    // This effect should be scheduled only once as re-scheduling seems to cause performance issues.
+    // Therefore all of the state it operates on is contained in refs.
+    // The clock is essentially a singleton, so it is fine as a dependency.
     useEffect(() => {
-        if (!subtitles || subtitles.length === 0) {
-            return () => cancelAnimationFrame(requestAnimationRef.current);
-        }
-
         const update = (time) => {
-            const length = props.length;
-            const progress = clock.progress(length);
-            let currentSubtitleIndex = -1;
+            const subtitles = subtitleListRef.current;
+            const length = lengthRef.current;
+            const progress = clock.progress(lengthRef.current);
 
+            let currentSubtitleIndex = -1;
             for (let i = subtitles.length - 1; i >=0; --i) {
                 if (progress >= subtitles[i].start / length) {
                     currentSubtitleIndex = i;
@@ -75,8 +79,8 @@ export default function SubtitlePlayer(props) {
             }
 
             if (currentSubtitleIndex !== -1 && currentSubtitleIndex !== selectedSubtitleIndexRef.current) {
-                setSelectedSubtitleIndex(currentSubtitleIndex);
                 selectedSubtitleIndexRef.current = currentSubtitleIndex;
+                setSelectedSubtitleIndex(currentSubtitleIndex);
                 const selectedSubtitleRef = subtitleRefs[currentSubtitleIndex];
                 const allowScroll = Date.now() - lastScrollTimestampRef.current > 5000;
 
@@ -95,7 +99,7 @@ export default function SubtitlePlayer(props) {
         requestAnimationRef.current = requestAnimationFrame(update);
 
         return () => cancelAnimationFrame(requestAnimationRef.current);
-    }, [subtitles, clock, props.length, subtitleRefs]);
+    }, [clock, subtitleRefs]);
 
     useEffect(() => {
         function handleKey(event) {
