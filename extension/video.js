@@ -276,7 +276,7 @@ class Binding {
     _hideSubtitles() {
         if (this.subtitlesElement) {
             document.removeEventListener('fullscreenchange', this.subtitlesElementFullscreenChangeListener);
-            window.removeEventListener('resize', this.subtitlesElementResizeListener);
+            clearInterval(this.subtitlesElementStylesInterval);
             this.subtitlesElement.remove();
             this.subtitlesElement = null;
         }
@@ -305,9 +305,8 @@ class Binding {
 
             toggle();
             this.subtitlesElementFullscreenChangeListener = (e) => toggle();
-            this.subtitlesElementResizeListener = (e) => this._applyNonFullscreenStyles(div);
+            this.subtitlesElementStylesInterval = setInterval(() => this._applyNonFullscreenStyles(div), 1000);
             document.addEventListener('fullscreenchange', this.subtitlesElementFullscreenChangeListener);
-            window.addEventListener('resize', this.subtitlesElementResizeListener);
             this.subtitlesElement = div;
         }
 
@@ -315,6 +314,7 @@ class Binding {
     }
 
     _applyNonFullscreenStyles(div) {
+        console.log("apply styles");
         const rect = this.video.getBoundingClientRect();
         const buffer = Math.max(50, rect.height * 0.2);
         div.style.top = (rect.top + rect.height + window.pageYOffset - buffer) + "px";
