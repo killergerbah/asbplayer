@@ -1,0 +1,11 @@
+body {
+    width: 250px;
+}
+
+input {
+    vertical-align: middle;
+}
+
+label {
+    vertical-align: middle;
+}

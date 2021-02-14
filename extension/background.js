@@ -25,17 +25,7 @@ chrome.runtime.onMessage.addListener(
                 sender: 'asbplayer-extension-to-video',
                 message: request.message
             });
-        }
-    }
-);
-
-chrome.runtime.onInstalled.addListener(() => {
-    chrome.storage.sync.set({displaySubtitles: true});
-});
-
-chrome.action.onClicked.addListener((tab) => {
-    chrome.storage.sync.get('displaySubtitles', (data) => {
-        chrome.storage.sync.set({displaySubtitles: !data.displaySubtitles}, () => {
+        } else if (request.sender === 'asbplayer-popup') {
             for (const tabId in tabs) {
                 chrome.tabs.sendMessage(tabs[tabId].tab.id, {
                     sender: 'asbplayer-extension-to-video',
@@ -44,11 +34,9 @@ chrome.action.onClicked.addListener((tab) => {
                     }
                 });
             }
-        });
-    });
-});
-
-chrome.action.disable();
+        }
+    }
+);
 
 setInterval(() => {
     const expired = Date.now() - 5000;
@@ -70,12 +58,6 @@ setInterval(() => {
 
             delete tabs[tabId];
         } else {
-            chrome.action.enable(info.tab.id, () => {
-                chrome.action.setTitle({
-                    title: 'Toggle subs',
-                    tabId: info.tab.id
-                });
-            });
             activeTabs.push({
                 id: info.tab.id,
                 title: info.tab.title,

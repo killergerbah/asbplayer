@@ -10,7 +10,8 @@
     },
     "permissions": ["tabs", "storage"],
     "action": {
-        "default_title": "asbplayer"
+        "default_title": "asbplayer",
+        "default_popup": "popup.html"
     },
     "background": {
         "service_worker": "background.js"
