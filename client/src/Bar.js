@@ -1,5 +1,4 @@
 import { makeStyles } from '@material-ui/core/styles';
-import { useParams } from 'react-router-dom';
 import clsx from 'clsx';
 import AppBar from '@material-ui/core/AppBar';
 import IconButton from '@material-ui/core/IconButton';
