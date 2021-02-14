@@ -1,23 +1,19 @@
 # asbplayer
 
-A browser-based subtitle file player with features intended to assist language learning.
+A browser-based media player intended to assist subtitle sentence mining.
 
-- Syncs subtitles with video playback in other tabs e.g. Netflix or CrunchyRoll as long as 
-  the [extension](https://github.com/killergerbah/asbplayer/releases/tag/v0.2.0) is installed.
-- When synced, allows seeking directly to target subtitles.
-- Subtitles can be marked for sentence mining.
-- Can playback and sync with local audio and video files, as long as the browser supports the file format.
+- Can sync subtitles with HTML5 video elements as long as the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/tag/v0.2.0) is installed.
+- A best-effort is made to ensure that subtitles displayed in video elements are text-selectable and can be scanned by
+  popup dictionary extensions like Yomi-chan.
+- Supports playback of local video and audio files.
 - Supports audio clipping of local audio and video files.
+- Implements a clipboard history for asynchronous sentence mining.
 
-Try it at [https://killergerbah.github.io/asbplayer/](https://killergerbah.github.io/asbplayer/).
+asbplayer is hosted at [https://killergerbah.github.io/asbplayer/](https://killergerbah.github.io/asbplayer/).
 
 ## Browser compatibility
 
-- The app has only been tested on Chrome version 88.
-- Video playback likely doesn't work on any other browser than Chrome, as currently only `mkv` files are allowed, and
-  Chrome is the only browser that I know of that supports `mkv` playback.
+- Only Chrome supports video playback.
 - Audio track selection for `mkv` files is available if experimental web platform features are enabled from [chrome://flags](chrome://flags).
- 
-![Player preview](https://i.imgur.com/JoFl6Lu.gif)
 
 
