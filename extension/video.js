@@ -264,6 +264,8 @@ class Binding {
         if (this.listener) {
             chrome.runtime.onMessage.removeListener(this.listener);
         }
+
+        this._hideSubtitles();
     }
 
     _subtitlesHtml(html) {
@@ -273,11 +275,14 @@ class Binding {
 
     _hideSubtitles() {
         if (this.subtitlesElement) {
+            document.removeEventListener('fullscreenchange', this.subtitlesElementFullscreenChangeListener);
+            window.removeEventListener('resize', this.subtitlesElementResizeListener);
             this.subtitlesElement.remove();
             this.subtitlesElement = null;
         }
 
         if (this.fullscreenSubtitlesElement) {
+            document.removeEventListener('fullscreenchange', this.fullscreenSubtitlesElementFullscreenChangeListener);
             this.fullscreenSubtitlesElement.remove();
             this.fullscreenSubtitlesElement = null;
         }
@@ -299,8 +304,10 @@ class Binding {
             }
 
             toggle();
-            document.addEventListener('fullscreenchange', (e) => toggle());
-            document.addEventListener('resize', (e) => this._applyNonFullscreenStyles(div));
+            this.subtitlesElementFullscreenChangeListener = (e) => toggle();
+            this.subtitlesElementResizeListener = (e) => this._applyNonFullscreenStyles(div);
+            document.addEventListener('fullscreenchange', this.subtitlesElementFullscreenChangeListener);
+            window.addEventListener('resize', this.subtitlesElementResizeListener);
             this.subtitlesElement = div;
         }
 
@@ -323,23 +330,27 @@ class Binding {
             div.className = "asbplayer-fullscreen-subtitles";
             const rect = this.video.getBoundingClientRect();
             div.style.top = null;
-            div.style.bottom = "70px";
+            div.style.bottom = Math.max(70, window.screen.height * 0.1) + "px";
             div.style.left = "0px";
             div.style.width = "100%";
             div.style.height = rect.height;
             this._findFullscreenSubtitlesContainer().appendChild(div);
             div.style.display = "none";
+            const that = this;
 
             function toggle() {
                 if (document.fullscreenElement) {
                     div.style.display = "inline";
+                    div.remove();
+                    that._findFullscreenSubtitlesContainer().appendChild(div);
                 } else {
                     div.style.display = "none";
                 }
             }
 
             toggle();
-            document.addEventListener('fullscreenchange', (e) => toggle());
+            this.fullscreenSubtitlesElementFullscreenChangeListener = (e) => toggle();
+            document.addEventListener('fullscreenchange', this.fullscreenSubtitlesElementFullscreenChangeListener);
             this.fullscreenSubtitlesElement = div;
         }
 
@@ -347,21 +358,28 @@ class Binding {
     }
 
     _findFullscreenSubtitlesContainer() {
-        console.log(document);
-
         let current = this.video.parentElement;
 
         if (!current) {
             return document.body;
         }
 
+        let chosen = null;
+
         do {
-            if (current.getBoundingClientRect().height > 0) {
-                return current;
+            const rect = current.getBoundingClientRect();
+
+            if (rect.height > 0
+                && (!chosen || rect.height >= chosen.getBoundingClientRect().height)) {
+                chosen = current;
             }
 
             current = current.parentElement;
-        } while (current);
+        } while (current && !current.isSameNode(document.body.parentElement));
+
+        if (chosen) {
+            return chosen;
+        }
 
         return document.body;
     }
