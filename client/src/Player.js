@@ -56,7 +56,7 @@ function trackLength(audioRef, videoRef, subtitles) {
 }
 
 export default function Player(props) {
-    const { api, extension, onError } = props;
+    const { api, extension, onError, onUnloadVideo } = props;
     const {subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl} = props.sources;
     const [tab, setTab] = useState();
     const [subtitles, setSubtitles] = useState();
@@ -98,13 +98,16 @@ export default function Player(props) {
     }, [forceUpdate, mediaAdapter]);
 
     useEffect(() => {
+        videoRef.current?.close();
+        videoRef.current = null;
         clock.setTime(0);
         clock.stop();
         setPlaying(false);
+        setAudioTracks(null);
+        setSelectedAudioTrack(null);
         audioRef.current.currentTime = 0;
         audioRef.current.pause();
-        videoRef.current?.close();
-        videoRef.current = null;
+
         let subtitlesPromise;
 
         if (subtitleFile) {
@@ -128,9 +131,7 @@ export default function Player(props) {
 
         if (audioFileUrl) {
             mediaAdapter.onReady().then(() => forceUpdate());
-        }
-
-        if (videoFileUrl || tab) {
+        } else if (videoFileUrl || tab) {
             subtitlesPromise.then(subtitles => {
                 let channel;
 
@@ -194,6 +195,10 @@ export default function Player(props) {
                         setSelectedAudioTrack(id);
                     });
 
+                    channel.onExit(() => {
+                        onUnloadVideo(videoFileUrl);
+                    });
+
                     if (channel.audioTracks && channel.audioTracks.length > 1) {
                         setAudioTracks(videoRef.current.audioTracks);
                         setSelectedAudioTrack(videoRef.current.selectedAudioTrack);
@@ -214,7 +219,7 @@ export default function Player(props) {
                 });
             });
         }
-    }, [api, extension, clock, mediaAdapter, seek, onError, subtitleFile, audioFileUrl, videoFileUrl, tab, forceUpdate]);
+    }, [api, extension, clock, mediaAdapter, seek, onError, onUnloadVideo, subtitleFile, audioFileUrl, videoFileUrl, tab, forceUpdate]);
 
     function play(clock, mediaAdapter, echo) {
         setPlaying(true);
@@ -355,7 +360,11 @@ export default function Player(props) {
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [availableTabs, tab, props])
+    }, [availableTabs, tab, props]);
+
+    useEffect(() => {
+        setTab(null);
+    }, [audioFile, videoFile, subtitleFile])
 
     const length = lengthRef.current;
     const loaded = audioFileUrl || videoFileUrl || subtitles;
@@ -374,11 +383,15 @@ export default function Player(props) {
                 selectedAudioTrack={selectedAudioTrack}
                 tabs={!videoFileUrl && !audioFileUrl && availableTabs}
                 selectedTab={tab && tab.id}
+                audioFile={audioFile?.name}
+                videoFile={videoFile?.name}
                 onPlay={handlePlay}
                 onPause={handlePause}
                 onSeek={handleSeek}
                 onAudioTrackSelected={handleAudioTrackSelected}
                 onTabSelected={handleTabSelected}
+                onUnloadAudio={() => props.onUnloadAudio(audioFileUrl)}
+                onUnloadVideo={() => props.onUnloadVideo(videoFileUrl)}
             />)}
             <SubtitlePlayer
                 playing={playing}

@@ -211,6 +211,8 @@ export default function VideoPlayer(props) {
             setSubtitles(subtitles);
         });
 
+        window.onbeforeunload = (e) => playerChannel.close();
+
         return () => {
             playerChannel.close();
         }

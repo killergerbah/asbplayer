@@ -126,6 +126,7 @@ export default class PlayerChannel {
 
     close() {
         if (this.channel) {
+            this.channel.postMessage({command: 'exit'});
             this.channel.close();
             this.channel = null;
         }

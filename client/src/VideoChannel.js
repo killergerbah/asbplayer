@@ -11,6 +11,7 @@ export default class VideoChannel {
         this.pauseCallbacks = [];
         this.currentTimeCallbacks = [];
         this.audioTrackSelectedCallbacks = [];
+        this.exitCallbacks = [];
 
         const that = this;
 
@@ -54,6 +55,11 @@ export default class VideoChannel {
                         callback(event.data.value, event.data.echo);
                     }
                     break;
+                case 'exit':
+                    for (let callback of that.exitCallbacks) {
+                        callback();
+                    }
+                    break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }
@@ -91,6 +97,10 @@ export default class VideoChannel {
 
     onAudioTrackSelected(callback) {
         this.audioTrackSelectedCallbacks.push(callback);
+    }
+
+    onExit(callback) {
+        this.exitCallbacks.push(callback);
     }
 
     ready(duration) {

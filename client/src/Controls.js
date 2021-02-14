@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import AudiotrackIcon from '@material-ui/icons/Audiotrack';
 import Fade from '@material-ui/core/Fade';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
@@ -200,6 +201,32 @@ function TabSelector(props) {
     );
 }
 
+function MediaUnloader(props) {
+    return (
+        <div>
+            <Popover
+                disableEnforceFocus={true}
+                open={props.open}
+                anchorEl={props.anchorEl}
+                onClose={props.onClose}
+                anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'center',
+                }}
+                transformOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'center',
+                }}>
+                <List>
+                    <ListItem button onClick={(e) => props.onUnload()}>
+                        Unload {props.file}
+                    </ListItem>
+                </List>
+            </Popover>
+        </div>
+    );
+}
+
 export default function Controls(props) {
     const classes = useControlStyles();
     const [show, setShow] = useState(true);
@@ -207,6 +234,10 @@ export default function Controls(props) {
     const [audioTrackSelectorAnchorEl, setAudioTrackSelectorAnchorEl] = useState();
     const [tabSelectorOpen, setTabSelectorOpen] = useState(false);
     const [tabSelectorAnchorEl, setTabSelectorAnchorEl] = useState();
+    const [audioUnloaderOpen, setAudioUnloaderOpen] = useState(false);
+    const [audioUnloaderAnchorEl, setAudioUnloaderAnchorEl] = useState();
+    const [videoUnloaderOpen, setVideoUnloaderOpen] = useState(false);
+    const [videoUnloaderAnchorEl, setVideoUnloaderAnchorEl] = useState();
     const lastMousePositionRef = useRef({x: 0, y: 0});
     const lastShowTimestampRef = useRef(Date.now());
     const lastShowRef = useRef(true);
@@ -307,6 +338,36 @@ export default function Controls(props) {
         setTabSelectorOpen(false);
     }, [props]);
 
+    const handleAudioUnloaderClosed = useCallback(() => {
+        setAudioUnloaderAnchorEl(null);
+        setAudioUnloaderOpen(false);
+    }, []);
+
+    const handleAudioUnloaderOpened = useCallback((e) => {
+        setAudioUnloaderAnchorEl(e.currentTarget);
+        setAudioUnloaderOpen(true);
+    }, []);
+
+    const handleUnloadAudio = useCallback(() => {
+        props.onUnloadAudio();
+        setAudioUnloaderOpen(false);
+    }, [props]);
+
+    const handleVideoUnloaderClosed = useCallback((e) => {
+        setVideoUnloaderAnchorEl(null);
+        setVideoUnloaderOpen(false);
+    }, []);
+
+    const handleVideoUnloaderOpened = useCallback((e) => {
+        setVideoUnloaderAnchorEl(e.currentTarget);
+        setVideoUnloaderOpen(true);
+    }, []);
+
+    const handleUnloadVideo = useCallback(() => {
+        props.onUnloadVideo();
+        setVideoUnloaderOpen(false);
+    }, [props]);
+
     const progress = props.clock.progress(props.length);
 
     return (
@@ -342,6 +403,20 @@ export default function Controls(props) {
                             )}
                         </Grid>
                         <Grid item>
+                            {props.videoFile && (
+                                <IconButton onClick={handleVideoUnloaderOpened}>
+                                    <VideocamIcon className={classes.button} />
+                                </IconButton>
+                            )}
+                        </Grid>
+                        <Grid item>
+                            {props.audioFile && (
+                                <IconButton onClick={handleAudioUnloaderOpened}>
+                                    <AudiotrackIcon className={classes.button} />
+                                </IconButton>
+                            )}
+                        </Grid>
+                        <Grid item>
                             {props.audioTracks && props.audioTracks.length > 1 && (
                                 <IconButton onClick={handleAudioTrackSelectorOpened}>
                                     <QueueMusicIcon className={classes.button}  />
@@ -373,6 +448,20 @@ export default function Controls(props) {
                 selectedAudioTrack={props.selectedAudioTrack}
                 onClose={handleAudioTrackSelectorClosed}
                 onAudioTrackSelected={handleAudioTrackSelected}
+            />
+            <MediaUnloader
+                open={audioUnloaderOpen}
+                anchorEl={audioUnloaderAnchorEl}
+                file={props.audioFile}
+                onClose={handleAudioUnloaderClosed}
+                onUnload={handleUnloadAudio}
+            />
+            <MediaUnloader
+                open={videoUnloaderOpen}
+                anchorEl={videoUnloaderAnchorEl}
+                file={props.videoFile}
+                onClose={handleVideoUnloaderClosed}
+                onUnload={handleUnloadVideo}
             />
         </div>
     );

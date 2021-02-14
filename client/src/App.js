@@ -116,6 +116,38 @@ function App() {
         setErrorAlertOpen(true);
     }, []);
 
+    const handleUnloadAudio = useCallback((audioFileUrl) => {
+        if (audioFileUrl !== sources.audioFileUrl) {
+            return;
+        }
+
+        setSources(previous => {
+            URL.revokeObjectURL(audioFileUrl);
+
+            return {
+                subtitleFile: previous.subtitleFile,
+                audioFile: null,
+                videoFile: previous.videoFile
+            };
+        });
+    }, [sources]);
+
+    const handleUnloadVideo = useCallback((videoFileUrl) => {
+        if (videoFileUrl !== sources.videoFileUrl) {
+            return;
+        }
+
+        setSources(previous => {
+            URL.revokeObjectURL(videoFileUrl);
+
+            return {
+                subtitleFile: previous.subtitleFile,
+                audioFile: previous.audioFile,
+                videoFile: null
+            };
+        });
+    }, [sources]);
+
     const handleClipAudio = useCallback(item => {
         if (item.audioFile) {
             api.clipAudioFromAudioFile(item.audioFile, item.start, item.end)
@@ -285,6 +317,8 @@ function App() {
                                     api={api}
                                     onCopy={handleCopy}
                                     onError={handleError}
+                                    onUnloadAudio={handleUnloadAudio}
+                                    onUnloadVideo={handleUnloadVideo}
                                     sources={sources}
                                     jumpToSubtitle={jumpToSubtitle}
                                     extension={extension}
