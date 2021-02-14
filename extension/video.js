@@ -242,15 +242,15 @@ class Binding {
 
     unbind() {
         if (this.playListener) {
-            this.video.removeEventListener(this.playListener);
+            this.video.removeEventListener('play', this.playListener);
         }
 
         if (this.pauseListener) {
-            this.video.removeEventListener(this.pauseListener);
+            this.video.removeEventListener('pause', this.pauseListener);
         }
 
         if (this.seekedListener) {
-            this.video.removeEventListener(this.seekedListener);
+            this.video.removeEventListener('seeked', this.seekedListener);
         }
 
         if (this.heartbeatInterval) {
