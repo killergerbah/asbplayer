@@ -40,14 +40,8 @@ const useControlStyles = makeStyles((theme) => ({
         zIndex: 10,
         padding: 10
     },
-    activeButton: {
-        color: "#55ff55"
-    },
     button: {
         color: 'white'
-    },
-    disabledButton: {
-        color: 'disabled'
     },
     progress: {
         margin: 5
@@ -398,7 +392,7 @@ export default function Controls(props) {
                         <Grid item>
                             {props.subtitlesToggle && (
                                 <IconButton onClick={(e) => props.onSubtitlesToggle()}>
-                                    <SubtitlesIcon className={props.subtitlesEnabled ? classes.button : classes.disabledButton} />
+                                    <SubtitlesIcon className={props.subtitlesEnabled ? classes.button : null} />
                                 </IconButton>
                             )}
                         </Grid>
@@ -426,7 +420,7 @@ export default function Controls(props) {
                         <Grid item>
                             {props.tabs && props.tabs.length > 0 && (
                                 <IconButton onClick={handleTabSelectorOpened}>
-                                    <VideocamIcon className={props.selectedTab ? classes.activeButton : classes.button} />
+                                    <VideocamIcon className={props.selectedTab ? classes.button : null} />
                                 </IconButton>
                             )}
                         </Grid>
