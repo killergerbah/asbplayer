@@ -127,7 +127,9 @@ function App() {
             return {
                 subtitleFile: previous.subtitleFile,
                 audioFile: null,
-                videoFile: previous.videoFile
+                audioFileUrl: null,
+                videoFile: previous.videoFile,
+                videoFileUrl: previous.videoFileUrl
             };
         });
     }, [sources]);
@@ -143,7 +145,9 @@ function App() {
             return {
                 subtitleFile: previous.subtitleFile,
                 audioFile: previous.audioFile,
-                videoFile: null
+                audioFileUrl: previous.audioFileUrl,
+                videoFile: null,
+                videoFileUrl: null
             };
         });
     }, [sources]);
@@ -250,7 +254,9 @@ function App() {
                     }
                 } else {
                     videoFile = previous.videoFile;
+                    videoFileUrl = previous.videoFileUrl;
                     audioFile = previous.audioFile;
+                    audioFileUrl = previous.audioFileUrl;
                 }
 
                 const sources = {
