@@ -7,9 +7,6 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 
 const useStyles = (drawerWidth) => makeStyles((theme) => ({
-    root: {
-        height: '64px'
-    },
     title: {
         flexGrow: 1,
     },

@@ -25,7 +25,7 @@ const useControlStyles = makeStyles((theme) => ({
         flexDirection: 'row'
     },
     timeDisplay: {
-        color: 'white',
+        color: theme.palette.action.active,
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
@@ -41,7 +41,10 @@ const useControlStyles = makeStyles((theme) => ({
         padding: 10
     },
     button: {
-        color: 'white'
+        color: theme.palette.action.active
+    },
+    inactiveButton: {
+        color: theme.palette.action.disabled
     },
     progress: {
         margin: 5
@@ -392,7 +395,7 @@ export default function Controls(props) {
                         <Grid item>
                             {props.subtitlesToggle && (
                                 <IconButton onClick={(e) => props.onSubtitlesToggle()}>
-                                    <SubtitlesIcon className={props.subtitlesEnabled ? classes.button : null} />
+                                    <SubtitlesIcon className={props.subtitlesEnabled ? classes.button : classes.inactiveButton} />
                                 </IconButton>
                             )}
                         </Grid>
@@ -420,7 +423,7 @@ export default function Controls(props) {
                         <Grid item>
                             {props.tabs && props.tabs.length > 0 && (
                                 <IconButton onClick={handleTabSelectorOpened}>
-                                    <VideocamIcon className={props.selectedTab ? classes.button : null} />
+                                    <VideocamIcon className={props.selectedTab ? classes.button : classes.inactiveButton} />
                                 </IconButton>
                             )}
                         </Grid>

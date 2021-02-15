@@ -3,17 +3,25 @@ import { makeStyles } from '@material-ui/core/styles';
 import Alert from './Alert';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
+import Link from '@material-ui/core/Link';
+import Paper from '@material-ui/core/Paper';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableRow from '@material-ui/core/TableRow';
+import Typography from '@material-ui/core/Typography';
 
-const useSubtitlePlayerStyles = makeStyles({
+const useSubtitlePlayerStyles = makeStyles((theme) => ({
     container: {
         height: 'calc(100vh - 64px)',
         position: 'relative',
-        overflowX: 'hidden'
+        overflowX: 'hidden',
+//        background: theme.palette.background.default
+    },
+    table: {
+            backgroundColor: theme.palette.background.default
+
     },
     selectedSubtitle: {
         fontSize: 20
@@ -40,7 +48,7 @@ const useSubtitlePlayerStyles = makeStyles({
         justifyContent: "center",
         alignItems: "center"
     }
-});
+}));
 
 export default function SubtitlePlayer(props) {
     const clock = props.clock;
@@ -191,19 +199,19 @@ export default function SubtitlePlayer(props) {
     if (!props.subtitles) {
         subtitleTable = (
             <div className={classes.noSubtitles}>
-                <span>
+                <Typography>
                     Drag and drop srt, ass, mp3, or mkv files.
-                </span>
-                <span>
-                    Install the <a target="_blank" rel="noreferrer" href="https://github.com/killergerbah/asbplayer/releases/tag/v0.2.0">extension</a> to sync subtitles with videos in other tabs.
-                </span>
+                </Typography>
+                <Typography>
+                    Install the <Link color="secondary" target="_blank" rel="noreferrer" href="https://github.com/killergerbah/asbplayer/releases/tag/v0.2.0">extension</Link> to sync subtitles with videos in other tabs.
+                </Typography>
             </div>
         );
     } else if (props.subtitles.length === 0) {
         subtitleTable = null;
     } else {
         subtitleTable = (
-            <TableContainer ref={tableRef}>
+            <TableContainer className={classes.table} ref={tableRef}>
                 <Table>
                     <TableBody>
                         {props.subtitles.map((s, index) => {
@@ -237,11 +245,11 @@ export default function SubtitlePlayer(props) {
     }
 
     return (
-        <div className={classes.container}>
+        <Paper square elevation={0} className={classes.container}>
             {subtitleTable}
             <Alert open={copyAlertOpen} onClose={handleCopyAlertClosed} autoHideDuration={3000} severity="success">
                 Copied {lastCopiedSubtitle}
             </Alert>
-        </div>
+        </Paper>
     );
 }

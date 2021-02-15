@@ -6,6 +6,7 @@ import App from './App';
 import theme from './theme';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
+import 'typeface-roboto';
 
 ReactDOM.render(
     <BrowserRouter basename={process.env.PUBLIC_URL} forceRefresh={false}>
