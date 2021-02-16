@@ -90,7 +90,7 @@ export default function SubtitlePlayer(props) {
                 const selectedSubtitleRef = subtitleRefs[currentSubtitleIndex];
                 const allowScroll = Date.now() - lastScrollTimestampRef.current > 5000;
 
-                if (selectedSubtitleRef.current && allowScroll) {
+                if (selectedSubtitleRef?.current && allowScroll) {
                     selectedSubtitleRef.current.scrollIntoView({
                         block: "center",
                         inline: "nearest",
