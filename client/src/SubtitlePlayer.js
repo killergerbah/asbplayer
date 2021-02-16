@@ -17,11 +17,11 @@ const useSubtitlePlayerStyles = makeStyles((theme) => ({
         height: 'calc(100vh - 64px)',
         position: 'relative',
         overflowX: 'hidden',
-//        background: theme.palette.background.default
+        backgroundColor: theme.palette.background.default,
     },
     table: {
-            backgroundColor: theme.palette.background.default
-
+        backgroundColor: theme.palette.background.default,
+        marginBottom: 75 // so the last row doesn't collide with controls
     },
     selectedSubtitle: {
         fontSize: 20
@@ -223,19 +223,20 @@ export default function SubtitlePlayer(props) {
                                    onClick={(e) => handleClick(index)}
                                    key={index}
                                    ref={subtitleRefs[index]}
-                                   selected={selected}>
-                                   <TableCell className={className}>
-                                       {s.text}
-                                   </TableCell>
-                                   <TableCell className={classes.copyButton}>
-                                       <IconButton onClick={(e) => handleCopy(e, index)}>
-                                           <FileCopy />
-                                       </IconButton>
-                                   </TableCell>
-                                   <TableCell className={classes.timestamp}>
-                                       {s.displayTime}
-                                   </TableCell>
-                               </TableRow>
+                                   selected={selected}
+                               >
+                                    <TableCell className={className}>
+                                        {s.text}
+                                    </TableCell>
+                                    <TableCell className={classes.copyButton}>
+                                        <IconButton onClick={(e) => handleCopy(e, index)}>
+                                            <FileCopy />
+                                        </IconButton>
+                                    </TableCell>
+                                    <TableCell className={classes.timestamp}>
+                                        {s.displayTime}
+                                    </TableCell>
+                                </TableRow>
                             );
                         })}
                     </TableBody>
