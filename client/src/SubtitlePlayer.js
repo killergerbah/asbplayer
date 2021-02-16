@@ -36,8 +36,6 @@ const useSubtitlePlayerStyles = makeStyles((theme) => ({
         textAlign: 'right'
     },
     copyButton: {
-        fontSize: 14,
-        color: '#aaaaaa',
         textAlign: 'right',
         padding: 0
     },

@@ -40,9 +40,7 @@ function padEnd(n) {
 }
 
 function trackLength(audioRef, videoRef, subtitles) {
-    const subtitlesLength = subtitles && subtitles.length > 0
-        ? subtitles[subtitles.length - 1].end - subtitles[0].start
-        : 0;
+    const subtitlesLength = subtitles && subtitles.length > 0 ? subtitles[subtitles.length - 1].end : 0;
 
     const audioLength = audioRef.current && audioRef.current.duration
         ? 1000 * audioRef.current.duration
