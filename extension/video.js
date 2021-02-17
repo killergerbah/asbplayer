@@ -206,13 +206,11 @@ class Binding {
             const now = 1000 * this.video.currentTime;
             const showingSubtitles = [];
 
-            // FIXME: Right now we only show one subtitle at a time because the non-fullscreen positioning is based on 'top' and not 'bottom'
-            for (let i = this.subtitles.length - 1; i >= 0; --i) {
+            for (let i = 0; i < this.subtitles.length; ++i) {
                 const s = this.subtitles[i];
 
                 if (now >= s.start && now < s.end) {
                     showingSubtitles.push(s.text);
-                    break;
                 }
             }
 
