@@ -50,12 +50,16 @@ const useSubtitlePlayerStyles = makeStyles((theme) => ({
 
 export default function SubtitlePlayer(props) {
     const clock = props.clock;
+    const clockRef = useRef();
+    clockRef.current = clock;
     const subtitles = props.subtitles;
     const subtitleListRef = useRef();
     subtitleListRef.current = subtitles;
     const subtitleRefs = useMemo(() => subtitles
         ? Array(subtitles.length).fill().map((_, i) => createRef())
         : [], [subtitles]);
+    const subtitleRefsRef = useRef();
+    subtitleRefsRef.current = subtitleRefs;
     const [selectedSubtitleIndex, setSelectedSubtitleIndex] = useState(0);
     const selectedSubtitleIndexRef = useRef(0);
     const lengthRef = useRef();
@@ -69,11 +73,12 @@ export default function SubtitlePlayer(props) {
 
     // This effect should be scheduled only once as re-scheduling seems to cause performance issues.
     // Therefore all of the state it operates on is contained in refs.
-    // The clock is essentially a singleton, so it is fine as a dependency.
     useEffect(() => {
         const update = (time) => {
             const subtitles = subtitleListRef.current || [];
+            const subtitleRefs = subtitleRefsRef.current;
             const length = lengthRef.current;
+            const clock = clockRef.current;
             const progress = clock.progress(lengthRef.current);
 
             let currentSubtitleIndex = -1;
@@ -105,7 +110,7 @@ export default function SubtitlePlayer(props) {
         requestAnimationRef.current = requestAnimationFrame(update);
 
         return () => cancelAnimationFrame(requestAnimationRef.current);
-    }, [clock, subtitleRefs]);
+    }, []);
 
     useEffect(() => {
         function handleKey(event) {
