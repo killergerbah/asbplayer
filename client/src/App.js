@@ -167,7 +167,7 @@ function App() {
     }, [api, handleError]);
 
     const handleSelectCopyHistoryItem = useCallback((item) => {
-        if (subtitleFile !== item.subtitleFile) {
+        if (subtitleFile.name !== item.subtitleFile.name) {
             handleError("Subtitle file " + item.subtitleFile.name + " is not open.");
             return;
         }
