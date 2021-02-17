@@ -4,6 +4,7 @@ import AudiotrackIcon from '@material-ui/icons/Audiotrack';
 import Fade from '@material-ui/core/Fade';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
+import Input from '@material-ui/core/Input';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Popover from '@material-ui/core/Popover';
@@ -11,7 +12,6 @@ import PauseIcon from '@material-ui/icons/Pause';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import QueueMusicIcon from '@material-ui/icons/QueueMusic';
 import SubtitlesIcon from '@material-ui/icons/Subtitles';
-import Typography from '@material-ui/core/Typography';
 import VideocamIcon from '@material-ui/icons/Videocam';
 
 const useControlStyles = makeStyles((theme) => ({
@@ -30,7 +30,18 @@ const useControlStyles = makeStyles((theme) => ({
         flexDirection: "column",
         justifyContent: "center",
         height: '100%',
-        cursor: 'default'
+        cursor: 'default',
+        fontSize: 20
+    },
+    offsetInput: {
+        height: '100%',
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        fontSize: 20,
+        marginLeft: 10,
+        width: 100,
+        color: theme.palette.text.secondary
     },
     paper: {
         background: "linear-gradient(to bottom, rgba(0,0,0,0), rgba(0, 0, 0, 0.5))",
@@ -226,6 +237,7 @@ function MediaUnloader(props) {
 
 export default function Controls(props) {
     const classes = useControlStyles();
+    const {playing, length, displayLength, offsetValue, onAudioTrackSelected, onSeek, mousePositionRef, onPause, onPlay, onTabSelected, onUnloadAudio, onUnloadVideo, onOffsetChange} = props;
     const [show, setShow] = useState(true);
     const [audioTrackSelectorOpen, setAudioTrackSelectorOpen] = useState(false);
     const [audioTrackSelectorAnchorEl, setAudioTrackSelectorAnchorEl] = useState();
@@ -239,12 +251,13 @@ export default function Controls(props) {
     const lastShowTimestampRef = useRef(Date.now());
     const lastShowRef = useRef(true);
     const forceShowRef = useRef(false);
+    const offsetInputRef = useRef();
     const [, updateState] = useState();
     const forceUpdate = useCallback(() => updateState({}), []);
 
     const handleSeek = useCallback((progress) => {
-        props.onSeek(progress);
-    }, [props]);
+        onSeek(progress);
+    }, [onSeek]);
 
     function handleMouseOver(e) {
         forceShowRef.current = true;
@@ -257,9 +270,10 @@ export default function Controls(props) {
     useEffect(() => {
         const interval = setInterval(() => {
             const currentShow = Date.now() - lastShowTimestampRef.current < 2000
-                || Math.pow(props.mousePositionRef.current.x - lastMousePositionRef.current.x, 2)
-                    + Math.pow(props.mousePositionRef.current.y - lastMousePositionRef.current.y, 2) > 100
-                || forceShowRef.current;
+                || Math.pow(mousePositionRef.current.x - lastMousePositionRef.current.x, 2)
+                    + Math.pow(mousePositionRef.current.y - lastMousePositionRef.current.y, 2) > 100
+                || forceShowRef.current
+                || offsetInputRef.current === document.activeElement
 
             if (currentShow && !lastShowRef.current) {
                 lastShowTimestampRef.current = Date.now();
@@ -269,21 +283,32 @@ export default function Controls(props) {
             }
 
             lastShowRef.current = currentShow;
-            lastMousePositionRef.current.x = props.mousePositionRef.current.x;
-            lastMousePositionRef.current.y = props.mousePositionRef.current.y;
+            lastMousePositionRef.current.x = mousePositionRef.current.x;
+            lastMousePositionRef.current.y = mousePositionRef.current.y;
         }, 100);
         return () => clearInterval(interval);
-    }, [props.mousePositionRef, setShow, show]);
+    }, [mousePositionRef, setShow, show]);
 
     useEffect(() => {
         function handleKey(event) {
             if (event.keyCode === 32) {
                 event.preventDefault();
 
-                if (props.playing) {
-                    props.onPause();
+                if (playing) {
+                    onPause();
                 } else {
-                    props.onPlay();
+                    onPlay();
+                }
+            } else if (event.keyCode === 13) {
+                if (offsetInputRef.current === document.activeElement) {
+                    const offset = Number(offsetInputRef.current.value);
+
+                    if (Number.isNaN(offset)) {
+                        return;
+                    }
+
+                     onOffsetChange(offset * 1000);
+                     offsetInputRef.current.blur();
                 }
             }
         };
@@ -293,7 +318,7 @@ export default function Controls(props) {
         return () => {
             window.removeEventListener('keydown', handleKey);
         };
-    }, [props]);
+    }, [playing, onPause, onPlay, onOffsetChange]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -302,6 +327,12 @@ export default function Controls(props) {
 
         return () => clearInterval(interval);
     }, [forceUpdate]);
+
+    useEffect(() => {
+        if (offsetInputRef.current) {
+            offsetInputRef.current.value= offsetValue;
+        }
+    }, [offsetValue]);
 
     const handleAudioTrackSelectorClosed = useCallback(() => {
         setAudioTrackSelectorAnchorEl(null);
@@ -314,10 +345,10 @@ export default function Controls(props) {
     }, []);
 
     const handleAudioTrackSelected = useCallback((id) => {
-        props.onAudioTrackSelected(id);
+        onAudioTrackSelected(id);
         setAudioTrackSelectorAnchorEl(null);
         setAudioTrackSelectorOpen(false);
-    }, [props]);
+    }, [onAudioTrackSelected]);
 
     const handleTabSelectorClosed = useCallback(() => {
         setTabSelectorAnchorEl(null);
@@ -330,10 +361,10 @@ export default function Controls(props) {
     }, []);
 
     const handleTabSelected = useCallback((id) => {
-        props.onTabSelected(id);
+        onTabSelected(id);
         setTabSelectorAnchorEl(null);
         setTabSelectorOpen(false);
-    }, [props]);
+    }, [onTabSelected]);
 
     const handleAudioUnloaderClosed = useCallback(() => {
         setAudioUnloaderAnchorEl(null);
@@ -346,9 +377,9 @@ export default function Controls(props) {
     }, []);
 
     const handleUnloadAudio = useCallback(() => {
-        props.onUnloadAudio();
+        onUnloadAudio();
         setAudioUnloaderOpen(false);
-    }, [props]);
+    }, [onUnloadAudio]);
 
     const handleVideoUnloaderClosed = useCallback((e) => {
         setVideoUnloaderAnchorEl(null);
@@ -361,11 +392,11 @@ export default function Controls(props) {
     }, []);
 
     const handleUnloadVideo = useCallback(() => {
-        props.onUnloadVideo();
+        onUnloadVideo();
         setVideoUnloaderOpen(false);
-    }, [props]);
+    }, [onUnloadVideo]);
 
-    const progress = props.clock.progress(props.length);
+    const progress = props.clock.progress(length);
 
     return (
         <div className={classes.container} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
@@ -378,17 +409,25 @@ export default function Controls(props) {
                     <Grid container direction="row">
                         <Grid item>
                             <IconButton
-                                onClick={() => props.playing ? props.onPause() : props.onPlay()}
+                                onClick={() => playing ? onPause() : onPlay()}
                             >
-                                {props.playing
+                                {playing
                                     ? <PauseIcon className={classes.button} />
                                     : <PlayArrowIcon className={classes.button} />}
                             </IconButton>
                         </Grid>
                         <Grid item>
-                            <Typography variant="h6" className={classes.timeDisplay}>
-                                {displayTime(progress * props.length)} / {displayTime(props.length)}
-                            </Typography>
+                            <div className={classes.timeDisplay}>
+                                {displayTime(progress * length)} / {displayTime(displayLength)}
+                            </div>
+                        </Grid>
+                        <Grid item>
+                            <Input
+                                inputRef={offsetInputRef}
+                                disableUnderline={true}
+                                className={classes.offsetInput}
+                                placeholder={"±" + Number(0).toFixed(2)}
+                            />
                         </Grid>
                         <Grid style={{flexGrow: 1}} item>
                         </Grid>

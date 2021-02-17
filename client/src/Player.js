@@ -17,6 +17,10 @@ const useStyles = makeStyles({
 });
 
 function timeDuration(milliseconds, totalMilliseconds) {
+    if (milliseconds < 0) {
+        return timeDuration(0, totalMilliseconds);
+    }
+
     const ms = milliseconds % 1000;
     milliseconds = (milliseconds - ms) / 1000;
     const secs = milliseconds % 60;
@@ -39,8 +43,17 @@ function padEnd(n) {
     return String(n).padEnd(3, '0');
 }
 
-function trackLength(audioRef, videoRef, subtitles) {
-    const subtitlesLength = subtitles && subtitles.length > 0 ? subtitles[subtitles.length - 1].end : 0;
+function trackLength(audioRef, videoRef, subtitles, useOffset) {
+    let subtitlesLength;
+    if (subtitles && subtitles.length > 0) {
+        if (useOffset) {
+            subtitlesLength = subtitles[subtitles.length - 1].end;
+        } else {
+            subtitlesLength = subtitles[subtitles.length - 1].originalEnd;
+        }
+    } else {
+        subtitlesLength = 0;
+    }
 
     const audioLength = audioRef.current && audioRef.current.duration
         ? 1000 * audioRef.current.duration
@@ -64,6 +77,7 @@ export default function Player(props) {
     const [, updateState] = useState();
     const [audioTracks, setAudioTracks] = useState();
     const [selectedAudioTrack, setSelectedAudioTrack] = useState();
+    const [offsetValue, setOffsetValue] = useState();
     const forceUpdate = useCallback(() => updateState({}), []);
     const mousePositionRef = useRef({x:0, y:0});
     const audioRef = useRef();
@@ -81,7 +95,7 @@ export default function Player(props) {
     const classes = useStyles();
     const [availableTabs, setAvailableTabs] = useState([]);
     const lengthRef = useRef(0);
-    lengthRef.current = trackLength(audioRef, videoRef, subtitles);
+    lengthRef.current = trackLength(audioRef, videoRef, subtitles, true);
 
     const seek = useCallback((progress, clock, echo, callback) => {
         const time = progress * lengthRef.current;
@@ -103,6 +117,7 @@ export default function Player(props) {
         setPlaying(false);
         setAudioTracks(null);
         setSelectedAudioTrack(null);
+        setOffsetValue(null);
         audioRef.current.currentTime = 0;
         audioRef.current.pause();
 
@@ -111,12 +126,16 @@ export default function Player(props) {
         if (subtitleFile) {
             subtitlesPromise = api.subtitles(subtitleFile)
                 .then(nodes => {
-                    const length = nodes.length > 0
-                        ? nodes[nodes.length - 1].end - nodes[0].start
-                        : 0;
+                    const length = nodes.length > 0 ? nodes[nodes.length - 1].end : 0;
 
                     const subtitles = nodes.map((s) => {
-                        return {text: s.text, start: s.start, end: s.end, displayTime: timeDuration(s.start, length)};
+                        return {
+                            text: s.text,
+                            start: s.start,
+                            originalStart: s.start,
+                            end: s.end,
+                            originalEnd: s.end,
+                            displayTime: timeDuration(s.start, length)};
                     });
 
                     setSubtitles(subtitles);
@@ -310,6 +329,27 @@ export default function Player(props) {
         setTab(tab);
     }, [availableTabs]);
 
+    const handleOffsetChange = useCallback((o) => {
+        const offset = Math.max(-lengthRef.current ?? 0, o);
+        const length = subtitles.length > 0 ? subtitles[subtitles.length - 1].end + offset : 0;
+
+        const newSubtitles = subtitles.map(s => ({
+            text: s.text,
+            start: s.originalStart + offset,
+            originalStart: s.originalStart,
+            end: s.originalEnd + offset,
+            originalEnd: s.originalEnd,
+            displayTime: timeDuration(s.originalStart + offset, length)
+        }));
+
+        setSubtitles(newSubtitles);
+        videoRef.current?.subtitles(newSubtitles);
+
+        const offsetSeconds = offset / 1000;
+        const value = offsetSeconds >= 0 ? "+" + offsetSeconds.toFixed(2) : String(offsetSeconds.toFixed(2));
+        setOffsetValue(value);
+    }, [subtitles]);
+
     useEffect(() => {
         const interval = setInterval(() => {
             const length = lengthRef.current;
@@ -377,12 +417,14 @@ export default function Player(props) {
                 playing={playing}
                 clock={clock}
                 length={length}
+                displayLength={trackLength(audioRef, videoRef, subtitles, false)}
                 audioTracks={audioTracks}
                 selectedAudioTrack={selectedAudioTrack}
                 tabs={!videoFileUrl && !audioFileUrl && availableTabs}
                 selectedTab={tab && tab.id}
                 audioFile={audioFile?.name}
                 videoFile={videoFile?.name}
+                offsetValue={offsetValue}
                 onPlay={handlePlay}
                 onPause={handlePause}
                 onSeek={handleSeek}
@@ -390,6 +432,7 @@ export default function Player(props) {
                 onTabSelected={handleTabSelected}
                 onUnloadAudio={() => props.onUnloadAudio(audioFileUrl)}
                 onUnloadVideo={() => props.onUnloadVideo(videoFileUrl)}
+                onOffsetChange={handleOffsetChange}
             />)}
             <SubtitlePlayer
                 playing={playing}
