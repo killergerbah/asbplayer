@@ -22,7 +22,7 @@ export default class Api {
                         return {
                             start: Math.round(event.Start * 1000),
                             end: Math.round(event.End * 1000),
-                            text: event.Text.raw
+                            text: event.Text.combined
                         };
                     });
                 });
