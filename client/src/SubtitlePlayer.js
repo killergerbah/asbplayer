@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, useMemo, useRef, createRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import { keysAreEqual } from './Util';
 import Alert from './Alert';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
@@ -49,10 +50,9 @@ const useSubtitlePlayerStyles = makeStyles((theme) => ({
 }));
 
 export default function SubtitlePlayer(props) {
-    const clock = props.clock;
+    const {clock, onSeek, onCopy, playing, subtitles, length, jumpToSubtitle} = props;
     const clockRef = useRef();
     clockRef.current = clock;
-    const subtitles = props.subtitles;
     const subtitleListRef = useRef();
     subtitleListRef.current = subtitles;
     const subtitleRefs = useMemo(() => subtitles
@@ -60,8 +60,8 @@ export default function SubtitlePlayer(props) {
         : [], [subtitles]);
     const subtitleRefsRef = useRef();
     subtitleRefsRef.current = subtitleRefs;
-    const [selectedSubtitleIndex, setSelectedSubtitleIndex] = useState(0);
-    const selectedSubtitleIndexRef = useRef(0);
+    const [selectedSubtitleIndexes, setSelectedSubtitleIndexes] = useState({});
+    const selectedSubtitleIndexesRef = useRef({});
     const lengthRef = useRef();
     lengthRef.current = props.length;
     const [copyAlertOpen, setCopyAlertOpen] = useState(false);
@@ -81,26 +81,49 @@ export default function SubtitlePlayer(props) {
             const clock = clockRef.current;
             const progress = clock.progress(lengthRef.current);
 
-            let currentSubtitleIndex = -1;
-            for (let i = subtitles.length - 1; i >=0; --i) {
-                if (progress >= subtitles[i].start / length) {
-                    currentSubtitleIndex = i;
+            let smallestIndex = Number.MAX_SAFE_INTEGER;
+            let fallbackIndex = -1;
+            const currentSubtitleIndexes = {};
+
+            for (let i = subtitles.length - 1; i >= 0; --i) {
+                const s = subtitles[i];
+                const start = s.start / length;
+                const end = s.end / length;
+
+                if (progress >= start) {
+                    if (progress < end) {
+                        smallestIndex = i < smallestIndex ? i : smallestIndex;
+                        currentSubtitleIndexes[i] = true;
+                    }
+
+                    if (fallbackIndex === -1) {
+                        fallbackIndex = i;
+                    }
+                } else if (smallestIndex !== Number.MAX_SAFE_INTEGER) {
                     break;
                 }
             }
 
-            if (currentSubtitleIndex !== -1 && currentSubtitleIndex !== selectedSubtitleIndexRef.current) {
-                selectedSubtitleIndexRef.current = currentSubtitleIndex;
-                setSelectedSubtitleIndex(currentSubtitleIndex);
-                const selectedSubtitleRef = subtitleRefs[currentSubtitleIndex];
-                const allowScroll = Date.now() - lastScrollTimestampRef.current > 5000;
+            // Attempt to highlight *something* if no subtitles were found at the current timestamp
+            if (smallestIndex === Number.MAX_SAFE_INTEGER && fallbackIndex !== -1) {
+                currentSubtitleIndexes[fallbackIndex] = true;
+            }
 
-                if (selectedSubtitleRef?.current && allowScroll) {
-                    selectedSubtitleRef.current.scrollIntoView({
-                        block: "center",
-                        inline: "nearest",
-                        behavior: "smooth"
-                    });
+            if (!keysAreEqual(currentSubtitleIndexes, selectedSubtitleIndexesRef.current)) {
+                selectedSubtitleIndexesRef.current = currentSubtitleIndexes;
+                setSelectedSubtitleIndexes(currentSubtitleIndexes);
+
+                if (smallestIndex !== Number.MAX_SAFE_INTEGER) {
+                    const scrollToSubtitleRef = subtitleRefs[smallestIndex];
+                    const allowScroll = Date.now() - lastScrollTimestampRef.current > 5000;
+
+                    if (scrollToSubtitleRef?.current && allowScroll) {
+                        scrollToSubtitleRef.current.scrollIntoView({
+                            block: "center",
+                            inline: "nearest",
+                            behavior: "smooth"
+                        });
+                    }
                 }
             }
 
@@ -119,18 +142,25 @@ export default function SubtitlePlayer(props) {
             }
 
             let newSubtitleIndex;
+            const selected = Object.keys(selectedSubtitleIndexes);
 
             if (event.keyCode === 37) {
-                newSubtitleIndex = Math.max(0, selectedSubtitleIndex - 1);
+                newSubtitleIndex = selected.length > 0
+                    ? Math.max(0, Math.min(...selected) - 1)
+                    : -1;
             } else if (event.keyCode === 39) {
-                newSubtitleIndex = Math.min(props.subtitles.length - 1, selectedSubtitleIndex + 1);
+                newSubtitleIndex = selected.length > 0
+                    ? Math.min(subtitles.length - 1, Math.max(...selected) + 1)
+                    : -1;
             } else {
                 return;
             }
 
-            event.preventDefault();
-            const progress = props.subtitles[newSubtitleIndex].start / props.length;
-            props.onSeek(progress, false);
+            if (newSubtitleIndex !== -1) {
+                event.preventDefault();
+                const progress = subtitles[newSubtitleIndex].start / length;
+                onSeek(progress, false);
+            }
         };
 
         window.addEventListener('keydown', handleKey);
@@ -138,7 +168,7 @@ export default function SubtitlePlayer(props) {
         return () => {
             window.removeEventListener('keydown', handleKey);
         };
-    }, [props, selectedSubtitleIndex, subtitles]);
+    }, [onSeek, selectedSubtitleIndexes, subtitles, length]);
 
     useEffect(() => {
         function handleScroll(event) {
@@ -154,15 +184,15 @@ export default function SubtitlePlayer(props) {
     }, [tableRef, lastScrollTimestampRef]);
 
     useEffect(() => {
-        if (!props.jumpToSubtitle || !props.subtitles) {
+        if (!jumpToSubtitle || !subtitles) {
             return;
         }
 
         let jumpToIndex = -1;
         let i = 0;
 
-        for (let s of props.subtitles) {
-            if (s.start === props.jumpToSubtitle.start && s.text === props.jumpToSubtitle.text) {
+        for (let s of subtitles) {
+            if (s.start === jumpToSubtitle.start && s.text === jumpToSubtitle.text) {
                 jumpToIndex = i;
             }
 
@@ -176,22 +206,22 @@ export default function SubtitlePlayer(props) {
                  behavior: "smooth"
             });
         }
-    }, [props.jumpToSubtitle, props.subtitles, subtitleRefs]);
+    }, [jumpToSubtitle, subtitles, subtitleRefs]);
 
     const handleClick = useCallback((subtitleIndex) => {
-        const progress = props.subtitles[subtitleIndex].start / props.length;
-        props.onSeek(progress, !props.playing && subtitleIndex === selectedSubtitleIndex);
-    }, [props, selectedSubtitleIndex]);
+        const progress = subtitles[subtitleIndex].start / length;
+        onSeek(progress, !playing && subtitleIndex in selectedSubtitleIndexes);
+    }, [subtitles, length, playing, onSeek, selectedSubtitleIndexes]);
 
     const handleCopy = useCallback((event, subtitleIndex) => {
         event.stopPropagation();
-        const subtitle = props.subtitles[subtitleIndex];
+        const subtitle = subtitles[subtitleIndex];
         const text = subtitle.text;
         navigator.clipboard.writeText(text);
-        props.onCopy(text, subtitle.start, subtitle.end);
+        onCopy(text, subtitle.start, subtitle.end);
         setLastCopiedSubtitle(text);
         setCopyAlertOpen(true);
-    }, [props]);
+    }, [subtitles, onCopy]);
 
     const handleCopyAlertClosed = useCallback(() => {
         setCopyAlertOpen(false);
@@ -199,7 +229,7 @@ export default function SubtitlePlayer(props) {
 
     let subtitleTable;
 
-    if (!props.subtitles) {
+    if (!subtitles) {
         subtitleTable = (
             <div className={classes.noSubtitles}>
                 <Typography>
@@ -210,16 +240,20 @@ export default function SubtitlePlayer(props) {
                 </Typography>
             </div>
         );
-    } else if (props.subtitles.length === 0) {
+    } else if (subtitles.length === 0) {
         subtitleTable = null;
     } else {
         subtitleTable = (
             <TableContainer className={classes.table} ref={tableRef}>
                 <Table>
                     <TableBody>
-                        {props.subtitles.map((s, index) => {
-                            const selected = index === selectedSubtitleIndex;
+                        {subtitles.map((s, index) => {
+                            const selected = index in selectedSubtitleIndexes;
                             const className = selected ? classes.selectedSubtitle : classes.subtitle;
+
+                            if (s.start < 0 && s.end < 0) {
+                                return null;
+                            }
 
                             return (
                                <TableRow

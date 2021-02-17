@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import { arrayEquals } from './Util';
 import Clock from './Clock';
 import Controls from './Controls';
 import PlayerChannel from './PlayerChannel';
@@ -30,20 +31,6 @@ const useStyles = makeStyles({
         fontSize: 36
     }
 });
-
-function arrayEquals(a, b) {
-    if (a.length !== b.length) {
-        return false;
-    }
-
-    for (let i = 0; i < a.length; ++i) {
-        if (a[i] !== b[i]) {
-            return false;
-        }
-    }
-
-    return true;
-}
 
 function notifyReady(element, playerChannel, setAudioTracks, setSelectedAudioTrack) {
     if (window.outerWidth && element.videoWidth > 0 && element.videoHeight > 0) {
