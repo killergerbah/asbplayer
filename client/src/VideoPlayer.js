@@ -296,6 +296,7 @@ export default function VideoPlayer(props) {
                 selectedAudioTrack={selectedAudioTrack}
                 subtitlesToggle={subtitles && subtitles.length > 0}
                 subtitlesEnabled={subtitlesEnabled}
+                offsetEnabled={false}
                 onPlay={handlePlay}
                 onPause={handlePause}
                 onSeek={handleSeek}

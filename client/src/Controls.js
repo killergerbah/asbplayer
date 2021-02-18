@@ -237,7 +237,7 @@ function MediaUnloader(props) {
 
 export default function Controls(props) {
     const classes = useControlStyles();
-    const {playing, length, displayLength, offsetValue, onAudioTrackSelected, onSeek, mousePositionRef, onPause, onPlay, onTabSelected, onUnloadAudio, onUnloadVideo, onOffsetChange} = props;
+    const {playing, length, offsetEnabled, displayLength, offsetValue, onAudioTrackSelected, onSeek, mousePositionRef, onPause, onPlay, onTabSelected, onUnloadAudio, onUnloadVideo, onOffsetChange} = props;
     const [show, setShow] = useState(true);
     const [audioTrackSelectorOpen, setAudioTrackSelectorOpen] = useState(false);
     const [audioTrackSelectorAnchorEl, setAudioTrackSelectorAnchorEl] = useState();
@@ -418,16 +418,18 @@ export default function Controls(props) {
                         </Grid>
                         <Grid item>
                             <div className={classes.timeDisplay}>
-                                {displayTime(progress * length)} / {displayTime(displayLength)}
+                                {displayTime(progress * length)} / {displayTime(displayLength || length)}
                             </div>
                         </Grid>
                         <Grid item>
-                            <Input
-                                inputRef={offsetInputRef}
-                                disableUnderline={true}
-                                className={classes.offsetInput}
-                                placeholder={"±" + Number(0).toFixed(2)}
-                            />
+                            {offsetEnabled && (
+                                <Input
+                                    inputRef={offsetInputRef}
+                                    disableUnderline={true}
+                                    className={classes.offsetInput}
+                                    placeholder={"±" + Number(0).toFixed(2)}
+                                />
+                            )}
                         </Grid>
                         <Grid style={{flexGrow: 1}} item>
                         </Grid>

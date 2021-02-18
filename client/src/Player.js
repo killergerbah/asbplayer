@@ -422,6 +422,7 @@ export default function Player(props) {
                 selectedTab={tab && tab.id}
                 audioFile={audioFile?.name}
                 videoFile={videoFile?.name}
+                offsetEnabled={true}
                 offsetValue={offsetValue}
                 onPlay={handlePlay}
                 onPause={handlePause}
