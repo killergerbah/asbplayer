@@ -293,11 +293,9 @@ export default function Player(props) {
         });
     }, [clock, seek, mediaAdapter]);
 
-    const handleCopy = useCallback((text, start, end) => {
+    const handleCopy = useCallback((subtitle) => {
         props.onCopy(
-            text,
-            start,
-            end,
+            subtitle,
             audioFile,
             videoFile,
             subtitleFile,

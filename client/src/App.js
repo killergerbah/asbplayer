@@ -73,12 +73,10 @@ function App() {
     const [fileName, setFileName] = useState();
     const { subtitleFile } = sources;
 
-    const handleCopy = useCallback((text, start, end, audioFile, videoFile, subtitleFile, audioTrack) => {
+    const handleCopy = useCallback((subtitle, audioFile, videoFile, subtitleFile, audioTrack) => {
         setCopiedSubtitles(copiedSubtitles => [...copiedSubtitles, {
+            ...subtitle,
             timestamp: Date.now(),
-            text: text,
-            start: start,
-            end: end,
             name: fileName,
             subtitleFile: subtitleFile,
             audioFile: audioFile,
@@ -172,7 +170,7 @@ function App() {
             return;
         }
 
-        setJumpToSubtitle({text: item.text, start: item.start});
+        setJumpToSubtitle({text: item.text, originalStart: item.originalStart});
     }, [subtitleFile, handleError]);
 
     function revokeUrls(sources) {

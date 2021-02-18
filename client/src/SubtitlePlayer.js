@@ -192,8 +192,9 @@ export default function SubtitlePlayer(props) {
         let i = 0;
 
         for (let s of subtitles) {
-            if (s.start === jumpToSubtitle.start && s.text === jumpToSubtitle.text) {
+            if (s.originalStart === jumpToSubtitle.originalStart && s.text === jumpToSubtitle.text) {
                 jumpToIndex = i;
+                break;
             }
 
             ++i;
@@ -218,7 +219,7 @@ export default function SubtitlePlayer(props) {
         const subtitle = subtitles[subtitleIndex];
         const text = subtitle.text;
         navigator.clipboard.writeText(text);
-        onCopy(text, subtitle.start, subtitle.end);
+        onCopy(subtitle);
         setLastCopiedSubtitle(text);
         setCopyAlertOpen(true);
     }, [subtitles, onCopy]);
