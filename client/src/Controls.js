@@ -8,6 +8,8 @@ import Input from '@material-ui/core/Input';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Popover from '@material-ui/core/Popover';
+import FullscreenIcon from '@material-ui/icons/Fullscreen';
+import FullscreenExitIcon from '@material-ui/icons/FullscreenExit';
 import PauseIcon from '@material-ui/icons/Pause';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import QueueMusicIcon from '@material-ui/icons/QueueMusic';
@@ -468,6 +470,13 @@ export default function Controls(props) {
                                 </IconButton>
                             )}
                         </Grid>
+                        {props.fullscreenEnabled && (
+                            <Grid item>
+                                <IconButton onClick={() => props.onFullscreenToggle()}>
+                                    {props.fullscreen ? (<FullscreenExitIcon />) : (<FullscreenIcon />)}
+                                </IconButton>
+                            </Grid>
+                        )}
                     </Grid>
                 </div>
             </Fade>

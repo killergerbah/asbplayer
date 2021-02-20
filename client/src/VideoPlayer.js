@@ -94,6 +94,19 @@ function errorMessage(element) {
     return error + ": " + (element.error.message || "<details missing>");
 }
 
+function useFullscreen() {
+    const [fullscreen, setFullscreen] = useState(Boolean(document.fullscreenElement));
+
+    useEffect(() => {
+        const listener = () => setFullscreen(Boolean(document.fullscreenElement));
+        document.addEventListener('fullscreenchange', listener);
+
+        return () => document.removeEventListener('fullscreenchange', listener);
+    }, []);
+
+    return fullscreen;
+}
+
 export default function VideoPlayer(props) {
     const classes = useStyles();
     const { videoFile, channel } = useMemo(() => {
@@ -105,6 +118,7 @@ export default function VideoPlayer(props) {
     }, []);
     const playerChannel = useMemo(() => new PlayerChannel(channel), [channel]);
     const [playing, setPlaying] = useState(false);
+    const fullscreen = useFullscreen();
     const playingRef = useRef();
     playingRef.current = playing;
     const [length, setLength] = useState(0);
@@ -117,6 +131,7 @@ export default function VideoPlayer(props) {
     showSubtitlesRef.current = showSubtitles;
     const clock = useMemo(() => new Clock(), []);
     const mousePositionRef = useRef({x:0, y:0});
+    const containerRef = useRef();
     const videoRef = useRef();
     const videoRefCallback = useCallback(element => {
         if (element) {
@@ -274,8 +289,16 @@ export default function VideoPlayer(props) {
         setSubtitlesEnabled(subtitlesEnabled => !subtitlesEnabled);
     }, []);
 
+    const handleFullscreenToggle = useCallback(() => {
+        if (fullscreen) {
+            document.exitFullscreen();
+        } else {
+            containerRef.current?.requestFullscreen();
+        }
+    }, [fullscreen]);
+
     return (
-        <div onMouseMove={handleMouseMove} className={classes.root}>
+        <div ref={containerRef} onMouseMove={handleMouseMove} className={classes.root}>
             <video
                 preload="auto"
                 nocontrols={1}
@@ -297,11 +320,14 @@ export default function VideoPlayer(props) {
                 subtitlesToggle={subtitles && subtitles.length > 0}
                 subtitlesEnabled={subtitlesEnabled}
                 offsetEnabled={false}
+                fullscreenEnabled={true}
+                fullscreen={fullscreen}
                 onPlay={handlePlay}
                 onPause={handlePause}
                 onSeek={handleSeek}
                 onAudioTrackSelected={handleAudioTrackSelected}
                 onSubtitlesToggle={handleSubtitlesToggle}
+                onFullscreenToggle={handleFullscreenToggle}
             />
         </div>
     );
