@@ -423,53 +423,53 @@ export default function Controls(props) {
                                 {displayTime(progress * length)} / {displayTime(displayLength || length)}
                             </div>
                         </Grid>
-                        <Grid item>
-                            {offsetEnabled && (
+                        {offsetEnabled && (
+                            <Grid item>
                                 <Input
                                     inputRef={offsetInputRef}
                                     disableUnderline={true}
                                     className={classes.offsetInput}
                                     placeholder={"±" + Number(0).toFixed(2)}
                                 />
-                            )}
-                        </Grid>
+                            </Grid>
+                        )}
                         <Grid style={{flexGrow: 1}} item>
                         </Grid>
-                        <Grid item>
-                            {props.subtitlesToggle && (
+                        {props.subtitlesToggle && (
+                            <Grid item>
                                 <IconButton onClick={(e) => props.onSubtitlesToggle()}>
                                     <SubtitlesIcon className={props.subtitlesEnabled ? classes.button : classes.inactiveButton} />
                                 </IconButton>
-                            )}
-                        </Grid>
-                        <Grid item>
-                            {props.videoFile && (
+                            </Grid>
+                        )}
+                        {props.videoFile && (
+                            <Grid item>
                                 <IconButton onClick={handleVideoUnloaderOpened}>
                                     <VideocamIcon className={classes.button} />
                                 </IconButton>
-                            )}
-                        </Grid>
-                        <Grid item>
-                            {props.audioFile && (
+                             </Grid>
+                        )}
+                        {props.audioFile && (
+                            <Grid item>
                                 <IconButton onClick={handleAudioUnloaderOpened}>
                                     <AudiotrackIcon className={classes.button} />
                                 </IconButton>
-                            )}
-                        </Grid>
-                        <Grid item>
-                            {props.audioTracks && props.audioTracks.length > 1 && (
+                            </Grid>
+                        )}
+                        {props.audioTracks && props.audioTracks.length > 1 &&  (
+                            <Grid item>
                                 <IconButton onClick={handleAudioTrackSelectorOpened}>
                                     <QueueMusicIcon className={classes.button}  />
                                 </IconButton>
-                            )}
-                        </Grid>
-                        <Grid item>
-                            {props.tabs && props.tabs.length > 0 && (
+                            </Grid>
+                        )}
+                        {props.tabs && props.tabs.length > 0 && (
+                            <Grid item>
                                 <IconButton onClick={handleTabSelectorOpened}>
                                     <VideocamIcon className={props.selectedTab ? classes.button : classes.inactiveButton} />
                                 </IconButton>
-                            )}
-                        </Grid>
+                            </Grid>
+                        )}
                         {props.fullscreenEnabled && (
                             <Grid item>
                                 <IconButton onClick={() => props.onFullscreenToggle()}>
