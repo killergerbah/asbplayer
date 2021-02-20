@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, withStyles } from '@material-ui/core/styles';
 import AudiotrackIcon from '@material-ui/icons/Audiotrack';
 import Fade from '@material-ui/core/Fade';
 import Grid from '@material-ui/core/Grid';
@@ -13,8 +13,11 @@ import FullscreenExitIcon from '@material-ui/icons/FullscreenExit';
 import PauseIcon from '@material-ui/icons/Pause';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import QueueMusicIcon from '@material-ui/icons/QueueMusic';
+import Slider from '@material-ui/core/Slider';
 import SubtitlesIcon from '@material-ui/icons/Subtitles';
 import VideocamIcon from '@material-ui/icons/Videocam';
+import VolumeOffIcon from '@material-ui/icons/VolumeOff';
+import VolumeUpIcon from '@material-ui/icons/VolumeUp';
 
 const useControlStyles = makeStyles((theme) => ({
     container: {
@@ -33,7 +36,8 @@ const useControlStyles = makeStyles((theme) => ({
         justifyContent: "center",
         height: '100%',
         cursor: 'default',
-        fontSize: 20
+        fontSize: 20,
+        marginLeft: 10
     },
     offsetInput: {
         height: '100%',
@@ -44,6 +48,42 @@ const useControlStyles = makeStyles((theme) => ({
         marginLeft: 10,
         width: 100,
         color: theme.palette.text.secondary
+    },
+    volumeInputContainer: {
+        height: 48,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        width: 100,
+        color: theme.palette.text.secondary
+    },
+    volumeInputHidden: {
+        transition: theme.transitions.create('width', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.short,
+        }),
+        width: 0
+    },
+    volumeInputShown: {
+        transition: theme.transitions.create('width', {
+            easing: theme.transitions.easing.easeOut,
+            duration: theme.transitions.duration.short,
+        }),
+        width: 100
+    },
+    volumeInputThumbHidden: {
+        transition: theme.transitions.create('visibility', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.short,
+        }),
+        opacity: 0
+    },
+    volumeInputThumbShown: {
+        transition: theme.transitions.create('visibility', {
+            easing: theme.transitions.easing.easeOut,
+            duration: theme.transitions.duration.short,
+        }),
+        opacity: 1
     },
     paper: {
         background: "linear-gradient(to bottom, rgba(0,0,0,0), rgba(0, 0, 0, 0.5))",
@@ -65,7 +105,7 @@ const useControlStyles = makeStyles((theme) => ({
     bar1Determinate: {
         transition: 'none',
         background: 'linear-gradient(to left, #e21e4a, #a92fff)',
-    }
+    },
 }));
 
 const useProgressBarStyles = makeStyles((theme) => ({
@@ -99,6 +139,26 @@ const useProgressBarStyles = makeStyles((theme) => ({
         filter: 'drop-shadow(3px 3px 3px rgba(0,0,0,0.3))'
     }
 }));
+
+const VolumeSlider = withStyles((theme) => ({
+    root: {
+        color: theme.palette.text.secondary,
+        verticalAlign: 'middle'
+    },
+    thumb: {
+        backgroundColor: 'white',
+        color: theme.palette.text.secondary,
+        '&:focus': {
+            boxShadow: 'inherit'
+        },
+        '&:hover, &$active': {
+            boxShadow: '0px 0px 0px 8px rgba(255, 255, 255, 0.1)',
+        },
+    },
+    active: {
+        color: theme.palette.text.secondary
+    },
+}))(Slider);
 
 function displayTime(milliseconds) {
     const seconds = Math.floor(milliseconds / 1000);
@@ -239,7 +299,7 @@ function MediaUnloader(props) {
 
 export default function Controls(props) {
     const classes = useControlStyles();
-    const {playing, length, offsetEnabled, displayLength, offsetValue, onAudioTrackSelected, onSeek, mousePositionRef, onPause, onPlay, onTabSelected, onUnloadAudio, onUnloadVideo, onOffsetChange} = props;
+    const {playing, length, offsetEnabled, displayLength, offsetValue, onAudioTrackSelected, onSeek, mousePositionRef, onPause, onPlay, onTabSelected, onUnloadAudio, onUnloadVideo, onOffsetChange, onVolumeChange} = props;
     const [show, setShow] = useState(true);
     const [audioTrackSelectorOpen, setAudioTrackSelectorOpen] = useState(false);
     const [audioTrackSelectorAnchorEl, setAudioTrackSelectorAnchorEl] = useState();
@@ -249,6 +309,9 @@ export default function Controls(props) {
     const [audioUnloaderAnchorEl, setAudioUnloaderAnchorEl] = useState();
     const [videoUnloaderOpen, setVideoUnloaderOpen] = useState(false);
     const [videoUnloaderAnchorEl, setVideoUnloaderAnchorEl] = useState();
+    const [showVolumeBar, setShowVolumeBar] = useState(false);
+    const [volume, setVolume] = useState(100);
+    const [lastCommittedVolume, setLastCommittedVolume] = useState(100);
     const lastMousePositionRef = useRef({x: 0, y: 0});
     const lastShowTimestampRef = useRef(Date.now());
     const lastShowRef = useRef(true);
@@ -398,6 +461,28 @@ export default function Controls(props) {
         setVideoUnloaderOpen(false);
     }, [onUnloadVideo]);
 
+    const handleVolumeMouseOut = useCallback(() => setShowVolumeBar(false), []);
+    const handleVolumeMouseOver = useCallback(() => setShowVolumeBar(true), []);
+
+    const handleVolumeChange = useCallback((e, value) => {
+        setVolume(value);
+        onVolumeChange(value / 100);
+    }, [onVolumeChange]);
+
+    const handleVolumeChangeCommitted = useCallback((e, value) => {
+        if (value > 0) {
+            setLastCommittedVolume(value);
+        }
+    }, []);
+
+    const handleVolumeToggle = useCallback((e, value) => {
+        setVolume((volume) => {
+            const newVolume = volume > 0 ? 0 : lastCommittedVolume;
+            onVolumeChange(newVolume / 100);
+            return newVolume;
+        });
+    }, [onVolumeChange, lastCommittedVolume]);
+
     const progress = props.clock.progress(length);
 
     return (
@@ -418,6 +503,26 @@ export default function Controls(props) {
                                     : <PlayArrowIcon className={classes.button} />}
                             </IconButton>
                         </Grid>
+                        {props.volumeEnabled && (
+                            <Grid item
+                                onMouseOver={handleVolumeMouseOver}
+                                onMouseOut={handleVolumeMouseOut}
+                            >
+                                <IconButton onClick={handleVolumeToggle}>
+                                    {volume === 0 ? (<VolumeOffIcon />) : (<VolumeUpIcon />)}
+                                </IconButton>
+                                <VolumeSlider
+                                    onChange={handleVolumeChange}
+                                    onChangeCommitted={handleVolumeChangeCommitted}
+                                    value={volume}
+                                    defaultValue={100}
+                                    classes={{
+                                        root: showVolumeBar ? classes.volumeInputShown : classes.volumeInputHidden,
+                                        thumb: showVolumeBar ? classes.volumeInputThumbShown : classes.volumeInputThumbHidden
+                                    }}
+                                />
+                            </Grid>
+                        )}
                         <Grid item>
                             <div className={classes.timeDisplay}>
                                 {displayTime(progress * length)} / {displayTime(displayLength || length)}

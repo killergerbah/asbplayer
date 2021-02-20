@@ -348,6 +348,12 @@ export default function Player(props) {
         setOffsetValue(value);
     }, [subtitles]);
 
+    const handleVolumeChange = useCallback((v) => {
+        if (audioRef.current) {
+            audioRef.current.volume = v;
+        }
+    }, []);
+
     useEffect(() => {
         const interval = setInterval(() => {
             const length = lengthRef.current;
@@ -424,6 +430,7 @@ export default function Player(props) {
                 videoFile={videoFile?.name}
                 offsetEnabled={true}
                 offsetValue={offsetValue}
+                volumeEnabled={Boolean(audioFileUrl)}
                 onPlay={handlePlay}
                 onPause={handlePause}
                 onSeek={handleSeek}
@@ -432,6 +439,7 @@ export default function Player(props) {
                 onUnloadAudio={() => props.onUnloadAudio(audioFileUrl)}
                 onUnloadVideo={() => props.onUnloadVideo(videoFileUrl)}
                 onOffsetChange={handleOffsetChange}
+                onVolumeChange={handleVolumeChange}
             />)}
             <SubtitlePlayer
                 playing={playing}

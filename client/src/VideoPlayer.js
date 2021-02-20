@@ -297,6 +297,12 @@ export default function VideoPlayer(props) {
         }
     }, [fullscreen]);
 
+    const handleVolumeChange = useCallback((v) => {
+        if (videoRef.current) {
+            videoRef.current.volume = v;
+        }
+    }, []);
+
     return (
         <div ref={containerRef} onMouseMove={handleMouseMove} className={classes.root}>
             <video
@@ -322,12 +328,14 @@ export default function VideoPlayer(props) {
                 offsetEnabled={false}
                 fullscreenEnabled={true}
                 fullscreen={fullscreen}
+                volumeEnabled={true}
                 onPlay={handlePlay}
                 onPause={handlePause}
                 onSeek={handleSeek}
                 onAudioTrackSelected={handleAudioTrackSelected}
                 onSubtitlesToggle={handleSubtitlesToggle}
                 onFullscreenToggle={handleFullscreenToggle}
+                onVolumeChange={handleVolumeChange}
             />
         </div>
     );
