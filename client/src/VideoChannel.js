@@ -12,6 +12,7 @@ export default class VideoChannel {
         this.currentTimeCallbacks = [];
         this.audioTrackSelectedCallbacks = [];
         this.exitCallbacks = [];
+        this.offsetCallbacks = [];
 
         const that = this;
 
@@ -60,6 +61,11 @@ export default class VideoChannel {
                         callback();
                     }
                     break;
+                case 'offset':
+                    for (let callback of that.offsetCallbacks) {
+                        callback(event.data.value);
+                    }
+                    break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }
@@ -101,6 +107,10 @@ export default class VideoChannel {
 
     onExit(callback) {
         this.exitCallbacks.push(callback);
+    }
+
+    onOffset(callback) {
+        this.offsetCallbacks.push(callback);
     }
 
     ready(duration) {

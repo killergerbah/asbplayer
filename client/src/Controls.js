@@ -300,7 +300,7 @@ function MediaUnloader(props) {
 
 export default function Controls(props) {
     const classes = useControlStyles();
-    const {playing, length, offsetEnabled, displayLength, offsetValue, onAudioTrackSelected, onSeek, mousePositionRef, onPause, onPlay, onTabSelected, onUnloadAudio, onUnloadVideo, onOffsetChange, onVolumeChange} = props;
+    const {playing, length, offsetEnabled, displayLength, offset, onAudioTrackSelected, onSeek, mousePositionRef, onPause, onPlay, onTabSelected, onUnloadAudio, onUnloadVideo, onOffsetChange, onVolumeChange} = props;
     const [show, setShow] = useState(true);
     const [audioTrackSelectorOpen, setAudioTrackSelectorOpen] = useState(false);
     const [audioTrackSelectorAnchorEl, setAudioTrackSelectorAnchorEl] = useState();
@@ -396,9 +396,11 @@ export default function Controls(props) {
 
     useEffect(() => {
         if (offsetInputRef.current) {
-            offsetInputRef.current.value= offsetValue;
+            const offsetSeconds = offset / 1000;
+            const value = offsetSeconds >= 0 ? "+" + offsetSeconds.toFixed(2) : String(offsetSeconds.toFixed(2));
+            offsetInputRef.current.value= value;
         }
-    }, [offsetValue]);
+    }, [offset]);
 
     const handleAudioTrackSelectorClosed = useCallback(() => {
         setAudioTrackSelectorAnchorEl(null);

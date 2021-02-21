@@ -124,6 +124,10 @@ export default class PlayerChannel {
         this.channel.postMessage({command: 'audioTrackSelected', id: id});
     }
 
+    offset(offset) {
+        this.channel.postMessage({command: 'offset', value: offset});
+    }
+
     close() {
         if (this.channel) {
             this.channel.postMessage({command: 'exit'});

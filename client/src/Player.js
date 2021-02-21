@@ -77,7 +77,7 @@ export default function Player(props) {
     const [, updateState] = useState();
     const [audioTracks, setAudioTracks] = useState();
     const [selectedAudioTrack, setSelectedAudioTrack] = useState();
-    const [offsetValue, setOffsetValue] = useState();
+    const [offset, setOffset] = useState(0);
     const forceUpdate = useCallback(() => updateState({}), []);
     const mousePositionRef = useRef({x:0, y:0});
     const audioRef = useRef();
@@ -117,7 +117,7 @@ export default function Player(props) {
         setPlaying(false);
         setAudioTracks(null);
         setSelectedAudioTrack(null);
-        setOffsetValue(null);
+        setOffset(0);
         audioRef.current.currentTime = 0;
         audioRef.current.pause();
 
@@ -214,6 +214,10 @@ export default function Player(props) {
 
                     channel.onExit(() => {
                         onUnloadVideo(videoFileUrl);
+                    });
+
+                    channel.onOffset((offset) => {
+                        setOffset(Math.max(-lengthRef.current ?? 0, offset));
                     });
 
                     if (channel.audioTracks && channel.audioTracks.length > 1) {
@@ -327,30 +331,37 @@ export default function Player(props) {
         setTab(tab);
     }, [availableTabs]);
 
-    const handleOffsetChange = useCallback((o) => {
-        const offset = Math.max(-lengthRef.current ?? 0, o);
-        const length = subtitles.length > 0 ? subtitles[subtitles.length - 1].end + offset : 0;
+    const handleOffsetChange = useCallback((offset) => {
+        setOffset(Math.max(-lengthRef.current ?? 0, offset));
+    }, []);
 
-        const newSubtitles = subtitles.map(s => ({
-            text: s.text,
-            start: s.originalStart + offset,
-            originalStart: s.originalStart,
-            end: s.originalEnd + offset,
-            originalEnd: s.originalEnd,
-            displayTime: timeDuration(s.originalStart + offset, length)
-        }));
-
-        setSubtitles(newSubtitles);
-        videoRef.current?.subtitles(newSubtitles);
-
+    useEffect(() => {
         if (offsetRef) {
             offsetRef.current = offset;
         }
 
-        const offsetSeconds = offset / 1000;
-        const value = offsetSeconds >= 0 ? "+" + offsetSeconds.toFixed(2) : String(offsetSeconds.toFixed(2));
-        setOffsetValue(value);
-    }, [subtitles, offsetRef]);
+        setSubtitles((subtitles) => {
+            if (!subtitles) {
+                return;
+            }
+
+            const length = subtitles.length > 0 ? subtitles[subtitles.length - 1].end + offset : 0;
+
+            const newSubtitles = subtitles.map(s => ({
+                text: s.text,
+                start: s.originalStart + offset,
+                originalStart: s.originalStart,
+                end: s.originalEnd + offset,
+                originalEnd: s.originalEnd,
+                displayTime: timeDuration(s.originalStart + offset, length)
+            }));
+
+            videoRef.current?.subtitles(newSubtitles);
+
+            return newSubtitles;
+        });
+
+    }, [offset, offsetRef])
 
     const handleVolumeChange = useCallback((v) => {
         if (audioRef.current) {
@@ -433,7 +444,7 @@ export default function Player(props) {
                 audioFile={audioFile?.name}
                 videoFile={videoFile?.name}
                 offsetEnabled={true}
-                offsetValue={offsetValue}
+                offset={offset}
                 volumeEnabled={Boolean(audioFileUrl)}
                 onPlay={handlePlay}
                 onPause={handlePause}

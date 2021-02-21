@@ -116,6 +116,7 @@ export default function VideoPlayer(props) {
     const playingRef = useRef();
     playingRef.current = playing;
     const [length, setLength] = useState(0);
+    const [offset, setOffset] = useState(0);
     const [audioTracks, setAudioTracks] = useState();
     const [selectedAudioTrack, setSelectedAudioTrack] = useState();
     const [subtitles, setSubtitles] = useState([]);
@@ -205,6 +206,11 @@ export default function VideoPlayer(props) {
 
         playerChannel.onSubtitles((subtitles) => {
             setSubtitles(subtitles);
+            if (subtitles && subtitles.length > 0) {
+                const s = subtitles[0];
+                const offset = s.start - s.originalStart;
+                setOffset(offset);
+            }
         });
 
         window.onbeforeunload = (e) => playerChannel.close();
@@ -297,6 +303,11 @@ export default function VideoPlayer(props) {
         }
     }, []);
 
+    const handleOffsetChange = useCallback((offset) => {
+        console.log(offset);
+        playerChannel.offset(offset);
+    }, [playerChannel]);
+
     return (
         <div ref={containerRef} onMouseMove={handleMouseMove} className={classes.root}>
             <video
@@ -319,7 +330,8 @@ export default function VideoPlayer(props) {
                 selectedAudioTrack={selectedAudioTrack}
                 subtitlesToggle={subtitles && subtitles.length > 0}
                 subtitlesEnabled={subtitlesEnabled}
-                offsetEnabled={false}
+                offsetEnabled={true}
+                offset={offset}
                 fullscreenEnabled={true}
                 fullscreen={fullscreen}
                 volumeEnabled={true}
@@ -330,6 +342,7 @@ export default function VideoPlayer(props) {
                 onSubtitlesToggle={handleSubtitlesToggle}
                 onFullscreenToggle={handleFullscreenToggle}
                 onVolumeChange={handleVolumeChange}
+                onOffsetChange={handleOffsetChange}
             />
         </div>
     );
