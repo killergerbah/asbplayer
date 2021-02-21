@@ -67,7 +67,7 @@ function trackLength(audioRef, videoRef, subtitles, useOffset) {
 }
 
 export default function Player(props) {
-    const { api, extension, onError, onUnloadVideo } = props;
+    const {api, extension, offsetRef, onError, onUnloadVideo} = props;
     const {subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl} = props.sources;
     const [tab, setTab] = useState();
     const [subtitles, setSubtitles] = useState();
@@ -343,10 +343,14 @@ export default function Player(props) {
         setSubtitles(newSubtitles);
         videoRef.current?.subtitles(newSubtitles);
 
+        if (offsetRef) {
+            offsetRef.current = offset;
+        }
+
         const offsetSeconds = offset / 1000;
         const value = offsetSeconds >= 0 ? "+" + offsetSeconds.toFixed(2) : String(offsetSeconds.toFixed(2));
         setOffsetValue(value);
-    }, [subtitles]);
+    }, [subtitles, offsetRef]);
 
     const handleVolumeChange = useCallback((v) => {
         if (audioRef.current) {

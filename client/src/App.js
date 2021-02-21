@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo, useLayoutEffect } from 'react';
+import React, { useCallback, useState, useMemo, useLayoutEffect, useRef } from 'react';
 import { Route, Redirect, Switch, useLocation } from "react-router-dom";
 import { makeStyles } from '@material-ui/core/styles';
 import clsx from 'clsx';
@@ -71,6 +71,7 @@ function App() {
     const [jumpToSubtitle, setJumpToSubtitle] = useState();
     const [sources, setSources] = useState({});
     const [fileName, setFileName] = useState();
+    const offsetRef = useRef();
     const { subtitleFile } = sources;
 
     const handleCopy = useCallback((subtitle, audioFile, videoFile, subtitleFile, audioTrack) => {
@@ -151,16 +152,26 @@ function App() {
     }, [sources]);
 
     const handleClipAudio = useCallback(item => {
+        const offset = offsetRef.current || 0;
         if (item.audioFile) {
-            api.clipAudioFromAudioFile(item.audioFile, item.start, item.end)
-                .catch(e => {
-                    handleError(e.message);
-                });
+            api.clipAudioFromAudioFile(
+                item.audioFile,
+                item.originalStart + offset,
+                item.originalEnd + offset
+            )
+            .catch(e => {
+                handleError(e.message);
+            });
         } else if (item.videoFile) {
-            api.clipAudioFromVideoFile(item.videoFile, item.start, item.end, item.audioTrack)
-                .catch(e => {
-                    handleError(e.message);
-                });
+            api.clipAudioFromVideoFile(
+                item.videoFile,
+                item.originalStart + offset,
+                item.originalEnd + offset,
+                item.audioTrack
+            )
+            .catch(e => {
+                handleError(e.message);
+            });
         }
     }, [api, handleError]);
 
@@ -323,6 +334,7 @@ function App() {
                                     onError={handleError}
                                     onUnloadAudio={handleUnloadAudio}
                                     onUnloadVideo={handleUnloadVideo}
+                                    offsetRef={offsetRef}
                                     sources={sources}
                                     jumpToSubtitle={jumpToSubtitle}
                                     extension={extension}
