@@ -180,7 +180,7 @@ function ProgressBar(props) {
     function handleClick(e) {
         const rect = e.currentTarget.getBoundingClientRect();
         const width = rect.right - rect.left;
-        const progress = (e.pageX - rect.left) / width;
+        const progress = Math.min(1, Math.max(0, (e.pageX - rect.left) / width));
 
         props.onSeek(progress);
     };
