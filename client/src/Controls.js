@@ -49,13 +49,19 @@ const useControlStyles = makeStyles((theme) => ({
         width: 100,
         color: theme.palette.text.secondary
     },
-    volumeInputContainer: {
-        height: 48,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        width: 100,
-        color: theme.palette.text.secondary
+    volumeInputContainerShown: {
+        transition: theme.transitions.create('margin', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.short,
+        }),
+        marginRight: 5
+    },
+    volumeInputContainerHidden: {
+        transition: theme.transitions.create('margin', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.short,
+        }),
+        marginRight: 0
     },
     volumeInputHidden: {
         transition: theme.transitions.create('width', {
@@ -86,7 +92,7 @@ const useControlStyles = makeStyles((theme) => ({
         opacity: 1
     },
     paper: {
-        background: "linear-gradient(to bottom, rgba(0,0,0,0), rgba(0, 0, 0, 0.5))",
+        background: "linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.7))",
         position: 'relative',
         left: '-100%',
         width: '200%',
@@ -101,20 +107,15 @@ const useControlStyles = makeStyles((theme) => ({
     },
     progress: {
         margin: 5
-    },
-    bar1Determinate: {
-        transition: 'none',
-        background: 'linear-gradient(to left, #e21e4a, #a92fff)',
-    },
+    }
 }));
 
 const useProgressBarStyles = makeStyles((theme) => ({
     container: {
-        width: '100%',
         background: 'rgba(30,30,30,0.7)',
         height: 5,
-        marginBottom: 5,
-        cursor: 'pointer'
+        margin: '0 10px 5px 10px',
+        cursor: 'pointer',
     },
     fillContainer: {
         width: '100%'
@@ -135,7 +136,7 @@ const useProgressBarStyles = makeStyles((theme) => ({
         background: 'white',
         position: 'absolute',
         top: 5,
-        left: 2,
+        left: 12,
         filter: 'drop-shadow(3px 3px 3px rgba(0,0,0,0.3))'
     }
 }));
@@ -507,6 +508,7 @@ export default function Controls(props) {
                             <Grid item
                                 onMouseOver={handleVolumeMouseOver}
                                 onMouseOut={handleVolumeMouseOut}
+                                className={showVolumeBar ? classes.volumeInputContainerShown : classes.volumeInputContainerHidden}
                             >
                                 <IconButton onClick={handleVolumeToggle}>
                                     {volume === 0 ? (<VolumeOffIcon />) : (<VolumeUpIcon />)}
