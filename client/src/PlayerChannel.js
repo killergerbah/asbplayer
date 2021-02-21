@@ -128,6 +128,10 @@ export default class PlayerChannel {
         this.channel.postMessage({command: 'offset', value: offset});
     }
 
+    popOutToggle() {
+        this.channel.postMessage({command: 'popOutToggle'});
+    }
+
     close() {
         if (this.channel) {
             this.channel.postMessage({command: 'exit'});

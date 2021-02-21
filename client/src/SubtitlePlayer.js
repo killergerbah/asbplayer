@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState, useMemo, useRef, createRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { keysAreEqual } from './Util';
-import Alert from './Alert';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
 import Link from '@material-ui/core/Link';
@@ -29,12 +28,25 @@ const useSubtitlePlayerStyles = makeStyles((theme) => ({
     },
     subtitle: {
         fontSize: 20,
-        width: '100%'
+        width: '100%',
+        paddingRight: 0,
+        minWidth: 200
+    },
+    compressedSelectedSubtitle: {
+        fontSize: 16
+    },
+    compressedSubtitle: {
+        fontSize: 16,
+        width: '100%',
+        paddingRight: 0,
+        minWidth: 200
     },
     timestamp: {
         fontSize: 14,
         color: '#aaaaaa',
-        textAlign: 'right'
+        textAlign: 'right',
+        paddingRight: 15,
+        paddingLeft: 5
     },
     copyButton: {
         textAlign: 'right',
@@ -64,11 +76,11 @@ export default function SubtitlePlayer(props) {
     const selectedSubtitleIndexesRef = useRef({});
     const lengthRef = useRef();
     lengthRef.current = props.length;
-    const [copyAlertOpen, setCopyAlertOpen] = useState(false);
-    const [lastCopiedSubtitle, setLastCopiedSubtitle] = useState(null);
     const lastScrollTimestampRef = useRef(0);
     const requestAnimationRef = useRef();
-    const tableRef = createRef();
+    const tableRef = useRef();
+    const drawerOpenRef = useRef();
+    drawerOpenRef.current = props.drawerOpen;
     const classes = useSubtitlePlayerStyles();
 
     // This effect should be scheduled only once as re-scheduling seems to cause performance issues.
@@ -117,7 +129,7 @@ export default function SubtitlePlayer(props) {
                     const scrollToSubtitleRef = subtitleRefs[smallestIndex];
                     const allowScroll = Date.now() - lastScrollTimestampRef.current > 5000;
 
-                    if (scrollToSubtitleRef?.current && allowScroll) {
+                    if (scrollToSubtitleRef?.current && allowScroll && !drawerOpenRef.current) {
                         scrollToSubtitleRef.current.scrollIntoView({
                             block: "center",
                             inline: "nearest",
@@ -220,13 +232,7 @@ export default function SubtitlePlayer(props) {
         const text = subtitle.text;
         navigator.clipboard.writeText(text);
         onCopy(subtitle);
-        setLastCopiedSubtitle(text);
-        setCopyAlertOpen(true);
     }, [subtitles, onCopy]);
-
-    const handleCopyAlertClosed = useCallback(() => {
-        setCopyAlertOpen(false);
-    }, [setCopyAlertOpen]);
 
     let subtitleTable;
 
@@ -250,7 +256,13 @@ export default function SubtitlePlayer(props) {
                     <TableBody>
                         {subtitles.map((s, index) => {
                             const selected = index in selectedSubtitleIndexes;
-                            const className = selected ? classes.selectedSubtitle : classes.subtitle;
+
+                            let className;
+                            if (props.compressed) {
+                                className = selected ? classes.compressedSelectedSubtitle : classes.compressedSubtitle;
+                            } else {
+                                className = selected ? classes.selectedSubtitle : classes.subtitle;
+                            }
 
                             if (s.start < 0 && s.end < 0) {
                                 return null;
@@ -286,9 +298,6 @@ export default function SubtitlePlayer(props) {
     return (
         <Paper square elevation={0} className={classes.container}>
             {subtitleTable}
-            <Alert open={copyAlertOpen} onClose={handleCopyAlertClosed} autoHideDuration={3000} severity="success">
-                Copied {lastCopiedSubtitle}
-            </Alert>
         </Paper>
     );
 }

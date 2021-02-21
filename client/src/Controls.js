@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import AudiotrackIcon from '@material-ui/icons/Audiotrack';
+import CloseIcon from '@material-ui/icons/Close';
 import Fade from '@material-ui/core/Fade';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import Input from '@material-ui/core/Input';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import Popover from '@material-ui/core/Popover';
 import FullscreenIcon from '@material-ui/icons/Fullscreen';
 import FullscreenExitIcon from '@material-ui/icons/FullscreenExit';
@@ -91,7 +93,7 @@ const useControlStyles = makeStyles((theme) => ({
         }),
         opacity: 1
     },
-    paper: {
+    subContainer: {
         background: "linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.7))",
         position: 'relative',
         left: '-100%',
@@ -107,6 +109,11 @@ const useControlStyles = makeStyles((theme) => ({
     },
     progress: {
         margin: 5
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 0,
+        right: 0
     }
 }));
 
@@ -493,136 +500,155 @@ export default function Controls(props) {
     const progress = props.clock.progress(length);
 
     return (
-        <div className={classes.container} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
-            <Fade in={show} timeout={200}>
-                <div className={classes.paper}>
-                    <ProgressBar
-                        onSeek={handleSeek}
-                        value={progress * 100}
-                    />
-                    <Grid container direction="row">
-                        <Grid item>
-                            <IconButton
-                                onClick={() => playing ? onPause() : onPlay()}
-                            >
-                                {playing
-                                    ? <PauseIcon className={classes.button} />
-                                    : <PlayArrowIcon className={classes.button} />}
-                            </IconButton>
+        <React.Fragment>
+            {props.closeEnabled && (
+                <Fade in={show} timeout={200}>
+                    <IconButton
+                        className={classes.closeButton}
+                        onClick={() => props.onClose()}
+                    >
+                        <CloseIcon />
+                    </IconButton>
+                </Fade>
+            )}
+            <div className={classes.container} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
+                <Fade in={show} timeout={200}>
+                    <div className={classes.subContainer}>
+                        <ProgressBar
+                            onSeek={handleSeek}
+                            value={progress * 100}
+                        />
+                        <Grid container direction="row">
+                            <Grid item>
+                                <IconButton
+                                    onClick={() => playing ? onPause() : onPlay()}
+                                >
+                                    {playing
+                                        ? <PauseIcon className={classes.button} />
+                                        : <PlayArrowIcon className={classes.button} />}
+                                </IconButton>
+                            </Grid>
+                            {props.volumeEnabled && (
+                                <Grid item
+                                    onMouseOver={handleVolumeMouseOver}
+                                    onMouseOut={handleVolumeMouseOut}
+                                    className={showVolumeBar ? classes.volumeInputContainerShown : classes.volumeInputContainerHidden}
+                                >
+                                    <IconButton onClick={handleVolumeToggle}>
+                                        {volume === 0 ? (<VolumeOffIcon />) : (<VolumeUpIcon />)}
+                                    </IconButton>
+                                    <VolumeSlider
+                                        onChange={handleVolumeChange}
+                                        onChangeCommitted={handleVolumeChangeCommitted}
+                                        value={volume}
+                                        defaultValue={100}
+                                        classes={{
+                                            root: showVolumeBar ? classes.volumeInputShown : classes.volumeInputHidden,
+                                            thumb: showVolumeBar ? classes.volumeInputThumbShown : classes.volumeInputThumbHidden
+                                        }}
+                                    />
+                                </Grid>
+                            )}
+                            <Grid item>
+                                <div className={classes.timeDisplay}>
+                                    {displayTime(progress * length)} / {displayTime(displayLength || length)}
+                                </div>
+                            </Grid>
+                            {offsetEnabled && (
+                                <Grid item>
+                                    <Input
+                                        inputRef={offsetInputRef}
+                                        disableUnderline={true}
+                                        className={classes.offsetInput}
+                                        placeholder={"±" + Number(0).toFixed(2)}
+                                    />
+                                </Grid>
+                            )}
+                            <Grid style={{flexGrow: 1}} item>
+                            </Grid>
+                            {props.subtitlesToggle && (
+                                <Grid item>
+                                    <IconButton onClick={(e) => props.onSubtitlesToggle()}>
+                                        <SubtitlesIcon className={props.subtitlesEnabled ? classes.button : classes.inactiveButton} />
+                                    </IconButton>
+                                </Grid>
+                            )}
+                            {props.videoFile && (
+                                <Grid item>
+                                    <IconButton onClick={handleVideoUnloaderOpened}>
+                                        <VideocamIcon className={classes.button} />
+                                    </IconButton>
+                                 </Grid>
+                            )}
+                            {props.audioFile && (
+                                <Grid item>
+                                    <IconButton onClick={handleAudioUnloaderOpened}>
+                                        <AudiotrackIcon className={classes.button} />
+                                    </IconButton>
+                                </Grid>
+                            )}
+                            {props.audioTracks && props.audioTracks.length > 1 &&  (
+                                <Grid item>
+                                    <IconButton onClick={handleAudioTrackSelectorOpened}>
+                                        <QueueMusicIcon className={classes.button}  />
+                                    </IconButton>
+                                </Grid>
+                            )}
+                            {props.tabs && props.tabs.length > 0 && (
+                                <Grid item>
+                                    <IconButton onClick={handleTabSelectorOpened}>
+                                        <VideocamIcon className={props.selectedTab ? classes.button : classes.inactiveButton} />
+                                    </IconButton>
+                                </Grid>
+                            )}
+                            {props.popOutEnabled && (
+                                <Grid item>
+                                    <IconButton onClick={() => props.onPopOutToggle()}>
+                                        <OpenInNewIcon style={props.popOut ? {transform: 'rotateX(180deg)'} : {}}/>
+                                    </IconButton>
+                                </Grid>
+                            )}
+                            {props.fullscreenEnabled && (
+                                <Grid item>
+                                    <IconButton onClick={() => props.onFullscreenToggle()}>
+                                        {props.fullscreen ? (<FullscreenExitIcon />) : (<FullscreenIcon />)}
+                                    </IconButton>
+                                </Grid>
+                            )}
                         </Grid>
-                        {props.volumeEnabled && (
-                            <Grid item
-                                onMouseOver={handleVolumeMouseOver}
-                                onMouseOut={handleVolumeMouseOut}
-                                className={showVolumeBar ? classes.volumeInputContainerShown : classes.volumeInputContainerHidden}
-                            >
-                                <IconButton onClick={handleVolumeToggle}>
-                                    {volume === 0 ? (<VolumeOffIcon />) : (<VolumeUpIcon />)}
-                                </IconButton>
-                                <VolumeSlider
-                                    onChange={handleVolumeChange}
-                                    onChangeCommitted={handleVolumeChangeCommitted}
-                                    value={volume}
-                                    defaultValue={100}
-                                    classes={{
-                                        root: showVolumeBar ? classes.volumeInputShown : classes.volumeInputHidden,
-                                        thumb: showVolumeBar ? classes.volumeInputThumbShown : classes.volumeInputThumbHidden
-                                    }}
-                                />
-                            </Grid>
-                        )}
-                        <Grid item>
-                            <div className={classes.timeDisplay}>
-                                {displayTime(progress * length)} / {displayTime(displayLength || length)}
-                            </div>
-                        </Grid>
-                        {offsetEnabled && (
-                            <Grid item>
-                                <Input
-                                    inputRef={offsetInputRef}
-                                    disableUnderline={true}
-                                    className={classes.offsetInput}
-                                    placeholder={"±" + Number(0).toFixed(2)}
-                                />
-                            </Grid>
-                        )}
-                        <Grid style={{flexGrow: 1}} item>
-                        </Grid>
-                        {props.subtitlesToggle && (
-                            <Grid item>
-                                <IconButton onClick={(e) => props.onSubtitlesToggle()}>
-                                    <SubtitlesIcon className={props.subtitlesEnabled ? classes.button : classes.inactiveButton} />
-                                </IconButton>
-                            </Grid>
-                        )}
-                        {props.videoFile && (
-                            <Grid item>
-                                <IconButton onClick={handleVideoUnloaderOpened}>
-                                    <VideocamIcon className={classes.button} />
-                                </IconButton>
-                             </Grid>
-                        )}
-                        {props.audioFile && (
-                            <Grid item>
-                                <IconButton onClick={handleAudioUnloaderOpened}>
-                                    <AudiotrackIcon className={classes.button} />
-                                </IconButton>
-                            </Grid>
-                        )}
-                        {props.audioTracks && props.audioTracks.length > 1 &&  (
-                            <Grid item>
-                                <IconButton onClick={handleAudioTrackSelectorOpened}>
-                                    <QueueMusicIcon className={classes.button}  />
-                                </IconButton>
-                            </Grid>
-                        )}
-                        {props.tabs && props.tabs.length > 0 && (
-                            <Grid item>
-                                <IconButton onClick={handleTabSelectorOpened}>
-                                    <VideocamIcon className={props.selectedTab ? classes.button : classes.inactiveButton} />
-                                </IconButton>
-                            </Grid>
-                        )}
-                        {props.fullscreenEnabled && (
-                            <Grid item>
-                                <IconButton onClick={() => props.onFullscreenToggle()}>
-                                    {props.fullscreen ? (<FullscreenExitIcon />) : (<FullscreenIcon />)}
-                                </IconButton>
-                            </Grid>
-                        )}
-                    </Grid>
-                </div>
-            </Fade>
-            <TabSelector
-                open={tabSelectorOpen && show}
-                anchorEl={tabSelectorAnchorEl}
-                tabs={props.tabs}
-                selectedTab={props.selectedTab}
-                onClose={handleTabSelectorClosed}
-                onTabSelected={handleTabSelected}
-            />
-            <AudioTrackSelector
-                open={audioTrackSelectorOpen && show}
-                anchorEl={audioTrackSelectorAnchorEl}
-                audioTracks={props.audioTracks}
-                selectedAudioTrack={props.selectedAudioTrack}
-                onClose={handleAudioTrackSelectorClosed}
-                onAudioTrackSelected={handleAudioTrackSelected}
-            />
-            <MediaUnloader
-                open={audioUnloaderOpen}
-                anchorEl={audioUnloaderAnchorEl}
-                file={props.audioFile}
-                onClose={handleAudioUnloaderClosed}
-                onUnload={handleUnloadAudio}
-            />
-            <MediaUnloader
-                open={videoUnloaderOpen}
-                anchorEl={videoUnloaderAnchorEl}
-                file={props.videoFile}
-                onClose={handleVideoUnloaderClosed}
-                onUnload={handleUnloadVideo}
-            />
-        </div>
+                    </div>
+                </Fade>
+                <TabSelector
+                    open={tabSelectorOpen && show}
+                    anchorEl={tabSelectorAnchorEl}
+                    tabs={props.tabs}
+                    selectedTab={props.selectedTab}
+                    onClose={handleTabSelectorClosed}
+                    onTabSelected={handleTabSelected}
+                />
+                <AudioTrackSelector
+                    open={audioTrackSelectorOpen && show}
+                    anchorEl={audioTrackSelectorAnchorEl}
+                    audioTracks={props.audioTracks}
+                    selectedAudioTrack={props.selectedAudioTrack}
+                    onClose={handleAudioTrackSelectorClosed}
+                    onAudioTrackSelected={handleAudioTrackSelected}
+                />
+                <MediaUnloader
+                    open={audioUnloaderOpen}
+                    anchorEl={audioUnloaderAnchorEl}
+                    file={props.audioFile}
+                    onClose={handleAudioUnloaderClosed}
+                    onUnload={handleUnloadAudio}
+                />
+                <MediaUnloader
+                    open={videoUnloaderOpen}
+                    anchorEl={videoUnloaderAnchorEl}
+                    file={props.videoFile}
+                    onClose={handleVideoUnloaderClosed}
+                    onUnload={handleUnloadVideo}
+                />
+            </div>
+        </React.Fragment>
     );
 }

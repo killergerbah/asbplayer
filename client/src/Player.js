@@ -4,13 +4,15 @@ import BroadcastChannelVideoProtocol from './BroadcastChannelVideoProtocol';
 import ChromeTabVideoProtocol from './ChromeTabVideoProtocol';
 import Clock from './Clock';
 import Controls from './Controls';
+import Grid from '@material-ui/core/Grid';
 import MediaAdapter from './MediaAdapter';
 import SubtitlePlayer from './SubtitlePlayer';
 import VideoChannel from './VideoChannel';
+import { useWindowSize } from './Util';
 
 const useStyles = makeStyles({
     root: {
-        height: 'calc(100vh - 64px)',
+        maxHeight: 'calc(100vh - 64px)',
         position: 'relative',
         overflowX: 'hidden'
     }
@@ -66,9 +68,19 @@ function trackLength(audioRef, videoRef, subtitles, useOffset) {
     return Math.max(videoLength, Math.max(subtitlesLength, audioLength));
 }
 
+function resizeVideoFrame(element, drawerOpen, windowWidth) {
+    if (element) {
+        const ratio = drawerOpen ? .5 : .7;
+        element.width = ratio * windowWidth;
+    }
+}
+
 export default function Player(props) {
-    const {api, extension, offsetRef, onError, onUnloadVideo} = props;
+    const {api, extension, offsetRef, videoFrameRef: propsVideoFrameRef, drawerOpen, onError, onUnloadVideo} = props;
     const {subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl} = props.sources;
+    const [windowWidth, ] = useWindowSize(true);
+    const videoFrameRef = useRef();
+    resizeVideoFrame(videoFrameRef.current, drawerOpen, windowWidth);
     const [tab, setTab] = useState();
     const [subtitles, setSubtitles] = useState();
     const [playing, setPlaying] = useState(false);
@@ -78,6 +90,8 @@ export default function Player(props) {
     const [audioTracks, setAudioTracks] = useState();
     const [selectedAudioTrack, setSelectedAudioTrack] = useState();
     const [offset, setOffset] = useState(0);
+    const [channelId, setChannelId] = useState();
+    const [videoPopOut, setVideoPopOut] = useState(false);
     const forceUpdate = useCallback(() => updateState({}), []);
     const mousePositionRef = useRef({x:0, y:0});
     const audioRef = useRef();
@@ -120,6 +134,8 @@ export default function Player(props) {
         setOffset(0);
         audioRef.current.currentTime = 0;
         audioRef.current.pause();
+        propsVideoFrameRef.current = null;
+        videoFrameRef.current = null;
 
         let subtitlesPromise;
 
@@ -155,17 +171,14 @@ export default function Player(props) {
                 if (videoFileUrl) {
                     const channelId = String(Date.now());
                     channel = new VideoChannel(new BroadcastChannelVideoProtocol(channelId));
-                    window.open(
-                        process.env.PUBLIC_URL + '/?video=' + encodeURIComponent(videoFileUrl) + '&channel=' + channelId,
-                        'asbplayer-video-' + videoFileUrl,
-                        "resizable,width=800,height=450"
-                    );
+                    setChannelId(channelId);
                 } else if (tab) {
                     channel = new VideoChannel(new ChromeTabVideoProtocol(tab.id, extension));
                     channel.init();
                 }
 
                 videoRef.current = channel;
+                let subscribed = false;
 
                 channel.onReady((paused) => {
                     lengthRef.current = trackLength(audioRef, videoRef, subtitles);
@@ -174,51 +187,6 @@ export default function Player(props) {
                     if (subtitles) {
                         channel.subtitles(subtitles);
                     }
-
-                    channel.onPlay((echo) => {
-                        play(clock, mediaAdapter, echo);
-                    });
-
-                    channel.onPause((echo) => {
-                        pause(clock, mediaAdapter, echo);
-                    });
-
-                    channel.onCurrentTime((currentTime, echo) => {
-                        const progress = currentTime * 1000 / lengthRef.current;
-
-                        if (playingRef.current) {
-                            clock.stop();
-                        }
-
-                        seek(progress, clock, echo, (v) => {
-                            if (playingRef.current) {
-                                clock.start();
-                            }
-                        });
-                    });
-
-                    channel.onAudioTrackSelected((id) => {
-                        if (playingRef.current) {
-                            clock.stop();
-                        }
-
-                        mediaAdapter.onReady()
-                            .then(() => {
-                                if (playingRef.current) {
-                                    clock.start();
-                                }
-                            });
-
-                        setSelectedAudioTrack(id);
-                    });
-
-                    channel.onExit(() => {
-                        onUnloadVideo(videoFileUrl);
-                    });
-
-                    channel.onOffset((offset) => {
-                        setOffset(Math.max(-lengthRef.current ?? 0, offset));
-                    });
 
                     if (channel.audioTracks && channel.audioTracks.length > 1) {
                         setAudioTracks(videoRef.current.audioTracks);
@@ -237,10 +205,74 @@ export default function Player(props) {
                     }
 
                     setPlaying(!paused);
+
+                    if (!subscribed) {
+                        channel.onPlay((echo) => {
+                            play(clock, mediaAdapter, echo);
+                        });
+
+                        channel.onPause((echo) => {
+                            pause(clock, mediaAdapter, echo);
+                        });
+
+                        channel.onCurrentTime((currentTime, echo) => {
+                            const progress = currentTime * 1000 / lengthRef.current;
+
+                            if (playingRef.current) {
+                                clock.stop();
+                            }
+
+                            seek(progress, clock, echo, (v) => {
+                                if (playingRef.current) {
+                                    clock.start();
+                                }
+                            });
+                        });
+
+                        channel.onAudioTrackSelected((id) => {
+                            if (playingRef.current) {
+                                clock.stop();
+                            }
+
+                            mediaAdapter.onReady()
+                                .then(() => {
+                                    if (playingRef.current) {
+                                        clock.start();
+                                    }
+                                });
+
+                            setSelectedAudioTrack(id);
+                        });
+
+                        channel.onExit(() => {
+                            onUnloadVideo(videoFileUrl);
+                        });
+
+                        channel.onOffset((offset) => {
+                            setOffset(Math.max(-lengthRef.current ?? 0, offset));
+                        });
+
+                        channel.onPopOutToggle(() => {
+                            setVideoPopOut(popOut => !popOut);
+                        });
+
+                        subscribed = true;
+                    }
                 });
             });
         }
-    }, [api, extension, clock, mediaAdapter, seek, onError, onUnloadVideo, subtitleFile, audioFileUrl, videoFileUrl, tab, forceUpdate]);
+    }, [api, extension, clock, mediaAdapter, seek, onError, onUnloadVideo, subtitleFile, audioFileUrl, videoFileUrl, tab, forceUpdate, propsVideoFrameRef]);
+
+    useEffect(() => {
+        if (videoPopOut && channelId && videoFileUrl) {
+            propsVideoFrameRef.current = null;
+            window.open(
+                process.env.PUBLIC_URL + '/?video=' + encodeURIComponent(videoFileUrl) + '&channel=' + channelId + '&popout=true',
+                'asbplayer-video-' + videoFileUrl,
+                "resizable,width=800,height=450"
+            );
+        }
+    }, [videoPopOut, channelId, videoFileUrl, propsVideoFrameRef]);
 
     function play(clock, mediaAdapter, echo) {
         setPlaying(true);
@@ -431,40 +463,67 @@ export default function Player(props) {
             onMouseMove={handleMouseMove}
             className={classes.root}
         >
-            {loaded && (<Controls
-                mousePositionRef={mousePositionRef}
-                playing={playing}
-                clock={clock}
-                length={length}
-                displayLength={trackLength(audioRef, videoRef, subtitles, false)}
-                audioTracks={audioTracks}
-                selectedAudioTrack={selectedAudioTrack}
-                tabs={!videoFileUrl && !audioFileUrl && availableTabs}
-                selectedTab={tab && tab.id}
-                audioFile={audioFile?.name}
-                videoFile={videoFile?.name}
-                offsetEnabled={true}
-                offset={offset}
-                volumeEnabled={Boolean(audioFileUrl)}
-                onPlay={handlePlay}
-                onPause={handlePause}
-                onSeek={handleSeek}
-                onAudioTrackSelected={handleAudioTrackSelected}
-                onTabSelected={handleTabSelected}
-                onUnloadAudio={() => props.onUnloadAudio(audioFileUrl)}
-                onUnloadVideo={() => props.onUnloadVideo(videoFileUrl)}
-                onOffsetChange={handleOffsetChange}
-                onVolumeChange={handleVolumeChange}
-            />)}
-            <SubtitlePlayer
-                playing={playing}
-                subtitles={subtitles}
-                clock={clock}
-                length={length}
-                jumpToSubtitle={props.jumpToSubtitle}
-                onSeek={handleSeekToSubtitle}
-                onCopy={handleCopy}
-            />
+            <Grid
+                container
+                direction="row"
+                style={{flexWrap: 'nowrap'}}
+            >
+                <Grid item>
+                    {loaded && videoFileUrl && channelId && !videoPopOut && (
+                        <iframe
+                            ref={(ref) => {
+                                resizeVideoFrame(ref, drawerOpen, windowWidth);
+                                videoFrameRef.current = ref;
+                                propsVideoFrameRef.current = ref;
+                            }}
+                            style={{border: 0}}
+                            height="100%"
+                            src={process.env.PUBLIC_URL + '/?video=' + encodeURIComponent(videoFileUrl) + '&channel=' + channelId + '&popout=false'}
+                            title="asbplayer"
+                        />
+                    )}
+                </Grid>
+                <Grid style={{flexGrow: 1}} item>
+                    {loaded && !(videoFileUrl && !videoPopOut) && (
+                        <Controls
+                            mousePositionRef={mousePositionRef}
+                            playing={playing}
+                            clock={clock}
+                            length={length}
+                            displayLength={trackLength(audioRef, videoRef, subtitles, false)}
+                            audioTracks={audioTracks}
+                            selectedAudioTrack={selectedAudioTrack}
+                            tabs={!videoFileUrl && !audioFileUrl && availableTabs}
+                            selectedTab={tab && tab.id}
+                            audioFile={audioFile?.name}
+                            videoFile={videoFile?.name}
+                            offsetEnabled={true}
+                            offset={offset}
+                            volumeEnabled={Boolean(audioFileUrl)}
+                            onPlay={handlePlay}
+                            onPause={handlePause}
+                            onSeek={handleSeek}
+                            onAudioTrackSelected={handleAudioTrackSelected}
+                            onTabSelected={handleTabSelected}
+                            onUnloadAudio={() => props.onUnloadAudio(audioFileUrl)}
+                            onUnloadVideo={() => props.onUnloadVideo(videoFileUrl)}
+                            onOffsetChange={handleOffsetChange}
+                            onVolumeChange={handleVolumeChange}
+                        />
+                    )}
+                    <SubtitlePlayer
+                        playing={playing}
+                        subtitles={subtitles}
+                        clock={clock}
+                        length={length}
+                        jumpToSubtitle={props.jumpToSubtitle}
+                        drawerOpen={drawerOpen}
+                        compressed={videoFileUrl && !videoPopOut}
+                        onSeek={handleSeekToSubtitle}
+                        onCopy={handleCopy}
+                    />
+                </Grid>
+            </Grid>
             <audio ref={audioRef} src={audioFileUrl} />
         </div>
     );

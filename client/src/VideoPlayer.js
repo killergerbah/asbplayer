@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { arrayEquals } from './Util';
+import { arrayEquals, useWindowSize } from './Util';
 import Clock from './Clock';
 import Controls from './Controls';
 import PlayerChannel from './PlayerChannel';
@@ -9,15 +9,15 @@ const useStyles = makeStyles({
     root: {
         position: 'relative',
         backgroundColor: 'black',
-        width: '100%',
         height: '100vh',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center"
     },
     video: {
-        objectFit: "cover",
-        position: "absolute",
-        width: "auto",
-        height: "100%"
+        margin: "auto"
     },
     subtitle: {
         position: 'absolute',
@@ -109,7 +109,14 @@ function useFullscreen() {
 
 export default function VideoPlayer(props) {
     const classes = useStyles();
-    const {videoFile, channel} = props;
+    const {videoFile, channel, popOut, onError} = props;
+    const poppingInRef = useRef();
+    const videoRef = useRef();
+    const [windowWidth, windowHeight] = useWindowSize(true);
+    if (videoRef.current) {
+        videoRef.current.width = windowWidth;
+        videoRef.current.height = windowHeight;
+    }
     const playerChannel = useMemo(() => new PlayerChannel(channel), [channel]);
     const [playing, setPlaying] = useState(false);
     const fullscreen = useFullscreen();
@@ -127,7 +134,6 @@ export default function VideoPlayer(props) {
     const clock = useMemo(() => new Clock(), []);
     const mousePositionRef = useRef({x:0, y:0});
     const containerRef = useRef();
-    const videoRef = useRef();
     const videoRefCallback = useCallback(element => {
         if (element) {
             videoRef.current = element;
@@ -149,10 +155,10 @@ export default function VideoPlayer(props) {
             };
 
             element.onerror = (event) => {
-                props.onError(errorMessage(element));
+                onError(errorMessage(element));
             };
         }
-    }, [setAudioTracks, setSelectedAudioTrack, clock, playerChannel, props]);
+    }, [clock, playerChannel, onError]);
 
     function selectAudioTrack(id) {
         for (let t of videoRef.current.audioTracks) {
@@ -213,12 +219,16 @@ export default function VideoPlayer(props) {
             }
         });
 
-        window.onbeforeunload = (e) => playerChannel.close();
+        window.onbeforeunload = (e) => {
+            if (!poppingInRef.current) {
+                playerChannel.close();
+            }
+        };
 
         return () => {
             playerChannel.close();
         }
-    }, [clock, setPlaying, playerChannel]);
+    }, [clock, playerChannel]);
 
     const handlePlay = useCallback(() => {
         if (videoRef.current) {
@@ -277,7 +287,7 @@ export default function VideoPlayer(props) {
                 }
             }
 
-            if (!arrayEquals(showSubtitles, showSubtitlesRef.current)) {
+            if (!arrayEquals(showSubtitles, showSubtitlesRef.current, (s1, s2) => s1.index === s2.index)) {
                 setShowSubtitles(showSubtitles);
             }
         }, 10)
@@ -304,8 +314,20 @@ export default function VideoPlayer(props) {
     }, []);
 
     const handleOffsetChange = useCallback((offset) => {
-        console.log(offset);
         playerChannel.offset(offset);
+    }, [playerChannel]);
+
+    const handlePopOutToggle = useCallback(() => {
+        playerChannel.popOutToggle();
+        if (popOut) {
+            poppingInRef.current = true;
+            window.close();
+        }
+    }, [playerChannel, popOut]);
+
+    const handleClose = useCallback(() => {
+        playerChannel.close();
+        window.close();
     }, [playerChannel]);
 
     return (
@@ -334,7 +356,10 @@ export default function VideoPlayer(props) {
                 offset={offset}
                 fullscreenEnabled={true}
                 fullscreen={fullscreen}
+                closeEnabled={!popOut}
+                popOut={popOut}
                 volumeEnabled={true}
+                popOutEnabled={true}
                 onPlay={handlePlay}
                 onPause={handlePause}
                 onSeek={handleSeek}
@@ -343,6 +368,8 @@ export default function VideoPlayer(props) {
                 onFullscreenToggle={handleFullscreenToggle}
                 onVolumeChange={handleVolumeChange}
                 onOffsetChange={handleOffsetChange}
+                onPopOutToggle={handlePopOutToggle}
+                onClose={handleClose}
             />
         </div>
     );

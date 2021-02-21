@@ -13,6 +13,7 @@ export default class VideoChannel {
         this.audioTrackSelectedCallbacks = [];
         this.exitCallbacks = [];
         this.offsetCallbacks = [];
+        this.popOutToggleCallbacks = [];
 
         const that = this;
 
@@ -66,6 +67,11 @@ export default class VideoChannel {
                         callback(event.data.value);
                     }
                     break;
+                case 'popOutToggle':
+                    for (let callback of that.popOutToggleCallbacks) {
+                        callback();
+                    }
+                    break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }
@@ -111,6 +117,10 @@ export default class VideoChannel {
 
     onOffset(callback) {
         this.offsetCallbacks.push(callback);
+    }
+
+    onPopOutToggle(callback) {
+        this.popOutToggleCallbacks.push(callback);
     }
 
     ready(duration) {

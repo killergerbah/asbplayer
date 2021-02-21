@@ -1,6 +1,7 @@
-import React, { useCallback, useState, useMemo, useLayoutEffect, useRef } from 'react';
+import React, { useCallback, useState, useMemo, useRef } from 'react';
 import { Route, Redirect, Switch, useLocation } from "react-router-dom";
 import { makeStyles } from '@material-ui/core/styles';
+import { useWindowSize } from './Util';
 import clsx from 'clsx';
 import Alert from './Alert.js';
 import Api from './Api.js';
@@ -40,34 +41,20 @@ function Content(props) {
     );
 }
 
-// https://stackoverflow.com/questions/19014250/rerender-view-on-browser-resize-with-react
-function useWindowSize(off) {
-    const [size, setSize] = useState([0, 0]);
-    useLayoutEffect(() => {
-        function updateSize() {
-            if (off) {
-                return;
-            }
-
-            setSize([window.innerWidth, window.innerHeight]);
-        }
-        window.addEventListener('resize', updateSize);
-        updateSize();
-        return () => window.removeEventListener('resize', updateSize);
-    }, [off]);
-    return size;
-}
-
 function App() {
     const api = useMemo(() => new Api(), []);
     const extension = useMemo(() => new ChromeExtension(), []);
     const location = useLocation();
-    const [width, ] = useWindowSize(location.pathname === '/video');
-    const drawerWidth = Math.max(400, width * 0.3);
+    const videoFrameRef = useRef();
+    const [width, ] = useWindowSize(location.pathname !== '/video');
+    const drawerRatio = videoFrameRef.current ? .2 : .3;
+    const minDrawerSize = videoFrameRef.current ? 300 : 400;
+    const drawerWidth = Math.max(minDrawerSize, width * drawerRatio);
     const [copiedSubtitles, setCopiedSubtitles] = useState([]);
     const [copyHistoryOpen, setCopyHistoryOpen] = useState(false);
-    const [error, setError] = useState();
-    const [errorAlertOpen, setErrorAlertOpen] = useState(false);
+    const [alert, setAlert] = useState();
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [alertSeverity, setAlertSeverity] = useState();
     const [jumpToSubtitle, setJumpToSubtitle] = useState();
     const [sources, setSources] = useState({});
     const [fileName, setFileName] = useState();
@@ -84,6 +71,9 @@ function App() {
             videoFile: videoFile,
             audioTrack: audioTrack
         }]);
+        setAlertSeverity("success");
+        setAlert("Copied " + subtitle.text);
+        setAlertOpen(true);
     }, [fileName]);
 
     const handleOpenCopyHistory = useCallback((event) => {
@@ -106,13 +96,14 @@ function App() {
         setCopiedSubtitles(newCopiedSubtitles);
     }, [copiedSubtitles]);
 
-    const handleErrorAlertClosed = useCallback(() => {
-        setErrorAlertOpen(false);
+    const handleAlertClosed = useCallback(() => {
+        setAlertOpen(false);
     }, []);
 
     const handleError = useCallback((message) => {
-        setError(message);
-        setErrorAlertOpen(true);
+        setAlertSeverity("error");
+        setAlert(message);
+        setAlertOpen(true);
     }, []);
 
     const handleUnloadAudio = useCallback((audioFileUrl) => {
@@ -293,21 +284,22 @@ function App() {
             onDragOver={e => e.preventDefault()}
         >
             <Alert
-                open={errorAlertOpen}
-                onClose={handleErrorAlertClosed}
+                open={alertOpen}
+                onClose={handleAlertClosed}
                 autoHideDuration={3000}
-                severity="error"
+                severity={alertSeverity}
             >
-                {error}
+                {alert}
             </Alert>
             <Switch>
                 <Route exact path="/" render={() => {
                     const params = new URLSearchParams(window.location.search);
                     const videoFile = params.get('video');
                     const channel = params.get('channel');
+                    const popOut = params.get('popout');
 
                     if (videoFile && channel) {
-                        return (<Redirect to={"/video?video=" + encodeURIComponent(videoFile) + "&channel=" + channel} />);
+                        return (<Redirect to={"/video?video=" + encodeURIComponent(videoFile) + "&channel=" + channel + "&popout=" + popOut} />);
                     }
 
                     return (
@@ -335,9 +327,12 @@ function App() {
                                     onUnloadAudio={handleUnloadAudio}
                                     onUnloadVideo={handleUnloadVideo}
                                     offsetRef={offsetRef}
+                                    videoFrameRef={videoFrameRef}
                                     sources={sources}
                                     jumpToSubtitle={jumpToSubtitle}
+                                    videoFrameRef={videoFrameRef}
                                     extension={extension}
+                                    drawerOpen={copyHistoryOpen}
                                 />
                             </Content>
                         </div>
@@ -347,11 +342,13 @@ function App() {
                     const params = new URLSearchParams(window.location.search);
                     const videoFile = params.get('video');
                     const channel = params.get('channel');
+                    const popOut = params.get('popout') === 'true';
 
                     return (
                         <VideoPlayer
                             api={api}
                             videoFile={videoFile}
+                            popOut={popOut}
                             channel={channel}
                             onError={handleError}
                         />
