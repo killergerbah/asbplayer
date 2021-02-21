@@ -396,9 +396,13 @@ export default function Controls(props) {
 
     useEffect(() => {
         if (offsetInputRef.current) {
-            const offsetSeconds = offset / 1000;
-            const value = offsetSeconds >= 0 ? "+" + offsetSeconds.toFixed(2) : String(offsetSeconds.toFixed(2));
-            offsetInputRef.current.value= value;
+            if (offset === 0) {
+                offsetInputRef.current.value = null;
+            } else {
+                const offsetSeconds = offset / 1000;
+                const value = offsetSeconds >= 0 ? "+" + offsetSeconds.toFixed(2) : String(offsetSeconds.toFixed(2));
+                offsetInputRef.current.value = value;
+            }
         }
     }, [offset]);
 
