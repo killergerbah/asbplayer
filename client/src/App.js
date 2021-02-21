@@ -331,9 +331,20 @@ function App() {
                         </div>
                     );
                 }} />
-                <Route exact path="/video">
-                    <VideoPlayer api={api} onError={handleError} />
-                </Route>
+                <Route exact path="/video" render={() => {
+                    const params = new URLSearchParams(window.location.search);
+                    const videoFile = params.get('video');
+                    const channel = params.get('channel');
+
+                    return (
+                        <VideoPlayer
+                            api={api}
+                            videoFile={videoFile}
+                            channel={channel}
+                            onError={handleError}
+                        />
+                    );
+                }} />
             </Switch>
         </div>
     );

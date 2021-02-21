@@ -109,13 +109,7 @@ function useFullscreen() {
 
 export default function VideoPlayer(props) {
     const classes = useStyles();
-    const { videoFile, channel } = useMemo(() => {
-        const params = new URLSearchParams(window.location.search);
-        return {
-            videoFile: params.get('video'),
-            channel: params.get('channel')
-        };
-    }, []);
+    const {videoFile, channel} = props;
     const playerChannel = useMemo(() => new PlayerChannel(channel), [channel]);
     const [playing, setPlaying] = useState(false);
     const fullscreen = useFullscreen();
