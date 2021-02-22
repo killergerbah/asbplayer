@@ -36,6 +36,15 @@ const useStyles = (drawerWidth) => makeStyles((theme) => ({
         overflowY: 'auto',
         overflowX: 'hidden'
     },
+    listItem: {
+        '&:hover': {
+            backgroundColor: theme.palette.action.hover
+        }
+    },
+    listItemGutters: {
+        paddingLeft: 5,
+        paddingRight: 5
+    },
     listItemIconRoot: {
         minWidth: 20
     }
@@ -137,7 +146,12 @@ export default function CopyHistory(props) {
             const ref = i === props.items.length - 1 ? scrollToBottomRefCallback : null;
 
             content.push((
-                <ListItem ref={ref} key={item.timestamp}>
+                <ListItem
+                    ref={ref}
+                    key={item.timestamp}
+                    className={classes.listItem}
+                    classes={{gutters: classes.listItemGutters}}
+                >
                     <ListItemIcon classes={{root: classes.listItemIconRoot}}>
                         <IconButton onClick={(e) => handleMenu(e, item)}>
                             <MoreVertIcon fontSize="small" />

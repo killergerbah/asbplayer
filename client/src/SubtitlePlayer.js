@@ -23,20 +23,13 @@ const useSubtitlePlayerStyles = makeStyles((theme) => ({
         backgroundColor: theme.palette.background.default,
         marginBottom: 75 // so the last row doesn't collide with controls
     },
-    selectedSubtitle: {
-        fontSize: 20,
-        paddingRight: 0,
-        minWidth: 200,
-        width: '100%'
+    subtitleRow: {
+        '&:hover': {
+            backgroundColor: theme.palette.action.hover
+        }
     },
     subtitle: {
         fontSize: 20,
-        paddingRight: 0,
-        minWidth: 200,
-        width: '100%'
-    },
-    compressedSelectedSubtitle: {
-        fontSize: 16,
         paddingRight: 0,
         minWidth: 200,
         width: '100%'
@@ -135,7 +128,7 @@ export default function SubtitlePlayer(props) {
                     const scrollToSubtitleRef = subtitleRefs[smallestIndex];
                     const allowScroll = Date.now() - lastScrollTimestampRef.current > 5000;
 
-                    if (scrollToSubtitleRef?.current && allowScroll && !drawerOpenRef.current) {
+                    if (scrollToSubtitleRef?.current && allowScroll) {
                         scrollToSubtitleRef.current.scrollIntoView({
                             block: "center",
                             inline: "nearest",
@@ -263,12 +256,7 @@ export default function SubtitlePlayer(props) {
                         {subtitles.map((s, index) => {
                             const selected = index in selectedSubtitleIndexes;
 
-                            let className;
-                            if (props.compressed) {
-                                className = selected ? classes.compressedSelectedSubtitle : classes.compressedSubtitle;
-                            } else {
-                                className = selected ? classes.selectedSubtitle : classes.subtitle;
-                            }
+                            let className = props.compressed ? classes.compressedSubtitle : classes.subtitle;
 
                             if (s.start < 0 && s.end < 0) {
                                 return null;
@@ -280,6 +268,7 @@ export default function SubtitlePlayer(props) {
                                    key={index}
                                    ref={subtitleRefs[index]}
                                    selected={selected}
+                                   className={classes.subtitleRow}
                                >
                                     <TableCell className={className}>
                                         {s.text}
