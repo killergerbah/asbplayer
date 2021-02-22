@@ -24,22 +24,28 @@ const useSubtitlePlayerStyles = makeStyles((theme) => ({
         marginBottom: 75 // so the last row doesn't collide with controls
     },
     selectedSubtitle: {
-        fontSize: 20
+        fontSize: 20,
+        paddingRight: 0,
+        minWidth: 200,
+        width: '100%'
     },
     subtitle: {
         fontSize: 20,
-        width: '100%',
         paddingRight: 0,
-        minWidth: 200
+        minWidth: 200,
+        width: '100%'
     },
     compressedSelectedSubtitle: {
-        fontSize: 16
+        fontSize: 16,
+        paddingRight: 0,
+        minWidth: 200,
+        width: '100%'
     },
     compressedSubtitle: {
         fontSize: 16,
-        width: '100%',
         paddingRight: 0,
-        minWidth: 200
+        minWidth: 200,
+        width: '100%'
     },
     timestamp: {
         fontSize: 14,
