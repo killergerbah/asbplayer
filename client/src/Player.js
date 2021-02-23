@@ -79,7 +79,7 @@ export default function Player(props) {
     const [tab, setTab] = useState();
     const [subtitles, setSubtitles] = useState();
     const [playing, setPlaying] = useState(false);
-    const [windowWidth, _] = useWindowSize(true);
+    const [windowWidth, ] = useWindowSize(true);
     const videoColumns = windowWidth < 1300 ? 8 : 9;
     const playingRef = useRef();
     playingRef.current = playing;
@@ -473,7 +473,7 @@ export default function Player(props) {
                             />
                         </Grid>
                     )}
-                <Grid item xs={videoInWindow ? (12 - videoColumns) : 12} item>
+                <Grid item xs={videoInWindow ? (12 - videoColumns) : 12}>
                     {loaded && !(videoFileUrl && !videoPopOut) && (
                         <Controls
                             mousePositionRef={mousePositionRef}

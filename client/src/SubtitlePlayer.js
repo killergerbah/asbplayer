@@ -21,7 +21,7 @@ const useSubtitlePlayerStyles = makeStyles((theme) => ({
     },
     table: {
         backgroundColor: theme.palette.background.default,
-        marginBottom: 75 // so the last row doesn't collide with controls
+        marginBottom: 75, // so the last row doesn't collide with controls
     },
     subtitleRow: {
         '&:hover': {
@@ -77,7 +77,7 @@ export default function SubtitlePlayer(props) {
     lengthRef.current = props.length;
     const lastScrollTimestampRef = useRef(0);
     const requestAnimationRef = useRef();
-    const tableRef = useRef();
+    const containerRef = useRef();
     const drawerOpenRef = useRef();
     drawerOpenRef.current = props.drawerOpen;
     const classes = useSubtitlePlayerStyles();
@@ -186,13 +186,13 @@ export default function SubtitlePlayer(props) {
             lastScrollTimestampRef.current = Date.now();
         };
 
-        const table = tableRef.current;
+        const table = containerRef.current;
         table?.addEventListener('wheel', handleScroll);
 
         return () => {
             table?.removeEventListener('wheel', handleScroll);
         };
-    }, [tableRef, lastScrollTimestampRef]);
+    }, [containerRef, lastScrollTimestampRef]);
 
     useEffect(() => {
         if (!jumpToSubtitle || !subtitles) {
@@ -261,7 +261,7 @@ export default function SubtitlePlayer(props) {
         subtitleTable = null;
     } else {
         subtitleTable = (
-            <TableContainer className={classes.table} ref={tableRef}>
+            <TableContainer className={classes.table}>
                 <Table>
                     <TableBody>
                         {subtitles.map((s, index) => {
@@ -302,7 +302,7 @@ export default function SubtitlePlayer(props) {
     }
 
     return (
-        <Paper square elevation={0} className={classes.container}>
+        <Paper square elevation={0} ref={containerRef} className={classes.container}>
             {subtitleTable}
         </Paper>
     );
