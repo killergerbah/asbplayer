@@ -15,6 +15,11 @@ const useStyles = makeStyles({
         maxHeight: 'calc(100vh - 64px)',
         position: 'relative',
         overflowX: 'hidden'
+    },
+    videoFrame: {
+        width: '100%',
+        height: '100%',
+        border: 0
     }
 });
 
@@ -68,22 +73,14 @@ function trackLength(audioRef, videoRef, subtitles, useOffset) {
     return Math.max(videoLength, Math.max(subtitlesLength, audioLength));
 }
 
-function resizeVideoFrame(element, drawerOpen, windowWidth) {
-    if (element) {
-        const ratio = drawerOpen ? .5 : .7;
-        element.width = ratio * windowWidth;
-    }
-}
-
 export default function Player(props) {
-    const {api, extension, offsetRef, videoFrameRef: propsVideoFrameRef, drawerOpen, onError, onUnloadVideo} = props;
+    const {api, extension, offsetRef, videoFrameRef, drawerOpen, onError, onUnloadVideo} = props;
     const {subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl} = props.sources;
-    const [windowWidth, ] = useWindowSize(true);
-    const videoFrameRef = useRef();
-    resizeVideoFrame(videoFrameRef.current, drawerOpen, windowWidth);
     const [tab, setTab] = useState();
     const [subtitles, setSubtitles] = useState();
     const [playing, setPlaying] = useState(false);
+    const [windowWidth, _] = useWindowSize(true);
+    const videoColumns = windowWidth < 1300 ? 8 : 9;
     const playingRef = useRef();
     playingRef.current = playing;
     const [, updateState] = useState();
@@ -134,8 +131,6 @@ export default function Player(props) {
         setOffset(0);
         audioRef.current.currentTime = 0;
         audioRef.current.pause();
-        propsVideoFrameRef.current = null;
-        videoFrameRef.current = null;
 
         let subtitlesPromise;
 
@@ -261,18 +256,17 @@ export default function Player(props) {
                 });
             });
         }
-    }, [api, extension, clock, mediaAdapter, seek, onError, onUnloadVideo, subtitleFile, audioFileUrl, videoFileUrl, tab, forceUpdate, propsVideoFrameRef]);
+    }, [api, extension, clock, mediaAdapter, seek, onError, onUnloadVideo, subtitleFile, audioFileUrl, videoFileUrl, tab, forceUpdate, videoFrameRef]);
 
     useEffect(() => {
         if (videoPopOut && channelId && videoFileUrl) {
-            propsVideoFrameRef.current = null;
             window.open(
                 process.env.PUBLIC_URL + '/?video=' + encodeURIComponent(videoFileUrl) + '&channel=' + channelId + '&popout=true',
                 'asbplayer-video-' + videoFileUrl,
                 "resizable,width=800,height=450"
             );
         }
-    }, [videoPopOut, channelId, videoFileUrl, propsVideoFrameRef]);
+    }, [videoPopOut, channelId, videoFileUrl, videoFrameRef]);
 
     function play(clock, mediaAdapter, echo) {
         setPlaying(true);
@@ -457,6 +451,7 @@ export default function Player(props) {
 
     const length = lengthRef.current;
     const loaded = audioFileUrl || videoFileUrl || subtitles;
+    const videoInWindow = loaded && videoFileUrl && channelId && !videoPopOut;
 
     return (
         <div
@@ -466,24 +461,19 @@ export default function Player(props) {
             <Grid
                 container
                 direction="row"
-                style={{flexWrap: 'nowrap'}}
+                wrap="nowrap"
             >
-                <Grid item>
-                    {loaded && videoFileUrl && channelId && !videoPopOut && (
-                        <iframe
-                            ref={(ref) => {
-                                resizeVideoFrame(ref, drawerOpen, windowWidth);
-                                videoFrameRef.current = ref;
-                                propsVideoFrameRef.current = ref;
-                            }}
-                            style={{border: 0}}
-                            height="100%"
-                            src={process.env.PUBLIC_URL + '/?video=' + encodeURIComponent(videoFileUrl) + '&channel=' + channelId + '&popout=false'}
-                            title="asbplayer"
-                        />
+                    {videoInWindow && (
+                        <Grid item xs={videoColumns}>
+                            <iframe
+                                ref={videoFrameRef}
+                                className={classes.videoFrame}
+                                src={process.env.PUBLIC_URL + '/?video=' + encodeURIComponent(videoFileUrl) + '&channel=' + channelId + '&popout=false'}
+                                title="asbplayer"
+                            />
+                        </Grid>
                     )}
-                </Grid>
-                <Grid style={{flexGrow: 1}} item>
+                <Grid item xs={videoInWindow ? (12 - videoColumns) : 12} item>
                     {loaded && !(videoFileUrl && !videoPopOut) && (
                         <Controls
                             mousePositionRef={mousePositionRef}

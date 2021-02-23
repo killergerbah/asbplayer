@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo, useRef, createRef } from 'react';
+import React, { useCallback, useEffect, useState, useMemo, useRef, createRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { keysAreEqual } from './Util';
 import FileCopy from '@material-ui/icons/FileCopy';
@@ -61,7 +61,7 @@ const useSubtitlePlayerStyles = makeStyles((theme) => ({
 }));
 
 export default function SubtitlePlayer(props) {
-    const {clock, onSeek, onCopy, playing, subtitles, length, jumpToSubtitle} = props;
+    const {clock, onSeek, onCopy, playing, subtitles, length, jumpToSubtitle, compressed} = props;
     const clockRef = useRef();
     clockRef.current = clock;
     const subtitleListRef = useRef();
@@ -238,12 +238,23 @@ export default function SubtitlePlayer(props) {
     if (!subtitles) {
         subtitleTable = (
             <div className={classes.noSubtitles}>
-                <Typography>
-                    Drag and drop srt, ass, mp3, or mkv files.
-                </Typography>
-                <Typography>
-                    Install the <Link color="secondary" target="_blank" rel="noreferrer" href="https://github.com/killergerbah/asbplayer/releases/tag/v0.2.0">extension</Link> to sync subtitles with videos in other tabs.
-                </Typography>
+                {!compressed && (
+                    <React.Fragment>
+                        <Typography>
+                            Drag and drop srt, ass, mp3, or mkv files.
+                        </Typography>
+                        <Typography>
+                            Install the <Link color="secondary" target="_blank" rel="noreferrer" href="https://github.com/killergerbah/asbplayer/releases/tag/v0.2.0">extension</Link> to sync subtitles with videos in other tabs.
+                        </Typography>
+                    </React.Fragment>
+                )}
+                {compressed && (
+                    <React.Fragment>
+                        <Typography>
+                            No subtitles loaded.
+                        </Typography>
+                    </React.Fragment>
+                )}
             </div>
         );
     } else if (subtitles.length === 0) {
@@ -256,7 +267,7 @@ export default function SubtitlePlayer(props) {
                         {subtitles.map((s, index) => {
                             const selected = index in selectedSubtitleIndexes;
 
-                            let className = props.compressed ? classes.compressedSubtitle : classes.subtitle;
+                            let className = compressed ? classes.compressedSubtitle : classes.subtitle;
 
                             if (s.start < 0 && s.end < 0) {
                                 return null;
@@ -275,7 +286,7 @@ export default function SubtitlePlayer(props) {
                                     </TableCell>
                                     <TableCell className={classes.copyButton}>
                                         <IconButton onClick={(e) => handleCopy(e, index)}>
-                                            <FileCopy />
+                                            <FileCopy fontSize={compressed ? "small" : "default"} />
                                         </IconButton>
                                     </TableCell>
                                     <TableCell className={classes.timestamp}>

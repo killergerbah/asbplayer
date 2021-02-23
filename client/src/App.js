@@ -48,7 +48,7 @@ function App() {
     const videoFrameRef = useRef();
     const [width, ] = useWindowSize(location.pathname !== '/video');
     const drawerRatio = videoFrameRef.current ? .2 : .3;
-    const minDrawerSize = videoFrameRef.current ? 300 : 400;
+    const minDrawerSize = videoFrameRef.current ? 150 : 300;
     const drawerWidth = Math.max(minDrawerSize, width * drawerRatio);
     const [copiedSubtitles, setCopiedSubtitles] = useState([]);
     const [copyHistoryOpen, setCopyHistoryOpen] = useState(false);
@@ -327,7 +327,6 @@ function App() {
                                     onUnloadAudio={handleUnloadAudio}
                                     onUnloadVideo={handleUnloadVideo}
                                     offsetRef={offsetRef}
-                                    videoFrameRef={videoFrameRef}
                                     sources={sources}
                                     jumpToSubtitle={jumpToSubtitle}
                                     videoFrameRef={videoFrameRef}
