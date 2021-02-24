@@ -386,7 +386,7 @@ export default function VideoPlayer(props) {
         } else {
             playerChannel.play();
         }
-    }, [playing]);
+    }, [playerChannel, playing]);
 
     return (
         <div
