@@ -293,7 +293,57 @@ export default function VideoPlayer(props) {
         }, 10)
 
         return () => clearTimeout(interval);
-    }, [subtitles])
+    }, [subtitles]);
+
+    useEffect(() => {
+        function handleKey(event) {
+            if (!videoRef.current || !subtitles || subtitles.length === 0) {
+                return;
+            }
+
+            let forward;
+
+            if (event.keyCode === 37) {
+                forward = false;
+            } else if (event.keyCode === 39) {
+                forward = true;
+            } else {
+                return;
+            }
+
+            const now = 1000 * videoRef.current.currentTime;
+            let newSubtitleIndex = -1;
+
+            if (forward) {
+                for (let i = 0; i < subtitles.length; ++i) {
+                    if (now < subtitles[i].start) {
+                        newSubtitleIndex = i;
+                        break;
+                    }
+                }
+            } else {
+                for (let i = subtitles.length - 1; i >= 0; --i) {
+                    const s = subtitles[i];
+
+                    if (now > s.start) {
+                        newSubtitleIndex = now < s.end ? Math.max(0, i - 1) : i;
+                        break;
+                    }
+                }
+            }
+
+            if (newSubtitleIndex !== -1) {
+                event.preventDefault();
+                playerChannel.currentTime = subtitles[newSubtitleIndex].start / 1000;
+            }
+        };
+
+        window.addEventListener('keydown', handleKey);
+
+        return () => {
+            window.removeEventListener('keydown', handleKey);
+        };
+    }, [playerChannel, clock, subtitles, length]);
 
     const handleSubtitlesToggle = useCallback(() => {
         setSubtitlesEnabled(subtitlesEnabled => !subtitlesEnabled);
@@ -330,11 +380,23 @@ export default function VideoPlayer(props) {
         window.close();
     }, [playerChannel]);
 
+    const handleClick = useCallback(() => {
+        if (playing) {
+            playerChannel.pause();
+        } else {
+            playerChannel.play();
+        }
+    }, [playing]);
+
     return (
-        <div ref={containerRef} onMouseMove={handleMouseMove} className={classes.root}>
+        <div
+            ref={containerRef}
+            onMouseMove={handleMouseMove}
+            className={classes.root}>
             <video
                 preload="auto"
                 nocontrols={1}
+                onClick={handleClick}
                 className={classes.video}
                 ref={videoRefCallback}
                 src={videoFile} />
