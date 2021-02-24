@@ -251,7 +251,7 @@ export default function SubtitlePlayer(props) {
                             Drag and drop srt, ass, mp3, or mkv files.
                         </Typography>
                         <Typography variant="h6">
-                            Install the <Link color="secondary" target="_blank" rel="noreferrer" href="https://github.com/killergerbah/asbplayer/releases/tag/v0.2.0">extension</Link> to sync subtitles with videos in other tabs.
+                            Install the <Link color="secondary" target="_blank" rel="noreferrer" href="https://github.com/killergerbah/asbplayer/releases/tag/v0.2.1">extension</Link> to sync subtitles with videos in other tabs.
                         </Typography>
                     </React.Fragment>
                 )}
