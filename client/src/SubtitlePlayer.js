@@ -11,6 +11,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
+import background from './background.png';
 
 const useSubtitlePlayerStyles = makeStyles((theme) => ({
     container: {
@@ -56,7 +57,13 @@ const useSubtitlePlayerStyles = makeStyles((theme) => ({
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
+        backgroundImage: "url(" + background + ")",
+        backgroundSize: "500px 500px",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center",
+        padding: 15,
+        textAlign: "center"
     }
 }));
 
@@ -240,10 +247,10 @@ export default function SubtitlePlayer(props) {
             <div className={classes.noSubtitles}>
                 {!compressed && (
                     <React.Fragment>
-                        <Typography>
+                        <Typography variant="h6">
                             Drag and drop srt, ass, mp3, or mkv files.
                         </Typography>
-                        <Typography>
+                        <Typography variant="h6">
                             Install the <Link color="secondary" target="_blank" rel="noreferrer" href="https://github.com/killergerbah/asbplayer/releases/tag/v0.2.0">extension</Link> to sync subtitles with videos in other tabs.
                         </Typography>
                     </React.Fragment>
