@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef, createRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { keysAreEqual } from './Util';
+import { detectCopy } from './KeyEvents';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
 import Link from '@material-ui/core/Link';
@@ -239,6 +240,29 @@ export default function SubtitlePlayer(props) {
         navigator.clipboard.writeText(text);
         onCopy(subtitle);
     }, [subtitles, onCopy]);
+
+    useEffect(() => {
+        function copySubtitle(event) {
+            const subtitleIndexes = Object.keys(selectedSubtitleIndexesRef.current);
+
+            if (subtitleIndexes.length === 0) {
+                return;
+            }
+
+            if (!detectCopy(event)) {
+                return;
+            }
+
+            const index = Math.min(...subtitleIndexes);
+            handleCopy(event, index);
+        }
+
+        window.addEventListener('keydown', copySubtitle);
+
+        return () => {
+            window.removeEventListener('keydown', copySubtitle);
+        };
+    }, [handleCopy]);
 
     let subtitleTable;
 

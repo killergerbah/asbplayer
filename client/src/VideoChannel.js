@@ -6,6 +6,7 @@ export default class VideoChannel {
         this.duration = 0;
         this.isReady = false;
         this.readyState = 0;
+        this.selectedAudioTrack = null;
         this.readyCallbacks = [];
         this.playCallbacks = [];
         this.pauseCallbacks = [];
@@ -14,6 +15,7 @@ export default class VideoChannel {
         this.exitCallbacks = [];
         this.offsetCallbacks = [];
         this.popOutToggleCallbacks = [];
+        this.copyCallbacks = [];
 
         const that = this;
 
@@ -49,6 +51,7 @@ export default class VideoChannel {
                     break;
                 case 'audioTrackSelected':
                     for (let callback of that.audioTrackSelectedCallbacks) {
+                        that.selectedAudioTrack = event.data.id;
                         callback(event.data.id);
                     }
                     break;
@@ -70,6 +73,11 @@ export default class VideoChannel {
                 case 'popOutToggle':
                     for (let callback of that.popOutToggleCallbacks) {
                         callback();
+                    }
+                    break;
+                case 'copy':
+                    for (let callback of that.copyCallbacks) {
+                        callback(event.data.subtitle);
                     }
                     break;
                 default:
@@ -121,6 +129,10 @@ export default class VideoChannel {
 
     onPopOutToggle(callback) {
         this.popOutToggleCallbacks.push(callback);
+    }
+
+    onCopy(callback) {
+        this.copyCallbacks.push(callback);
     }
 
     ready(duration) {

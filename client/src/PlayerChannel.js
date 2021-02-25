@@ -132,6 +132,10 @@ export default class PlayerChannel {
         this.channel.postMessage({command: 'popOutToggle'});
     }
 
+    copy(subtitle) {
+        this.channel.postMessage({command: 'copy', subtitle: subtitle});
+    }
+
     close() {
         if (this.channel) {
             this.channel.postMessage({command: 'exit'});

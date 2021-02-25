@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { arrayEquals, useWindowSize } from './Util';
+import { detectCopy } from './KeyEvents';
+import Alert from './Alert';
 import Clock from './Clock';
 import Controls from './Controls';
 import PlayerChannel from './PlayerChannel';
@@ -134,6 +136,9 @@ export default function VideoPlayer(props) {
     const clock = useMemo(() => new Clock(), []);
     const mousePositionRef = useRef({x:0, y:0});
     const containerRef = useRef();
+    const [alert, setAlert] = useState();
+    const [alertOpen, setAlertOpen] = useState(false);
+
     const videoRefCallback = useCallback(element => {
         if (element) {
             videoRef.current = element;
@@ -296,7 +301,7 @@ export default function VideoPlayer(props) {
     }, [subtitles]);
 
     useEffect(() => {
-        function handleKey(event) {
+        function seekToSubtitle(event) {
             if (!videoRef.current || !subtitles || subtitles.length === 0) {
                 return;
             }
@@ -338,12 +343,40 @@ export default function VideoPlayer(props) {
             }
         };
 
-        window.addEventListener('keydown', handleKey);
+        window.addEventListener('keydown', seekToSubtitle);
 
         return () => {
-            window.removeEventListener('keydown', handleKey);
+            window.removeEventListener('keydown', seekToSubtitle);
         };
     }, [playerChannel, clock, subtitles, length]);
+
+    useEffect(() => {
+        function copySubtitle(event) {
+            if (!showSubtitlesRef.current || showSubtitlesRef.current.length === 0) {
+                return;
+            }
+
+            if (!detectCopy(event)) {
+                return;
+            }
+
+            event.stopPropagation();
+            event.preventDefault();
+            const subtitle = showSubtitlesRef.current[0];
+            playerChannel.copy(subtitle);
+
+            if (fullscreen) {
+                setAlert("Copied " + subtitle.text);
+                setAlertOpen(true);
+            }
+        }
+
+        window.addEventListener('keydown', copySubtitle);
+
+        return () => {
+            window.removeEventListener('keydown', copySubtitle);
+        };
+    }, [playerChannel, fullscreen]);
 
     const handleSubtitlesToggle = useCallback(() => {
         setSubtitlesEnabled(subtitlesEnabled => !subtitlesEnabled);
@@ -388,6 +421,10 @@ export default function VideoPlayer(props) {
         }
     }, [playerChannel, playing]);
 
+    const handleAlertClosed = useCallback(() => {
+        setAlertOpen(false);
+    }, [])
+
     return (
         <div
             ref={containerRef}
@@ -404,6 +441,16 @@ export default function VideoPlayer(props) {
                 <div className={classes.subtitle}>
                     {showSubtitles.map(s => (<React.Fragment key={s.index}>{s.text}<br/></React.Fragment>))}
                 </div>
+            )}
+            {fullscreen && (
+                <Alert
+                    open={alertOpen}
+                    onClose={handleAlertClosed}
+                    autoHideDuration={3000}
+                    severity="success"
+                >
+                    {alert}
+                </Alert>
             )}
             <Controls
                 mousePositionRef={mousePositionRef}

@@ -74,7 +74,7 @@ function trackLength(audioRef, videoRef, subtitles, useOffset) {
 }
 
 export default function Player(props) {
-    const {api, extension, offsetRef, videoFrameRef, drawerOpen, onError, onUnloadVideo} = props;
+    const {api, extension, offsetRef, videoFrameRef, drawerOpen, onError, onUnloadVideo, onCopy} = props;
     const {subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl} = props.sources;
     const [tab, setTab] = useState();
     const [subtitles, setSubtitles] = useState();
@@ -251,12 +251,22 @@ export default function Player(props) {
                             setVideoPopOut(popOut => !popOut);
                         });
 
+                        channel.onCopy((subtitle) => {
+                            onCopy(
+                                subtitle,
+                                audioFile,
+                                videoFile,
+                                subtitleFile,
+                                channel.selectedAudioTrack
+                            );
+                        })
+
                         subscribed = true;
                     }
                 });
             });
         }
-    }, [api, extension, clock, mediaAdapter, seek, onError, onUnloadVideo, subtitleFile, audioFileUrl, videoFileUrl, tab, forceUpdate, videoFrameRef]);
+    }, [api, extension, clock, mediaAdapter, seek, onError, onUnloadVideo, onCopy, subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef]);
 
     useEffect(() => {
         if (videoPopOut && channelId && videoFileUrl) {
@@ -324,14 +334,14 @@ export default function Player(props) {
     }, [clock, seek, mediaAdapter]);
 
     const handleCopy = useCallback((subtitle) => {
-        props.onCopy(
+        onCopy(
             subtitle,
             audioFile,
             videoFile,
             subtitleFile,
             selectedAudioTrack
         );
-    }, [props, audioFile, videoFile, subtitleFile, selectedAudioTrack]);
+    }, [onCopy, audioFile, videoFile, subtitleFile, selectedAudioTrack]);
 
     function handleMouseMove(e) {
         mousePositionRef.current.x = e.screenX;
