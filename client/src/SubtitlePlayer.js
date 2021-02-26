@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState, useMemo, useRef, createRef } f
 import { makeStyles } from '@material-ui/core/styles';
 import { keysAreEqual } from './Util';
 import { detectCopy } from './KeyEvents';
+import { useWindowSize } from './Util';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
 import Link from '@material-ui/core/Link';
@@ -14,12 +15,13 @@ import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
 import background from './background.png';
 
-const useSubtitlePlayerStyles = makeStyles((theme) => ({
+const useSubtitlePlayerStyles = (compressed, windowWidth) => makeStyles((theme) => ({
     container: {
         height: 'calc(100vh - 64px)',
         position: 'relative',
         overflowX: 'hidden',
         backgroundColor: theme.palette.background.default,
+        width: compressed ? Math.max(350, .25 * windowWidth) : '100%'
     },
     table: {
         backgroundColor: theme.palette.background.default,
@@ -90,7 +92,8 @@ export default function SubtitlePlayer(props) {
     const containerRef = useRef();
     const drawerOpenRef = useRef();
     drawerOpenRef.current = props.drawerOpen;
-    const classes = useSubtitlePlayerStyles();
+    const [windowWidth, ] = useWindowSize(true);
+    const classes = useSubtitlePlayerStyles(compressed, windowWidth)();
 
     // This effect should be scheduled only once as re-scheduling seems to cause performance issues.
     // Therefore all of the state it operates on is contained in refs.
@@ -335,7 +338,12 @@ export default function SubtitlePlayer(props) {
     }
 
     return (
-        <Paper square elevation={0} ref={containerRef} className={classes.container}>
+        <Paper
+            square
+            elevation={0}
+            ref={containerRef}
+            className={classes.container}
+        >
             {subtitleTable}
         </Paper>
     );

@@ -79,8 +79,6 @@ export default function Player(props) {
     const [tab, setTab] = useState();
     const [subtitles, setSubtitles] = useState();
     const [playing, setPlaying] = useState(false);
-    const [windowWidth, ] = useWindowSize(true);
-    const videoColumns = windowWidth < 1300 ? 8 : 9;
     const playingRef = useRef();
     playingRef.current = playing;
     const [, updateState] = useState();
@@ -474,7 +472,7 @@ export default function Player(props) {
                 wrap="nowrap"
             >
                     {videoInWindow && (
-                        <Grid item xs={videoColumns}>
+                        <Grid item style={{flexGrow: 1, minWidth: 600}}>
                             <iframe
                                 ref={videoFrameRef}
                                 className={classes.videoFrame}
@@ -483,7 +481,7 @@ export default function Player(props) {
                             />
                         </Grid>
                     )}
-                <Grid item xs={videoInWindow ? (12 - videoColumns) : 12}>
+                <Grid item style={{flexGrow: videoInWindow ? 0 : 1}}>
                     {loaded && !(videoFileUrl && !videoPopOut) && (
                         <Controls
                             mousePositionRef={mousePositionRef}
