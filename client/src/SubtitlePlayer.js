@@ -34,13 +34,15 @@ const useSubtitlePlayerStyles = makeStyles((theme) => ({
         fontSize: 20,
         paddingRight: 0,
         minWidth: 200,
-        width: '100%'
+        width: '100%',
+        overflowWrap: 'anywhere'
     },
     compressedSubtitle: {
         fontSize: 16,
         paddingRight: 0,
         minWidth: 200,
-        width: '100%'
+        width: '100%',
+        overflowWrap: 'anywhere'
     },
     timestamp: {
         fontSize: 14,
