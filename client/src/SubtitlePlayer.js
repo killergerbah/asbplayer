@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { keysAreEqual } from './Util';
 import { detectCopy } from './KeyEvents';
 import { useWindowSize } from './Util';
+import Fade from '@material-ui/core/Fade';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
 import Link from '@material-ui/core/Link';
@@ -73,7 +74,7 @@ const useSubtitlePlayerStyles = (compressed, windowWidth) => makeStyles((theme) 
 }));
 
 export default function SubtitlePlayer(props) {
-    const {clock, onSeek, onCopy, playing, subtitles, length, jumpToSubtitle, compressed} = props;
+    const {clock, onSeek, onCopy, playing, subtitles, length, jumpToSubtitle, compressed, loading} = props;
     const clockRef = useRef();
     clockRef.current = clock;
     const subtitleListRef = useRef();
@@ -271,26 +272,24 @@ export default function SubtitlePlayer(props) {
 
     let subtitleTable;
 
-    if (!subtitles) {
+    if (!subtitles && compressed && loading) {
+        subtitleTable = null;
+    } else if (!subtitles) {
         subtitleTable = (
             <div className={classes.noSubtitles}>
-                {!compressed && (
-                    <React.Fragment>
-                        <Typography variant="h6">
-                            Drag and drop srt, ass, mp3, or mkv files.
-                        </Typography>
-                        <Typography variant="h6">
-                            Install the <Link color="secondary" target="_blank" rel="noreferrer" href="https://github.com/killergerbah/asbplayer/releases/tag/v0.2.1">extension</Link> to sync subtitles with videos in other tabs.
-                        </Typography>
-                    </React.Fragment>
-                )}
-                {compressed && (
-                    <React.Fragment>
+                    {!compressed && (
+                        <Fade in={!loading} timeout={500}>
+                            <Typography>
+                                Drag and drop srt, ass, mp3, or mkv files. <br />
+                                Install the <Link color="secondary" target="_blank" rel="noreferrer" href="https://github.com/killergerbah/asbplayer/releases/tag/v0.2.1">extension</Link> to sync subtitles with videos in other tabs.
+                            </Typography>
+                        </Fade>
+                    )}
+                    {compressed && !loading && (
                         <Typography>
-                            No subtitles loaded.
+                            No subtitles loaded. Drag and drop to load.
                         </Typography>
-                    </React.Fragment>
-                )}
+                    )}
             </div>
         );
     } else if (subtitles.length === 0) {

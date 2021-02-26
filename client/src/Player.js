@@ -76,6 +76,7 @@ function trackLength(audioRef, videoRef, subtitles, useOffset) {
 export default function Player(props) {
     const {api, extension, offsetRef, videoFrameRef, drawerOpen, onError, onUnloadVideo, onCopy} = props;
     const {subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl} = props.sources;
+    const [loadingSubtitles, setLoadingSubtitles] = useState(false);
     const [tab, setTab] = useState();
     const [subtitles, setSubtitles] = useState();
     const [playing, setPlaying] = useState(false);
@@ -133,6 +134,8 @@ export default function Player(props) {
         let subtitlesPromise;
 
         if (subtitleFile) {
+            setLoadingSubtitles(true);
+
             subtitlesPromise = api.subtitles(subtitleFile)
                 .then(nodes => {
                     const length = nodes.length > 0 ? nodes[nodes.length - 1].end : 0;
@@ -150,7 +153,8 @@ export default function Player(props) {
                     setSubtitles(subtitles);
                     return subtitles;
                 })
-                .catch(e => onError(e));
+                .catch(e => onError(e))
+                .finally(() => setLoadingSubtitles(false))
         } else {
             subtitlesPromise = new Promise((resolve, reject) => resolve());
         }
@@ -517,6 +521,7 @@ export default function Player(props) {
                         jumpToSubtitle={props.jumpToSubtitle}
                         drawerOpen={drawerOpen}
                         compressed={videoFileUrl && !videoPopOut}
+                        loading={loadingSubtitles}
                         onSeek={handleSeekToSubtitle}
                         onCopy={handleCopy}
                     />
