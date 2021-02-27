@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState, useMemo, useRef, createRef } f
 import { makeStyles } from '@material-ui/core/styles';
 import { keysAreEqual } from './Util';
 import { detectCopy } from './KeyEvents';
-import { useWindowSize } from './Util';
+import { useWindowSize } from '../hooks/useWindowSize';
 import Fade from '@material-ui/core/Fade';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
@@ -167,13 +167,14 @@ export default function SubtitlePlayer(props) {
             }
 
             let newSubtitleIndex;
-            const selected = Object.keys(selectedSubtitleIndexes);
 
             if (event.keyCode === 37) {
+                const selected = Object.keys(selectedSubtitleIndexes);
                 newSubtitleIndex = selected.length > 0
                     ? Math.max(0, Math.min(...selected) - 1)
                     : -1;
             } else if (event.keyCode === 39) {
+                const selected = Object.keys(selectedSubtitleIndexes);
                 newSubtitleIndex = selected.length > 0
                     ? Math.min(subtitles.length - 1, Math.max(...selected) + 1)
                     : -1;

@@ -8,7 +8,6 @@ import Grid from '@material-ui/core/Grid';
 import MediaAdapter from './MediaAdapter';
 import SubtitlePlayer from './SubtitlePlayer';
 import VideoChannel from './VideoChannel';
-import { useWindowSize } from './Util';
 
 const useStyles = makeStyles({
     root: {
@@ -74,7 +73,7 @@ function trackLength(audioRef, videoRef, subtitles, useOffset) {
 }
 
 export default function Player(props) {
-    const {api, extension, offsetRef, videoFrameRef, drawerOpen, onError, onUnloadVideo, onCopy} = props;
+    const {subtitleReader, extension, offsetRef, videoFrameRef, drawerOpen, onError, onUnloadVideo, onCopy} = props;
     const {subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl} = props.sources;
     const [loadingSubtitles, setLoadingSubtitles] = useState(false);
     const [tab, setTab] = useState();
@@ -136,7 +135,7 @@ export default function Player(props) {
         if (subtitleFile) {
             setLoadingSubtitles(true);
 
-            subtitlesPromise = api.subtitles(subtitleFile)
+            subtitlesPromise = subtitleReader.subtitles(subtitleFile)
                 .then(nodes => {
                     const length = nodes.length > 0 ? nodes[nodes.length - 1].end : 0;
 
@@ -268,7 +267,7 @@ export default function Player(props) {
                 });
             });
         }
-    }, [api, extension, clock, mediaAdapter, seek, onError, onUnloadVideo, onCopy, subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef]);
+    }, [subtitleReader, extension, clock, mediaAdapter, seek, onError, onUnloadVideo, onCopy, subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef]);
 
     useEffect(() => {
         if (videoPopOut && channelId && videoFileUrl) {

@@ -1,14 +1,19 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react';
 import { Route, Redirect, Switch, useLocation } from "react-router-dom";
 import { makeStyles } from '@material-ui/core/styles';
-import { useWindowSize } from './Util';
+import { useWindowSize } from '../hooks/useWindowSize';
 import clsx from 'clsx';
 import Alert from './Alert.js';
-import Api from './Api.js';
+import Anki from '../services/Anki.js';
+import AnkiDialog from './AnkiDialog.js'
+import SubtitleReader from '../services/SubtitleReader.js';
+import MediaClipper from '../services/MediaClipper.js';
 import Bar from './Bar.js';
 import ChromeExtension from './ChromeExtension.js';
 import CopyHistory from './CopyHistory.js';
 import Player from './Player.js';
+import SettingsDialog from './SettingsDialog.js';
+import SettingsProvider from '../services/SettingsProvider.js';
 import VideoPlayer from './VideoPlayer.js';
 
 const useStyles = drawerWidth => makeStyles((theme) => ({
@@ -42,7 +47,10 @@ function Content(props) {
 }
 
 function App() {
-    const api = useMemo(() => new Api(), []);
+    const subtitleReader = useMemo(() => new SubtitleReader(), []);
+    const mediaClipper = useMemo(() => new MediaClipper(), []);
+    const settingsProvider = useMemo(() => new SettingsProvider(), []);
+    const anki = useMemo(() => new Anki(settingsProvider), [settingsProvider]);
     const extension = useMemo(() => new ChromeExtension(), []);
     const location = useLocation();
     const videoFrameRef = useRef();
@@ -58,6 +66,10 @@ function App() {
     const [jumpToSubtitle, setJumpToSubtitle] = useState();
     const [sources, setSources] = useState({});
     const [fileName, setFileName] = useState();
+    const [ankiDialogOpen, setAnkiDialogOpen] = useState(false);
+    const [ankiDialogDisabled, setAnkiDialogDisabled] = useState(false);
+    const [ankiDialogItem, setAnkiDialogItem] = useState();
+    const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
     const offsetRef = useRef();
     const { subtitleFile } = sources;
 
@@ -76,13 +88,28 @@ function App() {
         setAlertOpen(true);
     }, [fileName]);
 
-    const handleOpenCopyHistory = useCallback((event) => {
-        setCopyHistoryOpen(!copyHistoryOpen);
-    }, [copyHistoryOpen]);
+    const handleOpenCopyHistory = useCallback(() => {
+        setCopyHistoryOpen(copyHistoryOpen => !copyHistoryOpen);
+    }, []);
 
     const handleCloseCopyHistory = useCallback(() => {
         setCopyHistoryOpen(false);
-    }, [setCopyHistoryOpen]);
+    }, []);
+
+    const handleOpenSettings = useCallback(() => {
+        setSettingsDialogOpen(true);
+    }, []);
+
+    const handleCloseSettings = useCallback((newSettings) => {
+        settingsProvider.ankiConnectUrl = newSettings.ankiConnectUrl;
+        settingsProvider.deck = newSettings.deck;
+        settingsProvider.noteType = newSettings.noteType;
+        settingsProvider.modelNames = newSettings.modelNames;
+        settingsProvider.sentenceField = newSettings.sentenceField;
+        settingsProvider.definitionField = newSettings.definitionField;
+        settingsProvider.audioField = newSettings.audioField;
+        setSettingsDialogOpen(false);
+    }, [settingsProvider]);
 
     const handleDeleteCopyHistoryItem = useCallback(item => {
         const newCopiedSubtitles = [];
@@ -142,29 +169,19 @@ function App() {
         });
     }, [sources]);
 
-    const handleClipAudio = useCallback(item => {
+    const handleClipAudio = useCallback(async (item) => {
         const offset = offsetRef.current || 0;
-        if (item.audioFile) {
-            api.clipAudioFromAudioFile(
-                item.audioFile,
+        try {
+            await mediaClipper.clipAndSaveAudio(
+                item.audioFile || item.videoFile,
                 item.originalStart + offset,
                 item.originalEnd + offset
-            )
-            .catch(e => {
-                handleError(e.message);
-            });
-        } else if (item.videoFile) {
-            api.clipAudioFromVideoFile(
-                item.videoFile,
-                item.originalStart + offset,
-                item.originalEnd + offset,
-                item.audioTrack
-            )
-            .catch(e => {
-                handleError(e.message);
-            });
+            );
+        } catch(e) {
+            console.error(e);
+            handleError(e.message);
         }
-    }, [api, handleError]);
+    }, [mediaClipper, handleError]);
 
     const handleSelectCopyHistoryItem = useCallback((item) => {
         if (subtitleFile.name !== item.subtitleFile.name) {
@@ -174,6 +191,41 @@ function App() {
 
         setJumpToSubtitle({text: item.text, originalStart: item.originalStart});
     }, [subtitleFile, handleError]);
+
+    const handleAnki = useCallback(async (item) => {
+        setAnkiDialogItem(item);
+        setAnkiDialogOpen(true);
+        setAnkiDialogDisabled(false);
+    }, []);
+
+    const handleAnkiDialogCancel = useCallback(() => {
+        setAnkiDialogItem(null);
+        setAnkiDialogOpen(false);
+        setAnkiDialogDisabled(false);
+    }, []);
+
+    const handleAnkiDialogProceed = useCallback(async (definition) => {
+        setAnkiDialogDisabled(true);
+        const item = ankiDialogItem;
+        const offset = offsetRef.current || 0;
+
+        try {
+            const mediaFile = item.audioFile || item.videoFile;
+            const [blob, extension] = await mediaClipper.clipAudio(
+                mediaFile,
+                item.originalStart + offset,
+                item.originalEnd + offset
+            );
+            await anki.export(settingsProvider.ankiConnectUrl, item.text, definition, blob, mediaFile.name, extension);
+        } catch (e) {
+            console.error(e);
+            handleError(e.message);
+        } finally {
+            setAnkiDialogItem(null);
+            setAnkiDialogOpen(false);
+            setAnkiDialogDisabled(false);
+        }
+    }, [anki, settingsProvider, mediaClipper, handleError, ankiDialogItem]);
 
     function revokeUrls(sources) {
         if (sources.audioFileUrl) {
@@ -274,6 +326,7 @@ function App() {
                 setFileName(subtitleFile.name);
             }
         } catch (e) {
+            console.error(e);
             handleError(e.message);
         }
     }, [handleError]);
@@ -312,16 +365,31 @@ function App() {
                                 onDelete={handleDeleteCopyHistoryItem}
                                 onClipAudio={handleClipAudio}
                                 onSelect={handleSelectCopyHistoryItem}
+                                onAnki={handleAnki}
+                            />
+                            <AnkiDialog
+                                open={ankiDialogOpen}
+                                disabled={ankiDialogDisabled}
+                                text={ankiDialogItem?.text}
+                                onCancel={handleAnkiDialogCancel}
+                                onProceed={handleAnkiDialogProceed}
+                            />
+                            <SettingsDialog
+                                anki={anki}
+                                open={settingsDialogOpen}
+                                onClose={handleCloseSettings}
+                                settings={settingsProvider.settings}
                             />
                             <Bar
                                 title={fileName || "a subtitle player"}
                                 drawerWidth={drawerWidth}
                                 drawerOpen={copyHistoryOpen}
                                 onOpenCopyHistory={handleOpenCopyHistory}
+                                onOpenSettings={handleOpenSettings}
                             />
                             <Content drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen}>
                                 <Player
-                                    api={api}
+                                    subtitleReader={subtitleReader}
                                     onCopy={handleCopy}
                                     onError={handleError}
                                     onUnloadAudio={handleUnloadAudio}
@@ -345,7 +413,6 @@ function App() {
 
                     return (
                         <VideoPlayer
-                            api={api}
                             videoFile={videoFile}
                             popOut={popOut}
                             channel={channel}

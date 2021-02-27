@@ -12,6 +12,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
 import Popover from '@material-ui/core/Popover';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import StarIcon from '@material-ui/icons/Star';
 
 const useStyles = (drawerWidth) => makeStyles((theme) => ({
     drawer: {
@@ -152,6 +153,11 @@ export default function CopyHistory(props) {
                     className={classes.listItem}
                     classes={{gutters: classes.listItemGutters}}
                 >
+                    <ListItemIcon classes={{root: classes.listItemIconRoot}}>
+                        <IconButton onClick={() => props.onAnki(item)}>
+                            <StarIcon fontSize="small" />
+                        </IconButton>
+                    </ListItemIcon>
                     <ListItemIcon classes={{root: classes.listItemIconRoot}}>
                         <IconButton onClick={(e) => handleMenu(e, item)}>
                             <MoreVertIcon fontSize="small" />

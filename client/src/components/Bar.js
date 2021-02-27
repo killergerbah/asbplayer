@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import AppBar from '@material-ui/core/AppBar';
 import IconButton from '@material-ui/core/IconButton';
 import ListIcon from '@material-ui/icons/List';
+import SettingsIcon from '@material-ui/icons/Settings';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 
@@ -42,6 +43,12 @@ export default function Bar(props) {
                 <Typography variant="h6" className={classes.title}>
                     {props.title}
                 </Typography>
+                <IconButton
+                    edge="end"
+                    onClick={props.onOpenSettings}
+                >
+                    <SettingsIcon/>
+                </IconButton>
                 <IconButton
                     edge="end"
                     color="inherit"

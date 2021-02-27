@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { arrayEquals, useWindowSize } from './Util';
+import { useWindowSize } from '../hooks/useWindowSize';
+import { arrayEquals } from './Util'
 import { detectCopy } from './KeyEvents';
 import Alert from './Alert';
 import Clock from './Clock';
@@ -316,23 +317,39 @@ export default function VideoPlayer(props) {
                 return;
             }
 
-            const now = 1000 * videoRef.current.currentTime;
+            const now = Math.round(1000 * videoRef.current.currentTime);
             let newSubtitleIndex = -1;
 
             if (forward) {
+                let minDiff = Number.MAX_SAFE_INTEGER;
+
                 for (let i = 0; i < subtitles.length; ++i) {
-                    if (now < subtitles[i].start) {
+                    const s = subtitles[i];
+                    const diff = s.start - now;
+
+                    if (minDiff <= diff) {
+                        continue;
+                    }
+
+                    if (now < s.start) {
+                        minDiff = diff;
                         newSubtitleIndex = i;
-                        break;
                     }
                 }
             } else {
-                for (let i = subtitles.length - 1; i >= 0; --i) {
+                let minDiff = Number.MAX_SAFE_INTEGER;
+
+                for (let i = 0; i < subtitles.length; ++i) {
                     const s = subtitles[i];
+                    const diff = now - s.start;
+
+                    if (minDiff <= diff) {
+                        continue;
+                    }
 
                     if (now > s.start) {
+                        minDiff = diff;
                         newSubtitleIndex = now < s.end ? Math.max(0, i - 1) : i;
-                        break;
                     }
                 }
             }
