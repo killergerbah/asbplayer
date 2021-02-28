@@ -11,6 +11,7 @@ import MediaClipper from '../services/MediaClipper.js';
 import Bar from './Bar.js';
 import ChromeExtension from './ChromeExtension.js';
 import CopyHistory from './CopyHistory.js';
+import LandingPage from './LandingPage.js';
 import Player from './Player.js';
 import SettingsDialog from './SettingsDialog.js';
 import SettingsProvider from '../services/SettingsProvider.js';
@@ -112,6 +113,7 @@ function App() {
     const [alertSeverity, setAlertSeverity] = useState();
     const [jumpToSubtitle, setJumpToSubtitle] = useState();
     const [sources, setSources] = useState({});
+    const [loading, setLoading] = useState(false);
     const [fileName, setFileName] = useState();
     const [ankiDialogOpen, setAnkiDialogOpen] = useState(false);
     const [ankiDialogDisabled, setAnkiDialogDisabled] = useState(false);
@@ -283,6 +285,10 @@ function App() {
             let {subtitleFile, audioFile, videoFile} = extractSources(e.dataTransfer.files);
 
             setSources(previous => {
+                if (!previous.subtitleFile) {
+                    setLoading(true);
+                }
+
                 let videoFileUrl = null;
                 let audioFileUrl = null;
 
@@ -320,6 +326,10 @@ function App() {
             handleError(e.message);
         }
     }, [handleError]);
+
+    const handleSourcesLoaded = useCallback(() => setLoading(false), []);
+
+    const nothingLoaded = loading || (!sources.subtitleFile && !sources.audioFile && !sources.videoFile);
 
     return (
         <div
@@ -378,12 +388,16 @@ function App() {
                                 onOpenSettings={handleOpenSettings}
                             />
                             <Content drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen}>
+                                {nothingLoaded && (
+                                    <LandingPage loading={loading} />
+                                )}
                                 <Player
                                     subtitleReader={subtitleReader}
                                     onCopy={handleCopy}
                                     onError={handleError}
                                     onUnloadAudio={handleUnloadAudio}
                                     onUnloadVideo={handleUnloadVideo}
+                                    onLoaded={handleSourcesLoaded}
                                     offsetRef={offsetRef}
                                     sources={sources}
                                     jumpToSubtitle={jumpToSubtitle}

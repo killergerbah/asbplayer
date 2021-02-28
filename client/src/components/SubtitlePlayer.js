@@ -14,7 +14,6 @@ import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
-import background from './background.png';
 
 const useSubtitlePlayerStyles = (compressed, windowWidth) => makeStyles((theme) => ({
     container: {
@@ -27,6 +26,15 @@ const useSubtitlePlayerStyles = (compressed, windowWidth) => makeStyles((theme) 
     table: {
         backgroundColor: theme.palette.background.default,
         marginBottom: 75, // so the last row doesn't collide with controls
+    },
+    noSubtitles: {
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 15,
+        textAlign: "center"
     },
     subtitleRow: {
         '&:hover': {
@@ -58,23 +66,10 @@ const useSubtitlePlayerStyles = (compressed, windowWidth) => makeStyles((theme) 
         textAlign: 'right',
         padding: 0
     },
-    noSubtitles: {
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundImage: "url(" + background + ")",
-        backgroundSize: "500px 500px",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center",
-        padding: 15,
-        textAlign: "center"
-    }
 }));
 
 export default function SubtitlePlayer(props) {
-    const {clock, onSeek, onCopy, playing, subtitles, length, jumpToSubtitle, compressed, loading} = props;
+    const {clock, onSeek, onCopy, playing, subtitles, length, jumpToSubtitle, compressed, loading, displayHelp} = props;
     const clockRef = useRef();
     clockRef.current = clock;
     const subtitleListRef = useRef();
@@ -191,9 +186,7 @@ export default function SubtitlePlayer(props) {
 
         window.addEventListener('keydown', handleKey);
 
-        return () => {
-            window.removeEventListener('keydown', handleKey);
-        };
+        return () => window.removeEventListener('keydown', handleKey);
     }, [onSeek, selectedSubtitleIndexes, subtitles, length]);
 
     useEffect(() => {
@@ -204,9 +197,7 @@ export default function SubtitlePlayer(props) {
         const table = containerRef.current;
         table?.addEventListener('wheel', handleScroll);
 
-        return () => {
-            table?.removeEventListener('wheel', handleScroll);
-        };
+        return () => table?.removeEventListener('wheel', handleScroll);
     }, [containerRef, lastScrollTimestampRef]);
 
     useEffect(() => {
@@ -266,35 +257,19 @@ export default function SubtitlePlayer(props) {
 
         window.addEventListener('keydown', copySubtitle);
 
-        return () => {
-            window.removeEventListener('keydown', copySubtitle);
-        };
+        return () => window.removeEventListener('keydown', copySubtitle);
     }, [handleCopy]);
 
     let subtitleTable;
 
-    if (!subtitles && compressed && loading) {
-        subtitleTable = null;
-    } else if (!subtitles) {
-        subtitleTable = (
+    if (!subtitles || subtitles.length ===0) {
+        subtitleTable = !loading && displayHelp && (
             <div className={classes.noSubtitles}>
-                    {!compressed && (
-                        <Fade in={!loading} timeout={500}>
-                            <Typography>
-                                Drag and drop srt, ass, mp3, or mkv files. <br />
-                                Install the <Link color="secondary" target="_blank" rel="noreferrer" href="https://github.com/killergerbah/asbplayer/releases/tag/v0.2.1">extension</Link> to sync subtitles with videos in other tabs.
-                            </Typography>
-                        </Fade>
-                    )}
-                    {compressed && !loading && (
-                        <Typography>
-                            No subtitles loaded. Drag and drop to load.
-                        </Typography>
-                    )}
+                <Typography>
+                    No subtitles loaded. Drag and drop to load.
+                </Typography>
             </div>
         );
-    } else if (subtitles.length === 0) {
-        subtitleTable = null;
     } else {
         subtitleTable = (
             <TableContainer className={classes.table}>

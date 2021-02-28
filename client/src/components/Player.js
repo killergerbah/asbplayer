@@ -73,11 +73,11 @@ function trackLength(audioRef, videoRef, subtitles, useOffset) {
 }
 
 export default function Player(props) {
-    const {subtitleReader, extension, offsetRef, videoFrameRef, drawerOpen, onError, onUnloadVideo, onCopy} = props;
+    const {subtitleReader, extension, offsetRef, videoFrameRef, drawerOpen, onError, onUnloadVideo, onCopy, onLoaded} = props;
     const {subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl} = props.sources;
-    const [loadingSubtitles, setLoadingSubtitles] = useState(false);
     const [tab, setTab] = useState();
     const [subtitles, setSubtitles] = useState();
+    const [loadingSubtitles, setLoadingSubtitles] = useState(false);
     const [playing, setPlaying] = useState(false);
     const playingRef = useRef();
     playingRef.current = playing;
@@ -245,8 +245,8 @@ export default function Player(props) {
             }
         }
 
-        init();
-    }, [subtitleReader, extension, clock, mediaAdapter, seek, onError, onUnloadVideo, onCopy, subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef]);
+        init().then(() => onLoaded());
+    }, [subtitleReader, extension, clock, mediaAdapter, seek, onLoaded, onError, onUnloadVideo, onCopy, subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef]);
 
     useEffect(() => {
         if (videoPopOut && channelId && videoFileUrl) {
@@ -494,6 +494,7 @@ export default function Player(props) {
                         drawerOpen={drawerOpen}
                         compressed={videoFileUrl && !videoPopOut}
                         loading={loadingSubtitles}
+                        displayHelp={Boolean(videoFileUrl || audioFileUrl)}
                         onSeek={handleSeekToSubtitle}
                         onCopy={handleCopy}
                     />
