@@ -160,9 +160,7 @@ export default function VideoPlayer(props) {
                 }
             };
 
-            element.onerror = (event) => {
-                onError(errorMessage(element));
-            };
+            element.onerror = (event) => onError(errorMessage(element));
         }
     }, [clock, playerChannel, onError]);
 
@@ -177,9 +175,7 @@ export default function VideoPlayer(props) {
     }
 
     useEffect(() => {
-        playerChannel.onReady((duration) => {
-            setLength(duration);
-        });
+        playerChannel.onReady((duration) => setLength(duration));
 
         playerChannel.onPlay(() => {
             videoRef.current.play();
@@ -231,9 +227,7 @@ export default function VideoPlayer(props) {
             }
         };
 
-        return () => {
-            playerChannel.close();
-        }
+        return () => playerChannel.close();
     }, [clock, playerChannel]);
 
     const handlePlay = useCallback(() => {
@@ -242,9 +236,7 @@ export default function VideoPlayer(props) {
         }
     }, [playerChannel]);
 
-    const handlePause = useCallback(() => {
-        playerChannel.pause();
-    }, [playerChannel]);
+    const handlePause = useCallback(() => playerChannel.pause(), [playerChannel]);
 
     const handleSeek = useCallback((progress) => {
         if (playingRef.current) {
@@ -395,9 +387,7 @@ export default function VideoPlayer(props) {
         };
     }, [playerChannel, fullscreen]);
 
-    const handleSubtitlesToggle = useCallback(() => {
-        setSubtitlesEnabled(subtitlesEnabled => !subtitlesEnabled);
-    }, []);
+    const handleSubtitlesToggle = useCallback(() => setSubtitlesEnabled(subtitlesEnabled => !subtitlesEnabled), []);
 
     const handleFullscreenToggle = useCallback(() => {
         if (fullscreen) {
@@ -413,9 +403,7 @@ export default function VideoPlayer(props) {
         }
     }, []);
 
-    const handleOffsetChange = useCallback((offset) => {
-        playerChannel.offset(offset);
-    }, [playerChannel]);
+    const handleOffsetChange = useCallback((offset) => playerChannel.offset(offset), [playerChannel]);
 
     const handlePopOutToggle = useCallback(() => {
         playerChannel.popOutToggle();
@@ -438,9 +426,7 @@ export default function VideoPlayer(props) {
         }
     }, [playerChannel, playing]);
 
-    const handleAlertClosed = useCallback(() => {
-        setAlertOpen(false);
-    }, [])
+    const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
 
     return (
         <div

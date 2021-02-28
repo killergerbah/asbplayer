@@ -5,7 +5,7 @@ export default class MediaAdapter {
         this.readyResolves = [];
     }
 
-    seek(time) {
+    async seek(time) {
         return new Promise((resolve, reject) => {
             if (this.ref.current) {
                 this.ref.current.currentTime = time;
@@ -16,7 +16,7 @@ export default class MediaAdapter {
         });
     }
 
-    onReady() {
+    async onReady() {
         return new Promise((resolve, reject) => {
             if (this.ref.current) {
                 this._onMediaCanPlay(() => resolve());

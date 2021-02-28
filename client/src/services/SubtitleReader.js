@@ -12,7 +12,9 @@ export default class SubtitleReader {
                 .then(nodes => {
                     return nodes.map(node => node.data).sort((n1, n2) => n1.start - n2.start);
                 });
-        } else if (file.name.endsWith('.ass')) {
+        }
+
+        if (file.name.endsWith('.ass')) {
             return file.text()
                 .then(text => {
                     return parse(text);

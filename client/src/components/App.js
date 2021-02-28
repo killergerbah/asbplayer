@@ -34,6 +34,53 @@ const useStyles = drawerWidth => makeStyles((theme) => ({
     },
 }));
 
+
+function extractSources(files) {
+    let subtitleFile = null;
+    let audioFile = null;
+    let videoFile = null;
+
+    for(const f of files) {
+        const extensionStartIndex = f.name.lastIndexOf(".");
+
+        if (extensionStartIndex === -1) {
+            throw new Error('Unable to determine extension of ' + f.name);
+        }
+
+        const extension = f.name.substring(extensionStartIndex + 1, f.name.length);
+        switch (extension) {
+            case "ass":
+            case "srt":
+                if (subtitleFile) {
+                    throw new Error('Cannot open two subtitle files simultaneously');
+                }
+                subtitleFile = f;
+                break;
+            case "mkv":
+                if (videoFile) {
+                    throw new Error('Cannot open two video files simultaneously');
+                }
+                videoFile = f;
+                break;
+            case "mp3":
+                if (audioFile) {
+                    throw new Error('Cannot open two audio files simultaneously');
+                }
+                audioFile = f;
+                break;
+            default:
+                throw new Error("Unsupported extension " + extension);
+        }
+    }
+
+    if (videoFile && audioFile) {
+        throw new Error("Cannot load both an audio and video file simultaneously");
+    }
+
+    return {subtitleFile: subtitleFile, audioFile: audioFile, videoFile: videoFile}
+}
+
+
 function Content(props) {
     const classes = useStyles(props.drawerWidth)();
     return (
@@ -88,18 +135,10 @@ function App() {
         setAlertOpen(true);
     }, [fileName]);
 
-    const handleOpenCopyHistory = useCallback(() => {
-        setCopyHistoryOpen(copyHistoryOpen => !copyHistoryOpen);
-    }, []);
-
-    const handleCloseCopyHistory = useCallback(() => {
-        setCopyHistoryOpen(false);
-    }, []);
-
-    const handleOpenSettings = useCallback(() => {
-        setSettingsDialogOpen(true);
-    }, []);
-
+    const handleOpenCopyHistory = useCallback(() => setCopyHistoryOpen(copyHistoryOpen => !copyHistoryOpen), []);
+    const handleCloseCopyHistory = useCallback(() => setCopyHistoryOpen(false), []);
+    const handleOpenSettings = useCallback(() => setSettingsDialogOpen(true), []);
+    const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
     const handleCloseSettings = useCallback((newSettings) => {
         settingsProvider.ankiConnectUrl = newSettings.ankiConnectUrl;
         settingsProvider.deck = newSettings.deck;
@@ -122,10 +161,6 @@ function App() {
 
         setCopiedSubtitles(newCopiedSubtitles);
     }, [copiedSubtitles]);
-
-    const handleAlertClosed = useCallback(() => {
-        setAlertOpen(false);
-    }, []);
 
     const handleError = useCallback((message) => {
         setAlertSeverity("error");
@@ -235,51 +270,6 @@ function App() {
         if (sources.videoFileUrl) {
             URL.revokeObjectURL(sources.videoFileUrl);
         }
-    }
-
-    function extractSources(files) {
-        let subtitleFile = null;
-        let audioFile = null;
-        let videoFile = null;
-
-        for(const f of files) {
-            const extensionStartIndex = f.name.lastIndexOf(".");
-
-            if (extensionStartIndex === -1) {
-                throw new Error('Unable to determine extension of ' + f.name);
-            }
-
-            const extension = f.name.substring(extensionStartIndex + 1, f.name.length);
-            switch (extension) {
-                case "ass":
-                case "srt":
-                    if (subtitleFile) {
-                        throw new Error('Cannot open two subtitle files simultaneously');
-                    }
-                    subtitleFile = f;
-                    break;
-                case "mkv":
-                    if (videoFile) {
-                        throw new Error('Cannot open two video files simultaneously');
-                    }
-                    videoFile = f;
-                    break;
-                case "mp3":
-                    if (audioFile) {
-                        throw new Error('Cannot open two audio files simultaneously');
-                    }
-                    audioFile = f;
-                    break;
-                default:
-                    throw new Error("Unsupported extension " + extension);
-            }
-        }
-
-        if (videoFile && audioFile) {
-            throw new Error("Cannot load both an audio and video file simultaneously");
-        }
-
-        return {subtitleFile: subtitleFile, audioFile: audioFile, videoFile: videoFile}
     }
 
     const handleDrop = useCallback((e) => {
