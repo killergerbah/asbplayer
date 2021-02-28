@@ -4,6 +4,7 @@ import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -14,7 +15,7 @@ import TextField from '@material-ui/core/TextField';
 const useStyles = makeStyles((theme) => ({
     root: {
         '& .MuiTextField-root': {
-        margin: theme.spacing(1),
+            margin: theme.spacing(1),
         },
     },
 }));
@@ -133,16 +134,19 @@ export default function SettingsDialog(props) {
     return (
         <Dialog
             open={open}
+            maxWidth="xs"
         >
             <DialogTitle>
                 Settings
             </DialogTitle>
             <DialogContent>
+                <DialogContentText>
+                    Ensure that {window.location.protocol + "//" + window.location.hostname} is in the webCorsOriginList in your AnkiConnect settings.
+                </DialogContentText>
                 <form className={classes.root}>
                     <div>
                         <TextField
                             label="Anki Connect URL"
-                            color="secondary"
                             value={ankiConnectUrl}
                             error={Boolean(ankiConnectUrlError)}
                             helperText={ankiConnectUrlError}
