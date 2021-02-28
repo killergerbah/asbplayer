@@ -45,17 +45,6 @@ setInterval(() => {
     for (const tabId in tabs) {
         const info = tabs[tabId];
         if (info.timestamp < expired) {
-            chrome.action.disable(info.tab.id, () => {
-                chrome.action.setBadgeText({
-                    text: null,
-                    tabId: info.tab.id
-                });
-                chrome.action.setTitle({
-                    title: 'asbplayer',
-                    tabId: info.tab.id
-                });
-            });
-
             delete tabs[tabId];
         } else {
             activeTabs.push({
