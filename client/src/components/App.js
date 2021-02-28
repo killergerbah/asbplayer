@@ -381,7 +381,7 @@ function App() {
                                 settings={settingsProvider.settings}
                             />
                             <Bar
-                                title={fileName || "a subtitle player"}
+                                title={fileName || "asbplayer"}
                                 drawerWidth={drawerWidth}
                                 drawerOpen={copyHistoryOpen}
                                 onOpenCopyHistory={handleOpenCopyHistory}
