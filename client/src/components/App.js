@@ -102,7 +102,8 @@ function App() {
     const extension = useMemo(() => new ChromeExtension(), []);
     const location = useLocation();
     const videoFrameRef = useRef();
-    const [width, ] = useWindowSize(location.pathname !== '/video');
+    const inVideoPlayer = location.pathname === '/video';
+    const [width, ] = useWindowSize(!inVideoPlayer);
     const drawerRatio = videoFrameRef.current ? .2 : .3;
     const minDrawerSize = videoFrameRef.current ? 150 : 300;
     const drawerWidth = Math.max(minDrawerSize, width * drawerRatio);
@@ -277,6 +278,11 @@ function App() {
     const handleDrop = useCallback((e) => {
         e.preventDefault();
 
+        if (inVideoPlayer) {
+            handleError('Video player cannot receive dropped files. Drop into the subtitle section instead.')
+            return;
+        }
+
         if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) {
             return;
         }
@@ -325,7 +331,7 @@ function App() {
             console.error(e);
             handleError(e.message);
         }
-    }, [handleError]);
+    }, [inVideoPlayer, handleError]);
 
     const handleSourcesLoaded = useCallback(() => setLoading(false), []);
 
@@ -334,7 +340,7 @@ function App() {
     return (
         <div
             onDrop={handleDrop}
-            onDragOver={e => e.preventDefault()}
+            onDragOver={(e) => e.preventDefault()}
         >
             <Alert
                 open={alertOpen}
