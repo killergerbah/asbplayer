@@ -199,12 +199,12 @@ function App() {
     }, []);
 
     const handleAnkiDialogCancel = useCallback(() => {
-        setAnkiDialogItem(null);
         setAnkiDialogOpen(false);
+        setAnkiDialogItem(null);
         setAnkiDialogDisabled(false);
     }, []);
 
-    const handleAnkiDialogProceed = useCallback(async (definition) => {
+    const handleAnkiDialogProceed = useCallback(async (text, definition) => {
         setAnkiDialogDisabled(true);
         const item = ankiDialogItem;
         const offset = offsetRef.current || 0;
@@ -216,13 +216,13 @@ function App() {
                 item.originalStart + offset,
                 item.originalEnd + offset
             );
-            await anki.export(settingsProvider.ankiConnectUrl, item.text, definition, blob, mediaFile.name, extension);
+            await anki.export(settingsProvider.ankiConnectUrl, text, definition, blob, mediaFile.name, extension);
         } catch (e) {
             console.error(e);
             handleError(e.message);
         } finally {
-            setAnkiDialogItem(null);
             setAnkiDialogOpen(false);
+            setAnkiDialogItem(null);
             setAnkiDialogDisabled(false);
         }
     }, [anki, settingsProvider, mediaClipper, handleError, ankiDialogItem]);
