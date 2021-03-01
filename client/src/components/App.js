@@ -248,13 +248,19 @@ function App() {
         const offset = offsetRef.current || 0;
 
         try {
+            let blob = null;
+            let extension = null;
             const mediaFile = item.audioFile || item.videoFile;
-            const [blob, extension] = await mediaClipper.clipAudio(
-                mediaFile,
-                item.originalStart + offset,
-                item.originalEnd + offset
-            );
-            await anki.export(settingsProvider.ankiConnectUrl, text, definition, blob, mediaFile.name, extension);
+
+            if (mediaFile) {
+                [blob, extension] = await mediaClipper.clipAudio(
+                    mediaFile,
+                    item.originalStart + offset,
+                    item.originalEnd + offset
+                );
+            }
+
+            await anki.export(settingsProvider.ankiConnectUrl, text, definition, blob, mediaFile?.name, extension);
         } catch (e) {
             console.error(e);
             handleError(e.message);

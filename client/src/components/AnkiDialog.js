@@ -43,7 +43,7 @@ export default function AnkiDialog(props) {
                         variant="filled"
                         multiline
                         fullWidth
-                        maxRows={8}
+                        rowsMax={8}
                         label="Sentence"
                         value={text}
                         onChange={(e) => setText(e.target.value)}
