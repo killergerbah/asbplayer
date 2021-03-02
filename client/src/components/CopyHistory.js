@@ -94,7 +94,7 @@ function Menu(props) {
                 <ListItem button onClick={handleJumpTo}>
                     <ListItemText primaryTypographyProps={{variant: "body2"}} primary="Jump To" />
                 </ListItem>
-                {(item.videoFile || item.audioFile) && (
+                {(item.videoFile || item.audioFile || item.audio) && (
                     <ListItem button onClick={handleClipAudio}>
                         <ListItemText primaryTypographyProps={{variant: "body2"}} primary="Clip Audio" />
                     </ListItem>

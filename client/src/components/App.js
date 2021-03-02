@@ -209,13 +209,17 @@ function App() {
     }, [sources]);
 
     const handleClipAudio = useCallback(async (item) => {
-        const offset = offsetRef.current || 0;
         try {
-            await mediaClipper.clipAndSaveAudio(
-                item.audioFile || item.videoFile,
-                item.originalStart + offset,
-                item.originalEnd + offset
-            );
+            if (item.audio) {
+                await mediaClipper.saveAudio(item.audio.base64, item.audio.extension);
+            } else {
+                const offset = offsetRef.current || 0;
+                await mediaClipper.clipAndSaveAudio(
+                    item.audioFile || item.videoFile,
+                    item.originalStart + offset,
+                    item.originalEnd + offset
+                );
+            }
         } catch(e) {
             console.error(e);
             handleError(e.message);

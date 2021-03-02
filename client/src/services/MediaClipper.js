@@ -52,6 +52,12 @@ export default class MediaClipper {
         });
     }
 
+    async saveAudio(base64, extension) {
+        const res = await fetch("data:audio/" + extension + ";base64," + base64);
+        const blob = await res.blob();
+        this._saveToFile(blob, "audio_" + Date.now() + "." + extension);
+    }
+
     _nameWithoutExtension(fileName) {
         return fileName.substring(0, fileName.lastIndexOf("."));
     }
