@@ -19,8 +19,15 @@ export default class Anki {
         return response.result;
     }
 
-    async export(ankiConnectUrl, text, definition, audioBlob, audioFileName, audioFileExtension) {
-        const audioBase64 = audioBlob ? await this._blobToBase64(audioBlob) : null;
+    async export(ankiConnectUrl, text, definition, audioOptions) {
+        const {audioBlob, audioFileName, audioFileExtension, audioBase64: providedAudioBase64} = audioOptions;
+        let audioBase64;
+
+        if (providedAudioBase64) {
+            audioBase64 = providedAudioBase64;
+        } else {
+            audioBase64 = audioBlob ? await this._blobToBase64(audioBlob) : null;
+        }
 
         const fields = {};
         fields[this.settingsProvider.sentenceField] = text;
@@ -52,7 +59,7 @@ export default class Anki {
             };
         }
 
-        this._executeAction(ankiConnectUrl, 'addNote', params);
+        await this._executeAction(ankiConnectUrl, 'addNote', params);
     }
 
     async _executeAction(ankiConnectUrl, action, params) {
@@ -70,7 +77,7 @@ export default class Anki {
             body: JSON.stringify(body)
         });
 
-        const json = response.json();
+        const json = await response.json();
 
         if (json.error) {
             throw new Error(json.error);

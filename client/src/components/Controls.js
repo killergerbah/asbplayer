@@ -393,7 +393,7 @@ export default function Controls(props) {
         };
     }, [playing, onPause, onPlay, onOffsetChange]);
 
-    const handleOffsetInputClicked = useCallback((e) => e.target.setSelectionRange(0, e.target.value.length), []);
+    const handleOffsetInputClicked = useCallback((e) => e.target.setSelectionRange(0, e.target.value?.length || 0), []);
 
     useEffect(() => {
         const interval = setInterval(() => {

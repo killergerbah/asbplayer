@@ -187,6 +187,9 @@ class Binding {
                     case 'settings-updated':
                         this._refreshSettings();
                         break;
+                    case 'copy-subtitle':
+                        this._copySubtitle();
+                        break;
                 }
             }
         };
@@ -220,6 +223,32 @@ class Binding {
                 this.showingSubtitles = showingSubtitles;
             }
         }, 100);
+    }
+
+    async _copySubtitle() {
+        const now = 1000 * this.video.currentTime;
+        let subtitle = null;
+
+        for (let i = 0; i < this.subtitles.length; ++i) {
+            const s = this.subtitles[i];
+
+            if (now >= s.start && now < s.end) {
+                subtitle = s;
+                break;
+            }
+        }
+
+        if (subtitle) {
+            this._seek(subtitle.start / 1000);
+            await this.video.play();
+            chrome.runtime.sendMessage({
+                sender: 'asbplayer-video',
+                message: {
+                    command: 'record-media-and-forward-subtitle',
+                    subtitle: subtitle
+                }
+            });
+        }
     }
 
     _seek(timestamp) {

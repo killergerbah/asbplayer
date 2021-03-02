@@ -123,7 +123,7 @@ function App() {
     const offsetRef = useRef();
     const { subtitleFile } = sources;
 
-    const handleCopy = useCallback((subtitle, audioFile, videoFile, subtitleFile, audioTrack) => {
+    const handleCopy = useCallback((subtitle, audioFile, videoFile, subtitleFile, audioTrack, audio) => {
         setCopiedSubtitles(copiedSubtitles => [...copiedSubtitles, {
             ...subtitle,
             timestamp: Date.now(),
@@ -131,7 +131,8 @@ function App() {
             subtitleFile: subtitleFile,
             audioFile: audioFile,
             videoFile: videoFile,
-            audioTrack: audioTrack
+            audioTrack: audioTrack,
+            audio: audio
         }]);
         setAlertSeverity("success");
         setAlert("Copied " + subtitle.text);
@@ -230,7 +231,7 @@ function App() {
         setJumpToSubtitle({text: item.text, originalStart: item.originalStart});
     }, [subtitleFile, handleError]);
 
-    const handleAnki = useCallback(async (item) => {
+    const handleAnki = useCallback((item) => {
         setAnkiDialogItem(item);
         setAnkiDialogOpen(true);
         setAnkiDialogDisabled(false);
@@ -260,7 +261,12 @@ function App() {
                 );
             }
 
-            await anki.export(settingsProvider.ankiConnectUrl, text, definition, blob, mediaFile?.name, extension);
+            await anki.export(settingsProvider.ankiConnectUrl, text, definition, {
+                audioBlob: blob,
+                audioFileName: mediaFile?.name || item.subtitleFile.name,
+                audioFileExtension: extension || item.audio?.extension,
+                audioBase64: item.audio?.base64
+            });
         } catch (e) {
             console.error(e);
             handleError(e.message);

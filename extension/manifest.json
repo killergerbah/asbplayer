@@ -8,7 +8,7 @@
         "48": "icon48.png",
         "128": "icon128.png"
     },
-    "permissions": ["tabs", "storage"],
+    "permissions": ["tabs", "tabCapture", "storage"],
     "action": {
         "default_title": "asbplayer",
         "default_popup": "popup.html"
@@ -31,5 +31,14 @@
             "run_at": "document_start"
         }
     ],
+    "commands": {
+        "copy-subtitle": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+Z",
+                "mac": "Command+Shift+Z"
+            },
+            "description": "Copy current subtitle."
+        }
+    },
     "web_accessible_resources": ["netflix.js"]
 }

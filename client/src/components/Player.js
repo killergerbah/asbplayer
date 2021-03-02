@@ -206,12 +206,13 @@ export default function Player(props) {
                         channel.onExit(() => onUnloadVideo(videoFileUrl));
                         channel.onOffset((offset) => setOffset(Math.max(-lengthRef.current ?? 0, offset)));
                         channel.onPopOutToggle(() => setVideoPopOut(popOut => !popOut));
-                        channel.onCopy((subtitle) => onCopy(
+                        channel.onCopy((subtitle, audio) => onCopy(
                             subtitle,
                             audioFile,
                             videoFile,
                             subtitleFile,
-                            channel.selectedAudioTrack
+                            channel.selectedAudioTrack,
+                            audio
                         ));
                         channel.onCurrentTime(async (currentTime, echo) => {
                             const progress = currentTime * 1000 / lengthRef.current;
@@ -307,7 +308,7 @@ export default function Player(props) {
         }
     }, [clock, seek, mediaAdapter]);
 
-    const handleCopy = useCallback((subtitle) => {
+    const handleCopy = useCallback((subtitle, audioBase64) => {
         onCopy(
             subtitle,
             audioFile,
