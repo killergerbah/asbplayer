@@ -59,7 +59,8 @@ export default class Anki {
             };
         }
 
-        await this._executeAction(ankiConnectUrl, 'addNote', params);
+        const response = await this._executeAction(ankiConnectUrl, 'addNote', params);
+        return response.result;
     }
 
     async _executeAction(ankiConnectUrl, action, params) {

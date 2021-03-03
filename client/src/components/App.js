@@ -271,12 +271,16 @@ function App() {
                 );
             }
 
-            await anki.export(settingsProvider.ankiConnectUrl, text, definition, {
+            const result = await anki.export(settingsProvider.ankiConnectUrl, text, definition, {
                 audioBlob: blob,
                 audioFileName: mediaFile?.name || item.subtitleFile.name,
                 audioFileExtension: extension || item.audio?.extension,
                 audioBase64: item.audio?.base64
             });
+
+            setAlertSeverity("success");
+            setAlert("Export succeeded: " + result);
+            setAlertOpen(true);
         } catch (e) {
             console.error(e);
             handleError(e.message);
