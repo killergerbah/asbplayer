@@ -1,12 +1,19 @@
 <html>
-<head>
-    <link rel="stylesheet" href="popup.css">
-    <script src="popup.js"></script>
-</head>
-<body>
-<input id="displaySubtitlesInput" type="checkbox">
-<label id="displaySubtitlesLabel" for="displaySubtitlesInput">Display subtitles in synced video elements</label>
-<input id="recordAudioInput" type="checkbox">
-<label id="recordAudio" for="recordAudioInput">Record audio when copying subtitle</label>
-</body>
+    <head>
+        <link rel="stylesheet" href="popup.css">
+        <script src="popup.js"></script>
+    </head>
+    <body>
+        <div>
+            <input id="displaySubtitlesInput" type="checkbox">
+            <label id="displaySubtitlesLabel" for="displaySubtitlesInput">Display subtitles in synced video elements</label>
+        </div>
+        <div>
+            <input id="recordAudioInput" type="checkbox">
+            <label id="recordAudio" for="recordAudioInput">Record audio when copying subtitle</label>
+        </div>
+        <div class="help">
+            Ctrl+Shift+Z copies current subtitle to asbplayer
+        </div>
+    </body>
 </html>

@@ -1,5 +1,5 @@
 body {
-    width: 250px;
+    width: 280px;
 }
 
 input {
@@ -8,4 +8,8 @@ input {
 
 label {
     vertical-align: middle;
+}
+
+.help {
+    padding: 5px;
 }
