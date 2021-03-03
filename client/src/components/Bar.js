@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/core/styles';
 import clsx from 'clsx';
 import AppBar from '@material-ui/core/AppBar';
+import HelpIcon from '@material-ui/icons/Help';
 import IconButton from '@material-ui/core/IconButton';
 import ListIcon from '@material-ui/icons/List';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -45,9 +46,15 @@ export default function Bar(props) {
                 </Typography>
                 <IconButton
                     edge="end"
+                    onClick={props.onOpenHelp}
+                >
+                    <HelpIcon />
+                </IconButton>
+                <IconButton
+                    edge="end"
                     onClick={props.onOpenSettings}
                 >
-                    <SettingsIcon/>
+                    <SettingsIcon />
                 </IconButton>
                 <IconButton
                     edge="end"

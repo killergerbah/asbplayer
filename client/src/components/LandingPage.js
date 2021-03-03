@@ -40,7 +40,7 @@ export default function LandingPage(props) {
                 <Fade in={!loading} timeout={500}>
                     <Typography>
                         Drag and drop srt, ass, mp3, or mkv files. <br />
-                        Install the <Link color="secondary" target="_blank" rel="noreferrer" href="https://github.com/killergerbah/asbplayer/releases/tag/v0.2.1">extension</Link> to sync subtitles with videos in other tabs.
+                        Install the <Link color="secondary" target="_blank" rel="noreferrer" href="https://github.com/killergerbah/asbplayer/releases/tag/v0.3.0">extension</Link> to sync subtitles with videos in other tabs.
                     </Typography>
                 </Fade>
             </div>

@@ -135,6 +135,7 @@ export default function SettingsDialog(props) {
         <Dialog
             open={open}
             maxWidth="xs"
+            onBackdropClick={handleClose}
         >
             <DialogTitle>
                 Settings

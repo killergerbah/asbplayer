@@ -6,6 +6,7 @@ import clsx from 'clsx';
 import Alert from './Alert.js';
 import Anki from '../services/Anki.js';
 import AnkiDialog from './AnkiDialog.js'
+import HelpDialog from './HelpDialog.js';
 import SubtitleReader from '../services/SubtitleReader.js';
 import MediaClipper from '../services/MediaClipper.js';
 import Bar from './Bar.js';
@@ -120,6 +121,7 @@ function App() {
     const [ankiDialogDisabled, setAnkiDialogDisabled] = useState(false);
     const [ankiDialogItem, setAnkiDialogItem] = useState();
     const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+    const [helpDialogOpen, setHelpDialogOpen] = useState(false);
     const offsetRef = useRef();
     const { subtitleFile } = sources;
 
@@ -142,6 +144,8 @@ function App() {
     const handleOpenCopyHistory = useCallback(() => setCopyHistoryOpen(copyHistoryOpen => !copyHistoryOpen), []);
     const handleCloseCopyHistory = useCallback(() => setCopyHistoryOpen(false), []);
     const handleOpenSettings = useCallback(() => setSettingsDialogOpen(true), []);
+    const handleOpenHelp = useCallback(() => setHelpDialogOpen(true), []);
+    const handleCloseHelp = useCallback(() => setHelpDialogOpen(false), []);
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
     const handleCloseSettings = useCallback((newSettings) => {
         settingsProvider.ankiConnectUrl = newSettings.ankiConnectUrl;
@@ -402,12 +406,17 @@ function App() {
                                 onClose={handleCloseSettings}
                                 settings={settingsProvider.settings}
                             />
+                            <HelpDialog
+                                open={helpDialogOpen}
+                                onClose={handleCloseHelp}
+                            />
                             <Bar
                                 title={fileName || "asbplayer"}
                                 drawerWidth={drawerWidth}
                                 drawerOpen={copyHistoryOpen}
                                 onOpenCopyHistory={handleOpenCopyHistory}
                                 onOpenSettings={handleOpenSettings}
+                                onOpenHelp={handleOpenHelp}
                             />
                             <Content drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen}>
                                 {nothingLoaded && (
