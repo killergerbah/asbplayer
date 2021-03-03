@@ -35,6 +35,7 @@ export default function AnkiDialog(props) {
             disableEnforceFocus
             fullWidth
             maxWidth="sm"
+            onBackdropClick={() => onCancel()}
         >
             <DialogTitle>Anki Export</DialogTitle>
             <DialogContent>
