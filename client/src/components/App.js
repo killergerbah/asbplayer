@@ -351,7 +351,7 @@ function App() {
 
     const handleSourcesLoaded = useCallback(() => setLoading(false), []);
 
-    const nothingLoaded = loading || (!sources.subtitleFile && !sources.audioFile && !sources.videoFile);
+    const nothingLoaded = (loading && !videoFrameRef.current) || (!sources.subtitleFile && !sources.audioFile && !sources.videoFile);
 
     return (
         <div
