@@ -63,7 +63,8 @@ class Binding {
         this.video = video;
         this.subtitles = [];
         this.showingSubtitles = [];
-        this.displaySubtitles = false;
+        this.displaySubtitles = true;
+        this.recordMedia = true;
     }
 
     bind() {
@@ -239,13 +240,17 @@ class Binding {
         }
 
         if (subtitle) {
-            this._seek(subtitle.start / 1000);
-            await this.video.play();
+            if (this.recordMedia) {
+                this._seek(subtitle.start / 1000);
+                await this.video.play();
+            }
+
             chrome.runtime.sendMessage({
                 sender: 'asbplayer-video',
                 message: {
                     command: 'record-media-and-forward-subtitle',
-                    subtitle: subtitle
+                    subtitle: subtitle,
+                    record: this.recordMedia
                 }
             });
         }
@@ -262,8 +267,9 @@ class Binding {
     }
 
     _refreshSettings() {
-        chrome.storage.sync.get('displaySubtitles', (data) => {
+        chrome.storage.sync.get(['displaySubtitles', 'recordMedia'], (data) => {
             this.displaySubtitles = data.displaySubtitles;
+            this.recordMedia = data.recordMedia;
         });
     }
 

@@ -1,17 +1,26 @@
 document.addEventListener('DOMContentLoaded', (e) => {
-    const checkbox = document.getElementById('displaySubtitlesInput');
-    checkbox.addEventListener('change', (e) => {
-        chrome.storage.sync.set({displaySubtitles: checkbox.checked}, () => {
-            chrome.runtime.sendMessage({
-                sender: 'asbplayer-popup',
-                message: {
-                    command: 'settings-updated'
-                }
-            });
+    const displaySubtitlesCheckbox = document.getElementById('displaySubtitlesInput');
+    const recordAudioCheckbox = document.getElementById('recordAudioInput');
+
+    function notifySettingsUpdated() {
+        chrome.runtime.sendMessage({
+            sender: 'asbplayer-popup',
+            message: {
+                command: 'settings-updated'
+            }
         });
+    }
+
+    displaySubtitlesCheckbox.addEventListener('change', (e) => {
+        chrome.storage.sync.set({displaySubtitles: displaySubtitlesCheckbox.checked}, () => notifySettingsUpdated());
     });
 
-    chrome.storage.sync.get('displaySubtitles', (data) => {
-        checkbox.checked = data.displaySubtitles;
+    recordAudioCheckbox.addEventListener('change', (e) => {
+        chrome.storage.sync.set({recordMedia: recordAudioCheckbox.checked}, () => notifySettingsUpdated());
+    });
+
+    chrome.storage.sync.get(['displaySubtitles', 'recordMedia'], (data) => {
+        displaySubtitlesCheckbox.checked = data.displaySubtitles;
+        recordAudioCheckbox.checked = data.recordMedia;
     });
 });

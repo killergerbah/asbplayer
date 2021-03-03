@@ -77,6 +77,10 @@ class Recorder {
 const tabs = {};
 const recorder = new Recorder();
 
+chrome.runtime.onInstalled.addListener((details) => {
+    chrome.storage.sync.set({displaySubtitles: true, recordMedia: true});
+});
+
 chrome.runtime.onMessage.addListener(
     async (request, sender, sendResponse) => {
         if (request.sender === 'asbplayer-video') {
@@ -88,20 +92,25 @@ chrome.runtime.onMessage.addListener(
                 };
             } else if (request.message.command === 'record-media-and-forward-subtitle') {
                 const subtitle = request.message.subtitle;
-                const time = subtitle.end - subtitle.start + 500;
-                const audioBase64 = await recorder.record(time);
+                const message = {
+                    command: 'copy',
+                    subtitle: subtitle
+                };
+
+                if (request.message.record) {
+                    const time = subtitle.end - subtitle.start + 500;
+                    const audioBase64 = await recorder.record(time);
+                    message['audio'] = {
+                        base64: audioBase64,
+                        extension: 'webm'
+                    };
+                }
+
                 chrome.tabs.query({}, (allTabs) => {
                     for (let t of allTabs) {
                         chrome.tabs.sendMessage(t.id, {
                             sender: 'asbplayer-extension-to-player',
-                            message: {
-                                command: 'copy',
-                                subtitle: subtitle,
-                                audio: {
-                                    base64: audioBase64,
-                                    extension: 'webm'
-                                }
-                            },
+                            message: message,
                             tabId: sender.tab.id
                         });
                     }
