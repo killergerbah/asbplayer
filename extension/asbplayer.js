@@ -19,3 +19,13 @@ chrome.runtime.onMessage.addListener(
         }
     }
 );
+
+window.addEventListener('DOMContentLoaded', (e) => {
+    window.postMessage({
+        sender: 'asbplayer-extension-to-player',
+        message: {
+            command: 'version',
+            version: '0.3.0'
+        }
+    });
+});

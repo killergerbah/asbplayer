@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import Fade from '@material-ui/core/Fade';
 import Link from '@material-ui/core/Link';
@@ -32,7 +32,19 @@ const useStyles = makeStyles((theme) => ({
 
 export default function LandingPage(props) {
     const classes = useStyles();
-    const {loading} = props;
+    const {extension, latestExtensionVersion, extensionUrl, loading} = props;
+    const [installedExtensionVersion, setInstalledExtensionVersion] = useState();
+
+    useEffect(() => {
+        async function fetchInstalledExtensionVersion() {
+            setInstalledExtensionVersion(await extension.installedVersion());
+        }
+
+        fetchInstalledExtensionVersion();
+    }, [extension]);
+
+    const extensionUpdateAvailable = latestExtensionVersion > installedExtensionVersion;
+    const extensionNotInstalled = !installedExtensionVersion;
 
     return (
         <React.Fragment>
@@ -40,7 +52,16 @@ export default function LandingPage(props) {
                 <Fade in={!loading} timeout={500}>
                     <Typography>
                         Drag and drop srt, ass, mp3, or mkv files. <br />
-                        Install the <Link color="secondary" target="_blank" rel="noreferrer" href="https://github.com/killergerbah/asbplayer/releases/tag/v0.3.0">extension</Link> to sync subtitles with videos in other tabs.
+                        {extensionNotInstalled && (
+                            <span>
+                                Install the <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>extension</Link> to sync subtitles with videos in other tabs.
+                            </span>
+                        )}
+                        {extensionUpdateAvailable && (
+                            <span>
+                                An extension <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>update</Link> is available.
+                            </span>
+                        )}
                     </Typography>
                 </Fade>
             </div>

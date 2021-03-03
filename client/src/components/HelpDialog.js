@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 export default function HelpDialog(props) {
     const classes = useStyles();
-    const {open, onClose} = props;
+    const {open, extensionUrl, onClose} = props;
 
     return (
         <Dialog
@@ -54,7 +54,7 @@ export default function HelpDialog(props) {
                 <Typography>
                     <ol>
                         <li>
-                            Install the Chrome <Link color="secondary" target="_blank" rel="noreferrer" href="https://github.com/killergerbah/asbplayer/releases/tag/v0.3.0">extension</Link>.
+                            Install the Chrome <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>extension</Link>.
                         </li>
                         <li>
                             Load a subtitle file.

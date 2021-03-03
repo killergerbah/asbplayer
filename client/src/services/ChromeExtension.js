@@ -3,6 +3,10 @@ export default class ChromeExtension {
     constructor() {
         this.onMessageCallbacks = [];
         this.tabs = [];
+        this.versionPromise = new Promise((resolve, reject) => {
+            this.versionResolve = resolve;
+        });
+
         window.addEventListener('message', (event) => {
             if (event.source !== window) {
                return;
@@ -12,17 +16,27 @@ export default class ChromeExtension {
                 if (event.data.message) {
                     if (event.data.message.command === 'tabs') {
                         this.tabs = event.data.message.tabs;
-                    } else {
-                        for (let c of this.onMessageCallbacks) {
-                            c({
-                                data: event.data.message,
-                                tabId: event.data.tabId
-                            });
-                        }
+                        return;
+                    }
+
+                    if (event.data.message.command === 'version') {
+                        this.versionResolve(event.data.message.version);
+                        return;
+                    }
+
+                    for (let c of this.onMessageCallbacks) {
+                        c({
+                            data: event.data.message,
+                            tabId: event.data.tabId
+                        });
                     }
                 }
             }
         });
+    }
+
+    async installedVersion() {
+        return await this.versionPromise;
     }
 
     sendMessage(message, tabId) {

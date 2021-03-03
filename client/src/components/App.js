@@ -18,6 +18,9 @@ import SettingsDialog from './SettingsDialog.js';
 import SettingsProvider from '../services/SettingsProvider.js';
 import VideoPlayer from './VideoPlayer.js';
 
+const latestExtensionVersion = "0.3.0";
+const extensionUrl = "https://github.com/killergerbah/asbplayer/releases";
+
 const useStyles = drawerWidth => makeStyles((theme) => ({
     content: {
         flexGrow: 1,
@@ -35,7 +38,6 @@ const useStyles = drawerWidth => makeStyles((theme) => ({
         marginRight: drawerWidth,
     },
 }));
-
 
 function extractSources(files) {
     let subtitleFile = null;
@@ -408,6 +410,7 @@ function App() {
                             />
                             <HelpDialog
                                 open={helpDialogOpen}
+                                extensionUrl={extensionUrl}
                                 onClose={handleCloseHelp}
                             />
                             <Bar
@@ -420,7 +423,12 @@ function App() {
                             />
                             <Content drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen}>
                                 {nothingLoaded && (
-                                    <LandingPage loading={loading} />
+                                    <LandingPage
+                                        latestExtensionVersion={latestExtensionVersion}
+                                        extensionUrl={extensionUrl}
+                                        extension={extension}
+                                        loading={loading}
+                                    />
                                 )}
                                 <Player
                                     subtitleReader={subtitleReader}
