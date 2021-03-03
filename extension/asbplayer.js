@@ -25,7 +25,7 @@ window.addEventListener('DOMContentLoaded', (e) => {
         sender: 'asbplayer-extension-to-player',
         message: {
             command: 'version',
-            version: '0.3.0'
+            version: '0.4.0'
         }
     });
 });
