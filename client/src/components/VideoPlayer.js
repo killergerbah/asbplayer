@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
-import { arrayEquals } from './Util'
-import { detectCopy } from './KeyEvents';
+import { arrayEquals } from '../services/Util'
+import { detectCopy } from '../services/KeyEvents';
 import Alert from './Alert';
-import Clock from './Clock';
+import Clock from '../services/Clock';
 import Controls from './Controls';
-import PlayerChannel from './PlayerChannel';
+import PlayerChannel from '../services/PlayerChannel';
 
 const useStyles = makeStyles({
     root: {

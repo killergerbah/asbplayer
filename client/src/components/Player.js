@@ -1,13 +1,13 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import BroadcastChannelVideoProtocol from './BroadcastChannelVideoProtocol';
-import ChromeTabVideoProtocol from './ChromeTabVideoProtocol';
-import Clock from './Clock';
+import BroadcastChannelVideoProtocol from '../services/BroadcastChannelVideoProtocol';
+import ChromeTabVideoProtocol from '../services/ChromeTabVideoProtocol';
+import Clock from '../services/Clock';
 import Controls from './Controls';
 import Grid from '@material-ui/core/Grid';
-import MediaAdapter from './MediaAdapter';
+import MediaAdapter from '../services/MediaAdapter';
 import SubtitlePlayer from './SubtitlePlayer';
-import VideoChannel from './VideoChannel';
+import VideoChannel from '../services/VideoChannel';
 
 const useStyles = makeStyles({
     root: {

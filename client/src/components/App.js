@@ -9,7 +9,7 @@ import AnkiDialog from './AnkiDialog.js'
 import SubtitleReader from '../services/SubtitleReader.js';
 import MediaClipper from '../services/MediaClipper.js';
 import Bar from './Bar.js';
-import ChromeExtension from './ChromeExtension.js';
+import ChromeExtension from '../services/ChromeExtension.js';
 import CopyHistory from './CopyHistory.js';
 import LandingPage from './LandingPage.js';
 import Player from './Player.js';

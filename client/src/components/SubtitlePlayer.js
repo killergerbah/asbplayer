@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef, createRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { keysAreEqual } from './Util';
-import { detectCopy } from './KeyEvents';
+import { keysAreEqual } from '../services/Util';
+import { detectCopy } from '../services/KeyEvents';
 import { useWindowSize } from '../hooks/useWindowSize';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
