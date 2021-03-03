@@ -6,6 +6,7 @@ import IconButton from '@material-ui/core/IconButton';
 import ListIcon from '@material-ui/icons/List';
 import SettingsIcon from '@material-ui/icons/Settings';
 import Toolbar from '@material-ui/core/Toolbar';
+import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 
 const useStyles = (drawerWidth) => makeStyles((theme) => ({
@@ -44,26 +45,32 @@ export default function Bar(props) {
                 <Typography variant="h6" className={classes.title}>
                     {props.title}
                 </Typography>
-                <IconButton
-                    edge="end"
-                    onClick={props.onOpenHelp}
-                >
-                    <HelpIcon />
-                </IconButton>
-                <IconButton
-                    edge="end"
-                    onClick={props.onOpenSettings}
-                >
-                    <SettingsIcon />
-                </IconButton>
-                <IconButton
-                    edge="end"
-                    color="inherit"
-                    aria-label="menu"
-                    onClick={props.onOpenCopyHistory}
-                    className={clsx(props.drawerOpen && classes.hide)}>
-                    <ListIcon />
-                </IconButton>
+                <Tooltip title="Help">
+                    <IconButton
+                        edge="end"
+                        onClick={props.onOpenHelp}
+                    >
+                        <HelpIcon />
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title="Settings">
+                    <IconButton
+                        edge="end"
+                        onClick={props.onOpenSettings}
+                    >
+                        <SettingsIcon />
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title="Copy history">
+                    <IconButton
+                        edge="end"
+                        color="inherit"
+                        aria-label="menu"
+                        onClick={props.onOpenCopyHistory}
+                        className={clsx(props.drawerOpen && classes.hide)}>
+                        <ListIcon />
+                    </IconButton>
+                </Tooltip>
             </Toolbar>
         </AppBar>
     );

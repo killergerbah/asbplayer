@@ -13,6 +13,7 @@ import ListSubheader from '@material-ui/core/ListSubheader';
 import Popover from '@material-ui/core/Popover';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import StarIcon from '@material-ui/icons/Star';
+import Tooltip from '@material-ui/core/Tooltip';
 
 const useStyles = (drawerWidth) => makeStyles((theme) => ({
     drawer: {
@@ -154,9 +155,11 @@ export default function CopyHistory(props) {
                     classes={{gutters: classes.listItemGutters}}
                 >
                     <ListItemIcon classes={{root: classes.listItemIconRoot}}>
-                        <IconButton onClick={() => props.onAnki(item)}>
-                            <StarIcon fontSize="small" />
-                        </IconButton>
+                        <Tooltip title="Export to Anki">
+                            <IconButton onClick={() => props.onAnki(item)}>
+                                <StarIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
                     </ListItemIcon>
                     <ListItemIcon classes={{root: classes.listItemIconRoot}}>
                         <IconButton onClick={(e) => handleMenu(e, item)}>
