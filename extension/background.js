@@ -145,19 +145,21 @@ chrome.runtime.onMessage.addListener(
 );
 
 chrome.commands.onCommand.addListener((command) => {
-    chrome.tabs.query({active: true}, (tabs) => {
-        if (!tabs || tabs.length === 0) {
-            return;
-        }
-
-        const tab = tabs[0];
-        chrome.tabs.sendMessage(tab.id, {
-            sender: 'asbplayer-extension-to-video',
-            message: {
-                command: 'copy-subtitle'
+    if (command === 'copy-subtitle') {
+        chrome.tabs.query({active: true}, (tabs) => {
+            if (!tabs || tabs.length === 0) {
+                return;
             }
+
+            const tab = tabs[0];
+            chrome.tabs.sendMessage(tab.id, {
+                sender: 'asbplayer-extension-to-video',
+                message: {
+                    command: 'copy-subtitle'
+                }
+            });
         });
-    })
+    }
 });
 
 setInterval(() => {
