@@ -5,10 +5,10 @@ import { useWindowSize } from '../hooks/useWindowSize';
 import clsx from 'clsx';
 import Alert from './Alert.js';
 import Anki from '../services/Anki.js';
-import AnkiDialog from './AnkiDialog.js'
+import AnkiDialog from './AnkiDialog.js';
+import AudioClip from '../services/AudioClip';
 import HelpDialog from './HelpDialog.js';
 import SubtitleReader from '../services/SubtitleReader.js';
-import MediaClipper from '../services/MediaClipper.js';
 import Bar from './Bar.js';
 import ChromeExtension from '../services/ChromeExtension.js';
 import CopyHistory from './CopyHistory.js';
@@ -85,6 +85,28 @@ function extractSources(files) {
     return {subtitleFile: subtitleFile, audioFile: audioFile, videoFile: videoFile}
 }
 
+function audioClipFromItem(item, offset) {
+    if (item.audio) {
+        return AudioClip.fromBase64(
+            item.subtitleFile,
+            item.start,
+            item.end,
+            item.audio.base64,
+            item.audio.extension
+        );
+    }
+
+    if (item.audioFile || item.videoFile) {
+        return AudioClip.fromFile(
+            item.audioFile || item.videoFile,
+            item.originalStart + offset,
+            item.originalEnd + offset,
+            item.audioTrack
+        );
+    }
+
+    return null;
+}
 
 function Content(props) {
     const classes = useStyles(props.drawerWidth)();
@@ -100,7 +122,6 @@ function Content(props) {
 
 function App() {
     const subtitleReader = useMemo(() => new SubtitleReader(), []);
-    const mediaClipper = useMemo(() => new MediaClipper(), []);
     const settingsProvider = useMemo(() => new SettingsProvider(), []);
     const anki = useMemo(() => new Anki(settingsProvider), [settingsProvider]);
     const extension = useMemo(() => new ChromeExtension(), []);
@@ -217,21 +238,12 @@ function App() {
 
     const handleClipAudio = useCallback(async (item) => {
         try {
-            if (item.audio) {
-                await mediaClipper.saveAudio(item.audio.base64, item.audio.extension);
-            } else {
-                const offset = offsetRef.current || 0;
-                await mediaClipper.clipAndSaveAudio(
-                    item.audioFile || item.videoFile,
-                    item.originalStart + offset,
-                    item.originalEnd + offset
-                );
-            }
+            await audioClipFromItem(item, offsetRef.current || 0).download();
         } catch(e) {
             console.error(e);
             handleError(e.message);
         }
-    }, [mediaClipper, handleError]);
+    }, [handleError]);
 
     const handleSelectCopyHistoryItem = useCallback((item) => {
         if (subtitleFile.name !== item.subtitleFile.name) {
@@ -254,30 +266,16 @@ function App() {
         setAnkiDialogDisabled(false);
     }, []);
 
-    const handleAnkiDialogProceed = useCallback(async (text, definition) => {
+    const handleAnkiDialogProceed = useCallback(async (text, definition, audioClip) => {
         setAnkiDialogDisabled(true);
-        const item = ankiDialogItem;
-        const offset = offsetRef.current || 0;
 
         try {
-            let blob = null;
-            let extension = null;
-            const mediaFile = item.audioFile || item.videoFile;
-
-            if (mediaFile) {
-                [blob, extension] = await mediaClipper.clipAudio(
-                    mediaFile,
-                    item.originalStart + offset,
-                    item.originalEnd + offset
-                );
-            }
-
-            const result = await anki.export(settingsProvider.ankiConnectUrl, text, definition, {
-                audioBlob: blob,
-                audioFileName: mediaFile?.name || item.subtitleFile.name,
-                audioFileExtension: extension || item.audio?.extension,
-                audioBase64: item.audio?.base64
-            });
+            const result = await anki.export(
+                settingsProvider.ankiConnectUrl,
+                text,
+                definition,
+                audioClip
+            );
 
             setAlertSeverity("success");
             setAlert("Export succeeded: " + result);
@@ -290,7 +288,7 @@ function App() {
             setAnkiDialogItem(null);
             setAnkiDialogDisabled(false);
         }
-    }, [anki, settingsProvider, mediaClipper, handleError, ankiDialogItem]);
+    }, [anki, settingsProvider, handleError]);
 
     function revokeUrls(sources) {
         if (sources.audioFileUrl) {
@@ -404,6 +402,7 @@ function App() {
                                 open={ankiDialogOpen}
                                 disabled={ankiDialogDisabled}
                                 text={ankiDialogItem?.text}
+                                audioClip={ankiDialogItem && audioClipFromItem(ankiDialogItem, offsetRef.current || 0)}
                                 onCancel={handleAnkiDialogCancel}
                                 onProceed={handleAnkiDialogProceed}
                             />

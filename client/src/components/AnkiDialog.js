@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
@@ -13,11 +13,17 @@ const useStyles = makeStyles((theme) => ({
             margin: theme.spacing(1),
         },
     },
+    audioField: {
+        cursor: 'pointer',
+        '& input': {
+            cursor: 'pointer'
+        }
+    }
 }));
 
 export default function AnkiDialog(props) {
     const classes = useStyles();
-    const {open, disabled, text: initialText, onProceed, onCancel} = props;
+    const {open, disabled, text: initialText, onProceed, onCancel, audioClip} = props;
     const [definition, setDefinition] = useState("");
     const [text, setText] = useState();
 
@@ -28,6 +34,12 @@ export default function AnkiDialog(props) {
     useEffect(() => {
         setDefinition("");
     }, [open]);
+
+    const handlePlayAudio = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        audioClip.play();
+    }, [audioClip]);
 
     return (
         <Dialog
@@ -58,6 +70,19 @@ export default function AnkiDialog(props) {
                         value={definition}
                         onChange={(e) => setDefinition(e.target.value)}
                     />
+                    {audioClip && (
+                        <div
+                            className={classes.audioField}
+                            onClick={handlePlayAudio}
+                        >
+                            <TextField
+                                variant="filled"
+                                fullWidth
+                                value={audioClip.name}
+                                label="Audio"
+                            />
+                        </div>
+                    )}
                 </form>
             </DialogContent>
             <DialogActions>
@@ -68,7 +93,7 @@ export default function AnkiDialog(props) {
                 </Button>
                 <Button
                     disabled={disabled || !definition}
-                    onClick={() => onProceed(text, definition)}
+                    onClick={() => onProceed(text, definition, audioClip)}
                 >
                     Export
                 </Button>

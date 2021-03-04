@@ -19,16 +19,7 @@ export default class Anki {
         return response.result;
     }
 
-    async export(ankiConnectUrl, text, definition, audioOptions) {
-        const {audioBlob, audioFileName, audioFileExtension, audioBase64: providedAudioBase64} = audioOptions;
-        let audioBase64;
-
-        if (providedAudioBase64) {
-            audioBase64 = providedAudioBase64;
-        } else {
-            audioBase64 = audioBlob ? await this._blobToBase64(audioBlob) : null;
-        }
-
+    async export(ankiConnectUrl, text, definition, audioClip) {
         const fields = {};
         fields[this.settingsProvider.sentenceField] = text;
         fields[this.settingsProvider.definitionField] = definition;
@@ -49,10 +40,10 @@ export default class Anki {
             }
         };
 
-        if (audioBase64 && audioFileName) {
+        if (audioClip) {
             params.note.audio = {
-                filename: audioFileName + "_" + Date.now() + "." + audioFileExtension,
-                data: audioBase64,
+                filename: audioClip.name,
+                data: await audioClip.base64(),
                 fields: [
                     this.settingsProvider.audioField
                 ]
@@ -85,17 +76,5 @@ export default class Anki {
         }
 
         return json;
-    }
-
-    async _blobToBase64(blob) {
-        return new Promise((resolve, reject) => {
-            var reader = new FileReader();
-            reader.readAsDataURL(blob);
-            reader.onloadend = () => {
-                const result = reader.result;
-                const base64 = result.substr(result.indexOf(',') + 1);
-                resolve(base64);
-            }
-        });
     }
 }
