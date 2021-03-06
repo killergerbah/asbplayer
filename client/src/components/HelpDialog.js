@@ -76,14 +76,14 @@ export default function HelpDialog(props) {
                     <ul>
                         <li>
                             <div className={classes.inlineIcon}>
-                                Use the &nbsp;<StarIcon fontSize="small" />&nbsp; button next to any subtitle in the copy history.
+                                Use the &nbsp;<StarIcon fontSize="small" />&nbsp; button in the copy history.
                             </div>
                         </li>
                         <li>
-                            Audio will be exported only if the subtitle was copied from a local audio/video file, or from streaming video while audio recording was enabled.
+                            Audio will be exported only if an audio source was available when the subtitle was copied.
                         </li>
                         <li>
-                            Make sure your Anki deck/note type settings are configured correctly by using the settings button in the top right.
+                            Configure Anki settings with the settings button in the top right.
                         </li>
                     </ul>
                 </Typography>
@@ -112,6 +112,20 @@ export default function HelpDialog(props) {
                         </TableBody>
                     </Table>
                 </TableContainer>
+                <br />
+                <Typography variant="h6">
+                    Demos
+                </Typography>
+                <Typography>
+                    <ul>
+                        <li>
+                            <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=Khipc3zLMiA">Sentence mining video files</Link>
+                        </li>
+                        <li>
+                            <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=fau1BNNDrEQ">Sentence mining streaming video</Link>
+                        </li>
+                    </ul>
+                </Typography>
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => onClose()}>OK</Button>
