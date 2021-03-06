@@ -148,7 +148,7 @@ export default function Player(props) {
 
                     setSubtitles(subtitles);
                 } catch (e) {
-                    onError(e);
+                    onError(e.message);
                 } finally {
                     setLoadingSubtitles(false);
                 }

@@ -16,6 +16,7 @@
     "react-router-dom": "5.2.0",
     "react-scripts": "4.0.0",
     "subtitle": "4.0.1",
+    "vtt.js": "0.13.0",
     "web-vitals": "^0.2.4",
     "typeface-roboto": "1.1.13"
   },

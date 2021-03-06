@@ -51,7 +51,7 @@ export default function LandingPage(props) {
             <div className={`${classes.background} ${classes.defaultBackground}`}>
                 <Fade in={!loading} timeout={500}>
                     <Typography>
-                        Drag and drop srt, ass, mp3, or mkv files. <br />
+                        Drag and drop srt, ass, vtt, mp3, and mkv files. <br />
                         {extensionNotInstalled && (
                             <span>
                                 Install the <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>extension</Link> to sync subtitles with videos in other tabs.

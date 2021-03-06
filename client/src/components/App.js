@@ -55,6 +55,7 @@ function extractSources(files) {
         switch (extension) {
             case "ass":
             case "srt":
+            case "vtt":
                 if (subtitleFile) {
                     throw new Error('Cannot open two subtitle files simultaneously');
                 }
