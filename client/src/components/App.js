@@ -18,8 +18,8 @@ import SettingsDialog from './SettingsDialog.js';
 import SettingsProvider from '../services/SettingsProvider.js';
 import VideoPlayer from './VideoPlayer.js';
 
-const latestExtensionVersion = "0.4.0";
-const extensionUrl = "https://github.com/killergerbah/asbplayer/releases";
+const latestExtensionVersion = "0.4.1";
+const extensionUrl = "https://github.com/killergerbah/asbplayer/releases/latest";
 
 const useStyles = drawerWidth => makeStyles((theme) => ({
     content: {
