@@ -151,13 +151,14 @@ chrome.commands.onCommand.addListener((command) => {
                 return;
             }
 
-            const tab = tabs[0];
-            chrome.tabs.sendMessage(tab.id, {
-                sender: 'asbplayer-extension-to-video',
-                message: {
-                    command: 'copy-subtitle'
-                }
-            });
+            for (const tab of tabs) {
+                chrome.tabs.sendMessage(tab.id, {
+                    sender: 'asbplayer-extension-to-video',
+                    message: {
+                        command: 'copy-subtitle'
+                    }
+                });
+            }
         });
     }
 });
