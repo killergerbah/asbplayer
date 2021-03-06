@@ -74,6 +74,7 @@ export default function SettingsDialog(props) {
         setAnkiConnectUrlChangeTimestamp(Date.now());
     }, []);
 
+    const handleRetryAnkiConnectUrl = useCallback((e) => setAnkiConnectUrlChangeTimestamp(Date.now()), []);
     const handleDeckSelectionChange = useCallback((e) => setDeck(e.target.value), []);
     const handleDeckChange = useCallback((e) => setDeck(e.target.value), []);
     const handleNoteTypeSelectionChange = useCallback((e) => setNoteType(e.target.value), []);
@@ -86,31 +87,54 @@ export default function SettingsDialog(props) {
     const handleAudioFieldSelectionChange = useCallback((e) => setAudioField(e.target.value), []);
 
     useEffect(() => {
+        let canceled = false;
+
         const timeout = setTimeout(async () => {
             try {
+                if (canceled) {
+                    return;
+                }
+
                 setDeckNames(await anki.deckNames(ankiConnectUrl));
                 setModelNames(await anki.modelNames(ankiConnectUrl));
                 setAnkiConnectUrlError(null);
             } catch (e) {
+                if (canceled) {
+                    return;
+                }
+
                 console.error(e);
                 setDeckNames(null);
                 setAnkiConnectUrlError(e.message);
             }
         }, 1000);
 
-        return () => clearTimeout(timeout);
+        return () => {
+            canceled = true;
+            clearTimeout(timeout);
+        };
     }, [anki, ankiConnectUrl, ankiConnectUrlChangeTimestamp]);
 
     useEffect(() => {
-        if (!noteType) {
+        if (!noteType || ankiConnectUrlError) {
             return;
         }
 
+        let canceled = false;
+
         async function refreshFieldNames() {
             try {
+                if (canceled) {
+                    return;
+                }
+
                 setFieldNames(await anki.modelFieldNames(ankiConnectUrl, noteType));
                 setAnkiConnectUrlError(null);
             } catch (e) {
+                if (canceled) {
+                    return;
+                }
+
                 console.error(e);
                 setFieldNames(null);
                 setAnkiConnectUrlError(e.message);
@@ -118,7 +142,9 @@ export default function SettingsDialog(props) {
         }
 
         refreshFieldNames();
-    }, [anki, noteType, ankiConnectUrl, ankiConnectUrlChangeTimestamp]);
+
+        return () => canceled = true;
+    }, [anki, noteType, ankiConnectUrl, ankiConnectUrlError, ankiConnectUrlChangeTimestamp]);
 
     const handleClose = useCallback(() => {
         onClose({
@@ -192,6 +218,7 @@ export default function SettingsDialog(props) {
                 </form>
             </DialogContent>
             <DialogActions>
+                <Button onClick={handleRetryAnkiConnectUrl}>Retry Anki URL</Button>
                 <Button onClick={handleClose}>OK</Button>
             </DialogActions>
         </Dialog>
