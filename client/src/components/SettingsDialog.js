@@ -18,6 +18,12 @@ const useStyles = makeStyles((theme) => ({
             margin: theme.spacing(1),
         },
     },
+    subtitleSetting: {
+        '& .MuiTextField-root': {
+            margin: theme.spacing(1),
+            width: 320
+        },
+    }
 }));
 
 const useSelectableSettingStyles = makeStyles((theme) => ({
@@ -68,6 +74,12 @@ export default function SettingsDialog(props) {
     const [definitionField, setDefinitionField] = useState(settings.definitionField || "");
     const [audioField, setAudioField] = useState(settings.audioField || "");
     const [fieldNames, setFieldNames] = useState();
+    const [subtitleColor, setSubtitleColor] = useState(settings.subtitleColor);
+    const [subtitleSize, setSubtitleSize] = useState(settings.subtitleSize);
+    const [subtitleOutlineColor, setSubtitleOutlineColor] = useState(settings.subtitleOutlineColor);
+    const [subtitleOutlineThickness, setSubtitleOutlineThickness] = useState(settings.subtitleOutlineThickness);
+    const [subtitleBackgroundColor, setSubtitleBackgroundColor] = useState(settings.subtitleBackgroundColor);
+    const [subtitleBackgroundOpacity, setSubtitleBackgroundOpacity] = useState(settings.subtitleBackgroundOpacity);
 
     const handleAnkiConnectUrlChange = useCallback((e) => {
         setAnkiConnectUrl(e.target.value);
@@ -85,6 +97,12 @@ export default function SettingsDialog(props) {
     const handleDefinitionFieldSelectionChange = useCallback((e) => setDefinitionField(e.target.value), []);
     const handleAudioFieldChange = useCallback((e) => setAudioField(e.target.value), []);
     const handleAudioFieldSelectionChange = useCallback((e) => setAudioField(e.target.value), []);
+    const handleSubtitleColorChange = useCallback((e) => setSubtitleColor(e.target.value), []);
+    const handleSubtitleSizeChange = useCallback((e) => setSubtitleSize(e.target.value), []);
+    const handleSubtitleOutlineColorChange = useCallback((e) => setSubtitleOutlineColor(e.target.value), []);
+    const handleSubtitleOutlineThicknessChange = useCallback((e) => setSubtitleOutlineThickness(e.target.value), []);
+    const handleSubtitleBackgroundColorChange = useCallback((e) => setSubtitleBackgroundColor(e.target.value), []);
+    const handleSubtitleBackgroundOpacityChange = useCallback((e) => setSubtitleBackgroundOpacity(e.target.value), []);
 
     useEffect(() => {
         let canceled = false;
@@ -153,9 +171,15 @@ export default function SettingsDialog(props) {
             noteType: noteType,
             sentenceField: sentenceField,
             definitionField: definitionField,
-            audioField: audioField
+            audioField: audioField,
+            subtitleSize: Number(subtitleSize),
+            subtitleColor: subtitleColor,
+            subtitleOutlineThickness: Number(subtitleOutlineThickness),
+            subtitleOutlineColor: subtitleOutlineColor,
+            subtitleBackgroundColor: subtitleBackgroundColor,
+            subtitleBackgroundOpacity: Number(subtitleBackgroundOpacity),
         });
-    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField]);
+    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity]);
 
     return (
         <Dialog
@@ -215,6 +239,59 @@ export default function SettingsDialog(props) {
                         onChange={handleAudioFieldChange}
                         onSelectionChange={handleAudioFieldSelectionChange}
                     />
+                    <div className={classes.subtitleSetting}>
+                        <TextField
+                            type="color"
+                            label="Subtitle Color"
+                            value={subtitleColor}
+                            onChange={handleSubtitleColorChange}
+                        />
+                    </div>
+                    <div className={classes.subtitleSetting}>
+                        <TextField
+                            type="number"
+                            label="Subtitle Size"
+                            value={subtitleSize}
+                            onChange={handleSubtitleSizeChange}
+                        />
+                    </div>
+                    <div className={classes.subtitleSetting}>
+                        <TextField
+                            type="color"
+                            label="Subtitle Outline Color"
+                            value={subtitleOutlineColor}
+                            onChange={handleSubtitleOutlineColorChange}
+                        />
+                    </div>
+                    <div className={classes.subtitleSetting}>
+                        <TextField
+                            type="number"
+                            label="Subtitle Outline Thickness"
+                            value={subtitleOutlineThickness}
+                            onChange={handleSubtitleOutlineThicknessChange}
+                        />
+                    </div>
+                    <div className={classes.subtitleSetting}>
+                        <TextField
+                            type="color"
+                            label="Subtitle Background Color"
+                            value={subtitleBackgroundColor}
+                            onChange={handleSubtitleBackgroundColorChange}
+                        />
+                    </div>
+                    <div className={classes.subtitleSetting}>
+                        <TextField
+                            type="number"
+                            label="Subtitle Background Opacity"
+                            inputProps={{
+                                min: 0,
+                                max: 1,
+                                step: 0.1
+                            }}
+                            value={subtitleBackgroundOpacity}
+                            onChange={handleSubtitleBackgroundOpacityChange}
+                        />
+                    </div>
                 </form>
             </DialogContent>
             <DialogActions>

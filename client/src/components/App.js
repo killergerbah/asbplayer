@@ -179,6 +179,12 @@ function App() {
         settingsProvider.sentenceField = newSettings.sentenceField;
         settingsProvider.definitionField = newSettings.definitionField;
         settingsProvider.audioField = newSettings.audioField;
+        settingsProvider.subtitleSize = newSettings.subtitleSize;
+        settingsProvider.subtitleColor = newSettings.subtitleColor;
+        settingsProvider.subtitleOutlineThickness = newSettings.subtitleOutlineThickness;
+        settingsProvider.subtitleOutlineColor = newSettings.subtitleOutlineColor;
+        settingsProvider.subtitleBackgroundColor = newSettings.subtitleBackgroundColor;
+        settingsProvider.subtitleBackgroundOpacity = newSettings.subtitleBackgroundOpacity;
         setSettingsDialogOpen(false);
     }, [settingsProvider]);
 
@@ -460,6 +466,7 @@ function App() {
 
                     return (
                         <VideoPlayer
+                            settingsProvider={settingsProvider}
                             videoFile={videoFile}
                             popOut={popOut}
                             channel={channel}

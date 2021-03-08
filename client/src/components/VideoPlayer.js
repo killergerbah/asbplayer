@@ -22,18 +22,51 @@ const useStyles = makeStyles({
     video: {
         margin: "auto"
     },
-    subtitle: {
+});
+
+// https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+function hexToRgb(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    }
+}
+
+function makeSubtitleStyles(
+    subtitleSize,
+    subtitleColor,
+    subtitleOutlineThickness,
+    subtitleOutlineColor,
+    subtitleBackgroundColor,
+    subtitleBackgroundOpacity
+) {
+    const styles = {
         position: 'absolute',
         paddingLeft: 20,
         paddingRight: 20,
-        width: '100%',
         bottom: 100,
         textAlign: 'center',
-        color: 'white',
-        textShadow: '0 0 2px black, 0 0 2px black, 0 0 2px black, 0 0 2px black',
-        fontSize: 36
+        color: subtitleColor,
+        fontSize: Number(subtitleSize),
+    };
+
+    if (subtitleOutlineThickness > 0) {
+        const thickness = subtitleOutlineThickness;
+        const color = subtitleOutlineColor;
+        styles['textShadow'] = `0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}`;
     }
-});
+
+    if (subtitleBackgroundOpacity > 0) {
+        const opacity = subtitleBackgroundOpacity;
+        const color = subtitleBackgroundColor;
+        const {r, g, b} = hexToRgb(color);
+        styles['backgroundColor'] = `rgba(${r}, ${g}, ${b}, ${opacity})`
+    }
+
+    return styles;
+}
 
 function notifyReady(element, playerChannel, setAudioTracks, setSelectedAudioTrack) {
     if (window.outerWidth && element.videoWidth > 0 && element.videoHeight > 0) {
@@ -112,7 +145,7 @@ function useFullscreen() {
 
 export default function VideoPlayer(props) {
     const classes = useStyles();
-    const {videoFile, channel, popOut, onError} = props;
+    const {settingsProvider, videoFile, channel, popOut, onError} = props;
     const poppingInRef = useRef();
     const videoRef = useRef();
     const [windowWidth, windowHeight] = useWindowSize(true);
@@ -427,6 +460,22 @@ export default function VideoPlayer(props) {
     }, [playerChannel, playing]);
 
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
+    const {subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity} = settingsProvider.subtitleSettings;
+    const subtitleStyles = useMemo(() => makeSubtitleStyles(
+        subtitleSize,
+        subtitleColor,
+        subtitleOutlineThickness,
+        subtitleOutlineColor,
+        subtitleBackgroundColor,
+        subtitleBackgroundOpacity
+    ), [
+        subtitleSize,
+        subtitleColor,
+        subtitleOutlineThickness,
+        subtitleOutlineColor,
+        subtitleBackgroundColor,
+        subtitleBackgroundOpacity
+    ]);
 
     return (
         <div
@@ -441,7 +490,7 @@ export default function VideoPlayer(props) {
                 ref={videoRefCallback}
                 src={videoFile} />
             {subtitlesEnabled && (
-                <div className={classes.subtitle}>
+                <div style={subtitleStyles}>
                     {showSubtitles.map(s => (<React.Fragment key={s.index}>{s.text}<br/></React.Fragment>))}
                 </div>
             )}
