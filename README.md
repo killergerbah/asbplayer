@@ -9,7 +9,7 @@ A browser-based media player intended to assist subtitle sentence mining.
 - Supports audio clipping of video and audio files.
 - Supports audio clipping of streaming video synced through the extension.
 - Implements a clipboard history for asynchronous sentence mining.
-- Supports flashcard creation through AnkiConnect. Flashcards created from local video and audio files will include clipped audio.
+- Supports flashcard creation through AnkiConnect. Flashcards created from local video and audio files, or from streaming video using the extension with audio-recording enabled, will include clipped audio.
 
 asbplayer is hosted at [https://killergerbah.github.io/asbplayer/](https://killergerbah.github.io/asbplayer/).
 
