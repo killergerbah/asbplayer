@@ -27,6 +27,24 @@ const useStyles = (drawerWidth) => makeStyles((theme) => ({
         }),
         marginRight: drawerWidth,
     },
+    copyHistoryButton: {
+        transform: 'scaleX(1)',
+        width: 48,
+        padding: 12,
+        transition: theme.transitions.create(['transform', 'padding', 'width'], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+        })
+    },
+    copyHistoryButtonShift: {
+        transform: 'scaleX(0)',
+        width: 0,
+        padding: 5,
+        transition: theme.transitions.create(['transform', 'padding', 'width'], {
+            easing: theme.transitions.easing.easeOut,
+            duration: theme.transitions.duration.enteringScreen,
+        }),
+    },
     hide: {
         display: 'none'
     }
@@ -34,13 +52,13 @@ const useStyles = (drawerWidth) => makeStyles((theme) => ({
 
 export default function Bar(props) {
     const classes = useStyles(props.drawerWidth)();
-
     return (
         <AppBar
             position="static"
             className={clsx(classes.appBar, {
                 [classes.appBarShift]: props.drawerOpen,
-            })}>
+            })}
+        >
             <Toolbar>
                 <Typography variant="h6" className={classes.title}>
                     {props.title}
@@ -67,7 +85,10 @@ export default function Bar(props) {
                         color="inherit"
                         aria-label="menu"
                         onClick={props.onOpenCopyHistory}
-                        className={clsx(props.drawerOpen && classes.hide)}>
+                        className={clsx(classes.copyHistoryButton, {
+                            [classes.copyHistoryButtonShift]: props.drawerOpen,
+                        })}
+                    >
                         <ListIcon />
                     </IconButton>
                 </Tooltip>
