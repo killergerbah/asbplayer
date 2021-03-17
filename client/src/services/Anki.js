@@ -21,8 +21,8 @@ export default class Anki {
 
     async export(ankiConnectUrl, text, definition, audioClip) {
         const fields = {};
-        fields[this.settingsProvider.sentenceField] = text;
-        fields[this.settingsProvider.definitionField] = definition;
+        fields[this.settingsProvider.sentenceField] = text ? text.split("\n").join("<br>") : text;
+        fields[this.settingsProvider.definitionField] = definition ? definition.split("\n").join("<br>") : definition;
 
         const params = {
             note: {
