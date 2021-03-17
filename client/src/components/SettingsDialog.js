@@ -5,22 +5,26 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
+import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
 import TextField from '@material-ui/core/TextField';
 
 const useStyles = makeStyles((theme) => ({
     root: {
         '& .MuiTextField-root': {
-            margin: theme.spacing(1),
+            marginTop: theme.spacing(1),
+            marginBottom: theme.spacing(1),
         },
     },
     subtitleSetting: {
         '& .MuiTextField-root': {
-            margin: theme.spacing(1),
+            marginTop: theme.spacing(1),
+            marginBottom: theme.spacing(1),
             width: 320
         },
     }
@@ -60,9 +64,25 @@ function SelectableSetting(props) {
     );
 }
 
+function Centered(props) {
+    return (
+        <Grid container
+            spacing={0}
+            direction="row"
+            alignItems="center"
+            justify="center"
+        >
+            <Grid item>
+                {props.children}
+            </Grid>
+        </Grid>
+    );
+}
+
 export default function SettingsDialog(props) {
     const {anki, open, settings, onClose} = props;
     const classes = useStyles();
+    const [tabIndex, setTabIndex] = useState(0);
     const [ankiConnectUrl, setAnkiConnectUrl] = useState(settings.ankiConnectUrl);
     const [ankiConnectUrlError, setAnkiConnectUrlError] = useState();
     const [ankiConnectUrlChangeTimestamp, setAnkiConnectUrlChangeTimestamp] = useState(0);
@@ -185,117 +205,135 @@ export default function SettingsDialog(props) {
         <Dialog
             open={open}
             maxWidth="xs"
+            fullWidth
             onBackdropClick={handleClose}
         >
-            <DialogTitle>
-                Settings
-            </DialogTitle>
-            <DialogContent>
-                <DialogContentText>
-                    Ensure that {window.location.protocol + "//" + window.location.hostname} is in the webCorsOriginList in your AnkiConnect settings.
-                </DialogContentText>
-                <form className={classes.root}>
-                    <div>
-                        <TextField
-                            label="Anki Connect URL"
-                            value={ankiConnectUrl}
-                            error={Boolean(ankiConnectUrlError)}
-                            helperText={ankiConnectUrlError}
-                            onChange={handleAnkiConnectUrlChange}
-                        />
-                    </div>
-                    <SelectableSetting
-                        label="Deck"
-                        value={deck}
-                        selections={deckNames}
-                        onChange={handleDeckChange}
-                        onSelectionChange={handleDeckSelectionChange}
-                    />
-                    <SelectableSetting
-                        label="Note Type"
-                        value={noteType}
-                        selections={modelNames}
-                        onChange={handleNoteTypeChange}
-                        onSelectionChange={handleNoteTypeSelectionChange}
-                    />
-                    <SelectableSetting
-                        label="Sentence Field"
-                        value={sentenceField}
-                        selections={fieldNames}
-                        onChange={handleSentenceFieldChange}
-                        onSelectionChange={handleSentenceFieldSelectionChange}
-                    />
-                    <SelectableSetting
-                        label="Definition Field"
-                        value={definitionField}
-                        selections={fieldNames}
-                        onChange={handleDefinitionFieldChange}
-                        onSelectionChange={handleDefinitionFieldSelectionChange}
-                    />
-                    <SelectableSetting
-                        label="Audio Field"
-                        value={audioField}
-                        selections={fieldNames}
-                        onChange={handleAudioFieldChange}
-                        onSelectionChange={handleAudioFieldSelectionChange}
-                    />
-                    <div className={classes.subtitleSetting}>
-                        <TextField
-                            type="color"
-                            label="Subtitle Color"
-                            value={subtitleColor}
-                            onChange={handleSubtitleColorChange}
-                        />
-                    </div>
-                    <div className={classes.subtitleSetting}>
-                        <TextField
-                            type="number"
-                            label="Subtitle Size"
-                            value={subtitleSize}
-                            onChange={handleSubtitleSizeChange}
-                        />
-                    </div>
-                    <div className={classes.subtitleSetting}>
-                        <TextField
-                            type="color"
-                            label="Subtitle Outline Color"
-                            value={subtitleOutlineColor}
-                            onChange={handleSubtitleOutlineColorChange}
-                        />
-                    </div>
-                    <div className={classes.subtitleSetting}>
-                        <TextField
-                            type="number"
-                            label="Subtitle Outline Thickness"
-                            value={subtitleOutlineThickness}
-                            onChange={handleSubtitleOutlineThicknessChange}
-                        />
-                    </div>
-                    <div className={classes.subtitleSetting}>
-                        <TextField
-                            type="color"
-                            label="Subtitle Background Color"
-                            value={subtitleBackgroundColor}
-                            onChange={handleSubtitleBackgroundColorChange}
-                        />
-                    </div>
-                    <div className={classes.subtitleSetting}>
-                        <TextField
-                            type="number"
-                            label="Subtitle Background Opacity"
-                            inputProps={{
-                                min: 0,
-                                max: 1,
-                                step: 0.1
-                            }}
-                            value={subtitleBackgroundOpacity}
-                            onChange={handleSubtitleBackgroundOpacityChange}
-                        />
-                    </div>
-                </form>
-            </DialogContent>
+            <Tabs
+                value={tabIndex}
+                variant="fullWidth"
+                onChange={(e, newIndex) => setTabIndex(newIndex)}
+            >
+                <Tab label="Anki" />
+                <Tab label="In-Video Subtitles" />
+            </Tabs>
+            {tabIndex === 0 && (
+                <DialogContent>
+                    <DialogContentText>
+                        Ensure that {window.location.protocol + "//" + window.location.hostname} is in the webCorsOriginList in your AnkiConnect settings.
+                    </DialogContentText>
+                    <Centered>
+                        <form className={classes.root}>
+                            <div>
+                                <TextField
+                                    label="Anki Connect URL"
+                                    value={ankiConnectUrl}
+                                    error={Boolean(ankiConnectUrlError)}
+                                    helperText={ankiConnectUrlError}
+                                    onChange={handleAnkiConnectUrlChange}
+                                />
+                            </div>
+                            <SelectableSetting
+                                label="Deck"
+                                value={deck}
+                                selections={deckNames}
+                                onChange={handleDeckChange}
+                                onSelectionChange={handleDeckSelectionChange}
+                            />
+                            <SelectableSetting
+                                label="Note Type"
+                                value={noteType}
+                                selections={modelNames}
+                                onChange={handleNoteTypeChange}
+                                onSelectionChange={handleNoteTypeSelectionChange}
+                            />
+                            <SelectableSetting
+                                label="Sentence Field"
+                                value={sentenceField}
+                                selections={fieldNames}
+                                onChange={handleSentenceFieldChange}
+                                onSelectionChange={handleSentenceFieldSelectionChange}
+                            />
+                            <SelectableSetting
+                                label="Definition Field"
+                                value={definitionField}
+                                selections={fieldNames}
+                                onChange={handleDefinitionFieldChange}
+                                onSelectionChange={handleDefinitionFieldSelectionChange}
+                            />
+                            <SelectableSetting
+                                label="Audio Field"
+                                value={audioField}
+                                selections={fieldNames}
+                                onChange={handleAudioFieldChange}
+                                onSelectionChange={handleAudioFieldSelectionChange}
+                            />
+                        </form>
+                    </Centered>
+                </DialogContent>
+            )}
+            {tabIndex === 1 && (
+                <DialogContent>
+                    <Centered>
+                        <form className={classes.root}>
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="color"
+                                    label="Subtitle Color"
+                                    value={subtitleColor}
+                                    onChange={handleSubtitleColorChange}
+                                />
+                            </div>
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="number"
+                                    label="Subtitle Size"
+                                    value={subtitleSize}
+                                    onChange={handleSubtitleSizeChange}
+                                />
+                            </div>
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="color"
+                                    label="Subtitle Outline Color"
+                                    value={subtitleOutlineColor}
+                                    onChange={handleSubtitleOutlineColorChange}
+                                />
+                            </div>
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="number"
+                                    label="Subtitle Outline Thickness"
+                                    value={subtitleOutlineThickness}
+                                    onChange={handleSubtitleOutlineThicknessChange}
+                                />
+                            </div>
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="color"
+                                    label="Subtitle Background Color"
+                                    value={subtitleBackgroundColor}
+                                    onChange={handleSubtitleBackgroundColorChange}
+                                />
+                            </div>
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="number"
+                                    label="Subtitle Background Opacity"
+                                    inputProps={{
+                                        min: 0,
+                                        max: 1,
+                                        step: 0.1
+                                    }}
+                                    value={subtitleBackgroundOpacity}
+                                    onChange={handleSubtitleBackgroundOpacityChange}
+                                />
+                            </div>
+                        </form>
+                    </Centered>
+                </DialogContent>
+            )}
             <DialogActions>
-                <Button onClick={handleRetryAnkiConnectUrl}>Retry Anki URL</Button>
+                {tabIndex === 0 && (<Button onClick={handleRetryAnkiConnectUrl}>Retry Anki URL</Button>)}
                 <Button onClick={handleClose}>OK</Button>
             </DialogActions>
         </Dialog>
