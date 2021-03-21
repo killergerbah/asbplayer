@@ -43,6 +43,12 @@ export default class ChromeExtension {
         window.postMessage({sender: 'asbplayer', message: message, tabId: tabId}, '*');
     }
 
+    publishMessage(message) {
+        for (const tab of this.tabs) {
+            window.postMessage({sender: 'asbplayer', message: message, tabId: tab.id}, '*');
+        }
+    }
+
     subscribe(callback) {
         this.onMessageCallbacks.push(callback);
     }

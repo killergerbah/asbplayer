@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', (e) => {
     const displaySubtitlesCheckbox = document.getElementById('displaySubtitlesInput');
     const recordAudioCheckbox = document.getElementById('recordAudioInput');
+    const subtitlePositionOffsetBottomInput = document.getElementById('subtitlePositionOffsetBottomInput');
 
     function notifySettingsUpdated() {
         chrome.runtime.sendMessage({
@@ -19,8 +20,14 @@ document.addEventListener('DOMContentLoaded', (e) => {
         chrome.storage.sync.set({recordMedia: recordAudioCheckbox.checked}, () => notifySettingsUpdated());
     });
 
-    chrome.storage.sync.get(['displaySubtitles', 'recordMedia'], (data) => {
+    subtitlePositionOffsetBottomInput.addEventListener('change', (e) => {
+        const offset = Number(subtitlePositionOffsetBottomInput.value);
+        chrome.storage.sync.set({subtitlePositionOffsetBottom: offset}, () => notifySettingsUpdated());
+    });
+
+    chrome.storage.sync.get(['displaySubtitles', 'recordMedia', 'subtitlePositionOffsetBottom'], (data) => {
         displaySubtitlesCheckbox.checked = data.displaySubtitles;
         recordAudioCheckbox.checked = data.recordMedia;
+        subtitlePositionOffsetBottomInput.value = data.subtitlePositionOffsetBottom;
     });
 });

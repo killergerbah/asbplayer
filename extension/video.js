@@ -65,6 +65,7 @@ class Binding {
         this.showingSubtitles = [];
         this.displaySubtitles = true;
         this.recordMedia = true;
+        this.subtitlePositionOffsetBottom = 100;
     }
 
     bind() {
@@ -185,6 +186,10 @@ class Binding {
                     case 'subtitles':
                         this.subtitles = request.message.value;
                         break;
+                    case 'subtitleSettings':
+                        this.subtitleSettings = request.message.value;
+                        this._refreshSettings();
+                        break;
                     case 'settings-updated':
                         this._refreshSettings();
                         break;
@@ -267,9 +272,18 @@ class Binding {
     }
 
     _refreshSettings() {
-        chrome.storage.sync.get(['displaySubtitles', 'recordMedia'], (data) => {
+        chrome.storage.sync.get(['displaySubtitles', 'recordMedia', 'subtitlePositionOffsetBottom'], (data) => {
             this.displaySubtitles = data.displaySubtitles;
             this.recordMedia = data.recordMedia;
+            this.subtitlePositionOffsetBottom = data.subtitlePositionOffsetBottom;
+
+            if (this.fullscreenSubtitlesContainerElement && this.fullscreenSubtitlesElement) {
+                this._applyFullscreenStyles(this.fullscreenSubtitlesContainerElement, this.fullscreenSubtitlesElement);
+            }
+
+            if (this.subtitlesContainerElement && this.subtitlesElement) {
+                this._applyNonFullscreenStyles(this.subtitlesContainerElement, this.subtitlesElement);
+            }
         });
     }
 
@@ -311,72 +325,79 @@ class Binding {
             document.removeEventListener('fullscreenchange', this.subtitlesElementFullscreenChangeListener);
             clearInterval(this.subtitlesElementStylesInterval);
             this.subtitlesElement.remove();
+            this.subtitlesContainerElement.remove();
+            this.subtitlesContainerElement = null;
             this.subtitlesElement = null;
         }
 
         if (this.fullscreenSubtitlesElement) {
             document.removeEventListener('fullscreenchange', this.fullscreenSubtitlesElementFullscreenChangeListener);
             this.fullscreenSubtitlesElement.remove();
+            this.fullscreenSubtitlesContainerElement.remove();
+            this.fullscreenSubtitlesContainerElement = null;
             this.fullscreenSubtitlesElement = null;
         }
     }
 
     _subtitlesElement() {
         if (!this.subtitlesElement) {
-            const div = document.createElement('span');
+            const div = document.createElement('div');
+            const container = document.createElement('div');
+            container.appendChild(div);
+            container.className = "asbplayer-subtitles-container";
             div.className = "asbplayer-subtitles";
-            this._applyNonFullscreenStyles(div);
-            document.body.appendChild(div);
+            this._applyNonFullscreenStyles(container, div);
+            document.body.appendChild(container);
 
             function toggle() {
                 if (document.fullscreenElement) {
-                    div.style.display = "none";
+                    container.style.display = "none";
                 } else {
-                    div.style.display = "inline";
+                    container.style.display = "";
                 }
             }
 
             toggle();
             this.subtitlesElementFullscreenChangeListener = (e) => toggle();
-            this.subtitlesElementStylesInterval = setInterval(() => this._applyNonFullscreenStyles(div), 1000);
+            this.subtitlesElementStylesInterval = setInterval(() => this._applyNonFullscreenStyles(container, div), 1000);
             document.addEventListener('fullscreenchange', this.subtitlesElementFullscreenChangeListener);
             this.subtitlesElement = div;
+            this.subtitlesContainerElement = container;
         }
 
         return this.subtitlesElement;
     }
 
-    _applyNonFullscreenStyles(div) {
+    _applyNonFullscreenStyles(container, div) {
         const rect = this.video.getBoundingClientRect();
+        container.style.maxWidth = rect.width + "px";
         const buffer = Math.max(50, rect.height * 0.2);
-        div.style.top = (rect.top + rect.height + window.pageYOffset - buffer) + "px";
-        div.style.bottom = null;
-        div.style.left = (rect.left + window.pageXOffset) + "px";
-        div.style.width = rect.width + "px";
-        div.style.height = rect.height;
+        container.style.top = (rect.top + rect.height + window.pageYOffset - this.subtitlePositionOffsetBottom) + "px";
+        container.style.bottom = null;
+        container.style.height = rect.height;
+
+        this._applySubtitleSettings(div);
     }
 
     _fullscreenSubtitlesElement() {
         if (!this.fullscreenSubtitlesElement) {
-            const div = document.createElement('span');
+            const div = document.createElement('div');
+            const container = document.createElement('div');
+            container.appendChild(div);
+            container.className = "asbplayer-subtitles-container";
             div.className = "asbplayer-fullscreen-subtitles";
-            const rect = this.video.getBoundingClientRect();
-            div.style.top = null;
-            div.style.bottom = Math.max(70, window.screen.height * 0.1) + "px";
-            div.style.left = "0px";
-            div.style.width = "100%";
-            div.style.height = rect.height;
-            this._findFullscreenSubtitlesContainer().appendChild(div);
-            div.style.display = "none";
+            this._applyFullscreenStyles(container, div);
+            this._findFullscreenSubtitlesContainer().appendChild(container);
+            container.style.display = "none";
             const that = this;
 
             function toggle() {
                 if (document.fullscreenElement) {
-                    div.style.display = "inline";
-                    div.remove();
-                    that._findFullscreenSubtitlesContainer().appendChild(div);
+                    container.style.display = "";
+                    container.remove();
+                    that._findFullscreenSubtitlesContainer().appendChild(container);
                 } else {
-                    div.style.display = "none";
+                    container.style.display = "none";
                 }
             }
 
@@ -384,9 +405,42 @@ class Binding {
             this.fullscreenSubtitlesElementFullscreenChangeListener = (e) => toggle();
             document.addEventListener('fullscreenchange', this.fullscreenSubtitlesElementFullscreenChangeListener);
             this.fullscreenSubtitlesElement = div;
+            this.fullscreenSubtitlesContainerElement = container;
         }
 
         return this.fullscreenSubtitlesElement;
+    }
+
+    _applyFullscreenStyles(container, div) {
+        this._applySubtitleSettings(div);
+        const rect = this.video.getBoundingClientRect();
+        container.style.top = null;
+        container.style.bottom = this.subtitlePositionOffsetBottom + "px";
+        container.style.maxWidth = "100%";
+    }
+
+    _applySubtitleSettings(div) {
+        if (this.subtitleSettings) {
+            div.style.color = this.subtitleSettings.subtitleColor;
+            div.style.fontSize = this.subtitleSettings.subtitleSize + "px";
+
+            if (this.subtitleSettings.subtitleOutlineThickness > 0) {
+                const thickness = this.subtitleSettings.subtitleOutlineThickness;
+                const color = this.subtitleSettings.subtitleOutlineColor;
+                div.style.textShadow = `0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}`;
+            } else {
+                div.style.textShadow = "";
+            }
+
+            if (this.subtitleSettings.subtitleBackgroundOpacity > 0) {
+                const opacity = this.subtitleSettings.subtitleBackgroundOpacity;
+                const color = this.subtitleSettings.subtitleBackgroundColor;
+                const {r, g, b} = this._hexToRgb(color);
+                div.style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${opacity})`
+            } else {
+                div.style.backgroundColor = "";
+            }
+        }
     }
 
     _findFullscreenSubtitlesContainer() {
@@ -428,5 +482,15 @@ class Binding {
         }
 
         return true;
+    }
+
+    // https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+    _hexToRgb(hex) {
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        }
     }
 }

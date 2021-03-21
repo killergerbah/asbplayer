@@ -159,6 +159,10 @@ export default class VideoChannel {
         this.protocol.postMessage({command: 'subtitles', value: subtitles});
     }
 
+    subtitleSettings(settings) {
+        this.protocol.postMessage({command: 'subtitleSettings', value: settings});
+    }
+
     close() {
         this.protocol.postMessage({command: 'close'});
         this.protocol.close();

@@ -73,7 +73,7 @@ function trackLength(audioRef, videoRef, subtitles, useOffset) {
 }
 
 export default function Player(props) {
-    const {subtitleReader, extension, offsetRef, videoFrameRef, drawerOpen, onError, onUnloadVideo, onCopy, onLoaded, disableKeyEvents} = props;
+    const {subtitleReader, settingsProvider, extension, offsetRef, videoFrameRef, drawerOpen, onError, onUnloadVideo, onCopy, onLoaded, disableKeyEvents} = props;
     const {subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl} = props.sources;
     const [tab, setTab] = useState();
     const [subtitles, setSubtitles] = useState();
@@ -179,6 +179,7 @@ export default function Player(props) {
                     channel.ready(lengthRef.current);
 
                     if (subtitles) {
+                        channel.subtitleSettings(settingsProvider.subtitleSettings);
                         channel.subtitles(subtitles);
                     }
 
@@ -247,7 +248,7 @@ export default function Player(props) {
         }
 
         init().then(() => onLoaded());
-    }, [subtitleReader, extension, clock, mediaAdapter, seek, onLoaded, onError, onUnloadVideo, onCopy, subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef]);
+    }, [subtitleReader, extension, settingsProvider, clock, mediaAdapter, seek, onLoaded, onError, onUnloadVideo, onCopy, subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef]);
 
     useEffect(() => {
         if (videoPopOut && channelId && videoFileUrl) {

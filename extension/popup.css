@@ -13,3 +13,8 @@ label {
 .help {
     padding: 5px;
 }
+
+#subtitlePositionOffsetBottomInput {
+    width: 50px;
+    margin-left: 4px;
+}

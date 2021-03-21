@@ -1,19 +1,27 @@
-.asbplayer-subtitles {
+.asbplayer-subtitles-container {
     position: absolute;
-    text-align: center;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: inline-block;
     z-index: 2147483647;
+}
+
+.asbplayer-subtitles {
+    text-align: center;
     color: white;
     text-shadow: 0 0 2px black, 0 0 2px black, 0 0 2px black, 0 0 2px black;
     font-size: 24px;
+    padding-left: 10px;
+    padding-right: 10px;
     user-select: text;
 }
 
 .asbplayer-fullscreen-subtitles {
-    position: absolute;
     text-align: center;
-    z-index: 2147483647;
     color: white;
     text-shadow: 0 0 2px black, 0 0 2px black, 0 0 2px black, 0 0 2px black;
     font-size: 36px;
+    padding-left: 10px;
+    padding-right: 10px;
     user-select: text;
 }

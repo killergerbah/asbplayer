@@ -78,7 +78,7 @@ const tabs = {};
 const recorder = new Recorder();
 
 chrome.runtime.onInstalled.addListener((details) => {
-    chrome.storage.sync.set({displaySubtitles: true, recordMedia: true});
+    chrome.storage.sync.set({displaySubtitles: true, recordMedia: true, subtitlePositionOffsetBottom: 100});
 });
 
 chrome.runtime.onMessage.addListener(

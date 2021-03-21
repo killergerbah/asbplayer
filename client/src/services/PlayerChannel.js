@@ -54,6 +54,9 @@ export default class PlayerChannel {
                         callback(event.data.value);
                     }
                     break;
+                case 'subtitleSettings':
+                    // ignore
+                    break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }

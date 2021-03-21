@@ -187,7 +187,8 @@ function App() {
         settingsProvider.subtitleBackgroundColor = newSettings.subtitleBackgroundColor;
         settingsProvider.subtitleBackgroundOpacity = newSettings.subtitleBackgroundOpacity;
         setSettingsDialogOpen(false);
-    }, [settingsProvider]);
+        extension.publishMessage({command: 'subtitleSettings', value: settingsProvider.subtitleSettings})
+    }, [extension, settingsProvider]);
 
     const handleDeleteCopyHistoryItem = useCallback(item => {
         const newCopiedSubtitles = [];
@@ -446,6 +447,7 @@ function App() {
                                 )}
                                 <Player
                                     subtitleReader={subtitleReader}
+                                    settingsProvider={settingsProvider}
                                     onCopy={handleCopy}
                                     onError={handleError}
                                     onUnloadAudio={handleUnloadAudio}
