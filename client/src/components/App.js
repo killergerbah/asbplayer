@@ -146,6 +146,7 @@ function App() {
     const [ankiDialogItem, setAnkiDialogItem] = useState();
     const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
     const [helpDialogOpen, setHelpDialogOpen] = useState(false);
+    const [disableKeyEvents, setDisableKeyEvents] = useState(false);
     const offsetRef = useRef();
     const { subtitleFile } = sources;
 
@@ -264,12 +265,14 @@ function App() {
         setAnkiDialogItem(item);
         setAnkiDialogOpen(true);
         setAnkiDialogDisabled(false);
+        setDisableKeyEvents(true);
     }, []);
 
     const handleAnkiDialogCancel = useCallback(() => {
         setAnkiDialogOpen(false);
         setAnkiDialogItem(null);
         setAnkiDialogDisabled(false);
+        setDisableKeyEvents(false);
     }, []);
 
     const handleAnkiDialogProceed = useCallback(async (text, definition, audioClip) => {
@@ -293,6 +296,7 @@ function App() {
             setAnkiDialogOpen(false);
             setAnkiDialogItem(null);
             setAnkiDialogDisabled(false);
+            setDisableKeyEvents(false);
         }
     }, [anki, settingsProvider, handleError]);
 
@@ -453,6 +457,7 @@ function App() {
                                     videoFrameRef={videoFrameRef}
                                     extension={extension}
                                     drawerOpen={copyHistoryOpen}
+                                    disableKeyEvents={disableKeyEvents}
                                 />
                             </Content>
                         </div>

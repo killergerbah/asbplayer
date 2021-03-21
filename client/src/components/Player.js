@@ -73,7 +73,7 @@ function trackLength(audioRef, videoRef, subtitles, useOffset) {
 }
 
 export default function Player(props) {
-    const {subtitleReader, extension, offsetRef, videoFrameRef, drawerOpen, onError, onUnloadVideo, onCopy, onLoaded} = props;
+    const {subtitleReader, extension, offsetRef, videoFrameRef, drawerOpen, onError, onUnloadVideo, onCopy, onLoaded, disableKeyEvents} = props;
     const {subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl} = props.sources;
     const [tab, setTab] = useState();
     const [subtitles, setSubtitles] = useState();
@@ -484,6 +484,7 @@ export default function Player(props) {
                             onUnloadVideo={() => props.onUnloadVideo(videoFileUrl)}
                             onOffsetChange={handleOffsetChange}
                             onVolumeChange={handleVolumeChange}
+                            disableKeyEvents={disableKeyEvents}
                         />
                     )}
                     <SubtitlePlayer

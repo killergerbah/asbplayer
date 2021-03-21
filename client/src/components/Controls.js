@@ -307,7 +307,7 @@ function MediaUnloader(props) {
 
 export default function Controls(props) {
     const classes = useControlStyles();
-    const {playing, length, offsetEnabled, displayLength, offset, onAudioTrackSelected, onSeek, mousePositionRef, onPause, onPlay, onTabSelected, onUnloadAudio, onUnloadVideo, onOffsetChange, onVolumeChange} = props;
+    const {playing, length, offsetEnabled, displayLength, offset, onAudioTrackSelected, onSeek, mousePositionRef, onPause, onPlay, onTabSelected, onUnloadAudio, onUnloadVideo, onOffsetChange, onVolumeChange, disableKeyEvents} = props;
     const [show, setShow] = useState(true);
     const [audioTrackSelectorOpen, setAudioTrackSelectorOpen] = useState(false);
     const [audioTrackSelectorAnchorEl, setAudioTrackSelectorAnchorEl] = useState();
@@ -363,6 +363,10 @@ export default function Controls(props) {
     }, [mousePositionRef, setShow, show]);
 
     useEffect(() => {
+        if (disableKeyEvents) {
+            return;
+        }
+
         function handleKey(event) {
             if (event.keyCode === 32) {
                 event.preventDefault();
@@ -391,7 +395,7 @@ export default function Controls(props) {
         return () => {
             window.removeEventListener('keydown', handleKey);
         };
-    }, [playing, onPause, onPlay, onOffsetChange]);
+    }, [playing, onPause, onPlay, onOffsetChange, disableKeyEvents]);
 
     const handleOffsetInputClicked = useCallback((e) => e.target.setSelectionRange(0, e.target.value?.length || 0), []);
 
