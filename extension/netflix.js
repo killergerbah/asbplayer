@@ -3,7 +3,13 @@ setTimeout(() => {
         const netflixVideo = netflix?.appContext?.state?.playerApp?.getAPI?.()?.videoPlayer;
 
         if (netflixVideo) {
-            const playerSessionId = netflixVideo.getAllPlayerSessionIds()[0];
+            const playerSessionIds = netflixVideo.getAllPlayerSessionIds();
+
+            if (playerSessionIds.length === 0) {
+                console.error("No Netflix player session IDs");
+            }
+
+            const playerSessionId = playerSessionIds[playerSessionIds.length - 1];
             const player = netflixVideo.getVideoPlayerBySessionId(playerSessionId);
             player.seek(e.detail);
         } else {
