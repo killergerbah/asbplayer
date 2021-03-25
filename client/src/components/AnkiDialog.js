@@ -23,9 +23,10 @@ const useStyles = makeStyles((theme) => ({
 
 export default function AnkiDialog(props) {
     const classes = useStyles();
-    const {open, disabled, text: initialText, onProceed, onCancel, audioClip} = props;
+    const {open, disabled, text: initialText, onProceed, onCancel, audioClip, source} = props;
     const [definition, setDefinition] = useState("");
     const [text, setText] = useState();
+    const [word, setWord] = useState();
 
     useEffect(() => {
         setText(initialText);
@@ -33,6 +34,7 @@ export default function AnkiDialog(props) {
 
     useEffect(() => {
         setDefinition("");
+        setWord("");
     }, [open]);
 
     const handlePlayAudio = useCallback((e) => {
@@ -70,6 +72,13 @@ export default function AnkiDialog(props) {
                         value={definition}
                         onChange={(e) => setDefinition(e.target.value)}
                     />
+                    <TextField
+                        variant="filled"
+                        fullWidth
+                        label="Word"
+                        value={word}
+                        onChange={(e) => setWord(e.target.value)}
+                    />
                     {audioClip && (
                         <div
                             className={classes.audioField}
@@ -83,6 +92,12 @@ export default function AnkiDialog(props) {
                             />
                         </div>
                     )}
+                    <TextField
+                        variant="filled"
+                        fullWidth
+                        label="Source"
+                        value={source}
+                    />
                 </form>
             </DialogContent>
             <DialogActions>
@@ -92,8 +107,8 @@ export default function AnkiDialog(props) {
                     Cancel
                 </Button>
                 <Button
-                    disabled={disabled || !definition}
-                    onClick={() => onProceed(text, definition, audioClip)}
+                    disabled={disabled}
+                    onClick={() => onProceed(text, definition, audioClip, word, source)}
                 >
                     Export
                 </Button>

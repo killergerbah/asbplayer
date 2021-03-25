@@ -44,7 +44,7 @@ function extractSources(files) {
     let audioFile = null;
     let videoFile = null;
 
-    for(const f of files) {
+    for (const f of files) {
         const extensionStartIndex = f.name.lastIndexOf(".");
 
         if (extensionStartIndex === -1) {
@@ -180,6 +180,8 @@ function App() {
         settingsProvider.sentenceField = newSettings.sentenceField;
         settingsProvider.definitionField = newSettings.definitionField;
         settingsProvider.audioField = newSettings.audioField;
+        settingsProvider.wordField = newSettings.wordField;
+        settingsProvider.sourceField = newSettings.sourceField;
         settingsProvider.subtitleSize = newSettings.subtitleSize;
         settingsProvider.subtitleColor = newSettings.subtitleColor;
         settingsProvider.subtitleOutlineThickness = newSettings.subtitleOutlineThickness;
@@ -276,7 +278,7 @@ function App() {
         setDisableKeyEvents(false);
     }, []);
 
-    const handleAnkiDialogProceed = useCallback(async (text, definition, audioClip) => {
+    const handleAnkiDialogProceed = useCallback(async (text, definition, audioClip, word, source) => {
         setAnkiDialogDisabled(true);
 
         try {
@@ -284,7 +286,9 @@ function App() {
                 settingsProvider.ankiConnectUrl,
                 text,
                 definition,
-                audioClip
+                audioClip,
+                word,
+                source
             );
 
             setAlertSeverity("success");
@@ -414,6 +418,7 @@ function App() {
                                 disabled={ankiDialogDisabled}
                                 text={ankiDialogItem?.text}
                                 audioClip={ankiDialogItem && audioClipFromItem(ankiDialogItem, offsetRef.current || 0)}
+                                source={ankiDialogItem?.subtitleFile?.name}
                                 onCancel={handleAnkiDialogCancel}
                                 onProceed={handleAnkiDialogProceed}
                             />

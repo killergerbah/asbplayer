@@ -19,10 +19,24 @@ export default class Anki {
         return response.result;
     }
 
-    async export(ankiConnectUrl, text, definition, audioClip) {
+    async export(ankiConnectUrl, text, definition, audioClip, word, source) {
         const fields = {};
-        fields[this.settingsProvider.sentenceField] = text ? text.split("\n").join("<br>") : text;
-        fields[this.settingsProvider.definitionField] = definition ? definition.split("\n").join("<br>") : definition;
+
+        if (this.settingsProvider.sentenceField && text) {
+            fields[this.settingsProvider.sentenceField] = text ? text.split("\n").join("<br>") : text;
+        }
+
+        if (this.settingsProvider.definitionField && definition) {
+            fields[this.settingsProvider.definitionField] = definition ? definition.split("\n").join("<br>") : definition;
+        }
+
+        if (this.settingsProvider.wordField && word) {
+            fields[this.settingsProvider.wordField] = word;
+        }
+
+        if (this.settingsProvider.sourceField && source) {
+            fields[this.settingsProvider.sourceField] = source;
+        }
 
         const params = {
             note: {

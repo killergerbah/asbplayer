@@ -93,6 +93,8 @@ export default function SettingsDialog(props) {
     const [sentenceField, setSentenceField] = useState(settings.sentenceField || "");
     const [definitionField, setDefinitionField] = useState(settings.definitionField || "");
     const [audioField, setAudioField] = useState(settings.audioField || "");
+    const [wordField, setWordField] = useState(settings.wordField || "");
+    const [sourceField, setSourceField] = useState(settings.sourceField || "");
     const [fieldNames, setFieldNames] = useState();
     const [subtitleColor, setSubtitleColor] = useState(settings.subtitleColor);
     const [subtitleSize, setSubtitleSize] = useState(settings.subtitleSize);
@@ -117,6 +119,10 @@ export default function SettingsDialog(props) {
     const handleDefinitionFieldSelectionChange = useCallback((e) => setDefinitionField(e.target.value), []);
     const handleAudioFieldChange = useCallback((e) => setAudioField(e.target.value), []);
     const handleAudioFieldSelectionChange = useCallback((e) => setAudioField(e.target.value), []);
+    const handleWordFieldChange = useCallback((e) => setWordField(e.target.value), []);
+    const handleWordFieldSelectionChange = useCallback((e) => setWordField(e.target.value), []);
+    const handleSourceFieldChange = useCallback((e) => setSourceField(e.target.value), []);
+    const handleSourceFieldSelectionChange = useCallback((e) => setSourceField(e.target.value), []);
     const handleSubtitleColorChange = useCallback((e) => setSubtitleColor(e.target.value), []);
     const handleSubtitleSizeChange = useCallback((e) => setSubtitleSize(e.target.value), []);
     const handleSubtitleOutlineColorChange = useCallback((e) => setSubtitleOutlineColor(e.target.value), []);
@@ -166,7 +172,7 @@ export default function SettingsDialog(props) {
                     return;
                 }
 
-                setFieldNames(await anki.modelFieldNames(ankiConnectUrl, noteType));
+                setFieldNames(["", ...await anki.modelFieldNames(ankiConnectUrl, noteType)]);
                 setAnkiConnectUrlError(null);
             } catch (e) {
                 if (canceled) {
@@ -192,6 +198,8 @@ export default function SettingsDialog(props) {
             sentenceField: sentenceField,
             definitionField: definitionField,
             audioField: audioField,
+            wordField: wordField,
+            sourceField: sourceField,
             subtitleSize: Number(subtitleSize),
             subtitleColor: subtitleColor,
             subtitleOutlineThickness: Number(subtitleOutlineThickness),
@@ -199,7 +207,7 @@ export default function SettingsDialog(props) {
             subtitleBackgroundColor: subtitleBackgroundColor,
             subtitleBackgroundOpacity: Number(subtitleBackgroundOpacity),
         });
-    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity]);
+    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, wordField, sourceField, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity]);
 
     return (
         <Dialog
@@ -220,6 +228,7 @@ export default function SettingsDialog(props) {
                 <DialogContent>
                     <DialogContentText>
                         Ensure that {window.location.protocol + "//" + window.location.hostname} is in the webCorsOriginList in your AnkiConnect settings.
+                        Leaving a field blank is fine.
                     </DialogContentText>
                     <Centered>
                         <form className={classes.root}>
@@ -261,11 +270,25 @@ export default function SettingsDialog(props) {
                                 onSelectionChange={handleDefinitionFieldSelectionChange}
                             />
                             <SelectableSetting
+                                label="Word Field"
+                                value={wordField}
+                                selections={fieldNames}
+                                onChange={handleWordFieldChange}
+                                onSelectionChange={handleWordFieldSelectionChange}
+                            />
+                            <SelectableSetting
                                 label="Audio Field"
                                 value={audioField}
                                 selections={fieldNames}
                                 onChange={handleAudioFieldChange}
                                 onSelectionChange={handleAudioFieldSelectionChange}
+                            />
+                            <SelectableSetting
+                                label="Source Field"
+                                value={sourceField}
+                                selections={fieldNames}
+                                onChange={handleSourceFieldChange}
+                                onSelectionChange={handleSourceFieldSelectionChange}
                             />
                         </form>
                     </Centered>

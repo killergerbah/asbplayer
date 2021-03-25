@@ -12,6 +12,8 @@ const noteTypeKey = "noteType";
 const sentenceFieldKey = "sentenceField";
 const definitionFieldKey = "definitionField";
 const audioFieldKey = "audioField";
+const wordFieldKey = "wordField";
+const sourceFieldKey = "sourceField";
 const subtitleSizeKey = "subtitleSize";
 const subtitleColorKey = "subtitleColor";
 const subtitleOutlineThicknessKey = "subtitleOutlineThickness";
@@ -29,6 +31,8 @@ export default class SettingsProvider {
             sentenceField: localStorage.getItem(sentenceFieldKey),
             definitionField: localStorage.getItem(definitionFieldKey),
             audioField: localStorage.getItem(audioFieldKey),
+            wordField: localStorage.getItem(wordFieldKey),
+            sourceField: localStorage.getItem(sourceFieldKey),
             subtitleSize: localStorage.getItem(subtitleSizeKey) || defaultSubtitleSize,
             subtitleColor: localStorage.getItem(subtitleColorKey) || defaultSubtitleColor,
             subtitleOutlineThickness: localStorage.getItem(subtitleOutlineThicknessKey) || defaultSubtitleOutlineThickness,
@@ -95,6 +99,22 @@ export default class SettingsProvider {
 
     set audioField(audioField) {
         localStorage.setItem(audioFieldKey, audioField);
+    }
+
+    get wordField() {
+        return localStorage.getItem(wordFieldKey);
+    }
+
+    set wordField(wordField) {
+        localStorage.setItem(wordFieldKey, wordField);
+    }
+
+    get sourceField() {
+        return localStorage.getItem(sourceFieldKey);
+    }
+
+    set sourceField(sourceField) {
+        localStorage.setItem(sourceFieldKey, sourceField);
     }
 
     get subtitleColor() {
