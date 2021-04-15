@@ -18,6 +18,10 @@ asbplayer is hosted at [https://killergerbah.github.io/asbplayer/](https://kille
 - [Sentence mining video files with asbplayer](https://www.youtube.com/watch?v=Khipc3zLMiA)
 - [Sentence mining streaming video with asbplayer](https://www.youtube.com/watch?v=fau1BNNDrEQ)
 
+## Guides
+
+- [Sentence mining streaming workflow](https://learnjapanese.moe/streamworkflow/)
+
 ## Browser compatibility
 
 - Tested on Chrome 88 and Firefox 86.

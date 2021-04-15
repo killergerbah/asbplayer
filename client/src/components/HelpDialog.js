@@ -126,6 +126,16 @@ export default function HelpDialog(props) {
                         </li>
                     </ul>
                 </Typography>
+                <Typography variant="h6">
+                    Guides
+                </Typography>
+                <Typography>
+                    <ul>
+                        <li>
+                            <Link color="secondary" target="_blank" rel="noreferrer" href="https://learnjapanese.moe/streamworkflow/">Sentence mining streaming workflow</Link>
+                        </li>
+                    </ul>
+                </Typography>
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => onClose()}>OK</Button>
