@@ -68,6 +68,7 @@ function extractSources(files) {
                 videoFile = f;
                 break;
             case "mp3":
+            case "m4a":
                 if (audioFile) {
                     throw new Error('Cannot open two audio files simultaneously');
                 }
