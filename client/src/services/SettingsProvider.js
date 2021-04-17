@@ -4,7 +4,8 @@ const defaultSubtitleColor = "#ffffff";
 const defaultSubtitleOutlineThickness = 0;
 const defaultSubtitleOutlineColor = "#000000";
 const defaultSubtitleBackgroundColor = "#000000";
-const defaultSubtitleBackgroundOpacity = 0.5
+const defaultSubtitleBackgroundOpacity = 0.5;
+const defaultVolume = 100;
 
 const ankiConnectUrlKey = "ankiConnectUrl";
 const deckKey = "deck";
@@ -20,6 +21,7 @@ const subtitleOutlineThicknessKey = "subtitleOutlineThickness";
 const subtitleOutlineColorKey = "subtitleOutlineColor";
 const subtitleBackgroundColorKey = "subtitleBackgroundColor";
 const subtitleBackgroundOpacityKey = "subtitleBackgroundOpacity";
+const volumeKey = "volume";
 
 export default class SettingsProvider {
 
@@ -163,5 +165,13 @@ export default class SettingsProvider {
 
     set subtitleBackgroundOpacity(subtitleBackgroundOpacity) {
         localStorage.setItem(subtitleBackgroundOpacityKey, subtitleBackgroundOpacity);
+    }
+
+    get volume() {
+        return localStorage.getItem(volumeKey) || defaultVolume;
+    }
+
+    set volume(volume) {
+        localStorage.setItem(volumeKey, volume);
     }
 }

@@ -486,6 +486,7 @@ export default function Player(props) {
                             onOffsetChange={handleOffsetChange}
                             onVolumeChange={handleVolumeChange}
                             disableKeyEvents={disableKeyEvents}
+                            settingsProvider={settingsProvider}
                         />
                     )}
                     <SubtitlePlayer

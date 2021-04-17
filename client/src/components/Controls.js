@@ -307,7 +307,7 @@ function MediaUnloader(props) {
 
 export default function Controls(props) {
     const classes = useControlStyles();
-    const {playing, length, offsetEnabled, displayLength, offset, onAudioTrackSelected, onSeek, mousePositionRef, onPause, onPlay, onTabSelected, onUnloadAudio, onUnloadVideo, onOffsetChange, onVolumeChange, disableKeyEvents} = props;
+    const {playing, length, offsetEnabled, displayLength, offset, onAudioTrackSelected, onSeek, mousePositionRef, onPause, onPlay, onTabSelected, onUnloadAudio, onUnloadVideo, onOffsetChange, onVolumeChange, disableKeyEvents, settingsProvider} = props;
     const [show, setShow] = useState(true);
     const [audioTrackSelectorOpen, setAudioTrackSelectorOpen] = useState(false);
     const [audioTrackSelectorAnchorEl, setAudioTrackSelectorAnchorEl] = useState();
@@ -339,6 +339,15 @@ export default function Controls(props) {
     function handleMouseOut(e) {
         forceShowRef.current = false;
     };
+
+    useEffect(() => {
+        setVolume(settingsProvider.volume);
+        onVolumeChange(settingsProvider.volume / 100);
+
+        if (settingsProvider.volume > 0) {
+            setLastCommittedVolume(settingsProvider.volume);
+        }
+    }, [settingsProvider, onVolumeChange]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -493,7 +502,9 @@ export default function Controls(props) {
         if (value > 0) {
             setLastCommittedVolume(value);
         }
-    }, []);
+
+        settingsProvider.volume = value;
+    }, [settingsProvider]);
 
     const handleVolumeToggle = useCallback((e, value) => {
         setVolume((volume) => {

@@ -531,6 +531,7 @@ export default function VideoPlayer(props) {
                 onOffsetChange={handleOffsetChange}
                 onPopOutToggle={handlePopOutToggle}
                 onClose={handleClose}
+                settingsProvider={settingsProvider}
             />
         </div>
     );
