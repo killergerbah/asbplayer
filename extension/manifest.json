@@ -8,7 +8,7 @@
         "48": "icon48.png",
         "128": "icon128.png"
     },
-    "permissions": ["tabs", "tabCapture", "storage"],
+    "permissions": ["tabs", "tabCapture", "activeTab", "storage"],
     "browser_action": {
         "default_title": "asbplayer",
         "default_popup": "popup.html"

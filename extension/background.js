@@ -74,11 +74,39 @@ class Recorder {
     }
 }
 
+function crop(dataUrl, rect) {
+    return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(image, rect.left, rect.top, rect.width, rect.height, 0, 0, rect.width, rect.height);
+            resolve(canvas.toDataURL('image/jpeg'));
+        };
+        image.src = dataUrl;
+    });
+}
+
+function captureVisibleTab(rect) {
+    return new Promise(async (resolve, reject) => {
+        chrome.tabs.captureVisibleTab(
+            null,
+            {format: 'jpeg'},
+            async (dataUrl) => {
+                const croppedDataUrl = await crop(dataUrl, rect);
+                resolve(croppedDataUrl.substr(croppedDataUrl.indexOf(',') + 1));
+            }
+        );
+    });
+}
+
 const tabs = {};
 const recorder = new Recorder();
 
 chrome.runtime.onInstalled.addListener((details) => {
-    chrome.storage.sync.set({displaySubtitles: true, recordMedia: true, subtitlePositionOffsetBottom: 100});
+    chrome.storage.sync.set({displaySubtitles: true, recordMedia: true, screenshot: true, subtitlePositionOffsetBottom: 100});
 });
 
 chrome.runtime.onMessage.addListener(
@@ -97,12 +125,31 @@ chrome.runtime.onMessage.addListener(
                     subtitle: subtitle
                 };
 
+                let audioPromise = null;
+                let imagePromise = null;
+
                 if (request.message.record) {
                     const time = subtitle.end - subtitle.start + 500;
-                    const audioBase64 = await recorder.record(time);
+                    audioPromise = recorder.record(time);
+                }
+
+                if (request.message.screenshot) {
+                    imagePromise = captureVisibleTab(request.message.rect);
+                }
+
+                if (audioPromise) {
+                    const audioBase64 = await audioPromise;
                     message['audio'] = {
                         base64: audioBase64,
                         extension: 'webm'
+                    };
+                }
+
+                if (imagePromise) {
+                    const imageBase64 = await imagePromise;
+                    message['image'] = {
+                        base64: imageBase64,
+                        extension: 'jpeg'
                     };
                 }
 

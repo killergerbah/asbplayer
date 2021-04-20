@@ -13,6 +13,7 @@ const noteTypeKey = "noteType";
 const sentenceFieldKey = "sentenceField";
 const definitionFieldKey = "definitionField";
 const audioFieldKey = "audioField";
+const imageFieldKey = "imageField";
 const wordFieldKey = "wordField";
 const sourceFieldKey = "sourceField";
 const subtitleSizeKey = "subtitleSize";
@@ -33,6 +34,7 @@ export default class SettingsProvider {
             sentenceField: localStorage.getItem(sentenceFieldKey),
             definitionField: localStorage.getItem(definitionFieldKey),
             audioField: localStorage.getItem(audioFieldKey),
+            imageField: localStorage.getItem(imageFieldKey),
             wordField: localStorage.getItem(wordFieldKey),
             sourceField: localStorage.getItem(sourceFieldKey),
             subtitleSize: localStorage.getItem(subtitleSizeKey) || defaultSubtitleSize,
@@ -101,6 +103,14 @@ export default class SettingsProvider {
 
     set audioField(audioField) {
         localStorage.setItem(audioFieldKey, audioField);
+    }
+
+    get imageField() {
+        return localStorage.getItem(imageFieldKey);
+    }
+
+    set imageField(imageField) {
+        localStorage.setItem(imageFieldKey, imageField);
     }
 
     get wordField() {

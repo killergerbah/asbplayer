@@ -19,7 +19,7 @@ export default class Anki {
         return response.result;
     }
 
-    async export(ankiConnectUrl, text, definition, audioClip, word, source) {
+    async export(ankiConnectUrl, text, definition, audioClip, image, word, source) {
         const fields = {};
 
         if (this.settingsProvider.sentenceField && text) {
@@ -54,7 +54,7 @@ export default class Anki {
             }
         };
 
-        if (audioClip) {
+        if (this.settingsProvider.audioField && audioClip) {
             params.note.audio = {
                 filename: audioClip.name,
                 data: await audioClip.base64(),
@@ -62,6 +62,16 @@ export default class Anki {
                     this.settingsProvider.audioField
                 ]
             };
+        }
+
+        if (this.settingsProvider.imageField && image) {
+            params.note.picture = {
+                filename: image.name,
+                data: await image.base64(),
+                fields: [
+                    this.settingsProvider.imageField
+                ]
+            }
         }
 
         const response = await this._executeAction(ankiConnectUrl, 'addNote', params);

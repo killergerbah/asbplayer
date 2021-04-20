@@ -93,6 +93,7 @@ export default function SettingsDialog(props) {
     const [sentenceField, setSentenceField] = useState(settings.sentenceField || "");
     const [definitionField, setDefinitionField] = useState(settings.definitionField || "");
     const [audioField, setAudioField] = useState(settings.audioField || "");
+    const [imageField, setImageField] = useState(settings.imageField || "");
     const [wordField, setWordField] = useState(settings.wordField || "");
     const [sourceField, setSourceField] = useState(settings.sourceField || "");
     const [fieldNames, setFieldNames] = useState();
@@ -119,6 +120,8 @@ export default function SettingsDialog(props) {
     const handleDefinitionFieldSelectionChange = useCallback((e) => setDefinitionField(e.target.value), []);
     const handleAudioFieldChange = useCallback((e) => setAudioField(e.target.value), []);
     const handleAudioFieldSelectionChange = useCallback((e) => setAudioField(e.target.value), []);
+    const handleImageFieldChange = useCallback((e) => setImageField(e.target.value), []);
+    const handleImageFieldSelectionChange = useCallback((e) => setImageField(e.target.value), []);
     const handleWordFieldChange = useCallback((e) => setWordField(e.target.value), []);
     const handleWordFieldSelectionChange = useCallback((e) => setWordField(e.target.value), []);
     const handleSourceFieldChange = useCallback((e) => setSourceField(e.target.value), []);
@@ -198,6 +201,7 @@ export default function SettingsDialog(props) {
             sentenceField: sentenceField,
             definitionField: definitionField,
             audioField: audioField,
+            imageField: imageField,
             wordField: wordField,
             sourceField: sourceField,
             subtitleSize: Number(subtitleSize),
@@ -207,7 +211,7 @@ export default function SettingsDialog(props) {
             subtitleBackgroundColor: subtitleBackgroundColor,
             subtitleBackgroundOpacity: Number(subtitleBackgroundOpacity),
         });
-    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, wordField, sourceField, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity]);
+    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, imageField, wordField, sourceField, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity]);
 
     return (
         <Dialog
@@ -282,6 +286,13 @@ export default function SettingsDialog(props) {
                                 selections={fieldNames}
                                 onChange={handleAudioFieldChange}
                                 onSelectionChange={handleAudioFieldSelectionChange}
+                            />
+                            <SelectableSetting
+                                label="Image Field"
+                                value={imageField}
+                                selections={fieldNames}
+                                onChange={handleImageFieldChange}
+                                onSelectionChange={handleImageFieldSelectionChange}
                             />
                             <SelectableSetting
                                 label="Source Field"

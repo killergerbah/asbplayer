@@ -10,10 +10,10 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 const useStyles = makeStyles((theme) => ({
     root: {
         '& .MuiTextField-root': {
-            margin: theme.spacing(1),
+            marginBottom: theme.spacing(1),
         },
     },
-    audioField: {
+    mediaField: {
         cursor: 'pointer',
         '& input': {
             cursor: 'pointer'
@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function AnkiDialog(props) {
     const classes = useStyles();
-    const {open, disabled, text: initialText, onProceed, onCancel, audioClip, source} = props;
+    const {open, disabled, text: initialText, onProceed, onCancel, onViewImage, audioClip, image, source} = props;
     const [definition, setDefinition] = useState("");
     const [text, setText] = useState();
     const [word, setWord] = useState();
@@ -33,8 +33,10 @@ export default function AnkiDialog(props) {
     }, [initialText]);
 
     useEffect(() => {
-        setDefinition("");
-        setWord("");
+        if (open) {
+             setDefinition("");
+             setWord("");
+        }
     }, [open]);
 
     const handlePlayAudio = useCallback((e) => {
@@ -42,6 +44,12 @@ export default function AnkiDialog(props) {
         e.stopPropagation();
         audioClip.play();
     }, [audioClip]);
+
+    const handleViewImage = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onViewImage(image);
+    }, [image, onViewImage]);
 
     return (
         <Dialog
@@ -81,7 +89,7 @@ export default function AnkiDialog(props) {
                     />
                     {audioClip && (
                         <div
-                            className={classes.audioField}
+                            className={classes.mediaField}
                             onClick={handlePlayAudio}
                         >
                             <TextField
@@ -89,6 +97,19 @@ export default function AnkiDialog(props) {
                                 fullWidth
                                 value={audioClip.name}
                                 label="Audio"
+                            />
+                        </div>
+                    )}
+                    {image && (
+                        <div
+                            className={classes.mediaField}
+                            onClick={handleViewImage}
+                        >
+                            <TextField
+                                variant="filled"
+                                fullWidth
+                                value={image.name}
+                                label="Image"
                             />
                         </div>
                     )}
@@ -108,7 +129,7 @@ export default function AnkiDialog(props) {
                 </Button>
                 <Button
                     disabled={disabled}
-                    onClick={() => onProceed(text, definition, audioClip, word, source)}
+                    onClick={() => onProceed(text, definition, audioClip, image, word, source)}
                 >
                     Export
                 </Button>

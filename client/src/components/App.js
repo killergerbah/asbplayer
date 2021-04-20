@@ -8,10 +8,12 @@ import Anki from '../services/Anki.js';
 import AnkiDialog from './AnkiDialog.js';
 import AudioClip from '../services/AudioClip';
 import HelpDialog from './HelpDialog.js';
+import ImageDialog from './ImageDialog.js';
 import SubtitleReader from '../services/SubtitleReader.js';
 import Bar from './Bar.js';
 import ChromeExtension from '../services/ChromeExtension.js';
 import CopyHistory from './CopyHistory.js';
+import Image from '../services/Image';
 import LandingPage from './LandingPage.js';
 import Player from './Player.js';
 import SettingsDialog from './SettingsDialog.js';
@@ -109,6 +111,26 @@ function audioClipFromItem(item, offset) {
     return null;
 }
 
+function imageFromItem(item, offset) {
+    if (item.image) {
+        return Image.fromBase64(
+            item.subtitleFile,
+            item.start,
+            item.image.base64,
+            item.image.extension
+        );
+    }
+
+    if (item.videoFile) {
+        return Image.fromFile(
+            item.videoFile,
+            item.originalStart + offset
+        );
+    }
+
+    return null;
+}
+
 function Content(props) {
     const classes = useStyles(props.drawerWidth)();
     return (
@@ -147,11 +169,13 @@ function App() {
     const [ankiDialogItem, setAnkiDialogItem] = useState();
     const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
     const [helpDialogOpen, setHelpDialogOpen] = useState(false);
+    const [imageDialogOpen, setImageDialogOpen] = useState(false);
     const [disableKeyEvents, setDisableKeyEvents] = useState(false);
+    const [image, setImage] = useState();
     const offsetRef = useRef();
     const { subtitleFile } = sources;
 
-    const handleCopy = useCallback((subtitle, audioFile, videoFile, subtitleFile, audioTrack, audio) => {
+    const handleCopy = useCallback((subtitle, audioFile, videoFile, subtitleFile, audioTrack, audio, image) => {
         setCopiedSubtitles(copiedSubtitles => [...copiedSubtitles, {
             ...subtitle,
             timestamp: Date.now(),
@@ -160,7 +184,8 @@ function App() {
             audioFile: audioFile,
             videoFile: videoFile,
             audioTrack: audioTrack,
-            audio: audio
+            audio: audio,
+            image: image
         }]);
         setAlertSeverity("success");
         setAlert("Copied " + subtitle.text);
@@ -173,6 +198,7 @@ function App() {
     const handleOpenHelp = useCallback(() => setHelpDialogOpen(true), []);
     const handleCloseHelp = useCallback(() => setHelpDialogOpen(false), []);
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
+    const handleImageDialogClosed = useCallback(() => setImageDialogOpen(false), []);
     const handleCloseSettings = useCallback((newSettings) => {
         settingsProvider.ankiConnectUrl = newSettings.ankiConnectUrl;
         settingsProvider.deck = newSettings.deck;
@@ -181,6 +207,7 @@ function App() {
         settingsProvider.sentenceField = newSettings.sentenceField;
         settingsProvider.definitionField = newSettings.definitionField;
         settingsProvider.audioField = newSettings.audioField;
+        settingsProvider.imageField = newSettings.imageField;
         settingsProvider.wordField = newSettings.wordField;
         settingsProvider.sourceField = newSettings.sourceField;
         settingsProvider.subtitleSize = newSettings.subtitleSize;
@@ -256,6 +283,15 @@ function App() {
         }
     }, [handleError]);
 
+    const handleDownloadImage = useCallback(async (item) => {
+        try {
+            await imageFromItem(item, offsetRef.current || 0).download();
+        } catch(e) {
+            console.error(e);
+            handleError(e.message);
+        }
+    }, [handleError]);
+
     const handleSelectCopyHistoryItem = useCallback((item) => {
         if (subtitleFile.name !== item.subtitleFile.name) {
             handleError("Subtitle file " + item.subtitleFile.name + " is not open.");
@@ -274,12 +310,11 @@ function App() {
 
     const handleAnkiDialogCancel = useCallback(() => {
         setAnkiDialogOpen(false);
-        setAnkiDialogItem(null);
         setAnkiDialogDisabled(false);
         setDisableKeyEvents(false);
     }, []);
 
-    const handleAnkiDialogProceed = useCallback(async (text, definition, audioClip, word, source) => {
+    const handleAnkiDialogProceed = useCallback(async (text, definition, audioClip, image, word, source) => {
         setAnkiDialogDisabled(true);
 
         try {
@@ -288,6 +323,7 @@ function App() {
                 text,
                 definition,
                 audioClip,
+                image,
                 word,
                 source
             );
@@ -300,11 +336,15 @@ function App() {
             handleError(e.message);
         } finally {
             setAnkiDialogOpen(false);
-            setAnkiDialogItem(null);
             setAnkiDialogDisabled(false);
             setDisableKeyEvents(false);
         }
     }, [anki, settingsProvider, handleError]);
+
+    const handleViewImage = useCallback((image) => {
+        setImage(image);
+        setImageDialogOpen(true);
+    }, []);
 
     function revokeUrls(sources) {
         if (sources.audioFileUrl) {
@@ -411,6 +451,7 @@ function App() {
                                 onClose={handleCloseCopyHistory}
                                 onDelete={handleDeleteCopyHistoryItem}
                                 onClipAudio={handleClipAudio}
+                                onDownloadImage={handleDownloadImage}
                                 onSelect={handleSelectCopyHistoryItem}
                                 onAnki={handleAnki}
                             />
@@ -419,9 +460,16 @@ function App() {
                                 disabled={ankiDialogDisabled}
                                 text={ankiDialogItem?.text}
                                 audioClip={ankiDialogItem && audioClipFromItem(ankiDialogItem, offsetRef.current || 0)}
+                                image={ankiDialogItem && imageFromItem(ankiDialogItem, offsetRef.current || 0)}
                                 source={ankiDialogItem?.subtitleFile?.name}
                                 onCancel={handleAnkiDialogCancel}
                                 onProceed={handleAnkiDialogProceed}
+                                onViewImage={handleViewImage}
+                            />
+                            <ImageDialog
+                                open={imageDialogOpen}
+                                image={image}
+                                onClose={handleImageDialogClosed}
                             />
                             <SettingsDialog
                                 anki={anki}

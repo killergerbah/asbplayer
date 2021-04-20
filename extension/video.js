@@ -65,6 +65,7 @@ class Binding {
         this.showingSubtitles = [];
         this.displaySubtitles = true;
         this.recordMedia = true;
+        this.screenshot = true;
         this.subtitlePositionOffsetBottom = 100;
     }
 
@@ -250,13 +251,26 @@ class Binding {
                 await this.video.play();
             }
 
+            const message = {
+                command: 'record-media-and-forward-subtitle',
+                subtitle: subtitle,
+                record: this.recordMedia,
+                screenshot: this.screenshot
+            };
+
+            if (message.screenshot) {
+                const rect = this.video.getBoundingClientRect();
+                message.rect = {
+                    top: rect.top,
+                    left: rect.left,
+                    width: rect.width,
+                    height: rect.height
+                }
+            }
+
             chrome.runtime.sendMessage({
                 sender: 'asbplayer-video',
-                message: {
-                    command: 'record-media-and-forward-subtitle',
-                    subtitle: subtitle,
-                    record: this.recordMedia
-                }
+                message: message
             });
         }
     }
@@ -272,9 +286,10 @@ class Binding {
     }
 
     _refreshSettings() {
-        chrome.storage.sync.get(['displaySubtitles', 'recordMedia', 'subtitlePositionOffsetBottom'], (data) => {
+        chrome.storage.sync.get(['displaySubtitles', 'recordMedia', 'screenshot', 'subtitlePositionOffsetBottom'], (data) => {
             this.displaySubtitles = data.displaySubtitles;
             this.recordMedia = data.recordMedia;
+            this.screenshot = data.screenshot;
             this.subtitlePositionOffsetBottom = data.subtitlePositionOffsetBottom;
 
             if (this.fullscreenSubtitlesContainerElement && this.fullscreenSubtitlesElement) {

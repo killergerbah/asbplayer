@@ -77,7 +77,7 @@ export default class VideoChannel {
                     break;
                 case 'copy':
                     for (let callback of that.copyCallbacks) {
-                        callback(event.data.subtitle, event.data.audio);
+                        callback(event.data.subtitle, event.data.audio, event.data.image);
                     }
                     break;
                 default:

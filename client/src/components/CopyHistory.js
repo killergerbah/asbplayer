@@ -53,7 +53,7 @@ const useStyles = (drawerWidth) => makeStyles((theme) => ({
 }));
 
 function Menu(props) {
-    const {open, anchorEl, onClose, onSelect, onClipAudio, item} = props;
+    const {open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage, item} = props;
 
     const handleCopy = useCallback(() => {
         navigator.clipboard.writeText(item.text);
@@ -69,6 +69,11 @@ function Menu(props) {
         onClipAudio(item);
         onClose();
     }, [item, onClipAudio, onClose]);
+
+    const handleDownloadImage = useCallback(() => {
+        onDownloadImage(item);
+        onClose();
+    }, [item, onDownloadImage, onClose]);
 
     if (!item) {
         return null;
@@ -97,7 +102,12 @@ function Menu(props) {
                 </ListItem>
                 {(item.videoFile || item.audioFile || item.audio) && (
                     <ListItem button onClick={handleClipAudio}>
-                        <ListItemText primaryTypographyProps={{variant: "body2"}} primary="Clip Audio" />
+                        <ListItemText primaryTypographyProps={{variant: "body2"}} primary="Download Audio" />
+                    </ListItem>
+                )}
+                {(item.videoFile || item.image) && (
+                    <ListItem button onClick={handleDownloadImage}>
+                        <ListItemText primaryTypographyProps={{variant: "body2"}} primary="Download Image" />
                     </ListItem>
                 )}
             </List>
@@ -211,6 +221,7 @@ export default function CopyHistory(props) {
                 onClose={handleMenuClosed}
                 onSelect={props.onSelect}
                 onClipAudio={props.onClipAudio}
+                onDownloadImage={props.onDownloadImage}
             />
         </React.Fragment>
     );
