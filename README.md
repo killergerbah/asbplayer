@@ -6,10 +6,10 @@ A browser-based media player intended to assist subtitle sentence mining.
 - A best-effort is made to ensure that subtitles displayed in video elements are text-selectable and can be scanned by
   popup dictionary extensions like Yomi-chan.
 - Supports playback of local video and audio files.
-- Supports audio clipping of video and audio files.
-- Supports audio clipping of streaming video synced through the extension.
+- Supports audio-clipping/screenshotting of video and audio files.
+- Supports audio-clipping/screenshotting of streaming video synced through the extension.
 - Implements a clipboard history for asynchronous sentence mining.
-- Supports flashcard creation through AnkiConnect. Flashcards created from local video and audio files, or from streaming video using the extension with audio-recording enabled, will include clipped audio.
+- Supports creation of flashcards with audio/screenshot through AnkiConnect.
 
 asbplayer is hosted at [https://killergerbah.github.io/asbplayer/](https://killergerbah.github.io/asbplayer/).
 

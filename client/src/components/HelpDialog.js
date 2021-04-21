@@ -80,7 +80,7 @@ export default function HelpDialog(props) {
                             </div>
                         </li>
                         <li>
-                            Audio will be exported only if an audio source was available when the subtitle was copied.
+                            Audio and/or image will be exported only if an audio/image source was available when the subtitle was copied.
                         </li>
                         <li>
                             Configure Anki settings with the settings button in the top right.
