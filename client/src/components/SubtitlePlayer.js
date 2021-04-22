@@ -67,7 +67,7 @@ const useSubtitlePlayerStyles = (compressed, windowWidth) => makeStyles((theme) 
 }));
 
 export default function SubtitlePlayer(props) {
-    const {clock, onSeek, onCopy, playing, subtitles, length, jumpToSubtitle, compressed, loading, displayHelp} = props;
+    const {clock, onSeek, onCopy, playing, subtitles, length, jumpToSubtitle, compressed, loading, displayHelp, disableKeyEvents} = props;
     const clockRef = useRef();
     clockRef.current = clock;
     const subtitleListRef = useRef();
@@ -155,6 +155,10 @@ export default function SubtitlePlayer(props) {
 
     useEffect(() => {
         function handleKey(event) {
+            if (disableKeyEvents) {
+                return;
+            }
+
             if (!subtitles || subtitles.length === 0) {
                 return;
             }
@@ -185,7 +189,7 @@ export default function SubtitlePlayer(props) {
         window.addEventListener('keydown', handleKey);
 
         return () => window.removeEventListener('keydown', handleKey);
-    }, [onSeek, selectedSubtitleIndexes, subtitles, length]);
+    }, [onSeek, selectedSubtitleIndexes, subtitles, length, disableKeyEvents]);
 
     useEffect(() => {
         function handleScroll(event) {

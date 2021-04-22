@@ -500,6 +500,7 @@ export default function Player(props) {
                         compressed={videoFileUrl && !videoPopOut}
                         loading={loadingSubtitles}
                         displayHelp={Boolean(videoFileUrl || audioFileUrl)}
+                        disableKeyEvents={disableKeyEvents}
                         onSeek={handleSeekToSubtitle}
                         onCopy={handleCopy}
                     />
