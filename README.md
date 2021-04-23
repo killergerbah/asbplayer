@@ -15,8 +15,8 @@ asbplayer is hosted at [https://killergerbah.github.io/asbplayer/](https://kille
 
 ## Demos
 
-- [Sentence mining video files with asbplayer](https://www.youtube.com/watch?v=Khipc3zLMiA)
-- [Sentence mining streaming video with asbplayer](https://www.youtube.com/watch?v=fau1BNNDrEQ)
+- [Sentence mining video files with asbplayer](https://www.youtube.com/watch?v=7v0Hly_Q_Bs)
+- [Sentence mining streaming video with asbplayer](https://www.youtube.com/watch?v=m55HbFJMilk)
 
 ## Guides
 
