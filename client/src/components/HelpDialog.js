@@ -4,6 +4,7 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import Link from '@material-ui/core/Link';
+import SpeedIcon from '@material-ui/icons/Speed';
 import StarIcon from '@material-ui/icons/Star';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -86,6 +87,34 @@ export default function HelpDialog(props) {
                             Configure Anki settings with the settings button in the top right.
                         </li>
                     </ul>
+                </Typography>
+                <Typography variant="h6">
+                    Changing subtitle offset
+                </Typography>
+                <Typography>
+                    <ol>
+                        <li>
+                            Click on the subtitle offset input field in the controls.
+                        </li>
+                        <li>
+                            Type in a number and hit enter.
+                        </li>
+                    </ol>
+                </Typography>
+                <Typography variant="h6">
+                    Condensed playback of local media files
+                </Typography>
+                <Typography>
+                    <ol>
+                        <li>
+                            Load an audio/video file with a subtitle file.
+                        </li>
+                        <li>
+                            <div className={classes.inlineIcon}>
+                                Use the &nbsp;<SpeedIcon fontSize="small" />&nbsp; button in the bottom right.
+                            </div>
+                        </li>
+                    </ol>
                 </Typography>
                 <Typography variant="h6">
                     Keyboard shortcuts
