@@ -87,6 +87,7 @@ export default function Player(props) {
     const [offset, setOffset] = useState(0);
     const [channelId, setChannelId] = useState();
     const [videoPopOut, setVideoPopOut] = useState(false);
+    const [condensedModeEnabled, setCondensedModeEnabled] = useState(false);
     const forceUpdate = useCallback(() => updateState({}), []);
     const mousePositionRef = useRef({x:0, y:0});
     const audioRef = useRef();
@@ -126,6 +127,7 @@ export default function Player(props) {
             setAudioTracks(null);
             setSelectedAudioTrack(null);
             setOffset(0);
+            setCondensedModeEnabled(false);
             audioRef.current.currentTime = 0;
             audioRef.current.pause();
 
@@ -216,6 +218,11 @@ export default function Player(props) {
                             audio,
                             image
                         ));
+                        channel.onCondensedModeToggle(() => setCondensedModeEnabled(enabled => {
+                            const newValue = !enabled;
+                            channel.condensedModeToggle(newValue);
+                            return newValue;
+                        }));
                         channel.onCurrentTime(async (currentTime, echo) => {
                             const progress = currentTime * 1000 / lengthRef.current;
 
@@ -250,6 +257,75 @@ export default function Player(props) {
 
         init().then(() => onLoaded());
     }, [subtitleReader, extension, settingsProvider, clock, mediaAdapter, seek, onLoaded, onError, onUnloadVideo, onCopy, subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef]);
+
+    useEffect(() => {
+        if (!condensedModeEnabled) {
+            return;
+        }
+
+        if (!subtitles || subtitles.length === 0) {
+            return;
+        }
+
+        let seeking = false;
+        let expectedSeekTime = 1000;
+
+        const interval = setInterval(async () => {
+            const length = lengthRef.current;
+
+            if (!length) {
+                return;
+            }
+
+            const progress = clock.progress(length);
+
+            let currentOrNextIndex = 0;
+            let currentIndex = -1;
+
+            for (let i = subtitles.length - 1; i >= 0; --i) {
+                const s = subtitles[i];
+                const start = s.start / length;
+                const end = s.end / length;
+
+                if (progress >= start) {
+                    if (progress < end) {
+                        currentIndex = i;
+                        currentOrNextIndex = i;
+                    } else {
+                        currentOrNextIndex = Math.min(subtitles.length - 1, i + 1);
+                    }
+
+                    break;
+                }
+            }
+
+            if (currentIndex !== currentOrNextIndex) {
+                const nextSubtitle = subtitles[currentOrNextIndex];
+
+                if (nextSubtitle.start - progress * length < expectedSeekTime + 500) {
+                    return;
+                }
+
+                if (playingRef.current) {
+                    clock.stop();
+                }
+
+                if (!seeking) {
+                    seeking = true;
+                    const t0 = Date.now();
+                    await seek(nextSubtitle.start / length, clock, true);
+                    expectedSeekTime = Date.now() - t0;
+                    seeking = false;
+                }
+
+                if (playingRef.current) {
+                    clock.start();
+                }
+            }
+        }, 100);
+
+        return () => clearInterval(interval);
+    }, [subtitles, condensedModeEnabled, clock, seek]);
 
     useEffect(() => {
         if (videoPopOut && channelId && videoFileUrl) {
@@ -374,13 +450,15 @@ export default function Player(props) {
             return newSubtitles;
         });
 
-    }, [offset, offsetRef])
+    }, [offset, offsetRef]);
 
     const handleVolumeChange = useCallback((v) => {
         if (audioRef.current) {
             audioRef.current.volume = v;
         }
     }, []);
+
+    const handleCondensedModeToggle = useCallback(() =>  setCondensedModeEnabled(v => !v), []);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -477,6 +555,8 @@ export default function Player(props) {
                             offsetEnabled={true}
                             offset={offset}
                             volumeEnabled={Boolean(audioFileUrl)}
+                            condensedModeToggleEnabled={Boolean(audioFileUrl)}
+                            condensedModeEnabled={condensedModeEnabled}
                             onPlay={handlePlay}
                             onPause={handlePause}
                             onSeek={handleSeek}
@@ -486,6 +566,7 @@ export default function Player(props) {
                             onUnloadVideo={() => props.onUnloadVideo(videoFileUrl)}
                             onOffsetChange={handleOffsetChange}
                             onVolumeChange={handleVolumeChange}
+                            onCondensedModeToggle={handleCondensedModeToggle}
                             disableKeyEvents={disableKeyEvents}
                             settingsProvider={settingsProvider}
                         />

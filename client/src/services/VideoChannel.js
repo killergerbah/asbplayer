@@ -16,6 +16,7 @@ export default class VideoChannel {
         this.offsetCallbacks = [];
         this.popOutToggleCallbacks = [];
         this.copyCallbacks = [];
+        this.condensedModeToggleCallbacks = [];
 
         const that = this;
 
@@ -80,6 +81,11 @@ export default class VideoChannel {
                         callback(event.data.subtitle, event.data.audio, event.data.image);
                     }
                     break;
+                case 'condensedModeToggle':
+                    for (let callback of that.condensedModeToggleCallbacks) {
+                        callback();
+                    }
+                    break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }
@@ -135,6 +141,10 @@ export default class VideoChannel {
         this.copyCallbacks.push(callback);
     }
 
+    onCondensedModeToggle(callback) {
+        this.condensedModeToggleCallbacks.push(callback);
+    }
+
     ready(duration) {
         this.protocol.postMessage({command: 'ready', duration: duration});
     }
@@ -161,6 +171,10 @@ export default class VideoChannel {
 
     subtitleSettings(settings) {
         this.protocol.postMessage({command: 'subtitleSettings', value: settings});
+    }
+
+    condensedModeToggle(enabled) {
+        this.protocol.postMessage({command: 'condensedModeToggle', value: enabled});
     }
 
     close() {

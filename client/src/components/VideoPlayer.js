@@ -165,6 +165,7 @@ export default function VideoPlayer(props) {
     const [subtitles, setSubtitles] = useState([]);
     const [showSubtitles, setShowSubtitles] = useState([]);
     const [subtitlesEnabled, setSubtitlesEnabled] = useState(true);
+    const [condensedModeEnabled, setCondensedModeEnabled] = useState(false);
     const showSubtitlesRef = useRef([]);
     showSubtitlesRef.current = showSubtitles;
     const clock = useMemo(() => new Clock(), []);
@@ -253,6 +254,8 @@ export default function VideoPlayer(props) {
                 setOffset(offset);
             }
         });
+
+        playerChannel.onCondensedModeToggle((enabled) => setCondensedModeEnabled(enabled));
 
         window.onbeforeunload = (e) => {
             if (!poppingInRef.current) {
@@ -446,6 +449,10 @@ export default function VideoPlayer(props) {
         }
     }, [playerChannel, popOut]);
 
+    const handleCondensedModeToggle = useCallback(() => {
+        playerChannel.condensedModeToggle();
+    }, [playerChannel]);
+
     const handleClose = useCallback(() => {
         playerChannel.close();
         window.close();
@@ -521,6 +528,8 @@ export default function VideoPlayer(props) {
                 popOut={popOut}
                 volumeEnabled={true}
                 popOutEnabled={true}
+                condensedModeToggleEnabled={true}
+                condensedModeEnabled={condensedModeEnabled}
                 onPlay={handlePlay}
                 onPause={handlePause}
                 onSeek={handleSeek}
@@ -530,6 +539,7 @@ export default function VideoPlayer(props) {
                 onVolumeChange={handleVolumeChange}
                 onOffsetChange={handleOffsetChange}
                 onPopOutToggle={handlePopOutToggle}
+                onCondensedModeToggle={handleCondensedModeToggle}
                 onClose={handleClose}
                 settingsProvider={settingsProvider}
             />

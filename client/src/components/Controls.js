@@ -16,7 +16,9 @@ import PauseIcon from '@material-ui/icons/Pause';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import QueueMusicIcon from '@material-ui/icons/QueueMusic';
 import Slider from '@material-ui/core/Slider';
+import SpeedIcon from '@material-ui/icons/Speed';
 import SubtitlesIcon from '@material-ui/icons/Subtitles';
+import Tooltip from '@material-ui/core/Tooltip';
 import VideocamIcon from '@material-ui/icons/Videocam';
 import VolumeOffIcon from '@material-ui/icons/VolumeOff';
 import VolumeUpIcon from '@material-ui/icons/VolumeUp';
@@ -585,6 +587,15 @@ export default function Controls(props) {
                             )}
                             <Grid style={{flexGrow: 1}} item>
                             </Grid>
+                            {props.condensedModeToggleEnabled && (
+                                <Grid item>
+                                    <Tooltip title="Condensed Mode">
+                                        <IconButton onClick={(e) => props.onCondensedModeToggle()}>
+                                            <SpeedIcon className={props.condensedModeEnabled ? classes.button : classes.inactiveButton} />
+                                        </IconButton>
+                                    </Tooltip>
+                                </Grid>
+                            )}
                             {props.subtitlesToggle && (
                                 <Grid item>
                                     <IconButton onClick={(e) => props.onSubtitlesToggle()}>
