@@ -77,6 +77,8 @@ export default function Player(props) {
     const {subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl} = props.sources;
     const [tab, setTab] = useState();
     const [subtitles, setSubtitles] = useState();
+    const subtitlesRef = useRef();
+    subtitlesRef.current = subtitles;
     const [loadingSubtitles, setLoadingSubtitles] = useState(false);
     const [playing, setPlaying] = useState(false);
     const playingRef = useRef();
@@ -88,6 +90,8 @@ export default function Player(props) {
     const [channelId, setChannelId] = useState();
     const [videoPopOut, setVideoPopOut] = useState(false);
     const [condensedModeEnabled, setCondensedModeEnabled] = useState(false);
+    const condensedModeEnabledRef = useRef();
+    condensedModeEnabledRef.current = condensedModeEnabled;
     const forceUpdate = useCallback(() => updateState({}), []);
     const mousePositionRef = useRef({x:0, y:0});
     const audioRef = useRef();
@@ -177,13 +181,15 @@ export default function Player(props) {
                 let subscribed = false;
 
                 channel.onReady((paused) => {
-                    lengthRef.current = trackLength(audioRef, videoRef, subtitles);
+                    lengthRef.current = trackLength(audioRef, videoRef, subtitlesRef.current);
                     channel.ready(lengthRef.current);
 
-                    if (subtitles) {
+                    if (subtitlesRef.current) {
                         channel.subtitleSettings(settingsProvider.subtitleSettings);
-                        channel.subtitles(subtitles);
+                        channel.subtitles(subtitlesRef.current);
                     }
+
+                    channel.condensedModeToggle(condensedModeEnabledRef.current);
 
                     if (channel.audioTracks && channel.audioTracks.length > 1) {
                         setAudioTracks(videoRef.current.audioTracks);
