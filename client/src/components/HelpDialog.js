@@ -38,84 +38,79 @@ export default function HelpDialog(props) {
                 <Typography variant="h6">
                     Loading files
                 </Typography>
-                    <Typography>
-                        <ul>
-                            <li>
-                                Drag and drop mkv, srt, ass, or mp3 files into the player.
-                            </li>
-                            <li>
-                                Multiple files can be dragged and dropped
-                                simultaneously e.g. mkv+srt, mp3+ass, etc.
-                            </li>
-                        </ul>
-                    </Typography>
+                <Typography component="ul">
+                    <li>
+                        Drag and drop mkv, srt, ass, or mp3 files into the player.
+                    </li>
+                    <li>
+                        Multiple files can be dragged and dropped
+                        simultaneously e.g. mkv+srt, mp3+ass, etc.
+                    </li>
+                </Typography>
+                <br />
                 <Typography variant="h6">
                     Syncing with streaming video in another tab
                 </Typography>
-                <Typography>
-                    <ol>
-                        <li>
-                            Install the Chrome <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>extension</Link>.
-                        </li>
-                        <li>
-                            Load a subtitle file.
-                        </li>
-                        <li>
-                            <div className={classes.inlineIcon}>
-                                Use the &nbsp;<VideocamIcon fontSize="small" />&nbsp; button in the bottom right.
-                            </div>
-                        </li>
-                        <li>
-                            If the icon does not appear try refreshing the video in the other tab.
-                        </li>
-                    </ol>
+                <Typography component="ol">
+                    <li>
+                        Install the Chrome <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>extension</Link>.
+                    </li>
+                    <li>
+                        Load a subtitle file.
+                    </li>
+                    <li>
+                        <div className={classes.inlineIcon}>
+                            Use the &nbsp;<VideocamIcon fontSize="small" />&nbsp; button in the bottom right.
+                        </div>
+                    </li>
+                    <li>
+                        If the icon does not appear try refreshing the video in the other tab.
+                    </li>
                 </Typography>
+                <br />
                 <Typography variant="h6">
                     Anki
                 </Typography>
-                <Typography>
-                    <ul>
-                        <li>
-                            <div className={classes.inlineIcon}>
-                                Use the &nbsp;<StarIcon fontSize="small" />&nbsp; button in the copy history.
-                            </div>
-                        </li>
-                        <li>
-                            Audio and/or image will be exported only if an audio/image source was available when the subtitle was copied.
-                        </li>
-                        <li>
-                            Configure Anki settings with the settings button in the top right.
-                        </li>
-                    </ul>
+                <Typography component="ul">
+                    <li>
+                        <div className={classes.inlineIcon}>
+                            Use the &nbsp;<StarIcon fontSize="small" />&nbsp; button in the copy history.
+                        </div>
+                    </li>
+                    <li>
+                        Audio/image will be exported only if an audio/image source was available when the subtitle was copied.
+                    </li>
+                    <li>
+                        Configure Anki settings with the settings button in the top right.
+                    </li>
                 </Typography>
+                <br />
                 <Typography variant="h6">
                     Changing subtitle offset
                 </Typography>
-                <Typography>
-                    <ol>
-                        <li>
-                            Click on the subtitle offset input field in the controls.
-                        </li>
-                        <li>
-                            Type in a number and hit enter.
-                        </li>
-                    </ol>
+                <Typography component="ol">
+                    <li>
+                        Click on the subtitle offset input field in the controls.
+                    </li>
+                    <li>
+                        Type in a number and hit enter.
+                    </li>
                 </Typography>
+                <br />
                 <Typography variant="h6">
                     Condensed playback of local media files
                 </Typography>
-                <Typography>
-                    <ol>
-                        <li>
-                            Load an audio/video file with a subtitle file.
-                        </li>
-                        <li>
-                            <div className={classes.inlineIcon}>
-                                Use the &nbsp;<SpeedIcon fontSize="small" />&nbsp; button in the bottom right.
-                            </div>
-                        </li>
-                    </ol>
+                <Typography component="ol">
+                    <li>
+                        Load an audio/video file with a subtitle file.
+                    </li>
+                    <li>
+                        <div className={classes.inlineIcon}>
+                            Use the &nbsp;<SpeedIcon fontSize="small" />&nbsp; button in the bottom right.
+                        </div>
+                    </li>
                 </Typography>
+                <br />
                 <Typography variant="h6">
                     Keyboard shortcuts
                 </Typography>
@@ -145,25 +140,22 @@ export default function HelpDialog(props) {
                 <Typography variant="h6">
                     Demos
                 </Typography>
-                <Typography>
-                    <ul>
-                        <li>
-                            <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=7v0Hly_Q_Bs">Sentence mining video files</Link>
-                        </li>
-                        <li>
-                            <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=m55HbFJMilk">Sentence mining streaming video</Link>
-                        </li>
-                    </ul>
+                <Typography component="ul">
+                    <li>
+                        <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=7v0Hly_Q_Bs">Sentence mining video files</Link>
+                    </li>
+                    <li>
+                        <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=m55HbFJMilk">Sentence mining streaming video</Link>
+                    </li>
                 </Typography>
+                <br />
                 <Typography variant="h6">
                     Guides
                 </Typography>
-                <Typography>
-                    <ul>
-                        <li>
-                            <Link color="secondary" target="_blank" rel="noreferrer" href="https://learnjapanese.moe/streamworkflow/">Sentence mining streaming workflow</Link>
-                        </li>
-                    </ul>
+                <Typography component="ul">
+                    <li>
+                        <Link color="secondary" target="_blank" rel="noreferrer" href="https://learnjapanese.moe/streamworkflow/">Sentence mining streaming workflow</Link>
+                    </li>
                 </Typography>
             </DialogContent>
             <DialogActions>
