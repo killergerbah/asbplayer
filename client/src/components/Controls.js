@@ -341,11 +341,12 @@ export default function Controls(props) {
     };
 
     useEffect(() => {
-        setVolume(settingsProvider.volume);
-        onVolumeChange(settingsProvider.volume / 100);
+        const savedVolume = Number(settingsProvider.volume);
+        setVolume(savedVolume);
+        onVolumeChange(savedVolume / 100);
 
-        if (settingsProvider.volume > 0) {
-            setLastCommittedVolume(settingsProvider.volume);
+        if (savedVolume > 0) {
+            setLastCommittedVolume(savedVolume);
         }
     }, [settingsProvider, onVolumeChange]);
 
