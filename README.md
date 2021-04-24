@@ -6,6 +6,7 @@ A browser-based media player intended to assist subtitle sentence mining.
 - A best-effort is made to ensure that subtitles displayed in video elements are text-selectable and can be scanned by
   popup dictionary extensions like Yomi-chan.
 - Supports playback of local video and audio files.
+- Local video and audio files can be played in "condensed mode," skipping sections without subtitles.
 - Supports audio-clipping/screenshotting of video and audio files.
 - Supports audio-clipping/screenshotting of streaming video synced through the extension.
 - Implements a clipboard history for asynchronous sentence mining.
