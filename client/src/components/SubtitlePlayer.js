@@ -34,6 +34,9 @@ const useSubtitlePlayerStyles = (compressed, windowWidth) => makeStyles((theme) 
         padding: 15,
         textAlign: "center"
     },
+}));
+
+const useSubtitleRowStyles = makeStyles((theme) => ({
     subtitleRow: {
         '&:hover': {
             backgroundColor: theme.palette.action.hover
@@ -66,8 +69,43 @@ const useSubtitlePlayerStyles = (compressed, windowWidth) => makeStyles((theme) 
     },
 }));
 
+const SubtitleRow = React.memo((props) => {
+    const {index, compressed, selected, subtitle, subtitleRef, onClick, onCopy, ...tableRowProps} = props;
+    const classes = useSubtitleRowStyles();
+
+    let className = compressed ? classes.compressedSubtitle : classes.subtitle;
+
+    if (subtitle.start < 0 && subtitle.end < 0) {
+        return null;
+    }
+
+    return (
+        <TableRow
+            onClick={(e) => onClick(index)}
+            ref={subtitleRef}
+            className={classes.subtitleRow}
+            selected={selected}
+            {...tableRowProps}
+        >
+            <TableCell className={className}>
+                {subtitle.text}
+            </TableCell>
+            <TableCell className={classes.copyButton}>
+                <IconButton onClick={(e) => onCopy(e, index)}>
+                    <FileCopy fontSize={compressed ? "small" : "default"} />
+                </IconButton>
+            </TableCell>
+            <TableCell className={classes.timestamp}>
+                {subtitle.displayTime}
+            </TableCell>
+        </TableRow>
+    );
+});
+
 export default function SubtitlePlayer(props) {
     const {clock, onSeek, onCopy, playing, subtitles, length, jumpToSubtitle, compressed, loading, displayHelp, disableKeyEvents} = props;
+    const playingRef = useRef();
+    playingRef.current = playing;
     const clockRef = useRef();
     clockRef.current = clock;
     const subtitleListRef = useRef();
@@ -228,18 +266,13 @@ export default function SubtitlePlayer(props) {
         }
     }, [jumpToSubtitle, subtitles, subtitleRefs]);
 
-    const handleClick = useCallback((subtitleIndex) => {
-        const progress = subtitles[subtitleIndex].start / length;
-        onSeek(progress, !playing && subtitleIndex in selectedSubtitleIndexes);
-    }, [subtitles, length, playing, onSeek, selectedSubtitleIndexes]);
-
-    const handleCopy = useCallback((event, subtitleIndex) => {
+    function copy(event, subtitles, subtitleIndex, onCopy) {
         event.stopPropagation();
         const subtitle = subtitles[subtitleIndex];
         const text = subtitle.text;
         navigator.clipboard.writeText(text);
         onCopy(subtitle);
-    }, [subtitles, onCopy]);
+    }
 
     useEffect(() => {
         function copySubtitle(event) {
@@ -254,13 +287,20 @@ export default function SubtitlePlayer(props) {
             }
 
             const index = Math.min(...subtitleIndexes);
-            handleCopy(event, index);
+            copy(event, subtitles, index, onCopy);
         }
 
         window.addEventListener('keydown', copySubtitle);
 
         return () => window.removeEventListener('keydown', copySubtitle);
-    }, [handleCopy]);
+    }, [subtitles, onCopy]);
+
+    const handleClick = useCallback((index) => {
+        const progress = subtitles[index].start / length;
+        onSeek(progress, !playingRef.current && index in selectedSubtitleIndexes);
+    }, [subtitles, length, onSeek, selectedSubtitleIndexes]);
+
+    const handleCopy = useCallback((e, index) => copy(e, subtitles, index, onCopy), [subtitles, onCopy]);
 
     let subtitleTable;
 
@@ -280,32 +320,17 @@ export default function SubtitlePlayer(props) {
                         {subtitles.map((s, index) => {
                             const selected = index in selectedSubtitleIndexes;
 
-                            let className = compressed ? classes.compressedSubtitle : classes.subtitle;
-
-                            if (s.start < 0 && s.end < 0) {
-                                return null;
-                            }
-
                             return (
-                               <TableRow
-                                   onClick={(e) => handleClick(index)}
-                                   key={index}
-                                   ref={subtitleRefs[index]}
-                                   selected={selected}
-                                   className={classes.subtitleRow}
-                               >
-                                    <TableCell className={className}>
-                                        {s.text}
-                                    </TableCell>
-                                    <TableCell className={classes.copyButton}>
-                                        <IconButton onClick={(e) => handleCopy(e, index)}>
-                                            <FileCopy fontSize={compressed ? "small" : "default"} />
-                                        </IconButton>
-                                    </TableCell>
-                                    <TableCell className={classes.timestamp}>
-                                        {s.displayTime}
-                                    </TableCell>
-                                </TableRow>
+                                <SubtitleRow
+                                    key={index}
+                                    index={index}
+                                    compressed={compressed}
+                                    selected={selected}
+                                    subtitle={subtitles[index]}
+                                    subtitleRef={subtitleRefs[index]}
+                                    onClick={handleClick}
+                                    onCopy={handleCopy}
+                                />
                             );
                         })}
                     </TableBody>
