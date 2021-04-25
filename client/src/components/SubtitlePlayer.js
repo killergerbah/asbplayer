@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef, createRef } from 'react';
+import { AutoSizer, CellMeasurer, CellMeasurerCache, List } from 'react-virtualized';
 import { makeStyles } from '@material-ui/core/styles';
 import { keysAreEqual } from '../services/Util';
 import { detectCopy } from '../services/KeyEvents';
 import { useWindowSize } from '../hooks/useWindowSize';
 import FileCopy from '@material-ui/icons/FileCopy';
+import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import Paper from '@material-ui/core/Paper';
 import Table from '@material-ui/core/Table';
@@ -21,10 +23,12 @@ const useSubtitlePlayerStyles = (compressed, windowWidth) => makeStyles((theme) 
         backgroundColor: theme.palette.background.default,
         width: compressed ? Math.max(350, .25 * windowWidth) : '100%'
     },
-    table: {
-        backgroundColor: theme.palette.background.default,
-        marginBottom: 75, // so the last row doesn't collide with controls
-    },
+//    table: {
+//        backgroundColor: theme.palette.background.default,
+//        marginBottom: 75, // so the last row doesn't collide with controls
+//        width: "100%",
+//        height: "100%"
+//    },
     noSubtitles: {
         height: "100%",
         display: "flex",
@@ -34,37 +38,135 @@ const useSubtitlePlayerStyles = (compressed, windowWidth) => makeStyles((theme) 
         padding: 15,
         textAlign: "center"
     },
+}));
+
+const useSubtitleTableStyles = (compressed) => makeStyles((theme) => ({
     subtitleRow: {
         '&:hover': {
             backgroundColor: theme.palette.action.hover
-        }
+        },
+        borderWidth: "0px 0 1px 0",
+        borderStyle: "solid",
+        borderColor: theme.palette.divider
+    },
+    selectedSubtitleRow: {
+        backgroundColor: theme.palette.action.selected
     },
     subtitle: {
-        fontSize: 20,
+        fontSize: compressed ? 16 : 20,
+        paddingLeft: 16,
         paddingRight: 0,
+        paddingTop: 16,
+        paddingBottom: 16,
         minWidth: 200,
-        width: '100%',
-        overflowWrap: 'anywhere'
+//        width: '100%',
+//        height: '100%',
+        flexGrow: 1,
+//        verticalAlign: 'middle',
+        overflowWrap: 'anywhere',
+
     },
-    compressedSubtitle: {
-        fontSize: 16,
-        paddingRight: 0,
-        minWidth: 200,
-        width: '100%',
-        overflowWrap: 'anywhere'
-    },
+//    compressedSubtitle: {
+//        fontSize: 16,
+//        paddingRight: 0,
+////        minWidth: 200,
+////        width: '100%',
+//        flexGrow: 1,
+//        overflowWrap: 'anywhere'
+//    },
     timestamp: {
         fontSize: 14,
         color: '#aaaaaa',
         textAlign: 'right',
         paddingRight: 15,
-        paddingLeft: 5
+        paddingLeft: 5,
+        paddingTop: 20
     },
     copyButton: {
         textAlign: 'right',
-        padding: 0
+        paddingTop: 6
     },
 }));
+
+
+
+function SubtitleTable(props) {
+    const {className, subtitles, subtitleRefs, selectedSubtitleIndexes, compressed, cache, onClick, onCopy} = props;
+    const classes = useSubtitleTableStyles(compressed)();
+
+    function rowRenderer({index, isScrolling, key, parent, style}) {
+        return (
+            <CellMeasurer
+                cache={cache}
+                columnIndex={0}
+                key={key}
+                parent={parent}
+                rowIndex={index}
+            >
+                {({registerChild}) => {
+                    const selected = index in selectedSubtitleIndexes;
+                    const s = subtitles[index];
+
+                    // TODO: Deal with negative offsets
+//                    if (s.start < 0 && s.end < 0) {
+//                        return null;
+//                    }
+
+                    const subtitleRowClass = selected ? `${classes.selectedSubtitleRow} ${classes.subtitleRow}` : classes.subtitleRow;
+
+                    if (index === subtitles.length) {
+                        return (<div style={style}></div>)
+                    }
+
+                    return (
+                        <Grid
+                            container
+                            direction="row"
+                            wrap="nowrap"
+                            ref={(element) => {
+                                registerChild.current = element;
+                                subtitleRefs[index].current = element;
+                            }}
+                            onClick={(e) => onClick(index)}
+                            key={index}
+                            ref={subtitleRefs[index]}
+                            selected={selected}
+                            className={subtitleRowClass}
+                            style={style}
+                        >
+                            <Grid item className={classes.subtitle}>
+                                {s.text}
+                            </Grid>
+                            <Grid item className={classes.copyButton}>
+                                <IconButton onClick={(e) => onCopy(e, index)}>
+                                    <FileCopy fontSize={compressed ? "small" : "default"} />
+                                </IconButton>
+                            </Grid>
+                            <Grid item className={classes.timestamp}>
+                                {s.displayTime}
+                            </Grid>
+                        </Grid>
+                    )
+                }}
+            </CellMeasurer>
+        )
+    }
+
+    return (
+        <AutoSizer>
+            {({width, height}) => (
+                <List
+                    deferredMeasurementCache={cache}
+                    width={width}
+                    height={height}
+                    rowCount={subtitles.length + 1}
+                    rowHeight={cache.rowHeight}
+                    rowRenderer={rowRenderer}
+                />
+            )}
+        </AutoSizer>
+    );
+}
 
 export default function SubtitlePlayer(props) {
     const {clock, onSeek, onCopy, playing, subtitles, length, jumpToSubtitle, compressed, loading, displayHelp, disableKeyEvents} = props;
@@ -88,6 +190,17 @@ export default function SubtitlePlayer(props) {
     drawerOpenRef.current = props.drawerOpen;
     const [windowWidth, ] = useWindowSize(true);
     const classes = useSubtitlePlayerStyles(compressed, windowWidth)();
+    const cellMeasurerCache = useMemo(() => new CellMeasurerCache({
+        defaultHeight: 60,
+        minHeight: 60,
+        fixedWidth: true,
+        fixedHeight: false,
+        minWidth: 200
+    }, []));
+
+    useEffect(() => {
+        cellMeasurerCache.clearAll();
+    }, [windowWidth]);
 
     // This effect should be scheduled only once as re-scheduling seems to cause performance issues.
     // Therefore all of the state it operates on is contained in refs.
@@ -274,43 +387,15 @@ export default function SubtitlePlayer(props) {
         );
     } else {
         subtitleTable = (
-            <TableContainer className={classes.table}>
-                <Table>
-                    <TableBody>
-                        {subtitles.map((s, index) => {
-                            const selected = index in selectedSubtitleIndexes;
-
-                            let className = compressed ? classes.compressedSubtitle : classes.subtitle;
-
-                            if (s.start < 0 && s.end < 0) {
-                                return null;
-                            }
-
-                            return (
-                               <TableRow
-                                   onClick={(e) => handleClick(index)}
-                                   key={index}
-                                   ref={subtitleRefs[index]}
-                                   selected={selected}
-                                   className={classes.subtitleRow}
-                               >
-                                    <TableCell className={className}>
-                                        {s.text}
-                                    </TableCell>
-                                    <TableCell className={classes.copyButton}>
-                                        <IconButton onClick={(e) => handleCopy(e, index)}>
-                                            <FileCopy fontSize={compressed ? "small" : "default"} />
-                                        </IconButton>
-                                    </TableCell>
-                                    <TableCell className={classes.timestamp}>
-                                        {s.displayTime}
-                                    </TableCell>
-                                </TableRow>
-                            );
-                        })}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+            <SubtitleTable
+                subtitles={subtitles}
+                subtitleRefs={subtitleRefs}
+                selectedSubtitleIndexes={selectedSubtitleIndexes}
+                compressed={compressed}
+                cache={cellMeasurerCache}
+                onClick={handleClick}
+                onCopy={handleCopy}
+            />
         );
     }
 
