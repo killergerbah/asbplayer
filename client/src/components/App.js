@@ -23,7 +23,7 @@ import VideoPlayer from './VideoPlayer.js';
 const latestExtensionVersion = "0.6.0";
 const extensionUrl = "https://github.com/killergerbah/asbplayer/releases/latest";
 
-const useStyles = drawerWidth => makeStyles((theme) => ({
+const useStyles = makeStyles((theme) => ({
     content: {
         flexGrow: 1,
         transition: theme.transitions.create('margin', {
@@ -37,7 +37,7 @@ const useStyles = drawerWidth => makeStyles((theme) => ({
             easing: theme.transitions.easing.easeOut,
             duration: theme.transitions.duration.enteringScreen,
         }),
-        marginRight: drawerWidth,
+        marginRight: ({drawerWidth}) => drawerWidth,
     },
 }));
 
@@ -132,7 +132,7 @@ function imageFromItem(item, offset) {
 }
 
 function Content(props) {
-    const classes = useStyles(props.drawerWidth)();
+    const classes = useStyles(props);
     return (
         <main
             className={clsx(classes.content, {

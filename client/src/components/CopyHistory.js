@@ -15,13 +15,13 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import StarIcon from '@material-ui/icons/Star';
 import Tooltip from '@material-ui/core/Tooltip';
 
-const useStyles = (drawerWidth) => makeStyles((theme) => ({
+const useStyles = makeStyles((theme) => ({
     drawer: {
-        width: drawerWidth,
+        width: ({drawerWidth}) => drawerWidth,
         flexShrink: 0,
     },
     drawerPaper: {
-        width: drawerWidth,
+        width: ({drawerWidth}) => drawerWidth,
     },
     drawerHeader: {
         display: 'flex',
@@ -116,7 +116,7 @@ function Menu(props) {
 }
 
 export default function CopyHistory(props) {
-    const classes = useStyles(props.drawerWidth)();
+    const classes = useStyles(props);
     const scrollToBottomRefCallback =  useCallback(element => {
         if (element) {
             element.scrollIntoView();

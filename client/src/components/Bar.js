@@ -10,7 +10,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 
-const useStyles = (drawerWidth) => makeStyles((theme) => ({
+const useStyles = makeStyles((theme) => ({
     title: {
         flexGrow: 1,
     },
@@ -21,12 +21,12 @@ const useStyles = (drawerWidth) => makeStyles((theme) => ({
         }),
     },
     appBarShift: {
-        width: `calc(100% - ${drawerWidth}px)`,
+        width: ({drawerWidth}) => `calc(100% - ${drawerWidth}px)`,
         transition: theme.transitions.create(['margin', 'width'], {
           easing: theme.transitions.easing.easeOut,
           duration: theme.transitions.duration.enteringScreen,
         }),
-        marginRight: drawerWidth,
+        marginRight: ({drawerWidth}) => drawerWidth,
     },
     copyHistoryButton: {
         transform: 'scaleX(1)',
@@ -52,7 +52,7 @@ const useStyles = (drawerWidth) => makeStyles((theme) => ({
 }));
 
 export default function Bar(props) {
-    const classes = useStyles(props.drawerWidth)();
+    const classes = useStyles(props);
     return (
         <AppBar
             position="static"

@@ -13,13 +13,13 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
 
-const useSubtitlePlayerStyles = (compressed, windowWidth) => makeStyles((theme) => ({
+const useSubtitlePlayerStyles = makeStyles((theme) => ({
     container: {
         height: 'calc(100vh - 64px)',
         position: 'relative',
         overflowX: 'hidden',
         backgroundColor: theme.palette.background.default,
-        width: compressed ? Math.max(350, .25 * windowWidth) : '100%'
+        width: ({compressed, windowWidth}) => compressed ? Math.max(350, .25 * windowWidth) : '100%'
     },
     table: {
         backgroundColor: theme.palette.background.default,
@@ -125,7 +125,7 @@ export default function SubtitlePlayer(props) {
     const drawerOpenRef = useRef();
     drawerOpenRef.current = props.drawerOpen;
     const [windowWidth, ] = useWindowSize(true);
-    const classes = useSubtitlePlayerStyles(compressed, windowWidth)();
+    const classes = useSubtitlePlayerStyles({compressed, windowWidth});
 
     // This effect should be scheduled only once as re-scheduling seems to cause performance issues.
     // Therefore all of the state it operates on is contained in refs.

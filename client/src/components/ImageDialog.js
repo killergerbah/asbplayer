@@ -6,12 +6,12 @@ import Card from '@material-ui/core/Card';
 import CardMedia from '@material-ui/core/CardMedia';
 import Dialog from '@material-ui/core/Dialog';
 
-const useStyles = (width, height) => makeStyles((theme) => ({
-    image: {
+const useStyles = makeStyles((theme) => ({
+    image: ({width, height}) => ({
         width: width,
         height: height,
         backgroundSize: 'contain'
-    }
+    })
 }));
 
 export default function ImageDialog(props) {
@@ -29,7 +29,7 @@ export default function ImageDialog(props) {
         resizeRatio = 1;
     }
 
-    const classes = useStyles(width * resizeRatio, height * resizeRatio);
+    const classes = useStyles({width: width * resizeRatio, height: height * resizeRatio});
 
     useEffect(() => {
         if (!image) {
