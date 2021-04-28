@@ -7,54 +7,62 @@ body {
     appearance: none;
 }
 
-
 input {
     vertical-align: middle;
-    
 }
 .checkbox-color {
     position: absolute;
     opacity: 0;
 }
+
 .checkbox-color + label {
     position: relative;
     cursor: pointer;
     padding: 0;
+    user-select: none; 
 }
 .checkbox-color + label::before {
     content: "";
     margin-left: 4px;
     border-radius: 3px;
-    margin-top: 2px;
-    margin-right: 12px;
+    margin-top: 0px;
+    margin-right: 5px;
+    vertical-align: middle;
     display: inline-block;
-    vertical-align: text-top;
     width: 13px;
     height: 13px;
-    background: #fff;
+    background: #303030;
+    border: solid 2px #C2BFC0;
   }
+
+ 
 .checkbox-color:hover + label::before {
-    background: #ff1f62;
+    box-shadow: 0px 0px 8px 6px #ff1f6210;
+    background: #ff1f6210;
+    transition: 0.4s;
   }
+
 .checkbox-color:checked + label::before {
     background: #ff1f62;
+    border: solid 2px #ff1f62;
   }
 
 .checkbox-color:checked + label::after {
     content: "";
     position: absolute;
-    left: 5px;
+    left: 7px;
     top: 7.5px;
-    background: #fff;
-    width: 2px;
+    background: #303030;
+    width: 2.4px;
     height: 2px;
-    box-shadow: 2px 0 0 #fff, 4px 0 0 #fff, 4px -2px 0 #fff, 4px -4px 0 #fff,
-      4px -6px 0 #fff, 4px -8px 0 #fff;
+    box-shadow: 
+    2px 0 0 #303030, 
+    4px 0 0 #303030, 
+    4px -2px 0 #303030, 
+    4px -4px 0 #303030,
+    4px -6px 0 #303030, 
+    4px -8px 0 #303030;
     transform: rotate(45deg);
-}
-
-#number {
-    border-radius: 3px;
 }
 
 hr {
@@ -64,6 +72,12 @@ hr {
     display: block;
 }
 
+#subtitlePositionOffsetBottomInput {
+    background: #303030;
+    border-radius: 3px;
+    border: solid 1px #C2BFC0;
+    color: #fff;
+}
 
 .help {
     padding: 5px;
@@ -72,4 +86,13 @@ hr {
 #subtitlePositionOffsetBottomInput {
     width: 50px;
     margin-left: 4px;
+}
+
+#subtitlePositionOffsetBottomInput:hover {
+    border-color: #fff;
+}
+
+#subtitlePositionOffsetBottomInput:focus {
+    border-color: #ff1f62;
+    outline: 0;
 }
