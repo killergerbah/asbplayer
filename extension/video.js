@@ -402,7 +402,7 @@ class Binding {
             container.className = "asbplayer-subtitles-container";
             div.className = "asbplayer-fullscreen-subtitles";
             this._applyFullscreenStyles(container, div);
-            this._findFullscreenSubtitlesContainer().appendChild(container);
+            this._findFullscreenSubtitlesContainer(container).appendChild(container);
             container.style.display = "none";
             const that = this;
 
@@ -410,7 +410,7 @@ class Binding {
                 if (document.fullscreenElement) {
                     container.style.display = "";
                     container.remove();
-                    that._findFullscreenSubtitlesContainer().appendChild(container);
+                    that._findFullscreenSubtitlesContainer(container).appendChild(container);
                 } else {
                     container.style.display = "none";
                 }
@@ -458,7 +458,7 @@ class Binding {
         }
     }
 
-    _findFullscreenSubtitlesContainer() {
+    _findFullscreenSubtitlesContainer(subtitles) {
         let current = this.video.parentElement;
 
         if (!current) {
@@ -471,8 +471,10 @@ class Binding {
             const rect = current.getBoundingClientRect();
 
             if (rect.height > 0
-                && (!chosen || rect.height >= chosen.getBoundingClientRect().height)) {
+                && (!chosen || rect.height >= chosen.getBoundingClientRect().height)
+                && this._clickable(current, subtitles)) {
                 chosen = current;
+                break;
             }
 
             current = current.parentElement;
@@ -483,6 +485,15 @@ class Binding {
         }
 
         return document.body;
+    }
+
+    _clickable(container, element) {
+        container.appendChild(element);
+        const rect = element.getBoundingClientRect();
+        const clickedElement = document.elementFromPoint(rect.x, rect.y);
+        const clickable = element.isSameNode(clickedElement) || element.contains(clickedElement);
+        element.remove();
+        return clickable;
     }
 
     _arrayEquals(a, b) {

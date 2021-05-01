@@ -14,6 +14,7 @@
     padding-left: 10px;
     padding-right: 10px;
     user-select: text;
+    line-height: normal;
 }
 
 .asbplayer-fullscreen-subtitles {
@@ -24,4 +25,5 @@
     padding-left: 10px;
     padding-right: 10px;
     user-select: text;
+    line-height: normal;
 }
