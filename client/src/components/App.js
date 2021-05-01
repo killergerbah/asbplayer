@@ -20,7 +20,7 @@ import SettingsDialog from './SettingsDialog.js';
 import SettingsProvider from '../services/SettingsProvider.js';
 import VideoPlayer from './VideoPlayer.js';
 
-const latestExtensionVersion = "0.6.0";
+const latestExtensionVersion = "0.6.1";
 const extensionUrl = "https://github.com/killergerbah/asbplayer/releases/latest";
 
 const useStyles = makeStyles((theme) => ({
