@@ -459,6 +459,8 @@ class Binding {
     }
 
     _findFullscreenSubtitlesContainer(subtitles) {
+        const testNode = subtitles.cloneNode(true);
+        testNode.innerHTML = "&nbsp;"; // The node needs to take up some space to perform test clicks
         let current = this.video.parentElement;
 
         if (!current) {
@@ -472,7 +474,7 @@ class Binding {
 
             if (rect.height > 0
                 && (!chosen || rect.height >= chosen.getBoundingClientRect().height)
-                && this._clickable(current, subtitles)) {
+                && this._clickable(current, testNode)) {
                 chosen = current;
                 break;
             }
