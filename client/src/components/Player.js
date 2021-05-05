@@ -81,6 +81,7 @@ export default function Player(props) {
     subtitlesRef.current = subtitles;
     const [loadingSubtitles, setLoadingSubtitles] = useState(false);
     const [playing, setPlaying] = useState(false);
+    const [lastJumpToTopTimestamp, setLastJumpToTopTimestamp] = useState(0);
     const playingRef = useRef();
     playingRef.current = playing;
     const [, updateState] = useState();
@@ -153,6 +154,7 @@ export default function Player(props) {
                     }));
 
                     setSubtitles(subtitles);
+                    setLastJumpToTopTimestamp(Date.now());
                 } catch (e) {
                     onError(e.message);
                 } finally {
@@ -341,6 +343,8 @@ export default function Player(props) {
                 "resizable,width=800,height=450"
             );
         }
+
+        setLastJumpToTopTimestamp(Date.now());
     }, [videoPopOut, channelId, videoFileUrl, videoFrameRef]);
 
     function play(clock, mediaAdapter, echo) {
@@ -588,6 +592,7 @@ export default function Player(props) {
                         loading={loadingSubtitles}
                         displayHelp={Boolean(videoFileUrl || audioFileUrl)}
                         disableKeyEvents={disableKeyEvents}
+                        lastJumpToTopTimestamp={lastJumpToTopTimestamp}
                         onSeek={handleSeekToSubtitle}
                         onCopy={handleCopy}
                     />

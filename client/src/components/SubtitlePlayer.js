@@ -102,8 +102,21 @@ const SubtitleRow = React.memo((props) => {
     );
 });
 
-export default function SubtitlePlayer(props) {
-    const {clock, onSeek, onCopy, playing, subtitles, length, jumpToSubtitle, compressed, loading, displayHelp, disableKeyEvents} = props;
+export default function SubtitlePlayer({
+    clock,
+    onSeek,
+    onCopy,
+    playing,
+    subtitles,
+    length,
+    jumpToSubtitle,
+    compressed,
+    loading,
+    drawerOpen,
+    displayHelp,
+    disableKeyEvents,
+    lastJumpToTopTimestamp
+    }) {
     const playingRef = useRef();
     playingRef.current = playing;
     const clockRef = useRef();
@@ -118,12 +131,12 @@ export default function SubtitlePlayer(props) {
     const [selectedSubtitleIndexes, setSelectedSubtitleIndexes] = useState({});
     const selectedSubtitleIndexesRef = useRef({});
     const lengthRef = useRef();
-    lengthRef.current = props.length;
+    lengthRef.current = length;
     const lastScrollTimestampRef = useRef(0);
     const requestAnimationRef = useRef();
     const containerRef = useRef();
     const drawerOpenRef = useRef();
-    drawerOpenRef.current = props.drawerOpen;
+    drawerOpenRef.current = drawerOpen;
     const [windowWidth, ] = useWindowSize(true);
     const classes = useSubtitlePlayerStyles({compressed, windowWidth});
 
@@ -190,6 +203,21 @@ export default function SubtitlePlayer(props) {
 
         return () => cancelAnimationFrame(requestAnimationRef.current);
     }, []);
+
+    useEffect(() => {
+        const subtitleRefs = subtitleRefsRef.current;
+
+        if (!subtitleRefs || subtitleRefs.length === 0) {
+            return;
+        }
+
+        const firstSubtitleRef = subtitleRefs[0];
+        firstSubtitleRef.current.scrollIntoView({
+            block: "center",
+            inline: "nearest",
+            behavior: "smooth"
+        });
+    }, [lastJumpToTopTimestamp]);
 
     useEffect(() => {
         function handleKey(event) {
