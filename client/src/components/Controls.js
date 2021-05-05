@@ -136,6 +136,7 @@ const useProgressBarStyles = makeStyles((theme) => ({
         height: 5,
         margin: '0 10px 5px 10px',
         cursor: 'pointer',
+        pointerEvents: 'auto'
     },
     fillContainer: {
         width: '100%'
