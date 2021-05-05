@@ -91,7 +91,7 @@ export default function Bar(props) {
                         <SettingsIcon />
                     </IconButton>
                 </Tooltip>
-                <Tooltip title="Copy history">
+                <Tooltip title="Copy History">
                     <IconButton
                         edge="end"
                         color="inherit"
