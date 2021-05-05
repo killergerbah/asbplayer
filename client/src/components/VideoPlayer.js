@@ -22,6 +22,9 @@ const useStyles = makeStyles({
     video: {
         margin: "auto"
     },
+    cursorHidden: {
+        cursor: "none"
+    }
 });
 
 // https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
@@ -173,6 +176,7 @@ export default function VideoPlayer(props) {
     const containerRef = useRef();
     const [alert, setAlert] = useState();
     const [alertOpen, setAlertOpen] = useState(false);
+    const [controlsShowing, setControlsShowing] = useState(true);
 
     const videoRefCallback = useCallback(element => {
         if (element) {
@@ -423,6 +427,7 @@ export default function VideoPlayer(props) {
         };
     }, [playerChannel, fullscreen]);
 
+    const handleShowControls = useCallback((showing) => setControlsShowing(showing), []);
     const handleSubtitlesToggle = useCallback(() => setSubtitlesEnabled(subtitlesEnabled => !subtitlesEnabled), []);
 
     const handleFullscreenToggle = useCallback(() => {
@@ -493,7 +498,7 @@ export default function VideoPlayer(props) {
                 preload="auto"
                 nocontrols={1}
                 onClick={handleClick}
-                className={classes.video}
+                className={controlsShowing ? classes.video : `${classes.cursorHidden} ${classes.video}`}
                 ref={videoRefCallback}
                 src={videoFile} />
             {subtitlesEnabled && (
@@ -530,6 +535,7 @@ export default function VideoPlayer(props) {
                 popOutEnabled={true}
                 condensedModeToggleEnabled={true}
                 condensedModeEnabled={condensedModeEnabled}
+                onShow={handleShowControls}
                 onPlay={handlePlay}
                 onPause={handlePause}
                 onSeek={handleSeek}

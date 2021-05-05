@@ -320,7 +320,7 @@ function MediaUnloader(props) {
 
 export default function Controls(props) {
     const classes = useControlStyles();
-    const {playing, length, offsetEnabled, displayLength, offset, onAudioTrackSelected, onSeek, mousePositionRef, onPause, onPlay, onTabSelected, onUnloadAudio, onUnloadVideo, onOffsetChange, onVolumeChange, disableKeyEvents, settingsProvider} = props;
+    const {playing, length, offsetEnabled, displayLength, offset, onAudioTrackSelected, onSeek, mousePositionRef, onShow, onPause, onPlay, onTabSelected, onUnloadAudio, onUnloadVideo, onOffsetChange, onVolumeChange, disableKeyEvents, settingsProvider} = props;
     const [show, setShow] = useState(true);
     const [audioTrackSelectorOpen, setAudioTrackSelectorOpen] = useState(false);
     const [audioTrackSelectorAnchorEl, setAudioTrackSelectorAnchorEl] = useState();
@@ -384,6 +384,8 @@ export default function Controls(props) {
         }, 100);
         return () => clearInterval(interval);
     }, [mousePositionRef, setShow, show]);
+
+    useEffect(() => onShow?.(show), [onShow, show]);
 
     useEffect(() => {
         if (disableKeyEvents) {
