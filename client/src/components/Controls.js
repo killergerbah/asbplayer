@@ -28,7 +28,8 @@ const useControlStyles = makeStyles((theme) => ({
         position: 'absolute',
         left: '50%',
         width: '50%',
-        bottom: 0
+        bottom: 0,
+        pointerEvents: 'none'
     },
     buttonContainer: {
         flexDirection: 'row'
@@ -51,49 +52,56 @@ const useControlStyles = makeStyles((theme) => ({
         fontSize: 20,
         marginLeft: 10,
         width: 200,
-        color: theme.palette.text.secondary
+        color: theme.palette.text.secondary,
+        pointerEvents: 'auto'
     },
     volumeInputContainerShown: {
         transition: theme.transitions.create('margin', {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.short,
         }),
-        marginRight: 5
+        marginRight: 5,
+        pointerEvents: 'auto'
     },
     volumeInputContainerHidden: {
         transition: theme.transitions.create('margin', {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.short,
         }),
-        marginRight: 0
+        marginRight: 0,
+        pointerEvents: 'auto'
     },
     volumeInputHidden: {
         transition: theme.transitions.create('width', {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.short,
         }),
-        width: 0
+        width: 0,
+        pointerEvents: 'auto'
     },
     volumeInputShown: {
         transition: theme.transitions.create('width', {
             easing: theme.transitions.easing.easeOut,
             duration: theme.transitions.duration.short,
         }),
-        width: 100
+        width: 100,
+        pointerEvents: 'auto'
     },
     volumeInputThumbHidden: {
         transition: theme.transitions.create('visibility', {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.short,
         }),
-        opacity: 0
+        opacity: 0,
+        pointerEvents: 'auto'
     },
     volumeInputThumbShown: {
         transition: theme.transitions.create('visibility', {
             easing: theme.transitions.easing.easeOut,
             duration: theme.transitions.duration.short,
         }),
-        opacity: 1
+        opacity: 1,
+        pointerEvents: 'auto'
     },
     subContainer: {
         background: "linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.7))",
@@ -104,10 +112,12 @@ const useControlStyles = makeStyles((theme) => ({
         padding: 10
     },
     button: {
-        color: theme.palette.action.active
+        color: theme.palette.action.active,
+        pointerEvents: 'auto'
     },
     inactiveButton: {
-        color: theme.palette.action.disabled
+        color: theme.palette.action.disabled,
+        pointerEvents: 'auto'
     },
     progress: {
         margin: 5
@@ -115,7 +125,8 @@ const useControlStyles = makeStyles((theme) => ({
     closeButton: {
         position: 'absolute',
         top: 0,
-        right: 0
+        right: 0,
+        pointerEvents: 'auto'
     }
 }));
 
@@ -634,14 +645,16 @@ export default function Controls(props) {
                             {props.popOutEnabled && (
                                 <Grid item>
                                     <IconButton onClick={() => props.onPopOutToggle()}>
-                                        <OpenInNewIcon style={props.popOut ? {transform: 'rotateX(180deg)'} : {}}/>
+                                        <OpenInNewIcon className={classes.button} style={props.popOut ? {transform: 'rotateX(180deg)'} : {}}/>
                                     </IconButton>
                                 </Grid>
                             )}
                             {props.fullscreenEnabled && (
                                 <Grid item>
                                     <IconButton onClick={() => props.onFullscreenToggle()}>
-                                        {props.fullscreen ? (<FullscreenExitIcon />) : (<FullscreenIcon />)}
+                                        {props.fullscreen
+                                            ? (<FullscreenExitIcon className={classes.button} />)
+                                            : (<FullscreenIcon className={classes.button} />)}
                                     </IconButton>
                                 </Grid>
                             )}
