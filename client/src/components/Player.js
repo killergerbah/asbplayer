@@ -480,6 +480,7 @@ export default function Player(props) {
                 clock.stop();
                 mediaAdapter.pause();
                 setPlaying(false);
+                setLastJumpToTopTimestamp(Date.now());
             }
         }, 1000);
 
