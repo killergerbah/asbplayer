@@ -127,6 +127,9 @@ const useControlStyles = makeStyles((theme) => ({
         top: 0,
         right: 0,
         pointerEvents: 'auto'
+    },
+    gridContainer: {
+        pointerEvents: 'auto'
     }
 }));
 
@@ -552,7 +555,11 @@ export default function Controls(props) {
                             onSeek={handleSeek}
                             value={progress * 100}
                         />
-                        <Grid container direction="row">
+                        <Grid
+                            container
+                            className={classes.gridContainer}
+                            direction="row"
+                        >
                             <Grid item>
                                 <IconButton
                                     onClick={() => playing ? onPause() : onPlay()}
@@ -599,7 +606,7 @@ export default function Controls(props) {
                                     />
                                 </Grid>
                             )}
-                            <Grid style={{flexGrow: 1}} item>
+                            <Grid item style={{flexGrow: 1}}>
                             </Grid>
                             {props.condensedModeToggleEnabled && (
                                 <Grid item>
