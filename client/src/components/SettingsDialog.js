@@ -385,6 +385,10 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                                         label="Subtitle Size"
                                         value={subtitleSize}
                                         onChange={handleSubtitleSizeChange}
+                                        inputProps={{
+                                            min: 1,
+                                            step: 1
+                                        }}
                                     />
                                 </div>
                                 <div className={classes.subtitleSetting}>
@@ -401,6 +405,10 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                                         label="Subtitle Outline Thickness"
                                         value={subtitleOutlineThickness}
                                         onChange={handleSubtitleOutlineThicknessChange}
+                                        inputProps={{
+                                            min: 0,
+                                            step: 1
+                                        }}
                                     />
                                 </div>
                                 <div className={classes.subtitleSetting}>
