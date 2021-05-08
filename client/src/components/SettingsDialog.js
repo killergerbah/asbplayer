@@ -1,14 +1,17 @@
-import { useCallback, useState, useEffect } from 'react';
+import React, {  useCallback, useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import Button from '@material-ui/core/Button';
+import CustomFieldDialog from './CustomFieldDialog';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
+import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
+import DeleteIcon from '@material-ui/icons/Delete';
 import Select from '@material-ui/core/Select';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
@@ -27,6 +30,9 @@ const useStyles = makeStyles((theme) => ({
             marginBottom: theme.spacing(1),
             width: 320
         },
+    },
+    addFieldButton: {
+        width: "100%"
     }
 }));
 
@@ -35,14 +41,19 @@ const useSelectableSettingStyles = makeStyles((theme) => ({
         margin: theme.spacing(1),
         minWidth: 120,
     },
+    root: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "end",
+        alignItems: "flex-end",
+    }
 }));
 
-function SelectableSetting(props) {
-    const classes = useSelectableSettingStyles();
-    const {label, value, selections, onChange, onSelectionChange} = props;
+function SelectableSetting({label, value, selections, removable, onChange, onSelectionChange, onRemoval}) {
+    const classes = useSelectableSettingStyles({removable: removable});
 
     return (
-        <div>
+        <div className={classes.root}>
             <TextField
                 label={label}
                 value={value}
@@ -60,6 +71,11 @@ function SelectableSetting(props) {
                     ))}
                 </Select>
             </FormControl>
+            {removable && (
+                <IconButton onClick={(e) => onRemoval?.()}>
+                    <DeleteIcon />
+                </IconButton>
+            )}
         </div>
     );
 }
@@ -79,8 +95,7 @@ function Centered(props) {
     );
 }
 
-export default function SettingsDialog(props) {
-    const {anki, open, settings, onClose} = props;
+export default function SettingsDialog({anki, open, settings, onClose}) {
     const classes = useStyles();
     const [tabIndex, setTabIndex] = useState(0);
     const [ankiConnectUrl, setAnkiConnectUrl] = useState(settings.ankiConnectUrl);
@@ -96,7 +111,9 @@ export default function SettingsDialog(props) {
     const [imageField, setImageField] = useState(settings.imageField || "");
     const [wordField, setWordField] = useState(settings.wordField || "");
     const [sourceField, setSourceField] = useState(settings.sourceField || "");
+    const [customFields, setCustomFields] = useState(settings.customAnkiFields);
     const [fieldNames, setFieldNames] = useState();
+    const [customFieldDialogOpen, setCustomFieldDialogOpen] = useState(false);
     const [subtitleColor, setSubtitleColor] = useState(settings.subtitleColor);
     const [subtitleSize, setSubtitleSize] = useState(settings.subtitleSize);
     const [subtitleOutlineColor, setSubtitleOutlineColor] = useState(settings.subtitleOutlineColor);
@@ -110,28 +127,43 @@ export default function SettingsDialog(props) {
     }, []);
 
     const handleRetryAnkiConnectUrl = useCallback((e) => setAnkiConnectUrlChangeTimestamp(Date.now()), []);
-    const handleDeckSelectionChange = useCallback((e) => setDeck(e.target.value), []);
     const handleDeckChange = useCallback((e) => setDeck(e.target.value), []);
-    const handleNoteTypeSelectionChange = useCallback((e) => setNoteType(e.target.value), []);
     const handleNoteTypeChange = useCallback((e) => setNoteType(e.target.value), []);
     const handleSentenceFieldChange = useCallback((e) => setSentenceField(e.target.value), []);
-    const handleSentenceFieldSelectionChange = useCallback((e) => setSentenceField(e.target.value), []);
     const handleDefinitionFieldChange = useCallback((e) => setDefinitionField(e.target.value), []);
-    const handleDefinitionFieldSelectionChange = useCallback((e) => setDefinitionField(e.target.value), []);
     const handleAudioFieldChange = useCallback((e) => setAudioField(e.target.value), []);
-    const handleAudioFieldSelectionChange = useCallback((e) => setAudioField(e.target.value), []);
     const handleImageFieldChange = useCallback((e) => setImageField(e.target.value), []);
-    const handleImageFieldSelectionChange = useCallback((e) => setImageField(e.target.value), []);
     const handleWordFieldChange = useCallback((e) => setWordField(e.target.value), []);
-    const handleWordFieldSelectionChange = useCallback((e) => setWordField(e.target.value), []);
     const handleSourceFieldChange = useCallback((e) => setSourceField(e.target.value), []);
-    const handleSourceFieldSelectionChange = useCallback((e) => setSourceField(e.target.value), []);
     const handleSubtitleColorChange = useCallback((e) => setSubtitleColor(e.target.value), []);
     const handleSubtitleSizeChange = useCallback((e) => setSubtitleSize(e.target.value), []);
     const handleSubtitleOutlineColorChange = useCallback((e) => setSubtitleOutlineColor(e.target.value), []);
     const handleSubtitleOutlineThicknessChange = useCallback((e) => setSubtitleOutlineThickness(e.target.value), []);
     const handleSubtitleBackgroundColorChange = useCallback((e) => setSubtitleBackgroundColor(e.target.value), []);
     const handleSubtitleBackgroundOpacityChange = useCallback((e) => setSubtitleBackgroundOpacity(e.target.value), []);
+    const handleAddCustomField = useCallback((customFieldName) => {
+        setCustomFields(oldCustomFields => {
+            const newCustomFields = {};
+            Object.assign(newCustomFields, oldCustomFields);
+            newCustomFields[customFieldName] = "";
+            return newCustomFields;
+        });
+        setCustomFieldDialogOpen(false);
+    }, []);
+    const handleCustomFieldChange = useCallback((customFieldName, value) => {
+        setCustomFields(oldCustomFields => {
+            const newCustomFields = {};
+            Object.assign(newCustomFields, oldCustomFields);
+            newCustomFields[customFieldName] = value;
+            return newCustomFields;
+        });
+    }, []);
+    const handleCustomFieldRemoval = useCallback((customFieldName) => setCustomFields(oldCustomFields => {
+        const newCustomFields = {};
+        Object.assign(newCustomFields, oldCustomFields);
+        delete newCustomFields[customFieldName];
+        return newCustomFields;
+    }), []);
 
     useEffect(() => {
         let canceled = false;
@@ -210,166 +242,197 @@ export default function SettingsDialog(props) {
             subtitleOutlineColor: subtitleOutlineColor,
             subtitleBackgroundColor: subtitleBackgroundColor,
             subtitleBackgroundOpacity: Number(subtitleBackgroundOpacity),
+            customAnkiFields: customFields
         });
-    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, imageField, wordField, sourceField, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity]);
+    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, imageField, wordField, sourceField, customFields, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity]);
+
+    const customFieldInputs = Object.keys(customFields).map(customFieldName => {
+        return (
+            <SelectableSetting
+                key={customFieldName}
+                label={`${customFieldName} Field`}
+                value={customFields[customFieldName]}
+                selections={fieldNames}
+                onChange={fieldValue => handleCustomFieldChange(customFieldName, fieldValue)}
+                onSelectionChange={e => handleCustomFieldChange(customFieldName, e.target.value)}
+                onRemoval={() => handleCustomFieldRemoval(customFieldName)}
+                removable={true}
+            />
+        );
+    });
 
     return (
-        <Dialog
-            open={open}
-            maxWidth="xs"
-            fullWidth
-            onBackdropClick={handleClose}
-        >
-            <Tabs
-                value={tabIndex}
-                variant="fullWidth"
-                onChange={(e, newIndex) => setTabIndex(newIndex)}
+        <React.Fragment>
+            <CustomFieldDialog
+                open={customFieldDialogOpen}
+                existingCustomFieldNames={Object.keys(customFields)}
+                onProceed={handleAddCustomField}
+                onCancel={() => setCustomFieldDialogOpen(false)}
+            />
+            <Dialog
+                open={open}
+                maxWidth="xs"
+                fullWidth
+                onBackdropClick={handleClose}
             >
-                <Tab label="Anki" />
-                <Tab label="In-Video Subtitles" />
-            </Tabs>
-            {tabIndex === 0 && (
-                <DialogContent>
-                    <DialogContentText>
-                        Ensure that {window.location.protocol + "//" + window.location.hostname} is in the webCorsOriginList in your AnkiConnect settings.
-                        Leaving a field blank is fine.
-                    </DialogContentText>
-                    <Centered>
-                        <form className={classes.root}>
-                            <div>
-                                <TextField
-                                    label="Anki Connect URL"
-                                    value={ankiConnectUrl}
-                                    error={Boolean(ankiConnectUrlError)}
-                                    helperText={ankiConnectUrlError}
-                                    onChange={handleAnkiConnectUrlChange}
+                <Tabs
+                    value={tabIndex}
+                    variant="fullWidth"
+                    onChange={(e, newIndex) => setTabIndex(newIndex)}
+                >
+                    <Tab label="Anki" />
+                    <Tab label="In-Video Subtitles" />
+                </Tabs>
+                {tabIndex === 0 && (
+                    <DialogContent>
+                        <DialogContentText>
+                            Ensure that {window.location.protocol + "//" + window.location.hostname} is in the webCorsOriginList in your AnkiConnect settings.
+                            Leaving a field blank is fine.
+                        </DialogContentText>
+                        <Centered>
+                            <form className={classes.root}>
+                                <div>
+                                    <TextField
+                                        label="Anki Connect URL"
+                                        value={ankiConnectUrl}
+                                        error={Boolean(ankiConnectUrlError)}
+                                        helperText={ankiConnectUrlError}
+                                        onChange={handleAnkiConnectUrlChange}
+                                    />
+                                </div>
+                                <SelectableSetting
+                                    label="Deck"
+                                    value={deck}
+                                    selections={deckNames}
+                                    onChange={handleDeckChange}
+                                    onSelectionChange={handleDeckChange}
                                 />
-                            </div>
-                            <SelectableSetting
-                                label="Deck"
-                                value={deck}
-                                selections={deckNames}
-                                onChange={handleDeckChange}
-                                onSelectionChange={handleDeckSelectionChange}
-                            />
-                            <SelectableSetting
-                                label="Note Type"
-                                value={noteType}
-                                selections={modelNames}
-                                onChange={handleNoteTypeChange}
-                                onSelectionChange={handleNoteTypeSelectionChange}
-                            />
-                            <SelectableSetting
-                                label="Sentence Field"
-                                value={sentenceField}
-                                selections={fieldNames}
-                                onChange={handleSentenceFieldChange}
-                                onSelectionChange={handleSentenceFieldSelectionChange}
-                            />
-                            <SelectableSetting
-                                label="Definition Field"
-                                value={definitionField}
-                                selections={fieldNames}
-                                onChange={handleDefinitionFieldChange}
-                                onSelectionChange={handleDefinitionFieldSelectionChange}
-                            />
-                            <SelectableSetting
-                                label="Word Field"
-                                value={wordField}
-                                selections={fieldNames}
-                                onChange={handleWordFieldChange}
-                                onSelectionChange={handleWordFieldSelectionChange}
-                            />
-                            <SelectableSetting
-                                label="Audio Field"
-                                value={audioField}
-                                selections={fieldNames}
-                                onChange={handleAudioFieldChange}
-                                onSelectionChange={handleAudioFieldSelectionChange}
-                            />
-                            <SelectableSetting
-                                label="Image Field"
-                                value={imageField}
-                                selections={fieldNames}
-                                onChange={handleImageFieldChange}
-                                onSelectionChange={handleImageFieldSelectionChange}
-                            />
-                            <SelectableSetting
-                                label="Source Field"
-                                value={sourceField}
-                                selections={fieldNames}
-                                onChange={handleSourceFieldChange}
-                                onSelectionChange={handleSourceFieldSelectionChange}
-                            />
-                        </form>
-                    </Centered>
-                </DialogContent>
-            )}
-            {tabIndex === 1 && (
-                <DialogContent>
-                    <Centered>
-                        <form className={classes.root}>
-                            <div className={classes.subtitleSetting}>
-                                <TextField
-                                    type="color"
-                                    label="Subtitle Color"
-                                    value={subtitleColor}
-                                    onChange={handleSubtitleColorChange}
+                                <SelectableSetting
+                                    label="Note Type"
+                                    value={noteType}
+                                    selections={modelNames}
+                                    onChange={handleNoteTypeChange}
+                                    onSelectionChange={handleNoteTypeChange}
                                 />
-                            </div>
-                            <div className={classes.subtitleSetting}>
-                                <TextField
-                                    type="number"
-                                    label="Subtitle Size"
-                                    value={subtitleSize}
-                                    onChange={handleSubtitleSizeChange}
+                                <SelectableSetting
+                                    label="Sentence Field"
+                                    value={sentenceField}
+                                    selections={fieldNames}
+                                    onChange={handleSentenceFieldChange}
+                                    onSelectionChange={handleSentenceFieldChange}
                                 />
-                            </div>
-                            <div className={classes.subtitleSetting}>
-                                <TextField
-                                    type="color"
-                                    label="Subtitle Outline Color"
-                                    value={subtitleOutlineColor}
-                                    onChange={handleSubtitleOutlineColorChange}
+                                <SelectableSetting
+                                    label="Definition Field"
+                                    value={definitionField}
+                                    selections={fieldNames}
+                                    onChange={handleDefinitionFieldChange}
+                                    onSelectionChange={handleDefinitionFieldChange}
                                 />
-                            </div>
-                            <div className={classes.subtitleSetting}>
-                                <TextField
-                                    type="number"
-                                    label="Subtitle Outline Thickness"
-                                    value={subtitleOutlineThickness}
-                                    onChange={handleSubtitleOutlineThicknessChange}
+                                <SelectableSetting
+                                    label="Word Field"
+                                    value={wordField}
+                                    selections={fieldNames}
+                                    onChange={handleWordFieldChange}
+                                    onSelectionChange={handleWordFieldChange}
                                 />
-                            </div>
-                            <div className={classes.subtitleSetting}>
-                                <TextField
-                                    type="color"
-                                    label="Subtitle Background Color"
-                                    value={subtitleBackgroundColor}
-                                    onChange={handleSubtitleBackgroundColorChange}
+                                <SelectableSetting
+                                    label="Audio Field"
+                                    value={audioField}
+                                    selections={fieldNames}
+                                    onChange={handleAudioFieldChange}
+                                    onSelectionChange={handleAudioFieldChange}
                                 />
-                            </div>
-                            <div className={classes.subtitleSetting}>
-                                <TextField
-                                    type="number"
-                                    label="Subtitle Background Opacity"
-                                    inputProps={{
-                                        min: 0,
-                                        max: 1,
-                                        step: 0.1
-                                    }}
-                                    value={subtitleBackgroundOpacity}
-                                    onChange={handleSubtitleBackgroundOpacityChange}
+                                <SelectableSetting
+                                    label="Image Field"
+                                    value={imageField}
+                                    selections={fieldNames}
+                                    onChange={handleImageFieldChange}
+                                    onSelectionChange={handleImageFieldChange}
                                 />
-                            </div>
-                        </form>
-                    </Centered>
-                </DialogContent>
-            )}
-            <DialogActions>
-                {tabIndex === 0 && (<Button onClick={handleRetryAnkiConnectUrl}>Retry Anki URL</Button>)}
-                <Button onClick={handleClose}>OK</Button>
-            </DialogActions>
-        </Dialog>
+                                <SelectableSetting
+                                    label="Source Field"
+                                    value={sourceField}
+                                    selections={fieldNames}
+                                    onChange={handleSourceFieldChange}
+                                    onSelectionChange={handleSourceFieldChange}
+                                />
+                                {customFieldInputs}
+                                <Button
+                                    className={classes.addFieldButton}
+                                    onClick={(e) => setCustomFieldDialogOpen(true)}
+                                >
+                                    Add Custom Field
+                                </Button>
+                            </form>
+                        </Centered>
+                    </DialogContent>
+                )}
+                {tabIndex === 1 && (
+                    <DialogContent>
+                        <Centered>
+                            <form className={classes.root}>
+                                <div className={classes.subtitleSetting}>
+                                    <TextField
+                                        type="color"
+                                        label="Subtitle Color"
+                                        value={subtitleColor}
+                                        onChange={handleSubtitleColorChange}
+                                    />
+                                </div>
+                                <div className={classes.subtitleSetting}>
+                                    <TextField
+                                        type="number"
+                                        label="Subtitle Size"
+                                        value={subtitleSize}
+                                        onChange={handleSubtitleSizeChange}
+                                    />
+                                </div>
+                                <div className={classes.subtitleSetting}>
+                                    <TextField
+                                        type="color"
+                                        label="Subtitle Outline Color"
+                                        value={subtitleOutlineColor}
+                                        onChange={handleSubtitleOutlineColorChange}
+                                    />
+                                </div>
+                                <div className={classes.subtitleSetting}>
+                                    <TextField
+                                        type="number"
+                                        label="Subtitle Outline Thickness"
+                                        value={subtitleOutlineThickness}
+                                        onChange={handleSubtitleOutlineThicknessChange}
+                                    />
+                                </div>
+                                <div className={classes.subtitleSetting}>
+                                    <TextField
+                                        type="color"
+                                        label="Subtitle Background Color"
+                                        value={subtitleBackgroundColor}
+                                        onChange={handleSubtitleBackgroundColorChange}
+                                    />
+                                </div>
+                                <div className={classes.subtitleSetting}>
+                                    <TextField
+                                        type="number"
+                                        label="Subtitle Background Opacity"
+                                        inputProps={{
+                                            min: 0,
+                                            max: 1,
+                                            step: 0.1
+                                        }}
+                                        value={subtitleBackgroundOpacity}
+                                        onChange={handleSubtitleBackgroundOpacityChange}
+                                    />
+                                </div>
+                            </form>
+                        </Centered>
+                    </DialogContent>
+                )}
+                <DialogActions>
+                    {tabIndex === 0 && (<Button onClick={handleRetryAnkiConnectUrl}>Retry Anki URL</Button>)}
+                    <Button onClick={handleClose}>OK</Button>
+                </DialogActions>
+            </Dialog>
+        </React.Fragment>
     )
 }

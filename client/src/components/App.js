@@ -216,6 +216,7 @@ function App() {
         settingsProvider.subtitleOutlineColor = newSettings.subtitleOutlineColor;
         settingsProvider.subtitleBackgroundColor = newSettings.subtitleBackgroundColor;
         settingsProvider.subtitleBackgroundOpacity = newSettings.subtitleBackgroundOpacity;
+        settingsProvider.customAnkiFields = newSettings.customAnkiFields;
         setSettingsDialogOpen(false);
         extension.publishMessage({command: 'subtitleSettings', value: settingsProvider.subtitleSettings})
     }, [extension, settingsProvider]);
@@ -314,7 +315,7 @@ function App() {
         setDisableKeyEvents(false);
     }, []);
 
-    const handleAnkiDialogProceed = useCallback(async (text, definition, audioClip, image, word, source) => {
+    const handleAnkiDialogProceed = useCallback(async (text, definition, audioClip, image, word, source, customFieldValues) => {
         setAnkiDialogDisabled(true);
 
         try {
@@ -325,7 +326,8 @@ function App() {
                 audioClip,
                 image,
                 word,
-                source
+                source,
+                customFieldValues
             );
 
             setAlertSeverity("success");
@@ -462,6 +464,7 @@ function App() {
                                 audioClip={ankiDialogItem && audioClipFromItem(ankiDialogItem, offsetRef.current || 0)}
                                 image={ankiDialogItem && imageFromItem(ankiDialogItem, offsetRef.current || 0)}
                                 source={ankiDialogItem?.subtitleFile?.name}
+                                customFields={settingsProvider.customAnkiFields}
                                 onCancel={handleAnkiDialogCancel}
                                 onProceed={handleAnkiDialogProceed}
                                 onViewImage={handleViewImage}

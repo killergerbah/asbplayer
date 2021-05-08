@@ -23,10 +23,11 @@ const useStyles = makeStyles((theme) => ({
 
 export default function AnkiDialog(props) {
     const classes = useStyles();
-    const {open, disabled, text: initialText, onProceed, onCancel, onViewImage, audioClip, image, source} = props;
+    const {open, disabled, text: initialText, onProceed, onCancel, onViewImage, audioClip, image, source, customFields} = props;
     const [definition, setDefinition] = useState("");
     const [text, setText] = useState();
     const [word, setWord] = useState();
+    const [customFieldValues, setCustomFieldValues] = useState({});
 
     useEffect(() => {
         setText(initialText);
@@ -36,6 +37,7 @@ export default function AnkiDialog(props) {
         if (open) {
              setDefinition("");
              setWord("");
+             setCustomFieldValues({});
         }
     }, [open]);
 
@@ -50,6 +52,13 @@ export default function AnkiDialog(props) {
         e.stopPropagation();
         onViewImage(image);
     }, [image, onViewImage]);
+
+    const handleCustomFieldChange = useCallback((customFieldName, value) => {
+        const newCustomFieldValues = {};
+        Object.assign(newCustomFieldValues, customFieldValues);
+        newCustomFieldValues[customFieldName] = value;
+        setCustomFieldValues(newCustomFieldValues);
+    }, [customFieldValues]);
 
     return (
         <Dialog
@@ -87,6 +96,16 @@ export default function AnkiDialog(props) {
                         value={word}
                         onChange={(e) => setWord(e.target.value)}
                     />
+                    {Object.keys(customFields).map((customFieldName) => (
+                        <TextField
+                            key={customFieldName}
+                            variant="filled"
+                            fullWidth
+                            label={customFieldName}
+                            value={customFieldValues[customFieldName] || ""}
+                            onChange={(e) => handleCustomFieldChange(customFieldName, e.target.value)}
+                        />
+                    ))}
                     {audioClip && (
                         <div
                             className={classes.mediaField}
@@ -129,7 +148,7 @@ export default function AnkiDialog(props) {
                 </Button>
                 <Button
                     disabled={disabled}
-                    onClick={() => onProceed(text, definition, audioClip, image, word, source)}
+                    onClick={() => onProceed(text, definition, audioClip, image, word, source, customFieldValues)}
                 >
                     Export
                 </Button>

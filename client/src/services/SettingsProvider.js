@@ -16,6 +16,7 @@ const audioFieldKey = "audioField";
 const imageFieldKey = "imageField";
 const wordFieldKey = "wordField";
 const sourceFieldKey = "sourceField";
+const customAnkiFieldsKey = "customAnkiFields";
 const subtitleSizeKey = "subtitleSize";
 const subtitleColorKey = "subtitleColor";
 const subtitleOutlineThicknessKey = "subtitleOutlineThickness";
@@ -28,32 +29,33 @@ export default class SettingsProvider {
 
     get settings() {
         return {
-            ankiConnectUrl: localStorage.getItem(ankiConnectUrlKey) || defaultAnkiConnectUrl,
-            deck: localStorage.getItem(deckKey),
-            noteType: localStorage.getItem(noteTypeKey),
-            sentenceField: localStorage.getItem(sentenceFieldKey),
-            definitionField: localStorage.getItem(definitionFieldKey),
-            audioField: localStorage.getItem(audioFieldKey),
-            imageField: localStorage.getItem(imageFieldKey),
-            wordField: localStorage.getItem(wordFieldKey),
-            sourceField: localStorage.getItem(sourceFieldKey),
-            subtitleSize: localStorage.getItem(subtitleSizeKey) || defaultSubtitleSize,
-            subtitleColor: localStorage.getItem(subtitleColorKey) || defaultSubtitleColor,
-            subtitleOutlineThickness: localStorage.getItem(subtitleOutlineThicknessKey) || defaultSubtitleOutlineThickness,
-            subtitleOutlineColor: localStorage.getItem(subtitleOutlineColorKey) || defaultSubtitleOutlineColor,
-            subtitleBackgroundColor: localStorage.getItem(subtitleBackgroundColorKey) || defaultSubtitleBackgroundColor,
-            subtitleBackgroundOpacity : localStorage.getItem(subtitleBackgroundOpacityKey) || defaultSubtitleBackgroundOpacity,
+            ankiConnectUrl: this.ankiConnectUrl,
+            deck: this.deck,
+            noteType: this.noteType,
+            sentenceField: this.sentenceField,
+            definitionField: this.definitionField,
+            audioField: this.audioField,
+            imageField: this.imageField,
+            wordField: this.wordField,
+            customAnkiFields: this.customAnkiFields,
+            sourceField: this.sourceField,
+            subtitleSize: this.subtitleSize,
+            subtitleColor: this.subtitleColor,
+            subtitleOutlineThickness: this.subtitleOutlineThickness,
+            subtitleOutlineColor: this.subtitleOutlineColor,
+            subtitleBackgroundColor: this.subtitleBackgroundColor,
+            subtitleBackgroundOpacity : this.subtitleBackgroundOpacity,
         };
     }
 
     get subtitleSettings() {
         return {
-            subtitleSize: localStorage.getItem(subtitleSizeKey) || defaultSubtitleSize,
-            subtitleColor: localStorage.getItem(subtitleColorKey) || defaultSubtitleColor,
-            subtitleOutlineThickness: localStorage.getItem(subtitleOutlineThicknessKey) || defaultSubtitleOutlineThickness,
-            subtitleOutlineColor: localStorage.getItem(subtitleOutlineColorKey) || defaultSubtitleOutlineColor,
-            subtitleBackgroundColor: localStorage.getItem(subtitleBackgroundColorKey) || defaultSubtitleBackgroundColor,
-            subtitleBackgroundOpacity : localStorage.getItem(subtitleBackgroundOpacityKey) || defaultSubtitleBackgroundOpacity,
+            subtitleSize: this.subtitleSize,
+            subtitleColor: this.subtitleColor,
+            subtitleOutlineThickness: this.subtitleOutlineThickness,
+            subtitleOutlineColor: this.subtitleOutlineColor,
+            subtitleBackgroundColor: this.subtitleBackgroundColor,
+            subtitleBackgroundOpacity : this.subtitleBackgroundOpacity,
         };
     }
 
@@ -127,6 +129,20 @@ export default class SettingsProvider {
 
     set sourceField(sourceField) {
         localStorage.setItem(sourceFieldKey, sourceField);
+    }
+
+    get customAnkiFields() {
+        const ankiFieldsString = localStorage.getItem(customAnkiFieldsKey);
+
+        if (ankiFieldsString) {
+            return JSON.parse(ankiFieldsString);
+        }
+
+        return {};
+    }
+
+    set customAnkiFields(customAnkiFields) {
+        localStorage.setItem(customAnkiFieldsKey, JSON.stringify(customAnkiFields));
     }
 
     get subtitleColor() {

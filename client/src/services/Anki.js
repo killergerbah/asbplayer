@@ -19,23 +19,18 @@ export default class Anki {
         return response.result;
     }
 
-    async export(ankiConnectUrl, text, definition, audioClip, image, word, source) {
+    async export(ankiConnectUrl, text, definition, audioClip, image, word, source, customFieldValues) {
         const fields = {};
 
-        if (this.settingsProvider.sentenceField && text) {
-            fields[this.settingsProvider.sentenceField] = text ? text.split("\n").join("<br>") : text;
-        }
+        this._appendField(fields, this.settingsProvider.sentenceField, text, true);
+        this._appendField(fields, this.settingsProvider.definitionField, definition, true);
+        this._appendField(fields, this.settingsProvider.wordField, word, false);
+        this._appendField(fields, this.settingsProvider.sourceField, source, false);
 
-        if (this.settingsProvider.definitionField && definition) {
-            fields[this.settingsProvider.definitionField] = definition ? definition.split("\n").join("<br>") : definition;
-        }
-
-        if (this.settingsProvider.wordField && word) {
-            fields[this.settingsProvider.wordField] = word;
-        }
-
-        if (this.settingsProvider.sourceField && source) {
-            fields[this.settingsProvider.sourceField] = source;
+        if (customFieldValues) {
+            for (const customFieldName of Object.keys(customFieldValues)) {
+                this._appendField(fields, this.settingsProvider.customAnkiFields[customFieldName], customFieldValues[customFieldName], false);
+            }
         }
 
         const params = {
@@ -76,6 +71,21 @@ export default class Anki {
 
         const response = await this._executeAction(ankiConnectUrl, 'addNote', params);
         return response.result;
+    }
+
+    _appendField(fields, fieldName, value, multiline) {
+        if (!fieldName || !value) {
+            return;
+        }
+
+        let newValue =  multiline ? value.split("\n").join("<br>") : value;
+        const existingValue = fields[fieldName];
+
+        if (existingValue) {
+            newValue = existingValue + "<br>" + newValue;
+        }
+
+        fields[fieldName] = newValue;
     }
 
     async _executeAction(ankiConnectUrl, action, params) {
