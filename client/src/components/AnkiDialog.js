@@ -6,12 +6,19 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import IconButton from '@material-ui/core/IconButton';
+import SettingsIcon from '@material-ui/icons/Settings';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
 
 const useStyles = makeStyles((theme) => ({
     root: {
         '& .MuiTextField-root': {
             marginBottom: theme.spacing(1),
         },
+    },
+    title: {
+        flexGrow: 1
     },
     mediaField: {
         cursor: 'pointer',
@@ -23,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function AnkiDialog(props) {
     const classes = useStyles();
-    const {open, disabled, text: initialText, onProceed, onCancel, onViewImage, audioClip, image, source, customFields} = props;
+    const {open, disabled, text: initialText, onProceed, onCancel, onViewImage, onOpenSettings, audioClip, image, source, customFields} = props;
     const [definition, setDefinition] = useState("");
     const [text, setText] = useState();
     const [word, setWord] = useState();
@@ -68,7 +75,20 @@ export default function AnkiDialog(props) {
             maxWidth="sm"
             onBackdropClick={() => onCancel()}
         >
-            <DialogTitle>Anki Export</DialogTitle>
+            <Toolbar>
+            <Typography
+                variant="h6"
+                className={classes.title}
+            >
+                Anki Export
+            </Typography>
+            <IconButton
+                edge="end"
+                onClick={() => onOpenSettings()}
+            >
+                <SettingsIcon />
+            </IconButton>
+            </Toolbar>
             <DialogContent>
                 <form className={classes.root}>
                     <TextField

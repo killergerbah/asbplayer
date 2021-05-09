@@ -184,6 +184,7 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
 
                 console.error(e);
                 setDeckNames(null);
+                setModelNames(null);
                 setAnkiConnectUrlError(e.message);
             }
         }, 1000);

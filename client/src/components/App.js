@@ -333,11 +333,11 @@ function App() {
             setAlertSeverity("success");
             setAlert("Export succeeded: " + result);
             setAlertOpen(true);
+            setAnkiDialogOpen(false);
         } catch (e) {
             console.error(e);
             handleError(e.message);
         } finally {
-            setAnkiDialogOpen(false);
             setAnkiDialogDisabled(false);
             setDisableKeyEvents(false);
         }
@@ -362,7 +362,7 @@ function App() {
         e.preventDefault();
 
         if (inVideoPlayer) {
-            handleError('Video player cannot receive dropped files. Drop into the subtitle section instead.')
+            handleError('Video player cannot receive dropped files. Drop into the subtitle section instead.');
             return;
         }
 
@@ -468,6 +468,7 @@ function App() {
                                 onCancel={handleAnkiDialogCancel}
                                 onProceed={handleAnkiDialogProceed}
                                 onViewImage={handleViewImage}
+                                onOpenSettings={handleOpenSettings}
                             />
                             <ImageDialog
                                 open={imageDialogOpen}
