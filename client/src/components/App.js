@@ -7,6 +7,7 @@ import Alert from './Alert.js';
 import Anki from '../services/Anki.js';
 import AnkiDialog from './AnkiDialog.js';
 import AudioClip from '../services/AudioClip';
+import DragOverlay from './DragOverlay.js';
 import HelpDialog from './HelpDialog.js';
 import ImageDialog from './ImageDialog.js';
 import SubtitleReader from '../services/SubtitleReader.js';
@@ -30,15 +31,15 @@ const useStyles = makeStyles((theme) => ({
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
         }),
-        marginRight: 0,
+        marginRight: 0
     },
-    contentShift: {
+    contentShift: ({drawerWidth}) => ({
         transition: theme.transitions.create('margin', {
             easing: theme.transitions.easing.easeOut,
             duration: theme.transitions.duration.enteringScreen,
         }),
-        marginRight: ({drawerWidth}) => drawerWidth,
-    },
+        marginRight: drawerWidth
+    }),
 }));
 
 function extractSources(files) {
@@ -133,6 +134,7 @@ function imageFromItem(item, offset) {
 
 function Content(props) {
     const classes = useStyles(props);
+
     return (
         <main
             className={clsx(classes.content, {
@@ -163,6 +165,8 @@ function App() {
     const [jumpToSubtitle, setJumpToSubtitle] = useState();
     const [sources, setSources] = useState({});
     const [loading, setLoading] = useState(false);
+    const [dragging, setDragging] = useState(false);
+    const dragEnterRef = useRef();
     const [fileName, setFileName] = useState();
     const [ankiDialogOpen, setAnkiDialogOpen] = useState(false);
     const [ankiDialogDisabled, setAnkiDialogDisabled] = useState(false);
@@ -366,6 +370,9 @@ function App() {
             return;
         }
 
+        setDragging(false);
+        dragEnterRef.current = null;
+
         if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) {
             return;
         }
@@ -415,15 +422,33 @@ function App() {
             handleError(e.message);
         }
     }, [inVideoPlayer, handleError]);
+    const handleDragEnter = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
 
+        if (!inVideoPlayer) {
+            dragEnterRef.current = e.target;
+            setDragging(true);
+        }
+
+    }, [inVideoPlayer]);
+    const handleDragLeave = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!inVideoPlayer && dragEnterRef.current === e.target) {
+            setDragging(false);
+        }
+    }, [inVideoPlayer]);
     const handleSourcesLoaded = useCallback(() => setLoading(false), []);
-
     const nothingLoaded = (loading && !videoFrameRef.current) || (!sources.subtitleFile && !sources.audioFile && !sources.videoFile);
 
     return (
         <div
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
         >
             <Alert
                 open={alertOpen}
@@ -501,8 +526,10 @@ function App() {
                                         extensionUrl={extensionUrl}
                                         extension={extension}
                                         loading={loading}
+                                        dragging={dragging}
                                     />
                                 )}
+                                <DragOverlay dragging={dragging} />
                                 <Player
                                     subtitleReader={subtitleReader}
                                     settingsProvider={settingsProvider}

@@ -406,10 +406,10 @@ export default function Player(props) {
         );
     }, [onCopy, audioFile, videoFile, subtitleFile, selectedAudioTrack]);
 
-    function handleMouseMove(e) {
+    const handleMouseMove = useCallback((e) => {
         mousePositionRef.current.x = e.screenX;
         mousePositionRef.current.y = e.screenY;
-    };
+    }, []);
 
     const handleAudioTrackSelected = useCallback(async (id) => {
         if (videoRef.current) {

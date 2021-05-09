@@ -26,13 +26,13 @@ const useStyles = makeStyles((theme) => ({
         backgroundImage: `url(${background})`
     },
     coloredBackground: {
-        backgroundImage: `url(${coloredBackground})`
-    }
+        backgroundImage: `url(${coloredBackground})`,
+    },
 }));
 
 export default function LandingPage(props) {
     const classes = useStyles();
-    const {extension, latestExtensionVersion, extensionUrl, loading} = props;
+    const {extension, latestExtensionVersion, extensionUrl, loading, dragging} = props;
     const [installedExtensionVersion, setInstalledExtensionVersion] = useState();
 
     useEffect(() => {
@@ -49,7 +49,7 @@ export default function LandingPage(props) {
     return (
         <React.Fragment>
             <div className={`${classes.background} ${classes.defaultBackground}`}>
-                <Fade in={!loading} timeout={500}>
+                <Fade in={!loading && !dragging} timeout={500}>
                     <Typography>
                         Drag and drop srt, ass, vtt, mp3, m4a, and mkv files. <br />
                         {extensionNotInstalled && (
@@ -65,7 +65,7 @@ export default function LandingPage(props) {
                     </Typography>
                 </Fade>
             </div>
-            <Fade in={loading} timeout={5000}>
+            <Fade in={loading && !dragging} timeout={5000}>
                 <div className={`${classes.background} ${classes.coloredBackground}`} />
             </Fade>
         </React.Fragment>
