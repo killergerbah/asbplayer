@@ -48,8 +48,8 @@ export default function LandingPage(props) {
 
     return (
         <React.Fragment>
-            <div className={`${classes.background} ${classes.defaultBackground}`}>
-                <Fade in={!loading && !dragging} timeout={500}>
+            <Fade in={!loading && !dragging} timeout={500}>
+                <div className={`${classes.background} ${classes.defaultBackground}`}>
                     <Typography>
                         Drag and drop srt, ass, vtt, mp3, m4a, and mkv files. <br />
                         {extensionNotInstalled && (
@@ -63,10 +63,7 @@ export default function LandingPage(props) {
                             </span>
                         )}
                     </Typography>
-                </Fade>
-            </div>
-            <Fade in={loading && !dragging} timeout={5000}>
-                <div className={`${classes.background} ${classes.coloredBackground}`} />
+                </div>
             </Fade>
         </React.Fragment>
     );

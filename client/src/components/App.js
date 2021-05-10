@@ -529,7 +529,7 @@ function App() {
                                         dragging={dragging}
                                     />
                                 )}
-                                <DragOverlay dragging={dragging} />
+                                <DragOverlay dragging={dragging} loading={loading} />
                                 <Player
                                     subtitleReader={subtitleReader}
                                     settingsProvider={settingsProvider}

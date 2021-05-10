@@ -16,28 +16,30 @@ const useStyles = makeStyles((theme) => ({
             position: "absolute",
             height: 'calc(100vh - 64px)',
             width: "100%",
-            zIndex: 100,
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
-            padding: 15,
             textAlign: "center",
             backgroundSize: "500px 500px",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "center",
             backgroundImage: `url(${coloredBackground})`,
-            opacity: 0.3
-        }
+            backgroundBlendMode: 'overlay',
+            background: "rgba(0, 0, 0, .3)",
+            filter: "drop-shadow(10px 10px 10px rgb(0, 0, 0, .4))"
+        },
+        width: "100%",
+        height: "100%",
     }
 }));
 
-export default function DragOverlay({dragging}) {
+export default function DragOverlay({dragging, loading}) {
     const classes = useStyles({dragging: dragging});
 
     return (
         <div className={classes.root}>
-            <Fade in={dragging}>
+            <Fade in={dragging || loading}>
                 <div className={classes.transparentBackground} />
             </Fade>
         </div>
