@@ -22,40 +22,13 @@ const useStyles = makeStyles({
     }
 });
 
-function timeDuration(milliseconds, totalMilliseconds) {
-    if (milliseconds < 0) {
-        return timeDuration(0, totalMilliseconds);
-    }
-
-    const ms = milliseconds % 1000;
-    milliseconds = (milliseconds - ms) / 1000;
-    const secs = milliseconds % 60;
-    milliseconds = (milliseconds - secs) / 60;
-    const mins = milliseconds % 60;
-
-    if (totalMilliseconds >= 3600000) {
-        const hrs = (milliseconds - mins) / 60;
-        return pad(hrs) + ':' + pad(mins) + ':' + pad(secs) + '.' + padEnd(ms);
-    }
-
-    return pad(mins) + ':' + pad(secs) + '.' + padEnd(ms);
-}
-
-function pad(n) {
-    return String(n).padStart(2, '0');
-}
-
-function padEnd(n) {
-    return String(n).padEnd(3, '0');
-}
-
 function trackLength(audioRef, videoRef, subtitles, useOffset) {
     let subtitlesLength;
     if (subtitles && subtitles.length > 0) {
         if (useOffset) {
-            subtitlesLength = subtitles[subtitles.length - 1].end;
+            subtitlesLength = subtitles.get(subtitles.length - 1).end;
         } else {
-            subtitlesLength = subtitles[subtitles.length - 1].originalEnd;
+            subtitlesLength = subtitles.get(subtitles.length - 1).originalEnd;
         }
     } else {
         subtitlesLength = 0;
@@ -136,32 +109,19 @@ export default function Player(props) {
             audioRef.current.currentTime = 0;
             audioRef.current.pause();
 
-            let subtitles;
-
             if (subtitleFile) {
                 setLoadingSubtitles(true);
 
                 try {
-                    const nodes = await subtitleReader.subtitles(subtitleFile);
-                    const length = nodes.length > 0 ? nodes[nodes.length - 1].end : 0;
-                    subtitles = nodes.map((s) => ({
-                        text: s.text,
-                        start: s.start,
-                        originalStart: s.start,
-                        end: s.end,
-                        originalEnd: s.end,
-                        displayTime: timeDuration(s.start, length)
-                    }));
-
+                    const subtitles = await subtitleReader.subtitles(subtitleFile);
                     setSubtitles(subtitles);
                     setLastJumpToTopTimestamp(Date.now());
                 } catch (e) {
+                    console.error(e);
                     onError(e.message);
                 } finally {
                     setLoadingSubtitles(false);
                 }
-            } else {
-                subtitles = null;
             }
 
             if (audioFileUrl) {
@@ -188,7 +148,7 @@ export default function Player(props) {
 
                     if (subtitlesRef.current) {
                         channel.subtitleSettings(settingsProvider.subtitleSettings);
-                        channel.subtitles(subtitlesRef.current);
+                        channel.subtitles(subtitlesRef.current.list().map(s => s.serialize()));
                     }
 
                     channel.condensedModeToggle(condensedModeEnabledRef.current);
@@ -291,7 +251,7 @@ export default function Player(props) {
             let currentIndex = -1;
 
             for (let i = subtitles.length - 1; i >= 0; --i) {
-                const s = subtitles[i];
+                const s = subtitles.get(i);
                 const start = s.start / length;
                 const end = s.end / length;
 
@@ -308,7 +268,7 @@ export default function Player(props) {
             }
 
             if (currentIndex !== currentOrNextIndex) {
-                const nextSubtitle = subtitles[currentOrNextIndex];
+                const nextSubtitle = subtitles.get(currentOrNextIndex);
 
                 if (nextSubtitle.start - progress * length < expectedSeekTime + 500) {
                     return;
@@ -444,18 +404,8 @@ export default function Player(props) {
                 return;
             }
 
-            const length = subtitles.length > 0 ? subtitles[subtitles.length - 1].end + offset : 0;
-
-            const newSubtitles = subtitles.map(s => ({
-                text: s.text,
-                start: s.originalStart + offset,
-                originalStart: s.originalStart,
-                end: s.originalEnd + offset,
-                originalEnd: s.originalEnd,
-                displayTime: timeDuration(s.originalStart + offset, length)
-            }));
-
-            videoRef.current?.subtitles(newSubtitles);
+            const newSubtitles = subtitles.offsetBy(offset);
+            videoRef.current?.subtitles(newSubtitles.list().map(s => s.serialize()));
 
             return newSubtitles;
         });

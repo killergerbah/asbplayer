@@ -155,7 +155,7 @@ export default function SubtitlePlayer({
             const currentSubtitleIndexes = {};
 
             for (let i = subtitles.length - 1; i >= 0; --i) {
-                const s = subtitles[i];
+                const s = subtitles.get(i);
                 const start = s.start / length;
                 const end = s.end / length;
 
@@ -247,7 +247,7 @@ export default function SubtitlePlayer({
 
             if (newSubtitleIndex !== -1) {
                 event.preventDefault();
-                const progress = subtitles[newSubtitleIndex].start / length;
+                const progress = subtitles.get(newSubtitleIndex).start / length;
                 onSeek(progress, false);
             }
         };
@@ -296,7 +296,7 @@ export default function SubtitlePlayer({
 
     function copy(event, subtitles, subtitleIndex, onCopy) {
         event.stopPropagation();
-        const subtitle = subtitles[subtitleIndex];
+        const subtitle = subtitles.get(subtitleIndex);
         const text = subtitle.text;
         navigator.clipboard.writeText(text);
         onCopy(subtitle);
@@ -324,7 +324,7 @@ export default function SubtitlePlayer({
     }, [subtitles, onCopy]);
 
     const handleClick = useCallback((index) => {
-        const progress = subtitles[index].start / length;
+        const progress = subtitles.get(index).start / length;
         onSeek(progress, !playingRef.current && index in selectedSubtitleIndexes);
     }, [subtitles, length, onSeek, selectedSubtitleIndexes]);
 
@@ -332,7 +332,7 @@ export default function SubtitlePlayer({
 
     let subtitleTable;
 
-    if (!subtitles || subtitles.length ===0) {
+    if (!subtitles || subtitles.length === 0) {
         subtitleTable = !loading && displayHelp && (
             <div className={classes.noSubtitles}>
                 <Typography>
@@ -345,7 +345,7 @@ export default function SubtitlePlayer({
             <TableContainer className={classes.table}>
                 <Table>
                     <TableBody>
-                        {subtitles.map((s, index) => {
+                        {subtitles.list().map((s, index) => {
                             const selected = index in selectedSubtitleIndexes;
 
                             return (
@@ -354,7 +354,7 @@ export default function SubtitlePlayer({
                                     index={index}
                                     compressed={compressed}
                                     selected={selected}
-                                    subtitle={subtitles[index]}
+                                    subtitle={subtitles.get(index)}
                                     subtitleRef={subtitleRefs[index]}
                                     onClick={handleClick}
                                     onCopy={handleCopy}

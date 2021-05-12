@@ -7,6 +7,8 @@ import Alert from './Alert';
 import Clock from '../services/Clock';
 import Controls from './Controls';
 import PlayerChannel from '../services/PlayerChannel';
+import Subtitle from '../services/Subtitle';
+import SubtitleCollection from '../services/SubtitleCollection';
 
 const useStyles = makeStyles({
     root: {
@@ -250,12 +252,14 @@ export default function VideoPlayer(props) {
             window.close();
         });
 
-        playerChannel.onSubtitles((subtitles) => {
+        playerChannel.onSubtitles((subtitlesList) => {
+            const subtitles = new SubtitleCollection(subtitlesList.map(s => Subtitle.deserialize(s)));
             setSubtitles(subtitles);
-            if (subtitles && subtitles.length > 0) {
-                const s = subtitles[0];
-                const offset = s.start - s.originalStart;
-                setOffset(offset);
+
+            if (subtitles.length > 0) {
+                setOffset(subtitles.get(0).offset);
+            } else {
+                setOffset(0);
             }
         });
 
@@ -314,10 +318,10 @@ export default function VideoPlayer(props) {
             const showSubtitles = [];
 
             for (let i = 0; i < subtitles.length; ++i) {
-                const s = subtitles[i];
+                const s = subtitles.get(i);
 
                 if (now >= s.start && now < s.end) {
-                    showSubtitles.push({...s, index: i});
+                    showSubtitles.push(s);
                 }
 
                 if (now < s.start) {
@@ -356,7 +360,7 @@ export default function VideoPlayer(props) {
                 let minDiff = Number.MAX_SAFE_INTEGER;
 
                 for (let i = 0; i < subtitles.length; ++i) {
-                    const s = subtitles[i];
+                    const s = subtitles.get(i);
                     const diff = s.start - now;
 
                     if (minDiff <= diff) {
@@ -372,7 +376,7 @@ export default function VideoPlayer(props) {
                 let minDiff = Number.MAX_SAFE_INTEGER;
 
                 for (let i = 0; i < subtitles.length; ++i) {
-                    const s = subtitles[i];
+                    const s = subtitles.get(i);
                     const diff = now - s.start;
 
                     if (minDiff <= diff) {
@@ -388,7 +392,7 @@ export default function VideoPlayer(props) {
 
             if (newSubtitleIndex !== -1) {
                 event.preventDefault();
-                playerChannel.currentTime = subtitles[newSubtitleIndex].start / 1000;
+                playerChannel.currentTime = subtitles.get(newSubtitleIndex).start / 1000;
             }
         };
 
