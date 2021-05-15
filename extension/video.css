@@ -27,3 +27,7 @@
     user-select: text;
     line-height: normal;
 }
+
+.asbplayer-hide {
+    display: none;
+}

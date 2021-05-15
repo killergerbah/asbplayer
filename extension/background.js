@@ -105,10 +105,6 @@ function captureVisibleTab(rect) {
 const tabs = {};
 const recorder = new Recorder();
 
-chrome.runtime.onInstalled.addListener((details) => {
-    chrome.storage.sync.set({displaySubtitles: true, recordMedia: true, screenshot: true, subtitlePositionOffsetBottom: 100});
-});
-
 chrome.runtime.onMessage.addListener(
     async (request, sender, sendResponse) => {
         if (request.sender === 'asbplayer-video') {
@@ -137,19 +133,25 @@ chrome.runtime.onMessage.addListener(
                     imagePromise = captureVisibleTab(request.message.rect);
                 }
 
-                if (audioPromise) {
-                    const audioBase64 = await audioPromise;
-                    message['audio'] = {
-                        base64: audioBase64,
-                        extension: 'webm'
-                    };
-                }
-
                 if (imagePromise) {
                     const imageBase64 = await imagePromise;
                     message['image'] = {
                         base64: imageBase64,
                         extension: 'jpeg'
+                    };
+                    chrome.tabs.sendMessage(sender.tab.id, {
+                        sender: 'asbplayer-extension-to-video',
+                        message: {
+                            command: 'screenshot-taken'
+                        }
+                    });
+                }
+
+                if (audioPromise) {
+                    const audioBase64 = await audioPromise;
+                    message['audio'] = {
+                        base64: audioBase64,
+                        extension: 'webm'
                     };
                 }
 
