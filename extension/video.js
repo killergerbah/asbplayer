@@ -623,15 +623,12 @@ class ControlsContainer {
         const rect = this.video.getBoundingClientRect();
         const stepX = rect.width / 20;
         const stepY = rect.height / 20;
-        const points = [];
 
         for (let x = rect.x; x <= rect.width + rect.x; x += stepX) {
             for (let y = rect.y; y <= rect.height + rect.y; y += stepY) {
                 yield {x: x, y: y};
             }
         }
-
-        return points;
     }
 
     * _path(element) {
