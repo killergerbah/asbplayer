@@ -7,34 +7,34 @@ export default class Anki {
     }
 
     async deckNames(ankiConnectUrl) {
-        const response = await this._executeAction(ankiConnectUrl, 'deckNames');
+        const response = await this._executeAction('deckNames', ankiConnectUrl);
         return response.result;
     }
 
     async modelNames(ankiConnectUrl) {
-        const response = await this._executeAction(ankiConnectUrl, 'modelNames');
+        const response = await this._executeAction('modelNames', ankiConnectUrl);
         return response.result;
     }
 
     async modelFieldNames(modelName, ankiConnectUrl) {
-        const response = await this._executeAction(ankiConnectUrl, 'modelFieldNames', {modelName: modelName});
+        const response = await this._executeAction('modelFieldNames', {modelName: modelName}, ankiConnectUrl);
         return response.result;
     }
 
     async findNotesWithWord(word, ankiConnectUrl) {
         const response = await this._executeAction(
-            ankiConnectUrl,
             'findNotes',
-            {query: this.settingsProvider.wordField + ":" + this._escapeQuery(word)}
+            {query: this.settingsProvider.wordField + ":" + this._escapeQuery(word)},
+            ankiConnectUrl
         );
         return response.result;
     }
 
     async findNotesWithWordGui(word, ankiConnectUrl) {
         const response = await this._executeAction(
-            ankiConnectUrl,
             'guiBrowse',
-            {query: this.settingsProvider.wordField + ":" + this._escapeQuery(word)}
+            {query: this.settingsProvider.wordField + ":" + this._escapeQuery(word)},
+            ankiConnectUrl
         );
         return response.result;
     }
@@ -72,7 +72,6 @@ export default class Anki {
             note: {
                 deckName: this.settingsProvider.deck,
                 modelName: this.settingsProvider.noteType,
-                fields: fields,
                 options: {
                     allowDuplicate: false,
                     duplicateScope: 'deck',
@@ -85,35 +84,37 @@ export default class Anki {
         };
 
         if (this.settingsProvider.audioField && audioClip) {
-            params.note.audio = {
-                filename: audioClip.name,
-                data: await audioClip.base64(),
-                fields: [
-                    this.settingsProvider.audioField
-                ]
-            };
-        }
-
-        if (this.settingsProvider.imageField && image) {
-            params.note.picture = {
-                filename: image.name,
-                data: await image.base64(),
-                fields: [
-                    this.settingsProvider.imageField
-                ]
+            if (gui) {
+                const fileName = (await this._storeMediaFile(audioClip.name, await audioClip.base64(), ankiConnectUrl)).result;
+                this._appendField(fields, this.settingsProvider.audioField, `[sound:${fileName}]`, false)
+            } else {
+                params.note.audio = {
+                    filename: audioClip.name,
+                    data: await audioClip.base64(),
+                    fields: [
+                        this.settingsProvider.audioField
+                    ]
+                };
             }
         }
 
-        let action;
-
-        if (gui) {
-            params.note.options.closeAfterAdding = true;
-            action = 'guiAddCards';
-        } else {
-            action = 'addNote';
+        if (this.settingsProvider.imageField && image) {
+            if (gui) {
+                const fileName = (await this._storeMediaFile(image.name, await image.base64(), ankiConnectUrl)).result;
+                this._appendField(fields, this.settingsProvider.imageField, `<div><img src="${fileName}"></div>`, false);
+            } else {
+                params.note.picture = {
+                    filename: image.name,
+                    data: await image.base64(),
+                    fields: [
+                        this.settingsProvider.imageField
+                    ]
+                }
+            }
         }
 
-        const response = await this._executeAction(ankiConnectUrl, action, params);
+        params.note.fields = fields;
+        const response = await this._executeAction(gui ? 'guiAddCards' : 'addNote', params, ankiConnectUrl);
         return response.result;
     }
 
@@ -132,7 +133,11 @@ export default class Anki {
         fields[fieldName] = newValue;
     }
 
-    async _executeAction(ankiConnectUrl, action, params) {
+    async _storeMediaFile(name, base64, ankiConnectUrl) {
+        return this._executeAction('storeMediaFile', {filename: name, data: base64}, ankiConnectUrl);
+    }
+
+    async _executeAction(action, params, ankiConnectUrl) {
         const body = {
             action: action,
             version: 6

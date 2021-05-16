@@ -8,6 +8,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
+import InputAdornment from '@material-ui/core/InputAdornment';
 import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -50,7 +51,7 @@ const useSelectableSettingStyles = makeStyles((theme) => ({
 }));
 
 function SelectableSetting({label, value, selections, removable, onChange, onSelectionChange, onRemoval}) {
-    const classes = useSelectableSettingStyles({removable: removable});
+    const classes = useSelectableSettingStyles();
 
     return (
         <div className={classes.root}>
@@ -58,6 +59,16 @@ function SelectableSetting({label, value, selections, removable, onChange, onSel
                 label={label}
                 value={value}
                 onChange={onChange}
+                fullWidth
+                InputProps={{
+                    endAdornment: removable && (
+                        <InputAdornment position="end">
+                            <IconButton onClick={(e) => onRemoval?.()}>
+                                <DeleteIcon />
+                            </IconButton>
+                        </InputAdornment>
+                    )
+                }}
             />
             <FormControl className={classes.formControl}>
                 <InputLabel></InputLabel>
@@ -71,11 +82,6 @@ function SelectableSetting({label, value, selections, removable, onChange, onSel
                     ))}
                 </Select>
             </FormControl>
-            {removable && (
-                <IconButton onClick={(e) => onRemoval?.()}>
-                    <DeleteIcon />
-                </IconButton>
-            )}
         </div>
     );
 }
@@ -254,7 +260,7 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                 label={`${customFieldName} Field`}
                 value={customFields[customFieldName]}
                 selections={fieldNames}
-                onChange={fieldValue => handleCustomFieldChange(customFieldName, fieldValue)}
+                onChange={e => handleCustomFieldChange(customFieldName, e.target.value)}
                 onSelectionChange={e => handleCustomFieldChange(customFieldName, e.target.value)}
                 onRemoval={() => handleCustomFieldRemoval(customFieldName)}
                 removable={true}
