@@ -7,12 +7,12 @@ export default class Anki {
     }
 
     async deckNames(ankiConnectUrl) {
-        const response = await this._executeAction('deckNames', ankiConnectUrl);
+        const response = await this._executeAction('deckNames', null, ankiConnectUrl);
         return response.result;
     }
 
     async modelNames(ankiConnectUrl) {
-        const response = await this._executeAction('modelNames', ankiConnectUrl);
+        const response = await this._executeAction('modelNames', null, ankiConnectUrl);
         return response.result;
     }
 
