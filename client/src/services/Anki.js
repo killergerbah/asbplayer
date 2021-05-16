@@ -30,6 +30,15 @@ export default class Anki {
         return response.result;
     }
 
+    async findNotesWithWordGui(word, ankiConnectUrl) {
+        const response = await this._executeAction(
+            ankiConnectUrl,
+            'guiBrowse',
+            {query: this.settingsProvider.wordField + ":" + this._escapeQuery(word)}
+        );
+        return response.result;
+    }
+
     _escapeQuery(query) {
         let escaped = "";
 
@@ -45,7 +54,7 @@ export default class Anki {
         return `"${escaped}"`
     }
 
-    async export(text, definition, audioClip, image, word, source, customFieldValues, ankiConnectUrl) {
+    async export(text, definition, audioClip, image, word, source, customFieldValues, gui, ankiConnectUrl) {
         const fields = {};
 
         this._appendField(fields, this.settingsProvider.sentenceField, text, true);
@@ -95,7 +104,16 @@ export default class Anki {
             }
         }
 
-        const response = await this._executeAction(ankiConnectUrl, 'addNote', params);
+        let action;
+
+        if (gui) {
+            params.note.options.closeAfterAdding = true;
+            action = 'guiAddCards';
+        } else {
+            action = 'addNote';
+        }
+
+        const response = await this._executeAction(ankiConnectUrl, action, params);
         return response.result;
     }
 

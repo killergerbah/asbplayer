@@ -6,8 +6,11 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import IconButton from '@material-ui/core/IconButton';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import SearchIcon from '@material-ui/icons/Search';
 import SettingsIcon from '@material-ui/icons/Settings';
 import Toolbar from '@material-ui/core/Toolbar';
+import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 
 const useStyles = makeStyles((theme) => ({
@@ -146,6 +149,23 @@ export default function AnkiDialog(props) {
                         value={word}
                         onChange={(e) => setWord(e.target.value)}
                         helperText={duplicateNotes.length > 0 ? `Found ${duplicateNotes.length} notes with this word` : ""}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                <Tooltip title="Search in Anki">
+                                    <span>
+                                    <IconButton
+                                        disabled={disabled || !settingsProvider.wordField || !word || word.trim() === ""}
+                                        onClick={() => anki.findNotesWithWordGui(word.trim())}
+                                        edge="end"
+                                    >
+                                        <SearchIcon />
+                                    </IconButton>
+                                    </span>
+                                </Tooltip>
+                                </InputAdornment>
+                            )
+                        }}
                     />
                     {Object.keys(customFields).map((customFieldName) => (
                         <TextField
@@ -199,7 +219,13 @@ export default function AnkiDialog(props) {
                 </Button>
                 <Button
                     disabled={disabled}
-                    onClick={() => onProceed(text, definition, audioClip, image, word, source, customFieldValues)}
+                    onClick={() => onProceed(text, definition, audioClip, image, word, source, customFieldValues, true)}
+                >
+                    Open in Anki
+                </Button>
+                <Button
+                    disabled={disabled}
+                    onClick={() => onProceed(text, definition, audioClip, image, word, source, customFieldValues, false)}
                 >
                     Export
                 </Button>

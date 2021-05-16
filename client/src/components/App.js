@@ -319,7 +319,7 @@ function App() {
         setDisableKeyEvents(false);
     }, []);
 
-    const handleAnkiDialogProceed = useCallback(async (text, definition, audioClip, image, word, source, customFieldValues) => {
+    const handleAnkiDialogProceed = useCallback(async (text, definition, audioClip, image, word, source, customFieldValues, gui) => {
         setAnkiDialogDisabled(true);
 
         try {
@@ -330,12 +330,16 @@ function App() {
                 image,
                 word,
                 source,
-                customFieldValues
+                customFieldValues,
+                gui
             );
 
-            setAlertSeverity("success");
-            setAlert("Export succeeded: " + result);
-            setAlertOpen(true);
+            if (!gui) {
+                setAlertSeverity("success");
+                setAlert("Export succeeded: " + result);
+                setAlertOpen(true);
+            }
+
             setAnkiDialogOpen(false);
         } catch (e) {
             console.error(e);
@@ -344,7 +348,7 @@ function App() {
             setAnkiDialogDisabled(false);
             setDisableKeyEvents(false);
         }
-    }, [anki, settingsProvider, handleError]);
+    }, [anki, handleError]);
 
     const handleViewImage = useCallback((image) => {
         setImage(image);
