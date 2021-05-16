@@ -58,7 +58,7 @@ export default function ImageDialog(props) {
         }
     }, [open]);
 
-    if (!image) {
+    if (!image || !dataUrl) {
         return null;
     }
 
