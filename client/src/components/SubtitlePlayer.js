@@ -88,7 +88,9 @@ const SubtitleRow = React.memo((props) => {
             {...tableRowProps}
         >
             <TableCell className={className}>
-                {subtitle.text}
+                <span onClick={(e) => e.stopPropagation()}>
+                    {subtitle.text}
+                </span>
             </TableCell>
             <TableCell className={classes.copyButton}>
                 <IconButton onClick={(e) => onCopy(e, index)}>
