@@ -100,6 +100,16 @@ export default function AnkiDialog(props) {
         setCustomFieldValues(newCustomFieldValues);
     }, [customFieldValues]);
 
+    let wordHelperText;
+
+    if (word && word.trim() === lastSearchedWord && settingsProvider.wordField) {
+        wordHelperText = duplicateNotes.length > 0
+            ? `Found ${duplicateNotes.length} notes with word "${word}" in field "${settingsProvider.wordField}"`
+            : `No notes found with word "${word.trim()}" in field "${settingsProvider.wordField}"`;
+    } else {
+        wordHelperText = "";
+    }
+
     return (
         <Dialog
             open={open}
@@ -148,7 +158,7 @@ export default function AnkiDialog(props) {
                         label="Word"
                         value={word}
                         onChange={(e) => setWord(e.target.value)}
-                        helperText={duplicateNotes.length > 0 ? `Found ${duplicateNotes.length} notes with this word` : ""}
+                        helperText={wordHelperText}
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
