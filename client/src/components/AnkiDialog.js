@@ -29,10 +29,13 @@ const useStyles = makeStyles((theme) => ({
 
 export default function AnkiDialog(props) {
     const classes = useStyles();
-    const {open, disabled, text: initialText, onProceed, onCancel, onViewImage, onOpenSettings, audioClip, image, source, customFields} = props;
+    const {open, disabled, text: initialText, onProceed, onCancel, onViewImage, onOpenSettings, audioClip, image, source, customFields, settingsProvider, anki} = props;
     const [definition, setDefinition] = useState("");
     const [text, setText] = useState();
     const [word, setWord] = useState();
+    const [lastSearchedWord, setLastSearchedWord] = useState();
+    const [duplicateNotes, setDuplicateNotes] = useState([]);
+    const [wordTimestamp, setWordTimestamp] = useState(0);
     const [customFieldValues, setCustomFieldValues] = useState({});
 
     useEffect(() => {
@@ -43,9 +46,37 @@ export default function AnkiDialog(props) {
         if (open) {
              setDefinition("");
              setWord("");
+             setDuplicateNotes([]);
              setCustomFieldValues({});
         }
     }, [open]);
+
+    useEffect(() => {
+        setWordTimestamp(Date.now());
+    }, [word]);
+
+    useEffect(() => {
+        if (!word || !settingsProvider.wordField) {
+            return;
+        }
+
+        const trimmedWord = word.trim();
+
+        if (trimmedWord === "" || trimmedWord === lastSearchedWord) {
+            return;
+        }
+
+        const timeout = setTimeout(async () => {
+            try {
+                setDuplicateNotes(await anki.findNotesWithWord(trimmedWord));
+                setLastSearchedWord(trimmedWord);
+            } catch (e) {
+                console.error(e);
+            }
+        }, 500);
+
+        return () => clearTimeout(timeout);
+    }, [word, wordTimestamp, lastSearchedWord, anki, settingsProvider.wordField]);
 
     const handlePlayAudio = useCallback((e) => {
         e.preventDefault();
@@ -114,6 +145,7 @@ export default function AnkiDialog(props) {
                         label="Word"
                         value={word}
                         onChange={(e) => setWord(e.target.value)}
+                        helperText={duplicateNotes.length > 0 ? `Found ${duplicateNotes.length} notes with this word` : ""}
                     />
                     {Object.keys(customFields).map((customFieldName) => (
                         <TextField

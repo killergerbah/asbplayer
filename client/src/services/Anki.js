@@ -1,3 +1,5 @@
+const specialCharacters = ['"', '*', '_', '\\', ':'];
+
 export default class Anki {
 
     constructor(settingsProvider) {
@@ -14,12 +16,36 @@ export default class Anki {
         return response.result;
     }
 
-    async modelFieldNames(ankiConnectUrl, modelName) {
+    async modelFieldNames(modelName, ankiConnectUrl) {
         const response = await this._executeAction(ankiConnectUrl, 'modelFieldNames', {modelName: modelName});
         return response.result;
     }
 
-    async export(ankiConnectUrl, text, definition, audioClip, image, word, source, customFieldValues) {
+    async findNotesWithWord(word, ankiConnectUrl) {
+        const response = await this._executeAction(
+            ankiConnectUrl,
+            'findNotes',
+            {query: this.settingsProvider.wordField + ":" + this._escapeQuery(word)}
+        );
+        return response.result;
+    }
+
+    _escapeQuery(query) {
+        let escaped = "";
+
+        for (let i = 0; i < query.length; ++i) {
+            const char = query[i];
+            if (specialCharacters.includes(char)) {
+                escaped += `\\${char}`;
+            } else {
+                escaped += char;
+            }
+        }
+
+        return `"${escaped}"`
+    }
+
+    async export(text, definition, audioClip, image, word, source, customFieldValues, ankiConnectUrl) {
         const fields = {};
 
         this._appendField(fields, this.settingsProvider.sentenceField, text, true);
@@ -98,7 +124,7 @@ export default class Anki {
             body.params = params;
         }
 
-        const response = await fetch(ankiConnectUrl, {
+        const response = await fetch(ankiConnectUrl || this.settingsProvider.ankiConnectUrl, {
             method: 'POST',
             body: JSON.stringify(body)
         });

@@ -208,7 +208,7 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                     return;
                 }
 
-                setFieldNames(["", ...await anki.modelFieldNames(ankiConnectUrl, noteType)]);
+                setFieldNames(["", ...await anki.modelFieldNames(noteType, ankiConnectUrl)]);
                 setAnkiConnectUrlError(null);
             } catch (e) {
                 if (canceled) {

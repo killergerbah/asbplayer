@@ -324,7 +324,6 @@ function App() {
 
         try {
             const result = await anki.export(
-                settingsProvider.ankiConnectUrl,
                 text,
                 definition,
                 audioClip,
@@ -490,6 +489,8 @@ function App() {
                                 image={ankiDialogItem && imageFromItem(ankiDialogItem, offsetRef.current || 0)}
                                 source={ankiDialogItem?.subtitleFile?.name}
                                 customFields={settingsProvider.customAnkiFields}
+                                anki={anki}
+                                settingsProvider={settingsProvider}
                                 onCancel={handleAnkiDialogCancel}
                                 onProceed={handleAnkiDialogProceed}
                                 onViewImage={handleViewImage}
