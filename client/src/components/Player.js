@@ -182,6 +182,8 @@ export default function Player(props) {
                 videoRef.current = channel;
                 let subscribed = false;
 
+                channel.onExit(() => onUnloadVideo(videoFileUrl));
+                channel.onPopOutToggle(() => setVideoPopOut(popOut => !popOut));
                 channel.onReady((paused) => {
                     lengthRef.current = trackLength(audioRef, videoRef, subtitlesRef.current);
                     channel.ready(lengthRef.current);
@@ -214,9 +216,7 @@ export default function Player(props) {
                     if (!subscribed) {
                         channel.onPlay((echo) => play(clock, mediaAdapter, echo));
                         channel.onPause((echo) => pause(clock, mediaAdapter, echo));
-                        channel.onExit(() => onUnloadVideo(videoFileUrl));
                         channel.onOffset((offset) => setOffset(Math.max(-lengthRef.current ?? 0, offset)));
-                        channel.onPopOutToggle(() => setVideoPopOut(popOut => !popOut));
                         channel.onCopy((subtitle, audio, image) => onCopy(
                             subtitle,
                             audioFile,

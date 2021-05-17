@@ -75,7 +75,7 @@ export default class PlayerChannel {
 
     set currentTime(value) {
         this.time = value;
-        this.channel.postMessage({command: 'currentTime', value: this.time, echo: true});
+        this.channel?.postMessage({command: 'currentTime', value: this.time, echo: true});
     }
 
     onPlay(callback) {
@@ -111,7 +111,7 @@ export default class PlayerChannel {
     }
 
     ready(duration, paused, audioTracks, selectedAudioTrack) {
-        this.channel.postMessage({
+        this.channel?.postMessage({
             command: 'ready',
             duration: duration,
             paused: paused,
@@ -122,35 +122,35 @@ export default class PlayerChannel {
     }
 
     readyState(readyState) {
-        this.channel.postMessage({command: 'readyState', value: readyState});
+        this.channel?.postMessage({command: 'readyState', value: readyState});
     }
 
     play() {
-        this.channel.postMessage({command: 'play', echo: true});
+        this.channel?.postMessage({command: 'play', echo: true});
     }
 
     pause() {
-        this.channel.postMessage({command: 'pause', echo: true});
+        this.channel?.postMessage({command: 'pause', echo: true});
     }
 
     audioTrackSelected(id) {
-        this.channel.postMessage({command: 'audioTrackSelected', id: id});
+        this.channel?.postMessage({command: 'audioTrackSelected', id: id});
     }
 
     offset(offset) {
-        this.channel.postMessage({command: 'offset', value: offset});
+        this.channel?.postMessage({command: 'offset', value: offset});
     }
 
     popOutToggle() {
-        this.channel.postMessage({command: 'popOutToggle'});
+        this.channel?.postMessage({command: 'popOutToggle'});
     }
 
     copy(subtitle) {
-        this.channel.postMessage({command: 'copy', subtitle: subtitle});
+        this.channel?.postMessage({command: 'copy', subtitle: subtitle});
     }
 
     condensedModeToggle() {
-        this.channel.postMessage({command: 'condensedModeToggle'});
+        this.channel?.postMessage({command: 'condensedModeToggle'});
     }
 
     close() {
