@@ -1,3 +1,4 @@
+import Mp3Encoder from './Mp3Encoder';
 const AUDIO_TYPES = {"audio/ogg;codecs=opus": "ogg", "audio/webm;codecs=opus": "webm"}
 const [recorderMimeType, recorderExtension] = Object.keys(AUDIO_TYPES).filter(MediaRecorder.isTypeSupported).map(t => [t, AUDIO_TYPES[t]])[0];
 
@@ -52,7 +53,7 @@ class FileAudioData {
 
     constructor(file, start, end, trackId) {
         this.file = file;
-        this.name = file.name + "_" + start + "_" + end + "." + recorderExtension;
+        this.name = file.name + "_" + start + "_" + end;
         this.start = start;
         this.end = end;
         this.trackId = trackId;
@@ -163,6 +164,45 @@ class FileAudioData {
     }
 }
 
+class Mp3AudioData {
+
+    constructor(data) {
+        this.data = data;
+    }
+
+    get name() {
+        return this.data.name;
+    }
+
+    get extension() {
+        return "mp3";
+    }
+
+    async base64() {
+        return new Promise(async (resolve, reject) => {
+            var reader = new FileReader();
+            reader.readAsDataURL(await this.blob());
+            reader.onloadend = () => {
+                const result = reader.result;
+                const base64 = result.substr(result.indexOf(',') + 1);
+                resolve(base64);
+            }
+        });
+    }
+
+    async play() {
+        await this.data.play();
+    }
+
+    async blob() {
+        if (!this._blob) {
+            this._blob = await Mp3Encoder.encode(await this.data.blob());
+        }
+
+        return this._blob;
+    }
+}
+
 export default class AudioClip {
 
     constructor(data) {
@@ -170,7 +210,7 @@ export default class AudioClip {
     }
 
     static fromBase64(subtitleFile, start, end, base64, extension) {
-        const audioName = subtitleFile.name.substring(0, subtitleFile.name.lastIndexOf(".")) + "_" + start + "_" + end + "." + extension;
+        const audioName = subtitleFile.name.substring(0, subtitleFile.name.lastIndexOf(".")) + "_" + start + "_" + end;
         return new AudioClip(new Base64AudioData(audioName, start, end, base64, extension));
     }
 
@@ -179,7 +219,7 @@ export default class AudioClip {
     }
 
     get name() {
-        return this.data.name;
+        return this.data.name + "." + this.data.extension;
     }
 
     async play() {
@@ -197,9 +237,13 @@ export default class AudioClip {
         document.body.appendChild(a);
         a.style = "display: none";
         a.href = url;
-        a.download = this.data.name;
+        a.download = this.name;
         a.click();
         URL.revokeObjectURL(url);
         a.remove();
+    }
+
+    toMp3() {
+        return new AudioClip(new Mp3AudioData(this.data));
     }
 }

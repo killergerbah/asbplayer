@@ -221,6 +221,7 @@ function App() {
         settingsProvider.subtitleBackgroundColor = newSettings.subtitleBackgroundColor;
         settingsProvider.subtitleBackgroundOpacity = newSettings.subtitleBackgroundOpacity;
         settingsProvider.customAnkiFields = newSettings.customAnkiFields;
+        settingsProvider.preferMp3 = newSettings.preferMp3;
         setSettingsDialogOpen(false);
         extension.publishMessage({command: 'subtitleSettings', value: settingsProvider.subtitleSettings})
     }, [extension, settingsProvider]);
@@ -281,12 +282,18 @@ function App() {
 
     const handleClipAudio = useCallback(async (item) => {
         try {
-            await audioClipFromItem(item, offsetRef.current || 0).download();
+            const clip = await audioClipFromItem(item, offsetRef.current || 0);
+
+            if (settingsProvider.preferMp3) {
+                clip.toMp3().download();
+            } else {
+                clip.download();
+            }
         } catch(e) {
             console.error(e);
             handleError(e.message);
         }
-    }, [handleError]);
+    }, [handleError, settingsProvider]);
 
     const handleDownloadImage = useCallback(async (item) => {
         try {
@@ -326,7 +333,7 @@ function App() {
             const result = await anki.export(
                 text,
                 definition,
-                audioClip,
+                settingsProvider.preferMp3 ? audioClip?.toMp3() : audioClip,
                 image,
                 word,
                 source,
@@ -348,7 +355,7 @@ function App() {
             setAnkiDialogDisabled(false);
             setDisableKeyEvents(false);
         }
-    }, [anki, handleError]);
+    }, [anki, handleError, settingsProvider]);
 
     const handleViewImage = useCallback((image) => {
         setImage(image);

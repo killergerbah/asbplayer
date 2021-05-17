@@ -1,12 +1,14 @@
 import React, {  useCallback, useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
 import CustomFieldDialog from './CustomFieldDialog';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import FormControl from '@material-ui/core/FormControl';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import IconButton from '@material-ui/core/IconButton';
@@ -118,6 +120,7 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
     const [wordField, setWordField] = useState(settings.wordField || "");
     const [sourceField, setSourceField] = useState(settings.sourceField || "");
     const [customFields, setCustomFields] = useState(settings.customAnkiFields);
+    const [preferMp3, setPreferMp3] = useState(settings.preferMp3);
     const [fieldNames, setFieldNames] = useState();
     const [customFieldDialogOpen, setCustomFieldDialogOpen] = useState(false);
     const [subtitleColor, setSubtitleColor] = useState(settings.subtitleColor);
@@ -170,6 +173,7 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
         delete newCustomFields[customFieldName];
         return newCustomFields;
     }), []);
+    const handlePreferMp3Change = useCallback((e) => setPreferMp3(e.target.checked), []);
 
     useEffect(() => {
         let canceled = false;
@@ -249,9 +253,10 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
             subtitleOutlineColor: subtitleOutlineColor,
             subtitleBackgroundColor: subtitleBackgroundColor,
             subtitleBackgroundOpacity: Number(subtitleBackgroundOpacity),
-            customAnkiFields: customFields
+            customAnkiFields: customFields,
+            preferMp3: preferMp3,
         });
-    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, imageField, wordField, sourceField, customFields, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity]);
+    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, imageField, wordField, sourceField, customFields, preferMp3, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity]);
 
     const customFieldInputs = Object.keys(customFields).map(customFieldName => {
         return (
@@ -370,6 +375,10 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                                 >
                                     Add Custom Field
                                 </Button>
+                                <FormControlLabel
+                                    control={<Checkbox checked={preferMp3} onChange={handlePreferMp3Change} />}
+                                    label="Re-encode audio as mp3 (slower)"
+                                />
                             </form>
                         </Centered>
                     </DialogContent>

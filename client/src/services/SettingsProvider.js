@@ -24,6 +24,7 @@ const subtitleOutlineColorKey = "subtitleOutlineColor";
 const subtitleBackgroundColorKey = "subtitleBackgroundColor";
 const subtitleBackgroundOpacityKey = "subtitleBackgroundOpacity";
 const volumeKey = "volume";
+const preferMp3Key = "preferMp3";
 
 export default class SettingsProvider {
 
@@ -45,6 +46,7 @@ export default class SettingsProvider {
             subtitleOutlineColor: this.subtitleOutlineColor,
             subtitleBackgroundColor: this.subtitleBackgroundColor,
             subtitleBackgroundOpacity : this.subtitleBackgroundOpacity,
+            preferMp3: this.preferMp3,
         };
     }
 
@@ -199,5 +201,13 @@ export default class SettingsProvider {
 
     set volume(volume) {
         localStorage.setItem(volumeKey, volume);
+    }
+
+    get preferMp3() {
+        return localStorage.getItem(preferMp3Key) === 'true' || false;
+    }
+
+    set preferMp3(preferMp3) {
+        localStorage.setItem(preferMp3Key, preferMp3);
     }
 }
