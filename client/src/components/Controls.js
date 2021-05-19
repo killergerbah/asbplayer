@@ -322,9 +322,49 @@ function MediaUnloader(props) {
     );
 }
 
-export default function Controls(props) {
+export default function Controls({
+    clock,
+    playing,
+    length,
+    offsetEnabled,
+    displayLength,
+    offset,
+    onAudioTrackSelected,
+    onSeek,
+    mousePositionRef,
+    onShow,
+    onPause,
+    onPlay,
+    onTabSelected,
+    onUnloadAudio,
+    onUnloadVideo,
+    onOffsetChange,
+    onVolumeChange,
+    disableKeyEvents,
+    settingsProvider,
+    closeEnabled,
+    onClose,
+    volumeEnabled,
+    condensedModeEnabled,
+    condensedModeToggleEnabled,
+    onCondensedModeToggle,
+    subtitlesEnabled,
+    subtitlesToggle,
+    onSubtitlesToggle,
+    videoFile,
+    audioFile,
+    audioTracks,
+    selectedAudioTrack,
+    tabs,
+    selectedTab,
+    popOutEnabled,
+    popOut,
+    onPopOutToggle,
+    fullscreenEnabled,
+    fullscreen,
+    onFullscreenToggle,
+    }) {
     const classes = useControlStyles();
-    const {playing, length, offsetEnabled, displayLength, offset, onAudioTrackSelected, onSeek, mousePositionRef, onShow, onPause, onPlay, onTabSelected, onUnloadAudio, onUnloadVideo, onOffsetChange, onVolumeChange, disableKeyEvents, settingsProvider} = props;
     const [show, setShow] = useState(true);
     const [audioTrackSelectorOpen, setAudioTrackSelectorOpen] = useState(false);
     const [audioTrackSelectorAnchorEl, setAudioTrackSelectorAnchorEl] = useState();
@@ -534,15 +574,15 @@ export default function Controls(props) {
         });
     }, [onVolumeChange, lastCommittedVolume]);
 
-    const progress = props.clock.progress(length);
+    const progress = clock.progress(length);
 
     return (
         <React.Fragment>
-            {props.closeEnabled && (
+            {closeEnabled && (
                 <Fade in={show} timeout={200}>
                     <IconButton
                         className={classes.closeButton}
-                        onClick={() => props.onClose()}
+                        onClick={onClose}
                     >
                         <CloseIcon />
                     </IconButton>
@@ -569,7 +609,7 @@ export default function Controls(props) {
                                         : <PlayArrowIcon className={classes.button} />}
                                 </IconButton>
                             </Grid>
-                            {props.volumeEnabled && (
+                            {volumeEnabled && (
                                 <Grid item
                                     onMouseOver={handleVolumeMouseOver}
                                     onMouseOut={handleVolumeMouseOut}
@@ -608,61 +648,61 @@ export default function Controls(props) {
                             )}
                             <Grid item style={{flexGrow: 1}}>
                             </Grid>
-                            {props.condensedModeToggleEnabled && (
+                            {condensedModeToggleEnabled && (
                                 <Grid item>
                                     <Tooltip title="Condensed Mode">
-                                        <IconButton onClick={(e) => props.onCondensedModeToggle()}>
-                                            <SpeedIcon className={props.condensedModeEnabled ? classes.button : classes.inactiveButton} />
+                                        <IconButton onClick={onCondensedModeToggle}>
+                                            <SpeedIcon className={condensedModeEnabled ? classes.button : classes.inactiveButton} />
                                         </IconButton>
                                     </Tooltip>
                                 </Grid>
                             )}
-                            {props.subtitlesToggle && (
+                            {subtitlesToggle && (
                                 <Grid item>
-                                    <IconButton onClick={(e) => props.onSubtitlesToggle()}>
-                                        <SubtitlesIcon className={props.subtitlesEnabled ? classes.button : classes.inactiveButton} />
+                                    <IconButton onClick={onSubtitlesToggle}>
+                                        <SubtitlesIcon className={subtitlesEnabled ? classes.button : classes.inactiveButton} />
                                     </IconButton>
                                 </Grid>
                             )}
-                            {props.videoFile && (
+                            {videoFile && (
                                 <Grid item>
                                     <IconButton onClick={handleVideoUnloaderOpened}>
                                         <VideocamIcon className={classes.button} />
                                     </IconButton>
                                  </Grid>
                             )}
-                            {props.audioFile && (
+                            {audioFile && (
                                 <Grid item>
                                     <IconButton onClick={handleAudioUnloaderOpened}>
                                         <AudiotrackIcon className={classes.button} />
                                     </IconButton>
                                 </Grid>
                             )}
-                            {props.audioTracks && props.audioTracks.length > 1 &&  (
+                            {audioTracks && audioTracks.length > 1 &&  (
                                 <Grid item>
                                     <IconButton onClick={handleAudioTrackSelectorOpened}>
                                         <QueueMusicIcon className={classes.button}  />
                                     </IconButton>
                                 </Grid>
                             )}
-                            {props.tabs && props.tabs.length > 0 && (
+                            {tabs && tabs.length > 0 && (
                                 <Grid item>
                                     <IconButton onClick={handleTabSelectorOpened}>
-                                        <VideocamIcon className={props.selectedTab ? classes.button : classes.inactiveButton} />
+                                        <VideocamIcon className={selectedTab ? classes.button : classes.inactiveButton} />
                                     </IconButton>
                                 </Grid>
                             )}
-                            {props.popOutEnabled && (
+                            {popOutEnabled && (
                                 <Grid item>
-                                    <IconButton onClick={() => props.onPopOutToggle()}>
-                                        <OpenInNewIcon className={classes.button} style={props.popOut ? {transform: 'rotateX(180deg)'} : {}}/>
+                                    <IconButton onClick={onPopOutToggle}>
+                                        <OpenInNewIcon className={classes.button} style={popOut ? {transform: 'rotateX(180deg)'} : {}}/>
                                     </IconButton>
                                 </Grid>
                             )}
-                            {props.fullscreenEnabled && (
+                            {fullscreenEnabled && (
                                 <Grid item>
-                                    <IconButton onClick={() => props.onFullscreenToggle()}>
-                                        {props.fullscreen
+                                    <IconButton onClick={onFullscreenToggle}>
+                                        {fullscreen
                                             ? (<FullscreenExitIcon className={classes.button} />)
                                             : (<FullscreenIcon className={classes.button} />)}
                                     </IconButton>
@@ -674,30 +714,30 @@ export default function Controls(props) {
                 <TabSelector
                     open={tabSelectorOpen && show}
                     anchorEl={tabSelectorAnchorEl}
-                    tabs={props.tabs}
-                    selectedTab={props.selectedTab}
+                    tabs={tabs}
+                    selectedTab={selectedTab}
                     onClose={handleTabSelectorClosed}
                     onTabSelected={handleTabSelected}
                 />
                 <AudioTrackSelector
                     open={audioTrackSelectorOpen && show}
                     anchorEl={audioTrackSelectorAnchorEl}
-                    audioTracks={props.audioTracks}
-                    selectedAudioTrack={props.selectedAudioTrack}
+                    audioTracks={audioTracks}
+                    selectedAudioTrack={selectedAudioTrack}
                     onClose={handleAudioTrackSelectorClosed}
                     onAudioTrackSelected={handleAudioTrackSelected}
                 />
                 <MediaUnloader
                     open={audioUnloaderOpen}
                     anchorEl={audioUnloaderAnchorEl}
-                    file={props.audioFile}
+                    file={audioFile}
                     onClose={handleAudioUnloaderClosed}
                     onUnload={handleUnloadAudio}
                 />
                 <MediaUnloader
                     open={videoUnloaderOpen}
                     anchorEl={videoUnloaderAnchorEl}
-                    file={props.videoFile}
+                    file={videoFile}
                     onClose={handleVideoUnloaderClosed}
                     onUnload={handleUnloadVideo}
                 />
