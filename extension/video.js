@@ -270,13 +270,16 @@ class Binding {
 
                 if (this.cleanScreenshot) {
                     this.controlsContainer.hide();
-                    this.showControlsTimeout = setTimeout(() => {
-                        this.controlsContainer.show();
-                        this.showControlsTimeout = null;
-                    }, 500);
                 }
 
                 await this.video.play();
+
+                if (this.cleanScreenshot) {
+                    this.showControlsTimeout = setTimeout(() => {
+                        this.controlsContainer.show();
+                        this.showControlsTimeout = null;
+                    }, 1000);
+                }
             }
 
             const message = {
@@ -597,26 +600,26 @@ class ControlsContainer {
     }
 
     hide() {
-        this.show();
-        this.elements = this._findElements();
+        this._garbageCollectElements();
+        this._findElements();
 
         for (const e of this.elements) {
             e.classList.add('asbplayer-hide');
         }
     }
 
-    _findElements() {
-        const elements = [];
+    _garbageCollectElements() {
+        this.elements = this.elements.filter(e => document.body.contains(e));
+    }
 
+    _findElements() {
         for (const p of this._samplePoints()) {
             for (const element of  this._path(document.elementFromPoint(p.x, p.y))) {
-                if (element && !this._contains(elements, element)) {
-                    elements.push(element);
+                if (element && !this._contains(this.elements, element)) {
+                    this.elements.push(element);
                 }
             }
         }
-
-        return elements;
     }
 
     * _samplePoints() {
