@@ -207,6 +207,28 @@ export default function SubtitlePlayer({
     }, []);
 
     useEffect(() => {
+        const indexes = Object.keys(selectedSubtitleIndexes);
+
+        if (indexes.length === 0) {
+            return;
+        }
+
+        const scrollToSubtitleRef = subtitleRefs[indexes[0]];
+
+        function scrollToCurrentSubtitle() {
+            scrollToSubtitleRef.current?.scrollIntoView({
+                block: "center",
+                inline: "nearest",
+                behavior: "smooth"
+            });
+        };
+
+        window.addEventListener("focus", scrollToCurrentSubtitle);
+
+        return () => window.removeEventListener("focus", scrollToCurrentSubtitle);
+    }, [selectedSubtitleIndexes, subtitleRefs]);
+
+    useEffect(() => {
         const subtitleRefs = subtitleRefsRef.current;
 
         if (!subtitleRefs || subtitleRefs.length === 0) {
