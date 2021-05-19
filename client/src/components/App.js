@@ -177,6 +177,7 @@ function App() {
     const [disableKeyEvents, setDisableKeyEvents] = useState(false);
     const [image, setImage] = useState();
     const offsetRef = useRef();
+    const fileInputRef = useRef();
     const { subtitleFile } = sources;
 
     const handleCopy = useCallback((subtitle, audioFile, videoFile, subtitleFile, audioTrack, audio, image) => {
@@ -372,28 +373,12 @@ function App() {
         }
     }
 
-    const handleDrop = useCallback((e) => {
-        e.preventDefault();
-
-        if (inVideoPlayer) {
-            handleError('Video player cannot receive dropped files. Drop into the subtitle section instead.');
-            return;
-        }
-
-        setDragging(false);
-        dragEnterRef.current = null;
-
-        if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) {
-            return;
-        }
-
+    const handleFiles = useCallback((files) => {
         try {
-            let {subtitleFile, audioFile, videoFile} = extractSources(e.dataTransfer.files);
+            let {subtitleFile, audioFile, videoFile} = extractSources(files);
 
             setSources(previous => {
-                if (!previous.subtitleFile) {
-                    setLoading(true);
-                }
+                setLoading(true);
 
                 let videoFileUrl = null;
                 let audioFileUrl = null;
@@ -431,7 +416,36 @@ function App() {
             console.error(e);
             handleError(e.message);
         }
-    }, [inVideoPlayer, handleError]);
+    }, [handleError]);
+
+    const handleDrop = useCallback((e) => {
+        e.preventDefault();
+
+        if (inVideoPlayer) {
+            handleError('Video player cannot receive dropped files. Drop into the subtitle section instead.');
+            return;
+        }
+
+        setDragging(false);
+        dragEnterRef.current = null;
+
+        if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) {
+            return;
+        }
+
+        handleFiles(e.dataTransfer.files);
+    }, [inVideoPlayer, handleError, handleFiles]);
+
+    const handleFileInputChange = useCallback(() => {
+        const files = fileInputRef.current?.files;
+
+        if (files && files.length > 0) {
+            handleFiles(files);
+        }
+    }, [handleFiles]);
+
+    const handleFileSelector = useCallback(() => fileInputRef.current?.click(), []);
+
     const handleDragEnter = useCallback((e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -442,6 +456,7 @@ function App() {
         }
 
     }, [inVideoPlayer]);
+
     const handleDragLeave = useCallback((e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -450,6 +465,7 @@ function App() {
             setDragging(false);
         }
     }, [inVideoPlayer]);
+
     const handleSourcesLoaded = useCallback(() => setLoading(false), []);
     const nothingLoaded = (loading && !videoFrameRef.current) || (!sources.subtitleFile && !sources.audioFile && !sources.videoFile);
 
@@ -530,6 +546,15 @@ function App() {
                                 onOpenCopyHistory={handleOpenCopyHistory}
                                 onOpenSettings={handleOpenSettings}
                                 onOpenHelp={handleOpenHelp}
+                                onFileSelector={handleFileSelector}
+                            />
+                            <input
+                                ref={fileInputRef}
+                                onChange={handleFileInputChange}
+                                type="file"
+                                accept=".srt,.ass,.vtt,.mp3,.m4a,.mkv"
+                                multiple
+                                hidden
                             />
                             <Content drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen}>
                                 {nothingLoaded && (
@@ -539,6 +564,7 @@ function App() {
                                         extension={extension}
                                         loading={loading}
                                         dragging={dragging}
+                                        onFileSelector={handleFileSelector}
                                     />
                                 )}
                                 <DragOverlay dragging={dragging} loading={loading} />

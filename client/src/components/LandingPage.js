@@ -28,11 +28,13 @@ const useStyles = makeStyles((theme) => ({
     coloredBackground: {
         backgroundImage: `url(${coloredBackground})`,
     },
+    browseLink: {
+        cursor: 'pointer'
+    }
 }));
 
-export default function LandingPage(props) {
+export default function LandingPage({extension, latestExtensionVersion, extensionUrl, loading, dragging, onFileSelector}) {
     const classes = useStyles();
-    const {extension, latestExtensionVersion, extensionUrl, loading, dragging} = props;
     const [installedExtensionVersion, setInstalledExtensionVersion] = useState();
 
     useEffect(() => {
@@ -51,7 +53,8 @@ export default function LandingPage(props) {
             <Fade in={!loading && !dragging} timeout={500}>
                 <div className={`${classes.background} ${classes.defaultBackground}`}>
                     <Typography>
-                        Drag and drop srt, ass, vtt, mp3, m4a, and mkv files. <br />
+                        Drag and drop srt, ass, vtt, mp3, m4a, and mkv files or <Link target="#" className={classes.browseLink} onClick={onFileSelector} color="secondary" component="label">browse</Link>.
+                        <br />
                         {extensionNotInstalled && (
                             <span>
                                 Install the <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>extension</Link> to sync subtitles with videos in other tabs.

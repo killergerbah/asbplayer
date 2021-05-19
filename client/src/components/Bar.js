@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import AppBar from '@material-ui/core/AppBar';
 import BugReportIcon from '@material-ui/icons/BugReport';
 import HelpIcon from '@material-ui/icons/Help';
+import FolderOpenIcon from '@material-ui/icons/FolderOpen';
 import IconButton from '@material-ui/core/IconButton';
 import ListIcon from '@material-ui/icons/List';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -61,6 +62,14 @@ export default function Bar(props) {
             })}
         >
             <Toolbar>
+                <Tooltip title="Open Files">
+                    <IconButton
+                        edge="start"
+                        onClick={props.onFileSelector}
+                    >
+                        <FolderOpenIcon />
+                    </IconButton>
+                </Tooltip>
                 <Typography variant="h6" className={classes.title}>
                     {props.title}
                 </Typography>
