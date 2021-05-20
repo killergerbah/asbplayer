@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', (e) => {
     const recordAudioCheckbox = document.getElementById('recordAudioInput');
     const screenshotCheckbox = document.getElementById('screenshotInput');
     const cleanScreenshotCheckbox = document.getElementById('cleanScreenshotInput');
+    const bindKeysCheckbox = document.getElementById('bindKeysInput');
     const subtitlePositionOffsetBottomInput = document.getElementById('subtitlePositionOffsetBottomInput');
 
     function notifySettingsUpdated() {
@@ -30,6 +31,10 @@ document.addEventListener('DOMContentLoaded', (e) => {
         chrome.storage.sync.set({cleanScreenshot: cleanScreenshotCheckbox.checked}, () => notifySettingsUpdated());
     });
 
+    bindKeysCheckbox.addEventListener('change', (e) => {
+        chrome.storage.sync.set({bindKeys: bindKeysCheckbox.checked}, () => notifySettingsUpdated());
+    });
+
     subtitlePositionOffsetBottomInput.addEventListener('change', (e) => {
         const offset = Number(subtitlePositionOffsetBottomInput.value);
         chrome.storage.sync.set({subtitlePositionOffsetBottom: offset}, () => notifySettingsUpdated());
@@ -40,6 +45,7 @@ document.addEventListener('DOMContentLoaded', (e) => {
         recordMedia: true,
         screenshot: true,
         cleanScreenshot: true,
+        bindKeys: true,
         subtitlePositionOffsetBottom: 100
     },
     (data) => {
@@ -47,6 +53,7 @@ document.addEventListener('DOMContentLoaded', (e) => {
         recordAudioCheckbox.checked = data.recordMedia;
         screenshotCheckbox.checked = data.screenshot;
         cleanScreenshotCheckbox.checked = data.cleanScreenshot;
+        bindKeysCheckbox.checked = data.bindKeys;
         subtitlePositionOffsetBottomInput.value = data.subtitlePositionOffsetBottom;
     });
 });

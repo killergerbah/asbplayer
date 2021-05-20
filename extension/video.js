@@ -63,9 +63,11 @@ class Binding {
         this.video = video;
         this.subtitleContainer = new SubtitleContainer(video);
         this.controlsContainer = new ControlsContainer(video);
+        this.keyBindings = new KeyBindings();
         this.recordMedia = true;
         this.screenshot = true;
         this.cleanScreenshot = true;
+        this.bindKeys = true;
     }
 
     bind() {
@@ -179,7 +181,7 @@ class Binding {
                         this.video.pause();
                         break;
                     case 'currentTime':
-                        this._seek(request.message.value);
+                        this.seek(request.message.value);
                         break;
                     case 'close':
                         // ignore
@@ -220,6 +222,7 @@ class Binding {
             recordMedia: true,
             screenshot: true,
             cleanScreenshot: true,
+            bindKeys: true,
             subtitlePositionOffsetBottom: 100
         },
         (data) => {
@@ -229,6 +232,11 @@ class Binding {
             this.subtitleContainer.displaySubtitles = data.displaySubtitles;
             this.subtitleContainer.subtitlePositionOffsetBottom = data.subtitlePositionOffsetBottom;
             this.subtitleContainer.refresh();
+            if (data.bindKeys) {
+                this.keyBindings.bind(this);
+            } else {
+                this.keyBindings.unbind();
+            }
         });
     }
 
@@ -254,6 +262,7 @@ class Binding {
         }
 
         this.subtitleContainer.unbind();
+        this.keyBindings.unbind();
     }
 
     async _copySubtitle() {
@@ -261,7 +270,7 @@ class Binding {
 
         if (subtitle) {
             if (this.recordMedia) {
-                this._seek(subtitle.start / 1000);
+                this.seek(subtitle.start / 1000);
 
                 if (this.showControlsTimeout) {
                     clearTimeout(this.showControlsTimeout);
@@ -306,7 +315,7 @@ class Binding {
         }
     }
 
-    _seek(timestamp) {
+    seek(timestamp) {
         if (netflix) {
             document.dispatchEvent(new CustomEvent('asbplayer-netflix-seek', {
                 detail: timestamp * 1000
@@ -662,5 +671,93 @@ class ControlsContainer {
         }
 
         return false;
+    }
+}
+
+class KeyBindings {
+
+    constructor() {
+    }
+
+    bind(context) {
+        this.unbind();
+        this.listener = (e) => {
+            if (!context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0) {
+                return;
+            }
+
+            if (e.keyCode === 83) {
+                chrome.runtime.sendMessage({
+                    sender: 'asbplayer-video',
+                    message: {
+                        command: 'toggle-subtitles'
+                    }
+                });
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                return;
+            }
+
+            let forward;
+
+            if (e.keyCode === 37) {
+                forward = false;
+            } else if (e.keyCode === 39) {
+                forward = true;
+            } else {
+                return;
+            }
+
+            const subtitles = context.subtitleContainer.subtitles;
+            const now = Math.round(1000 * context.video.currentTime);
+            let newSubtitleIndex = -1;
+
+            if (forward) {
+                let minDiff = Number.MAX_SAFE_INTEGER;
+
+                for (let i = 0; i < subtitles.length; ++i) {
+                    const s = subtitles[i];
+                    const diff = s.start - now;
+
+                    if (minDiff <= diff) {
+                        continue;
+                    }
+
+                    if (now < s.start) {
+                        minDiff = diff;
+                        newSubtitleIndex = i;
+                    }
+                }
+            } else {
+                let minDiff = Number.MAX_SAFE_INTEGER;
+
+                for (let i = 0; i < subtitles.length; ++i) {
+                    const s = subtitles[i];
+                    const diff = now - s.start;
+
+                    if (minDiff <= diff) {
+                        continue;
+                    }
+
+                    if (now > s.start) {
+                        minDiff = diff;
+                        newSubtitleIndex = now < s.end ? Math.max(0, i - 1) : i;
+                    }
+                }
+            }
+
+            if (newSubtitleIndex !== -1) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                context.seek(subtitles[newSubtitleIndex].start / 1000);
+            }
+        };
+        window.addEventListener("keydown", this.listener, true);
+    }
+
+    unbind() {
+        if (this.listener) {
+            window.removeEventListener("keydown", this.listener, true);
+        }
     }
 }

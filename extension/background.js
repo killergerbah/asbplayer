@@ -102,6 +102,17 @@ function captureVisibleTab(rect) {
     });
 }
 
+function refreshSettings() {
+    for (const tabId in tabs) {
+        chrome.tabs.sendMessage(tabs[tabId].tab.id, {
+            sender: 'asbplayer-extension-to-video',
+            message: {
+                command: 'settings-updated'
+            }
+        });
+    }
+}
+
 const tabs = {};
 const recorder = new Recorder();
 
@@ -164,6 +175,11 @@ chrome.runtime.onMessage.addListener(
                         });
                     }
                 });
+            } else if (request.message.command === 'toggle-subtitles') {
+                chrome.storage.sync.get(
+                    {displaySubtitles: true},
+                    (data) => chrome.storage.sync.set({displaySubtitles: !data.displaySubtitles}, () => refreshSettings())
+                );
             } else {
                 chrome.tabs.query({}, (allTabs) => {
                     for (let t of allTabs) {
@@ -181,14 +197,7 @@ chrome.runtime.onMessage.addListener(
                 message: request.message
             });
         } else if (request.sender === 'asbplayer-popup') {
-            for (const tabId in tabs) {
-                chrome.tabs.sendMessage(tabs[tabId].tab.id, {
-                    sender: 'asbplayer-extension-to-video',
-                    message: {
-                        command: 'settings-updated'
-                    }
-                });
-            }
+            refreshSettings();
         }
     }
 );
