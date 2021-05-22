@@ -91,6 +91,7 @@ export default class VideoChannel {
                     for (let callback of that.hideSubtitlePlayerToggleCallbacks) {
                         callback();
                     }
+                    break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }
