@@ -20,7 +20,8 @@
     "web-vitals": "^0.2.4",
     "typeface-roboto": "1.1.13",
     "lamejs": "1.2.0",
-    "worker-loader": "3.0.8"
+    "worker-loader": "3.0.8",
+    "react-device-detect": "1.17.0"
   },
   "homepage": "https://killergerbah.github.io/asbplayer",
   "scripts": {

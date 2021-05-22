@@ -11,9 +11,13 @@ import VideoChannel from '../services/VideoChannel';
 
 const useStyles = makeStyles({
     root: {
-        maxHeight: 'calc(100vh - 64px)',
+        height: 'calc(100vh - 64px)',
         position: 'relative',
         overflowX: 'hidden'
+    },
+    container: {
+        width: "100%",
+        height: "100%"
     },
     videoFrame: {
         width: '100%',
@@ -90,6 +94,9 @@ export default function Player(props) {
     const [offset, setOffset] = useState(0);
     const [channelId, setChannelId] = useState();
     const [videoPopOut, setVideoPopOut] = useState(false);
+    const [hideSubtitlePlayer, setHideSubtitlePlayer] = useState(false);
+    const hideSubtitlePlayerRef = useRef();
+    hideSubtitlePlayerRef.current = hideSubtitlePlayer;
     const [condensedModeEnabled, setCondensedModeEnabled] = useState(false);
     const condensedModeEnabledRef = useRef();
     condensedModeEnabledRef.current = condensedModeEnabled;
@@ -184,6 +191,12 @@ export default function Player(props) {
 
                 channel.onExit(() => onUnloadVideo(videoFileUrl));
                 channel.onPopOutToggle(() => setVideoPopOut(popOut => !popOut));
+                channel.onHideSubtitlePlayerToggle(() => {
+                    setHideSubtitlePlayer(hidden => {
+                        channel.hideSubtitlePlayerToggle(!hidden);
+                        return !hidden;
+                    });
+                });
                 channel.onReady((paused) => {
                     lengthRef.current = trackLength(audioRef, videoRef, subtitlesRef.current);
                     channel.ready(lengthRef.current);
@@ -194,6 +207,7 @@ export default function Player(props) {
                     }
 
                     channel.condensedModeToggle(condensedModeEnabledRef.current);
+                    channel.hideSubtitlePlayerToggle(hideSubtitlePlayerRef.current);
 
                     if (channel.audioTracks && channel.audioTracks.length > 1) {
                         setAudioTracks(videoRef.current.audioTracks);
@@ -538,66 +552,70 @@ export default function Player(props) {
                 container
                 direction="row"
                 wrap="nowrap"
+                className={classes.container}
             >
-                    {videoInWindow && (
-                        <Grid item style={{flexGrow: 1, minWidth: 600}}>
-                            <iframe
-                                ref={videoFrameRef}
-                                className={classes.videoFrame}
-                                src={process.env.PUBLIC_URL + '/?video=' + encodeURIComponent(videoFileUrl) + '&channel=' + channelId + '&popout=false'}
-                                title="asbplayer"
+                {videoInWindow && (
+                    <Grid item style={{flexGrow: 1, minWidth: 600}}>
+                        <iframe
+                            ref={videoFrameRef}
+                            className={classes.videoFrame}
+                            src={process.env.PUBLIC_URL + '/?video=' + encodeURIComponent(videoFileUrl) + '&channel=' + channelId + '&popout=false'}
+                            title="asbplayer"
+                        />
+                    </Grid>
+                )}
+                {(!videoInWindow || subtitles?.length > 0) && (
+                    <Grid item style={{flexGrow: videoInWindow ? 0 : 1, width: videoInWindow && hideSubtitlePlayer ? 0 : 'auto'}}>
+                        {loaded && !(videoFileUrl && !videoPopOut) && (
+                            <Controls
+                                mousePositionRef={mousePositionRef}
+                                playing={playing}
+                                clock={clock}
+                                length={length}
+                                displayLength={trackLength(audioRef, videoRef, subtitles, false)}
+                                audioTracks={audioTracks}
+                                selectedAudioTrack={selectedAudioTrack}
+                                tabs={!videoFileUrl && !audioFileUrl && availableTabs}
+                                selectedTab={tab && tab.id}
+                                audioFile={audioFile?.name}
+                                videoFile={videoFile?.name}
+                                offsetEnabled={true}
+                                offset={offset}
+                                volumeEnabled={Boolean(audioFileUrl)}
+                                condensedModeToggleEnabled={Boolean(audioFileUrl) && subtitles?.length > 0}
+                                condensedModeEnabled={condensedModeEnabled}
+                                onPlay={handlePlay}
+                                onPause={handlePause}
+                                onSeek={handleSeek}
+                                onAudioTrackSelected={handleAudioTrackSelected}
+                                onTabSelected={handleTabSelected}
+                                onUnloadAudio={() => props.onUnloadAudio(audioFileUrl)}
+                                onUnloadVideo={() => props.onUnloadVideo(videoFileUrl)}
+                                onOffsetChange={handleOffsetChange}
+                                onVolumeChange={handleVolumeChange}
+                                onCondensedModeToggle={handleCondensedModeToggle}
+                                disableKeyEvents={disableKeyEvents}
+                                settingsProvider={settingsProvider}
                             />
-                        </Grid>
-                    )}
-                <Grid item style={{flexGrow: videoInWindow ? 0 : 1}}>
-                    {loaded && !(videoFileUrl && !videoPopOut) && (
-                        <Controls
-                            mousePositionRef={mousePositionRef}
+                        )}
+                        <SubtitlePlayer
                             playing={playing}
+                            subtitles={subtitles}
                             clock={clock}
                             length={length}
-                            displayLength={trackLength(audioRef, videoRef, subtitles, false)}
-                            audioTracks={audioTracks}
-                            selectedAudioTrack={selectedAudioTrack}
-                            tabs={!videoFileUrl && !audioFileUrl && availableTabs}
-                            selectedTab={tab && tab.id}
-                            audioFile={audioFile?.name}
-                            videoFile={videoFile?.name}
-                            offsetEnabled={true}
-                            offset={offset}
-                            volumeEnabled={Boolean(audioFileUrl)}
-                            condensedModeToggleEnabled={Boolean(audioFileUrl) && subtitles?.length > 0}
-                            condensedModeEnabled={condensedModeEnabled}
-                            onPlay={handlePlay}
-                            onPause={handlePause}
-                            onSeek={handleSeek}
-                            onAudioTrackSelected={handleAudioTrackSelected}
-                            onTabSelected={handleTabSelected}
-                            onUnloadAudio={() => props.onUnloadAudio(audioFileUrl)}
-                            onUnloadVideo={() => props.onUnloadVideo(videoFileUrl)}
-                            onOffsetChange={handleOffsetChange}
-                            onVolumeChange={handleVolumeChange}
-                            onCondensedModeToggle={handleCondensedModeToggle}
+                            jumpToSubtitle={props.jumpToSubtitle}
+                            drawerOpen={drawerOpen}
+                            compressed={videoFileUrl && !videoPopOut}
+                            loading={loadingSubtitles}
+                            displayHelp={audioFile?.name || (videoPopOut && videoFile?.name)}
                             disableKeyEvents={disableKeyEvents}
-                            settingsProvider={settingsProvider}
+                            lastJumpToTopTimestamp={lastJumpToTopTimestamp}
+                            hidden={videoInWindow && hideSubtitlePlayer}
+                            onSeek={handleSeekToSubtitle}
+                            onCopy={handleCopy}
                         />
-                    )}
-                    <SubtitlePlayer
-                        playing={playing}
-                        subtitles={subtitles}
-                        clock={clock}
-                        length={length}
-                        jumpToSubtitle={props.jumpToSubtitle}
-                        drawerOpen={drawerOpen}
-                        compressed={videoFileUrl && !videoPopOut}
-                        loading={loadingSubtitles}
-                        displayHelp={audioFile && audioFile.name}
-                        disableKeyEvents={disableKeyEvents}
-                        lastJumpToTopTimestamp={lastJumpToTopTimestamp}
-                        onSeek={handleSeekToSubtitle}
-                        onCopy={handleCopy}
-                    />
-                </Grid>
+                    </Grid>
+                )}
             </Grid>
             <audio ref={audioRef} src={audioFileUrl} />
         </div>

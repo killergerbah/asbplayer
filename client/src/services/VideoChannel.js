@@ -17,6 +17,7 @@ export default class VideoChannel {
         this.popOutToggleCallbacks = [];
         this.copyCallbacks = [];
         this.condensedModeToggleCallbacks = [];
+        this.hideSubtitlePlayerToggleCallbacks = [];
 
         const that = this;
 
@@ -86,6 +87,10 @@ export default class VideoChannel {
                         callback();
                     }
                     break;
+                case 'hideSubtitlePlayerToggle':
+                    for (let callback of that.hideSubtitlePlayerToggleCallbacks) {
+                        callback();
+                    }
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }
@@ -145,6 +150,10 @@ export default class VideoChannel {
         this.condensedModeToggleCallbacks.push(callback);
     }
 
+    onHideSubtitlePlayerToggle(callback) {
+        this.hideSubtitlePlayerToggleCallbacks.push(callback);
+    }
+
     ready(duration) {
         this.protocol.postMessage({command: 'ready', duration: duration});
     }
@@ -175,6 +184,10 @@ export default class VideoChannel {
 
     condensedModeToggle(enabled) {
         this.protocol.postMessage({command: 'condensedModeToggle', value: enabled});
+    }
+
+    hideSubtitlePlayerToggle(hidden) {
+        this.protocol.postMessage({command: 'hideSubtitlePlayerToggle', value: hidden});
     }
 
     close() {

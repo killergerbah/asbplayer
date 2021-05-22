@@ -117,7 +117,8 @@ export default function SubtitlePlayer({
     drawerOpen,
     displayHelp,
     disableKeyEvents,
-    lastJumpToTopTimestamp
+    lastJumpToTopTimestamp,
+    hidden
     }) {
     const playingRef = useRef();
     playingRef.current = playing;
@@ -134,6 +135,8 @@ export default function SubtitlePlayer({
     const selectedSubtitleIndexesRef = useRef({});
     const lengthRef = useRef();
     lengthRef.current = length;
+    const hiddenRef = useRef();
+    hiddenRef.current = hidden;
     const lastScrollTimestampRef = useRef(0);
     const requestAnimationRef = useRef();
     const containerRef = useRef();
@@ -186,7 +189,7 @@ export default function SubtitlePlayer({
 
                 if (smallestIndex !== Number.MAX_SAFE_INTEGER) {
                     const scrollToSubtitleRef = subtitleRefs[smallestIndex];
-                    const allowScroll = Date.now() - lastScrollTimestampRef.current > 5000;
+                    const allowScroll = !hiddenRef.current && (Date.now() - lastScrollTimestampRef.current > 5000);
 
                     if (scrollToSubtitleRef?.current && allowScroll) {
                         scrollToSubtitleRef.current.scrollIntoView({
@@ -206,7 +209,7 @@ export default function SubtitlePlayer({
         return () => cancelAnimationFrame(requestAnimationRef.current);
     }, []);
 
-    useEffect(() => {
+    const scrollToCurrentSubtitle = useCallback(() => {
         const indexes = Object.keys(selectedSubtitleIndexes);
 
         if (indexes.length === 0) {
@@ -215,22 +218,36 @@ export default function SubtitlePlayer({
 
         const scrollToSubtitleRef = subtitleRefs[indexes[0]];
 
-        function scrollToCurrentSubtitle() {
-            if (document.visibilityState === 'visible') {
-                scrollToSubtitleRef.current?.scrollIntoView({
-                    block: "center",
-                    inline: "nearest",
-                    behavior: "smooth"
-                });
-            }
-        };
+        if (document.visibilityState === 'visible') {
+            scrollToSubtitleRef.current?.scrollIntoView({
+                block: "center",
+                inline: "nearest",
+                behavior: "smooth"
+            });
+        }
+    }, [selectedSubtitleIndexes, subtitleRefs]);
+
+    useEffect(() => {
+        if (hidden) {
+            return;
+        }
 
         document.addEventListener("visibilitychange", scrollToCurrentSubtitle);
 
         return () => document.removeEventListener("visibilitychange", scrollToCurrentSubtitle);
-    }, [selectedSubtitleIndexes, subtitleRefs]);
+    }, [hidden, selectedSubtitleIndexes, subtitleRefs, scrollToCurrentSubtitle]);
 
     useEffect(() => {
+        if (!hidden) {
+            scrollToCurrentSubtitle();
+        }
+    }, [hidden, scrollToCurrentSubtitle]);
+
+    useEffect(() => {
+        if (hiddenRef.current) {
+            return;
+        }
+
         const subtitleRefs = subtitleRefsRef.current;
 
         if (!subtitleRefs || subtitleRefs.length === 0) {
@@ -238,7 +255,7 @@ export default function SubtitlePlayer({
         }
 
         const firstSubtitleRef = subtitleRefs[0];
-        firstSubtitleRef.current.scrollIntoView({
+        firstSubtitleRef.current?.scrollIntoView({
             block: "center",
             inline: "nearest",
             behavior: "smooth"
@@ -295,6 +312,10 @@ export default function SubtitlePlayer({
     }, [containerRef, lastScrollTimestampRef]);
 
     useEffect(() => {
+        if (hidden) {
+            return;
+        }
+
         if (!jumpToSubtitle || !subtitles) {
             return;
         }
@@ -312,13 +333,13 @@ export default function SubtitlePlayer({
         }
 
         if (jumpToIndex !== -1) {
-            subtitleRefs[jumpToIndex].current.scrollIntoView({
+            subtitleRefs[jumpToIndex].current?.scrollIntoView({
                  block: "center",
                  inline: "nearest",
                  behavior: "smooth"
             });
         }
-    }, [jumpToSubtitle, subtitles, subtitleRefs]);
+    }, [hidden, jumpToSubtitle, subtitles, subtitleRefs]);
 
     function copy(event, subtitles, subtitleIndex, onCopy) {
         event.stopPropagation();

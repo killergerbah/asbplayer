@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
+import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import AudiotrackIcon from '@material-ui/icons/Audiotrack';
 import CloseIcon from '@material-ui/icons/Close';
 import Fade from '@material-ui/core/Fade';
@@ -123,6 +125,12 @@ const useControlStyles = makeStyles((theme) => ({
         margin: 5
     },
     closeButton: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        pointerEvents: 'auto'
+    },
+    hideSubtitlePlayerToggleButton: {
         position: 'absolute',
         top: 0,
         right: 0,
@@ -363,6 +371,9 @@ export default function Controls({
     fullscreenEnabled,
     fullscreen,
     onFullscreenToggle,
+    hideSubtitlePlayerToggleEnabled,
+    subtitlePlayerHidden,
+    onHideSubtitlePlayerToggle,
     }) {
     const classes = useControlStyles();
     const [show, setShow] = useState(true);
@@ -583,12 +594,30 @@ export default function Controls({
                     <IconButton
                         className={classes.closeButton}
                         onClick={onClose}
+                        onMouseOver={handleMouseOver}
+                        onMouseOut={handleMouseOut}
                     >
                         <CloseIcon />
                     </IconButton>
                 </Fade>
             )}
-            <div className={classes.container} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
+            {hideSubtitlePlayerToggleEnabled && (
+                <Fade in={show} timeout={200}>
+                    <IconButton
+                        className={classes.hideSubtitlePlayerToggleButton}
+                        onClick={onHideSubtitlePlayerToggle}
+                        onMouseOver={handleMouseOver}
+                        onMouseOut={handleMouseOut}
+                    >
+                        {subtitlePlayerHidden ? <ArrowBackIcon /> : <ArrowForwardIcon />}
+                    </IconButton>
+                </Fade>
+            )}
+            <div
+                className={classes.container}
+                onMouseOver={handleMouseOver}
+                onMouseOut={handleMouseOut}
+            >
                 <Fade in={show} timeout={200}>
                     <div className={classes.subContainer}>
                         <ProgressBar

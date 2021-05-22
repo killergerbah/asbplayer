@@ -422,7 +422,7 @@ function App() {
         e.preventDefault();
 
         if (inVideoPlayer) {
-            handleError('Video player cannot receive dropped files. Drop into the subtitle section instead.');
+            handleError('Video player cannot receive dropped files. Drop outside of the video frame instead.');
             return;
         }
 

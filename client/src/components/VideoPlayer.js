@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { isMobile } from 'react-device-detect';
 import { makeStyles } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
 import { arrayEquals } from '../services/Util'
@@ -169,6 +170,7 @@ export default function VideoPlayer(props) {
     const [showSubtitles, setShowSubtitles] = useState([]);
     const [subtitlesEnabled, setSubtitlesEnabled] = useState(true);
     const [condensedModeEnabled, setCondensedModeEnabled] = useState(false);
+    const [subtitlePlayerHidden, setSubtitlePlayerHidden] = useState(false);
     const showSubtitlesRef = useRef([]);
     showSubtitlesRef.current = showSubtitles;
     const clock = useMemo(() => new Clock(), []);
@@ -260,6 +262,7 @@ export default function VideoPlayer(props) {
         });
 
         playerChannel.onCondensedModeToggle((enabled) => setCondensedModeEnabled(enabled));
+        playerChannel.onHideSubtitlePlayerToggle((hidden) => setSubtitlePlayerHidden(hidden));
 
         window.onbeforeunload = (e) => {
             if (!poppingInRef.current) {
@@ -463,6 +466,10 @@ export default function VideoPlayer(props) {
         window.close();
     }, [playerChannel]);
 
+    const handleHideSubtitlePlayerToggle = useCallback(() => {
+        playerChannel.hideSubtitlePlayerToggle();
+    }, [playerChannel]);
+
     const handleClick = useCallback(() => {
         if (playing) {
             playerChannel.pause();
@@ -532,9 +539,11 @@ export default function VideoPlayer(props) {
                 closeEnabled={!popOut}
                 popOut={popOut}
                 volumeEnabled={true}
-                popOutEnabled={true}
+                popOutEnabled={!isMobile}
                 condensedModeToggleEnabled={true}
                 condensedModeEnabled={condensedModeEnabled}
+                hideSubtitlePlayerToggleEnabled={subtitles?.length > 0 && !popOut}
+                subtitlePlayerHidden={subtitlePlayerHidden}
                 onShow={handleShowControls}
                 onPlay={handlePlay}
                 onPause={handlePause}
@@ -547,6 +556,7 @@ export default function VideoPlayer(props) {
                 onPopOutToggle={handlePopOutToggle}
                 onCondensedModeToggle={handleCondensedModeToggle}
                 onClose={handleClose}
+                onHideSubtitlePlayerToggle={handleHideSubtitlePlayerToggle}
                 settingsProvider={settingsProvider}
             />
         </div>
