@@ -216,16 +216,18 @@ export default function SubtitlePlayer({
         const scrollToSubtitleRef = subtitleRefs[indexes[0]];
 
         function scrollToCurrentSubtitle() {
-            scrollToSubtitleRef.current?.scrollIntoView({
-                block: "center",
-                inline: "nearest",
-                behavior: "smooth"
-            });
+            if (document.visibilityState === 'visible') {
+                scrollToSubtitleRef.current?.scrollIntoView({
+                    block: "center",
+                    inline: "nearest",
+                    behavior: "smooth"
+                });
+            }
         };
 
-        window.addEventListener("focus", scrollToCurrentSubtitle);
+        document.addEventListener("visibilitychange", scrollToCurrentSubtitle);
 
-        return () => window.removeEventListener("focus", scrollToCurrentSubtitle);
+        return () => document.removeEventListener("visibilitychange", scrollToCurrentSubtitle);
     }, [selectedSubtitleIndexes, subtitleRefs]);
 
     useEffect(() => {
