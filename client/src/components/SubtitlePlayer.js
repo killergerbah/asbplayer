@@ -210,6 +210,12 @@ export default function SubtitlePlayer({
     }, []);
 
     const scrollToCurrentSubtitle = useCallback(() => {
+        const selectedSubtitleIndexes = selectedSubtitleIndexesRef.current;
+
+        if (!selectedSubtitleIndexes) {
+            return;
+        }
+
         const indexes = Object.keys(selectedSubtitleIndexes);
 
         if (indexes.length === 0) {
@@ -218,23 +224,27 @@ export default function SubtitlePlayer({
 
         const scrollToSubtitleRef = subtitleRefs[indexes[0]];
 
-        if (document.visibilityState === 'visible') {
-            scrollToSubtitleRef.current?.scrollIntoView({
-                block: "center",
-                inline: "nearest",
-                behavior: "smooth"
-            });
-        }
-    }, [selectedSubtitleIndexes, subtitleRefs]);
+        scrollToSubtitleRef.current?.scrollIntoView({
+            block: "center",
+            inline: "nearest",
+            behavior: "smooth"
+        });
+    }, [subtitleRefs]);
 
     useEffect(() => {
         if (hidden) {
             return;
         }
 
-        document.addEventListener("visibilitychange", scrollToCurrentSubtitle);
+        function scrollIfVisible() {
+            if (document.visibilityState === 'visible') {
+                scrollToCurrentSubtitle();
+            }
+        }
 
-        return () => document.removeEventListener("visibilitychange", scrollToCurrentSubtitle);
+        document.addEventListener("visibilitychange", scrollIfVisible);
+
+        return () => document.removeEventListener("visibilitychange", scrollIfVisible);
     }, [hidden, selectedSubtitleIndexes, subtitleRefs, scrollToCurrentSubtitle]);
 
     useEffect(() => {
