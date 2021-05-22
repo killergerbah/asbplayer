@@ -51,7 +51,7 @@ const useControlStyles = makeStyles((theme) => ({
         justifyContent: "center",
         fontSize: 20,
         marginLeft: 10,
-        width: 200,
+        width: 100,
         color: theme.palette.text.secondary,
         pointerEvents: 'auto'
     },
@@ -641,7 +641,7 @@ export default function Controls({
                                         inputRef={offsetInputRef}
                                         disableUnderline={true}
                                         className={classes.offsetInput}
-                                        placeholder={"±" + Number(0).toFixed(2) + " subtitle offset"}
+                                        placeholder={"±" + Number(0).toFixed(2)}
                                         onClick={handleOffsetInputClicked}
                                     />
                                 </Grid>

@@ -362,7 +362,7 @@ export default function SubtitlePlayer({
         subtitleTable = !loading && displayHelp && (
             <div className={classes.noSubtitles}>
                 <Typography>
-                    No subtitles loaded. Drag and drop to load.
+                    {displayHelp}
                 </Typography>
             </div>
         );

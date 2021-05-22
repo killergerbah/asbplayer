@@ -24,7 +24,7 @@ import VideoPlayer from './VideoPlayer.js';
 const latestExtensionVersion = "0.7.0";
 const extensionUrl = "https://github.com/killergerbah/asbplayer/releases/latest";
 
-const useStyles = makeStyles((theme) => ({
+const useContentStyles = makeStyles((theme) => ({
     content: {
         flexGrow: 1,
         transition: theme.transitions.create('margin', {
@@ -133,7 +133,7 @@ function imageFromItem(item, offset) {
 }
 
 function Content(props) {
-    const classes = useStyles(props);
+    const classes = useContentStyles(props);
 
     return (
         <main

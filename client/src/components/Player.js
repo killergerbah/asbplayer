@@ -566,7 +566,7 @@ export default function Player(props) {
                             offsetEnabled={true}
                             offset={offset}
                             volumeEnabled={Boolean(audioFileUrl)}
-                            condensedModeToggleEnabled={Boolean(audioFileUrl)}
+                            condensedModeToggleEnabled={Boolean(audioFileUrl) && subtitles?.length > 0}
                             condensedModeEnabled={condensedModeEnabled}
                             onPlay={handlePlay}
                             onPause={handlePause}
@@ -591,7 +591,7 @@ export default function Player(props) {
                         drawerOpen={drawerOpen}
                         compressed={videoFileUrl && !videoPopOut}
                         loading={loadingSubtitles}
-                        displayHelp={Boolean(videoFileUrl || audioFileUrl)}
+                        displayHelp={audioFile && audioFile.name}
                         disableKeyEvents={disableKeyEvents}
                         lastJumpToTopTimestamp={lastJumpToTopTimestamp}
                         onSeek={handleSeekToSubtitle}
