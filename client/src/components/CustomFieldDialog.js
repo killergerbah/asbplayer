@@ -41,6 +41,7 @@ export default function CustomFieldDialog({open, onProceed, onCancel, existingCu
                         fullWidth
                         label="Field Name"
                         value={fieldName}
+                        color="secondary"
                         onChange={(e) => setFieldName(e.target.value)}
                     />
                 </form>
