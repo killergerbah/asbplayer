@@ -6,18 +6,22 @@ import CustomFieldDialog from './CustomFieldDialog';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormGroup from '@material-ui/core/FormGroup';
+import FormHelperText from '@material-ui/core/FormHelperText';
+
+import FormLabel from '@material-ui/core/FormLabel';
+
 import Grid from '@material-ui/core/Grid';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import DeleteIcon from '@material-ui/icons/Delete';
+import RefreshIcon from '@material-ui/icons/Refresh';
 import Select from '@material-ui/core/Select';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
 import TextField from '@material-ui/core/TextField';
 
 const useStyles = makeStyles((theme) => ({
@@ -30,8 +34,7 @@ const useStyles = makeStyles((theme) => ({
     subtitleSetting: {
         '& .MuiTextField-root': {
             marginTop: theme.spacing(1),
-            marginBottom: theme.spacing(1),
-            width: 320
+            marginBottom: theme.spacing(1)
         },
     },
     addFieldButton: {
@@ -88,24 +91,8 @@ function SelectableSetting({label, value, selections, removable, onChange, onSel
     );
 }
 
-function Centered(props) {
-    return (
-        <Grid container
-            spacing={0}
-            direction="row"
-            alignItems="center"
-            justify="center"
-        >
-            <Grid item>
-                {props.children}
-            </Grid>
-        </Grid>
-    );
-}
-
 export default function SettingsDialog({anki, open, settings, onClose}) {
     const classes = useStyles();
-    const [tabIndex, setTabIndex] = useState(0);
     const [ankiConnectUrl, setAnkiConnectUrl] = useState(settings.ankiConnectUrl);
     const [ankiConnectUrlError, setAnkiConnectUrlError] = useState();
     const [ankiConnectUrlChangeTimestamp, setAnkiConnectUrlChangeTimestamp] = useState(0);
@@ -287,173 +274,177 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                 fullWidth
                 onBackdropClick={handleClose}
             >
-                <Tabs
-                    value={tabIndex}
-                    variant="fullWidth"
-                    onChange={(e, newIndex) => setTabIndex(newIndex)}
-                >
-                    <Tab label="Anki" />
-                    <Tab label="In-Video Subtitles" />
-                </Tabs>
-                {tabIndex === 0 && (
-                    <DialogContent>
-                        <DialogContentText>
-                            Ensure that {window.location.protocol + "//" + window.location.hostname} is in the webCorsOriginList in your AnkiConnect settings.
-                            Leaving a field blank is fine.
-                        </DialogContentText>
-                        <Centered>
-                            <form className={classes.root}>
-                                <div>
-                                    <TextField
-                                        label="Anki Connect URL"
-                                        value={ankiConnectUrl}
-                                        error={Boolean(ankiConnectUrlError)}
-                                        helperText={ankiConnectUrlError}
-                                        onChange={handleAnkiConnectUrlChange}
-                                    />
-                                </div>
-                                <SelectableSetting
-                                    label="Deck"
-                                    value={deck}
-                                    selections={deckNames}
-                                    onChange={handleDeckChange}
-                                    onSelectionChange={handleDeckChange}
+                <DialogTitle>
+                    Settings
+                </DialogTitle>
+                <DialogContent>
+                    <Grid container direction="column" spacing={3}>
+                        <Grid item>
+                        <FormLabel>Anki</FormLabel>
+                        <FormGroup className={classes.root}>
+                            <TextField
+                                label="Anki Connect URL"
+                                value={ankiConnectUrl}
+                                error={Boolean(ankiConnectUrlError)}
+                                helperText={ankiConnectUrlError}
+                                onChange={handleAnkiConnectUrlChange}
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton onClick={handleRetryAnkiConnectUrl}>
+                                                <RefreshIcon />
+                                            </IconButton>
+                                        </InputAdornment>
+                                    )
+                                }}
+                            />
+                            <FormHelperText>
+                                Ensure that {window.location.protocol + "//" + window.location.hostname} is in the webCorsOriginList in your AnkiConnect settings.
+                                Leaving a field blank is fine.
+                            </FormHelperText>
+                            <SelectableSetting
+                                label="Deck"
+                                value={deck}
+                                selections={deckNames}
+                                onChange={handleDeckChange}
+                                onSelectionChange={handleDeckChange}
+                            />
+                            <SelectableSetting
+                                label="Note Type"
+                                value={noteType}
+                                selections={modelNames}
+                                onChange={handleNoteTypeChange}
+                                onSelectionChange={handleNoteTypeChange}
+                            />
+                            <SelectableSetting
+                                label="Sentence Field"
+                                value={sentenceField}
+                                selections={fieldNames}
+                                onChange={handleSentenceFieldChange}
+                                onSelectionChange={handleSentenceFieldChange}
+                            />
+                            <SelectableSetting
+                                label="Definition Field"
+                                value={definitionField}
+                                selections={fieldNames}
+                                onChange={handleDefinitionFieldChange}
+                                onSelectionChange={handleDefinitionFieldChange}
+                            />
+                            <SelectableSetting
+                                label="Word Field"
+                                value={wordField}
+                                selections={fieldNames}
+                                onChange={handleWordFieldChange}
+                                onSelectionChange={handleWordFieldChange}
+                            />
+                            <SelectableSetting
+                                label="Audio Field"
+                                value={audioField}
+                                selections={fieldNames}
+                                onChange={handleAudioFieldChange}
+                                onSelectionChange={handleAudioFieldChange}
+                            />
+                            <SelectableSetting
+                                label="Image Field"
+                                value={imageField}
+                                selections={fieldNames}
+                                onChange={handleImageFieldChange}
+                                onSelectionChange={handleImageFieldChange}
+                            />
+                            <SelectableSetting
+                                label="Source Field"
+                                value={sourceField}
+                                selections={fieldNames}
+                                onChange={handleSourceFieldChange}
+                                onSelectionChange={handleSourceFieldChange}
+                            />
+                            {customFieldInputs}
+                            <Button
+                                className={classes.addFieldButton}
+                                onClick={(e) => setCustomFieldDialogOpen(true)}
+                            >
+                                Add Custom Field
+                            </Button>
+                            <FormControlLabel
+                                control={<Checkbox checked={preferMp3} onChange={handlePreferMp3Change} />}
+                                label="Re-encode audio as mp3 (slower)"
+                            />
+                        </FormGroup>
+                        </Grid>
+                        <Grid item>
+                        <FormLabel>Video Subtitle Appearance</FormLabel>
+                        <FormGroup>
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="color"
+                                    label="Subtitle Color"
+                                    fullWidth
+                                    value={subtitleColor}
+                                    onChange={handleSubtitleColorChange}
                                 />
-                                <SelectableSetting
-                                    label="Note Type"
-                                    value={noteType}
-                                    selections={modelNames}
-                                    onChange={handleNoteTypeChange}
-                                    onSelectionChange={handleNoteTypeChange}
+                            </div>
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="number"
+                                    label="Subtitle Size"
+                                    value={subtitleSize}
+                                    onChange={handleSubtitleSizeChange}
+                                    inputProps={{
+                                        min: 1,
+                                        step: 1
+                                    }}
                                 />
-                                <SelectableSetting
-                                    label="Sentence Field"
-                                    value={sentenceField}
-                                    selections={fieldNames}
-                                    onChange={handleSentenceFieldChange}
-                                    onSelectionChange={handleSentenceFieldChange}
+                            </div>
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="color"
+                                    label="Subtitle Outline Color"
+                                    fullWidth
+                                    value={subtitleOutlineColor}
+                                    onChange={handleSubtitleOutlineColorChange}
                                 />
-                                <SelectableSetting
-                                    label="Definition Field"
-                                    value={definitionField}
-                                    selections={fieldNames}
-                                    onChange={handleDefinitionFieldChange}
-                                    onSelectionChange={handleDefinitionFieldChange}
+                            </div>
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="number"
+                                    label="Subtitle Outline Thickness"
+                                    fullWidth
+                                    value={subtitleOutlineThickness}
+                                    onChange={handleSubtitleOutlineThicknessChange}
+                                    inputProps={{
+                                        min: 0,
+                                        step: 1
+                                    }}
                                 />
-                                <SelectableSetting
-                                    label="Word Field"
-                                    value={wordField}
-                                    selections={fieldNames}
-                                    onChange={handleWordFieldChange}
-                                    onSelectionChange={handleWordFieldChange}
+                            </div>
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="color"
+                                    label="Subtitle Background Color"
+                                    fullWidth
+                                    value={subtitleBackgroundColor}
+                                    onChange={handleSubtitleBackgroundColorChange}
                                 />
-                                <SelectableSetting
-                                    label="Audio Field"
-                                    value={audioField}
-                                    selections={fieldNames}
-                                    onChange={handleAudioFieldChange}
-                                    onSelectionChange={handleAudioFieldChange}
+                            </div>
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="number"
+                                    label="Subtitle Background Opacity"
+                                    fullWidth
+                                    inputProps={{
+                                        min: 0,
+                                        max: 1,
+                                        step: 0.1
+                                    }}
+                                    value={subtitleBackgroundOpacity}
+                                    onChange={handleSubtitleBackgroundOpacityChange}
                                 />
-                                <SelectableSetting
-                                    label="Image Field"
-                                    value={imageField}
-                                    selections={fieldNames}
-                                    onChange={handleImageFieldChange}
-                                    onSelectionChange={handleImageFieldChange}
-                                />
-                                <SelectableSetting
-                                    label="Source Field"
-                                    value={sourceField}
-                                    selections={fieldNames}
-                                    onChange={handleSourceFieldChange}
-                                    onSelectionChange={handleSourceFieldChange}
-                                />
-                                {customFieldInputs}
-                                <Button
-                                    className={classes.addFieldButton}
-                                    onClick={(e) => setCustomFieldDialogOpen(true)}
-                                >
-                                    Add Custom Field
-                                </Button>
-                                <FormControlLabel
-                                    control={<Checkbox checked={preferMp3} onChange={handlePreferMp3Change} />}
-                                    label="Re-encode audio as mp3 (slower)"
-                                />
-                            </form>
-                        </Centered>
-                    </DialogContent>
-                )}
-                {tabIndex === 1 && (
-                    <DialogContent>
-                        <Centered>
-                            <form className={classes.root}>
-                                <div className={classes.subtitleSetting}>
-                                    <TextField
-                                        type="color"
-                                        label="Subtitle Color"
-                                        value={subtitleColor}
-                                        onChange={handleSubtitleColorChange}
-                                    />
-                                </div>
-                                <div className={classes.subtitleSetting}>
-                                    <TextField
-                                        type="number"
-                                        label="Subtitle Size"
-                                        value={subtitleSize}
-                                        onChange={handleSubtitleSizeChange}
-                                        inputProps={{
-                                            min: 1,
-                                            step: 1
-                                        }}
-                                    />
-                                </div>
-                                <div className={classes.subtitleSetting}>
-                                    <TextField
-                                        type="color"
-                                        label="Subtitle Outline Color"
-                                        value={subtitleOutlineColor}
-                                        onChange={handleSubtitleOutlineColorChange}
-                                    />
-                                </div>
-                                <div className={classes.subtitleSetting}>
-                                    <TextField
-                                        type="number"
-                                        label="Subtitle Outline Thickness"
-                                        value={subtitleOutlineThickness}
-                                        onChange={handleSubtitleOutlineThicknessChange}
-                                        inputProps={{
-                                            min: 0,
-                                            step: 1
-                                        }}
-                                    />
-                                </div>
-                                <div className={classes.subtitleSetting}>
-                                    <TextField
-                                        type="color"
-                                        label="Subtitle Background Color"
-                                        value={subtitleBackgroundColor}
-                                        onChange={handleSubtitleBackgroundColorChange}
-                                    />
-                                </div>
-                                <div className={classes.subtitleSetting}>
-                                    <TextField
-                                        type="number"
-                                        label="Subtitle Background Opacity"
-                                        inputProps={{
-                                            min: 0,
-                                            max: 1,
-                                            step: 0.1
-                                        }}
-                                        value={subtitleBackgroundOpacity}
-                                        onChange={handleSubtitleBackgroundOpacityChange}
-                                    />
-                                </div>
-                            </form>
-                        </Centered>
-                    </DialogContent>
-                )}
+                            </div>
+                        </FormGroup>
+                        </Grid>
+                    </Grid>
+                </DialogContent>
                 <DialogActions>
-                    {tabIndex === 0 && (<Button onClick={handleRetryAnkiConnectUrl}>Retry Anki URL</Button>)}
                     <Button onClick={handleClose}>OK</Button>
                 </DialogActions>
             </Dialog>
