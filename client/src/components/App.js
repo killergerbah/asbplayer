@@ -334,7 +334,7 @@ function App() {
             const result = await anki.export(
                 text,
                 definition,
-                settingsProvider.preferMp3 ? audioClip?.toMp3() : audioClip,
+                audioClip,
                 image,
                 word,
                 source,
@@ -356,7 +356,7 @@ function App() {
             setAnkiDialogDisabled(false);
             setDisableKeyEvents(false);
         }
-    }, [anki, handleError, settingsProvider]);
+    }, [anki, handleError]);
 
     const handleViewImage = useCallback((image) => {
         setImage(image);

@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useMemo } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
@@ -30,9 +30,22 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-export default function AnkiDialog(props) {
+export default function AnkiDialog({
+    open,
+    disabled,
+    text: initialText,
+    onProceed,
+    onCancel,
+    onViewImage,
+    onOpenSettings,
+    audioClip: initialAudioClip,
+    image,
+    source,
+    customFields,
+    settingsProvider,
+    anki,
+    }) {
     const classes = useStyles();
-    const {open, disabled, text: initialText, onProceed, onCancel, onViewImage, onOpenSettings, audioClip, image, source, customFields, settingsProvider, anki} = props;
     const [definition, setDefinition] = useState("");
     const [text, setText] = useState();
     const [word, setWord] = useState();
@@ -40,6 +53,13 @@ export default function AnkiDialog(props) {
     const [duplicateNotes, setDuplicateNotes] = useState([]);
     const [wordTimestamp, setWordTimestamp] = useState(0);
     const [customFieldValues, setCustomFieldValues] = useState({});
+    const audioClip = useMemo(() => {
+        if (settingsProvider.preferMp3) {
+            return initialAudioClip.toMp3();
+        }
+
+        return initialAudioClip;
+    }, [initialAudioClip, settingsProvider.preferMp3])
 
     useEffect(() => {
         setText(initialText);
