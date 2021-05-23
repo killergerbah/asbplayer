@@ -224,7 +224,7 @@ export default function SubtitlePlayer({
 
         const scrollToSubtitleRef = subtitleRefs[indexes[0]];
 
-        scrollToSubtitleRef.current?.scrollIntoView({
+        scrollToSubtitleRef?.current?.scrollIntoView({
             block: "center",
             inline: "nearest",
             behavior: "smooth"
@@ -265,7 +265,7 @@ export default function SubtitlePlayer({
         }
 
         const firstSubtitleRef = subtitleRefs[0];
-        firstSubtitleRef.current?.scrollIntoView({
+        firstSubtitleRef?.current?.scrollIntoView({
             block: "center",
             inline: "nearest",
             behavior: "smooth"
@@ -343,7 +343,7 @@ export default function SubtitlePlayer({
         }
 
         if (jumpToIndex !== -1) {
-            subtitleRefs[jumpToIndex].current?.scrollIntoView({
+            subtitleRefs[jumpToIndex]?.current?.scrollIntoView({
                  block: "center",
                  inline: "nearest",
                  behavior: "smooth"

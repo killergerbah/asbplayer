@@ -3,7 +3,7 @@ window.addEventListener('message', (event) => {
         return;
     }
 
-    if (event.data.sender === 'asbplayer') {
+    if (event.data.sender === 'asbplayer' || event.data.sender === 'asbplayerv2') {
         chrome.runtime.sendMessage({
             sender: event.data.sender,
             message: event.data.message,

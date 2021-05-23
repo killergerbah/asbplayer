@@ -1,3 +1,15 @@
+function base64(buffer) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const length = bytes.byteLength;
+
+    for (let i = 0; i < length; ++i) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+
+    return window.btoa(binary);
+}
+
 class Recorder {
 
     constructor() {
@@ -30,7 +42,7 @@ class Recorder {
             };
             recorder.onstop = (e) => {
                 const blob = new Blob(chunks);
-                blob.arrayBuffer().then(buffer => resolve(this._base64(buffer)));
+                blob.arrayBuffer().then(buffer => resolve(base64(buffer)));
             };
             recorder.start();
             const audio = new Audio();
@@ -43,18 +55,6 @@ class Recorder {
             this.audio = audio;
             setTimeout(() => this._stop(), time);
         });
-    }
-
-    _base64(buffer) {
-        let binary = '';
-        const bytes = new Uint8Array(buffer);
-        const length = bytes.byteLength;
-
-        for (let i = 0; i < length; ++i) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-
-        return window.btoa(binary);
     }
 
     _stop() {
@@ -102,9 +102,17 @@ function captureVisibleTab(rect) {
     });
 }
 
+async function fileUrlToBase64(fileUrl) {
+    return base64(await (await fetch(fileUrl)).arrayBuffer());
+}
+
+const videoTabs = {};
+const asbplayers = {};
+const recorder = new Recorder();
+
 function refreshSettings() {
-    for (const tabId in tabs) {
-        chrome.tabs.sendMessage(tabs[tabId].tab.id, {
+    for (const tabId in videoTabs) {
+        chrome.tabs.sendMessage(videoTabs[tabId].tab.id, {
             sender: 'asbplayer-extension-to-video',
             message: {
                 command: 'settings-updated'
@@ -113,14 +121,57 @@ function refreshSettings() {
     }
 }
 
-const tabs = {};
-const recorder = new Recorder();
+function anyAsbplayerTab(resolve, reject, attempt, maxAttempts) {
+    if (attempt >= maxAttempts) {
+        reject(new Error("Could not find or create an asbplayer tab"));
+        return;
+    }
+
+    for (const tabId in asbplayers) {
+        resolve(tabId);
+        return;
+    }
+
+    setTimeout(() => anyAsbplayerTab(resolve, attempt + 1, maxAttempts), 1000);
+}
+
+async function findAsbplayerTab(currentTab) {
+    let chosenTabId = null;
+    const now = Date.now();
+    let min = null;
+
+    for (const tabId in asbplayers) {
+        const info = asbplayers[tabId];
+        const elapsed = now - info.timestamp;
+
+        if (min === null || elapsed < min) {
+            min = elapsed;
+            chosenTabId = tabId;
+        }
+    }
+
+    if (chosenTabId) {
+        return chosenTabId;
+    }
+
+    return new Promise((resolve, reject) => {
+        chrome.tabs.create(
+            {
+                active: false,
+                selected: false,
+                url: 'http://localhost:3000/asbplayer',
+                index: currentTab.index + 1
+            },
+            (tab) => anyAsbplayerTab(resolve, reject, 0, 5)
+        );
+    });
+}
 
 chrome.runtime.onMessage.addListener(
     async (request, sender, sendResponse) => {
         if (request.sender === 'asbplayer-video') {
             if (request.message.command === 'heartbeat') {
-                tabs[sender.tab.id] = {
+                videoTabs[sender.tab.id] = {
                     tab: sender.tab,
                     src: request.message.src,
                     timestamp: Date.now()
@@ -180,6 +231,25 @@ chrome.runtime.onMessage.addListener(
                     {displaySubtitles: true},
                     (data) => chrome.storage.sync.set({displaySubtitles: !data.displaySubtitles}, () => refreshSettings())
                 );
+            } else if (request.message.command === 'sync') {
+                let chosenTabId = await findAsbplayerTab(sender.tab);
+                await refreshAndPublishState();
+
+                if (chosenTabId) {
+                    const base64 = await fileUrlToBase64(request.message.subtitles.fileUrl);
+                    URL.revokeObjectURL(request.message.subtitles.fileUrl);
+                    chrome.tabs.sendMessage(Number(chosenTabId), {
+                        sender: 'asbplayer-extension-to-player',
+                        message: {
+                            command: 'sync',
+                            subtitles: {
+                                name: request.message.subtitles.name,
+                                base64: base64
+                            }
+                        },
+                        tabId: sender.tab.id
+                    });
+                }
             } else {
                 chrome.tabs.query({}, (allTabs) => {
                     for (let t of allTabs) {
@@ -196,6 +266,19 @@ chrome.runtime.onMessage.addListener(
                 sender: 'asbplayer-extension-to-video',
                 message: request.message
             });
+        } else if (request.sender === 'asbplayerv2') {
+            if (request.tabId) {
+                chrome.tabs.sendMessage(request.tabId, {
+                    sender: 'asbplayer-extension-to-video',
+                    message: request.message
+                });
+            } else if (request.message.command === 'heartbeat') {
+                asbplayers[sender.tab.id] = {
+                    tab: sender.tab,
+                    id: request.message.id,
+                    timestamp: Date.now()
+                };
+            }
         } else if (request.sender === 'asbplayer-popup') {
             refreshSettings();
         }
@@ -221,32 +304,48 @@ chrome.commands.onCommand.addListener((command) => {
     }
 });
 
-setInterval(() => {
-    const expired = Date.now() - 5000;
-    const activeTabs = [];
+async function refreshAndPublishState() {
+    return new Promise((resolve, reject) => {
+        const expired = Date.now() - 5000;
 
-    for (const tabId in tabs) {
-        const info = tabs[tabId];
-        if (info.timestamp < expired) {
-            delete tabs[tabId];
-        } else {
-            activeTabs.push({
-                id: info.tab.id,
-                title: info.tab.title,
-                src: info.src
-            });
-        }
-    }
+        for (const tabId in asbplayers) {
+            const info = asbplayers[tabId];
 
-    chrome.tabs.query({}, (allTabs) => {
-        for (let t of allTabs) {
-            chrome.tabs.sendMessage(t.id, {
-                sender: 'asbplayer-extension-to-player',
-                message: {
-                    command: 'tabs',
-                    tabs: activeTabs
-                }
-            });
+            if (info.timestamp < expired) {
+                delete asbplayers[tabId];
+            }
         }
+
+        const activeTabs = [];
+
+        for (const tabId in videoTabs) {
+            const info = videoTabs[tabId];
+
+            if (info.timestamp < expired) {
+                delete videoTabs[tabId];
+            } else {
+                activeTabs.push({
+                    id: info.tab.id,
+                    title: info.tab.title,
+                    src: info.src
+                });
+            }
+        }
+
+        chrome.tabs.query({}, (allTabs) => {
+            for (let t of allTabs) {
+                chrome.tabs.sendMessage(t.id, {
+                    sender: 'asbplayer-extension-to-player',
+                    message: {
+                        command: 'tabs',
+                        tabs: activeTabs
+                    }
+                });
+            }
+
+            resolve();
+        });
     });
-}, 1000);
+}
+
+setInterval(() => refreshAndPublishState(), 1000);

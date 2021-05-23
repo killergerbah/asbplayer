@@ -31,3 +31,25 @@
 .asbplayer-hide {
     display: none;
 }
+
+.asbplayer-drag-zone-initial {
+    position: absolute;
+    pointer-events: none;
+    z-index: 2147483647;
+}
+
+.asbplayer-drag-zone-dragging {
+    pointer-events: all;
+}
+
+.asbplayer-drag-image {
+    position: relative;
+    pointer-events: none;
+}
+
+.asbplayer-drag-image-container {
+    position: absolute;
+    pointer-events: none;
+    z-index: 2147483647;
+    background-color: rgba(0, 0, 0, 0.5);
+}

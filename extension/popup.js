@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', (e) => {
     const screenshotCheckbox = document.getElementById('screenshotInput');
     const cleanScreenshotCheckbox = document.getElementById('cleanScreenshotInput');
     const bindKeysCheckbox = document.getElementById('bindKeysInput');
+    const subsDragAndDropCheckbox = document.getElementById('subsDragAndDropInput');
     const subtitlePositionOffsetBottomInput = document.getElementById('subtitlePositionOffsetBottomInput');
 
     function notifySettingsUpdated() {
@@ -35,6 +36,10 @@ document.addEventListener('DOMContentLoaded', (e) => {
         chrome.storage.sync.set({bindKeys: bindKeysCheckbox.checked}, () => notifySettingsUpdated());
     });
 
+    subsDragAndDropCheckbox.addEventListener('change', (e) => {
+        chrome.storage.sync.set({subsDragAndDrop: subsDragAndDropCheckbox.checked}, () => notifySettingsUpdated());
+    });
+
     subtitlePositionOffsetBottomInput.addEventListener('change', (e) => {
         const offset = Number(subtitlePositionOffsetBottomInput.value);
         chrome.storage.sync.set({subtitlePositionOffsetBottom: offset}, () => notifySettingsUpdated());
@@ -46,6 +51,7 @@ document.addEventListener('DOMContentLoaded', (e) => {
         screenshot: true,
         cleanScreenshot: true,
         bindKeys: true,
+        subsDragAndDrop: true,
         subtitlePositionOffsetBottom: 100
     },
     (data) => {
@@ -54,6 +60,7 @@ document.addEventListener('DOMContentLoaded', (e) => {
         screenshotCheckbox.checked = data.screenshot;
         cleanScreenshotCheckbox.checked = data.cleanScreenshot;
         bindKeysCheckbox.checked = data.bindKeys;
+        subsDragAndDropCheckbox.checked = data.subsDragAndDrop;
         subtitlePositionOffsetBottomInput.value = data.subtitlePositionOffsetBottom;
     });
 });

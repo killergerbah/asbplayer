@@ -1,11 +1,15 @@
+import { v4 as uuidv4 } from 'uuid';
+
 export default class ChromeExtension {
 
-    constructor() {
+    constructor(heartbeat) {
         this.onMessageCallbacks = [];
+        this.onTabsCallbacks = [];
         this.tabs = [];
         this.versionPromise = new Promise((resolve, reject) => {
             this.versionResolve = resolve;
         });
+        this.id = uuidv4();
 
         window.addEventListener('message', (event) => {
             if (event.source !== window) {
@@ -16,6 +20,11 @@ export default class ChromeExtension {
                 if (event.data.message) {
                     if (event.data.message.command === 'tabs') {
                         this.tabs = event.data.message.tabs;
+
+                        for (let c of this.onTabsCallbacks) {
+                            c(this.tabs);
+                        }
+
                         return;
                     }
 
@@ -33,6 +42,21 @@ export default class ChromeExtension {
                 }
             }
         });
+
+        if (heartbeat) {
+            this._sendHeartbeat();
+            setInterval(() => this._sendHeartbeat(), 1000);
+        }
+    }
+
+    _sendHeartbeat() {
+        window.postMessage({
+            sender: 'asbplayerv2',
+            message: {
+                command: 'heartbeat',
+                id: this.id
+            }
+        }, '*');
     }
 
     async installedVersion() {
@@ -49,14 +73,26 @@ export default class ChromeExtension {
         }
     }
 
+    subscribeTabs(callback) {
+        this.onTabsCallbacks.push(callback);
+    }
+
+    unsubscribeTabs(callback) {
+        this._remove(callback, this.onTabsCallbacks);
+    }
+
     subscribe(callback) {
         this.onMessageCallbacks.push(callback);
     }
 
     unsubscribe(callback) {
-        for (let i = this.onMessageCallbacks.length - 1; i >= 0; --i) {
-            if (callback === this.onMessageCallbacks[i]) {
-                this.onMessageCallbacks.splice(i, 1);
+        this._remove(callback, this.onMessageCallbacks);
+    }
+
+    _remove(callback, callbacks) {
+        for (let i = callbacks.length - 1; i >= 0; --i) {
+            if (callback === callbacks[i]) {
+                callbacks.splice(i, 1);
                 break;
             }
         }

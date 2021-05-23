@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { Route, Redirect, Switch, useLocation } from "react-router-dom";
 import { makeStyles } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
@@ -132,6 +132,16 @@ function imageFromItem(item, offset) {
     return null;
 }
 
+function revokeUrls(sources) {
+    if (sources.audioFileUrl) {
+        URL.revokeObjectURL(sources.audioFileUrl);
+    }
+
+    if (sources.videoFileUrl) {
+        URL.revokeObjectURL(sources.videoFileUrl);
+    }
+}
+
 function Content(props) {
     const classes = useContentStyles(props);
 
@@ -149,10 +159,10 @@ function App() {
     const subtitleReader = useMemo(() => new SubtitleReader(), []);
     const settingsProvider = useMemo(() => new SettingsProvider(), []);
     const anki = useMemo(() => new Anki(settingsProvider), [settingsProvider]);
-    const extension = useMemo(() => new ChromeExtension(), []);
     const location = useLocation();
-    const videoFrameRef = useRef();
     const inVideoPlayer = location.pathname === '/video';
+    const extension = useMemo(() => new ChromeExtension(!inVideoPlayer), [inVideoPlayer]);
+    const videoFrameRef = useRef();
     const [width, ] = useWindowSize(!inVideoPlayer);
     const drawerRatio = videoFrameRef.current ? .2 : .3;
     const minDrawerSize = videoFrameRef.current ? 150 : 300;
@@ -176,6 +186,8 @@ function App() {
     const [imageDialogOpen, setImageDialogOpen] = useState(false);
     const [disableKeyEvents, setDisableKeyEvents] = useState(false);
     const [image, setImage] = useState();
+    const [tab, setTab] = useState();
+    const [availableTabs, setAvailableTabs] = useState([]);
     const offsetRef = useRef();
     const fileInputRef = useRef();
     const { subtitleFile } = sources;
@@ -363,15 +375,46 @@ function App() {
         setImageDialogOpen(true);
     }, []);
 
-    function revokeUrls(sources) {
-        if (sources.audioFileUrl) {
-            URL.revokeObjectURL(sources.audioFileUrl);
-        }
+    useEffect(() => {
+        function onTabs(tabs) {
+            if (tabs.length !== availableTabs.length) {
+                setAvailableTabs(tabs);
+            } else {
+                let update = false;
 
-        if (sources.videoFileUrl) {
-            URL.revokeObjectURL(sources.videoFileUrl);
-        }
-    }
+                for (let i = 0; i < availableTabs.length; ++i) {
+                    const t1 = availableTabs[i];
+                    const t2 = tabs[i];
+                    if (t1.id !== t2.id
+                        || t1.title !== t2.title
+                        || t1.src !== t2.src) {
+                        update = true;
+                        break;
+                    }
+                }
+
+                if (update) {
+                    setAvailableTabs(tabs);
+                }
+            }
+
+            let selectedTabMissing = tab && tabs.filter(t => t.id === tab.id && t.src === tab.src).length === 0;
+
+            if (selectedTabMissing) {
+                setTab(null);
+                handleError('Lost connection with tab ' + tab.id + ' ' + tab.title);
+            }
+        };
+
+        extension.subscribeTabs(onTabs);
+
+        return () => extension.unsubscribeTabs(onTabs);
+    }, [availableTabs, tab, extension, handleError]);
+
+    const handleTabSelected = useCallback((id) => {
+        const tab = availableTabs.filter(t => t.id === id)[0];
+        setTab(tab);
+    }, [availableTabs]);
 
     const handleFiles = useCallback((files) => {
         try {
@@ -391,6 +434,8 @@ function App() {
                     } else if (audioFile) {
                         audioFileUrl = URL.createObjectURL(audioFile);
                     }
+
+                    setTab(null);
                 } else {
                     videoFile = previous.videoFile;
                     videoFileUrl = previous.videoFileUrl;
@@ -417,6 +462,38 @@ function App() {
             handleError(e.message);
         }
     }, [handleError]);
+
+    useEffect(() => {
+        async function onMessage(message) {
+            if (message.data.command === 'sync') {
+                const tabs = availableTabs.filter(t => t.id === message.tabId);
+
+                if (tabs.length === 0) {
+                    console.error("Received sync request but the requesting tab ID " + message.tabId + " was not found");
+                    return;
+                }
+
+                const tab = tabs[0];
+                const subtitleFile = new File(
+                    [await (await fetch("data:text/plain;base64," + message.data.subtitles.base64)).blob()],
+                    message.data.subtitles.name
+                );
+                setFileName(subtitleFile.name);
+                setSources({
+                    subtitleFile: subtitleFile,
+                    audioFile: null,
+                    audioFileUrl: null,
+                    videoFile: null,
+                    videoFileUrl: null
+                })
+                setTab(tab);
+            }
+        }
+
+        extension.subscribe(onMessage);
+
+        return () => extension.unsubscribe(onMessage);
+    }, [extension, availableTabs]);
 
     const handleDrop = useCallback((e) => {
         e.preventDefault();
@@ -576,7 +653,10 @@ function App() {
                                     onUnloadAudio={handleUnloadAudio}
                                     onUnloadVideo={handleUnloadVideo}
                                     onLoaded={handleSourcesLoaded}
+                                    onTabSelected={handleTabSelected}
                                     offsetRef={offsetRef}
+                                    tab={tab}
+                                    availableTabs={availableTabs}
                                     sources={sources}
                                     jumpToSubtitle={jumpToSubtitle}
                                     videoFrameRef={videoFrameRef}

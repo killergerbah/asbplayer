@@ -9,10 +9,11 @@ export default class BroadcastChannelVideoProtocol {
     }
 
     postMessage(message) {
-        this.channel.postMessage(message);
+        this.channel?.postMessage(message);
     }
 
     close() {
-        this.channel.close();
+        this.channel?.close();
+        this.channel = null;
     }
 }

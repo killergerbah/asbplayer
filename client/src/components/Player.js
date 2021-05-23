@@ -78,9 +78,8 @@ function trackLength(audioRef, videoRef, subtitles, useOffset) {
 }
 
 export default function Player(props) {
-    const {subtitleReader, settingsProvider, extension, offsetRef, videoFrameRef, drawerOpen, onError, onUnloadVideo, onCopy, onLoaded, disableKeyEvents} = props;
+    const {subtitleReader, settingsProvider, extension, offsetRef, videoFrameRef, drawerOpen, tab, availableTabs, onError, onUnloadVideo, onCopy, onLoaded, onTabSelected, disableKeyEvents} = props;
     const {subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl} = props.sources;
-    const [tab, setTab] = useState();
     const [subtitles, setSubtitles] = useState();
     const subtitlesRef = useRef();
     subtitlesRef.current = subtitles;
@@ -116,7 +115,6 @@ export default function Player(props) {
     }, [audioFileUrl, videoFileUrl, tab]);
     const clock = useMemo(() => new Clock(), []);
     const classes = useStyles();
-    const [availableTabs, setAvailableTabs] = useState([]);
     const lengthRef = useRef(0);
     lengthRef.current = trackLength(audioRef, videoRef, subtitles, true);
 
@@ -131,6 +129,9 @@ export default function Player(props) {
     }, [forceUpdate, mediaAdapter]);
 
     useEffect(() => {
+        let channel = null;
+        let channelClosed = false;
+
         async function init() {
             videoRef.current?.close();
             videoRef.current = null;
@@ -176,7 +177,9 @@ export default function Player(props) {
                 await mediaAdapter.onReady();
                 forceUpdate();
             } else if (videoFileUrl || tab) {
-                let channel;
+                if (channelClosed) {
+                    return;
+                }
 
                 if (videoFileUrl) {
                     const channelId = uuidv4();
@@ -279,6 +282,11 @@ export default function Player(props) {
         }
 
         init().then(() => onLoaded());
+
+        return () => {
+            channel?.close();
+            channelClosed = true;
+        };
     }, [subtitleReader, extension, settingsProvider, clock, mediaAdapter, seek, onLoaded, onError, onUnloadVideo, onCopy, subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef]);
 
     useEffect(() => {
@@ -440,11 +448,6 @@ export default function Player(props) {
         }
     }, [clock, mediaAdapter, seek]);
 
-    const handleTabSelected = useCallback((id) => {
-        const tab = availableTabs.filter(t => t.id === id)[0];
-        setTab(tab);
-    }, [availableTabs]);
-
     const handleOffsetChange = useCallback((offset) => {
         setOffset(Math.max(-lengthRef.current ?? 0, offset));
     }, []);
@@ -502,44 +505,6 @@ export default function Player(props) {
         return () => clearInterval(interval);
     }, [clock, subtitles, mediaAdapter]);
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if (props.extension.tabs.length !== availableTabs.length) {
-                setAvailableTabs(props.extension.tabs);
-            } else {
-                let update = false;
-
-                for (let i = 0; i < availableTabs.length; ++i) {
-                    const t1 = availableTabs[i];
-                    const t2 = props.extension.tabs[i];
-                    if (t1.id !== t2.id
-                        || t1.title !== t2.title
-                        || t1.src !== t2.src) {
-                        update = true;
-                        break;
-                    }
-                }
-
-                if (update) {
-                    setAvailableTabs(props.extension.tabs);
-                }
-            }
-
-            let selectedTabMissing = tab && props.extension.tabs.filter(t => t.id === tab.id && t.src === tab.src).length === 0;
-
-            if (selectedTabMissing) {
-                setTab(null);
-                props.onError('Lost connection with tab ' + tab.id + ' ' + tab.title);
-            }
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [availableTabs, tab, props]);
-
-    useEffect(() => {
-        setTab(null);
-    }, [audioFile, videoFile]);
-
     const length = lengthRef.current;
     const loaded = audioFileUrl || videoFileUrl || subtitles;
     const videoInWindow = loaded && videoFileUrl && channelId && !videoPopOut;
@@ -589,7 +554,7 @@ export default function Player(props) {
                                 onPause={handlePause}
                                 onSeek={handleSeek}
                                 onAudioTrackSelected={handleAudioTrackSelected}
-                                onTabSelected={handleTabSelected}
+                                onTabSelected={onTabSelected}
                                 onUnloadAudio={() => props.onUnloadAudio(audioFileUrl)}
                                 onUnloadVideo={() => props.onUnloadVideo(videoFileUrl)}
                                 onOffsetChange={handleOffsetChange}

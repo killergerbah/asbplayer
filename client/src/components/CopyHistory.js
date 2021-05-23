@@ -148,11 +148,19 @@ export default function CopyHistory(props) {
         content = [];
         let lastSeenItemName = null;
         let i = 0;
+        const itemNameCounters = {};
 
         for (const item of props.items) {
             if (lastSeenItemName === null || lastSeenItemName !== item.name) {
+                if (item.name in itemNameCounters) {
+                    itemNameCounters[item.name]++;
+                } else {
+                    itemNameCounters[item.name] = 0;
+                }
+
                 lastSeenItemName = item.name;
-                content.push((<ListSubheader disableSticky={true} key={item.name}>{item.name}</ListSubheader>));
+                content.push((<ListSubheader disableSticky={true} key={item.name + "-" + itemNameCounters[item.name]}>{item.name}</ListSubheader>));
+
             }
 
             const ref = i === props.items.length - 1 ? scrollToBottomRefCallback : null;

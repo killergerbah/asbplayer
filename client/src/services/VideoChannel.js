@@ -92,6 +92,9 @@ export default class VideoChannel {
                         callback();
                     }
                     break;
+                case 'sync':
+                    // ignore
+                    break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }

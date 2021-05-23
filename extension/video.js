@@ -63,6 +63,7 @@ class Binding {
         this.video = video;
         this.subtitleContainer = new SubtitleContainer(video);
         this.controlsContainer = new ControlsContainer(video);
+        this.dragContainer = new DragContainer(video);
         this.keyBindings = new KeyBindings();
         this.recordMedia = true;
         this.screenshot = true;
@@ -99,6 +100,7 @@ class Binding {
         this._subscribe();
         this._refreshSettings();
         this.subtitleContainer.bind();
+        this.dragContainer.bind();
     }
 
     _notifyReady() {
@@ -188,6 +190,7 @@ class Binding {
                         break;
                     case 'subtitles':
                         this.subtitleContainer.subtitles = request.message.value;
+                        this.subtitleContainer.showLoadedMessage("[Subtitles Loaded]");
                         break;
                     case 'subtitleSettings':
                         this.subtitleContainer.subtitleSettings = request.message.value;
@@ -223,6 +226,7 @@ class Binding {
             screenshot: true,
             cleanScreenshot: true,
             bindKeys: true,
+            subsDragAndDrop: true,
             subtitlePositionOffsetBottom: 100
         },
         (data) => {
@@ -232,10 +236,17 @@ class Binding {
             this.subtitleContainer.displaySubtitles = data.displaySubtitles;
             this.subtitleContainer.subtitlePositionOffsetBottom = data.subtitlePositionOffsetBottom;
             this.subtitleContainer.refresh();
+
             if (data.bindKeys) {
                 this.keyBindings.bind(this);
             } else {
                 this.keyBindings.unbind();
+            }
+
+            if (data.subsDragAndDrop) {
+                this.dragContainer.bind();
+            } else {
+                this.dragContainer.unbind();
             }
         });
     }
@@ -262,6 +273,7 @@ class Binding {
         }
 
         this.subtitleContainer.unbind();
+        this.dragContainer.unbind();
         this.keyBindings.unbind();
     }
 
@@ -342,6 +354,10 @@ class SubtitleContainer {
                 return;
             }
 
+            if (this.showingLoadedMessage) {
+                return;
+            }
+
             if (!this.displaySubtitles) {
                 this._hideSubtitles();
                 return;
@@ -369,6 +385,7 @@ class SubtitleContainer {
     unbind() {
         if (this.subtitlesInterval) {
             clearInterval(this.subtitlesInterval);
+            this.subtitlesInterval = null;
         }
 
         this._hideSubtitles();
@@ -400,36 +417,49 @@ class SubtitleContainer {
         return subtitle;
     }
 
+    showLoadedMessage(message) {
+        this._subtitlesHtml(message);
+        this.showingLoadedMessage = true;
+        setTimeout(() => {
+            if (this.showingLoadedMessage) {
+                this._subtitlesHtml("");
+                this.showingLoadedMessage = false;
+            }
+        }, 1000);
+    }
+
     _subtitlesHtml(html) {
         this._subtitlesElement().innerHTML = html;
         this._fullscreenSubtitlesElement().innerHTML = html;
     }
 
     _subtitlesElement() {
-        if (!this.subtitlesElement) {
-            const div = document.createElement('div');
-            const container = document.createElement('div');
-            container.appendChild(div);
-            container.className = "asbplayer-subtitles-container";
-            div.className = "asbplayer-subtitles";
-            this._applyNonFullscreenStyles(container, div);
-            document.body.appendChild(container);
-
-            function toggle() {
-                if (document.fullscreenElement) {
-                    container.style.display = "none";
-                } else {
-                    container.style.display = "";
-                }
-            }
-
-            toggle();
-            this.subtitlesElementFullscreenChangeListener = (e) => toggle();
-            this.subtitlesElementStylesInterval = setInterval(() => this._applyNonFullscreenStyles(container, div), 1000);
-            document.addEventListener('fullscreenchange', this.subtitlesElementFullscreenChangeListener);
-            this.subtitlesElement = div;
-            this.subtitlesContainerElement = container;
+        if (this.subtitlesElement) {
+            return this.subtitlesElement;
         }
+
+        const div = document.createElement('div');
+        const container = document.createElement('div');
+        container.appendChild(div);
+        container.className = "asbplayer-subtitles-container";
+        div.className = "asbplayer-subtitles";
+        this._applyNonFullscreenStyles(container, div);
+        document.body.appendChild(container);
+
+        function toggle() {
+            if (document.fullscreenElement) {
+                container.style.display = "none";
+            } else {
+                container.style.display = "";
+            }
+        }
+
+        toggle();
+        this.subtitlesElementFullscreenChangeListener = (e) => toggle();
+        this.subtitlesElementStylesInterval = setInterval(() => this._applyNonFullscreenStyles(container, div), 1000);
+        document.addEventListener('fullscreenchange', this.subtitlesElementFullscreenChangeListener);
+        this.subtitlesElement = div;
+        this.subtitlesContainerElement = container;
 
         return this.subtitlesElement;
     }
@@ -446,33 +476,35 @@ class SubtitleContainer {
     }
 
     _fullscreenSubtitlesElement() {
-        if (!this.fullscreenSubtitlesElement) {
-            const div = document.createElement('div');
-            const container = document.createElement('div');
-            container.appendChild(div);
-            container.className = "asbplayer-subtitles-container";
-            div.className = "asbplayer-fullscreen-subtitles";
-            this._applyFullscreenStyles(container, div);
-            this._findFullscreenSubtitlesContainer(container).appendChild(container);
-            container.style.display = "none";
-            const that = this;
-
-            function toggle() {
-                if (document.fullscreenElement) {
-                    container.style.display = "";
-                    container.remove();
-                    that._findFullscreenSubtitlesContainer(container).appendChild(container);
-                } else {
-                    container.style.display = "none";
-                }
-            }
-
-            toggle();
-            this.fullscreenSubtitlesElementFullscreenChangeListener = (e) => toggle();
-            document.addEventListener('fullscreenchange', this.fullscreenSubtitlesElementFullscreenChangeListener);
-            this.fullscreenSubtitlesElement = div;
-            this.fullscreenSubtitlesContainerElement = container;
+        if (this.fullscreenSubtitlesElement) {
+            return this.fullscreenSubtitlesElement;
         }
+
+        const div = document.createElement('div');
+        const container = document.createElement('div');
+        container.appendChild(div);
+        container.className = "asbplayer-subtitles-container";
+        div.className = "asbplayer-fullscreen-subtitles";
+        this._applyFullscreenStyles(container, div);
+        this._findFullscreenSubtitlesContainer(container).appendChild(container);
+        container.style.display = "none";
+        const that = this;
+
+        function toggle() {
+            if (document.fullscreenElement) {
+                container.style.display = "";
+                container.remove();
+                that._findFullscreenSubtitlesContainer(container).appendChild(container);
+            } else {
+                container.style.display = "none";
+            }
+        }
+
+        toggle();
+        this.fullscreenSubtitlesElementFullscreenChangeListener = (e) => toggle();
+        document.addEventListener('fullscreenchange', this.fullscreenSubtitlesElementFullscreenChangeListener);
+        this.fullscreenSubtitlesElement = div;
+        this.fullscreenSubtitlesContainerElement = container;
 
         return this.fullscreenSubtitlesElement;
     }
@@ -674,13 +706,202 @@ class ControlsContainer {
     }
 }
 
+class DragContainer {
+
+    constructor(video) {
+        this.video = video;
+    }
+
+    bind() {
+        if (this.bound) {
+            return;
+        }
+
+        this.dropListener = (e) => {
+            e.preventDefault();
+            this.dragEnterElement = null;
+            this._imageElement().classList.add("asbplayer-hide");
+            this._dragElement().classList.remove("asbplayer-drag-zone-dragging");
+
+            if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) {
+                return;
+            }
+
+            const file = e.dataTransfer.files[0];
+
+            chrome.runtime.sendMessage({
+                sender: 'asbplayer-video',
+                message: {
+                    command: 'sync',
+                    subtitles: {
+                        name: file.name,
+                        fileUrl: URL.createObjectURL(file)
+                    }
+                }
+            });
+        };
+
+        this.dragOverListener = (e) => e.preventDefault();
+
+        this.dragEnterListener = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.dragEnterElement = e.target;
+            this._imageElement().classList.remove("asbplayer-hide");
+        };
+
+        this.bodyDragEnterListener = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this._dragElement().classList.add("asbplayer-drag-zone-dragging");
+        };
+
+        this.dragLeaveListener = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (this.dragEnterElement === e.target) {
+                this._imageElement().classList.add("asbplayer-hide");
+                this._dragElement().classList.remove("asbplayer-drag-zone-dragging");
+            }
+        };
+
+        const dragElement = this._dragElement();
+
+        dragElement.addEventListener('drop', this.dropListener);
+        dragElement.addEventListener('dragover', this.dragOverListener);
+        dragElement.addEventListener('dragenter', this.dragEnterListener);
+        dragElement.addEventListener('dragleave', this.dragLeaveListener);
+        document.body.addEventListener('dragenter', this.bodyDragEnterListener);
+
+        this.bound = true;
+    }
+
+    _dragElement() {
+        if (this.dragElement) {
+            return this.dragElement;
+        }
+
+        const dragElement = document.createElement('div');
+        dragElement.classList.add("asbplayer-drag-zone-initial");
+        this.dragElement = dragElement;
+        this._applyDragElementStyles(dragElement);
+
+        document.body.appendChild(dragElement);
+
+        this.dragElementStylesInterval = setInterval(() => this._applyDragElementStyles(dragElement), 1000);
+
+        return this.dragElement;
+    }
+
+    _applyDragElementStyles(dragElement) {
+        const rect = this.video.getBoundingClientRect();
+        dragElement.style.top = rect.top + "px";
+        dragElement.style.left = rect.left + "px";
+        dragElement.style.height = rect.height + "px";
+        dragElement.style.width = rect.width + "px";
+    }
+
+    _imageElement() {
+        if (this.imageElement) {
+            return this.imageElement;
+        }
+
+        const container = document.createElement('div');
+        container.classList.add("asbplayer-drag-image-container");
+        container.classList.add("asbplayer-hide");
+
+        const image = document.createElement('img');
+        image.classList.add("asbplayer-drag-image");
+        image.src = chrome.runtime.getURL('drag-image.png');
+
+        this._applyImageContainerStyles(image, container);
+
+        container.appendChild(image);
+        document.body.appendChild(container);
+
+        this.imageElementStylesInterval = setInterval(() => this._applyImageContainerStyles(image, container), 1000);
+        this.imageElement = container;
+
+        return this.imageElement;
+    }
+
+    _applyImageContainerStyles(image, container) {
+        const rect = this.video.getBoundingClientRect();
+        const imageLength = Math.min(rect.width, rect.height, 500);
+        const topOffset = (rect.height - imageLength) / 2;
+        const leftOffset =  (rect.width - imageLength) / 2;
+        image.style.top = topOffset + "px";
+        image.style.left = leftOffset + "px";
+        image.style.width = imageLength + "px";
+        image.style.height = imageLength + "px";
+        container.style.top = rect.top + "px";
+        container.style.left = rect.left + "px";
+        container.style.height = rect.height + "px";
+        container.style.width = rect.width + "px";
+    }
+
+    unbind() {
+        if (this.dropListener) {
+            this.dragElement.removeEventListener('drop', this.dropListener, true);
+            this.dropListener = null;
+        }
+
+        if (this.dragOverListener) {
+            this.dragElement.removeEventListener('dragover', this.dragOverListener, true);
+            this.dragOverListener = null;
+        }
+
+        if (this.dragEnterListener) {
+            this.dragElement.removeEventListener('dragenter', this.dragEnterListener, true);
+            this.dragEnterListener = null;
+        }
+
+        if (this.dragLeaveListener) {
+            this.dragElement.removeEventListener('dragleave', this.dragLeaveListener, true);
+            this.dragLeaveListener =  null;
+        }
+
+        if (this.bodyDragEnterListener) {
+            document.body.removeEventListener('dragenter', this.bodyDragEnterListener);
+            this.bodyDragEnterListener = null;
+        }
+
+        if (this.imageElementStylesInterval) {
+            clearInterval(this.imageElementStylesInterval);
+            this.imageElementStylesInterval = null;
+        }
+
+        if (this.imageElement) {
+            this.imageElement.remove();
+            this.imageElement = null;
+        }
+
+        if (this.dragElementStylesInterval) {
+            clearInterval(this.dragElementStylesInterval);
+            this.dragElementStylesInterval = null;
+        }
+
+        if (this.dragElement) {
+            this.dragElement.remove();
+            this.dragElement = null;
+        }
+
+        this.dragEnterElement = null;
+        this.bound = false;
+    }
+}
+
 class KeyBindings {
 
     constructor() {
     }
 
     bind(context) {
-        this.unbind();
+        if (this.bound) {
+            return;
+        }
+
         this.listener = (e) => {
             if (!context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0) {
                 return;
@@ -752,12 +973,17 @@ class KeyBindings {
                 context.seek(subtitles[newSubtitleIndex].start / 1000);
             }
         };
+
         window.addEventListener("keydown", this.listener, true);
+        this.bound = true;
     }
 
     unbind() {
         if (this.listener) {
             window.removeEventListener("keydown", this.listener, true);
+            this.listener = null;
         }
+
+        this.bound = false;
     }
 }

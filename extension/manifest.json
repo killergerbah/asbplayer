@@ -40,5 +40,5 @@
             "description": "Copy current subtitle."
         }
     },
-    "web_accessible_resources": ["netflix.js"]
+    "web_accessible_resources": ["netflix.js", "drag-image.png"]
 }
