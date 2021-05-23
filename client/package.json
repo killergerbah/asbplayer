@@ -21,7 +21,8 @@
     "typeface-roboto": "1.1.13",
     "lamejs": "1.2.0",
     "worker-loader": "3.0.8",
-    "react-device-detect": "1.17.0"
+    "react-device-detect": "1.17.0",
+    "uuid": "8.3.2"
   },
   "homepage": "https://killergerbah.github.io/asbplayer",
   "scripts": {

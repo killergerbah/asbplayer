@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import { v4 as uuidv4 } from 'uuid';
 import BroadcastChannelVideoProtocol from '../services/BroadcastChannelVideoProtocol';
 import ChromeTabVideoProtocol from '../services/ChromeTabVideoProtocol';
 import Clock from '../services/Clock';
@@ -178,7 +179,7 @@ export default function Player(props) {
                 let channel;
 
                 if (videoFileUrl) {
-                    const channelId = String(Date.now());
+                    const channelId = uuidv4();
                     channel = new VideoChannel(new BroadcastChannelVideoProtocol(channelId));
                     setChannelId(channelId);
                 } else if (tab) {
