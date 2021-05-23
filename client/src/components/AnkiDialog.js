@@ -54,7 +54,7 @@ export default function AnkiDialog({
     const [wordTimestamp, setWordTimestamp] = useState(0);
     const [customFieldValues, setCustomFieldValues] = useState({});
     const audioClip = useMemo(() => {
-        if (settingsProvider.preferMp3) {
+        if (initialAudioClip && settingsProvider.preferMp3) {
             return initialAudioClip.toMp3();
         }
 
