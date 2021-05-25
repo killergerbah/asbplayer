@@ -159,7 +159,7 @@ async function findAsbplayerTab(currentTab) {
             {
                 active: false,
                 selected: false,
-                url: 'http://localhost:3000/asbplayer',
+                url: 'https://killergerbah.github.io/asbplayer/',
                 index: currentTab.index + 1
             },
             (tab) => anyAsbplayerTab(resolve, reject, 0, 5)
