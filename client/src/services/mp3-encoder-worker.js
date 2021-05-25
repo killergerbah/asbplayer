@@ -1,4 +1,4 @@
-import lamejs from 'lamejs';
+import { WavHeader, Mp3Encoder } from 'lamejs';
 
 const samplesPerFrame = 1152;
 const bitRate = 192;
@@ -37,7 +37,7 @@ class Wav {
             ++offset; // next source sample
         }
 
-        this.header = lamejs.WavHeader.readHeader(view.dataView);
+        this.header = WavHeader.readHeader(view.dataView);
         this.samples = new Int16Array(view.dataView.buffer, this.header.dataOffset, this.header.dataLen / 2);
     }
 }
@@ -92,7 +92,7 @@ async function encode(audioBuffer) {
     }
 
     const buffer = [];
-    const encoder = new lamejs.Mp3Encoder(channels, sampleRate, bitRate);
+    const encoder = new Mp3Encoder(channels, sampleRate, bitRate);
     let remaining = samples.length;
 
     for (var i = 0; remaining >= samplesPerFrame; i += samplesPerFrame) {
