@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.js": "/asbplayer/static/js/main.266fbc2b.chunk.js",
-    "main.js.map": "/asbplayer/static/js/main.266fbc2b.chunk.js.map",
-    "runtime-main.js": "/asbplayer/static/js/runtime-main.ee0ffc74.js",
-    "runtime-main.js.map": "/asbplayer/static/js/runtime-main.ee0ffc74.js.map",
+    "main.js": "/asbplayer/static/js/main.a33a3fec.chunk.js",
+    "main.js.map": "/asbplayer/static/js/main.a33a3fec.chunk.js.map",
+    "runtime-main.js": "/asbplayer/static/js/runtime-main.74684e07.js",
+    "runtime-main.js.map": "/asbplayer/static/js/runtime-main.74684e07.js.map",
     "static/css/2.907ff9db.chunk.css": "/asbplayer/static/css/2.907ff9db.chunk.css",
-    "static/js/2.e6e091d2.chunk.js": "/asbplayer/static/js/2.e6e091d2.chunk.js",
-    "static/js/2.e6e091d2.chunk.js.map": "/asbplayer/static/js/2.e6e091d2.chunk.js.map",
-    "static/js/3.f553264e.chunk.js": "/asbplayer/static/js/3.f553264e.chunk.js",
-    "static/js/3.f553264e.chunk.js.map": "/asbplayer/static/js/3.f553264e.chunk.js.map",
+    "static/js/2.a9ade125.chunk.js": "/asbplayer/static/js/2.a9ade125.chunk.js",
+    "static/js/2.a9ade125.chunk.js.map": "/asbplayer/static/js/2.a9ade125.chunk.js.map",
+    "static/js/3.3556059a.chunk.js": "/asbplayer/static/js/3.3556059a.chunk.js",
+    "static/js/3.3556059a.chunk.js.map": "/asbplayer/static/js/3.3556059a.chunk.js.map",
     "index.html": "/asbplayer/index.html",
     "static/css/2.907ff9db.chunk.css.map": "/asbplayer/static/css/2.907ff9db.chunk.css.map",
-    "static/js/2.e6e091d2.chunk.js.LICENSE.txt": "/asbplayer/static/js/2.e6e091d2.chunk.js.LICENSE.txt",
+    "static/js/2.a9ade125.chunk.js.LICENSE.txt": "/asbplayer/static/js/2.a9ade125.chunk.js.LICENSE.txt",
     "static/js/mp3-encoder-worker.b940f60b.worker.js": "/asbplayer/static/js/mp3-encoder-worker.b940f60b.worker.js",
     "static/js/mp3-encoder-worker.b940f60b.worker.js.map": "/asbplayer/static/js/mp3-encoder-worker.b940f60b.worker.js.map",
     "static/media/background-colored.8c5dbfe0.png": "/asbplayer/static/media/background-colored.8c5dbfe0.png",
@@ -19,9 +19,9 @@
     "static/media/index.css": "/asbplayer/static/media/roboto-latin-900italic.cb5ad999.woff2"
   },
   "entrypoints": [
-    "static/js/runtime-main.ee0ffc74.js",
+    "static/js/runtime-main.74684e07.js",
     "static/css/2.907ff9db.chunk.css",
-    "static/js/2.e6e091d2.chunk.js",
-    "static/js/main.266fbc2b.chunk.js"
+    "static/js/2.a9ade125.chunk.js",
+    "static/js/main.a33a3fec.chunk.js"
   ]
 }
