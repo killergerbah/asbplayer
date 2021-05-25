@@ -178,8 +178,8 @@ export default class VideoChannel {
         this.protocol.postMessage({command: 'audioTrackSelected', id: id});
     }
 
-    subtitles(subtitles) {
-        this.protocol.postMessage({command: 'subtitles', value: subtitles});
+    subtitles(subtitles, subtitleFileName) {
+        this.protocol.postMessage({command: 'subtitles', value: subtitles, name: subtitleFileName});
     }
 
     subtitleSettings(settings) {

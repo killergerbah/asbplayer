@@ -207,7 +207,7 @@ export default function Player(props) {
 
                     if (subtitlesRef.current) {
                         channel.subtitleSettings(settingsProvider.subtitleSettings);
-                        channel.subtitles(subtitlesRef.current);
+                        channel.subtitles(subtitlesRef.current, subtitleFile?.name);
                     }
 
                     channel.condensedModeToggle(condensedModeEnabledRef.current);
@@ -473,12 +473,12 @@ export default function Player(props) {
                 displayTime: timeDuration(s.originalStart + offset, length)
             }));
 
-            videoRef.current?.subtitles(newSubtitles);
+            videoRef.current?.subtitles(newSubtitles, subtitleFile?.name);
 
             return newSubtitles;
         });
 
-    }, [offset, offsetRef]);
+    }, [subtitleFile, offset, offsetRef]);
 
     const handleVolumeChange = useCallback((v) => {
         if (audioRef.current) {

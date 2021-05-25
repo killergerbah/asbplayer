@@ -190,7 +190,7 @@ class Binding {
                         break;
                     case 'subtitles':
                         this.subtitleContainer.subtitles = request.message.value;
-                        this.subtitleContainer.showLoadedMessage("[Subtitles Loaded]");
+                        this.subtitleContainer.showLoadedMessage(request.message.name || "[Subtitles Loaded]");
                         break;
                     case 'subtitleSettings':
                         this.subtitleContainer.subtitleSettings = request.message.value;
@@ -721,6 +721,7 @@ class DragContainer {
             e.preventDefault();
             this.dragEnterElement = null;
             this._imageElement().classList.add("asbplayer-hide");
+            this._imageElement().classList.remove("asbplayer-drag-image-fade-in");
             this._dragElement().classList.remove("asbplayer-drag-zone-dragging");
 
             if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) {
@@ -748,6 +749,7 @@ class DragContainer {
             e.stopPropagation();
             this.dragEnterElement = e.target;
             this._imageElement().classList.remove("asbplayer-hide");
+            this._imageElement().classList.add("asbplayer-drag-image-fade-in");
         };
 
         this.bodyDragEnterListener = (e) => {
@@ -762,6 +764,7 @@ class DragContainer {
 
             if (this.dragEnterElement === e.target) {
                 this._imageElement().classList.add("asbplayer-hide");
+                this._imageElement().classList.remove("asbplayer-drag-image-fade-in");
                 this._dragElement().classList.remove("asbplayer-drag-zone-dragging");
             }
         };
