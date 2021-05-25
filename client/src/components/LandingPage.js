@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/styles';
+import gt from 'semver/functions/gt';
 import Fade from '@material-ui/core/Fade';
 import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
@@ -45,7 +46,7 @@ export default function LandingPage({extension, latestExtensionVersion, extensio
         fetchInstalledExtensionVersion();
     }, [extension]);
 
-    const extensionUpdateAvailable = latestExtensionVersion > installedExtensionVersion;
+    const extensionUpdateAvailable = installedExtensionVersion && gt(latestExtensionVersion, installedExtensionVersion);
     const extensionNotInstalled = !installedExtensionVersion;
 
     return (
