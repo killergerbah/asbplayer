@@ -107,7 +107,7 @@ const useControlStyles = makeStyles((theme) => ({
         pointerEvents: 'auto'
     },
     subContainer: {
-        background: "linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.6))",
+        background: "linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.6))",
         position: 'relative',
         left: '-100%',
         width: '200%',
@@ -118,7 +118,7 @@ const useControlStyles = makeStyles((theme) => ({
         pointerEvents: 'auto'
     },
     inactiveButton: {
-        color: theme.palette.action.disabled,
+        color: 'rgba(128, 128, 128, 0.7)',
         pointerEvents: 'auto'
     },
     progress: {
@@ -128,13 +128,15 @@ const useControlStyles = makeStyles((theme) => ({
         position: 'absolute',
         top: 0,
         left: 0,
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
+        color: '#fff'
     },
     hideSubtitlePlayerToggleButton: {
         position: 'absolute',
         top: 0,
         right: 0,
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
+        color: '#fff'
     },
     gridContainer: {
         pointerEvents: 'auto'
@@ -175,12 +177,12 @@ const useProgressBarStyles = makeStyles((theme) => ({
 
 const VolumeSlider = withStyles((theme) => ({
     root: {
-        color: theme.palette.text.secondary,
+        color: 'white',
         verticalAlign: 'middle'
     },
     thumb: {
         backgroundColor: 'white',
-        color: theme.palette.text.secondary,
+        color: 'white',
         '&:focus': {
             boxShadow: 'inherit'
         },
@@ -189,7 +191,7 @@ const VolumeSlider = withStyles((theme) => ({
         },
     },
     active: {
-        color: theme.palette.text.secondary
+        color: 'white'
     },
 }))(Slider);
 
