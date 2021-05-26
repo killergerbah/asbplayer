@@ -18,6 +18,7 @@ import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import DeleteIcon from '@material-ui/icons/Delete';
+import Radio from '@material-ui/core/Radio';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
@@ -116,6 +117,7 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
     const [subtitleOutlineThickness, setSubtitleOutlineThickness] = useState(settings.subtitleOutlineThickness);
     const [subtitleBackgroundColor, setSubtitleBackgroundColor] = useState(settings.subtitleBackgroundColor);
     const [subtitleBackgroundOpacity, setSubtitleBackgroundOpacity] = useState(settings.subtitleBackgroundOpacity);
+    const [themeType, setThemeType] = useState(settings.themeType);
 
     const handleAnkiConnectUrlChange = useCallback((e) => {
         setAnkiConnectUrl(e.target.value);
@@ -161,6 +163,7 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
         return newCustomFields;
     }), []);
     const handlePreferMp3Change = useCallback((e) => setPreferMp3(e.target.checked), []);
+    const handleThemeTypeChange = useCallback((e) => setThemeType(e.target.value), []);
 
     useEffect(() => {
         let canceled = false;
@@ -242,8 +245,9 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
             subtitleBackgroundOpacity: Number(subtitleBackgroundOpacity),
             customAnkiFields: customFields,
             preferMp3: preferMp3,
+            themeType: themeType
         });
-    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, imageField, wordField, sourceField, customFields, preferMp3, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity]);
+    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, imageField, wordField, sourceField, customFields, preferMp3, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity, themeType]);
 
     const customFieldInputs = Object.keys(customFields).map(customFieldName => {
         return (
@@ -449,6 +453,31 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                                     />
                                 </div>
                             </FormGroup>
+                        </Grid>
+                        <Grid item>
+                            <FormLabel>Theme</FormLabel>
+                            <div>
+                                <FormControlLabel
+                                    control={
+                                        <Radio
+                                            checked={themeType === 'light'}
+                                            value="light"
+                                            onChange={handleThemeTypeChange}
+                                         />
+                                    }
+                                    label="Light"
+                                />
+                                <FormControlLabel
+                                    control={
+                                        <Radio
+                                            checked={themeType === 'dark'}
+                                            value="dark"
+                                            onChange={handleThemeTypeChange}
+                                        />
+                                    }
+                                    label="Dark"
+                                />
+                            </div>
                         </Grid>
                     </Grid>
                 </DialogContent>

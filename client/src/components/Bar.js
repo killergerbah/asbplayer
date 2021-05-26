@@ -65,6 +65,7 @@ export default function Bar(props) {
                 <Tooltip title="Open Files">
                     <IconButton
                         edge="start"
+                        color="inherit"
                         onClick={props.onFileSelector}
                     >
                         <FolderOpenIcon />
@@ -76,6 +77,7 @@ export default function Bar(props) {
                 <Tooltip title="Submit Issue">
                     <IconButton
                         edge="end"
+                        color="inherit"
                         component="a"
                         href="https://github.com/killergerbah/asbplayer/issues"
                         target="_blank"
@@ -87,6 +89,7 @@ export default function Bar(props) {
                 <Tooltip title="Help">
                     <IconButton
                         edge="end"
+                        color="inherit"
                         onClick={props.onOpenHelp}
                     >
                         <HelpIcon />
@@ -95,6 +98,7 @@ export default function Bar(props) {
                 <Tooltip title="Settings">
                     <IconButton
                         edge="end"
+                        color="inherit"
                         onClick={props.onOpenSettings}
                     >
                         <SettingsIcon />

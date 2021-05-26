@@ -31,13 +31,14 @@ const useControlStyles = makeStyles((theme) => ({
         left: '50%',
         width: '50%',
         bottom: 0,
-        pointerEvents: 'none'
+        pointerEvents: 'none',
+        color: "#fff"
     },
     buttonContainer: {
         flexDirection: 'row'
     },
     timeDisplay: {
-        color: theme.palette.action.active,
+        color: "#fff",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
@@ -54,7 +55,7 @@ const useControlStyles = makeStyles((theme) => ({
         fontSize: 20,
         marginLeft: 10,
         width: 100,
-        color: theme.palette.text.secondary,
+        color: "#fff",
         pointerEvents: 'auto'
     },
     volumeInputContainerShown: {
@@ -106,7 +107,7 @@ const useControlStyles = makeStyles((theme) => ({
         pointerEvents: 'auto'
     },
     subContainer: {
-        background: "linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.7))",
+        background: "linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.6))",
         position: 'relative',
         left: '-100%',
         width: '200%',
@@ -114,7 +115,6 @@ const useControlStyles = makeStyles((theme) => ({
         padding: 10
     },
     button: {
-        color: theme.palette.action.active,
         pointerEvents: 'auto'
     },
     inactiveButton: {
@@ -592,6 +592,7 @@ export default function Controls({
             {closeEnabled && (
                 <Fade in={show} timeout={200}>
                     <IconButton
+                        color="inherit"
                         className={classes.closeButton}
                         onClick={onClose}
                         onMouseOver={handleMouseOver}
@@ -604,6 +605,7 @@ export default function Controls({
             {hideSubtitlePlayerToggleEnabled && (
                 <Fade in={show} timeout={200}>
                     <IconButton
+                        color="inherit"
                         className={classes.hideSubtitlePlayerToggleButton}
                         onClick={onHideSubtitlePlayerToggle}
                         onMouseOver={handleMouseOver}
@@ -631,6 +633,7 @@ export default function Controls({
                         >
                             <Grid item>
                                 <IconButton
+                                    color="inherit"
                                     onClick={() => playing ? onPause() : onPlay()}
                                 >
                                     {playing
@@ -644,7 +647,7 @@ export default function Controls({
                                     onMouseOut={handleVolumeMouseOut}
                                     className={showVolumeBar ? classes.volumeInputContainerShown : classes.volumeInputContainerHidden}
                                 >
-                                    <IconButton onClick={handleVolumeToggle}>
+                                    <IconButton color="inherit" onClick={handleVolumeToggle}>
                                         {volume === 0 ? (<VolumeOffIcon />) : (<VolumeUpIcon />)}
                                     </IconButton>
                                     <VolumeSlider
@@ -667,6 +670,7 @@ export default function Controls({
                             {offsetEnabled && (
                                 <Grid item>
                                     <Input
+                                        color="inherit"
                                         inputRef={offsetInputRef}
                                         disableUnderline={true}
                                         className={classes.offsetInput}
@@ -680,7 +684,7 @@ export default function Controls({
                             {condensedModeToggleEnabled && (
                                 <Grid item>
                                     <Tooltip title="Condensed Mode">
-                                        <IconButton onClick={onCondensedModeToggle}>
+                                        <IconButton color="inherit" onClick={onCondensedModeToggle}>
                                             <SpeedIcon className={condensedModeEnabled ? classes.button : classes.inactiveButton} />
                                         </IconButton>
                                     </Tooltip>
@@ -688,49 +692,49 @@ export default function Controls({
                             )}
                             {subtitlesToggle && (
                                 <Grid item>
-                                    <IconButton onClick={onSubtitlesToggle}>
+                                    <IconButton color="inherit" onClick={onSubtitlesToggle}>
                                         <SubtitlesIcon className={subtitlesEnabled ? classes.button : classes.inactiveButton} />
                                     </IconButton>
                                 </Grid>
                             )}
                             {videoFile && (
                                 <Grid item>
-                                    <IconButton onClick={handleVideoUnloaderOpened}>
+                                    <IconButton color="inherit" onClick={handleVideoUnloaderOpened}>
                                         <VideocamIcon className={classes.button} />
                                     </IconButton>
                                  </Grid>
                             )}
                             {audioFile && (
                                 <Grid item>
-                                    <IconButton onClick={handleAudioUnloaderOpened}>
+                                    <IconButton color="inherit" onClick={handleAudioUnloaderOpened}>
                                         <AudiotrackIcon className={classes.button} />
                                     </IconButton>
                                 </Grid>
                             )}
                             {audioTracks && audioTracks.length > 1 &&  (
                                 <Grid item>
-                                    <IconButton onClick={handleAudioTrackSelectorOpened}>
+                                    <IconButton color="inherit" onClick={handleAudioTrackSelectorOpened}>
                                         <QueueMusicIcon className={classes.button}  />
                                     </IconButton>
                                 </Grid>
                             )}
                             {tabs && tabs.length > 0 && (
                                 <Grid item>
-                                    <IconButton onClick={handleTabSelectorOpened}>
+                                    <IconButton color="inherit" onClick={handleTabSelectorOpened}>
                                         <VideocamIcon className={selectedTab ? classes.button : classes.inactiveButton} />
                                     </IconButton>
                                 </Grid>
                             )}
                             {popOutEnabled && (
                                 <Grid item>
-                                    <IconButton onClick={onPopOutToggle}>
+                                    <IconButton color="inherit" onClick={onPopOutToggle}>
                                         <OpenInNewIcon className={classes.button} style={popOut ? {transform: 'rotateX(180deg)'} : {}}/>
                                     </IconButton>
                                 </Grid>
                             )}
                             {fullscreenEnabled && (
                                 <Grid item>
-                                    <IconButton onClick={onFullscreenToggle}>
+                                    <IconButton color="inherit" onClick={onFullscreenToggle}>
                                         {fullscreen
                                             ? (<FullscreenExitIcon className={classes.button} />)
                                             : (<FullscreenIcon className={classes.button} />)}

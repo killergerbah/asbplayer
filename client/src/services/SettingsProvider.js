@@ -25,6 +25,7 @@ const subtitleBackgroundColorKey = "subtitleBackgroundColor";
 const subtitleBackgroundOpacityKey = "subtitleBackgroundOpacity";
 const volumeKey = "volume";
 const preferMp3Key = "preferMp3";
+const themeTypeKey = "themeType";
 
 export default class SettingsProvider {
 
@@ -47,7 +48,30 @@ export default class SettingsProvider {
             subtitleBackgroundColor: this.subtitleBackgroundColor,
             subtitleBackgroundOpacity : this.subtitleBackgroundOpacity,
             preferMp3: this.preferMp3,
+            themeType: this.themeType
         };
+    }
+
+    set settings(newSettings) {
+        this.ankiConnectUrl = newSettings.ankiConnectUrl;
+        this.deck = newSettings.deck;
+        this.noteType = newSettings.noteType;
+        this.modelNames = newSettings.modelNames;
+        this.sentenceField = newSettings.sentenceField;
+        this.definitionField = newSettings.definitionField;
+        this.audioField = newSettings.audioField;
+        this.imageField = newSettings.imageField;
+        this.wordField = newSettings.wordField;
+        this.sourceField = newSettings.sourceField;
+        this.subtitleSize = newSettings.subtitleSize;
+        this.subtitleColor = newSettings.subtitleColor;
+        this.subtitleOutlineThickness = newSettings.subtitleOutlineThickness;
+        this.subtitleOutlineColor = newSettings.subtitleOutlineColor;
+        this.subtitleBackgroundColor = newSettings.subtitleBackgroundColor;
+        this.subtitleBackgroundOpacity = newSettings.subtitleBackgroundOpacity;
+        this.customAnkiFields = newSettings.customAnkiFields;
+        this.preferMp3 = newSettings.preferMp3;
+        this.themeType = newSettings.themeType;
     }
 
     get subtitleSettings() {
@@ -209,5 +233,13 @@ export default class SettingsProvider {
 
     set preferMp3(preferMp3) {
         localStorage.setItem(preferMp3Key, preferMp3);
+    }
+
+    get themeType() {
+        return localStorage.getItem(themeTypeKey) || 'dark';
+    }
+
+    set themeType(themeType) {
+        localStorage.setItem(themeTypeKey, themeType);
     }
 }
