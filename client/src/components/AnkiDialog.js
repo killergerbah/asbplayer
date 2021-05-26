@@ -156,6 +156,7 @@ export default function AnkiDialog({
                 <form className={classes.root}>
                     <TextField
                         variant="filled"
+                        color="secondary"
                         multiline
                         fullWidth
                         rowsMax={8}
@@ -165,6 +166,7 @@ export default function AnkiDialog({
                     />
                     <TextField
                         variant="filled"
+                        color="secondary"
                         multiline
                         fullWidth
                         rows={8}
@@ -174,6 +176,7 @@ export default function AnkiDialog({
                     />
                     <TextField
                         variant="filled"
+                        color="secondary"
                         fullWidth
                         label="Word"
                         value={word}
@@ -201,6 +204,7 @@ export default function AnkiDialog({
                         <TextField
                             key={customFieldName}
                             variant="filled"
+                            color="secondary"
                             fullWidth
                             label={customFieldName}
                             value={customFieldValues[customFieldName] || ""}
@@ -214,6 +218,7 @@ export default function AnkiDialog({
                         >
                             <TextField
                                 variant="filled"
+                                color="secondary"
                                 fullWidth
                                 value={audioClip.name}
                                 label="Audio"
@@ -227,6 +232,7 @@ export default function AnkiDialog({
                         >
                             <TextField
                                 variant="filled"
+                                color="secondary"
                                 fullWidth
                                 value={image.name}
                                 label="Image"
@@ -235,6 +241,7 @@ export default function AnkiDialog({
                     )}
                     <TextField
                         variant="filled"
+                        color="secondary"
                         fullWidth
                         label="Source"
                         value={source}
