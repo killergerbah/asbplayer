@@ -14,6 +14,7 @@ import Popover from '@material-ui/core/Popover';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import StarIcon from '@material-ui/icons/Star';
 import Tooltip from '@material-ui/core/Tooltip';
+import Typography from '@material-ui/core/Typography';
 
 const useStyles = makeStyles((theme) => ({
     drawer: {
@@ -49,6 +50,14 @@ const useStyles = makeStyles((theme) => ({
     },
     listItemIconRoot: {
         minWidth: 20
+    },
+    emptyState: {
+        display: "flex",
+        justifyContent: "center",
+        flexDirection: "column",
+        textAlign: "center",
+        height: "100%",
+        padding: 15
     }
 }));
 
@@ -142,10 +151,10 @@ export default function CopyHistory(props) {
         props.onDelete(item);
     }, [props]);
 
-    let content = null;
+    let content;
 
     if (props.items.length > 0) {
-        content = [];
+        const items = [];
         let lastSeenItemName = null;
         let i = 0;
         const itemNameCounters = {};
@@ -159,13 +168,13 @@ export default function CopyHistory(props) {
                 }
 
                 lastSeenItemName = item.name;
-                content.push((<ListSubheader disableSticky={true} key={item.name + "-" + itemNameCounters[item.name]}>{item.name}</ListSubheader>));
+                items.push((<ListSubheader disableSticky={true} key={item.name + "-" + itemNameCounters[item.name]}>{item.name}</ListSubheader>));
 
             }
 
             const ref = i === props.items.length - 1 ? scrollToBottomRefCallback : null;
 
-            content.push((
+            items.push((
                 <ListItem
                     ref={ref}
                     key={item.timestamp}
@@ -196,11 +205,22 @@ export default function CopyHistory(props) {
             ++i;
         }
 
+        content = (
+            <div className={classes.listContainer}>
+                <List>{items}</List>
+            </div>
+        );
     } else {
-        content = (<ListItem>Copy history is empty.</ListItem>);
+        content = (
+            <div className={classes.emptyState}>
+                <Typography variant="h6">Copy history is empty.</Typography>
+                <Typography variant="caption">
+                    See the help for keyboard shortcuts or use the copy button next to the subtitle.
+                </Typography>
+            </div>
+        );
     }
 
-    const list = (<List>{content}</List>);
 
     return (
         <React.Fragment>
@@ -218,9 +238,7 @@ export default function CopyHistory(props) {
                     </IconButton>
                 </div>
                 <Divider />
-                <div className={classes.listContainer}>
-                    {list}
-                </div>
+                {content}
             </Drawer>
             <Menu
                 open={props.open && menuOpen}
