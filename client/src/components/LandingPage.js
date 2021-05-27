@@ -16,7 +16,7 @@ const useStyles = makeStyles((theme) => ({
         justifyContent: "center",
         alignItems: "center",
         padding: 15,
-        textAlign: "center",
+        textAlign: "center"
     },
     browseLink: {
         cursor: 'pointer'
@@ -36,7 +36,7 @@ export default function LandingPage({extension, latestExtensionVersion, extensio
     }, [extension]);
 
     const extensionUpdateAvailable = installedExtensionVersion && gt(latestExtensionVersion, installedExtensionVersion);
-    const extensionNotInstalled = true || !installedExtensionVersion;
+    const extensionNotInstalled = !installedExtensionVersion;
 
     return (
         <React.Fragment>
