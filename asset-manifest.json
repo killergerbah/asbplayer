@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.js": "/asbplayer/static/js/main.270e8537.chunk.js",
-    "main.js.map": "/asbplayer/static/js/main.270e8537.chunk.js.map",
+    "main.js": "/asbplayer/static/js/main.c944d8fb.chunk.js",
+    "main.js.map": "/asbplayer/static/js/main.c944d8fb.chunk.js.map",
     "runtime-main.js": "/asbplayer/static/js/runtime-main.75d759ad.js",
     "runtime-main.js.map": "/asbplayer/static/js/runtime-main.75d759ad.js.map",
     "static/css/2.907ff9db.chunk.css": "/asbplayer/static/css/2.907ff9db.chunk.css",
@@ -15,13 +15,12 @@
     "static/js/mp3-encoder-worker.2ecce0ce.worker.js": "/asbplayer/static/js/mp3-encoder-worker.2ecce0ce.worker.js",
     "static/js/mp3-encoder-worker.2ecce0ce.worker.js.map": "/asbplayer/static/js/mp3-encoder-worker.2ecce0ce.worker.js.map",
     "static/media/background-colored.8c5dbfe0.png": "/asbplayer/static/media/background-colored.8c5dbfe0.png",
-    "static/media/background.aa598bb3.png": "/asbplayer/static/media/background.aa598bb3.png",
     "static/media/index.css": "/asbplayer/static/media/roboto-latin-900italic.cb5ad999.woff2"
   },
   "entrypoints": [
     "static/js/runtime-main.75d759ad.js",
     "static/css/2.907ff9db.chunk.css",
     "static/js/2.c96f88d5.chunk.js",
-    "static/js/main.270e8537.chunk.js"
+    "static/js/main.c944d8fb.chunk.js"
   ]
 }
