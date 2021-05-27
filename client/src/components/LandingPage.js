@@ -4,8 +4,6 @@ import gt from 'semver/functions/gt';
 import Fade from '@material-ui/core/Fade';
 import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
-import background from './background.png';
-import coloredBackground from './background-colored.png';
 
 const useStyles = makeStyles((theme) => ({
     background: {
@@ -19,15 +17,6 @@ const useStyles = makeStyles((theme) => ({
         alignItems: "center",
         padding: 15,
         textAlign: "center",
-        backgroundSize: "500px 500px",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center"
-    },
-    defaultBackground: {
-        backgroundImage: `url(${background})`
-    },
-    coloredBackground: {
-        backgroundImage: `url(${coloredBackground})`,
     },
     browseLink: {
         cursor: 'pointer'
@@ -47,18 +36,18 @@ export default function LandingPage({extension, latestExtensionVersion, extensio
     }, [extension]);
 
     const extensionUpdateAvailable = installedExtensionVersion && gt(latestExtensionVersion, installedExtensionVersion);
-    const extensionNotInstalled = !installedExtensionVersion;
+    const extensionNotInstalled = true || !installedExtensionVersion;
 
     return (
         <React.Fragment>
             <Fade in={!loading && !dragging} timeout={500}>
-                <div className={`${classes.background} ${classes.defaultBackground}`}>
-                    <Typography>
-                        Drag and drop srt, ass, vtt, mp3, m4a, and mkv files or <Link target="#" className={classes.browseLink} onClick={onFileSelector} color="secondary" component="label">browse</Link>.
+                <div className={classes.background}>
+                    <Typography variant="h6">
+                        Drag and drop subtitle and media files, or <Link target="#" className={classes.browseLink} onClick={onFileSelector} color="secondary" component="label">browse</Link>.
                         <br />
                         {extensionNotInstalled && (
                             <span>
-                                Install the <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>extension</Link> to sync subtitles with videos in other tabs.
+                                Install the <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>Chrome extension</Link> to sync subtitles with streaming video.
                             </span>
                         )}
                         {extensionUpdateAvailable && (
