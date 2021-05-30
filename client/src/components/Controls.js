@@ -107,18 +107,17 @@ const useControlStyles = makeStyles((theme) => ({
         pointerEvents: 'auto'
     },
     subContainer: {
-        background: "linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.6))",
+        background: "linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, .4) 40%, rgba(0, 0, 0, 0.7))",
         position: 'relative',
         left: '-100%',
         width: '200%',
         zIndex: 10,
-        padding: 10
     },
     button: {
         pointerEvents: 'auto'
     },
     inactiveButton: {
-        color: 'rgba(128, 128, 128, 0.7)',
+        color: 'rgba(72, 72, 72, 0.7)',
         pointerEvents: 'auto'
     },
     progress: {
@@ -139,39 +138,73 @@ const useControlStyles = makeStyles((theme) => ({
         color: '#fff'
     },
     gridContainer: {
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
+        padding: 2,
     }
 }));
 
 const useProgressBarStyles = makeStyles((theme) => ({
+    root: {
+        height: 10,
+    },
     container: {
-        background: 'rgba(30,30,30,0.7)',
-        height: 5,
-        margin: '0 10px 5px 10px',
+        height: 10,
+        pointerEvents: 'auto',
+        display: "flex",
+        justifyContent: "center",
+        flexDirection: "column",
+        position: "absolute",
+        width: "calc(100% - 20px)",
+        marginLeft: 10
+    },
+    mouseEventListener: {
+        zIndex: 1,
+        height: 10,
         cursor: 'pointer',
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
+        position: "absolute",
+        width: '100%',
     },
     fillContainer: {
-        width: '100%'
+        background: 'rgba(30,30,30,0.7)',
+        width: '100%',
+        height: 5,
+        position: 'relative',
+    },
+    fillContainerThick: {
+        transition: theme.transitions.create('height', {
+            easing: theme.transitions.easing.easeInOut,
+            duration: 50,
+        }),
+        height: 8
     },
     fill: {
-        background: 'linear-gradient(to left, #e21e4a, #a92fff)',
+        background: 'linear-gradient(to left, #ff1f62, #49007a)',
         height: '100%'
     },
     handleContainer: {
-        position: 'relative',
-        width: 0,
-        height: 0
+        position: 'absolute',
+        display: "flex",
+        justifyContent: "center",
+        flexDirection: "column",
+        height: '100%',
+        bottom: 0
     },
     handle: {
         borderRadius: '50%',
-        width: 15,
-        height: 15,
+        width: 16,
+        height: 16,
+        opacity: 0,
+        left: -8,
         background: 'white',
         position: 'absolute',
-        top: 5,
-        left: 12,
-        filter: 'drop-shadow(3px 3px 3px rgba(0,0,0,0.3))'
+    },
+    handleOn: {
+        opacity: 1,
+        transition: theme.transitions.create('opacity', {
+            easing: theme.transitions.easing.easeInOut,
+            duration: theme.transitions.duration.shortest,
+        }),
     }
 }));
 
@@ -209,24 +242,46 @@ function elementWidth(element) {
 
 function ProgressBar(props) {
     const classes = useProgressBarStyles();
+    const [mouseOver, setMouseOver] = useState(false);
     const containerRef = useRef(null);
+    const onSeek = props.onSeek;
 
-    function handleClick(e) {
+    const handleClick = useCallback((e) => {
         const rect = e.currentTarget.getBoundingClientRect();
-        const width = rect.right - rect.left;
-        const progress = Math.min(1, Math.max(0, (e.pageX - rect.left) / width));
+        // Account for margins by subtracting 10 from left/right sides
+        const width = rect.right - rect.left - 20;
+        const progress = Math.min(1, Math.max(0, (e.pageX - rect.left - 10) / width));
+        onSeek(progress);
+    }, [onSeek]);
 
-        props.onSeek(progress);
-    };
-
-    const fillStyle = {width: props.value + '%'};
-    const handleStyle = {marginLeft: containerRef.current ? elementWidth(containerRef.current) * props.value / 100 : 0};
+    const handleMouseOver = useCallback(() => setMouseOver(true), []);
+    const handleMouseOut = useCallback(() => setMouseOver(false), []);
+    const progressWidth = containerRef.current ? elementWidth(containerRef.current) * props.value / 100 : 0;
+    const fillStyle = {width: progressWidth};
+    const handleStyle = {marginLeft: progressWidth};
+    const fillContainerClassName = mouseOver ? classes.fillContainer + " " + classes.fillContainerThick : classes.fillContainer;
+    const handleClassName = mouseOver ? classes.handle + " " + classes.handleOn : classes.handle;
 
     return (
-        <div ref={containerRef} onClick={handleClick} className={classes.container}>
-            <div className={classes.fill} style={fillStyle}></div>
-            <div className={classes.handleAnchor}>
-                <div className={classes.handle} style={handleStyle}></div>
+        <div className={classes.root}>
+            <div
+                ref={containerRef}
+                className={classes.container}>
+                <div
+                    className={fillContainerClassName}
+                >
+                    <div className={classes.fill} style={fillStyle}></div>
+                    <div className={classes.handleContainer}>
+                        <div className={handleClassName} style={handleStyle} />
+                    </div>
+                </div>
+            </div>
+            <div
+                className={classes.mouseEventListener}
+                onClick={handleClick}
+                onMouseOver={handleMouseOver}
+                onMouseOut={handleMouseOut}
+            >
             </div>
         </div>
     );
