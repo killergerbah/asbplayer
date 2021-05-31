@@ -72,7 +72,6 @@ const useSubtitleRowStyles = makeStyles((theme) => ({
 const SubtitleRow = React.memo((props) => {
     const {index, compressed, selected, subtitle, subtitleRef, onClick, onCopy, ...tableRowProps} = props;
     const classes = useSubtitleRowStyles();
-
     let className = compressed ? classes.compressedSubtitle : classes.subtitle;
 
     if (subtitle.start < 0 && subtitle.end < 0) {
@@ -381,9 +380,10 @@ export default function SubtitlePlayer({
     }, [subtitles, onCopy]);
 
     const handleClick = useCallback((index) => {
+        const selectedSubtitleIndexes = selectedSubtitleIndexesRef.current || {};
         const progress = subtitles[index].start / length;
         onSeek(progress, !playingRef.current && index in selectedSubtitleIndexes);
-    }, [subtitles, length, onSeek, selectedSubtitleIndexes]);
+    }, [subtitles, length, onSeek]);
 
     const handleCopy = useCallback((e, index) => copy(e, subtitles, index, onCopy), [subtitles, onCopy]);
 
