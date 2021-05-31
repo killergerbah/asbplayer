@@ -57,6 +57,7 @@ export default function Bar(props) {
     return (
         <AppBar
             position="static"
+            elevation={0}
             className={clsx(classes.appBar, {
                 [classes.appBarShift]: props.drawerOpen,
             })}
