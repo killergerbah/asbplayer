@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { isMobile } from 'react-device-detect';
 import { makeStyles } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
-import { arrayEquals } from '../services/Util'
+import { arrayEquals, hexToRgb } from '../services/Util'
 import { detectCopy } from '../services/KeyEvents';
 import Alert from './Alert';
 import Clock from '../services/Clock';
@@ -27,16 +27,6 @@ const useStyles = makeStyles({
         cursor: "none"
     }
 });
-
-// https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
-function hexToRgb(hex) {
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-    }
-}
 
 function makeSubtitleStyles(
     subtitleSize,

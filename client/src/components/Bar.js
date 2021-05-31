@@ -20,6 +20,7 @@ const useStyles = makeStyles((theme) => ({
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
         }),
+        maxHeight: 64
     },
     appBarShift: {
         width: ({drawerWidth}) => `calc(100% - ${drawerWidth}px)`,

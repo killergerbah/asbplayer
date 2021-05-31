@@ -727,7 +727,6 @@ export default function Controls({
                             {offsetEnabled && (
                                 <Grid item>
                                     <Input
-                                        color="inherit"
                                         inputRef={offsetInputRef}
                                         disableUnderline={true}
                                         className={classes.offsetInput}
