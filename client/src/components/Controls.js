@@ -333,8 +333,8 @@ function TabSelector(props) {
         return (
             <ListItem
                 key={t.id}
-                selected={t.id === props.selectedTab}
-                button onClick={() => props.onTabSelected(t.id)}>
+                selected={t === props.selectedTab}
+                button onClick={() => props.onTabSelected(t)}>
                 {t.id} {t.title} {t.src}
             </ListItem>
         );
@@ -582,8 +582,8 @@ export default function Controls({
         setTabSelectorOpen(true);
     }, []);
 
-    const handleTabSelected = useCallback((id) => {
-        onTabSelected(id);
+    const handleTabSelected = useCallback((tab) => {
+        onTabSelected(tab);
         setTabSelectorAnchorEl(null);
         setTabSelectorOpen(false);
     }, [onTabSelected]);

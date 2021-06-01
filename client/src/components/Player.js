@@ -186,7 +186,7 @@ export default function Player(props) {
                     channel = new VideoChannel(new BroadcastChannelVideoProtocol(channelId));
                     setChannelId(channelId);
                 } else if (tab) {
-                    channel = new VideoChannel(new ChromeTabVideoProtocol(tab.id, extension));
+                    channel = new VideoChannel(new ChromeTabVideoProtocol(tab.id, tab.src, extension));
                     channel.init();
                 }
 
@@ -542,7 +542,7 @@ export default function Player(props) {
                                 audioTracks={audioTracks}
                                 selectedAudioTrack={selectedAudioTrack}
                                 tabs={!videoFileUrl && !audioFileUrl && availableTabs}
-                                selectedTab={tab && tab.id}
+                                selectedTab={tab}
                                 audioFile={audioFile?.name}
                                 videoFile={videoFile?.name}
                                 offsetEnabled={true}

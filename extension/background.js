@@ -106,17 +106,18 @@ async function fileUrlToBase64(fileUrl) {
     return base64(await (await fetch(fileUrl)).arrayBuffer());
 }
 
-const videoTabs = {};
+const videoElements = {};
 const asbplayers = {};
 const recorder = new Recorder();
 
 function refreshSettings() {
-    for (const tabId in videoTabs) {
-        chrome.tabs.sendMessage(videoTabs[tabId].tab.id, {
+    for (const id in videoElements) {
+        chrome.tabs.sendMessage(videoElements[id].tab.id, {
             sender: 'asbplayer-extension-to-video',
             message: {
                 command: 'settings-updated'
-            }
+            },
+            src: videoElements[id].src
         });
     }
 }
@@ -171,9 +172,9 @@ chrome.runtime.onMessage.addListener(
     async (request, sender, sendResponse) => {
         if (request.sender === 'asbplayer-video') {
             if (request.message.command === 'heartbeat') {
-                videoTabs[sender.tab.id] = {
+                videoElements[sender.tab.id + ':' + request.src] = {
                     tab: sender.tab,
-                    src: request.message.src,
+                    src: request.src,
                     timestamp: Date.now()
                 };
             } else if (request.message.command === 'record-media-and-forward-subtitle') {
@@ -205,7 +206,8 @@ chrome.runtime.onMessage.addListener(
                         sender: 'asbplayer-extension-to-video',
                         message: {
                             command: 'screenshot-taken'
-                        }
+                        },
+                        src: request.src
                     });
                 }
 
@@ -222,7 +224,8 @@ chrome.runtime.onMessage.addListener(
                         chrome.tabs.sendMessage(t.id, {
                             sender: 'asbplayer-extension-to-player',
                             message: message,
-                            tabId: sender.tab.id
+                            tabId: sender.tab.id,
+                            src: request.src
                         });
                     }
                 });
@@ -247,6 +250,7 @@ chrome.runtime.onMessage.addListener(
                                 base64: base64
                             }
                         },
+                        src: request.src,
                         tabId: sender.tab.id
                     });
                 }
@@ -256,7 +260,8 @@ chrome.runtime.onMessage.addListener(
                         chrome.tabs.sendMessage(t.id, {
                             sender: 'asbplayer-extension-to-player',
                             message: request.message,
-                            tabId: sender.tab.id
+                            tabId: sender.tab.id,
+                            src: request.src
                         });
                     }
                 });
@@ -264,13 +269,15 @@ chrome.runtime.onMessage.addListener(
         } else if (request.sender === 'asbplayer') {
             chrome.tabs.sendMessage(request.tabId, {
                 sender: 'asbplayer-extension-to-video',
-                message: request.message
+                message: request.message,
+                src: request.src
             });
         } else if (request.sender === 'asbplayerv2') {
             if (request.tabId) {
                 chrome.tabs.sendMessage(request.tabId, {
                     sender: 'asbplayer-extension-to-video',
-                    message: request.message
+                    message: request.message,
+                    src: request.src
                 });
             } else if (request.message.command === 'heartbeat') {
                 asbplayers[sender.tab.id] = {
@@ -293,12 +300,17 @@ chrome.commands.onCommand.addListener((command) => {
             }
 
             for (const tab of tabs) {
-                chrome.tabs.sendMessage(tab.id, {
-                    sender: 'asbplayer-extension-to-video',
-                    message: {
-                        command: 'copy-subtitle'
+                for (const id in videoElements) {
+                    if (videoElements[id].tab.id === tab.id) {
+                        chrome.tabs.sendMessage(videoElements[id].tab.id, {
+                            sender: 'asbplayer-extension-to-video',
+                            message: {
+                                command: 'copy-subtitle'
+                            },
+                            src: videoElements[id].src
+                        });
                     }
-                });
+                }
             }
         });
     }
@@ -318,11 +330,11 @@ async function refreshAndPublishState() {
 
         const activeTabs = [];
 
-        for (const tabId in videoTabs) {
-            const info = videoTabs[tabId];
+        for (const id in videoElements) {
+            const info = videoElements[id];
 
             if (info.timestamp < expired) {
-                delete videoTabs[tabId];
+                delete videoElements[id];
             } else {
                 activeTabs.push({
                     id: info.tab.id,

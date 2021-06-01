@@ -1,7 +1,8 @@
 export default class ChromeTabVideoProtocol {
 
-    constructor(tabId, extension) {
+    constructor(tabId, src, extension) {
         this.tabId = tabId;
+        this.src = src;
         this.listener = (message) => {
             if (message.tabId === tabId) {
                 this.onMessage?.({
@@ -15,7 +16,7 @@ export default class ChromeTabVideoProtocol {
     }
 
     postMessage(message) {
-        this.extension.sendMessage(message, this.tabId);
+        this.extension.sendMessage(message, this.tabId, this.src);
     }
 
     close() {

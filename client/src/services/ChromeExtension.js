@@ -36,7 +36,8 @@ export default class ChromeExtension {
                     for (let c of this.onMessageCallbacks) {
                         c({
                             data: event.data.message,
-                            tabId: event.data.tabId
+                            tabId: event.data.tabId,
+                            src: event.data.src
                         });
                     }
                 }
@@ -63,13 +64,13 @@ export default class ChromeExtension {
         return await this.versionPromise;
     }
 
-    sendMessage(message, tabId) {
-        window.postMessage({sender: 'asbplayer', message: message, tabId: tabId}, '*');
+    sendMessage(message, tabId, src) {
+        window.postMessage({sender: 'asbplayer', message: message, tabId: tabId, src: src}, '*');
     }
 
     publishMessage(message) {
         for (const tab of this.tabs) {
-            window.postMessage({sender: 'asbplayer', message: message, tabId: tab.id}, '*');
+            window.postMessage({sender: 'asbplayer', message: message, tabId: tab.id, src: tab.src}, '*');
         }
     }
 

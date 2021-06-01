@@ -410,8 +410,7 @@ function App() {
         return () => extension.unsubscribeTabs(onTabs);
     }, [availableTabs, tab, extension, handleError]);
 
-    const handleTabSelected = useCallback((id) => {
-        const tab = availableTabs.filter(t => t.id === id)[0];
+    const handleTabSelected = useCallback((tab) => {
         setTab(tab);
     }, [availableTabs]);
 
@@ -465,10 +464,21 @@ function App() {
     useEffect(() => {
         async function onMessage(message) {
             if (message.data.command === 'sync') {
-                const tabs = availableTabs.filter(t => t.id === message.tabId);
+                const tabs = availableTabs.filter(t => {
+                    if (t.id !== message.tabId) {
+                        return false;
+                    }
+
+                    return !message.src || t.src === message.src;
+                });
 
                 if (tabs.length === 0) {
-                    console.error("Received sync request but the requesting tab ID " + message.tabId + " was not found");
+                    if (message.src) {
+                        console.error("Received sync request but the requesting tab ID " + message.tabId + " with src " + message.src + " was not found");
+                    } else {
+                        console.error("Received sync request but the requesting tab ID " + message.tabId + " was not found");
+                    }
+
                     return;
                 }
 

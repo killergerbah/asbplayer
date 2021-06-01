@@ -7,7 +7,8 @@ window.addEventListener('message', (event) => {
         chrome.runtime.sendMessage({
             sender: event.data.sender,
             message: event.data.message,
-            tabId: event.data.tabId
+            tabId: event.data.tabId,
+            src: event.data.src
         });
     }
 });

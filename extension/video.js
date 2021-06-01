@@ -12,9 +12,7 @@ window.addEventListener('load', (event) => {
     const bindings = [];
 
     const interval = setInterval(() => {
-        const allVideoElements = document.getElementsByTagName('video');
-        // For now only allow one video per tab. Otherwise heartbeats can clobber each other.
-        const videoElements = allVideoElements.length > 0 ? [allVideoElements[0]] : [];
+        const videoElements = document.getElementsByTagName('video');
 
         for (const v of videoElements) {
             const bindingExists = bindings.filter(b => b.video.isSameNode(v)).length > 0;
@@ -89,7 +87,8 @@ class Binding {
                     message: {
                         command: 'readyState',
                         value: 4
-                    }
+                    },
+                    src: this.video.src
                 });
             });
         }
@@ -113,7 +112,8 @@ class Binding {
                 paused: this.video.paused,
                 audioTracks: null,
                 selectedAudioTrack: null
-            }
+            },
+            src: this.video.src
         });
     }
 
@@ -124,7 +124,8 @@ class Binding {
                 message: {
                     command: 'play',
                     echo: false
-                }
+                },
+                src: this.video.src
             });
         };
 
@@ -134,7 +135,8 @@ class Binding {
                 message: {
                     command: 'pause',
                     echo: false
-                }
+                },
+                src: this.video.src
             });
         };
 
@@ -145,7 +147,8 @@ class Binding {
                     command: 'currentTime',
                     value: this.video.currentTime,
                     echo: false
-                }
+                },
+                src: this.video.src
             });
         };
 
@@ -157,9 +160,9 @@ class Binding {
             chrome.runtime.sendMessage({
                 sender: 'asbplayer-video',
                 message: {
-                    command: 'heartbeat',
-                    src: this.video.src
-                }
+                    command: 'heartbeat'
+                },
+                src: this.video.src
             });
         }, 1000);
 
@@ -168,7 +171,7 @@ class Binding {
         });
 
         this.listener = (request, sender, sendResponse) => {
-            if (request.sender === 'asbplayer-extension-to-video') {
+            if (request.sender === 'asbplayer-extension-to-video' && request.src === this.video.src) {
                 switch (request.message.command) {
                     case 'init':
                         this._notifyReady();
@@ -322,7 +325,8 @@ class Binding {
 
             chrome.runtime.sendMessage({
                 sender: 'asbplayer-video',
-                message: message
+                message: message,
+                src: this.video.src
             });
         }
     }
@@ -719,6 +723,7 @@ class DragContainer {
 
         this.dropListener = (e) => {
             e.preventDefault();
+
             this.dragEnterElement = null;
             this._imageElement().classList.add("asbplayer-hide");
             this._imageElement().classList.remove("asbplayer-drag-image-fade-in");
@@ -738,7 +743,8 @@ class DragContainer {
                         name: file.name,
                         fileUrl: URL.createObjectURL(file)
                     }
-                }
+                },
+                src: this.video.src
             });
         };
 
@@ -746,7 +752,7 @@ class DragContainer {
 
         this.dragEnterListener = (e) => {
             e.preventDefault();
-            e.stopPropagation();
+
             this.dragEnterElement = e.target;
             this._imageElement().classList.remove("asbplayer-hide");
             this._imageElement().classList.add("asbplayer-drag-image-fade-in");
@@ -754,13 +760,20 @@ class DragContainer {
 
         this.bodyDragEnterListener = (e) => {
             e.preventDefault();
-            e.stopPropagation();
+
             this._dragElement().classList.add("asbplayer-drag-zone-dragging");
+        };
+
+        this.bodyDropListener = (e) => {
+            e.preventDefault();
+
+            this._imageElement().classList.add("asbplayer-hide");
+            this._imageElement().classList.remove("asbplayer-drag-image-fade-in");
+            this._dragElement().classList.remove("asbplayer-drag-zone-dragging");
         };
 
         this.dragLeaveListener = (e) => {
             e.preventDefault();
-            e.stopPropagation();
 
             if (this.dragEnterElement === e.target) {
                 this._imageElement().classList.add("asbplayer-hide");
@@ -776,6 +789,7 @@ class DragContainer {
         dragElement.addEventListener('dragenter', this.dragEnterListener);
         dragElement.addEventListener('dragleave', this.dragLeaveListener);
         document.body.addEventListener('dragenter', this.bodyDragEnterListener);
+        document.body.addEventListener('drop', this.bodyDropListener);
 
         this.bound = true;
     }
@@ -869,6 +883,10 @@ class DragContainer {
             document.body.removeEventListener('dragenter', this.bodyDragEnterListener);
             this.bodyDragEnterListener = null;
         }
+        if (this.bodyDropListener) {
+            document.body.removeEventListener('drop', this.bodyDropListener);
+            this.bodyDropListener = null;
+        }
 
         if (this.imageElementStylesInterval) {
             clearInterval(this.imageElementStylesInterval);
@@ -915,7 +933,8 @@ class KeyBindings {
                     sender: 'asbplayer-video',
                     message: {
                         command: 'toggle-subtitles'
-                    }
+                    },
+                    src: context.video.src
                 });
                 e.preventDefault();
                 e.stopImmediatePropagation();
