@@ -180,7 +180,7 @@ class Binding {
                         // ignore
                         break;
                     case 'play':
-                        this.video.play();
+                        this._play();
                         break;
                     case 'pause':
                         this.video.pause();
@@ -296,7 +296,7 @@ class Binding {
                     this.controlsContainer.hide();
                 }
 
-                await this.video.play();
+                await this._play();
 
                 if (this.cleanScreenshot) {
                     this.showControlsTimeout = setTimeout(() => {
@@ -338,6 +338,30 @@ class Binding {
             }));
         } else {
             this.video.currentTime = timestamp;
+        }
+    }
+
+    async _play() {
+        try {
+            await this.video.play();
+        } catch(ex) {
+            console.error(ex);
+            if (this.video.readyState !== 4) {
+                const listener = async (evt) => {
+                    let retries = 3;
+                    for (let i = 0; i < retries; ++i) {
+                        try {
+                            await this.video.play();
+                        } catch (ex2) {
+                            console.info("Failed to play on attempt " + i + ", retrying");
+                        }
+                    }
+
+                    this.video.removeEventListener('canplay', listener);
+                };
+
+                this.video.addEventListener('canplay', listener);
+            }
         }
     }
 }
