@@ -345,10 +345,13 @@ class Binding {
         try {
             await this.video.play();
         } catch(ex) {
+            // Deal with Amazon Prime player pausing in the middle of play, without loss of generality
             console.error(ex);
+
             if (this.video.readyState !== 4) {
                 const listener = async (evt) => {
                     let retries = 3;
+
                     for (let i = 0; i < retries; ++i) {
                         try {
                             await this.video.play();

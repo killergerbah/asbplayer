@@ -76,16 +76,23 @@ class Recorder {
 
 function crop(dataUrl, rect) {
     return new Promise((resolve, reject) => {
-        const image = new Image();
-        image.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = rect.width;
-            canvas.height = rect.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(image, rect.left, rect.top, rect.width, rect.height, 0, 0, rect.width, rect.height);
-            resolve(canvas.toDataURL('image/jpeg'));
-        };
-        image.src = dataUrl;
+        chrome.storage.sync.get({cropScreenshot: true}, (data) => {
+            if (!data.cropScreenshot) {
+                resolve(dataUrl);
+                return;
+            }
+
+            const image = new Image();
+            image.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(image, rect.left, rect.top, rect.width, rect.height, 0, 0, rect.width, rect.height);
+                resolve(canvas.toDataURL('image/jpeg'));
+            };
+            image.src = dataUrl;
+        });
     });
 }
 

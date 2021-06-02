@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', (e) => {
     const recordAudioCheckbox = document.getElementById('recordAudioInput');
     const screenshotCheckbox = document.getElementById('screenshotInput');
     const cleanScreenshotCheckbox = document.getElementById('cleanScreenshotInput');
+    const cropScreenshotCheckbox = document.getElementById('cropScreenshotInput');
     const bindKeysCheckbox = document.getElementById('bindKeysInput');
     const subsDragAndDropCheckbox = document.getElementById('subsDragAndDropInput');
     const subtitlePositionOffsetBottomInput = document.getElementById('subtitlePositionOffsetBottomInput');
@@ -32,6 +33,10 @@ document.addEventListener('DOMContentLoaded', (e) => {
         chrome.storage.sync.set({cleanScreenshot: cleanScreenshotCheckbox.checked}, () => notifySettingsUpdated());
     });
 
+    cropScreenshotCheckbox.addEventListener('change', (e) => {
+        chrome.storage.sync.set({cropScreenshot: cropScreenshotCheckbox.checked}, () => notifySettingsUpdated());
+    });
+
     bindKeysCheckbox.addEventListener('change', (e) => {
         chrome.storage.sync.set({bindKeys: bindKeysCheckbox.checked}, () => notifySettingsUpdated());
     });
@@ -50,6 +55,7 @@ document.addEventListener('DOMContentLoaded', (e) => {
         recordMedia: true,
         screenshot: true,
         cleanScreenshot: true,
+        cropScreenshot: true,
         bindKeys: true,
         subsDragAndDrop: true,
         subtitlePositionOffsetBottom: 100
@@ -59,6 +65,7 @@ document.addEventListener('DOMContentLoaded', (e) => {
         recordAudioCheckbox.checked = data.recordMedia;
         screenshotCheckbox.checked = data.screenshot;
         cleanScreenshotCheckbox.checked = data.cleanScreenshot;
+        cropScreenshotCheckbox.checked = data.cropScreenshot;
         bindKeysCheckbox.checked = data.bindKeys;
         subsDragAndDropCheckbox.checked = data.subsDragAndDrop;
         subtitlePositionOffsetBottomInput.value = data.subtitlePositionOffsetBottom;
