@@ -344,7 +344,7 @@ class Binding {
     async _play() {
         try {
             await this.video.play();
-        } catch(ex) {
+        } catch (ex) {
             // Ignore exception
 
             if (this.video.readyState !== 4) {
