@@ -324,17 +324,17 @@ function AudioTrackSelector(props) {
     );
 }
 
-function TabSelector(props) {
-    if (!props.tabs || props.tabs.length === 0) {
+function TabSelector({open, anchorEl, onClose, tabs, selectedTab, onTabSelected}) {
+    if (!tabs || tabs.length === 0) {
         return null;
     }
 
-    const list = props.tabs.map((t) => {
+    const list = tabs.map((t) => {
         return (
             <ListItem
                 key={t.id}
-                selected={t === props.selectedTab}
-                button onClick={() => props.onTabSelected(t)}>
+                selected={selectedTab && t.id === selectedTab.id && t.src === selectedTab.src}
+                button onClick={() => onTabSelected(t)}>
                 {t.id} {t.title} {t.src}
             </ListItem>
         );
@@ -344,9 +344,9 @@ function TabSelector(props) {
         <div>
             <Popover
                 disableEnforceFocus={true}
-                open={props.open}
-                anchorEl={props.anchorEl}
-                onClose={props.onClose}
+                open={open}
+                anchorEl={anchorEl}
+                onClose={onClose}
                 anchorOrigin={{
                     vertical: 'top',
                     horizontal: 'center',
