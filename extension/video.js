@@ -345,25 +345,33 @@ class Binding {
         try {
             await this.video.play();
         } catch(ex) {
-            // Deal with Amazon Prime player pausing in the middle of play, without loss of generality
             console.error(ex);
 
             if (this.video.readyState !== 4) {
-                const listener = async (evt) => {
-                    let retries = 3;
+                // Deal with Amazon Prime player pausing in the middle of play, without loss of generality
+                return new Promise((resolve, reject) => {
+                    const listener = async (evt) => {
+                        let retries = 3;
 
-                    for (let i = 0; i < retries; ++i) {
-                        try {
-                            await this.video.play();
-                        } catch (ex2) {
-                            console.info("Failed to play on attempt " + i + ", retrying");
+                        for (let i = 0; i < retries; ++i) {
+                            try {
+                                await this.video.play();
+                            } catch (ex2) {
+                                console.info("Failed to play on attempt " + i + ", retrying");
+                                if (i === retries - 1) {
+                                    reject(ex2);
+                                    this.video.removeEventListener('canplay', listener);
+                                    return;
+                                }
+                            }
                         }
-                    }
 
-                    this.video.removeEventListener('canplay', listener);
-                };
+                        resolve();
+                        this.video.removeEventListener('canplay', listener);
+                    };
 
-                this.video.addEventListener('canplay', listener);
+                    this.video.addEventListener('canplay', listener);
+                });
             }
         }
     }
