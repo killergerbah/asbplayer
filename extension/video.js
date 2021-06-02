@@ -345,7 +345,7 @@ class Binding {
         try {
             await this.video.play();
         } catch(ex) {
-            console.error(ex);
+            // Ignore exception
 
             if (this.video.readyState !== 4) {
                 // Deal with Amazon Prime player pausing in the middle of play, without loss of generality
@@ -356,13 +356,9 @@ class Binding {
                         for (let i = 0; i < retries; ++i) {
                             try {
                                 await this.video.play();
+                                break;
                             } catch (ex2) {
-                                console.info("Failed to play on attempt " + i + ", retrying");
-                                if (i === retries - 1) {
-                                    reject(ex2);
-                                    this.video.removeEventListener('canplay', listener);
-                                    return;
-                                }
+                                console.error(ex2);
                             }
                         }
 
