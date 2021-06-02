@@ -410,9 +410,7 @@ function App() {
         return () => extension.unsubscribeTabs(onTabs);
     }, [availableTabs, tab, extension, handleError]);
 
-    const handleTabSelected = useCallback((tab) => {
-        setTab(tab);
-    }, [availableTabs]);
+    const handleTabSelected = useCallback((tab) => setTab(tab), []);
 
     const handleFiles = useCallback((files) => {
         try {
