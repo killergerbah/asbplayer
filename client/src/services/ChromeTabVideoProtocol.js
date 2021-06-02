@@ -4,7 +4,7 @@ export default class ChromeTabVideoProtocol {
         this.tabId = tabId;
         this.src = src;
         this.listener = (message) => {
-            if (message.tabId === tabId) {
+            if (message.tabId === tabId && (!message.src || message.src === src)) {
                 this.onMessage?.({
                     data: message.data
                 });
