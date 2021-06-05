@@ -70,4 +70,21 @@ document.addEventListener('DOMContentLoaded', (e) => {
         subsDragAndDropCheckbox.checked = data.subsDragAndDrop;
         subtitlePositionOffsetBottomInput.value = data.subtitlePositionOffsetBottom;
     });
+
+    chrome.commands.getAll((commands) => {
+        for (const c of commands) {
+            if (c.name === 'copy-subtitle') {
+                let help;
+
+                if (c.shortcut === '') {
+                    help = 'Keyboard shortcut to copy subtitle is not bound.'
+                } else {
+                    help = c.shortcut + " copies current subtitle to asbplayer";
+                }
+
+                document.getElementById('help').innerHTML = help;
+                break;
+            }
+        }
+    });
 });
