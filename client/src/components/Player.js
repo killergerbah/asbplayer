@@ -582,6 +582,7 @@ export default function Player(props) {
                             hidden={videoInWindow && hideSubtitlePlayer}
                             onSeek={handleSeekToSubtitle}
                             onCopy={handleCopy}
+                            onOffsetChange={handleOffsetChange}
                         />
                     </Grid>
                 )}

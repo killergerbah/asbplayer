@@ -3,7 +3,7 @@ import { isMobile } from 'react-device-detect';
 import { makeStyles } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
 import { arrayEquals } from '../services/Util'
-import { detectCopy } from '../services/KeyEvents';
+import KeyBindings from '../services/KeyBindings';
 import Alert from './Alert';
 import Clock from '../services/Clock';
 import Controls from './Controls';
@@ -336,99 +336,85 @@ export default function VideoPlayer(props) {
         return () => clearTimeout(interval);
     }, [subtitles]);
 
+    const handleOffsetChange = useCallback((offset) => {
+        setOffset(offset);
+        setSubtitles(subtitles => subtitles.map(s => ({
+            text: s.text,
+            start: s.originalStart + offset,
+            originalStart: s.originalStart,
+            end: s.originalEnd + offset,
+            originalEnd: s.originalEnd,
+        })));
+        playerChannel.offset(offset);
+    }, [playerChannel]);
+
     useEffect(() => {
-        function seekToSubtitle(event) {
-            if (!videoRef.current || !subtitles || subtitles.length === 0) {
-                return;
-            }
-
-            let forward;
-
-            if (event.keyCode === 37) {
-                forward = false;
-            } else if (event.keyCode === 39) {
-                forward = true;
-            } else {
-                return;
-            }
-
-            const now = Math.round(1000 * videoRef.current.currentTime);
-            let newSubtitleIndex = -1;
-
-            if (forward) {
-                let minDiff = Number.MAX_SAFE_INTEGER;
-
-                for (let i = 0; i < subtitles.length; ++i) {
-                    const s = subtitles[i];
-                    const diff = s.start - now;
-
-                    if (minDiff <= diff) {
-                        continue;
-                    }
-
-                    if (now < s.start) {
-                        minDiff = diff;
-                        newSubtitleIndex = i;
-                    }
-                }
-            } else {
-                let minDiff = Number.MAX_SAFE_INTEGER;
-
-                for (let i = 0; i < subtitles.length; ++i) {
-                    const s = subtitles[i];
-                    const diff = now - s.start;
-
-                    if (minDiff <= diff) {
-                        continue;
-                    }
-
-                    if (now > s.start) {
-                        minDiff = diff;
-                        newSubtitleIndex = now < s.end ? Math.max(0, i - 1) : i;
-                    }
-                }
-            }
-
-            if (newSubtitleIndex !== -1) {
+        const unbind = KeyBindings.bindSeekToSubtitle(
+            (event, subtitle) => {
                 event.preventDefault();
-                playerChannel.currentTime = subtitles[newSubtitleIndex].start / 1000;
-            }
-        };
+                playerChannel.currentTime = subtitle.start / 1000;
+            },
+            () => !videoRef.current,
+            () => Math.round(videoRef.current.currentTime * 1000) / 1000,
+            () => subtitles
+        );
 
-        window.addEventListener('keydown', seekToSubtitle);
-
-        return () => {
-            window.removeEventListener('keydown', seekToSubtitle);
-        };
-    }, [playerChannel, clock, subtitles, length]);
+        return () => unbind();
+    }, [playerChannel, subtitles, length]);
 
     useEffect(() => {
-        function copySubtitle(event) {
-            if (!showSubtitlesRef.current || showSubtitlesRef.current.length === 0) {
-                return;
+        const unbind = KeyBindings.bindCopy(
+            (event, subtitle) => {
+                event.stopPropagation();
+                event.preventDefault();
+                playerChannel.copy(subtitle);
+
+                if (fullscreen) {
+                    setAlert("Copied " + subtitle.text);
+                    setAlertOpen(true);
+                }
+            },
+            () => false,
+            () => {
+                if (!showSubtitlesRef.current || showSubtitlesRef.current.length === 0) {
+                    return null;
+                }
+
+                return showSubtitlesRef.current[0];
             }
+        );
 
-            if (!detectCopy(event)) {
-                return;
-            }
-
-            event.stopPropagation();
-            event.preventDefault();
-            const subtitle = showSubtitlesRef.current[0];
-            playerChannel.copy(subtitle);
-
-            if (fullscreen) {
-                setAlert("Copied " + subtitle.text);
-                setAlertOpen(true);
-            }
-        }
-
-        window.addEventListener('keydown', copySubtitle);
-
-        return () => {
-            window.removeEventListener('keydown', copySubtitle);
-        };
+        return () => unbind();
     }, [playerChannel, fullscreen]);
+
+    useEffect(() => {
+        const unbind = KeyBindings.bindAdjustOffset(
+            (event, offset) => {
+                event.preventDefault();
+                event.stopPropagation();
+                handleOffsetChange(offset);
+            },
+            () => false,
+            () => subtitles
+        );
+
+        return () => unbind();
+    }, [handleOffsetChange, subtitles]);
+
+    useEffect(() => {
+        const unbind = KeyBindings.bindOffsetToSubtitle(
+            (event, offset) => {
+                event.preventDefault();
+                event.stopPropagation();
+                handleOffsetChange(offset);
+            },
+            () => false,
+            () => clock.time(length) / 1000,
+            () => subtitles
+        );
+
+        return () => unbind();
+    }, [handleOffsetChange, subtitles, clock, length]);
 
     const handleShowControls = useCallback((showing) => setControlsShowing(showing), []);
     const handleSubtitlesToggle = useCallback(() => setSubtitlesEnabled(subtitlesEnabled => !subtitlesEnabled), []);
@@ -446,18 +432,6 @@ export default function VideoPlayer(props) {
             videoRef.current.volume = v;
         }
     }, []);
-
-    const handleOffsetChange = useCallback((offset) => {
-        setOffset(offset);
-        setSubtitles(subtitles => subtitles.map(s => ({
-            text: s.text,
-            start: s.originalStart + offset,
-            originalStart: s.originalStart,
-            end: s.originalEnd + offset,
-            originalEnd: s.originalEnd,
-        })));
-        playerChannel.offset(offset);
-    }, [playerChannel, length]);
 
     const handlePopOutToggle = useCallback(() => {
         playerChannel.popOutToggle();

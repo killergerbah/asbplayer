@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef, createRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { keysAreEqual } from '../services/Util';
-import { detectCopy } from '../services/KeyEvents';
+import KeyBindings from '../services/KeyBindings';
 import { useWindowSize } from '../hooks/useWindowSize';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
@@ -107,6 +107,7 @@ export default function SubtitlePlayer({
     clock,
     onSeek,
     onCopy,
+    onOffsetChange,
     playing,
     subtitles,
     length,
@@ -117,7 +118,7 @@ export default function SubtitlePlayer({
     displayHelp,
     disableKeyEvents,
     lastJumpToTopTimestamp,
-    hidden
+    hidden,
     }) {
     const playingRef = useRef();
     playingRef.current = playing;
@@ -130,6 +131,8 @@ export default function SubtitlePlayer({
         : [], [subtitles]);
     const subtitleRefsRef = useRef();
     subtitleRefsRef.current = subtitleRefs;
+    const disableKeyEventsRef = useRef();
+    disableKeyEventsRef.current = disableKeyEvents;
     const [selectedSubtitleIndexes, setSelectedSubtitleIndexes] = useState({});
     const selectedSubtitleIndexesRef = useRef({});
     const lengthRef = useRef();
@@ -272,42 +275,49 @@ export default function SubtitlePlayer({
     }, [lastJumpToTopTimestamp]);
 
     useEffect(() => {
-        function handleKey(event) {
-            if (disableKeyEvents) {
-                return;
-            }
-
-            if (!subtitles || subtitles.length === 0) {
-                return;
-            }
-
-            let newSubtitleIndex;
-
-            if (event.keyCode === 37) {
-                const selected = Object.keys(selectedSubtitleIndexes);
-                newSubtitleIndex = selected.length > 0
-                    ? Math.max(0, Math.min(...selected) - 1)
-                    : -1;
-            } else if (event.keyCode === 39) {
-                const selected = Object.keys(selectedSubtitleIndexes);
-                newSubtitleIndex = selected.length > 0
-                    ? Math.min(subtitles.length - 1, Math.max(...selected) + 1)
-                    : -1;
-            } else {
-                return;
-            }
-
-            if (newSubtitleIndex !== -1) {
+        const unbind = KeyBindings.bindAdjustOffset(
+            (event, offset) => {
                 event.preventDefault();
-                const progress = subtitles[newSubtitleIndex].start / length;
+                event.stopPropagation();
+                onOffsetChange(offset);
+            },
+            () => disableKeyEvents,
+            () => subtitles
+        );
+
+        return () => unbind();
+    }, [onOffsetChange, disableKeyEvents, subtitles]);
+
+    useEffect(() => {
+        const unbind = KeyBindings.bindOffsetToSubtitle(
+            (event, offset) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onOffsetChange(offset);
+            },
+            () => disableKeyEvents,
+            () => clock.time(length) / 1000,
+            () => subtitles
+        );
+
+        return () => unbind();
+    }, [onOffsetChange, disableKeyEvents, clock, subtitles, length]);
+
+    useEffect(() => {
+        const unbind = KeyBindings.bindSeekToSubtitle(
+            (event, subtitle) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const progress = subtitle.start / length;
                 onSeek(progress, false);
-            }
-        };
+            },
+            () => disableKeyEvents,
+            () => clock.time(length) / 1000,
+            () => subtitles
+        );
 
-        window.addEventListener('keydown', handleKey);
-
-        return () => window.removeEventListener('keydown', handleKey);
-    }, [onSeek, selectedSubtitleIndexes, subtitles, length, disableKeyEvents]);
+        return () => unbind();
+    }, [onSeek, subtitles, disableKeyEvents, clock, length]);
 
     useEffect(() => {
         function handleScroll(event) {
@@ -350,33 +360,30 @@ export default function SubtitlePlayer({
         }
     }, [hidden, jumpToSubtitle, subtitles, subtitleRefs]);
 
-    function copy(event, subtitles, subtitleIndex, onCopy) {
+    function copy(event, subtitle, onCopy) {
+        event.preventDefault();
         event.stopPropagation();
-        const subtitle = subtitles[subtitleIndex];
-        const text = subtitle.text;
-        navigator.clipboard.writeText(text);
+        navigator.clipboard.writeText(subtitle.text);
         onCopy(subtitle);
     }
 
     useEffect(() => {
-        function copySubtitle(event) {
-            const subtitleIndexes = Object.keys(selectedSubtitleIndexesRef.current);
+        const unbind = KeyBindings.bindCopy(
+            (event, subtitle) => copy(event, subtitle, onCopy),
+            () => disableKeyEventsRef.current,
+            () => {
+                const subtitleIndexes = Object.keys(selectedSubtitleIndexesRef.current);
 
-            if (subtitleIndexes.length === 0) {
-                return;
+                if (!subtitleIndexes || subtitleIndexes.length === 0) {
+                    return null;
+                }
+
+                const index = Math.min(...subtitleIndexes);
+                return subtitles[index];
             }
+        );
 
-            if (!detectCopy(event)) {
-                return;
-            }
-
-            const index = Math.min(...subtitleIndexes);
-            copy(event, subtitles, index, onCopy);
-        }
-
-        window.addEventListener('keydown', copySubtitle);
-
-        return () => window.removeEventListener('keydown', copySubtitle);
+        return () => unbind();
     }, [subtitles, onCopy]);
 
     const handleClick = useCallback((index) => {
@@ -385,7 +392,7 @@ export default function SubtitlePlayer({
         onSeek(progress, !playingRef.current && index in selectedSubtitleIndexes);
     }, [subtitles, length, onSeek]);
 
-    const handleCopy = useCallback((e, index) => copy(e, subtitles, index, onCopy), [subtitles, onCopy]);
+    const handleCopy = useCallback((e, index) => copy(e, subtitles[index], onCopy), [subtitles, onCopy]);
 
     let subtitleTable;
 
