@@ -9,7 +9,7 @@ A browser-based media player intended to assist subtitle sentence mining.
 - Local video and audio files can be played in "condensed mode," skipping sections without subtitles.
 - Supports audio-clipping/screenshotting of video and audio files.
 - Supports audio-clipping/screenshotting of streaming video synced through the extension.
-- Implements a clipboard history for asynchronous sentence mining.
+- Implements a copy history for asynchronous sentence mining.
 - Supports creation of flashcards with audio/screenshot through AnkiConnect.
 
 asbplayer is hosted at [https://killergerbah.github.io/asbplayer/](https://killergerbah.github.io/asbplayer/).
@@ -26,6 +26,7 @@ asbplayer is hosted at [https://killergerbah.github.io/asbplayer/](https://kille
 
 ## Browser compatibility
 
-- Tested on Chrome 88 and Firefox 86.
-- Only Chrome supports video playback, and only for supported video and audio codecs.
+- The asbplayer application and the asbplayer extension has only been tested and Chrome 91 and later.
+- The asbplayer application and the asbplayer extension may work on other Chromium-based browsers.
+- Local video file playback is supported only for codecs supported by the browser.
 - Audio track selection for `mkv` files is available if experimental web platform features are enabled from [chrome://flags](chrome://flags).

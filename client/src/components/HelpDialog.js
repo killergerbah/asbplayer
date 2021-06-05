@@ -51,12 +51,13 @@ export default function HelpDialog(props) {
                 <Typography variant="h6">
                     Syncing with streaming video in another tab
                 </Typography>
-                <Typography component="ol">
+                <Typography component="ul">
                     <li>
                         Install the Chrome <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>extension</Link>.
                     </li>
+                    <li>Drag-and-drop a subtitle file into the video element you want to sync.</li>
                     <li>
-                        Load a subtitle file.
+                        Or, load a subtitle file into asbplayer.
                     </li>
                     <li>
                         <div className={classes.inlineIcon}>
@@ -65,6 +66,14 @@ export default function HelpDialog(props) {
                     </li>
                     <li>
                         If the icon does not appear try refreshing the video in the other tab.
+                    </li>
+                    <li>
+                        It is recommended to use the extension keyboard shortcut (Ctrl+Alt+Z by default) to mine subtitles since that will include audio/screenshots.
+                        If the keyboard shortcut  is not working for some reason try:
+                        <Typography component="ul">
+                            <li>Uninstalling and reinstalling the extension and restarting Chrome.</li>
+                            <li>Verifying the keyboard shortcut is  bound as in this <Link color="secondary" target="_blank" rel="noreferrer" href="https://youtu.be/wYWbgovfNlI">video</Link>.</li>
+                        </Typography>
                     </li>
                 </Typography>
                 <br />
@@ -81,14 +90,17 @@ export default function HelpDialog(props) {
                         Audio/image will be exported only if an audio/image source was available when the subtitle was copied.
                     </li>
                     <li>
-                        Configure Anki settings with the settings button in the top right.
+                        Specifically, for synced streaming video, an audio/image will only be available if the extension keyboard shortcut was used (Ctrl+Alt+Z by default).
+                    </li>
+                    <li>
+                        Configure Anki settings with the settings button in the top right. See this <Link color="secondary" target="_blank" rel="noreferrer" href="https://youtu.be/Mv7fEVb6PHo?t=44">video</Link> for how to configure AnkiConnect so that asbplayer can connect to Anki.
                     </li>
                 </Typography>
                 <br />
                 <Typography variant="h6">
                     Changing subtitle offset
                 </Typography>
-                <Typography component="ol">
+                <Typography component="ul">
                     <li>
                         Click on the subtitle offset input field in the controls.
                     </li>
@@ -100,7 +112,7 @@ export default function HelpDialog(props) {
                 <Typography variant="h6">
                     Condensed playback of local media files
                 </Typography>
-                <Typography component="ol">
+                <Typography component="ul">
                     <li>
                         Load an audio/video file with a subtitle file.
                     </li>
@@ -158,6 +170,21 @@ export default function HelpDialog(props) {
                 <Typography component="ul">
                     <li>
                         <Link color="secondary" target="_blank" rel="noreferrer" href="https://learnjapanese.moe/streamworkflow/">Sentence mining streaming workflow</Link>
+                    </li>
+                </Typography>
+                <br />
+                <Typography variant="h6">
+                    Browser Compatibility
+                </Typography>
+                <Typography component="ul">
+                    <li>
+                        The asbplayer application and the asbplayer extension has only been tested and Chrome 91 and later.
+                    </li>
+                    <li>
+                        The asbplayer application and the asbplayer extension may work on other Chromium-based browsers.
+                    </li>
+                    <li>
+                        Local video file playback is supported only for codecs supported by the browser.
                     </li>
                 </Typography>
             </DialogContent>

@@ -16,6 +16,7 @@ import Grid from '@material-ui/core/Grid';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
+import Link from '@material-ui/core/Link';
 import MenuItem from '@material-ui/core/MenuItem';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Radio from '@material-ui/core/Radio';
@@ -304,8 +305,7 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                                     }}
                                 />
                                 <FormHelperText>
-                                    Ensure that {window.location.protocol + "//" + window.location.hostname} is in the webCorsOriginList in your AnkiConnect settings.
-                                    Leaving a field blank is fine.
+                                    Ensure that {window.location.protocol + "//" + window.location.hostname} is in the webCorsOriginList in your AnkiConnect settings as in this <Link color="secondary" target="_blank" rel="noreferrer" href="https://youtu.be/Mv7fEVb6PHo?t=44">video</Link>.
                                 </FormHelperText>
                                 <SelectableSetting
                                     label="Deck"
