@@ -447,7 +447,17 @@ export default function VideoPlayer(props) {
         }
     }, []);
 
-    const handleOffsetChange = useCallback((offset) => playerChannel.offset(offset), [playerChannel]);
+    const handleOffsetChange = useCallback((offset) => {
+        setOffset(offset);
+        setSubtitles(subtitles => subtitles.map(s => ({
+            text: s.text,
+            start: s.originalStart + offset,
+            originalStart: s.originalStart,
+            end: s.originalEnd + offset,
+            originalEnd: s.originalEnd,
+        })));
+        playerChannel.offset(offset);
+    }, [playerChannel, length]);
 
     const handlePopOutToggle = useCallback(() => {
         playerChannel.popOutToggle();

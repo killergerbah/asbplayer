@@ -118,15 +118,46 @@ export default function Player(props) {
     const lengthRef = useRef(0);
     lengthRef.current = trackLength(audioRef, videoRef, subtitles, true);
 
-    const seek = useCallback(async (progress, clock, echo) => {
+    const seek = useCallback(async (progress, clock, forwardToMedia) => {
         const time = progress * lengthRef.current;
         clock.setTime(time);
         forceUpdate();
 
-        if (echo) {
+        if (forwardToMedia) {
             await mediaAdapter.seek(time / 1000);
         }
     }, [forceUpdate, mediaAdapter]);
+
+    const applyOffset = useCallback((offset, forwardToVideo) => {
+        setOffset(offset);
+
+        if (offsetRef) {
+            offsetRef.current = offset;
+        }
+
+        setSubtitles((subtitles) => {
+            if (!subtitles) {
+                return;
+            }
+
+            const length = subtitles.length > 0 ? subtitles[subtitles.length - 1].end + offset : 0;
+
+            const newSubtitles = subtitles.map(s => ({
+                text: s.text,
+                start: s.originalStart + offset,
+                originalStart: s.originalStart,
+                end: s.originalEnd + offset,
+                originalEnd: s.originalEnd,
+                displayTime: timeDuration(s.originalStart + offset, length)
+            }));
+
+            if (forwardToVideo) {
+                videoRef.current?.subtitles(newSubtitles, subtitleFile?.name);
+            }
+
+            return newSubtitles;
+        });
+    }, [subtitleFile, offsetRef]);
 
     useEffect(() => {
         let channel = null;
@@ -232,9 +263,9 @@ export default function Player(props) {
                     setPlaying(!paused);
 
                     if (!subscribed) {
-                        channel.onPlay((echo) => play(clock, mediaAdapter, echo));
-                        channel.onPause((echo) => pause(clock, mediaAdapter, echo));
-                        channel.onOffset((offset) => setOffset(Math.max(-lengthRef.current ?? 0, offset)));
+                        channel.onPlay((forwardToMedia) => play(clock, mediaAdapter, forwardToMedia));
+                        channel.onPause((forwardToMedia) => pause(clock, mediaAdapter, forwardToMedia));
+                        channel.onOffset((offset) => applyOffset(Math.max(-lengthRef.current ?? 0, offset), false));
                         channel.onCopy((subtitle, audio, image) => onCopy(
                             subtitle,
                             audioFile,
@@ -249,14 +280,14 @@ export default function Player(props) {
                             channel.condensedModeToggle(newValue);
                             return newValue;
                         }));
-                        channel.onCurrentTime(async (currentTime, echo) => {
+                        channel.onCurrentTime(async (currentTime, forwardToMedia) => {
                             const progress = currentTime * 1000 / lengthRef.current;
 
                             if (playingRef.current) {
                                 clock.stop();
                             }
 
-                            await seek(progress, clock, echo);
+                            await seek(progress, clock, forwardToMedia);
 
                             if (playingRef.current) {
                                 clock.start();
@@ -287,7 +318,7 @@ export default function Player(props) {
             channel?.close();
             channelClosed = true;
         };
-    }, [subtitleReader, extension, settingsProvider, clock, mediaAdapter, seek, onLoaded, onError, onUnloadVideo, onCopy, subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef]);
+    }, [subtitleReader, extension, settingsProvider, clock, mediaAdapter, seek, onLoaded, onError, onUnloadVideo, onCopy, subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef, applyOffset]);
 
     useEffect(() => {
         if (!condensedModeEnabled) {
@@ -370,20 +401,20 @@ export default function Player(props) {
         setLastJumpToTopTimestamp(Date.now());
     }, [videoPopOut, channelId, videoFileUrl, videoFrameRef]);
 
-    function play(clock, mediaAdapter, echo) {
+    function play(clock, mediaAdapter, forwardToMedia) {
         setPlaying(true);
         clock.start();
 
-        if (echo) {
+        if (forwardToMedia) {
             mediaAdapter.play();
         }
     };
 
-    function pause(clock, mediaAdapter, echo) {
+    function pause(clock, mediaAdapter, forwardToMedia) {
         setPlaying(false);
         clock.stop();
 
-        if (echo) {
+        if (forwardToMedia) {
             mediaAdapter.pause();
         }
     };
@@ -449,36 +480,8 @@ export default function Player(props) {
     }, [clock, mediaAdapter, seek]);
 
     const handleOffsetChange = useCallback((offset) => {
-        setOffset(Math.max(-lengthRef.current ?? 0, offset));
-    }, []);
-
-    useEffect(() => {
-        if (offsetRef) {
-            offsetRef.current = offset;
-        }
-
-        setSubtitles((subtitles) => {
-            if (!subtitles) {
-                return;
-            }
-
-            const length = subtitles.length > 0 ? subtitles[subtitles.length - 1].end + offset : 0;
-
-            const newSubtitles = subtitles.map(s => ({
-                text: s.text,
-                start: s.originalStart + offset,
-                originalStart: s.originalStart,
-                end: s.originalEnd + offset,
-                originalEnd: s.originalEnd,
-                displayTime: timeDuration(s.originalStart + offset, length)
-            }));
-
-            videoRef.current?.subtitles(newSubtitles, subtitleFile?.name);
-
-            return newSubtitles;
-        });
-
-    }, [subtitleFile, offset, offsetRef]);
+        applyOffset(Math.max(-lengthRef.current ?? 0, offset), true);
+    }, [applyOffset]);
 
     const handleVolumeChange = useCallback((v) => {
         if (audioRef.current) {
