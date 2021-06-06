@@ -5,6 +5,9 @@
   "scripts": {
     "buildDev": "webpack --config webpack.config.js --mode development"
   },
+  "dependencies": {
+    "@project/common": "0.1.0"
+  },
   "devDependencies": {
     "copy-webpack-plugin": "^9.0.0",
     "webpack": "^5.38.1",
