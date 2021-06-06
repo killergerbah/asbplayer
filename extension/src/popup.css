@@ -13,6 +13,7 @@ body {
     background-color: #404040;
     padding: 4px;
     border-collapse: collapse;
+    margin-top: 8px;
 }
 
 .keys td {
@@ -21,9 +22,11 @@ body {
     border-style: solid;
     padding: 4px;
 }
+
 input {
     vertical-align: middle;
 }
+
 .checkbox-color {
     position: absolute;
     opacity: 0;
