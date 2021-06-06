@@ -66,9 +66,9 @@ export default class KeyBindings {
 
             let forward;
 
-            if (KeyEvents.detectDecreaseOffsetToPreviousSubtitle(event)) {
+            if (KeyEvents.detectIncreaseOffsetToPreviousSubtitle(event)) {
                 forward = false;
-            } else if (KeyEvents.detectIncreaseOffsetToNextSubtitle(event)) {
+            } else if (KeyEvents.detectDecreaseOffsetToNextSubtitle(event)) {
                 forward = true;
             } else {
                 return;

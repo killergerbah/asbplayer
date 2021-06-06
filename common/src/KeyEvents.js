@@ -15,24 +15,24 @@ export default class KeyEvents {
         return event.ctrlKey && event.shiftKey && event.keyCode === 37;
     }
 
-    static detectDecreaseOffsetToPreviousSubtitle(event) {
-        // Ctrl + Left
-        return !KeyEvents.detectDecreaseOffset(event) && event.ctrlKey && event.keyCode === 37;
+    static detectDecreaseOffsetToNextSubtitle(event) {
+        // Ctrl + Right
+        return !KeyEvents.detectDecreaseOffset(event) && event.ctrlKey && event.keyCode === 39;
     }
 
-    static detectIncreaseOffsetToNextSubtitle(event) {
-        // Ctrl + Right
-        return !KeyEvents.detectIncreaseOffset(event) && event.ctrlKey && event.keyCode === 39;
+    static detectIncreaseOffsetToPreviousSubtitle(event) {
+        // Ctrl + Left
+        return !KeyEvents.detectIncreaseOffset(event) && event.ctrlKey && event.keyCode === 37;
     }
 
     static detectPreviousSubtitle(event) {
         // Left
-        return !KeyEvents.detectDecreaseOffset(event) && !KeyEvents.detectDecreaseOffsetToPreviousSubtitle(event) && event.keyCode === 37;
+        return !KeyEvents.detectIncreaseOffset(event) && !KeyEvents.detectIncreaseOffsetToPreviousSubtitle(event) && event.keyCode === 37;
     }
 
     static detectNextSubtitle(event) {
         // Right
-        return !KeyEvents.detectIncreaseOffset(event) && !KeyEvents.detectIncreaseOffsetToNextSubtitle(event) && event.keyCode === 39;
+        return !KeyEvents.detectDecreaseOffset(event) && !KeyEvents.detectDecreaseOffsetToNextSubtitle(event) && event.keyCode === 39;
     }
 
     static detectToggleSubtitles(event) {

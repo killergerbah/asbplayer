@@ -30,11 +30,6 @@
         </div>
         <hr>
         <div>
-            <input class="checkbox-color" id="bindKeysInput" type="checkbox">
-            <label id="bindKeys" for="bindKeysInput">Left/Right/S bound to prev/next/toggle subtitles</label>
-        </div>
-        <hr>
-        <div>
             <input class="checkbox-color" id="subsDragAndDropInput" type="checkbox">
             <label id="subsDragAndDrop" for="subsDragAndDropInput">Dropping subs into video syncs with asbplayer</label>
         </div>
@@ -46,5 +41,27 @@
         <hr>
         <div class="help" id="help">
         </div>
+        <hr>
+        <div>
+            <input class="checkbox-color" id="bindKeysInput" type="checkbox">
+            <label id="bindKeys" for="bindKeysInput">Bind keyboard shortcuts</label>
+        </div>
+        <hr>
+        <table class="keys">
+            <tbody>
+                <tr>
+                    <td>S</td><td>Toggle subtitles</td>
+                </tr>
+                <tr>
+                    <td>Left/Right</td><td>Seek to previous/next subtitle</td>
+                </tr>
+                <tr>
+                    <td>Ctrl+Left/Right</td><td>Adjust offset to previous/next subtitle</td>
+                </tr>
+                <tr>
+                    <td>Ctrl+Shift+Left/Right</td><td>Adjust offset by +/- 100ms</td>
+                </tr>
+            </tbody>
+        </table>
     </body>
 </html>

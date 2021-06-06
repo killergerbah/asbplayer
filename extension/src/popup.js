@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', (e) => {
                 let help;
 
                 if (c.shortcut === '') {
-                    help = 'Keyboard shortcut to copy subtitle is not bound.'
+                    help = 'Copy command is not bound.'
                 } else {
                     help = c.shortcut + " copies current subtitle to asbplayer";
                 }
