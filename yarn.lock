@@ -2175,6 +2175,48 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@project/client@workspace:client":
+  version: 0.0.0-use.local
+  resolution: "@project/client@workspace:client"
+  dependencies:
+    "@material-ui/core": ^4.11.3
+    "@material-ui/icons": ^4.11.2
+    "@material-ui/lab": ^4.0.0-alpha.57
+    "@project/common": 0.1.0
+    "@testing-library/jest-dom": ^5.11.6
+    "@testing-library/react": ^11.1.2
+    "@testing-library/user-event": ^12.2.2
+    ass-compiler: 0.1.1
+    eslint-config-react-app: ^6.0.0
+    gh-pages: ^3.1.0
+    lamejs: 1.2.0
+    react: ^17.0.1
+    react-device-detect: 1.17.0
+    react-dom: ^17.0.1
+    react-router-dom: 5.2.0
+    react-scripts: 4.0.0
+    semver: 7.3.5
+    subtitle: 4.0.1
+    typeface-roboto: 1.1.13
+    uuid: 8.3.2
+    vtt.js: 0.13.0
+    web-vitals: ^0.2.4
+    worker-loader: 3.0.8
+  languageName: unknown
+  linkType: soft
+
+"@project/common@0.1.0, @project/common@workspace:common":
+  version: 0.0.0-use.local
+  resolution: "@project/common@workspace:common"
+  languageName: unknown
+  linkType: soft
+
+"@project/extension@workspace:extension":
+  version: 0.0.0-use.local
+  resolution: "@project/extension@workspace:extension"
+  languageName: unknown
+  linkType: soft
+
 "@rollup/plugin-node-resolve@npm:^7.1.1":
   version: 7.1.3
   resolution: "@rollup/plugin-node-resolve@npm:7.1.3"
@@ -4594,34 +4636,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"client@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "client@workspace:."
-  dependencies:
-    "@material-ui/core": ^4.11.3
-    "@material-ui/icons": ^4.11.2
-    "@material-ui/lab": ^4.0.0-alpha.57
-    "@testing-library/jest-dom": ^5.11.6
-    "@testing-library/react": ^11.1.2
-    "@testing-library/user-event": ^12.2.2
-    ass-compiler: 0.1.1
-    gh-pages: ^3.1.0
-    lamejs: 1.2.0
-    react: ^17.0.1
-    react-device-detect: 1.17.0
-    react-dom: ^17.0.1
-    react-router-dom: 5.2.0
-    react-scripts: 4.0.0
-    semver: 7.3.5
-    subtitle: 4.0.1
-    typeface-roboto: 1.1.13
-    uuid: 8.3.2
-    vtt.js: 0.13.0
-    web-vitals: ^0.2.4
-    worker-loader: 3.0.8
-  languageName: unknown
-  linkType: soft
-
 "cliui@npm:^5.0.0":
   version: 5.0.0
   resolution: "cliui@npm:5.0.0"
@@ -5479,14 +5493,14 @@ __metadata:
   linkType: hard
 
 "debug@npm:4, debug@npm:^4.0.1, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.3.1":
-  version: 4.3.2
-  resolution: "debug@npm:4.3.2"
+  version: 4.3.1
+  resolution: "debug@npm:4.3.1"
   dependencies:
     ms: 2.1.2
   peerDependenciesMeta:
     supports-color:
       optional: true
-  checksum: 5543570879e2274f6725d4285a034d6e0822d35faefc6f55965933fb440e8c21eb3a0bef934e66f4b6b491f898ee2de37cab980e9d4fd61372136c19d3ce4527
+  checksum: 0d41ba5177510e8b388dfd7df143ab0f9312e4abdaba312595461511dac88e9ef8101939d33b4e6d37e10341af6a5301082e4d7d6f3deb4d57bc05fc7d296fad
   languageName: node
   linkType: hard
 
@@ -12801,9 +12815,9 @@ fsevents@^1.2.7:
   linkType: hard
 
 "regenerator-runtime@npm:^0.13.4, regenerator-runtime@npm:^0.13.7":
-  version: 0.13.8
-  resolution: "regenerator-runtime@npm:0.13.8"
-  checksum: 20178f5753f181d59691e5c3b4c59a2769987f75c7ccf325777673b5478acca61a553b10e895585086c222f72f5ee428090acf50320264de4b79f630f7388653
+  version: 0.13.7
+  resolution: "regenerator-runtime@npm:0.13.7"
+  checksum: 6ef567c662088b1b292214920cbd72443059298d477f72e1a37e0a113bafbfac9057cbfe35ae617284effc4b423493326a78561bbff7b04162c7949bdb9624e8
   languageName: node
   linkType: hard
 
@@ -13215,6 +13229,12 @@ resolve@^2.0.0-next.3:
   checksum: fc59b8af482e0729fd720a6be1221f477ae1848fd88b0474d10f805567aa4ad5f16afa9a976c8fd30fd196fcb689b252826cdd138e7a4ad88462547adb5dbf40
   languageName: node
   linkType: hard
+
+"root@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "root@workspace:."
+  languageName: unknown
+  linkType: soft
 
 "rsvp@npm:^4.8.4":
   version: 4.8.5

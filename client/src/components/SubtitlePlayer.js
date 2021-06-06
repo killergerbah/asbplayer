@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef, createRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { keysAreEqual } from '../services/Util';
-import KeyBindings from '../services/KeyBindings';
 import { useWindowSize } from '../hooks/useWindowSize';
+import { KeyBindings } from '@project/common';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
 import Paper from '@material-ui/core/Paper';

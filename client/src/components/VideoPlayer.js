@@ -3,7 +3,7 @@ import { isMobile } from 'react-device-detect';
 import { makeStyles } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
 import { arrayEquals } from '../services/Util'
-import KeyBindings from '../services/KeyBindings';
+import { KeyBindings } from '@project/common';
 import Alert from './Alert';
 import Clock from '../services/Clock';
 import Controls from './Controls';
