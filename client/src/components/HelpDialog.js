@@ -130,20 +130,28 @@ export default function HelpDialog(props) {
                     <Table size="small">
                         <TableBody>
                             <TableRow>
-                                <TableCell><Typography>Left/Right</Typography></TableCell>
-                                <TableCell><Typography>Previous/next subtitle</Typography></TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell><Typography>Space</Typography></TableCell>
-                                <TableCell><Typography>Play/pause</Typography></TableCell>
-                            </TableRow>
-                            <TableRow>
                                 <TableCell><Typography>Ctrl+Shift+A</Typography></TableCell>
                                 <TableCell><Typography>Copy current subtitle</Typography></TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell><Typography>Ctrl+Shift+Z</Typography></TableCell>
                                 <TableCell><Typography>Copy current subtitle (streaming video in another tab)</Typography></TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell><Typography>Space</Typography></TableCell>
+                                <TableCell><Typography>Play/pause</Typography></TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell><Typography>Left/Right</Typography></TableCell>
+                                <TableCell><Typography>Seek to previous/next subtitle</Typography></TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell><Typography>Ctrl+Left/Right</Typography></TableCell>
+                                <TableCell><Typography>Adjust offset to previous/next subtitle</Typography></TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell><Typography>Ctrl+Shift+Left/Right</Typography></TableCell>
+                                <TableCell><Typography>Adjust offset by +/-100 ms</Typography></TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
