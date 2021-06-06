@@ -1,3 +1,5 @@
+import { KeyBindings as CommonKeyBindings } from '@project/common';
+
 var s = document.createElement('script');
 s.src = chrome.runtime.getURL('netflix.js');
 s.onload = () => s.remove();
@@ -954,12 +956,23 @@ class KeyBindings {
             return;
         }
 
-        this.listener = (e) => {
-            if (!context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0) {
-                return;
-            }
+        this.unbindSeekToSubtitle = CommonKeyBindings.bindSeekToSubtitle(
+            (event, subtitle) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                const progress = subtitle.start / length;
+                context.seek(subtitle.start / 1000);
+            },
+            () => false,
+            () => context.video.currentTime,
+            () => context.subtitles,
+            true
+        );
 
-            if (e.keyCode === 83) {
+        this.unbindToggleSubtitles = CommonKeyBindings.bindToggleSubtitles(
+            (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
                 chrome.runtime.sendMessage({
                     sender: 'asbplayer-video',
                     message: {
@@ -967,74 +980,23 @@ class KeyBindings {
                     },
                     src: context.video.src
                 });
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                return;
-            }
+            },
+            () => false,
+            true
+        );
 
-            let forward;
-
-            if (e.keyCode === 37) {
-                forward = false;
-            } else if (e.keyCode === 39) {
-                forward = true;
-            } else {
-                return;
-            }
-
-            const subtitles = context.subtitleContainer.subtitles;
-            const now = Math.round(1000 * context.video.currentTime);
-            let newSubtitleIndex = -1;
-
-            if (forward) {
-                let minDiff = Number.MAX_SAFE_INTEGER;
-
-                for (let i = 0; i < subtitles.length; ++i) {
-                    const s = subtitles[i];
-                    const diff = s.start - now;
-
-                    if (minDiff <= diff) {
-                        continue;
-                    }
-
-                    if (now < s.start) {
-                        minDiff = diff;
-                        newSubtitleIndex = i;
-                    }
-                }
-            } else {
-                let minDiff = Number.MAX_SAFE_INTEGER;
-
-                for (let i = 0; i < subtitles.length; ++i) {
-                    const s = subtitles[i];
-                    const diff = now - s.start;
-
-                    if (minDiff <= diff) {
-                        continue;
-                    }
-
-                    if (now > s.start) {
-                        minDiff = diff;
-                        newSubtitleIndex = now < s.end ? Math.max(0, i - 1) : i;
-                    }
-                }
-            }
-
-            if (newSubtitleIndex !== -1) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                context.seek(subtitles[newSubtitleIndex].start / 1000);
-            }
-        };
-
-        window.addEventListener("keydown", this.listener, true);
         this.bound = true;
     }
 
     unbind() {
-        if (this.listener) {
-            window.removeEventListener("keydown", this.listener, true);
-            this.listener = null;
+        if (this.unbindSeekToSubtitle) {
+            this.unbindSeekToSubtitle();
+            this.unbindSeekToSubtitle = null;
+        }
+
+        if (this.unbindToggleSubtitles) {
+            this.unbindToggleSubtitles();
+            this.unbindToggleSubtitles = null;
         }
 
         this.bound = false;

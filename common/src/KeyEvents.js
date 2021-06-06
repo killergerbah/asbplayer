@@ -34,4 +34,9 @@ export default class KeyEvents {
         // Right
         return !KeyEvents.detectIncreaseOffset(event) && !KeyEvents.detectIncreaseOffsetToNextSubtitle(event) && event.keyCode === 39;
     }
+
+    static detectToggleSubtitles(event) {
+        // S
+        return event.keyCode === 83;
+    }
 }

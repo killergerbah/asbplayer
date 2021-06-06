@@ -2,7 +2,7 @@ import KeyEvents from './KeyEvents';
 
 export default class KeyBindings {
 
-    static bindCopy(onCopy, disabledGetter, subtitleGetter) {
+    static bindCopy(onCopy, disabledGetter, subtitleGetter, useCapture = false) {
         return KeyBindings._bind((event) => {
             if (disabledGetter()) {
                 return;
@@ -19,10 +19,10 @@ export default class KeyBindings {
             }
 
             onCopy(event, subtitle);
-        });
+        }, useCapture);
     }
 
-    static bindSeekToSubtitle(onSeekToSubtitle, disabledGetter, timeGetter, subtitlesGetter) {
+    static bindSeekToSubtitle(onSeekToSubtitle, disabledGetter, timeGetter, subtitlesGetter, useCapture = false) {
         return KeyBindings._bind((event) => {
             if (disabledGetter()) {
                 return;
@@ -49,10 +49,10 @@ export default class KeyBindings {
             if (subtitle !== null) {
                 onSeekToSubtitle(event, subtitle);
             }
-        });
+        }, useCapture);
     }
 
-    static bindOffsetToSubtitle(onOffsetChange, disabledGetter, timeGetter, subtitlesGetter) {
+    static bindOffsetToSubtitle(onOffsetChange, disabledGetter, timeGetter, subtitlesGetter, useCapture = false) {
         return KeyBindings._bind((event) => {
             if (disabledGetter()) {
                 return;
@@ -84,7 +84,7 @@ export default class KeyBindings {
                 const newOffset = Math.round(1000 * time) - subtitleStart;
                 onOffsetChange(event, newOffset);
             }
-        });
+        }, useCapture);
     }
 
     static _adjacentSubtitle(forward, time, subtitles) {
@@ -116,7 +116,7 @@ export default class KeyBindings {
         return null;
     }
 
-    static bindAdjustOffset(onOffsetChange, disabledGetter, subtitlesGetter) {
+    static bindAdjustOffset(onOffsetChange, disabledGetter, subtitlesGetter, useCapture = false) {
         return KeyBindings._bind((event) => {
             if (disabledGetter()) {
                 return;
@@ -143,12 +143,26 @@ export default class KeyBindings {
             const currentOffset = subtitles[0].start - subtitles[0].originalStart;
             const newOffset = currentOffset + (increase ? 100 : -100);
             onOffsetChange(event, newOffset);
-        });
+        }, useCapture);
     }
 
-    static _bind(handler) {
-        window.addEventListener('keydown', handler);
+    static bindToggleSubtitles(onToggleSubtitles, disabledGetter, useCapture = false) {
+        return KeyBindings._bind((event) => {
+            if (disabledGetter()) {
+                return;
+            }
 
-        return () => window.removeEventListener('keydown', handler);
+            if (!KeyEvents.detectToggleSubtitles(event)) {
+                return;
+            }
+
+            onToggleSubtitles(event);
+        }, useCapture);
+    }
+
+    static _bind(handler, useCapture) {
+        window.addEventListener('keydown', handler, useCapture);
+
+        return () => window.removeEventListener('keydown', handler, useCapture);
     }
 }

@@ -1,5 +1,13 @@
 {
   "private": true,
   "name": "@project/extension",
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "scripts": {
+    "buildDev": "webpack --config webpack.config.js --mode development"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^9.0.0",
+    "webpack": "^5.38.1",
+    "webpack-cli": "^4.7.0"
+  }
 }
