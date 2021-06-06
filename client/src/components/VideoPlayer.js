@@ -403,6 +403,15 @@ export default function VideoPlayer(props) {
     }, [handleOffsetChange, subtitles]);
 
     useEffect(() => {
+        const unbind = KeyBindings.bindToggleSubtitles(
+            (event) => setSubtitlesEnabled(enabled => !enabled),
+            () => false
+        );
+
+        return () => unbind();
+    }, []);
+
+    useEffect(() => {
         const unbind = KeyBindings.bindOffsetToSubtitle(
             (event, offset) => {
                 event.preventDefault();
