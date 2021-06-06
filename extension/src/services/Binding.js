@@ -242,6 +242,8 @@ export default class Binding {
         const subtitle = this.subtitleContainer.currentSubtitle();
 
         if (subtitle) {
+            navigator.clipboard.writeText(subtitle.text);
+
             if (this.recordMedia) {
                 this.seek(subtitle.start / 1000);
 
