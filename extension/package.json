@@ -3,7 +3,8 @@
   "name": "@project/extension",
   "version": "0.1.0",
   "scripts": {
-    "buildDev": "webpack --config webpack.config.js --mode development"
+    "buildDev": "webpack --config webpack.config.js --mode development",
+    "buildProd": "webpack --config webpack.config.js --mode production"
   },
   "dependencies": {
     "@project/common": "0.1.0"
