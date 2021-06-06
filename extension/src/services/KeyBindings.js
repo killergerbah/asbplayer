@@ -18,7 +18,7 @@ export default class KeyBindings {
                 context.seek(subtitle.start / 1000);
             },
             () => false,
-            () => context.video.currentTime,
+            () => context.video.currentTime * 1000,
             () => context.subtitleContainer.subtitles,
             true
         );
@@ -46,7 +46,7 @@ export default class KeyBindings {
                 context.subtitleContainer.offset(offset);
             },
             () => false,
-            () => context.video.currentTime,
+            () => context.video.currentTime * 1000,
             () => context.subtitleContainer.subtitles,
             true
         );

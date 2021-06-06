@@ -32,6 +32,7 @@ function timeDuration(milliseconds, totalMilliseconds) {
         return timeDuration(0, totalMilliseconds);
     }
 
+    milliseconds = Math.round(milliseconds);
     const ms = milliseconds % 1000;
     milliseconds = (milliseconds - ms) / 1000;
     const secs = milliseconds % 60;
@@ -118,8 +119,7 @@ export default function Player(props) {
     const lengthRef = useRef(0);
     lengthRef.current = trackLength(audioRef, videoRef, subtitles, true);
 
-    const seek = useCallback(async (progress, clock, forwardToMedia) => {
-        const time = progress * lengthRef.current;
+    const seek = useCallback(async (time, clock, forwardToMedia) => {
         clock.setTime(time);
         forceUpdate();
 
@@ -281,13 +281,11 @@ export default function Player(props) {
                             return newValue;
                         }));
                         channel.onCurrentTime(async (currentTime, forwardToMedia) => {
-                            const progress = currentTime * 1000 / lengthRef.current;
-
                             if (playingRef.current) {
                                 clock.stop();
                             }
 
-                            await seek(progress, clock, forwardToMedia);
+                            await seek(currentTime * 1000, clock, forwardToMedia);
 
                             if (playingRef.current) {
                                 clock.start();
@@ -375,7 +373,7 @@ export default function Player(props) {
                 if (!seeking) {
                     seeking = true;
                     const t0 = Date.now();
-                    await seek(nextSubtitle.start / length, clock, true);
+                    await seek(nextSubtitle.start, clock, true);
                     expectedSeekTime = Date.now() - t0;
                     seeking = false;
                 }
@@ -422,18 +420,22 @@ export default function Player(props) {
     const handlePlay = useCallback(() => play(clock, mediaAdapter, true), [clock, mediaAdapter]);
     const handlePause = useCallback(() => pause(clock, mediaAdapter, true), [clock, mediaAdapter]);
     const handleSeek = useCallback(async (progress) => {
+        if (!lengthRef.current) {
+            return;
+        }
+
         if (playingRef.current) {
             clock.stop();
         }
 
-        await seek(progress, clock, true);
+        await seek(progress * lengthRef.current, clock, true);
 
         if (playingRef.current) {
             clock.start();
         }
     }, [clock, seek]);
 
-    const handleSeekToSubtitle = useCallback(async (progress, shouldPlay) => {
+    const handleSeekToSubtitle = useCallback(async (time, shouldPlay) => {
         if (!shouldPlay) {
             pause(clock, mediaAdapter, true);
         }
@@ -442,7 +444,7 @@ export default function Player(props) {
             clock.stop();
         }
 
-        await seek(progress, clock, true);
+        await seek(time, clock, true);
 
         if (shouldPlay && !playingRef.current) {
             // play method will start the clock again

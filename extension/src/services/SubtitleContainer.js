@@ -40,6 +40,10 @@ export default class SubtitleContainer {
             for (let i = 0; i < this.subtitles.length; ++i) {
                 const s = this.subtitles[i];
 
+                if (s.start < 0 || s. end < 0) {
+                    continue;
+                }
+
                 if (now >= s.start && now < s.end) {
                     showingSubtitles.push(s.text);
                 }
@@ -132,7 +136,8 @@ export default class SubtitleContainer {
     }
 
     _formatOffset(offset) {
-        return offset >= 0 ? "+" + offset + " ms" :  offset + " ms";
+        const roundedOffset = Math.floor(offset);
+        return roundedOffset >= 0 ? "+" + roundedOffset + " ms" :  roundedOffset + " ms";
     }
 
     showLoadedMessage(message) {

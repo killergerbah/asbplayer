@@ -356,7 +356,7 @@ export default function VideoPlayer(props) {
                 playerChannel.currentTime = subtitle.start / 1000;
             },
             () => !videoRef.current,
-            () => Math.round(videoRef.current.currentTime * 1000) / 1000,
+            () => clock.time(length),
             () => subtitles
         );
 
@@ -419,7 +419,7 @@ export default function VideoPlayer(props) {
                 handleOffsetChange(offset);
             },
             () => false,
-            () => clock.time(length) / 1000,
+            () => clock.time(length),
             () => subtitles
         );
 

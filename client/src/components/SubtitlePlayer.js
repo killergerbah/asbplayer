@@ -74,7 +74,7 @@ const SubtitleRow = React.memo((props) => {
     const classes = useSubtitleRowStyles();
     let className = compressed ? classes.compressedSubtitle : classes.subtitle;
 
-    if (subtitle.start < 0 && subtitle.end < 0) {
+    if (subtitle.start < 0 || subtitle.end < 0) {
         return null;
     }
 
@@ -296,7 +296,7 @@ export default function SubtitlePlayer({
                 onOffsetChange(offset);
             },
             () => disableKeyEvents,
-            () => clock.time(length) / 1000,
+            () => clock.time(length),
             () => subtitles
         );
 
@@ -308,11 +308,10 @@ export default function SubtitlePlayer({
             (event, subtitle) => {
                 event.preventDefault();
                 event.stopPropagation();
-                const progress = subtitle.start / length;
-                onSeek(progress, false);
+                onSeek(subtitle.start, false);
             },
             () => disableKeyEvents,
-            () => clock.time(length) / 1000,
+            () => clock.time(length),
             () => subtitles
         );
 
@@ -388,9 +387,8 @@ export default function SubtitlePlayer({
 
     const handleClick = useCallback((index) => {
         const selectedSubtitleIndexes = selectedSubtitleIndexesRef.current || {};
-        const progress = subtitles[index].start / length;
-        onSeek(progress, !playingRef.current && index in selectedSubtitleIndexes);
-    }, [subtitles, length, onSeek]);
+        onSeek(subtitles[index].start, !playingRef.current && index in selectedSubtitleIndexes);
+    }, [subtitles, onSeek]);
 
     const handleCopy = useCallback((e, index) => copy(e, subtitles[index], onCopy), [subtitles, onCopy]);
 

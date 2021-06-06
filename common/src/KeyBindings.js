@@ -79,19 +79,24 @@ export default class KeyBindings {
 
             if (subtitle !== null) {
                 const subtitleStart = subtitle.originalStart;
-                const newOffset = Math.round(1000 * time) - subtitleStart;
+                const newOffset = time - subtitleStart;
                 onOffsetChange(event, newOffset);
             }
         }, useCapture);
     }
 
     static _adjacentSubtitle(forward, time, subtitles) {
-        const now = Math.round(1000 * time);
+        const now = time;
         let adjacentSubtitleIndex = -1;
         let minDiff = Number.MAX_SAFE_INTEGER;
 
         for (let i = 0; i < subtitles.length; ++i) {
             const s = subtitles[i];
+
+            if (s.start < 0 || s.end < 0) {
+                continue;
+            }
+
             const diff = forward ? s.start - now : now - s.start;
 
             if (minDiff <= diff) {
