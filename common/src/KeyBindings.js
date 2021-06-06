@@ -46,7 +46,7 @@ export default class KeyBindings {
 
             const subtitle = KeyBindings._adjacentSubtitle(forward, timeGetter(), subtitles);
 
-            if (subtitle !== null) {
+            if (subtitle !== null && subtitle.start >= 0 && subtitle.end >= 0) {
                 onSeekToSubtitle(event, subtitle);
             }
         }, useCapture);
@@ -92,11 +92,6 @@ export default class KeyBindings {
 
         for (let i = 0; i < subtitles.length; ++i) {
             const s = subtitles[i];
-
-            if (s.start < 0 || s.end < 0) {
-                continue;
-            }
-
             const diff = forward ? s.start - now : now - s.start;
 
             if (minDiff <= diff) {
