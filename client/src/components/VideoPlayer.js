@@ -536,7 +536,7 @@ export default function VideoPlayer(props) {
                 popOutEnabled={!isMobile}
                 condensedModeToggleEnabled={true}
                 condensedModeEnabled={condensedModeEnabled}
-                hideSubtitlePlayerToggleEnabled={subtitles?.length > 0 && !popOut}
+                hideSubtitlePlayerToggleEnabled={subtitles?.length > 0 && !popOut && !fullscreen}
                 subtitlePlayerHidden={subtitlePlayerHidden}
                 onShow={handleShowControls}
                 onPlay={handlePlay}
