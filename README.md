@@ -30,3 +30,18 @@ asbplayer is hosted at [https://killergerbah.github.io/asbplayer/](https://kille
 - The asbplayer application and the asbplayer extension may work on other Chromium-based browsers.
 - Local video file playback is supported only for codecs supported by the browser.
 - Audio track selection for `mkv` files is available if experimental web platform features are enabled from [chrome://flags](chrome://flags).
+
+## Building and running
+```
+# Install yarn
+npm install --global yarn
+
+# Install dependencies
+yarn
+
+# Starts the devleopment server
+yarn workspace @project/client run start 
+
+# Build the extension to extension/dist
+yarn workspace @project/extension buildDev 
+```
