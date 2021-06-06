@@ -1,26 +1,26 @@
 {
   "files": {
-    "main.js": "/asbplayer/static/js/main.c53c4766.chunk.js",
-    "main.js.map": "/asbplayer/static/js/main.c53c4766.chunk.js.map",
-    "runtime-main.js": "/asbplayer/static/js/runtime-main.75d759ad.js",
-    "runtime-main.js.map": "/asbplayer/static/js/runtime-main.75d759ad.js.map",
+    "main.js": "/asbplayer/static/js/main.0ca93c9c.chunk.js",
+    "main.js.map": "/asbplayer/static/js/main.0ca93c9c.chunk.js.map",
+    "runtime-main.js": "/asbplayer/static/js/runtime-main.b74c5eb2.js",
+    "runtime-main.js.map": "/asbplayer/static/js/runtime-main.b74c5eb2.js.map",
     "static/css/2.907ff9db.chunk.css": "/asbplayer/static/css/2.907ff9db.chunk.css",
-    "static/js/2.c96f88d5.chunk.js": "/asbplayer/static/js/2.c96f88d5.chunk.js",
-    "static/js/2.c96f88d5.chunk.js.map": "/asbplayer/static/js/2.c96f88d5.chunk.js.map",
-    "static/js/3.843a0181.chunk.js": "/asbplayer/static/js/3.843a0181.chunk.js",
-    "static/js/3.843a0181.chunk.js.map": "/asbplayer/static/js/3.843a0181.chunk.js.map",
+    "static/js/2.e421d84f.chunk.js": "/asbplayer/static/js/2.e421d84f.chunk.js",
+    "static/js/2.e421d84f.chunk.js.map": "/asbplayer/static/js/2.e421d84f.chunk.js.map",
+    "static/js/3.2818e8bd.chunk.js": "/asbplayer/static/js/3.2818e8bd.chunk.js",
+    "static/js/3.2818e8bd.chunk.js.map": "/asbplayer/static/js/3.2818e8bd.chunk.js.map",
     "index.html": "/asbplayer/index.html",
     "static/css/2.907ff9db.chunk.css.map": "/asbplayer/static/css/2.907ff9db.chunk.css.map",
-    "static/js/2.c96f88d5.chunk.js.LICENSE.txt": "/asbplayer/static/js/2.c96f88d5.chunk.js.LICENSE.txt",
-    "static/js/mp3-encoder-worker.2ecce0ce.worker.js": "/asbplayer/static/js/mp3-encoder-worker.2ecce0ce.worker.js",
-    "static/js/mp3-encoder-worker.2ecce0ce.worker.js.map": "/asbplayer/static/js/mp3-encoder-worker.2ecce0ce.worker.js.map",
+    "static/js/2.e421d84f.chunk.js.LICENSE.txt": "/asbplayer/static/js/2.e421d84f.chunk.js.LICENSE.txt",
+    "static/js/mp3-encoder-worker.742cd09f.worker.js": "/asbplayer/static/js/mp3-encoder-worker.742cd09f.worker.js",
+    "static/js/mp3-encoder-worker.742cd09f.worker.js.map": "/asbplayer/static/js/mp3-encoder-worker.742cd09f.worker.js.map",
     "static/media/background-colored.8c5dbfe0.png": "/asbplayer/static/media/background-colored.8c5dbfe0.png",
     "static/media/index.css": "/asbplayer/static/media/roboto-latin-900italic.cb5ad999.woff2"
   },
   "entrypoints": [
-    "static/js/runtime-main.75d759ad.js",
+    "static/js/runtime-main.b74c5eb2.js",
     "static/css/2.907ff9db.chunk.css",
-    "static/js/2.c96f88d5.chunk.js",
-    "static/js/main.c53c4766.chunk.js"
+    "static/js/2.e421d84f.chunk.js",
+    "static/js/main.0ca93c9c.chunk.js"
   ]
 }
