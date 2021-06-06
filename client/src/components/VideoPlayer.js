@@ -361,7 +361,7 @@ export default function VideoPlayer(props) {
         );
 
         return () => unbind();
-    }, [playerChannel, subtitles, length]);
+    }, [playerChannel, subtitles, length, clock]);
 
     useEffect(() => {
         const unbind = KeyBindings.bindCopy(
