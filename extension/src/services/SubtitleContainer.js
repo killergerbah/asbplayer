@@ -6,6 +6,9 @@ export default class SubtitleContainer {
         this.showingSubtitles = [];
         this.displaySubtitles = true;
         this.subtitlePositionOffsetBottom = 100;
+        this.lastLoadedMessageTimestamp = 0;
+        this.lastOffsetChangeTimestamp = 0;
+        this.showingOffset = null;
     }
 
     bind() {
@@ -14,7 +17,7 @@ export default class SubtitleContainer {
                 return;
             }
 
-            if (this.showingLoadedMessage) {
+            if (this.lastLoadedMessageTimestamp > 0 && Date.now() - this.lastLoadedMessageTimestamp < 1000) {
                 return;
             }
 
@@ -23,6 +26,8 @@ export default class SubtitleContainer {
                 return;
             }
 
+            const showOffset = this.lastOffsetChangeTimestamp > 0 && Date.now() - this.lastOffsetChangeTimestamp < 1000;
+            const offset = showOffset ? this._computeOffset() : 0;
             const now = 1000 * this.video.currentTime;
             const showingSubtitles = [];
 
@@ -34,10 +39,19 @@ export default class SubtitleContainer {
                 }
             }
 
-            if (!this._arrayEquals(showingSubtitles, this.showingSubtitles)) {
+            if (!this._arrayEquals(showingSubtitles, this.showingSubtitles) ||
+                showOffset && offset !== this.showingOffset ||
+                !showOffset && this.showingOffset !== null) {
                 const html = showingSubtitles.join('<br />');
                 this._subtitlesHtml(html);
                 this.showingSubtitles = showingSubtitles;
+
+                if (showOffset) {
+                    this._appendSubtitlesHtml(this._formatOffset(offset));
+                    this.showingOffset = offset;
+                } else {
+                    this.showingOffset = null;
+                }
             }
         }, 100);
     }
@@ -77,20 +91,61 @@ export default class SubtitleContainer {
         return subtitle;
     }
 
+    offset(offset) {
+        if (!this.subtitles || this.subtitles.length === 0) {
+            return;
+        }
+
+        this.subtitles = this.subtitles.map(s => ({
+            text: s.text,
+            start: s.originalStart + offset,
+            originalStart: s.originalStart,
+            end: s.originalEnd + offset,
+            originalEnd: s.originalEnd
+        }));
+
+        chrome.runtime.sendMessage({
+            sender: 'asbplayer-video',
+            message: {
+                command: 'offset',
+                value: offset
+            },
+            src: this.video.src
+        });
+
+        this.lastOffsetChangeTimestamp = Date.now();
+    }
+
+    _computeOffset() {
+        if (!this.subtitles || this.subtitles.length === 0) {
+            return 0;
+        }
+
+        const s = this.subtitles[0];
+        return s.start - s.originalStart;
+    }
+
+    _formatOffset(offset) {
+        return offset >= 0 ? "+" + offset + " ms" :  offset + " ms";
+    }
+
     showLoadedMessage(message) {
         this._subtitlesHtml(message);
-        this.showingLoadedMessage = true;
-        setTimeout(() => {
-            if (this.showingLoadedMessage) {
-                this._subtitlesHtml("");
-                this.showingLoadedMessage = false;
-            }
-        }, 1000);
+        this.lastLoadedMessageTimestamp = Date.now();
     }
 
     _subtitlesHtml(html) {
         this._subtitlesElement().innerHTML = html;
         this._fullscreenSubtitlesElement().innerHTML = html;
+    }
+
+    _appendSubtitlesHtml(html) {
+        const currentHtml = this._subtitlesElement().innerHTML;
+        const newHtml = currentHtml && currentHtml.length > 0
+            ? currentHtml + "<br>" + html
+            : html;
+        this._subtitlesElement().innerHTML = newHtml;
+        this._fullscreenSubtitlesElement().innerHTML = newHtml;
     }
 
     _subtitlesElement() {

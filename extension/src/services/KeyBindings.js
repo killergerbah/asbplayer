@@ -39,6 +39,29 @@ export default class KeyBindings {
             true
         );
 
+        this.unbindOffsetToSubtitle = CommonKeyBindings.bindOffsetToSubtitle(
+            (event, offset) => {
+                event.preventDefault();
+                event.stopPropagation();
+                context.subtitleContainer.offset(offset);
+            },
+            () => false,
+            () => context.video.currentTime,
+            () => context.subtitleContainer.subtitles,
+            true
+        );
+
+        this.unbindAdjustOffset = CommonKeyBindings.bindAdjustOffset(
+            (event, offset) => {
+                event.preventDefault();
+                event.stopPropagation();
+                context.subtitleContainer.offset(offset);
+            },
+            () => false,
+            () => context.subtitleContainer.subtitles,
+            true
+        );
+
         this.bound = true;
     }
 
@@ -51,6 +74,16 @@ export default class KeyBindings {
         if (this.unbindToggleSubtitles) {
             this.unbindToggleSubtitles();
             this.unbindToggleSubtitles = null;
+        }
+
+        if (this.unbindOffsetToSubtitle) {
+            this.unbindOffsetToSubtitle();
+            this.unbindOffsetToSubtitle = null;
+        }
+
+        if (this.unbindAdjustOffset) {
+            this.unbindAdjustOffset();
+            this.unbindAdjustOffset = null;
         }
 
         this.bound = false;

@@ -6,13 +6,13 @@ export default class KeyEvents {
     }
 
     static detectDecreaseOffset(event) {
-        // Ctrl + Shift + Left
-        return event.ctrlKey && event.shiftKey && event.keyCode === 37;
+        // Ctrl + Shift + Right
+        return event.ctrlKey && event.shiftKey && event.keyCode === 39;
     }
 
     static detectIncreaseOffset(event) {
-        // Ctrl + Shift + Right
-        return event.ctrlKey && event.shiftKey && event.keyCode === 39;
+        // Ctrl + Shift + Left
+        return event.ctrlKey && event.shiftKey && event.keyCode === 37;
     }
 
     static detectDecreaseOffsetToPreviousSubtitle(event) {
