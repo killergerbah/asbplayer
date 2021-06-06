@@ -21,12 +21,18 @@ export default class SubtitleContainer {
                 return;
             }
 
-            if (!this.displaySubtitles) {
+            if (this.showingLoadedMessage) {
+                this._subtitlesHtml("");
+                this.showingLoadedMessage = false;
+            }
+
+            const showOffset = this.lastOffsetChangeTimestamp > 0 && Date.now() - this.lastOffsetChangeTimestamp < 1000;
+
+            if (!showOffset && !this.displaySubtitles) {
                 this._hideSubtitles();
                 return;
             }
 
-            const showOffset = this.lastOffsetChangeTimestamp > 0 && Date.now() - this.lastOffsetChangeTimestamp < 1000;
             const offset = showOffset ? this._computeOffset() : 0;
             const now = 1000 * this.video.currentTime;
             const showingSubtitles = [];
@@ -131,6 +137,7 @@ export default class SubtitleContainer {
 
     showLoadedMessage(message) {
         this._subtitlesHtml(message);
+        this.showingLoadedMessage = true;
         this.lastLoadedMessageTimestamp = Date.now();
     }
 
