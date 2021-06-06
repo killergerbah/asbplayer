@@ -78,8 +78,6 @@ export default class KeyBindings {
             const subtitle = KeyBindings._adjacentSubtitle(forward, time, subtitles);
 
             if (subtitle !== null) {
-                event.preventDefault();
-                event.stopPropagation();
                 const subtitleStart = subtitle.originalStart;
                 const newOffset = Math.round(1000 * time) - subtitleStart;
                 onOffsetChange(event, newOffset);
@@ -138,8 +136,6 @@ export default class KeyBindings {
                 return;
             }
 
-            event.preventDefault();
-            event.stopPropagation();
             const currentOffset = subtitles[0].start - subtitles[0].originalStart;
             const newOffset = currentOffset + (increase ? 100 : -100);
             onOffsetChange(event, newOffset);

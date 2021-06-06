@@ -351,6 +351,7 @@ export default function VideoPlayer(props) {
     useEffect(() => {
         const unbind = KeyBindings.bindSeekToSubtitle(
             (event, subtitle) => {
+                event.stopPropagation();
                 event.preventDefault();
                 playerChannel.currentTime = subtitle.start / 1000;
             },

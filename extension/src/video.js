@@ -965,7 +965,7 @@ class KeyBindings {
             },
             () => false,
             () => context.video.currentTime,
-            () => context.subtitles,
+            () => context.subtitleContainer.subtitles,
             true
         );
 
