@@ -4,9 +4,9 @@
     "version": "0.9.0",
     "manifest_version": 2,
     "icons": {
-        "16": "icon16.png",
-        "48": "icon48.png",
-        "128": "icon128.png"
+        "16": "assets/icon16.png",
+        "48": "assets/icon48.png",
+        "128": "assets/icon128.png"
     },
     "permissions": ["tabs", "tabCapture", "activeTab", "storage"],
     "browser_action": {
@@ -40,5 +40,5 @@
             "description": "Copy current subtitle."
         }
     },
-    "web_accessible_resources": ["netflix.js", "drag-image.png"]
+    "web_accessible_resources": ["netflix.js", "assets/drag-image.png"]
 }
