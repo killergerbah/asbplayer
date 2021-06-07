@@ -142,6 +142,10 @@ export default function HelpDialog(props) {
                                 <TableCell><Typography>Play/pause</Typography></TableCell>
                             </TableRow>
                             <TableRow>
+                                <TableCell><Typography>S</Typography></TableCell>
+                                <TableCell><Typography>Toggle subtitles</Typography></TableCell>
+                            </TableRow>
+                            <TableRow>
                                 <TableCell><Typography>Left/Right</Typography></TableCell>
                                 <TableCell><Typography>Seek to previous/next subtitle</Typography></TableCell>
                             </TableRow>
@@ -151,7 +155,7 @@ export default function HelpDialog(props) {
                             </TableRow>
                             <TableRow>
                                 <TableCell><Typography>Ctrl+Shift+Left/Right</Typography></TableCell>
-                                <TableCell><Typography>Adjust offset by +/-100 ms</Typography></TableCell>
+                                <TableCell><Typography>Adjust offset by +/- 100 ms</Typography></TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
