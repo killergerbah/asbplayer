@@ -447,6 +447,7 @@ export default function Controls({
     const [lastCommittedVolume, setLastCommittedVolume] = useState(100);
     const lastMousePositionRef = useRef({x: 0, y: 0});
     const lastShowTimestampRef = useRef(Date.now());
+    const lastOffsetInputChangeTimestampRef = useRef(Date.now());
     const lastShowRef = useRef(true);
     const forceShowRef = useRef(false);
     const offsetInputRef = useRef();
@@ -477,11 +478,13 @@ export default function Controls({
 
     useEffect(() => {
         const interval = setInterval(() => {
-            const currentShow = Date.now() - lastShowTimestampRef.current < 2000
+            const now = Date.now();
+            const currentShow = now - lastShowTimestampRef.current < 2000
                 || Math.pow(mousePositionRef.current.x - lastMousePositionRef.current.x, 2)
                     + Math.pow(mousePositionRef.current.y - lastMousePositionRef.current.y, 2) > 100
                 || forceShowRef.current
                 || offsetInputRef.current === document.activeElement
+                || now - lastOffsetInputChangeTimestampRef.current < 2000
 
             if (currentShow && !lastShowRef.current) {
                 lastShowTimestampRef.current = Date.now();
@@ -552,6 +555,7 @@ export default function Controls({
                 const offsetSeconds = offset / 1000;
                 const value = offsetSeconds >= 0 ? "+" + offsetSeconds.toFixed(2) : String(offsetSeconds.toFixed(2));
                 offsetInputRef.current.value = value;
+                lastOffsetInputChangeTimestampRef.current = Date.now();
             }
         }
     }, [offset]);
