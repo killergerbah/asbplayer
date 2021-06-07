@@ -26,7 +26,7 @@ asbplayer is hosted at [https://killergerbah.github.io/asbplayer/](https://kille
 
 ## Browser compatibility
 
-- The asbplayer application and the asbplayer extension has only been tested and Chrome 91 and later.
+- The asbplayer application and the asbplayer extension has only been tested on Chrome 91 and later.
 - The asbplayer application and the asbplayer extension may work on other Chromium-based browsers.
 - Local video file playback is supported only for codecs supported by the browser.
 - Audio track selection for `mkv` files is available if experimental web platform features are enabled from [chrome://flags](chrome://flags).

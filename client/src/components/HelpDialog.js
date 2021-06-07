@@ -190,7 +190,7 @@ export default function HelpDialog(props) {
                 </Typography>
                 <Typography component="ul">
                     <li>
-                        The asbplayer application and the asbplayer extension has only been tested and Chrome 91 and later.
+                        The asbplayer application and the asbplayer extension has only been tested on Chrome 91 and later.
                     </li>
                     <li>
                         The asbplayer application and the asbplayer extension may work on other Chromium-based browsers.
