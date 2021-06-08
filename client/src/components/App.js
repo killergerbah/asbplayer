@@ -67,6 +67,8 @@ function extractSources(files) {
                 subtitleFile = f;
                 break;
             case "mkv":
+            case "mp4":
+            case "avi":
                 if (videoFile) {
                     throw new Error('Cannot open two video files simultaneously');
                 }
@@ -74,6 +76,11 @@ function extractSources(files) {
                 break;
             case "mp3":
             case "m4a":
+            case "aac":
+            case "flac":
+            case "ogg":
+            case "wav":
+            case "opus":
                 if (audioFile) {
                     throw new Error('Cannot open two audio files simultaneously');
                 }
@@ -638,7 +645,7 @@ function App() {
                                     ref={fileInputRef}
                                     onChange={handleFileInputChange}
                                     type="file"
-                                    accept=".srt,.ass,.vtt,.mp3,.m4a,.mkv"
+                                    accept=".srt,.ass,.vtt,.mp3,.m4a,.aac,.flac,.ogg,.wav,.opus,.mkv,.mp4,.avi"
                                     multiple
                                     hidden
                                 />
