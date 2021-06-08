@@ -313,7 +313,7 @@ export default function VideoPlayer(props) {
         }
 
         const interval = setInterval(() => {
-            const now = 1000 * videoRef.current.currentTime;
+            const now = clock.time(length);
             const showSubtitles = [];
 
             for (let i = 0; i < subtitles.length; ++i) {
@@ -334,7 +334,7 @@ export default function VideoPlayer(props) {
         }, 10)
 
         return () => clearTimeout(interval);
-    }, [subtitles]);
+    }, [subtitles, clock, length]);
 
     const handleOffsetChange = useCallback((offset) => {
         setOffset(offset);
