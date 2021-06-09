@@ -177,15 +177,6 @@ export default function HelpDialog(props) {
                 </Typography>
                 <br />
                 <Typography variant="h6">
-                    Guides
-                </Typography>
-                <Typography component="ul">
-                    <li>
-                        <Link color="secondary" target="_blank" rel="noreferrer" href="https://learnjapanese.moe/streamworkflow/">Sentence mining streaming workflow</Link>
-                    </li>
-                </Typography>
-                <br />
-                <Typography variant="h6">
                     Browser Compatibility
                 </Typography>
                 <Typography component="ul">
