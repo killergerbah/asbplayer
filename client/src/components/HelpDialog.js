@@ -169,13 +169,13 @@ export default function HelpDialog(props) {
                 </Typography>
                 <Typography component="ul">
                     <li>
-                        <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=7v0Hly_Q_Bs">Sentence mining video files</Link>
-                    </li>
-                    <li>
                         <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=m55HbFJMilk">Sentence mining streaming video</Link>
                     </li>
                     <li>
                         <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=kJXVVixD8H8">Sentence mining streaming video (drag and drop)</Link>
+                    </li>
+                    <li>
+                        <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=HsrrpnfM4pI">Sentence mining video files</Link>
                     </li>
                 </Typography>
                 <br />
