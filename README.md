@@ -22,20 +22,25 @@ The below information can also be found in the application by clicking on the qu
 - Multiple files can be dragged and dropped simultaneously e.g. mkv+srt, mp3+ass, etc.
 
 ### Syncing with streaming video in another tab
-- Install the Chrome extension.
+- Install the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/tag/latest).
 - Drag-and-drop a subtitle file into the video element you want to sync.
 - Or, load a subtitle file into asbplayer
 - Use the camera button in the bottom right.
 - If the icon does not appear try refreshing the video in the other tab.
-- It is recommended to use the extension keyboard shortcut (Ctrl+Alt+Z by default) to mine subtitles since that will include audio/screenshots. If the keyboard shortcut is not working for some reason try:
+- It is recommended to use the extension keyboard shortcut (`Ctrl+Alt+Z` by default) to mine subtitles since that will include audio/screenshots. If the keyboard shortcut is not working for some reason try:
     - Uninstalling and reinstalling the extension and restarting Chrome.
-    - Verifying the keyboard shortcut is bound as in this video.
+    - Verifying the keyboard shortcut is bound as in this [video](https://youtu.be/wYWbgovfNlI).
     
 ### Anki
 - Use the star button in the copy history.
 - Audio/image will be exported only if an audio/image source was available when the subtitle was copied.
-- Specifically, for synced streaming video, an audio/image will only be available if the extension keyboard shortcut was used (Ctrl+Alt+Z by default).
-- Configure Anki settings with the settings button in the top right. See this video for how to configure AnkiConnect so that asbplayer can connect to Anki.
+- Specifically, for synced streaming video, an audio/image will only be available if the extension keyboard shortcut was used (`Ctrl+Alt+Z` by default).
+- Configure Anki settings with the settings button in the top right. See this [video](https://youtu.be/Mv7fEVb6PHo?t=44) for how to configure AnkiConnect so that asbplayer can connect to Anki.
+
+### Changing subtitle offset
+- Use `Ctrl+Left/Right` to cause the previous/next subtitle to appear at the current timestamp.
+- Use `Ctrl+Shift+Left/Right` to adjust timing further by 100 ms increments.
+- Or, click on the subtitle offset input field in the controls, type a number, and hit `Enter`.
 
 ### Condensed playback of local media files
 - Load an audio/video file with a subtitle file.

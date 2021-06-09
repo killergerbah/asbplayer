@@ -102,10 +102,13 @@ export default function HelpDialog(props) {
                 </Typography>
                 <Typography component="ul">
                     <li>
-                        Click on the subtitle offset input field in the controls.
+                        Use Ctrl+Left/Right to cause the previous/next subtitle to appear at the current timestamp.
                     </li>
                     <li>
-                        Type in a number and hit enter.
+                        Use Ctrl+Shift+Left/Right to adjust timing further by 100 ms increments.
+                    </li>
+                    <li>
+                        Or, click on the subtitle offset input field in the controls, type a number, and hit Enter.
                     </li>
                 </Typography>
                 <br />
