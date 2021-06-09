@@ -512,7 +512,7 @@ export default function Player(props) {
 
     const length = lengthRef.current;
     const loaded = audioFileUrl || videoFileUrl || subtitles;
-    const videoInWindow = loaded && videoFileUrl && channelId && !videoPopOut;
+    const videoInWindow = loaded && videoFileUrl && !videoPopOut;
 
     return (
         <div
