@@ -52,6 +52,17 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
+const useCopyHistoryTooltipStyles = makeStyles((theme) => ({
+    tooltip: ({show}) => ({
+        display: show ? 'block' : 'none',
+    }),
+}));
+
+function CopyHistoryTooltip({show, ...toolTipProps}) {
+    const classes = useCopyHistoryTooltipStyles({show: show});
+    return <Tooltip classes={classes} {...toolTipProps} />;
+}
+
 export default function Bar(props) {
     const classes = useStyles(props);
     return (
@@ -105,19 +116,19 @@ export default function Bar(props) {
                         <SettingsIcon />
                     </IconButton>
                 </Tooltip>
-                <Tooltip title="Copy History">
+                <CopyHistoryTooltip title="Copy History" show={!props.drawerOpen}>
                     <IconButton
                         edge="end"
                         color="inherit"
                         aria-label="menu"
-                        onClick={props.onOpenCopyHistory}
                         className={clsx(classes.copyHistoryButton, {
                             [classes.copyHistoryButtonShift]: props.drawerOpen,
                         })}
+                        onClick={props.onOpenCopyHistory}
                     >
                         <ListIcon />
                     </IconButton>
-                </Tooltip>
+                </CopyHistoryTooltip>
             </Toolbar>
         </AppBar>
     );

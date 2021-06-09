@@ -215,7 +215,7 @@ export default function CopyHistory(props) {
             <div className={classes.emptyState}>
                 <Typography variant="h6">Copy history is empty.</Typography>
                 <Typography variant="caption">
-                    See the help for keyboard shortcuts or use the copy button next to the subtitle.
+                    See the help for keyboard shortcuts.
                 </Typography>
             </div>
         );

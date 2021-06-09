@@ -65,8 +65,8 @@ The below information can also be found in the application by clicking on the qu
 
 ### Browser compatibility
 
-- The asbplayer application and the asbplayer extension has only been tested on Chrome 91 and later.
-- The asbplayer application and the asbplayer extension may work on other Chromium-based browsers.
+- The asbplayer application and extension have only been tested on Chrome 91 and later.
+- The asbplayer application and extension may work on other Chromium-based browsers.
 - Local video file playback is supported only for codecs supported by the browser.
 - Audio track selection for `mkv` files is available if experimental web platform features are enabled from [chrome://flags](chrome://flags).
 

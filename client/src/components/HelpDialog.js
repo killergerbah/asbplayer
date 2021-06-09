@@ -184,10 +184,10 @@ export default function HelpDialog(props) {
                 </Typography>
                 <Typography component="ul">
                     <li>
-                        The asbplayer application and the asbplayer extension has only been tested on Chrome 91 and later.
+                        The asbplayer application and extension have only been tested on Chrome 91 and later.
                     </li>
                     <li>
-                        The asbplayer application and the asbplayer extension may work on other Chromium-based browsers.
+                        The asbplayer application and extension may work on other Chromium-based browsers.
                     </li>
                     <li>
                         Local video file playback is supported only for codecs supported by the browser.
