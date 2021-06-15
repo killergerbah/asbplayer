@@ -79,6 +79,7 @@ class FileAudioData {
         }
 
         const audio = this._audioElement(this._blob);
+        audio.currentTime = 0;
         await audio.play();
         await this._stopAudio(audio);
     }
