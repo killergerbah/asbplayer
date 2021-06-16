@@ -54,7 +54,7 @@ export default class Anki {
         return `"${escaped}"`
     }
 
-    async export(text, definition, audioClip, image, word, source, customFieldValues, gui, ankiConnectUrl) {
+    async export(text, definition, audioClip, image, word, source, customFieldValues, mode, ankiConnectUrl) {
         const fields = {};
 
         this._appendField(fields, this.settingsProvider.sentenceField, text, true);
@@ -82,6 +82,8 @@ export default class Anki {
                 }
             }
         };
+
+        const gui = mode === 'gui';
 
         if (this.settingsProvider.audioField && audioClip) {
             if (gui) {
@@ -114,8 +116,31 @@ export default class Anki {
         }
 
         params.note.fields = fields;
-        const response = await this._executeAction(gui ? 'guiAddCards' : 'addNote', params, ankiConnectUrl);
-        return response.result;
+
+        switch (mode) {
+            case 'gui':
+                return (await this._executeAction('guiAddCards', params, ankiConnectUrl)).result;
+            case 'updateLast':
+                const recentNotes = (await this._executeAction(
+                    'findNotes',
+                    {query: 'added:1'},
+                    ankiConnectUrl
+                )).result.sort();
+
+                if (recentNotes.length === 0) {
+                    throw new Error('Could not find note to update');
+                }
+
+                const lastNoteId = recentNotes[recentNotes.length - 1];
+                params.note.id = lastNoteId;
+                await this._executeAction('updateNoteFields', params, ankiConnectUrl);
+                return lastNoteId;
+            case 'default':
+                return (await this._executeAction('addNote', params, ankiConnectUrl)).result;
+            default:
+                throw new Error('Unknown export mode: ' + mode);
+        }
+
     }
 
     _appendField(fields, fieldName, value, multiline) {

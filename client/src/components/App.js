@@ -99,6 +99,9 @@ function extractSources(files) {
 }
 
 function audioClipFromItem(item, offset) {
+    console.log("audioClipFromItem");
+    console.log(offset);
+    console.log(item);
     if (item.audio) {
         return AudioClip.fromBase64(
             item.subtitleFile,
@@ -357,7 +360,7 @@ function App() {
         }
     }, [ankiDialogRequestedToVideo]);
 
-    const handleAnkiDialogProceed = useCallback(async (text, definition, audioClip, image, word, source, customFieldValues, gui) => {
+    const handleAnkiDialogProceed = useCallback(async (text, definition, audioClip, image, word, source, customFieldValues, mode) => {
         setAnkiDialogDisabled(true);
 
         try {
@@ -369,12 +372,16 @@ function App() {
                 word,
                 source,
                 customFieldValues,
-                gui
+                mode
             );
 
-            if (!gui) {
+            if (mode === 'default') {
                 setAlertSeverity("success");
                 setAlert("Export succeeded: " + result);
+                setAlertOpen(true);
+            } else if (mode === 'updateLast') {
+                setAlertSeverity("success");
+                setAlert("Update succeeded: " + result);
                 setAlertOpen(true);
             }
 

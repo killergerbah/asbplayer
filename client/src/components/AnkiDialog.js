@@ -251,13 +251,19 @@ export default function AnkiDialog({
                 </Button>
                 <Button
                     disabled={disabled}
-                    onClick={() => onProceed(text, definition, audioClip, image, word, source, customFieldValues, true)}
+                    onClick={() => onProceed(text, definition, audioClip, image, word, source, customFieldValues, 'gui')}
                 >
                     Open in Anki
                 </Button>
                 <Button
                     disabled={disabled}
-                    onClick={() => onProceed(text, definition, audioClip, image, word, source, customFieldValues, false)}
+                    onClick={() => onProceed(text, definition, audioClip, image, word, source, customFieldValues, 'updateLast')}
+                >
+                    Update Last Card
+                </Button>
+                <Button
+                    disabled={disabled}
+                    onClick={() => onProceed(text, definition, audioClip, image, word, source, customFieldValues, 'default')}
                 >
                     Export
                 </Button>
