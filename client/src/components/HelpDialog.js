@@ -138,6 +138,10 @@ export default function HelpDialog(props) {
                                 <TableCell><Typography>Copy current subtitle</Typography></TableCell>
                             </TableRow>
                             <TableRow>
+                                <TableCell><Typography>Ctrl+Shift+Q</Typography></TableCell>
+                                <TableCell><Typography>Open Anki export dialog</Typography></TableCell>
+                            </TableRow>
+                            <TableRow>
                                 <TableCell><Typography>Ctrl+Shift+Z</Typography></TableCell>
                                 <TableCell><Typography>Copy current subtitle (streaming video in another tab)</Typography></TableCell>
                             </TableRow>
