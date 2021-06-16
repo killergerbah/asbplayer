@@ -32,7 +32,8 @@ export default function HelpDialog(props) {
     return (
         <Dialog
             open={open}
-            onBackdropClick={() => onClose()}
+            onBackdropClick={onClose}
+            onEscapeKeyDown={onClose}
         >
             <DialogContent>
                 <Typography variant="h6">

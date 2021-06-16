@@ -65,7 +65,8 @@ export default function ImageDialog(props) {
     return (
         <Dialog
             open={open}
-            onBackdropClick={() => onClose()}
+            onBackdropClick={onClose}
+            onEscapeKeyDown={onClose}
             maxWidth='lg'
         >
             <Card>

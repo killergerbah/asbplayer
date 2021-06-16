@@ -131,7 +131,8 @@ export default function AnkiDialog({
             disableEnforceFocus
             fullWidth
             maxWidth="sm"
-            onBackdropClick={() => onCancel()}
+            onBackdropClick={onCancel}
+            onEscapeKeyDown={onCancel}
         >
             <Toolbar>
             <Typography

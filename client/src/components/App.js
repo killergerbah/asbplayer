@@ -99,9 +99,6 @@ function extractSources(files) {
 }
 
 function audioClipFromItem(item, offset) {
-    console.log("audioClipFromItem");
-    console.log(offset);
-    console.log(item);
     if (item.audio) {
         return AudioClip.fromBase64(
             item.subtitleFile,

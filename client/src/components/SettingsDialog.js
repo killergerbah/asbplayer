@@ -278,6 +278,7 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                 maxWidth="xs"
                 fullWidth
                 onBackdropClick={handleClose}
+                onEscapeKeyDown={handleClose}
             >
                 <DialogTitle>
                     Settings
