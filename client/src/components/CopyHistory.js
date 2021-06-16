@@ -4,7 +4,6 @@ import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight'
 import IconButton from '@material-ui/core/IconButton';
-import DeleteIcon from '@material-ui/icons/Delete';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -62,7 +61,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function Menu(props) {
-    const {open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage, item} = props;
+    const {open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage, onDelete, item} = props;
 
     const handleCopy = useCallback(() => {
         navigator.clipboard.writeText(item.text);
@@ -83,6 +82,11 @@ function Menu(props) {
         onDownloadImage(item);
         onClose();
     }, [item, onDownloadImage, onClose]);
+
+    const handleDelete = useCallback(() => {
+        onDelete(item);
+        onClose();
+    }, [item, onDelete, onClose]);
 
     if (!item) {
         return null;
@@ -119,6 +123,9 @@ function Menu(props) {
                         <ListItemText primaryTypographyProps={{variant: "body2"}} primary="Download Image" />
                     </ListItem>
                 )}
+                <ListItem button onClick={handleDelete}>
+                    <ListItemText primaryTypographyProps={{variant: "body2"}} primary="Delete" />
+                </ListItem>
             </List>
         </Popover>
     );
@@ -194,11 +201,7 @@ export default function CopyHistory(props) {
                         </IconButton>
                     </ListItemIcon>
                     <ListItemText>{item.text}</ListItemText>
-                    <ListItemIcon classes={{root: classes.listItemIconRoot}}>
-                        <IconButton onClick={() => handleDelete(item)}>
-                            <DeleteIcon fontSize="small" />
-                        </IconButton>
-                    </ListItemIcon>
+
                 </ListItem>
             ));
 
@@ -248,6 +251,7 @@ export default function CopyHistory(props) {
                 onSelect={props.onSelect}
                 onClipAudio={props.onClipAudio}
                 onDownloadImage={props.onDownloadImage}
+                onDelete={handleDelete}
             />
         </React.Fragment>
     );
