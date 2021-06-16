@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { v4 as uuidv4 } from 'uuid';
+import { KeyBindings } from '@project/common';
 import BroadcastChannelVideoProtocol from '../services/BroadcastChannelVideoProtocol';
 import ChromeTabVideoProtocol from '../services/ChromeTabVideoProtocol';
 import Clock from '../services/Clock';
@@ -79,7 +80,7 @@ function trackLength(audioRef, videoRef, subtitles, useOffset) {
 }
 
 export default function Player(props) {
-    const {subtitleReader, settingsProvider, extension, videoFrameRef, drawerOpen, tab, availableTabs, onError, onUnloadVideo, onCopy, onLoaded, onTabSelected, onOffset, disableKeyEvents} = props;
+    const {subtitleReader, settingsProvider, extension, videoFrameRef, drawerOpen, tab, availableTabs, ankiDialogRequestToVideo, ankiDialogFinishedRequestToVideo, onError, onUnloadVideo, onCopy, onLoaded, onTabSelected, onOffset, onAnkiDialogRequest, disableKeyEvents} = props;
     const {subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl} = props.sources;
     const [subtitles, setSubtitles] = useState();
     const subtitlesRef = useRef();
@@ -300,6 +301,7 @@ export default function Player(props) {
 
                             setSelectedAudioTrack(id);
                         });
+                        channel.onAnkiDialogRequest((forwardToVideo) => onAnkiDialogRequest(forwardToVideo));
 
                         subscribed = true;
                     }
@@ -313,7 +315,19 @@ export default function Player(props) {
             channel?.close();
             channelClosed = true;
         };
-    }, [subtitleReader, extension, settingsProvider, clock, mediaAdapter, seek, onLoaded, onError, onUnloadVideo, onCopy, subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef, applyOffset]);
+    }, [subtitleReader, extension, settingsProvider, clock, mediaAdapter, seek, onLoaded, onError, onUnloadVideo, onCopy, onAnkiDialogRequest, subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef, applyOffset]);
+
+    useEffect(() => {
+        if (ankiDialogRequestToVideo) {
+            videoRef.current?.ankiDialogRequest();
+        }
+    }, [ankiDialogRequestToVideo]);
+
+    useEffect(() => {
+        if (ankiDialogFinishedRequestToVideo) {
+            videoRef.current?.finishedAnkiDialogRequest();
+        }
+    }, [ankiDialogFinishedRequestToVideo]);
 
     useEffect(() => {
         if (!condensedModeEnabled) {
@@ -458,6 +472,15 @@ export default function Player(props) {
             selectedAudioTrack
         );
     }, [onCopy, audioFile, videoFile, subtitleFile, selectedAudioTrack]);
+
+    useEffect(() => {
+        const unbind = KeyBindings.bindAnkiExport(
+            () => onAnkiDialogRequest(),
+            () => false
+        );
+
+        return () => unbind();
+    }, [onAnkiDialogRequest]);
 
     const handleMouseMove = useCallback((e) => {
         mousePositionRef.current.x = e.screenX;

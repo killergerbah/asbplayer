@@ -22,6 +22,20 @@ export default class KeyBindings {
         }, useCapture);
     }
 
+    static bindAnkiExport(onAnkiExport, disabledGetter, useCapture = false) {
+        return KeyBindings._bind((event) => {
+            if (disabledGetter()) {
+                return;
+            }
+
+            if (!KeyEvents.detectAnkiExport(event)) {
+                return;
+            }
+
+            onAnkiExport();
+        }, useCapture);
+    }
+
     static bindSeekToSubtitle(onSeekToSubtitle, disabledGetter, timeGetter, subtitlesGetter, useCapture = false) {
         return KeyBindings._bind((event) => {
             if (disabledGetter()) {

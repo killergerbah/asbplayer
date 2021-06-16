@@ -18,6 +18,7 @@ export default class VideoChannel {
         this.copyCallbacks = [];
         this.condensedModeToggleCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
+        this.ankiDialogRequestCallbacks = [];
 
         const that = this;
 
@@ -95,6 +96,11 @@ export default class VideoChannel {
                 case 'sync':
                     // ignore
                     break;
+                case 'ankiDialogRequest':
+                    for (let callback of that.ankiDialogRequestCallbacks) {
+                        callback(event.data.forwardToVideo);
+                    }
+                    break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }
@@ -158,6 +164,10 @@ export default class VideoChannel {
         this.hideSubtitlePlayerToggleCallbacks.push(callback);
     }
 
+    onAnkiDialogRequest(callback) {
+        this.ankiDialogRequestCallbacks.push(callback);
+    }
+
     ready(duration) {
         this.protocol.postMessage({command: 'ready', duration: duration});
     }
@@ -194,8 +204,28 @@ export default class VideoChannel {
         this.protocol.postMessage({command: 'hideSubtitlePlayerToggle', value: hidden});
     }
 
+    ankiDialogRequest() {
+        this.protocol.postMessage({command: 'ankiDialogRequest'});
+    }
+
+    finishedAnkiDialogRequest() {
+        this.protocol.postMessage({command: 'finishedAnkiDialogRequest'});
+    }
+
     close() {
         this.protocol.postMessage({command: 'close'});
         this.protocol.close();
+        this.readyCallbacks = [];
+        this.playCallbacks = [];
+        this.pauseCallbacks = [];
+        this.currentTimeCallbacks = [];
+        this.audioTrackSelectedCallbacks = [];
+        this.exitCallbacks = [];
+        this.offsetCallbacks = [];
+        this.popOutToggleCallbacks = [];
+        this.copyCallbacks = [];
+        this.condensedModeToggleCallbacks = [];
+        this.hideSubtitlePlayerToggleCallbacks = [];
+        this.ankiDialogRequestCallbacks = [];
     }
 }

@@ -191,6 +191,8 @@ function App() {
     const minDrawerSize = videoFrameRef.current ? 150 : 300;
     const drawerWidth = Math.max(minDrawerSize, width * drawerRatio);
     const [copiedSubtitles, setCopiedSubtitles] = useState([]);
+    const copiedSubtitlesRef = useRef();
+    copiedSubtitlesRef.current = copiedSubtitles;
     const [copyHistoryOpen, setCopyHistoryOpen] = useState(false);
     const [alert, setAlert] = useState();
     const [alertOpen, setAlertOpen] = useState(false);
@@ -207,6 +209,9 @@ function App() {
     const [ankiDialogItem, setAnkiDialogItem] = useState();
     const ankiDialogAudioClip = useMemo(() => ankiDialogItem && audioClipFromItem(ankiDialogItem, offset), [ankiDialogItem, offset]);
     const ankiDialogImage = useMemo(() => ankiDialogItem && imageFromItem(ankiDialogItem, offset), [ankiDialogItem, offset]);
+    const [ankiDialogRequestToVideo, setAnkiDialogRequestToVideo] = useState();
+    const [ankiDialogRequestedToVideo, setAnkiDialogRequestedToVideo] = useState(false);
+    const [ankiDialogFinishedRequestToVideo, setAnkiDialogFinishedRequestToVideo] = useState(0);
     const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
     const [helpDialogOpen, setHelpDialogOpen] = useState(false);
     const [imageDialogOpen, setImageDialogOpen] = useState(false);
@@ -345,7 +350,12 @@ function App() {
         setAnkiDialogOpen(false);
         setAnkiDialogDisabled(false);
         setDisableKeyEvents(false);
-    }, []);
+
+        if (ankiDialogRequestedToVideo) {
+            setAnkiDialogFinishedRequestToVideo(Date.now());
+            setAnkiDialogRequestedToVideo(false);
+        }
+    }, [ankiDialogRequestedToVideo]);
 
     const handleAnkiDialogProceed = useCallback(async (text, definition, audioClip, image, word, source, customFieldValues, gui) => {
         setAnkiDialogDisabled(true);
@@ -369,6 +379,11 @@ function App() {
             }
 
             setAnkiDialogOpen(false);
+
+            if (ankiDialogRequestedToVideo) {
+                setAnkiDialogFinishedRequestToVideo(Date.now());
+                setAnkiDialogRequestedToVideo(false);
+            }
         } catch (e) {
             console.error(e);
             handleError(e.message);
@@ -376,7 +391,24 @@ function App() {
             setAnkiDialogDisabled(false);
             setDisableKeyEvents(false);
         }
-    }, [anki, handleError]);
+    }, [anki, handleError, ankiDialogRequestedToVideo]);
+
+    const handleAnkiDialogRequest = useCallback((forwardToVideo) => {
+        if (copiedSubtitlesRef.current.length === 0) {
+            return;
+        }
+
+        const item = copiedSubtitlesRef.current[copiedSubtitlesRef.current.length - 1];
+        setAnkiDialogItem(item);
+        setAnkiDialogOpen(true);
+        setAnkiDialogDisabled(false);
+        setDisableKeyEvents(true);
+
+        if (forwardToVideo) {
+            setAnkiDialogRequestToVideo(Date.now());
+            setAnkiDialogRequestedToVideo(true);
+        }
+    }, []);
 
     const handleViewImage = useCallback((image) => {
         setImage(image);
@@ -673,6 +705,7 @@ function App() {
                                         onLoaded={handleSourcesLoaded}
                                         onTabSelected={handleTabSelected}
                                         onOffset={setOffset}
+                                        onAnkiDialogRequest={handleAnkiDialogRequest}
                                         tab={tab}
                                         availableTabs={availableTabs}
                                         sources={sources}
@@ -681,6 +714,8 @@ function App() {
                                         extension={extension}
                                         drawerOpen={copyHistoryOpen}
                                         disableKeyEvents={disableKeyEvents}
+                                        ankiDialogRequestToVideo={ankiDialogRequestToVideo}
+                                        ankiDialogFinishedRequestToVideo={ankiDialogFinishedRequestToVideo}
                                     />
                                 </Content>
                             </div>

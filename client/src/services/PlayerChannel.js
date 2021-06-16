@@ -13,6 +13,8 @@ export default class PlayerChannel {
         this.subtitlesCallbacks = [];
         this.condensedModeToggleCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
+        this.ankiDialogRequestCallbacks = [];
+        this.finishedAnkiDialogRequestCallbacks = [];
 
         const that = this;
 
@@ -69,6 +71,16 @@ export default class PlayerChannel {
                         callback(event.data.value);
                     }
                     break;
+                case 'ankiDialogRequest':
+                    for (let callback of that.ankiDialogRequestCallbacks) {
+                        callback();
+                    }
+                    break;
+                case 'finishedAnkiDialogRequest':
+                    for (let callback of that.finishedAnkiDialogRequestCallbacks) {
+                        callback();
+                    }
+                    break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }
@@ -120,6 +132,14 @@ export default class PlayerChannel {
         this.hideSubtitlePlayerToggleCallbacks.push(callback);
     }
 
+    onAnkiDialogRequest(callback) {
+        this.ankiDialogRequestCallbacks.push(callback);
+    }
+
+    onFinishedAnkiDialogRequest(callback) {
+        this.finishedAnkiDialogRequestCallbacks.push(callback);
+    }
+
     ready(duration, paused, audioTracks, selectedAudioTrack) {
         this.channel?.postMessage({
             command: 'ready',
@@ -167,11 +187,26 @@ export default class PlayerChannel {
         this.channel?.postMessage({command: 'hideSubtitlePlayerToggle'});
     }
 
+    ankiDialogRequest(forwardToVideo) {
+        this.channel?.postMessage({command: 'ankiDialogRequest', forwardToVideo: forwardToVideo});
+    }
+
     close() {
         if (this.channel) {
             this.channel.postMessage({command: 'exit'});
             this.channel.close();
             this.channel = null;
+            this.playCallbacks = [];
+            this.pauseCallbacks = [];
+            this.currentTimeCallbacks = [];
+            this.audioTrackSelectedCallbacks = [];
+            this.closeCallbacks = [];
+            this.readyCallbacks = [];
+            this.subtitlesCallbacks = [];
+            this.condensedModeToggleCallbacks = [];
+            this.hideSubtitlePlayerToggleCallbacks = [];
+            this.ankiDialogRequestCallbacks = [];
+            this.finishedAnkiDialogRequestCallbacks = [];
         }
     }
 }

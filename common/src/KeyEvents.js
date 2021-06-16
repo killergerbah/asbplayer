@@ -10,6 +10,11 @@ export default class KeyEvents {
         return event.ctrlKey && event.shiftKey && event.keyCode === 39;
     }
 
+    static detectAnkiExport(event) {
+        // Ctrl + Shift + Q
+        return event.ctrlKey && event.shiftKey && event.keyCode === 81;
+    }
+
     static detectIncreaseOffset(event) {
         // Ctrl + Shift + Left
         return event.ctrlKey && event.shiftKey && event.keyCode === 37;

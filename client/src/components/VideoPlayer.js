@@ -149,7 +149,7 @@ function useFullscreen() {
 
 export default function VideoPlayer(props) {
     const classes = useStyles();
-    const {settingsProvider, videoFile, channel, popOut, onError} = props;
+    const {settingsProvider, videoFile, channel, popOut, onError, onAnkiDialogRequest} = props;
     const poppingInRef = useRef();
     const videoRef = useRef();
     const [windowWidth, windowHeight] = useWindowSize(true);
@@ -160,6 +160,8 @@ export default function VideoPlayer(props) {
     const playerChannel = useMemo(() => new PlayerChannel(channel), [channel]);
     const [playing, setPlaying] = useState(false);
     const fullscreen = useFullscreen();
+    const fullscreenRef = useRef();
+    fullscreenRef.current = fullscreen;
     const playingRef = useRef();
     playingRef.current = playing;
     const [length, setLength] = useState(0);
@@ -179,6 +181,9 @@ export default function VideoPlayer(props) {
     const [alert, setAlert] = useState();
     const [alertOpen, setAlertOpen] = useState(false);
     const [controlsShowing, setControlsShowing] = useState(true);
+    const [returnToFullscreenOnFinishedAnkiDialogRequest, setReturnToFullscreenOnFinishedAnkiDialogRequest] = useState(false);
+    const returnToFullscreenOnFinishedAnkiDialogRequestRef = useRef();
+    returnToFullscreenOnFinishedAnkiDialogRequestRef.current = returnToFullscreenOnFinishedAnkiDialogRequest;
 
     const videoRefCallback = useCallback(element => {
         if (element) {
@@ -263,6 +268,19 @@ export default function VideoPlayer(props) {
 
         playerChannel.onCondensedModeToggle((enabled) => setCondensedModeEnabled(enabled));
         playerChannel.onHideSubtitlePlayerToggle((hidden) => setSubtitlePlayerHidden(hidden));
+        playerChannel.onAnkiDialogRequest(() => {
+            if (fullscreenRef.current) {
+                document.exitFullscreen();
+                setReturnToFullscreenOnFinishedAnkiDialogRequest(true);
+            }
+        });
+
+        playerChannel.onFinishedAnkiDialogRequest(() => {
+            if (returnToFullscreenOnFinishedAnkiDialogRequestRef.current) {
+                containerRef.current?.requestFullscreen();
+                setReturnToFullscreenOnFinishedAnkiDialogRequest(false);
+            }
+        });
 
         window.onbeforeunload = (e) => {
             if (!poppingInRef.current) {
@@ -271,7 +289,7 @@ export default function VideoPlayer(props) {
         };
 
         return () => playerChannel.close();
-    }, [clock, playerChannel]);
+    }, [clock, playerChannel, onAnkiDialogRequest]);
 
     const handlePlay = useCallback(() => {
         if (videoRef.current) {
@@ -425,6 +443,15 @@ export default function VideoPlayer(props) {
 
         return () => unbind();
     }, [handleOffsetChange, subtitles, clock, length]);
+
+    useEffect(() => {
+        const unbind = KeyBindings.bindAnkiExport(
+            () => playerChannel?.ankiDialogRequest(fullscreen),
+            () => false
+        );
+
+        return () => unbind();
+    }, [playerChannel, fullscreen]);
 
     const handleShowControls = useCallback((showing) => setControlsShowing(showing), []);
     const handleSubtitlesToggle = useCallback(() => setSubtitlesEnabled(subtitlesEnabled => !subtitlesEnabled), []);
