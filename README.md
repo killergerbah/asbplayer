@@ -50,6 +50,7 @@ The below information can also be found in the application by clicking on the qu
 |Keys        | Action              |
 |------------|---------------------|
 |Ctrl+Shift+A|Copy current subtitle|
+|Ctrl+Shift+Q|Open Anki export dialog|
 |Ctrl+Shift+Z|Copy current subtitle (streaming video in another tab)|         
 |Space|Play/pause|
 |S|Toggle subtitles|
