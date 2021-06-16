@@ -79,7 +79,7 @@ function trackLength(audioRef, videoRef, subtitles, useOffset) {
 }
 
 export default function Player(props) {
-    const {subtitleReader, settingsProvider, extension, offsetRef, videoFrameRef, drawerOpen, tab, availableTabs, onError, onUnloadVideo, onCopy, onLoaded, onTabSelected, disableKeyEvents} = props;
+    const {subtitleReader, settingsProvider, extension, videoFrameRef, drawerOpen, tab, availableTabs, onError, onUnloadVideo, onCopy, onLoaded, onTabSelected, onOffset, disableKeyEvents} = props;
     const {subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl} = props.sources;
     const [subtitles, setSubtitles] = useState();
     const subtitlesRef = useRef();
@@ -87,12 +87,12 @@ export default function Player(props) {
     const [loadingSubtitles, setLoadingSubtitles] = useState(false);
     const [playing, setPlaying] = useState(false);
     const [lastJumpToTopTimestamp, setLastJumpToTopTimestamp] = useState(0);
+    const [offset, setOffset] = useState(0);
     const playingRef = useRef();
     playingRef.current = playing;
     const [, updateState] = useState();
     const [audioTracks, setAudioTracks] = useState();
     const [selectedAudioTrack, setSelectedAudioTrack] = useState();
-    const [offset, setOffset] = useState(0);
     const [channelId, setChannelId] = useState();
     const [videoPopOut, setVideoPopOut] = useState(false);
     const [hideSubtitlePlayer, setHideSubtitlePlayer] = useState(false);
@@ -130,10 +130,7 @@ export default function Player(props) {
 
     const applyOffset = useCallback((offset, forwardToVideo) => {
         setOffset(offset);
-
-        if (offsetRef) {
-            offsetRef.current = offset;
-        }
+        onOffset(offset);
 
         setSubtitles((subtitles) => {
             if (!subtitles) {
@@ -157,7 +154,7 @@ export default function Player(props) {
 
             return newSubtitles;
         });
-    }, [subtitleFile, offsetRef]);
+    }, [subtitleFile, onOffset]);
 
     useEffect(() => {
         let channel = null;
@@ -168,10 +165,10 @@ export default function Player(props) {
             videoRef.current = null;
             clock.setTime(0);
             clock.stop();
+            setOffset(0);
             setPlaying(false);
             setAudioTracks(null);
             setSelectedAudioTrack(null);
-            setOffset(0);
             setCondensedModeEnabled(false);
             audioRef.current.currentTime = 0;
             audioRef.current.pause();

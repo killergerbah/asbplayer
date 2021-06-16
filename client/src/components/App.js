@@ -197,6 +197,7 @@ function App() {
     const [alertSeverity, setAlertSeverity] = useState();
     const [jumpToSubtitle, setJumpToSubtitle] = useState();
     const [sources, setSources] = useState({});
+    const [offset, setOffset] = useState(0);
     const [loading, setLoading] = useState(false);
     const [dragging, setDragging] = useState(false);
     const dragEnterRef = useRef();
@@ -204,6 +205,8 @@ function App() {
     const [ankiDialogOpen, setAnkiDialogOpen] = useState(false);
     const [ankiDialogDisabled, setAnkiDialogDisabled] = useState(false);
     const [ankiDialogItem, setAnkiDialogItem] = useState();
+    const ankiDialogAudioClip = useMemo(() => ankiDialogItem && audioClipFromItem(ankiDialogItem, offset), [ankiDialogItem, offset]);
+    const ankiDialogImage = useMemo(() => ankiDialogItem && imageFromItem(ankiDialogItem, offset), [ankiDialogItem, offset]);
     const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
     const [helpDialogOpen, setHelpDialogOpen] = useState(false);
     const [imageDialogOpen, setImageDialogOpen] = useState(false);
@@ -211,7 +214,6 @@ function App() {
     const [image, setImage] = useState();
     const [tab, setTab] = useState();
     const [availableTabs, setAvailableTabs] = useState([]);
-    const offsetRef = useRef();
     const fileInputRef = useRef();
     const { subtitleFile } = sources;
 
@@ -301,7 +303,7 @@ function App() {
 
     const handleClipAudio = useCallback(async (item) => {
         try {
-            const clip = await audioClipFromItem(item, offsetRef.current || 0);
+            const clip = await audioClipFromItem(item, offset);
 
             if (settingsProvider.preferMp3) {
                 clip.toMp3().download();
@@ -312,16 +314,16 @@ function App() {
             console.error(e);
             handleError(e.message);
         }
-    }, [handleError, settingsProvider]);
+    }, [handleError, settingsProvider, offset]);
 
     const handleDownloadImage = useCallback(async (item) => {
         try {
-            await imageFromItem(item, offsetRef.current || 0).download();
+            await imageFromItem(item, offset).download();
         } catch(e) {
             console.error(e);
             handleError(e.message);
         }
-    }, [handleError]);
+    }, [handleError, offset]);
 
     const handleSelectCopyHistoryItem = useCallback((item) => {
         if (subtitleFile.name !== item.subtitleFile.name) {
@@ -605,8 +607,8 @@ function App() {
                                     open={ankiDialogOpen}
                                     disabled={ankiDialogDisabled}
                                     text={ankiDialogItem?.text}
-                                    audioClip={ankiDialogItem && audioClipFromItem(ankiDialogItem, offsetRef.current || 0)}
-                                    image={ankiDialogItem && imageFromItem(ankiDialogItem, offsetRef.current || 0)}
+                                    audioClip={ankiDialogAudioClip}
+                                    image={ankiDialogImage}
                                     source={ankiDialogItem?.subtitleFile?.name}
                                     customFields={settingsProvider.customAnkiFields}
                                     anki={anki}
@@ -670,7 +672,7 @@ function App() {
                                         onUnloadVideo={handleUnloadVideo}
                                         onLoaded={handleSourcesLoaded}
                                         onTabSelected={handleTabSelected}
-                                        offsetRef={offsetRef}
+                                        onOffset={setOffset}
                                         tab={tab}
                                         availableTabs={availableTabs}
                                         sources={sources}
