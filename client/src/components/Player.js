@@ -167,6 +167,7 @@ export default function Player(props) {
             clock.setTime(0);
             clock.stop();
             setOffset(0);
+            onOffset(0);
             setPlaying(false);
             setAudioTracks(null);
             setSelectedAudioTrack(null);
@@ -315,7 +316,7 @@ export default function Player(props) {
             channel?.close();
             channelClosed = true;
         };
-    }, [subtitleReader, extension, settingsProvider, clock, mediaAdapter, seek, onLoaded, onError, onUnloadVideo, onCopy, onAnkiDialogRequest, subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef, applyOffset]);
+    }, [subtitleReader, extension, settingsProvider, clock, mediaAdapter, seek, onLoaded, onError, onUnloadVideo, onCopy, onOffset, onAnkiDialogRequest, subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef, applyOffset]);
 
     useEffect(() => {
         if (ankiDialogRequestToVideo) {
