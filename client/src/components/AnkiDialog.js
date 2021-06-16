@@ -63,16 +63,11 @@ export default function AnkiDialog({
 
     useEffect(() => {
         setText(initialText);
+        setDefinition("");
+        setWord("");
+        setDuplicateNotes([]);
+        setCustomFieldValues({});
     }, [initialText]);
-
-    useEffect(() => {
-        if (open) {
-             setDefinition("");
-             setWord("");
-             setDuplicateNotes([]);
-             setCustomFieldValues({});
-        }
-    }, [open]);
 
     useEffect(() => {
         setWordTimestamp(Date.now());
