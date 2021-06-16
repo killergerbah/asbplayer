@@ -36,6 +36,7 @@ export default function ImageDialog(props) {
             return;
         }
 
+        setDataUrl(null);
         async function fetchImage() {
             const dataUrl = await image.dataUrl();
             const img = new Image();
@@ -49,14 +50,6 @@ export default function ImageDialog(props) {
 
         fetchImage();
     }, [image]);
-
-    useEffect(() => {
-        if (!open) {
-            setWidth(0);
-            setHeight(0);
-            setDataUrl(null);
-        }
-    }, [open]);
 
     if (!image || !dataUrl) {
         return null;
