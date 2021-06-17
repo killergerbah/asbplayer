@@ -98,7 +98,7 @@ function extractSources(files) {
     return {subtitleFile: subtitleFile, audioFile: audioFile, videoFile: videoFile}
 }
 
-function audioClipFromItem(item, offset) {
+function audioClipFromItem(item) {
     if (item.audio) {
         return AudioClip.fromBase64(
             item.subtitleFile,
@@ -112,8 +112,8 @@ function audioClipFromItem(item, offset) {
     if (item.audioFile || item.videoFile) {
         return AudioClip.fromFile(
             item.audioFile || item.videoFile,
-            item.originalStart + offset,
-            item.originalEnd + offset,
+            item.start,
+            item.end,
             item.audioTrack
         );
     }
@@ -121,7 +121,7 @@ function audioClipFromItem(item, offset) {
     return null;
 }
 
-function imageFromItem(item, offset) {
+function imageFromItem(item) {
     if (item.image) {
         return Image.fromBase64(
             item.subtitleFile,
@@ -134,7 +134,7 @@ function imageFromItem(item, offset) {
     if (item.videoFile) {
         return Image.fromFile(
             item.videoFile,
-            item.originalStart + offset
+            item.start
         );
     }
 
@@ -199,7 +199,6 @@ function App() {
     const [alertSeverity, setAlertSeverity] = useState();
     const [jumpToSubtitle, setJumpToSubtitle] = useState();
     const [sources, setSources] = useState({});
-    const [offset, setOffset] = useState(0);
     const [loading, setLoading] = useState(false);
     const [dragging, setDragging] = useState(false);
     const dragEnterRef = useRef();
@@ -207,8 +206,8 @@ function App() {
     const [ankiDialogOpen, setAnkiDialogOpen] = useState(false);
     const [ankiDialogDisabled, setAnkiDialogDisabled] = useState(false);
     const [ankiDialogItem, setAnkiDialogItem] = useState();
-    const ankiDialogAudioClip = useMemo(() => ankiDialogItem && audioClipFromItem(ankiDialogItem, offset), [ankiDialogItem, offset]);
-    const ankiDialogImage = useMemo(() => ankiDialogItem && imageFromItem(ankiDialogItem, offset), [ankiDialogItem, offset]);
+    const ankiDialogAudioClip = useMemo(() => ankiDialogItem && audioClipFromItem(ankiDialogItem), [ankiDialogItem]);
+    const ankiDialogImage = useMemo(() => ankiDialogItem && imageFromItem(ankiDialogItem), [ankiDialogItem]);
     const [ankiDialogRequestToVideo, setAnkiDialogRequestToVideo] = useState();
     const [ankiDialogRequestedToVideo, setAnkiDialogRequestedToVideo] = useState(false);
     const [ankiDialogFinishedRequestToVideo, setAnkiDialogFinishedRequestToVideo] = useState(0);
@@ -308,7 +307,7 @@ function App() {
 
     const handleClipAudio = useCallback(async (item) => {
         try {
-            const clip = await audioClipFromItem(item, offset);
+            const clip = await audioClipFromItem(item);
 
             if (settingsProvider.preferMp3) {
                 clip.toMp3().download();
@@ -319,16 +318,16 @@ function App() {
             console.error(e);
             handleError(e.message);
         }
-    }, [handleError, settingsProvider, offset]);
+    }, [handleError, settingsProvider]);
 
     const handleDownloadImage = useCallback(async (item) => {
         try {
-            await imageFromItem(item, offset).download();
+            await imageFromItem(item).download();
         } catch(e) {
             console.error(e);
             handleError(e.message);
         }
-    }, [handleError, offset]);
+    }, [handleError]);
 
     const handleSelectCopyHistoryItem = useCallback((item) => {
         if (subtitleFile.name !== item.subtitleFile.name) {
@@ -708,7 +707,6 @@ function App() {
                                         onUnloadVideo={handleUnloadVideo}
                                         onLoaded={handleSourcesLoaded}
                                         onTabSelected={handleTabSelected}
-                                        onOffset={setOffset}
                                         onAnkiDialogRequest={handleAnkiDialogRequest}
                                         tab={tab}
                                         availableTabs={availableTabs}
