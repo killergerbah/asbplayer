@@ -60,9 +60,10 @@ The below information can also be found in the application by clicking on the qu
 
 ### Demos
 
-- [Sentence mining streaming video with asbplayer](https://www.youtube.com/watch?v=m55HbFJMilk)
 - [Sentence mining streaming video with asbplayer (drag and drop)](https://www.youtube.com/watch?v=kJXVVixD8H8)
-- [Sentence mining video files with asbplayer](https://www.youtube.com/watch?v=HsrrpnfM4pI)
+- [Sentence mining streaming video with asbplayer](https://www.youtube.com/watch?v=m55HbFJMilk)
+- [Sentence mining video files with asbplayer (synchronous workflow)](https://www.youtube.com/watch?v=J3E82spYqIk)
+- [Sentence mining video files with asbplayer (asynchronous workflow)](https://www.youtube.com/watch?v=HsrrpnfM4pI)
 
 ### Browser compatibility
 
