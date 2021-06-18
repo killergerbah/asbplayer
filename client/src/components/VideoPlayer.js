@@ -275,9 +275,15 @@ export default function VideoPlayer(props) {
             }
         });
 
-        playerChannel.onFinishedAnkiDialogRequest(() => {
+        playerChannel.onFinishedAnkiDialogRequest(async () => {
             if (returnToFullscreenOnFinishedAnkiDialogRequestRef.current) {
-                containerRef.current?.requestFullscreen();
+                try {
+                    await containerRef.current?.requestFullscreen();
+                    clock.setTime(videoRef.current.currentTime * 1000);
+                } catch(e) {
+                    console.error(e);
+                }
+
                 setReturnToFullscreenOnFinishedAnkiDialogRequest(false);
             }
         });
