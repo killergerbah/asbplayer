@@ -108,6 +108,7 @@ export default function SubtitlePlayer({
     onSeek,
     onCopy,
     onOffsetChange,
+    onAnkiDialogRequest,
     playing,
     subtitles,
     length,
@@ -359,16 +360,13 @@ export default function SubtitlePlayer({
         }
     }, [hidden, jumpToSubtitle, subtitles, subtitleRefs]);
 
-    function copy(event, subtitle, onCopy) {
-        event.preventDefault();
-        event.stopPropagation();
-        navigator.clipboard.writeText(subtitle.text);
-        onCopy(subtitle);
-    }
-
     useEffect(() => {
         const unbind = KeyBindings.bindCopy(
-            (event, subtitle) => copy(event, subtitle, onCopy),
+            (event, subtitle) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onCopy(subtitle, false);
+            },
             () => disableKeyEventsRef.current,
             () => {
                 const subtitleIndexes = Object.keys(selectedSubtitleIndexesRef.current);
@@ -385,12 +383,35 @@ export default function SubtitlePlayer({
         return () => unbind();
     }, [subtitles, onCopy]);
 
+    useEffect(() => {
+        const unbind = KeyBindings.bindAnkiExport(
+            (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const subtitleIndexes = Object.keys(selectedSubtitleIndexesRef.current);
+
+                if (subtitleIndexes && subtitleIndexes.length > 0) {
+                    onCopy(subtitles[Math.min(...subtitleIndexes)], true);
+                }
+
+                onAnkiDialogRequest();
+            },
+            () => false
+        );
+
+        return () => unbind();
+    }, [onAnkiDialogRequest, onCopy, subtitles]);
+
     const handleClick = useCallback((index) => {
         const selectedSubtitleIndexes = selectedSubtitleIndexesRef.current || {};
         onSeek(subtitles[index].start, !playingRef.current && index in selectedSubtitleIndexes);
     }, [subtitles, onSeek]);
 
-    const handleCopy = useCallback((e, index) => copy(e, subtitles[index], onCopy), [subtitles, onCopy]);
+    const handleCopy = useCallback((e, index) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onCopy(subtitles[index], false);
+    }, [subtitles, onCopy]);
 
     let subtitleTable;
 

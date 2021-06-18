@@ -389,7 +389,7 @@ export default function VideoPlayer(props) {
                 playerChannel.copy(subtitle);
 
                 if (fullscreen) {
-                    setAlert("Copied " + subtitle.text);
+                    setAlert(`Copied: "${subtitle.text}"`);
                     setAlertOpen(true);
                 }
             },
@@ -446,7 +446,16 @@ export default function VideoPlayer(props) {
 
     useEffect(() => {
         const unbind = KeyBindings.bindAnkiExport(
-            () => playerChannel?.ankiDialogRequest(fullscreen),
+            (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (showSubtitlesRef.current && showSubtitlesRef.current.length > 0) {
+                    playerChannel.copy(showSubtitlesRef.current[0], true);
+                }
+
+                playerChannel.ankiDialogRequest(fullscreen);
+            },
             () => false
         );
 

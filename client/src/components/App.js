@@ -209,8 +209,8 @@ function App() {
     const ankiDialogAudioClip = useMemo(() => ankiDialogItem && audioClipFromItem(ankiDialogItem), [ankiDialogItem]);
     const ankiDialogImage = useMemo(() => ankiDialogItem && imageFromItem(ankiDialogItem), [ankiDialogItem]);
     const [ankiDialogRequestToVideo, setAnkiDialogRequestToVideo] = useState();
-    const [ankiDialogRequestedToVideo, setAnkiDialogRequestedToVideo] = useState(false);
-    const [ankiDialogFinishedRequestToVideo, setAnkiDialogFinishedRequestToVideo] = useState(0);
+    const [ankiDialogRequested, setAnkiDialogRequested] = useState(false);
+    const [ankiDialogFinishedRequest, setAnkiDialogFinishedRequest] = useState(0);
     const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
     const [helpDialogOpen, setHelpDialogOpen] = useState(false);
     const [imageDialogOpen, setImageDialogOpen] = useState(false);
@@ -221,20 +221,35 @@ function App() {
     const fileInputRef = useRef();
     const { subtitleFile } = sources;
 
-    const handleCopy = useCallback((subtitle, audioFile, videoFile, subtitleFile, audioTrack, audio, image) => {
-        setCopiedSubtitles(copiedSubtitles => [...copiedSubtitles, {
-            ...subtitle,
-            timestamp: Date.now(),
-            name: fileName,
-            subtitleFile: subtitleFile,
-            audioFile: audioFile,
-            videoFile: videoFile,
-            audioTrack: audioTrack,
-            audio: audio,
-            image: image
-        }]);
+    const handleCopy = useCallback((subtitle, audioFile, videoFile, subtitleFile, audioTrack, audio, image, preventDuplicate) => {
+        navigator.clipboard.writeText(subtitle.text);
+        setCopiedSubtitles(copiedSubtitles => {
+            if (preventDuplicate && copiedSubtitles.length > 0) {
+                const last = copiedSubtitles[copiedSubtitles.length - 1];
+
+                if (subtitle.start === last.start
+                    && subtitle.end === last.end
+                    && subtitle.text === last.text
+                    && subtitleFile.name === last.subtitleFile.name) {
+                        return copiedSubtitles;
+                    }
+            }
+
+            return [...copiedSubtitles, {
+                ...subtitle,
+                timestamp: Date.now(),
+                name: fileName,
+                subtitleFile: subtitleFile,
+                audioFile: audioFile,
+                videoFile: videoFile,
+                audioTrack: audioTrack,
+                audio: audio,
+                image: image
+            }];
+        });
+
         setAlertSeverity("success");
-        setAlert("Copied " + subtitle.text);
+        setAlert(`Copied: "${subtitle.text}"`);
         setAlertOpen(true);
     }, [fileName]);
 
@@ -350,11 +365,11 @@ function App() {
         setAnkiDialogDisabled(false);
         setDisableKeyEvents(false);
 
-        if (ankiDialogRequestedToVideo) {
-            setAnkiDialogFinishedRequestToVideo(Date.now());
-            setAnkiDialogRequestedToVideo(false);
+        if (ankiDialogRequested) {
+            setAnkiDialogFinishedRequest(Date.now());
+            setAnkiDialogRequested(false);
         }
-    }, [ankiDialogRequestedToVideo]);
+    }, [ankiDialogRequested]);
 
     const handleAnkiDialogProceed = useCallback(async (text, definition, audioClip, image, word, source, customFieldValues, mode) => {
         setAnkiDialogDisabled(true);
@@ -383,9 +398,9 @@ function App() {
 
             setAnkiDialogOpen(false);
 
-            if (ankiDialogRequestedToVideo) {
-                setAnkiDialogFinishedRequestToVideo(Date.now());
-                setAnkiDialogRequestedToVideo(false);
+            if (ankiDialogRequested) {
+                setAnkiDialogFinishedRequest(Date.now());
+                setAnkiDialogRequested(false);
             }
         } catch (e) {
             console.error(e);
@@ -394,7 +409,7 @@ function App() {
             setAnkiDialogDisabled(false);
             setDisableKeyEvents(false);
         }
-    }, [anki, handleError, ankiDialogRequestedToVideo]);
+    }, [anki, handleError, ankiDialogRequested]);
 
     const handleAnkiDialogRequest = useCallback((forwardToVideo) => {
         if (copiedSubtitlesRef.current.length === 0) {
@@ -406,10 +421,10 @@ function App() {
         setAnkiDialogOpen(true);
         setAnkiDialogDisabled(false);
         setDisableKeyEvents(true);
+        setAnkiDialogRequested(true);
 
         if (forwardToVideo) {
             setAnkiDialogRequestToVideo(Date.now());
-            setAnkiDialogRequestedToVideo(true);
         }
     }, []);
 
@@ -716,8 +731,9 @@ function App() {
                                         extension={extension}
                                         drawerOpen={copyHistoryOpen}
                                         disableKeyEvents={disableKeyEvents}
+                                        ankiDialogRequested={ankiDialogRequested}
                                         ankiDialogRequestToVideo={ankiDialogRequestToVideo}
-                                        ankiDialogFinishedRequestToVideo={ankiDialogFinishedRequestToVideo}
+                                        ankiDialogFinishedRequest={ankiDialogFinishedRequest}
                                     />
                                 </Content>
                             </div>

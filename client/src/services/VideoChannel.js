@@ -80,7 +80,7 @@ export default class VideoChannel {
                     break;
                 case 'copy':
                     for (let callback of that.copyCallbacks) {
-                        callback(event.data.subtitle, event.data.audio, event.data.image);
+                        callback(event.data.subtitle, event.data.audio, event.data.image, event.data.preventDuplicate);
                     }
                     break;
                 case 'condensedModeToggle':

@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { v4 as uuidv4 } from 'uuid';
-import { KeyBindings } from '@project/common';
 import BroadcastChannelVideoProtocol from '../services/BroadcastChannelVideoProtocol';
 import ChromeTabVideoProtocol from '../services/ChromeTabVideoProtocol';
 import Clock from '../services/Clock';
@@ -79,9 +78,28 @@ function trackLength(audioRef, videoRef, subtitles, useOffset) {
     return Math.max(videoLength, Math.max(subtitlesLength, audioLength));
 }
 
-export default function Player(props) {
-    const {subtitleReader, settingsProvider, extension, videoFrameRef, drawerOpen, tab, availableTabs, ankiDialogRequestToVideo, ankiDialogFinishedRequestToVideo, onError, onUnloadVideo, onCopy, onLoaded, onTabSelected, onAnkiDialogRequest, disableKeyEvents} = props;
-    const {subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl} = props.sources;
+export default function Player({
+    sources: {subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl},
+    subtitleReader,
+    settingsProvider,
+    extension,
+    videoFrameRef,
+    drawerOpen,
+    tab,
+    availableTabs,
+    ankiDialogRequestToVideo,
+    ankiDialogRequested,
+    ankiDialogFinishedRequest,
+    onError,
+    onUnloadAudio,
+    onUnloadVideo,
+    onCopy,
+    onLoaded,
+    onTabSelected,
+    onAnkiDialogRequest,
+    disableKeyEvents,
+    jumpToSubtitle
+    }) {
     const [subtitles, setSubtitles] = useState();
     const subtitlesRef = useRef();
     subtitlesRef.current = subtitles;
@@ -96,6 +114,7 @@ export default function Player(props) {
     const [selectedAudioTrack, setSelectedAudioTrack] = useState();
     const [channelId, setChannelId] = useState();
     const [videoPopOut, setVideoPopOut] = useState(false);
+    const [, setResumeOnFinishedAnkiDialogRequest] = useState(false);
     const [hideSubtitlePlayer, setHideSubtitlePlayer] = useState(false);
     const hideSubtitlePlayerRef = useRef();
     hideSubtitlePlayerRef.current = hideSubtitlePlayer;
@@ -263,14 +282,15 @@ export default function Player(props) {
                         channel.onPlay((forwardToMedia) => play(clock, mediaAdapter, forwardToMedia));
                         channel.onPause((forwardToMedia) => pause(clock, mediaAdapter, forwardToMedia));
                         channel.onOffset((offset) => applyOffset(Math.max(-lengthRef.current ?? 0, offset), false));
-                        channel.onCopy((subtitle, audio, image) => onCopy(
+                        channel.onCopy((subtitle, audio, image, preventDuplicate) => onCopy(
                             subtitle,
                             audioFile,
                             videoFile,
                             subtitleFile,
                             channel.selectedAudioTrack,
                             audio,
-                            image
+                            image,
+                            preventDuplicate
                         ));
                         channel.onCondensedModeToggle(() => setCondensedModeEnabled(enabled => {
                             const newValue = !enabled;
@@ -316,6 +336,24 @@ export default function Player(props) {
         };
     }, [subtitleReader, extension, settingsProvider, clock, mediaAdapter, seek, onLoaded, onError, onUnloadVideo, onCopy, onAnkiDialogRequest, subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef, applyOffset]);
 
+    function play(clock, mediaAdapter, forwardToMedia) {
+        setPlaying(true);
+        clock.start();
+
+        if (forwardToMedia) {
+            mediaAdapter.play();
+        }
+    };
+
+    function pause(clock, mediaAdapter, forwardToMedia) {
+        setPlaying(false);
+        clock.stop();
+
+        if (forwardToMedia) {
+            mediaAdapter.pause();
+        }
+    };
+
     useEffect(() => {
         if (ankiDialogRequestToVideo) {
             videoRef.current?.ankiDialogRequest();
@@ -323,10 +361,24 @@ export default function Player(props) {
     }, [ankiDialogRequestToVideo]);
 
     useEffect(() => {
-        if (ankiDialogFinishedRequestToVideo) {
+        if (ankiDialogFinishedRequest) {
             videoRef.current?.finishedAnkiDialogRequest();
+            setResumeOnFinishedAnkiDialogRequest(resumeOnFinishedAnkiDialogRequest => {
+                if (resumeOnFinishedAnkiDialogRequest) {
+                    play(clock, mediaAdapter, true);
+                }
+
+                return false;
+            });
         }
-    }, [ankiDialogFinishedRequestToVideo]);
+    }, [ankiDialogFinishedRequest, clock, mediaAdapter]);
+
+    useEffect(() => {
+        if (ankiDialogRequested && playingRef.current) {
+            pause(clock, mediaAdapter, true);
+            setResumeOnFinishedAnkiDialogRequest(true);
+        }
+    }, [ankiDialogRequested, clock, mediaAdapter]);
 
     useEffect(() => {
         if (!condensedModeEnabled) {
@@ -409,24 +461,6 @@ export default function Player(props) {
         setLastJumpToTopTimestamp(Date.now());
     }, [videoPopOut, channelId, videoFileUrl, videoFrameRef]);
 
-    function play(clock, mediaAdapter, forwardToMedia) {
-        setPlaying(true);
-        clock.start();
-
-        if (forwardToMedia) {
-            mediaAdapter.play();
-        }
-    };
-
-    function pause(clock, mediaAdapter, forwardToMedia) {
-        setPlaying(false);
-        clock.stop();
-
-        if (forwardToMedia) {
-            mediaAdapter.pause();
-        }
-    };
-
     const handlePlay = useCallback(() => play(clock, mediaAdapter, true), [clock, mediaAdapter]);
     const handlePause = useCallback(() => pause(clock, mediaAdapter, true), [clock, mediaAdapter]);
     const handleSeek = useCallback(async (progress) => {
@@ -462,24 +496,18 @@ export default function Player(props) {
         }
     }, [clock, seek, mediaAdapter]);
 
-    const handleCopy = useCallback((subtitle, audioBase64) => {
+    const handleCopy = useCallback((subtitle, preventDuplicate) => {
         onCopy(
             subtitle,
             audioFile,
             videoFile,
             subtitleFile,
-            selectedAudioTrack
+            selectedAudioTrack,
+            null,
+            null,
+            preventDuplicate
         );
     }, [onCopy, audioFile, videoFile, subtitleFile, selectedAudioTrack]);
-
-    useEffect(() => {
-        const unbind = KeyBindings.bindAnkiExport(
-            () => onAnkiDialogRequest(),
-            () => false
-        );
-
-        return () => unbind();
-    }, [onAnkiDialogRequest]);
 
     const handleMouseMove = useCallback((e) => {
         mousePositionRef.current.x = e.screenX;
@@ -577,8 +605,8 @@ export default function Player(props) {
                                 onSeek={handleSeek}
                                 onAudioTrackSelected={handleAudioTrackSelected}
                                 onTabSelected={onTabSelected}
-                                onUnloadAudio={() => props.onUnloadAudio(audioFileUrl)}
-                                onUnloadVideo={() => props.onUnloadVideo(videoFileUrl)}
+                                onUnloadAudio={() => onUnloadAudio(audioFileUrl)}
+                                onUnloadVideo={() => onUnloadVideo(videoFileUrl)}
                                 onOffsetChange={handleOffsetChange}
                                 onVolumeChange={handleVolumeChange}
                                 onCondensedModeToggle={handleCondensedModeToggle}
@@ -591,7 +619,7 @@ export default function Player(props) {
                             subtitles={subtitles}
                             clock={clock}
                             length={length}
-                            jumpToSubtitle={props.jumpToSubtitle}
+                            jumpToSubtitle={jumpToSubtitle}
                             drawerOpen={drawerOpen}
                             compressed={videoFileUrl && !videoPopOut}
                             loading={loadingSubtitles}
@@ -602,6 +630,7 @@ export default function Player(props) {
                             onSeek={handleSeekToSubtitle}
                             onCopy={handleCopy}
                             onOffsetChange={handleOffsetChange}
+                            onAnkiDialogRequest={onAnkiDialogRequest}
                         />
                     </Grid>
                 )}

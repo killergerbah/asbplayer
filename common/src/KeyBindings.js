@@ -32,7 +32,7 @@ export default class KeyBindings {
                 return;
             }
 
-            onAnkiExport();
+            onAnkiExport(event);
         }, useCapture);
     }
 
