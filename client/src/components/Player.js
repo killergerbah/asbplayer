@@ -513,21 +513,19 @@ export default function Player(props) {
     const handleCondensedModeToggle = useCallback(() =>  setCondensedModeEnabled(v => !v), []);
 
     useEffect(() => {
-        const interval = setInterval(() => {
+        const interval = setInterval(async () => {
             const length = lengthRef.current;
             const progress = clock.progress(length);
 
             if (progress >= 1) {
-                clock.setTime(0);
-                clock.stop();
-                mediaAdapter.pause();
-                setPlaying(false);
+                pause(clock, mediaAdapter, true);
+                await seek(0, clock, true);
                 setLastJumpToTopTimestamp(Date.now());
             }
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [clock, subtitles, mediaAdapter]);
+    }, [clock, subtitles, mediaAdapter, seek]);
 
     const length = lengthRef.current;
     const loaded = audioFileUrl || videoFileUrl || subtitles;
