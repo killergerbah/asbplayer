@@ -205,6 +205,8 @@ export default function VideoPlayer(props) {
                 }
             };
 
+            element.ontimeupdate = (event) => clock.setTime(element.currentTime * 1000);
+
             element.onerror = (event) => onError(errorMessage(element));
         }
     }, [clock, playerChannel, onError]);
@@ -279,7 +281,6 @@ export default function VideoPlayer(props) {
             if (returnToFullscreenOnFinishedAnkiDialogRequestRef.current) {
                 try {
                     await containerRef.current?.requestFullscreen();
-                    clock.setTime(videoRef.current.currentTime * 1000);
                 } catch(e) {
                     console.error(e);
                 }
