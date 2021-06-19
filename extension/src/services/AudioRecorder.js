@@ -1,6 +1,6 @@
 import { bufferToBase64 } from './Base64';
 
-export default class Recorder {
+export default class AudioRecorder {
 
     constructor() {
         this.recording = false;

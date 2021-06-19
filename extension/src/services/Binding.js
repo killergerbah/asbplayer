@@ -2,6 +2,7 @@ import SubtitleContainer from './SubtitleContainer';
 import ControlsContainer from './ControlsContainer';
 import DragContainer from './DragContainer';
 import KeyBindings from './KeyBindings';
+import Settings from './Settings';
 
 var s = document.createElement('script');
 s.src = chrome.runtime.getURL('netflix.js');
@@ -21,6 +22,7 @@ export default class Binding {
         this.controlsContainer = new ControlsContainer(video);
         this.dragContainer = new DragContainer(video);
         this.keyBindings = new KeyBindings();
+        this.settings = new Settings();
         this.recordMedia = true;
         this.screenshot = true;
         this.cleanScreenshot = true;
@@ -180,36 +182,26 @@ export default class Binding {
         chrome.runtime.onMessage.addListener(this.listener);
     }
 
-    _refreshSettings() {
-        chrome.storage.sync.get({
-            displaySubtitles: true,
-            recordMedia: true,
-            screenshot: true,
-            cleanScreenshot: true,
-            bindKeys: true,
-            subsDragAndDrop: true,
-            subtitlePositionOffsetBottom: 100
-        },
-        (data) => {
-            this.recordMedia = data.recordMedia;
-            this.screenshot = data.screenshot;
-            this.cleanScreenshot = data.screenshot && data.cleanScreenshot;
-            this.subtitleContainer.displaySubtitles = data.displaySubtitles;
-            this.subtitleContainer.subtitlePositionOffsetBottom = data.subtitlePositionOffsetBottom;
-            this.subtitleContainer.refresh();
+    async _refreshSettings() {
+        const currentSettings = await this.settings.get();
+        this.recordMedia = currentSettings.recordMedia;
+        this.screenshot = currentSettings.screenshot;
+        this.cleanScreenshot = currentSettings.screenshot && currentSettings.cleanScreenshot;
+        this.subtitleContainer.displaySubtitles = currentSettings.displaySubtitles;
+        this.subtitleContainer.subtitlePositionOffsetBottom = currentSettings.subtitlePositionOffsetBottom;
+        this.subtitleContainer.refresh();
 
-            if (data.bindKeys) {
-                this.keyBindings.bind(this);
-            } else {
-                this.keyBindings.unbind();
-            }
+        if (currentSettings.bindKeys) {
+            this.keyBindings.bind(this);
+        } else {
+            this.keyBindings.unbind();
+        }
 
-            if (data.subsDragAndDrop) {
-                this.dragContainer.bind();
-            } else {
-                this.dragContainer.unbind();
-            }
-        });
+        if (currentSettings.subsDragAndDrop) {
+            this.dragContainer.bind();
+        } else {
+            this.dragContainer.unbind();
+        }
     }
 
     unbind() {

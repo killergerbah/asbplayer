@@ -1,4 +1,7 @@
-document.addEventListener('DOMContentLoaded', (e) => {
+import Settings from './services/Settings';
+
+document.addEventListener('DOMContentLoaded', async (e) => {
+    const settings = new Settings();
     const displaySubtitlesCheckbox = document.getElementById('displaySubtitlesInput');
     const recordAudioCheckbox = document.getElementById('recordAudioInput');
     const screenshotCheckbox = document.getElementById('screenshotInput');
@@ -17,59 +20,56 @@ document.addEventListener('DOMContentLoaded', (e) => {
         });
     }
 
-    displaySubtitlesCheckbox.addEventListener('change', (e) => {
-        chrome.storage.sync.set({displaySubtitles: displaySubtitlesCheckbox.checked}, () => notifySettingsUpdated());
+    displaySubtitlesCheckbox.addEventListener('change', async (e) => {
+        await settings.set({displaySubtitles: displaySubtitlesCheckbox.checked});
+        notifySettingsUpdated();
     });
 
-    recordAudioCheckbox.addEventListener('change', (e) => {
-        chrome.storage.sync.set({recordMedia: recordAudioCheckbox.checked}, () => notifySettingsUpdated());
+    recordAudioCheckbox.addEventListener('change', async (e) => {
+        await settings.set({recordMedia: recordAudioCheckbox.checked});
+        notifySettingsUpdated();
     });
 
-    screenshotCheckbox.addEventListener('change', (e) => {
-        chrome.storage.sync.set({screenshot: screenshotCheckbox.checked}, () => notifySettingsUpdated());
+    screenshotCheckbox.addEventListener('change', async (e) => {
+        await settings.set({screenshot: screenshotCheckbox.checked});
+        notifySettingsUpdated();
     });
 
-    cleanScreenshotCheckbox.addEventListener('change', (e) => {
-        chrome.storage.sync.set({cleanScreenshot: cleanScreenshotCheckbox.checked}, () => notifySettingsUpdated());
+    cleanScreenshotCheckbox.addEventListener('change', async (e) => {
+        await settings.set({cleanScreenshot: cleanScreenshotCheckbox.checked});
+        notifySettingsUpdated();
     });
 
-    cropScreenshotCheckbox.addEventListener('change', (e) => {
-        chrome.storage.sync.set({cropScreenshot: cropScreenshotCheckbox.checked}, () => notifySettingsUpdated());
+    cropScreenshotCheckbox.addEventListener('change', async (e) => {
+        await settings.set({cropScreenshot: cropScreenshotCheckbox.checked});
+        notifySettingsUpdated();
     });
 
-    bindKeysCheckbox.addEventListener('change', (e) => {
-        chrome.storage.sync.set({bindKeys: bindKeysCheckbox.checked}, () => notifySettingsUpdated());
+    bindKeysCheckbox.addEventListener('change', async (e) => {
+        await settings.set({bindKeys: bindKeysCheckbox.checked});
+        notifySettingsUpdated();
     });
 
-    subsDragAndDropCheckbox.addEventListener('change', (e) => {
-        chrome.storage.sync.set({subsDragAndDrop: subsDragAndDropCheckbox.checked}, () => notifySettingsUpdated());
+    subsDragAndDropCheckbox.addEventListener('change', async (e) => {
+        await settings.set({subsDragAndDrop: subsDragAndDropCheckbox.checked});
+        notifySettingsUpdated();
     });
 
-    subtitlePositionOffsetBottomInput.addEventListener('change', (e) => {
+    subtitlePositionOffsetBottomInput.addEventListener('change', async (e) => {
         const offset = Number(subtitlePositionOffsetBottomInput.value);
-        chrome.storage.sync.set({subtitlePositionOffsetBottom: offset}, () => notifySettingsUpdated());
+        await settings.set({subtitlePositionOffsetBottom: offset});
+        notifySettingsUpdated();
     });
 
-    chrome.storage.sync.get({
-        displaySubtitles: true,
-        recordMedia: true,
-        screenshot: true,
-        cleanScreenshot: true,
-        cropScreenshot: true,
-        bindKeys: true,
-        subsDragAndDrop: true,
-        subtitlePositionOffsetBottom: 100
-    },
-    (data) => {
-        displaySubtitlesCheckbox.checked = data.displaySubtitles;
-        recordAudioCheckbox.checked = data.recordMedia;
-        screenshotCheckbox.checked = data.screenshot;
-        cleanScreenshotCheckbox.checked = data.cleanScreenshot;
-        cropScreenshotCheckbox.checked = data.cropScreenshot;
-        bindKeysCheckbox.checked = data.bindKeys;
-        subsDragAndDropCheckbox.checked = data.subsDragAndDrop;
-        subtitlePositionOffsetBottomInput.value = data.subtitlePositionOffsetBottom;
-    });
+    const currentSettings = await settings.get();
+    displaySubtitlesCheckbox.checked = currentSettings.displaySubtitles;
+    recordAudioCheckbox.checked = currentSettings.recordMedia;
+    screenshotCheckbox.checked = currentSettings.screenshot;
+    cleanScreenshotCheckbox.checked = currentSettings.cleanScreenshot;
+    cropScreenshotCheckbox.checked = currentSettings.cropScreenshot;
+    bindKeysCheckbox.checked = currentSettings.bindKeys;
+    subsDragAndDropCheckbox.checked = currentSettings.subsDragAndDrop;
+    subtitlePositionOffsetBottomInput.value = currentSettings.subtitlePositionOffsetBottom;
 
     chrome.commands.getAll((commands) => {
         for (const c of commands) {

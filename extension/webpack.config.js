@@ -5,6 +5,7 @@ module.exports = {
   entry: {
     video: './src/video.js',
     background: './src/background.js',
+    popup: './src/popup.js'
   },
   output: {
     filename: '[name].js',
@@ -18,7 +19,10 @@ module.exports = {
         {
           from: "./src",
           globOptions: {
-            ignore: ["./src/video.js", "./src/background.js"],
+            ignore: [
+                "**/services",
+                "**/handlers"
+            ],
           }
         },
       ],
