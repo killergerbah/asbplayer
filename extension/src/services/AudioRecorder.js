@@ -16,10 +16,24 @@ export default class AudioRecorder {
         }
 
         return new Promise((resolve, reject) => {
-            chrome.tabCapture.capture({audio: true}, async (stream) => {
-                const audioBase64 = await this._start(stream, time);
-                resolve(audioBase64);
-            });
+            if (typeof browser !== "undefined") {
+                navigator.mozGetUserMedia({
+                    audio: {
+                        mediaSource: 'audioCapture'
+                    },
+                    video: false, // Just being explicit, we only want audio for now
+                }, async function(stream) {
+                    const audioBase64 = await this._start(stream, time);
+                    resolve(audioBase64);
+                    }, function(error) {
+                    console.error(error);
+                });
+            } else {
+                chrome.tabCapture.capture({audio: true}, async (stream) => {
+                    const audioBase64 = await this._start(stream, time);
+                    resolve(audioBase64);
+                });
+            }
         });
     }
 

@@ -1,3 +1,5 @@
+import { bufferToBase64 } from './Base64';
+
 export default class DragContainer {
 
     constructor(video) {
@@ -9,7 +11,7 @@ export default class DragContainer {
             return;
         }
 
-        this.dropListener = (e) => {
+        this.dropListener = async (e) => {
             e.preventDefault();
 
             this.dragEnterElement = null;
@@ -22,14 +24,14 @@ export default class DragContainer {
             }
 
             const file = e.dataTransfer.files[0];
-
+            const base64 = await bufferToBase64(await file.arrayBuffer());
             chrome.runtime.sendMessage({
                 sender: 'asbplayer-video',
                 message: {
                     command: 'sync',
                     subtitles: {
                         name: file.name,
-                        fileUrl: URL.createObjectURL(file)
+                        base64: base64
                     }
                 },
                 src: this.video.src

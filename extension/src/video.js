@@ -1,6 +1,12 @@
 import Binding from './services/Binding';
 
 window.addEventListener('load', (event) => {
+    function listener(request, sender, sendResponse) {
+        // Empty listener so Firefox doesn't log errors about non-existent receiving end
+    }
+
+    chrome.runtime.onMessage.addListener(listener);
+
     const bindings = [];
 
     const interval = setInterval(() => {
@@ -42,7 +48,7 @@ window.addEventListener('load', (event) => {
         }
 
         bindings.length = 0;
-
         clearInterval(interval);
+        chrome.runtime.onMessage.removeListener(listener);
     });
 });

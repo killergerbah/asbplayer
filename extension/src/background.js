@@ -43,6 +43,7 @@ chrome.runtime.onMessage.addListener(
 chrome.commands.onCommand.addListener((command) => {
     if (command === 'copy-subtitle') {
         chrome.tabs.query({active: true}, (tabs) => {
+            console.log(tabs);
             if (!tabs || tabs.length === 0) {
                 return;
             }
@@ -50,6 +51,7 @@ chrome.commands.onCommand.addListener((command) => {
             for (const tab of tabs) {
                 for (const id in tabRegistry.videoElements) {
                     if (tabRegistry.videoElements[id].tab.id === tab.id) {
+                        console.log("send message");
                         chrome.tabs.sendMessage(tabRegistry.videoElements[id].tab.id, {
                             sender: 'asbplayer-extension-to-video',
                             message: {

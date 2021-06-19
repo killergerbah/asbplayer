@@ -3,30 +3,34 @@
     "description": "Sync asbplayer with streaming video",
     "version": "0.10.0",
     "manifest_version": 2,
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "asbplayerextension@gmail.com"
+        }
+    },
     "icons": {
         "16": "assets/icon16.png",
         "48": "assets/icon48.png",
         "128": "assets/icon128.png"
     },
-    "permissions": ["tabs", "tabCapture", "activeTab", "storage"],
+    "permissions": ["tabs", "activeTab", "storage", "<all_urls>"],
     "browser_action": {
         "default_title": "asbplayer",
         "default_popup": "popup.html"
     },
     "background": {
-        "persistent": false,
         "scripts": ["background.js"]
     },
     "content_scripts": [
         {
             "matches": ["*://*/*"],
-            "exclude_globs": ["*://killergerbah.github.io/asbplayer*", "*://localhost:*/*"],
+            "exclude_globs": ["://killergerbah.github.io/asbplayer*", "http://localhost:3000/*"],
             "js": ["video.js"],
             "css": ["video.css"],
             "all_frames": true
         },
         {
-            "matches": ["*://killergerbah.github.io/asbplayer*", "*://localhost:*/*"],
+            "matches": ["*://killergerbah.github.io/asbplayer*", "http://localhost:3000/*"],
             "js": ["asbplayer.js"],
             "run_at": "document_start"
         }

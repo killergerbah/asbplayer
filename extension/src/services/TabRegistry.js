@@ -79,7 +79,6 @@ export default class TabRegistry {
             chrome.tabs.create(
                 {
                     active: false,
-                    selected: false,
                     url: 'https://killergerbah.github.io/asbplayer/',
                     index: currentTab.index + 1
                 },

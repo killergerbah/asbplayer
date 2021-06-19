@@ -19,15 +19,13 @@ export default class SyncHandler {
         await this.tabRegistry.publish();
 
         if (chosenTabId) {
-            const base64 = await fileUrlToBase64(request.message.subtitles.fileUrl);
-            URL.revokeObjectURL(request.message.subtitles.fileUrl);
             chrome.tabs.sendMessage(Number(chosenTabId), {
                 sender: 'asbplayer-extension-to-player',
                 message: {
                     command: 'sync',
                     subtitles: {
                         name: request.message.subtitles.name,
-                        base64: base64
+                        base64: request.message.subtitles.base64
                     }
                 },
                 src: request.src,

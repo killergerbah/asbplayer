@@ -163,6 +163,7 @@ export default class Binding {
                         this._refreshSettings();
                         break;
                     case 'copy-subtitle':
+                        console.log("copy subtitle");
                         this._copySubtitle();
                         break;
                     case 'screenshot-taken':

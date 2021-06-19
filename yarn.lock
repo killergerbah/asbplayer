@@ -2226,6 +2226,7 @@ __metadata:
     copy-webpack-plugin: ^9.0.0
     webpack: ^5.38.1
     webpack-cli: ^4.7.0
+    webpack-merge: ^5.8.0
   languageName: unknown
   linkType: soft
 
@@ -15832,6 +15833,16 @@ resolve@^2.0.0-next.3:
     clone-deep: ^4.0.1
     wildcard: ^2.0.0
   checksum: 5e28f66f597cb34ac5f7ca0881cd3f106265091e47d7cda9ae00f4902283efdfdab36a70e34a9cf7b1467aac021178981513393b7dcddbb84caf11920f269379
+  languageName: node
+  linkType: hard
+
+"webpack-merge@npm:^5.8.0":
+  version: 5.8.0
+  resolution: "webpack-merge@npm:5.8.0"
+  dependencies:
+    clone-deep: ^4.0.1
+    wildcard: ^2.0.0
+  checksum: ee3ff2cc97de7f35a80a81c7f0f211ceb12aa392344fae4e1c4d3e0090b5222e90a784af2eb886948bc0023e275c239961b0177f9b09f23da97e720006db9d1a
   languageName: node
   linkType: hard
 
