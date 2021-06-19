@@ -222,8 +222,8 @@ export default function VideoPlayer(props) {
     useEffect(() => {
         playerChannel.onReady((duration) => setLength(duration));
 
-        playerChannel.onPlay(() => {
-            videoRef.current.play();
+        playerChannel.onPlay(async () => {
+            await videoRef.current.play();
             clock.start();
             setPlaying(true);
         });
