@@ -35,7 +35,7 @@ export default class KeyBindings {
                     src: context.video.src
                 });
             },
-            () => false,
+            () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
             true
         );
 
