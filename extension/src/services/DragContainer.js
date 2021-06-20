@@ -101,10 +101,14 @@ export default class DragContainer {
 
     _applyDragElementStyles(dragElement) {
         const rect = this.video.getBoundingClientRect();
-        dragElement.style.top = rect.top + "px";
-        dragElement.style.left = rect.left + "px";
-        dragElement.style.height = rect.height + "px";
-        dragElement.style.width = rect.width + "px";
+
+        // Shrink the drag zone slightly to avoid accidentally overflowing
+        // e.g. when the video's rect changes for some reason
+
+        dragElement.style.top = (rect.top + rect.height * 0.05) + "px";
+        dragElement.style.left = (rect.left + rect.width * 0.05) + "px";
+        dragElement.style.height = (rect.height * .9) + "px";
+        dragElement.style.width = (rect.width * .9) + "px";
     }
 
     _imageElement() {
@@ -140,10 +144,10 @@ export default class DragContainer {
         image.style.left = leftOffset + "px";
         image.style.width = imageLength + "px";
         image.style.height = imageLength + "px";
-        container.style.top = rect.top + "px";
-        container.style.left = rect.left + "px";
-        container.style.height = rect.height + "px";
-        container.style.width = rect.width + "px";
+        container.style.top = (rect.top + rect.height * 0.05) + "px";
+        container.style.left = (rect.left + rect.width * 0.05) + "px";
+        container.style.height = (rect.height * .9) + "px";
+        container.style.width = (rect.width * .9) + "px";
     }
 
     unbind() {

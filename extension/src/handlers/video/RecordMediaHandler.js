@@ -68,5 +68,18 @@ export default class RecordMediaHandler {
                 });
             }
         });
+
+        if (request.message.showAnkiUi) {
+            chrome.tabs.sendMessage(sender.tab.id, {
+                sender: 'asbplayer-extension-to-video',
+                message: {
+                    command: 'show-anki-ui',
+                    subtitle: message.subtitle,
+                    image: message.image,
+                    audio: message.audio,
+                },
+                src: request.src
+            });
+        }
     }
 }

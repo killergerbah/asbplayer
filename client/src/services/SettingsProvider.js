@@ -85,6 +85,23 @@ export default class SettingsProvider {
         };
     }
 
+    get ankiSettings() {
+        return {
+            ankiConnectUrl: this.ankiConnectUrl,
+            deck: this.deck,
+            noteType: this.noteType,
+            modelNames: this.modelNames,
+            sentenceField: this.sentenceField,
+            definitionField: this.definitionField,
+            audioField: this.audioField,
+            imageField: this.imageField,
+            wordField: this.wordField,
+            sourceField: this.sourceField,
+            customAnkiFields: this.customAnkiFields,
+            preferMp3: this.preferMp3
+        };
+    }
+
     get ankiConnectUrl() {
         return localStorage.getItem(ankiConnectUrlKey) || defaultAnkiConnectUrl;
     }

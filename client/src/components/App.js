@@ -3,11 +3,10 @@ import { Route, Redirect, Switch, useLocation } from "react-router-dom";
 import { ThemeProvider, createMuiTheme, makeStyles } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
 import { red } from '@material-ui/core/colors';
+import { Anki, AudioClip, Image } from '@project/common';
 import clsx from 'clsx';
 import Alert from './Alert.js';
-import Anki from '../services/Anki.js';
 import AnkiDialog from './AnkiDialog.js';
-import AudioClip from '../services/AudioClip';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import DragOverlay from './DragOverlay.js';
 import HelpDialog from './HelpDialog.js';
@@ -16,7 +15,6 @@ import SubtitleReader from '../services/SubtitleReader.js';
 import Bar from './Bar.js';
 import ChromeExtension from '../services/ChromeExtension.js';
 import CopyHistory from './CopyHistory.js';
-import Image from '../services/Image';
 import LandingPage from './LandingPage.js';
 import Player from './Player.js';
 import SettingsDialog from './SettingsDialog.js';
@@ -101,7 +99,7 @@ function extractSources(files) {
 function audioClipFromItem(item) {
     if (item.audio) {
         return AudioClip.fromBase64(
-            item.subtitleFile,
+            item.subtitleFile.name,
             item.start,
             item.end,
             item.audio.base64,
@@ -124,7 +122,7 @@ function audioClipFromItem(item) {
 function imageFromItem(item) {
     if (item.image) {
         return Image.fromBase64(
-            item.subtitleFile,
+            item.subtitleFile.name,
             item.start,
             item.image.base64,
             item.image.extension
@@ -263,7 +261,8 @@ function App() {
     const handleCloseSettings = useCallback((newSettings) => {
         settingsProvider.settings = newSettings;
         setSettingsDialogOpen(false);
-        extension.publishMessage({command: 'subtitleSettings', value: settingsProvider.subtitleSettings})
+        extension.publishMessage({command: 'subtitleSettings', value: settingsProvider.subtitleSettings});
+        extension.publishMessage({command: 'ankiSettings', value: settingsProvider.ankiSettings});
     }, [extension, settingsProvider]);
 
     const handleDeleteCopyHistoryItem = useCallback(item => {

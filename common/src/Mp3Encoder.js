@@ -1,15 +1,11 @@
-// eslint-disable-next-line
-import Worker from 'worker-loader!./mp3-encoder-worker.js';
-
-const audioContext = new AudioContext();
-
 export default class Mp3Encoder {
 
-    static async encode(blob) {
+    static async encode(blob, workerFactory) {
         return new Promise(async (resolve, reject) => {
             var reader = new FileReader();
             reader.onload = async (e) => {
                 try {
+                    const audioContext = new AudioContext();
                     const audioBuffer = await audioContext.decodeAudioData(e.target.result);
                     const channels = [];
 
@@ -17,7 +13,7 @@ export default class Mp3Encoder {
                         channels.push(audioBuffer.getChannelData(i));
                     }
 
-                    const worker = new Worker();
+                    const worker = workerFactory();
                     worker.postMessage({
                         command: 'encode',
                         audioBuffer: {
@@ -32,7 +28,7 @@ export default class Mp3Encoder {
                         worker.terminate();
                     };
                     worker.onerror = () => {
-                        reject('MP3 encoding failed');
+                        reject(new Error('MP3 encoding failed'));
                         worker.terminate();
                     };
                 } catch (e) {

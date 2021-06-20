@@ -1,3 +1,4 @@
+import AnkiUiContainer from './AnkiUiContainer';
 import SubtitleContainer from './SubtitleContainer';
 import ControlsContainer from './ControlsContainer';
 import DragContainer from './DragContainer';
@@ -21,6 +22,7 @@ export default class Binding {
         this.subtitleContainer = new SubtitleContainer(video);
         this.controlsContainer = new ControlsContainer(video);
         this.dragContainer = new DragContainer(video);
+        this.ankiUiContainer = new AnkiUiContainer();
         this.keyBindings = new KeyBindings();
         this.settings = new Settings();
         this.recordMedia = true;
@@ -140,7 +142,7 @@ export default class Binding {
                         // ignore
                         break;
                     case 'play':
-                        this._play();
+                        this.play();
                         break;
                     case 'pause':
                         this.video.pause();
@@ -153,17 +155,29 @@ export default class Binding {
                         break;
                     case 'subtitles':
                         this.subtitleContainer.subtitles = request.message.value;
+                        this.subtitleContainer.subtitleFileName = request.message.name;
                         this.subtitleContainer.showLoadedMessage(request.message.name || "[Subtitles Loaded]");
                         break;
                     case 'subtitleSettings':
                         this.subtitleContainer.subtitleSettings = request.message.value;
                         this.subtitleContainer.refresh();
                         break;
+                    case 'ankiSettings':
+                        this.ankiUiContainer.ankiSettings = request.message.value;
+                        break;
                     case 'settings-updated':
                         this._refreshSettings();
                         break;
                     case 'copy-subtitle':
-                        this._copySubtitle();
+                        this._copySubtitle(request.message.showAnkiUi);
+                        break;
+                    case 'show-anki-ui':
+                        this.ankiUiContainer.show(
+                            this,
+                            request.message.subtitle,
+                            request.message.image,
+                            request.message.audio
+                        );
                         break;
                     case 'screenshot-taken':
                         if (this.cleanScreenshot) {
@@ -187,9 +201,11 @@ export default class Binding {
         this.recordMedia = currentSettings.recordMedia;
         this.screenshot = currentSettings.screenshot;
         this.cleanScreenshot = currentSettings.screenshot && currentSettings.cleanScreenshot;
+        this.displaySubtitles = currentSettings.displaySubtitles;
         this.subtitleContainer.displaySubtitles = currentSettings.displaySubtitles;
         this.subtitleContainer.subtitlePositionOffsetBottom = currentSettings.subtitlePositionOffsetBottom;
         this.subtitleContainer.refresh();
+        this.bindKeys = currentSettings.bindKeys;
 
         if (currentSettings.bindKeys) {
             this.keyBindings.bind(this);
@@ -230,7 +246,7 @@ export default class Binding {
         this.keyBindings.unbind();
     }
 
-    async _copySubtitle() {
+    async _copySubtitle(showAnkiUi) {
         const subtitle = this.subtitleContainer.currentSubtitle();
 
         if (subtitle) {
@@ -248,7 +264,7 @@ export default class Binding {
                     this.controlsContainer.hide();
                 }
 
-                await this._play();
+                await this.play();
 
                 if (this.cleanScreenshot) {
                     this.showControlsTimeout = setTimeout(() => {
@@ -262,7 +278,8 @@ export default class Binding {
                 command: 'record-media-and-forward-subtitle',
                 subtitle: subtitle,
                 record: this.recordMedia,
-                screenshot: this.screenshot
+                screenshot: this.screenshot,
+                showAnkiUi: showAnkiUi
             };
 
             if (message.screenshot) {
@@ -293,7 +310,7 @@ export default class Binding {
         }
     }
 
-    async _play() {
+    async play() {
         try {
             await this.video.play();
         } catch (ex) {

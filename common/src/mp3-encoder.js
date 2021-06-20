@@ -96,9 +96,10 @@ async function encode(audioBuffer) {
     let remaining = samples.length;
 
     for (var i = 0; remaining >= samplesPerFrame; i += samplesPerFrame) {
+        const rightSubArray = right === null ? null : right.subarray(i, i + samplesPerFrame);
         var mp3Buff = encoder.encodeBuffer(
             left.subarray(i, i + samplesPerFrame),
-            right?.subarray(i, i + samplesPerFrame)
+            rightSubArray
         );
 
         if (mp3Buff.length > 0) {

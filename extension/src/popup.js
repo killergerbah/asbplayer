@@ -72,19 +72,26 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     subtitlePositionOffsetBottomInput.value = currentSettings.subtitlePositionOffsetBottom;
 
     chrome.commands.getAll((commands) => {
+        let help = [];
+
         for (const c of commands) {
             if (c.name === 'copy-subtitle') {
-                let help;
-
                 if (c.shortcut === '') {
-                    help = 'Copy command is not bound.'
+                    help.push('Copy command is not bound.');
                 } else {
-                    help = c.shortcut + " copies current subtitle to asbplayer";
+                    help.push(c.shortcut + " copies subtitle to asbplayer");
                 }
+            }
 
-                document.getElementById('help').innerHTML = help;
-                break;
+            if (c.name === 'copy-subtitle-with-dialog') {
+                if (c.shortcut === '') {
+                    help.push('Copy-with-dialog command is not bound.');
+                } else {
+                    help.push(c.shortcut + " copies subtitle to asbplayer and opens Anki dialog");
+                }
             }
         }
+
+        document.getElementById('help').innerHTML = help.join('<hr>');
     });
 });

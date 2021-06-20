@@ -95,8 +95,8 @@ export default class Image {
         this.data = data;
     }
 
-    static fromBase64(subtitleFile, timestamp, base64, extension) {
-        const imageName = subtitleFile.name.substring(0, subtitleFile.name.lastIndexOf(".")) + "_" + timestamp + "." + extension;
+    static fromBase64(subtitleFileName, timestamp, base64, extension) {
+        const imageName = subtitleFileName.substring(0, subtitleFileName.lastIndexOf(".")) + "_" + timestamp + "." + extension;
         return new Image(new Base64ImageData(imageName, base64, extension));
     }
 

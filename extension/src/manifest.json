@@ -38,7 +38,14 @@
                 "mac": "Command+Shift+Z"
             },
             "description": "Copy current subtitle."
+        },
+        "copy-subtitle-with-dialog": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+X",
+                "mac": "Command+Shift+X"
+            },
+            "description": "Copy current subtitle and open Anki dialog."
         }
     },
-    "web_accessible_resources": ["netflix.js", "assets/drag-image.png"]
+    "web_accessible_resources": ["netflix.js", "anki-ui.js", "assets/drag-image.png", "mp3-encoder.worker.js"]
 }

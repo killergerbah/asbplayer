@@ -1,6 +1,9 @@
 import Mp3Encoder from './Mp3Encoder';
+// eslint-disable-next-line
+import Worker from 'worker-loader!./mp3-encoder.js';
 const AUDIO_TYPES = {"audio/ogg;codecs=opus": "ogg", "audio/webm;codecs=opus": "webm"}
 const [recorderMimeType, recorderExtension] = Object.keys(AUDIO_TYPES).filter(MediaRecorder.isTypeSupported).map(t => [t, AUDIO_TYPES[t]])[0];
+const defaultMp3WorkerFactory = () => new Worker();
 
 class Base64AudioData {
 
@@ -167,8 +170,9 @@ class FileAudioData {
 
 class Mp3AudioData {
 
-    constructor(data) {
+    constructor(data, workerFactory) {
         this.data = data;
+        this.workerFactory = workerFactory;
     }
 
     get name() {
@@ -181,12 +185,16 @@ class Mp3AudioData {
 
     async base64() {
         return new Promise(async (resolve, reject) => {
-            var reader = new FileReader();
-            reader.readAsDataURL(await this.blob());
-            reader.onloadend = () => {
-                const result = reader.result;
-                const base64 = result.substr(result.indexOf(',') + 1);
-                resolve(base64);
+            try {
+                var reader = new FileReader();
+                reader.readAsDataURL(await this.blob());
+                reader.onloadend = () => {
+                    const result = reader.result;
+                    const base64 = result.substr(result.indexOf(',') + 1);
+                    resolve(base64);
+                }
+            } catch(e) {
+                reject(e);
             }
         });
     }
@@ -197,7 +205,7 @@ class Mp3AudioData {
 
     async blob() {
         if (!this._blob) {
-            this._blob = await Mp3Encoder.encode(await this.data.blob());
+            this._blob = await Mp3Encoder.encode(await this.data.blob(), this.workerFactory);
         }
 
         return this._blob;
@@ -210,8 +218,8 @@ export default class AudioClip {
         this.data = data;
     }
 
-    static fromBase64(subtitleFile, start, end, base64, extension) {
-        const audioName = subtitleFile.name.substring(0, subtitleFile.name.lastIndexOf(".")) + "_" + start + "_" + end;
+    static fromBase64(subtitleFileName, start, end, base64, extension) {
+        const audioName = subtitleFileName.substring(0, subtitleFileName.lastIndexOf(".")) + "_" + start + "_" + end;
         return new AudioClip(new Base64AudioData(audioName, start, end, base64, extension));
     }
 
@@ -244,7 +252,7 @@ export default class AudioClip {
         a.remove();
     }
 
-    toMp3() {
-        return new AudioClip(new Mp3AudioData(this.data));
+    toMp3(mp3WorkerFactory = defaultMp3WorkerFactory) {
+        return new AudioClip(new Mp3AudioData(this.data, mp3WorkerFactory));
     }
 }

@@ -212,6 +212,10 @@ export default class VideoChannel {
         this.protocol.postMessage({command: 'finishedAnkiDialogRequest'});
     }
 
+    ankiSettings(settings) {
+        this.protocol.postMessage({command: 'ankiSettings', value: settings});
+    }
+
     close() {
         this.protocol.postMessage({command: 'close'});
         this.protocol.close();

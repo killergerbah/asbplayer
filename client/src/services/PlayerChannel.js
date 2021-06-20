@@ -81,6 +81,9 @@ export default class PlayerChannel {
                         callback();
                     }
                     break;
+                case 'ankiSettings':
+                    // ignore
+                    break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }

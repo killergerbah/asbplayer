@@ -257,6 +257,7 @@ export default function Player({
                         channel.subtitles(subtitlesRef.current, subtitleFile?.name);
                     }
 
+                    channel.ankiSettings(settingsProvider.ankiSettings);
                     channel.condensedModeToggle(condensedModeEnabledRef.current);
                     channel.hideSubtitlePlayerToggle(hideSubtitlePlayerRef.current);
 

@@ -1,9 +1,12 @@
+import HttpFetcher from './HttpFetcher';
+
 const specialCharacters = ['"', '*', '_', '\\', ':'];
 
 export default class Anki {
 
-    constructor(settingsProvider) {
+    constructor(settingsProvider, fetcher = new HttpFetcher()) {
         this.settingsProvider = settingsProvider;
+        this.fetcher = fetcher;
     }
 
     async deckNames(ankiConnectUrl) {
@@ -172,12 +175,7 @@ export default class Anki {
             body.params = params;
         }
 
-        const response = await fetch(ankiConnectUrl || this.settingsProvider.ankiConnectUrl, {
-            method: 'POST',
-            body: JSON.stringify(body)
-        });
-
-        const json = await response.json();
+        const json = await this.fetcher.fetch(ankiConnectUrl || this.settingsProvider.ankiConnectUrl, body);
 
         if (json.error) {
             throw new Error(json.error);
