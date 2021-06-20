@@ -101,4 +101,43 @@ export default class TabRegistry {
 
         setTimeout(() => this._anyAsbplayerTab(resolve, attempt + 1, maxAttempts), 1000);
     }
+
+    sendToActiveVideoElement(message) {
+        chrome.tabs.query({active: true}, (tabs) => {
+            if (!tabs || tabs.length === 0) {
+                return;
+            }
+
+            for (const tab of tabs) {
+                for (const id in this.videoElements) {
+                    if (this.videoElements[id].tab.id === tab.id) {
+                        chrome.tabs.sendMessage(this.videoElements[id].tab.id, {
+                            sender: 'asbplayer-extension-to-video',
+                            message: message,
+                            src: this.videoElements[id].src
+                        });
+                    }
+                }
+            }
+        });
+    }
+
+    sendToActiveAsbplayer(message) {
+        chrome.tabs.query({active: true}, (tabs) => {
+            if (!tabs || tabs.length === 0) {
+                return;
+            }
+
+            for (const tab of tabs) {
+                for (const id in this.asbplayers) {
+                    if (this.asbplayers[id].tab.id === tab.id) {
+                        chrome.tabs.sendMessage(this.asbplayers[id].tab.id, {
+                            sender: 'asbplayer-extension-to-player',
+                            message: message
+                        });
+                    }
+                }
+            }
+        });
+    }
 }

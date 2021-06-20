@@ -41,25 +41,15 @@ chrome.runtime.onMessage.addListener(
 );
 
 chrome.commands.onCommand.addListener((command) => {
-    if (command === 'copy-subtitle') {
-        chrome.tabs.query({active: true}, (tabs) => {
-            if (!tabs || tabs.length === 0) {
-                return;
-            }
-
-            for (const tab of tabs) {
-                for (const id in tabRegistry.videoElements) {
-                    if (tabRegistry.videoElements[id].tab.id === tab.id) {
-                        chrome.tabs.sendMessage(tabRegistry.videoElements[id].tab.id, {
-                            sender: 'asbplayer-extension-to-video',
-                            message: {
-                                command: 'copy-subtitle'
-                            },
-                            src: tabRegistry.videoElements[id].src
-                        });
-                    }
-                }
-            }
-        });
+    switch (command) {
+        case 'copy-subtitle':
+            tabRegistry.sendToActiveVideoElement({command: 'copy-subtitle'});
+            break;
+        case 'toggle-tab':
+            tabRegistry.sendToActiveVideoElement({command: 'toggle-tab'});
+            tabRegistry.sendToActiveAsbplayer({command: 'toggle-tab'});
+            break;
+        default:
+            throw new Error('Unknown command ' + command);
     }
 });
