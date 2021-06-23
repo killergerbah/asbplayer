@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Anki, Image, AudioClip } from '@project/common';
-import { red } from '@material-ui/core/colors';
-import { ThemeProvider, withStyles } from '@material-ui/core/styles';
 import { theme } from './theme';
+import { ThemeProvider } from '@material-ui/core/styles';
 import Alert from '@material-ui/lab/Alert';
 import AnkiDialog from './AnkiDialog';
 import CssBaseline from '@material-ui/core/CssBaseline';
