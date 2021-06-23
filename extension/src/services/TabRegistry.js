@@ -1,8 +1,9 @@
 export default class TabRegistry {
 
-    constructor() {
+    constructor(settings) {
         this.asbplayers = {};
         this.videoElements = {};
+        this.settings = settings;
         setInterval(() => this.publish(), 1000);
     }
 
@@ -75,12 +76,12 @@ export default class TabRegistry {
             return chosenTabId;
         }
 
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             chrome.tabs.create(
                 {
                     active: false,
                     selected: false,
-                    url: 'https://killergerbah.github.io/asbplayer/',
+                    url: (await this.settings.get(['asbplayerUrl'])).asbplayerUrl,
                     index: currentTab.index + 1
                 },
                 (tab) => this._anyAsbplayerTab(resolve, reject, 0, 5)

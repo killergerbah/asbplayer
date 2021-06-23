@@ -61,6 +61,11 @@ document.addEventListener('DOMContentLoaded', async (e) => {
         notifySettingsUpdated();
     });
 
+    asbplayerUrlInput.addEventListener('change', async (e) => {
+        await settings.set({asbplayerUrl: asbplayerUrlInput.value});
+        notifySettingsUpdated();
+    });
+
     const currentSettings = await settings.get();
     displaySubtitlesCheckbox.checked = currentSettings.displaySubtitles;
     recordAudioCheckbox.checked = currentSettings.recordMedia;
@@ -70,6 +75,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     bindKeysCheckbox.checked = currentSettings.bindKeys;
     subsDragAndDropCheckbox.checked = currentSettings.subsDragAndDrop;
     subtitlePositionOffsetBottomInput.value = currentSettings.subtitlePositionOffsetBottom;
+    asbplayerUrlInput.value = currentSettings.asbplayerUrl;
 
     chrome.commands.getAll((commands) => {
         let help = [];

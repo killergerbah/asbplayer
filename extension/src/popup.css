@@ -90,15 +90,24 @@ hr {
     display: block;
 }
 
-#subtitlePositionOffsetBottomInput {
+.help {
+    padding: 5px;
+}
+
+.input-text {
     background: #303030;
     border-radius: 3px;
     border: solid 1px #C2BFC0;
     color: #fff;
 }
 
-.help {
-    padding: 5px;
+.input-text:hover {
+    border-color: #fff;
+}
+
+.input-text:focus {
+    border-color: #ff1f62;
+    outline: 0;
 }
 
 #subtitlePositionOffsetBottomInput {
@@ -106,11 +115,12 @@ hr {
     margin-left: 4px;
 }
 
-#subtitlePositionOffsetBottomInput:hover {
-    border-color: #fff;
+#asbplayerUrl {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 4px;
 }
 
-#subtitlePositionOffsetBottomInput:focus {
-    border-color: #ff1f62;
-    outline: 0;
+#asbplayerUrlInput {
+    width: 272px;
 }

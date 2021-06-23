@@ -6,7 +6,8 @@ const defaults = {
     cropScreenshot: true,
     bindKeys: true,
     subsDragAndDrop: true,
-    subtitlePositionOffsetBottom: 100
+    subtitlePositionOffsetBottom: 100,
+    asbplayerUrl: 'https://killergerbah.github.io/asbplayer/'
 };
 
 export default class Settings {

@@ -13,8 +13,8 @@ import AsbplayerV2ToVideoCommandForwardingHandler from './handlers/asbplayerv2/A
 import AsbplayerHeartbeatHandler from './handlers/asbplayerv2/AsbplayerHeartbeatHandler';
 import RefreshSettingsHandler from './handlers/popup/RefreshSettingsHandler';
 
-const tabRegistry = new TabRegistry();
 const settings = new Settings();
+const tabRegistry = new TabRegistry(settings);
 const handlers = [
     new VideoHeartbeatHandler(tabRegistry),
     new RecordMediaHandler(new AudioRecorder(), new ImageCapturer(settings)),
