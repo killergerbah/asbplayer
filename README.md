@@ -27,14 +27,14 @@ The below information can also be found in the application by clicking on the qu
 - Or, load a subtitle file into asbplayer
 - Use the camera button in the bottom right.
 - If the icon does not appear try refreshing the video in the other tab.
-- It is recommended to use the extension keyboard shortcut (`Ctrl+Alt+Z` by default) to mine subtitles since that will include audio/screenshots. If the keyboard shortcut is not working for some reason try:
+- It is recommended to use the extension keyboard shortcut (`Ctrl+Alt+X` by default) to mine subtitles since that will include audio/screenshots. If the keyboard shortcut is not working for some reason try:
     - Uninstalling and reinstalling the extension and restarting Chrome.
     - Verifying the keyboard shortcut is bound as in this [video](https://youtu.be/wYWbgovfNlI).
     
 ### Anki
 - Use the star button in the copy history.
 - Audio/image will be exported only if an audio/image source was available when the subtitle was copied.
-- Specifically, for synced streaming video, an audio/image will only be available if the extension keyboard shortcut was used (`Ctrl+Alt+Z` by default).
+- Specifically, for synced streaming video, an audio/image will only be available if the extension keyboard shortcut was used (`Ctrl+Alt+X` by default).
 - Configure Anki settings with the settings button in the top right. See this [video](https://youtu.be/Mv7fEVb6PHo?t=44) for how to configure AnkiConnect so that asbplayer can connect to Anki.
 
 ### Changing subtitle offset
@@ -50,8 +50,9 @@ The below information can also be found in the application by clicking on the qu
 |Keys        | Action              |
 |------------|---------------------|
 |Ctrl+Shift+A|Copy current subtitle|
-|Ctrl+Shift+Q|Open Anki export dialog|
-|Ctrl+Shift+Z|Copy current subtitle (streaming video in another tab)|         
+|Ctrl+Shift+Q|Copy current subtitle and open Anki export dialog|
+|Ctrl+Shift+Z|Copy current subtitle (streaming video in another tab)|
+|Ctrl+Shift+X|Copy current subtitle and open Anki export dialog (streaming video in another tab)|     
 |Space|Play/pause|
 |S|Toggle subtitles|
 |Left/Right|Seek to previous/next subtitle|
@@ -60,8 +61,8 @@ The below information can also be found in the application by clicking on the qu
 
 ### Demos
 
-- [Sentence mining streaming video with asbplayer (drag and drop)](https://www.youtube.com/watch?v=kJXVVixD8H8)
-- [Sentence mining streaming video with asbplayer](https://www.youtube.com/watch?v=m55HbFJMilk)
+- [Sentence mining streaming video with asbplayer (synchronous workflow)](https://www.youtube.com/watch?v=W9Lf3C7sRzc)
+- [Sentence mining streaming video with asbplayer (asynchronous workflow)](https://www.youtube.com/watch?v=kJXVVixD8H8)
 - [Sentence mining video files with asbplayer (synchronous workflow)](https://www.youtube.com/watch?v=J3E82spYqIk)
 - [Sentence mining video files with asbplayer (asynchronous workflow)](https://www.youtube.com/watch?v=HsrrpnfM4pI)
 

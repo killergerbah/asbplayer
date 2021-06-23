@@ -69,7 +69,7 @@ export default function HelpDialog(props) {
                         If the icon does not appear try refreshing the video in the other tab.
                     </li>
                     <li>
-                        It is recommended to use the extension keyboard shortcut (Ctrl+Alt+Z by default) to mine subtitles since that will include audio/screenshots.
+                        It is recommended to use the extension keyboard shortcut (Ctrl+Alt+X by default) to mine subtitles since that will include audio/screenshots.
                         If the keyboard shortcut  is not working for some reason try:
                         <Typography component="ul">
                             <li>Uninstalling and reinstalling the extension and restarting Chrome.</li>
@@ -91,7 +91,7 @@ export default function HelpDialog(props) {
                         Audio/image will be exported only if an audio/image source was available when the subtitle was copied.
                     </li>
                     <li>
-                        Specifically, for synced streaming video, an audio/image will only be available if the extension keyboard shortcut was used (Ctrl+Alt+Z by default).
+                        Specifically, for synced streaming video, an audio/image will only be available if the extension keyboard shortcut was used (Ctrl+Alt+X by default).
                     </li>
                     <li>
                         Configure Anki settings with the settings button in the top right. See this <Link color="secondary" target="_blank" rel="noreferrer" href="https://youtu.be/Mv7fEVb6PHo?t=44">video</Link> for how to configure AnkiConnect so that asbplayer can connect to Anki.
@@ -139,11 +139,15 @@ export default function HelpDialog(props) {
                             </TableRow>
                             <TableRow>
                                 <TableCell><Typography>Ctrl+Shift+Q</Typography></TableCell>
-                                <TableCell><Typography>Open Anki export dialog</Typography></TableCell>
+                                <TableCell><Typography>Copy current subtitle and open Anki export dialog</Typography></TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell><Typography>Ctrl+Shift+Z</Typography></TableCell>
                                 <TableCell><Typography>Copy current subtitle (streaming video in another tab)</Typography></TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell><Typography>Ctrl+Shift+X</Typography></TableCell>
+                                <TableCell><Typography>Copy current subtitle and open Anki export dialog (streaming video in another tab)</Typography></TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell><Typography>Space</Typography></TableCell>
@@ -174,10 +178,10 @@ export default function HelpDialog(props) {
                 </Typography>
                 <Typography component="ul">
                     <li>
-                        <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=kJXVVixD8H8">Sentence mining streaming video (drag and drop)</Link>
+                        <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=W9Lf3C7sRzc">Sentence mining streaming video (synchronous workflow)</Link>
                     </li>
                     <li>
-                        <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=m55HbFJMilk">Sentence mining streaming video</Link>
+                        <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=kJXVVixD8H8">Sentence mining streaming video (asynchronous workflow)</Link>
                     </li>
                     <li>
                         <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=J3E82spYqIk">Sentence mining video files (synchronous workflow)</Link>
