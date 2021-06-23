@@ -1,4 +1,4 @@
-import { FrameBridgeClient } from '../ui';
+import FrameBridgeClient from '../services/FrameBridgeClient';
 
 // We need to write the HTML into the iframe manually so that the iframe keeps it's about:blank URL.
 // Otherwise, Chrome won't insert content scripts into the iframe (e.g. Yomichan won't work).

@@ -21,7 +21,9 @@ export default class FrameBridgeClient {
                         resolve();
                         break;
                     case 'onFinished':
-                        this.onFinishedListener?.(event.data.message.message);
+                        if (this.onFinishedListener) {
+                            this.onFinishedListener(event.data.message.message);
+                        }
                         break;
                     case 'fetch':
                         const message = event.data.message;

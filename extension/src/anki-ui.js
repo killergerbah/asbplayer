@@ -1,5 +1,5 @@
 import { renderAnkiUi } from './ui';
-import FrameBridgeServer from './ui/FrameBridgeServer';
+import FrameBridgeServer from './services/FrameBridgeServer';
 
 window.addEventListener('load', (e) => {
     const mp3WorkerUrl = URL.createObjectURL(new Blob(
