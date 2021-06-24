@@ -2,7 +2,7 @@
 
 A browser-based media player intended to assist subtitle sentence mining.
 
-- Can sync subtitles with HTML5 video elements as long as the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/tag/latest) is installed.
+- Can sync subtitles with HTML5 video elements as long as the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest) is installed.
 - A best-effort is made to ensure that subtitles displayed in video elements are text-selectable and can be scanned by
   popup dictionary extensions like Yomi-chan.
 - Supports playback of local video and audio files.
@@ -22,7 +22,7 @@ The below information can also be found in the application by clicking on the qu
 - Multiple files can be dragged and dropped simultaneously e.g. mkv+srt, mp3+ass, etc.
 
 ### Syncing with streaming video in another tab
-- Install the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/tag/latest).
+- Install the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest).
 - Drag-and-drop a subtitle file into the video element you want to sync.
 - Or, load a subtitle file into asbplayer
 - Use the camera button in the bottom right.
