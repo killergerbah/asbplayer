@@ -265,6 +265,12 @@ export default class SubtitleContainer {
             } else {
                 div.style.backgroundColor = "";
             }
+
+            if (this.subtitleSettings.subtitleFontFamily && this.subtitleSettings.subtitleFontFamily.length > 0) {
+                div.style.fontFamily = this.subtitleSettings.subtitleFontFamily;
+            } else {
+                div.style.fontFamily = "";
+            }
         }
     }
 

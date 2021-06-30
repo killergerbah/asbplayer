@@ -253,7 +253,10 @@ function App() {
 
     const handleOpenCopyHistory = useCallback(() => setCopyHistoryOpen(copyHistoryOpen => !copyHistoryOpen), []);
     const handleCloseCopyHistory = useCallback(() => setCopyHistoryOpen(false), []);
-    const handleOpenSettings = useCallback(() => setSettingsDialogOpen(true), []);
+    const handleOpenSettings = useCallback(() => {
+        setDisableKeyEvents(true);
+        setSettingsDialogOpen(true);
+    }, []);
     const handleOpenHelp = useCallback(() => setHelpDialogOpen(true), []);
     const handleCloseHelp = useCallback(() => setHelpDialogOpen(false), []);
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
@@ -261,6 +264,7 @@ function App() {
     const handleCloseSettings = useCallback((newSettings) => {
         settingsProvider.settings = newSettings;
         setSettingsDialogOpen(false);
+        setDisableKeyEvents(false);
         extension.publishMessage({command: 'subtitleSettings', value: settingsProvider.subtitleSettings});
         extension.publishMessage({command: 'ankiSettings', value: settingsProvider.ankiSettings});
     }, [extension, settingsProvider]);

@@ -1,5 +1,6 @@
-import React, {  useCallback, useState, useEffect } from 'react';
+import React, {  useCallback, useState, useEffect, useMemo } from 'react';
 import { makeStyles } from '@material-ui/styles';
+import { computeStyles } from '../services/Util';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import CustomFieldDialog from './CustomFieldDialog';
@@ -36,6 +37,24 @@ const useStyles = makeStyles((theme) => ({
             marginTop: theme.spacing(1),
             marginBottom: theme.spacing(1)
         },
+    },
+    subtitlePreview: {
+        backgroundImage: `linear-gradient(45deg, ${theme.palette.action.disabledBackground} 25%, transparent 25%), linear-gradient(-45deg, ${theme.palette.action.disabledBackground} 25%, transparent 25%), linear-gradient(45deg, transparent 75%, ${theme.palette.action.disabledBackground} 75%), linear-gradient(-45deg, transparent 75%,${theme.palette.action.disabledBackground} 75%)`,
+        backgroundSize: '20px 20px',
+        backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
+        marginTop: theme.spacing(1),
+        marginBottom: theme.spacing(1),
+        maxWidth: '100%',
+        padding: 10
+    },
+    subtitlePreviewInput: {
+        border: 'none',
+        width: '100%',
+        textAlign: 'center',
+        backgroundColor: 'rgba(0,0,0,0)',
+        '&:focus': {
+            outline: 'none'
+        }
     },
     addFieldButton: {
         width: "100%"
@@ -118,6 +137,8 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
     const [subtitleOutlineThickness, setSubtitleOutlineThickness] = useState(settings.subtitleOutlineThickness);
     const [subtitleBackgroundColor, setSubtitleBackgroundColor] = useState(settings.subtitleBackgroundColor);
     const [subtitleBackgroundOpacity, setSubtitleBackgroundOpacity] = useState(settings.subtitleBackgroundOpacity);
+    const [subtitleFontFamily, setSubtitleFontFamily] = useState(settings.subtitleFontFamily);
+    const [subtitlePreview, setSubtitlePreview] = useState(settings.subtitlePreview);
     const [themeType, setThemeType] = useState(settings.themeType);
 
     const handleAnkiConnectUrlChange = useCallback((e) => {
@@ -140,6 +161,8 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
     const handleSubtitleOutlineThicknessChange = useCallback((e) => setSubtitleOutlineThickness(e.target.value), []);
     const handleSubtitleBackgroundColorChange = useCallback((e) => setSubtitleBackgroundColor(e.target.value), []);
     const handleSubtitleBackgroundOpacityChange = useCallback((e) => setSubtitleBackgroundOpacity(e.target.value), []);
+    const handleSubtitleFontFamilyChange = useCallback((e) => setSubtitleFontFamily(e.target.value), []);
+    const handleSubtitlePreviewChange = useCallback((e) => setSubtitlePreview(e.target.value), []);
     const handleAddCustomField = useCallback((customFieldName) => {
         setCustomFields(oldCustomFields => {
             const newCustomFields = {};
@@ -165,6 +188,15 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
     }), []);
     const handlePreferMp3Change = useCallback((e) => setPreferMp3(e.target.checked), []);
     const handleThemeTypeChange = useCallback((e) => setThemeType(e.target.value), []);
+    const subtitlePreviewStyles = useMemo(() => computeStyles({
+        subtitleColor: subtitleColor,
+        subtitleSize: subtitleSize,
+        subtitleOutlineThickness: subtitleOutlineThickness,
+        subtitleOutlineColor: subtitleOutlineColor,
+        subtitleBackgroundOpacity: subtitleBackgroundOpacity,
+        subtitleBackgroundColor: subtitleBackgroundColor,
+        subtitleFontFamily: subtitleFontFamily
+    }), [subtitleColor, subtitleSize, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundOpacity, subtitleBackgroundColor, subtitleFontFamily]);
 
     useEffect(() => {
         let canceled = false;
@@ -244,11 +276,13 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
             subtitleOutlineColor: subtitleOutlineColor,
             subtitleBackgroundColor: subtitleBackgroundColor,
             subtitleBackgroundOpacity: Number(subtitleBackgroundOpacity),
+            subtitleFontFamily: subtitleFontFamily,
+            subtitlePreview: subtitlePreview,
             customAnkiFields: customFields,
             preferMp3: preferMp3,
             themeType: themeType
         });
-    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, imageField, wordField, sourceField, customFields, preferMp3, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity, themeType]);
+    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, imageField, wordField, sourceField, customFields, preferMp3, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity, subtitleFontFamily, subtitlePreview, themeType]);
 
     const customFieldInputs = Object.keys(customFields).map(customFieldName => {
         return (
@@ -451,6 +485,25 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                                         value={subtitleBackgroundOpacity}
                                         color="secondary"
                                         onChange={handleSubtitleBackgroundOpacityChange}
+                                    />
+                                </div>
+                                <div className={classes.subtitleSetting}>
+                                    <TextField
+                                        type="text"
+                                        label="Subtitle Font Family"
+                                        placeholder="Inherited"
+                                        fullWidth
+                                        value={subtitleFontFamily}
+                                        color="secondary"
+                                        onChange={handleSubtitleFontFamilyChange}
+                                    />
+                                </div>
+                                <div className={classes.subtitlePreview}>
+                                    <input
+                                        value={subtitlePreview}
+                                        className={classes.subtitlePreviewInput}
+                                        onChange={handleSubtitlePreviewChange}
+                                        style={subtitlePreviewStyles}
                                     />
                                 </div>
                             </FormGroup>

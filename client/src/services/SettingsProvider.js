@@ -5,6 +5,8 @@ const defaultSubtitleOutlineThickness = 0;
 const defaultSubtitleOutlineColor = "#000000";
 const defaultSubtitleBackgroundColor = "#000000";
 const defaultSubtitleBackgroundOpacity = 0.5;
+const defaultSubtitleFontFamily = "";
+const defaultSubtitlePreview = "アあ安"
 const defaultVolume = 100;
 
 const ankiConnectUrlKey = "ankiConnectUrl";
@@ -23,6 +25,8 @@ const subtitleOutlineThicknessKey = "subtitleOutlineThickness";
 const subtitleOutlineColorKey = "subtitleOutlineColor";
 const subtitleBackgroundColorKey = "subtitleBackgroundColor";
 const subtitleBackgroundOpacityKey = "subtitleBackgroundOpacity";
+const subtitleFontFamilyKey = "subtitleFontFamily";
+const subtitlePreviewKey = "subtitlePreview";
 const volumeKey = "volume";
 const preferMp3Key = "preferMp3";
 const themeTypeKey = "themeType";
@@ -47,6 +51,8 @@ export default class SettingsProvider {
             subtitleOutlineColor: this.subtitleOutlineColor,
             subtitleBackgroundColor: this.subtitleBackgroundColor,
             subtitleBackgroundOpacity : this.subtitleBackgroundOpacity,
+            subtitleFontFamily: this.subtitleFontFamily,
+            subtitlePreview: this.subtitlePreview,
             preferMp3: this.preferMp3,
             themeType: this.themeType
         };
@@ -69,6 +75,8 @@ export default class SettingsProvider {
         this.subtitleOutlineColor = newSettings.subtitleOutlineColor;
         this.subtitleBackgroundColor = newSettings.subtitleBackgroundColor;
         this.subtitleBackgroundOpacity = newSettings.subtitleBackgroundOpacity;
+        this.subtitleFontFamily = newSettings.subtitleFontFamily;
+        this.subtitlePreview = newSettings.subtitlePreview;
         this.customAnkiFields = newSettings.customAnkiFields;
         this.preferMp3 = newSettings.preferMp3;
         this.themeType = newSettings.themeType;
@@ -82,6 +90,7 @@ export default class SettingsProvider {
             subtitleOutlineColor: this.subtitleOutlineColor,
             subtitleBackgroundColor: this.subtitleBackgroundColor,
             subtitleBackgroundOpacity : this.subtitleBackgroundOpacity,
+            subtitleFontFamily: this.subtitleFontFamily,
         };
     }
 
@@ -234,6 +243,22 @@ export default class SettingsProvider {
 
     set subtitleBackgroundOpacity(subtitleBackgroundOpacity) {
         localStorage.setItem(subtitleBackgroundOpacityKey, subtitleBackgroundOpacity);
+    }
+
+    get subtitleFontFamily() {
+        return localStorage.getItem(subtitleFontFamilyKey) || defaultSubtitleFontFamily;
+    }
+
+    set subtitleFontFamily(subtitleFontFamily) {
+        localStorage.setItem(subtitleFontFamilyKey, subtitleFontFamily);
+    }
+
+    get subtitlePreview() {
+        return localStorage.getItem(subtitlePreviewKey) || defaultSubtitlePreview;
+    }
+
+    set subtitlePreview(subtitlePreview) {
+        localStorage.setItem(subtitlePreviewKey, subtitlePreview);
     }
 
     get volume() {

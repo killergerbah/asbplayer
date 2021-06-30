@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { isMobile } from 'react-device-detect';
 import { makeStyles } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
-import { arrayEquals } from '../services/Util'
+import { arrayEquals, computeStyles } from '../services/Util'
 import { KeyBindings } from '@project/common';
 import Alert from './Alert';
 import Clock from '../services/Clock';
@@ -28,48 +28,15 @@ const useStyles = makeStyles({
     }
 });
 
-// https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
-function hexToRgb(hex) {
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+function makeSubtitleStyles(subtitleSettings) {
     return {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-    }
-}
-
-function makeSubtitleStyles(
-    subtitleSize,
-    subtitleColor,
-    subtitleOutlineThickness,
-    subtitleOutlineColor,
-    subtitleBackgroundColor,
-    subtitleBackgroundOpacity
-) {
-    const styles = {
         position: 'absolute',
         paddingLeft: 20,
         paddingRight: 20,
         bottom: 100,
         textAlign: 'center',
-        color: subtitleColor,
-        fontSize: Number(subtitleSize),
+        ...computeStyles(subtitleSettings)
     };
-
-    if (subtitleOutlineThickness > 0) {
-        const thickness = subtitleOutlineThickness;
-        const color = subtitleOutlineColor;
-        styles['textShadow'] = `0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}`;
-    }
-
-    if (subtitleBackgroundOpacity > 0) {
-        const opacity = subtitleBackgroundOpacity;
-        const color = subtitleBackgroundColor;
-        const {r, g, b} = hexToRgb(color);
-        styles['backgroundColor'] = `rgba(${r}, ${g}, ${b}, ${opacity})`
-    }
-
-    return styles;
 }
 
 function notifyReady(element, playerChannel, setAudioTracks, setSelectedAudioTrack) {
@@ -516,22 +483,35 @@ export default function VideoPlayer(props) {
     }, [playerChannel, playing]);
 
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
-    const {subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity} = settingsProvider.subtitleSettings;
-    const subtitleStyles = useMemo(() => makeSubtitleStyles(
+    const {
         subtitleSize,
         subtitleColor,
         subtitleOutlineThickness,
         subtitleOutlineColor,
         subtitleBackgroundColor,
-        subtitleBackgroundOpacity
-    ), [
-        subtitleSize,
-        subtitleColor,
-        subtitleOutlineThickness,
-        subtitleOutlineColor,
-        subtitleBackgroundColor,
-        subtitleBackgroundOpacity
-    ]);
+        subtitleBackgroundOpacity,
+        subtitleFontFamily
+    } = settingsProvider.subtitleSettings;
+    const subtitleStyles = useMemo(
+        () => makeSubtitleStyles({
+            subtitleSize,
+            subtitleColor,
+            subtitleOutlineThickness,
+            subtitleOutlineColor,
+            subtitleBackgroundColor,
+            subtitleBackgroundOpacity,
+            subtitleFontFamily
+        }),
+        [
+            subtitleSize,
+            subtitleColor,
+            subtitleOutlineThickness,
+            subtitleOutlineColor,
+            subtitleBackgroundColor,
+            subtitleBackgroundOpacity,
+            subtitleFontFamily
+        ]
+    );
 
     return (
         <div
