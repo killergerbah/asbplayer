@@ -20,6 +20,7 @@ The below information can also be found in the application by clicking on the qu
 ### Loading files
 - Drag and drop mkv, srt, ass, or mp3 files into the player.
 - Multiple files can be dragged and dropped simultaneously e.g. mkv+srt, mp3+ass, etc.
+- Multiple subtitle files can loaded simultaneously. When multiple subtitle files are loaded, they can be toggled on and off using Ctrl+1, Ctrl+2, etc.
 
 ### Syncing with streaming video in another tab
 - Install the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest).
@@ -55,6 +56,7 @@ The below information can also be found in the application by clicking on the qu
 |Ctrl+Shift+X|Copy current subtitle and open Anki export dialog (streaming video in another tab)|     
 |Space|Play/pause|
 |S|Toggle subtitles|
+|Ctrl+1, Ctrl+2...|Toggle subtitle track 1, 2...|
 |Left/Right|Seek to previous/next subtitle|
 |Ctrl+Left/Right|Adjust offset to previous/next subtitle
 |Ctrl+Shift+Left/Right|Adjust offset by +/- 100ms|

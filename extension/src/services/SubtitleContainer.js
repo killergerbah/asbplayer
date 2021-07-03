@@ -4,6 +4,7 @@ export default class SubtitleContainer {
         this.video = video;
         this.subtitles = [];
         this.showingSubtitles = [];
+        this.disabledSubtitleTracks = {};
         this.displaySubtitles = true;
         this.subtitlePositionOffsetBottom = 100;
         this.lastLoadedMessageTimestamp = 0;
@@ -35,7 +36,7 @@ export default class SubtitleContainer {
 
             const offset = showOffset ? this._computeOffset() : 0;
             const now = 1000 * this.video.currentTime;
-            const showingSubtitles = [];
+            let showingSubtitles = [];
 
             for (let i = 0; i < this.subtitles.length; ++i) {
                 const s = this.subtitles[i];
@@ -44,10 +45,12 @@ export default class SubtitleContainer {
                     continue;
                 }
 
-                if (now >= s.start && now < s.end) {
-                    showingSubtitles.push(s.text);
+                if (now >= s.start && now < s.end && (!s.track || !this.disabledSubtitleTracks[s.track])) {
+                    showingSubtitles.push(s);
                 }
             }
+
+            showingSubtitles = showingSubtitles.sort((s1, s2) => s1.track - s2.track).map(s => s.text);
 
             if (!this._arrayEquals(showingSubtitles, this.showingSubtitles) ||
                 showOffset && offset !== this.showingOffset ||
@@ -92,7 +95,7 @@ export default class SubtitleContainer {
         for (let i = 0; i < this.subtitles.length; ++i) {
             const s = this.subtitles[i];
 
-            if (now >= s.start && now < s.end) {
+            if (now >= s.start && now < s.end && (!s.track || !this.disabledSubtitleTracks[s.track])) {
                 subtitle = s;
                 break;
             }
@@ -111,7 +114,8 @@ export default class SubtitleContainer {
             start: s.originalStart + offset,
             originalStart: s.originalStart,
             end: s.originalEnd + offset,
-            originalEnd: s.originalEnd
+            originalEnd: s.originalEnd,
+            track: s.track
         }));
 
         chrome.runtime.sendMessage({

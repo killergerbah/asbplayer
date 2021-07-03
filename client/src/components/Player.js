@@ -79,7 +79,7 @@ function trackLength(audioRef, videoRef, subtitles, useOffset) {
 }
 
 export default function Player({
-    sources: {subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl},
+    sources: {subtitleFiles, audioFile, audioFileUrl, videoFile, videoFileUrl},
     subtitleReader,
     settingsProvider,
     extension,
@@ -164,16 +164,17 @@ export default function Player({
                 originalStart: s.originalStart,
                 end: s.originalEnd + offset,
                 originalEnd: s.originalEnd,
-                displayTime: timeDuration(s.originalStart + offset, length)
+                displayTime: timeDuration(s.originalStart + offset, length),
+                track: s.track
             }));
 
             if (forwardToVideo) {
-                videoRef.current?.subtitles(newSubtitles, subtitleFile?.name);
+                videoRef.current?.subtitles(newSubtitles, subtitleFiles.map(f => f.name));
             }
 
             return newSubtitles;
         });
-    }, [subtitleFile]);
+    }, [subtitleFiles]);
 
     useEffect(() => {
         let channel = null;
@@ -194,11 +195,11 @@ export default function Player({
 
             let subtitles;
 
-            if (subtitleFile) {
+            if (subtitleFiles.length > 0) {
                 setLoadingSubtitles(true);
 
                 try {
-                    const nodes = await subtitleReader.subtitles(subtitleFile);
+                    const nodes = await subtitleReader.subtitles(subtitleFiles);
                     const length = nodes.length > 0 ? nodes[nodes.length - 1].end : 0;
                     subtitles = nodes.map((s) => ({
                         text: s.text,
@@ -206,7 +207,8 @@ export default function Player({
                         originalStart: s.start,
                         end: s.end,
                         originalEnd: s.end,
-                        displayTime: timeDuration(s.start, length)
+                        displayTime: timeDuration(s.start, length),
+                        track: s.track
                     }));
 
                     setSubtitles(subtitles);
@@ -254,7 +256,7 @@ export default function Player({
 
                     if (subtitlesRef.current) {
                         channel.subtitleSettings(settingsProvider.subtitleSettings);
-                        channel.subtitles(subtitlesRef.current, subtitleFile?.name);
+                        channel.subtitles(subtitlesRef.current, subtitleFiles.map(f => f.name));
                     }
 
                     channel.ankiSettings(settingsProvider.ankiSettings);
@@ -287,7 +289,7 @@ export default function Player({
                             subtitle,
                             audioFile,
                             videoFile,
-                            subtitleFile,
+                            subtitleFiles[subtitle.track],
                             channel.selectedAudioTrack,
                             audio,
                             image,
@@ -335,7 +337,7 @@ export default function Player({
             channel?.close();
             channelClosed = true;
         };
-    }, [subtitleReader, extension, settingsProvider, clock, mediaAdapter, seek, onLoaded, onError, onUnloadVideo, onCopy, onAnkiDialogRequest, subtitleFile, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef, applyOffset]);
+    }, [subtitleReader, extension, settingsProvider, clock, mediaAdapter, seek, onLoaded, onError, onUnloadVideo, onCopy, onAnkiDialogRequest, subtitleFiles, audioFile, audioFileUrl, videoFile, videoFileUrl, tab, forceUpdate, videoFrameRef, applyOffset]);
 
     function play(clock, mediaAdapter, forwardToMedia) {
         setPlaying(true);
@@ -502,13 +504,13 @@ export default function Player({
             subtitle,
             audioFile,
             videoFile,
-            subtitleFile,
+            subtitleFiles[subtitle.track],
             selectedAudioTrack,
             null,
             null,
             preventDuplicate
         );
-    }, [onCopy, audioFile, videoFile, subtitleFile, selectedAudioTrack]);
+    }, [onCopy, audioFile, videoFile, subtitleFiles, selectedAudioTrack]);
 
     const handleMouseMove = useCallback((e) => {
         mousePositionRef.current.x = e.screenX;

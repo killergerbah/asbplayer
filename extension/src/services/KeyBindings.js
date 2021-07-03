@@ -39,10 +39,20 @@ export default class KeyBindings {
             true
         );
 
+        this.unbindToggleSubtitleTrack = CommonKeyBindings.bindToggleSubtitleTrack(
+            (event, track) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                context.subtitleContainer.disabledSubtitleTracks[track] = !context.subtitleContainer.disabledSubtitleTracks[track];
+            },
+            () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
+            true
+        );
+
         this.unbindOffsetToSubtitle = CommonKeyBindings.bindOffsetToSubtitle(
             (event, offset) => {
                 event.preventDefault();
-                event.stopPropagation();
+                event.stopImmediatePropagation();
                 context.subtitleContainer.offset(offset);
             },
             () => false,
@@ -54,7 +64,7 @@ export default class KeyBindings {
         this.unbindAdjustOffset = CommonKeyBindings.bindAdjustOffset(
             (event, offset) => {
                 event.preventDefault();
-                event.stopPropagation();
+                event.stopImmediatePropagation();
                 context.subtitleContainer.offset(offset);
             },
             () => false,
@@ -74,6 +84,11 @@ export default class KeyBindings {
         if (this.unbindToggleSubtitles) {
             this.unbindToggleSubtitles();
             this.unbindToggleSubtitles = null;
+        }
+
+        if (this.unbindToggleSubtitleTrack) {
+            this.unbindToggleSubtitleTrack();
+            this.unbindToggleSubtitleTrack = null;
         }
 
         if (this.unbindOffsetToSubtitle) {

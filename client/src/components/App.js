@@ -43,7 +43,7 @@ const useContentStyles = makeStyles((theme) => ({
 }));
 
 function extractSources(files) {
-    let subtitleFile = null;
+    let subtitleFiles = [];
     let audioFile = null;
     let videoFile = null;
 
@@ -59,10 +59,7 @@ function extractSources(files) {
             case "ass":
             case "srt":
             case "vtt":
-                if (subtitleFile) {
-                    throw new Error('Cannot open two subtitle files simultaneously');
-                }
-                subtitleFile = f;
+                subtitleFiles.push(f);
                 break;
             case "mkv":
             case "mp4":
@@ -93,7 +90,7 @@ function extractSources(files) {
         throw new Error("Cannot load both an audio and video file simultaneously");
     }
 
-    return {subtitleFile: subtitleFile, audioFile: audioFile, videoFile: videoFile}
+    return {subtitleFiles: subtitleFiles, audioFile: audioFile, videoFile: videoFile}
 }
 
 function audioClipFromItem(item) {
@@ -196,7 +193,7 @@ function App() {
     const [alertOpen, setAlertOpen] = useState(false);
     const [alertSeverity, setAlertSeverity] = useState();
     const [jumpToSubtitle, setJumpToSubtitle] = useState();
-    const [sources, setSources] = useState({});
+    const [sources, setSources] = useState({subtitleFiles: []});
     const [loading, setLoading] = useState(false);
     const [dragging, setDragging] = useState(false);
     const dragEnterRef = useRef();
@@ -217,7 +214,7 @@ function App() {
     const [tab, setTab] = useState();
     const [availableTabs, setAvailableTabs] = useState([]);
     const fileInputRef = useRef();
-    const { subtitleFile } = sources;
+    const {subtitleFiles} = sources;
 
     const handleCopy = useCallback((subtitle, audioFile, videoFile, subtitleFile, audioTrack, audio, image, preventDuplicate) => {
         navigator.clipboard.writeText(subtitle.text);
@@ -296,7 +293,7 @@ function App() {
             URL.revokeObjectURL(audioFileUrl);
 
             return {
-                subtitleFile: previous.subtitleFile,
+                subtitleFiles: previous.subtitleFiles,
                 audioFile: null,
                 audioFileUrl: null,
                 videoFile: previous.videoFile,
@@ -314,7 +311,7 @@ function App() {
             URL.revokeObjectURL(videoFileUrl);
 
             return {
-                subtitleFile: previous.subtitleFile,
+                subtitleFiles: previous.subtitleFiles,
                 audioFile: previous.audioFile,
                 audioFileUrl: previous.audioFileUrl,
                 videoFile: null,
@@ -348,13 +345,13 @@ function App() {
     }, [handleError]);
 
     const handleSelectCopyHistoryItem = useCallback((item) => {
-        if (subtitleFile.name !== item.subtitleFile.name) {
+        if (subtitleFiles.filter(f => f.name === item.subtitleFile.name).length === 0) {
             handleError("Subtitle file " + item.subtitleFile.name + " is not open.");
             return;
         }
 
         setJumpToSubtitle({text: item.text, originalStart: item.originalStart});
-    }, [subtitleFile, handleError]);
+    }, [subtitleFiles, handleError]);
 
     const handleAnki = useCallback((item) => {
         setAnkiDialogItem(item);
@@ -476,7 +473,7 @@ function App() {
 
     const handleFiles = useCallback((files) => {
         try {
-            let {subtitleFile, audioFile, videoFile} = extractSources(files);
+            let {subtitleFiles, audioFile, videoFile} = extractSources(files);
 
             setSources(previous => {
                 setLoading(true);
@@ -502,7 +499,7 @@ function App() {
                 }
 
                 const sources = {
-                    subtitleFile: subtitleFile || previous.subtitleFile,
+                    subtitleFiles: subtitleFiles.length === 0 ? previous.subtitleFiles : subtitleFiles,
                     audioFile: audioFile,
                     audioFileUrl: audioFileUrl,
                     videoFile: videoFile,
@@ -512,8 +509,8 @@ function App() {
                 return sources;
             });
 
-            if (subtitleFile) {
-                setFileName(subtitleFile.name);
+            if (subtitleFiles.length > 0) {
+                setFileName(subtitleFiles[0].name);
             }
         } catch (e) {
             console.error(e);
@@ -523,7 +520,7 @@ function App() {
 
     useEffect(() => {
         async function onMessage(message) {
-            if (message.data.command === 'sync') {
+            if (message.data.command === 'sync' || message.data.command === 'syncv2') {
                 const tabs = availableTabs.filter(t => {
                     if (t.id !== message.tabId) {
                         return false;
@@ -543,13 +540,23 @@ function App() {
                 }
 
                 const tab = tabs[0];
-                const subtitleFile = new File(
-                    [await (await fetch("data:text/plain;base64," + message.data.subtitles.base64)).blob()],
-                    message.data.subtitles.name
-                );
-                setFileName(subtitleFile.name);
+                let subtitleFiles;
+
+                if (message.data.command === 'sync') {
+                    subtitleFiles = [new File(
+                        [await (await fetch("data:text/plain;base64," + message.data.subtitles.base64)).blob()],
+                        message.data.subtitles.name
+                    )];
+                } else if (message.data.command === 'syncv2') {
+                    subtitleFiles = await Promise.all(message.data.subtitles.map(async (s) => new File(
+                        [await (await fetch("data:text/plain;base64," + s.base64)).blob()],
+                        s.name
+                    )));
+                }
+
+                setFileName(subtitleFiles[0].name);
                 setSources({
-                    subtitleFile: subtitleFile,
+                    subtitleFiles: subtitleFiles,
                     audioFile: null,
                     audioFileUrl: null,
                     videoFile: null,
@@ -613,7 +620,7 @@ function App() {
     }, [inVideoPlayer]);
 
     const handleSourcesLoaded = useCallback(() => setLoading(false), []);
-    const nothingLoaded = (loading && !videoFrameRef.current) || (!sources.subtitleFile && !sources.audioFile && !sources.videoFile);
+    const nothingLoaded = (loading && !videoFrameRef.current) || (sources.subtitleFiles.length === 0 && !sources.audioFile && !sources.videoFile);
 
     return (
         <ThemeProvider theme={theme}>

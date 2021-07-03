@@ -45,7 +45,11 @@ export default function HelpDialog(props) {
                     </li>
                     <li>
                         Multiple files can be dragged and dropped
-                        simultaneously e.g. mkv+srt, mp3+ass, etc.
+                        simultaneously e.g. mkv+srt, mp3+ass etc.
+                    </li>
+                    <li>
+                        Multiple subtitle files can loaded simultaneously. When multiple subtitle files are loaded,
+                        they can be toggled on and off using Ctrl+1, Ctrl+2, etc.
                     </li>
                 </Typography>
                 <br />
@@ -156,6 +160,10 @@ export default function HelpDialog(props) {
                             <TableRow>
                                 <TableCell><Typography>S</Typography></TableCell>
                                 <TableCell><Typography>Toggle subtitles</Typography></TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell><Typography>Ctrl+1, Ctrl+2...</Typography></TableCell>
+                                <TableCell><Typography>Toggle subtitle track 1, 2...</Typography></TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell><Typography>Left/Right</Typography></TableCell>

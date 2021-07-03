@@ -170,6 +170,22 @@ export default class KeyBindings {
         }, useCapture);
     }
 
+    static bindToggleSubtitleTrack(onToggleSubtitleTrack, disabledGetter, useCapture = false) {
+        return KeyBindings._bind((event) => {
+            if (disabledGetter()) {
+                return;
+            }
+
+            const track = KeyEvents.detectToggleSubtitleTrack(event);
+
+            if (track === false) {
+                return;
+            }
+
+            onToggleSubtitleTrack(event, track);
+        }, useCapture);
+    }
+
     static _bind(handler, useCapture) {
         window.addEventListener('keydown', handler, useCapture);
 

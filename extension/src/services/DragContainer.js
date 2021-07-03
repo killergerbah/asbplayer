@@ -21,16 +21,33 @@ export default class DragContainer {
                 return;
             }
 
-            const file = e.dataTransfer.files[0];
+            const files = [];
+
+            for (const f of e.dataTransfer.files) {
+                const extensionStartIndex = f.name.lastIndexOf(".");
+
+                if (extensionStartIndex === -1) {
+                    return false;
+                }
+
+                const extension = f.name.substring(extensionStartIndex + 1, f.name.length);
+
+                if (extension === 'ass' || extension === 'srt' || extension === 'vtt') {
+                    files.push(f);
+                }
+            }
 
             chrome.runtime.sendMessage({
                 sender: 'asbplayer-video',
                 message: {
                     command: 'sync',
-                    subtitles: {
-                        name: file.name,
-                        fileUrl: URL.createObjectURL(file)
-                    }
+                    subtitles: files
+                        .map((f) => {
+                            return {
+                                name: f.name,
+                                fileUrl: URL.createObjectURL(f)
+                            };
+                        })
                 },
                 src: this.video.src
             });

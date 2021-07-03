@@ -27,7 +27,7 @@ export default class AnkiUiContainer {
             return;
         }
 
-        const subtitleFileName = context.subtitleContainer.subtitleFileName;
+        const subtitleFileNames = context.subtitleContainer.subtitleFileNames;
         const client = await this._client(context);
         context.video.pause();
 
@@ -38,7 +38,7 @@ export default class AnkiUiContainer {
         client.updateState({
             open: true,
             settingsProvider: this.ankiSettings,
-            source: subtitleFileName,
+            source: subtitle.track ? subtitleFileNames[subtitle.track] : subtitleFileNames[0],
             subtitle: subtitle,
             image: image,
             audio: audio,

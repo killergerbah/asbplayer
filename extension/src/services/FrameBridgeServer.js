@@ -55,8 +55,8 @@ export default class FrameBridgeServer {
         });
         window.addEventListener('message', this.listener);
         this._postMessage({
-                command: 'ready',
-                id: this.id
+            command: 'ready',
+            id: this.id
         });
     }
 

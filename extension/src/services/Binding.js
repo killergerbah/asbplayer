@@ -155,8 +155,17 @@ export default class Binding {
                         break;
                     case 'subtitles':
                         this.subtitleContainer.subtitles = request.message.value;
-                        this.subtitleContainer.subtitleFileName = request.message.name;
-                        this.subtitleContainer.showLoadedMessage(request.message.name || "[Subtitles Loaded]");
+                        this.subtitleContainer.subtitleFileNames = request.message.names || [request.message.name];
+
+                        let loadedMessage;
+
+                        if (request.message.names) {
+                            loadedMessage = request.message.names.join('\n');
+                        } else {
+                            loadedMessage = request.message.name || "[Subtitles Loaded]";
+                        }
+
+                        this.subtitleContainer.showLoadedMessage(loadedMessage);
                         break;
                     case 'subtitleSettings':
                         this.subtitleContainer.subtitleSettings = request.message.value;

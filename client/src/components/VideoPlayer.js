@@ -138,6 +138,7 @@ export default function VideoPlayer(props) {
     const [subtitles, setSubtitles] = useState([]);
     const [showSubtitles, setShowSubtitles] = useState([]);
     const [subtitlesEnabled, setSubtitlesEnabled] = useState(true);
+    const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState({});
     const [condensedModeEnabled, setCondensedModeEnabled] = useState(false);
     const [subtitlePlayerHidden, setSubtitlePlayerHidden] = useState(false);
     const showSubtitlesRef = useRef([]);
@@ -228,6 +229,7 @@ export default function VideoPlayer(props) {
 
         playerChannel.onSubtitles((subtitles) => {
             setSubtitles(subtitles);
+
             if (subtitles && subtitles.length > 0) {
                 const s = subtitles[0];
                 const offset = s.start - s.originalStart;
@@ -306,12 +308,12 @@ export default function VideoPlayer(props) {
 
         const interval = setInterval(() => {
             const now = clock.time(length);
-            const showSubtitles = [];
+            let showSubtitles = [];
 
             for (let i = 0; i < subtitles.length; ++i) {
                 const s = subtitles[i];
 
-                if (now >= s.start && now < s.end) {
+                if (now >= s.start && now < s.end && !disabledSubtitleTracks[s.track]) {
                     showSubtitles.push({...s, index: i});
                 }
 
@@ -320,13 +322,15 @@ export default function VideoPlayer(props) {
                 }
             }
 
+            showSubtitles = showSubtitles.sort((s1, s2) => s1.track - s2.track);
+
             if (!arrayEquals(showSubtitles, showSubtitlesRef.current, (s1, s2) => s1.index === s2.index)) {
                 setShowSubtitles(showSubtitles);
             }
-        }, 10)
+        }, 100)
 
         return () => clearTimeout(interval);
-    }, [subtitles, clock, length]);
+    }, [subtitles, disabledSubtitleTracks, clock, length]);
 
     const handleOffsetChange = useCallback((offset) => {
         setOffset(offset);
@@ -336,6 +340,7 @@ export default function VideoPlayer(props) {
             originalStart: s.originalStart,
             end: s.originalEnd + offset,
             originalEnd: s.originalEnd,
+            track: s.track
         })));
         playerChannel.offset(offset);
     }, [playerChannel]);
@@ -396,7 +401,28 @@ export default function VideoPlayer(props) {
 
     useEffect(() => {
         const unbind = KeyBindings.bindToggleSubtitles(
-            (event) => setSubtitlesEnabled(enabled => !enabled),
+            (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setSubtitlesEnabled(enabled => !enabled);
+            },
+            () => false
+        );
+
+        return () => unbind();
+    }, []);
+
+    useEffect(() => {
+        const unbind = KeyBindings.bindToggleSubtitleTrack(
+            (event, track) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setDisabledSubtitleTracks(tracks => {
+                    const newTracks = {...tracks};
+                    newTracks[track] = !tracks[track];
+                    return newTracks;
+                });
+            },
             () => false
         );
 
