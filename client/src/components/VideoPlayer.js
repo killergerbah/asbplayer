@@ -406,6 +406,7 @@ export default function VideoPlayer(props) {
                 event.stopPropagation();
                 setSubtitlesEnabled(enabled => !enabled);
             },
+            () => {},
             () => false
         );
 
@@ -423,6 +424,7 @@ export default function VideoPlayer(props) {
                     return newTracks;
                 });
             },
+            () => {},
             () => false
         );
 

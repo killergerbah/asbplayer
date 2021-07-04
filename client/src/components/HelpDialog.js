@@ -49,7 +49,7 @@ export default function HelpDialog(props) {
                     </li>
                     <li>
                         Multiple subtitle files can loaded simultaneously. When multiple subtitle files are loaded,
-                        they can be toggled on and off using Ctrl+1, Ctrl+2, etc.
+                        they can be toggled on and off using S+1, S+2, etc.
                     </li>
                 </Typography>
                 <br />
@@ -162,7 +162,7 @@ export default function HelpDialog(props) {
                                 <TableCell><Typography>Toggle subtitles</Typography></TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell><Typography>Ctrl+1, Ctrl+2...</Typography></TableCell>
+                                <TableCell><Typography>S+1, S+2...</Typography></TableCell>
                                 <TableCell><Typography>Toggle subtitle track 1, 2...</Typography></TableCell>
                             </TableRow>
                             <TableRow>

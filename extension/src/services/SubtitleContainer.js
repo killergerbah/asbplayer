@@ -45,7 +45,7 @@ export default class SubtitleContainer {
                     continue;
                 }
 
-                if (now >= s.start && now < s.end && (!s.track || !this.disabledSubtitleTracks[s.track])) {
+                if (now >= s.start && now < s.end && (typeof s.track === 'undefined' || !this.disabledSubtitleTracks[s.track])) {
                     showingSubtitles.push(s);
                 }
             }
@@ -95,7 +95,7 @@ export default class SubtitleContainer {
         for (let i = 0; i < this.subtitles.length; ++i) {
             const s = this.subtitles[i];
 
-            if (now >= s.start && now < s.end && (!s.track || !this.disabledSubtitleTracks[s.track])) {
+            if (now >= s.start && now < s.end && (typeof s.track === 'undefined' || !this.disabledSubtitleTracks[s.track])) {
                 subtitle = s;
                 break;
             }

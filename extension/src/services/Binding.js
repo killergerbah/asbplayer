@@ -160,7 +160,7 @@ export default class Binding {
                         let loadedMessage;
 
                         if (request.message.names) {
-                            loadedMessage = request.message.names.join('\n');
+                            loadedMessage = request.message.names.join('<br>');
                         } else {
                             loadedMessage = request.message.name || "[Subtitles Loaded]";
                         }

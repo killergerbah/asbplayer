@@ -1,9 +1,11 @@
 import KeyEvents from './KeyEvents';
+import KeySequence from './KeySequence';
+import KeySequences from './KeySequences';
 
 export default class KeyBindings {
 
     static bindCopy(onCopy, disabledGetter, subtitleGetter, useCapture = false) {
-        return KeyBindings._bind((event) => {
+        return KeyBindings._bindDown((event) => {
             if (disabledGetter()) {
                 return;
             }
@@ -23,7 +25,7 @@ export default class KeyBindings {
     }
 
     static bindAnkiExport(onAnkiExport, disabledGetter, useCapture = false) {
-        return KeyBindings._bind((event) => {
+        return KeyBindings._bindDown((event) => {
             if (disabledGetter()) {
                 return;
             }
@@ -37,7 +39,7 @@ export default class KeyBindings {
     }
 
     static bindSeekToSubtitle(onSeekToSubtitle, disabledGetter, timeGetter, subtitlesGetter, useCapture = false) {
-        return KeyBindings._bind((event) => {
+        return KeyBindings._bindDown((event) => {
             if (disabledGetter()) {
                 return;
             }
@@ -67,7 +69,7 @@ export default class KeyBindings {
     }
 
     static bindOffsetToSubtitle(onOffsetChange, disabledGetter, timeGetter, subtitlesGetter, useCapture = false) {
-        return KeyBindings._bind((event) => {
+        return KeyBindings._bindDown((event) => {
             if (disabledGetter()) {
                 return;
             }
@@ -129,7 +131,7 @@ export default class KeyBindings {
     }
 
     static bindAdjustOffset(onOffsetChange, disabledGetter, subtitlesGetter, useCapture = false) {
-        return KeyBindings._bind((event) => {
+        return KeyBindings._bindDown((event) => {
             if (disabledGetter()) {
                 return;
             }
@@ -156,39 +158,65 @@ export default class KeyBindings {
         }, useCapture);
     }
 
-    static bindToggleSubtitles(onToggleSubtitles, disabledGetter, useCapture = false) {
-        return KeyBindings._bind((event) => {
+    static bindToggleSubtitles(onToggleSubtitles, onSequenceAdvanced, disabledGetter, useCapture = false) {
+        const sequence = KeySequences.toggleSubtitles();
+        const handler = (event) => {
             if (disabledGetter()) {
+                sequence.reset();
                 return;
             }
 
-            if (!KeyEvents.detectToggleSubtitles(event)) {
-                return;
-            }
+            const transition = sequence.accept(event);
 
-            onToggleSubtitles(event);
-        }, useCapture);
+            if (transition.result === KeySequence.ADVANCED) {
+                onSequenceAdvanced();
+            } else if (transition.result === KeySequence.COMPLETE) {
+                onToggleSubtitles(event);
+            }
+        };
+        const unbindDown = KeyBindings._bindDown(handler, useCapture);
+        const unbindUp = KeyBindings._bindUp(handler, useCapture);
+
+        return () => {
+            unbindDown();
+            unbindUp();
+        };
     }
 
-    static bindToggleSubtitleTrack(onToggleSubtitleTrack, disabledGetter, useCapture = false) {
-        return KeyBindings._bind((event) => {
+    static bindToggleSubtitleTrack(onToggleSubtitleTrack, onSequenceAdvanced, disabledGetter, useCapture = false) {
+        const sequence = KeySequences.toggleSubtitleTrack();
+        const handler = (event) => {
             if (disabledGetter()) {
+                sequence.reset();
                 return;
             }
 
-            const track = KeyEvents.detectToggleSubtitleTrack(event);
+            const transition = sequence.accept(event);
 
-            if (track === false) {
-                return;
+            if (transition.result === KeySequence.ADVANCED) {
+                onSequenceAdvanced();
+            } else if (transition.result === KeySequence.COMPLETE) {
+                onToggleSubtitleTrack(event, transition.extra);
             }
+        };
+        const unbindDown = KeyBindings._bindDown(handler, useCapture);
+        const unbindUp = KeyBindings._bindUp(handler, useCapture);
 
-            onToggleSubtitleTrack(event, track);
-        }, useCapture);
+        return () => {
+            unbindDown();
+            unbindUp();
+        };
     }
 
-    static _bind(handler, useCapture) {
+    static _bindDown(handler, useCapture) {
         window.addEventListener('keydown', handler, useCapture);
 
         return () => window.removeEventListener('keydown', handler, useCapture);
+    }
+
+    static _bindUp(handler, useCapture) {
+        window.addEventListener('keyup', handler, useCapture);
+
+        return () => window.removeEventListener('keyup', handler, useCapture);
     }
 }

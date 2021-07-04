@@ -39,39 +39,4 @@ export default class KeyEvents {
         // Right
         return !KeyEvents.detectDecreaseOffset(event) && !KeyEvents.detectDecreaseOffsetToNextSubtitle(event) && event.keyCode === 39;
     }
-
-    static detectToggleSubtitles(event) {
-        // S
-        return event.keyCode === 83;
-    }
-
-    static detectToggleSubtitleTrack(event) {
-        if (!event.ctrlKey) {
-            return false;
-        }
-
-        // 1...9
-        switch (event.keyCode) {
-            case 49:
-                return 0;
-            case 50:
-                return 1;
-            case 51:
-                return 2;
-            case 52:
-                return 3;
-            case 53:
-                return 4;
-            case 54:
-                return 5;
-            case 55:
-                return 6;
-            case 56:
-                return 7;
-            case 57:
-                return 8;
-            default:
-                return false;
-        }
-    }
 }

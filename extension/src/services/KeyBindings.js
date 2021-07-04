@@ -23,10 +23,11 @@ export default class KeyBindings {
             true
         );
 
+        // We don't stop immediate propagation for "toggle subtitles" because we have knowledge that
+        // the toggle-subtitle binding is a subset of the toggle-subtitle-track binding.
+        // Might be worth rethinking the KeyBindings API so we don't need this extra knowledge for things to work.
         this.unbindToggleSubtitles = CommonKeyBindings.bindToggleSubtitles(
             (event) => {
-                event.preventDefault();
-                event.stopImmediatePropagation();
                 chrome.runtime.sendMessage({
                     sender: 'asbplayer-video',
                     message: {
@@ -35,6 +36,7 @@ export default class KeyBindings {
                     src: context.video.src
                 });
             },
+            () => {},
             () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
             true
         );
@@ -44,6 +46,10 @@ export default class KeyBindings {
                 event.preventDefault();
                 event.stopImmediatePropagation();
                 context.subtitleContainer.disabledSubtitleTracks[track] = !context.subtitleContainer.disabledSubtitleTracks[track];
+            },
+            () => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
             },
             () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
             true
