@@ -219,7 +219,7 @@ export default class AudioClip {
     }
 
     static fromBase64(subtitleFileName, start, end, base64, extension) {
-        const audioName = subtitleFileName.substring(0, subtitleFileName.lastIndexOf(".")) + "_" + start + "_" + end;
+        const audioName = subtitleFileName.substring(0, subtitleFileName.lastIndexOf(".")) + "_" + Math.floor(start) + "_" + Math.floor(end);
         return new AudioClip(new Base64AudioData(audioName, start, end, base64, extension));
     }
 

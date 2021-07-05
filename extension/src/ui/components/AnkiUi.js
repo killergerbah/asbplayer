@@ -27,8 +27,8 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
             if (state.audio) {
                 audioClip = AudioClip.fromBase64(
                     state.source,
-                    state.subtitle.start,
-                    state.subtitle.end,
+                    Math.max(0, state.subtitle.start - state.audio.paddingStart),
+                    state.subtitle.end + state.audio.paddingEnd,
                     state.audio.base64,
                     state.audio.extension
                 );

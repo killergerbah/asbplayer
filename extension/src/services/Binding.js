@@ -29,6 +29,8 @@ export default class Binding {
         this.screenshot = true;
         this.cleanScreenshot = true;
         this.bindKeys = true;
+        this.audioPaddingStart = 0;
+        this.audioPaddingEnd = 500;
     }
 
     bind() {
@@ -173,6 +175,8 @@ export default class Binding {
                         break;
                     case 'ankiSettings':
                         this.ankiUiContainer.ankiSettings = request.message.value;
+                        this.audioPaddingStart = request.message.value.audioPaddingStart || this.audioPaddingStart;
+                        this.audioPaddingEnd = request.message.value.audioPaddingEnd || this.audioPaddingEnd;
                         break;
                     case 'settings-updated':
                         this._refreshSettings();
@@ -262,7 +266,8 @@ export default class Binding {
             navigator.clipboard.writeText(subtitle.text);
 
             if (this.recordMedia) {
-                this.seek(subtitle.start / 1000);
+                const start = Math.max(0, subtitle.start - this.audioPaddingStart);
+                this.seek(start / 1000);
 
                 if (this.showControlsTimeout) {
                     clearTimeout(this.showControlsTimeout);
@@ -288,7 +293,9 @@ export default class Binding {
                 subtitle: subtitle,
                 record: this.recordMedia,
                 screenshot: this.screenshot,
-                showAnkiUi: showAnkiUi
+                showAnkiUi: showAnkiUi,
+                audioPaddingStart: this.audioPaddingStart,
+                audioPaddingEnd: this.audioPaddingEnd
             };
 
             if (message.screenshot) {

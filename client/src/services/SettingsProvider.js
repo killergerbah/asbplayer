@@ -8,6 +8,8 @@ const defaultSubtitleBackgroundOpacity = 0.5;
 const defaultSubtitleFontFamily = "";
 const defaultSubtitlePreview = "アあ安"
 const defaultVolume = 100;
+const defaultAudioPaddingStart = 0;
+const defaultAudioPaddingEnd = 500;
 
 const ankiConnectUrlKey = "ankiConnectUrl";
 const deckKey = "deck";
@@ -27,6 +29,8 @@ const subtitleBackgroundColorKey = "subtitleBackgroundColor";
 const subtitleBackgroundOpacityKey = "subtitleBackgroundOpacity";
 const subtitleFontFamilyKey = "subtitleFontFamily";
 const subtitlePreviewKey = "subtitlePreview";
+const audioPaddingStartKey = "audioPaddingStart";
+const audioPaddingEndKey = "audioPaddingEnd";
 const volumeKey = "volume";
 const preferMp3Key = "preferMp3";
 const themeTypeKey = "themeType";
@@ -54,7 +58,9 @@ export default class SettingsProvider {
             subtitleFontFamily: this.subtitleFontFamily,
             subtitlePreview: this.subtitlePreview,
             preferMp3: this.preferMp3,
-            themeType: this.themeType
+            themeType: this.themeType,
+            audioPaddingStart: this.audioPaddingStart,
+            audioPaddingEnd: this.audioPaddingEnd
         };
     }
 
@@ -80,6 +86,8 @@ export default class SettingsProvider {
         this.customAnkiFields = newSettings.customAnkiFields;
         this.preferMp3 = newSettings.preferMp3;
         this.themeType = newSettings.themeType;
+        this.audioPaddingStart = newSettings.audioPaddingStart;
+        this.audioPaddingEnd = newSettings.audioPaddingEnd;
     }
 
     get subtitleSettings() {
@@ -107,7 +115,9 @@ export default class SettingsProvider {
             wordField: this.wordField,
             sourceField: this.sourceField,
             customAnkiFields: this.customAnkiFields,
-            preferMp3: this.preferMp3
+            preferMp3: this.preferMp3,
+            audioPaddingStart: this.audioPaddingStart,
+            audioPaddingEnd: this.audioPaddingEnd
         };
     }
 
@@ -283,5 +293,33 @@ export default class SettingsProvider {
 
     set themeType(themeType) {
         localStorage.setItem(themeTypeKey, themeType);
+    }
+
+    get audioPaddingStart() {
+        const value = localStorage.getItem(audioPaddingStartKey);
+
+        if (!value) {
+            return defaultAudioPaddingStart;
+        }
+
+        return Number(value);
+    }
+
+    set audioPaddingStart(audioPaddingStart) {
+        localStorage.setItem(audioPaddingStartKey, audioPaddingStart);
+    }
+
+    get audioPaddingEnd() {
+        const value = localStorage.getItem(audioPaddingEndKey);
+
+        if (!value) {
+            return defaultAudioPaddingEnd;
+        }
+
+        return Number(value);
+    }
+
+    set audioPaddingEnd(audioPaddingEnd) {
+        localStorage.setItem(audioPaddingEndKey, audioPaddingEnd);
     }
 }

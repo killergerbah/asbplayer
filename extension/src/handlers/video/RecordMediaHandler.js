@@ -34,7 +34,7 @@ export default class RecordMediaHandler {
         let imagePromise = null;
 
         if (request.message.record) {
-            const time = subtitle.end - subtitle.start + 500;
+            const time = subtitle.end - subtitle.start + request.message.audioPaddingEnd;
             audioPromise = this.audioRecorder.record(time);
         }
 
@@ -61,7 +61,9 @@ export default class RecordMediaHandler {
             const audioBase64 = await audioPromise;
             message['audio'] = {
                 base64: audioBase64,
-                extension: 'webm'
+                extension: 'webm',
+                paddingStart: request.message.audioPaddingStart,
+                paddingEnd: request.message.audioPaddingEnd
             };
         }
 

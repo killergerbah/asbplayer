@@ -131,6 +131,8 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
     const [preferMp3, setPreferMp3] = useState(settings.preferMp3);
     const [fieldNames, setFieldNames] = useState();
     const [customFieldDialogOpen, setCustomFieldDialogOpen] = useState(false);
+    const [audioPaddingStart, setAudioPaddingStart] = useState(settings.audioPaddingStart);
+    const [audioPaddingEnd, setAudioPaddingEnd] = useState(settings.audioPaddingEnd);
     const [subtitleColor, setSubtitleColor] = useState(settings.subtitleColor);
     const [subtitleSize, setSubtitleSize] = useState(settings.subtitleSize);
     const [subtitleOutlineColor, setSubtitleOutlineColor] = useState(settings.subtitleOutlineColor);
@@ -155,6 +157,8 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
     const handleImageFieldChange = useCallback((e) => setImageField(e.target.value), []);
     const handleWordFieldChange = useCallback((e) => setWordField(e.target.value), []);
     const handleSourceFieldChange = useCallback((e) => setSourceField(e.target.value), []);
+    const handleAudioPaddingStart = useCallback((e) => setAudioPaddingStart(e.target.value), []);
+    const handleAudioPaddingEnd = useCallback((e) => setAudioPaddingEnd(e.target.value), []);
     const handleSubtitleColorChange = useCallback((e) => setSubtitleColor(e.target.value), []);
     const handleSubtitleSizeChange = useCallback((e) => setSubtitleSize(e.target.value), []);
     const handleSubtitleOutlineColorChange = useCallback((e) => setSubtitleOutlineColor(e.target.value), []);
@@ -280,9 +284,11 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
             subtitlePreview: subtitlePreview,
             customAnkiFields: customFields,
             preferMp3: preferMp3,
-            themeType: themeType
+            themeType: themeType,
+            audioPaddingStart: audioPaddingStart,
+            audioPaddingEnd: audioPaddingEnd
         });
-    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, imageField, wordField, sourceField, customFields, preferMp3, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity, subtitleFontFamily, subtitlePreview, themeType]);
+    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, imageField, wordField, sourceField, customFields, preferMp3, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity, subtitleFontFamily, subtitlePreview, themeType, audioPaddingStart, audioPaddingEnd]);
 
     const customFieldInputs = Object.keys(customFields).map(customFieldName => {
         return (
@@ -408,6 +414,37 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                                 <FormControlLabel
                                     control={<Checkbox checked={preferMp3} onChange={handlePreferMp3Change} />}
                                     label="Re-encode audio as mp3 (slower)"
+                                />
+                                <TextField
+                                    type="number"
+                                    label="Audio Padding Start"
+                                    fullWidth
+                                    value={audioPaddingStart}
+                                    color="secondary"
+                                    onChange={handleAudioPaddingStart}
+                                    inputProps={{
+                                        min: 0,
+                                        step: 1,
+                                    }}
+                                    InputProps={{
+                                        endAdornment: (<InputAdornment position="end">ms</InputAdornment>)
+                                    }}
+
+                                />
+                                <TextField
+                                    type="number"
+                                    label="Audio Padding End"
+                                    fullWidth
+                                    value={audioPaddingEnd}
+                                    color="secondary"
+                                    onChange={handleAudioPaddingEnd}
+                                    inputProps={{
+                                        min: 0,
+                                        step: 1,
+                                    }}
+                                    InputProps={{
+                                        endAdornment: (<InputAdornment position="end">ms</InputAdornment>)
+                                    }}
                                 />
                             </FormGroup>
                         </Grid>
