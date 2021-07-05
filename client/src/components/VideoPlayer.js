@@ -327,7 +327,7 @@ export default function VideoPlayer(props) {
             if (!arrayEquals(showSubtitles, showSubtitlesRef.current, (s1, s2) => s1.index === s2.index)) {
                 setShowSubtitles(showSubtitles);
             }
-        }, 100)
+        }, 50)
 
         return () => clearTimeout(interval);
     }, [subtitles, disabledSubtitleTracks, clock, length]);
