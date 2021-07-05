@@ -5,6 +5,7 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import Alert from '@material-ui/lab/Alert';
 import AnkiDialog from './AnkiDialog';
 import CssBaseline from '@material-ui/core/CssBaseline';
+import ImageDialog from './ImageDialog';
 import Snackbar from '@material-ui/core/Snackbar';
 
 export default function AnkiUi({bridge, mp3WorkerUrl}) {
@@ -13,6 +14,7 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
     const [text, setText] = useState("");
     const [audioClip, setAudioClip] = useState();
     const [image, setImage] = useState();
+    const [imageDialogOpen, setImageDialogOpen] = useState(false);
     const [source, setSource] = useState();
     const [settingsProvider, setSettingsProvider] = useState({customAnkiFields: {}});
     const [alertSeverity, setAlertSeverity] = useState();
@@ -45,6 +47,7 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
                 );
             }
 
+            setImageDialogOpen(false);
             setDisabled(false);
             setSettingsProvider(state.settingsProvider);
             setText(state.subtitle.text);
@@ -71,6 +74,7 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
             );
 
             setOpen(false);
+            setImageDialogOpen(false);
             bridge.finished();
         } catch (e) {
             console.error(e);
@@ -84,8 +88,14 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
 
     const handleCancel = useCallback(() => {
         setOpen(false);
+        setImageDialogOpen(false);
         bridge.finished();
     }, [bridge]);
+
+    const handleViewImage = useCallback((image) => {
+        setImage(image);
+        setImageDialogOpen(true);
+    }, []);
 
     return (
         <ThemeProvider theme={theme}>
@@ -100,6 +110,11 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
                     {alert}
                 </Alert>
             </Snackbar>
+            <ImageDialog
+                open={imageDialogOpen}
+                image={image}
+                onClose={() => setImageDialogOpen(false)}
+            />
             <AnkiDialog
                 open={open}
                 disabled={disabled}
@@ -112,6 +127,7 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
                 anki={anki}
                 onProceed={handleProceed}
                 onCancel={handleCancel}
+                onViewImage={handleViewImage}
             />
         </ThemeProvider>
     );

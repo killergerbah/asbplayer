@@ -35,6 +35,7 @@ export default function AnkiDialog({
     text: initialText,
     onProceed,
     onCancel,
+    onViewImage,
     audioClip: initialAudioClip,
     image,
     source,
@@ -115,6 +116,12 @@ export default function AnkiDialog({
     } else {
         wordHelperText = "";
     }
+
+    const handleViewImage = useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onViewImage(image);
+    }, [image, onViewImage]);
 
     return (
         <Dialog
@@ -200,13 +207,18 @@ export default function AnkiDialog({
                         </div>
                     )}
                     {image && (
-                        <TextField
-                            variant="filled"
-                            color="secondary"
-                            fullWidth
-                            value={image.name}
-                            label="Image"
-                        />
+                        <div
+                            className={classes.mediaField}
+                            onClick={handleViewImage}
+                        >
+                            <TextField
+                                variant="filled"
+                                color="secondary"
+                                fullWidth
+                                value={image.name}
+                                label="Image"
+                            />
+                        </div>
                     )}
                     <TextField
                         variant="filled"
