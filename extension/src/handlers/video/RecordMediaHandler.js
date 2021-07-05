@@ -17,6 +17,13 @@ export default class RecordMediaHandler {
     }
 
     async handle(request, sender) {
+        const windowActive = await this._isWindowActive(sender.tab.windowId);
+
+        if (!windowActive) {
+            console.error("Received record request from wrong window.");
+            return;
+        }
+
         const subtitle = request.message.subtitle;
         const message = {
             command: 'copy',
@@ -81,5 +88,13 @@ export default class RecordMediaHandler {
                 src: request.src
             });
         }
+    }
+
+    async _isWindowActive(windowId) {
+        return new Promise((resolve, reject) => {
+            chrome.windows.getLastFocused(null, (window) => {
+                resolve(window.id === windowId);
+            });
+        });
     }
 }
