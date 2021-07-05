@@ -42,6 +42,7 @@ export default class AnkiUiContainer {
             subtitle: subtitle,
             image: image,
             audio: audio,
+            themeType: this.themeType
         });
         context.keyBindings.unbind();
         context.subtitleContainer.displaySubtitles = false;

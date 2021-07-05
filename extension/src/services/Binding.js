@@ -178,6 +178,9 @@ export default class Binding {
                         this.audioPaddingStart = request.message.value.audioPaddingStart || this.audioPaddingStart;
                         this.audioPaddingEnd = request.message.value.audioPaddingEnd || this.audioPaddingEnd;
                         break;
+                    case 'miscSettings':
+                        this.ankiUiContainer.themeType = request.message.value.themeType;
+                        break;
                     case 'settings-updated':
                         this._refreshSettings();
                         break;

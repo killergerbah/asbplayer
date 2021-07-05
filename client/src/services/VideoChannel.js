@@ -221,6 +221,10 @@ export default class VideoChannel {
         this.protocol.postMessage({command: 'ankiSettings', value: settings});
     }
 
+    miscSettings(settings) {
+        this.protocol.postMessage({command: 'miscSettings', value: settings});
+    }
+
     close() {
         this.protocol.postMessage({command: 'close'});
         this.protocol.close();

@@ -84,6 +84,9 @@ export default class PlayerChannel {
                 case 'ankiSettings':
                     // ignore
                     break;
+                case 'miscSettings':
+                    // ignore
+                    break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }

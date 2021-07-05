@@ -267,6 +267,7 @@ function App() {
         setDisableKeyEvents(false);
         extension.publishMessage({command: 'subtitleSettings', value: settingsProvider.subtitleSettings});
         extension.publishMessage({command: 'ankiSettings', value: settingsProvider.ankiSettings});
+        extension.publishMessage({command: 'miscSettings', value: settingsProvider.miscSettings});
     }, [extension, settingsProvider]);
 
     const handleDeleteCopyHistoryItem = useCallback(item => {

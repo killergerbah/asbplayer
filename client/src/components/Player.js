@@ -261,6 +261,7 @@ export default function Player({
                     }
 
                     channel.ankiSettings(settingsProvider.ankiSettings);
+                    channel.miscSettings(settingsProvider.miscSettings);
                     channel.condensedModeToggle(condensedModeEnabledRef.current);
                     channel.hideSubtitlePlayerToggle(hideSubtitlePlayerRef.current);
 

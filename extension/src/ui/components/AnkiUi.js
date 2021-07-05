@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Anki, Image, AudioClip } from '@project/common';
-import { theme } from './theme';
+import { createTheme } from './theme';
 import { ThemeProvider } from '@material-ui/core/styles';
 import Alert from '@material-ui/lab/Alert';
 import AnkiDialog from './AnkiDialog';
@@ -20,6 +20,8 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
     const [alertSeverity, setAlertSeverity] = useState();
     const [alertOpen, setAlertOpen] = useState(false);
     const [alert, setAlert] = useState();
+    const [themeType, setThemeType] = useState('dark');
+    const theme = useMemo(() => createTheme(themeType), [themeType]);
     const anki = useMemo(() => new Anki(settingsProvider, bridge), [settingsProvider, bridge]);
 
     useEffect(() => {
@@ -54,6 +56,7 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
             setAudioClip(audioClip);
             setImage(image);
             setSource(state.source);
+            setThemeType(state.themeType || 'dark');
             setOpen(state.open);
         });
     }, [bridge, mp3WorkerUrl]);

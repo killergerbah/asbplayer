@@ -121,6 +121,12 @@ export default class SettingsProvider {
         };
     }
 
+    get miscSettings() {
+        return {
+            themeType: this.themeType
+        }
+    }
+
     get ankiConnectUrl() {
         return localStorage.getItem(ankiConnectUrlKey) || defaultAnkiConnectUrl;
     }
