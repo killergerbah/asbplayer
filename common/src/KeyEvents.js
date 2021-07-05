@@ -39,4 +39,9 @@ export default class KeyEvents {
         // Right
         return !KeyEvents.detectDecreaseOffset(event) && !KeyEvents.detectDecreaseOffsetToNextSubtitle(event) && event.keyCode === 39;
     }
+
+    static detectPlay(event) {
+        // Space
+        return event.keyCode === 32;
+    }
 }

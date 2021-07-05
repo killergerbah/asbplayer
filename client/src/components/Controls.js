@@ -508,15 +508,7 @@ export default function Controls({
         }
 
         function handleKey(event) {
-            if (event.keyCode === 32) {
-                event.preventDefault();
-
-                if (playing) {
-                    onPause();
-                } else {
-                    onPlay();
-                }
-            } else if (event.keyCode === 13) {
+            if (event.keyCode === 13) {
                 if (offsetInputRef.current === document.activeElement) {
                     const offset = Number(offsetInputRef.current.value);
 
@@ -535,7 +527,7 @@ export default function Controls({
         return () => {
             window.removeEventListener('keydown', handleKey);
         };
-    }, [playing, onPause, onPlay, onOffsetChange, disableKeyEvents]);
+    }, [onOffsetChange, disableKeyEvents]);
 
     const handleOffsetInputClicked = useCallback((e) => e.target.setSelectionRange(0, e.target.value?.length || 0), []);
 

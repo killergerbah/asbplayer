@@ -208,6 +208,20 @@ export default class KeyBindings {
         };
     }
 
+    static bindPlay(onPlay, disabledGetter, useCapture = false) {
+        return KeyBindings._bindDown((event) => {
+            if (disabledGetter()) {
+                return;
+            }
+
+            if (!KeyEvents.detectPlay(event)) {
+                return;
+            }
+
+            onPlay(event);
+        }, useCapture);
+    }
+
     static _bindDown(handler, useCapture) {
         window.addEventListener('keydown', handler, useCapture);
 

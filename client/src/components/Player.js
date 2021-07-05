@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { v4 as uuidv4 } from 'uuid';
+import { KeyBindings } from '@project/common';
 import BroadcastChannelVideoProtocol from '../services/BroadcastChannelVideoProtocol';
 import ChromeTabVideoProtocol from '../services/ChromeTabVideoProtocol';
 import Clock from '../services/Clock';
@@ -557,6 +558,23 @@ export default function Player({
 
         return () => clearInterval(interval);
     }, [clock, subtitles, mediaAdapter, seek]);
+
+    useEffect(() => {
+        const unbind = KeyBindings.bindPlay(
+            (event) => {
+                event.preventDefault();
+
+                if (playing) {
+                    pause(clock, mediaAdapter, true);
+                } else {
+                    play(clock, mediaAdapter, true);
+                }
+            },
+            () => disableKeyEvents
+        );
+
+        return () => unbind();
+    }, [playing, clock, mediaAdapter, disableKeyEvents]);
 
     const length = lengthRef.current;
     const loaded = audioFileUrl || videoFileUrl || subtitles;

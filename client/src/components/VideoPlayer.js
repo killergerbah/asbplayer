@@ -464,6 +464,23 @@ export default function VideoPlayer(props) {
         return () => unbind();
     }, [playerChannel, fullscreen]);
 
+    useEffect(() => {
+        const unbind = KeyBindings.bindPlay(
+            (event) => {
+                event.preventDefault();
+                
+                if (playing) {
+                    playerChannel.pause();
+                } else {
+                    playerChannel.play();
+                }
+            },
+            () => false
+        );
+
+        return () => unbind();
+    }, [playing, playerChannel]);
+
     const handleShowControls = useCallback((showing) => setControlsShowing(showing), []);
     const handleSubtitlesToggle = useCallback(() => setSubtitlesEnabled(subtitlesEnabled => !subtitlesEnabled), []);
 
