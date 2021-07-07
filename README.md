@@ -58,7 +58,7 @@ The below information can also be found in the application by clicking on the qu
 |S|Toggle subtitles|
 |S+1, S+2...|Toggle subtitle track 1, 2...|
 |Left/Right|Seek to previous/next subtitle|
-|Ctrl+Left/Right|Adjust offset to previous/next subtitle
+|Ctrl+Left/Right or Shift+Left/Right|Adjust offset to previous/next subtitle
 |Ctrl+Shift+Left/Right|Adjust offset by +/- 100ms|
 
 ### Demos
@@ -83,7 +83,7 @@ npm install --global yarn
 # Install dependencies
 yarn
 
-# Starts the devleopment server
+# Starts the development server
 yarn workspace @project/client run start 
 
 # Build the extension to extension/dist

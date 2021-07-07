@@ -170,7 +170,7 @@ export default function HelpDialog(props) {
                                 <TableCell><Typography>Seek to previous/next subtitle</Typography></TableCell>
                             </TableRow>
                             <TableRow>
-                                <TableCell><Typography>Ctrl+Left/Right</Typography></TableCell>
+                                <TableCell><Typography>Ctrl+Left/Right or Shift+Left/Right</Typography></TableCell>
                                 <TableCell><Typography>Adjust offset to previous/next subtitle</Typography></TableCell>
                             </TableRow>
                             <TableRow>

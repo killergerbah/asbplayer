@@ -22,12 +22,12 @@ export default class KeyEvents {
 
     static detectDecreaseOffsetToNextSubtitle(event) {
         // Ctrl + Right
-        return !KeyEvents.detectDecreaseOffset(event) && event.ctrlKey && event.keyCode === 39;
+        return !KeyEvents.detectDecreaseOffset(event) && (event.ctrlKey || event.shiftKey) && event.keyCode === 39;
     }
 
     static detectIncreaseOffsetToPreviousSubtitle(event) {
         // Ctrl + Left
-        return !KeyEvents.detectIncreaseOffset(event) && event.ctrlKey && event.keyCode === 37;
+        return !KeyEvents.detectIncreaseOffset(event) && (event.ctrlKey || event.shiftKey) && event.keyCode === 37;
     }
 
     static detectPreviousSubtitle(event) {
