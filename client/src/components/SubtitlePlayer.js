@@ -72,22 +72,33 @@ const useSubtitleRowStyles = makeStyles((theme) => ({
 const SubtitleRow = React.memo((props) => {
     const {index, compressed, selected, subtitle, subtitleRef, onClick, onCopy, ...tableRowProps} = props;
     const classes = useSubtitleRowStyles();
+    const textRef = useRef();
+    const [textSelected, setTextSelected] = useState(false);
     let className = compressed ? classes.compressedSubtitle : classes.subtitle;
 
     if (subtitle.start < 0 || subtitle.end < 0) {
         return null;
     }
 
+    function handleMouseUp(e) {
+        var selection = document.getSelection();
+        setTextSelected(
+            selection?.type === 'Range'
+            && textRef.current?.isSameNode(selection.anchorNode.parentNode)
+        );
+    }
+
     return (
         <TableRow
-            onClick={(e) => onClick(index)}
+            onClick={(e) => !textSelected && onClick(index)}
+            onMouseUp={handleMouseUp}
             ref={subtitleRef}
             className={classes.subtitleRow}
             selected={selected}
             {...tableRowProps}
         >
             <TableCell className={className}>
-                <span onClick={(e) => e.stopPropagation()}>
+                <span ref={textRef}>
                     {subtitle.text}
                 </span>
             </TableCell>
