@@ -35,14 +35,14 @@
         "copy-subtitle": {
             "suggested_key": {
                 "default": "Ctrl+Shift+Z",
-                "mac": "Command+Shift+Z"
+                "mac": "MacCtrl+Shift+Z"
             },
             "description": "Copy current subtitle."
         },
         "copy-subtitle-with-dialog": {
             "suggested_key": {
                 "default": "Ctrl+Shift+X",
-                "mac": "Command+Shift+X"
+                "mac": "MacCtrl+Shift+X"
             },
             "description": "Copy current subtitle and open Anki dialog."
         }
