@@ -28,10 +28,13 @@ export default class ImageCapturer {
             const image = new Image();
             image.onload = () => {
                 const canvas = document.createElement('canvas');
-                canvas.width = rect.width;
-                canvas.height = rect.height;
+                const r = window.devicePixelRatio;
+                const width = rect.width * r;
+                const height = rect.height * r;
+                canvas.width = width;
+                canvas.height = height;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(image, rect.left, rect.top, rect.width, rect.height, 0, 0, rect.width, rect.height);
+                ctx.drawImage(image, rect.left * r, rect.top * r, width, height, 0, 0, width, height);
                 resolve(canvas.toDataURL('image/jpeg'));
             };
 
