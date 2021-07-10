@@ -41,7 +41,7 @@ export default class KeyBindings {
             true
         );
 
-        this.unbindToggleSubtitleTrack = CommonKeyBindings.bindToggleSubtitleTrack(
+        this.unbindToggleSubtitleTrackInVideo = CommonKeyBindings.bindToggleSubtitleTrackInVideo(
             (event, track) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
@@ -54,6 +54,25 @@ export default class KeyBindings {
             () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
             true
         );
+
+        this.unbindToggleSubtitleTrackInList = CommonKeyBindings.bindToggleSubtitleTrackInList(
+            (event, track) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                chrome.runtime.sendMessage({
+                    sender: 'asbplayer-video',
+                    message: {
+                        command: 'toggleSubtitleTrackInList',
+                        track: track
+                    },
+                    src: context.video.src
+                });
+            },
+            () => {},
+            () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
+            true
+        );
+
 
         this.unbindOffsetToSubtitle = CommonKeyBindings.bindOffsetToSubtitle(
             (event, offset) => {
@@ -92,9 +111,14 @@ export default class KeyBindings {
             this.unbindToggleSubtitles = null;
         }
 
-        if (this.unbindToggleSubtitleTrack) {
-            this.unbindToggleSubtitleTrack();
-            this.unbindToggleSubtitleTrack = null;
+        if (this.unbindToggleSubtitleTrackInVideo) {
+            this.unbindToggleSubtitleTrackInVideo();
+            this.unbindToggleSubtitleTrackInVideo = null;
+        }
+
+        if (this.unbindToggleSubtitleTrackInList) {
+            this.unbindToggleSubtitleTrackInList();
+            this.unbindToggleSubtitleTrackInList = null;
         }
 
         if (this.unbindOffsetToSubtitle) {

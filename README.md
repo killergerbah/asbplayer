@@ -56,7 +56,8 @@ The below information can also be found in the application by clicking on the qu
 |Ctrl+Shift+X|Copy current subtitle and open Anki export dialog (streaming video in another tab)|     
 |Space|Play/pause|
 |S|Toggle subtitles|
-|S+1, S+2...|Toggle subtitle track 1, 2...|
+|S+1, S+2...|Toggle subtitle track 1, 2... in video|
+|D+1, D+2...|Toggle subtitle track 1, 2... in asbplayer|
 |Left/Right|Seek to previous/next subtitle|
 |Ctrl+Left/Right or Shift+Left/Right|Adjust offset to previous/next subtitle
 |Ctrl+Shift+Left/Right|Adjust offset by +/- 100ms|

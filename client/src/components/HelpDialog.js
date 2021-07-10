@@ -163,7 +163,11 @@ export default function HelpDialog(props) {
                             </TableRow>
                             <TableRow>
                                 <TableCell><Typography>S+1, S+2...</Typography></TableCell>
-                                <TableCell><Typography>Toggle subtitle track 1, 2...</Typography></TableCell>
+                                <TableCell><Typography>Toggle subtitle track 1, 2... in video</Typography></TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell><Typography>D+1, D+2...</Typography></TableCell>
+                                <TableCell><Typography>Toggle subtitle track 1, 2... in asbplayer</Typography></TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell><Typography>Left/Right</Typography></TableCell>

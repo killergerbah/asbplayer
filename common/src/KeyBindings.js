@@ -183,7 +183,7 @@ export default class KeyBindings {
         };
     }
 
-    static bindToggleSubtitleTrack(onToggleSubtitleTrack, onSequenceAdvanced, disabledGetter, useCapture = false) {
+    static bindToggleSubtitleTrackInVideo(onToggleSubtitleTrack, onSequenceAdvanced, disabledGetter, useCapture = false) {
         const sequence = KeySequences.toggleSubtitleTrack();
         const handler = (event) => {
             if (disabledGetter()) {
@@ -197,6 +197,31 @@ export default class KeyBindings {
                 onSequenceAdvanced();
             } else if (transition.result === KeySequence.COMPLETE) {
                 onToggleSubtitleTrack(event, transition.extra);
+            }
+        };
+        const unbindDown = KeyBindings._bindDown(handler, useCapture);
+        const unbindUp = KeyBindings._bindUp(handler, useCapture);
+
+        return () => {
+            unbindDown();
+            unbindUp();
+        };
+    }
+
+    static bindToggleSubtitleTrackInList(onToggleSubtitleTrackInList, onSequenceAdvanced, disabledGetter, useCapture = false) {
+        const sequence = KeySequences.toggleSubtitleTrackInList();
+        const handler = (event) => {
+            if (disabledGetter()) {
+                sequence.reset();
+                return;
+            }
+
+            const transition = sequence.accept(event);
+
+            if (transition.result === KeySequence.ADVANCED) {
+                onSequenceAdvanced();
+            } else if (transition.result === KeySequence.COMPLETE) {
+                onToggleSubtitleTrackInList(event, transition.extra);
             }
         };
         const unbindDown = KeyBindings._bindDown(handler, useCapture);

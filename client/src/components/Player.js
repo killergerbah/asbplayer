@@ -119,6 +119,7 @@ export default function Player({
     const [hideSubtitlePlayer, setHideSubtitlePlayer] = useState(false);
     const hideSubtitlePlayerRef = useRef();
     hideSubtitlePlayerRef.current = hideSubtitlePlayer;
+    const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState({});
     const [condensedModeEnabled, setCondensedModeEnabled] = useState(false);
     const condensedModeEnabledRef = useRef();
     condensedModeEnabledRef.current = condensedModeEnabled;
@@ -326,6 +327,11 @@ export default function Player({
                             setSelectedAudioTrack(id);
                         });
                         channel.onAnkiDialogRequest((forwardToVideo) => onAnkiDialogRequest(forwardToVideo));
+                        channel.onToggleSubtitleTrackInList((track) => setDisabledSubtitleTracks(tracks => {
+                            const newTracks = {...tracks};
+                            newTracks[track] = !tracks[track];
+                            return newTracks;
+                        }));
 
                         subscribed = true;
                     }
@@ -545,6 +551,12 @@ export default function Player({
 
     const handleCondensedModeToggle = useCallback(() =>  setCondensedModeEnabled(v => !v), []);
 
+    const handleToggleSubtitleTrack = useCallback((track) => setDisabledSubtitleTracks(tracks => {
+        const newTracks = {...tracks};
+        newTracks[track] = !tracks[track];
+        return newTracks;
+    }), []);
+
     useEffect(() => {
         const interval = setInterval(async () => {
             const length = lengthRef.current;
@@ -649,10 +661,12 @@ export default function Player({
                             disableKeyEvents={disableKeyEvents}
                             lastJumpToTopTimestamp={lastJumpToTopTimestamp}
                             hidden={videoInWindow && hideSubtitlePlayer}
+                            disabledSubtitleTracks={disabledSubtitleTracks}
                             onSeek={handleSeekToSubtitle}
                             onCopy={handleCopy}
                             onOffsetChange={handleOffsetChange}
                             onAnkiDialogRequest={onAnkiDialogRequest}
+                            onToggleSubtitleTrack={handleToggleSubtitleTrack}
                         />
                     </Grid>
                 )}

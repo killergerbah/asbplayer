@@ -414,7 +414,7 @@ export default function VideoPlayer(props) {
     }, []);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindToggleSubtitleTrack(
+        const unbind = KeyBindings.bindToggleSubtitleTrackInVideo(
             (event, track) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -430,6 +430,20 @@ export default function VideoPlayer(props) {
 
         return () => unbind();
     }, []);
+
+    useEffect(() => {
+        const unbind = KeyBindings.bindToggleSubtitleTrackInList(
+            (event, track) => {
+                event.preventDefault();
+                event.stopPropagation();
+                playerChannel.toggleSubtitleTrackInList(track);
+            },
+            () => {},
+            () => false
+        );
+
+        return () => unbind();
+    }, [playerChannel]);
 
     useEffect(() => {
         const unbind = KeyBindings.bindOffsetToSubtitle(

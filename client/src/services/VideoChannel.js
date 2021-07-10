@@ -19,6 +19,7 @@ export default class VideoChannel {
         this.condensedModeToggleCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
+        this.toggleSubtitleTrackInListCallbacks = [];
 
         const that = this;
 
@@ -96,9 +97,17 @@ export default class VideoChannel {
                 case 'sync':
                     // ignore
                     break;
+                case 'syncv2':
+                    // ignore
+                    break;
                 case 'ankiDialogRequest':
                     for (let callback of that.ankiDialogRequestCallbacks) {
                         callback(event.data.forwardToVideo);
+                    }
+                    break;
+                case 'toggleSubtitleTrackInList':
+                    for (const callback of that.toggleSubtitleTrackInListCallbacks) {
+                        callback(event.data.track);
                     }
                     break;
                 default:
@@ -166,6 +175,10 @@ export default class VideoChannel {
 
     onAnkiDialogRequest(callback) {
         this.ankiDialogRequestCallbacks.push(callback);
+    }
+
+    onToggleSubtitleTrackInList(callback) {
+        this.toggleSubtitleTrackInListCallbacks.push(callback);
     }
 
     ready(duration) {
@@ -240,5 +253,6 @@ export default class VideoChannel {
         this.condensedModeToggleCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
+        this.toggleSubtitleTrackInListCallbacks = [];
     }
 }

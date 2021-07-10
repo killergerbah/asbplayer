@@ -56,6 +56,11 @@ const useSubtitleRowStyles = makeStyles((theme) => ({
         width: '100%',
         overflowWrap: 'anywhere'
     },
+    disabledSubtitle: {
+        color: 'transparent',
+        backgroundColor: theme.palette.action.disabledBackground,
+        borderRadius: 5
+    },
     timestamp: {
         fontSize: 14,
         color: '#aaaaaa',
@@ -70,11 +75,12 @@ const useSubtitleRowStyles = makeStyles((theme) => ({
 }));
 
 const SubtitleRow = React.memo((props) => {
-    const {index, compressed, selected, subtitle, subtitleRef, onClick, onCopy, ...tableRowProps} = props;
+    const {index, compressed, selected, disabled, subtitle, subtitleRef, onClick, onCopy, ...tableRowProps} = props;
     const classes = useSubtitleRowStyles();
     const textRef = useRef();
     const [textSelected, setTextSelected] = useState(false);
     let className = compressed ? classes.compressedSubtitle : classes.subtitle;
+    let disabledClassName = disabled ? classes.disabledSubtitle : "";
 
     if (subtitle.start < 0 || subtitle.end < 0) {
         return null;
@@ -98,7 +104,7 @@ const SubtitleRow = React.memo((props) => {
             {...tableRowProps}
         >
             <TableCell className={className}>
-                <span ref={textRef}>
+                <span ref={textRef} className={disabledClassName}>
                     {subtitle.text}
                 </span>
             </TableCell>
@@ -120,6 +126,7 @@ export default function SubtitlePlayer({
     onCopy,
     onOffsetChange,
     onAnkiDialogRequest,
+    onToggleSubtitleTrack,
     playing,
     subtitles,
     length,
@@ -131,6 +138,7 @@ export default function SubtitlePlayer({
     disableKeyEvents,
     lastJumpToTopTimestamp,
     hidden,
+    disabledSubtitleTracks
     }) {
     const playingRef = useRef();
     playingRef.current = playing;
@@ -395,6 +403,20 @@ export default function SubtitlePlayer({
     }, [subtitles, onCopy]);
 
     useEffect(() => {
+        const unbind = KeyBindings.bindToggleSubtitleTrackInList(
+            (event, track) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onToggleSubtitleTrack(track);
+            },
+            () => {},
+            () => disableKeyEvents,
+        );
+
+        return () => unbind();
+    }, [disableKeyEvents, onToggleSubtitleTrack]);
+
+    useEffect(() => {
         const unbind = KeyBindings.bindAnkiExport(
             (event) => {
                 event.preventDefault();
@@ -448,6 +470,7 @@ export default function SubtitlePlayer({
                                     index={index}
                                     compressed={compressed}
                                     selected={selected}
+                                    disabled={disabledSubtitleTracks[s.track]}
                                     subtitle={subtitles[index]}
                                     subtitleRef={subtitleRefs[index]}
                                     onClick={handleClick}

@@ -197,6 +197,10 @@ export default class PlayerChannel {
         this.channel?.postMessage({command: 'ankiDialogRequest', forwardToVideo: forwardToVideo});
     }
 
+    toggleSubtitleTrackInList(track) {
+        this.channel?.postMessage({command: 'toggleSubtitleTrackInList', track: track});
+    }
+
     close() {
         if (this.channel) {
             this.channel.postMessage({command: 'exit'});

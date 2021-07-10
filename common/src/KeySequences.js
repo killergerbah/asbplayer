@@ -11,4 +11,9 @@ export default class KeySequences {
         // Holding S, up 1...9
         return new KeySequence({holding: [83], up: [49, 50, 51, 52, 53, 54, 55, 56, 57], map: (event) => event.keyCode - 49});
     }
+
+    static toggleSubtitleTrackInList() {
+        // Holding D, up 1...9
+        return new KeySequence({holding: [68], up: [49, 50, 51, 52, 53, 54, 55, 56, 57], map: (event) => event.keyCode - 49});
+    }
 }
