@@ -1,23 +1,26 @@
+import { CanvasResizer } from '@project/common'
+
 export default class ImageCapturer {
 
     constructor(settings) {
         this.settings = settings;
+        this.canvasResizer = new CanvasResizer();
     }
 
-    capture(rect) {
+    capture(rect, maxWidth, maxHeight) {
         return new Promise(async (resolve, reject) => {
             chrome.tabs.captureVisibleTab(
                 null,
                 {format: 'jpeg'},
                 async (dataUrl) => {
-                    const croppedDataUrl = await this._crop(dataUrl, rect);
+                    const croppedDataUrl = await this._cropAndResize(dataUrl, rect, maxWidth, maxHeight);
                     resolve(croppedDataUrl.substr(croppedDataUrl.indexOf(',') + 1));
                 }
             );
         });
     }
 
-    _crop(dataUrl, rect) {
+    _cropAndResize(dataUrl, rect, maxWidth, maxHeight) {
         return new Promise(async (resolve, reject) => {
             const cropScreenshot = (await this.settings.get(['cropScreenshot'])).cropScreenshot;
 
@@ -26,7 +29,7 @@ export default class ImageCapturer {
             }
 
             const image = new Image();
-            image.onload = () => {
+            image.onload = async () => {
                 const canvas = document.createElement('canvas');
                 const r = window.devicePixelRatio;
                 const width = rect.width * r;
@@ -35,7 +38,17 @@ export default class ImageCapturer {
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(image, rect.left * r, rect.top * r, width, height, 0, 0, width, height);
-                resolve(canvas.toDataURL('image/jpeg'));
+
+                if (maxWidth > 0 || maxHeight > 0) {
+                    try {
+                        await this.canvasResizer.resize(canvas, ctx, maxWidth, maxHeight);
+                        resolve(canvas.toDataURL('image/jpeg'));
+                    } catch(e) {
+                        reject(e);
+                    }
+                } else {
+                    resolve(canvas.toDataURL('image/jpeg'));
+                }
             };
 
             image.src = dataUrl;

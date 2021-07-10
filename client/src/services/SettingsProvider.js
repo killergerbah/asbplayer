@@ -10,6 +10,8 @@ const defaultSubtitlePreview = "アあ安"
 const defaultVolume = 100;
 const defaultAudioPaddingStart = 0;
 const defaultAudioPaddingEnd = 500;
+const defaultMaxImageWidth = 0;
+const defaultMaxImageHeight = 0;
 
 const ankiConnectUrlKey = "ankiConnectUrl";
 const deckKey = "deck";
@@ -31,6 +33,8 @@ const subtitleFontFamilyKey = "subtitleFontFamily";
 const subtitlePreviewKey = "subtitlePreview";
 const audioPaddingStartKey = "audioPaddingStart";
 const audioPaddingEndKey = "audioPaddingEnd";
+const maxImageWidthKey = "maxImageWidth";
+const maxImageHeightKey = "maxImageHeight";
 const volumeKey = "volume";
 const preferMp3Key = "preferMp3";
 const themeTypeKey = "themeType";
@@ -60,7 +64,9 @@ export default class SettingsProvider {
             preferMp3: this.preferMp3,
             themeType: this.themeType,
             audioPaddingStart: this.audioPaddingStart,
-            audioPaddingEnd: this.audioPaddingEnd
+            audioPaddingEnd: this.audioPaddingEnd,
+            maxImageWidth: this.maxImageWidth,
+            maxImageHeight: this.maxImageHeight,
         };
     }
 
@@ -88,6 +94,8 @@ export default class SettingsProvider {
         this.themeType = newSettings.themeType;
         this.audioPaddingStart = newSettings.audioPaddingStart;
         this.audioPaddingEnd = newSettings.audioPaddingEnd;
+        this.maxImageWidth = newSettings.maxImageWidth;
+        this.maxImageHeight = newSettings.maxImageHeight;
     }
 
     get subtitleSettings() {
@@ -117,7 +125,9 @@ export default class SettingsProvider {
             customAnkiFields: this.customAnkiFields,
             preferMp3: this.preferMp3,
             audioPaddingStart: this.audioPaddingStart,
-            audioPaddingEnd: this.audioPaddingEnd
+            audioPaddingEnd: this.audioPaddingEnd,
+            maxImageWidth: this.maxImageWidth,
+            maxImageHeight: this.maxImageHeight,
         };
     }
 
@@ -327,5 +337,33 @@ export default class SettingsProvider {
 
     set audioPaddingEnd(audioPaddingEnd) {
         localStorage.setItem(audioPaddingEndKey, audioPaddingEnd);
+    }
+
+    get maxImageWidth() {
+        const value = localStorage.getItem(maxImageWidthKey);
+
+        if (!value) {
+            return defaultMaxImageWidth;
+        }
+
+        return Number(value);
+    }
+
+    set maxImageWidth(maxImageWidth) {
+        localStorage.setItem(maxImageWidthKey, maxImageWidth);
+    }
+
+    get maxImageHeight() {
+        const value = localStorage.getItem(maxImageHeightKey);
+
+        if (!value) {
+            return defaultMaxImageHeight;
+        }
+
+        return Number(value);
+    }
+
+    set maxImageHeight(maxImageHeight) {
+        localStorage.setItem(maxImageHeightKey, maxImageHeight);
     }
 }

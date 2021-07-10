@@ -31,6 +31,8 @@ export default class Binding {
         this.bindKeys = true;
         this.audioPaddingStart = 0;
         this.audioPaddingEnd = 500;
+        this.maxImageWidth = 0;
+        this.maxImageHeight = 0;
     }
 
     bind() {
@@ -175,8 +177,10 @@ export default class Binding {
                         break;
                     case 'ankiSettings':
                         this.ankiUiContainer.ankiSettings = request.message.value;
-                        this.audioPaddingStart = request.message.value.audioPaddingStart || this.audioPaddingStart;
-                        this.audioPaddingEnd = request.message.value.audioPaddingEnd || this.audioPaddingEnd;
+                        this.audioPaddingStart = typeof request.message.value.audioPaddingStart === 'undefined' ? this.audioPaddingStart : request.message.value.audioPaddingStart;
+                        this.audioPaddingEnd = typeof request.message.value.audioPaddingEnd === 'undefined' ? this.audioPaddingEnd : request.message.value.audioPaddingEnd;
+                        this.maxImageWidth = typeof request.message.value.maxImageWidth === 'undefined' ? this.maxImageWidth : request.message.value.maxImageWidth;
+                        this.maxImageHeight = typeof request.message.value.maxImageHeight === 'undefined' ? this.maxImageHeight : request.message.value.maxImageHeight;
                         break;
                     case 'miscSettings':
                         this.ankiUiContainer.themeType = request.message.value.themeType;
@@ -308,7 +312,9 @@ export default class Binding {
                     left: rect.left,
                     width: rect.width,
                     height: rect.height
-                }
+                };
+                message.maxImageWidth = this.maxImageWidth;
+                message.maxImageHeight = this.maxImageHeight;
             }
 
             chrome.runtime.sendMessage({

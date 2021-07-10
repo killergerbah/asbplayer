@@ -133,6 +133,8 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
     const [customFieldDialogOpen, setCustomFieldDialogOpen] = useState(false);
     const [audioPaddingStart, setAudioPaddingStart] = useState(settings.audioPaddingStart);
     const [audioPaddingEnd, setAudioPaddingEnd] = useState(settings.audioPaddingEnd);
+    const [maxImageWidth, setMaxImageWidth] = useState(settings.maxImageWidth);
+    const [maxImageHeight, setMaxImageHeight] = useState(settings.maxImageHeight);
     const [subtitleColor, setSubtitleColor] = useState(settings.subtitleColor);
     const [subtitleSize, setSubtitleSize] = useState(settings.subtitleSize);
     const [subtitleOutlineColor, setSubtitleOutlineColor] = useState(settings.subtitleOutlineColor);
@@ -159,6 +161,8 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
     const handleSourceFieldChange = useCallback((e) => setSourceField(e.target.value), []);
     const handleAudioPaddingStart = useCallback((e) => setAudioPaddingStart(e.target.value), []);
     const handleAudioPaddingEnd = useCallback((e) => setAudioPaddingEnd(e.target.value), []);
+    const handleMaxImageWidth = useCallback((e) => setMaxImageWidth(e.target.value), []);
+    const handleMaxImageHeight = useCallback((e) => setMaxImageHeight(e.target.value), []);
     const handleSubtitleColorChange = useCallback((e) => setSubtitleColor(e.target.value), []);
     const handleSubtitleSizeChange = useCallback((e) => setSubtitleSize(e.target.value), []);
     const handleSubtitleOutlineColorChange = useCallback((e) => setSubtitleOutlineColor(e.target.value), []);
@@ -286,9 +290,11 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
             preferMp3: preferMp3,
             themeType: themeType,
             audioPaddingStart: audioPaddingStart,
-            audioPaddingEnd: audioPaddingEnd
+            audioPaddingEnd: audioPaddingEnd,
+            maxImageWidth: maxImageWidth,
+            maxImageHeight: maxImageHeight,
         });
-    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, imageField, wordField, sourceField, customFields, preferMp3, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity, subtitleFontFamily, subtitlePreview, themeType, audioPaddingStart, audioPaddingEnd]);
+    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, imageField, wordField, sourceField, customFields, preferMp3, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity, subtitleFontFamily, subtitlePreview, themeType, audioPaddingStart, audioPaddingEnd, maxImageWidth, maxImageHeight]);
 
     const customFieldInputs = Object.keys(customFields).map(customFieldName => {
         return (
@@ -444,6 +450,31 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                                     }}
                                     InputProps={{
                                         endAdornment: (<InputAdornment position="end">ms</InputAdornment>)
+                                    }}
+                                />
+                                <TextField
+                                    type="number"
+                                    label="Max Image Width"
+                                    fullWidth
+                                    value={maxImageWidth}
+                                    color="secondary"
+                                    onChange={handleMaxImageWidth}
+                                    inputProps={{
+                                        min: 0,
+                                        step: 1,
+                                    }}
+
+                                />
+                                <TextField
+                                    type="number"
+                                    label="Max Image Height"
+                                    fullWidth
+                                    value={maxImageHeight}
+                                    color="secondary"
+                                    onChange={handleMaxImageHeight}
+                                    inputProps={{
+                                        min: 0,
+                                        step: 1,
                                     }}
                                 />
                             </FormGroup>

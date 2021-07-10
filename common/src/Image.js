@@ -1,3 +1,5 @@
+import CanvasResizer from './CanvasResizer';
+
 class Base64ImageData {
 
     constructor(name, base64, extension) {
@@ -33,10 +35,12 @@ class Base64ImageData {
 
 class FileImageData {
 
-    constructor(file, timestamp) {
+    constructor(file, timestamp, maxWidth, maxHeight) {
         this.file = file;
         this.name = file.name + "_" + timestamp + ".jpeg";
         this.timestamp = timestamp;
+        this.maxWidth = maxWidth;
+        this.maxHeight = maxHeight;
     }
 
     async base64() {
@@ -63,7 +67,7 @@ class FileImageData {
     }
 
     async _canvas() {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             const video = this._videoElement(this.file);
 
             video.oncanplay = async (e) => {
@@ -72,7 +76,13 @@ class FileImageData {
                 canvas.height = video.videoHeight;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                resolve(canvas);
+                if (this.maxWidth > 0 || this.maxHeight > 0) {
+                    const resizer = new CanvasResizer();
+                    await resizer.resize(canvas, ctx, this.maxWidth, this.maxHeight);
+                    resolve(canvas);
+                } else {
+                    resolve(canvas);
+                }
                 URL.revokeObjectURL(video.src);
             };
         });
@@ -100,8 +110,8 @@ export default class Image {
         return new Image(new Base64ImageData(imageName, base64, extension));
     }
 
-    static fromFile(file, timestamp) {
-        return new Image(new FileImageData(file, timestamp));
+    static fromFile(file, timestamp, maxWidth, maxHeight) {
+        return new Image(new FileImageData(file, timestamp, maxWidth, maxHeight));
     }
 
     get name() {

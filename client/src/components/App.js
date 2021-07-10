@@ -116,7 +116,7 @@ function audioClipFromItem(item, paddingStart, paddingEnd) {
     return null;
 }
 
-function imageFromItem(item) {
+function imageFromItem(item, maxWidth, maxHeight) {
     if (item.image) {
         return Image.fromBase64(
             item.subtitleFile.name,
@@ -129,7 +129,9 @@ function imageFromItem(item) {
     if (item.videoFile) {
         return Image.fromFile(
             item.videoFile,
-            item.start
+            item.start,
+            maxWidth,
+            maxHeight
         );
     }
 
@@ -205,7 +207,10 @@ function App() {
         () => ankiDialogItem && audioClipFromItem(ankiDialogItem, settingsProvider.audioPaddingStart, settingsProvider.audioPaddingEnd),
         [ankiDialogItem, settingsProvider.audioPaddingStart, settingsProvider.audioPaddingEnd]
     );
-    const ankiDialogImage = useMemo(() => ankiDialogItem && imageFromItem(ankiDialogItem), [ankiDialogItem]);
+    const ankiDialogImage = useMemo(
+        () => ankiDialogItem && imageFromItem(ankiDialogItem, settingsProvider.maxImageWidth, settingsProvider.maxImageHeight),
+        [ankiDialogItem, settingsProvider.maxImageWidth, settingsProvider.maxImageHeight]
+    );
     const [ankiDialogRequestToVideo, setAnkiDialogRequestToVideo] = useState();
     const [ankiDialogRequested, setAnkiDialogRequested] = useState(false);
     const [ankiDialogFinishedRequest, setAnkiDialogFinishedRequest] = useState(0);

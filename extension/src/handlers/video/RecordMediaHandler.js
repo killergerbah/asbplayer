@@ -39,7 +39,7 @@ export default class RecordMediaHandler {
         }
 
         if (request.message.screenshot) {
-            imagePromise = this.imageCapturer.capture(request.message.rect);
+            imagePromise = this.imageCapturer.capture(request.message.rect, request.message.maxImageWidth, request.message.maxImageHeight);
         }
 
         if (imagePromise) {
