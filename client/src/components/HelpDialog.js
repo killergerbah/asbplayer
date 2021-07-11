@@ -12,7 +12,6 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
-import VideocamIcon from '@material-ui/icons/Videocam';
 
 const useStyles = makeStyles((theme) => ({
     inlineIcon: {
@@ -49,7 +48,7 @@ export default function HelpDialog(props) {
                     </li>
                     <li>
                         Multiple subtitle files can loaded simultaneously. When multiple subtitle files are loaded,
-                        they can be toggled on and off using S+1, S+2, etc.
+                        they can be toggled on and off in-video using S+1, S+2, etc.
                     </li>
                 </Typography>
                 <br />
@@ -62,12 +61,7 @@ export default function HelpDialog(props) {
                     </li>
                     <li>Drag-and-drop a subtitle file into the video element you want to sync.</li>
                     <li>
-                        Or, load a subtitle file into asbplayer.
-                    </li>
-                    <li>
-                        <div className={classes.inlineIcon}>
-                            Use the &nbsp;<VideocamIcon fontSize="small" />&nbsp; button in the bottom right.
-                        </div>
+                        Or, load a subtitle file into asbplayer and use the camera button in the bottom right.
                     </li>
                     <li>
                         If the icon does not appear try refreshing the video in the other tab.
@@ -86,19 +80,38 @@ export default function HelpDialog(props) {
                     Anki
                 </Typography>
                 <Typography component="ul">
+                    <li>Synchronous workflow:</li>
+                    <ul>
+                        <li>
+                            For synced streaming video, open the Anki dialog during playback by using Ctrl+Shift+X.
+                        </li>
+                        <li>
+                            For local file playback, open the Anki dialog during playback by using Ctrl+Shift+Q.
+                        </li>
+                    </ul>
+                    <li>Asynchronous workflow:</li>
+                    <ul>
+                        <li>
+                            For synced streaming video, copy the current subtitle by using Ctrl+Shift+Z.
+                        </li>
+                        <li>
+                            For local file playback, copy the current subtitle by using Ctrl+Shift+A.
+                        </li>
+                        <li>
+                            <div className={classes.inlineIcon}>
+                                Use the &nbsp;<StarIcon fontSize="small" />&nbsp; button in the copy history.
+                            </div>
+                        </li>
+                    </ul>
                     <li>
-                        <div className={classes.inlineIcon}>
-                            Use the &nbsp;<StarIcon fontSize="small" />&nbsp; button in the copy history.
-                        </div>
-                    </li>
-                    <li>
-                        Audio/image will be exported only if an audio/image source was available when the subtitle was copied.
-                    </li>
-                    <li>
-                        Specifically, for synced streaming video, an audio/image will only be available if the extension keyboard shortcut was used (Ctrl+Alt+X by default).
+                        For synced streaming video, an audio/image will only be available if an extension keyboard shortcut was used (Ctrl+Alt+X or Ctrl+Alt+Z by default).
                     </li>
                     <li>
                         Configure Anki settings with the settings button in the top right. See this <Link color="secondary" target="_blank" rel="noreferrer" href="https://youtu.be/Mv7fEVb6PHo?t=44">video</Link> for how to configure AnkiConnect so that asbplayer can connect to Anki.
+                    </li>
+                    <li>
+                        If asbplayer still cannot connect to Anki after setting everything up, check that your browser or an ad blocker isn't blocking the request.
+                        A good place to start is by opening your browser's developer console and looking for errors.
                     </li>
                 </Typography>
                 <br />
@@ -208,10 +221,12 @@ export default function HelpDialog(props) {
                 </Typography>
                 <Typography component="ul">
                     <li>
-                        The asbplayer application and extension have only been tested on Chrome 91 and later.
+                        The asbplayer application and extension have only been tested on Chrome 91 and later and likely work on other Chromium-based browsers.
                     </li>
                     <li>
-                        The asbplayer application and extension may work on other Chromium-based browsers.
+                        Local file playback is supported only for codecs supported by the browser.
+                        The <Link color="secondary" target="_blank" rel="noreferrer" href="https://github.com/animebook/animebook.github.io#video-format-support">animebook</Link> readme has a detailed explanation of this and links
+                        to browsers that have good compatibility. Personally, I use Microsoft Edge and paid one dollar for HEVC support.
                     </li>
                     <li>
                         Local video file playback is supported only for codecs supported by the browser.
