@@ -229,7 +229,7 @@ export default function HelpDialog(props) {
                         to browsers that have good compatibility. Personally, I use Microsoft Edge and paid one dollar for HEVC support.
                     </li>
                     <li>
-                        Local video file playback is supported only for codecs supported by the browser.
+                        Audio track selection for mkv files is available if experimental web platform features are enabled from chrome://flags.
                     </li>
                 </Typography>
             </DialogContent>
