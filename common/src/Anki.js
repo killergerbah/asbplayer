@@ -57,6 +57,11 @@ export default class Anki {
         return `"${escaped}"`
     }
 
+    async requestPermission(ankiConnectUrl) {
+        const response = await this._executeAction('requestPermission', null, ankiConnectUrl);
+        return response.result;
+    }
+
     async export(text, definition, audioClip, image, word, source, customFieldValues, mode, ankiConnectUrl) {
         const fields = {};
 

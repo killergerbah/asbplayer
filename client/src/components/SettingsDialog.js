@@ -215,6 +215,7 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                     return;
                 }
 
+                await anki.requestPermission(ankiConnectUrl);
                 setDeckNames(await anki.deckNames(ankiConnectUrl));
                 setModelNames(await anki.modelNames(ankiConnectUrl));
                 setAnkiConnectUrlError(null);
