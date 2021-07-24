@@ -36,8 +36,8 @@ export default class ControlsContainer {
 
     * _samplePoints() {
         const rect = this.video.getBoundingClientRect();
-        const stepX = rect.width / 20;
-        const stepY = rect.height / 20;
+        const stepX = rect.width / 25;
+        const stepY = rect.height / 25;
 
         for (let x = rect.x; x <= rect.width + rect.x; x += stepX) {
             for (let y = rect.y; y <= rect.height + rect.y; y += stepY) {
