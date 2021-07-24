@@ -395,21 +395,23 @@ function App() {
                 mode
             );
 
-            if (mode === 'default') {
-                setAlertSeverity("success");
-                setAlert("Export succeeded: " + result);
-                setAlertOpen(true);
-            } else if (mode === 'updateLast') {
-                setAlertSeverity("success");
-                setAlert("Update succeeded: " + result);
-                setAlertOpen(true);
-            }
+            if (mode !== 'gui') {
+                if (mode === 'default') {
+                    setAlertSeverity("success");
+                    setAlert("Export succeeded: " + result);
+                    setAlertOpen(true);
+                } else if (mode === 'updateLast') {
+                    setAlertSeverity("success");
+                    setAlert("Update succeeded: " + result);
+                    setAlertOpen(true);
+                }
 
-            setAnkiDialogOpen(false);
+                setAnkiDialogOpen(false);
 
-            if (ankiDialogRequested) {
-                setAnkiDialogFinishedRequest({timestamp: Date.now(), resume: mode !== 'gui'});
-                setAnkiDialogRequested(false);
+                if (ankiDialogRequested) {
+                    setAnkiDialogFinishedRequest({timestamp: Date.now(), resume: true});
+                    setAnkiDialogRequested(false);
+                }
             }
         } catch (e) {
             console.error(e);

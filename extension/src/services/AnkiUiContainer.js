@@ -68,17 +68,18 @@ export default class AnkiUiContainer {
             if (context.bindKeys) {
                 context.keyBindings.bind(context);
             }
-
+            context.subtitleContainer.displaySubtitles = context.displaySubtitles;
             this.frame.classList.add('asbplayer-hide');
 
             if (message.resume) {
                 if (this.fullscreenElement) {
                     this.fullscreenElement.requestFullscreen();
+                    this.fullscreenElement.focus();
                     this.fullscreenElement = null;
+                } else {
+                    window.focus();
                 }
 
-                context.subtitleContainer.displaySubtitles = context.displaySubtitles;
-                window.focus();
                 context.play();
             }
         });

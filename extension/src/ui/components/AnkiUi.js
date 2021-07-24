@@ -76,9 +76,11 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
                 mode
             );
 
-            setOpen(false);
-            setImageDialogOpen(false);
-            bridge.finished({resume: mode !== 'gui'});
+            if (mode !== 'gui') {
+                setOpen(false);
+                setImageDialogOpen(false);
+                bridge.finished({resume: true});
+            }
         } catch (e) {
             console.error(e);
             setAlertSeverity("error");
