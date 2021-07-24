@@ -372,10 +372,10 @@ export default function Player({
     }, [ankiDialogRequestToVideo]);
 
     useEffect(() => {
-        if (ankiDialogFinishedRequest) {
-            videoRef.current?.finishedAnkiDialogRequest();
+        if (ankiDialogFinishedRequest && ankiDialogFinishedRequest.timestamp > 0) {
+            videoRef.current?.finishedAnkiDialogRequest(ankiDialogFinishedRequest.resume);
             setResumeOnFinishedAnkiDialogRequest(resumeOnFinishedAnkiDialogRequest => {
-                if (resumeOnFinishedAnkiDialogRequest) {
+                if (resumeOnFinishedAnkiDialogRequest && ankiDialogFinishedRequest.resume) {
                     play(clock, mediaAdapter, true);
                 }
 

@@ -32,6 +32,7 @@ export default class AnkiUiContainer {
         context.video.pause();
 
         if (document.fullscreenElement) {
+            this.fullscreenElement = document.fullscreenElement;
             document.exitFullscreen();
         }
 
@@ -67,10 +68,19 @@ export default class AnkiUiContainer {
             if (context.bindKeys) {
                 context.keyBindings.bind(context);
             }
+
             this.frame.classList.add('asbplayer-hide');
-            context.subtitleContainer.displaySubtitles = context.displaySubtitles;
-            window.focus();
-            context.play();
+
+            if (message.resume) {
+                if (this.fullscreenElement) {
+                    this.fullscreenElement.requestFullscreen();
+                    this.fullscreenElement = null;
+                }
+
+                context.subtitleContainer.displaySubtitles = context.displaySubtitles;
+                window.focus();
+                context.play();
+            }
         });
 
         return this.client;

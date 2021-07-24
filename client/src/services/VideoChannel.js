@@ -226,8 +226,8 @@ export default class VideoChannel {
         this.protocol.postMessage({command: 'ankiDialogRequest'});
     }
 
-    finishedAnkiDialogRequest() {
-        this.protocol.postMessage({command: 'finishedAnkiDialogRequest'});
+    finishedAnkiDialogRequest(resume) {
+        this.protocol.postMessage({command: 'finishedAnkiDialogRequest', resume: resume});
     }
 
     ankiSettings(settings) {

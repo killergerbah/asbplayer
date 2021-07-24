@@ -78,7 +78,7 @@ export default class PlayerChannel {
                     break;
                 case 'finishedAnkiDialogRequest':
                     for (let callback of that.finishedAnkiDialogRequestCallbacks) {
-                        callback();
+                        callback(event.data.resume);
                     }
                     break;
                 case 'ankiSettings':

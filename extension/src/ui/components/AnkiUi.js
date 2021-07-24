@@ -78,7 +78,7 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
 
             setOpen(false);
             setImageDialogOpen(false);
-            bridge.finished();
+            bridge.finished({resume: mode !== 'gui'});
         } catch (e) {
             console.error(e);
             setAlertSeverity("error");
@@ -92,7 +92,7 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
     const handleCancel = useCallback(() => {
         setOpen(false);
         setImageDialogOpen(false);
-        bridge.finished();
+        bridge.finished({resume: true});
     }, [bridge]);
 
     const handleViewImage = useCallback((image) => {

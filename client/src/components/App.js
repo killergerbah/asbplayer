@@ -213,7 +213,7 @@ function App() {
     );
     const [ankiDialogRequestToVideo, setAnkiDialogRequestToVideo] = useState();
     const [ankiDialogRequested, setAnkiDialogRequested] = useState(false);
-    const [ankiDialogFinishedRequest, setAnkiDialogFinishedRequest] = useState(0);
+    const [ankiDialogFinishedRequest, setAnkiDialogFinishedRequest] = useState({timestamp: 0, resume: false});
     const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
     const [helpDialogOpen, setHelpDialogOpen] = useState(false);
     const [imageDialogOpen, setImageDialogOpen] = useState(false);
@@ -375,7 +375,7 @@ function App() {
         setDisableKeyEvents(false);
 
         if (ankiDialogRequested) {
-            setAnkiDialogFinishedRequest(Date.now());
+            setAnkiDialogFinishedRequest({timestamp: Date.now(), resume: true});
             setAnkiDialogRequested(false);
         }
     }, [ankiDialogRequested]);
@@ -408,7 +408,7 @@ function App() {
             setAnkiDialogOpen(false);
 
             if (ankiDialogRequested) {
-                setAnkiDialogFinishedRequest(Date.now());
+                setAnkiDialogFinishedRequest({timestamp: Date.now(), resume: mode !== 'gui'});
                 setAnkiDialogRequested(false);
             }
         } catch (e) {
