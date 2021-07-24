@@ -188,6 +188,7 @@ export default class SubtitleContainer {
         toggle();
         this.subtitlesElementFullscreenChangeListener = (e) => toggle();
         this.subtitlesElementStylesInterval = setInterval(() => this._applyNonFullscreenStyles(container, div), 1000);
+        this.subtitlesElementFullscreenPollingInterval = setInterval(() => toggle(), 1000);
         document.addEventListener('fullscreenchange', this.subtitlesElementFullscreenChangeListener);
         this.subtitlesElement = div;
         this.subtitlesContainerElement = container;
@@ -222,17 +223,18 @@ export default class SubtitleContainer {
         const that = this;
 
         function toggle() {
-            if (document.fullscreenElement) {
+            if (document.fullscreenElement && container.style.display === "none") {
                 container.style.display = "";
                 container.remove();
                 that._findFullscreenSubtitlesContainer(container).appendChild(container);
-            } else {
+            } else if (!document.fullscreenElement) {
                 container.style.display = "none";
             }
         }
 
         toggle();
         this.fullscreenSubtitlesElementFullscreenChangeListener = (e) => toggle();
+        this.fullscreenSubtitlesElementFullscreenPollingInterval = setInterval(() => toggle(), 1000);
         document.addEventListener('fullscreenchange', this.fullscreenSubtitlesElementFullscreenChangeListener);
         this.fullscreenSubtitlesElement = div;
         this.fullscreenSubtitlesContainerElement = container;
@@ -336,6 +338,7 @@ export default class SubtitleContainer {
         if (this.subtitlesElement) {
             document.removeEventListener('fullscreenchange', this.subtitlesElementFullscreenChangeListener);
             clearInterval(this.subtitlesElementStylesInterval);
+            clearInterval(this.subtitlesElementFullscreenPollingInterval);
             this.subtitlesElement.remove();
             this.subtitlesContainerElement.remove();
             this.subtitlesContainerElement = null;
@@ -344,6 +347,7 @@ export default class SubtitleContainer {
 
         if (this.fullscreenSubtitlesElement) {
             document.removeEventListener('fullscreenchange', this.fullscreenSubtitlesElementFullscreenChangeListener);
+            clearInterval(this.fullscreenSubtitlesElementFullscreenPollingInterval);
             this.fullscreenSubtitlesElement.remove();
             this.fullscreenSubtitlesContainerElement.remove();
             this.fullscreenSubtitlesContainerElement = null;
