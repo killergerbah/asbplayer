@@ -74,12 +74,10 @@ export default class AnkiUiContainer {
             if (message.resume) {
                 if (this.fullscreenElement) {
                     this.fullscreenElement.requestFullscreen();
-                    this.fullscreenElement.focus();
                     this.fullscreenElement = null;
-                } else {
-                    window.focus();
                 }
 
+                window.focus();
                 context.play();
             }
         });
