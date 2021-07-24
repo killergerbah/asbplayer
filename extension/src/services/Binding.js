@@ -207,6 +207,8 @@ export default class Binding {
                             }
 
                             this.controlsContainer.show();
+                            this.settings.get(['displaySubtitles'])
+                                .then(({displaySubtitles}) => this.subtitleContainer.displaySubtitles = displaySubtitles);
                         }
                         break;
                 }
@@ -282,6 +284,7 @@ export default class Binding {
                 }
 
                 if (this.cleanScreenshot) {
+                    this.subtitleContainer.displaySubtitles = false;
                     this.controlsContainer.hide();
                 }
 
