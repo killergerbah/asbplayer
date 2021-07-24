@@ -2,7 +2,7 @@ const path = require('path');
 const CopyPlugin = require("copy-webpack-plugin");
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
-module.exports = {
+module.exports = (env, options) => ({
   entry: {
     video: './src/video.js',
     background: './src/background.js',
@@ -27,7 +27,7 @@ module.exports = {
       }
     ],
   },
-  devtool: 'cheap-module-source-map',
+  devtool: options.mode === 'development' ? 'cheap-module-source-map' : false,
   plugins: [
     new CleanWebpackPlugin(),
     new CopyPlugin({
@@ -48,4 +48,4 @@ module.exports = {
       }
     }),
   ],
-};
+});
