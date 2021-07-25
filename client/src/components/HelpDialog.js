@@ -64,15 +64,7 @@ export default function HelpDialog(props) {
                         Or, load a subtitle file into asbplayer and use the camera button in the bottom right.
                     </li>
                     <li>
-                        If the icon does not appear try refreshing the video in the other tab.
-                    </li>
-                    <li>
                         It is recommended to use the extension keyboard shortcut (Ctrl+Alt+X by default) to mine subtitles since that will include audio/screenshots.
-                        If the keyboard shortcut  is not working for some reason try:
-                        <Typography component="ul">
-                            <li>Uninstalling and reinstalling the extension and restarting Chrome.</li>
-                            <li>Verifying the keyboard shortcut is  bound as in this <Link color="secondary" target="_blank" rel="noreferrer" href="https://youtu.be/wYWbgovfNlI">video</Link>.</li>
-                        </Typography>
                     </li>
                 </Typography>
                 <br />
@@ -108,10 +100,6 @@ export default function HelpDialog(props) {
                     </li>
                     <li>
                         Configure Anki settings with the settings button in the top right. See this <Link color="secondary" target="_blank" rel="noreferrer" href="https://youtu.be/Mv7fEVb6PHo?t=44">video</Link> for how to configure AnkiConnect so that asbplayer can connect to Anki.
-                    </li>
-                    <li>
-                        If asbplayer still cannot connect to Anki after setting everything up, check that your browser or an ad blocker isn't blocking the request.
-                        A good place to start is by opening your browser's developer console and looking for errors.
                     </li>
                 </Typography>
                 <br />
@@ -198,6 +186,61 @@ export default function HelpDialog(props) {
                     </Table>
                 </TableContainer>
                 <br />
+                <Typography variant="h6">
+                    Common issues
+                </Typography>
+                <Typography component="ul">
+                    <li>
+                        asbplayer isn't detecting streaming video.
+                    </li>
+                    <ul>
+                        <li>
+                            Try refreshing both the asbplayer tab and the video in the other tab.
+                        </li>
+                        <li>
+                            Make sure that in the extension details, the extension has access to all sites.
+                            A lot of video players are loaded inside of iframes, so it's difficult to
+                            list every single URL that the extension might need access to.
+                        </li>
+                    </ul>
+                    <li>
+                        The extension keyboard shortcuts aren't working.
+                    </li>
+                    <ul>
+                        <li>
+                            Try uninstalling and reinstalling the extension and restarting Chrome.
+                        </li>
+                        <li>
+                            Make sure the extension isn't installed twice.
+                        </li>
+                        <li>
+
+                            Verify the keyboard shortcut is bound as in this <Link color="secondary" target="_blank" rel="noreferrer" href="https://youtu.be/wYWbgovfNlI">video</Link>.
+                        </li>
+                    </ul>
+                    <li>
+                        asbplayer can't connect to Anki. It shows an error message e.g. 'Failed to fetch.'
+                    </li>
+                    <ul>
+                        <li>
+                            If you're using Brave, make sure asbplayer isn't being blocked by Shield.
+                        </li>
+                        <li>
+                            Make sure that asbplayer is allowed by AnkiConnect, as in this <Link color="secondary" target="_blank" rel="noreferrer" href="https://youtu.be/Mv7fEVb6PHo?t=44">video</Link>.
+                        </li>
+                        <li>
+                            Check that your browser or an ad blocker isn't blocking the request. A good place to start is by opening your browser's developer console and looking for errors.
+                        </li>
+                    </ul>
+                    <li>
+                        When mining streaming video, asbplayer isn't including audio/screenshot in flashcards.
+                    </li>
+                    <ul>
+                        <li>
+                            Make sure you use an extension keyboard shortcut (Ctrl+Shift+X by default).
+                        </li>
+                    </ul>
+                </Typography>
                 <Typography variant="h6">
                     Demos
                 </Typography>

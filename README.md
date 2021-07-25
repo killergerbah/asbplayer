@@ -2,20 +2,16 @@
 
 A browser-based media player intended to assist subtitle sentence mining.
 
-- Can sync subtitles with HTML5 video elements as long as the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest) is installed.
+- Can sync subtitle files with HTML5 video elements as long as the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest) is installed.
 - A best-effort is made to ensure that subtitles displayed in video elements are text-selectable and can be scanned by
   popup dictionary extensions like Yomi-chan.
-- Supports playback of local video and audio files.
-- Local video and audio files can be played in "condensed mode," skipping sections without subtitles.
-- Supports audio-clipping/screenshotting of video and audio files.
-- Supports audio-clipping/screenshotting of streaming video synced through the extension.
-- Implements a copy history for asynchronous sentence mining.
-- Supports creation of flashcards with audio/screenshot through AnkiConnect.
+- Local media can be played in "condensed mode," skipping sections without subtitles.
+- Supports creation of audio/screenshot Anki flashcards from both streaming video and local media through AnkiConnect.
 
 asbplayer is hosted at [https://killergerbah.github.io/asbplayer/](https://killergerbah.github.io/asbplayer/).
 
 ## Usage
-The below information can also be found in the application by clicking on the question mark button in the top right.
+The below information can also be found in asbplayer by clicking on the question mark button in the top right.
 
 ### Loading files
 - Drag and drop mkv, srt, ass, or mp3 files into the player.
@@ -26,11 +22,8 @@ The below information can also be found in the application by clicking on the qu
 - Install the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest).
 - Drag-and-drop a subtitle file into the video element you want to sync.
 - Or, load a subtitle file into asbplayer and use the camera button in the bottom right.
-- If the icon does not appear try refreshing the video in the other tab.
-- It is recommended to use an extension keyboard shortcut (`Ctrl+Alt+X` by default) to mine subtitles since that will include audio/screenshots. If the keyboard shortcut is not working for some reason try:
-    - Uninstalling and reinstalling the extension and restarting Chrome.
-    - Verifying the keyboard shortcut is bound as in this [video](https://youtu.be/wYWbgovfNlI).
-    
+- It is recommended to use an extension keyboard shortcut (`Ctrl+Alt+X` by default) to mine subtitles since that will include audio/screenshots.
+
 ### Anki
 - Synchronous workflow:
     - For synced streaming video, open the Anki dialog during playback by using `Ctrl+Shift+X`.
@@ -41,7 +34,6 @@ The below information can also be found in the application by clicking on the qu
     - Use the star button in the copy history of asbplayer to open the Anki dialog.
 - For synced streaming video, an audio/image will only be available if an extension keyboard shortcut was used (`Ctrl+Alt+X` or `Ctrl+Alt+Z` by default).
 - Configure Anki settings with the settings button in the top right. See this [video](https://youtu.be/Mv7fEVb6PHo?t=44) for how to configure AnkiConnect so that asbplayer can connect to Anki.
-- If asbplayer still cannot connect to Anki after setting everything up, check that your browser or an ad blocker isn't blocking the request. A good place to start is by opening your browser's developer console and looking for errors.
 
 ### Changing subtitle offset
 - Use `Ctrl+Left/Right` to cause the previous/next subtitle to appear at the current timestamp.
@@ -67,6 +59,22 @@ The below information can also be found in the application by clicking on the qu
 |Ctrl+Left/Right or Shift+Left/Right|Adjust offset to previous/next subtitle
 |Ctrl+Shift+Left/Right|Adjust offset by +/- 100ms|
 
+### Common issues
+- asbplayer isn't detecting streaming video.
+    - Try refreshing both the asbplayer tab and the video in the other tab.
+    - Make sure that in the extension details, the extension has access to all sites.
+      A lot of video players are loaded inside of iframes, so it's difficult to
+      list every single URL that the extension might need access to.
+- The extension keyboard shortcuts aren't working.
+    - Try uninstalling and reinstalling the extension and restarting Chrome.
+    - Make sure the extension isn't installed twice.
+    - Verify the keyboard shortcut is bound as in this [video](https://youtu.be/wYWbgovfNlI).
+- asbplayer can't connect to Anki. It shows an error message e.g. 'Failed to fetch.'
+    - If you're using Brave, make sure asbplayer isn't being blocked by Shield.
+    - Make sure that asbplayer is allowed by AnkiConnect, as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
+    - Check that your browser or an ad blocker isn't blocking the request. A good place to start is by opening your browser's developer console and looking for errors.
+- asbplayer isn't including audio/screenshot in flashcards.
+    - If you're mining streaming video make sure you use an extension keyboard shortcut (`Ctrl+Shift+X` by default).
 ### Demos
 
 - [Sentence mining streaming video with asbplayer (synchronous workflow)](https://www.youtube.com/watch?v=W9Lf3C7sRzc)
