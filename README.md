@@ -22,7 +22,7 @@ The below information can also be found in asbplayer by clicking on the question
 - Install the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest).
 - Drag-and-drop a subtitle file into the video element you want to sync.
 - Or, load a subtitle file into asbplayer and use the camera button in the bottom right.
-- It is recommended to use an extension keyboard shortcut (`Ctrl+Alt+X` by default) to mine subtitles since that will include audio/screenshots.
+- It is recommended to use an extension keyboard shortcut (`Ctrl+Shift+X` by default) to mine subtitles since that will include audio/screenshots.
 
 ### Anki
 - Synchronous workflow:
@@ -32,7 +32,7 @@ The below information can also be found in asbplayer by clicking on the question
     - For synced streaming video, copy the current subtitle by using `Ctrl+Shift+Z`.
     - For local file playback, copy the current subtitle by using `Ctrl+Shift+A`.
     - Use the star button in the copy history of asbplayer to open the Anki dialog.
-- For synced streaming video, an audio/image will only be available if an extension keyboard shortcut was used (`Ctrl+Alt+X` or `Ctrl+Alt+Z` by default).
+- For synced streaming video, an audio/image will only be available if an extension keyboard shortcut was used (`Ctrl+Shift+X` or `Ctrl+Shift+Z` by default).
 - Configure Anki settings with the settings button in the top right. See this [video](https://youtu.be/Mv7fEVb6PHo?t=44) for how to configure AnkiConnect so that asbplayer can connect to Anki.
 
 ### Changing subtitle offset

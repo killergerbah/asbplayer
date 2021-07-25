@@ -64,7 +64,7 @@ export default function HelpDialog(props) {
                         Or, load a subtitle file into asbplayer and use the camera button in the bottom right.
                     </li>
                     <li>
-                        It is recommended to use the extension keyboard shortcut (Ctrl+Alt+X by default) to mine subtitles since that will include audio/screenshots.
+                        It is recommended to use the extension keyboard shortcut (Ctrl+Shift+X by default) to mine subtitles since that will include audio/screenshots.
                     </li>
                 </Typography>
                 <br />
@@ -96,7 +96,7 @@ export default function HelpDialog(props) {
                         </li>
                     </ul>
                     <li>
-                        For synced streaming video, an audio/image will only be available if an extension keyboard shortcut was used (Ctrl+Alt+X or Ctrl+Alt+Z by default).
+                        For synced streaming video, an audio/image will only be available if an extension keyboard shortcut was used (Ctrl+Shift+X or Ctrl+Shift+Z by default).
                     </li>
                     <li>
                         Configure Anki settings with the settings button in the top right. See this <Link color="secondary" target="_blank" rel="noreferrer" href="https://youtu.be/Mv7fEVb6PHo?t=44">video</Link> for how to configure AnkiConnect so that asbplayer can connect to Anki.
