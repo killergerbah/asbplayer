@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Anki, Image, AudioClip } from '@project/common';
+import { Anki, Image, AudioClip, humanReadableTime } from '@project/common';
 import { createTheme } from './theme';
 import { ThemeProvider } from '@material-ui/core/styles';
 import Alert from '@material-ui/lab/Alert';
@@ -55,7 +55,7 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
             setText(state.subtitle.text);
             setAudioClip(audioClip);
             setImage(image);
-            setSource(state.source);
+            setSource(`${state.source} (${humanReadableTime(state.subtitle.start)})`);
             setThemeType(state.themeType || 'dark');
             setOpen(state.open);
         });

@@ -3,7 +3,7 @@ import { Route, Redirect, Switch, useLocation } from "react-router-dom";
 import { ThemeProvider, createMuiTheme, makeStyles } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
 import { red } from '@material-ui/core/colors';
-import { Anki, AudioClip, Image } from '@project/common';
+import { Anki, AudioClip, Image, humanReadableTime } from '@project/common';
 import clsx from 'clsx';
 import Alert from './Alert.js';
 import AnkiDialog from './AnkiDialog.js';
@@ -136,6 +136,14 @@ function imageFromItem(item, maxWidth, maxHeight) {
     }
 
     return null;
+}
+
+function itemSourceString(item) {
+    if (!item?.subtitleFile?.name) {
+        return null;
+    }
+
+    return `${item.subtitleFile.name} (${humanReadableTime(item.start)})`
 }
 
 function revokeUrls(sources) {
@@ -680,7 +688,7 @@ function App() {
                                     text={ankiDialogItem?.text}
                                     audioClip={ankiDialogAudioClip}
                                     image={ankiDialogImage}
-                                    source={ankiDialogItem?.subtitleFile?.name}
+                                    source={itemSourceString(ankiDialogItem)}
                                     customFields={settingsProvider.customAnkiFields}
                                     anki={anki}
                                     settingsProvider={settingsProvider}

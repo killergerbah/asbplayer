@@ -40,7 +40,7 @@ export default function AnkiDialog({
     onOpenSettings,
     audioClip: initialAudioClip,
     image,
-    source,
+    source: initialSource,
     customFields,
     settingsProvider,
     anki,
@@ -50,6 +50,7 @@ export default function AnkiDialog({
     const [text, setText] = useState();
     const [word, setWord] = useState();
     const [lastSearchedWord, setLastSearchedWord] = useState();
+    const [source, setSource] = useState(initialSource);
     const [duplicateNotes, setDuplicateNotes] = useState([]);
     const [wordTimestamp, setWordTimestamp] = useState(0);
     const [customFieldValues, setCustomFieldValues] = useState({});
@@ -65,9 +66,10 @@ export default function AnkiDialog({
         setText(initialText);
         setDefinition("");
         setWord("");
+        setSource(initialSource);
         setDuplicateNotes([]);
         setCustomFieldValues({});
-    }, [initialText]);
+    }, [initialText, initialSource]);
 
     useEffect(() => {
         setWordTimestamp(Date.now());
@@ -241,6 +243,7 @@ export default function AnkiDialog({
                         fullWidth
                         label="Source"
                         value={source}
+                        onChange={(e) => setSource(e.target.value)}
                     />
                 </form>
             </DialogContent>
