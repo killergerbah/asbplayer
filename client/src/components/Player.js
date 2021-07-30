@@ -558,6 +558,10 @@ export default function Player({
     }), []);
 
     useEffect(() => {
+        if (tab) {
+            return;
+        }
+
         const interval = setInterval(async () => {
             const length = lengthRef.current;
             const progress = clock.progress(length);
@@ -570,7 +574,7 @@ export default function Player({
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [clock, subtitles, mediaAdapter, seek]);
+    }, [clock, subtitles, mediaAdapter, seek, tab]);
 
     useEffect(() => {
         const unbind = KeyBindings.bindPlay(
