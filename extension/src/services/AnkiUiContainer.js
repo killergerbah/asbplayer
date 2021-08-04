@@ -36,6 +36,10 @@ export default class AnkiUiContainer {
             document.exitFullscreen();
         }
 
+        if (document.activeElement) {
+            this.activeElement = document.activeElement;
+        }
+
         client.updateState({
             open: true,
             settingsProvider: this.ankiSettings,
@@ -77,7 +81,13 @@ export default class AnkiUiContainer {
                     this.fullscreenElement = null;
                 }
 
-                window.focus();
+                if (this.activeElement) {
+                    this.activeElement.focus();
+                    this.activeElement = null;
+                } else {
+                    window.focus();
+                }
+
                 context.play();
             }
         });
