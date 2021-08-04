@@ -29,7 +29,7 @@ export default class AnkiUiContainer {
 
         const subtitleFileNames = context.subtitleContainer.subtitleFileNames;
         const client = await this._client(context);
-        context.video.pause();
+        context.pause();
 
         if (document.fullscreenElement) {
             this.fullscreenElement = document.fullscreenElement;

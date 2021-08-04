@@ -1,5 +1,5 @@
 setTimeout(() => {
-    document.addEventListener('asbplayer-netflix-seek', (e) => {
+    function player() {
         const netflixVideo = netflix?.appContext?.state?.playerApp?.getAPI?.()?.videoPlayer;
 
         if (netflixVideo) {
@@ -7,17 +7,31 @@ setTimeout(() => {
 
             if (playerSessionIds.length === 0) {
                 console.error("No Netflix player session IDs");
+                return null;
             }
 
             const playerSessionId = playerSessionIds[playerSessionIds.length - 1];
-            const player = netflixVideo.getVideoPlayerBySessionId(playerSessionId);
-            player.seek(e.detail);
-        } else {
-            console.error("Missing netflix global, unable to seek");
+            return netflixVideo.getVideoPlayerBySessionId(playerSessionId);
         }
+
+        console.error("Missing netflix global");
+        return null;
+    }
+
+    document.addEventListener('asbplayer-netflix-seek', (e) => {
+        player()?.seek(e.detail);
     });
 
-    if (typeof netflix !== 'undefined') {
+    document.addEventListener('asbplayer-netflix-play', (e) => {
+        player()?.play();
+    });
+
+    document.addEventListener('asbplayer-netflix-pause', (e) => {
+        player()?.pause();
+    });
+
+    if (typeof netflix !== 'undefined'
+        && typeof netflix.appContext?.state?.playerApp?.getAPI?.()?.videoPlayer !== 'undefined') {
         document.dispatchEvent(new CustomEvent('asbplayer-netflix-enabled', {
             detail: true
         }));

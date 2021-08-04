@@ -149,7 +149,7 @@ export default class Binding {
                         this.play();
                         break;
                     case 'pause':
-                        this.video.pause();
+                        this.pause();
                         break;
                     case 'currentTime':
                         this.seek(request.message.value);
@@ -339,6 +339,11 @@ export default class Binding {
     }
 
     async play() {
+        if (netflix) {
+            await this._playNetflix();
+            return;
+        }
+
         try {
             await this.video.play();
         } catch (ex) {
@@ -367,5 +372,28 @@ export default class Binding {
                 });
             }
         }
+    }
+
+    _playNetflix() {
+        return new Promise((resolve, reject) => {
+            const listener = async (evt) => {
+                this.video.removeEventListener('play', listener);
+                this.video.removeEventListener('playing', listener);
+                resolve();
+            };
+
+            this.video.addEventListener('play', listener);
+            this.video.addEventListener('playing', listener);
+            document.dispatchEvent(new CustomEvent('asbplayer-netflix-play'));
+        });
+    }
+
+    pause() {
+        if (netflix) {
+            document.dispatchEvent(new CustomEvent('asbplayer-netflix-pause'));
+            return;
+        }
+
+        this.video.pause();
     }
 }
