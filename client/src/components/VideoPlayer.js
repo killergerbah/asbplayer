@@ -543,6 +543,8 @@ export default function VideoPlayer(props) {
         }
     }, [playerChannel, playing]);
 
+    const handleDoubleClick = useCallback(() => handleFullscreenToggle(), [handleFullscreenToggle]);
+
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
     const {
         subtitleSize,
@@ -583,6 +585,7 @@ export default function VideoPlayer(props) {
                 preload="auto"
                 nocontrols={1}
                 onClick={handleClick}
+                onDoubleClick={handleDoubleClick}
                 className={controlsShowing ? classes.video : `${classes.cursorHidden} ${classes.video}`}
                 ref={videoRefCallback}
                 src={videoFile} />
