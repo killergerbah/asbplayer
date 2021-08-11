@@ -4,6 +4,7 @@ import { ThemeProvider, createMuiTheme, makeStyles } from '@material-ui/core/sty
 import { useWindowSize } from '../hooks/useWindowSize';
 import { red } from '@material-ui/core/colors';
 import { Anki, AudioClip, Image, humanReadableTime } from '@project/common';
+import { v4 as uuidv4 } from 'uuid';
 import clsx from 'clsx';
 import Alert from './Alert.js';
 import AnkiDialog from './AnkiDialog.js';
@@ -93,7 +94,7 @@ function extractSources(files) {
     return {subtitleFiles: subtitleFiles, audioFile: audioFile, videoFile: videoFile}
 }
 
-function audioClipFromItem(item, paddingStart, paddingEnd) {
+function audioClipFromItem(item, sliderContext, paddingStart, paddingEnd) {
     if (item.audio) {
         return AudioClip.fromBase64(
             item.subtitleFile.name,
@@ -105,10 +106,21 @@ function audioClipFromItem(item, paddingStart, paddingEnd) {
     }
 
     if (item.audioFile || item.videoFile) {
+        let start;
+        let end;
+
+        if (sliderContext) {
+            start = sliderContext.subtitleStart;
+            end = sliderContext.subtitleEnd;
+        } else {
+            start = item.start;
+            end = item.end;
+        }
+
         return AudioClip.fromFile(
             item.audioFile || item.videoFile,
-            Math.max(0, item.start - paddingStart),
-            item.end + paddingEnd,
+            Math.max(0, start - paddingStart),
+            end + paddingEnd,
             item.audioTrack
         );
     }
@@ -144,6 +156,18 @@ function itemSourceString(item) {
     }
 
     return `${item.subtitleFile.name} (${humanReadableTime(item.start)})`
+}
+
+function itemSliderContext(item) {
+    if (!item) {
+        return null;
+    }
+
+    return {
+        subtitleStart: item.start,
+        subtitleEnd: item.end,
+        subtitles: item.surroundingSubtitles || [{start: item.start, end: item.end, text: item.text, track: item.track}]
+    };
 }
 
 function revokeUrls(sources) {
@@ -211,9 +235,13 @@ function App() {
     const [ankiDialogOpen, setAnkiDialogOpen] = useState(false);
     const [ankiDialogDisabled, setAnkiDialogDisabled] = useState(false);
     const [ankiDialogItem, setAnkiDialogItem] = useState();
+    const ankiDialogItemSliderContext = useMemo(
+        () => ankiDialogItem && itemSliderContext(ankiDialogItem),
+        [ankiDialogItem]
+    );
     const ankiDialogAudioClip = useMemo(
-        () => ankiDialogItem && audioClipFromItem(ankiDialogItem, settingsProvider.audioPaddingStart, settingsProvider.audioPaddingEnd),
-        [ankiDialogItem, settingsProvider.audioPaddingStart, settingsProvider.audioPaddingEnd]
+        () => ankiDialogItem && audioClipFromItem(ankiDialogItem, ankiDialogItemSliderContext, settingsProvider.audioPaddingStart, settingsProvider.audioPaddingEnd),
+        [ankiDialogItem, ankiDialogItemSliderContext, settingsProvider.audioPaddingStart, settingsProvider.audioPaddingEnd]
     );
     const ankiDialogImage = useMemo(
         () => ankiDialogItem && imageFromItem(ankiDialogItem, settingsProvider.maxImageWidth, settingsProvider.maxImageHeight),
@@ -232,8 +260,11 @@ function App() {
     const fileInputRef = useRef();
     const {subtitleFiles} = sources;
 
-    const handleCopy = useCallback((subtitle, audioFile, videoFile, subtitleFile, audioTrack, audio, image, preventDuplicate) => {
-        navigator.clipboard.writeText(subtitle.text);
+    const handleCopy = useCallback((subtitle, surroundingSubtitles, audioFile, videoFile, subtitleFile, audioTrack, audio, image, preventDuplicate, id) => {
+        if (subtitle) {
+            navigator.clipboard.writeText(subtitle.text);
+        }
+
         setCopiedSubtitles(copiedSubtitles => {
             if (preventDuplicate && copiedSubtitles.length > 0) {
                 const last = copiedSubtitles[copiedSubtitles.length - 1];
@@ -246,22 +277,53 @@ function App() {
                     }
             }
 
-            return [...copiedSubtitles, {
-                ...subtitle,
-                timestamp: Date.now(),
-                name: fileName,
-                subtitleFile: subtitleFile,
-                audioFile: audioFile,
-                videoFile: videoFile,
-                audioTrack: audioTrack,
-                audio: audio,
-                image: image
-            }];
+            const newCopiedSubtitles = [];
+            let updated = false;
+
+            for (const s of copiedSubtitles) {
+                if (id && s.id === id) {
+                    const newCopiedSubtitle = {
+                        ...s,
+                        ...subtitle,
+                        ...(surroundingSubtitles && {surroundingSubtitles: surroundingSubtitles}),
+                        ...(subtitleFile && {subtitleFile: subtitleFile}),
+                        ...(audioFile && {audioFile: audioFile}),
+                        ...(videoFile && {videoFile: videoFile}),
+                        ...(audioTrack && {audioTrack: audioTrack}),
+                        ...(audio && {audio: audio}),
+                        ...(image && {image: image}),
+                    };
+                    newCopiedSubtitles.push(newCopiedSubtitle);
+                    updated = true;
+                } else {
+                    newCopiedSubtitles.push(s);
+                }
+            }
+
+            if (!updated) {
+                newCopiedSubtitles.push({
+                    ...subtitle,
+                    surroundingSubtitles: surroundingSubtitles,
+                    timestamp: Date.now(),
+                    id: id || uuidv4(),
+                    name: fileName,
+                    subtitleFile: subtitleFile,
+                    audioFile: audioFile,
+                    videoFile: videoFile,
+                    audioTrack: audioTrack,
+                    audio: audio,
+                    image: image,
+                });
+            }
+
+            return newCopiedSubtitles;
         });
 
-        setAlertSeverity("success");
-        setAlert(`Copied: "${subtitle.text}"`);
-        setAlertOpen(true);
+        if (subtitle) {
+            setAlertSeverity("success");
+            setAlert(`Copied: "${subtitle.text}"`);
+            setAlertOpen(true);
+        }
     }, [fileName]);
 
     const handleOpenCopyHistory = useCallback(() => setCopyHistoryOpen(copyHistoryOpen => !copyHistoryOpen), []);
@@ -287,7 +349,7 @@ function App() {
         const newCopiedSubtitles = [];
 
         for (let subtitle of copiedSubtitles) {
-            if (item.timestamp !== subtitle.timestamp) {
+            if (item.id !== subtitle.id) {
                 newCopiedSubtitles.push(subtitle);
             }
         }
@@ -689,6 +751,7 @@ function App() {
                                     audioClip={ankiDialogAudioClip}
                                     image={ankiDialogImage}
                                     source={itemSourceString(ankiDialogItem)}
+                                    sliderContext={ankiDialogItemSliderContext}
                                     customFields={settingsProvider.customAnkiFields}
                                     anki={anki}
                                     settingsProvider={settingsProvider}

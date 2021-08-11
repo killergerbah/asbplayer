@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState, useMemo, useRef, createRef } f
 import { makeStyles } from '@material-ui/core/styles';
 import { keysAreEqual } from '../services/Util';
 import { useWindowSize } from '../hooks/useWindowSize';
-import { KeyBindings } from '@project/common';
+import { KeyBindings, surroundingSubtitles } from '@project/common';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
 import Paper from '@material-ui/core/Paper';
@@ -138,7 +138,8 @@ export default function SubtitlePlayer({
     disableKeyEvents,
     lastJumpToTopTimestamp,
     hidden,
-    disabledSubtitleTracks
+    disabledSubtitleTracks,
+    settingsProvider
     }) {
     const playingRef = useRef();
     playingRef.current = playing;
@@ -379,12 +380,29 @@ export default function SubtitlePlayer({
         }
     }, [hidden, jumpToSubtitle, subtitles, subtitleRefs]);
 
+    const calculateSurroundingSubtitlesForIndex = useCallback((index) => {
+        if (!selectedSubtitleIndexesRef.current) {
+            return [];
+        }
+
+        return surroundingSubtitles(subtitles, index, settingsProvider.surroundingSubtitlesCountRadius, settingsProvider.surroundingSubtitlesTimeRadius);
+    }, [subtitles, settingsProvider.surroundingSubtitlesCountRadius, settingsProvider.surroundingSubtitlesTimeRadius]);
+
+    const calculateSurroundingSubtitles = useCallback(() => {
+        if (!selectedSubtitleIndexesRef.current) {
+            return [];
+        }
+
+        const index = Math.min(Object.keys(selectedSubtitleIndexesRef.current));
+        return calculateSurroundingSubtitlesForIndex(index);
+    }, [calculateSurroundingSubtitlesForIndex]);
+
     useEffect(() => {
         const unbind = KeyBindings.bindCopy(
             (event, subtitle) => {
                 event.preventDefault();
                 event.stopPropagation();
-                onCopy(subtitle, false);
+                onCopy(subtitle, calculateSurroundingSubtitles(), false);
             },
             () => disableKeyEventsRef.current,
             () => {
@@ -400,7 +418,7 @@ export default function SubtitlePlayer({
         );
 
         return () => unbind();
-    }, [subtitles, onCopy]);
+    }, [subtitles, calculateSurroundingSubtitles, onCopy]);
 
     useEffect(() => {
         const unbind = KeyBindings.bindToggleSubtitleTrackInList(
@@ -424,7 +442,8 @@ export default function SubtitlePlayer({
                 const subtitleIndexes = Object.keys(selectedSubtitleIndexesRef.current);
 
                 if (subtitleIndexes && subtitleIndexes.length > 0) {
-                    onCopy(subtitles[Math.min(...subtitleIndexes)], true);
+                    const index = Math.min(...subtitleIndexes);
+                    onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), true);
                 }
 
                 onAnkiDialogRequest();
@@ -433,7 +452,7 @@ export default function SubtitlePlayer({
         );
 
         return () => unbind();
-    }, [onAnkiDialogRequest, onCopy, subtitles]);
+    }, [onAnkiDialogRequest, onCopy, subtitles, calculateSurroundingSubtitlesForIndex]);
 
     const handleClick = useCallback((index) => {
         const selectedSubtitleIndexes = selectedSubtitleIndexesRef.current || {};
@@ -443,8 +462,8 @@ export default function SubtitlePlayer({
     const handleCopy = useCallback((e, index) => {
         e.preventDefault();
         e.stopPropagation();
-        onCopy(subtitles[index], false);
-    }, [subtitles, onCopy]);
+        onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), false);
+    }, [subtitles, calculateSurroundingSubtitlesForIndex, onCopy]);
 
     let subtitleTable;
 

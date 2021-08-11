@@ -1,3 +1,5 @@
+import { surroundingSubtitles } from '@project/common';
+
 export default class SubtitleContainer {
 
     constructor(video) {
@@ -10,6 +12,8 @@ export default class SubtitleContainer {
         this.lastLoadedMessageTimestamp = 0;
         this.lastOffsetChangeTimestamp = 0;
         this.showingOffset = null;
+        this.surroundingSubtitlesCountRadius = 1;
+        this.surroundingSubtitlesTimeRadius = 5000;
     }
 
     bind() {
@@ -91,17 +95,23 @@ export default class SubtitleContainer {
     currentSubtitle() {
         const now = 1000 * this.video.currentTime;
         let subtitle = null;
+        let index = null;
 
         for (let i = 0; i < this.subtitles.length; ++i) {
             const s = this.subtitles[i];
 
             if (now >= s.start && now < s.end && (typeof s.track === 'undefined' || !this.disabledSubtitleTracks[s.track])) {
                 subtitle = s;
+                index = i;
                 break;
             }
         }
 
-        return subtitle;
+        if (!subtitle) {
+            return [null, null];
+        }
+
+        return [subtitle, surroundingSubtitles(this.subtitles, index, this.surroundingSubtitlesCountRadius, this.surroundingSubtitlesTimeRadius)];
     }
 
     offset(offset) {

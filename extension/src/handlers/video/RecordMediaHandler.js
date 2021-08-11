@@ -1,5 +1,6 @@
 import AudioRecorder from '../../services/AudioRecorder';
 import ImageCapturer from '../../services/ImageCapturer';
+import { v4 as uuidv4 } from 'uuid';
 
 export default class RecordMediaHandler {
 
@@ -24,10 +25,13 @@ export default class RecordMediaHandler {
             return;
         }
 
+        const itemId = uuidv4();
         const subtitle = request.message.subtitle;
         const message = {
             command: 'copy',
-            subtitle: subtitle
+            id: itemId,
+            subtitle: subtitle,
+            surroundingSubtitles: request.message.surroundingSubtitles
         };
 
         let audioPromise = null;
@@ -83,7 +87,9 @@ export default class RecordMediaHandler {
                 sender: 'asbplayer-extension-to-video',
                 message: {
                     command: 'show-anki-ui',
+                    id: itemId,
                     subtitle: message.subtitle,
+                    surroundingSubtitles: message.surroundingSubtitles,
                     image: message.image,
                     audio: message.audio,
                 },

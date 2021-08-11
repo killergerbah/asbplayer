@@ -11,11 +11,21 @@ import Snackbar from '@material-ui/core/Snackbar';
 export default function AnkiUi({bridge, mp3WorkerUrl}) {
     const [open, setOpen] = useState(false);
     const [disabled, setDisabled] = useState(false);
+    const [id, setId] = useState();
+    const [subtitle, setSubtitle] = useState();
     const [text, setText] = useState("");
     const [audioClip, setAudioClip] = useState();
+    const [serializedAudio, setSerializedAudio] = useState();
     const [image, setImage] = useState();
+    const [serializedImage, setSerializedImage] = useState();
     const [imageDialogOpen, setImageDialogOpen] = useState(false);
     const [source, setSource] = useState();
+    const [sliderContext, setSliderContext] = useState();
+    const [definition, setDefinition] = useState("");
+    const [word, setWord] = useState("");
+    const [customFieldValues, setCustomFieldValues] = useState({});
+    const [timestampInterval, setTimestampInterval] = useState();
+    const [lastAppliedTimestampIntervalToText, setLastAppliedTimestampIntervalToText] = useState();
     const [settingsProvider, setSettingsProvider] = useState({customAnkiFields: {}});
     const [alertSeverity, setAlertSeverity] = useState();
     const [alertOpen, setAlertOpen] = useState(false);
@@ -28,14 +38,53 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
         return bridge.onStateUpdated((state) => {
             let audioClip;
 
-            if (state.audio) {
-                audioClip = AudioClip.fromBase64(
-                    state.source,
-                    Math.max(0, state.subtitle.start - state.audio.paddingStart),
-                    state.subtitle.end + state.audio.paddingEnd,
-                    state.audio.base64,
-                    state.audio.extension
-                );
+            if (state.type === 'initial') {
+                setText(state.subtitle.text);
+                setSubtitle(state.subtitle);
+                setTimestampInterval(null);
+                setSliderContext({
+                    subtitleStart: state.subtitle.start,
+                    subtitleEnd: state.subtitle.end,
+                    subtitles: state.surroundingSubtitles || [{start: state.subtitle.start, end: state.subtitle.end, text: state.subtitle.text, track: state.subtitle.track}]
+                });
+                setSource(`${state.source} (${humanReadableTime(state.subtitle.start)})`);
+                setDefinition("");
+                setWord("");
+                setCustomFieldValues({});
+                setLastAppliedTimestampIntervalToText();
+
+                if (state.audio) {
+                    audioClip = AudioClip.fromBase64(
+                        state.source,
+                        Math.max(0, state.subtitle.start - state.audio.paddingStart),
+                        state.subtitle.end + state.audio.paddingEnd,
+                        state.audio.base64,
+                        state.audio.extension
+                    );
+                }
+            } else if (state.type === 'resume') {
+                setText(state.text);
+                setTimestampInterval(state.timestampInterval);
+                setSliderContext(state.sliderContext);
+                setSource(state.source);
+                setDefinition(state.definition);
+                setWord(state.word);
+                setCustomFieldValues(state.customFieldValues);
+                setLastAppliedTimestampIntervalToText(state.lastAppliedTimestampIntervalToText);
+
+                if (state.audio) {
+                    audioClip = AudioClip.fromBase64(
+                        state.source,
+                        Math.max(0, state.timestampInterval[0] - state.audio.paddingStart),
+                        state.timestampInterval[1] + state.audio.paddingEnd,
+                        state.audio.base64,
+                        state.audio.extension
+                    );
+                }
+            }
+
+            if (audioClip && state.settingsProvider.preferMp3) {
+                audioClip = audioClip.toMp3(() => new Worker(mp3WorkerUrl));
             }
 
             let image;
@@ -49,13 +98,14 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
                 );
             }
 
+            setSerializedAudio(state.audio);
+            setSerializedImage(state.image);
             setImageDialogOpen(false);
             setDisabled(false);
             setSettingsProvider(state.settingsProvider);
-            setText(state.subtitle.text);
+            setId(state.id);
             setAudioClip(audioClip);
             setImage(image);
-            setSource(`${state.source} (${humanReadableTime(state.subtitle.start)})`);
             setThemeType(state.themeType || 'dark');
             setOpen(state.open);
         });
@@ -79,7 +129,7 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
             if (mode !== 'gui') {
                 setOpen(false);
                 setImageDialogOpen(false);
-                bridge.finished({resume: true});
+                bridge.finished({command: 'resume'});
             }
         } catch (e) {
             console.error(e);
@@ -94,13 +144,36 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
     const handleCancel = useCallback(() => {
         setOpen(false);
         setImageDialogOpen(false);
-        bridge.finished({resume: true});
+        bridge.finished({command: 'resume'});
     }, [bridge]);
 
     const handleViewImage = useCallback((image) => {
         setImage(image);
         setImageDialogOpen(true);
     }, []);
+
+    const handleRerecord = useCallback(({text, sliderContext, definition, word, source, customFieldValues, timestampInterval, lastAppliedTimestampIntervalToText}) => {
+        setOpen(false);
+        setImageDialogOpen(false);
+        bridge.finished({
+            command: 'rerecord',
+            uiState: {
+                subtitle: subtitle,
+                text: text,
+                sliderContext: sliderContext,
+                definition: definition,
+                image: serializedImage,
+                word: word,
+                source: source,
+                customFieldValues: customFieldValues,
+                timestampInterval: timestampInterval,
+                lastAppliedTimestampIntervalToText: lastAppliedTimestampIntervalToText,
+            },
+            id: id,
+            recordStart: timestampInterval[0],
+            recordEnd: timestampInterval[1]
+        });
+    }, [serializedImage, subtitle, id]);
 
     return (
         <ThemeProvider theme={theme}>
@@ -124,15 +197,21 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
                 open={open}
                 disabled={disabled}
                 text={text}
+                sliderContext={sliderContext}
                 audioClip={audioClip}
                 image={image}
                 source={source}
                 settingsProvider={settingsProvider}
-                mp3WorkerUrl={mp3WorkerUrl}
                 anki={anki}
                 onProceed={handleProceed}
+                onRerecord={handleRerecord}
                 onCancel={handleCancel}
                 onViewImage={handleViewImage}
+                definition={definition}
+                word={word}
+                customFieldValues={customFieldValues}
+                timestampInterval={timestampInterval}
+                lastAppliedTimestampIntervalToText={lastAppliedTimestampIntervalToText}
             />
         </ThemeProvider>
     );

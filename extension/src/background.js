@@ -4,6 +4,7 @@ import AudioRecorder from './services/AudioRecorder';
 import ImageCapturer from './services/ImageCapturer';
 import VideoHeartbeatHandler from './handlers/video/VideoHeartbeatHandler';
 import RecordMediaHandler from './handlers/video/RecordMediaHandler';
+import RerecordMediaHandler from './handlers/video/RerecordMediaHandler';
 import ToggleSubtitlesHandler from './handlers/video/ToggleSubtitlesHandler';
 import SyncHandler from './handlers/video/SyncHandler';
 import HttpPostHandler from './handlers/video/HttpPostHandler';
@@ -15,9 +16,11 @@ import RefreshSettingsHandler from './handlers/popup/RefreshSettingsHandler';
 
 const settings = new Settings();
 const tabRegistry = new TabRegistry(settings);
+const audioRecorder = new AudioRecorder();
 const handlers = [
     new VideoHeartbeatHandler(tabRegistry),
-    new RecordMediaHandler(new AudioRecorder(), new ImageCapturer(settings)),
+    new RecordMediaHandler(audioRecorder, new ImageCapturer(settings)),
+    new RerecordMediaHandler(audioRecorder),
     new ToggleSubtitlesHandler(settings, tabRegistry),
     new SyncHandler(tabRegistry),
     new HttpPostHandler(),

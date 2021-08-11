@@ -181,6 +181,8 @@ export default class Binding {
                         this.audioPaddingEnd = typeof request.message.value.audioPaddingEnd === 'undefined' ? this.audioPaddingEnd : request.message.value.audioPaddingEnd;
                         this.maxImageWidth = typeof request.message.value.maxImageWidth === 'undefined' ? this.maxImageWidth : request.message.value.maxImageWidth;
                         this.maxImageHeight = typeof request.message.value.maxImageHeight === 'undefined' ? this.maxImageHeight : request.message.value.maxImageHeight;
+                        this.subtitleContainer.surroundingSubtitlesCountRadius = typeof request.message.value.surroundingSubtitlesCountRadius === 'undefined' ? this.surroundingSubtitlesCountRadius : request.message.value.surroundingSubtitlesCountRadius
+                        this.subtitleContainer.surroundingSubtitlesTimeRadius = typeof request.message.value.surroundingSubtitlesTimeRadius === 'undefined' ? this.surroundingSubtitlesTimeRadius : request.message.value.surroundingSubtitlesTimeRadius;
                         break;
                     case 'miscSettings':
                         this.ankiUiContainer.themeType = request.message.value.themeType;
@@ -195,8 +197,18 @@ export default class Binding {
                         this.ankiUiContainer.show(
                             this,
                             request.message.subtitle,
+                            request.message.surroundingSubtitles,
                             request.message.image,
-                            request.message.audio
+                            request.message.audio,
+                            request.message.id
+                        );
+                        break;
+                    case 'show-anki-ui-after-rerecord':
+                        this.ankiUiContainer.showAfterRerecord(
+                            this,
+                            request.message.audio,
+                            request.message.uiState,
+                            request.message.id
                         );
                         break;
                     case 'screenshot-taken':
@@ -269,9 +281,9 @@ export default class Binding {
     }
 
     async _copySubtitle(showAnkiUi) {
-        const subtitle = this.subtitleContainer.currentSubtitle();
+        const [subtitle, surroundingSubtitles] = this.subtitleContainer.currentSubtitle();
 
-        if (subtitle) {
+        if (subtitle && surroundingSubtitles) {
             navigator.clipboard.writeText(subtitle.text);
 
             if (this.recordMedia) {
@@ -301,6 +313,7 @@ export default class Binding {
             const message = {
                 command: 'record-media-and-forward-subtitle',
                 subtitle: subtitle,
+                surroundingSubtitles: surroundingSubtitles,
                 record: this.recordMedia,
                 screenshot: this.screenshot,
                 showAnkiUi: showAnkiUi,
@@ -326,6 +339,26 @@ export default class Binding {
                 src: this.video.src
             });
         }
+    }
+
+    async rerecord(start, end, currentItem, uiState) {
+        this.seek(Math.max(0, start - this.audioPaddingStart) / 1000);
+        await this.play();
+
+        const message = {
+            command: 'rerecord-media',
+            duration: end - start,
+            uiState: uiState,
+            audioPaddingStart: this.audioPaddingStart,
+            audioPaddingEnd: this.audioPaddingEnd,
+            currentItem: currentItem,
+        };
+
+        chrome.runtime.sendMessage({
+            sender: 'asbplayer-video',
+            message: message,
+            src: this.video.src
+        });
     }
 
     seek(timestamp) {

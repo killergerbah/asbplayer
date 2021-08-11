@@ -12,6 +12,8 @@ const defaultAudioPaddingStart = 0;
 const defaultAudioPaddingEnd = 500;
 const defaultMaxImageWidth = 0;
 const defaultMaxImageHeight = 0;
+const defaultSurroundingSubtitlesCountRadius = 1;
+const defaultSurroundingSubtitlesTimeRadius = 5000;
 
 const ankiConnectUrlKey = "ankiConnectUrl";
 const deckKey = "deck";
@@ -67,6 +69,8 @@ export default class SettingsProvider {
             audioPaddingEnd: this.audioPaddingEnd,
             maxImageWidth: this.maxImageWidth,
             maxImageHeight: this.maxImageHeight,
+            surroundingSubtitlesCountRadius: this.surroundingSubtitlesCountRadius,
+            surroundingSubtitlesTimeRadius: this.surroundingSubtitlesTimeRadius,
         };
     }
 
@@ -128,6 +132,8 @@ export default class SettingsProvider {
             audioPaddingEnd: this.audioPaddingEnd,
             maxImageWidth: this.maxImageWidth,
             maxImageHeight: this.maxImageHeight,
+            surroundingSubtitlesCountRadius: this.surroundingSubtitlesCountRadius,
+            surroundingSubtitlesTimeRadius: this.surroundingSubtitlesTimeRadius,
         };
     }
 
@@ -365,5 +371,15 @@ export default class SettingsProvider {
 
     set maxImageHeight(maxImageHeight) {
         localStorage.setItem(maxImageHeightKey, maxImageHeight);
+    }
+
+    get surroundingSubtitlesCountRadius() {
+        // For now, not configurable
+        return defaultSurroundingSubtitlesCountRadius;
+    }
+
+    get surroundingSubtitlesTimeRadius() {
+        // For now, not configurable
+        return defaultSurroundingSubtitlesTimeRadius;
     }
 }

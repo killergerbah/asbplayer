@@ -288,15 +288,17 @@ export default function Player({
                         channel.onPlay((forwardToMedia) => play(clock, mediaAdapter, forwardToMedia));
                         channel.onPause((forwardToMedia) => pause(clock, mediaAdapter, forwardToMedia));
                         channel.onOffset((offset) => applyOffset(Math.max(-lengthRef.current ?? 0, offset), false));
-                        channel.onCopy((subtitle, audio, image, preventDuplicate) => onCopy(
+                        channel.onCopy((subtitle, surroundingSubtitles, audio, image, preventDuplicate, id) => onCopy(
                             subtitle,
+                            surroundingSubtitles,
                             audioFile,
                             videoFile,
-                            subtitleFiles[subtitle.track],
+                            subtitle ? subtitleFiles[subtitle.track] : null,
                             channel.selectedAudioTrack,
                             audio,
                             image,
-                            preventDuplicate
+                            preventDuplicate,
+                            id
                         ));
                         channel.onCondensedModeToggle(() => setCondensedModeEnabled(enabled => {
                             const newValue = !enabled;
@@ -507,16 +509,18 @@ export default function Player({
         }
     }, [clock, seek, mediaAdapter]);
 
-    const handleCopy = useCallback((subtitle, preventDuplicate) => {
+    const handleCopy = useCallback((subtitle, surroundingSubtitles, preventDuplicate) => {
         onCopy(
             subtitle,
+            surroundingSubtitles,
             audioFile,
             videoFile,
             subtitleFiles[subtitle.track],
             selectedAudioTrack,
             null,
             null,
-            preventDuplicate
+            preventDuplicate,
+            null
         );
     }, [onCopy, audioFile, videoFile, subtitleFiles, selectedAudioTrack]);
 
@@ -671,6 +675,7 @@ export default function Player({
                             onOffsetChange={handleOffsetChange}
                             onAnkiDialogRequest={onAnkiDialogRequest}
                             onToggleSubtitleTrack={handleToggleSubtitleTrack}
+                            settingsProvider={settingsProvider}
                         />
                     </Grid>
                 )}

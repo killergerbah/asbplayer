@@ -21,7 +21,11 @@ async function html() {
 
 export default class AnkiUiContainer {
 
-    async show(context, subtitle, image, audio) {
+    constructor() {
+        this.currentItem = {};
+    }
+
+    async show(context, subtitle, surroundingSubtitles, image, audio, id) {
         if (!this.ankiSettings) {
             throw new Error("Unable to show Anki UI because settings are missing.");
             return;
@@ -29,6 +33,48 @@ export default class AnkiUiContainer {
 
         const subtitleFileNames = context.subtitleContainer.subtitleFileNames;
         const client = await this._client(context);
+        this._prepareShow(context);
+        this.currentItem = {
+            subtitle: subtitle,
+            surroundingSubtitles: surroundingSubtitles,
+            image: image,
+            audio: audio,
+            id: id,
+        };
+        client.updateState({
+            type: 'initial',
+            open: true,
+            id: id,
+            settingsProvider: this.ankiSettings,
+            source: subtitle.track ? subtitleFileNames[subtitle.track] : subtitleFileNames[0],
+            subtitle: subtitle,
+            surroundingSubtitles: surroundingSubtitles,
+            image: image,
+            audio: audio,
+            themeType: this.themeType
+        });
+    }
+
+    async showAfterRerecord(context, audio, uiState, id) {
+        if (!this.ankiSettings) {
+            throw new Error("Unable to show Anki UI because settings are missing.");
+            return;
+        }
+
+        const client = await this._client(context);
+        this._prepareShow(context);
+        this.currentItem.audio = audio;
+        client.updateState({
+            type: 'resume',
+            id: id,
+            open: true,
+            settingsProvider: this.ankiSettings,
+            ...uiState,
+            themeType: this.themeType
+        });
+    }
+
+    _prepareShow(context) {
         context.pause();
 
         if (document.fullscreenElement) {
@@ -40,15 +86,6 @@ export default class AnkiUiContainer {
             this.activeElement = document.activeElement;
         }
 
-        client.updateState({
-            open: true,
-            settingsProvider: this.ankiSettings,
-            source: subtitle.track ? subtitleFileNames[subtitle.track] : subtitleFileNames[0],
-            subtitle: subtitle,
-            image: image,
-            audio: audio,
-            themeType: this.themeType
-        });
         context.keyBindings.unbind();
         context.subtitleContainer.displaySubtitles = false;
     }
@@ -74,21 +111,23 @@ export default class AnkiUiContainer {
             }
             context.subtitleContainer.displaySubtitles = context.displaySubtitles;
             this.frame.classList.add('asbplayer-hide');
+            if (this.fullscreenElement) {
+                this.fullscreenElement.requestFullscreen();
+                this.fullscreenElement = null;
+            }
 
-            if (message.resume) {
-                if (this.fullscreenElement) {
-                    this.fullscreenElement.requestFullscreen();
-                    this.fullscreenElement = null;
-                }
+            if (this.activeElement) {
+                this.activeElement.focus();
+                this.activeElement = null;
+            } else {
+                window.focus();
+            }
 
-                if (this.activeElement) {
-                    this.activeElement.focus();
-                    this.activeElement = null;
-                } else {
-                    window.focus();
-                }
-
+            if (message.command === 'resume') {
                 context.play();
+                this.currentItem = {};
+            } else if (message.command === 'rerecord') {
+                context.rerecord(message.recordStart, message.recordEnd, this.currentItem, message.uiState);
             }
         });
 

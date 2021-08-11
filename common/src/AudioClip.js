@@ -7,8 +7,8 @@ const defaultMp3WorkerFactory = () => new Worker();
 
 class Base64AudioData {
 
-    constructor(name, start, end, base64, extension) {
-        this.name = name;
+    constructor(baseName, start, end, base64, extension) {
+        this.name = baseName + "_" + Math.floor(start) + "_" + Math.floor(end);
         this.start = start;
         this.end = end;
         this._base64 = base64;
@@ -49,6 +49,15 @@ class Base64AudioData {
         }
 
         return this.cachedBlob;
+    }
+
+    slice(start, end) {
+        // Not supported
+        return this;
+    }
+
+    isSliceable(start, end) {
+        return false;
     }
 }
 
@@ -166,6 +175,14 @@ class FileAudioData {
             }, this.end - this.start + 100);
         });
     }
+
+    slice(start, end) {
+        return new FileAudioData(this.file, start, end, this.trackId);
+    }
+
+    isSliceable(start, end) {
+        return true;
+    }
 }
 
 class Mp3AudioData {
@@ -210,6 +227,14 @@ class Mp3AudioData {
 
         return this._blob;
     }
+
+    slice(start, end) {
+        return new Mp3AudioData(this.data.slice(start, end), this.workerFactory);
+    }
+
+    isSliceable(start, end) {
+        return this.data.isSliceable(start, end);
+    }
 }
 
 export default class AudioClip {
@@ -219,8 +244,7 @@ export default class AudioClip {
     }
 
     static fromBase64(subtitleFileName, start, end, base64, extension) {
-        const audioName = subtitleFileName.substring(0, subtitleFileName.lastIndexOf(".")) + "_" + Math.floor(start) + "_" + Math.floor(end);
-        return new AudioClip(new Base64AudioData(audioName, start, end, base64, extension));
+        return new AudioClip(new Base64AudioData(subtitleFileName.substring(0, subtitleFileName.lastIndexOf(".")), start, end, base64, extension));
     }
 
     static fromFile(file, start, end, trackId) {
@@ -254,5 +278,13 @@ export default class AudioClip {
 
     toMp3(mp3WorkerFactory = defaultMp3WorkerFactory) {
         return new AudioClip(new Mp3AudioData(this.data, mp3WorkerFactory));
+    }
+
+    slice(start, end) {
+        return new AudioClip(this.data.slice(start, end));
+    }
+
+    isSliceable(start, end) {
+        return this.data.isSliceable(start, end);
     }
 }

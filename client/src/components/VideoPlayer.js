@@ -3,7 +3,7 @@ import { isMobile } from 'react-device-detect';
 import { makeStyles } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
 import { arrayEquals, computeStyles } from '../services/Util'
-import { KeyBindings } from '@project/common';
+import { KeyBindings, surroundingSubtitles } from '@project/common';
 import Alert from './Alert';
 import Clock from '../services/Clock';
 import Controls from './Controls';
@@ -362,12 +362,16 @@ export default function VideoPlayer(props) {
         return () => unbind();
     }, [playerChannel, subtitles, length, clock]);
 
+    const calculateSurroundingSubtitles = useCallback((index) => {
+        return surroundingSubtitles(subtitles, index, settingsProvider.surroundingSubtitlesCountRadius, settingsProvider.surroundingSubtitlesTimeRadius);
+    }, [subtitles, settingsProvider.surroundingSubtitlesCountRadius, settingsProvider.surroundingSubtitlesTimeRadius]);
+
     useEffect(() => {
         const unbind = KeyBindings.bindCopy(
             (event, subtitle) => {
                 event.stopPropagation();
                 event.preventDefault();
-                playerChannel.copy(subtitle);
+                playerChannel.copy(subtitle, calculateSurroundingSubtitles(subtitle.index));
 
                 if (fullscreen) {
                     setAlert(`Copied: "${subtitle.text}"`);
@@ -385,7 +389,7 @@ export default function VideoPlayer(props) {
         );
 
         return () => unbind();
-    }, [playerChannel, fullscreen]);
+    }, [playerChannel, subtitles, calculateSurroundingSubtitles, fullscreen]);
 
     useEffect(() => {
         const unbind = KeyBindings.bindAdjustOffset(
@@ -469,7 +473,8 @@ export default function VideoPlayer(props) {
                 event.stopPropagation();
 
                 if (showSubtitlesRef.current && showSubtitlesRef.current.length > 0) {
-                    playerChannel.copy(showSubtitlesRef.current[0], true);
+                    const currentSubtitle = showSubtitlesRef.current[0];
+                    playerChannel.copy(currentSubtitle, calculateSurroundingSubtitles(currentSubtitle.index), true);
                 }
 
                 playerChannel.ankiDialogRequest(fullscreen);
@@ -478,7 +483,7 @@ export default function VideoPlayer(props) {
         );
 
         return () => unbind();
-    }, [playerChannel, fullscreen]);
+    }, [playerChannel, calculateSurroundingSubtitles, fullscreen]);
 
     useEffect(() => {
         const unbind = KeyBindings.bindPlay(

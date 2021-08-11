@@ -181,8 +181,8 @@ export default class PlayerChannel {
         this.channel?.postMessage({command: 'popOutToggle'});
     }
 
-    copy(subtitle, preventDuplicate) {
-        this.channel?.postMessage({command: 'copy', subtitle: subtitle, preventDuplicate: preventDuplicate});
+    copy(subtitle, surroundingSubtitles, preventDuplicate) {
+        this.channel?.postMessage({command: 'copy', subtitle: subtitle, surroundingSubtitles: surroundingSubtitles, preventDuplicate: preventDuplicate});
     }
 
     condensedModeToggle() {

@@ -184,7 +184,7 @@ export default function CopyHistory(props) {
             items.push((
                 <ListItem
                     ref={ref}
-                    key={item.timestamp}
+                    key={item.id}
                     className={classes.listItem}
                     classes={{gutters: classes.listItemGutters}}
                 >
