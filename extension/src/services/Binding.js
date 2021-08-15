@@ -181,8 +181,8 @@ export default class Binding {
                         this.audioPaddingEnd = typeof request.message.value.audioPaddingEnd === 'undefined' ? this.audioPaddingEnd : request.message.value.audioPaddingEnd;
                         this.maxImageWidth = typeof request.message.value.maxImageWidth === 'undefined' ? this.maxImageWidth : request.message.value.maxImageWidth;
                         this.maxImageHeight = typeof request.message.value.maxImageHeight === 'undefined' ? this.maxImageHeight : request.message.value.maxImageHeight;
-                        this.subtitleContainer.surroundingSubtitlesCountRadius = typeof request.message.value.surroundingSubtitlesCountRadius === 'undefined' ? this.surroundingSubtitlesCountRadius : request.message.value.surroundingSubtitlesCountRadius
-                        this.subtitleContainer.surroundingSubtitlesTimeRadius = typeof request.message.value.surroundingSubtitlesTimeRadius === 'undefined' ? this.surroundingSubtitlesTimeRadius : request.message.value.surroundingSubtitlesTimeRadius;
+                        this.subtitleContainer.surroundingSubtitlesCountRadius = typeof request.message.value.surroundingSubtitlesCountRadius === 'undefined' ? this.subtitleContainer.surroundingSubtitlesCountRadius : request.message.value.surroundingSubtitlesCountRadius;
+                        this.subtitleContainer.surroundingSubtitlesTimeRadius = typeof request.message.value.surroundingSubtitlesTimeRadius === 'undefined' ? this.subtitleContainer.surroundingSubtitlesTimeRadius : request.message.value.surroundingSubtitlesTimeRadius;
                         break;
                     case 'miscSettings':
                         this.ankiUiContainer.themeType = request.message.value.themeType;
