@@ -61,7 +61,8 @@ export default class RerecordMediaHandler {
             message: {
                 command: 'show-anki-ui-after-rerecord',
                 id: request.message.currentItem.id,
-                uiState: newUiState
+                uiState: newUiState,
+                audio: audio,
             },
             src: request.src
         });
