@@ -24,7 +24,7 @@ export default class RerecordMediaHandler {
         }
 
         const audio = {
-            base64: await this.audioRecorder.record(request.message.duration + request.message.audioPaddingEnd),
+            base64: await this.audioRecorder.record((request.message.duration / request.message.playbackRate) + request.message.audioPaddingEnd),
             extension: 'webm',
             paddingStart: request.message.audioPaddingStart,
             paddingEnd: request.message.audioPaddingEnd

@@ -73,7 +73,6 @@ export default class KeyBindings {
             true
         );
 
-
         this.unbindOffsetToSubtitle = CommonKeyBindings.bindOffsetToSubtitle(
             (event, offset) => {
                 event.preventDefault();

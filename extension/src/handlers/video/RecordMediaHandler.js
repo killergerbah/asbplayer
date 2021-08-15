@@ -38,7 +38,7 @@ export default class RecordMediaHandler {
         let imagePromise = null;
 
         if (request.message.record) {
-            const time = subtitle.end - subtitle.start + request.message.audioPaddingEnd;
+            const time = (subtitle.end - subtitle.start) / request.message.playbackRate + request.message.audioPaddingEnd;
             audioPromise = this.audioRecorder.record(time);
         }
 

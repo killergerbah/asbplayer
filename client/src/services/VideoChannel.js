@@ -110,6 +110,9 @@ export default class VideoChannel {
                         callback(event.data.track);
                     }
                     break;
+                case 'playbackRate':
+                    // ignore for now
+                    break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }

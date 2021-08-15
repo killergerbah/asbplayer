@@ -77,7 +77,8 @@ export default class Binding {
                 currentTime: this.video.currentTime,
                 paused: this.video.paused,
                 audioTracks: null,
-                selectedAudioTrack: null
+                selectedAudioTrack: null,
+                playbackRate: this.video.playbackRate,
             },
             src: this.video.src
         });
@@ -118,9 +119,22 @@ export default class Binding {
             });
         };
 
+        this.playbackRateListener = (event) => {
+            chrome.runtime.sendMessage({
+                sender: 'asbplayer-video',
+                message: {
+                    command: 'playbackRate',
+                    value: this.video.playbackRate,
+                    echo: false
+                },
+                src: this.video.src
+            });
+        }
+
         this.video.addEventListener('play', this.playListener);
         this.video.addEventListener('pause', this.pauseListener);
         this.video.addEventListener('seeked', this.seekedListener);
+        this.video.addEventListener('ratechange', this.playbackRateListener);
 
         this.heartbeatInterval = setInterval(() => {
             chrome.runtime.sendMessage({
@@ -257,22 +271,32 @@ export default class Binding {
     unbind() {
         if (this.playListener) {
             this.video.removeEventListener('play', this.playListener);
+            this.playListener = null;
         }
 
         if (this.pauseListener) {
             this.video.removeEventListener('pause', this.pauseListener);
+            this.pauseListener = null;
         }
 
         if (this.seekedListener) {
             this.video.removeEventListener('seeked', this.seekedListener);
+            this.seekedListener = null;
+        }
+
+        if (this.playbackRateListener) {
+            this.video.removeEventListener('ratechange', this.playbackRateListener);
+            this.playbackRateListener = null;
         }
 
         if (this.heartbeatInterval) {
             clearInterval(this.heartbeatInterval);
+            this.heartbeatInterval = null;
         }
 
         if (this.listener) {
             chrome.runtime.onMessage.removeListener(this.listener);
+            this.listener = null;
         }
 
         this.subtitleContainer.unbind();
@@ -318,7 +342,8 @@ export default class Binding {
                 screenshot: this.screenshot,
                 showAnkiUi: showAnkiUi,
                 audioPaddingStart: this.audioPaddingStart,
-                audioPaddingEnd: this.audioPaddingEnd
+                audioPaddingEnd: this.audioPaddingEnd,
+                playbackRate: this.video.playbackRate
             };
 
             if (message.screenshot) {
@@ -352,6 +377,7 @@ export default class Binding {
             audioPaddingStart: this.audioPaddingStart,
             audioPaddingEnd: this.audioPaddingEnd,
             currentItem: currentItem,
+            playbackRate: this.video.playbackRate
         };
 
         chrome.runtime.sendMessage({
