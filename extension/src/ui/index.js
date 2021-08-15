@@ -1,3 +1,4 @@
+import '@fontsource/roboto';
 import React from 'react';
 import { render } from 'react-dom';
 import AnkiUi from './components/AnkiUi';

@@ -24,6 +24,14 @@ module.exports = (env, options) => ({
         use: {
           loader: 'babel-loader',
         },
+      },
+      {
+        test: /\.css$/,
+        use: ["style-loader", "css-loader"],
+      },
+      {
+        test: /\.(woff|woff2)$/,
+        loader: 'url-loader?limit=100000'
       }
     ],
   },

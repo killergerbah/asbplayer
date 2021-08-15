@@ -2824,6 +2824,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fontsource/roboto@npm:^4.5.0":
+  version: 4.5.0
+  resolution: "@fontsource/roboto@npm:4.5.0"
+  checksum: e719537c93a8745b170fecd1faf3c70503cc9429aa23f6da50837b602aebe678ac01e3769ba87329e96912610f80a8a77ec75fab1da6988c5d186bb78723dc41
+  languageName: node
+  linkType: hard
+
 "@hapi/address@npm:2.x.x":
   version: 2.1.4
   resolution: "@hapi/address@npm:2.1.4"
@@ -3299,6 +3306,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@project/client@workspace:client"
   dependencies:
+    "@fontsource/roboto": ^4.5.0
     "@material-ui/core": ^4.11.3
     "@material-ui/icons": ^4.11.2
     "@material-ui/lab": ^4.0.0-alpha.57
@@ -3317,7 +3325,6 @@ __metadata:
     react-scripts: 4.0.0
     semver: 7.3.5
     subtitle: 4.0.1
-    typeface-roboto: 1.1.13
     uuid: 8.3.2
     vtt.js: 0.13.0
     web-vitals: ^0.2.4
@@ -3338,6 +3345,7 @@ __metadata:
     "@babel/core": 7.14.5
     "@babel/preset-env": ^7.14.5
     "@babel/preset-react": ^7.14.5
+    "@fontsource/roboto": ^4.5.0
     "@material-ui/core": ^4.11.3
     "@material-ui/icons": ^4.11.2
     "@material-ui/lab": ^4.0.0-alpha.57
@@ -16167,13 +16175,6 @@ resolve@^2.0.0-next.3:
   version: 0.0.6
   resolution: "typedarray@npm:0.0.6"
   checksum: c9ef0176aaf32593514c31e5c6edc1db970847aff6e1f0a0570a6ac0cc996335792f394c2fcec59cc76691d22a01888ea073a2f3c6930cfcf7c519addf4e2ad7
-  languageName: node
-  linkType: hard
-
-"typeface-roboto@npm:1.1.13":
-  version: 1.1.13
-  resolution: "typeface-roboto@npm:1.1.13"
-  checksum: d8f68902575211262605fb50147084b295d410f376314d1b4d55d08e4dbb74339a1817c82a7df051694b3e3663a9d0c0179b728101e8403d906b89735b0e97e0
   languageName: node
   linkType: hard
 
