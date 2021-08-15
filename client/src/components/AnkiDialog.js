@@ -344,6 +344,8 @@ export default function AnkiDialog({
                             variant="filled"
                             color="secondary"
                             fullWidth
+                            multiline
+                            rowsMax={8}
                             label={customFieldName}
                             value={customFieldValues[customFieldName] || ""}
                             onChange={(e) => handleCustomFieldChange(customFieldName, e.target.value)}
