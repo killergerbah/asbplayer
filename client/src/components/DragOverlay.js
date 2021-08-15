@@ -21,7 +21,7 @@ const useStyles = makeStyles((theme) => ({
             justifyContent: "center",
             alignItems: "center",
             textAlign: "center",
-            backgroundSize: "500px 500px",
+            backgroundSize: "350px 450px",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "center",
             backgroundImage: `url(${coloredBackground})`,

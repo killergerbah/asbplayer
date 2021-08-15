@@ -154,17 +154,25 @@ export default class DragContainer {
 
     _applyImageContainerStyles(image, container) {
         const rect = this.video.getBoundingClientRect();
-        const imageLength = Math.min(rect.width, rect.height, 500);
-        const topOffset = (rect.height - imageLength) / 2;
-        const leftOffset =  (rect.width - imageLength) / 2;
-        image.style.top = topOffset + "px";
-        image.style.left = leftOffset + "px";
-        image.style.width = imageLength + "px";
-        image.style.height = imageLength + "px";
+        const containerWidth = rect.width * .9;
+        const containerHeight = rect.height * .9;
         container.style.top = (rect.top + rect.height * 0.05) + "px";
         container.style.left = (rect.left + rect.width * 0.05) + "px";
-        container.style.height = (rect.height * .9) + "px";
-        container.style.width = (rect.width * .9) + "px";
+        container.style.width = containerWidth + "px";
+        container.style.height = containerHeight + "px";
+
+        const dragImageWidth = 350;
+        const dragImageHeight = 450;
+        const imageRatio = Math.min(1, Math.min(containerWidth / dragImageWidth, containerHeight / dragImageHeight));
+        const imageWidth = dragImageWidth * imageRatio;
+        const imageHeight = dragImageHeight * imageRatio;
+
+        const topOffset = (containerHeight - imageHeight) / 2;
+        const leftOffset =  (containerWidth - imageWidth) / 2;
+        image.style.top = topOffset + "px";
+        image.style.left = leftOffset + "px";
+        image.style.width = imageWidth + "px";
+        image.style.height = imageHeight + "px";
     }
 
     unbind() {
