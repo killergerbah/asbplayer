@@ -14,7 +14,8 @@ export default class ImageCapturer {
                 {format: 'jpeg'},
                 async (dataUrl) => {
                     const croppedDataUrl = await this._cropAndResize(dataUrl, rect, maxWidth, maxHeight);
-                    resolve(croppedDataUrl.substr(croppedDataUrl.indexOf(',') + 1));
+                    this.lastImageBase64 = croppedDataUrl.substr(croppedDataUrl.indexOf(',') + 1);
+                    resolve(this.lastImageBase64);
                 }
             );
         });

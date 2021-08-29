@@ -18,10 +18,6 @@ export default class SubtitleContainer {
 
     bind() {
         this.subtitlesInterval = setInterval(() => {
-            if (this.subtitles.length === 0) {
-                return;
-            }
-
             if (this.lastLoadedMessageTimestamp > 0 && Date.now() - this.lastLoadedMessageTimestamp < 1000) {
                 return;
             }
@@ -35,6 +31,10 @@ export default class SubtitleContainer {
 
             if (!showOffset && !this.displaySubtitles) {
                 this._hideSubtitles();
+                return;
+            }
+
+            if (this.subtitles.length === 0) {
                 return;
             }
 

@@ -1,7 +1,11 @@
+import ImageElement from './ImageElement';
+import { bufferToBase64 } from './Base64';
+
 export default class DragContainer {
 
     constructor(video) {
         this.video = video;
+        this.imageElement = new ImageElement(video);
     }
 
     bind() {
@@ -9,12 +13,12 @@ export default class DragContainer {
             return;
         }
 
-        this.dropListener = (e) => {
+        this.dropListener = async (e) => {
             e.preventDefault();
 
             this.dragEnterElement = null;
-            this._imageElement().classList.add("asbplayer-hide");
-            this._imageElement().classList.remove("asbplayer-drag-image-fade-in");
+            this.imageElement.element().classList.add("asbplayer-hide");
+            this.imageElement.element().classList.remove("asbplayer-drag-image-fade-in");
             this._dragElement().classList.remove("asbplayer-drag-zone-dragging");
 
             if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) {
@@ -41,13 +45,14 @@ export default class DragContainer {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'sync',
-                    subtitles: files
-                        .map((f) => {
-                            return {
-                                name: f.name,
-                                fileUrl: URL.createObjectURL(f)
-                            };
-                        })
+                    subtitles: await Promise.all(files.map(async (f) => {
+                        const base64 = await bufferToBase64(await f.arrayBuffer());
+
+                        return {
+                            name: f.name,
+                            base64: base64
+                        };
+                    }))
                 },
                 src: this.video.src
             });
@@ -59,8 +64,8 @@ export default class DragContainer {
             e.preventDefault();
 
             this.dragEnterElement = e.target;
-            this._imageElement().classList.remove("asbplayer-hide");
-            this._imageElement().classList.add("asbplayer-drag-image-fade-in");
+            this.imageElement.element().classList.remove("asbplayer-hide");
+            this.imageElement.element().classList.add("asbplayer-drag-image-fade-in");
         };
 
         this.bodyDragEnterListener = (e) => {
@@ -72,8 +77,8 @@ export default class DragContainer {
         this.bodyDropListener = (e) => {
             e.preventDefault();
 
-            this._imageElement().classList.add("asbplayer-hide");
-            this._imageElement().classList.remove("asbplayer-drag-image-fade-in");
+            this.imageElement.element().classList.add("asbplayer-hide");
+            this.imageElement.element().classList.remove("asbplayer-drag-image-fade-in");
             this._dragElement().classList.remove("asbplayer-drag-zone-dragging");
         };
 
@@ -81,8 +86,8 @@ export default class DragContainer {
             e.preventDefault();
 
             if (this.dragEnterElement === e.target) {
-                this._imageElement().classList.add("asbplayer-hide");
-                this._imageElement().classList.remove("asbplayer-drag-image-fade-in");
+                this.imageElement.element().classList.add("asbplayer-hide");
+                this.imageElement.element().classList.remove("asbplayer-drag-image-fade-in");
                 this._dragElement().classList.remove("asbplayer-drag-zone-dragging");
             }
         };
@@ -128,53 +133,6 @@ export default class DragContainer {
         dragElement.style.width = (rect.width * .9) + "px";
     }
 
-    _imageElement() {
-        if (this.imageElement) {
-            return this.imageElement;
-        }
-
-        const container = document.createElement('div');
-        container.classList.add("asbplayer-drag-image-container");
-        container.classList.add("asbplayer-hide");
-
-        const image = document.createElement('img');
-        image.classList.add("asbplayer-drag-image");
-        image.src = chrome.runtime.getURL('assets/drag-image.png');
-
-        this._applyImageContainerStyles(image, container);
-
-        container.appendChild(image);
-        document.body.appendChild(container);
-
-        this.imageElementStylesInterval = setInterval(() => this._applyImageContainerStyles(image, container), 1000);
-        this.imageElement = container;
-
-        return this.imageElement;
-    }
-
-    _applyImageContainerStyles(image, container) {
-        const rect = this.video.getBoundingClientRect();
-        const containerWidth = rect.width * .9;
-        const containerHeight = rect.height * .9;
-        container.style.top = (rect.top + rect.height * 0.05) + "px";
-        container.style.left = (rect.left + rect.width * 0.05) + "px";
-        container.style.width = containerWidth + "px";
-        container.style.height = containerHeight + "px";
-
-        const dragImageWidth = 350;
-        const dragImageHeight = 450;
-        const imageRatio = Math.min(1, Math.min(containerWidth / dragImageWidth, containerHeight / dragImageHeight));
-        const imageWidth = dragImageWidth * imageRatio;
-        const imageHeight = dragImageHeight * imageRatio;
-
-        const topOffset = (containerHeight - imageHeight) / 2;
-        const leftOffset =  (containerWidth - imageWidth) / 2;
-        image.style.top = topOffset + "px";
-        image.style.left = leftOffset + "px";
-        image.style.width = imageWidth + "px";
-        image.style.height = imageHeight + "px";
-    }
-
     unbind() {
         if (this.dropListener) {
             this.dragElement.removeEventListener('drop', this.dropListener, true);
@@ -200,19 +158,10 @@ export default class DragContainer {
             document.body.removeEventListener('dragenter', this.bodyDragEnterListener);
             this.bodyDragEnterListener = null;
         }
+
         if (this.bodyDropListener) {
             document.body.removeEventListener('drop', this.bodyDropListener);
             this.bodyDropListener = null;
-        }
-
-        if (this.imageElementStylesInterval) {
-            clearInterval(this.imageElementStylesInterval);
-            this.imageElementStylesInterval = null;
-        }
-
-        if (this.imageElement) {
-            this.imageElement.remove();
-            this.imageElement = null;
         }
 
         if (this.dragElementStylesInterval) {
@@ -225,6 +174,7 @@ export default class DragContainer {
             this.dragElement = null;
         }
 
+        this.imageElement.remove();
         this.dragEnterElement = null;
         this.bound = false;
     }

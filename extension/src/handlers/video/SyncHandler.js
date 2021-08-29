@@ -1,5 +1,3 @@
-import { fileUrlToBase64 } from '../../services/Base64';
-
 export default class SyncHandler {
 
     constructor(tabRegistry) {
@@ -23,15 +21,7 @@ export default class SyncHandler {
                 sender: 'asbplayer-extension-to-player',
                 message: {
                     command: 'syncv2',
-                    subtitles: await Promise.all(request.message.subtitles.map(async (s) => {
-                        const base64 = await fileUrlToBase64(s.fileUrl);
-                        URL.revokeObjectURL(s.fileUrl);
-
-                        return {
-                            name: s.name,
-                            base64: base64
-                        };
-                    }))
+                    subtitles: request.message.subtitles
                 },
                 src: request.src,
                 tabId: sender.tab.id

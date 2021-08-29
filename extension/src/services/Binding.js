@@ -2,6 +2,7 @@ import AnkiUiContainer from './AnkiUiContainer';
 import SubtitleContainer from './SubtitleContainer';
 import ControlsContainer from './ControlsContainer';
 import DragContainer from './DragContainer';
+import VideoSelectContainer from './VideoSelectContainer';
 import KeyBindings from './KeyBindings';
 import Settings from './Settings';
 
@@ -22,6 +23,7 @@ export default class Binding {
         this.subtitleContainer = new SubtitleContainer(video);
         this.controlsContainer = new ControlsContainer(video);
         this.dragContainer = new DragContainer(video);
+        this.videoSelectContainer = new VideoSelectContainer(video);
         this.ankiUiContainer = new AnkiUiContainer();
         this.keyBindings = new KeyBindings();
         this.settings = new Settings();
@@ -33,6 +35,7 @@ export default class Binding {
         this.audioPaddingEnd = 500;
         this.maxImageWidth = 0;
         this.maxImageHeight = 0;
+        this.synced = false;
     }
 
     bind() {
@@ -184,6 +187,8 @@ export default class Binding {
                         }
 
                         this.subtitleContainer.showLoadedMessage(loadedMessage);
+                        this.videoSelectContainer.unbind();
+                        this.synced = true;
                         break;
                     case 'subtitleSettings':
                         this.subtitleContainer.subtitleSettings = request.message.value;
@@ -205,7 +210,13 @@ export default class Binding {
                         this._refreshSettings();
                         break;
                     case 'copy-subtitle':
-                        this._copySubtitle(request.message.showAnkiUi);
+                        if (this.synced) {
+                            if (this.subtitleContainer.subtitles.length > 0) {
+                                this._copySubtitle(request.message.showAnkiUi);
+                            } else {
+                                this._toggleRecordingMedia(request.message.showAnkiUi);
+                            }
+                        }
                         break;
                     case 'show-anki-ui':
                         this.ankiUiContainer.show(
@@ -313,25 +324,11 @@ export default class Binding {
             if (this.recordMedia) {
                 const start = Math.max(0, subtitle.start - this.audioPaddingStart);
                 this.seek(start / 1000);
-
-                if (this.showControlsTimeout) {
-                    clearTimeout(this.showControlsTimeout);
-                    this.showControlsTimeout = null;
-                }
-
-                if (this.cleanScreenshot) {
-                    this.subtitleContainer.displaySubtitles = false;
-                    this.controlsContainer.hide();
-                }
-
                 await this.play();
+            }
 
-                if (this.cleanScreenshot) {
-                    this.showControlsTimeout = setTimeout(() => {
-                        this.controlsContainer.show();
-                        this.showControlsTimeout = null;
-                    }, 1000);
-                }
+            if (this.screenshot) {
+                this._prepareScreenshot();
             }
 
             const message = {
@@ -346,7 +343,7 @@ export default class Binding {
                 playbackRate: this.video.playbackRate
             };
 
-            if (message.screenshot) {
+            if (this.screenshot) {
                 const rect = this.video.getBoundingClientRect();
                 message.rect = {
                     top: rect.top,
@@ -363,6 +360,81 @@ export default class Binding {
                 message: message,
                 src: this.video.src
             });
+        }
+    }
+
+    _toggleRecordingMedia(showAnkiUi) {
+        if (this.recordingMedia) {
+            chrome.runtime.sendMessage({
+                sender: 'asbplayer-video',
+                message: {
+                    command: 'stop-recording-media',
+                    showAnkiUi: showAnkiUi,
+                    startTimestamp: this.recordingMediaStartedTimestamp,
+                    endTimestamp: this.video.currentTime * 1000,
+                    screenshot: this.recordingMediaWithScreenshot,
+                },
+                src: this.video.src
+            });
+
+            this.recordingMedia = false;
+            this.recordingMediaStartedTimestamp = null;
+        } else {
+            const timestamp = this.video.currentTime * 1000;
+
+            if (this.recordMedia) {
+                this.recordingMedia = true;
+                this.recordingMediaStartedTimestamp = timestamp;
+                this.recordingMediaWithScreenshot = this.screenshot;
+            }
+
+            const message = {
+                command: 'start-recording-media',
+                timestamp: timestamp,
+                record: this.recordMedia,
+                showAnkiUi: showAnkiUi,
+                audioPaddingStart: this.audioPaddingStart,
+                audioPaddingEnd: this.audioPaddingEnd
+            };
+
+            if (this.screenshot) {
+                this._prepareScreenshot();
+                const rect = this.video.getBoundingClientRect();
+                message.rect = {
+                    top: rect.top,
+                    left: rect.left,
+                    width: rect.width,
+                    height: rect.height
+                };
+                message.maxImageWidth = this.maxImageWidth;
+                message.maxImageHeight = this.maxImageHeight;
+                message.screenshot = true;
+            }
+
+            chrome.runtime.sendMessage({
+                sender: 'asbplayer-video',
+                message: message,
+                src: this.video.src
+            });
+        }
+    }
+
+    _prepareScreenshot() {
+        if (this.showControlsTimeout) {
+            clearTimeout(this.showControlsTimeout);
+            this.showControlsTimeout = null;
+        }
+
+        if (this.cleanScreenshot) {
+            this.subtitleContainer.displaySubtitles = false;
+            this.controlsContainer.hide();
+        }
+
+        if (this.cleanScreenshot) {
+            this.showControlsTimeout = setTimeout(() => {
+                this.controlsContainer.show();
+                this.showControlsTimeout = null;
+            }, 1000);
         }
     }
 
@@ -454,5 +526,13 @@ export default class Binding {
         }
 
         this.video.pause();
+    }
+
+    bindVideoSelect(selectedListener) {
+        this.videoSelectContainer.bind(selectedListener);
+    }
+
+    unbindVideoSelect() {
+        this.videoSelectContainer.unbind();
     }
 }

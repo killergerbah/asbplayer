@@ -45,6 +45,13 @@
                 "mac": "MacCtrl+Shift+X"
             },
             "description": "Copy current subtitle and open Anki dialog."
+        },
+        "toggle-video-select": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+V",
+                "mac": "MacCtrl+Shift+V"
+            },
+            "description": "Select a video to mine without a subtitle file."
         }
     },
     "web_accessible_resources": ["netflix.js", "anki-ui.js", "assets/drag-image.png", "mp3-encoder.worker.js"]

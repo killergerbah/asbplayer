@@ -5,6 +5,8 @@ import ImageCapturer from './services/ImageCapturer';
 import VideoHeartbeatHandler from './handlers/video/VideoHeartbeatHandler';
 import RecordMediaHandler from './handlers/video/RecordMediaHandler';
 import RerecordMediaHandler from './handlers/video/RerecordMediaHandler';
+import StartRecordingMediaHandler from './handlers/video/StartRecordingMediaHandler';
+import StopRecordingMediaHandler from './handlers/video/StopRecordingMediaHandler';
 import ToggleSubtitlesHandler from './handlers/video/ToggleSubtitlesHandler';
 import SyncHandler from './handlers/video/SyncHandler';
 import HttpPostHandler from './handlers/video/HttpPostHandler';
@@ -17,10 +19,13 @@ import RefreshSettingsHandler from './handlers/popup/RefreshSettingsHandler';
 const settings = new Settings();
 const tabRegistry = new TabRegistry(settings);
 const audioRecorder = new AudioRecorder();
+const imageCapturer = new ImageCapturer(settings);
 const handlers = [
     new VideoHeartbeatHandler(tabRegistry),
-    new RecordMediaHandler(audioRecorder, new ImageCapturer(settings)),
+    new RecordMediaHandler(audioRecorder, imageCapturer),
     new RerecordMediaHandler(audioRecorder),
+    new StartRecordingMediaHandler(audioRecorder, imageCapturer),
+    new StopRecordingMediaHandler(audioRecorder, imageCapturer),
     new ToggleSubtitlesHandler(settings, tabRegistry),
     new SyncHandler(tabRegistry),
     new HttpPostHandler(),
@@ -54,19 +59,37 @@ chrome.commands.onCommand.addListener((command) => {
             return;
         }
 
-        for (const tab of tabs) {
-            for (const id in tabRegistry.videoElements) {
-                if (tabRegistry.videoElements[id].tab.id === tab.id) {
-                    chrome.tabs.sendMessage(tabRegistry.videoElements[id].tab.id, {
+        switch (command) {
+            case 'copy-subtitle':
+            case 'copy-subtitle-with-dialog':
+                for (const tab of tabs) {
+                    for (const id in tabRegistry.videoElements) {
+                        if (tabRegistry.videoElements[id].tab.id === tab.id) {
+                            chrome.tabs.sendMessage(tabRegistry.videoElements[id].tab.id, {
+                                sender: 'asbplayer-extension-to-video',
+                                message: {
+                                    command: 'copy-subtitle',
+                                    showAnkiUi: command === 'copy-subtitle-with-dialog'
+                                },
+                                src: tabRegistry.videoElements[id].src
+                            });
+                        }
+                    }
+                }
+                break;
+            case 'toggle-video-select':
+                for (const tab of tabs) {
+                    chrome.tabs.sendMessage(tab.id, {
                         sender: 'asbplayer-extension-to-video',
                         message: {
-                            command: 'copy-subtitle',
-                            showAnkiUi: command === 'copy-subtitle-with-dialog'
-                        },
-                        src: tabRegistry.videoElements[id].src
+                            command: 'toggle-video-select',
+                        }
                     });
                 }
-            }
+                break;
+            default:
+                throw new Error('Unknown command ' + command);
         }
+
     });
 });
