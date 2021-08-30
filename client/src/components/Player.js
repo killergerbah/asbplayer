@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { v4 as uuidv4 } from 'uuid';
 import { KeyBindings } from '@project/common';
+import { timeDurationDisplay } from '../services/Util';
 import BroadcastChannelVideoProtocol from '../services/BroadcastChannelVideoProtocol';
 import ChromeTabVideoProtocol from '../services/ChromeTabVideoProtocol';
 import Clock from '../services/Clock';
@@ -27,34 +28,6 @@ const useStyles = makeStyles({
         border: 0
     }
 });
-
-function timeDuration(milliseconds, totalMilliseconds) {
-    if (milliseconds < 0) {
-        return timeDuration(0, totalMilliseconds);
-    }
-
-    milliseconds = Math.round(milliseconds);
-    const ms = milliseconds % 1000;
-    milliseconds = (milliseconds - ms) / 1000;
-    const secs = milliseconds % 60;
-    milliseconds = (milliseconds - secs) / 60;
-    const mins = milliseconds % 60;
-
-    if (totalMilliseconds >= 3600000) {
-        const hrs = (milliseconds - mins) / 60;
-        return pad(hrs) + ':' + pad(mins) + ':' + pad(secs) + '.' + padEnd(ms);
-    }
-
-    return pad(mins) + ':' + pad(secs) + '.' + padEnd(ms);
-}
-
-function pad(n) {
-    return String(n).padStart(2, '0');
-}
-
-function padEnd(n) {
-    return String(n).padEnd(3, '0');
-}
 
 function trackLength(audioRef, videoRef, subtitles, useOffset) {
     let subtitlesLength;
@@ -166,7 +139,7 @@ export default function Player({
                 originalStart: s.originalStart,
                 end: s.originalEnd + offset,
                 originalEnd: s.originalEnd,
-                displayTime: timeDuration(s.originalStart + offset, length),
+                displayTime: timeDurationDisplay(s.originalStart + offset, length),
                 track: s.track
             }));
 
@@ -209,7 +182,7 @@ export default function Player({
                         originalStart: s.start,
                         end: s.end,
                         originalEnd: s.end,
-                        displayTime: timeDuration(s.start, length),
+                        displayTime: timeDurationDisplay(s.start, length),
                         track: s.track
                     }));
 

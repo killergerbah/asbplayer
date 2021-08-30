@@ -465,16 +465,26 @@ export default function SubtitlePlayer({
         onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), false);
     }, [subtitles, calculateSurroundingSubtitlesForIndex, onCopy]);
 
-    let subtitleTable;
+    let subtitleTable = null;
 
     if (!subtitles || subtitles.length ===0) {
-        subtitleTable = !loading && displayHelp && (
-            <div className={classes.noSubtitles}>
-                <Typography>
-                    {displayHelp}
-                </Typography>
-            </div>
-        );
+        if (!loading && displayHelp) {
+            subtitleTable = !loading && displayHelp && (
+                <div className={classes.noSubtitles}>
+                    <Typography>
+                        {displayHelp}
+                    </Typography>
+                </div>
+            );
+        } else if (subtitles && subtitles.length === 0) {
+            subtitleTable = (
+                <div className={classes.noSubtitles}>
+                    <Typography variant="h6">
+                        No subtitles
+                    </Typography>
+                </div>
+            );
+        }
     } else {
         subtitleTable = (
             <TableContainer className={classes.table}>

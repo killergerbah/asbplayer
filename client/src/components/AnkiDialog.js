@@ -416,7 +416,8 @@ export default function AnkiDialog({
                                     max={timestampBoundaryInterval[1]}
                                     marks={timestampMarks}
                                     step={1}
-                                    valueLabelDisplay="off"
+                                    valueLabelDisplay="auto"
+                                    valueLabelFormat={(value) => (value / 1000).toFixed(1) + "s"}
                                     className={classes.rangeSelectSlider}
                                     color="secondary"
                                 />

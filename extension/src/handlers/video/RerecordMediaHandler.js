@@ -27,7 +27,9 @@ export default class RerecordMediaHandler {
             base64: await this.audioRecorder.startWithTimeout((request.message.duration / request.message.playbackRate) + request.message.audioPaddingEnd),
             extension: 'webm',
             paddingStart: request.message.audioPaddingStart,
-            paddingEnd: request.message.audioPaddingEnd
+            paddingEnd: request.message.audioPaddingEnd,
+            start: request.message.timestamp,
+            end: request.message.timestamp + (request.message.duration / request.message.playbackRate)
         };
 
         chrome.tabs.query({}, (allTabs) => {

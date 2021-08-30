@@ -321,14 +321,14 @@ export default class Binding {
         if (subtitle && surroundingSubtitles) {
             navigator.clipboard.writeText(subtitle.text);
 
+            if (this.screenshot) {
+                this._prepareScreenshot();
+            }
+
             if (this.recordMedia) {
                 const start = Math.max(0, subtitle.start - this.audioPaddingStart);
                 this.seek(start / 1000);
                 await this.play();
-            }
-
-            if (this.screenshot) {
-                this._prepareScreenshot();
             }
 
             const message = {
@@ -373,6 +373,7 @@ export default class Binding {
                     startTimestamp: this.recordingMediaStartedTimestamp,
                     endTimestamp: this.video.currentTime * 1000,
                     screenshot: this.recordingMediaWithScreenshot,
+                    videoDuration: this.video.duration * 1000,
                 },
                 src: this.video.src
             });
@@ -428,12 +429,11 @@ export default class Binding {
         if (this.cleanScreenshot) {
             this.subtitleContainer.displaySubtitles = false;
             this.controlsContainer.hide();
-        }
-
-        if (this.cleanScreenshot) {
             this.showControlsTimeout = setTimeout(() => {
                 this.controlsContainer.show();
                 this.showControlsTimeout = null;
+                this.settings.get(['displaySubtitles'])
+                    .then(({displaySubtitles}) => this.subtitleContainer.displaySubtitles = displaySubtitles);
             }, 1000);
         }
     }
@@ -449,7 +449,8 @@ export default class Binding {
             audioPaddingStart: this.audioPaddingStart,
             audioPaddingEnd: this.audioPaddingEnd,
             currentItem: currentItem,
-            playbackRate: this.video.playbackRate
+            playbackRate: this.video.playbackRate,
+            timestamp: start
         };
 
         chrome.runtime.sendMessage({

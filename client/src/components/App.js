@@ -96,10 +96,13 @@ function extractSources(files) {
 
 function audioClipFromItem(item, sliderContext, paddingStart, paddingEnd) {
     if (item.audio) {
+        const start = item.audio.start ?? item.start;
+        const end = item.audio.end ?? item.end;
+
         return AudioClip.fromBase64(
             item.subtitleFile.name,
-            Math.max(0, item.start - (item.audio.paddingStart || 0)),
-            item.end + (item.audio.paddingEnd || 0),
+            Math.max(0, start - (item.audio.paddingStart ?? 0)),
+            end + (item.audio.paddingEnd ?? 0),
             item.audio.base64,
             item.audio.extension
         );
@@ -591,7 +594,8 @@ function App() {
             });
 
             if (subtitleFiles.length > 0) {
-                setFileName(subtitleFiles[0].name);
+                const subtitleFileName = subtitleFiles[0].name;
+                setFileName(subtitleFileName.substring(0, subtitleFileName.lastIndexOf(".")));
             }
         } catch (e) {
             console.error(e);
@@ -635,7 +639,8 @@ function App() {
                     )));
                 }
 
-                setFileName(subtitleFiles[0].name);
+                const subtitleFileName = subtitleFiles[0].name;
+                setFileName(subtitleFileName.substring(0, subtitleFileName.lastIndexOf(".")));
                 setSources({
                     subtitleFiles: subtitleFiles,
                     audioFile: null,

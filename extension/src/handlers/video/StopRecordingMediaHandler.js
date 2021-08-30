@@ -46,7 +46,9 @@ export default class StopRecordingMediaHandler {
             base64: audioBase64,
             extension: 'webm',
             paddingStart: 0,
-            paddingEnd: 0
+            paddingEnd: 0,
+            start: request.message.startTimestamp,
+            end: request.message.endTimestamp
         };
 
         chrome.tabs.query({}, (allTabs) => {
@@ -67,7 +69,11 @@ export default class StopRecordingMediaHandler {
                     command: 'show-anki-ui',
                     id: itemId,
                     subtitle: message.subtitle,
-                    surroundingSubtitles: [],
+                    surroundingSubtitles: [
+                        {text: '', start: Math.max(message.subtitle.start - 5000, 0), end: message.subtitle.start, track: 0},
+                        message.subtitle,
+                        {text: '', start: message.subtitle.end, end: Math.min(message.subtitle.end + 5000, request.message.videoDuration), track: 0},
+                    ],
                     image: message.image,
                     audio: message.audio,
                 },

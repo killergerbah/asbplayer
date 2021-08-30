@@ -71,3 +71,40 @@ export function computeStyles({
 
     return styles;
 }
+
+export function timeDurationDisplay(milliseconds, totalMilliseconds, includeMilliseconds = true) {
+    if (milliseconds < 0) {
+        return timeDurationDisplay(0, totalMilliseconds);
+    }
+
+    milliseconds = Math.round(milliseconds);
+    const ms = milliseconds % 1000;
+    milliseconds = (milliseconds - ms) / 1000;
+    const secs = milliseconds % 60;
+    milliseconds = (milliseconds - secs) / 60;
+    const mins = milliseconds % 60;
+
+    if (totalMilliseconds >= 3600000) {
+        const hrs = (milliseconds - mins) / 60;
+
+        if (includeMilliseconds) {
+            return pad(hrs) + ':' + pad(mins) + ':' + pad(secs) + '.' + padEnd(ms);
+        }
+
+        return pad(hrs) + ':' + pad(mins) + ':' + pad(secs);
+    }
+
+    if (includeMilliseconds) {
+        return pad(mins) + ':' + pad(secs) + '.' + padEnd(ms);
+    }
+
+    return pad(mins) + ':' + pad(secs);
+}
+
+function pad(n) {
+    return String(n).padStart(2, '0');
+}
+
+function padEnd(n) {
+    return String(n).padEnd(3, '0');
+}

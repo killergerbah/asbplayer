@@ -1,8 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import { timeDurationDisplay } from '../services/Util';
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -57,6 +59,18 @@ const useStyles = makeStyles((theme) => ({
         textAlign: "center",
         height: "100%",
         padding: 15
+    },
+    text: {
+        flexGrow: 1
+    },
+    emptyText: {
+        flexGrow: 1,
+        color: theme.palette.text.secondary,
+    },
+    timestamp: {
+        paddingRight: 15,
+        paddingLeft: 15,
+        color: theme.palette.text.secondary,
     }
 }));
 
@@ -200,8 +214,12 @@ export default function CopyHistory(props) {
                             <MoreVertIcon fontSize="small" />
                         </IconButton>
                     </ListItemIcon>
-                    <ListItemText>{item.text}</ListItemText>
-
+                    <ListItemText primary={
+                        <Grid wrap="nowrap" container>
+                            <Grid item className={item.text === '' ? classes.emptyText : classes.text}>{item.text === '' ? 'No text' : item.text}</Grid>
+                            <Grid item className={classes.timestamp}>{timeDurationDisplay(item.start, item.start, false)}</Grid>
+                        </Grid>
+                    }/>
                 </ListItem>
             ));
 

@@ -37,7 +37,7 @@ class FileImageData {
 
     constructor(file, timestamp, maxWidth, maxHeight) {
         this.file = file;
-        this.name = file.name + "_" + timestamp + ".jpeg";
+        this.name = file.name + "_" + Math.floor(timestamp) + ".jpeg";
         this.timestamp = timestamp;
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
@@ -106,7 +106,7 @@ export default class Image {
     }
 
     static fromBase64(subtitleFileName, timestamp, base64, extension) {
-        const imageName = subtitleFileName.substring(0, subtitleFileName.lastIndexOf(".")) + "_" + timestamp + "." + extension;
+        const imageName = subtitleFileName.substring(0, subtitleFileName.lastIndexOf(".")) + "_" + Math.floor(timestamp) + "." + extension;
         return new Image(new Base64ImageData(imageName, base64, extension));
     }
 

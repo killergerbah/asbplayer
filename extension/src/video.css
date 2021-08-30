@@ -79,3 +79,15 @@
     z-index: 2147483647;
     background-color: rgba(0, 0, 0, 0.5);
 }
+
+.asbplayer-mouse-over-container {
+    position: absolute;
+    z-index: 2147483647;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: 0.2s;
+}
+
+.asbplayer-mouse-over-container:hover {
+    opacity: 1
+}

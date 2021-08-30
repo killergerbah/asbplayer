@@ -47,6 +47,7 @@ window.addEventListener('load', (event) => {
                             b.unbindVideoSelect();
                         }
                         videoSelectMode = false;
+                        break;
                     }
 
                     // Toggle on
