@@ -53,12 +53,12 @@
     pointer-events: all;
 }
 
-.asbplayer-drag-image {
+.asbplayer-image {
     position: relative;
     pointer-events: none;
 }
 
-.asbplayer-drag-image-fade-in {
+.asbplayer-image-fade-in {
     animation-duration: 0.2s;
     animation-name: asbplayer-fade-in;
 }
@@ -73,21 +73,27 @@
     }
 }
 
-.asbplayer-drag-image-container {
+.asbplayer-image-container {
     position: absolute;
-    pointer-events: none;
     z-index: 2147483647;
     background-color: rgba(0, 0, 0, 0.5);
 }
 
-.asbplayer-mouse-over-container {
+.asbplayer-drag-image {
+    pointer-events: none;
+}
+
+.asbplayer-mouse-over-image {
     position: absolute;
     z-index: 2147483647;
+}
+
+.asbplayer-mouse-over-image {
     background-color: rgba(0, 0, 0, 0.5);
     opacity: 0;
     transition: 0.2s;
 }
 
-.asbplayer-mouse-over-container:hover {
-    opacity: 1
+.asbplayer-mouse-over-image:hover {
+    opacity: 1;
 }

@@ -340,20 +340,11 @@ export default class Binding {
                 showAnkiUi: showAnkiUi,
                 audioPaddingStart: this.audioPaddingStart,
                 audioPaddingEnd: this.audioPaddingEnd,
-                playbackRate: this.video.playbackRate
+                playbackRate: this.video.playbackRate,
+                rect: this.screenshot ? this.video.getBoundingClientRect() : null,
+                maxImageWidth: this.maxImageWidth,
+                maxImageHeight: this.maxImageHeight
             };
-
-            if (this.screenshot) {
-                const rect = this.video.getBoundingClientRect();
-                message.rect = {
-                    top: rect.top,
-                    left: rect.left,
-                    width: rect.width,
-                    height: rect.height
-                };
-                message.maxImageWidth = this.maxImageWidth;
-                message.maxImageHeight = this.maxImageHeight;
-            }
 
             chrome.runtime.sendMessage({
                 sender: 'asbplayer-video',
@@ -389,28 +380,22 @@ export default class Binding {
                 this.recordingMediaWithScreenshot = this.screenshot;
             }
 
+            if (this.screenshot) {
+                this._prepareScreenshot();
+            }
+
             const message = {
                 command: 'start-recording-media',
                 timestamp: timestamp,
                 record: this.recordMedia,
                 showAnkiUi: showAnkiUi,
                 audioPaddingStart: this.audioPaddingStart,
-                audioPaddingEnd: this.audioPaddingEnd
+                audioPaddingEnd: this.audioPaddingEnd,
+                screenshot: this.screenshot,
+                rect: this.screenshot ? this.video.getBoundingClientRect() : null,
+                maxImageWidth: this.maxImageWidth,
+                maxImageHeight: this.maxImageHeight
             };
-
-            if (this.screenshot) {
-                this._prepareScreenshot();
-                const rect = this.video.getBoundingClientRect();
-                message.rect = {
-                    top: rect.top,
-                    left: rect.left,
-                    width: rect.width,
-                    height: rect.height
-                };
-                message.maxImageWidth = this.maxImageWidth;
-                message.maxImageHeight = this.maxImageHeight;
-                message.screenshot = true;
-            }
 
             chrome.runtime.sendMessage({
                 sender: 'asbplayer-video',
@@ -529,8 +514,8 @@ export default class Binding {
         this.video.pause();
     }
 
-    bindVideoSelect(selectedListener) {
-        this.videoSelectContainer.bind(selectedListener);
+    bindVideoSelect(doneListener) {
+        this.videoSelectContainer.bind(this, doneListener);
     }
 
     unbindVideoSelect() {

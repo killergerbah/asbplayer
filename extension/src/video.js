@@ -46,6 +46,7 @@ window.addEventListener('load', (event) => {
                         for (const b of bindings) {
                             b.unbindVideoSelect();
                         }
+
                         videoSelectMode = false;
                         break;
                     }
@@ -58,6 +59,8 @@ window.addEventListener('load', (event) => {
                             for (const b of bindings) {
                                 b.unbindVideoSelect();
                             }
+
+                            videoSelectMode = false;
                         });
                     }
 

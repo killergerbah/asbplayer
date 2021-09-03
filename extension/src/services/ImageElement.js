@@ -10,12 +10,12 @@ export default class ImageElement {
         }
 
         const container = document.createElement('div');
-        container.classList.add("asbplayer-drag-image-container");
+        container.classList.add("asbplayer-image-container");
         container.classList.add("asbplayer-hide");
 
         const image = document.createElement('img');
-        image.classList.add("asbplayer-drag-image");
-        image.src = chrome.runtime.getURL('assets/drag-image.png');
+        image.classList.add("asbplayer-image");
+        image.src = chrome.runtime.getURL('assets/image.png');
 
         this._applyImageContainerStyles(image, container);
 

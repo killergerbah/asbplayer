@@ -54,5 +54,5 @@
             "description": "Select a video to mine without a subtitle file."
         }
     },
-    "web_accessible_resources": ["netflix.js", "anki-ui.js", "assets/drag-image.png", "mp3-encoder.worker.js"]
+    "web_accessible_resources": ["netflix.js", "anki-ui.js", "video-name-ui.js", "assets/image.png", "mp3-encoder.worker.js"]
 }

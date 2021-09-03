@@ -7,7 +7,8 @@ module.exports = (env, options) => ({
     video: './src/video.js',
     background: './src/background.js',
     popup: './src/popup.js',
-    'anki-ui': './src/anki-ui.js'
+    'anki-ui': './src/anki-ui.js',
+    'video-name-ui': './src/video-name-ui.js'
   },
   output: {
     filename: '[name].js',

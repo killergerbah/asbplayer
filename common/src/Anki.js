@@ -1,6 +1,7 @@
 import HttpFetcher from './HttpFetcher';
 
-const specialCharacters = ['"', '*', '_', '\\', ':'];
+const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
+const fileNameSpecialCharacters = [':', '/', '\\', '<', '>', '"', '|', '?', '*', '^'];
 
 export default class Anki {
 
@@ -47,14 +48,14 @@ export default class Anki {
 
         for (let i = 0; i < query.length; ++i) {
             const char = query[i];
-            if (specialCharacters.includes(char)) {
+            if (ankiQuerySpecialCharacters.includes(char)) {
                 escaped += `\\${char}`;
             } else {
                 escaped += char;
             }
         }
 
-        return `"${escaped}"`
+        return `"${escaped}"`;
     }
 
     async requestPermission(ankiConnectUrl) {
@@ -94,12 +95,14 @@ export default class Anki {
         const gui = mode === 'gui';
 
         if (this.settingsProvider.audioField && audioClip) {
+            const sanitizedName = this._sanitizeFileName(audioClip.name);
+
             if (gui) {
-                const fileName = (await this._storeMediaFile(audioClip.name, await audioClip.base64(), ankiConnectUrl)).result;
+                const fileName = (await this._storeMediaFile(sanitizedName, await audioClip.base64(), ankiConnectUrl)).result;
                 this._appendField(fields, this.settingsProvider.audioField, `[sound:${fileName}]`, false)
             } else {
                 params.note.audio = {
-                    filename: audioClip.name,
+                    filename: sanitizedName,
                     data: await audioClip.base64(),
                     fields: [
                         this.settingsProvider.audioField
@@ -109,12 +112,14 @@ export default class Anki {
         }
 
         if (this.settingsProvider.imageField && image) {
+            const sanitizedName = this._sanitizeFileName(image.name);
+
             if (gui) {
-                const fileName = (await this._storeMediaFile(image.name, await image.base64(), ankiConnectUrl)).result;
+                const fileName = (await this._storeMediaFile(sanitizedName, await image.base64(), ankiConnectUrl)).result;
                 this._appendField(fields, this.settingsProvider.imageField, `<div><img src="${fileName}"></div>`, false);
             } else {
                 params.note.picture = {
-                    filename: image.name,
+                    filename: sanitizedName,
                     data: await image.base64(),
                     fields: [
                         this.settingsProvider.imageField
@@ -164,6 +169,22 @@ export default class Anki {
         }
 
         fields[fieldName] = newValue;
+    }
+
+    _sanitizeFileName(name) {
+        let sanitized = "";
+
+        for (let i = 0; i < name.length; ++i) {
+            const char = name[i];
+
+            if (fileNameSpecialCharacters.includes(char)) {
+                sanitized += "_";
+            } else {
+                sanitized += char;
+            }
+        }
+
+        return sanitized;
     }
 
     async _storeMediaFile(name, base64, ankiConnectUrl) {
