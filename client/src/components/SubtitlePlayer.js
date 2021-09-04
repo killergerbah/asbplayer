@@ -471,7 +471,7 @@ export default function SubtitlePlayer({
         if (!loading && displayHelp) {
             subtitleTable = !loading && displayHelp && (
                 <div className={classes.noSubtitles}>
-                    <Typography>
+                    <Typography variant="h6">
                         {displayHelp}
                     </Typography>
                 </div>

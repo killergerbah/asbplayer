@@ -34,6 +34,32 @@ export function surroundingSubtitles(subtitles, index, countRadius, timeRadius) 
     return subtitles.slice(startIndex, endIndex + 1);
 }
 
+export function mockSurroundingSubtitles(middleSubtitle, maxTimestamp, timeRadius) {
+    const subtitles = [middleSubtitle];
+
+    if (middleSubtitle.end < maxTimestamp) {
+        const afterTimestamp = Math.min(maxTimestamp, middleSubtitle.end + timeRadius);
+        subtitles.push({
+            text: '',
+            start: middleSubtitle.end,
+            end: afterTimestamp,
+            track: 0
+        });
+    }
+
+    if (middleSubtitle.start > 0) {
+        const beforeTimestamp = Math.max(0, middleSubtitle.start - timeRadius);
+        subtitles.unshift({
+            text: '',
+            start: beforeTimestamp,
+            end: middleSubtitle.start,
+            track: 0
+        });
+    }
+
+    return subtitles;
+}
+
 function atBoundary(subtitles, index, initialIndex, countRadius, timeRadius, sign) {
     let next;
 

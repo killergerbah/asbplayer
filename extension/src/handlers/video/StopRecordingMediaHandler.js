@@ -1,6 +1,7 @@
 import AudioRecorder from '../../services/AudioRecorder';
 import ImageCapturer from '../../services/ImageCapturer';
 import { v4 as uuidv4 } from 'uuid';
+import { mockSurroundingSubtitles } from '@project/common';
 
 export default class StopRecordingMediaHandler {
 
@@ -27,11 +28,17 @@ export default class StopRecordingMediaHandler {
         }
 
         const itemId = uuidv4();
+        const subtitle = {text: '', start: request.message.startTimestamp, end: request.message.endTimestamp, track: 0};
+        const surroundingSubtitles = mockSurroundingSubtitles(
+            subtitle,
+            request.message.videoDuration,
+            5000
+        );
         const message = {
             command: 'copy',
             id: itemId,
-            subtitle: {text: '', start: request.message.startTimestamp, end: request.message.endTimestamp, track: 0},
-            surroundingSubtitles: []
+            subtitle: subtitle,
+            surroundingSubtitles: surroundingSubtitles
         };
 
         if (request.message.screenshot && this.imageCapturer.lastImageBase64) {
@@ -68,12 +75,8 @@ export default class StopRecordingMediaHandler {
                 message: {
                     command: 'show-anki-ui',
                     id: itemId,
-                    subtitle: message.subtitle,
-                    surroundingSubtitles: [
-                        {text: '', start: Math.max(message.subtitle.start - 5000, 0), end: message.subtitle.start, track: 0},
-                        message.subtitle,
-                        {text: '', start: message.subtitle.end, end: Math.min(message.subtitle.end + 5000, request.message.videoDuration), track: 0},
-                    ],
+                    subtitle: subtitle,
+                    surroundingSubtitles: surroundingSubtitles,
                     image: message.image,
                     audio: message.audio,
                 },

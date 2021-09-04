@@ -154,11 +154,13 @@ function imageFromItem(item, maxWidth, maxHeight) {
 }
 
 function itemSourceString(item) {
-    if (!item?.subtitleFile?.name) {
+    const source = item?.subtitleFile?.name ?? item?.audioFile?.name ?? item?.videoFile?.name;
+
+    if (!source) {
         return null;
     }
 
-    return `${item.subtitleFile.name} (${humanReadableTime(item.start)})`
+    return `${source} (${humanReadableTime(item.start)})`
 }
 
 function itemSliderContext(item) {
@@ -324,7 +326,7 @@ function App() {
 
         if (subtitle) {
             setAlertSeverity("success");
-            setAlert(`Copied: "${subtitle.text}"`);
+            setAlert(subtitle.text === '' ? `Saved ${humanReadableTime(subtitle.start)}` : `Copied: "${subtitle.text}"`);
             setAlertOpen(true);
         }
     }, [fileName]);

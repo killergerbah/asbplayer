@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { v4 as uuidv4 } from 'uuid';
-import { KeyBindings } from '@project/common';
+import { KeyBindings, mockSurroundingSubtitles } from '@project/common';
 import { timeDurationDisplay } from '../services/Util';
 import BroadcastChannelVideoProtocol from '../services/BroadcastChannelVideoProtocol';
 import ChromeTabVideoProtocol from '../services/ChromeTabVideoProtocol';
@@ -569,6 +569,82 @@ export default function Player({
 
         return () => unbind();
     }, [playing, clock, mediaAdapter, disableKeyEvents]);
+
+    useEffect(() => {
+        if ((audioFile || videoFile) && (!subtitles || subtitles.length === 0)) {
+            const unbindCopy = KeyBindings.bindCopy(
+                (event, subtitle) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const surroundingSubtitles = mockSurroundingSubtitles(
+                        subtitle,
+                        lengthRef.current,
+                        5000
+                    );
+                    onCopy(
+                        subtitle,
+                        surroundingSubtitles,
+                        audioFile,
+                        videoFile,
+                        audioFile?.name ?? videoFile?.name,
+                        selectedAudioTrack
+                    );
+                },
+                () => disableKeyEvents,
+                () => {
+                    if (!lengthRef.current) {
+                        return null;
+                    }
+
+                    const timestamp = clock.time(lengthRef.current);
+
+                    return {
+                        text: '',
+                        start: timestamp,
+                        end: Math.min(timestamp + 5000, lengthRef.current),
+                        track: 0
+                    };
+                }
+            );
+
+            const unbindAnkiExport = KeyBindings.bindAnkiExport(
+                (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const timestamp = clock.time(lengthRef.current);
+                    const subtitle = {
+                        text: '',
+                        start: timestamp,
+                        end: Math.min(timestamp + 5000, lengthRef.current),
+                        track: 0
+                    };
+                    const surroundingSubtitles = mockSurroundingSubtitles(
+                        subtitle,
+                        lengthRef.current,
+                        5000
+                    );
+                    onCopy(
+                        subtitle,
+                        surroundingSubtitles,
+                        audioFile,
+                        videoFile,
+                        audioFile?.name ?? videoFile?.name,
+                        selectedAudioTrack
+                    );
+
+                    onAnkiDialogRequest();
+                },
+                () => false
+            );
+
+            return () => {
+                unbindCopy();
+                unbindAnkiExport();
+            };
+        }
+
+        return null;
+    }, [audioFile, videoFile, subtitles, clock, selectedAudioTrack, disableKeyEvents, onCopy, onAnkiDialogRequest]);
 
     const length = lengthRef.current;
     const loaded = audioFileUrl || videoFileUrl || subtitles;

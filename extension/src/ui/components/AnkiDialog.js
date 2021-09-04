@@ -53,7 +53,7 @@ function boundaryIntervalFromSliderContext(sliderContext) {
         }
     }
 
-    return min && max && [min, max];
+    return min !== null && max !== null && [min, max];
 }
 
 function sliderMarksFromSliderContext(sliderContext, boundary) {

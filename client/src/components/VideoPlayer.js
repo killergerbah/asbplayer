@@ -3,7 +3,7 @@ import { isMobile } from 'react-device-detect';
 import { makeStyles } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
 import { arrayEquals, computeStyles } from '../services/Util'
-import { KeyBindings, surroundingSubtitles } from '@project/common';
+import { KeyBindings, surroundingSubtitles, mockSurroundingSubtitles, humanReadableTime } from '@project/common';
 import Alert from './Alert';
 import Clock from '../services/Clock';
 import Controls from './Controls';
@@ -371,15 +371,34 @@ export default function VideoPlayer(props) {
             (event, subtitle) => {
                 event.stopPropagation();
                 event.preventDefault();
-                playerChannel.copy(subtitle, calculateSurroundingSubtitles(subtitle.index));
+
+                const noSubtitles = !subtitles || subtitles.length === 0;
+
+                playerChannel.copy(
+                    subtitle,
+                    noSubtitles
+                        ? mockSurroundingSubtitles(subtitle, length, 5000)
+                        : calculateSurroundingSubtitles(subtitle.index)
+                    );
 
                 if (fullscreen) {
-                    setAlert(`Copied: "${subtitle.text}"`);
+                    setAlert(subtitle.text === '' ? `Saved ${humanReadableTime(subtitle.start)}` : `Copied: "${subtitle.text}"`);
                     setAlertOpen(true);
                 }
             },
             () => false,
             () => {
+                if (!subtitles || subtitles.length === 0) {
+                    const timestamp = clock.time(length);
+
+                    return {
+                        text: '',
+                        start: timestamp,
+                        end: Math.min(timestamp + 5000, length),
+                        track: 0
+                    };
+                }
+
                 if (!showSubtitlesRef.current || showSubtitlesRef.current.length === 0) {
                     return null;
                 }
@@ -389,7 +408,7 @@ export default function VideoPlayer(props) {
         );
 
         return () => unbind();
-    }, [playerChannel, subtitles, calculateSurroundingSubtitles, fullscreen]);
+    }, [playerChannel, clock, length, subtitles, calculateSurroundingSubtitles, fullscreen]);
 
     useEffect(() => {
         const unbind = KeyBindings.bindAdjustOffset(
@@ -472,7 +491,17 @@ export default function VideoPlayer(props) {
                 event.preventDefault();
                 event.stopPropagation();
 
-                if (showSubtitlesRef.current && showSubtitlesRef.current.length > 0) {
+                if (!subtitles || subtitles.length === 0) {
+                    const timestamp = clock.time(length);
+                    const subtitle = {
+                        text: '',
+                        start: timestamp,
+                        end: Math.min(timestamp + 5000, length),
+                        track: 0
+                    };
+
+                    playerChannel.copy(subtitle, mockSurroundingSubtitles(subtitle, length, 5000), false);
+                } else if (showSubtitlesRef.current && showSubtitlesRef.current.length > 0) {
                     const currentSubtitle = showSubtitlesRef.current[0];
                     playerChannel.copy(currentSubtitle, calculateSurroundingSubtitles(currentSubtitle.index), true);
                 }
@@ -483,7 +512,7 @@ export default function VideoPlayer(props) {
         );
 
         return () => unbind();
-    }, [playerChannel, calculateSurroundingSubtitles, fullscreen]);
+    }, [playerChannel, subtitles, clock, length, calculateSurroundingSubtitles, fullscreen]);
 
     useEffect(() => {
         const unbind = KeyBindings.bindPlay(
