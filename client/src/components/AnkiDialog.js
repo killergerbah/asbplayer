@@ -61,6 +61,7 @@ function sliderMarksFromSliderContext(sliderContext, boundary) {
     const seenTimestamps = {};
 
     return sliderContext.subtitles
+        .filter((s) => s.text.trim() !== "")
         .map((s) => {
             if (s.start in seenTimestamps) {
                 return null;
@@ -249,6 +250,8 @@ export default function AnkiDialog({
         wordHelperText = "";
     }
 
+    const disableApplyTextSelection = !sliderContext || sliderContext.subtitles.filter(s => s.text.trim() !== "").length === 0;
+
     return (
         <Dialog
             open={open}
@@ -289,8 +292,9 @@ export default function AnkiDialog({
                                     <Tooltip title="Apply Selection">
                                         <span>
                                             <IconButton
-                                                disabled={timestampInterval[0] === lastAppliedTimestampIntervalToText[0]
-                                                    && timestampInterval[1] === lastAppliedTimestampIntervalToText[1]}
+                                                disabled={(timestampInterval[0] === lastAppliedTimestampIntervalToText[0]
+                                                    && timestampInterval[1] === lastAppliedTimestampIntervalToText[1])
+                                                    || disableApplyTextSelection}
                                                 onClick={handleApplyTimestampIntervalToText}
                                                 edge="end"
                                             >
@@ -416,8 +420,7 @@ export default function AnkiDialog({
                                     max={timestampBoundaryInterval[1]}
                                     marks={timestampMarks}
                                     step={1}
-                                    valueLabelDisplay="auto"
-                                    valueLabelFormat={(value) => (value / 1000).toFixed(1) + "s"}
+                                    valueLabelDisplay="off"
                                     className={classes.rangeSelectSlider}
                                     color="secondary"
                                 />
