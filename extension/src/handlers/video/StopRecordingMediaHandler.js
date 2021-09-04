@@ -34,22 +34,18 @@ export default class StopRecordingMediaHandler {
             request.message.videoDuration,
             5000
         );
-        const message = {
-            command: 'copy',
-            id: itemId,
-            subtitle: subtitle,
-            surroundingSubtitles: surroundingSubtitles
-        };
+
+        let image = null;
 
         if (request.message.screenshot && this.imageCapturer.lastImageBase64) {
-            message['image'] = {
+            image = {
                 base64: this.imageCapturer.lastImageBase64,
                 extension: 'jpeg'
             };
         }
 
         const audioBase64 = await this.audioRecorder.stop();
-        message['audio'] = {
+        const audio = {
             base64: audioBase64,
             extension: 'webm',
             paddingStart: 0,
@@ -62,7 +58,14 @@ export default class StopRecordingMediaHandler {
             for (let t of allTabs) {
                 chrome.tabs.sendMessage(t.id, {
                     sender: 'asbplayer-extension-to-player',
-                    message: message,
+                    message:  {
+                        command: 'copy',
+                        id: itemId,
+                        subtitle: subtitle,
+                        surroundingSubtitles: surroundingSubtitles,
+                        image: image,
+                        audio: audio
+                    },
                     tabId: sender.tab.id,
                     src: request.src
                 });
@@ -77,8 +80,8 @@ export default class StopRecordingMediaHandler {
                     id: itemId,
                     subtitle: subtitle,
                     surroundingSubtitles: surroundingSubtitles,
-                    image: message.image,
-                    audio: message.audio,
+                    image: image,
+                    audio: audio,
                 },
                 src: request.src
             });

@@ -44,8 +44,13 @@ export default class StartRecordingMediaHandler {
         }
 
         if (!request.message.record) {
+            const subtitle = {text: '', start: request.message.timestamp, end: request.message.timestamp, track: 0};
+            const id = uuidv4();
+
+            let image = null;
+
             if (imageBase64) {
-                message['image'] = {
+                image = {
                     base64: imageBase64,
                     extension: 'jpeg'
                 };
@@ -55,7 +60,13 @@ export default class StartRecordingMediaHandler {
                 for (let t of allTabs) {
                     chrome.tabs.sendMessage(t.id, {
                         sender: 'asbplayer-extension-to-player',
-                        message: message,
+                        message: {
+                            command: 'copy',
+                            id: id,
+                            subtitle: subtitle,
+                            surroundingSubtitles: [],
+                            image: image
+                        },
                         tabId: sender.tab.id,
                         src: request.src
                     });
@@ -67,11 +78,10 @@ export default class StartRecordingMediaHandler {
                     sender: 'asbplayer-extension-to-video',
                     message: {
                         command: 'show-anki-ui',
-                        id: uuidv4(),
-                        subtitle: {text: '', start: request.message.timestamp, end: request.message.timestamp, track: 0},
+                        id: id,
+                        subtitle: subtitle,
                         surroundingSubtitles: [],
-                        image: message.image,
-                        audio: message.audio,
+                        image: image
                     },
                     src: request.src
                 });
