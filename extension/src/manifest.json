@@ -48,8 +48,8 @@
         },
         "toggle-video-select": {
             "suggested_key": {
-                "default": "Ctrl+Shift+V",
-                "mac": "MacCtrl+Shift+V"
+                "default": "Ctrl+Shift+F",
+                "mac": "MacCtrl+Shift+F"
             },
             "description": "Select a video to mine without a subtitle file."
         }
