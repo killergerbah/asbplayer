@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
                 if (c.shortcut === '') {
                     help.push('Copy command is not bound.');
                 } else {
-                    help.push(c.shortcut + " copies subtitle to asbplayer");
+                    help.push(c.shortcut + " copies subtitle to asbplayer.");
                 }
             }
 
@@ -93,7 +93,15 @@ document.addEventListener('DOMContentLoaded', async (e) => {
                 if (c.shortcut === '') {
                     help.push('Copy-with-dialog command is not bound.');
                 } else {
-                    help.push(c.shortcut + " copies subtitle to asbplayer and opens Anki dialog");
+                    help.push(c.shortcut + " copies subtitle to asbplayer and opens Anki dialog.");
+                }
+            }
+
+            if (c.name === 'toggle-video-select') {
+                if (c.shortcut === '') {
+                    help.push('Video-select command is not bound.');
+                } else {
+                    help.push(c.shortcut + " enables selection of a video to mine without a subtitle file. Once a video is selected, either of the 'copy' shortcuts will start and stop recording.");
                 }
             }
         }
