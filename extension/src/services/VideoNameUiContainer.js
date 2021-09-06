@@ -59,7 +59,6 @@ export default class VideoNameUiContainer {
         doc.close();
         await this.client.bind();
         this.client.onFinished((message) => {
-            console.error(message);
             this.frame.classList.add('asbplayer-hide');
             if (this.fullscreenElement) {
                 this.fullscreenElement.requestFullscreen();

@@ -19,7 +19,6 @@ export default function VideoNameUi({bridge}) {
         bridge.finished({command: 'cancel'})
     }, [bridge]);
     const handleNameSet = useCallback((name) => {
-        console.error(name);
         setOpen(false);
         bridge.finished({command: 'name', name: name});
     });
