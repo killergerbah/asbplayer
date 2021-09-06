@@ -40,7 +40,7 @@
 }
 
 .asbplayer-hide {
-    display: none;
+    display: none !important;
 }
 
 .asbplayer-drag-zone-initial {
