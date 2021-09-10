@@ -20,6 +20,7 @@ export default class DragContainer {
             this.imageElement.element().classList.add("asbplayer-hide");
             this.imageElement.element().classList.remove("asbplayer-image-fade-in");
             this._dragElement().classList.remove("asbplayer-drag-zone-dragging");
+            this._dragElement().classList.add("asbplayer-hide");
 
             if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) {
                 return;
@@ -69,20 +70,6 @@ export default class DragContainer {
             this.imageElement.element().classList.add("asbplayer-image-fade-in");
         };
 
-        this.bodyDragEnterListener = (e) => {
-            e.preventDefault();
-
-            this._dragElement().classList.add("asbplayer-drag-zone-dragging");
-        };
-
-        this.bodyDropListener = (e) => {
-            e.preventDefault();
-
-            this.imageElement.element().classList.add("asbplayer-hide");
-            this.imageElement.element().classList.remove("asbplayer-image-fade-in");
-            this._dragElement().classList.remove("asbplayer-drag-zone-dragging");
-        };
-
         this.dragLeaveListener = (e) => {
             e.preventDefault();
 
@@ -90,6 +77,35 @@ export default class DragContainer {
                 this.imageElement.element().classList.add("asbplayer-hide");
                 this.imageElement.element().classList.remove("asbplayer-image-fade-in");
                 this._dragElement().classList.remove("asbplayer-drag-zone-dragging");
+                this._dragElement().classList.add("asbplayer-hide");
+            }
+        };
+
+        this.bodyDropListener = (e) => {
+            e.preventDefault();
+            this.imageElement.element().classList.add("asbplayer-hide");
+            this.imageElement.element().classList.remove("asbplayer-image-fade-in");
+            this._dragElement().classList.remove("asbplayer-drag-zone-dragging");
+            this._dragElement().classList.add("asbplayer-hide");
+        };
+
+        this.bodyDragOverListener = (e) => e.preventDefault();
+
+        this.bodyDragEnterListener = (e) => {
+            e.preventDefault();
+            this.bodyDragEnterElement = e.target;
+            this._dragElement().classList.add("asbplayer-drag-zone-dragging");
+            this._dragElement().classList.remove("asbplayer-hide");
+        };
+
+        this.bodyDragLeaveListener = (e) => {
+            e.preventDefault();
+
+            if (this.bodyDragEnterElement === e.target) {
+                this.imageElement.element().classList.add("asbplayer-hide");
+                this.imageElement.element().classList.remove("asbplayer-image-fade-in");
+                this._dragElement().classList.remove("asbplayer-drag-zone-dragging");
+                this._dragElement().classList.add("asbplayer-hide");
             }
         };
 
@@ -99,8 +115,10 @@ export default class DragContainer {
         dragElement.addEventListener('dragover', this.dragOverListener);
         dragElement.addEventListener('dragenter', this.dragEnterListener);
         dragElement.addEventListener('dragleave', this.dragLeaveListener);
-        document.body.addEventListener('dragenter', this.bodyDragEnterListener);
         document.body.addEventListener('drop', this.bodyDropListener);
+        document.body.addEventListener('dragover', this.bodyDragOverListener);
+        document.body.addEventListener('dragenter', this.bodyDragEnterListener);
+        document.body.addEventListener('dragleave', this.bodyDragLeaveListener);
 
         this.bound = true;
     }
@@ -155,14 +173,24 @@ export default class DragContainer {
             this.dragLeaveListener =  null;
         }
 
+        if (this.bodyDropListener) {
+            document.body.removeEventListener('drop', this.bodyDropListener);
+            this.bodyDropListener = null;
+        }
+
+        if (this.bodyDragOverListener) {
+            document.body.removeEventListener('dragover', this.bodyDragOverListener);
+            this.bodyDragOverListener = null;
+        }
+
         if (this.bodyDragEnterListener) {
             document.body.removeEventListener('dragenter', this.bodyDragEnterListener);
             this.bodyDragEnterListener = null;
         }
 
-        if (this.bodyDropListener) {
-            document.body.removeEventListener('drop', this.bodyDropListener);
-            this.bodyDropListener = null;
+        if (this.bodyDragLeaveListener) {
+            document.body.removeEventListener('dragleave', this.bodyDragLeaveListener);
+            this.bodyDragLeaveListener = null;
         }
 
         if (this.dragElementStylesInterval) {
