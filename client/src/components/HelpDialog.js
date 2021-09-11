@@ -252,6 +252,9 @@ export default function HelpDialog(props) {
                         <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=kJXVVixD8H8">Sentence mining streaming video (asynchronous workflow)</Link>
                     </li>
                     <li>
+                        <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=sgrJF99WX-Q">Sentence mining streaming video (no subtitle file)</Link>
+                    </li>
+                    <li>
                         <Link color="secondary" target="_blank" rel="noreferrer" href="https://www.youtube.com/watch?v=J3E82spYqIk">Sentence mining video files (synchronous workflow)</Link>
                     </li>
                     <li>

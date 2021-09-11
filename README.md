@@ -79,6 +79,7 @@ The below information can also be found in asbplayer by clicking on the question
 
 - [Sentence mining streaming video with asbplayer (synchronous workflow)](https://www.youtube.com/watch?v=W9Lf3C7sRzc)
 - [Sentence mining streaming video with asbplayer (asynchronous workflow)](https://www.youtube.com/watch?v=kJXVVixD8H8)
+- [Sentence mining streaming video with asbplayer (no subtitle file)](https://www.youtube.com/watch?v=sgrJF99WX-Q)
 - [Sentence mining video files with asbplayer (synchronous workflow)](https://www.youtube.com/watch?v=J3E82spYqIk)
 - [Sentence mining video files with asbplayer (asynchronous workflow)](https://www.youtube.com/watch?v=HsrrpnfM4pI)
 
