@@ -322,7 +322,7 @@ export default class Binding {
             navigator.clipboard.writeText(subtitle.text);
 
             if (this.screenshot) {
-                this._prepareScreenshot();
+                await this._prepareScreenshot();
             }
 
             if (this.recordMedia) {
@@ -354,7 +354,7 @@ export default class Binding {
         }
     }
 
-    _toggleRecordingMedia(showAnkiUi) {
+    async _toggleRecordingMedia(showAnkiUi) {
         if (this.recordingMedia) {
             chrome.runtime.sendMessage({
                 sender: 'asbplayer-video',
@@ -372,16 +372,16 @@ export default class Binding {
             this.recordingMedia = false;
             this.recordingMediaStartedTimestamp = null;
         } else {
+            if (this.screenshot) {
+                await this._prepareScreenshot();
+            }
+
             const timestamp = this.video.currentTime * 1000;
 
             if (this.recordMedia) {
                 this.recordingMedia = true;
                 this.recordingMediaStartedTimestamp = timestamp;
                 this.recordingMediaWithScreenshot = this.screenshot;
-            }
-
-            if (this.screenshot) {
-                this._prepareScreenshot();
             }
 
             const message = {
@@ -397,6 +397,7 @@ export default class Binding {
                 maxImageHeight: this.maxImageHeight
             };
 
+
             chrome.runtime.sendMessage({
                 sender: 'asbplayer-video',
                 message: message,
@@ -405,7 +406,7 @@ export default class Binding {
         }
     }
 
-    _prepareScreenshot() {
+    async _prepareScreenshot() {
         if (this.showControlsTimeout) {
             clearTimeout(this.showControlsTimeout);
             this.showControlsTimeout = null;
@@ -413,7 +414,7 @@ export default class Binding {
 
         if (this.cleanScreenshot) {
             this.subtitleContainer.displaySubtitles = false;
-            this.controlsContainer.hide();
+            await this.controlsContainer.hide();
             this.showControlsTimeout = setTimeout(() => {
                 this.controlsContainer.show();
                 this.showControlsTimeout = null;

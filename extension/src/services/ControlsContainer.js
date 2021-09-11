@@ -18,6 +18,10 @@ export default class ControlsContainer {
         for (const e of this.elements) {
             e.classList.add('asbplayer-hide');
         }
+
+        return new Promise((resolve, reject) => {
+            setTimeout(() => resolve(), 0);
+        });
     }
 
     _garbageCollectElements() {
