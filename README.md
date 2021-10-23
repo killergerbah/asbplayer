@@ -50,7 +50,8 @@ The below information can also be found in asbplayer by clicking on the question
 |Ctrl+Shift+A|Copy current subtitle|
 |Ctrl+Shift+Q|Copy current subtitle and open Anki export dialog|
 |Ctrl+Shift+Z|Copy current subtitle (streaming video in another tab)|
-|Ctrl+Shift+X|Copy current subtitle and open Anki export dialog (streaming video in another tab)|     
+|Ctrl+Shift+X|Copy current subtitle and open Anki export dialog (streaming video in another tab)|    
+|Ctrl+Shift+F|Select video element to mine with no subtitle file (streaming video in another tab)|      
 |Space|Play/pause|
 |S|Toggle subtitles|
 |S+1, S+2...|Toggle subtitle track 1, 2... in video|

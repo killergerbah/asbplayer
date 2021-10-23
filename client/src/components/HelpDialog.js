@@ -155,6 +155,10 @@ export default function HelpDialog(props) {
                                 <TableCell><Typography>Copy current subtitle and open Anki export dialog (streaming video in another tab)</Typography></TableCell>
                             </TableRow>
                             <TableRow>
+                                <TableCell><Typography>Ctrl+Shift+F</Typography></TableCell>
+                                <TableCell><Typography>Select video element to mine with no subtitle file (streaming video in another tab)</Typography></TableCell>
+                            </TableRow>
+                            <TableRow>
                                 <TableCell><Typography>Space</Typography></TableCell>
                                 <TableCell><Typography>Play/pause</Typography></TableCell>
                             </TableRow>
