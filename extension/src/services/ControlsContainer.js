@@ -42,12 +42,23 @@ export default class ControlsContainer {
         const rect = this.video.getBoundingClientRect();
         const stepX = rect.width / 25;
         const stepY = rect.height / 25;
+        const maxX = rect.width + rect.x;
+        const maxY = rect.height + rect.y;
 
-        for (let x = rect.x; x <= rect.width + rect.x; x += stepX) {
-            for (let y = rect.y; y <= rect.height + rect.y; y += stepY) {
-                yield {x: x, y: y};
+        for (let x = rect.x; x <= maxX; x += stepX) {
+            for (let y = rect.y; y <= maxY; y += stepY) {
+                const point = {
+                    x: this._withNoise(x, stepX, 0, maxX),
+                    y: this._withNoise(y, stepY, 0, maxY)
+                };
+                console.log(point);
+                yield point;
             }
         }
+    }
+
+    _withNoise(center, radius, min, max) {
+        return Math.min(max, Math.max(min, center + (Math.random() * radius * 2 - radius)));
     }
 
     * _path(element) {
