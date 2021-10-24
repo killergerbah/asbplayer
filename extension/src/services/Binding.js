@@ -389,8 +389,6 @@ export default class Binding {
                 timestamp: timestamp,
                 record: this.recordMedia,
                 showAnkiUi: showAnkiUi,
-                audioPaddingStart: this.audioPaddingStart,
-                audioPaddingEnd: this.audioPaddingEnd,
                 screenshot: this.screenshot,
                 rect: this.screenshot ? this.video.getBoundingClientRect() : null,
                 maxImageWidth: this.maxImageWidth,
@@ -425,15 +423,19 @@ export default class Binding {
     }
 
     async rerecord(start, end, currentItem, uiState) {
-        this.seek(Math.max(0, start - this.audioPaddingStart) / 1000);
+        const noSubtitles =  this.subtitleContainer.subtitles.length === 0;
+        const audioPaddingStart = noSubtitles ? 0 : this.audioPaddingStart;
+        const audioPaddingEnd = noSubtitles ? 0 : this.audioPaddingEnd;
+
+        this.seek(Math.max(0, start - audioPaddingStart) / 1000);
         await this.play();
 
         const message = {
             command: 'rerecord-media',
             duration: end - start,
             uiState: uiState,
-            audioPaddingStart: this.audioPaddingStart,
-            audioPaddingEnd: this.audioPaddingEnd,
+            audioPaddingStart: audioPaddingStart,
+            audioPaddingEnd: audioPaddingEnd,
             currentItem: currentItem,
             playbackRate: this.video.playbackRate,
             timestamp: start
