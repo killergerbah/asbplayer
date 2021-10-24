@@ -19,27 +19,31 @@ export default class VideoSelectContainer {
 
         image.addEventListener('click', (e) => {
             e.preventDefault();
-            this.uiContainer = new VideoNameUiContainer(
-                (videoName) => {
-                    chrome.runtime.sendMessage({
-                        sender: 'asbplayer-video',
-                        message: {
-                            command: 'sync',
-                            subtitles: [{
-                                name: `${videoName}.srt`,
-                                base64: ''
-                            }]
-                        },
-                        src: this.video.src
-                    });
-                    doneListener();
-                },
-                () => doneListener()
-            );
-            this.uiContainer.show(context);
+            this.show(context, doneListener);
         });
 
         this.bound = true;
+    }
+
+    show(context, doneListener) {
+        this.uiContainer = new VideoNameUiContainer(
+            (videoName) => {
+                chrome.runtime.sendMessage({
+                    sender: 'asbplayer-video',
+                    message: {
+                        command: 'sync',
+                        subtitles: [{
+                            name: `${videoName}.srt`,
+                            base64: ''
+                        }]
+                    },
+                    src: this.video.src
+                });
+                doneListener();
+            },
+            () => doneListener()
+        );
+        this.uiContainer.show(context);
     }
 
     unbind() {

@@ -524,4 +524,8 @@ export default class Binding {
     unbindVideoSelect() {
         this.videoSelectContainer.unbind();
     }
+
+    showVideoSelect(doneListener) {
+        this.videoSelectContainer.show(this, doneListener);
+    }
 }

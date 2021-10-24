@@ -51,19 +51,23 @@ window.addEventListener('load', (event) => {
                         break;
                     }
 
-                    // Toggle on
-                    videoSelectMode = true;
+                    if (bindings.length === 1) {
+                        // Special case - show dialog for the one video element
+                        bindings[0].showVideoSelect(() => {});
+                    } else {
+                        // Toggle on
+                        videoSelectMode = true;
 
-                    for (const b of bindings) {
-                        b.bindVideoSelect(() => {
-                            for (const b of bindings) {
-                                b.unbindVideoSelect();
-                            }
+                        for (const b of bindings) {
+                            b.bindVideoSelect(() => {
+                                for (const b of bindings) {
+                                    b.unbindVideoSelect();
+                                }
 
-                            videoSelectMode = false;
-                        });
+                                videoSelectMode = false;
+                            });
+                        }
                     }
-
                     break;
                 case 'subtitles':
                     for (const b of bindings) {
