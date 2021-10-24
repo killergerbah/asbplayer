@@ -51,7 +51,6 @@ export default class ControlsContainer {
                     x: this._withNoise(x, stepX, 0, maxX),
                     y: this._withNoise(y, stepY, 0, maxY)
                 };
-                console.log(point);
                 yield point;
             }
         }
