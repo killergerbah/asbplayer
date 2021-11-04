@@ -34,8 +34,8 @@ function hexToRgb(hex) {
     return {
         r: parseInt(result[1], 16),
         g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-    }
+        b: parseInt(result[3], 16),
+    };
 }
 
 export function computeStyles({
@@ -45,7 +45,7 @@ export function computeStyles({
     subtitleOutlineColor,
     subtitleBackgroundOpacity,
     subtitleBackgroundColor,
-    subtitleFontFamily
+    subtitleFontFamily,
 }) {
     const styles = {
         color: subtitleColor,
@@ -55,14 +55,16 @@ export function computeStyles({
     if (subtitleOutlineThickness > 0) {
         const thickness = subtitleOutlineThickness;
         const color = subtitleOutlineColor;
-        styles['textShadow'] = `0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}`;
+        styles[
+            'textShadow'
+        ] = `0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}`;
     }
 
     if (subtitleBackgroundOpacity > 0) {
         const opacity = subtitleBackgroundOpacity;
         const color = subtitleBackgroundColor;
-        const {r, g, b} = hexToRgb(color);
-        styles['backgroundColor'] = `rgba(${r}, ${g}, ${b}, ${opacity})`
+        const { r, g, b } = hexToRgb(color);
+        styles['backgroundColor'] = `rgba(${r}, ${g}, ${b}, ${opacity})`;
     }
 
     if (subtitleFontFamily && subtitleFontFamily.length > 0) {

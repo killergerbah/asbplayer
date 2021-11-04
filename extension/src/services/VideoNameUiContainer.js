@@ -16,7 +16,6 @@ function html() {
 }
 
 export default class VideoNameUiContainer {
-
     constructor(onNameSet, onCancel) {
         this.onNameSet = onNameSet;
         this.onCancel = onCancel;
@@ -26,7 +25,7 @@ export default class VideoNameUiContainer {
         const client = await this._client(context);
         this._prepareShow(context);
         client.updateState({
-            open: true
+            open: true,
         });
     }
 

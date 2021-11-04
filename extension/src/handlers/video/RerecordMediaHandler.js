@@ -2,7 +2,6 @@ import AudioRecorder from '../../services/AudioRecorder';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class RerecordMediaHandler {
-
     constructor(audioRecorder) {
         this.audioRecorder = audioRecorder;
     }
@@ -19,17 +18,19 @@ export default class RerecordMediaHandler {
         const windowActive = await this._isWindowActive(sender.tab.windowId);
 
         if (!windowActive) {
-            console.error("Received rerecord request from wrong window.");
+            console.error('Received rerecord request from wrong window.');
             return;
         }
 
         const audio = {
-            base64: await this.audioRecorder.startWithTimeout((request.message.duration / request.message.playbackRate) + request.message.audioPaddingEnd),
+            base64: await this.audioRecorder.startWithTimeout(
+                request.message.duration / request.message.playbackRate + request.message.audioPaddingEnd
+            ),
             extension: 'webm',
             paddingStart: request.message.audioPaddingStart,
             paddingEnd: request.message.audioPaddingEnd,
             start: request.message.timestamp,
-            end: request.message.timestamp + (request.message.duration / request.message.playbackRate)
+            end: request.message.timestamp + request.message.duration / request.message.playbackRate,
         };
 
         chrome.tabs.query({}, (allTabs) => {
@@ -45,17 +46,17 @@ export default class RerecordMediaHandler {
                         audio: audio,
                         image: request.message.currentItem.image,
                         subtitle: request.message.currentItem.subtitle,
-                        surroundingSubtitles: request.message.currentItem.surroundingSubtitles
+                        surroundingSubtitles: request.message.currentItem.surroundingSubtitles,
                     },
                     tabId: sender.tab.id,
-                    src: request.src
+                    src: request.src,
                 });
             }
         });
 
         const newUiState = {
             ...request.message.uiState,
-            audio: audio
+            audio: audio,
         };
 
         chrome.tabs.sendMessage(sender.tab.id, {
@@ -66,7 +67,7 @@ export default class RerecordMediaHandler {
                 uiState: newUiState,
                 audio: audio,
             },
-            src: request.src
+            src: request.src,
         });
     }
 

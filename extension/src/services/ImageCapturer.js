@@ -1,7 +1,6 @@
-import { CanvasResizer } from '@project/common'
+import { CanvasResizer } from '@project/common';
 
 export default class ImageCapturer {
-
     constructor(settings) {
         this.settings = settings;
         this.canvasResizer = new CanvasResizer();
@@ -9,15 +8,11 @@ export default class ImageCapturer {
 
     capture(rect, maxWidth, maxHeight) {
         return new Promise(async (resolve, reject) => {
-            chrome.tabs.captureVisibleTab(
-                null,
-                {format: 'jpeg'},
-                async (dataUrl) => {
-                    const croppedDataUrl = await this._cropAndResize(dataUrl, rect, maxWidth, maxHeight);
-                    this.lastImageBase64 = croppedDataUrl.substr(croppedDataUrl.indexOf(',') + 1);
-                    resolve(this.lastImageBase64);
-                }
-            );
+            chrome.tabs.captureVisibleTab(null, { format: 'jpeg' }, async (dataUrl) => {
+                const croppedDataUrl = await this._cropAndResize(dataUrl, rect, maxWidth, maxHeight);
+                this.lastImageBase64 = croppedDataUrl.substr(croppedDataUrl.indexOf(',') + 1);
+                resolve(this.lastImageBase64);
+            });
         });
     }
 
@@ -44,7 +39,7 @@ export default class ImageCapturer {
                     try {
                         await this.canvasResizer.resize(canvas, ctx, maxWidth, maxHeight);
                         resolve(canvas.toDataURL('image/jpeg'));
-                    } catch(e) {
+                    } catch (e) {
                         reject(e);
                     }
                 } else {

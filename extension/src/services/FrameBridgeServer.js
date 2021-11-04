@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from 'uuid';
 const fetchTimeout = 5000;
 
 export default class FrameBridgeServer {
-
     constructor(bridge) {
         this.bridge = bridge;
         this.fetches = {};
@@ -12,8 +11,7 @@ export default class FrameBridgeServer {
     bind() {
         this.id = uuidv4();
         this.listener = (event) => {
-            if (event.data.sender !== 'asbplayer-video'
-                || event.data.message.id !== this.id) {
+            if (event.data.sender !== 'asbplayer-video' || event.data.message.id !== this.id) {
                 return;
             }
 
@@ -32,7 +30,7 @@ export default class FrameBridgeServer {
         this.bridge.onFinished((message) => {
             this._postMessage({
                 command: 'onFinished',
-                message: message
+                message: message,
             });
         });
         this.bridge.onFetch(async (url, body) => {
@@ -43,28 +41,31 @@ export default class FrameBridgeServer {
                     command: 'fetch',
                     url: url,
                     body: body,
-                    fetchId: fetchId
+                    fetchId: fetchId,
                 });
                 setTimeout(() => {
                     if (fetchId in this.fetches) {
-                        reject(new Error("Fetch timed out"));
+                        reject(new Error('Fetch timed out'));
                         delete this.fetches[fetchId];
                     }
                 }, fetchTimeout);
-            })
+            });
         });
         window.addEventListener('message', this.listener);
         this._postMessage({
             command: 'ready',
-            id: this.id
+            id: this.id,
         });
     }
 
     _postMessage(message) {
-        window.parent.postMessage({
-            sender: 'asbplayer-frame',
-            message: message
-        }, '*');
+        window.parent.postMessage(
+            {
+                sender: 'asbplayer-frame',
+                message: message,
+            },
+            '*'
+        );
     }
 
     unbind() {

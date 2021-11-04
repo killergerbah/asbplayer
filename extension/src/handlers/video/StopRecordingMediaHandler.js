@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { mockSurroundingSubtitles } from '@project/common';
 
 export default class StopRecordingMediaHandler {
-
     constructor(audioRecorder, imageCapturer) {
         this.audioRecorder = audioRecorder;
         this.imageCapturer = imageCapturer;
@@ -23,24 +22,25 @@ export default class StopRecordingMediaHandler {
         const windowActive = await this._isWindowActive(sender.tab.windowId);
 
         if (!windowActive) {
-            console.error("Received record request from wrong window.");
+            console.error('Received record request from wrong window.');
             return;
         }
 
         const itemId = uuidv4();
-        const subtitle = {text: '', start: request.message.startTimestamp, end: request.message.endTimestamp, track: 0};
-        const surroundingSubtitles = mockSurroundingSubtitles(
-            subtitle,
-            request.message.videoDuration,
-            5000
-        );
+        const subtitle = {
+            text: '',
+            start: request.message.startTimestamp,
+            end: request.message.endTimestamp,
+            track: 0,
+        };
+        const surroundingSubtitles = mockSurroundingSubtitles(subtitle, request.message.videoDuration, 5000);
 
         let image = null;
 
         if (request.message.screenshot && this.imageCapturer.lastImageBase64) {
             image = {
                 base64: this.imageCapturer.lastImageBase64,
-                extension: 'jpeg'
+                extension: 'jpeg',
             };
         }
 
@@ -51,23 +51,23 @@ export default class StopRecordingMediaHandler {
             paddingStart: 0,
             paddingEnd: 0,
             start: request.message.startTimestamp,
-            end: request.message.endTimestamp
+            end: request.message.endTimestamp,
         };
 
         chrome.tabs.query({}, (allTabs) => {
             for (let t of allTabs) {
                 chrome.tabs.sendMessage(t.id, {
                     sender: 'asbplayer-extension-to-player',
-                    message:  {
+                    message: {
                         command: 'copy',
                         id: itemId,
                         subtitle: subtitle,
                         surroundingSubtitles: surroundingSubtitles,
                         image: image,
-                        audio: audio
+                        audio: audio,
                     },
                     tabId: sender.tab.id,
-                    src: request.src
+                    src: request.src,
                 });
             }
         });
@@ -83,7 +83,7 @@ export default class StopRecordingMediaHandler {
                     image: image,
                     audio: audio,
                 },
-                src: request.src
+                src: request.src,
             });
         }
     }

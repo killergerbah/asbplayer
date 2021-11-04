@@ -1,5 +1,4 @@
 export default class BroadcastChannelVideoProtocol {
-
     constructor(channelId) {
         this.channel = new BroadcastChannel(channelId);
         const that = this;

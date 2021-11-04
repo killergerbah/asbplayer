@@ -1,12 +1,12 @@
-const defaultAnkiConnectUrl = "http://127.0.0.1:8765";
+const defaultAnkiConnectUrl = 'http://127.0.0.1:8765';
 const defaultSubtitleSize = 36;
-const defaultSubtitleColor = "#ffffff";
+const defaultSubtitleColor = '#ffffff';
 const defaultSubtitleOutlineThickness = 0;
-const defaultSubtitleOutlineColor = "#000000";
-const defaultSubtitleBackgroundColor = "#000000";
+const defaultSubtitleOutlineColor = '#000000';
+const defaultSubtitleBackgroundColor = '#000000';
 const defaultSubtitleBackgroundOpacity = 0.5;
-const defaultSubtitleFontFamily = "";
-const defaultSubtitlePreview = "アあ安"
+const defaultSubtitleFontFamily = '';
+const defaultSubtitlePreview = 'アあ安';
 const defaultVolume = 100;
 const defaultAudioPaddingStart = 0;
 const defaultAudioPaddingEnd = 500;
@@ -15,34 +15,33 @@ const defaultMaxImageHeight = 0;
 const defaultSurroundingSubtitlesCountRadius = 1;
 const defaultSurroundingSubtitlesTimeRadius = 5000;
 
-const ankiConnectUrlKey = "ankiConnectUrl";
-const deckKey = "deck";
-const noteTypeKey = "noteType";
-const sentenceFieldKey = "sentenceField";
-const definitionFieldKey = "definitionField";
-const audioFieldKey = "audioField";
-const imageFieldKey = "imageField";
-const wordFieldKey = "wordField";
-const sourceFieldKey = "sourceField";
-const customAnkiFieldsKey = "customAnkiFields";
-const subtitleSizeKey = "subtitleSize";
-const subtitleColorKey = "subtitleColor";
-const subtitleOutlineThicknessKey = "subtitleOutlineThickness";
-const subtitleOutlineColorKey = "subtitleOutlineColor";
-const subtitleBackgroundColorKey = "subtitleBackgroundColor";
-const subtitleBackgroundOpacityKey = "subtitleBackgroundOpacity";
-const subtitleFontFamilyKey = "subtitleFontFamily";
-const subtitlePreviewKey = "subtitlePreview";
-const audioPaddingStartKey = "audioPaddingStart";
-const audioPaddingEndKey = "audioPaddingEnd";
-const maxImageWidthKey = "maxImageWidth";
-const maxImageHeightKey = "maxImageHeight";
-const volumeKey = "volume";
-const preferMp3Key = "preferMp3";
-const themeTypeKey = "themeType";
+const ankiConnectUrlKey = 'ankiConnectUrl';
+const deckKey = 'deck';
+const noteTypeKey = 'noteType';
+const sentenceFieldKey = 'sentenceField';
+const definitionFieldKey = 'definitionField';
+const audioFieldKey = 'audioField';
+const imageFieldKey = 'imageField';
+const wordFieldKey = 'wordField';
+const sourceFieldKey = 'sourceField';
+const customAnkiFieldsKey = 'customAnkiFields';
+const subtitleSizeKey = 'subtitleSize';
+const subtitleColorKey = 'subtitleColor';
+const subtitleOutlineThicknessKey = 'subtitleOutlineThickness';
+const subtitleOutlineColorKey = 'subtitleOutlineColor';
+const subtitleBackgroundColorKey = 'subtitleBackgroundColor';
+const subtitleBackgroundOpacityKey = 'subtitleBackgroundOpacity';
+const subtitleFontFamilyKey = 'subtitleFontFamily';
+const subtitlePreviewKey = 'subtitlePreview';
+const audioPaddingStartKey = 'audioPaddingStart';
+const audioPaddingEndKey = 'audioPaddingEnd';
+const maxImageWidthKey = 'maxImageWidth';
+const maxImageHeightKey = 'maxImageHeight';
+const volumeKey = 'volume';
+const preferMp3Key = 'preferMp3';
+const themeTypeKey = 'themeType';
 
 export default class SettingsProvider {
-
     get settings() {
         return {
             ankiConnectUrl: this.ankiConnectUrl,
@@ -60,7 +59,7 @@ export default class SettingsProvider {
             subtitleOutlineThickness: this.subtitleOutlineThickness,
             subtitleOutlineColor: this.subtitleOutlineColor,
             subtitleBackgroundColor: this.subtitleBackgroundColor,
-            subtitleBackgroundOpacity : this.subtitleBackgroundOpacity,
+            subtitleBackgroundOpacity: this.subtitleBackgroundOpacity,
             subtitleFontFamily: this.subtitleFontFamily,
             subtitlePreview: this.subtitlePreview,
             preferMp3: this.preferMp3,
@@ -109,7 +108,7 @@ export default class SettingsProvider {
             subtitleOutlineThickness: this.subtitleOutlineThickness,
             subtitleOutlineColor: this.subtitleOutlineColor,
             subtitleBackgroundColor: this.subtitleBackgroundColor,
-            subtitleBackgroundOpacity : this.subtitleBackgroundOpacity,
+            subtitleBackgroundOpacity: this.subtitleBackgroundOpacity,
             subtitleFontFamily: this.subtitleFontFamily,
         };
     }
@@ -139,8 +138,8 @@ export default class SettingsProvider {
 
     get miscSettings() {
         return {
-            themeType: this.themeType
-        }
+            themeType: this.themeType,
+        };
     }
 
     get ankiConnectUrl() {

@@ -1,7 +1,6 @@
 import CanvasResizer from './CanvasResizer';
 
 class Base64ImageData {
-
     constructor(name, base64, extension) {
         this.name = name;
         this._base64 = base64;
@@ -29,15 +28,14 @@ class Base64ImageData {
     }
 
     _dataUrl() {
-        return "data:image/" + this.extension + ";base64," + this._base64;
+        return 'data:image/' + this.extension + ';base64,' + this._base64;
     }
 }
 
 class FileImageData {
-
     constructor(file, timestamp, maxWidth, maxHeight) {
         this.file = file;
-        this.name = file.name + "_" + Math.floor(timestamp) + ".jpeg";
+        this.name = file.name + '_' + Math.floor(timestamp) + '.jpeg';
         this.timestamp = timestamp;
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
@@ -56,7 +54,7 @@ class FileImageData {
             const canvas = await this._canvas();
             canvas.toBlob((blob) => {
                 this._blob = blob;
-                resolve(blob)
+                resolve(blob);
             }, 'image/jpeg');
         });
     }
@@ -91,7 +89,7 @@ class FileImageData {
     _videoElement(source) {
         const video = document.createElement('video');
         video.src = URL.createObjectURL(source);
-        video.preload = "none";
+        video.preload = 'none';
         video.currentTime = this.timestamp / 1000;
         video.load();
 
@@ -100,13 +98,17 @@ class FileImageData {
 }
 
 export default class Image {
-
     constructor(data) {
         this.data = data;
     }
 
     static fromBase64(subtitleFileName, timestamp, base64, extension) {
-        const imageName = subtitleFileName.substring(0, subtitleFileName.lastIndexOf(".")) + "_" + Math.floor(timestamp) + "." + extension;
+        const imageName =
+            subtitleFileName.substring(0, subtitleFileName.lastIndexOf('.')) +
+            '_' +
+            Math.floor(timestamp) +
+            '.' +
+            extension;
         return new Image(new Base64ImageData(imageName, base64, extension));
     }
 
@@ -129,9 +131,9 @@ export default class Image {
     async download() {
         const blob = await this.data.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
+        const a = document.createElement('a');
         document.body.appendChild(a);
-        a.style = "display: none";
+        a.style = 'display: none';
         a.href = url;
         a.download = this.data.name;
         a.click();

@@ -1,5 +1,4 @@
 export default class MediaAdapter {
-
     constructor(ref) {
         this.ref = ref;
         this.readyResolves = [];
@@ -40,9 +39,8 @@ export default class MediaAdapter {
 
                 this.readyResolves.length = 0;
                 this.ref.current.oncanplay = null;
-            }
+            };
         }
-
 
         this.readyResolves.push(callback);
     }

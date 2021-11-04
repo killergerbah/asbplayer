@@ -5,7 +5,6 @@ const bitRate = 192;
 
 // https://stackoverflow.com/questions/61264581/how-to-convert-audio-buffer-to-mp3-in-javascript
 class Wav {
-
     constructor(audioBuffer) {
         const length = audioBuffer.length * audioBuffer.numberOfChannels * 2 + 44;
         const view = new View(new DataView(new ArrayBuffer(length)));
@@ -43,7 +42,6 @@ class Wav {
 }
 
 class View {
-
     constructor(dataView) {
         this.dataView = dataView;
         this.position = 0;
@@ -88,7 +86,7 @@ async function encode(audioBuffer) {
         left = new Int16Array(leftSamples);
         right = new Int16Array(rightSamples);
     } else {
-        throw new Error("Unsupport number of channels " + channels);
+        throw new Error('Unsupport number of channels ' + channels);
     }
 
     const buffer = [];
@@ -97,10 +95,7 @@ async function encode(audioBuffer) {
 
     for (var i = 0; remaining >= samplesPerFrame; i += samplesPerFrame) {
         const rightSubArray = right === null ? null : right.subarray(i, i + samplesPerFrame);
-        var mp3Buff = encoder.encodeBuffer(
-            left.subarray(i, i + samplesPerFrame),
-            rightSubArray
-        );
+        var mp3Buff = encoder.encodeBuffer(left.subarray(i, i + samplesPerFrame), rightSubArray);
 
         if (mp3Buff.length > 0) {
             buffer.push(new Int8Array(mp3Buff));
@@ -111,7 +106,7 @@ async function encode(audioBuffer) {
 
     const data = encoder.flush();
 
-    if (data.length > 0){
+    if (data.length > 0) {
         buffer.push(new Int8Array(data));
     }
 
@@ -121,6 +116,6 @@ async function encode(audioBuffer) {
 onmessage = async (e) => {
     postMessage({
         command: 'finished',
-        buffer: await encode(e.data.audioBuffer)
+        buffer: await encode(e.data.audioBuffer),
     });
-}
+};

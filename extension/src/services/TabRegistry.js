@@ -1,5 +1,4 @@
 export default class TabRegistry {
-
     constructor(settings) {
         this.asbplayers = {};
         this.videoElements = {};
@@ -30,7 +29,7 @@ export default class TabRegistry {
                     activeTabs.push({
                         id: info.tab.id,
                         title: info.tab.title,
-                        src: info.src
+                        src: info.src,
                     });
                 }
             }
@@ -47,8 +46,8 @@ export default class TabRegistry {
                         sender: 'asbplayer-extension-to-player',
                         message: {
                             command: 'tabs',
-                            tabs: activeTabs
-                        }
+                            tabs: activeTabs,
+                        },
                     });
                 }
 
@@ -82,7 +81,7 @@ export default class TabRegistry {
                     active: false,
                     selected: false,
                     url: (await this.settings.get(['asbplayerUrl'])).asbplayerUrl,
-                    index: currentTab.index + 1
+                    index: currentTab.index + 1,
                 },
                 (tab) => this._anyAsbplayerTab(resolve, reject, 0, 5)
             );
@@ -91,7 +90,7 @@ export default class TabRegistry {
 
     _anyAsbplayerTab(resolve, reject, attempt, maxAttempts) {
         if (attempt >= maxAttempts) {
-            reject(new Error("Could not find or create an asbplayer tab"));
+            reject(new Error('Could not find or create an asbplayer tab'));
             return;
         }
 

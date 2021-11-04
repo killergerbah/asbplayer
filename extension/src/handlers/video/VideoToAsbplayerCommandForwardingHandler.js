@@ -1,7 +1,5 @@
 export default class CommandForwardingHandler {
-
-    constructor() {
-    }
+    constructor() {}
 
     get sender() {
         return 'asbplayer-video';
@@ -18,7 +16,7 @@ export default class CommandForwardingHandler {
                     sender: 'asbplayer-extension-to-player',
                     message: request.message,
                     tabId: sender.tab.id,
-                    src: request.src
+                    src: request.src,
                 });
             }
         });

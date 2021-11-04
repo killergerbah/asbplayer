@@ -15,54 +15,54 @@ document.addEventListener('DOMContentLoaded', async (e) => {
         chrome.runtime.sendMessage({
             sender: 'asbplayer-popup',
             message: {
-                command: 'settings-updated'
-            }
+                command: 'settings-updated',
+            },
         });
     }
 
     displaySubtitlesCheckbox.addEventListener('change', async (e) => {
-        await settings.set({displaySubtitles: displaySubtitlesCheckbox.checked});
+        await settings.set({ displaySubtitles: displaySubtitlesCheckbox.checked });
         notifySettingsUpdated();
     });
 
     recordAudioCheckbox.addEventListener('change', async (e) => {
-        await settings.set({recordMedia: recordAudioCheckbox.checked});
+        await settings.set({ recordMedia: recordAudioCheckbox.checked });
         notifySettingsUpdated();
     });
 
     screenshotCheckbox.addEventListener('change', async (e) => {
-        await settings.set({screenshot: screenshotCheckbox.checked});
+        await settings.set({ screenshot: screenshotCheckbox.checked });
         notifySettingsUpdated();
     });
 
     cleanScreenshotCheckbox.addEventListener('change', async (e) => {
-        await settings.set({cleanScreenshot: cleanScreenshotCheckbox.checked});
+        await settings.set({ cleanScreenshot: cleanScreenshotCheckbox.checked });
         notifySettingsUpdated();
     });
 
     cropScreenshotCheckbox.addEventListener('change', async (e) => {
-        await settings.set({cropScreenshot: cropScreenshotCheckbox.checked});
+        await settings.set({ cropScreenshot: cropScreenshotCheckbox.checked });
         notifySettingsUpdated();
     });
 
     bindKeysCheckbox.addEventListener('change', async (e) => {
-        await settings.set({bindKeys: bindKeysCheckbox.checked});
+        await settings.set({ bindKeys: bindKeysCheckbox.checked });
         notifySettingsUpdated();
     });
 
     subsDragAndDropCheckbox.addEventListener('change', async (e) => {
-        await settings.set({subsDragAndDrop: subsDragAndDropCheckbox.checked});
+        await settings.set({ subsDragAndDrop: subsDragAndDropCheckbox.checked });
         notifySettingsUpdated();
     });
 
     subtitlePositionOffsetBottomInput.addEventListener('change', async (e) => {
         const offset = Number(subtitlePositionOffsetBottomInput.value);
-        await settings.set({subtitlePositionOffsetBottom: offset});
+        await settings.set({ subtitlePositionOffsetBottom: offset });
         notifySettingsUpdated();
     });
 
     asbplayerUrlInput.addEventListener('change', async (e) => {
-        await settings.set({asbplayerUrl: asbplayerUrlInput.value});
+        await settings.set({ asbplayerUrl: asbplayerUrlInput.value });
         notifySettingsUpdated();
     });
 
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
                 if (c.shortcut === '') {
                     help.push('Copy command is not bound.');
                 } else {
-                    help.push(c.shortcut + " copies subtitle to asbplayer.");
+                    help.push(c.shortcut + ' copies subtitle to asbplayer.');
                 }
             }
 
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
                 if (c.shortcut === '') {
                     help.push('Copy-with-dialog command is not bound.');
                 } else {
-                    help.push(c.shortcut + " copies subtitle to asbplayer and opens Anki dialog.");
+                    help.push(c.shortcut + ' copies subtitle to asbplayer and opens Anki dialog.');
                 }
             }
 
@@ -101,7 +101,10 @@ document.addEventListener('DOMContentLoaded', async (e) => {
                 if (c.shortcut === '') {
                     help.push('Video-select command is not bound.');
                 } else {
-                    help.push(c.shortcut + " enables selection of a video to mine without a subtitle file. Once a video is selected, either of the 'copy' shortcuts will start and stop recording.");
+                    help.push(
+                        c.shortcut +
+                            " enables selection of a video to mine without a subtitle file. Once a video is selected, either of the 'copy' shortcuts will start and stop recording."
+                    );
                 }
             }
         }

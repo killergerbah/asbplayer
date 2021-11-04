@@ -1,7 +1,6 @@
 import { bufferToBase64 } from './Base64';
 
 export default class AudioRecorder {
-
     constructor() {
         this.recording = false;
         this.recorder = null;
@@ -12,7 +11,7 @@ export default class AudioRecorder {
 
     startWithTimeout(time) {
         if (this.recording) {
-            console.error("Already recording, cannot start with timeout.");
+            console.error('Already recording, cannot start with timeout.');
             return;
         }
 
@@ -26,11 +25,11 @@ export default class AudioRecorder {
 
     start() {
         if (this.recording) {
-            console.error("Already recording, cannot start");
+            console.error('Already recording, cannot start');
             return;
         }
 
-        return chrome.tabCapture.capture({audio: true}, (stream) => {
+        return chrome.tabCapture.capture({ audio: true }, (stream) => {
             const recorder = new MediaRecorder(stream);
             const chunks = [];
             recorder.ondataavailable = (e) => {
@@ -55,7 +54,7 @@ export default class AudioRecorder {
 
     async stop() {
         if (!this.recording) {
-            console.error("Not recording, unable to stop");
+            console.error('Not recording, unable to stop');
             return;
         }
 

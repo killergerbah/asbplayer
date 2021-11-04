@@ -1,5 +1,4 @@
 export default class ControlsContainer {
-
     constructor(video) {
         this.video = video;
         this.elements = [];
@@ -25,12 +24,12 @@ export default class ControlsContainer {
     }
 
     _garbageCollectElements() {
-        this.elements = this.elements.filter(e => document.body.contains(e));
+        this.elements = this.elements.filter((e) => document.body.contains(e));
     }
 
     _findElements() {
         for (const p of this._samplePoints()) {
-            for (const element of  this._path(document.elementFromPoint(p.x, p.y))) {
+            for (const element of this._path(document.elementFromPoint(p.x, p.y))) {
                 if (element && !this._contains(this.elements, element)) {
                     this.elements.push(element);
                 }
@@ -38,7 +37,7 @@ export default class ControlsContainer {
         }
     }
 
-    * _samplePoints() {
+    *_samplePoints() {
         const rect = this.video.getBoundingClientRect();
         const stepX = rect.width / 25;
         const stepY = rect.height / 25;
@@ -49,7 +48,7 @@ export default class ControlsContainer {
             for (let y = rect.y; y <= maxY; y += stepY) {
                 const point = {
                     x: this._withNoise(x, stepX, 0, maxX),
-                    y: this._withNoise(y, stepY, 0, maxY)
+                    y: this._withNoise(y, stepY, 0, maxY),
                 };
                 yield point;
             }
@@ -60,7 +59,7 @@ export default class ControlsContainer {
         return Math.min(max, Math.max(min, center + (Math.random() * radius * 2 - radius)));
     }
 
-    * _path(element) {
+    *_path(element) {
         if (!element || element.contains(this.video)) {
             return;
         }

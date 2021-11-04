@@ -1,4 +1,4 @@
-import React, {  useCallback, useState, useEffect, useMemo } from 'react';
+import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { computeStyles } from '../services/Util';
 import Button from '@material-ui/core/Button';
@@ -35,7 +35,7 @@ const useStyles = makeStyles((theme) => ({
     subtitleSetting: {
         '& .MuiTextField-root': {
             marginTop: theme.spacing(1),
-            marginBottom: theme.spacing(1)
+            marginBottom: theme.spacing(1),
         },
     },
     subtitlePreview: {
@@ -45,7 +45,7 @@ const useStyles = makeStyles((theme) => ({
         marginTop: theme.spacing(1),
         marginBottom: theme.spacing(1),
         maxWidth: '100%',
-        padding: 10
+        padding: 10,
     },
     subtitlePreviewInput: {
         border: 'none',
@@ -53,12 +53,12 @@ const useStyles = makeStyles((theme) => ({
         textAlign: 'center',
         backgroundColor: 'rgba(0,0,0,0)',
         '&:focus': {
-            outline: 'none'
-        }
+            outline: 'none',
+        },
     },
     addFieldButton: {
-        width: "100%"
-    }
+        width: '100%',
+    },
 }));
 
 const useSelectableSettingStyles = makeStyles((theme) => ({
@@ -67,14 +67,14 @@ const useSelectableSettingStyles = makeStyles((theme) => ({
         minWidth: 120,
     },
     root: {
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "end",
-        alignItems: "flex-end",
-    }
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'end',
+        alignItems: 'flex-end',
+    },
 }));
 
-function SelectableSetting({label, value, selections, removable, onChange, onSelectionChange, onRemoval}) {
+function SelectableSetting({ label, value, selections, removable, onChange, onSelectionChange, onRemoval }) {
     const classes = useSelectableSettingStyles();
 
     return (
@@ -92,41 +92,39 @@ function SelectableSetting({label, value, selections, removable, onChange, onSel
                                 <DeleteIcon />
                             </IconButton>
                         </InputAdornment>
-                    )
+                    ),
                 }}
             />
             <FormControl className={classes.formControl}>
                 <InputLabel></InputLabel>
-                <Select
-                    value={value}
-                    disabled={!selections}
-                    color="secondary"
-                    onChange={onSelectionChange}
-                >
-                    {selections && selections.map(s => (
-                        <MenuItem key={s} value={s}>{s}</MenuItem>
-                    ))}
+                <Select value={value} disabled={!selections} color="secondary" onChange={onSelectionChange}>
+                    {selections &&
+                        selections.map((s) => (
+                            <MenuItem key={s} value={s}>
+                                {s}
+                            </MenuItem>
+                        ))}
                 </Select>
             </FormControl>
         </div>
     );
 }
 
-export default function SettingsDialog({anki, open, settings, onClose}) {
+export default function SettingsDialog({ anki, open, settings, onClose }) {
     const classes = useStyles();
     const [ankiConnectUrl, setAnkiConnectUrl] = useState(settings.ankiConnectUrl);
     const [ankiConnectUrlError, setAnkiConnectUrlError] = useState();
     const [ankiConnectUrlChangeTimestamp, setAnkiConnectUrlChangeTimestamp] = useState(0);
-    const [deck, setDeck] = useState(settings.deck || "");
+    const [deck, setDeck] = useState(settings.deck || '');
     const [deckNames, setDeckNames] = useState();
-    const [noteType, setNoteType] = useState(settings.noteType || "");
+    const [noteType, setNoteType] = useState(settings.noteType || '');
     const [modelNames, setModelNames] = useState();
-    const [sentenceField, setSentenceField] = useState(settings.sentenceField || "");
-    const [definitionField, setDefinitionField] = useState(settings.definitionField || "");
-    const [audioField, setAudioField] = useState(settings.audioField || "");
-    const [imageField, setImageField] = useState(settings.imageField || "");
-    const [wordField, setWordField] = useState(settings.wordField || "");
-    const [sourceField, setSourceField] = useState(settings.sourceField || "");
+    const [sentenceField, setSentenceField] = useState(settings.sentenceField || '');
+    const [definitionField, setDefinitionField] = useState(settings.definitionField || '');
+    const [audioField, setAudioField] = useState(settings.audioField || '');
+    const [imageField, setImageField] = useState(settings.imageField || '');
+    const [wordField, setWordField] = useState(settings.wordField || '');
+    const [sourceField, setSourceField] = useState(settings.sourceField || '');
     const [customFields, setCustomFields] = useState(settings.customAnkiFields);
     const [preferMp3, setPreferMp3] = useState(settings.preferMp3);
     const [fieldNames, setFieldNames] = useState();
@@ -172,39 +170,55 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
     const handleSubtitleFontFamilyChange = useCallback((e) => setSubtitleFontFamily(e.target.value), []);
     const handleSubtitlePreviewChange = useCallback((e) => setSubtitlePreview(e.target.value), []);
     const handleAddCustomField = useCallback((customFieldName) => {
-        setCustomFields(oldCustomFields => {
+        setCustomFields((oldCustomFields) => {
             const newCustomFields = {};
             Object.assign(newCustomFields, oldCustomFields);
-            newCustomFields[customFieldName] = "";
+            newCustomFields[customFieldName] = '';
             return newCustomFields;
         });
         setCustomFieldDialogOpen(false);
     }, []);
     const handleCustomFieldChange = useCallback((customFieldName, value) => {
-        setCustomFields(oldCustomFields => {
+        setCustomFields((oldCustomFields) => {
             const newCustomFields = {};
             Object.assign(newCustomFields, oldCustomFields);
             newCustomFields[customFieldName] = value;
             return newCustomFields;
         });
     }, []);
-    const handleCustomFieldRemoval = useCallback((customFieldName) => setCustomFields(oldCustomFields => {
-        const newCustomFields = {};
-        Object.assign(newCustomFields, oldCustomFields);
-        delete newCustomFields[customFieldName];
-        return newCustomFields;
-    }), []);
+    const handleCustomFieldRemoval = useCallback(
+        (customFieldName) =>
+            setCustomFields((oldCustomFields) => {
+                const newCustomFields = {};
+                Object.assign(newCustomFields, oldCustomFields);
+                delete newCustomFields[customFieldName];
+                return newCustomFields;
+            }),
+        []
+    );
     const handlePreferMp3Change = useCallback((e) => setPreferMp3(e.target.checked), []);
     const handleThemeTypeChange = useCallback((e) => setThemeType(e.target.value), []);
-    const subtitlePreviewStyles = useMemo(() => computeStyles({
-        subtitleColor: subtitleColor,
-        subtitleSize: subtitleSize,
-        subtitleOutlineThickness: subtitleOutlineThickness,
-        subtitleOutlineColor: subtitleOutlineColor,
-        subtitleBackgroundOpacity: subtitleBackgroundOpacity,
-        subtitleBackgroundColor: subtitleBackgroundColor,
-        subtitleFontFamily: subtitleFontFamily
-    }), [subtitleColor, subtitleSize, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundOpacity, subtitleBackgroundColor, subtitleFontFamily]);
+    const subtitlePreviewStyles = useMemo(
+        () =>
+            computeStyles({
+                subtitleColor: subtitleColor,
+                subtitleSize: subtitleSize,
+                subtitleOutlineThickness: subtitleOutlineThickness,
+                subtitleOutlineColor: subtitleOutlineColor,
+                subtitleBackgroundOpacity: subtitleBackgroundOpacity,
+                subtitleBackgroundColor: subtitleBackgroundColor,
+                subtitleFontFamily: subtitleFontFamily,
+            }),
+        [
+            subtitleColor,
+            subtitleSize,
+            subtitleOutlineThickness,
+            subtitleOutlineColor,
+            subtitleBackgroundOpacity,
+            subtitleBackgroundColor,
+            subtitleFontFamily,
+        ]
+    );
 
     useEffect(() => {
         let canceled = false;
@@ -250,7 +264,7 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                     return;
                 }
 
-                setFieldNames(["", ...await anki.modelFieldNames(noteType, ankiConnectUrl)]);
+                setFieldNames(['', ...(await anki.modelFieldNames(noteType, ankiConnectUrl))]);
                 setAnkiConnectUrlError(null);
             } catch (e) {
                 if (canceled) {
@@ -265,7 +279,7 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
 
         refreshFieldNames();
 
-        return () => canceled = true;
+        return () => (canceled = true);
     }, [anki, noteType, ankiConnectUrl, ankiConnectUrlError, ankiConnectUrlChangeTimestamp]);
 
     const handleClose = useCallback(() => {
@@ -295,17 +309,43 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
             maxImageWidth: maxImageWidth,
             maxImageHeight: maxImageHeight,
         });
-    }, [onClose, ankiConnectUrl, deck, noteType, sentenceField, definitionField, audioField, imageField, wordField, sourceField, customFields, preferMp3, subtitleSize, subtitleColor, subtitleOutlineThickness, subtitleOutlineColor, subtitleBackgroundColor, subtitleBackgroundOpacity, subtitleFontFamily, subtitlePreview, themeType, audioPaddingStart, audioPaddingEnd, maxImageWidth, maxImageHeight]);
+    }, [
+        onClose,
+        ankiConnectUrl,
+        deck,
+        noteType,
+        sentenceField,
+        definitionField,
+        audioField,
+        imageField,
+        wordField,
+        sourceField,
+        customFields,
+        preferMp3,
+        subtitleSize,
+        subtitleColor,
+        subtitleOutlineThickness,
+        subtitleOutlineColor,
+        subtitleBackgroundColor,
+        subtitleBackgroundOpacity,
+        subtitleFontFamily,
+        subtitlePreview,
+        themeType,
+        audioPaddingStart,
+        audioPaddingEnd,
+        maxImageWidth,
+        maxImageHeight,
+    ]);
 
-    const customFieldInputs = Object.keys(customFields).map(customFieldName => {
+    const customFieldInputs = Object.keys(customFields).map((customFieldName) => {
         return (
             <SelectableSetting
                 key={customFieldName}
                 label={`${customFieldName} Field`}
                 value={customFields[customFieldName]}
                 selections={fieldNames}
-                onChange={e => handleCustomFieldChange(customFieldName, e.target.value)}
-                onSelectionChange={e => handleCustomFieldChange(customFieldName, e.target.value)}
+                onChange={(e) => handleCustomFieldChange(customFieldName, e.target.value)}
+                onSelectionChange={(e) => handleCustomFieldChange(customFieldName, e.target.value)}
                 onRemoval={() => handleCustomFieldRemoval(customFieldName)}
                 removable={true}
             />
@@ -320,16 +360,8 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                 onProceed={handleAddCustomField}
                 onCancel={() => setCustomFieldDialogOpen(false)}
             />
-            <Dialog
-                open={open}
-                maxWidth="xs"
-                fullWidth
-                onBackdropClick={handleClose}
-                onEscapeKeyDown={handleClose}
-            >
-                <DialogTitle>
-                    Settings
-                </DialogTitle>
+            <Dialog open={open} maxWidth="xs" fullWidth onBackdropClick={handleClose} onEscapeKeyDown={handleClose}>
+                <DialogTitle>Settings</DialogTitle>
                 <DialogContent>
                     <Grid container direction="column" spacing={3}>
                         <Grid item>
@@ -349,11 +381,21 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                                                     <RefreshIcon />
                                                 </IconButton>
                                             </InputAdornment>
-                                        )
+                                        ),
                                     }}
                                 />
                                 <FormHelperText>
-                                    Ensure that {window.location.protocol + "//" + window.location.hostname} is in the webCorsOriginList in your AnkiConnect settings as in this <Link color="secondary" target="_blank" rel="noreferrer" href="https://youtu.be/Mv7fEVb6PHo?t=44">video</Link>.
+                                    Ensure that {window.location.protocol + '//' + window.location.hostname} is in the
+                                    webCorsOriginList in your AnkiConnect settings as in this{' '}
+                                    <Link
+                                        color="secondary"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        href="https://youtu.be/Mv7fEVb6PHo?t=44"
+                                    >
+                                        video
+                                    </Link>
+                                    .
                                 </FormHelperText>
                                 <SelectableSetting
                                     label="Deck"
@@ -434,9 +476,8 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                                         step: 1,
                                     }}
                                     InputProps={{
-                                        endAdornment: (<InputAdornment position="end">ms</InputAdornment>)
+                                        endAdornment: <InputAdornment position="end">ms</InputAdornment>,
                                     }}
-
                                 />
                                 <TextField
                                     type="number"
@@ -450,7 +491,7 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                                         step: 1,
                                     }}
                                     InputProps={{
-                                        endAdornment: (<InputAdornment position="end">ms</InputAdornment>)
+                                        endAdornment: <InputAdornment position="end">ms</InputAdornment>,
                                     }}
                                 />
                                 <TextField
@@ -464,7 +505,6 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                                         min: 0,
                                         step: 1,
                                     }}
-
                                 />
                                 <TextField
                                     type="number"
@@ -503,7 +543,7 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                                         onChange={handleSubtitleSizeChange}
                                         inputProps={{
                                             min: 1,
-                                            step: 1
+                                            step: 1,
                                         }}
                                     />
                                 </div>
@@ -526,7 +566,7 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                                         onChange={handleSubtitleOutlineThicknessChange}
                                         inputProps={{
                                             min: 0,
-                                            step: 1
+                                            step: 1,
                                         }}
                                         color="secondary"
                                     />
@@ -549,7 +589,7 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                                         inputProps={{
                                             min: 0,
                                             max: 1,
-                                            step: 0.1
+                                            step: 0.1,
                                         }}
                                         value={subtitleBackgroundOpacity}
                                         color="secondary"
@@ -586,7 +626,7 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                                             checked={themeType === 'light'}
                                             value="light"
                                             onChange={handleThemeTypeChange}
-                                         />
+                                        />
                                     }
                                     label="Light"
                                 />
@@ -609,5 +649,5 @@ export default function SettingsDialog({anki, open, settings, onClose}) {
                 </DialogActions>
             </Dialog>
         </React.Fragment>
-    )
+    );
 }

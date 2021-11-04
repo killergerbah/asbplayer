@@ -5,10 +5,10 @@ export function humanReadableTime(timestamp) {
     const hours = Math.floor(totalSeconds / 3600);
 
     if (hours > 0) {
-        return hours + "h" + String(minutes).padStart(2, '0') + "m" + String(seconds).padStart(2, '0') + "s";
+        return hours + 'h' + String(minutes).padStart(2, '0') + 'm' + String(seconds).padStart(2, '0') + 's';
     }
 
-    return minutes + "m" + String(seconds).padStart(2, '0') + "s";
+    return minutes + 'm' + String(seconds).padStart(2, '0') + 's';
 }
 
 export function surroundingSubtitles(subtitles, index, countRadius, timeRadius) {
@@ -43,7 +43,7 @@ export function mockSurroundingSubtitles(middleSubtitle, maxTimestamp, timeRadiu
             text: '',
             start: middleSubtitle.end,
             end: afterTimestamp,
-            track: 0
+            track: 0,
         });
     }
 
@@ -53,7 +53,7 @@ export function mockSurroundingSubtitles(middleSubtitle, maxTimestamp, timeRadiu
             text: '',
             start: beforeTimestamp,
             end: middleSubtitle.start,
-            track: 0
+            track: 0,
         });
     }
 
@@ -69,8 +69,10 @@ function atBoundary(subtitles, index, initialIndex, countRadius, timeRadius, sig
         next = index - 1 >= 0 ? subtitles[index - 1] : null;
     }
 
-    if (Math.abs(initialIndex - index) >= countRadius
-        && (next === null || Math.abs(next.start - subtitles[initialIndex].start) >= timeRadius)) {
+    if (
+        Math.abs(initialIndex - index) >= countRadius &&
+        (next === null || Math.abs(next.start - subtitles[initialIndex].start) >= timeRadius)
+    ) {
         return true;
     }
 

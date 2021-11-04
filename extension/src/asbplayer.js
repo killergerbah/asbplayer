@@ -8,18 +8,16 @@ window.addEventListener('message', (event) => {
             sender: event.data.sender,
             message: event.data.message,
             tabId: event.data.tabId,
-            src: event.data.src
+            src: event.data.src,
         });
     }
 });
 
-chrome.runtime.onMessage.addListener(
-    (request, sender, sendResponse) => {
-        if (request.sender === 'asbplayer-extension-to-player') {
-            window.postMessage(request , '*');
-        }
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.sender === 'asbplayer-extension-to-player') {
+        window.postMessage(request, '*');
     }
-);
+});
 
 const manifest = chrome.runtime.getManifest();
 
@@ -28,7 +26,7 @@ window.addEventListener('DOMContentLoaded', (e) => {
         sender: 'asbplayer-extension-to-player',
         message: {
             command: 'version',
-            version: manifest.version
-        }
+            version: manifest.version,
+        },
     });
 });

@@ -9,7 +9,7 @@ ReactDOM.render(
     <BrowserRouter basename={process.env.PUBLIC_URL} forceRefresh={false}>
         <App />
     </BrowserRouter>,
-    document.querySelector('#root'),
+    document.querySelector('#root')
 );
 
 // If you want to start measuring performance in your app, pass a function

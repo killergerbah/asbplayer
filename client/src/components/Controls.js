@@ -32,31 +32,31 @@ const useControlStyles = makeStyles((theme) => ({
         width: '50%',
         bottom: 0,
         pointerEvents: 'none',
-        color: "#fff"
+        color: '#fff',
     },
     buttonContainer: {
-        flexDirection: 'row'
+        flexDirection: 'row',
     },
     timeDisplay: {
-        color: "#fff",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
+        color: '#fff',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
         height: '100%',
         cursor: 'default',
         fontSize: 20,
-        marginLeft: 10
+        marginLeft: 10,
     },
     offsetInput: {
         height: '100%',
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
         fontSize: 20,
         marginLeft: 10,
         width: 100,
-        color: "#fff",
-        pointerEvents: 'auto'
+        color: '#fff',
+        pointerEvents: 'auto',
     },
     volumeInputContainerShown: {
         transition: theme.transitions.create('margin', {
@@ -64,7 +64,7 @@ const useControlStyles = makeStyles((theme) => ({
             duration: theme.transitions.duration.short,
         }),
         marginRight: 5,
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
     },
     volumeInputContainerHidden: {
         transition: theme.transitions.create('margin', {
@@ -72,7 +72,7 @@ const useControlStyles = makeStyles((theme) => ({
             duration: theme.transitions.duration.short,
         }),
         marginRight: 0,
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
     },
     volumeInputHidden: {
         transition: theme.transitions.create('width', {
@@ -80,7 +80,7 @@ const useControlStyles = makeStyles((theme) => ({
             duration: theme.transitions.duration.short,
         }),
         width: 0,
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
     },
     volumeInputShown: {
         transition: theme.transitions.create('width', {
@@ -88,7 +88,7 @@ const useControlStyles = makeStyles((theme) => ({
             duration: theme.transitions.duration.short,
         }),
         width: 100,
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
     },
     volumeInputThumbHidden: {
         transition: theme.transitions.create('visibility', {
@@ -96,7 +96,7 @@ const useControlStyles = makeStyles((theme) => ({
             duration: theme.transitions.duration.short,
         }),
         opacity: 0,
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
     },
     volumeInputThumbShown: {
         transition: theme.transitions.create('visibility', {
@@ -104,43 +104,43 @@ const useControlStyles = makeStyles((theme) => ({
             duration: theme.transitions.duration.short,
         }),
         opacity: 1,
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
     },
     subContainer: {
-        background: "linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, .4) 40%, rgba(0, 0, 0, 0.7))",
+        background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, .4) 40%, rgba(0, 0, 0, 0.7))',
         position: 'relative',
         left: '-100%',
         width: '200%',
         zIndex: 10,
     },
     button: {
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
     },
     inactiveButton: {
         color: 'rgba(72, 72, 72, 0.7)',
-        pointerEvents: 'auto'
+        pointerEvents: 'auto',
     },
     progress: {
-        margin: 5
+        margin: 5,
     },
     closeButton: {
         position: 'absolute',
         top: 0,
         left: 0,
         pointerEvents: 'auto',
-        color: '#fff'
+        color: '#fff',
     },
     hideSubtitlePlayerToggleButton: {
         position: 'absolute',
         top: 0,
         right: 0,
         pointerEvents: 'auto',
-        color: '#fff'
+        color: '#fff',
     },
     gridContainer: {
         pointerEvents: 'auto',
         padding: 2,
-    }
+    },
 }));
 
 const useProgressBarStyles = makeStyles((theme) => ({
@@ -150,19 +150,19 @@ const useProgressBarStyles = makeStyles((theme) => ({
     container: {
         height: 10,
         pointerEvents: 'auto',
-        display: "flex",
-        justifyContent: "center",
-        flexDirection: "column",
-        position: "absolute",
-        width: "calc(100% - 20px)",
-        marginLeft: 10
+        display: 'flex',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        position: 'absolute',
+        width: 'calc(100% - 20px)',
+        marginLeft: 10,
     },
     mouseEventListener: {
         zIndex: 1,
         height: 10,
         cursor: 'pointer',
         pointerEvents: 'auto',
-        position: "absolute",
+        position: 'absolute',
         width: '100%',
     },
     fillContainer: {
@@ -176,19 +176,19 @@ const useProgressBarStyles = makeStyles((theme) => ({
             easing: theme.transitions.easing.easeInOut,
             duration: 50,
         }),
-        height: 8
+        height: 8,
     },
     fill: {
         background: 'linear-gradient(to left, #ff1f62, #49007a)',
-        height: '100%'
+        height: '100%',
     },
     handleContainer: {
         position: 'absolute',
-        display: "flex",
-        justifyContent: "center",
-        flexDirection: "column",
+        display: 'flex',
+        justifyContent: 'center',
+        flexDirection: 'column',
         height: '100%',
-        bottom: 0
+        bottom: 0,
     },
     handle: {
         borderRadius: '50%',
@@ -205,26 +205,26 @@ const useProgressBarStyles = makeStyles((theme) => ({
             easing: theme.transitions.easing.easeInOut,
             duration: theme.transitions.duration.shortest,
         }),
-    }
+    },
 }));
 
 const VolumeSlider = withStyles((theme) => ({
     root: {
         color: 'white',
-        verticalAlign: 'middle'
+        verticalAlign: 'middle',
     },
     thumb: {
         backgroundColor: 'white',
         color: 'white',
         '&:focus': {
-            boxShadow: 'inherit'
+            boxShadow: 'inherit',
         },
         '&:hover, &$active': {
             boxShadow: '0px 0px 0px 8px rgba(255, 255, 255, 0.1)',
         },
     },
     active: {
-        color: 'white'
+        color: 'white',
     },
 }))(Slider);
 
@@ -246,30 +246,31 @@ function ProgressBar(props) {
     const containerRef = useRef(null);
     const onSeek = props.onSeek;
 
-    const handleClick = useCallback((e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        // Account for margins by subtracting 10 from left/right sides
-        const width = rect.right - rect.left - 20;
-        const progress = Math.min(1, Math.max(0, (e.pageX - rect.left - 10) / width));
-        onSeek(progress);
-    }, [onSeek]);
+    const handleClick = useCallback(
+        (e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            // Account for margins by subtracting 10 from left/right sides
+            const width = rect.right - rect.left - 20;
+            const progress = Math.min(1, Math.max(0, (e.pageX - rect.left - 10) / width));
+            onSeek(progress);
+        },
+        [onSeek]
+    );
 
     const handleMouseOver = useCallback(() => setMouseOver(true), []);
     const handleMouseOut = useCallback(() => setMouseOver(false), []);
-    const progressWidth = containerRef.current ? elementWidth(containerRef.current) * props.value / 100 : 0;
-    const fillStyle = {width: progressWidth};
-    const handleStyle = {marginLeft: progressWidth};
-    const fillContainerClassName = mouseOver ? classes.fillContainer + " " + classes.fillContainerThick : classes.fillContainer;
-    const handleClassName = mouseOver ? classes.handle + " " + classes.handleOn : classes.handle;
+    const progressWidth = containerRef.current ? (elementWidth(containerRef.current) * props.value) / 100 : 0;
+    const fillStyle = { width: progressWidth };
+    const handleStyle = { marginLeft: progressWidth };
+    const fillContainerClassName = mouseOver
+        ? classes.fillContainer + ' ' + classes.fillContainerThick
+        : classes.fillContainer;
+    const handleClassName = mouseOver ? classes.handle + ' ' + classes.handleOn : classes.handle;
 
     return (
         <div className={classes.root}>
-            <div
-                ref={containerRef}
-                className={classes.container}>
-                <div
-                    className={fillContainerClassName}
-                >
+            <div ref={containerRef} className={classes.container}>
+                <div className={fillContainerClassName}>
                     <div className={classes.fill} style={fillStyle}></div>
                     <div className={classes.handleContainer}>
                         <div className={handleClassName} style={handleStyle} />
@@ -281,8 +282,7 @@ function ProgressBar(props) {
                 onClick={handleClick}
                 onMouseOver={handleMouseOver}
                 onMouseOut={handleMouseOut}
-            >
-            </div>
+            ></div>
         </div>
     );
 }
@@ -297,7 +297,9 @@ function AudioTrackSelector(props) {
             <ListItem
                 key={t.id}
                 selected={t.id === props.selectedAudioTrack}
-                button onClick={() => props.onAudioTrackSelected(t.id)}>
+                button
+                onClick={() => props.onAudioTrackSelected(t.id)}
+            >
                 {t.language} {t.label}
             </ListItem>
         );
@@ -317,14 +319,15 @@ function AudioTrackSelector(props) {
                 transformOrigin={{
                     vertical: 'bottom',
                     horizontal: 'center',
-                }}>
+                }}
+            >
                 <List>{list}</List>
             </Popover>
         </div>
     );
 }
 
-function TabSelector({open, anchorEl, onClose, tabs, selectedTab, onTabSelected}) {
+function TabSelector({ open, anchorEl, onClose, tabs, selectedTab, onTabSelected }) {
     if (!tabs || tabs.length === 0) {
         return null;
     }
@@ -334,7 +337,9 @@ function TabSelector({open, anchorEl, onClose, tabs, selectedTab, onTabSelected}
             <ListItem
                 key={t.id}
                 selected={selectedTab && t.id === selectedTab.id && t.src === selectedTab.src}
-                button onClick={() => onTabSelected(t)}>
+                button
+                onClick={() => onTabSelected(t)}
+            >
                 {t.id} {t.title} {t.src}
             </ListItem>
         );
@@ -354,7 +359,8 @@ function TabSelector({open, anchorEl, onClose, tabs, selectedTab, onTabSelected}
                 transformOrigin={{
                     vertical: 'bottom',
                     horizontal: 'center',
-                }}>
+                }}
+            >
                 <List>{list}</List>
             </Popover>
         </div>
@@ -376,7 +382,8 @@ function MediaUnloader(props) {
                 transformOrigin={{
                     vertical: 'bottom',
                     horizontal: 'center',
-                }}>
+                }}
+            >
                 <List>
                     <ListItem button onClick={(e) => props.onUnload()}>
                         Unload {props.file}
@@ -431,7 +438,7 @@ export default function Controls({
     hideSubtitlePlayerToggleEnabled,
     subtitlePlayerHidden,
     onHideSubtitlePlayerToggle,
-    }) {
+}) {
     const classes = useControlStyles();
     const [show, setShow] = useState(true);
     const [audioTrackSelectorOpen, setAudioTrackSelectorOpen] = useState(false);
@@ -445,7 +452,7 @@ export default function Controls({
     const [showVolumeBar, setShowVolumeBar] = useState(false);
     const [volume, setVolume] = useState(100);
     const [lastCommittedVolume, setLastCommittedVolume] = useState(100);
-    const lastMousePositionRef = useRef({x: 0, y: 0});
+    const lastMousePositionRef = useRef({ x: 0, y: 0 });
     const lastShowTimestampRef = useRef(Date.now());
     const lastOffsetInputChangeTimestampRef = useRef(Date.now());
     const lastShowRef = useRef(true);
@@ -454,17 +461,20 @@ export default function Controls({
     const [, updateState] = useState();
     const forceUpdate = useCallback(() => updateState({}), []);
 
-    const handleSeek = useCallback((progress) => {
-        onSeek(progress);
-    }, [onSeek]);
+    const handleSeek = useCallback(
+        (progress) => {
+            onSeek(progress);
+        },
+        [onSeek]
+    );
 
     function handleMouseOver(e) {
         forceShowRef.current = true;
-    };
+    }
 
     function handleMouseOut(e) {
         forceShowRef.current = false;
-    };
+    }
 
     useEffect(() => {
         const savedVolume = Number(settingsProvider.volume);
@@ -479,12 +489,14 @@ export default function Controls({
     useEffect(() => {
         const interval = setInterval(() => {
             const now = Date.now();
-            const currentShow = now - lastShowTimestampRef.current < 2000
-                || Math.pow(mousePositionRef.current.x - lastMousePositionRef.current.x, 2)
-                    + Math.pow(mousePositionRef.current.y - lastMousePositionRef.current.y, 2) > 100
-                || forceShowRef.current
-                || offsetInputRef.current === document.activeElement
-                || now - lastOffsetInputChangeTimestampRef.current < 2000
+            const currentShow =
+                now - lastShowTimestampRef.current < 2000 ||
+                Math.pow(mousePositionRef.current.x - lastMousePositionRef.current.x, 2) +
+                    Math.pow(mousePositionRef.current.y - lastMousePositionRef.current.y, 2) >
+                    100 ||
+                forceShowRef.current ||
+                offsetInputRef.current === document.activeElement ||
+                now - lastOffsetInputChangeTimestampRef.current < 2000;
 
             if (currentShow && !lastShowRef.current) {
                 lastShowTimestampRef.current = Date.now();
@@ -516,11 +528,11 @@ export default function Controls({
                         return;
                     }
 
-                     onOffsetChange(offset * 1000);
-                     offsetInputRef.current.blur();
+                    onOffsetChange(offset * 1000);
+                    offsetInputRef.current.blur();
                 }
             }
-        };
+        }
 
         window.addEventListener('keydown', handleKey);
 
@@ -533,7 +545,7 @@ export default function Controls({
 
     useEffect(() => {
         const interval = setInterval(() => {
-            forceUpdate()
+            forceUpdate();
         }, 100);
 
         return () => clearInterval(interval);
@@ -545,7 +557,7 @@ export default function Controls({
                 offsetInputRef.current.value = null;
             } else {
                 const offsetSeconds = offset / 1000;
-                const value = offsetSeconds >= 0 ? "+" + offsetSeconds.toFixed(2) : String(offsetSeconds.toFixed(2));
+                const value = offsetSeconds >= 0 ? '+' + offsetSeconds.toFixed(2) : String(offsetSeconds.toFixed(2));
                 offsetInputRef.current.value = value;
                 lastOffsetInputChangeTimestampRef.current = Date.now();
             }
@@ -562,11 +574,14 @@ export default function Controls({
         setAudioTrackSelectorOpen(true);
     }, []);
 
-    const handleAudioTrackSelected = useCallback((id) => {
-        onAudioTrackSelected(id);
-        setAudioTrackSelectorAnchorEl(null);
-        setAudioTrackSelectorOpen(false);
-    }, [onAudioTrackSelected]);
+    const handleAudioTrackSelected = useCallback(
+        (id) => {
+            onAudioTrackSelected(id);
+            setAudioTrackSelectorAnchorEl(null);
+            setAudioTrackSelectorOpen(false);
+        },
+        [onAudioTrackSelected]
+    );
 
     const handleTabSelectorClosed = useCallback(() => {
         setTabSelectorAnchorEl(null);
@@ -578,11 +593,14 @@ export default function Controls({
         setTabSelectorOpen(true);
     }, []);
 
-    const handleTabSelected = useCallback((tab) => {
-        onTabSelected(tab);
-        setTabSelectorAnchorEl(null);
-        setTabSelectorOpen(false);
-    }, [onTabSelected]);
+    const handleTabSelected = useCallback(
+        (tab) => {
+            onTabSelected(tab);
+            setTabSelectorAnchorEl(null);
+            setTabSelectorOpen(false);
+        },
+        [onTabSelected]
+    );
 
     const handleAudioUnloaderClosed = useCallback(() => {
         setAudioUnloaderAnchorEl(null);
@@ -617,26 +635,35 @@ export default function Controls({
     const handleVolumeMouseOut = useCallback(() => setShowVolumeBar(false), []);
     const handleVolumeMouseOver = useCallback(() => setShowVolumeBar(true), []);
 
-    const handleVolumeChange = useCallback((e, value) => {
-        setVolume(value);
-        onVolumeChange(value / 100);
-    }, [onVolumeChange]);
+    const handleVolumeChange = useCallback(
+        (e, value) => {
+            setVolume(value);
+            onVolumeChange(value / 100);
+        },
+        [onVolumeChange]
+    );
 
-    const handleVolumeChangeCommitted = useCallback((e, value) => {
-        if (value > 0) {
-            setLastCommittedVolume(value);
-        }
+    const handleVolumeChangeCommitted = useCallback(
+        (e, value) => {
+            if (value > 0) {
+                setLastCommittedVolume(value);
+            }
 
-        settingsProvider.volume = value;
-    }, [settingsProvider]);
+            settingsProvider.volume = value;
+        },
+        [settingsProvider]
+    );
 
-    const handleVolumeToggle = useCallback((e, value) => {
-        setVolume((volume) => {
-            const newVolume = volume > 0 ? 0 : lastCommittedVolume;
-            onVolumeChange(newVolume / 100);
-            return newVolume;
-        });
-    }, [onVolumeChange, lastCommittedVolume]);
+    const handleVolumeToggle = useCallback(
+        (e, value) => {
+            setVolume((volume) => {
+                const newVolume = volume > 0 ? 0 : lastCommittedVolume;
+                onVolumeChange(newVolume / 100);
+                return newVolume;
+            });
+        },
+        [onVolumeChange, lastCommittedVolume]
+    );
 
     const progress = clock.progress(length);
 
@@ -668,40 +695,33 @@ export default function Controls({
                     </IconButton>
                 </Fade>
             )}
-            <div
-                className={classes.container}
-                onMouseOver={handleMouseOver}
-                onMouseOut={handleMouseOut}
-            >
+            <div className={classes.container} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
                 <Fade in={show} timeout={200}>
                     <div className={classes.subContainer}>
-                        <ProgressBar
-                            onSeek={handleSeek}
-                            value={progress * 100}
-                        />
-                        <Grid
-                            container
-                            className={classes.gridContainer}
-                            direction="row"
-                        >
+                        <ProgressBar onSeek={handleSeek} value={progress * 100} />
+                        <Grid container className={classes.gridContainer} direction="row">
                             <Grid item>
-                                <IconButton
-                                    color="inherit"
-                                    onClick={() => playing ? onPause() : onPlay()}
-                                >
-                                    {playing
-                                        ? <PauseIcon className={classes.button} />
-                                        : <PlayArrowIcon className={classes.button} />}
+                                <IconButton color="inherit" onClick={() => (playing ? onPause() : onPlay())}>
+                                    {playing ? (
+                                        <PauseIcon className={classes.button} />
+                                    ) : (
+                                        <PlayArrowIcon className={classes.button} />
+                                    )}
                                 </IconButton>
                             </Grid>
                             {volumeEnabled && (
-                                <Grid item
+                                <Grid
+                                    item
                                     onMouseOver={handleVolumeMouseOver}
                                     onMouseOut={handleVolumeMouseOut}
-                                    className={showVolumeBar ? classes.volumeInputContainerShown : classes.volumeInputContainerHidden}
+                                    className={
+                                        showVolumeBar
+                                            ? classes.volumeInputContainerShown
+                                            : classes.volumeInputContainerHidden
+                                    }
                                 >
                                     <IconButton color="inherit" onClick={handleVolumeToggle}>
-                                        {volume === 0 ? (<VolumeOffIcon />) : (<VolumeUpIcon />)}
+                                        {volume === 0 ? <VolumeOffIcon /> : <VolumeUpIcon />}
                                     </IconButton>
                                     <VolumeSlider
                                         onChange={handleVolumeChange}
@@ -710,7 +730,9 @@ export default function Controls({
                                         defaultValue={100}
                                         classes={{
                                             root: showVolumeBar ? classes.volumeInputShown : classes.volumeInputHidden,
-                                            thumb: showVolumeBar ? classes.volumeInputThumbShown : classes.volumeInputThumbHidden
+                                            thumb: showVolumeBar
+                                                ? classes.volumeInputThumbShown
+                                                : classes.volumeInputThumbHidden,
                                         }}
                                     />
                                 </Grid>
@@ -726,18 +748,21 @@ export default function Controls({
                                         inputRef={offsetInputRef}
                                         disableUnderline={true}
                                         className={classes.offsetInput}
-                                        placeholder={"±" + Number(0).toFixed(2)}
+                                        placeholder={'±' + Number(0).toFixed(2)}
                                         onClick={handleOffsetInputClicked}
                                     />
                                 </Grid>
                             )}
-                            <Grid item style={{flexGrow: 1}}>
-                            </Grid>
+                            <Grid item style={{ flexGrow: 1 }}></Grid>
                             {condensedModeToggleEnabled && (
                                 <Grid item>
                                     <Tooltip title="Condensed Mode">
                                         <IconButton color="inherit" onClick={onCondensedModeToggle}>
-                                            <SpeedIcon className={condensedModeEnabled ? classes.button : classes.inactiveButton} />
+                                            <SpeedIcon
+                                                className={
+                                                    condensedModeEnabled ? classes.button : classes.inactiveButton
+                                                }
+                                            />
                                         </IconButton>
                                     </Tooltip>
                                 </Grid>
@@ -745,7 +770,9 @@ export default function Controls({
                             {subtitlesToggle && (
                                 <Grid item>
                                     <IconButton color="inherit" onClick={onSubtitlesToggle}>
-                                        <SubtitlesIcon className={subtitlesEnabled ? classes.button : classes.inactiveButton} />
+                                        <SubtitlesIcon
+                                            className={subtitlesEnabled ? classes.button : classes.inactiveButton}
+                                        />
                                     </IconButton>
                                 </Grid>
                             )}
@@ -754,7 +781,7 @@ export default function Controls({
                                     <IconButton color="inherit" onClick={handleVideoUnloaderOpened}>
                                         <VideocamIcon className={classes.button} />
                                     </IconButton>
-                                 </Grid>
+                                </Grid>
                             )}
                             {audioFile && (
                                 <Grid item>
@@ -763,33 +790,40 @@ export default function Controls({
                                     </IconButton>
                                 </Grid>
                             )}
-                            {audioTracks && audioTracks.length > 1 &&  (
+                            {audioTracks && audioTracks.length > 1 && (
                                 <Grid item>
                                     <IconButton color="inherit" onClick={handleAudioTrackSelectorOpened}>
-                                        <QueueMusicIcon className={classes.button}  />
+                                        <QueueMusicIcon className={classes.button} />
                                     </IconButton>
                                 </Grid>
                             )}
                             {tabs && tabs.length > 0 && (
                                 <Grid item>
                                     <IconButton color="inherit" onClick={handleTabSelectorOpened}>
-                                        <VideocamIcon className={selectedTab ? classes.button : classes.inactiveButton} />
+                                        <VideocamIcon
+                                            className={selectedTab ? classes.button : classes.inactiveButton}
+                                        />
                                     </IconButton>
                                 </Grid>
                             )}
                             {popOutEnabled && (
                                 <Grid item>
                                     <IconButton color="inherit" onClick={onPopOutToggle}>
-                                        <OpenInNewIcon className={classes.button} style={popOut ? {transform: 'rotateX(180deg)'} : {}}/>
+                                        <OpenInNewIcon
+                                            className={classes.button}
+                                            style={popOut ? { transform: 'rotateX(180deg)' } : {}}
+                                        />
                                     </IconButton>
                                 </Grid>
                             )}
                             {fullscreenEnabled && (
                                 <Grid item>
                                     <IconButton color="inherit" onClick={onFullscreenToggle}>
-                                        {fullscreen
-                                            ? (<FullscreenExitIcon className={classes.button} />)
-                                            : (<FullscreenIcon className={classes.button} />)}
+                                        {fullscreen ? (
+                                            <FullscreenExitIcon className={classes.button} />
+                                        ) : (
+                                            <FullscreenIcon className={classes.button} />
+                                        )}
                                     </IconButton>
                                 </Grid>
                             )}

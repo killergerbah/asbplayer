@@ -1,5 +1,4 @@
 export default class RefreshSettingsHandler {
-
     constructor(tabRegistry) {
         this.tabRegistry = tabRegistry;
     }
@@ -17,9 +16,9 @@ export default class RefreshSettingsHandler {
             chrome.tabs.sendMessage(this.tabRegistry.videoElements[id].tab.id, {
                 sender: 'asbplayer-extension-to-video',
                 message: {
-                    command: 'settings-updated'
+                    command: 'settings-updated',
                 },
-                src: this.tabRegistry.videoElements[id].src
+                src: this.tabRegistry.videoElements[id].src,
             });
         }
     }

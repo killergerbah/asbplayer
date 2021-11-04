@@ -1,7 +1,5 @@
 export default class AsbplayerToVideoCommandForwardingHandler {
-
-    constructor() {
-    }
+    constructor() {}
 
     get sender() {
         return 'asbplayerv2';
@@ -16,7 +14,7 @@ export default class AsbplayerToVideoCommandForwardingHandler {
             chrome.tabs.sendMessage(request.tabId, {
                 sender: 'asbplayer-extension-to-video',
                 message: request.message,
-                src: request.src
+                src: request.src,
             });
         }
     }

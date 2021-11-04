@@ -1,7 +1,6 @@
 import { surroundingSubtitles } from '@project/common';
 
 export default class SubtitleContainer {
-
     constructor(video) {
         this.video = video;
         this.subtitles = [];
@@ -23,7 +22,7 @@ export default class SubtitleContainer {
             }
 
             if (this.showingLoadedMessage) {
-                this._subtitlesHtml("");
+                this._subtitlesHtml('');
                 this.showingLoadedMessage = false;
             }
 
@@ -45,20 +44,26 @@ export default class SubtitleContainer {
             for (let i = 0; i < this.subtitles.length; ++i) {
                 const s = this.subtitles[i];
 
-                if (s.start < 0 || s. end < 0) {
+                if (s.start < 0 || s.end < 0) {
                     continue;
                 }
 
-                if (now >= s.start && now < s.end && (typeof s.track === 'undefined' || !this.disabledSubtitleTracks[s.track])) {
+                if (
+                    now >= s.start &&
+                    now < s.end &&
+                    (typeof s.track === 'undefined' || !this.disabledSubtitleTracks[s.track])
+                ) {
                     showingSubtitles.push(s);
                 }
             }
 
-            showingSubtitles = showingSubtitles.sort((s1, s2) => s1.track - s2.track).map(s => s.text);
+            showingSubtitles = showingSubtitles.sort((s1, s2) => s1.track - s2.track).map((s) => s.text);
 
-            if (!this._arrayEquals(showingSubtitles, this.showingSubtitles) ||
-                showOffset && offset !== this.showingOffset ||
-                !showOffset && this.showingOffset !== null) {
+            if (
+                !this._arrayEquals(showingSubtitles, this.showingSubtitles) ||
+                (showOffset && offset !== this.showingOffset) ||
+                (!showOffset && this.showingOffset !== null)
+            ) {
                 const html = showingSubtitles.join('<br />');
                 this._subtitlesHtml(html);
                 this.showingSubtitles = showingSubtitles;
@@ -100,7 +105,11 @@ export default class SubtitleContainer {
         for (let i = 0; i < this.subtitles.length; ++i) {
             const s = this.subtitles[i];
 
-            if (now >= s.start && now < s.end && (typeof s.track === 'undefined' || !this.disabledSubtitleTracks[s.track])) {
+            if (
+                now >= s.start &&
+                now < s.end &&
+                (typeof s.track === 'undefined' || !this.disabledSubtitleTracks[s.track])
+            ) {
                 subtitle = s;
                 index = i;
                 break;
@@ -111,7 +120,15 @@ export default class SubtitleContainer {
             return [null, null];
         }
 
-        return [subtitle, surroundingSubtitles(this.subtitles, index, this.surroundingSubtitlesCountRadius, this.surroundingSubtitlesTimeRadius)];
+        return [
+            subtitle,
+            surroundingSubtitles(
+                this.subtitles,
+                index,
+                this.surroundingSubtitlesCountRadius,
+                this.surroundingSubtitlesTimeRadius
+            ),
+        ];
     }
 
     offset(offset) {
@@ -119,22 +136,22 @@ export default class SubtitleContainer {
             return;
         }
 
-        this.subtitles = this.subtitles.map(s => ({
+        this.subtitles = this.subtitles.map((s) => ({
             text: s.text,
             start: s.originalStart + offset,
             originalStart: s.originalStart,
             end: s.originalEnd + offset,
             originalEnd: s.originalEnd,
-            track: s.track
+            track: s.track,
         }));
 
         chrome.runtime.sendMessage({
             sender: 'asbplayer-video',
             message: {
                 command: 'offset',
-                value: offset
+                value: offset,
             },
-            src: this.video.src
+            src: this.video.src,
         });
 
         this.lastOffsetChangeTimestamp = Date.now();
@@ -151,7 +168,7 @@ export default class SubtitleContainer {
 
     _formatOffset(offset) {
         const roundedOffset = Math.floor(offset);
-        return roundedOffset >= 0 ? "+" + roundedOffset + " ms" :  roundedOffset + " ms";
+        return roundedOffset >= 0 ? '+' + roundedOffset + ' ms' : roundedOffset + ' ms';
     }
 
     showLoadedMessage(message) {
@@ -167,9 +184,7 @@ export default class SubtitleContainer {
 
     _appendSubtitlesHtml(html) {
         const currentHtml = this._subtitlesElement().innerHTML;
-        const newHtml = currentHtml && currentHtml.length > 0
-            ? currentHtml + "<br>" + html
-            : html;
+        const newHtml = currentHtml && currentHtml.length > 0 ? currentHtml + '<br>' + html : html;
         this._subtitlesElement().innerHTML = newHtml;
         this._fullscreenSubtitlesElement().innerHTML = newHtml;
     }
@@ -182,16 +197,16 @@ export default class SubtitleContainer {
         const div = document.createElement('div');
         const container = document.createElement('div');
         container.appendChild(div);
-        container.className = "asbplayer-subtitles-container";
-        div.className = "asbplayer-subtitles";
+        container.className = 'asbplayer-subtitles-container';
+        div.className = 'asbplayer-subtitles';
         this._applyNonFullscreenStyles(container, div);
         document.body.appendChild(container);
 
         function toggle() {
             if (document.fullscreenElement) {
-                container.style.display = "none";
+                container.style.display = 'none';
             } else {
-                container.style.display = "";
+                container.style.display = '';
             }
         }
 
@@ -208,9 +223,9 @@ export default class SubtitleContainer {
 
     _applyNonFullscreenStyles(container, div) {
         const rect = this.video.getBoundingClientRect();
-        container.style.maxWidth = rect.width + "px";
+        container.style.maxWidth = rect.width + 'px';
         const buffer = Math.max(50, rect.height * 0.2);
-        container.style.top = (rect.top + rect.height + window.pageYOffset - this.subtitlePositionOffsetBottom) + "px";
+        container.style.top = rect.top + rect.height + window.pageYOffset - this.subtitlePositionOffsetBottom + 'px';
         container.style.bottom = null;
         container.style.height = rect.height;
 
@@ -225,20 +240,20 @@ export default class SubtitleContainer {
         const div = document.createElement('div');
         const container = document.createElement('div');
         container.appendChild(div);
-        container.className = "asbplayer-subtitles-container";
-        div.className = "asbplayer-fullscreen-subtitles";
+        container.className = 'asbplayer-subtitles-container';
+        div.className = 'asbplayer-fullscreen-subtitles';
         this._applyFullscreenStyles(container, div);
         this._findFullscreenSubtitlesContainer(container).appendChild(container);
-        container.style.display = "none";
+        container.style.display = 'none';
         const that = this;
 
         function toggle() {
-            if (document.fullscreenElement && container.style.display === "none") {
-                container.style.display = "";
+            if (document.fullscreenElement && container.style.display === 'none') {
+                container.style.display = '';
                 container.remove();
                 that._findFullscreenSubtitlesContainer(container).appendChild(container);
             } else if (!document.fullscreenElement) {
-                container.style.display = "none";
+                container.style.display = 'none';
             }
         }
 
@@ -256,43 +271,43 @@ export default class SubtitleContainer {
         this._applySubtitleSettings(div);
         const rect = this.video.getBoundingClientRect();
         container.style.top = null;
-        container.style.bottom = this.subtitlePositionOffsetBottom + "px";
-        container.style.maxWidth = "100%";
+        container.style.bottom = this.subtitlePositionOffsetBottom + 'px';
+        container.style.maxWidth = '100%';
     }
 
     _applySubtitleSettings(div) {
         if (this.subtitleSettings) {
             div.style.color = this.subtitleSettings.subtitleColor;
-            div.style.fontSize = this.subtitleSettings.subtitleSize + "px";
+            div.style.fontSize = this.subtitleSettings.subtitleSize + 'px';
 
             if (this.subtitleSettings.subtitleOutlineThickness > 0) {
                 const thickness = this.subtitleSettings.subtitleOutlineThickness;
                 const color = this.subtitleSettings.subtitleOutlineColor;
                 div.style.textShadow = `0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}`;
             } else {
-                div.style.textShadow = "";
+                div.style.textShadow = '';
             }
 
             if (this.subtitleSettings.subtitleBackgroundOpacity > 0) {
                 const opacity = this.subtitleSettings.subtitleBackgroundOpacity;
                 const color = this.subtitleSettings.subtitleBackgroundColor;
-                const {r, g, b} = this._hexToRgb(color);
-                div.style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${opacity})`
+                const { r, g, b } = this._hexToRgb(color);
+                div.style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
             } else {
-                div.style.backgroundColor = "";
+                div.style.backgroundColor = '';
             }
 
             if (this.subtitleSettings.subtitleFontFamily && this.subtitleSettings.subtitleFontFamily.length > 0) {
                 div.style.fontFamily = this.subtitleSettings.subtitleFontFamily;
             } else {
-                div.style.fontFamily = "";
+                div.style.fontFamily = '';
             }
         }
     }
 
     _findFullscreenSubtitlesContainer(subtitles) {
         const testNode = subtitles.cloneNode(true);
-        testNode.innerHTML = "&nbsp;"; // The node needs to take up some space to perform test clicks
+        testNode.innerHTML = '&nbsp;'; // The node needs to take up some space to perform test clicks
         let current = this.video.parentElement;
 
         if (!current) {
@@ -304,9 +319,11 @@ export default class SubtitleContainer {
         do {
             const rect = current.getBoundingClientRect();
 
-            if (rect.height > 0
-                && (!chosen || rect.height >= chosen.getBoundingClientRect().height)
-                && this._clickable(current, testNode)) {
+            if (
+                rect.height > 0 &&
+                (!chosen || rect.height >= chosen.getBoundingClientRect().height) &&
+                this._clickable(current, testNode)
+            ) {
                 chosen = current;
                 break;
             }
@@ -373,7 +390,7 @@ export default class SubtitleContainer {
         return {
             r: parseInt(result[1], 16),
             g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        }
+            b: parseInt(result[3], 16),
+        };
     }
 }

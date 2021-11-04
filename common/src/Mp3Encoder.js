@@ -1,5 +1,4 @@
 export default class Mp3Encoder {
-
     static async encode(blob, workerFactory) {
         return new Promise(async (resolve, reject) => {
             var reader = new FileReader();
@@ -21,10 +20,10 @@ export default class Mp3Encoder {
                             numberOfChannels: audioBuffer.numberOfChannels,
                             length: audioBuffer.length,
                             sampleRate: audioBuffer.sampleRate,
-                        }
+                        },
                     });
                     worker.onmessage = (e) => {
-                        resolve(new Blob(e.data.buffer, {type: 'audio/mp3'}));
+                        resolve(new Blob(e.data.buffer, { type: 'audio/mp3' }));
                         worker.terminate();
                     };
                     worker.onerror = () => {

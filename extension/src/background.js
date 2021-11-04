@@ -33,28 +33,25 @@ const handlers = [
     new AsbplayerToVideoCommandForwardingHandler(),
     new AsbplayerHeartbeatHandler(tabRegistry),
     new AsbplayerV2ToVideoCommandForwardingHandler(),
-    new RefreshSettingsHandler(tabRegistry)
+    new RefreshSettingsHandler(tabRegistry),
 ];
 
-chrome.runtime.onMessage.addListener(
-    (request, sender, sendResponse) => {
-        for (const handler of handlers) {
-            if (handler.sender === request.sender) {
-                if (handler.command === null
-                    || handler.command === request.message.command) {
-                    if (handler.handle(request, sender, sendResponse)) {
-                        return true;
-                    }
-
-                    break;
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    for (const handler of handlers) {
+        if (handler.sender === request.sender) {
+            if (handler.command === null || handler.command === request.message.command) {
+                if (handler.handle(request, sender, sendResponse)) {
+                    return true;
                 }
+
+                break;
             }
         }
     }
-);
+});
 
 chrome.commands.onCommand.addListener((command) => {
-    chrome.tabs.query({active: true}, (tabs) => {
+    chrome.tabs.query({ active: true }, (tabs) => {
         if (!tabs || tabs.length === 0) {
             return;
         }
@@ -69,9 +66,9 @@ chrome.commands.onCommand.addListener((command) => {
                                 sender: 'asbplayer-extension-to-video',
                                 message: {
                                     command: 'copy-subtitle',
-                                    showAnkiUi: command === 'copy-subtitle-with-dialog'
+                                    showAnkiUi: command === 'copy-subtitle-with-dialog',
                                 },
-                                src: tabRegistry.videoElements[id].src
+                                src: tabRegistry.videoElements[id].src,
                             });
                         }
                     }
@@ -83,13 +80,12 @@ chrome.commands.onCommand.addListener((command) => {
                         sender: 'asbplayer-extension-to-video',
                         message: {
                             command: 'toggle-video-select',
-                        }
+                        },
                     });
                 }
                 break;
             default:
                 throw new Error('Unknown command ' + command);
         }
-
     });
 });

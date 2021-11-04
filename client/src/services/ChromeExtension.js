@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
 export default class ChromeExtension {
-
     constructor(heartbeat) {
         this.onMessageCallbacks = [];
         this.onTabsCallbacks = [];
@@ -13,7 +12,7 @@ export default class ChromeExtension {
 
         window.addEventListener('message', (event) => {
             if (event.source !== window) {
-               return;
+                return;
             }
 
             if (event.data.sender === 'asbplayer-extension-to-player') {
@@ -37,7 +36,7 @@ export default class ChromeExtension {
                         c({
                             data: event.data.message,
                             tabId: event.data.tabId,
-                            src: event.data.src
+                            src: event.data.src,
                         });
                     }
                 }
@@ -51,13 +50,16 @@ export default class ChromeExtension {
     }
 
     _sendHeartbeat() {
-        window.postMessage({
-            sender: 'asbplayerv2',
-            message: {
-                command: 'heartbeat',
-                id: this.id
-            }
-        }, '*');
+        window.postMessage(
+            {
+                sender: 'asbplayerv2',
+                message: {
+                    command: 'heartbeat',
+                    id: this.id,
+                },
+            },
+            '*'
+        );
     }
 
     async installedVersion() {
@@ -65,12 +67,12 @@ export default class ChromeExtension {
     }
 
     sendMessage(message, tabId, src) {
-        window.postMessage({sender: 'asbplayer', message: message, tabId: tabId, src: src}, '*');
+        window.postMessage({ sender: 'asbplayer', message: message, tabId: tabId, src: src }, '*');
     }
 
     publishMessage(message) {
         for (const tab of this.tabs) {
-            window.postMessage({sender: 'asbplayer', message: message, tabId: tab.id, src: tab.src}, '*');
+            window.postMessage({ sender: 'asbplayer', message: message, tabId: tab.id, src: tab.src }, '*');
         }
     }
 

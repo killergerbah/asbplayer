@@ -3,7 +3,6 @@ import ImageCapturer from '../../services/ImageCapturer';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class StartRecordingMediaHandler {
-
     constructor(audioRecorder, imageCapturer) {
         this.audioRecorder = audioRecorder;
         this.imageCapturer = imageCapturer;
@@ -22,7 +21,7 @@ export default class StartRecordingMediaHandler {
         const windowActive = await this._isWindowActive(sender.tab.windowId);
 
         if (!windowActive) {
-            console.error("Received record request from wrong window.");
+            console.error('Received record request from wrong window.');
             return;
         }
 
@@ -33,18 +32,22 @@ export default class StartRecordingMediaHandler {
         let imageBase64 = null;
 
         if (request.message.screenshot) {
-            imageBase64 = await this.imageCapturer.capture(request.message.rect, request.message.maxImageWidth, request.message.maxImageHeight);
+            imageBase64 = await this.imageCapturer.capture(
+                request.message.rect,
+                request.message.maxImageWidth,
+                request.message.maxImageHeight
+            );
             chrome.tabs.sendMessage(sender.tab.id, {
                 sender: 'asbplayer-extension-to-video',
                 message: {
-                    command: 'screenshot-taken'
+                    command: 'screenshot-taken',
                 },
-                src: request.src
+                src: request.src,
             });
         }
 
         if (!request.message.record) {
-            const subtitle = {text: '', start: request.message.timestamp, end: request.message.timestamp, track: 0};
+            const subtitle = { text: '', start: request.message.timestamp, end: request.message.timestamp, track: 0 };
             const id = uuidv4();
 
             let image = null;
@@ -52,7 +55,7 @@ export default class StartRecordingMediaHandler {
             if (imageBase64) {
                 image = {
                     base64: imageBase64,
-                    extension: 'jpeg'
+                    extension: 'jpeg',
                 };
             }
 
@@ -65,10 +68,10 @@ export default class StartRecordingMediaHandler {
                             id: id,
                             subtitle: subtitle,
                             surroundingSubtitles: [],
-                            image: image
+                            image: image,
                         },
                         tabId: sender.tab.id,
-                        src: request.src
+                        src: request.src,
                     });
                 }
             });
@@ -81,9 +84,9 @@ export default class StartRecordingMediaHandler {
                         id: id,
                         subtitle: subtitle,
                         surroundingSubtitles: [],
-                        image: image
+                        image: image,
                     },
-                    src: request.src
+                    src: request.src,
                 });
             }
         }

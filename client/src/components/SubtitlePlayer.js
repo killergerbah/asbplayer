@@ -19,68 +19,68 @@ const useSubtitlePlayerStyles = makeStyles((theme) => ({
         position: 'relative',
         overflowX: 'hidden',
         backgroundColor: theme.palette.background.default,
-        width: ({compressed, windowWidth}) => compressed ? Math.max(350, .25 * windowWidth) : '100%'
+        width: ({ compressed, windowWidth }) => (compressed ? Math.max(350, 0.25 * windowWidth) : '100%'),
     },
     table: {
         backgroundColor: theme.palette.background.default,
         marginBottom: 75, // so the last row doesn't collide with controls
     },
     noSubtitles: {
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
         padding: 15,
-        textAlign: "center"
+        textAlign: 'center',
     },
 }));
 
 const useSubtitleRowStyles = makeStyles((theme) => ({
     subtitleRow: {
         '&:hover': {
-            backgroundColor: theme.palette.action.hover
-        }
+            backgroundColor: theme.palette.action.hover,
+        },
     },
     subtitle: {
         fontSize: 20,
         paddingRight: 0,
         minWidth: 200,
         width: '100%',
-        overflowWrap: 'anywhere'
+        overflowWrap: 'anywhere',
     },
     compressedSubtitle: {
         fontSize: 16,
         paddingRight: 0,
         minWidth: 200,
         width: '100%',
-        overflowWrap: 'anywhere'
+        overflowWrap: 'anywhere',
     },
     disabledSubtitle: {
         color: 'transparent',
         backgroundColor: theme.palette.action.disabledBackground,
-        borderRadius: 5
+        borderRadius: 5,
     },
     timestamp: {
         fontSize: 14,
         color: '#aaaaaa',
         textAlign: 'right',
         paddingRight: 15,
-        paddingLeft: 5
+        paddingLeft: 5,
     },
     copyButton: {
         textAlign: 'right',
-        padding: 0
+        padding: 0,
     },
 }));
 
 const SubtitleRow = React.memo((props) => {
-    const {index, compressed, selected, disabled, subtitle, subtitleRef, onClick, onCopy, ...tableRowProps} = props;
+    const { index, compressed, selected, disabled, subtitle, subtitleRef, onClick, onCopy, ...tableRowProps } = props;
     const classes = useSubtitleRowStyles();
     const textRef = useRef();
     const [textSelected, setTextSelected] = useState(false);
     let className = compressed ? classes.compressedSubtitle : classes.subtitle;
-    let disabledClassName = disabled ? classes.disabledSubtitle : "";
+    let disabledClassName = disabled ? classes.disabledSubtitle : '';
 
     if (subtitle.start < 0 || subtitle.end < 0) {
         return null;
@@ -88,10 +88,7 @@ const SubtitleRow = React.memo((props) => {
 
     function handleMouseUp(e) {
         var selection = document.getSelection();
-        setTextSelected(
-            selection?.type === 'Range'
-            && textRef.current?.isSameNode(selection.anchorNode.parentNode)
-        );
+        setTextSelected(selection?.type === 'Range' && textRef.current?.isSameNode(selection.anchorNode.parentNode));
     }
 
     return (
@@ -110,12 +107,10 @@ const SubtitleRow = React.memo((props) => {
             </TableCell>
             <TableCell className={classes.copyButton}>
                 <IconButton onClick={(e) => onCopy(e, index)}>
-                    <FileCopy fontSize={compressed ? "small" : "default"} />
+                    <FileCopy fontSize={compressed ? 'small' : 'default'} />
                 </IconButton>
             </TableCell>
-            <TableCell className={classes.timestamp}>
-                {subtitle.displayTime}
-            </TableCell>
+            <TableCell className={classes.timestamp}>{subtitle.displayTime}</TableCell>
         </TableRow>
     );
 });
@@ -139,17 +134,23 @@ export default function SubtitlePlayer({
     lastJumpToTopTimestamp,
     hidden,
     disabledSubtitleTracks,
-    settingsProvider
-    }) {
+    settingsProvider,
+}) {
     const playingRef = useRef();
     playingRef.current = playing;
     const clockRef = useRef();
     clockRef.current = clock;
     const subtitleListRef = useRef();
     subtitleListRef.current = subtitles;
-    const subtitleRefs = useMemo(() => subtitles
-        ? Array(subtitles.length).fill().map((_, i) => createRef())
-        : [], [subtitles]);
+    const subtitleRefs = useMemo(
+        () =>
+            subtitles
+                ? Array(subtitles.length)
+                      .fill()
+                      .map((_, i) => createRef())
+                : [],
+        [subtitles]
+    );
     const subtitleRefsRef = useRef();
     subtitleRefsRef.current = subtitleRefs;
     const disableKeyEventsRef = useRef();
@@ -165,8 +166,8 @@ export default function SubtitlePlayer({
     const containerRef = useRef();
     const drawerOpenRef = useRef();
     drawerOpenRef.current = drawerOpen;
-    const [windowWidth, ] = useWindowSize(true);
-    const classes = useSubtitlePlayerStyles({compressed, windowWidth});
+    const [windowWidth] = useWindowSize(true);
+    const classes = useSubtitlePlayerStyles({ compressed, windowWidth });
 
     // This effect should be scheduled only once as re-scheduling seems to cause performance issues.
     // Therefore all of the state it operates on is contained in refs.
@@ -212,13 +213,13 @@ export default function SubtitlePlayer({
 
                 if (smallestIndex !== Number.MAX_SAFE_INTEGER) {
                     const scrollToSubtitleRef = subtitleRefs[smallestIndex];
-                    const allowScroll = !hiddenRef.current && (Date.now() - lastScrollTimestampRef.current > 5000);
+                    const allowScroll = !hiddenRef.current && Date.now() - lastScrollTimestampRef.current > 5000;
 
                     if (scrollToSubtitleRef?.current && allowScroll) {
                         scrollToSubtitleRef.current.scrollIntoView({
-                            block: "center",
-                            inline: "nearest",
-                            behavior: "smooth"
+                            block: 'center',
+                            inline: 'nearest',
+                            behavior: 'smooth',
                         });
                     }
                 }
@@ -248,9 +249,9 @@ export default function SubtitlePlayer({
         const scrollToSubtitleRef = subtitleRefs[indexes[0]];
 
         scrollToSubtitleRef?.current?.scrollIntoView({
-            block: "center",
-            inline: "nearest",
-            behavior: "smooth"
+            block: 'center',
+            inline: 'nearest',
+            behavior: 'smooth',
         });
     }, [subtitleRefs]);
 
@@ -265,9 +266,9 @@ export default function SubtitlePlayer({
             }
         }
 
-        document.addEventListener("visibilitychange", scrollIfVisible);
+        document.addEventListener('visibilitychange', scrollIfVisible);
 
-        return () => document.removeEventListener("visibilitychange", scrollIfVisible);
+        return () => document.removeEventListener('visibilitychange', scrollIfVisible);
     }, [hidden, selectedSubtitleIndexes, subtitleRefs, scrollToCurrentSubtitle]);
 
     useEffect(() => {
@@ -289,9 +290,9 @@ export default function SubtitlePlayer({
 
         const firstSubtitleRef = subtitleRefs[0];
         firstSubtitleRef?.current?.scrollIntoView({
-            block: "center",
-            inline: "nearest",
-            behavior: "smooth"
+            block: 'center',
+            inline: 'nearest',
+            behavior: 'smooth',
         });
     }, [lastJumpToTopTimestamp]);
 
@@ -342,7 +343,7 @@ export default function SubtitlePlayer({
     useEffect(() => {
         function handleScroll(event) {
             lastScrollTimestampRef.current = Date.now();
-        };
+        }
 
         const table = containerRef.current;
         table?.addEventListener('wheel', handleScroll);
@@ -373,20 +374,28 @@ export default function SubtitlePlayer({
 
         if (jumpToIndex !== -1) {
             subtitleRefs[jumpToIndex]?.current?.scrollIntoView({
-                 block: "center",
-                 inline: "nearest",
-                 behavior: "smooth"
+                block: 'center',
+                inline: 'nearest',
+                behavior: 'smooth',
             });
         }
     }, [hidden, jumpToSubtitle, subtitles, subtitleRefs]);
 
-    const calculateSurroundingSubtitlesForIndex = useCallback((index) => {
-        if (!selectedSubtitleIndexesRef.current) {
-            return [];
-        }
+    const calculateSurroundingSubtitlesForIndex = useCallback(
+        (index) => {
+            if (!selectedSubtitleIndexesRef.current) {
+                return [];
+            }
 
-        return surroundingSubtitles(subtitles, index, settingsProvider.surroundingSubtitlesCountRadius, settingsProvider.surroundingSubtitlesTimeRadius);
-    }, [subtitles, settingsProvider.surroundingSubtitlesCountRadius, settingsProvider.surroundingSubtitlesTimeRadius]);
+            return surroundingSubtitles(
+                subtitles,
+                index,
+                settingsProvider.surroundingSubtitlesCountRadius,
+                settingsProvider.surroundingSubtitlesTimeRadius
+            );
+        },
+        [subtitles, settingsProvider.surroundingSubtitlesCountRadius, settingsProvider.surroundingSubtitlesTimeRadius]
+    );
 
     const calculateSurroundingSubtitles = useCallback(() => {
         if (!selectedSubtitleIndexesRef.current) {
@@ -428,7 +437,7 @@ export default function SubtitlePlayer({
                 onToggleSubtitleTrack(track);
             },
             () => {},
-            () => disableKeyEvents,
+            () => disableKeyEvents
         );
 
         return () => unbind();
@@ -454,34 +463,36 @@ export default function SubtitlePlayer({
         return () => unbind();
     }, [onAnkiDialogRequest, onCopy, subtitles, calculateSurroundingSubtitlesForIndex]);
 
-    const handleClick = useCallback((index) => {
-        const selectedSubtitleIndexes = selectedSubtitleIndexesRef.current || {};
-        onSeek(subtitles[index].start, !playingRef.current && index in selectedSubtitleIndexes);
-    }, [subtitles, onSeek]);
+    const handleClick = useCallback(
+        (index) => {
+            const selectedSubtitleIndexes = selectedSubtitleIndexesRef.current || {};
+            onSeek(subtitles[index].start, !playingRef.current && index in selectedSubtitleIndexes);
+        },
+        [subtitles, onSeek]
+    );
 
-    const handleCopy = useCallback((e, index) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), false);
-    }, [subtitles, calculateSurroundingSubtitlesForIndex, onCopy]);
+    const handleCopy = useCallback(
+        (e, index) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), false);
+        },
+        [subtitles, calculateSurroundingSubtitlesForIndex, onCopy]
+    );
 
     let subtitleTable = null;
 
-    if (!subtitles || subtitles.length ===0) {
+    if (!subtitles || subtitles.length === 0) {
         if (!loading && displayHelp) {
             subtitleTable = !loading && displayHelp && (
                 <div className={classes.noSubtitles}>
-                    <Typography variant="h6">
-                        {displayHelp}
-                    </Typography>
+                    <Typography variant="h6">{displayHelp}</Typography>
                 </div>
             );
         } else if (subtitles && subtitles.length === 0) {
             subtitleTable = (
                 <div className={classes.noSubtitles}>
-                    <Typography variant="h6">
-                        No subtitles
-                    </Typography>
+                    <Typography variant="h6">No subtitles</Typography>
                 </div>
             );
         }
@@ -514,12 +525,7 @@ export default function SubtitlePlayer({
     }
 
     return (
-        <Paper
-            square
-            elevation={0}
-            ref={containerRef}
-            className={classes.container}
-        >
+        <Paper square elevation={0} ref={containerRef} className={classes.container}>
             {subtitleTable}
         </Paper>
     );

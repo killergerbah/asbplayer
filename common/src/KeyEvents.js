@@ -1,5 +1,4 @@
 export default class KeyEvents {
-
     static detectCopy(event) {
         // Ctrl + Shift + A
         return event.ctrlKey && event.shiftKey && event.keyCode === 65;
@@ -32,12 +31,20 @@ export default class KeyEvents {
 
     static detectPreviousSubtitle(event) {
         // Left
-        return !KeyEvents.detectIncreaseOffset(event) && !KeyEvents.detectIncreaseOffsetToPreviousSubtitle(event) && event.keyCode === 37;
+        return (
+            !KeyEvents.detectIncreaseOffset(event) &&
+            !KeyEvents.detectIncreaseOffsetToPreviousSubtitle(event) &&
+            event.keyCode === 37
+        );
     }
 
     static detectNextSubtitle(event) {
         // Right
-        return !KeyEvents.detectDecreaseOffset(event) && !KeyEvents.detectDecreaseOffsetToNextSubtitle(event) && event.keyCode === 39;
+        return (
+            !KeyEvents.detectDecreaseOffset(event) &&
+            !KeyEvents.detectDecreaseOffsetToNextSubtitle(event) &&
+            event.keyCode === 39
+        );
     }
 
     static detectPlay(event) {
