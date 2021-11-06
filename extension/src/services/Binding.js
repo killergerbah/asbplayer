@@ -17,7 +17,6 @@ document.addEventListener('asbplayer-netflix-enabled', (e) => {
 });
 
 export default class Binding {
-
     constructor(video) {
         this.video = video;
         this.subtitleContainer = new SubtitleContainer(video);
@@ -55,9 +54,9 @@ export default class Binding {
                     sender: 'asbplayer-video',
                     message: {
                         command: 'readyState',
-                        value: 4
+                        value: 4,
                     },
-                    src: this.video.src
+                    src: this.video.src,
                 });
             });
         }
@@ -83,7 +82,7 @@ export default class Binding {
                 selectedAudioTrack: null,
                 playbackRate: this.video.playbackRate,
             },
-            src: this.video.src
+            src: this.video.src,
         });
     }
 
@@ -93,9 +92,9 @@ export default class Binding {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'play',
-                    echo: false
+                    echo: false,
                 },
-                src: this.video.src
+                src: this.video.src,
             });
         };
 
@@ -104,9 +103,9 @@ export default class Binding {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'pause',
-                    echo: false
+                    echo: false,
                 },
-                src: this.video.src
+                src: this.video.src,
             });
         };
 
@@ -116,9 +115,9 @@ export default class Binding {
                 message: {
                     command: 'currentTime',
                     value: this.video.currentTime,
-                    echo: false
+                    echo: false,
                 },
-                src: this.video.src
+                src: this.video.src,
             });
         };
 
@@ -128,11 +127,11 @@ export default class Binding {
                 message: {
                     command: 'playbackRate',
                     value: this.video.playbackRate,
-                    echo: false
+                    echo: false,
                 },
-                src: this.video.src
+                src: this.video.src,
             });
-        }
+        };
 
         this.video.addEventListener('play', this.playListener);
         this.video.addEventListener('pause', this.pauseListener);
@@ -143,9 +142,9 @@ export default class Binding {
             chrome.runtime.sendMessage({
                 sender: 'asbplayer-video',
                 message: {
-                    command: 'heartbeat'
+                    command: 'heartbeat',
                 },
-                src: this.video.src
+                src: this.video.src,
             });
         }, 1000);
 
@@ -183,7 +182,7 @@ export default class Binding {
                         if (request.message.names) {
                             loadedMessage = request.message.names.join('<br>');
                         } else {
-                            loadedMessage = request.message.name || "[Subtitles Loaded]";
+                            loadedMessage = request.message.name || '[Subtitles Loaded]';
                         }
 
                         this.subtitleContainer.showLoadedMessage(loadedMessage);
@@ -196,12 +195,30 @@ export default class Binding {
                         break;
                     case 'ankiSettings':
                         this.ankiUiContainer.ankiSettings = request.message.value;
-                        this.audioPaddingStart = typeof request.message.value.audioPaddingStart === 'undefined' ? this.audioPaddingStart : request.message.value.audioPaddingStart;
-                        this.audioPaddingEnd = typeof request.message.value.audioPaddingEnd === 'undefined' ? this.audioPaddingEnd : request.message.value.audioPaddingEnd;
-                        this.maxImageWidth = typeof request.message.value.maxImageWidth === 'undefined' ? this.maxImageWidth : request.message.value.maxImageWidth;
-                        this.maxImageHeight = typeof request.message.value.maxImageHeight === 'undefined' ? this.maxImageHeight : request.message.value.maxImageHeight;
-                        this.subtitleContainer.surroundingSubtitlesCountRadius = typeof request.message.value.surroundingSubtitlesCountRadius === 'undefined' ? this.subtitleContainer.surroundingSubtitlesCountRadius : request.message.value.surroundingSubtitlesCountRadius;
-                        this.subtitleContainer.surroundingSubtitlesTimeRadius = typeof request.message.value.surroundingSubtitlesTimeRadius === 'undefined' ? this.subtitleContainer.surroundingSubtitlesTimeRadius : request.message.value.surroundingSubtitlesTimeRadius;
+                        this.audioPaddingStart =
+                            typeof request.message.value.audioPaddingStart === 'undefined'
+                                ? this.audioPaddingStart
+                                : request.message.value.audioPaddingStart;
+                        this.audioPaddingEnd =
+                            typeof request.message.value.audioPaddingEnd === 'undefined'
+                                ? this.audioPaddingEnd
+                                : request.message.value.audioPaddingEnd;
+                        this.maxImageWidth =
+                            typeof request.message.value.maxImageWidth === 'undefined'
+                                ? this.maxImageWidth
+                                : request.message.value.maxImageWidth;
+                        this.maxImageHeight =
+                            typeof request.message.value.maxImageHeight === 'undefined'
+                                ? this.maxImageHeight
+                                : request.message.value.maxImageHeight;
+                        this.subtitleContainer.surroundingSubtitlesCountRadius =
+                            typeof request.message.value.surroundingSubtitlesCountRadius === 'undefined'
+                                ? this.subtitleContainer.surroundingSubtitlesCountRadius
+                                : request.message.value.surroundingSubtitlesCountRadius;
+                        this.subtitleContainer.surroundingSubtitlesTimeRadius =
+                            typeof request.message.value.surroundingSubtitlesTimeRadius === 'undefined'
+                                ? this.subtitleContainer.surroundingSubtitlesTimeRadius
+                                : request.message.value.surroundingSubtitlesTimeRadius;
                         break;
                     case 'miscSettings':
                         this.ankiUiContainer.themeType = request.message.value.themeType;
@@ -244,8 +261,12 @@ export default class Binding {
                             }
 
                             this.controlsContainer.show();
-                            this.settings.get(['displaySubtitles'])
-                                .then(({displaySubtitles}) => this.subtitleContainer.displaySubtitles = displaySubtitles);
+                            this.settings
+                                .get(['displaySubtitles'])
+                                .then(
+                                    ({ displaySubtitles }) =>
+                                        (this.subtitleContainer.displaySubtitles = displaySubtitles)
+                                );
                         }
                         break;
                 }
@@ -343,13 +364,13 @@ export default class Binding {
                 playbackRate: this.video.playbackRate,
                 rect: this.screenshot ? this.video.getBoundingClientRect() : null,
                 maxImageWidth: this.maxImageWidth,
-                maxImageHeight: this.maxImageHeight
+                maxImageHeight: this.maxImageHeight,
             };
 
             chrome.runtime.sendMessage({
                 sender: 'asbplayer-video',
                 message: message,
-                src: this.video.src
+                src: this.video.src,
             });
         }
     }
@@ -366,7 +387,7 @@ export default class Binding {
                     screenshot: this.recordingMediaWithScreenshot,
                     videoDuration: this.video.duration * 1000,
                 },
-                src: this.video.src
+                src: this.video.src,
             });
 
             this.recordingMedia = false;
@@ -392,14 +413,13 @@ export default class Binding {
                 screenshot: this.screenshot,
                 rect: this.screenshot ? this.video.getBoundingClientRect() : null,
                 maxImageWidth: this.maxImageWidth,
-                maxImageHeight: this.maxImageHeight
+                maxImageHeight: this.maxImageHeight,
             };
-
 
             chrome.runtime.sendMessage({
                 sender: 'asbplayer-video',
                 message: message,
-                src: this.video.src
+                src: this.video.src,
             });
         }
     }
@@ -416,14 +436,15 @@ export default class Binding {
             this.showControlsTimeout = setTimeout(() => {
                 this.controlsContainer.show();
                 this.showControlsTimeout = null;
-                this.settings.get(['displaySubtitles'])
-                    .then(({displaySubtitles}) => this.subtitleContainer.displaySubtitles = displaySubtitles);
+                this.settings
+                    .get(['displaySubtitles'])
+                    .then(({ displaySubtitles }) => (this.subtitleContainer.displaySubtitles = displaySubtitles));
             }, 1000);
         }
     }
 
     async rerecord(start, end, currentItem, uiState) {
-        const noSubtitles =  this.subtitleContainer.subtitles.length === 0;
+        const noSubtitles = this.subtitleContainer.subtitles.length === 0;
         const audioPaddingStart = noSubtitles ? 0 : this.audioPaddingStart;
         const audioPaddingEnd = noSubtitles ? 0 : this.audioPaddingEnd;
 
@@ -438,21 +459,23 @@ export default class Binding {
             audioPaddingEnd: audioPaddingEnd,
             currentItem: currentItem,
             playbackRate: this.video.playbackRate,
-            timestamp: start
+            timestamp: start,
         };
 
         chrome.runtime.sendMessage({
             sender: 'asbplayer-video',
             message: message,
-            src: this.video.src
+            src: this.video.src,
         });
     }
 
     seek(timestamp) {
         if (netflix) {
-            document.dispatchEvent(new CustomEvent('asbplayer-netflix-seek', {
-                detail: timestamp * 1000
-            }));
+            document.dispatchEvent(
+                new CustomEvent('asbplayer-netflix-seek', {
+                    detail: timestamp * 1000,
+                })
+            );
         } else {
             this.video.currentTime = timestamp;
         }

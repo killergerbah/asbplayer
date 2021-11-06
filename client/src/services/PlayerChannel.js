@@ -1,5 +1,4 @@
 export default class PlayerChannel {
-
     constructor(channel) {
         this.channel = new BroadcastChannel(channel);
         this.time = 0;
@@ -19,7 +18,7 @@ export default class PlayerChannel {
         const that = this;
 
         this.channel.onmessage = (event) => {
-            switch(event.data.command) {
+            switch (event.data.command) {
                 case 'init':
                     // ignore, this is for the chrome extension
                     break;
@@ -54,7 +53,7 @@ export default class PlayerChannel {
                     }
                     break;
                 case 'subtitles':
-                    for (let callback  of that.subtitlesCallbacks) {
+                    for (let callback of that.subtitlesCallbacks) {
                         callback(event.data.value);
                     }
                     break;
@@ -62,12 +61,12 @@ export default class PlayerChannel {
                     // ignore
                     break;
                 case 'condensedModeToggle':
-                    for (let callback  of that.condensedModeToggleCallbacks) {
+                    for (let callback of that.condensedModeToggleCallbacks) {
                         callback(event.data.value);
                     }
                     break;
                 case 'hideSubtitlePlayerToggle':
-                    for (let callback  of that.hideSubtitlePlayerToggleCallbacks) {
+                    for (let callback of that.hideSubtitlePlayerToggleCallbacks) {
                         callback(event.data.value);
                     }
                     break;
@@ -99,7 +98,7 @@ export default class PlayerChannel {
 
     set currentTime(value) {
         this.time = value;
-        this.channel?.postMessage({command: 'currentTime', value: this.time, echo: true});
+        this.channel?.postMessage({ command: 'currentTime', value: this.time, echo: true });
     }
 
     onPlay(callback) {
@@ -153,57 +152,62 @@ export default class PlayerChannel {
             paused: paused,
             currentTime: 0,
             audioTracks: audioTracks,
-            selectedAudioTrack: selectedAudioTrack
+            selectedAudioTrack: selectedAudioTrack,
         });
     }
 
     readyState(readyState) {
-        this.channel?.postMessage({command: 'readyState', value: readyState});
+        this.channel?.postMessage({ command: 'readyState', value: readyState });
     }
 
     play() {
-        this.channel?.postMessage({command: 'play', echo: true});
+        this.channel?.postMessage({ command: 'play', echo: true });
     }
 
     pause() {
-        this.channel?.postMessage({command: 'pause', echo: true});
+        this.channel?.postMessage({ command: 'pause', echo: true });
     }
 
     audioTrackSelected(id) {
-        this.channel?.postMessage({command: 'audioTrackSelected', id: id});
+        this.channel?.postMessage({ command: 'audioTrackSelected', id: id });
     }
 
     offset(offset) {
-        this.channel?.postMessage({command: 'offset', value: offset});
+        this.channel?.postMessage({ command: 'offset', value: offset });
     }
 
     popOutToggle() {
-        this.channel?.postMessage({command: 'popOutToggle'});
+        this.channel?.postMessage({ command: 'popOutToggle' });
     }
 
     copy(subtitle, surroundingSubtitles, preventDuplicate) {
-        this.channel?.postMessage({command: 'copy', subtitle: subtitle, surroundingSubtitles: surroundingSubtitles, preventDuplicate: preventDuplicate});
+        this.channel?.postMessage({
+            command: 'copy',
+            subtitle: subtitle,
+            surroundingSubtitles: surroundingSubtitles,
+            preventDuplicate: preventDuplicate,
+        });
     }
 
     condensedModeToggle() {
-        this.channel?.postMessage({command: 'condensedModeToggle'});
+        this.channel?.postMessage({ command: 'condensedModeToggle' });
     }
 
     hideSubtitlePlayerToggle() {
-        this.channel?.postMessage({command: 'hideSubtitlePlayerToggle'});
+        this.channel?.postMessage({ command: 'hideSubtitlePlayerToggle' });
     }
 
     ankiDialogRequest(forwardToVideo) {
-        this.channel?.postMessage({command: 'ankiDialogRequest', forwardToVideo: forwardToVideo});
+        this.channel?.postMessage({ command: 'ankiDialogRequest', forwardToVideo: forwardToVideo });
     }
 
     toggleSubtitleTrackInList(track) {
-        this.channel?.postMessage({command: 'toggleSubtitleTrackInList', track: track});
+        this.channel?.postMessage({ command: 'toggleSubtitleTrackInList', track: track });
     }
 
     close() {
         if (this.channel) {
-            this.channel.postMessage({command: 'exit'});
+            this.channel.postMessage({ command: 'exit' });
             this.channel.close();
             this.channel = null;
             this.playCallbacks = [];

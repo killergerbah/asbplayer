@@ -1,14 +1,15 @@
 import Mp3Encoder from './Mp3Encoder';
 // eslint-disable-next-line
 import Worker from 'worker-loader!./mp3-encoder.js';
-const AUDIO_TYPES = {"audio/ogg;codecs=opus": "ogg", "audio/webm;codecs=opus": "webm"}
-const [recorderMimeType, recorderExtension] = Object.keys(AUDIO_TYPES).filter(MediaRecorder.isTypeSupported).map(t => [t, AUDIO_TYPES[t]])[0];
+const AUDIO_TYPES = { 'audio/ogg;codecs=opus': 'ogg', 'audio/webm;codecs=opus': 'webm' };
+const [recorderMimeType, recorderExtension] = Object.keys(AUDIO_TYPES)
+    .filter(MediaRecorder.isTypeSupported)
+    .map((t) => [t, AUDIO_TYPES[t]])[0];
 const defaultMp3WorkerFactory = () => new Worker();
 
 class Base64AudioData {
-
     constructor(baseName, start, end, base64, extension) {
-        this.name = baseName + "_" + Math.floor(start) + "_" + Math.floor(end);
+        this.name = baseName + '_' + Math.floor(start) + '_' + Math.floor(end);
         this.start = start;
         this.end = end;
         this._base64 = base64;
@@ -27,7 +28,7 @@ class Base64AudioData {
         const blob = await this._blob();
         const audio = new Audio();
         audio.src = URL.createObjectURL(blob);
-        audio.preload = "none";
+        audio.preload = 'none';
         audio.load();
 
         await audio.play();
@@ -45,7 +46,7 @@ class Base64AudioData {
 
     async _blob() {
         if (!this.cachedBlob) {
-            this.cachedBlob = await (await fetch("data:audio/" + this.extension + ";base64," + this._base64)).blob();
+            this.cachedBlob = await (await fetch('data:audio/' + this.extension + ';base64,' + this._base64)).blob();
         }
 
         return this.cachedBlob;
@@ -62,10 +63,9 @@ class Base64AudioData {
 }
 
 class FileAudioData {
-
     constructor(file, start, end, trackId) {
         this.file = file;
-        this.name = file.name + "_" + start + "_" + end;
+        this.name = file.name + '_' + start + '_' + end;
         this.start = start;
         this.end = end;
         this.trackId = trackId;
@@ -80,7 +80,7 @@ class FileAudioData {
                 const result = reader.result;
                 const base64 = result.substr(result.indexOf(',') + 1);
                 resolve(base64);
-            }
+            };
         });
     }
 
@@ -137,7 +137,7 @@ class FileAudioData {
     _audioElement(source) {
         const audio = new Audio();
         audio.src = URL.createObjectURL(source);
-        audio.preload = "none";
+        audio.preload = 'none';
 
         // FIXME: clipping the correct audio track selection doesn't actually work right now.
         if (this.trackId && audio.audioTracks && audio.audioTracks.length > 0) {
@@ -153,15 +153,15 @@ class FileAudioData {
     }
 
     _captureStream(audio) {
-        if (typeof audio.captureStream === "function") {
+        if (typeof audio.captureStream === 'function') {
             return audio.captureStream();
         }
 
-        if (typeof audio.mozCaptureStream === "function") {
+        if (typeof audio.mozCaptureStream === 'function') {
             return audio.mozCaptureStream();
         }
 
-        throw new Error("Unable to capture stream from audio");
+        throw new Error('Unable to capture stream from audio');
     }
 
     async _stopAudio(audio) {
@@ -186,7 +186,6 @@ class FileAudioData {
 }
 
 class Mp3AudioData {
-
     constructor(data, workerFactory) {
         this.data = data;
         this.workerFactory = workerFactory;
@@ -197,7 +196,7 @@ class Mp3AudioData {
     }
 
     get extension() {
-        return "mp3";
+        return 'mp3';
     }
 
     async base64() {
@@ -209,8 +208,8 @@ class Mp3AudioData {
                     const result = reader.result;
                     const base64 = result.substr(result.indexOf(',') + 1);
                     resolve(base64);
-                }
-            } catch(e) {
+                };
+            } catch (e) {
                 reject(e);
             }
         });
@@ -238,13 +237,20 @@ class Mp3AudioData {
 }
 
 export default class AudioClip {
-
     constructor(data) {
         this.data = data;
     }
 
     static fromBase64(subtitleFileName, start, end, base64, extension) {
-        return new AudioClip(new Base64AudioData(subtitleFileName.substring(0, subtitleFileName.lastIndexOf(".")), start, end, base64, extension));
+        return new AudioClip(
+            new Base64AudioData(
+                subtitleFileName.substring(0, subtitleFileName.lastIndexOf('.')),
+                start,
+                end,
+                base64,
+                extension
+            )
+        );
     }
 
     static fromFile(file, start, end, trackId) {
@@ -252,7 +258,7 @@ export default class AudioClip {
     }
 
     get name() {
-        return this.data.name + "." + this.data.extension;
+        return this.data.name + '.' + this.data.extension;
     }
 
     async play() {
@@ -266,9 +272,9 @@ export default class AudioClip {
     async download() {
         const blob = await this.data.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
+        const a = document.createElement('a');
         document.body.appendChild(a);
-        a.style = "display: none";
+        a.style = 'display: none';
         a.href = url;
         a.download = this.name;
         a.click();

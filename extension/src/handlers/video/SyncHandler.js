@@ -1,5 +1,4 @@
 export default class SyncHandler {
-
     constructor(tabRegistry) {
         this.tabRegistry = tabRegistry;
     }
@@ -21,10 +20,10 @@ export default class SyncHandler {
                 sender: 'asbplayer-extension-to-player',
                 message: {
                     command: 'syncv2',
-                    subtitles: request.message.subtitles
+                    subtitles: request.message.subtitles,
                 },
                 src: request.src,
-                tabId: sender.tab.id
+                tabId: sender.tab.id,
             });
         }
     }

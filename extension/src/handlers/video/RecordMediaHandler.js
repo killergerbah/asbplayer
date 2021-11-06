@@ -3,7 +3,6 @@ import ImageCapturer from '../../services/ImageCapturer';
 import { v4 as uuidv4 } from 'uuid';
 
 export default class RecordMediaHandler {
-
     constructor(audioRecorder, imageCapturer) {
         this.audioRecorder = audioRecorder;
         this.imageCapturer = imageCapturer;
@@ -21,7 +20,7 @@ export default class RecordMediaHandler {
         const windowActive = await this._isWindowActive(sender.tab.windowId);
 
         if (!windowActive) {
-            console.error("Received record request from wrong window.");
+            console.error('Received record request from wrong window.');
             return;
         }
 
@@ -31,33 +30,38 @@ export default class RecordMediaHandler {
             command: 'copy',
             id: itemId,
             subtitle: subtitle,
-            surroundingSubtitles: request.message.surroundingSubtitles
+            surroundingSubtitles: request.message.surroundingSubtitles,
         };
 
         let audioPromise = null;
         let imagePromise = null;
 
         if (request.message.record) {
-            const time = (subtitle.end - subtitle.start) / request.message.playbackRate + request.message.audioPaddingEnd;
+            const time =
+                (subtitle.end - subtitle.start) / request.message.playbackRate + request.message.audioPaddingEnd;
             audioPromise = this.audioRecorder.startWithTimeout(time);
         }
 
         if (request.message.screenshot) {
-            imagePromise = this.imageCapturer.capture(request.message.rect, request.message.maxImageWidth, request.message.maxImageHeight);
+            imagePromise = this.imageCapturer.capture(
+                request.message.rect,
+                request.message.maxImageWidth,
+                request.message.maxImageHeight
+            );
         }
 
         if (imagePromise) {
             const imageBase64 = await imagePromise;
             message['image'] = {
                 base64: imageBase64,
-                extension: 'jpeg'
+                extension: 'jpeg',
             };
             chrome.tabs.sendMessage(sender.tab.id, {
                 sender: 'asbplayer-extension-to-video',
                 message: {
-                    command: 'screenshot-taken'
+                    command: 'screenshot-taken',
                 },
-                src: request.src
+                src: request.src,
             });
         }
 
@@ -67,7 +71,7 @@ export default class RecordMediaHandler {
                 base64: audioBase64,
                 extension: 'webm',
                 paddingStart: request.message.audioPaddingStart,
-                paddingEnd: request.message.audioPaddingEnd
+                paddingEnd: request.message.audioPaddingEnd,
             };
         }
 
@@ -77,7 +81,7 @@ export default class RecordMediaHandler {
                     sender: 'asbplayer-extension-to-player',
                     message: message,
                     tabId: sender.tab.id,
-                    src: request.src
+                    src: request.src,
                 });
             }
         });
@@ -93,7 +97,7 @@ export default class RecordMediaHandler {
                     image: message.image,
                     audio: message.audio,
                 },
-                src: request.src
+                src: request.src,
             });
         }
     }

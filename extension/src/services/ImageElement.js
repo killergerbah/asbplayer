@@ -1,5 +1,4 @@
 export default class ImageElement {
-
     constructor(video) {
         this.video = video;
     }
@@ -10,11 +9,11 @@ export default class ImageElement {
         }
 
         const container = document.createElement('div');
-        container.classList.add("asbplayer-image-container");
-        container.classList.add("asbplayer-hide");
+        container.classList.add('asbplayer-image-container');
+        container.classList.add('asbplayer-hide');
 
         const image = document.createElement('img');
-        image.classList.add("asbplayer-image");
+        image.classList.add('asbplayer-image');
         image.src = chrome.runtime.getURL('assets/image.png');
 
         this._applyImageContainerStyles(image, container);
@@ -30,12 +29,12 @@ export default class ImageElement {
 
     _applyImageContainerStyles(image, container) {
         const rect = this.video.getBoundingClientRect();
-        const containerWidth = rect.width * .9;
-        const containerHeight = rect.height * .9;
-        container.style.top = (rect.top + rect.height * 0.05) + "px";
-        container.style.left = (rect.left + rect.width * 0.05) + "px";
-        container.style.width = containerWidth + "px";
-        container.style.height = containerHeight + "px";
+        const containerWidth = rect.width * 0.9;
+        const containerHeight = rect.height * 0.9;
+        container.style.top = rect.top + rect.height * 0.05 + 'px';
+        container.style.left = rect.left + rect.width * 0.05 + 'px';
+        container.style.width = containerWidth + 'px';
+        container.style.height = containerHeight + 'px';
 
         const dragImageWidth = 350;
         const dragImageHeight = 450;
@@ -44,11 +43,11 @@ export default class ImageElement {
         const imageHeight = dragImageHeight * imageRatio;
 
         const topOffset = (containerHeight - imageHeight) / 2;
-        const leftOffset =  (containerWidth - imageWidth) / 2;
-        image.style.top = topOffset + "px";
-        image.style.left = leftOffset + "px";
-        image.style.width = imageWidth + "px";
-        image.style.height = imageHeight + "px";
+        const leftOffset = (containerWidth - imageWidth) / 2;
+        image.style.top = topOffset + 'px';
+        image.style.left = leftOffset + 'px';
+        image.style.width = imageWidth + 'px';
+        image.style.height = imageHeight + 'px';
     }
 
     remove() {

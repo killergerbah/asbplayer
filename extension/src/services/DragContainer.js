@@ -2,7 +2,6 @@ import ImageElement from './ImageElement';
 import { bufferToBase64 } from './Base64';
 
 export default class DragContainer {
-
     constructor(video) {
         this.video = video;
         this.imageElement = new ImageElement(video);
@@ -17,10 +16,10 @@ export default class DragContainer {
             e.preventDefault();
 
             this.dragEnterElement = null;
-            this.imageElement.element().classList.add("asbplayer-hide");
-            this.imageElement.element().classList.remove("asbplayer-image-fade-in");
-            this._dragElement().classList.remove("asbplayer-drag-zone-dragging");
-            this._dragElement().classList.add("asbplayer-hide");
+            this.imageElement.element().classList.add('asbplayer-hide');
+            this.imageElement.element().classList.remove('asbplayer-image-fade-in');
+            this._dragElement().classList.remove('asbplayer-drag-zone-dragging');
+            this._dragElement().classList.add('asbplayer-hide');
 
             if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) {
                 return;
@@ -29,7 +28,7 @@ export default class DragContainer {
             const files = [];
 
             for (const f of e.dataTransfer.files) {
-                const extensionStartIndex = f.name.lastIndexOf(".");
+                const extensionStartIndex = f.name.lastIndexOf('.');
 
                 if (extensionStartIndex === -1) {
                     return false;
@@ -46,16 +45,18 @@ export default class DragContainer {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'sync',
-                    subtitles: await Promise.all(files.map(async (f) => {
-                        const base64 = await bufferToBase64(await f.arrayBuffer());
+                    subtitles: await Promise.all(
+                        files.map(async (f) => {
+                            const base64 = await bufferToBase64(await f.arrayBuffer());
 
-                        return {
-                            name: f.name,
-                            base64: base64
-                        };
-                    }))
+                            return {
+                                name: f.name,
+                                base64: base64,
+                            };
+                        })
+                    ),
                 },
-                src: this.video.src
+                src: this.video.src,
             });
         };
 
@@ -65,28 +66,28 @@ export default class DragContainer {
             e.preventDefault();
 
             this.dragEnterElement = e.target;
-            this.imageElement.element().classList.add("asbplayer-drag-image");
-            this.imageElement.element().classList.remove("asbplayer-hide");
-            this.imageElement.element().classList.add("asbplayer-image-fade-in");
+            this.imageElement.element().classList.add('asbplayer-drag-image');
+            this.imageElement.element().classList.remove('asbplayer-hide');
+            this.imageElement.element().classList.add('asbplayer-image-fade-in');
         };
 
         this.dragLeaveListener = (e) => {
             e.preventDefault();
 
             if (this.dragEnterElement === e.target) {
-                this.imageElement.element().classList.add("asbplayer-hide");
-                this.imageElement.element().classList.remove("asbplayer-image-fade-in");
-                this._dragElement().classList.remove("asbplayer-drag-zone-dragging");
-                this._dragElement().classList.add("asbplayer-hide");
+                this.imageElement.element().classList.add('asbplayer-hide');
+                this.imageElement.element().classList.remove('asbplayer-image-fade-in');
+                this._dragElement().classList.remove('asbplayer-drag-zone-dragging');
+                this._dragElement().classList.add('asbplayer-hide');
             }
         };
 
         this.bodyDropListener = (e) => {
             e.preventDefault();
-            this.imageElement.element().classList.add("asbplayer-hide");
-            this.imageElement.element().classList.remove("asbplayer-image-fade-in");
-            this._dragElement().classList.remove("asbplayer-drag-zone-dragging");
-            this._dragElement().classList.add("asbplayer-hide");
+            this.imageElement.element().classList.add('asbplayer-hide');
+            this.imageElement.element().classList.remove('asbplayer-image-fade-in');
+            this._dragElement().classList.remove('asbplayer-drag-zone-dragging');
+            this._dragElement().classList.add('asbplayer-hide');
         };
 
         this.bodyDragOverListener = (e) => e.preventDefault();
@@ -94,18 +95,18 @@ export default class DragContainer {
         this.bodyDragEnterListener = (e) => {
             e.preventDefault();
             this.bodyDragEnterElement = e.target;
-            this._dragElement().classList.add("asbplayer-drag-zone-dragging");
-            this._dragElement().classList.remove("asbplayer-hide");
+            this._dragElement().classList.add('asbplayer-drag-zone-dragging');
+            this._dragElement().classList.remove('asbplayer-hide');
         };
 
         this.bodyDragLeaveListener = (e) => {
             e.preventDefault();
 
             if (this.bodyDragEnterElement === e.target) {
-                this.imageElement.element().classList.add("asbplayer-hide");
-                this.imageElement.element().classList.remove("asbplayer-image-fade-in");
-                this._dragElement().classList.remove("asbplayer-drag-zone-dragging");
-                this._dragElement().classList.add("asbplayer-hide");
+                this.imageElement.element().classList.add('asbplayer-hide');
+                this.imageElement.element().classList.remove('asbplayer-image-fade-in');
+                this._dragElement().classList.remove('asbplayer-drag-zone-dragging');
+                this._dragElement().classList.add('asbplayer-hide');
             }
         };
 
@@ -129,7 +130,7 @@ export default class DragContainer {
         }
 
         const dragElement = document.createElement('div');
-        dragElement.classList.add("asbplayer-drag-zone-initial");
+        dragElement.classList.add('asbplayer-drag-zone-initial');
         this.dragElement = dragElement;
         this._applyDragElementStyles(dragElement);
 
@@ -146,10 +147,10 @@ export default class DragContainer {
         // Shrink the drag zone slightly to avoid accidentally overflowing
         // e.g. when the video's rect changes for some reason
 
-        dragElement.style.top = (rect.top + rect.height * 0.05) + "px";
-        dragElement.style.left = (rect.left + rect.width * 0.05) + "px";
-        dragElement.style.height = (rect.height * .9) + "px";
-        dragElement.style.width = (rect.width * .9) + "px";
+        dragElement.style.top = rect.top + rect.height * 0.05 + 'px';
+        dragElement.style.left = rect.left + rect.width * 0.05 + 'px';
+        dragElement.style.height = rect.height * 0.9 + 'px';
+        dragElement.style.width = rect.width * 0.9 + 'px';
     }
 
     unbind() {
@@ -170,7 +171,7 @@ export default class DragContainer {
 
         if (this.dragLeaveListener) {
             this.dragElement.removeEventListener('dragleave', this.dragLeaveListener, true);
-            this.dragLeaveListener =  null;
+            this.dragLeaveListener = null;
         }
 
         if (this.bodyDropListener) {

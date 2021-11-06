@@ -7,5 +7,12 @@
       "extension",
       "common"
     ]
+  },
+  "devDependencies": {
+    "prettier": "2.4.1"
+  },
+  "scripts": {
+    "pretty": "yarn prettier --write './(client|common|extension)/src/**/*.(js|css)'",
+    "pretty:check": "yarn prettier --check './(client|common|extension)/src/**/*.(js|css)'"
   }
 }

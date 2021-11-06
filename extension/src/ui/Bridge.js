@@ -1,8 +1,7 @@
 export default class Bridge {
-
     onStateUpdated(uiListener) {
         this.uiListener = uiListener;
-        return () => this.uiListener = null;
+        return () => (this.uiListener = null);
     }
 
     updateState(state) {
@@ -15,7 +14,7 @@ export default class Bridge {
 
     async fetch(url, body) {
         if (!this.fetchDelegate) {
-            throw new Error("Unable to fetch because no delegate is set");
+            throw new Error('Unable to fetch because no delegate is set');
         }
 
         return await this.fetchDelegate(url, body);

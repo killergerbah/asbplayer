@@ -1,5 +1,4 @@
 export default class VideoHeartbeatHandler {
-
     constructor(tabRegistry) {
         this.tabRegistry = tabRegistry;
     }
@@ -16,7 +15,7 @@ export default class VideoHeartbeatHandler {
         this.tabRegistry.videoElements[sender.tab.id + ':' + request.src] = {
             tab: sender.tab,
             src: request.src,
-            timestamp: Date.now()
+            timestamp: Date.now(),
         };
     }
 }

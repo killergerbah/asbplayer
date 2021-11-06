@@ -5,7 +5,7 @@ import Alert from '@material-ui/lab/Alert';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import VideoNameDialog from './VideoNameDialog';
 
-export default function VideoNameUi({bridge}) {
+export default function VideoNameUi({ bridge }) {
     const [open, setOpen] = useState(false);
     const [themeType, setThemeType] = useState('dark');
     const theme = useMemo(() => createTheme(themeType), [themeType]);
@@ -16,21 +16,17 @@ export default function VideoNameUi({bridge}) {
     }, [bridge]);
     const handleCancel = useCallback(() => {
         setOpen(false);
-        bridge.finished({command: 'cancel'})
+        bridge.finished({ command: 'cancel' });
     }, [bridge]);
     const handleNameSet = useCallback((name) => {
         setOpen(false);
-        bridge.finished({command: 'name', name: name});
+        bridge.finished({ command: 'name', name: name });
     });
 
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-            <VideoNameDialog
-                open={open}
-                onCancel={handleCancel}
-                onNameSet={handleNameSet}
-            />
+            <VideoNameDialog open={open} onCancel={handleCancel} onNameSet={handleNameSet} />
         </ThemeProvider>
     );
 }

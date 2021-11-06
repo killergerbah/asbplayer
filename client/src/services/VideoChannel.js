@@ -1,5 +1,4 @@
 export default class VideoChannel {
-
     constructor(protocol) {
         this.protocol = protocol;
         this.time = 0;
@@ -24,7 +23,7 @@ export default class VideoChannel {
         const that = this;
 
         this.protocol.onMessage = (event) => {
-            switch(event.data.command) {
+            switch (event.data.command) {
                 case 'ready':
                     that.duration = event.data.duration;
                     that.isReady = true;
@@ -81,7 +80,14 @@ export default class VideoChannel {
                     break;
                 case 'copy':
                     for (let callback of that.copyCallbacks) {
-                        callback(event.data.subtitle, event.data.surroundingSubtitles, event.data.audio, event.data.image, event.data.preventDuplicate, event.data.id);
+                        callback(
+                            event.data.subtitle,
+                            event.data.surroundingSubtitles,
+                            event.data.audio,
+                            event.data.image,
+                            event.data.preventDuplicate,
+                            event.data.id
+                        );
                     }
                     break;
                 case 'condensedModeToggle':
@@ -126,7 +132,7 @@ export default class VideoChannel {
     set currentTime(value) {
         this.time = value;
         this.readyState = 3;
-        this.protocol.postMessage({command: 'currentTime', value: this.time});
+        this.protocol.postMessage({ command: 'currentTime', value: this.time });
     }
 
     onReady(callback) {
@@ -185,23 +191,23 @@ export default class VideoChannel {
     }
 
     ready(duration) {
-        this.protocol.postMessage({command: 'ready', duration: duration});
+        this.protocol.postMessage({ command: 'ready', duration: duration });
     }
 
     init() {
-        this.protocol.postMessage({command: 'init'});
+        this.protocol.postMessage({ command: 'init' });
     }
 
     play() {
-        this.protocol.postMessage({command: 'play'});
+        this.protocol.postMessage({ command: 'play' });
     }
 
     pause() {
-        this.protocol.postMessage({command: 'pause'});
+        this.protocol.postMessage({ command: 'pause' });
     }
 
     audioTrackSelected(id) {
-        this.protocol.postMessage({command: 'audioTrackSelected', id: id});
+        this.protocol.postMessage({ command: 'audioTrackSelected', id: id });
     }
 
     subtitles(subtitles, subtitleFileNames) {
@@ -209,40 +215,40 @@ export default class VideoChannel {
             command: 'subtitles',
             value: subtitles,
             name: subtitleFileNames.length > 0 ? subtitleFileNames[0] : null,
-            names: subtitleFileNames
+            names: subtitleFileNames,
         });
     }
 
     subtitleSettings(settings) {
-        this.protocol.postMessage({command: 'subtitleSettings', value: settings});
+        this.protocol.postMessage({ command: 'subtitleSettings', value: settings });
     }
 
     condensedModeToggle(enabled) {
-        this.protocol.postMessage({command: 'condensedModeToggle', value: enabled});
+        this.protocol.postMessage({ command: 'condensedModeToggle', value: enabled });
     }
 
     hideSubtitlePlayerToggle(hidden) {
-        this.protocol.postMessage({command: 'hideSubtitlePlayerToggle', value: hidden});
+        this.protocol.postMessage({ command: 'hideSubtitlePlayerToggle', value: hidden });
     }
 
     ankiDialogRequest() {
-        this.protocol.postMessage({command: 'ankiDialogRequest'});
+        this.protocol.postMessage({ command: 'ankiDialogRequest' });
     }
 
     finishedAnkiDialogRequest(resume) {
-        this.protocol.postMessage({command: 'finishedAnkiDialogRequest', resume: resume});
+        this.protocol.postMessage({ command: 'finishedAnkiDialogRequest', resume: resume });
     }
 
     ankiSettings(settings) {
-        this.protocol.postMessage({command: 'ankiSettings', value: settings});
+        this.protocol.postMessage({ command: 'ankiSettings', value: settings });
     }
 
     miscSettings(settings) {
-        this.protocol.postMessage({command: 'miscSettings', value: settings});
+        this.protocol.postMessage({ command: 'miscSettings', value: settings });
     }
 
     close() {
-        this.protocol.postMessage({command: 'close'});
+        this.protocol.postMessage({ command: 'close' });
         this.protocol.close();
         this.readyCallbacks = [];
         this.playCallbacks = [];

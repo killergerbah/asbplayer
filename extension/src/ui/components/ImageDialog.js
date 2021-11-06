@@ -5,11 +5,11 @@ import CardMedia from '@material-ui/core/CardMedia';
 import Dialog from '@material-ui/core/Dialog';
 
 const useStyles = makeStyles((theme) => ({
-    image: ({width, height}) => ({
+    image: ({ width, height }) => ({
         width: width,
         height: height,
-        backgroundSize: 'contain'
-    })
+        backgroundSize: 'contain',
+    }),
 }));
 
 // https://stackoverflow.com/questions/19014250/rerender-view-on-browser-resize-with-react
@@ -31,7 +31,7 @@ function useWindowSize() {
 }
 
 export default function ImageDialog(props) {
-    const {open, image, onClose} = props;
+    const { open, image, onClose } = props;
     const [dataUrl, setDataUrl] = useState();
     const [width, setWidth] = useState();
     const [height, setHeight] = useState();
@@ -45,7 +45,7 @@ export default function ImageDialog(props) {
         resizeRatio = 1;
     }
 
-    const classes = useStyles({width: width * resizeRatio, height: height * resizeRatio});
+    const classes = useStyles({ width: width * resizeRatio, height: height * resizeRatio });
 
     useEffect(() => {
         if (!image) {
@@ -72,18 +72,13 @@ export default function ImageDialog(props) {
     }
 
     return (
-        <Dialog
-            open={open}
-            onBackdropClick={onClose}
-            onEscapeKeyDown={onClose}
-            maxWidth='lg'
-        >
+        <Dialog open={open} onBackdropClick={onClose} onEscapeKeyDown={onClose} maxWidth="lg">
             <Card>
                 <CardMedia
                     className={classes.image}
                     image={dataUrl}
                     title={image.name}
-                    style={{width: width * resizeRatio, height: height * resizeRatio}}
+                    style={{ width: width * resizeRatio, height: height * resizeRatio }}
                 />
             </Card>
         </Dialog>

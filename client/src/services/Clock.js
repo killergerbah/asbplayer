@@ -1,5 +1,4 @@
 export default class Clock {
-
     constructor() {
         this.accumulated = 0;
         this.started = false;

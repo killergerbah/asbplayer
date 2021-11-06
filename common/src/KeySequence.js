@@ -4,8 +4,7 @@ const ADVANCED = 2;
 const COMPLETE = 3;
 
 export default class KeySequence {
-
-    constructor({up, holding, canceledBy, map}) {
+    constructor({ up, holding, canceledBy, map }) {
         this.up = up || [];
         this.holding = holding || [];
         this.canceledBy = canceledBy || [];
@@ -66,7 +65,7 @@ export default class KeySequence {
             }
         }
 
-        return {result: result, extra: extra};
+        return { result: result, extra: extra };
     }
 
     _holdingAll() {

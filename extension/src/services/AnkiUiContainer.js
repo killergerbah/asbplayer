@@ -20,14 +20,13 @@ async function html() {
 }
 
 export default class AnkiUiContainer {
-
     constructor() {
         this.currentItem = {};
     }
 
     async show(context, subtitle, surroundingSubtitles, image, audio, id) {
         if (!this.ankiSettings) {
-            throw new Error("Unable to show Anki UI because settings are missing.");
+            throw new Error('Unable to show Anki UI because settings are missing.');
             return;
         }
 
@@ -51,13 +50,13 @@ export default class AnkiUiContainer {
             surroundingSubtitles: surroundingSubtitles,
             image: image,
             audio: audio,
-            themeType: this.themeType
+            themeType: this.themeType,
         });
     }
 
     async showAfterRerecord(context, audio, uiState, id) {
         if (!this.ankiSettings) {
-            throw new Error("Unable to show Anki UI because settings are missing.");
+            throw new Error('Unable to show Anki UI because settings are missing.');
             return;
         }
 
@@ -70,7 +69,7 @@ export default class AnkiUiContainer {
             open: true,
             settingsProvider: this.ankiSettings,
             ...uiState,
-            themeType: this.themeType
+            themeType: this.themeType,
         });
     }
 

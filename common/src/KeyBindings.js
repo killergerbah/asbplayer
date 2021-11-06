@@ -3,7 +3,6 @@ import KeySequence from './KeySequence';
 import KeySequences from './KeySequences';
 
 export default class KeyBindings {
-
     static bindCopy(onCopy, disabledGetter, subtitleGetter, useCapture = false) {
         return KeyBindings._bindDown((event) => {
             if (disabledGetter()) {
@@ -183,7 +182,12 @@ export default class KeyBindings {
         };
     }
 
-    static bindToggleSubtitleTrackInVideo(onToggleSubtitleTrack, onSequenceAdvanced, disabledGetter, useCapture = false) {
+    static bindToggleSubtitleTrackInVideo(
+        onToggleSubtitleTrack,
+        onSequenceAdvanced,
+        disabledGetter,
+        useCapture = false
+    ) {
         const sequence = KeySequences.toggleSubtitleTrack();
         const handler = (event) => {
             if (disabledGetter()) {
@@ -208,7 +212,12 @@ export default class KeyBindings {
         };
     }
 
-    static bindToggleSubtitleTrackInList(onToggleSubtitleTrackInList, onSequenceAdvanced, disabledGetter, useCapture = false) {
+    static bindToggleSubtitleTrackInList(
+        onToggleSubtitleTrackInList,
+        onSequenceAdvanced,
+        disabledGetter,
+        useCapture = false
+    ) {
         const sequence = KeySequences.toggleSubtitleTrackInList();
         const handler = (event) => {
             if (disabledGetter()) {

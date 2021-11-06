@@ -1,5 +1,4 @@
 export default class CanvasResizer {
-
     resize(canvas, ctx, maxWidth, maxHeight) {
         return new Promise((resolve, reject) => {
             const widthRatio = maxWidth <= 0 ? 1 : maxWidth / canvas.width;
@@ -9,8 +8,8 @@ export default class CanvasResizer {
             if (ratio < 1) {
                 const newWidth = canvas.width * ratio;
                 const newHeight = canvas.height * ratio;
-                createImageBitmap(canvas, {resizeWidth: newWidth, resizeHeight: newHeight})
-                    .then(sprite => {
+                createImageBitmap(canvas, { resizeWidth: newWidth, resizeHeight: newHeight })
+                    .then((sprite) => {
                         canvas.width = newWidth;
                         canvas.height = newHeight;
                         ctx.drawImage(sprite, 0, 0);

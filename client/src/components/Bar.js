@@ -22,12 +22,12 @@ const useStyles = makeStyles((theme) => ({
         }),
     },
     appBarShift: {
-        width: ({drawerWidth}) => `calc(100% - ${drawerWidth}px)`,
+        width: ({ drawerWidth }) => `calc(100% - ${drawerWidth}px)`,
         transition: theme.transitions.create(['margin', 'width'], {
-          easing: theme.transitions.easing.easeOut,
-          duration: theme.transitions.duration.enteringScreen,
+            easing: theme.transitions.easing.easeOut,
+            duration: theme.transitions.duration.enteringScreen,
         }),
-        marginRight: ({drawerWidth}) => drawerWidth,
+        marginRight: ({ drawerWidth }) => drawerWidth,
     },
     copyHistoryButton: {
         transform: 'scaleX(1)',
@@ -36,7 +36,7 @@ const useStyles = makeStyles((theme) => ({
         transition: theme.transitions.create(['transform', 'padding', 'width'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
-        })
+        }),
     },
     copyHistoryButtonShift: {
         transform: 'scaleX(0)',
@@ -48,18 +48,18 @@ const useStyles = makeStyles((theme) => ({
         }),
     },
     hide: {
-        display: 'none'
-    }
+        display: 'none',
+    },
 }));
 
 const useCopyHistoryTooltipStyles = makeStyles((theme) => ({
-    tooltip: ({show}) => ({
+    tooltip: ({ show }) => ({
         display: show ? 'block' : 'none',
     }),
 }));
 
-function CopyHistoryTooltip({show, ...toolTipProps}) {
-    const classes = useCopyHistoryTooltipStyles({show: show});
+function CopyHistoryTooltip({ show, ...toolTipProps }) {
+    const classes = useCopyHistoryTooltipStyles({ show: show });
     return <Tooltip classes={classes} {...toolTipProps} />;
 }
 
@@ -75,11 +75,7 @@ export default function Bar(props) {
         >
             <Toolbar>
                 <Tooltip title="Open Files">
-                    <IconButton
-                        edge="start"
-                        color="inherit"
-                        onClick={props.onFileSelector}
-                    >
+                    <IconButton edge="start" color="inherit" onClick={props.onFileSelector}>
                         <FolderOpenIcon />
                     </IconButton>
                 </Tooltip>
@@ -99,20 +95,12 @@ export default function Bar(props) {
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Help">
-                    <IconButton
-                        edge="end"
-                        color="inherit"
-                        onClick={props.onOpenHelp}
-                    >
+                    <IconButton edge="end" color="inherit" onClick={props.onOpenHelp}>
                         <HelpIcon />
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Settings">
-                    <IconButton
-                        edge="end"
-                        color="inherit"
-                        onClick={props.onOpenSettings}
-                    >
+                    <IconButton edge="end" color="inherit" onClick={props.onOpenSettings}>
                         <SettingsIcon />
                     </IconButton>
                 </Tooltip>

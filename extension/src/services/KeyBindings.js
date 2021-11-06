@@ -1,9 +1,7 @@
 import { KeyBindings as CommonKeyBindings } from '@project/common';
 
 export default class KeyBindings {
-
-    constructor() {
-    }
+    constructor() {}
 
     bind(context) {
         if (this.bound) {
@@ -31,9 +29,9 @@ export default class KeyBindings {
                 chrome.runtime.sendMessage({
                     sender: 'asbplayer-video',
                     message: {
-                        command: 'toggle-subtitles'
+                        command: 'toggle-subtitles',
                     },
-                    src: context.video.src
+                    src: context.video.src,
                 });
             },
             () => {},
@@ -45,7 +43,8 @@ export default class KeyBindings {
             (event, track) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                context.subtitleContainer.disabledSubtitleTracks[track] = !context.subtitleContainer.disabledSubtitleTracks[track];
+                context.subtitleContainer.disabledSubtitleTracks[track] =
+                    !context.subtitleContainer.disabledSubtitleTracks[track];
             },
             () => {
                 event.preventDefault();
@@ -63,9 +62,9 @@ export default class KeyBindings {
                     sender: 'asbplayer-video',
                     message: {
                         command: 'toggleSubtitleTrackInList',
-                        track: track
+                        track: track,
                     },
-                    src: context.video.src
+                    src: context.video.src,
                 });
             },
             () => {},

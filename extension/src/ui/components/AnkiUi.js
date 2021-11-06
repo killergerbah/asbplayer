@@ -8,12 +8,12 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import ImageDialog from './ImageDialog';
 import Snackbar from '@material-ui/core/Snackbar';
 
-export default function AnkiUi({bridge, mp3WorkerUrl}) {
+export default function AnkiUi({ bridge, mp3WorkerUrl }) {
     const [open, setOpen] = useState(false);
     const [disabled, setDisabled] = useState(false);
     const [id, setId] = useState();
     const [subtitle, setSubtitle] = useState();
-    const [text, setText] = useState("");
+    const [text, setText] = useState('');
     const [audioClip, setAudioClip] = useState();
     const [serializedAudio, setSerializedAudio] = useState();
     const [image, setImage] = useState();
@@ -21,12 +21,12 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
     const [imageDialogOpen, setImageDialogOpen] = useState(false);
     const [source, setSource] = useState();
     const [sliderContext, setSliderContext] = useState();
-    const [definition, setDefinition] = useState("");
-    const [word, setWord] = useState("");
+    const [definition, setDefinition] = useState('');
+    const [word, setWord] = useState('');
     const [customFieldValues, setCustomFieldValues] = useState({});
     const [timestampInterval, setTimestampInterval] = useState();
     const [lastAppliedTimestampIntervalToText, setLastAppliedTimestampIntervalToText] = useState();
-    const [settingsProvider, setSettingsProvider] = useState({customAnkiFields: {}});
+    const [settingsProvider, setSettingsProvider] = useState({ customAnkiFields: {} });
     const [alertSeverity, setAlertSeverity] = useState();
     const [alertOpen, setAlertOpen] = useState(false);
     const [alert, setAlert] = useState();
@@ -45,11 +45,18 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
                 setSliderContext({
                     subtitleStart: state.subtitle.start,
                     subtitleEnd: state.subtitle.end,
-                    subtitles: state.surroundingSubtitles || [{start: state.subtitle.start, end: state.subtitle.end, text: state.subtitle.text, track: state.subtitle.track}]
+                    subtitles: state.surroundingSubtitles || [
+                        {
+                            start: state.subtitle.start,
+                            end: state.subtitle.end,
+                            text: state.subtitle.text,
+                            track: state.subtitle.track,
+                        },
+                    ],
                 });
                 setSource(`${state.source} (${humanReadableTime(state.subtitle.start)})`);
-                setDefinition("");
-                setWord("");
+                setDefinition('');
+                setWord('');
                 setCustomFieldValues({});
                 setLastAppliedTimestampIntervalToText();
 
@@ -90,12 +97,7 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
             let image;
 
             if (state.image) {
-                image = Image.fromBase64(
-                    state.source,
-                    state.subtitle.start,
-                    state.image.base64,
-                    state.image.extension
-                );
+                image = Image.fromBase64(state.source, state.subtitle.start, state.image.base64, state.image.extension);
             }
 
             setSerializedAudio(state.audio);
@@ -111,40 +113,43 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
         });
     }, [bridge, mp3WorkerUrl]);
 
-    const handleProceed = useCallback(async (text, definition, audioClip, image, word, source, customFieldValues, mode) => {
-        setDisabled(true);
+    const handleProceed = useCallback(
+        async (text, definition, audioClip, image, word, source, customFieldValues, mode) => {
+            setDisabled(true);
 
-        try {
-            const result = await anki.export(
-                text,
-                definition,
-                audioClip,
-                image,
-                word,
-                source,
-                customFieldValues,
-                mode
-            );
+            try {
+                const result = await anki.export(
+                    text,
+                    definition,
+                    audioClip,
+                    image,
+                    word,
+                    source,
+                    customFieldValues,
+                    mode
+                );
 
-            if (mode !== 'gui') {
-                setOpen(false);
-                setImageDialogOpen(false);
-                bridge.finished({command: 'resume'});
+                if (mode !== 'gui') {
+                    setOpen(false);
+                    setImageDialogOpen(false);
+                    bridge.finished({ command: 'resume' });
+                }
+            } catch (e) {
+                console.error(e);
+                setAlertSeverity('error');
+                setAlert(e.message);
+                setAlertOpen(true);
+            } finally {
+                setDisabled(false);
             }
-        } catch (e) {
-            console.error(e);
-            setAlertSeverity("error");
-            setAlert(e.message);
-            setAlertOpen(true);
-        } finally {
-            setDisabled(false);
-        }
-    }, [anki, bridge]);
+        },
+        [anki, bridge]
+    );
 
     const handleCancel = useCallback(() => {
         setOpen(false);
         setImageDialogOpen(false);
-        bridge.finished({command: 'resume'});
+        bridge.finished({ command: 'resume' });
     }, [bridge]);
 
     const handleViewImage = useCallback((image) => {
@@ -152,34 +157,46 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
         setImageDialogOpen(true);
     }, []);
 
-    const handleRerecord = useCallback(({text, sliderContext, definition, word, source, customFieldValues, timestampInterval, lastAppliedTimestampIntervalToText}) => {
-        setOpen(false);
-        setImageDialogOpen(false);
-        bridge.finished({
-            command: 'rerecord',
-            uiState: {
-                subtitle: subtitle,
-                text: text,
-                sliderContext: sliderContext,
-                definition: definition,
-                image: serializedImage,
-                word: word,
-                source: source,
-                customFieldValues: customFieldValues,
-                timestampInterval: timestampInterval,
-                lastAppliedTimestampIntervalToText: lastAppliedTimestampIntervalToText,
-            },
-            id: id,
-            recordStart: timestampInterval[0],
-            recordEnd: timestampInterval[1]
-        });
-    }, [serializedImage, subtitle, id]);
+    const handleRerecord = useCallback(
+        ({
+            text,
+            sliderContext,
+            definition,
+            word,
+            source,
+            customFieldValues,
+            timestampInterval,
+            lastAppliedTimestampIntervalToText,
+        }) => {
+            setOpen(false);
+            setImageDialogOpen(false);
+            bridge.finished({
+                command: 'rerecord',
+                uiState: {
+                    subtitle: subtitle,
+                    text: text,
+                    sliderContext: sliderContext,
+                    definition: definition,
+                    image: serializedImage,
+                    word: word,
+                    source: source,
+                    customFieldValues: customFieldValues,
+                    timestampInterval: timestampInterval,
+                    lastAppliedTimestampIntervalToText: lastAppliedTimestampIntervalToText,
+                },
+                id: id,
+                recordStart: timestampInterval[0],
+                recordEnd: timestampInterval[1],
+            });
+        },
+        [serializedImage, subtitle, id]
+    );
 
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <Snackbar
-                anchorOrigin={{horizontal: 'center', vertical: 'top'}}
+                anchorOrigin={{ horizontal: 'center', vertical: 'top' }}
                 open={alertOpen}
                 autoHideDuration={5000}
                 onClose={() => setAlertOpen(false)}
@@ -188,11 +205,7 @@ export default function AnkiUi({bridge, mp3WorkerUrl}) {
                     {alert}
                 </Alert>
             </Snackbar>
-            <ImageDialog
-                open={imageDialogOpen}
-                image={image}
-                onClose={() => setImageDialogOpen(false)}
-            />
+            <ImageDialog open={imageDialogOpen} image={image} onClose={() => setImageDialogOpen(false)} />
             <AnkiDialog
                 open={open}
                 disabled={disabled}

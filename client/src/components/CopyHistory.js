@@ -19,11 +19,11 @@ import Typography from '@material-ui/core/Typography';
 
 const useStyles = makeStyles((theme) => ({
     drawer: {
-        width: ({drawerWidth}) => drawerWidth,
+        width: ({ drawerWidth }) => drawerWidth,
         flexShrink: 0,
     },
     drawerPaper: {
-        width: ({drawerWidth}) => drawerWidth,
+        width: ({ drawerWidth }) => drawerWidth,
     },
     drawerHeader: {
         display: 'flex',
@@ -38,30 +38,30 @@ const useStyles = makeStyles((theme) => ({
         position: 'relative',
         height: '100%',
         overflowY: 'auto',
-        overflowX: 'hidden'
+        overflowX: 'hidden',
     },
     listItem: {
         '&:hover': {
-            backgroundColor: theme.palette.action.hover
-        }
+            backgroundColor: theme.palette.action.hover,
+        },
     },
     listItemGutters: {
         paddingLeft: 5,
-        paddingRight: 5
+        paddingRight: 5,
     },
     listItemIconRoot: {
-        minWidth: 20
+        minWidth: 20,
     },
     emptyState: {
-        display: "flex",
-        justifyContent: "center",
-        flexDirection: "column",
-        textAlign: "center",
-        height: "100%",
-        padding: 15
+        display: 'flex',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        textAlign: 'center',
+        height: '100%',
+        padding: 15,
     },
     text: {
-        flexGrow: 1
+        flexGrow: 1,
     },
     emptyText: {
         flexGrow: 1,
@@ -71,11 +71,11 @@ const useStyles = makeStyles((theme) => ({
         paddingRight: 15,
         paddingLeft: 15,
         color: theme.palette.text.secondary,
-    }
+    },
 }));
 
 function Menu(props) {
-    const {open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage, onDelete, item} = props;
+    const { open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage, onDelete, item } = props;
 
     const handleCopy = useCallback(() => {
         navigator.clipboard.writeText(item.text);
@@ -119,26 +119,27 @@ function Menu(props) {
             transformOrigin={{
                 vertical: 'top',
                 horizontal: 'right',
-            }}>
+            }}
+        >
             <List>
                 <ListItem button onClick={handleCopy}>
-                    <ListItemText primaryTypographyProps={{variant: "body2"}} primary="Copy" />
+                    <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary="Copy" />
                 </ListItem>
                 <ListItem button onClick={handleJumpTo}>
-                    <ListItemText primaryTypographyProps={{variant: "body2"}} primary="Jump To" />
+                    <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary="Jump To" />
                 </ListItem>
                 {(item.videoFile || item.audioFile || item.audio) && (
                     <ListItem button onClick={handleClipAudio}>
-                        <ListItemText primaryTypographyProps={{variant: "body2"}} primary="Download Audio" />
+                        <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary="Download Audio" />
                     </ListItem>
                 )}
                 {(item.videoFile || item.image) && (
                     <ListItem button onClick={handleDownloadImage}>
-                        <ListItemText primaryTypographyProps={{variant: "body2"}} primary="Download Image" />
+                        <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary="Download Image" />
                     </ListItem>
                 )}
                 <ListItem button onClick={handleDelete}>
-                    <ListItemText primaryTypographyProps={{variant: "body2"}} primary="Delete" />
+                    <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary="Delete" />
                 </ListItem>
             </List>
         </Popover>
@@ -147,7 +148,7 @@ function Menu(props) {
 
 export default function CopyHistory(props) {
     const classes = useStyles(props);
-    const scrollToBottomRefCallback =  useCallback(element => {
+    const scrollToBottomRefCallback = useCallback((element) => {
         if (element) {
             element.scrollIntoView();
         }
@@ -168,9 +169,12 @@ export default function CopyHistory(props) {
         setMenuAnchorEl(null);
     }, []);
 
-    const handleDelete = useCallback((item) => {
-        props.onDelete(item);
-    }, [props]);
+    const handleDelete = useCallback(
+        (item) => {
+            props.onDelete(item);
+        },
+        [props]
+    );
 
     let content;
 
@@ -189,39 +193,48 @@ export default function CopyHistory(props) {
                 }
 
                 lastSeenItemName = item.name;
-                items.push((<ListSubheader disableSticky={true} key={item.name + "-" + itemNameCounters[item.name]}>{item.name}</ListSubheader>));
-
+                items.push(
+                    <ListSubheader disableSticky={true} key={item.name + '-' + itemNameCounters[item.name]}>
+                        {item.name}
+                    </ListSubheader>
+                );
             }
 
             const ref = i === props.items.length - 1 ? scrollToBottomRefCallback : null;
 
-            items.push((
+            items.push(
                 <ListItem
                     ref={ref}
                     key={item.id}
                     className={classes.listItem}
-                    classes={{gutters: classes.listItemGutters}}
+                    classes={{ gutters: classes.listItemGutters }}
                 >
-                    <ListItemIcon classes={{root: classes.listItemIconRoot}}>
+                    <ListItemIcon classes={{ root: classes.listItemIconRoot }}>
                         <Tooltip title="Export to Anki">
                             <IconButton onClick={() => props.onAnki(item)}>
                                 <StarIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
                     </ListItemIcon>
-                    <ListItemIcon classes={{root: classes.listItemIconRoot}}>
+                    <ListItemIcon classes={{ root: classes.listItemIconRoot }}>
                         <IconButton onClick={(e) => handleMenu(e, item)}>
                             <MoreVertIcon fontSize="small" />
                         </IconButton>
                     </ListItemIcon>
-                    <ListItemText primary={
-                        <Grid wrap="nowrap" container>
-                            <Grid item className={item.text === '' ? classes.emptyText : classes.text}>{item.text === '' ? 'No text' : item.text}</Grid>
-                            <Grid item className={classes.timestamp}>{timeDurationDisplay(item.start, item.start, false)}</Grid>
-                        </Grid>
-                    }/>
+                    <ListItemText
+                        primary={
+                            <Grid wrap="nowrap" container>
+                                <Grid item className={item.text === '' ? classes.emptyText : classes.text}>
+                                    {item.text === '' ? 'No text' : item.text}
+                                </Grid>
+                                <Grid item className={classes.timestamp}>
+                                    {timeDurationDisplay(item.start, item.start, false)}
+                                </Grid>
+                            </Grid>
+                        }
+                    />
                 </ListItem>
-            ));
+            );
 
             ++i;
         }
@@ -235,13 +248,10 @@ export default function CopyHistory(props) {
         content = (
             <div className={classes.emptyState}>
                 <Typography variant="h6">Copy history is empty.</Typography>
-                <Typography variant="caption">
-                    See the help for keyboard shortcuts.
-                </Typography>
+                <Typography variant="caption">See the help for keyboard shortcuts.</Typography>
             </div>
         );
     }
-
 
     return (
         <React.Fragment>
@@ -252,7 +262,8 @@ export default function CopyHistory(props) {
                 className={classes.drawer}
                 classes={{
                     paper: classes.drawerPaper,
-                }}>
+                }}
+            >
                 <div className={classes.drawerHeader}>
                     <IconButton onClick={props.onClose}>
                         <ChevronRightIcon />

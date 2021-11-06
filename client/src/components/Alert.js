@@ -11,8 +11,8 @@ const useAlertStyles = makeStyles({
         top: 80,
         width: '100%',
         pointerEvents: 'none',
-        zIndex: 2000
-    }
+        zIndex: 2000,
+    },
 });
 
 export default function Alert(props) {
@@ -30,9 +30,7 @@ export default function Alert(props) {
     return (
         <div className={classes.root}>
             <Grow in={props.open}>
-               <MuiAlert severity={props.severity}>
-                   {props.children}
-               </MuiAlert>
+                <MuiAlert severity={props.severity}>{props.children}</MuiAlert>
             </Grow>
         </div>
     );

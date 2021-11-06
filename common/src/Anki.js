@@ -4,7 +4,6 @@ const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
 const fileNameSpecialCharacters = [':', '/', '\\', '<', '>', '"', '|', '?', '*', '^'];
 
 export default class Anki {
-
     constructor(settingsProvider, fetcher = new HttpFetcher()) {
         this.settingsProvider = settingsProvider;
         this.fetcher = fetcher;
@@ -21,14 +20,14 @@ export default class Anki {
     }
 
     async modelFieldNames(modelName, ankiConnectUrl) {
-        const response = await this._executeAction('modelFieldNames', {modelName: modelName}, ankiConnectUrl);
+        const response = await this._executeAction('modelFieldNames', { modelName: modelName }, ankiConnectUrl);
         return response.result;
     }
 
     async findNotesWithWord(word, ankiConnectUrl) {
         const response = await this._executeAction(
             'findNotes',
-            {query: this.settingsProvider.wordField + ":" + this._escapeQuery(word)},
+            { query: this.settingsProvider.wordField + ':' + this._escapeQuery(word) },
             ankiConnectUrl
         );
         return response.result;
@@ -37,14 +36,14 @@ export default class Anki {
     async findNotesWithWordGui(word, ankiConnectUrl) {
         const response = await this._executeAction(
             'guiBrowse',
-            {query: this.settingsProvider.wordField + ":" + this._escapeQuery(word)},
+            { query: this.settingsProvider.wordField + ':' + this._escapeQuery(word) },
             ankiConnectUrl
         );
         return response.result;
     }
 
     _escapeQuery(query) {
-        let escaped = "";
+        let escaped = '';
 
         for (let i = 0; i < query.length; ++i) {
             const char = query[i];
@@ -73,7 +72,12 @@ export default class Anki {
 
         if (customFieldValues) {
             for (const customFieldName of Object.keys(customFieldValues)) {
-                this._appendField(fields, this.settingsProvider.customAnkiFields[customFieldName], customFieldValues[customFieldName], false);
+                this._appendField(
+                    fields,
+                    this.settingsProvider.customAnkiFields[customFieldName],
+                    customFieldValues[customFieldName],
+                    false
+                );
             }
         }
 
@@ -86,10 +90,10 @@ export default class Anki {
                     duplicateScope: 'deck',
                     duplicateScopeOptions: {
                         deckName: this.settingsProvider.deck,
-                        checkChildren: false
-                    }
-                }
-            }
+                        checkChildren: false,
+                    },
+                },
+            },
         };
 
         const gui = mode === 'gui';
@@ -98,15 +102,14 @@ export default class Anki {
             const sanitizedName = this._sanitizeFileName(audioClip.name);
 
             if (gui) {
-                const fileName = (await this._storeMediaFile(sanitizedName, await audioClip.base64(), ankiConnectUrl)).result;
-                this._appendField(fields, this.settingsProvider.audioField, `[sound:${fileName}]`, false)
+                const fileName = (await this._storeMediaFile(sanitizedName, await audioClip.base64(), ankiConnectUrl))
+                    .result;
+                this._appendField(fields, this.settingsProvider.audioField, `[sound:${fileName}]`, false);
             } else {
                 params.note.audio = {
                     filename: sanitizedName,
                     data: await audioClip.base64(),
-                    fields: [
-                        this.settingsProvider.audioField
-                    ]
+                    fields: [this.settingsProvider.audioField],
                 };
             }
         }
@@ -115,16 +118,20 @@ export default class Anki {
             const sanitizedName = this._sanitizeFileName(image.name);
 
             if (gui) {
-                const fileName = (await this._storeMediaFile(sanitizedName, await image.base64(), ankiConnectUrl)).result;
-                this._appendField(fields, this.settingsProvider.imageField, `<div><img src="${fileName}"></div>`, false);
+                const fileName = (await this._storeMediaFile(sanitizedName, await image.base64(), ankiConnectUrl))
+                    .result;
+                this._appendField(
+                    fields,
+                    this.settingsProvider.imageField,
+                    `<div><img src="${fileName}"></div>`,
+                    false
+                );
             } else {
                 params.note.picture = {
                     filename: sanitizedName,
                     data: await image.base64(),
-                    fields: [
-                        this.settingsProvider.imageField
-                    ]
-                }
+                    fields: [this.settingsProvider.imageField],
+                };
             }
         }
 
@@ -134,11 +141,9 @@ export default class Anki {
             case 'gui':
                 return (await this._executeAction('guiAddCards', params, ankiConnectUrl)).result;
             case 'updateLast':
-                const recentNotes = (await this._executeAction(
-                    'findNotes',
-                    {query: 'added:1'},
-                    ankiConnectUrl
-                )).result.sort();
+                const recentNotes = (
+                    await this._executeAction('findNotes', { query: 'added:1' }, ankiConnectUrl)
+                ).result.sort();
 
                 if (recentNotes.length === 0) {
                     throw new Error('Could not find note to update');
@@ -153,7 +158,6 @@ export default class Anki {
             default:
                 throw new Error('Unknown export mode: ' + mode);
         }
-
     }
 
     _appendField(fields, fieldName, value, multiline) {
@@ -161,24 +165,24 @@ export default class Anki {
             return;
         }
 
-        let newValue =  multiline ? value.split("\n").join("<br>") : value;
+        let newValue = multiline ? value.split('\n').join('<br>') : value;
         const existingValue = fields[fieldName];
 
         if (existingValue) {
-            newValue = existingValue + "<br>" + newValue;
+            newValue = existingValue + '<br>' + newValue;
         }
 
         fields[fieldName] = newValue;
     }
 
     _sanitizeFileName(name) {
-        let sanitized = "";
+        let sanitized = '';
 
         for (let i = 0; i < name.length; ++i) {
             const char = name[i];
 
             if (fileNameSpecialCharacters.includes(char)) {
-                sanitized += "_";
+                sanitized += '_';
             } else {
                 sanitized += char;
             }
@@ -188,13 +192,13 @@ export default class Anki {
     }
 
     async _storeMediaFile(name, base64, ankiConnectUrl) {
-        return this._executeAction('storeMediaFile', {filename: name, data: base64}, ankiConnectUrl);
+        return this._executeAction('storeMediaFile', { filename: name, data: base64 }, ankiConnectUrl);
     }
 
     async _executeAction(action, params, ankiConnectUrl) {
         const body = {
             action: action,
-            version: 6
+            version: 6,
         };
 
         if (params) {

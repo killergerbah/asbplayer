@@ -8,7 +8,7 @@ window.addEventListener('load', (event) => {
         const videoElements = document.getElementsByTagName('video');
 
         for (const v of videoElements) {
-            const bindingExists = bindings.filter(b => b.video.isSameNode(v)).length > 0;
+            const bindingExists = bindings.filter((b) => b.video.isSameNode(v)).length > 0;
 
             if (!bindingExists) {
                 const b = new Binding(v);
@@ -77,10 +77,10 @@ window.addEventListener('load', (event) => {
                     videoSelectMode = false;
                     break;
                 default:
-                    // ignore
+                // ignore
             }
         }
-    }
+    };
 
     chrome.runtime.onMessage.addListener(messageListener);
 

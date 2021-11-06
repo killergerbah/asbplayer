@@ -1,5 +1,4 @@
 export default class AsbplayerHeartbeatHandler {
-
     constructor(tabRegistry) {
         this.tabRegistry = tabRegistry;
     }
@@ -16,7 +15,7 @@ export default class AsbplayerHeartbeatHandler {
         this.tabRegistry.asbplayers[sender.tab.id] = {
             tab: sender.tab,
             id: request.message.id,
-            timestamp: Date.now()
+            timestamp: Date.now(),
         };
     }
 }

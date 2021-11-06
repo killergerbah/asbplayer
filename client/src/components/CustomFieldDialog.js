@@ -6,11 +6,11 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
-export default function CustomFieldDialog({open, onProceed, onCancel, existingCustomFieldNames}) {
-    const [fieldName, setFieldName] = useState("");
+export default function CustomFieldDialog({ open, onProceed, onCancel, existingCustomFieldNames }) {
+    const [fieldName, setFieldName] = useState('');
 
     useEffect(() => {
-        setFieldName("");
+        setFieldName('');
     }, [open]);
 
     const fieldExists = [
@@ -20,7 +20,7 @@ export default function CustomFieldDialog({open, onProceed, onCancel, existingCu
         'Definition',
         'Source',
         'Image',
-        'Audio'
+        'Audio',
     ].includes(fieldName);
 
     return (
@@ -48,13 +48,8 @@ export default function CustomFieldDialog({open, onProceed, onCancel, existingCu
                 </form>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => onCancel()}>
-                    Cancel
-                </Button>
-                <Button
-                    disabled={fieldExists || fieldName.trim() === ""}
-                    onClick={() => onProceed(fieldName.trim())}
-                >
+                <Button onClick={() => onCancel()}>Cancel</Button>
+                <Button disabled={fieldExists || fieldName.trim() === ''} onClick={() => onProceed(fieldName.trim())}>
                     Create
                 </Button>
             </DialogActions>

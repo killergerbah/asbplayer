@@ -2,7 +2,6 @@ import ImageElement from './ImageElement';
 import VideoNameUiContainer from './VideoNameUiContainer';
 
 export default class VideoSelectContainer {
-
     constructor(video) {
         this.video = video;
         this.imageElement = new ImageElement(video);
@@ -10,12 +9,12 @@ export default class VideoSelectContainer {
 
     bind(context, doneListener) {
         if (this.bound) {
-            throw new Error("Video select container already bound");
+            throw new Error('Video select container already bound');
         }
 
         const image = this.imageElement.element();
-        image.classList.remove("asbplayer-hide");
-        image.classList.add("asbplayer-mouse-over-image");
+        image.classList.remove('asbplayer-hide');
+        image.classList.add('asbplayer-mouse-over-image');
 
         image.addEventListener('click', (e) => {
             e.preventDefault();
@@ -32,12 +31,14 @@ export default class VideoSelectContainer {
                     sender: 'asbplayer-video',
                     message: {
                         command: 'sync',
-                        subtitles: [{
-                            name: `${videoName}.srt`,
-                            base64: ''
-                        }]
+                        subtitles: [
+                            {
+                                name: `${videoName}.srt`,
+                                base64: '',
+                            },
+                        ],
                     },
-                    src: this.video.src
+                    src: this.video.src,
                 });
                 doneListener();
             },

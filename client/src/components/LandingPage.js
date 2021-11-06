@@ -7,23 +7,30 @@ import Typography from '@material-ui/core/Typography';
 
 const useStyles = makeStyles((theme) => ({
     background: {
-        position: "absolute",
+        position: 'absolute',
         height: 'calc(100vh - 64px)',
-        width: "100%",
+        width: '100%',
         zIndex: 100,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
         padding: 15,
-        textAlign: "center"
+        textAlign: 'center',
     },
     browseLink: {
-        cursor: 'pointer'
-    }
+        cursor: 'pointer',
+    },
 }));
 
-export default function LandingPage({extension, latestExtensionVersion, extensionUrl, loading, dragging, onFileSelector}) {
+export default function LandingPage({
+    extension,
+    latestExtensionVersion,
+    extensionUrl,
+    loading,
+    dragging,
+    onFileSelector,
+}) {
     const classes = useStyles();
     const [installedExtensionVersion, setInstalledExtensionVersion] = useState();
 
@@ -43,16 +50,34 @@ export default function LandingPage({extension, latestExtensionVersion, extensio
             <Fade in={!loading && !dragging} timeout={500}>
                 <div className={classes.background}>
                     <Typography variant="h6">
-                        Drag and drop subtitle and media files, or <Link target="#" className={classes.browseLink} onClick={onFileSelector} color="secondary" component="label">browse</Link>.
+                        Drag and drop subtitle and media files, or{' '}
+                        <Link
+                            target="#"
+                            className={classes.browseLink}
+                            onClick={onFileSelector}
+                            color="secondary"
+                            component="label"
+                        >
+                            browse
+                        </Link>
+                        .
                         <br />
                         {extensionNotInstalled && (
                             <span>
-                                Install the <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>Chrome extension</Link> to sync subtitles with streaming video.
+                                Install the{' '}
+                                <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>
+                                    Chrome extension
+                                </Link>{' '}
+                                to sync subtitles with streaming video.
                             </span>
                         )}
                         {extensionUpdateAvailable && (
                             <span>
-                                An extension <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>update</Link> is available.
+                                An extension{' '}
+                                <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>
+                                    update
+                                </Link>{' '}
+                                is available.
                             </span>
                         )}
                     </Typography>
