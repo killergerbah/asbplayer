@@ -46,11 +46,10 @@ export default class ControlsContainer {
 
         for (let x = rect.x; x <= maxX; x += stepX) {
             for (let y = rect.y; y <= maxY; y += stepY) {
-                const point = {
-                    x: this._withNoise(x, stepX, 0, maxX),
-                    y: this._withNoise(y, stepY, 0, maxY),
+                yield {
+                    x: this._withNoise(x, stepX / 2, rect.x, maxX),
+                    y: this._withNoise(y, stepY / 2, rect.y, maxY),
                 };
-                yield point;
             }
         }
     }
