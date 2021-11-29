@@ -448,7 +448,12 @@ function App() {
     const handleClipAudio = useCallback(
         async (item) => {
             try {
-                const clip = await audioClipFromItem(item);
+                const clip = await audioClipFromItem(
+                    item,
+                    null,
+                    settingsProvider.audioPaddingStart,
+                    settingsProvider.audioPaddingEnd
+                );
 
                 if (settingsProvider.preferMp3) {
                     clip.toMp3().download();
