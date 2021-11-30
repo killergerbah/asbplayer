@@ -1,26 +1,26 @@
 {
   "files": {
-    "main.js": "/asbplayer/static/js/main.4bb450d4.chunk.js",
-    "main.js.map": "/asbplayer/static/js/main.4bb450d4.chunk.js.map",
-    "runtime-main.js": "/asbplayer/static/js/runtime-main.e475bb59.js",
-    "runtime-main.js.map": "/asbplayer/static/js/runtime-main.e475bb59.js.map",
-    "static/css/2.e06a703b.chunk.css": "/asbplayer/static/css/2.e06a703b.chunk.css",
-    "static/js/2.bc726e18.chunk.js": "/asbplayer/static/js/2.bc726e18.chunk.js",
-    "static/js/2.bc726e18.chunk.js.map": "/asbplayer/static/js/2.bc726e18.chunk.js.map",
-    "static/js/3.83db5c21.chunk.js": "/asbplayer/static/js/3.83db5c21.chunk.js",
-    "static/js/3.83db5c21.chunk.js.map": "/asbplayer/static/js/3.83db5c21.chunk.js.map",
+    "main.js": "/asbplayer/static/js/main.857ac83f.chunk.js",
+    "main.js.map": "/asbplayer/static/js/main.857ac83f.chunk.js.map",
+    "runtime-main.js": "/asbplayer/static/js/runtime-main.23923cd0.js",
+    "runtime-main.js.map": "/asbplayer/static/js/runtime-main.23923cd0.js.map",
+    "static/css/2.2cc94e60.chunk.css": "/asbplayer/static/css/2.2cc94e60.chunk.css",
+    "static/js/2.388e0002.chunk.js": "/asbplayer/static/js/2.388e0002.chunk.js",
+    "static/js/2.388e0002.chunk.js.map": "/asbplayer/static/js/2.388e0002.chunk.js.map",
+    "static/js/3.b5d67233.chunk.js": "/asbplayer/static/js/3.b5d67233.chunk.js",
+    "static/js/3.b5d67233.chunk.js.map": "/asbplayer/static/js/3.b5d67233.chunk.js.map",
     "index.html": "/asbplayer/index.html",
-    "static/css/2.e06a703b.chunk.css.map": "/asbplayer/static/css/2.e06a703b.chunk.css.map",
-    "static/js/2.bc726e18.chunk.js.LICENSE.txt": "/asbplayer/static/js/2.bc726e18.chunk.js.LICENSE.txt",
-    "static/js/mp3-encoder.04720f9c.worker.js": "/asbplayer/static/js/mp3-encoder.04720f9c.worker.js",
-    "static/js/mp3-encoder.04720f9c.worker.js.map": "/asbplayer/static/js/mp3-encoder.04720f9c.worker.js.map",
+    "static/css/2.2cc94e60.chunk.css.map": "/asbplayer/static/css/2.2cc94e60.chunk.css.map",
+    "static/js/2.388e0002.chunk.js.LICENSE.txt": "/asbplayer/static/js/2.388e0002.chunk.js.LICENSE.txt",
+    "static/js/mp3-encoder.9028b5fe.worker.js": "/asbplayer/static/js/mp3-encoder.9028b5fe.worker.js",
+    "static/js/mp3-encoder.9028b5fe.worker.js.map": "/asbplayer/static/js/mp3-encoder.9028b5fe.worker.js.map",
     "static/media/background-colored.b54dc59d.png": "/asbplayer/static/media/background-colored.b54dc59d.png",
     "static/media/index.css": "/asbplayer/static/media/roboto-vietnamese-400-normal.c0bec65d.woff2"
   },
   "entrypoints": [
-    "static/js/runtime-main.e475bb59.js",
-    "static/css/2.e06a703b.chunk.css",
-    "static/js/2.bc726e18.chunk.js",
-    "static/js/main.4bb450d4.chunk.js"
+    "static/js/runtime-main.23923cd0.js",
+    "static/css/2.2cc94e60.chunk.css",
+    "static/js/2.388e0002.chunk.js",
+    "static/js/main.857ac83f.chunk.js"
   ]
 }
