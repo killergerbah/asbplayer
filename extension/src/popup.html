@@ -1,75 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <link rel="stylesheet" href="popup.css">
-        <script src="popup.js"></script>
-    </head>
-    <body>
-        <div>
-            <label id="asbplayerUrl" for="asbplayerUrlInput">asbplayer URL</label>
-            <input id="asbplayerUrlInput" class="input-text" type="text">
-        </div>
-        <hr>
-        <div>
-            <input class="checkbox-color" id="displaySubtitlesInput" type="checkbox">
-            <label id="displaySubtitlesLabel" for="displaySubtitlesInput">Display subtitles in synced video elements</label>
-        </div>
-        <hr>
-        <div>
-            <input class="checkbox-color" id="recordAudioInput" type="checkbox">
-            <label id="recordAudio" for="recordAudioInput">Record audio when copying subtitle</label>
-        </div>
-        <hr>
-        <div>
-            <input class="checkbox-color" id="screenshotInput" type="checkbox">
-            <label id="screenshot" for="screenshotInput">Take screenshot when copying subtitle</label>
-        </div>
-        <hr>
-        <div>
-            <input class="checkbox-color" id="cleanScreenshotInput" type="checkbox">
-            <label id="cleanScreenshot" for="cleanScreenshotInput">Clean screenshot</label>
-        </div>
-        <hr>
-        <div>
-            <input class="checkbox-color" id="cropScreenshotInput" type="checkbox">
-            <label id="cropScreenshot" for="cropScreenshotInput">Crop screenshot</label>
-        </div>
-        <hr>
-        <div>
-            <input class="checkbox-color" id="subsDragAndDropInput" type="checkbox">
-            <label id="subsDragAndDrop" for="subsDragAndDropInput">Dropping subs into video syncs with asbplayer</label>
-        </div>
-        <hr>
-        <div>
-            <input id="subtitlePositionOffsetBottomInput" class="input-text" type="number">
-            <label id="subtitlePositionBottomOffset" for="subtitlePositionOffsetBottomInput">Subtitle position offset from bottom</label>
-        </div>
-        <hr>
-        <div class="help" id="help">
-        </div>
-        <hr>
-        <div>
-            <input class="checkbox-color" id="bindKeysInput" type="checkbox">
-            <label id="bindKeys" for="bindKeysInput">Bind keyboard shortcuts</label>
-        </div>
-        <table class="keys">
-            <tbody>
-                <tr>
-                    <td>S</td><td>Toggle subtitles</td>
-                </tr>
-                <tr>
-                    <td>S+1, S+2...</td><td>Toggle subtitle track 1, 2...</td>
-                </tr>
-                <tr>
-                    <td>Left/Right</td><td>Seek to previous/next subtitle</td>
-                </tr>
-                <tr>
-                    <td>Ctrl+Left/Right</td><td>Adjust offset to previous/next subtitle</td>
-                </tr>
-                <tr>
-                    <td>Ctrl+Shift+Left/Right</td><td>Adjust offset by +/- 100ms</td>
-                </tr>
-            </tbody>
-        </table>
-    </body>
+
+<head>
+    <link rel="stylesheet" href="popup.css">
+    <script src="popup.js"></script>
+</head>
+
+<body>
+    <div>
+        <label id="asbplayerUrl" for="asbplayerUrlInput">asbplayer URL</label>
+        <input id="asbplayerUrlInput" class="input-text" type="text">
+    </div>
+    <hr>
+    <div>
+        <input class="checkbox-color" id="displaySubtitlesInput" type="checkbox">
+        <label id="displaySubtitlesLabel" for="displaySubtitlesInput">Display subtitles in synced video elements</label>
+    </div>
+    <hr>
+    <div>
+        <input class="checkbox-color" id="recordAudioInput" type="checkbox">
+        <label id="recordAudio" for="recordAudioInput">Record audio when copying subtitle</label>
+    </div>
+    <hr>
+    <div>
+        <input class="checkbox-color" id="screenshotInput" type="checkbox">
+        <label id="screenshot" for="screenshotInput">Take screenshot when copying subtitle</label>
+    </div>
+    <hr>
+    <div>
+        <input class="checkbox-color" id="cleanScreenshotInput" type="checkbox">
+        <label id="cleanScreenshot" for="cleanScreenshotInput">Clean screenshot</label>
+    </div>
+    <hr>
+    <div>
+        <input class="checkbox-color" id="cropScreenshotInput" type="checkbox">
+        <label id="cropScreenshot" for="cropScreenshotInput">Crop screenshot</label>
+    </div>
+    <hr>
+    <div>
+        <input class="checkbox-color" id="subsDragAndDropInput" type="checkbox">
+        <label id="subsDragAndDrop" for="subsDragAndDropInput">Dropping subs into video syncs with asbplayer</label>
+    </div>
+    <hr>
+    <div>
+        <label id="preferredSubLanguages" for="preferredSubLanguagesInput">Preferred Language Codes for Subtitle
+            Sync (Comma separated)</label>
+        <input id="preferredSubLanguagesInput" class="input-text">
+    </div>
+    <hr>
+    <div>
+        <input class="checkbox-color" id="autoSelectPreferredSubLanguageInput" type="checkbox">
+        <label id="autoSelectPreferredSubLanguage" for="autoSelectPreferredSubLanguageInput">Use first available
+            preferred Language on Subtitle Sync</label>
+    </div>
+    <hr>
+    <div>
+        <input class="checkbox-color" id="autoSyncSubtitlesInput" type="checkbox">
+        <label id="autoSyncSubtitles" for="autoSyncSubtitlesInput">Enable automatic Subtitle Sync</label>
+    </div>
+    <hr>
+    <div>
+        <input class="checkbox-color" id="keepPauseAfterSubSyncInput" type="checkbox">
+        <label id="keepPauseAfterSubSync" for="keepPauseAfterSubSyncInput">Keep Pause after Sub Sync</label>
+    </div>
+    <hr>
+    <div>
+        <input id="subtitlePositionOffsetBottomInput" class="input-text" type="number">
+        <label id="subtitlePositionBottomOffset" for="subtitlePositionOffsetBottomInput">Subtitle position offset from
+            bottom</label>
+    </div>
+    <hr>
+    <div class="help" id="help">
+    </div>
+    <hr>
+    <div>
+        <input class="checkbox-color" id="bindKeysInput" type="checkbox">
+        <label id="bindKeys" for="bindKeysInput">Bind keyboard shortcuts</label>
+    </div>
+    <table class="keys">
+        <tbody>
+            <tr>
+                <td>S</td>
+                <td>Toggle subtitles</td>
+            </tr>
+            <tr>
+                <td>S+1, S+2...</td>
+                <td>Toggle subtitle track 1, 2...</td>
+            </tr>
+            <tr>
+                <td>Left/Right</td>
+                <td>Seek to previous/next subtitle</td>
+            </tr>
+            <tr>
+                <td>Ctrl+Left/Right</td>
+                <td>Adjust offset to previous/next subtitle</td>
+            </tr>
+            <tr>
+                <td>Ctrl+Shift+Left/Right</td>
+                <td>Adjust offset by +/- 100ms</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+
 </html>
