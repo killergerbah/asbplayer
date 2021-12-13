@@ -1,15 +1,39 @@
 import AnkiUiContainer from './AnkiUiContainer';
-import SubtitleContainer from './SubtitleContainer';
 import ControlsContainer from './ControlsContainer';
 import DragContainer from './DragContainer';
-import VideoSelectContainer from './VideoSelectContainer';
 import KeyBindings from './KeyBindings';
 import Settings from './Settings';
+import SubtitleContainer from './SubtitleContainer';
+import SubtitleSyncSelectContainer from './SubtitleSyncSelectContainer';
+import VideoSelectContainer from './VideoSelectContainer';
 
-var s = document.createElement('script');
-s.src = chrome.runtime.getURL('netflix.js');
-s.onload = () => s.remove();
-(document.head || document.documentElement).appendChild(s);
+const pages = [];
+const urlObj = new URL(window.location.href);
+
+let subSyncAvailable = false;
+
+switch (urlObj.host) {
+    case 'www.netflix.com':
+        subSyncAvailable = true;
+        pages.push(chrome.runtime.getURL('pages/netflix-page.js'));
+        break;
+    case 'www.youtube.com':
+        if (urlObj.pathname.startsWith('/watch')) {
+            subSyncAvailable = true;
+            pages.push(chrome.runtime.getURL('pages/youtube-page.js'));
+        }
+        break;
+    default:
+        break;
+}
+
+for (let index = 0, length = pages.length; index < length; index++) {
+    const s = document.createElement('script');
+
+    s.src = pages[index];
+    s.onload = () => s.remove();
+    (document.head || document.documentElement).appendChild(s);
+}
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -20,6 +44,7 @@ export default class Binding {
     constructor(video) {
         this.video = video;
         this.subtitleContainer = new SubtitleContainer(video);
+        this.subtitleSyncSelectContainer = new SubtitleSyncSelectContainer(this);
         this.controlsContainer = new ControlsContainer(video);
         this.dragContainer = new DragContainer(video);
         this.videoSelectContainer = new VideoSelectContainer(video);
@@ -222,6 +247,7 @@ export default class Binding {
                         break;
                     case 'miscSettings':
                         this.ankiUiContainer.themeType = request.message.value.themeType;
+                        this.subtitleSyncSelectContainer.themeType = request.message.value.themeType;
                         break;
                     case 'settings-updated':
                         this._refreshSettings();
@@ -233,6 +259,11 @@ export default class Binding {
                             } else {
                                 this._toggleRecordingMedia(request.message.showAnkiUi);
                             }
+                        }
+                        break;
+                    case 'sync-external-subtitle':
+                        if (subSyncAvailable) {
+                            this.subtitleSyncSelectContainer.show();
                         }
                         break;
                     case 'show-anki-ui':
@@ -269,6 +300,11 @@ export default class Binding {
                                 );
                         }
                         break;
+                    case 'tabs-updated':
+                        if (subSyncAvailable) {
+                            this.subtitleSyncSelectContainer.bind();
+                        }
+                        break;
                 }
             }
         };
@@ -286,6 +322,7 @@ export default class Binding {
         this.subtitleContainer.subtitlePositionOffsetBottom = currentSettings.subtitlePositionOffsetBottom;
         this.subtitleContainer.refresh();
         this.bindKeys = currentSettings.bindKeys;
+        this.subtitleSyncSelectContainer.updateSettings(currentSettings);
 
         if (currentSettings.bindKeys) {
             this.keyBindings.bind(this);
@@ -334,6 +371,7 @@ export default class Binding {
         this.subtitleContainer.unbind();
         this.dragContainer.unbind();
         this.keyBindings.unbind();
+        this.subtitleSyncSelectContainer.unbind();
     }
 
     async _copySubtitle(showAnkiUi) {
