@@ -11,25 +11,25 @@ export default class TabRegistry {
             const expired = Date.now() - 5000;
 
             for (const tabId in this.asbplayers) {
-                const info = this.asbplayers[tabId];
+                const asbplayer = this.asbplayers[tabId];
 
-                if (info.timestamp < expired) {
+                if (asbplayer.timestamp < expired) {
                     delete this.asbplayers[tabId];
                 }
             }
 
-            const activeTabs = [];
+            const activeVideoElements = [];
 
             for (const id in this.videoElements) {
-                const info = this.videoElements[id];
+                const videoElement = this.videoElements[id];
 
-                if (info.timestamp < expired) {
+                if (videoElement.timestamp < expired) {
                     delete this.videoElements[id];
                 } else {
-                    activeTabs.push({
-                        id: info.tab.id,
-                        title: info.tab.title,
-                        src: info.src,
+                    activeVideoElements.push({
+                        id: videoElement.tab.id,
+                        title: videoElement.tab.title,
+                        src: videoElement.src,
                     });
                 }
             }
@@ -46,7 +46,7 @@ export default class TabRegistry {
                         sender: 'asbplayer-extension-to-player',
                         message: {
                             command: 'tabs',
-                            tabs: activeTabs,
+                            tabs: activeVideoElements,
                         },
                     });
                 }
@@ -56,18 +56,21 @@ export default class TabRegistry {
         });
     }
 
-    async findAsbplayerTab(currentTab) {
+    async findAsbplayerTab(videoTab, videoSrc) {
         let chosenTabId = null;
         const now = Date.now();
         let min = null;
 
         for (const tabId in this.asbplayers) {
-            const info = this.asbplayers[tabId];
-            const elapsed = now - info.timestamp;
+            const asbplayer = this.asbplayers[tabId];
 
-            if (min === null || elapsed < min) {
-                min = elapsed;
-                chosenTabId = tabId;
+            if (this._asbplayerReceivedVideoTabData(asbplayer, videoTab, videoSrc)) {
+                const elapsed = now - asbplayer.timestamp;
+
+                if (min === null || elapsed < min) {
+                    min = elapsed;
+                    chosenTabId = tabId;
+                }
             }
         }
 
@@ -81,24 +84,37 @@ export default class TabRegistry {
                     active: false,
                     selected: false,
                     url: (await this.settings.get(['asbplayerUrl'])).asbplayerUrl,
-                    index: currentTab.index + 1,
+                    index: videoTab.index + 1,
                 },
-                (tab) => this._anyAsbplayerTab(resolve, reject, 0, 5)
+                (tab) => this._anyAsbplayerTab(videoTab, videoSrc, resolve, reject, 0, 5)
             );
         });
     }
 
-    _anyAsbplayerTab(resolve, reject, attempt, maxAttempts) {
+    _anyAsbplayerTab(videoTab, videoSrc, resolve, reject, attempt, maxAttempts) {
         if (attempt >= maxAttempts) {
             reject(new Error('Could not find or create an asbplayer tab'));
             return;
         }
 
         for (const tabId in this.asbplayers) {
-            resolve(tabId);
-            return;
+            if (this._asbplayerReceivedVideoTabData(this.asbplayers[tabId], videoTab, videoSrc)) {
+                resolve(tabId);
+                return;
+            }
         }
 
-        setTimeout(() => this._anyAsbplayerTab(resolve, attempt + 1, maxAttempts), 1000);
+        setTimeout(() => this._anyAsbplayerTab(videoTab, videoSrc, resolve, attempt + 1, maxAttempts), 1000);
+    }
+
+    _asbplayerReceivedVideoTabData(asbplayer, videoTab, videoSrc) {
+        for (const tab of asbplayer.receivedTabs) {
+            if (tab.id == videoTab.id && tab.src === videoSrc) {
+                return true;
+            }
+        }
+
+        // Support older asbplayer clients that don't send the receivedTabs array
+        return typeof asbplayer.receivedTabs === 'undefined';
     }
 }

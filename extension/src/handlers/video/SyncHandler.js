@@ -12,8 +12,7 @@ export default class SyncHandler {
     }
 
     async handle(request, sender) {
-        let chosenTabId = await this.tabRegistry.findAsbplayerTab(sender.tab);
-        await this.tabRegistry.publish();
+        let chosenTabId = await this.tabRegistry.findAsbplayerTab(sender.tab, request.src);
 
         if (chosenTabId) {
             chrome.tabs.sendMessage(Number(chosenTabId), {

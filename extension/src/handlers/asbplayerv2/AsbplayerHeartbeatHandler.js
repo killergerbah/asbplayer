@@ -16,6 +16,7 @@ export default class AsbplayerHeartbeatHandler {
             tab: sender.tab,
             id: request.message.id,
             timestamp: Date.now(),
+            receivedTabs: request.message.receivedTabs,
         };
     }
 }

@@ -56,6 +56,7 @@ export default class ChromeExtension {
                 message: {
                     command: 'heartbeat',
                     id: this.id,
+                    receivedTabs: this.tabs,
                 },
             },
             '*'
@@ -67,12 +68,12 @@ export default class ChromeExtension {
     }
 
     sendMessage(message, tabId, src) {
-        window.postMessage({ sender: 'asbplayer', message: message, tabId: tabId, src: src }, '*');
+        window.postMessage({ sender: 'asbplayerv2', message: message, tabId: tabId, src: src }, '*');
     }
 
     publishMessage(message) {
         for (const tab of this.tabs) {
-            window.postMessage({ sender: 'asbplayer', message: message, tabId: tab.id, src: tab.src }, '*');
+            window.postMessage({ sender: 'asbplayerv2', message: message, tabId: tab.id, src: tab.src }, '*');
         }
     }
 
