@@ -12,7 +12,10 @@ export default class SyncHandler {
     }
 
     async handle(request, sender) {
-        let chosenTabId = await this.tabRegistry.findAsbplayerTab(sender.tab, request.src);
+        let chosenTabId = await this.tabRegistry.findAsbplayerTab(sender.tab, request.src).catch((error) => {
+            console.error(error.message);
+            return undefined;
+        });
 
         if (chosenTabId) {
             chrome.tabs.sendMessage(Number(chosenTabId), {

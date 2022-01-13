@@ -2,7 +2,32 @@ import Binding from './services/Binding';
 
 window.addEventListener('load', (event) => {
     const bindings = [];
+    const pages = [];
+    const urlObj = new URL(window.location.href);
+
     let videoSelectMode = false;
+    let subSyncAvailable = false;
+
+    switch (urlObj.host) {
+        case 'www.netflix.com':
+            subSyncAvailable = true;
+            pages.push(chrome.runtime.getURL('pages/netflix-page.js'));
+            break;
+        case 'www.youtube.com':
+            subSyncAvailable = true;
+            pages.push(chrome.runtime.getURL('pages/youtube-page.js'));
+            break;
+        default:
+            break;
+    }
+
+    for (let index = 0, length = pages.length; index < length; index++) {
+        const s = document.createElement('script');
+
+        s.src = pages[index];
+        s.onload = () => s.remove();
+        (document.head || document.documentElement).appendChild(s);
+    }
 
     const interval = setInterval(() => {
         const videoElements = document.getElementsByTagName('video');
@@ -11,7 +36,7 @@ window.addEventListener('load', (event) => {
             const bindingExists = bindings.filter((b) => b.video.isSameNode(v)).length > 0;
 
             if (!bindingExists) {
-                const b = new Binding(v);
+                const b = new Binding(v, subSyncAvailable);
                 b.bind();
                 bindings.push(b);
             }
@@ -53,7 +78,7 @@ window.addEventListener('load', (event) => {
 
                     if (bindings.length === 1) {
                         // Special case - show dialog for the one video element
-                        bindings[0].showVideoSelect(() => {});
+                        bindings[0].showVideoSelect();
                     } else {
                         // Toggle on
                         videoSelectMode = true;

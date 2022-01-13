@@ -79,15 +79,20 @@ export default class TabRegistry {
         }
 
         return new Promise(async (resolve, reject) => {
-            chrome.tabs.create(
-                {
-                    active: false,
-                    selected: false,
-                    url: (await this.settings.get(['asbplayerUrl'])).asbplayerUrl,
-                    index: videoTab.index + 1,
-                },
-                (tab) => this._anyAsbplayerTab(videoTab, videoSrc, resolve, reject, 0, 5)
-            );
+            if (!Object.keys(this.asbplayers).length) {
+                await new Promise(async (resolve) => {
+                    chrome.tabs.create(
+                        {
+                            active: false,
+                            selected: false,
+                            url: (await this.settings.get(['asbplayerUrl'])).asbplayerUrl,
+                            index: videoTab.index + 1,
+                        },
+                        resolve
+                    );
+                });
+            }
+            this._anyAsbplayerTab(videoTab, videoSrc, resolve, reject, 0, 5);
         });
     }
 
@@ -104,7 +109,7 @@ export default class TabRegistry {
             }
         }
 
-        setTimeout(() => this._anyAsbplayerTab(videoTab, videoSrc, resolve, attempt + 1, maxAttempts), 1000);
+        setTimeout(() => this._anyAsbplayerTab(videoTab, videoSrc, resolve, reject, attempt + 1, maxAttempts), 1000);
     }
 
     _asbplayerReceivedVideoTabData(asbplayer, videoTab, videoSrc) {

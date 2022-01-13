@@ -6,10 +6,8 @@ const defaults = {
     cropScreenshot: true,
     bindKeys: true,
     subsDragAndDrop: true,
-    preferredSubLanguages: '',
-    autoSelectPreferredSubLanguage: true,
-    autoSyncSubtitles: false,
-    keepPauseAfterSubSync: true,
+    autoSync: false,
+    lastLanguageSynced: null,
     subtitlePositionOffsetBottom: 100,
     asbplayerUrl: 'https://killergerbah.github.io/asbplayer/',
 };

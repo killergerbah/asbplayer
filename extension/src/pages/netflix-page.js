@@ -1,17 +1,21 @@
 setTimeout(() => {
-    const WEBVTT_FMT = 'webvtt-lssdh-ios8';
-    const MANIFEST_PATTERN = new RegExp('manifest|licensedManifest');
+    const webvtt = 'webvtt-lssdh-ios8';
+    const manifestPattern = new RegExp('manifest|licensedManifest');
     const subTracks = new Map();
 
+    function getAPI() {
+        return netflix?.appContext?.state?.playerApp?.getAPI?.();
+    }
+
     function getVideoPlayer() {
-        return netflix?.appContext?.state?.playerApp?.getAPI?.()?.videoPlayer;
+        return getAPI()?.videoPlayer;
     }
 
     function player() {
         const netflixVideo = getVideoPlayer();
 
         if (netflixVideo) {
-            const playerSessionIds = netflixVideo.getAllPlayerSessionIds();
+            const playerSessionIds = netflixVideo.getAllPlayerSessionIds?.() || [];
 
             if (0 === playerSessionIds.length) {
                 console.error('No Netflix player session IDs');
@@ -19,7 +23,7 @@ setTimeout(() => {
             }
 
             const playerSessionId = playerSessionIds[playerSessionIds.length - 1];
-            return netflixVideo.getVideoPlayerBySessionId(playerSessionId);
+            return netflixVideo.getVideoPlayerBySessionId?.(playerSessionId);
         }
 
         console.error('Missing netflix global');
@@ -34,7 +38,7 @@ setTimeout(() => {
                 continue;
             }
 
-            const webvttDL = track.ttDownloadables[WEBVTT_FMT];
+            const webvttDL = track.ttDownloadables[webvtt];
 
             if (!webvttDL?.downloadUrls) {
                 continue;
@@ -67,21 +71,25 @@ setTimeout(() => {
     });
 
     document.addEventListener(
-        'asbplayer-get-external-subtitles',
+        'asbplayer-get-synced-data',
         () => {
-            const response = { error: '', filename: '', subtitles: [] };
+            const response = { error: '', basename: '', extension: 'nfvtt', subtitles: [] };
             const np = player();
             const titleId = np?.getMovieId();
 
             if (!np || !titleId) {
                 response.error = 'Netflix Player or Title Id not found...';
                 return document.dispatchEvent(
-                    new CustomEvent('asbplayer-external-subtitles', {
+                    new CustomEvent('asbplayer-synced-data', {
                         detail: response,
                     })
                 );
             }
 
+            const videoApi = getAPI()?.getVideoMetadataByVideoId?.(titleId)?.getCurrentVideo?.();
+            const season = (videoApi?.getSeason?.()?.getSeasonIndex?.() ?? -1) + 1;
+            const ep = videoApi?.getEpisodeNumber?.();
+            const title = videoApi?.getTitle?.() || titleId;
             const storedTracks = subTracks.get(titleId) || new Map();
 
             response.subtitles = np
@@ -96,10 +104,12 @@ setTimeout(() => {
                         url: storedTracks.get(track.trackId),
                     };
                 });
-            response.filename = `${titleId}.nfvtt`;
+            response.basename = `${title}${
+                season ? ` S${`${season}`.padStart(2, '0')}E${`${ep}`.padStart(2, '0')}` : ''
+            }`;
 
             document.dispatchEvent(
-                new CustomEvent('asbplayer-external-subtitles', {
+                new CustomEvent('asbplayer-synced-data', {
                     detail: response,
                 })
             );
@@ -110,9 +120,9 @@ setTimeout(() => {
     if (getVideoPlayer()) {
         const originalStringify = JSON.stringify;
         JSON.stringify = function (value) {
-            if ('string' === typeof value?.url && -1 < value.url.search(MANIFEST_PATTERN)) {
+            if ('string' === typeof value?.url && -1 < value.url.search(manifestPattern)) {
                 for (let objectValue of Object.values(value)) {
-                    objectValue?.profiles?.unshift(WEBVTT_FMT);
+                    objectValue?.profiles?.unshift(webvtt);
                 }
             }
 

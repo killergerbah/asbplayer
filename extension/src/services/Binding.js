@@ -4,36 +4,7 @@ import DragContainer from './DragContainer';
 import KeyBindings from './KeyBindings';
 import Settings from './Settings';
 import SubtitleContainer from './SubtitleContainer';
-import SubtitleSyncSelectContainer from './SubtitleSyncSelectContainer';
-import VideoSelectContainer from './VideoSelectContainer';
-
-const pages = [];
-const urlObj = new URL(window.location.href);
-
-let subSyncAvailable = false;
-
-switch (urlObj.host) {
-    case 'www.netflix.com':
-        subSyncAvailable = true;
-        pages.push(chrome.runtime.getURL('pages/netflix-page.js'));
-        break;
-    case 'www.youtube.com':
-        if (urlObj.pathname.startsWith('/watch')) {
-            subSyncAvailable = true;
-            pages.push(chrome.runtime.getURL('pages/youtube-page.js'));
-        }
-        break;
-    default:
-        break;
-}
-
-for (let index = 0, length = pages.length; index < length; index++) {
-    const s = document.createElement('script');
-
-    s.src = pages[index];
-    s.onload = () => s.remove();
-    (document.head || document.documentElement).appendChild(s);
-}
+import VideoDataSyncContainer from './VideoDataSyncContainer';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -41,13 +12,13 @@ document.addEventListener('asbplayer-netflix-enabled', (e) => {
 });
 
 export default class Binding {
-    constructor(video) {
+    constructor(video, syncAvailable) {
         this.video = video;
+        this.subSyncAvailable = syncAvailable;
         this.subtitleContainer = new SubtitleContainer(video);
-        this.subtitleSyncSelectContainer = new SubtitleSyncSelectContainer(this);
+        this.videoDataSyncContainer = new VideoDataSyncContainer(this);
         this.controlsContainer = new ControlsContainer(video);
         this.dragContainer = new DragContainer(video);
-        this.videoSelectContainer = new VideoSelectContainer(video);
         this.ankiUiContainer = new AnkiUiContainer();
         this.keyBindings = new KeyBindings();
         this.settings = new Settings();
@@ -90,7 +61,9 @@ export default class Binding {
     _bind() {
         this._notifyReady();
         this._subscribe();
-        this._refreshSettings();
+        this._refreshSettings().then(() => {
+            this.videoDataSyncContainer.requestSubtitles();
+        });
         this.subtitleContainer.bind();
         this.dragContainer.bind();
     }
@@ -163,6 +136,13 @@ export default class Binding {
         this.video.addEventListener('seeked', this.seekedListener);
         this.video.addEventListener('ratechange', this.playbackRateListener);
 
+        if (this.subSyncAvailable) {
+            this.videoChangeListener = () => {
+                this.videoDataSyncContainer.requestSubtitles();
+            };
+            this.video.addEventListener('loadedmetadata', this.videoChangeListener);
+        }
+
         this.heartbeatInterval = setInterval(() => {
             chrome.runtime.sendMessage({
                 sender: 'asbplayer-video',
@@ -211,7 +191,7 @@ export default class Binding {
                         }
 
                         this.subtitleContainer.showLoadedMessage(loadedMessage);
-                        this.videoSelectContainer.unbind();
+                        this.videoDataSyncContainer.unbindVideoSelect();
                         this.synced = true;
                         break;
                     case 'subtitleSettings':
@@ -247,7 +227,6 @@ export default class Binding {
                         break;
                     case 'miscSettings':
                         this.ankiUiContainer.themeType = request.message.value.themeType;
-                        this.subtitleSyncSelectContainer.themeType = request.message.value.themeType;
                         break;
                     case 'settings-updated':
                         this._refreshSettings();
@@ -259,11 +238,6 @@ export default class Binding {
                             } else {
                                 this._toggleRecordingMedia(request.message.showAnkiUi);
                             }
-                        }
-                        break;
-                    case 'sync-external-subtitle':
-                        if (subSyncAvailable) {
-                            this.subtitleSyncSelectContainer.show();
                         }
                         break;
                     case 'show-anki-ui':
@@ -300,11 +274,6 @@ export default class Binding {
                                 );
                         }
                         break;
-                    case 'tabs-updated':
-                        if (subSyncAvailable) {
-                            this.subtitleSyncSelectContainer.bind();
-                        }
-                        break;
                 }
             }
         };
@@ -322,7 +291,7 @@ export default class Binding {
         this.subtitleContainer.subtitlePositionOffsetBottom = currentSettings.subtitlePositionOffsetBottom;
         this.subtitleContainer.refresh();
         this.bindKeys = currentSettings.bindKeys;
-        this.subtitleSyncSelectContainer.updateSettings(currentSettings);
+        this.videoDataSyncContainer.updateSettings(currentSettings);
 
         if (currentSettings.bindKeys) {
             this.keyBindings.bind(this);
@@ -358,6 +327,11 @@ export default class Binding {
             this.playbackRateListener = null;
         }
 
+        if (this.videoChangeListener) {
+            this.video.removeEventListener('loadedmetadata', this.videoChangeListener);
+            this.videoChangeListener = null;
+        }
+
         if (this.heartbeatInterval) {
             clearInterval(this.heartbeatInterval);
             this.heartbeatInterval = null;
@@ -371,7 +345,7 @@ export default class Binding {
         this.subtitleContainer.unbind();
         this.dragContainer.unbind();
         this.keyBindings.unbind();
-        this.subtitleSyncSelectContainer.unbind();
+        this.videoDataSyncContainer.unbind();
     }
 
     async _copySubtitle(showAnkiUi) {
@@ -579,14 +553,14 @@ export default class Binding {
     }
 
     bindVideoSelect(doneListener) {
-        this.videoSelectContainer.bind(this, doneListener);
+        this.videoDataSyncContainer.bindVideoSelect(doneListener);
     }
 
     unbindVideoSelect() {
-        this.videoSelectContainer.unbind();
+        this.videoDataSyncContainer.unbindVideoSelect();
     }
 
-    showVideoSelect(doneListener) {
-        this.videoSelectContainer.show(this, doneListener);
+    showVideoSelect() {
+        this.videoDataSyncContainer.show();
     }
 }
