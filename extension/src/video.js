@@ -35,7 +35,7 @@ window.addEventListener('load', (event) => {
         for (const v of videoElements) {
             const bindingExists = bindings.filter((b) => b.video.isSameNode(v)).length > 0;
 
-            if (!bindingExists) {
+            if (!bindingExists && (v.src || [...v.children].some((elm) => 'SOURCE' === elm.tagName))) {
                 const b = new Binding(v, subSyncAvailable);
                 b.bind();
                 bindings.push(b);
@@ -49,7 +49,7 @@ window.addEventListener('load', (event) => {
             let videoElementExists = false;
 
             for (const v of videoElements) {
-                if (v.isSameNode(b.video)) {
+                if (v.isSameNode(b.video) && (v.src || [...v.children].some((elm) => 'SOURCE' === elm.tagName))) {
                     videoElementExists = true;
                     break;
                 }

@@ -86,7 +86,7 @@ export default class VideoDataSyncContainer {
     }
 
     requestSubtitles() {
-        if (!this.context.subSyncAvailable) {
+        if (!this.context.subSyncAvailable || this._blockRequest()) {
             return;
         }
 
@@ -103,6 +103,11 @@ export default class VideoDataSyncContainer {
     }
 
     async show(userRequested = true) {
+        if (this._blockRequest()) {
+            if (this.doneListener) this.doneListener();
+            return;
+        }
+
         let state = this.syncedData
             ? {
                   open: true,
@@ -130,6 +135,22 @@ export default class VideoDataSyncContainer {
 
         const client = await this._setUp();
         client.updateState(state);
+    }
+
+    _blockRequest() {
+        let shallBlock = false;
+
+        const urlObj = new URL(window.location.href);
+
+        switch (urlObj.host) {
+            case 'www.youtube.com':
+                shallBlock = !urlObj.pathname.startsWith('/watch');
+                break;
+            default:
+                break;
+        }
+
+        return shallBlock;
     }
 
     _setSyncedData({ detail: data }) {
