@@ -4,12 +4,6 @@ document.addEventListener(
         const response = { error: '', basename: '', extension: 'ytxml', subtitles: [] };
 
         try {
-            const urlObj = new URL(window.location.href);
-
-            if (!urlObj.pathname.startsWith('/watch')) {
-                return;
-            }
-
             const playerContext = await fetch(window.location.href)
                 .then((webResponse) => {
                     if (!webResponse.ok) {
