@@ -1,26 +1,25 @@
-import { red } from '@material-ui/core/colors';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import { createMuiTheme, makeStyles, ThemeProvider } from '@material-ui/core/styles';
-import { Anki, AudioClip, humanReadableTime, Image } from '@project/common';
-import clsx from 'clsx';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Redirect, Route, Switch, useLocation } from 'react-router-dom';
-import { v4 as uuidv4 } from 'uuid';
-
+import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
+import { Route, Redirect, Switch, useLocation } from 'react-router-dom';
+import { ThemeProvider, createMuiTheme, makeStyles } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
-import ChromeExtension from '../services/ChromeExtension.js';
-import SettingsProvider from '../services/SettingsProvider.js';
-import SubtitleReader from '../services/SubtitleReader.js';
+import { red } from '@material-ui/core/colors';
+import { Anki, AudioClip, Image, humanReadableTime } from '@project/common';
+import { v4 as uuidv4 } from 'uuid';
+import clsx from 'clsx';
 import Alert from './Alert.js';
 import AnkiDialog from './AnkiDialog.js';
-import Bar from './Bar.js';
-import CopyHistory from './CopyHistory.js';
+import CssBaseline from '@material-ui/core/CssBaseline';
 import DragOverlay from './DragOverlay.js';
 import HelpDialog from './HelpDialog.js';
 import ImageDialog from './ImageDialog.js';
+import SubtitleReader from '../services/SubtitleReader.js';
+import Bar from './Bar.js';
+import ChromeExtension from '../services/ChromeExtension.js';
+import CopyHistory from './CopyHistory.js';
 import LandingPage from './LandingPage.js';
 import Player from './Player.js';
 import SettingsDialog from './SettingsDialog.js';
+import SettingsProvider from '../services/SettingsProvider.js';
 import VideoPlayer from './VideoPlayer.js';
 
 const latestExtensionVersion = '0.16.1';
@@ -582,7 +581,6 @@ function App() {
         function onTabs(tabs) {
             if (tabs.length !== availableTabs.length) {
                 setAvailableTabs(tabs);
-                extension.publishMessage({ command: 'tabs-updated' });
             } else {
                 let update = false;
 
@@ -597,7 +595,6 @@ function App() {
 
                 if (update) {
                     setAvailableTabs(tabs);
-                    extension.publishMessage({ command: 'tabs-updated' });
                 }
             }
 
@@ -610,12 +607,9 @@ function App() {
         }
 
         extension.subscribeTabs(onTabs);
-        extension.installedVersion().then(() => {
-            extension.publishMessage({ command: 'miscSettings', value: settingsProvider.miscSettings });
-        });
 
         return () => extension.unsubscribeTabs(onTabs);
-    }, [availableTabs, tab, extension, handleError, settingsProvider]);
+    }, [availableTabs, tab, extension, handleError]);
 
     const handleTabSelected = useCallback((tab) => setTab(tab), []);
 

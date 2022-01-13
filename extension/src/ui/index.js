@@ -5,8 +5,7 @@ import { render } from 'react-dom';
 
 import Bridge from './Bridge';
 import AnkiUi from './components/AnkiUi';
-import SubtitleSyncUI from './components/SubtitleSyncUI';
-import VideoNameUi from './components/VideoNameUi';
+import VideoDataSyncUi from './components/VideoDataSyncUi';
 
 export function renderAnkiUi(element, mp3WorkerUrl) {
     const bridge = new Bridge();
@@ -14,14 +13,8 @@ export function renderAnkiUi(element, mp3WorkerUrl) {
     return bridge;
 }
 
-export function renderVideoNameUi(element) {
+export function renderVideoDataSyncUi(element) {
     const bridge = new Bridge();
-    render(<VideoNameUi bridge={bridge} />, element);
-    return bridge;
-}
-
-export function renderSubtitleSyncUi(element) {
-    const bridge = new Bridge();
-    render(<SubtitleSyncUI bridge={bridge} />, element);
+    render(<VideoDataSyncUi bridge={bridge} />, element);
     return bridge;
 }

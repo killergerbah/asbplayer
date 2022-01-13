@@ -30,7 +30,7 @@ export default class SubtitleReader {
                         const newLines = [];
 
                         for (const line of lines) {
-                            newLines.push(this.fixRTL(line));
+                            newLines.push(this._fixRTL(line));
                         }
 
                         c.text = newLines.join('\n');
@@ -73,7 +73,7 @@ export default class SubtitleReader {
                 subtitles.push({
                     start: Math.floor(start * 1000),
                     end: Math.floor((start + parseFloat(elm.getAttribute('dur'))) * 1000),
-                    text: this.decodeHTML(elm.textContent.replace(tagRegex, '')),
+                    text: this._decodeHTML(elm.textContent.replace(tagRegex, '')),
                     track,
                 });
             }
@@ -84,23 +84,23 @@ export default class SubtitleReader {
         throw new Error('Unsupported subtitle file format');
     }
 
-    fixRTL(line) {
+    _fixRTL(line) {
         const index1 = line.indexOf('&lrm;');
         const index2 = line.indexOf('&rlm;');
         let newLine = '';
 
         if (index1 > -1) {
             newLine = line.substring(0, index1) + '\u202a' + line.substring(index1 + 5) + '\u202c';
-            return this.fixRTL(newLine);
+            return this._fixRTL(newLine);
         } else if (index2 > -1) {
             newLine = line.substring(0, index2) + '\u202b' + line.substring(index2 + 5) + '\u202c';
-            return this.fixRTL(newLine);
+            return this._fixRTL(newLine);
         }
 
         return line;
     }
 
-    decodeHTML(text) {
+    _decodeHTML(text) {
         const e = document.createElement('div');
         e.innerHTML = text;
         return e.childNodes.length === 0 ? '' : e.childNodes[0].nodeValue;

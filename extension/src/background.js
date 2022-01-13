@@ -1,20 +1,20 @@
-import AsbplayerToVideoCommandForwardingHandler from './handlers/asbplayer/AsbplayerToVideoCommandForwardingHandler';
-import AsbplayerHeartbeatHandler from './handlers/asbplayerv2/AsbplayerHeartbeatHandler';
-import AsbplayerV2ToVideoCommandForwardingHandler from './handlers/asbplayerv2/AsbplayerV2ToVideoCommandForwardingHandler';
-import RefreshSettingsHandler from './handlers/popup/RefreshSettingsHandler';
-import HttpPostHandler from './handlers/video/HttpPostHandler';
+import TabRegistry from './services/TabRegistry';
+import Settings from './services/Settings';
+import AudioRecorder from './services/AudioRecorder';
+import ImageCapturer from './services/ImageCapturer';
+import VideoHeartbeatHandler from './handlers/video/VideoHeartbeatHandler';
 import RecordMediaHandler from './handlers/video/RecordMediaHandler';
 import RerecordMediaHandler from './handlers/video/RerecordMediaHandler';
 import StartRecordingMediaHandler from './handlers/video/StartRecordingMediaHandler';
 import StopRecordingMediaHandler from './handlers/video/StopRecordingMediaHandler';
-import SyncHandler from './handlers/video/SyncHandler';
 import ToggleSubtitlesHandler from './handlers/video/ToggleSubtitlesHandler';
-import VideoHeartbeatHandler from './handlers/video/VideoHeartbeatHandler';
+import SyncHandler from './handlers/video/SyncHandler';
+import HttpPostHandler from './handlers/video/HttpPostHandler';
 import VideoToAsbplayerCommandForwardingHandler from './handlers/video/VideoToAsbplayerCommandForwardingHandler';
-import AudioRecorder from './services/AudioRecorder';
-import ImageCapturer from './services/ImageCapturer';
-import Settings from './services/Settings';
-import TabRegistry from './services/TabRegistry';
+import AsbplayerToVideoCommandForwardingHandler from './handlers/asbplayer/AsbplayerToVideoCommandForwardingHandler';
+import AsbplayerV2ToVideoCommandForwardingHandler from './handlers/asbplayerv2/AsbplayerV2ToVideoCommandForwardingHandler';
+import AsbplayerHeartbeatHandler from './handlers/asbplayerv2/AsbplayerHeartbeatHandler';
+import RefreshSettingsHandler from './handlers/popup/RefreshSettingsHandler';
 
 const settings = new Settings();
 const tabRegistry = new TabRegistry(settings);
@@ -59,21 +59,20 @@ chrome.commands.onCommand.addListener((command) => {
         switch (command) {
             case 'copy-subtitle':
             case 'copy-subtitle-with-dialog':
-                sendMessageToCurrentVideoTab(tabs, {
-                    sender: 'asbplayer-extension-to-video',
-                    message: {
-                        command: 'copy-subtitle',
-                        showAnkiUi: command === 'copy-subtitle-with-dialog',
-                    },
-                });
-                break;
-            case 'sync-external-subtitle':
-                sendMessageToCurrentVideoTab(tabs, {
-                    sender: 'asbplayer-extension-to-video',
-                    message: {
-                        command: 'sync-external-subtitle',
-                    },
-                });
+                for (const tab of tabs) {
+                    for (const id in tabRegistry.videoElements) {
+                        if (tabRegistry.videoElements[id].tab.id === tab.id) {
+                            chrome.tabs.sendMessage(tabRegistry.videoElements[id].tab.id, {
+                                sender: 'asbplayer-extension-to-video',
+                                message: {
+                                    command: 'copy-subtitle',
+                                    showAnkiUi: command === 'copy-subtitle-with-dialog',
+                                },
+                                src: tabRegistry.videoElements[id].src,
+                            });
+                        }
+                    }
+                }
                 break;
             case 'toggle-video-select':
                 for (const tab of tabs) {
@@ -90,14 +89,3 @@ chrome.commands.onCommand.addListener((command) => {
         }
     });
 });
-
-function sendMessageToCurrentVideoTab(tabs, message) {
-    for (const tab of tabs) {
-        for (const id in tabRegistry.videoElements) {
-            if (tabRegistry.videoElements[id].tab.id === tab.id) {
-                message.src = tabRegistry.videoElements[id].src;
-                chrome.tabs.sendMessage(tabRegistry.videoElements[id].tab.id, message);
-            }
-        }
-    }
-}

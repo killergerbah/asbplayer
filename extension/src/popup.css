@@ -1,5 +1,5 @@
 body {
-    width: 350px;
+    width: 280px;
     background-color: #303030;
     color: #fff;
     font-family: 'Helvetica';
@@ -109,14 +109,10 @@ hr {
     margin-left: 4px;
 }
 
-#asbplayerUrl,
-#preferredSubLanguages {
-    display: block;
-    margin-bottom: 4px;
-}
-
 #asbplayerUrl {
+    display: block;
     font-weight: 700;
+    margin-bottom: 4px;
 }
 
 #asbplayerUrlInput {

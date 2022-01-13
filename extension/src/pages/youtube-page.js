@@ -1,9 +1,15 @@
 document.addEventListener(
-    'asbplayer-get-external-subtitles',
+    'asbplayer-get-synced-data',
     async () => {
-        const response = { error: '', filename: '', subtitles: [] };
+        const response = { error: '', basename: '', extension: 'ytxml', subtitles: [] };
 
         try {
+            const urlObj = new URL(window.location.href);
+
+            if (!urlObj.pathname.startsWith('/watch')) {
+                return;
+            }
+
             const playerContext = await fetch(window.location.href)
                 .then((webResponse) => {
                     if (!webResponse.ok) {
@@ -30,7 +36,7 @@ document.addEventListener(
                 throw new Error('YT Player Context not found...');
             }
 
-            response.filename = `${playerContext.videoDetails?.title || 'youtube'}.ytxml`;
+            response.basename = playerContext.videoDetails?.title || document.title;
             response.subtitles = (playerContext?.captions?.playerCaptionsTracklistRenderer?.captionTracks || []).map(
                 (track) => {
                     return {
@@ -44,7 +50,7 @@ document.addEventListener(
             response.error = error.message;
         } finally {
             document.dispatchEvent(
-                new CustomEvent('asbplayer-external-subtitles', {
+                new CustomEvent('asbplayer-synced-data', {
                     detail: response,
                 })
             );

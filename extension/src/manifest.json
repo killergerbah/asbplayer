@@ -67,19 +67,12 @@
             },
             "description": "Copy current subtitle and open Anki dialog."
         },
-        "sync-external-subtitle": {
-            "suggested_key": {
-                "default": "Ctrl+Shift+L",
-                "mac": "MacCtrl+Shift+L"
-            },
-            "description": "Sync a Subtitle of the current Web Page."
-        },
         "toggle-video-select": {
             "suggested_key": {
                 "default": "Ctrl+Shift+F",
                 "mac": "MacCtrl+Shift+F"
             },
-            "description": "Select a video to mine without a subtitle file."
+            "description": "Select a video to mine without a subtitle file / to sync data."
         }
     },
     "web_accessible_resources": [
@@ -88,7 +81,6 @@
         "pages/youtube-page.js",
         "anki-ui.js",
         "mp3-encoder.worker.js",
-        "subtitle-sync-ui.js",
-        "video-name-ui.js"
+        "video-data-sync-ui.js"
     ]
 }

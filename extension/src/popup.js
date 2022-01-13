@@ -9,10 +9,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     const cropScreenshotCheckbox = document.getElementById('cropScreenshotInput');
     const bindKeysCheckbox = document.getElementById('bindKeysInput');
     const subsDragAndDropCheckbox = document.getElementById('subsDragAndDropInput');
-    const preferredSubLanguagesInput = document.getElementById('preferredSubLanguagesInput');
-    const autoSelectPreferredSubLanguageCheckbox = document.getElementById('autoSelectPreferredSubLanguageInput');
-    const autoSyncSubtitlesCheckbox = document.getElementById('autoSyncSubtitlesInput');
-    const keepPauseAfterSubSyncCheckbox = document.getElementById('keepPauseAfterSubSyncInput');
+    const autoSyncCheckbox = document.getElementById('autoSyncInput');
     const subtitlePositionOffsetBottomInput = document.getElementById('subtitlePositionOffsetBottomInput');
 
     function notifySettingsUpdated() {
@@ -59,24 +56,8 @@ document.addEventListener('DOMContentLoaded', async (e) => {
         notifySettingsUpdated();
     });
 
-    preferredSubLanguagesInput.addEventListener('change', async () => {
-        preferredSubLanguagesInput.value = preferredSubLanguagesInput.value.replaceAll(/ /g, '');
-        await settings.set({ preferredSubLanguages: preferredSubLanguagesInput.value });
-        notifySettingsUpdated();
-    });
-
-    autoSelectPreferredSubLanguageCheckbox.addEventListener('change', async () => {
-        await settings.set({ autoSelectPreferredSubLanguage: autoSelectPreferredSubLanguageCheckbox.checked });
-        notifySettingsUpdated();
-    });
-
-    autoSyncSubtitlesCheckbox.addEventListener('change', async () => {
-        await settings.set({ autoSyncSubtitles: autoSyncSubtitlesCheckbox.checked });
-        notifySettingsUpdated();
-    });
-
-    keepPauseAfterSubSyncCheckbox.addEventListener('change', async () => {
-        await settings.set({ keepPauseAfterSubSync: keepPauseAfterSubSyncCheckbox.checked });
+    autoSyncCheckbox.addEventListener('change', async () => {
+        await settings.set({ autoSync: autoSyncCheckbox.checked });
         notifySettingsUpdated();
     });
 
@@ -99,10 +80,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     cropScreenshotCheckbox.checked = currentSettings.cropScreenshot;
     bindKeysCheckbox.checked = currentSettings.bindKeys;
     subsDragAndDropCheckbox.checked = currentSettings.subsDragAndDrop;
-    preferredSubLanguagesInput.value = currentSettings.preferredSubLanguages;
-    autoSelectPreferredSubLanguageCheckbox.checked = currentSettings.autoSelectPreferredSubLanguage;
-    autoSyncSubtitlesCheckbox.checked = currentSettings.autoSyncSubtitles;
-    keepPauseAfterSubSyncCheckbox.checked = currentSettings.keepPauseAfterSubSync;
+    autoSyncCheckbox.checked = currentSettings.autoSync;
     subtitlePositionOffsetBottomInput.value = currentSettings.subtitlePositionOffsetBottom;
     asbplayerUrlInput.value = currentSettings.asbplayerUrl;
 
@@ -132,18 +110,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
                 } else {
                     help.push(
                         c.shortcut +
-                            " enables selection of a video to mine without a subtitle file. Once a video is selected, either of the 'copy' shortcuts will start and stop recording."
-                    );
-                }
-            }
-
-            if (c.name === 'sync-external-subtitle') {
-                if (c.shortcut === '') {
-                    help.push('Subtitle Sync command is not bound.');
-                } else {
-                    help.push(
-                        c.shortcut +
-                            ' allows to sync Subtitles from supported Web Pages without the need of local Files or Downloads.'
+                            " enables selection of a video to mine without a subtitle file / sync data. Once a video is selected, either of the 'copy' shortcuts will start and stop recording."
                     );
                 }
             }

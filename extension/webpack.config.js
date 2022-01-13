@@ -8,8 +8,7 @@ module.exports = (env, options) => ({
         background: './src/background.js',
         popup: './src/popup.js',
         'anki-ui': './src/anki-ui.js',
-        'subtitle-sync-ui': './src/subtitle-sync-ui.js',
-        'video-name-ui': './src/video-name-ui.js',
+        'video-data-sync-ui': './src/video-data-sync-ui.js',
     },
     output: {
         filename: '[name].js',
@@ -20,7 +19,10 @@ module.exports = (env, options) => ({
             {
                 test: /\.(js|jsx)$/,
                 exclude: /node_modules/,
-                include: [path.resolve(__dirname, './src/ui')],
+                include: [
+                    path.resolve(__dirname, './src/ui'),
+                    path.resolve(__dirname, './src/services/VideoDataSyncContainer'),
+                ],
                 use: {
                     loader: 'babel-loader',
                 },
