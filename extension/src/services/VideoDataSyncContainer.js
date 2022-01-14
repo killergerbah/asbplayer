@@ -130,7 +130,11 @@ export default class VideoDataSyncContainer {
         const selectedSub = state.subtitles.find((subtitle) => subtitle.language === this.lastLanguageSynced)?.url;
 
         if (selectedSub && !userRequested && !state.error) {
-            return this._syncData(this.syncedData.basename, selectedSub);
+            if (await this._syncData(this.syncedData.basename, selectedSub)) {
+                this._restore();
+                this._updatePlayerState(true);
+            }
+            return;
         }
 
         state.selectedSubtitle = selectedSub || '-';
@@ -165,6 +169,7 @@ export default class VideoDataSyncContainer {
     async _setUp() {
         const client = await this._client();
         this._prepareShow();
+        this.context.pause();
         return client;
     }
 
@@ -185,24 +190,9 @@ export default class VideoDataSyncContainer {
         doc.close();
         await this.client.bind();
         this.client.onFinished(async (message) => {
-            if (this.context.bindKeys) {
-                this.context.keyBindings.bind(this.context);
-            }
-            this.context.subtitleContainer.displaySubtitles = this.context.displaySubtitles;
-            this.frame.classList.add('asbplayer-hide');
-            if (this.fullscreenElement) {
-                this.fullscreenElement.requestFullscreen();
-                this.fullscreenElement = null;
-            }
+            this._restore();
 
-            if (this.activeElement) {
-                this.activeElement.focus();
-                this.activeElement = null;
-            } else {
-                window.focus();
-            }
-
-            let updatePlayerState = true;
+            let shallUpdate = true;
 
             if ('confirm' === message.command) {
                 if (this.lastLanguageSynced !== message.data.language && this.syncedData) {
@@ -210,31 +200,53 @@ export default class VideoDataSyncContainer {
                     await this.context.settings.set({ lastLanguageSynced: this.lastLanguageSynced }).catch(() => {});
                 }
 
-                updatePlayerState = await this._syncData(
+                shallUpdate = await this._syncData(
                     message.data.name,
                     message.data.subtitleUrl,
                     this.lastLanguageSynced
                 );
             }
 
-            if (updatePlayerState) {
-                if (!this.wasPaused) {
-                    this.context.play();
-                }
-
-                this.wasPaused = undefined;
-                if (this.doneListener) this.doneListener();
-            }
-
-            this.requested = false;
+            this._updatePlayerState(shallUpdate);
         });
 
         return this.client;
     }
 
+    _restore() {
+        if (this.context.bindKeys) {
+            this.context.keyBindings.bind(this.context);
+        }
+        this.context.subtitleContainer.displaySubtitles = this.context.displaySubtitles;
+        this.frame.classList.add('asbplayer-hide');
+        if (this.fullscreenElement) {
+            this.fullscreenElement.requestFullscreen();
+            this.fullscreenElement = null;
+        }
+
+        if (this.activeElement) {
+            this.activeElement.focus();
+            this.activeElement = null;
+        } else {
+            window.focus();
+        }
+    }
+
+    _updatePlayerState(shallUpdate) {
+        if (shallUpdate) {
+            if (!this.wasPaused) {
+                this.context.play();
+            }
+
+            this.wasPaused = undefined;
+            if (this.doneListener) this.doneListener();
+        }
+
+        this.requested = false;
+    }
+
     _prepareShow() {
         this.wasPaused = this.wasPaused ?? this.context.video.paused;
-        this.context.pause();
 
         if (document.fullscreenElement) {
             this.fullscreenElement = document.fullscreenElement;
