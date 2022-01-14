@@ -2,6 +2,9 @@ import { parse as parseAss } from 'ass-compiler';
 import { parseSync as parseSrt } from 'subtitle';
 import { WebVTT } from 'vtt.js';
 
+const tagRegex = RegExp('</?([^>]*)>', 'ig');
+const helperElement = document.createElement('div');
+
 export default class SubtitleReader {
     async subtitles(files) {
         return (await Promise.all(files.map((f, i) => this._subtitles(f, i))))
@@ -10,8 +13,6 @@ export default class SubtitleReader {
     }
 
     async _subtitles(file, track) {
-        const tagRegex = RegExp('</?([^>]*)>', 'ig');
-
         if (file.name.endsWith('.srt')) {
             const nodes = parseSrt(await file.text());
             return nodes.map((node) => ({ ...node.data, track: track }));
@@ -101,8 +102,7 @@ export default class SubtitleReader {
     }
 
     _decodeHTML(text) {
-        const e = document.createElement('div');
-        e.innerHTML = text;
-        return e.childNodes.length === 0 ? '' : e.childNodes[0].nodeValue;
+        helperElement.innerHTML = text;
+        return helperElement.childNodes.length === 0 ? '' : helperElement.childNodes[0].nodeValue;
     }
 }

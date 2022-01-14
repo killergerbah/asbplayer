@@ -80,19 +80,23 @@ export default class TabRegistry {
 
         return new Promise(async (resolve, reject) => {
             if (!Object.keys(this.asbplayers).length) {
-                await new Promise(async (resolve) => {
-                    chrome.tabs.create(
-                        {
-                            active: false,
-                            selected: false,
-                            url: (await this.settings.get(['asbplayerUrl'])).asbplayerUrl,
-                            index: videoTab.index + 1,
-                        },
-                        resolve
-                    );
-                });
+                await this._createNewTab(videoTab);
             }
             this._anyAsbplayerTab(videoTab, videoSrc, resolve, reject, 0, 5);
+        });
+    }
+
+    async _createNewTab(videoTab) {
+        return new Promise(async (resolve) => {
+            chrome.tabs.create(
+                {
+                    active: false,
+                    selected: false,
+                    url: (await this.settings.get(['asbplayerUrl'])).asbplayerUrl,
+                    index: videoTab.index + 1,
+                },
+                resolve
+            );
         });
     }
 
