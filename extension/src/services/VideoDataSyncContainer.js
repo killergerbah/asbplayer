@@ -108,19 +108,21 @@ export default class VideoDataSyncContainer {
             return;
         }
 
+        const client = await this._setUp();
+
         let state = this.syncedData
             ? {
                   open: true,
                   isLoading: false,
                   suggestedName: this.syncedData.basename,
-                  subtitles: [{ language: '', url: '-', label: 'Off' }, ...this.syncedData.subtitles],
+                  subtitles: [{ language: '', url: '-', label: 'None' }, ...this.syncedData.subtitles],
                   error: this.syncedData.error,
               }
             : {
                   open: true,
                   isLoading: this.context.subSyncAvailable,
                   showSubSelect: this.context.subSyncAvailable,
-                  subtitles: [{ language: '', url: '-', label: 'Off' }],
+                  subtitles: [{ language: '', url: '-', label: 'None' }],
               };
 
         this.requested = userRequested;
@@ -133,7 +135,6 @@ export default class VideoDataSyncContainer {
 
         state.selectedSubtitle = selectedSub || '-';
 
-        const client = await this._setUp();
         client.updateState(state);
     }
 
@@ -169,6 +170,7 @@ export default class VideoDataSyncContainer {
 
     async _client() {
         if (this.client) {
+            await this.client.bind();
             this.frame.classList.remove('asbplayer-hide');
             return this.client;
         }
@@ -296,7 +298,7 @@ export default class VideoDataSyncContainer {
             isLoading: false,
             suggestedName,
             showSubSelect: this.context.subSyncAvailable,
-            subtitles: [{ language: '', url: '-', label: 'Off' }, ...(this.syncedData?.subtitles || [])],
+            subtitles: [{ language: '', url: '-', label: 'None' }, ...(this.syncedData?.subtitles || [])],
             selectedSubtitle:
                 this.syncedData?.subtitles.find((subtitle) => subtitle.language === this.lastLanguageSynced)?.url ||
                 '-',

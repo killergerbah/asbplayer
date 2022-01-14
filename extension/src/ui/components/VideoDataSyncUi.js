@@ -10,7 +10,7 @@ export default function VideoDataSyncUi({ bridge }) {
     const [isLoading, setIsLoading] = useState(true);
     const [suggestedName, setSuggestedName] = useState('');
     const [showSubSelect, setShowSubSelect] = useState(true);
-    const [subtitles, setSubtitles] = useState([{ language: '', url: '-', label: 'Off' }]);
+    const [subtitles, setSubtitles] = useState([{ language: '', url: '-', label: 'None' }]);
     const [selectedSubtitle, setSelectedSubtitle] = useState('-');
     const [error, setError] = useState('');
 
