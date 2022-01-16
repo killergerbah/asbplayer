@@ -1,5 +1,5 @@
 import FrameBridgeServer from './services/FrameBridgeServer';
-import { renderVideoDataSyncUi } from './ui';
+import { renderVideoDataSyncUi } from './ui/video-data-sync';
 
 window.addEventListener('load', () => {
     const bridge = renderVideoDataSyncUi(document.getElementById('root'));

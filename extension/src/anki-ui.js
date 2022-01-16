@@ -1,4 +1,4 @@
-import { renderAnkiUi } from './ui';
+import { renderAnkiUi } from './ui/anki';
 import FrameBridgeServer from './services/FrameBridgeServer';
 
 window.addEventListener('load', (e) => {

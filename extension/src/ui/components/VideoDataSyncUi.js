@@ -3,7 +3,7 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { createTheme } from './theme';
-import VideoDataSyncDialog from './VideoDataSyncDialaog';
+import VideoDataSyncDialog from './VideoDataSyncDialog';
 
 export default function VideoDataSyncUi({ bridge }) {
     const [open, setOpen] = useState(false);
@@ -14,7 +14,7 @@ export default function VideoDataSyncUi({ bridge }) {
     const [selectedSubtitle, setSelectedSubtitle] = useState('-');
     const [error, setError] = useState('');
 
-    const theme = useMemo(() => createTheme('dark'));
+    const theme = useMemo(() => createTheme('dark'), []);
 
     const handleCancel = useCallback(() => {
         closeDialog();

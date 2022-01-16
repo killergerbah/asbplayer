@@ -16,7 +16,7 @@
     ],
     "browser_action": {
         "default_title": "asbplayer",
-        "default_popup": "popup.html"
+        "default_popup": "popup-ui.html"
     },
     "background": {
         "persistent": false,
