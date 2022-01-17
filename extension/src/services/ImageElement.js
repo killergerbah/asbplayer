@@ -1,3 +1,6 @@
+const dragImageWidth = 300;
+const dragImageHeight = 300;
+
 export default class ImageElement {
     constructor(video) {
         this.video = video;
@@ -36,8 +39,6 @@ export default class ImageElement {
         container.style.width = containerWidth + 'px';
         container.style.height = containerHeight + 'px';
 
-        const dragImageWidth = 350;
-        const dragImageHeight = 450;
         const imageRatio = Math.min(1, Math.min(containerWidth / dragImageWidth, containerHeight / dragImageHeight));
         const imageWidth = dragImageWidth * imageRatio;
         const imageHeight = dragImageHeight * imageRatio;
