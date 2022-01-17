@@ -108,8 +108,6 @@ export default class VideoDataSyncContainer {
             return;
         }
 
-        const client = await this._setUp();
-
         let state = this.syncedData
             ? {
                   open: true,
@@ -130,15 +128,17 @@ export default class VideoDataSyncContainer {
         const selectedSub = state.subtitles.find((subtitle) => subtitle.language === this.lastLanguageSynced)?.url;
 
         if (selectedSub && !userRequested && !state.error) {
-            if (await this._syncData(this.syncedData.basename, selectedSub)) {
-                this._restore();
-                this._updatePlayerState(true);
+            if ((await this._syncData(this.syncedData.basename, selectedSub)) && this.doneListener) {
+                this.doneListener();
             }
             return;
         }
 
         state.selectedSubtitle = selectedSub || '-';
 
+        const client = await this._client();
+
+        this._prepareShow();
         client.updateState(state);
     }
 
@@ -166,13 +166,6 @@ export default class VideoDataSyncContainer {
         }
     }
 
-    async _setUp() {
-        const client = await this._client();
-        this._prepareShow();
-        this.context.pause();
-        return client;
-    }
-
     async _client() {
         if (this.client) {
             await this.client.bind();
@@ -190,8 +183,6 @@ export default class VideoDataSyncContainer {
         doc.close();
         await this.client.bind();
         this.client.onFinished(async (message) => {
-            this._restore();
-
             let shallUpdate = true;
 
             if ('confirm' === message.command) {
@@ -207,46 +198,43 @@ export default class VideoDataSyncContainer {
                 );
             }
 
-            this._updatePlayerState(shallUpdate);
+            if (shallUpdate) {
+                if (this.context.bindKeys) {
+                    this.context.keyBindings.bind(this.context);
+                }
+
+                this.context.subtitleContainer.displaySubtitles = this.context.displaySubtitles;
+                this.frame.classList.add('asbplayer-hide');
+
+                if (this.fullscreenElement) {
+                    this.fullscreenElement.requestFullscreen();
+                    this.fullscreenElement = null;
+                }
+
+                if (this.activeElement) {
+                    this.activeElement.focus();
+                    this.activeElement = null;
+                } else {
+                    window.focus();
+                }
+
+                if (!this.wasPaused) {
+                    this.context.play();
+                }
+
+                this.wasPaused = undefined;
+                if (this.doneListener) this.doneListener();
+            }
+
+            this.requested = false;
         });
 
         return this.client;
     }
 
-    _restore() {
-        if (this.context.bindKeys) {
-            this.context.keyBindings.bind(this.context);
-        }
-        this.context.subtitleContainer.displaySubtitles = this.context.displaySubtitles;
-        this.frame.classList.add('asbplayer-hide');
-        if (this.fullscreenElement) {
-            this.fullscreenElement.requestFullscreen();
-            this.fullscreenElement = null;
-        }
-
-        if (this.activeElement) {
-            this.activeElement.focus();
-            this.activeElement = null;
-        } else {
-            window.focus();
-        }
-    }
-
-    _updatePlayerState(shallUpdate) {
-        if (shallUpdate) {
-            if (!this.wasPaused) {
-                this.context.play();
-            }
-
-            this.wasPaused = undefined;
-            if (this.doneListener) this.doneListener();
-        }
-
-        this.requested = false;
-    }
-
     _prepareShow() {
         this.wasPaused = this.wasPaused ?? this.context.video.paused;
+        this.context.pause();
 
         if (document.fullscreenElement) {
             this.fullscreenElement = document.fullscreenElement;
@@ -303,7 +291,9 @@ export default class VideoDataSyncContainer {
     }
 
     async _reportError(suggestedName, error) {
-        const client = await this._setUp();
+        const client = await this._client();
+
+        this._prepareShow();
 
         return client.updateState({
             open: true,

@@ -35,7 +35,7 @@ window.addEventListener('load', (event) => {
         for (const v of videoElements) {
             const bindingExists = bindings.filter((b) => b.video.isSameNode(v)).length > 0;
 
-            if (!bindingExists && (v.src || [...v.children].some((elm) => 'SOURCE' === elm.tagName && elm.src))) {
+            if (!bindingExists && _hasValidSource(v)) {
                 const b = new Binding(v, subSyncAvailable);
                 b.bind();
                 bindings.push(b);
@@ -49,10 +49,7 @@ window.addEventListener('load', (event) => {
             let videoElementExists = false;
 
             for (const v of videoElements) {
-                if (
-                    v.isSameNode(b.video) &&
-                    (v.src || [...v.children].some((elm) => 'SOURCE' === elm.tagName && elm.src))
-                ) {
+                if (v.isSameNode(b.video) && _hasValidSource(v)) {
                     videoElementExists = true;
                     break;
                 }
@@ -123,3 +120,22 @@ window.addEventListener('load', (event) => {
         chrome.runtime.onMessage.removeListener(messageListener);
     });
 });
+
+function _hasValidSource(videoElement) {
+    let isValid = false;
+
+    if (videoElement.src) {
+        isValid = true;
+    } else {
+        for (let index = 0, length = videoElement.children.length; index < length; index++) {
+            const elm = videoElement.children[index];
+            isValid = 'SOURCE' === elm.tagName && elm.src;
+
+            if (isValid) {
+                break;
+            }
+        }
+    }
+
+    return isValid;
+}

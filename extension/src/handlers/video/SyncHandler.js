@@ -15,17 +15,15 @@ export default class SyncHandler {
         try {
             const chosenTabId = await this.tabRegistry.findAsbplayerTab(sender.tab, request.src);
 
-            if (chosenTabId) {
-                chrome.tabs.sendMessage(Number(chosenTabId), {
-                    sender: 'asbplayer-extension-to-player',
-                    message: {
-                        command: 'syncv2',
-                        subtitles: request.message.subtitles,
-                    },
-                    src: request.src,
-                    tabId: sender.tab.id,
-                });
-            }
+            chrome.tabs.sendMessage(Number(chosenTabId), {
+                sender: 'asbplayer-extension-to-player',
+                message: {
+                    command: 'syncv2',
+                    subtitles: request.message.subtitles,
+                },
+                src: request.src,
+                tabId: sender.tab.id,
+            });
         } catch (error) {
             console.error(error.message);
         }
