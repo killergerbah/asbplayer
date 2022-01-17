@@ -117,13 +117,17 @@ export default class TabRegistry {
     }
 
     _asbplayerReceivedVideoTabData(asbplayer, videoTab, videoSrc) {
+        if (typeof asbplayer.receivedTabs === 'undefined') {
+            // Support older asbplayer clients that don't send the receivedTabs array
+            return true;
+        }
+
         for (const tab of asbplayer.receivedTabs) {
             if (tab.id == videoTab.id && tab.src === videoSrc) {
                 return true;
             }
         }
 
-        // Support older asbplayer clients that don't send the receivedTabs array
-        return typeof asbplayer.receivedTabs === 'undefined';
+        return false;
     }
 }
