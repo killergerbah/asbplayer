@@ -148,6 +148,9 @@ export default class VideoDataSyncContainer {
         const urlObj = new URL(window.location.href);
 
         switch (urlObj.host) {
+            case 'www.netflix.com':
+                shallBlock = !urlObj.pathname.startsWith('/watch');
+                break;
             case 'www.youtube.com':
                 shallBlock = !urlObj.pathname.startsWith('/watch');
                 break;
