@@ -119,7 +119,7 @@ export default class VideoDataSyncContainer {
             : {
                   open: true,
                   isLoading: this.context.subSyncAvailable,
-                  showSubSelect: this.context.subSyncAvailable,
+                  showSubSelect: true,
                   subtitles: [{ language: '', url: '-', label: 'None' }],
               };
 
