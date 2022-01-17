@@ -16,8 +16,9 @@ const createClasses = makeStyles((theme) => ({
     },
     spinner: {
         position: 'absolute',
-        right: '30px',
-        bottom: '15px',
+        right: 'calc(1em + 14px)',
+        top: 'calc(50% - 13px)',
+        fontSize: '1.5em',
     },
     hide: {
         display: 'none',
@@ -58,7 +59,7 @@ export default function VideoDataSyncDialog({
             onBackdropClick={onCancel}
             onEscapeKeyDown={onCancel}
         >
-            <DialogTitle>Choose Data</DialogTitle>
+            <DialogTitle>Select Subtitles</DialogTitle>
             <DialogContent className={classes.content}>
                 <form>
                     <Grid container direction="column" spacing={2}>

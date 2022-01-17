@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
                 } else {
                     help.push(
                         c.shortcut +
-                            " enables selection of a video to mine without a subtitle file / sync data. Once a video is selected, either of the 'copy' shortcuts will start and stop recording."
+                            " enables selection of a video to mine without a subtitle file or available subtitles for supported sites. When mining with no subtitle file, either of the 'copy' shortcuts will start and stop recording."
                     );
                 }
             }

@@ -87,7 +87,7 @@ setTimeout(() => {
             }
 
             const videoApi = getAPI()?.getVideoMetadataByVideoId?.(titleId)?.getCurrentVideo?.();
-            const season = (videoApi?.getSeason?.()?.getSeasonIndex?.() ?? -1) + 1;
+            const season = videoApi?.getSeason()?._season?.seq;
             const ep = videoApi?.getEpisodeNumber?.();
             const title = videoApi?.getTitle?.() || titleId;
             const storedTracks = subTracks.get(titleId) || new Map();
@@ -105,7 +105,7 @@ setTimeout(() => {
                     };
                 });
             response.basename = `${title}${
-                season ? ` S${`${season}`.padStart(2, '0')}E${`${ep}`.padStart(2, '0')}` : ''
+                Number.isInteger(season) ? ` S${`${season}`.padStart(2, '0')}E${`${ep}`.padStart(2, '0')}` : ''
             }`;
 
             document.dispatchEvent(
