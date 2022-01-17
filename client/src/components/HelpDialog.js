@@ -53,9 +53,21 @@ export default function HelpDialog(props) {
                     <li>Drag-and-drop a subtitle file into the video element you want to sync.</li>
                     <li>Or, load a subtitle file into asbplayer and use the camera button in the bottom right.</li>
                     <li>
+                        On supported sites you can sync detected subtitles via the extension keyboard shortcut
+                        (Ctrl+Shift+F by default), or via the "automatically sync detected subtitles" option. The same
+                        shortcut also allows you to sync an empty subtitle track, allowing you to mine media without
+                        accompanying subtitles.
+                    </li>
+                    <li>
                         It is recommended to use the extension keyboard shortcut (Ctrl+Shift+X by default) to mine
                         subtitles since that will include audio/screenshots.
                     </li>
+                </Typography>
+                <br />
+                <Typography variant="h6">Supported streaming video sites for subtitle detection</Typography>
+                <Typography component="ul">
+                    <li>Netflix (on main /watch url)</li>
+                    <li>Youtube (on main /watch url)</li>
                 </Typography>
                 <br />
                 <Typography variant="h6">Anki</Typography>
@@ -159,8 +171,8 @@ export default function HelpDialog(props) {
                                 </TableCell>
                                 <TableCell>
                                     <Typography>
-                                        Select video element to mine with no subtitle file (streaming video in another
-                                        tab)
+                                        Select video element to mine without a subtitle file, or with detected subtitles
+                                        on supported sites (streaming video in another tab)
                                     </Typography>
                                 </TableCell>
                             </TableRow>

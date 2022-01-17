@@ -137,7 +137,7 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     onChange={(e) => onSettingsChanged('autoSync', e.target.checked)}
                                 />
                             }
-                            label="Automatically sync available subtitles"
+                            label="Automatically sync detected subtitles"
                         />
                     </FormGroup>
                 </Grid>
@@ -182,8 +182,8 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     </TableCell>
                                     <TableCell>
                                         <Typography variant="subtitle2">
-                                            Select video element to mine with no subtitle file, or available subtitles
-                                            from supported sites
+                                            Select video element to mine without a subtitle file, or with detected
+                                            subtitles on supported sites.
                                         </Typography>
                                     </TableCell>
                                 </TableRow>

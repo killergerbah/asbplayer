@@ -8,47 +8,26 @@
         "48": "assets/icon48.png",
         "128": "assets/icon128.png"
     },
-    "permissions": [
-        "tabs",
-        "tabCapture",
-        "activeTab",
-        "storage"
-    ],
+    "permissions": ["tabs", "tabCapture", "activeTab", "storage"],
     "browser_action": {
         "default_title": "asbplayer",
         "default_popup": "popup-ui.html"
     },
     "background": {
         "persistent": false,
-        "scripts": [
-            "background.js"
-        ]
+        "scripts": ["background.js"]
     },
     "content_scripts": [
         {
-            "matches": [
-                "*://*/*"
-            ],
-            "exclude_globs": [
-                "*://killergerbah.github.io/asbplayer*",
-                "*://localhost:*/*"
-            ],
-            "js": [
-                "video.js"
-            ],
-            "css": [
-                "video.css"
-            ],
+            "matches": ["*://*/*"],
+            "exclude_globs": ["*://killergerbah.github.io/asbplayer*", "*://localhost:*/*"],
+            "js": ["video.js"],
+            "css": ["video.css"],
             "all_frames": true
         },
         {
-            "matches": [
-                "*://killergerbah.github.io/asbplayer*",
-                "*://localhost:*/*"
-            ],
-            "js": [
-                "asbplayer.js"
-            ],
+            "matches": ["*://killergerbah.github.io/asbplayer*", "*://localhost:*/*"],
+            "js": ["asbplayer.js"],
             "run_at": "document_start"
         }
     ],
@@ -72,7 +51,7 @@
                 "default": "Ctrl+Shift+F",
                 "mac": "MacCtrl+Shift+F"
             },
-            "description": "Select a video to mine without a subtitle file / to sync data."
+            "description": "Select video element to mine without a subtitle file, or with detected subtitles on supported sites."
         }
     },
     "web_accessible_resources": [

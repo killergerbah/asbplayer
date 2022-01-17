@@ -22,11 +22,11 @@ The below information can also be found in asbplayer by clicking on the question
 - Install the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest).
 - Drag-and-drop a subtitle file into the video element you want to sync.
 - Or, load a subtitle file into asbplayer and use the camera button in the bottom right.
-- For supported sites you can sync available subtitles via respective shortcut (`Ctrl+Shift+F` by default) or via enabled auto sync option
+- On supported sites you can sync detected subtitles via the extension keyboard shortcut (`Ctrl+Shift+F` by default), or via the "automatically sync detected subtitles" option. The same shortcut also allows you to sync an empty subtitle track, allowing you to mine media without accompanying subtitles.
 - It is recommended to use an extension keyboard shortcut (`Ctrl+Shift+X` by default) to mine subtitles since that will include audio/screenshots.
 
-### Supported sites for syncing subtitles from streaming video in another tab
-- Netflix
+### Supported streaming video sites for subtitle detection
+- Netflix (on main /watch url)
 - Youtube (on main /watch url)
 
 ### Anki
@@ -56,7 +56,7 @@ The below information can also be found in asbplayer by clicking on the question
 |Ctrl+Shift+Q|Copy current subtitle and open Anki export dialog|
 |Ctrl+Shift+Z|Copy current subtitle (streaming video in another tab)|
 |Ctrl+Shift+X|Copy current subtitle and open Anki export dialog (streaming video in another tab)|    
-|Ctrl+Shift+F|Select video element to mine with no subtitle file or available subtitles for supported sites (streaming video in another tab)|      
+|Ctrl+Shift+F|Select video element to mine without a subtitle file, or with detected subtitles on supported sites (streaming video in another tab)|      
 |Space|Play/pause|
 |S|Toggle subtitles|
 |S+1, S+2...|Toggle subtitle track 1, 2... in video|
