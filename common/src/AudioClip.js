@@ -90,7 +90,7 @@ class FileAudioData {
             return;
         }
 
-        const audio = this._audioElement(this._blob);
+        const audio = await this._audioElement(this._blob, false);
         audio.currentTime = 0;
         await audio.play();
         await this._stopAudio(audio);
@@ -105,8 +105,8 @@ class FileAudioData {
     }
 
     async _clipAudio() {
-        return new Promise((resolve, reject) => {
-            const audio = this._audioElement(this.file);
+        return new Promise(async (resolve, reject) => {
+            const audio = await this._audioElement(this.file, true);
 
             audio.oncanplay = async (e) => {
                 audio.play();
@@ -134,22 +134,22 @@ class FileAudioData {
         });
     }
 
-    _audioElement(source) {
+    _audioElement(source, selectTrack) {
         const audio = new Audio();
         audio.src = URL.createObjectURL(source);
-        audio.preload = 'none';
 
-        // FIXME: clipping the correct audio track selection doesn't actually work right now.
-        if (this.trackId && audio.audioTracks && audio.audioTracks.length > 0) {
-            for (const t of audio.audioTracks) {
-                t.enabled = this.trackId === t.id;
-            }
-        }
+        return new Promise((resolve, reject) => {
+            audio.onloadedmetadata = (e) => {
+                if (selectTrack && this.trackId && audio.audioTracks && audio.audioTracks.length > 0) {
+                    for (const t of audio.audioTracks) {
+                        t.enabled = this.trackId === t.id;
+                    }
+                }
 
-        audio.currentTime = this.start / 1000;
-        audio.load();
-
-        return audio;
+                audio.currentTime = this.start / 1000;
+                resolve(audio);
+            };
+        });
     }
 
     _captureStream(audio) {
