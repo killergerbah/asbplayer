@@ -45,6 +45,7 @@ export default class RerecordMediaHandler {
                         id: uuidv4(),
                         audio: audio,
                         image: request.message.currentItem.image,
+                        url: request.message.currentItem.url,
                         subtitle: request.message.currentItem.subtitle,
                         surroundingSubtitles: request.message.currentItem.surroundingSubtitles,
                     },

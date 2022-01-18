@@ -24,6 +24,7 @@ import Radio from '@material-ui/core/Radio';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
+import TagsTextField from './TagsTextField';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -125,7 +126,9 @@ export default function SettingsDialog({ anki, open, settings, onClose }) {
     const [imageField, setImageField] = useState(settings.imageField || '');
     const [wordField, setWordField] = useState(settings.wordField || '');
     const [sourceField, setSourceField] = useState(settings.sourceField || '');
+    const [urlField, setUrlField] = useState(settings.urlField || '');
     const [customFields, setCustomFields] = useState(settings.customAnkiFields);
+    const [tags, setTags] = useState(settings.tags);
     const [preferMp3, setPreferMp3] = useState(settings.preferMp3);
     const [fieldNames, setFieldNames] = useState();
     const [customFieldDialogOpen, setCustomFieldDialogOpen] = useState(false);
@@ -157,6 +160,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }) {
     const handleImageFieldChange = useCallback((e) => setImageField(e.target.value), []);
     const handleWordFieldChange = useCallback((e) => setWordField(e.target.value), []);
     const handleSourceFieldChange = useCallback((e) => setSourceField(e.target.value), []);
+    const handleUrlFieldChange = useCallback((e) => setUrlField(e.target.value), []);
     const handleAudioPaddingStart = useCallback((e) => setAudioPaddingStart(e.target.value), []);
     const handleAudioPaddingEnd = useCallback((e) => setAudioPaddingEnd(e.target.value), []);
     const handleMaxImageWidth = useCallback((e) => setMaxImageWidth(e.target.value), []);
@@ -196,6 +200,9 @@ export default function SettingsDialog({ anki, open, settings, onClose }) {
             }),
         []
     );
+    const handleTagsChange = useCallback((newTags) => {
+        setTags(newTags);
+    }, []);
     const handlePreferMp3Change = useCallback((e) => setPreferMp3(e.target.checked), []);
     const handleThemeTypeChange = useCallback((e) => setThemeType(e.target.value), []);
     const subtitlePreviewStyles = useMemo(
@@ -293,6 +300,8 @@ export default function SettingsDialog({ anki, open, settings, onClose }) {
             imageField: imageField,
             wordField: wordField,
             sourceField: sourceField,
+            urlField: urlField,
+            tags: tags.filter((t) => t !== ''),
             subtitleSize: Number(subtitleSize),
             subtitleColor: subtitleColor,
             subtitleOutlineThickness: Number(subtitleOutlineThickness),
@@ -320,7 +329,9 @@ export default function SettingsDialog({ anki, open, settings, onClose }) {
         imageField,
         wordField,
         sourceField,
+        urlField,
         customFields,
+        tags,
         preferMp3,
         subtitleSize,
         subtitleColor,
@@ -453,6 +464,13 @@ export default function SettingsDialog({ anki, open, settings, onClose }) {
                                     onChange={handleSourceFieldChange}
                                     onSelectionChange={handleSourceFieldChange}
                                 />
+                                <SelectableSetting
+                                    label="URL Field"
+                                    value={urlField}
+                                    selections={fieldNames}
+                                    onChange={handleUrlFieldChange}
+                                    onSelectionChange={handleUrlFieldChange}
+                                />
                                 {customFieldInputs}
                                 <Button
                                     className={classes.addFieldButton}
@@ -460,6 +478,14 @@ export default function SettingsDialog({ anki, open, settings, onClose }) {
                                 >
                                     Add Custom Field
                                 </Button>
+                                <TagsTextField
+                                    label="Tags"
+                                    helperText="Comma-separated list of strings"
+                                    fullWidth
+                                    color="secondary"
+                                    tags={tags}
+                                    onTagsChange={handleTagsChange}
+                                />
                                 <FormControlLabel
                                     control={<Checkbox checked={preferMp3} onChange={handlePreferMp3Change} />}
                                     label="Re-encode audio as mp3 (slower)"

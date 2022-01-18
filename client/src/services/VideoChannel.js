@@ -85,6 +85,7 @@ export default class VideoChannel {
                             event.data.surroundingSubtitles,
                             event.data.audio,
                             event.data.image,
+                            event.data.url,
                             event.data.preventDuplicate,
                             event.data.id
                         );

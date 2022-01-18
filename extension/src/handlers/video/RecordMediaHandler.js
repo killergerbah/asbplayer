@@ -29,6 +29,7 @@ export default class RecordMediaHandler {
         const message = {
             command: 'copy',
             id: itemId,
+            url: request.message.url,
             subtitle: subtitle,
             surroundingSubtitles: request.message.surroundingSubtitles,
         };
@@ -96,6 +97,7 @@ export default class RecordMediaHandler {
                     surroundingSubtitles: message.surroundingSubtitles,
                     image: message.image,
                     audio: message.audio,
+                    url: message.url,
                 },
                 src: request.src,
             });

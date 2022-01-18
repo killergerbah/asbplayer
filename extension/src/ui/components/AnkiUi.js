@@ -20,13 +20,14 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }) {
     const [serializedImage, setSerializedImage] = useState();
     const [imageDialogOpen, setImageDialogOpen] = useState(false);
     const [source, setSource] = useState();
+    const [url, setUrl] = useState();
     const [sliderContext, setSliderContext] = useState();
     const [definition, setDefinition] = useState('');
     const [word, setWord] = useState('');
     const [customFieldValues, setCustomFieldValues] = useState({});
     const [timestampInterval, setTimestampInterval] = useState();
     const [lastAppliedTimestampIntervalToText, setLastAppliedTimestampIntervalToText] = useState();
-    const [settingsProvider, setSettingsProvider] = useState({ customAnkiFields: {} });
+    const [settingsProvider, setSettingsProvider] = useState({ customAnkiFields: {}, tags: [] });
     const [alertSeverity, setAlertSeverity] = useState();
     const [alertOpen, setAlertOpen] = useState(false);
     const [alert, setAlert] = useState();
@@ -55,6 +56,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }) {
                     ],
                 });
                 setSource(`${state.source} (${humanReadableTime(state.subtitle.start)})`);
+                setUrl(state.url);
                 setDefinition('');
                 setWord('');
                 setCustomFieldValues({});
@@ -74,6 +76,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }) {
                 setTimestampInterval(state.timestampInterval);
                 setSliderContext(state.sliderContext);
                 setSource(state.source);
+                setUrl(state.url);
                 setDefinition(state.definition);
                 setWord(state.word);
                 setCustomFieldValues(state.customFieldValues);
@@ -114,20 +117,11 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }) {
     }, [bridge, mp3WorkerUrl]);
 
     const handleProceed = useCallback(
-        async (text, definition, audioClip, image, word, source, customFieldValues, mode) => {
+        async (text, definition, audioClip, image, word, source, url, customFieldValues, tags, mode) => {
             setDisabled(true);
 
             try {
-                const result = await anki.export(
-                    text,
-                    definition,
-                    audioClip,
-                    image,
-                    word,
-                    source,
-                    customFieldValues,
-                    mode
-                );
+                await anki.export(text, definition, audioClip, image, word, source, url, customFieldValues, tags, mode);
 
                 if (mode !== 'gui') {
                     setOpen(false);
@@ -164,6 +158,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }) {
             definition,
             word,
             source,
+            url,
             customFieldValues,
             timestampInterval,
             lastAppliedTimestampIntervalToText,
@@ -180,6 +175,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }) {
                     image: serializedImage,
                     word: word,
                     source: source,
+                    url: url,
                     customFieldValues: customFieldValues,
                     timestampInterval: timestampInterval,
                     lastAppliedTimestampIntervalToText: lastAppliedTimestampIntervalToText,
@@ -214,6 +210,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }) {
                 audioClip={audioClip}
                 image={image}
                 source={source}
+                url={url}
                 settingsProvider={settingsProvider}
                 anki={anki}
                 onProceed={handleProceed}

@@ -69,6 +69,7 @@ export default class StartRecordingMediaHandler {
                             subtitle: subtitle,
                             surroundingSubtitles: [],
                             image: image,
+                            url: request.message.url,
                         },
                         tabId: sender.tab.id,
                         src: request.src,
@@ -85,6 +86,7 @@ export default class StartRecordingMediaHandler {
                         subtitle: subtitle,
                         surroundingSubtitles: [],
                         image: image,
+                        url: request.message.url,
                     },
                     src: request.src,
                 });

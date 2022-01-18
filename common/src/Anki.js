@@ -62,13 +62,14 @@ export default class Anki {
         return response.result;
     }
 
-    async export(text, definition, audioClip, image, word, source, customFieldValues, mode, ankiConnectUrl) {
+    async export(text, definition, audioClip, image, word, source, url, customFieldValues, tags, mode, ankiConnectUrl) {
         const fields = {};
 
         this._appendField(fields, this.settingsProvider.sentenceField, text, true);
         this._appendField(fields, this.settingsProvider.definitionField, definition, true);
         this._appendField(fields, this.settingsProvider.wordField, word, false);
         this._appendField(fields, this.settingsProvider.sourceField, source, false);
+        this._appendField(fields, this.settingsProvider.urlField, url, false);
 
         if (customFieldValues) {
             for (const customFieldName of Object.keys(customFieldValues)) {
@@ -85,6 +86,7 @@ export default class Anki {
             note: {
                 deckName: this.settingsProvider.deck,
                 modelName: this.settingsProvider.noteType,
+                tags: tags,
                 options: {
                     allowDuplicate: false,
                     duplicateScope: 'deck',

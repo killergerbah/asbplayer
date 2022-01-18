@@ -286,6 +286,7 @@ function App() {
             audioTrack,
             audio,
             image,
+            url,
             preventDuplicate,
             id
         ) => {
@@ -310,10 +311,10 @@ function App() {
                 const newCopiedSubtitles = [];
                 let updated = false;
 
-                for (const s of copiedSubtitles) {
-                    if (id && s.id === id) {
+                for (const copiedSubtitle of copiedSubtitles) {
+                    if (id && copiedSubtitle.id === id) {
                         const newCopiedSubtitle = {
-                            ...s,
+                            ...copiedSubtitle,
                             ...subtitle,
                             ...(surroundingSubtitles && { surroundingSubtitles: surroundingSubtitles }),
                             ...(subtitleFile && { subtitleFile: subtitleFile }),
@@ -322,11 +323,12 @@ function App() {
                             ...(audioTrack && { audioTrack: audioTrack }),
                             ...(audio && { audio: audio }),
                             ...(image && { image: image }),
+                            ...(url && { url: url }),
                         };
                         newCopiedSubtitles.push(newCopiedSubtitle);
                         updated = true;
                     } else {
-                        newCopiedSubtitles.push(s);
+                        newCopiedSubtitles.push(copiedSubtitle);
                     }
                 }
 
@@ -343,6 +345,7 @@ function App() {
                         audioTrack: audioTrack,
                         audio: audio,
                         image: image,
+                        url: url,
                     });
                 }
 
@@ -511,7 +514,7 @@ function App() {
     }, [ankiDialogRequested]);
 
     const handleAnkiDialogProceed = useCallback(
-        async (text, definition, audioClip, image, word, source, customFieldValues, mode) => {
+        async (text, definition, audioClip, image, word, source, url, customFieldValues, tags, mode) => {
             setAnkiDialogDisabled(true);
 
             try {
@@ -522,7 +525,9 @@ function App() {
                     image,
                     word,
                     source,
+                    url,
                     customFieldValues,
+                    tags,
                     mode
                 );
 
@@ -848,6 +853,7 @@ function App() {
                                         audioClip={ankiDialogAudioClip}
                                         image={ankiDialogImage}
                                         source={itemSourceString(ankiDialogItem)}
+                                        url={ankiDialogItem?.url}
                                         sliderContext={ankiDialogItemSliderContext}
                                         customFields={settingsProvider.customAnkiFields}
                                         anki={anki}

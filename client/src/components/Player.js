@@ -269,7 +269,7 @@ export default function Player({
                         channel.onPlay((forwardToMedia) => play(clock, mediaAdapter, forwardToMedia));
                         channel.onPause((forwardToMedia) => pause(clock, mediaAdapter, forwardToMedia));
                         channel.onOffset((offset) => applyOffset(Math.max(-lengthRef.current ?? 0, offset), false));
-                        channel.onCopy((subtitle, surroundingSubtitles, audio, image, preventDuplicate, id) =>
+                        channel.onCopy((subtitle, surroundingSubtitles, audio, image, url, preventDuplicate, id) =>
                             onCopy(
                                 subtitle,
                                 surroundingSubtitles,
@@ -279,6 +279,7 @@ export default function Player({
                                 channel.selectedAudioTrack,
                                 audio,
                                 image,
+                                url,
                                 preventDuplicate,
                                 id
                             )
@@ -537,10 +538,11 @@ export default function Player({
                 videoFile,
                 subtitleFiles[subtitle.track],
                 selectedAudioTrack,
-                null,
-                null,
+                undefined,
+                undefined,
+                undefined,
                 preventDuplicate,
-                null
+                undefined
             );
         },
         [onCopy, audioFile, videoFile, subtitleFiles, selectedAudioTrack]

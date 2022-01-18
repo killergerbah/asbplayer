@@ -33,6 +33,10 @@ export default class Binding {
         this.synced = false;
     }
 
+    get url() {
+        return window.location !== window.parent.location ? document.referrer : document.location.href;
+    }
+
     bind() {
         let bound = false;
 
@@ -199,7 +203,9 @@ export default class Binding {
                         this.subtitleContainer.refresh();
                         break;
                     case 'ankiSettings':
-                        this.ankiUiContainer.ankiSettings = request.message.value;
+                        const ankiSettings = request.message.value;
+                        ankiSettings.tags = typeof ankiSettings.tags === 'undefined' ? [] : ankiSettings.tags;
+                        this.ankiUiContainer.ankiSettings = ankiSettings;
                         this.audioPaddingStart =
                             typeof request.message.value.audioPaddingStart === 'undefined'
                                 ? this.audioPaddingStart
@@ -370,6 +376,7 @@ export default class Binding {
                 surroundingSubtitles: surroundingSubtitles,
                 record: this.recordMedia,
                 screenshot: this.screenshot,
+                url: this.url,
                 showAnkiUi: showAnkiUi,
                 audioPaddingStart: this.audioPaddingStart,
                 audioPaddingEnd: this.audioPaddingEnd,
@@ -398,6 +405,7 @@ export default class Binding {
                     endTimestamp: this.video.currentTime * 1000,
                     screenshot: this.recordingMediaWithScreenshot,
                     videoDuration: this.video.duration * 1000,
+                    url: this.url,
                 },
                 src: this.video.src,
             });
@@ -426,6 +434,7 @@ export default class Binding {
                 rect: this.screenshot ? this.video.getBoundingClientRect() : null,
                 maxImageWidth: this.maxImageWidth,
                 maxImageHeight: this.maxImageHeight,
+                url: this.url,
             };
 
             chrome.runtime.sendMessage({

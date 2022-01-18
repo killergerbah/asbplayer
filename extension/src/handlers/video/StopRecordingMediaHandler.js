@@ -65,6 +65,7 @@ export default class StopRecordingMediaHandler {
                         surroundingSubtitles: surroundingSubtitles,
                         image: image,
                         audio: audio,
+                        url: request.message.url,
                     },
                     tabId: sender.tab.id,
                     src: request.src,
@@ -82,6 +83,7 @@ export default class StopRecordingMediaHandler {
                     surroundingSubtitles: surroundingSubtitles,
                     image: image,
                     audio: audio,
+                    url: request.message.url,
                 },
                 src: request.src,
             });

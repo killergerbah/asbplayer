@@ -24,7 +24,9 @@ const audioFieldKey = 'audioField';
 const imageFieldKey = 'imageField';
 const wordFieldKey = 'wordField';
 const sourceFieldKey = 'sourceField';
+const urlFieldKey = 'urlField';
 const customAnkiFieldsKey = 'customAnkiFields';
+const tagsKey = 'tags';
 const subtitleSizeKey = 'subtitleSize';
 const subtitleColorKey = 'subtitleColor';
 const subtitleOutlineThicknessKey = 'subtitleOutlineThickness';
@@ -42,6 +44,11 @@ const preferMp3Key = 'preferMp3';
 const themeTypeKey = 'themeType';
 
 export default class SettingsProvider {
+    constructor() {
+        // Cache tags so that it can be used in useEffect dependencies
+        this._tags = this.tags;
+    }
+
     get settings() {
         return {
             ankiConnectUrl: this.ankiConnectUrl,
@@ -52,7 +59,9 @@ export default class SettingsProvider {
             audioField: this.audioField,
             imageField: this.imageField,
             wordField: this.wordField,
+            urlField: this.urlField,
             customAnkiFields: this.customAnkiFields,
+            tags: this.tags,
             sourceField: this.sourceField,
             subtitleSize: this.subtitleSize,
             subtitleColor: this.subtitleColor,
@@ -84,6 +93,8 @@ export default class SettingsProvider {
         this.imageField = newSettings.imageField;
         this.wordField = newSettings.wordField;
         this.sourceField = newSettings.sourceField;
+        this.urlField = newSettings.urlField;
+        this.tags = newSettings.tags;
         this.subtitleSize = newSettings.subtitleSize;
         this.subtitleColor = newSettings.subtitleColor;
         this.subtitleOutlineThickness = newSettings.subtitleOutlineThickness;
@@ -125,7 +136,9 @@ export default class SettingsProvider {
             imageField: this.imageField,
             wordField: this.wordField,
             sourceField: this.sourceField,
+            urlField: this.urlField,
             customAnkiFields: this.customAnkiFields,
+            tags: this.tags,
             preferMp3: this.preferMp3,
             audioPaddingStart: this.audioPaddingStart,
             audioPaddingEnd: this.audioPaddingEnd,
@@ -214,6 +227,14 @@ export default class SettingsProvider {
         localStorage.setItem(sourceFieldKey, sourceField);
     }
 
+    get urlField() {
+        return localStorage.getItem(urlFieldKey);
+    }
+
+    set urlField(urlField) {
+        localStorage.setItem(urlFieldKey, urlField);
+    }
+
     get customAnkiFields() {
         const ankiFieldsString = localStorage.getItem(customAnkiFieldsKey);
 
@@ -226,6 +247,26 @@ export default class SettingsProvider {
 
     set customAnkiFields(customAnkiFields) {
         localStorage.setItem(customAnkiFieldsKey, JSON.stringify(customAnkiFields));
+    }
+
+    get tags() {
+        if (typeof this._tags !== 'undefined') {
+            return this._tags;
+        }
+
+        const tagsString = localStorage.getItem(tagsKey);
+
+        if (tagsString) {
+            this._tags = JSON.parse(tagsString);
+            return this._tags;
+        }
+
+        return [];
+    }
+
+    set tags(tags) {
+        localStorage.setItem(tagsKey, JSON.stringify(tags));
+        this._tags = undefined;
     }
 
     get subtitleColor() {

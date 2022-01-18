@@ -33,11 +33,13 @@ export default class AnkiUiContainer {
         const subtitleFileNames = context.subtitleContainer.subtitleFileNames;
         const client = await this._client(context);
         this._prepareShow(context);
+        const url = context.url;
         this.currentItem = {
             subtitle: subtitle,
             surroundingSubtitles: surroundingSubtitles,
             image: image,
             audio: audio,
+            url: url,
             id: id,
         };
         client.updateState({
@@ -46,6 +48,7 @@ export default class AnkiUiContainer {
             id: id,
             settingsProvider: this.ankiSettings,
             source: subtitle.track ? subtitleFileNames[subtitle.track] : subtitleFileNames[0],
+            url: url,
             subtitle: subtitle,
             surroundingSubtitles: surroundingSubtitles,
             image: image,

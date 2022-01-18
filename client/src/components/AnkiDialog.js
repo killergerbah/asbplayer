@@ -17,6 +17,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import ZoomInIcon from '@material-ui/icons/ZoomIn';
+import TagsTextField from './TagsTextField';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -89,6 +90,7 @@ export default function AnkiDialog({
     audioClip: initialAudioClip,
     image,
     source: initialSource,
+    url: initialUrl,
     sliderContext,
     customFields,
     settingsProvider,
@@ -100,6 +102,8 @@ export default function AnkiDialog({
     const [word, setWord] = useState();
     const [lastSearchedWord, setLastSearchedWord] = useState();
     const [source, setSource] = useState(initialSource);
+    const [tags, setTags] = useState(settingsProvider.tags);
+    const [url, setUrl] = useState(initialUrl);
     const [duplicateNotes, setDuplicateNotes] = useState([]);
     const [wordTimestamp, setWordTimestamp] = useState(0);
     const [customFieldValues, setCustomFieldValues] = useState({});
@@ -117,9 +121,11 @@ export default function AnkiDialog({
         setDefinition('');
         setWord('');
         setSource(initialSource);
+        setUrl(initialUrl);
         setDuplicateNotes([]);
         setCustomFieldValues({});
-    }, [initialText, initialSource]);
+        setTags(settingsProvider.tags);
+    }, [initialText, initialSource, initialUrl, settingsProvider.tags]);
 
     useEffect(() => {
         const timestampInterval = sliderContext && [sliderContext.subtitleStart, sliderContext.subtitleEnd];
@@ -431,6 +437,27 @@ export default function AnkiDialog({
                         value={source}
                         onChange={(e) => setSource(e.target.value)}
                     />
+                    {initialUrl && (
+                        <TextField
+                            variant="filled"
+                            color="secondary"
+                            fullWidth
+                            label="URL"
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                        />
+                    )}
+                    {settingsProvider.tags.length > 0 && (
+                        <TagsTextField
+                            variant="filled"
+                            label="Tags"
+                            helperText="Comma-separated list of strings"
+                            fullWidth
+                            color="secondary"
+                            tags={tags}
+                            onTagsChange={(newTags) => setTags(newTags)}
+                        />
+                    )}
                     {timestampInterval && timestampBoundaryInterval && timestampMarks && (
                         <Grid container direction="row">
                             <Grid item style={{ flexGrow: 1 }}>
@@ -483,7 +510,7 @@ export default function AnkiDialog({
                 <Button
                     disabled={disabled}
                     onClick={() =>
-                        onProceed(text, definition, audioClip, image, word, source, customFieldValues, 'gui')
+                        onProceed(text, definition, audioClip, image, word, source, url, customFieldValues, tags, 'gui')
                     }
                 >
                     Open in Anki
@@ -491,7 +518,18 @@ export default function AnkiDialog({
                 <Button
                     disabled={disabled}
                     onClick={() =>
-                        onProceed(text, definition, audioClip, image, word, source, customFieldValues, 'updateLast')
+                        onProceed(
+                            text,
+                            definition,
+                            audioClip,
+                            image,
+                            word,
+                            source,
+                            url,
+                            customFieldValues,
+                            tags,
+                            'updateLast'
+                        )
                     }
                 >
                     Update Last Card
@@ -499,7 +537,18 @@ export default function AnkiDialog({
                 <Button
                     disabled={disabled}
                     onClick={() =>
-                        onProceed(text, definition, audioClip, image, word, source, customFieldValues, 'default')
+                        onProceed(
+                            text,
+                            definition,
+                            audioClip,
+                            image,
+                            word,
+                            source,
+                            url,
+                            customFieldValues,
+                            tags,
+                            'default'
+                        )
                     }
                 >
                     Export
