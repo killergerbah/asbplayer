@@ -54,9 +54,9 @@ The below information can also be found in asbplayer by clicking on the question
 |------------|---------------------|
 |Ctrl+Shift+A|Copy current subtitle|
 |Ctrl+Shift+Q|Copy current subtitle and open Anki export dialog|
-|Ctrl+Shift+Z|Copy current subtitle (streaming video in another tab)|
-|Ctrl+Shift+X|Copy current subtitle and open Anki export dialog (streaming video in another tab)|    
-|Ctrl+Shift+F|Select video element to mine without a subtitle file, or with detected subtitles on supported sites (streaming video in another tab)|      
+|Ctrl+Shift+Z (default, streaming video)|Copy current subtitle<br>When video is synced without a subtitle file, starts/stops recording audio|
+|Ctrl+Shift+X (default, streaming video)|Copy current subtitle and open Anki export dialog<br>When video is synced without a subtitle file, starts/stops recording audio|
+|Ctrl+Shift+F (default, streaming video)|Select video element to mine without a subtitle file, or with detected subtitles on supported sites|      
 |Space|Play/pause|
 |S|Toggle subtitles|
 |S+1, S+2...|Toggle subtitle track 1, 2... in video|

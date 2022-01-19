@@ -148,31 +148,34 @@ export default function HelpDialog(props) {
                             </TableRow>
                             <TableRow>
                                 <TableCell>
-                                    <Typography>Ctrl+Shift+Z</Typography>
+                                    <Typography>Ctrl+Shift+Z (default, streaming video)</Typography>
                                 </TableCell>
                                 <TableCell>
-                                    <Typography>Copy current subtitle (streaming video in another tab)</Typography>
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>
-                                    <Typography>Ctrl+Shift+X</Typography>
-                                </TableCell>
-                                <TableCell>
+                                    <Typography>Copy current subtitle</Typography>
                                     <Typography>
-                                        Copy current subtitle and open Anki export dialog (streaming video in another
-                                        tab)
+                                        When video is synced without a subtitle file, starts/stops recording audio
                                     </Typography>
                                 </TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell>
-                                    <Typography>Ctrl+Shift+F</Typography>
+                                    <Typography>Ctrl+Shift+X (default, streaming video)</Typography>
+                                </TableCell>
+                                <TableCell>
+                                    <Typography>Copy current subtitle and open Anki export dialog</Typography>
+                                    <Typography>
+                                        When video is synced without a subtitle file, starts/stops recording audio
+                                    </Typography>
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell>
+                                    <Typography>Ctrl+Shift+F (default, streaming video)</Typography>
                                 </TableCell>
                                 <TableCell>
                                     <Typography>
                                         Select video element to mine without a subtitle file, or with detected subtitles
-                                        on supported sites (streaming video in another tab)
+                                        on supported sites
                                     </Typography>
                                 </TableCell>
                             </TableRow>

@@ -156,6 +156,9 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     </TableCell>
                                     <TableCell>
                                         <Typography variant="subtitle2">Copy current subtitle</Typography>
+                                        <Typography variant="subtitle2">
+                                            When video is synced without a subtitle file, starts/stops recording audio
+                                        </Typography>
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
@@ -170,6 +173,9 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                         <Typography variant="subtitle2">
                                             Copy current subtitle and open Anki export dialog
                                         </Typography>
+                                        <Typography variant="subtitle2">
+                                            When video is synced without a subtitle file, starts/stops recording audio
+                                        </Typography>
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
@@ -183,7 +189,7 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     <TableCell>
                                         <Typography variant="subtitle2">
                                             Select video element to mine without a subtitle file, or with detected
-                                            subtitles on supported sites.
+                                            subtitles on supported sites
                                         </Typography>
                                     </TableCell>
                                 </TableRow>
