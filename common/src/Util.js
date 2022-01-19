@@ -1,6 +1,13 @@
-export function humanReadableTime(timestamp) {
+export function humanReadableTime(timestamp, nearestTenth = false) {
     const totalSeconds = Math.floor(timestamp / 1000);
-    const seconds = totalSeconds % 60;
+    let seconds;
+
+    if (nearestTenth) {
+        seconds = Math.round(((timestamp / 1000) % 60) * 10) / 10;
+    } else {
+        seconds = totalSeconds % 60;
+    }
+
     const minutes = Math.floor(totalSeconds / 60) % 60;
     const hours = Math.floor(totalSeconds / 3600);
 

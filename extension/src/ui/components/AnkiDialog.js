@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
+import { humanReadableTime } from '@project/common';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -75,6 +76,18 @@ function sliderMarksFromSliderContext(sliderContext, boundary) {
         })
         .filter((mark) => mark !== null)
         .filter((mark) => mark.value >= boundary[0] && mark.value <= boundary[1]);
+}
+
+function sliderValueLabelFormat(ms) {
+    return humanReadableTime(ms, true);
+}
+
+function ValueLabelComponent({ children, open, value }) {
+    return (
+        <Tooltip open={open} enterTouchDelay={0} placement="top" title={value}>
+            {children}
+        </Tooltip>
+    );
 }
 
 export default function AnkiDialog({
@@ -450,13 +463,15 @@ export default function AnkiDialog({
                         <Grid container direction="row">
                             <Grid item style={{ flexGrow: 1 }}>
                                 <Slider
+                                    ValueLabelComponent={ValueLabelComponent}
                                     value={timestampInterval}
+                                    valueLabelFormat={sliderValueLabelFormat}
                                     onChange={handleTimestampIntervalChange}
                                     min={timestampBoundaryInterval[0]}
                                     max={timestampBoundaryInterval[1]}
                                     marks={timestampMarks}
                                     step={1}
-                                    valueLabelDisplay="off"
+                                    valueLabelDisplay="auto"
                                     className={classes.rangeSelectSlider}
                                     color="secondary"
                                 />
