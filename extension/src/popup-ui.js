@@ -17,8 +17,10 @@ const fetchShortcuts = () => {
 
 document.addEventListener('DOMContentLoaded', async (e) => {
     const settings = new Settings();
-    const currentSettings = await settings.get();
-    const commands = await fetchShortcuts();
+    const currentSettingsPromise = settings.get();
+    const commandsPromise = fetchShortcuts();
+    const currentSettings = await currentSettingsPromise;
+    const commands = await commandsPromise;
     const rootElement = document.getElementById('root');
     const bridge = renderPopupUi(rootElement, { currentSettings, commands });
     bridge.onFinished((message) => {

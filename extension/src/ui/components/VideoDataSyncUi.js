@@ -13,8 +13,9 @@ export default function VideoDataSyncUi({ bridge }) {
     const [subtitles, setSubtitles] = useState([{ language: '', url: '-', label: 'None' }]);
     const [selectedSubtitle, setSelectedSubtitle] = useState('-');
     const [error, setError] = useState('');
+    const [themeType, setThemeType] = useState();
 
-    const theme = useMemo(() => createTheme('dark'), []);
+    const theme = useMemo(() => createTheme(themeType || 'dark'), [themeType]);
 
     const handleCancel = useCallback(() => {
         closeDialog();
@@ -63,6 +64,10 @@ export default function VideoDataSyncUi({ bridge }) {
 
             if (Object.prototype.hasOwnProperty.call(state, 'error')) {
                 setError(state.error);
+            }
+
+            if (Object.prototype.hasOwnProperty.call(state, 'themeType')) {
+                setThemeType(state.themeType);
             }
         });
     }, [bridge]);

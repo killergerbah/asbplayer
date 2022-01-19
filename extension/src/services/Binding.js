@@ -233,6 +233,7 @@ export default class Binding {
                         break;
                     case 'miscSettings':
                         this.ankiUiContainer.themeType = request.message.value.themeType;
+                        this.settings.set({lastThemeType: request.message.value.themeType});
                         break;
                     case 'settings-updated':
                         this._refreshSettings();

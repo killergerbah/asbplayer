@@ -10,6 +10,7 @@ const defaults = {
     lastLanguageSynced: null,
     subtitlePositionOffsetBottom: 100,
     asbplayerUrl: 'https://killergerbah.github.io/asbplayer/',
+    lastThemeType: 'dark',
 };
 
 export default class Settings {

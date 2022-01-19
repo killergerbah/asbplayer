@@ -6,7 +6,7 @@ import PopupForm from './PopupForm';
 
 export default function PopupUi({ bridge, currentSettings, commands }) {
     const [settings, setSettings] = useState(currentSettings);
-    const theme = useMemo(() => createTheme('dark'), []);
+    const theme = useMemo(() => createTheme(currentSettings.lastThemeType || 'dark'), [currentSettings.lastThemeType]);
 
     const handleSettingsChanged = useCallback(
         (key, value) => {

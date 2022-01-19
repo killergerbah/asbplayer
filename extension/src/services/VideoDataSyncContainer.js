@@ -108,6 +108,7 @@ export default class VideoDataSyncContainer {
             return;
         }
 
+        const themeType = (await this.context.settings.get(['lastThemeType'])).lastThemeType;
         let state = this.syncedData
             ? {
                   open: true,
@@ -115,12 +116,14 @@ export default class VideoDataSyncContainer {
                   suggestedName: this.syncedData.basename,
                   subtitles: [{ language: '', url: '-', label: 'None' }, ...this.syncedData.subtitles],
                   error: this.syncedData.error,
+                  themeType: themeType,
               }
             : {
                   open: true,
                   isLoading: this.context.subSyncAvailable,
                   showSubSelect: true,
                   subtitles: [{ language: '', url: '-', label: 'None' }],
+                  themeType: themeType,
               };
 
         this.requested = userRequested;
@@ -295,6 +298,7 @@ export default class VideoDataSyncContainer {
 
     async _reportError(suggestedName, error) {
         const client = await this._client();
+        const themeType = (await this.context.settings.get(['lastThemeType'])).lastThemeType;
 
         this._prepareShow();
 
@@ -308,6 +312,7 @@ export default class VideoDataSyncContainer {
                 this.syncedData?.subtitles.find((subtitle) => subtitle.language === this.lastLanguageSynced)?.url ||
                 '-',
             error,
+            themeType: themeType,
         });
     }
 }
