@@ -140,7 +140,7 @@ export default class VideoDataSyncContainer {
             return;
         }
 
-        state.selectedSubtitle = selectedSub.url || '-';
+        state.selectedSubtitle = selectedSub?.url || '-';
 
         const client = await this._client();
 
