@@ -1,7 +1,7 @@
 {
     "name": "asbplayer",
     "description": "Sync asbplayer with streaming video",
-    "version": "0.16.1",
+    "version": "0.17.0",
     "manifest_version": 2,
     "icons": {
         "16": "assets/icon16.png",
