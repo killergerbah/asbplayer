@@ -132,7 +132,10 @@ export default class VideoDataSyncContainer {
 
         if (selectedSub && !userRequested && !state.error) {
             if (
-                (await this._syncData(`${this.syncedData.basename} - ${selectedSub.label}`, selectedSub.url)) &&
+                (await this._syncData(
+                    this._defaultVideoName(this.syncedData.basename, selectedSub),
+                    selectedSub.url
+                )) &&
                 this.doneListener
             ) {
                 this.doneListener();
@@ -146,6 +149,14 @@ export default class VideoDataSyncContainer {
 
         this._prepareShow();
         client.updateState(state);
+    }
+
+    _defaultVideoName(basename, subtitleTrack) {
+        if (subtitleTrack.url === '-') {
+            return basename;
+        }
+
+        return `${basename} - ${subtitleTrack.label}`;
     }
 
     _blockRequest() {
