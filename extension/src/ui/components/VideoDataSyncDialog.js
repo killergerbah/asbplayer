@@ -25,6 +25,14 @@ const createClasses = makeStyles((theme) => ({
     },
 }));
 
+function calculateName(suggestedName, label) {
+    if (label) {
+        return `${suggestedName} - ${label}`;
+    }
+
+    return suggestedName;
+}
+
 export default function VideoDataSyncDialog({
     open,
     isLoading,
@@ -44,11 +52,39 @@ export default function VideoDataSyncDialog({
     useEffect(() => {
         if (open && !isLoading) {
             setSelected(selectedSubtitle);
-            if (!trimmedName) setName(suggestedName);
         } else if (!open) {
             setName('');
         }
-    }, [open, isLoading, suggestedName, selectedSubtitle]);
+    }, [open, isLoading, selectedSubtitle]);
+
+    useEffect(() => {
+        setName((name) => {
+            if (!suggestedName || !subtitles) {
+                // Unable to calculate the video name
+                return name;
+            }
+
+            // If the video name is not calculated yet,
+            // or has already been calculated and not changed by the user,
+            // then calculate it (possibly again)
+            if (
+                !name ||
+                name === suggestedName ||
+                subtitles.find((track) => track.url !== '-' && name === calculateName(suggestedName, track.label))
+            ) {
+                const selectedTrack = subtitles.find((track) => track.url === selected);
+
+                if (selectedTrack.url === '-') {
+                    return suggestedName;
+                }
+
+                return calculateName(suggestedName, selectedTrack.label);
+            }
+
+            // Otherwise, let the name be whatever the user set it to
+            return name;
+        });
+    }, [suggestedName, selected, subtitles]);
 
     return (
         <Dialog
@@ -66,6 +102,7 @@ export default function VideoDataSyncDialog({
                         <Grid item>
                             <TextField
                                 fullWidth
+                                multiline
                                 color="secondary"
                                 variant="filled"
                                 label="Video Name"

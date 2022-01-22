@@ -128,16 +128,19 @@ export default class VideoDataSyncContainer {
 
         this.requested = userRequested;
 
-        const selectedSub = state.subtitles.find((subtitle) => subtitle.language === this.lastLanguageSynced)?.url;
+        const selectedSub = state.subtitles.find((subtitle) => subtitle.language === this.lastLanguageSynced);
 
         if (selectedSub && !userRequested && !state.error) {
-            if ((await this._syncData(this.syncedData.basename, selectedSub)) && this.doneListener) {
+            if (
+                (await this._syncData(`${this.syncedData.basename} - ${selectedSub.label}`, selectedSub.url)) &&
+                this.doneListener
+            ) {
                 this.doneListener();
             }
             return;
         }
 
-        state.selectedSubtitle = selectedSub || '-';
+        state.selectedSubtitle = selectedSub.url || '-';
 
         const client = await this._client();
 
