@@ -1,7 +1,46 @@
-import { surroundingSubtitles } from '@project/common';
+import {
+    OffsetMessage,
+    SubtitleModel,
+    SubtitleSettings,
+    surroundingSubtitles,
+    VideoToExtensionCommand,
+} from '@project/common';
+
+interface Rgb {
+    r: number;
+    g: number;
+    b: number;
+}
 
 export default class SubtitleContainer {
-    constructor(video) {
+    private readonly video: HTMLVideoElement;
+
+    private showingSubtitles: SubtitleModel[];
+    private disabledSubtitleTracks: { [key: number]: boolean | undefined };
+    private lastLoadedMessageTimestamp: number;
+    private lastOffsetChangeTimestamp: number;
+    private showingOffset?: number;
+    private surroundingSubtitlesCountRadius: number;
+    private surroundingSubtitlesTimeRadius: number;
+    private subtitlesInterval?: NodeJS.Timer;
+    private showingLoadedMessage: boolean;
+
+    private fullscreenSubtitlesContainerElement?: HTMLElement;
+    private fullscreenSubtitlesElement?: HTMLElement;
+    private subtitlesContainerElement?: HTMLElement;
+    private subtitlesElement?: HTMLElement;
+    private subtitlesElementFullscreenChangeListener?: (this: any, event: Event) => any;
+    private subtitlesElementStylesInterval?: NodeJS.Timer;
+    private subtitlesElementFullscreenPollingInterval?: NodeJS.Timer;
+    private fullscreenSubtitlesElementFullscreenChangeListener?: (this: any, event: Event) => any;
+    private fullscreenSubtitlesElementFullscreenPollingInterval?: NodeJS.Timer;
+
+    subtitles: SubtitleModel[];
+    displaySubtitles: boolean;
+    subtitlePositionOffsetBottom: number;
+    subtitleSettings: SubtitleSettings;
+
+    constructor(video: HTMLVideoElement) {
         this.video = video;
         this.subtitles = [];
         this.showingSubtitles = [];
@@ -97,7 +136,7 @@ export default class SubtitleContainer {
         }
     }
 
-    currentSubtitle() {
+    currentSubtitle(): [SubtitleModel | null, SubtitleModel[] | null] {
         const now = 1000 * this.video.currentTime;
         let subtitle = null;
         let index = null;
@@ -131,7 +170,7 @@ export default class SubtitleContainer {
         ];
     }
 
-    offset(offset) {
+    offset(offset: number) {
         if (!this.subtitles || this.subtitles.length === 0) {
             return;
         }
@@ -145,19 +184,21 @@ export default class SubtitleContainer {
             track: s.track,
         }));
 
-        chrome.runtime.sendMessage({
+        const command: VideoToExtensionCommand<OffsetMessage> = {
             sender: 'asbplayer-video',
             message: {
                 command: 'offset',
                 value: offset,
             },
             src: this.video.src,
-        });
+        };
+
+        chrome.runtime.sendMessage(command);
 
         this.lastOffsetChangeTimestamp = Date.now();
     }
 
-    _computeOffset() {
+    _computeOffset(): number {
         if (!this.subtitles || this.subtitles.length === 0) {
             return 0;
         }
@@ -166,30 +207,30 @@ export default class SubtitleContainer {
         return s.start - s.originalStart;
     }
 
-    _formatOffset(offset) {
+    _formatOffset(offset: number): string {
         const roundedOffset = Math.floor(offset);
         return roundedOffset >= 0 ? '+' + roundedOffset + ' ms' : roundedOffset + ' ms';
     }
 
-    showLoadedMessage(message) {
+    showLoadedMessage(message: string) {
         this._subtitlesHtml(message);
         this.showingLoadedMessage = true;
         this.lastLoadedMessageTimestamp = Date.now();
     }
 
-    _subtitlesHtml(html) {
+    _subtitlesHtml(html: string) {
         this._subtitlesElement().innerHTML = html;
         this._fullscreenSubtitlesElement().innerHTML = html;
     }
 
-    _appendSubtitlesHtml(html) {
+    _appendSubtitlesHtml(html: string) {
         const currentHtml = this._subtitlesElement().innerHTML;
         const newHtml = currentHtml && currentHtml.length > 0 ? currentHtml + '<br>' + html : html;
         this._subtitlesElement().innerHTML = newHtml;
         this._fullscreenSubtitlesElement().innerHTML = newHtml;
     }
 
-    _subtitlesElement() {
+    _subtitlesElement(): HTMLElement {
         if (this.subtitlesElement) {
             return this.subtitlesElement;
         }
@@ -221,18 +262,16 @@ export default class SubtitleContainer {
         return this.subtitlesElement;
     }
 
-    _applyNonFullscreenStyles(container, div) {
+    _applyNonFullscreenStyles(container: HTMLElement, div: HTMLElement) {
         const rect = this.video.getBoundingClientRect();
         container.style.maxWidth = rect.width + 'px';
-        const buffer = Math.max(50, rect.height * 0.2);
         container.style.top = rect.top + rect.height + window.pageYOffset - this.subtitlePositionOffsetBottom + 'px';
         container.style.bottom = null;
-        container.style.height = rect.height;
 
         this._applySubtitleSettings(div);
     }
 
-    _fullscreenSubtitlesElement() {
+    _fullscreenSubtitlesElement(): HTMLElement {
         if (this.fullscreenSubtitlesElement) {
             return this.fullscreenSubtitlesElement;
         }
@@ -267,7 +306,7 @@ export default class SubtitleContainer {
         return this.fullscreenSubtitlesElement;
     }
 
-    _applyFullscreenStyles(container, div) {
+    _applyFullscreenStyles(container: HTMLElement, div: HTMLElement) {
         this._applySubtitleSettings(div);
         const rect = this.video.getBoundingClientRect();
         container.style.top = null;
@@ -275,7 +314,7 @@ export default class SubtitleContainer {
         container.style.maxWidth = '100%';
     }
 
-    _applySubtitleSettings(div) {
+    _applySubtitleSettings(div: HTMLElement) {
         if (this.subtitleSettings) {
             div.style.color = this.subtitleSettings.subtitleColor;
             div.style.fontSize = this.subtitleSettings.subtitleSize + 'px';
@@ -305,8 +344,8 @@ export default class SubtitleContainer {
         }
     }
 
-    _findFullscreenSubtitlesContainer(subtitles) {
-        const testNode = subtitles.cloneNode(true);
+    _findFullscreenSubtitlesContainer(subtitles: HTMLElement): HTMLElement {
+        const testNode = subtitles.cloneNode(true) as HTMLElement;
         testNode.innerHTML = '&nbsp;'; // The node needs to take up some space to perform test clicks
         let current = this.video.parentElement;
 
@@ -338,7 +377,7 @@ export default class SubtitleContainer {
         return document.body;
     }
 
-    _clickable(container, element) {
+    _clickable(container: HTMLElement, element: HTMLElement): boolean {
         container.appendChild(element);
         const rect = element.getBoundingClientRect();
         const clickedElement = document.elementFromPoint(rect.x, rect.y);
@@ -347,7 +386,7 @@ export default class SubtitleContainer {
         return clickable;
     }
 
-    _arrayEquals(a, b) {
+    _arrayEquals(a: any[], b: any[]): boolean {
         if (a.length !== b.length) {
             return false;
         }
@@ -385,7 +424,7 @@ export default class SubtitleContainer {
     }
 
     // https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
-    _hexToRgb(hex) {
+    _hexToRgb(hex: string): Rgb {
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return {
             r: parseInt(result[1], 16),

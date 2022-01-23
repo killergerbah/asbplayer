@@ -19,7 +19,7 @@ import CopyHistory from './CopyHistory.js';
 import LandingPage from './LandingPage.js';
 import Player from './Player.js';
 import SettingsDialog from './SettingsDialog.js';
-import SettingsProvider from '../services/SettingsProvider.js';
+import SettingsProvider from '../services/SettingsProvider';
 import VideoPlayer from './VideoPlayer.js';
 
 const latestExtensionVersion = '0.17.0';

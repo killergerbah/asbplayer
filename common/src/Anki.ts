@@ -1,33 +1,34 @@
-import HttpFetcher from './HttpFetcher';
+import { AnkiSettings, AudioClip, Image } from '..';
+import { HttpFetcher, Fetcher } from './Fetcher';
 
 const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
 const fileNameSpecialCharacters = [':', '/', '\\', '<', '>', '"', '|', '?', '*', '^'];
 
 export default class Anki {
-    private readonly settingsProvider: any;
-    private readonly fetcher: any;
+    private readonly settingsProvider: AnkiSettings;
+    private readonly fetcher: Fetcher;
 
-    constructor(settingsProvider, fetcher = new HttpFetcher()) {
+    constructor(settingsProvider: AnkiSettings, fetcher = new HttpFetcher()) {
         this.settingsProvider = settingsProvider;
         this.fetcher = fetcher;
     }
 
-    async deckNames(ankiConnectUrl) {
+    async deckNames(ankiConnectUrl?: string) {
         const response = await this._executeAction('deckNames', null, ankiConnectUrl);
         return response.result;
     }
 
-    async modelNames(ankiConnectUrl) {
+    async modelNames(ankiConnectUrl?: string) {
         const response = await this._executeAction('modelNames', null, ankiConnectUrl);
         return response.result;
     }
 
-    async modelFieldNames(modelName, ankiConnectUrl) {
+    async modelFieldNames(modelName: string, ankiConnectUrl?: string) {
         const response = await this._executeAction('modelFieldNames', { modelName: modelName }, ankiConnectUrl);
         return response.result;
     }
 
-    async findNotesWithWord(word, ankiConnectUrl) {
+    async findNotesWithWord(word: string, ankiConnectUrl?: string) {
         const response = await this._executeAction(
             'findNotes',
             { query: this.settingsProvider.wordField + ':' + this._escapeQuery(word) },
@@ -36,7 +37,7 @@ export default class Anki {
         return response.result;
     }
 
-    async findNotesWithWordGui(word, ankiConnectUrl) {
+    async findNotesWithWordGui(word: string, ankiConnectUrl?: string) {
         const response = await this._executeAction(
             'guiBrowse',
             { query: this.settingsProvider.wordField + ':' + this._escapeQuery(word) },
@@ -45,7 +46,7 @@ export default class Anki {
         return response.result;
     }
 
-    _escapeQuery(query) {
+    _escapeQuery(query: string) {
         let escaped = '';
 
         for (let i = 0; i < query.length; ++i) {
@@ -60,12 +61,24 @@ export default class Anki {
         return `"${escaped}"`;
     }
 
-    async requestPermission(ankiConnectUrl) {
+    async requestPermission(ankiConnectUrl?: string) {
         const response = await this._executeAction('requestPermission', null, ankiConnectUrl);
         return response.result;
     }
 
-    async export(text, definition, audioClip, image, word, source, url, customFieldValues, tags, mode, ankiConnectUrl) {
+    async export(
+        text: string | undefined,
+        definition: string | undefined,
+        audioClip: AudioClip | undefined,
+        image: Image | undefined,
+        word: string | undefined,
+        source: string | undefined,
+        url: string | undefined,
+        customFieldValues: { [key: string]: string },
+        tags: string[],
+        mode: 'gui' | 'updateLast' | 'default',
+        ankiConnectUrl?: string
+    ) {
         const fields = {};
 
         this._appendField(fields, this.settingsProvider.sentenceField, text, true);
@@ -85,7 +98,7 @@ export default class Anki {
             }
         }
 
-        const params = {
+        const params: any = {
             note: {
                 deckName: this.settingsProvider.deck,
                 modelName: this.settingsProvider.noteType,
@@ -165,7 +178,7 @@ export default class Anki {
         }
     }
 
-    _appendField(fields, fieldName, value, multiline) {
+    _appendField(fields: any, fieldName: string | undefined, value: string | undefined, multiline: boolean) {
         if (!fieldName || !value) {
             return;
         }
@@ -180,7 +193,7 @@ export default class Anki {
         fields[fieldName] = newValue;
     }
 
-    _sanitizeFileName(name) {
+    _sanitizeFileName(name: string) {
         let sanitized = '';
 
         for (let i = 0; i < name.length; ++i) {
@@ -196,12 +209,12 @@ export default class Anki {
         return sanitized;
     }
 
-    async _storeMediaFile(name, base64, ankiConnectUrl) {
+    async _storeMediaFile(name: string, base64: string, ankiConnectUrl?: string) {
         return this._executeAction('storeMediaFile', { filename: name, data: base64 }, ankiConnectUrl);
     }
 
-    async _executeAction(action, params, ankiConnectUrl) {
-        const body = {
+    async _executeAction(action: string, params: any, ankiConnectUrl?: string) {
+        const body: any = {
             action: action,
             version: 6,
         };

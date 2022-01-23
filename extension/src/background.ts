@@ -15,12 +15,15 @@ import AsbplayerToVideoCommandForwardingHandler from './handlers/asbplayer/Asbpl
 import AsbplayerV2ToVideoCommandForwardingHandler from './handlers/asbplayerv2/AsbplayerV2ToVideoCommandForwardingHandler';
 import AsbplayerHeartbeatHandler from './handlers/asbplayerv2/AsbplayerHeartbeatHandler';
 import RefreshSettingsHandler from './handlers/popup/RefreshSettingsHandler';
+import { CommandHandler } from './handlers/CommandHandler';
+import { Command, Message } from '@project/common';
 
 const settings = new Settings();
 const tabRegistry = new TabRegistry(settings);
 const audioRecorder = new AudioRecorder();
 const imageCapturer = new ImageCapturer(settings);
-const handlers = [
+
+const handlers: CommandHandler[] = [
     new VideoHeartbeatHandler(tabRegistry),
     new RecordMediaHandler(audioRecorder, imageCapturer),
     new RerecordMediaHandler(audioRecorder),
@@ -36,11 +39,11 @@ const handlers = [
     new RefreshSettingsHandler(tabRegistry),
 ];
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request: Command<Message>, sender, sendResponse) => {
     for (const handler of handlers) {
         if (handler.sender === request.sender) {
             if (handler.command === null || handler.command === request.message.command) {
-                if (handler.handle(request, sender, sendResponse)) {
+                if (handler.handle(request, sender, sendResponse) === true) {
                     return true;
                 }
 

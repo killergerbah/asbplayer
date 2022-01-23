@@ -1,4 +1,4 @@
-export function bufferToBase64(buffer) {
+export function bufferToBase64(buffer: ArrayBuffer): string {
     let binary = '';
     const bytes = new Uint8Array(buffer);
     const length = bytes.byteLength;
@@ -10,6 +10,6 @@ export function bufferToBase64(buffer) {
     return window.btoa(binary);
 }
 
-export async function fileUrlToBase64(fileUrl) {
+export async function fileUrlToBase64(fileUrl): Promise<string> {
     return bufferToBase64(await (await fetch(fileUrl)).arrayBuffer());
 }

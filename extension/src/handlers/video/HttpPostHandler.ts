@@ -1,3 +1,5 @@
+import { Command, HttpPostMessage, Message } from '@project/common';
+
 export default class HttpPostHandler {
     constructor() {}
 
@@ -9,10 +11,12 @@ export default class HttpPostHandler {
         return 'http-post';
     }
 
-    handle(request, sender, sendResponse) {
-        fetch(request.message.url, {
+    handle(command: Command<Message>, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) {
+        const message = command.message as HttpPostMessage;
+
+        fetch(message.url, {
             method: 'POST',
-            body: JSON.stringify(request.message.body),
+            body: JSON.stringify(message.body),
         })
             .then((response) => response.json())
             .then((json) => sendResponse(json))

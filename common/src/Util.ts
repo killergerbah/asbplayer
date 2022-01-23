@@ -1,4 +1,6 @@
-export function humanReadableTime(timestamp, nearestTenth = false) {
+import { SubtitleModel } from './Model';
+
+export function humanReadableTime(timestamp: number, nearestTenth = false): string {
     const totalSeconds = Math.floor(timestamp / 1000);
     let seconds;
 
@@ -18,9 +20,13 @@ export function humanReadableTime(timestamp, nearestTenth = false) {
     return minutes + 'm' + String(seconds).padStart(2, '0') + 's';
 }
 
-export function surroundingSubtitles(subtitles, index, countRadius, timeRadius) {
-    let startIndex;
-    let endIndex;
+export function surroundingSubtitles(
+    subtitles: SubtitleModel[],
+    index: number,
+    countRadius: number,
+    timeRadius: number
+): SubtitleModel[] {
+    let startIndex = index;
 
     for (let i = index; i >= 0; --i) {
         startIndex = i;
@@ -29,6 +35,8 @@ export function surroundingSubtitles(subtitles, index, countRadius, timeRadius) 
             break;
         }
     }
+
+    let endIndex = startIndex;
 
     for (let i = index; i <= subtitles.length - 1; ++i) {
         endIndex = i;
@@ -41,8 +49,13 @@ export function surroundingSubtitles(subtitles, index, countRadius, timeRadius) 
     return subtitles.slice(startIndex, endIndex + 1);
 }
 
-export function mockSurroundingSubtitles(middleSubtitle, maxTimestamp, timeRadius) {
+export function mockSurroundingSubtitles(
+    middleSubtitle: SubtitleModel,
+    maxTimestamp: number,
+    timeRadius: number
+): SubtitleModel[] {
     const subtitles = [middleSubtitle];
+    const offset = middleSubtitle.start - middleSubtitle.originalStart;
 
     if (middleSubtitle.end < maxTimestamp) {
         const afterTimestamp = Math.min(maxTimestamp, middleSubtitle.end + timeRadius);
@@ -50,7 +63,9 @@ export function mockSurroundingSubtitles(middleSubtitle, maxTimestamp, timeRadiu
             text: '',
             start: middleSubtitle.end,
             end: afterTimestamp,
-            track: 0,
+            originalStart: middleSubtitle.end - offset,
+            originalEnd: afterTimestamp - offset,
+            track: middleSubtitle.track,
         });
     }
 
@@ -60,14 +75,23 @@ export function mockSurroundingSubtitles(middleSubtitle, maxTimestamp, timeRadiu
             text: '',
             start: beforeTimestamp,
             end: middleSubtitle.start,
-            track: 0,
+            originalStart: beforeTimestamp - offset,
+            originalEnd: middleSubtitle.start - offset,
+            track: middleSubtitle.track,
         });
     }
 
     return subtitles;
 }
 
-function atBoundary(subtitles, index, initialIndex, countRadius, timeRadius, sign) {
+function atBoundary(
+    subtitles: SubtitleModel[],
+    index: number,
+    initialIndex: number,
+    countRadius: number,
+    timeRadius: number,
+    sign: boolean
+): boolean {
     let next;
 
     if (sign) {

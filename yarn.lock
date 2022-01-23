@@ -4482,6 +4482,7 @@ __metadata:
     "@material-ui/lab": ^4.0.0-alpha.57
     "@project/common": 0.1.0
     "@types/chrome": ^0.0.176
+    "@types/dom-mediacapture-record": ^1.0.11
     babel-loader: ^8.2.3
     clean-webpack-plugin: 4.0.0-alpha.0
     copy-webpack-plugin: 6.4.1
@@ -4843,6 +4844,13 @@ __metadata:
     "@types/filesystem": "*"
     "@types/har-format": "*"
   checksum: cd3a6fabbd35c7cf947ad48114f5a13b0dd143d849c9346c9357e7d0823fc6034c0837ff70efad44c366430cccd60b4e8e1ed0dacc1872fad5f68b1ecda88e75
+  languageName: node
+  linkType: hard
+
+"@types/dom-mediacapture-record@npm:^1.0.11":
+  version: 1.0.11
+  resolution: "@types/dom-mediacapture-record@npm:1.0.11"
+  checksum: 09a888a4483c4bc8d31f4e72169f61d981dfd66d3f05bdc52a3ca006b4912e516d9265ce5b77cfe1c5ece91e02b926fdbe13cd37e75c3d539f93c24174544958
   languageName: node
   linkType: hard
 

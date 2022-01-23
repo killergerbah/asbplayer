@@ -1,3 +1,5 @@
+import { AsbplayerSettingsProvider } from '@project/common';
+
 const defaultAnkiConnectUrl = 'http://127.0.0.1:8765';
 const defaultSubtitleSize = 36;
 const defaultSubtitleColor = '#ffffff';
@@ -43,7 +45,10 @@ const volumeKey = 'volume';
 const preferMp3Key = 'preferMp3';
 const themeTypeKey = 'themeType';
 
-export default class SettingsProvider {
+export default class SettingsProvider implements AsbplayerSettingsProvider {
+
+    private _tags?: string[];
+
     constructor() {
         // Cache tags so that it can be used in useEffect dependencies
         this._tags = this.tags;
@@ -86,7 +91,6 @@ export default class SettingsProvider {
         this.ankiConnectUrl = newSettings.ankiConnectUrl;
         this.deck = newSettings.deck;
         this.noteType = newSettings.noteType;
-        this.modelNames = newSettings.modelNames;
         this.sentenceField = newSettings.sentenceField;
         this.definitionField = newSettings.definitionField;
         this.audioField = newSettings.audioField;
@@ -129,7 +133,6 @@ export default class SettingsProvider {
             ankiConnectUrl: this.ankiConnectUrl,
             deck: this.deck,
             noteType: this.noteType,
-            modelNames: this.modelNames,
             sentenceField: this.sentenceField,
             definitionField: this.definitionField,
             audioField: this.audioField,
@@ -154,6 +157,24 @@ export default class SettingsProvider {
             themeType: this.themeType,
         };
     }
+    
+    _getNumberItem(key: string, defaultValue: number) {
+        const value = localStorage.getItem(key);
+
+        if (value === null) {
+            return defaultValue;
+        }
+
+        return Number(value);
+    }
+
+    _setOptionalItem(key: string, value?: string) {
+        if (typeof value === 'undefined') {
+            localStorage.removeItem(key);
+        } else {
+            localStorage.setItem(key, value);
+        }
+    }
 
     get ankiConnectUrl() {
         return localStorage.getItem(ankiConnectUrlKey) || defaultAnkiConnectUrl;
@@ -164,75 +185,75 @@ export default class SettingsProvider {
     }
 
     get deck() {
-        return localStorage.getItem(deckKey);
+        return localStorage.getItem(deckKey) ?? undefined;
     }
 
     set deck(deck) {
-        localStorage.setItem(deckKey, deck);
+        this._setOptionalItem(deckKey, deck);
     }
 
     get noteType() {
-        return localStorage.getItem(noteTypeKey);
+        return localStorage.getItem(noteTypeKey) ?? undefined;
     }
 
     set noteType(noteType) {
-        localStorage.setItem(noteTypeKey, noteType);
+        this._setOptionalItem(noteTypeKey, noteType);
     }
 
     get sentenceField() {
-        return localStorage.getItem(sentenceFieldKey);
+        return localStorage.getItem(sentenceFieldKey) ?? undefined;
     }
 
     set sentenceField(sentenceField) {
-        localStorage.setItem(sentenceFieldKey, sentenceField);
+        this._setOptionalItem(sentenceFieldKey, sentenceField);
     }
 
     get definitionField() {
-        return localStorage.getItem(definitionFieldKey);
+        return localStorage.getItem(definitionFieldKey) ?? undefined;
     }
 
     set definitionField(definitionField) {
-        localStorage.setItem(definitionFieldKey, definitionField);
+        this._setOptionalItem(definitionFieldKey, definitionField);
     }
 
     get audioField() {
-        return localStorage.getItem(audioFieldKey);
+        return localStorage.getItem(audioFieldKey) ?? undefined;
     }
 
     set audioField(audioField) {
-        localStorage.setItem(audioFieldKey, audioField);
+        this._setOptionalItem(audioFieldKey, audioField);
     }
 
     get imageField() {
-        return localStorage.getItem(imageFieldKey);
+        return localStorage.getItem(imageFieldKey) ?? undefined;
     }
 
     set imageField(imageField) {
-        localStorage.setItem(imageFieldKey, imageField);
+        this._setOptionalItem(imageFieldKey, imageField);
     }
 
     get wordField() {
-        return localStorage.getItem(wordFieldKey);
+        return localStorage.getItem(wordFieldKey) ?? undefined;
     }
 
     set wordField(wordField) {
-        localStorage.setItem(wordFieldKey, wordField);
+        this._setOptionalItem(wordFieldKey, wordField);
     }
 
     get sourceField() {
-        return localStorage.getItem(sourceFieldKey);
+        return localStorage.getItem(sourceFieldKey) ?? undefined;
     }
 
     set sourceField(sourceField) {
-        localStorage.setItem(sourceFieldKey, sourceField);
+        this._setOptionalItem(sourceFieldKey, sourceField);
     }
 
     get urlField() {
-        return localStorage.getItem(urlFieldKey);
+        return localStorage.getItem(urlFieldKey) ?? undefined;
     }
 
     set urlField(urlField) {
-        localStorage.setItem(urlFieldKey, urlField);
+        this._setOptionalItem(urlFieldKey, urlField);
     }
 
     get customAnkiFields() {
@@ -257,7 +278,7 @@ export default class SettingsProvider {
         const tagsString = localStorage.getItem(tagsKey);
 
         if (tagsString) {
-            this._tags = JSON.parse(tagsString);
+            this._tags = JSON.parse(tagsString) as string[];
             return this._tags;
         }
 
@@ -278,11 +299,11 @@ export default class SettingsProvider {
     }
 
     get subtitleSize() {
-        return localStorage.getItem(subtitleSizeKey) || defaultSubtitleSize;
+        return this._getNumberItem(subtitleSizeKey, defaultSubtitleSize);
     }
 
     set subtitleSize(subtitleSize) {
-        localStorage.setItem(subtitleSizeKey, subtitleSize);
+        localStorage.setItem(subtitleSizeKey, String(subtitleSize));
     }
 
     get subtitleOutlineColor() {
@@ -294,11 +315,11 @@ export default class SettingsProvider {
     }
 
     get subtitleOutlineThickness() {
-        return localStorage.getItem(subtitleOutlineThicknessKey) || defaultSubtitleOutlineThickness;
+        return this._getNumberItem(subtitleOutlineThicknessKey, defaultSubtitleOutlineThickness);
     }
 
     set subtitleOutlineThickness(subtitleOutlineThickness) {
-        localStorage.setItem(subtitleOutlineThicknessKey, subtitleOutlineThickness);
+        localStorage.setItem(subtitleOutlineThicknessKey, String(subtitleOutlineThickness));
     }
 
     get subtitleBackgroundColor() {
@@ -310,11 +331,11 @@ export default class SettingsProvider {
     }
 
     get subtitleBackgroundOpacity() {
-        return localStorage.getItem(subtitleBackgroundOpacityKey) || defaultSubtitleBackgroundOpacity;
+        return this._getNumberItem(subtitleBackgroundOpacityKey, defaultSubtitleBackgroundOpacity);
     }
 
     set subtitleBackgroundOpacity(subtitleBackgroundOpacity) {
-        localStorage.setItem(subtitleBackgroundOpacityKey, subtitleBackgroundOpacity);
+        localStorage.setItem(subtitleBackgroundOpacityKey, String(subtitleBackgroundOpacity));
     }
 
     get subtitleFontFamily() {
@@ -338,7 +359,7 @@ export default class SettingsProvider {
     }
 
     set volume(volume) {
-        localStorage.setItem(volumeKey, volume);
+        localStorage.setItem(volumeKey, String(volume));
     }
 
     get preferMp3() {
@@ -346,14 +367,20 @@ export default class SettingsProvider {
     }
 
     set preferMp3(preferMp3) {
-        localStorage.setItem(preferMp3Key, preferMp3);
+        localStorage.setItem(preferMp3Key, String(preferMp3));
     }
 
     get themeType() {
-        return localStorage.getItem(themeTypeKey) || 'dark';
+        const themeType = localStorage.getItem(themeTypeKey) as "dark" | "light" | null;
+
+        if (themeType === null) {
+            return 'dark';
+        }
+
+        return themeType;
     }
 
-    set themeType(themeType) {
+    set themeType(themeType: "dark" | "light") {
         localStorage.setItem(themeTypeKey, themeType);
     }
 
@@ -368,21 +395,15 @@ export default class SettingsProvider {
     }
 
     set audioPaddingStart(audioPaddingStart) {
-        localStorage.setItem(audioPaddingStartKey, audioPaddingStart);
+        localStorage.setItem(audioPaddingStartKey, String(audioPaddingStart));
     }
 
     get audioPaddingEnd() {
-        const value = localStorage.getItem(audioPaddingEndKey);
-
-        if (!value) {
-            return defaultAudioPaddingEnd;
-        }
-
-        return Number(value);
+        return this._getNumberItem(audioPaddingEndKey, defaultAudioPaddingEnd);
     }
 
     set audioPaddingEnd(audioPaddingEnd) {
-        localStorage.setItem(audioPaddingEndKey, audioPaddingEnd);
+        localStorage.setItem(audioPaddingEndKey, String(audioPaddingEnd));
     }
 
     get maxImageWidth() {
@@ -396,21 +417,15 @@ export default class SettingsProvider {
     }
 
     set maxImageWidth(maxImageWidth) {
-        localStorage.setItem(maxImageWidthKey, maxImageWidth);
+        localStorage.setItem(maxImageWidthKey, String(maxImageWidth));
     }
 
     get maxImageHeight() {
-        const value = localStorage.getItem(maxImageHeightKey);
-
-        if (!value) {
-            return defaultMaxImageHeight;
-        }
-
-        return Number(value);
+        return this._getNumberItem(maxImageHeightKey, defaultMaxImageHeight);
     }
 
     set maxImageHeight(maxImageHeight) {
-        localStorage.setItem(maxImageHeightKey, maxImageHeight);
+        localStorage.setItem(maxImageHeightKey, String(maxImageHeight));
     }
 
     get surroundingSubtitlesCountRadius() {
