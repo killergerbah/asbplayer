@@ -3,8 +3,15 @@ import { CssBaseline } from '@material-ui/core';
 import { createTheme } from './theme';
 import { ThemeProvider } from '@material-ui/core/styles';
 import PopupForm from './PopupForm';
+import Bridge from '../Bridge';
 
-export default function PopupUi({ bridge, currentSettings, commands }) {
+interface Props {
+    bridge: Bridge,
+    currentSettings: any,
+    commands: any,
+}
+
+export default function PopupUi({ bridge, currentSettings, commands }: Props) {
     const [settings, setSettings] = useState(currentSettings);
     const theme = useMemo(() => createTheme(currentSettings.lastThemeType || 'dark'), [currentSettings.lastThemeType]);
 

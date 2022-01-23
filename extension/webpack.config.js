@@ -5,8 +5,8 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 module.exports = (env, options) => ({
     entry: {
         video: './src/video.js',
-        background: './src/background.js',
-        'popup-ui': './src/popup-ui.js',
+        background: './src/background.ts',
+        'popup-ui': './src/popup-ui.ts',
         'anki-ui': './src/anki-ui.js',
         'video-data-sync-ui': './src/video-data-sync-ui.js',
     },
@@ -16,6 +16,7 @@ module.exports = (env, options) => ({
     },
     module: {
         rules: [
+            { test: /\.tsx?$/, loader: 'ts-loader' },
             {
                 test: /\.(js|jsx)$/,
                 exclude: /node_modules/,
@@ -27,6 +28,7 @@ module.exports = (env, options) => ({
                     loader: 'babel-loader',
                 },
             },
+            { test: /\.js$/, loader: 'source-map-loader' },
             {
                 test: /\.css$/,
                 use: ['style-loader', 'css-loader'],
@@ -37,7 +39,10 @@ module.exports = (env, options) => ({
             },
         ],
     },
-    devtool: options.mode === 'development' ? 'cheap-module-source-map' : false,
+    devtool: options.mode === 'development' ? 'source-map' : false,
+    resolve: {
+        extensions: ['.webpack.js', '.web.js', '.ts', '.tsx', '.js'],
+    },
     plugins: [
         new CleanWebpackPlugin(),
         new CopyPlugin({
