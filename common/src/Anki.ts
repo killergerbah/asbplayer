@@ -4,6 +4,9 @@ const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
 const fileNameSpecialCharacters = [':', '/', '\\', '<', '>', '"', '|', '?', '*', '^'];
 
 export default class Anki {
+    private readonly settingsProvider: any;
+    private readonly fetcher: any;
+
     constructor(settingsProvider, fetcher = new HttpFetcher()) {
         this.settingsProvider = settingsProvider;
         this.fetcher = fetcher;
@@ -108,7 +111,7 @@ export default class Anki {
                     .result;
                 this._appendField(fields, this.settingsProvider.audioField, `[sound:${fileName}]`, false);
             } else {
-                params.note.audio = {
+                params.note['audio'] = {
                     filename: sanitizedName,
                     data: await audioClip.base64(),
                     fields: [this.settingsProvider.audioField],
@@ -129,7 +132,7 @@ export default class Anki {
                     false
                 );
             } else {
-                params.note.picture = {
+                params.note['picture'] = {
                     filename: sanitizedName,
                     data: await image.base64(),
                     fields: [this.settingsProvider.imageField],
@@ -137,7 +140,7 @@ export default class Anki {
             }
         }
 
-        params.note.fields = fields;
+        params.note['fields'] = fields;
 
         switch (mode) {
             case 'gui':
@@ -152,7 +155,7 @@ export default class Anki {
                 }
 
                 const lastNoteId = recentNotes[recentNotes.length - 1];
-                params.note.id = lastNoteId;
+                params.note['id'] = lastNoteId;
                 await this._executeAction('updateNoteFields', params, ankiConnectUrl);
                 return lastNoteId;
             case 'default':
@@ -204,7 +207,7 @@ export default class Anki {
         };
 
         if (params) {
-            body.params = params;
+            body['params'] = params;
         }
 
         const json = await this.fetcher.fetch(ankiConnectUrl || this.settingsProvider.ankiConnectUrl, body);
