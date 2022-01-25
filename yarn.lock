@@ -4454,7 +4454,7 @@ __metadata:
     react-router-dom: 5.2.0
     react-scripts: 4.0.3
     semver: 7.3.5
-    subtitle: 4.0.1
+    subtitle: ^4.1.2
     typescript: ~4.3
     uuid: 8.3.2
     vtt.js: 0.13.0
@@ -17179,15 +17179,15 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"subtitle@npm:4.0.1":
-  version: 4.0.1
-  resolution: "subtitle@npm:4.0.1"
+"subtitle@npm:^4.1.2":
+  version: 4.1.2
+  resolution: "subtitle@npm:4.1.2"
   dependencies:
     "@types/multipipe": ^3.0.0
     multipipe: ^4.0.0
     split2: ^3.2.2
     strip-bom: ^4.0.0
-  checksum: 58dd139a261018d1c3082e476f0bf2750cd3575d3af0574c9487d443c618e55f4a5003d4734409ff39f0c076371820efe902a55e46af53c19f1d5bd5d4c9185a
+  checksum: 89835f0a68a183284f7072eee6b9d02e7524db152ec508e8fc66039d3b22f6f998d937e7c48aa88cf8b5220d5f0b80f0d185d52939437e2b6b863db999ffe0a5
   languageName: node
   linkType: hard
 
