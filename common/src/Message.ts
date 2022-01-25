@@ -13,10 +13,16 @@ export interface Message {
     readonly command: string;
 }
 
+export interface ActiveVideoElement {
+    id: number;
+    title?: string;
+    src: string;
+}
+
 export interface AsbplayerHeartbeatMessage extends Message {
     readonly command: 'heartbeat';
     readonly id: string;
-    readonly receivedTabs?: string[];
+    readonly receivedTabs?: ActiveVideoElement[];
 }
 
 export interface VideoHeartbeatMessage extends Message {

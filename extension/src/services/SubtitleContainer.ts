@@ -15,7 +15,7 @@ interface Rgb {
 export default class SubtitleContainer {
     private readonly video: HTMLVideoElement;
 
-    private showingSubtitles: SubtitleModel[];
+    private showingSubtitles?: string[];
     private disabledSubtitleTracks: { [key: number]: boolean | undefined };
     private lastLoadedMessageTimestamp: number;
     private lastOffsetChangeTimestamp: number;
@@ -38,7 +38,7 @@ export default class SubtitleContainer {
     subtitles: SubtitleModel[];
     displaySubtitles: boolean;
     subtitlePositionOffsetBottom: number;
-    subtitleSettings: SubtitleSettings;
+    subtitleSettings?: SubtitleSettings;
 
     constructor(video: HTMLVideoElement) {
         this.video = video;
@@ -49,9 +49,10 @@ export default class SubtitleContainer {
         this.subtitlePositionOffsetBottom = 100;
         this.lastLoadedMessageTimestamp = 0;
         this.lastOffsetChangeTimestamp = 0;
-        this.showingOffset = null;
+        this.showingOffset = undefined;
         this.surroundingSubtitlesCountRadius = 1;
         this.surroundingSubtitlesTimeRadius = 5000;
+        this.showingLoadedMessage = false;
     }
 
     bind() {
@@ -99,6 +100,7 @@ export default class SubtitleContainer {
             showingSubtitles = showingSubtitles.sort((s1, s2) => s1.track - s2.track).map((s) => s.text);
 
             if (
+                !this.showingSubtitles ||
                 !this._arrayEquals(showingSubtitles, this.showingSubtitles) ||
                 (showOffset && offset !== this.showingOffset) ||
                 (!showOffset && this.showingOffset !== null)
@@ -111,7 +113,7 @@ export default class SubtitleContainer {
                     this._appendSubtitlesHtml(this._formatOffset(offset));
                     this.showingOffset = offset;
                 } else {
-                    this.showingOffset = null;
+                    this.showingOffset = undefined;
                 }
             }
         }, 100);
@@ -120,7 +122,7 @@ export default class SubtitleContainer {
     unbind() {
         if (this.subtitlesInterval) {
             clearInterval(this.subtitlesInterval);
-            this.subtitlesInterval = null;
+            this.subtitlesInterval = undefined;
         }
 
         this._hideSubtitles();
@@ -155,7 +157,7 @@ export default class SubtitleContainer {
             }
         }
 
-        if (!subtitle) {
+        if (!subtitle || !index) {
             return [null, null];
         }
 
@@ -266,7 +268,7 @@ export default class SubtitleContainer {
         const rect = this.video.getBoundingClientRect();
         container.style.maxWidth = rect.width + 'px';
         container.style.top = rect.top + rect.height + window.pageYOffset - this.subtitlePositionOffsetBottom + 'px';
-        container.style.bottom = null;
+        container.style.bottom = '';
 
         this._applySubtitleSettings(div);
     }
@@ -309,7 +311,7 @@ export default class SubtitleContainer {
     _applyFullscreenStyles(container: HTMLElement, div: HTMLElement) {
         this._applySubtitleSettings(div);
         const rect = this.video.getBoundingClientRect();
-        container.style.top = null;
+        container.style.top = '';
         container.style.bottom = this.subtitlePositionOffsetBottom + 'px';
         container.style.maxWidth = '100%';
     }
@@ -353,14 +355,16 @@ export default class SubtitleContainer {
             return document.body;
         }
 
-        let chosen = null;
+        let chosen: HTMLElement | undefined = undefined;
 
         do {
             const rect = current.getBoundingClientRect();
 
             if (
                 rect.height > 0 &&
-                (!chosen || rect.height >= chosen.getBoundingClientRect().height) &&
+                (typeof chosen === 'undefined' ||
+                    // Typescript is not smart enough to know that it's possible for 'chosen' to be defined here
+                    rect.height >= (chosen as HTMLElement).getBoundingClientRect().height) &&
                 this._clickable(current, testNode)
             ) {
                 chosen = current;
@@ -402,22 +406,40 @@ export default class SubtitleContainer {
 
     _hideSubtitles() {
         if (this.subtitlesElement) {
-            document.removeEventListener('fullscreenchange', this.subtitlesElementFullscreenChangeListener);
-            clearInterval(this.subtitlesElementStylesInterval);
-            clearInterval(this.subtitlesElementFullscreenPollingInterval);
+            if (this.subtitlesElementFullscreenChangeListener) {
+                document.removeEventListener('fullscreenchange', this.subtitlesElementFullscreenChangeListener);
+            }
+
+            if (this.subtitlesElementStylesInterval) {
+                clearInterval(this.subtitlesElementStylesInterval);
+            }
+
+            if (this.subtitlesElementFullscreenPollingInterval) {
+                clearInterval(this.subtitlesElementFullscreenPollingInterval);
+            }
+
             this.subtitlesElement.remove();
-            this.subtitlesContainerElement.remove();
-            this.subtitlesContainerElement = null;
-            this.subtitlesElement = null;
+            this.subtitlesContainerElement?.remove();
+            this.subtitlesContainerElement = undefined;
+            this.subtitlesElement = undefined;
         }
 
         if (this.fullscreenSubtitlesElement) {
-            document.removeEventListener('fullscreenchange', this.fullscreenSubtitlesElementFullscreenChangeListener);
-            clearInterval(this.fullscreenSubtitlesElementFullscreenPollingInterval);
+            if (this.fullscreenSubtitlesElementFullscreenChangeListener) {
+                document.removeEventListener(
+                    'fullscreenchange',
+                    this.fullscreenSubtitlesElementFullscreenChangeListener
+                );
+            }
+
+            if (this.fullscreenSubtitlesElementFullscreenPollingInterval) {
+                clearInterval(this.fullscreenSubtitlesElementFullscreenPollingInterval);
+            }
+
             this.fullscreenSubtitlesElement.remove();
-            this.fullscreenSubtitlesContainerElement.remove();
-            this.fullscreenSubtitlesContainerElement = null;
-            this.fullscreenSubtitlesElement = null;
+            this.fullscreenSubtitlesContainerElement?.remove();
+            this.fullscreenSubtitlesContainerElement = undefined;
+            this.fullscreenSubtitlesElement = undefined;
         }
 
         this.showingSubtitles = [];
@@ -426,6 +448,11 @@ export default class SubtitleContainer {
     // https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
     _hexToRgb(hex: string): Rgb {
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+
+        if (!result) {
+            return { r: 255, g: 255, b: 255 };
+        }
+        
         return {
             r: parseInt(result[1], 16),
             g: parseInt(result[2], 16),

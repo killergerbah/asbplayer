@@ -17,7 +17,7 @@ export default function PopupUi({ bridge, currentSettings, commands }: Props) {
 
     const handleSettingsChanged = useCallback(
         (key, value) => {
-            setSettings((old) => {
+            setSettings((old: any) => {
                 const settings = Object.assign({}, old);
                 settings[key] = value;
                 return settings;

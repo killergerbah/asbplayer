@@ -4,10 +4,12 @@ import Settings from './services/Settings';
 const fetchShortcuts = () => {
     return new Promise((resolve, reject) => {
         chrome.commands.getAll((commands) => {
-            const commandsObj = {};
+            const commandsObj: any = {};
 
             for (const c of commands) {
-                commandsObj[c.name] = c.shortcut;
+                if (c.name && c.shortcut) {
+                    commandsObj[c.name] = c.shortcut;
+                }
             }
 
             resolve(commandsObj);
@@ -23,10 +25,10 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     const commands = await commandsPromise;
     const rootElement = document.getElementById('root');
     const bridge = renderPopupUi(rootElement, { currentSettings, commands });
-    bridge.onFinished((message) => {
+    bridge.onFinished((message: any) => {
         switch (message.command) {
             case 'settings-changed':
-                const newSetting = {};
+                const newSetting: any = {};
                 newSetting[message.key] = message.value;
                 settings.set(newSetting);
                 chrome.runtime.sendMessage({

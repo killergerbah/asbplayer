@@ -1,12 +1,11 @@
 import { bufferToBase64 } from './Base64';
 
 export default class AudioRecorder {
-
     private recording: boolean;
-    private recorder: MediaRecorder;
-    private stream: MediaStream;
-    private audio: HTMLAudioElement;
-    private blobPromise: Promise<Blob>;
+    private recorder: MediaRecorder | null;
+    private stream: MediaStream | null;
+    private audio: HTMLAudioElement | null;
+    private blobPromise: Promise<Blob> | null;
 
     constructor() {
         this.recording = false;
@@ -17,12 +16,13 @@ export default class AudioRecorder {
     }
 
     startWithTimeout(time: number): Promise<string> {
-        if (this.recording) {
-            console.error("Already recording, cannot start with timeout.");
-            return;
-        }
-
         return new Promise((resolve, reject) => {
+            if (this.recording) {
+                console.error('Already recording, cannot start with timeout.');
+                reject('Already recording');
+                return;
+            }
+
             this.start();
             setTimeout(async () => {
                 resolve(await this.stop());
@@ -32,13 +32,17 @@ export default class AudioRecorder {
 
     start() {
         if (this.recording) {
-            console.error("Already recording, cannot start");
+            console.error('Already recording, cannot start');
             return;
         }
 
-        return chrome.tabCapture.capture({audio: true}, (stream) => {
+        return chrome.tabCapture.capture({ audio: true }, (stream) => {
+            if (!stream) {
+                return;
+            }
+
             const recorder = new MediaRecorder(stream);
-            const chunks = [];
+            const chunks: BlobPart[] = [];
             recorder.ondataavailable = (e) => {
                 chunks.push(e.data);
             };
@@ -61,20 +65,23 @@ export default class AudioRecorder {
 
     async stop(): Promise<string> {
         if (!this.recording) {
-            console.error("Not recording, unable to stop");
-            return;
+            throw new Error('Not recording, unable to stop');
         }
 
         this.recording = false;
-        this.recorder.stop();
+        this.recorder?.stop();
         this.recorder = null;
-        this.stream.getAudioTracks()[0].stop();
+        this.stream?.getAudioTracks()[0].stop();
         this.stream = null;
-        this.audio.pause();
-        this.audio.srcObject = null;
-        this.audio = null;
+
+        if (this.audio) {
+            this.audio.pause();
+            this.audio.srcObject = null;
+            this.audio = null;
+        }
+
         const blob = await this.blobPromise;
         this.blobPromise = null;
-        return await bufferToBase64(await blob.arrayBuffer());
+        return await bufferToBase64(await blob!.arrayBuffer());
     }
 }

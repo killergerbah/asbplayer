@@ -1,19 +1,52 @@
 import Mp3Encoder from './Mp3Encoder';
 // eslint-disable-next-line
+// @ts-ignore
 import Worker from 'worker-loader!./mp3-encoder.js';
-const AUDIO_TYPES = { 'audio/ogg;codecs=opus': 'ogg', 'audio/webm;codecs=opus': 'webm' };
+const AUDIO_TYPES: { [key: string]: string } = { 'audio/ogg;codecs=opus': 'ogg', 'audio/webm;codecs=opus': 'webm' };
 const [recorderMimeType, recorderExtension] = Object.keys(AUDIO_TYPES)
     .filter(MediaRecorder.isTypeSupported)
-    .map((t) => [t, AUDIO_TYPES[t]])[0];
+    .map((t) => [t as string, AUDIO_TYPES[t] as string])[0];
 const defaultMp3WorkerFactory = () => new Worker();
 
-class Base64AudioData {
-    constructor(baseName, start, end, base64, extension) {
-        this.name = baseName + '_' + Math.floor(start) + '_' + Math.floor(end);
+interface ExperimentalAudioElement extends HTMLAudioElement {
+    audioTracks: any;
+    captureStream?: () => MediaStream;
+    mozCaptureStream?: () => MediaStream;
+}
+
+interface AudioData {
+    name: string;
+    extension: string;
+    play: () => Promise<void>;
+    blob: () => Promise<Blob>;
+    base64: () => Promise<string>;
+    slice: (start: number, end: number) => AudioData;
+    isSliceable: (start: number, end: number) => boolean;
+}
+
+class Base64AudioData implements AudioData {
+    private readonly _name: string;
+    private readonly start: number;
+    private readonly end: number;
+    private readonly _base64: string;
+    private readonly _extension: string;
+
+    private cachedBlob?: Blob;
+
+    constructor(baseName: string, start: number, end: number, base64: string, extension: string) {
+        this._name = baseName + '_' + Math.floor(start) + '_' + Math.floor(end);
         this.start = start;
         this.end = end;
         this._base64 = base64;
-        this.extension = extension;
+        this._extension = extension;
+    }
+
+    get name(): string {
+        return this._name;
+    }
+
+    get extension(): string {
+        return this._extension;
     }
 
     async base64() {
@@ -24,7 +57,7 @@ class Base64AudioData {
         return await this._blob();
     }
 
-    async play() {
+    async play(): Promise<void> {
         const blob = await this._blob();
         const audio = new Audio();
         audio.src = URL.createObjectURL(blob);
@@ -37,9 +70,9 @@ class Base64AudioData {
             setTimeout(() => {
                 audio.pause();
                 const src = audio.src;
-                audio.src = null;
+                audio.src = '';
                 URL.revokeObjectURL(src);
-                resolve();
+                resolve(undefined);
             }, this.end - this.start + 1000);
         });
     }
@@ -52,33 +85,50 @@ class Base64AudioData {
         return this.cachedBlob;
     }
 
-    slice(start, end) {
+    slice(start: number, end: number): AudioData {
         // Not supported
         return this;
     }
 
-    isSliceable(start, end) {
+    isSliceable(start: number, end: number) {
         return false;
     }
 }
 
-class FileAudioData {
-    constructor(file, start, end, trackId) {
+class FileAudioData implements AudioData {
+    private readonly file: File;
+    private readonly _name: string;
+    private readonly start: number;
+    private readonly end: number;
+    private readonly trackId: string;
+    private readonly _extension: string;
+
+    private _blob?: Blob;
+
+    constructor(file: File, start: number, end: number, trackId: string) {
         this.file = file;
-        this.name = file.name + '_' + start + '_' + end;
+        this._name = file.name + '_' + start + '_' + end;
         this.start = start;
         this.end = end;
         this.trackId = trackId;
-        this.extension = recorderExtension;
+        this._extension = recorderExtension;
+    }
+
+    get name(): string {
+        return this._name;
+    }
+
+    get extension(): string {
+        return this._extension;
     }
 
     async base64() {
-        return new Promise(async (resolve, reject) => {
+        return new Promise<string>(async (resolve, reject) => {
             var reader = new FileReader();
             reader.readAsDataURL(await this.blob());
             reader.onloadend = () => {
-                const result = reader.result;
-                const base64 = result.substr(result.indexOf(',') + 1);
+                const result = reader.result as string;
+                const base64 = result.substring(result.indexOf(',') + 1);
                 resolve(base64);
             };
         });
@@ -104,7 +154,7 @@ class FileAudioData {
         return this._blob;
     }
 
-    async _clipAudio() {
+    async _clipAudio(): Promise<Blob> {
         return new Promise(async (resolve, reject) => {
             const audio = await this._audioElement(this.file, true);
 
@@ -117,7 +167,7 @@ class FileAudioData {
                 }
 
                 const recorder = new MediaRecorder(stream, { mimeType: recorderMimeType });
-                const chunks = [];
+                const chunks: BlobPart[] = [];
 
                 recorder.ondataavailable = (e) => {
                     chunks.push(e.data);
@@ -134,13 +184,14 @@ class FileAudioData {
         });
     }
 
-    _audioElement(source, selectTrack) {
-        const audio = new Audio();
+    _audioElement(source: Blob, selectTrack: boolean): Promise<ExperimentalAudioElement> {
+        const audio = new Audio() as ExperimentalAudioElement;
         audio.src = URL.createObjectURL(source);
 
         return new Promise((resolve, reject) => {
             audio.onloadedmetadata = (e) => {
                 if (selectTrack && this.trackId && audio.audioTracks && audio.audioTracks.length > 0) {
+                    // @ts-ignore
                     for (const t of audio.audioTracks) {
                         t.enabled = this.trackId === t.id;
                     }
@@ -152,7 +203,7 @@ class FileAudioData {
         });
     }
 
-    _captureStream(audio) {
+    _captureStream(audio: ExperimentalAudioElement) {
         if (typeof audio.captureStream === 'function') {
             return audio.captureStream();
         }
@@ -164,29 +215,33 @@ class FileAudioData {
         throw new Error('Unable to capture stream from audio');
     }
 
-    async _stopAudio(audio) {
+    async _stopAudio(audio: ExperimentalAudioElement): Promise<void> {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
                 audio.pause();
                 const src = audio.src;
-                audio.src = null;
+                audio.src = '';
                 URL.revokeObjectURL(src);
-                resolve();
+                resolve(undefined);
             }, this.end - this.start + 100);
         });
     }
 
-    slice(start, end) {
+    slice(start: number, end: number) {
         return new FileAudioData(this.file, start, end, this.trackId);
     }
 
-    isSliceable(start, end) {
+    isSliceable(start: number, end: number) {
         return true;
     }
 }
 
-class Mp3AudioData {
-    constructor(data, workerFactory) {
+class Mp3AudioData implements AudioData {
+    private readonly data: AudioData;
+    private readonly workerFactory: () => Worker;
+    private _blob?: Blob;
+
+    constructor(data: AudioData, workerFactory: () => Worker) {
         this.data = data;
         this.workerFactory = workerFactory;
     }
@@ -200,13 +255,13 @@ class Mp3AudioData {
     }
 
     async base64() {
-        return new Promise(async (resolve, reject) => {
+        return new Promise<string>(async (resolve, reject) => {
             try {
                 var reader = new FileReader();
                 reader.readAsDataURL(await this.blob());
                 reader.onloadend = () => {
-                    const result = reader.result;
-                    const base64 = result.substr(result.indexOf(',') + 1);
+                    const result = reader.result as string;
+                    const base64 = result.substring(result.indexOf(',') + 1);
                     resolve(base64);
                 };
             } catch (e) {
@@ -227,21 +282,23 @@ class Mp3AudioData {
         return this._blob;
     }
 
-    slice(start, end) {
+    slice(start: number, end: number) {
         return new Mp3AudioData(this.data.slice(start, end), this.workerFactory);
     }
 
-    isSliceable(start, end) {
+    isSliceable(start: number, end: number) {
         return this.data.isSliceable(start, end);
     }
 }
 
 export default class AudioClip {
-    constructor(data) {
+    private readonly data: AudioData;
+
+    constructor(data: AudioData) {
         this.data = data;
     }
 
-    static fromBase64(subtitleFileName, start, end, base64, extension) {
+    static fromBase64(subtitleFileName: string, start: number, end: number, base64: string, extension: string) {
         return new AudioClip(
             new Base64AudioData(
                 subtitleFileName.substring(0, subtitleFileName.lastIndexOf('.')),
@@ -253,7 +310,7 @@ export default class AudioClip {
         );
     }
 
-    static fromFile(file, start, end, trackId) {
+    static fromFile(file: File, start: number, end: number, trackId: string) {
         return new AudioClip(new FileAudioData(file, start, end, trackId));
     }
 
@@ -274,7 +331,7 @@ export default class AudioClip {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         document.body.appendChild(a);
-        a.style = 'display: none';
+        a.style.display = 'none';
         a.href = url;
         a.download = this.name;
         a.click();
@@ -286,11 +343,11 @@ export default class AudioClip {
         return new AudioClip(new Mp3AudioData(this.data, mp3WorkerFactory));
     }
 
-    slice(start, end) {
+    slice(start: number, end: number) {
         return new AudioClip(this.data.slice(start, end));
     }
 
-    isSliceable(start, end) {
+    isSliceable(start: number, end: number) {
         return this.data.isSliceable(start, end);
     }
 }

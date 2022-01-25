@@ -1,12 +1,11 @@
-import { CanvasResizer } from '@project/common'
+import { CanvasResizer } from '@project/common';
 import { RectModel } from '@project/common';
 import Settings from './Settings';
 
 export default class ImageCapturer {
-
     private readonly settings: Settings;
     private readonly canvasResizer: CanvasResizer;
-    public lastImageBase64: string;
+    public lastImageBase64?: string;
 
     constructor(settings: Settings) {
         this.settings = settings;
@@ -15,15 +14,11 @@ export default class ImageCapturer {
 
     capture(rect: RectModel, maxWidth: number, maxHeight: number): Promise<string> {
         return new Promise(async (resolve, reject) => {
-            chrome.tabs.captureVisibleTab(
-                null,
-                {format: 'jpeg'},
-                async (dataUrl) => {
-                    const croppedDataUrl = await this._cropAndResize(dataUrl, rect, maxWidth, maxHeight);
-                    this.lastImageBase64 = croppedDataUrl.substr(croppedDataUrl.indexOf(',') + 1);
-                    resolve(this.lastImageBase64);
-                }
-            );
+            chrome.tabs.captureVisibleTab({ format: 'jpeg' }, async (dataUrl) => {
+                const croppedDataUrl = await this._cropAndResize(dataUrl, rect, maxWidth, maxHeight);
+                this.lastImageBase64 = croppedDataUrl.substring(croppedDataUrl.indexOf(',') + 1);
+                resolve(this.lastImageBase64);
+            });
         });
     }
 
@@ -44,13 +39,13 @@ export default class ImageCapturer {
                 canvas.width = width;
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(image, rect.left * r, rect.top * r, width, height, 0, 0, width, height);
+                ctx!.drawImage(image, rect.left * r, rect.top * r, width, height, 0, 0, width, height);
 
                 if (maxWidth > 0 || maxHeight > 0) {
                     try {
                         await this.canvasResizer.resize(canvas, ctx, maxWidth, maxHeight);
                         resolve(canvas.toDataURL('image/jpeg'));
-                    } catch(e) {
+                    } catch (e) {
                         reject(e);
                     }
                 } else {

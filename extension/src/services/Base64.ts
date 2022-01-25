@@ -10,6 +10,6 @@ export function bufferToBase64(buffer: ArrayBuffer): string {
     return window.btoa(binary);
 }
 
-export async function fileUrlToBase64(fileUrl): Promise<string> {
+export async function fileUrlToBase64(fileUrl: string): Promise<string> {
     return bufferToBase64(await (await fetch(fileUrl)).arrayBuffer());
 }

@@ -26,7 +26,11 @@ export default class RefreshSettingsHandler {
                 src: this.tabRegistry.videoElements[id].src,
             };
 
-            chrome.tabs.sendMessage(this.tabRegistry.videoElements[id].tab.id, settingsUpdatedCommand);
+            const tabId = this.tabRegistry.videoElements[id].tab.id;
+
+            if (typeof tabId !== 'undefined') {
+                chrome.tabs.sendMessage(tabId, settingsUpdatedCommand);
+            }
         }
 
         return false;

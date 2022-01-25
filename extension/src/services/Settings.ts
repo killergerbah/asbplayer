@@ -1,4 +1,20 @@
-const defaults = {
+type SettingKey =
+    | 'displaySubtitles'
+    | 'recordMedia'
+    | 'screenshot'
+    | 'cleanScreenshot'
+    | 'cropScreenshot'
+    | 'bindKeys'
+    | 'subsDragAndDrop'
+    | 'autoSync'
+    | 'lastLanguageSynced'
+    | 'subtitlePositionOffsetBottom'
+    | 'asbplayerUrl'
+    | 'lastThemeType';
+
+type SettingsValues = { [key in SettingKey]: any };
+
+const defaults: SettingsValues = {
     displaySubtitles: true,
     recordMedia: true,
     screenshot: true,
@@ -14,10 +30,10 @@ const defaults = {
 };
 
 export default class Settings {
-    async get(keys = null) {
-        let parameters;
+    async get(keys?: SettingKey[]): Promise<any> {
+        let parameters: any;
 
-        if (keys === null) {
+        if (keys === undefined) {
             parameters = defaults;
         } else {
             parameters = {};
@@ -33,7 +49,7 @@ export default class Settings {
 
         return new Promise((resolve, reject) => {
             chrome.storage.sync.get(parameters, (data) => {
-                const result = {};
+                const result: any = {};
 
                 for (const key in parameters) {
                     result[key] = data[key];
@@ -44,7 +60,7 @@ export default class Settings {
         });
     }
 
-    async set(settings) {
+    async set(settings: any) {
         for (const key in settings) {
             if (!(key in defaults)) {
                 throw new Error('Invalid key ' + key);
@@ -52,7 +68,7 @@ export default class Settings {
         }
 
         return new Promise((resolve, reject) => {
-            chrome.storage.sync.set(settings, () => resolve());
+            chrome.storage.sync.set(settings, () => resolve(undefined));
         });
     }
 }

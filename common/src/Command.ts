@@ -19,7 +19,7 @@ export interface AsbPlayerToVideoCommandV2<T extends Message> extends Command<T>
 
 export interface ExtensionToVideoCommand<T extends Message> extends Command<T> {
     readonly sender: 'asbplayer-extension-to-video';
-    readonly src: string;
+    readonly src?: string;
 }
 
 export interface VideoToExtensionCommand<T extends Message> extends Command<T> {

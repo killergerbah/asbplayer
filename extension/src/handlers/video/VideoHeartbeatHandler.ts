@@ -18,11 +18,14 @@ export default class VideoHeartbeatHandler {
 
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender): boolean {
         const videoToExtensionCommand = command as VideoToExtensionCommand<VideoHeartbeatMessage>;
-        this.tabRegistry.videoElements[sender.tab.id + ':' + videoToExtensionCommand.src] = {
-            tab: sender.tab,
-            src: videoToExtensionCommand.src,
-            timestamp: Date.now(),
-        };
+
+        if (sender.tab) {
+            this.tabRegistry.videoElements[sender.tab.id + ':' + videoToExtensionCommand.src] = {
+                tab: sender.tab,
+                src: videoToExtensionCommand.src,
+                timestamp: Date.now(),
+            };
+        }
 
         return false;
     }

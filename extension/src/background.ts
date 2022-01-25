@@ -64,8 +64,9 @@ chrome.commands.onCommand.addListener((command) => {
             case 'copy-subtitle-with-dialog':
                 for (const tab of tabs) {
                     for (const id in tabRegistry.videoElements) {
-                        if (tabRegistry.videoElements[id].tab.id === tab.id) {
-                            chrome.tabs.sendMessage(tabRegistry.videoElements[id].tab.id, {
+                        const videoElementTab = tabRegistry.videoElements[id].tab;
+                        if (typeof videoElementTab.id !== 'undefined' && videoElementTab.id === tab.id) {
+                            chrome.tabs.sendMessage(videoElementTab.id, {
                                 sender: 'asbplayer-extension-to-video',
                                 message: {
                                     command: 'copy-subtitle',
@@ -79,12 +80,14 @@ chrome.commands.onCommand.addListener((command) => {
                 break;
             case 'toggle-video-select':
                 for (const tab of tabs) {
-                    chrome.tabs.sendMessage(tab.id, {
-                        sender: 'asbplayer-extension-to-video',
-                        message: {
-                            command: 'toggle-video-select',
-                        },
-                    });
+                    if (typeof tab.id !== 'undefined') {
+                        chrome.tabs.sendMessage(tab.id, {
+                            sender: 'asbplayer-extension-to-video',
+                            message: {
+                                command: 'toggle-video-select',
+                            },
+                        });
+                    }
                 }
                 break;
             default:

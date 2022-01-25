@@ -1,11 +1,17 @@
 export default class Mp3Encoder {
-    static async encode(blob, workerFactory) {
+    static async encode(blob: Blob, workerFactory: () => Worker): Promise<Blob> {
         return new Promise(async (resolve, reject) => {
             var reader = new FileReader();
             reader.onload = async (e) => {
                 try {
                     const audioContext = new AudioContext();
-                    const audioBuffer = await audioContext.decodeAudioData(e.target.result);
+
+                    if (e.target === null) {
+                        reject(new Error("Could not obtain buffer to encode"));
+                        return;
+                    }
+
+                    const audioBuffer = await audioContext.decodeAudioData(e.target.result as ArrayBuffer);
                     const channels = [];
 
                     for (let i = 0; i < audioBuffer.numberOfChannels; ++i) {
@@ -26,8 +32,9 @@ export default class Mp3Encoder {
                         resolve(new Blob(e.data.buffer, { type: 'audio/mp3' }));
                         worker.terminate();
                     };
-                    worker.onerror = () => {
-                        reject(new Error('MP3 encoding failed'));
+                    worker.onerror = (e) => {
+                        const error = e?.error ?? new Error('MP3 encoding failed: ' + e?.message);
+                        reject(error);
                         worker.terminate();
                     };
                 } catch (e) {

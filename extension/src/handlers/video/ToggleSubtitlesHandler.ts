@@ -20,7 +20,7 @@ export default class ToggleSubtitlesHandler {
     }
 
     async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
-        const displaySubtitles = (await this.settings.get(['displaySubtitles'])).displaySubtitles;
+        const displaySubtitles = (await this.settings.get(['displaySubtitles'])).displaySubtitles as boolean;
         await this.settings.set({ displaySubtitles: !displaySubtitles });
 
         for (const id in this.tabRegistry.videoElements) {
@@ -32,7 +32,11 @@ export default class ToggleSubtitlesHandler {
                 src: this.tabRegistry.videoElements[id].src,
             };
 
-            chrome.tabs.sendMessage(this.tabRegistry.videoElements[id].tab.id, settingsUpdatedCommand);
+            const tabId = this.tabRegistry.videoElements[id].tab.id;
+
+            if (typeof tabId !== 'undefined') {
+                chrome.tabs.sendMessage(tabId, settingsUpdatedCommand);
+            }
         }
     }
 }

@@ -19,12 +19,14 @@ export default class AsbplayerHeartbeatHandler {
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
         const message = command.message as AsbplayerHeartbeatMessage;
 
-        this.tabRegistry.asbplayers[sender.tab.id] = {
-            tab: sender.tab,
-            id: message.id,
-            timestamp: Date.now(),
-            receivedTabs: message.receivedTabs,
-        };
+        if (typeof sender.tab?.id !== 'undefined') {
+            this.tabRegistry.asbplayers[sender.tab.id] = {
+                tab: sender.tab,
+                id: message.id,
+                timestamp: Date.now(),
+                receivedTabs: message.receivedTabs,
+            };
+        }
 
         return false;
     }

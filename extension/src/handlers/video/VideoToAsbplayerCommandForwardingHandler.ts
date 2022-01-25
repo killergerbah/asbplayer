@@ -13,15 +13,19 @@ export default class VideoToAsbplayerCommandForwardingHandler {
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
         const videoToExtensionCommand = command as VideoToExtensionCommand<Message>;
         chrome.tabs.query({}, (allTabs) => {
-            const extensionToPlayerCommand: ExtensionToAsbPlayerCommand<Message> = {
-                sender: 'asbplayer-extension-to-player',
-                message: command.message,
-                tabId: sender.tab.id,
-                src: videoToExtensionCommand.src,
-            };
-
-            for (let t of allTabs) {
-                chrome.tabs.sendMessage(t.id, extensionToPlayerCommand);
+            if (typeof sender.tab?.id !== 'undefined') {
+                const extensionToPlayerCommand: ExtensionToAsbPlayerCommand<Message> = {
+                    sender: 'asbplayer-extension-to-player',
+                    message: command.message,
+                    tabId: sender.tab.id,
+                    src: videoToExtensionCommand.src,
+                };
+    
+                for (let t of allTabs) {
+                    if (typeof t.id !== 'undefined') {
+                        chrome.tabs.sendMessage(t.id, extensionToPlayerCommand);
+                    }
+                }
             }
         });
         return false;
