@@ -1,9 +1,15 @@
+import { SubtitleModel } from '.';
 import KeyEvents from './KeyEvents';
-import KeySequence from './KeySequence';
+import KeySequence, { KeySequenceTransitionResult } from './KeySequence';
 import KeySequences from './KeySequences';
 
 export default class KeyBindings {
-    static bindCopy(onCopy, disabledGetter, subtitleGetter, useCapture = false) {
+    static bindCopy(
+        onCopy: (event: KeyboardEvent, subtitle: SubtitleModel) => void,
+        disabledGetter: () => boolean,
+        subtitleGetter: () => SubtitleModel,
+        useCapture = false
+    ) {
         return KeyBindings._bindDown((event) => {
             if (disabledGetter()) {
                 return;
@@ -23,7 +29,11 @@ export default class KeyBindings {
         }, useCapture);
     }
 
-    static bindAnkiExport(onAnkiExport, disabledGetter, useCapture = false) {
+    static bindAnkiExport(
+        onAnkiExport: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        useCapture = false
+    ) {
         return KeyBindings._bindDown((event) => {
             if (disabledGetter()) {
                 return;
@@ -37,7 +47,13 @@ export default class KeyBindings {
         }, useCapture);
     }
 
-    static bindSeekToSubtitle(onSeekToSubtitle, disabledGetter, timeGetter, subtitlesGetter, useCapture = false) {
+    static bindSeekToSubtitle(
+        onSeekToSubtitle: (event: KeyboardEvent, subtitle: SubtitleModel) => void,
+        disabledGetter: () => boolean,
+        timeGetter: () => number,
+        subtitlesGetter: () => SubtitleModel[] | undefined,
+        useCapture = false
+    ) {
         return KeyBindings._bindDown((event) => {
             if (disabledGetter()) {
                 return;
@@ -67,7 +83,13 @@ export default class KeyBindings {
         }, useCapture);
     }
 
-    static bindOffsetToSubtitle(onOffsetChange, disabledGetter, timeGetter, subtitlesGetter, useCapture = false) {
+    static bindOffsetToSubtitle(
+        onOffsetChange: (event: KeyboardEvent, newOffset: number) => void,
+        disabledGetter: () => boolean,
+        timeGetter: () => number,
+        subtitlesGetter: () => SubtitleModel[] | undefined,
+        useCapture = false
+    ) {
         return KeyBindings._bindDown((event) => {
             if (disabledGetter()) {
                 return;
@@ -100,7 +122,7 @@ export default class KeyBindings {
         }, useCapture);
     }
 
-    static _adjacentSubtitle(forward, time, subtitles) {
+    static _adjacentSubtitle(forward: boolean, time: number, subtitles: SubtitleModel[]) {
         const now = time;
         let adjacentSubtitleIndex = -1;
         let minDiff = Number.MAX_SAFE_INTEGER;
@@ -129,7 +151,12 @@ export default class KeyBindings {
         return null;
     }
 
-    static bindAdjustOffset(onOffsetChange, disabledGetter, subtitlesGetter, useCapture = false) {
+    static bindAdjustOffset(
+        onOffsetChange: (event: KeyboardEvent, newOffset: number) => void,
+        disabledGetter: () => boolean,
+        subtitlesGetter: () => SubtitleModel[] | undefined,
+        useCapture = false
+    ) {
         return KeyBindings._bindDown((event) => {
             if (disabledGetter()) {
                 return;
@@ -157,9 +184,14 @@ export default class KeyBindings {
         }, useCapture);
     }
 
-    static bindToggleSubtitles(onToggleSubtitles, onSequenceAdvanced, disabledGetter, useCapture = false) {
+    static bindToggleSubtitles(
+        onToggleSubtitles: (event: KeyboardEvent) => void,
+        onSequenceAdvanced: () => void,
+        disabledGetter: () => boolean,
+        useCapture = false
+    ) {
         const sequence = KeySequences.toggleSubtitles();
-        const handler = (event) => {
+        const handler = (event: KeyboardEvent) => {
             if (disabledGetter()) {
                 sequence.reset();
                 return;
@@ -167,9 +199,9 @@ export default class KeyBindings {
 
             const transition = sequence.accept(event);
 
-            if (transition.result === KeySequence.ADVANCED) {
+            if (transition.result === KeySequenceTransitionResult.ADVANCED) {
                 onSequenceAdvanced();
-            } else if (transition.result === KeySequence.COMPLETE) {
+            } else if (transition.result === KeySequenceTransitionResult.COMPLETE) {
                 onToggleSubtitles(event);
             }
         };
@@ -183,13 +215,13 @@ export default class KeyBindings {
     }
 
     static bindToggleSubtitleTrackInVideo(
-        onToggleSubtitleTrack,
-        onSequenceAdvanced,
-        disabledGetter,
+        onToggleSubtitleTrack: (event: KeyboardEvent, extra: any) => void,
+        onSequenceAdvanced: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
         useCapture = false
     ) {
         const sequence = KeySequences.toggleSubtitleTrack();
-        const handler = (event) => {
+        const handler = (event: KeyboardEvent) => {
             if (disabledGetter()) {
                 sequence.reset();
                 return;
@@ -197,9 +229,9 @@ export default class KeyBindings {
 
             const transition = sequence.accept(event);
 
-            if (transition.result === KeySequence.ADVANCED) {
-                onSequenceAdvanced();
-            } else if (transition.result === KeySequence.COMPLETE) {
+            if (transition.result === KeySequenceTransitionResult.ADVANCED) {
+                onSequenceAdvanced(event);
+            } else if (transition.result === KeySequenceTransitionResult.COMPLETE) {
                 onToggleSubtitleTrack(event, transition.extra);
             }
         };
@@ -213,13 +245,13 @@ export default class KeyBindings {
     }
 
     static bindToggleSubtitleTrackInList(
-        onToggleSubtitleTrackInList,
-        onSequenceAdvanced,
-        disabledGetter,
+        onToggleSubtitleTrackInList: (event: KeyboardEvent, extra: any) => void,
+        onSequenceAdvanced: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
         useCapture = false
     ) {
         const sequence = KeySequences.toggleSubtitleTrackInList();
-        const handler = (event) => {
+        const handler = (event: KeyboardEvent) => {
             if (disabledGetter()) {
                 sequence.reset();
                 return;
@@ -227,9 +259,9 @@ export default class KeyBindings {
 
             const transition = sequence.accept(event);
 
-            if (transition.result === KeySequence.ADVANCED) {
-                onSequenceAdvanced();
-            } else if (transition.result === KeySequence.COMPLETE) {
+            if (transition.result === KeySequenceTransitionResult.ADVANCED) {
+                onSequenceAdvanced(event);
+            } else if (transition.result === KeySequenceTransitionResult.COMPLETE) {
                 onToggleSubtitleTrackInList(event, transition.extra);
             }
         };
@@ -242,7 +274,7 @@ export default class KeyBindings {
         };
     }
 
-    static bindPlay(onPlay, disabledGetter, useCapture = false) {
+    static bindPlay(onPlay: (event: KeyboardEvent) => void, disabledGetter: () => boolean, useCapture = false) {
         return KeyBindings._bindDown((event) => {
             if (disabledGetter()) {
                 return;
@@ -256,13 +288,13 @@ export default class KeyBindings {
         }, useCapture);
     }
 
-    static _bindDown(handler, useCapture) {
+    static _bindDown(handler: (event: KeyboardEvent) => void, useCapture: boolean) {
         window.addEventListener('keydown', handler, useCapture);
 
         return () => window.removeEventListener('keydown', handler, useCapture);
     }
 
-    static _bindUp(handler, useCapture) {
+    static _bindUp(handler: (event: KeyboardEvent) => void, useCapture: boolean) {
         window.addEventListener('keyup', handler, useCapture);
 
         return () => window.removeEventListener('keyup', handler, useCapture);

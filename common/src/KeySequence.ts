@@ -1,32 +1,37 @@
-const REJECTED = 0;
-const CANCELED = 1;
-const ADVANCED = 2;
-const COMPLETE = 3;
+export enum KeySequenceTransitionResult {
+    REJECTED = 0,
+    CANCELED = 1,
+    ADVANCED = 2,
+    COMPLETE = 3,
+}
+
+export interface KeySequenceOptions {
+    up?: number[];
+    holding?: number[];
+    canceledBy?: number[];
+    map?: (event: KeyboardEvent) => any;
+}
+
+export interface KeySequenceTransition {
+    result: KeySequenceTransitionResult;
+    extra?: any;
+}
 
 export default class KeySequence {
-    constructor({ up, holding, canceledBy, map }) {
+    private up: number[];
+    private holding: number[];
+    private canceledBy: number[];
+    private map: (event: KeyboardEvent) => any;
+    private currentlyHolding: { [key: number]: boolean };
+    private canceled: boolean;
+
+    constructor({ up, holding, canceledBy, map }: KeySequenceOptions) {
         this.up = up || [];
         this.holding = holding || [];
         this.canceledBy = canceledBy || [];
-        this.map = map || (() => true);
+        this.map = map || ((event: KeyboardEvent) => true);
         this.currentlyHolding = {};
         this.canceled = false;
-    }
-
-    static get REJECTED() {
-        return REJECTED;
-    }
-
-    static get CANCELED() {
-        return CANCELED;
-    }
-
-    static get ADVANCED() {
-        return ADVANCED;
-    }
-
-    static get COMPLETE() {
-        return COMPLETE;
     }
 
     reset() {
@@ -34,25 +39,25 @@ export default class KeySequence {
         this.canceled = false;
     }
 
-    accept(event) {
-        let result = REJECTED;
+    accept(event: KeyboardEvent): KeySequenceTransition {
+        let result = KeySequenceTransitionResult.REJECTED;
         let extra = null;
 
         if (event.type === 'keydown') {
             if (this.holding.includes(event.keyCode)) {
                 this.currentlyHolding[event.keyCode] = true;
                 this.canceled = false;
-                result = ADVANCED;
+                result = KeySequenceTransitionResult.ADVANCED;
             }
 
             if (this.canceledBy.includes(event.keyCode)) {
                 this.canceled = true;
-                result = CANCELED;
+                result = KeySequenceTransitionResult.CANCELED;
             }
 
             if (this.up.includes(event.keyCode)) {
                 this.canceled = false;
-                result = ADVANCED;
+                result = KeySequenceTransitionResult.ADVANCED;
             }
         }
 
@@ -61,7 +66,7 @@ export default class KeySequence {
 
             if (this.up.includes(event.keyCode) && this._holdingAll() && !this.canceled) {
                 extra = this.map(event);
-                result = COMPLETE;
+                result = KeySequenceTransitionResult.COMPLETE;
             }
         }
 

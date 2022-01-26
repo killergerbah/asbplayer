@@ -16,7 +16,6 @@ export default class SubtitleContainer {
     private readonly video: HTMLVideoElement;
 
     private showingSubtitles?: string[];
-    private disabledSubtitleTracks: { [key: number]: boolean | undefined };
     private lastLoadedMessageTimestamp: number;
     private lastOffsetChangeTimestamp: number;
     private showingOffset?: number;
@@ -35,6 +34,7 @@ export default class SubtitleContainer {
     private fullscreenSubtitlesElementFullscreenChangeListener?: (this: any, event: Event) => any;
     private fullscreenSubtitlesElementFullscreenPollingInterval?: NodeJS.Timer;
 
+    disabledSubtitleTracks: { [key: number]: boolean | undefined };
     subtitles: SubtitleModel[];
     displaySubtitles: boolean;
     subtitlePositionOffsetBottom: number;

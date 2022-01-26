@@ -128,3 +128,12 @@ export interface OffsetMessage extends Message {
     command: 'offset';
     value: number;
 }
+
+export interface ToggleSubtitlesMessage extends Message {
+    command: 'toggle-subtitles';
+}
+
+export interface ToggleSubtitlesInListMessage extends Message {
+    command: 'toggleSubtitleTrackInList';
+    track: number;
+}

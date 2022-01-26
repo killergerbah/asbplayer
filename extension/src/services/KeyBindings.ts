@@ -1,9 +1,26 @@
-import { KeyBindings as CommonKeyBindings } from '@project/common';
+import {
+    KeyBindings as CommonKeyBindings,
+    ToggleSubtitlesInListMessage,
+    ToggleSubtitlesMessage,
+    VideoToExtensionCommand,
+} from '@project/common';
+import Binding from './Binding';
 
 export default class KeyBindings {
-    constructor() {}
+    private unbindSeekToSubtitle?: () => void;
+    private unbindToggleSubtitles?: () => void;
+    private unbindToggleSubtitleTrackInVideo?: () => void;
+    private unbindToggleSubtitleTrackInList?: () => void;
+    private unbindOffsetToSubtitle?: () => void;
+    private unbindAdjustOffset?: () => void;
 
-    bind(context) {
+    private bound: boolean;
+
+    constructor() {
+        this.bound = false;
+    }
+
+    bind(context: Binding) {
         if (this.bound) {
             return;
         }
@@ -26,13 +43,15 @@ export default class KeyBindings {
         // Might be worth rethinking the KeyBindings API so we don't need this extra knowledge for things to work.
         this.unbindToggleSubtitles = CommonKeyBindings.bindToggleSubtitles(
             (event) => {
-                chrome.runtime.sendMessage({
+                const toggleSubtitlesCommand: VideoToExtensionCommand<ToggleSubtitlesMessage> = {
                     sender: 'asbplayer-video',
                     message: {
                         command: 'toggle-subtitles',
                     },
                     src: context.video.src,
-                });
+                };
+
+                chrome.runtime.sendMessage(toggleSubtitlesCommand);
             },
             () => {},
             () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
@@ -46,7 +65,7 @@ export default class KeyBindings {
                 context.subtitleContainer.disabledSubtitleTracks[track] =
                     !context.subtitleContainer.disabledSubtitleTracks[track];
             },
-            () => {
+            (event) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
             },
@@ -58,16 +77,17 @@ export default class KeyBindings {
             (event, track) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                chrome.runtime.sendMessage({
+                const command: VideoToExtensionCommand<ToggleSubtitlesInListMessage> = {
                     sender: 'asbplayer-video',
                     message: {
                         command: 'toggleSubtitleTrackInList',
                         track: track,
                     },
                     src: context.video.src,
-                });
+                };
+                chrome.runtime.sendMessage(command);
             },
-            () => {},
+            (event) => {},
             () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
             true
         );
@@ -101,32 +121,32 @@ export default class KeyBindings {
     unbind() {
         if (this.unbindSeekToSubtitle) {
             this.unbindSeekToSubtitle();
-            this.unbindSeekToSubtitle = null;
+            this.unbindSeekToSubtitle = undefined;
         }
 
         if (this.unbindToggleSubtitles) {
             this.unbindToggleSubtitles();
-            this.unbindToggleSubtitles = null;
+            this.unbindToggleSubtitles = undefined;
         }
 
         if (this.unbindToggleSubtitleTrackInVideo) {
             this.unbindToggleSubtitleTrackInVideo();
-            this.unbindToggleSubtitleTrackInVideo = null;
+            this.unbindToggleSubtitleTrackInVideo = undefined;
         }
 
         if (this.unbindToggleSubtitleTrackInList) {
             this.unbindToggleSubtitleTrackInList();
-            this.unbindToggleSubtitleTrackInList = null;
+            this.unbindToggleSubtitleTrackInList = undefined;
         }
 
         if (this.unbindOffsetToSubtitle) {
             this.unbindOffsetToSubtitle();
-            this.unbindOffsetToSubtitle = null;
+            this.unbindOffsetToSubtitle = undefined;
         }
 
         if (this.unbindAdjustOffset) {
             this.unbindAdjustOffset();
-            this.unbindAdjustOffset = null;
+            this.unbindAdjustOffset = undefined;
         }
 
         this.bound = false;
