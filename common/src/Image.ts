@@ -1,10 +1,24 @@
 import CanvasResizer from './CanvasResizer';
 
-class Base64ImageData {
-    constructor(name, base64, extension) {
-        this.name = name;
+class Base64ImageData implements ImageData {
+    private readonly _name: string;
+    private readonly _base64: string;
+    private readonly _extension: string;
+
+    private cachedBlob?: Blob;
+
+    constructor(name: string, base64: string, extension: string) {
+        this._name = name;
         this._base64 = base64;
-        this.extension = extension;
+        this._extension = extension;
+    }
+
+    get name() {
+        return this._name;
+    }
+
+    get extension() {
+        return this._extension;
     }
 
     async base64() {
@@ -32,29 +46,42 @@ class Base64ImageData {
     }
 }
 
-class FileImageData {
-    constructor(file, timestamp, maxWidth, maxHeight) {
+class FileImageData implements ImageData {
+    private readonly file: File;
+    private readonly timestamp: number;
+    private readonly maxWidth: number;
+    private readonly maxHeight: number;
+    private readonly _name: string;
+
+    constructor(file: File, timestamp: number, maxWidth: number, maxHeight: number) {
         this.file = file;
-        this.name = file.name + '_' + Math.floor(timestamp) + '.jpeg';
+        this._name = file.name + '_' + Math.floor(timestamp) + '.jpeg';
         this.timestamp = timestamp;
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
     }
 
-    async base64() {
+    get name() {
+        return this._name;
+    }
+
+    async base64(): Promise<string> {
         return new Promise(async (resolve, reject) => {
             const canvas = await this._canvas();
             const dataUrl = canvas.toDataURL('image/jpeg');
-            resolve(dataUrl.substr(dataUrl.indexOf(',') + 1));
+            resolve(dataUrl.substring(dataUrl.indexOf(',') + 1));
         });
     }
 
-    async blob() {
+    async blob(): Promise<Blob> {
         return new Promise(async (resolve, reject) => {
             const canvas = await this._canvas();
             canvas.toBlob((blob) => {
-                this._blob = blob;
-                resolve(blob);
+                if (blob === null) {
+                    reject(new Error('Could not obtain blob'));
+                } else {
+                    resolve(blob);
+                }
             }, 'image/jpeg');
         });
     }
@@ -64,7 +91,7 @@ class FileImageData {
         return canvas.toDataURL();
     }
 
-    async _canvas() {
+    async _canvas(): Promise<HTMLCanvasElement> {
         return new Promise(async (resolve, reject) => {
             const video = this._videoElement(this.file);
 
@@ -73,10 +100,10 @@ class FileImageData {
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                ctx!.drawImage(video, 0, 0, canvas.width, canvas.height);
                 if (this.maxWidth > 0 || this.maxHeight > 0) {
                     const resizer = new CanvasResizer();
-                    await resizer.resize(canvas, ctx, this.maxWidth, this.maxHeight);
+                    await resizer.resize(canvas, ctx!, this.maxWidth, this.maxHeight);
                     resolve(canvas);
                 } else {
                     resolve(canvas);
@@ -86,7 +113,7 @@ class FileImageData {
         });
     }
 
-    _videoElement(source) {
+    _videoElement(source: File) {
         const video = document.createElement('video');
         video.src = URL.createObjectURL(source);
         video.preload = 'none';
@@ -97,12 +124,21 @@ class FileImageData {
     }
 }
 
+interface ImageData {
+    name: string;
+    base64: () => Promise<string>;
+    dataUrl: () => Promise<string>;
+    blob: () => Promise<Blob>;
+}
+
 export default class Image {
-    constructor(data) {
+    private readonly data: ImageData;
+
+    constructor(data: ImageData) {
         this.data = data;
     }
 
-    static fromBase64(subtitleFileName, timestamp, base64, extension) {
+    static fromBase64(subtitleFileName: string, timestamp: number, base64: string, extension: string) {
         const imageName =
             subtitleFileName.substring(0, subtitleFileName.lastIndexOf('.')) +
             '_' +
@@ -112,7 +148,7 @@ export default class Image {
         return new Image(new Base64ImageData(imageName, base64, extension));
     }
 
-    static fromFile(file, timestamp, maxWidth, maxHeight) {
+    static fromFile(file: File, timestamp: number, maxWidth: number, maxHeight: number) {
         return new Image(new FileImageData(file, timestamp, maxWidth, maxHeight));
     }
 
@@ -133,7 +169,7 @@ export default class Image {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         document.body.appendChild(a);
-        a.style = 'display: none';
+        a.style.display = 'none';
         a.href = url;
         a.download = this.data.name;
         a.click();

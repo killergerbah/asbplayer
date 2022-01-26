@@ -1,5 +1,10 @@
 export default class CanvasResizer {
-    resize(canvas, ctx, maxWidth, maxHeight) {
+    resize(
+        canvas: HTMLCanvasElement,
+        ctx: CanvasRenderingContext2D,
+        maxWidth: number,
+        maxHeight: number
+    ): Promise<HTMLCanvasElement> {
         return new Promise((resolve, reject) => {
             const widthRatio = maxWidth <= 0 ? 1 : maxWidth / canvas.width;
             const heightRatio = maxHeight <= 0 ? 1 : maxHeight / canvas.height;

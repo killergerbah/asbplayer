@@ -38,8 +38,8 @@ export default class ImageCapturer {
                 const height = rect.height * r;
                 canvas.width = width;
                 canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx!.drawImage(image, rect.left * r, rect.top * r, width, height, 0, 0, width, height);
+                const ctx = canvas.getContext('2d')!;
+                ctx.drawImage(image, rect.left * r, rect.top * r, width, height, 0, 0, width, height);
 
                 if (maxWidth > 0 || maxHeight > 0) {
                     try {
