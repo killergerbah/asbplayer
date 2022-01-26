@@ -1,5 +1,13 @@
+interface Point {
+    x: number;
+    y: number;
+}
+
 export default class ControlsContainer {
-    constructor(video) {
+    private readonly video: HTMLVideoElement;
+    private elements: Element[];
+
+    constructor(video: HTMLVideoElement) {
         this.video = video;
         this.elements = [];
     }
@@ -19,7 +27,7 @@ export default class ControlsContainer {
         }
 
         return new Promise((resolve, reject) => {
-            setTimeout(() => resolve(), 0);
+            setTimeout(() => resolve(undefined), 0);
         });
     }
 
@@ -46,19 +54,21 @@ export default class ControlsContainer {
 
         for (let x = rect.x; x <= maxX; x += stepX) {
             for (let y = rect.y; y <= maxY; y += stepY) {
-                yield {
+                const point: Point = {
                     x: this._withNoise(x, stepX / 2, rect.x, maxX),
                     y: this._withNoise(y, stepY / 2, rect.y, maxY),
                 };
+
+                yield point;
             }
         }
     }
 
-    _withNoise(center, radius, min, max) {
+    _withNoise(center: number, radius: number, min: number, max: number) {
         return Math.min(max, Math.max(min, center + (Math.random() * radius * 2 - radius)));
     }
 
-    *_path(element) {
+    *_path(element: Element | null) {
         if (!element || element.contains(this.video)) {
             return;
         }
@@ -78,7 +88,7 @@ export default class ControlsContainer {
         }
     }
 
-    _contains(elements, element) {
+    _contains(elements: Element[], element: Element) {
         for (const e of elements) {
             if (e.isSameNode(element)) {
                 return true;
