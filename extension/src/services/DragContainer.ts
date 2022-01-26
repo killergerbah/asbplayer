@@ -2,9 +2,29 @@ import ImageElement from './ImageElement';
 import { bufferToBase64 } from './Base64';
 
 export default class DragContainer {
-    constructor(video) {
+    private readonly video: HTMLVideoElement;
+    private readonly imageElement: ImageElement;
+
+    private bound: boolean;
+    private dragEnterElement: EventTarget | null = null;
+    private bodyDragEnterElement: EventTarget | null = null;
+    private dragElement?: HTMLDivElement;
+
+    private dropListener?: (event: DragEvent) => void;
+    private dragOverListener?: (event: DragEvent) => void;
+    private dragEnterListener?: (event: DragEvent) => void;
+    private dragLeaveListener?: (event: DragEvent) => void;
+    private bodyDropListener?: (event: DragEvent) => void;
+    private bodyDragOverListener?: (event: DragEvent) => void;
+    private bodyDragEnterListener?: (event: DragEvent) => void;
+    private bodyDragLeaveListener?: (event: DragEvent) => void;
+
+    private dragElementStylesInterval?: NodeJS.Timeout;
+
+    constructor(video: HTMLVideoElement) {
         this.video = video;
         this.imageElement = new ImageElement(video);
+        this.bound = false;
     }
 
     bind() {
@@ -12,7 +32,7 @@ export default class DragContainer {
             return;
         }
 
-        this.dropListener = async (e) => {
+        this.dropListener = async (e: DragEvent) => {
             e.preventDefault();
 
             this.dragEnterElement = null;
@@ -21,13 +41,14 @@ export default class DragContainer {
             this._dragElement().classList.remove('asbplayer-drag-zone-dragging');
             this._dragElement().classList.add('asbplayer-hide');
 
-            if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) {
+            if (!e.dataTransfer?.files || e.dataTransfer?.files.length === 0) {
                 return;
             }
 
             const files = [];
 
-            for (const f of e.dataTransfer.files) {
+            for (let i = 0; i < e.dataTransfer.files.length; ++i) {
+                const f = e.dataTransfer.files[i];
                 const extensionStartIndex = f.name.lastIndexOf('.');
 
                 if (extensionStartIndex === -1) {
@@ -141,7 +162,7 @@ export default class DragContainer {
         return this.dragElement;
     }
 
-    _applyDragElementStyles(dragElement) {
+    _applyDragElementStyles(dragElement: HTMLDivElement) {
         const rect = this.video.getBoundingClientRect();
 
         // Shrink the drag zone slightly to avoid accidentally overflowing
@@ -155,53 +176,53 @@ export default class DragContainer {
 
     unbind() {
         if (this.dropListener) {
-            this.dragElement.removeEventListener('drop', this.dropListener, true);
-            this.dropListener = null;
+            this.dragElement?.removeEventListener('drop', this.dropListener, true);
+            this.dropListener = undefined;
         }
 
         if (this.dragOverListener) {
-            this.dragElement.removeEventListener('dragover', this.dragOverListener, true);
-            this.dragOverListener = null;
+            this.dragElement?.removeEventListener('dragover', this.dragOverListener, true);
+            this.dragOverListener = undefined;
         }
 
         if (this.dragEnterListener) {
-            this.dragElement.removeEventListener('dragenter', this.dragEnterListener, true);
-            this.dragEnterListener = null;
+            this.dragElement?.removeEventListener('dragenter', this.dragEnterListener, true);
+            this.dragEnterListener = undefined;
         }
 
         if (this.dragLeaveListener) {
-            this.dragElement.removeEventListener('dragleave', this.dragLeaveListener, true);
-            this.dragLeaveListener = null;
+            this.dragElement?.removeEventListener('dragleave', this.dragLeaveListener, true);
+            this.dragLeaveListener = undefined;
         }
 
         if (this.bodyDropListener) {
             document.body.removeEventListener('drop', this.bodyDropListener);
-            this.bodyDropListener = null;
+            this.bodyDropListener = undefined;
         }
 
         if (this.bodyDragOverListener) {
             document.body.removeEventListener('dragover', this.bodyDragOverListener);
-            this.bodyDragOverListener = null;
+            this.bodyDragOverListener = undefined;
         }
 
         if (this.bodyDragEnterListener) {
             document.body.removeEventListener('dragenter', this.bodyDragEnterListener);
-            this.bodyDragEnterListener = null;
+            this.bodyDragEnterListener = undefined;
         }
 
         if (this.bodyDragLeaveListener) {
             document.body.removeEventListener('dragleave', this.bodyDragLeaveListener);
-            this.bodyDragLeaveListener = null;
+            this.bodyDragLeaveListener = undefined;
         }
 
         if (this.dragElementStylesInterval) {
             clearInterval(this.dragElementStylesInterval);
-            this.dragElementStylesInterval = null;
+            this.dragElementStylesInterval = undefined;
         }
 
         if (this.dragElement) {
             this.dragElement.remove();
-            this.dragElement = null;
+            this.dragElement = undefined;
         }
 
         this.imageElement.remove();

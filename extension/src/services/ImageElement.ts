@@ -2,7 +2,11 @@ const dragImageWidth = 300;
 const dragImageHeight = 300;
 
 export default class ImageElement {
-    constructor(video) {
+    private readonly video: HTMLVideoElement;
+    private imageElement?: HTMLDivElement;
+    private imageElementStylesInterval?: NodeJS.Timeout;
+
+    constructor(video: HTMLVideoElement) {
         this.video = video;
     }
 
@@ -30,7 +34,7 @@ export default class ImageElement {
         return this.imageElement;
     }
 
-    _applyImageContainerStyles(image, container) {
+    _applyImageContainerStyles(image: HTMLImageElement, container: HTMLDivElement) {
         const rect = this.video.getBoundingClientRect();
         const containerWidth = rect.width * 0.9;
         const containerHeight = rect.height * 0.9;
@@ -54,12 +58,12 @@ export default class ImageElement {
     remove() {
         if (this.imageElementStylesInterval) {
             clearInterval(this.imageElementStylesInterval);
-            this.imageElementStylesInterval = null;
+            this.imageElementStylesInterval = undefined;
         }
 
         if (this.imageElement) {
             this.imageElement.remove();
-            this.imageElement = null;
+            this.imageElement = undefined;
         }
     }
 }
