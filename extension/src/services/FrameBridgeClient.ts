@@ -1,6 +1,16 @@
+import { HttpPostMessage, VideoToExtensionCommand } from "@project/common";
+
 export default class FrameBridgeClient {
-    constructor(frame) {
+    private readonly frame: HTMLIFrameElement;
+    private readonly videoSrc: string;
+    private frameId?: string;
+    private windowMessageListener?: (event: MessageEvent) => void;
+    private bindPromise?: Promise<void>;
+    private finishedListener?: (message: any) => void;
+
+    constructor(frame: HTMLIFrameElement, videoSrc: string) {
         this.frame = frame;
+        this.videoSrc = videoSrc;
         this.bindPromise = undefined;
     }
 
@@ -10,12 +20,12 @@ export default class FrameBridgeClient {
         return this.bindPromise;
     }
 
-    updateState(state) {
+    updateState(state: any) {
         if (!this.frameId) {
             throw new Error('Attempted to update state when frame is not ready');
         }
 
-        this.frame.contentWindow.postMessage(
+        this.frame.contentWindow?.postMessage(
             {
                 sender: 'asbplayer-video',
                 message: {
@@ -28,23 +38,24 @@ export default class FrameBridgeClient {
         );
     }
 
-    onFinished(listener) {
-        this.onFinishedListener = listener;
+    onFinished(listener: (message: any) => void) {
+        this.finishedListener = listener;
     }
 
     unbind() {
-        if (this.listener) {
-            window.removeEventListener('message', this.listener);
+        if (this.windowMessageListener) {
+            window.removeEventListener('message', this.windowMessageListener);
+            this.windowMessageListener = undefined;
         }
 
-        this.onFinishedListener = null;
+        this.finishedListener = undefined;
     }
 
-    _bindClient() {
+    _bindClient(): Promise<void> {
         return new Promise((resolve, reject) => {
             let ready = false;
 
-            this.listener = (event) => {
+            this.windowMessageListener = (event) => {
                 if (event.source !== this.frame.contentWindow || event.data.sender !== 'asbplayer-frame') {
                     return;
                 }
@@ -56,26 +67,28 @@ export default class FrameBridgeClient {
                         resolve();
                         break;
                     case 'onFinished':
-                        if (this.onFinishedListener) {
-                            this.onFinishedListener(event.data.message.message);
+                        if (this.finishedListener) {
+                            this.finishedListener(event.data.message.message);
                         }
                         break;
                     case 'fetch':
                         const message = event.data.message;
-                        chrome.runtime.sendMessage(
-                            {
-                                sender: 'asbplayer-video',
-                                message: {
-                                    command: 'http-post',
-                                    url: message.url,
-                                    body: message.body,
-                                },
+                        const httpPostCommand: VideoToExtensionCommand<HttpPostMessage> = {
+                            sender: 'asbplayer-video',
+                            message: {
+                                command: 'http-post',
+                                url: message.url as string,
+                                body: message.body as any,
                             },
+                            src: this.videoSrc
+                        };
+                        chrome.runtime.sendMessage(
+                            httpPostCommand,
                             (postResponse) => {
                                 const response = postResponse
                                     ? postResponse
-                                    : { error: chrome.runtime.lastError.message };
-                                this.frame.contentWindow.postMessage(
+                                    : { error: chrome.runtime.lastError?.message };
+                                this.frame.contentWindow?.postMessage(
                                     {
                                         sender: 'asbplayer-video',
                                         message: {
@@ -96,11 +109,14 @@ export default class FrameBridgeClient {
             setTimeout(() => {
                 if (!ready) {
                     reject(new Error('Timed out waiting for frame to be ready'));
-                    window.removeEventListener('message', this.listener);
-                    this.listener = null;
+
+                    if (this.windowMessageListener) {
+                        window.removeEventListener('message', this.windowMessageListener);
+                        this.windowMessageListener = undefined;
+                    }
                 }
             }, 10000);
-            window.addEventListener('message', this.listener);
+            window.addEventListener('message', this.windowMessageListener);
         });
     }
 }

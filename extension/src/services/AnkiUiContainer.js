@@ -100,7 +100,7 @@ export default class AnkiUiContainer {
 
         this.frame = document.createElement('iframe');
         this.frame.className = 'asbplayer-ui-frame';
-        this.client = new FrameBridgeClient(this.frame);
+        this.client = new FrameBridgeClient(this.frame, context.video.src);
         document.body.appendChild(this.frame);
         const doc = this.frame.contentDocument;
         doc.open();

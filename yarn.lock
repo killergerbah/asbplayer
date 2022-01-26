@@ -4483,6 +4483,7 @@ __metadata:
     "@project/common": 0.1.0
     "@types/chrome": ^0.0.176
     "@types/dom-mediacapture-record": ^1.0.11
+    "@types/uuid": ^8.3.4
     babel-loader: ^8.2.3
     clean-webpack-plugin: 4.0.0-alpha.0
     copy-webpack-plugin: 6.4.1
@@ -5178,6 +5179,13 @@ __metadata:
   dependencies:
     source-map: ^0.6.1
   checksum: 1815a3628aeed41212ae411728267a29e99a309f0cff4d84f90bc7188125be0996d81ca4e7c747751f598749edad426a4c1fe9d78df2110022ca24455d45ca43
+  languageName: node
+  linkType: hard
+
+"@types/uuid@npm:^8.3.4":
+  version: 8.3.4
+  resolution: "@types/uuid@npm:8.3.4"
+  checksum: eec476ba760e83ba6c67bd246c4400fa329ea10990e6427051722d90d6f52e7d062ba12b595703cb6aa92480775ee792802d4d90ae0f1c864a0e74c81e1e6c67
   languageName: node
   linkType: hard
 
