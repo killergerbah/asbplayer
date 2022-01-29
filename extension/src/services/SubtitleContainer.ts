@@ -19,8 +19,7 @@ export default class SubtitleContainer {
     private lastLoadedMessageTimestamp: number;
     private lastOffsetChangeTimestamp: number;
     private showingOffset?: number;
-    private surroundingSubtitlesCountRadius: number;
-    private surroundingSubtitlesTimeRadius: number;
+
     private subtitlesInterval?: NodeJS.Timer;
     private showingLoadedMessage: boolean;
 
@@ -40,7 +39,9 @@ export default class SubtitleContainer {
     displaySubtitles: boolean;
     subtitlePositionOffsetBottom: number;
     subtitleSettings?: SubtitleSettings;
-
+    surroundingSubtitlesCountRadius: number;
+    surroundingSubtitlesTimeRadius: number;
+    
     constructor(video: HTMLVideoElement) {
         this.video = video;
         this.subtitles = [];

@@ -30,11 +30,12 @@ async function html() {
 
 export default class AnkiUiContainer {
     private currentItem?: AnkiUiContainerCurrentItem;
-    private ankiSettings?: AnkiSettings;
     private client?: FrameBridgeClient;
     private frame?: HTMLIFrameElement;
     private fullscreenElement?: Element;
     private activeElement?: Element;
+
+    ankiSettings?: AnkiSettings;
 
     constructor() {}
 
@@ -150,7 +151,7 @@ export default class AnkiUiContainer {
                 const activeHtmlElement = this.activeElement as HTMLElement;
 
                 if (typeof activeHtmlElement.focus === 'function') {
-                    activeHtmlElement.focus?.();
+                    activeHtmlElement.focus();
                 }
 
                 this.activeElement = undefined;
@@ -162,7 +163,11 @@ export default class AnkiUiContainer {
                 context.play();
                 this.currentItem = undefined;
             } else if (message.command === 'rerecord') {
-                context.rerecord(message.recordStart, message.recordEnd, this.currentItem, message.uiState);
+                if (this.currentItem) {
+                    context.rerecord(message.recordStart, message.recordEnd, this.currentItem, message.uiState);
+                } else {
+                    console.error("Cannot rerecord because currentItem is undefined");
+                }
             }
         });
 

@@ -1,3 +1,4 @@
+import { AnkiUiContainerCurrentItem, AnkiUiState } from '@project/common';
 import AnkiUiContainer from './AnkiUiContainer';
 import ControlsContainer from './ControlsContainer';
 import DragContainer from './DragContainer';
@@ -8,11 +9,48 @@ import VideoDataSyncContainer from './VideoDataSyncContainer';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
-    netflix = e.detail;
+    netflix = (e as CustomEvent).detail;
 });
 
 export default class Binding {
-    constructor(video, syncAvailable) {
+    displaySubtitles: boolean;
+    recordMedia: boolean;
+    screenshot: boolean;
+    cleanScreenshot: boolean;
+    bindKeys: boolean;
+    audioPaddingStart: number;
+    audioPaddingEnd: number;
+    maxImageWidth: number;
+    maxImageHeight: number;
+    synced: boolean;
+    recordingMedia: boolean;
+    recordingMediaStartedTimestamp?: number;
+    recordingMediaWithScreenshot: boolean;
+
+    readonly video: HTMLVideoElement;
+    readonly subSyncAvailable: boolean;
+    readonly subtitleContainer: SubtitleContainer;
+    readonly videoDataSyncContainer: VideoDataSyncContainer;
+    readonly controlsContainer: ControlsContainer;
+    readonly dragContainer: DragContainer;
+    readonly ankiUiContainer: AnkiUiContainer;
+    readonly keyBindings: KeyBindings;
+    readonly settings: Settings;
+
+    private playListener?: EventListener;
+    private pauseListener?: EventListener;
+    private seekedListener?: EventListener;
+    private playbackRateListener?: EventListener;
+    private videoChangeListener?: EventListener;
+    private listener?: (
+        message: any,
+        sender: chrome.runtime.MessageSender,
+        sendResponse: (response?: any) => void
+    ) => void;
+    private heartbeatInterval?: NodeJS.Timeout;
+    private showControlsTimeout?: NodeJS.Timeout;
+
+    constructor(video: HTMLVideoElement, syncAvailable: boolean) {
         this.video = video;
         this.subSyncAvailable = syncAvailable;
         this.subtitleContainer = new SubtitleContainer(video);
@@ -22,6 +60,7 @@ export default class Binding {
         this.ankiUiContainer = new AnkiUiContainer();
         this.keyBindings = new KeyBindings();
         this.settings = new Settings();
+        this.displaySubtitles = true;
         this.recordMedia = true;
         this.screenshot = true;
         this.cleanScreenshot = true;
@@ -31,6 +70,8 @@ export default class Binding {
         this.maxImageWidth = 0;
         this.maxImageHeight = 0;
         this.synced = false;
+        this.recordingMedia = false;
+        this.recordingMediaWithScreenshot = false;
     }
 
     get url() {
@@ -158,10 +199,14 @@ export default class Binding {
         }, 1000);
 
         window.addEventListener('beforeunload', (event) => {
-            clearInterval(this.heartbeatInterval);
+            this.heartbeatInterval && clearInterval(this.heartbeatInterval);
         });
 
-        this.listener = (request, sender, sendResponse) => {
+        this.listener = (
+            request: any,
+            sender: chrome.runtime.MessageSender,
+            sendResponse: (response?: any) => void
+        ) => {
             if (request.sender === 'asbplayer-extension-to-video' && request.src === this.video.src) {
                 switch (request.message.command) {
                     case 'init':
@@ -232,7 +277,7 @@ export default class Binding {
                                 : request.message.value.surroundingSubtitlesTimeRadius;
                         break;
                     case 'miscSettings':
-                        this.settings.set({lastThemeType: request.message.value.themeType});
+                        this.settings.set({ lastThemeType: request.message.value.themeType });
                         break;
                     case 'settings-updated':
                         this._refreshSettings();
@@ -268,7 +313,7 @@ export default class Binding {
                         if (this.cleanScreenshot) {
                             if (this.showControlsTimeout) {
                                 clearTimeout(this.showControlsTimeout);
-                                this.showControlsTimeout = null;
+                                this.showControlsTimeout = undefined;
                             }
 
                             this.controlsContainer.show();
@@ -315,37 +360,37 @@ export default class Binding {
     unbind() {
         if (this.playListener) {
             this.video.removeEventListener('play', this.playListener);
-            this.playListener = null;
+            this.playListener = undefined;
         }
 
         if (this.pauseListener) {
             this.video.removeEventListener('pause', this.pauseListener);
-            this.pauseListener = null;
+            this.pauseListener = undefined;
         }
 
         if (this.seekedListener) {
             this.video.removeEventListener('seeked', this.seekedListener);
-            this.seekedListener = null;
+            this.seekedListener = undefined;
         }
 
         if (this.playbackRateListener) {
             this.video.removeEventListener('ratechange', this.playbackRateListener);
-            this.playbackRateListener = null;
+            this.playbackRateListener = undefined;
         }
 
         if (this.videoChangeListener) {
             this.video.removeEventListener('loadedmetadata', this.videoChangeListener);
-            this.videoChangeListener = null;
+            this.videoChangeListener = undefined;
         }
 
         if (this.heartbeatInterval) {
             clearInterval(this.heartbeatInterval);
-            this.heartbeatInterval = null;
+            this.heartbeatInterval = undefined;
         }
 
         if (this.listener) {
             chrome.runtime.onMessage.removeListener(this.listener);
-            this.listener = null;
+            this.listener = undefined;
         }
 
         this.subtitleContainer.unbind();
@@ -354,7 +399,7 @@ export default class Binding {
         this.videoDataSyncContainer.unbind();
     }
 
-    async _copySubtitle(showAnkiUi) {
+    async _copySubtitle(showAnkiUi: boolean) {
         const [subtitle, surroundingSubtitles] = this.subtitleContainer.currentSubtitle();
 
         if (subtitle && surroundingSubtitles) {
@@ -394,7 +439,7 @@ export default class Binding {
         }
     }
 
-    async _toggleRecordingMedia(showAnkiUi) {
+    async _toggleRecordingMedia(showAnkiUi: boolean) {
         if (this.recordingMedia) {
             chrome.runtime.sendMessage({
                 sender: 'asbplayer-video',
@@ -411,7 +456,7 @@ export default class Binding {
             });
 
             this.recordingMedia = false;
-            this.recordingMediaStartedTimestamp = null;
+            this.recordingMediaStartedTimestamp = undefined;
         } else {
             if (this.screenshot) {
                 await this._prepareScreenshot();
@@ -448,7 +493,7 @@ export default class Binding {
     async _prepareScreenshot() {
         if (this.showControlsTimeout) {
             clearTimeout(this.showControlsTimeout);
-            this.showControlsTimeout = null;
+            this.showControlsTimeout = undefined;
         }
 
         if (this.cleanScreenshot) {
@@ -456,7 +501,7 @@ export default class Binding {
             await this.controlsContainer.hide();
             this.showControlsTimeout = setTimeout(() => {
                 this.controlsContainer.show();
-                this.showControlsTimeout = null;
+                this.showControlsTimeout = undefined;
                 this.settings
                     .get(['displaySubtitles'])
                     .then(({ displaySubtitles }) => (this.subtitleContainer.displaySubtitles = displaySubtitles));
@@ -464,7 +509,7 @@ export default class Binding {
         }
     }
 
-    async rerecord(start, end, currentItem, uiState) {
+    async rerecord(start: number, end: number, currentItem: AnkiUiContainerCurrentItem, uiState: AnkiUiState) {
         const noSubtitles = this.subtitleContainer.subtitles.length === 0;
         const audioPaddingStart = noSubtitles ? 0 : this.audioPaddingStart;
         const audioPaddingEnd = noSubtitles ? 0 : this.audioPaddingEnd;
@@ -490,7 +535,7 @@ export default class Binding {
         });
     }
 
-    seek(timestamp) {
+    seek(timestamp: number) {
         if (netflix) {
             document.dispatchEvent(
                 new CustomEvent('asbplayer-netflix-seek', {
@@ -516,7 +561,7 @@ export default class Binding {
             if (this.video.readyState !== 4) {
                 // Deal with Amazon Prime player pausing in the middle of play, without loss of generality
                 return new Promise((resolve, reject) => {
-                    const listener = async (evt) => {
+                    const listener = async (evt: Event) => {
                         let retries = 3;
 
                         for (let i = 0; i < retries; ++i) {
@@ -528,7 +573,7 @@ export default class Binding {
                             }
                         }
 
-                        resolve();
+                        resolve(undefined);
                         this.video.removeEventListener('canplay', listener);
                     };
 
@@ -540,10 +585,10 @@ export default class Binding {
 
     _playNetflix() {
         return new Promise((resolve, reject) => {
-            const listener = async (evt) => {
+            const listener = async (evt: Event) => {
                 this.video.removeEventListener('play', listener);
                 this.video.removeEventListener('playing', listener);
-                resolve();
+                resolve(undefined);
             };
 
             this.video.addEventListener('play', listener);
@@ -561,7 +606,7 @@ export default class Binding {
         this.video.pause();
     }
 
-    bindVideoSelect(doneListener) {
+    bindVideoSelect(doneListener: () => void) {
         this.videoDataSyncContainer.bindVideoSelect(doneListener);
     }
 
