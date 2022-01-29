@@ -1,4 +1,4 @@
-import { AnkiSettings } from "./Settings";
+import { AnkiSettings } from './Settings';
 
 export interface RectModel {
     readonly left: number;
@@ -81,5 +81,6 @@ export interface AnkiUiContainerCurrentItem {
     readonly surroundingSubtitles: SubtitleModel[];
     image?: ImageModel;
     audio?: AudioModel;
+    url?: string;
     id: string;
 }

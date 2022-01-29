@@ -232,7 +232,6 @@ export default class Binding {
                                 : request.message.value.surroundingSubtitlesTimeRadius;
                         break;
                     case 'miscSettings':
-                        this.ankiUiContainer.themeType = request.message.value.themeType;
                         this.settings.set({lastThemeType: request.message.value.themeType});
                         break;
                     case 'settings-updated':

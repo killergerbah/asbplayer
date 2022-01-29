@@ -1,4 +1,13 @@
-import FrameBridgeClient from '../services/FrameBridgeClient';
+import {
+    AnkiSettings,
+    AnkiUiContainerCurrentItem,
+    AnkiUiState,
+    AudioModel,
+    ImageModel,
+    SubtitleModel,
+} from '@project/common';
+import Binding from './Binding';
+import FrameBridgeClient from './FrameBridgeClient';
 
 // We need to write the HTML into the iframe manually so that the iframe keeps it's about:blank URL.
 // Otherwise, Chrome won't insert content scripts into the iframe (e.g. Yomichan won't work).
@@ -20,11 +29,23 @@ async function html() {
 }
 
 export default class AnkiUiContainer {
-    constructor() {
-        this.currentItem = {};
-    }
+    private currentItem?: AnkiUiContainerCurrentItem;
+    private ankiSettings?: AnkiSettings;
+    private client?: FrameBridgeClient;
+    private frame?: HTMLIFrameElement;
+    private fullscreenElement?: Element;
+    private activeElement?: Element;
 
-    async show(context, subtitle, surroundingSubtitles, image, audio, id) {
+    constructor() {}
+
+    async show(
+        context: Binding,
+        subtitle: SubtitleModel,
+        surroundingSubtitles: SubtitleModel[],
+        image: ImageModel | undefined,
+        audio: AudioModel | undefined,
+        id: string
+    ) {
         if (!this.ankiSettings) {
             throw new Error('Unable to show Anki UI because settings are missing.');
             return;
@@ -42,41 +63,48 @@ export default class AnkiUiContainer {
             url: url,
             id: id,
         };
+        const themeType = (await context.settings.get(['lastThemeType'])).lastThemeType;
         client.updateState({
             type: 'initial',
             open: true,
             id: id,
             settingsProvider: this.ankiSettings,
-            source: subtitle.track ? subtitleFileNames[subtitle.track] : subtitleFileNames[0],
+            source:
+                (subtitleFileNames && (subtitle.track ? subtitleFileNames[subtitle.track] : subtitleFileNames[0])) ??
+                '',
             url: url,
             subtitle: subtitle,
             surroundingSubtitles: surroundingSubtitles,
             image: image,
             audio: audio,
-            themeType: this.themeType,
+            themeType: themeType,
         });
     }
 
-    async showAfterRerecord(context, audio, uiState, id) {
+    async showAfterRerecord(context: Binding, audio: AudioModel, uiState: AnkiUiState, id: string) {
         if (!this.ankiSettings) {
             throw new Error('Unable to show Anki UI because settings are missing.');
-            return;
         }
 
         const client = await this._client(context);
         this._prepareShow(context);
-        this.currentItem.audio = audio;
+
+        if (this.currentItem) {
+            this.currentItem.audio = audio;
+        }
+
+        const themeType = (await context.settings.get(['lastThemeType'])).lastThemeType;
         client.updateState({
+            ...uiState,
             type: 'resume',
             id: id,
             open: true,
             settingsProvider: this.ankiSettings,
-            ...uiState,
-            themeType: this.themeType,
+            themeType: themeType,
         });
     }
 
-    _prepareShow(context) {
+    _prepareShow(context: Binding) {
         context.pause();
 
         if (document.fullscreenElement) {
@@ -92,9 +120,9 @@ export default class AnkiUiContainer {
         context.subtitleContainer.displaySubtitles = false;
     }
 
-    async _client(context) {
+    async _client(context: Binding) {
         if (this.client) {
-            this.frame.classList.remove('asbplayer-hide');
+            this.frame?.classList.remove('asbplayer-hide');
             return this.client;
         }
 
@@ -102,7 +130,7 @@ export default class AnkiUiContainer {
         this.frame.className = 'asbplayer-ui-frame';
         this.client = new FrameBridgeClient(this.frame, context.video.src);
         document.body.appendChild(this.frame);
-        const doc = this.frame.contentDocument;
+        const doc = this.frame.contentDocument!;
         doc.open();
         doc.write(await html());
         doc.close();
@@ -112,22 +140,27 @@ export default class AnkiUiContainer {
                 context.keyBindings.bind(context);
             }
             context.subtitleContainer.displaySubtitles = context.displaySubtitles;
-            this.frame.classList.add('asbplayer-hide');
+            this.frame?.classList.add('asbplayer-hide');
             if (this.fullscreenElement) {
                 this.fullscreenElement.requestFullscreen();
-                this.fullscreenElement = null;
+                this.fullscreenElement = undefined;
             }
 
             if (this.activeElement) {
-                this.activeElement.focus();
-                this.activeElement = null;
+                const activeHtmlElement = this.activeElement as HTMLElement;
+
+                if (typeof activeHtmlElement.focus === 'function') {
+                    activeHtmlElement.focus?.();
+                }
+
+                this.activeElement = undefined;
             } else {
                 window.focus();
             }
 
             if (message.command === 'resume') {
                 context.play();
-                this.currentItem = {};
+                this.currentItem = undefined;
             } else if (message.command === 'rerecord') {
                 context.rerecord(message.recordStart, message.recordEnd, this.currentItem, message.uiState);
             }
@@ -139,12 +172,12 @@ export default class AnkiUiContainer {
     unbind() {
         if (this.client) {
             this.client.unbind();
-            this.client = null;
+            this.client = undefined;
         }
 
         if (this.frame) {
             this.frame.remove();
-            this.frame = null;
+            this.frame = undefined;
         }
     }
 }

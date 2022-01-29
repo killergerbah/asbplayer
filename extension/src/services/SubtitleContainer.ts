@@ -36,6 +36,7 @@ export default class SubtitleContainer {
 
     disabledSubtitleTracks: { [key: number]: boolean | undefined };
     subtitles: SubtitleModel[];
+    subtitleFileNames?: string[];
     displaySubtitles: boolean;
     subtitlePositionOffsetBottom: number;
     subtitleSettings?: SubtitleSettings;
