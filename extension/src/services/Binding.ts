@@ -22,10 +22,11 @@ export default class Binding {
     audioPaddingEnd: number;
     maxImageWidth: number;
     maxImageHeight: number;
-    synced: boolean;
-    recordingMedia: boolean;
-    recordingMediaStartedTimestamp?: number;
-    recordingMediaWithScreenshot: boolean;
+    
+    private synced: boolean;
+    private recordingMedia: boolean;
+    private recordingMediaStartedTimestamp?: number;
+    private recordingMediaWithScreenshot: boolean;
 
     readonly video: HTMLVideoElement;
     readonly subSyncAvailable: boolean;

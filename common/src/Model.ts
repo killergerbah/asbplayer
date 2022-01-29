@@ -84,3 +84,27 @@ export interface AnkiUiContainerCurrentItem {
     url?: string;
     id: string;
 }
+
+export interface VideoDataSubtitleTrack {
+    label: string;
+    language: string;
+    url: string;
+}
+
+export interface VideoData {
+    basename: string;
+    error?: string;
+    subtitles: VideoDataSubtitleTrack[];
+    extension: string;
+}
+
+export interface VideoDataUiState {
+    open?: boolean;
+    isLoading?: boolean;
+    suggestedName?: string;
+    subtitles?: VideoDataSubtitleTrack[];
+    error?: string;
+    themeType?: string;
+    selectedSubtitle?: string;
+    showSubSelect?: boolean;
+}

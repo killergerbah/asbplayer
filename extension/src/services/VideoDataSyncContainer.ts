@@ -1,5 +1,7 @@
+import { VideoData, VideoDataSubtitleTrack, VideoDataUiState } from '@project/common';
 import { bufferToBase64 } from '../services/Base64';
 import FrameBridgeClient from '../services/FrameBridgeClient';
+import Binding from './Binding';
 import ImageElement from './ImageElement';
 
 function html() {
@@ -18,22 +20,34 @@ function html() {
 }
 
 export default class VideoDataSyncContainer {
-    constructor(context) {
+    private readonly context: Binding;
+
+    private videoSelectBound?: boolean;
+    private imageElement: ImageElement;
+    private doneListener?: () => void;
+    private autoSync?: boolean;
+    private lastLanguageSynced?: string;
+    private boundFunction?: (event: Event) => void;
+    private requested: boolean;
+    private client?: FrameBridgeClient;
+    private frame?: HTMLIFrameElement;
+    private syncedData?: VideoData;
+    private wasPaused?: boolean;
+    private fullscreenElement?: Element;
+    private activeElement?: Element;
+
+    constructor(context: Binding) {
         this.context = context;
-        this.videoSelectBound;
+        this.videoSelectBound = false;
         this.imageElement = new ImageElement(context.video);
         this.doneListener;
-        this.autoSync;
-        this.lastLanguageSynced;
+        this.autoSync = false;
+        this.lastLanguageSynced = '';
         this.boundFunction;
         this.requested = false;
-        this.syncedData;
-        this.client;
-        this.frame;
-        this.wasPaused;
     }
 
-    bindVideoSelect(doneListener) {
+    bindVideoSelect(doneListener: () => void) {
         if (this.videoSelectBound) {
             throw new Error('Video select container already bound');
         }
@@ -93,8 +107,8 @@ export default class VideoDataSyncContainer {
         this.syncedData = undefined;
 
         if (!this.boundFunction) {
-            this.boundFunction = (data) => {
-                this._setSyncedData(data);
+            this.boundFunction = (event: Event) => {
+                this._setSyncedData(event as CustomEvent);
             };
             document.addEventListener('asbplayer-synced-data', this.boundFunction, false);
         }
@@ -109,7 +123,7 @@ export default class VideoDataSyncContainer {
         }
 
         const themeType = (await this.context.settings.get(['lastThemeType'])).lastThemeType;
-        let state = this.syncedData
+        let state: VideoDataUiState = this.syncedData
             ? {
                   open: true,
                   isLoading: false,
@@ -128,12 +142,12 @@ export default class VideoDataSyncContainer {
 
         this.requested = userRequested;
 
-        const selectedSub = state.subtitles.find((subtitle) => subtitle.language === this.lastLanguageSynced);
+        const selectedSub = state.subtitles!.find((subtitle) => subtitle.language === this.lastLanguageSynced);
 
         if (selectedSub && !userRequested && !state.error) {
             if (
                 (await this._syncData(
-                    this._defaultVideoName(this.syncedData.basename, selectedSub),
+                    this._defaultVideoName(this.syncedData?.basename, selectedSub),
                     selectedSub.url
                 )) &&
                 this.doneListener
@@ -151,9 +165,9 @@ export default class VideoDataSyncContainer {
         client.updateState(state);
     }
 
-    _defaultVideoName(basename, subtitleTrack) {
+    _defaultVideoName(basename: string | undefined, subtitleTrack: VideoDataSubtitleTrack) {
         if (subtitleTrack.url === '-') {
-            return basename;
+            return basename ?? '';
         }
 
         return `${basename} - ${subtitleTrack.label}`;
@@ -178,7 +192,7 @@ export default class VideoDataSyncContainer {
         return shallBlock;
     }
 
-    _setSyncedData({ detail: data }) {
+    _setSyncedData({ detail: data }: CustomEvent) {
         this.syncedData = data;
 
         if (this.requested || this.autoSync) {
@@ -189,7 +203,7 @@ export default class VideoDataSyncContainer {
     async _client() {
         if (this.client) {
             await this.client.bind();
-            this.frame.classList.remove('asbplayer-hide');
+            this.frame?.classList?.remove('asbplayer-hide');
             return this.client;
         }
 
@@ -197,7 +211,7 @@ export default class VideoDataSyncContainer {
         this.frame.className = 'asbplayer-ui-frame';
         this.client = new FrameBridgeClient(this.frame, this.context.video.src);
         document.body.appendChild(this.frame);
-        const doc = this.frame.contentDocument;
+        const doc = this.frame.contentDocument!;
         doc.open();
         doc.write(await html());
         doc.close();
@@ -211,11 +225,7 @@ export default class VideoDataSyncContainer {
                     await this.context.settings.set({ lastLanguageSynced: this.lastLanguageSynced }).catch(() => {});
                 }
 
-                shallUpdate = await this._syncData(
-                    message.data.name,
-                    message.data.subtitleUrl,
-                    this.lastLanguageSynced
-                );
+                shallUpdate = await this._syncData(message.data.name, message.data.subtitleUrl);
             }
 
             if (shallUpdate) {
@@ -224,16 +234,19 @@ export default class VideoDataSyncContainer {
                 }
 
                 this.context.subtitleContainer.displaySubtitles = this.context.displaySubtitles;
-                this.frame.classList.add('asbplayer-hide');
+                this.frame?.classList?.add('asbplayer-hide');
 
                 if (this.fullscreenElement) {
                     this.fullscreenElement.requestFullscreen();
-                    this.fullscreenElement = null;
+                    this.fullscreenElement = undefined;
                 }
 
                 if (this.activeElement) {
-                    this.activeElement.focus();
-                    this.activeElement = null;
+                    if (typeof (this.activeElement as HTMLElement).focus === 'function') {
+                        (this.activeElement as HTMLElement).focus();
+                    }
+
+                    this.activeElement = undefined;
                 } else {
                     window.focus();
                 }
@@ -269,9 +282,9 @@ export default class VideoDataSyncContainer {
         this.context.subtitleContainer.displaySubtitles = false;
     }
 
-    async _syncData(name, subtitleUrl = '-') {
+    async _syncData(name: string, subtitleUrl = '-') {
         try {
-            let response = '';
+            let response: ArrayBuffer | void;
 
             if ('-' !== subtitleUrl) {
                 response = await fetch(subtitleUrl)
@@ -297,7 +310,7 @@ export default class VideoDataSyncContainer {
                     subtitles: [
                         {
                             name: `${name}.${this.syncedData?.extension || 'srt'}`,
-                            base64: response ? bufferToBase64(response) : response,
+                            base64: response ? bufferToBase64(response) : '',
                         },
                     ],
                 },
@@ -305,12 +318,15 @@ export default class VideoDataSyncContainer {
             });
             return true;
         } catch (error) {
-            this._reportError(name, `Data Sync failed: ${error.message}`);
+            if (typeof (error as Error).message !== 'undefined') {
+                this._reportError(name, `Data Sync failed: ${(error as Error).message}`);
+            }
+
             return false;
         }
     }
 
-    async _reportError(suggestedName, error) {
+    async _reportError(suggestedName: string, error: string) {
         const client = await this._client();
         const themeType = (await this.context.settings.get(['lastThemeType'])).lastThemeType;
 
