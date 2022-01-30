@@ -28,7 +28,13 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function ExtensionKeyboardShortcut({ commands, commandName, onClick }) {
+interface ExtensionKeyboardShortcutProps {
+    commands: any;
+    commandName: string;
+    onClick: () => void;
+}
+
+function ExtensionKeyboardShortcut({ commands, commandName, onClick }: ExtensionKeyboardShortcutProps) {
     const commandIsBound = commandName in commands && commands[commandName];
 
     return (
@@ -38,7 +44,14 @@ function ExtensionKeyboardShortcut({ commands, commandName, onClick }) {
     );
 }
 
-export default function PopupForm({ commands, settings, onSettingsChanged, onOpenExtensionShortcuts }) {
+interface PopupFormProps {
+    commands: any;
+    settings: any;
+    onSettingsChanged: (key: string, value: any) => void;
+    onOpenExtensionShortcuts: () => void;
+}
+
+export default function PopupForm({ commands, settings, onSettingsChanged, onOpenExtensionShortcuts }: PopupFormProps) {
     const classes = useStyles();
 
     return (
@@ -48,9 +61,13 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                     <FormLabel component="legend">Subtitles</FormLabel>
                     <FormGroup>
                         <FormControlLabel
-                            control={<Checkbox checked={settings.displaySubtitles} />}
+                            control={
+                                <Checkbox
+                                    checked={settings.displaySubtitles}
+                                    onChange={(e) => onSettingsChanged('displaySubtitles', e.target.checked)}
+                                />
+                            }
                             label="Display subtitles in synced video elements"
-                            onChange={(e) => onSettingsChanged('displaySubtitles', e.target.checked)}
                         />
                         <TextField
                             className={classes.textField}

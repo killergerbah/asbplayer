@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     const commandsPromise = fetchShortcuts();
     const currentSettings = await currentSettingsPromise;
     const commands = await commandsPromise;
-    const rootElement = document.getElementById('root');
+    const rootElement = document.getElementById('root')!;
     const bridge = renderPopupUi(rootElement, { currentSettings, commands });
     bridge.onFinished((message: any) => {
         switch (message.command) {
