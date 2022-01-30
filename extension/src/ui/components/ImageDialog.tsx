@@ -3,9 +3,15 @@ import { makeStyles } from '@material-ui/styles';
 import Card from '@material-ui/core/Card';
 import CardMedia from '@material-ui/core/CardMedia';
 import Dialog from '@material-ui/core/Dialog';
+import { Image as CommonImage } from '@project/common';
+
+interface ImageDimensions {
+    width: number;
+    height: number;
+}
 
 const useStyles = makeStyles((theme) => ({
-    image: ({ width, height }) => ({
+    image: ({ width, height }: ImageDimensions) => ({
         width: width,
         height: height,
         backgroundSize: 'contain',
@@ -30,11 +36,16 @@ function useWindowSize() {
     return size;
 }
 
-export default function ImageDialog(props) {
-    const { open, image, onClose } = props;
-    const [dataUrl, setDataUrl] = useState();
-    const [width, setWidth] = useState();
-    const [height, setHeight] = useState();
+interface Props {
+    open: boolean;
+    image?: CommonImage;
+    onClose: () => void;
+}
+
+export default function ImageDialog({ open, image, onClose }: Props) {
+    const [dataUrl, setDataUrl] = useState<string>();
+    const [width, setWidth] = useState<number>(0);
+    const [height, setHeight] = useState<number>(0);
     const [windowWidth, windowHeight] = useWindowSize();
 
     let resizeRatio;
@@ -48,12 +59,12 @@ export default function ImageDialog(props) {
     const classes = useStyles({ width: width * resizeRatio, height: height * resizeRatio });
 
     useEffect(() => {
-        if (!image) {
-            return;
-        }
-
-        setDataUrl(null);
+        setDataUrl(undefined);
         async function fetchImage() {
+            if (!image) {
+                return;
+            }
+
             const dataUrl = await image.dataUrl();
             const img = new Image();
             img.onload = () => {

@@ -4,6 +4,8 @@ import { HttpFetcher, Fetcher } from './Fetcher';
 const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
 const fileNameSpecialCharacters = [':', '/', '\\', '<', '>', '"', '|', '?', '*', '^'];
 
+export type ExportMode = 'gui' | 'updateLast' | 'default';
+
 export default class Anki {
     private readonly settingsProvider: AnkiSettings;
     private readonly fetcher: Fetcher;
@@ -76,7 +78,7 @@ export default class Anki {
         url: string | undefined,
         customFieldValues: { [key: string]: string },
         tags: string[],
-        mode: 'gui' | 'updateLast' | 'default',
+        mode: ExportMode,
         ankiConnectUrl?: string
     ) {
         const fields = {};

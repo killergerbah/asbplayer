@@ -1,48 +1,72 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Anki, Image, AudioClip, humanReadableTime } from '@project/common';
+import {
+    Anki,
+    Image,
+    ImageModel,
+    AudioClip,
+    AudioModel,
+    humanReadableTime,
+    SubtitleModel,
+    AnkiDialogSliderContext,
+    AnkiSettings,
+    AnkiUiState,
+    AnkiUiInitialState,
+    AnkiUiResumeState,
+    AnkiUiRerecordState,
+} from '@project/common';
 import { createTheme } from './theme';
 import { ThemeProvider } from '@material-ui/core/styles';
-import Alert from '@material-ui/lab/Alert';
+import Alert, { Color } from '@material-ui/lab/Alert';
 import AnkiDialog from './AnkiDialog';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import ImageDialog from './ImageDialog';
 import Snackbar from '@material-ui/core/Snackbar';
+import Bridge from '../Bridge';
 
-export default function AnkiUi({ bridge, mp3WorkerUrl }) {
-    const [open, setOpen] = useState(false);
-    const [disabled, setDisabled] = useState(false);
-    const [id, setId] = useState();
-    const [subtitle, setSubtitle] = useState();
-    const [text, setText] = useState('');
-    const [audioClip, setAudioClip] = useState();
-    const [serializedAudio, setSerializedAudio] = useState();
-    const [image, setImage] = useState();
-    const [serializedImage, setSerializedImage] = useState();
-    const [imageDialogOpen, setImageDialogOpen] = useState(false);
-    const [source, setSource] = useState();
-    const [url, setUrl] = useState();
-    const [sliderContext, setSliderContext] = useState();
+interface Props {
+    bridge: Bridge;
+    mp3WorkerUrl: string;
+}
+
+export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
+    const [open, setOpen] = useState<boolean>(false);
+    const [disabled, setDisabled] = useState<boolean>(false);
+    const [id, setId] = useState<string>();
+    const [subtitle, setSubtitle] = useState<SubtitleModel>();
+    const [text, setText] = useState<string>('');
+    const [audioClip, setAudioClip] = useState<AudioClip>();
+    const [serializedAudio, setSerializedAudio] = useState<AudioModel>();
+    const [image, setImage] = useState<Image>();
+    const [serializedImage, setSerializedImage] = useState<ImageModel>();
+    const [imageDialogOpen, setImageDialogOpen] = useState<boolean>(false);
+    const [source, setSource] = useState<string>('');
+    const [url, setUrl] = useState<string>('');
+    const [sliderContext, setSliderContext] = useState<AnkiDialogSliderContext>();
     const [definition, setDefinition] = useState('');
     const [word, setWord] = useState('');
-    const [customFieldValues, setCustomFieldValues] = useState({});
-    const [timestampInterval, setTimestampInterval] = useState();
-    const [lastAppliedTimestampIntervalToText, setLastAppliedTimestampIntervalToText] = useState();
-    const [settingsProvider, setSettingsProvider] = useState({ customAnkiFields: {}, tags: [] });
-    const [alertSeverity, setAlertSeverity] = useState();
-    const [alertOpen, setAlertOpen] = useState(false);
-    const [alert, setAlert] = useState();
-    const [themeType, setThemeType] = useState('dark');
+    const [customFieldValues, setCustomFieldValues] = useState<{ [key: string]: string }>({});
+    const [timestampInterval, setTimestampInterval] = useState<number[]>();
+    const [lastAppliedTimestampIntervalToText, setLastAppliedTimestampIntervalToText] = useState<number[]>();
+    const [settingsProvider, setSettingsProvider] = useState<AnkiSettings>();
+    const [alertSeverity, setAlertSeverity] = useState<Color>('error');
+    const [alertOpen, setAlertOpen] = useState<boolean>(false);
+    const [alert, setAlert] = useState<string>('');
+    const [themeType, setThemeType] = useState<string>('dark');
     const theme = useMemo(() => createTheme(themeType), [themeType]);
-    const anki = useMemo(() => new Anki(settingsProvider, bridge), [settingsProvider, bridge]);
+    const anki = useMemo(
+        () => (settingsProvider ? new Anki(settingsProvider, bridge) : undefined),
+        [settingsProvider, bridge]
+    );
 
     useEffect(() => {
-        return bridge.onStateUpdated((state) => {
+        return bridge.onStateUpdated((s: AnkiUiState) => {
             let audioClip;
 
-            if (state.type === 'initial') {
+            if (s.type === 'initial') {
+                const state = s as AnkiUiInitialState;
                 setText(state.subtitle.text);
                 setSubtitle(state.subtitle);
-                setTimestampInterval(null);
+                setTimestampInterval(undefined);
                 setSliderContext({
                     subtitleStart: state.subtitle.start,
                     subtitleEnd: state.subtitle.end,
@@ -60,7 +84,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }) {
                 setDefinition('');
                 setWord('');
                 setCustomFieldValues({});
-                setLastAppliedTimestampIntervalToText();
+                setLastAppliedTimestampIntervalToText(undefined);
 
                 if (state.audio) {
                     audioClip = AudioClip.fromBase64(
@@ -71,7 +95,8 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }) {
                         state.audio.extension
                     );
                 }
-            } else if (state.type === 'resume') {
+            } else if (s.type === 'resume') {
+                const state = s as AnkiUiResumeState;
                 setText(state.text);
                 setTimestampInterval(state.timestampInterval);
                 setSliderContext(state.sliderContext);
@@ -85,34 +110,34 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }) {
                 if (state.audio) {
                     audioClip = AudioClip.fromBase64(
                         state.source,
-                        Math.max(0, state.audio.start - state.audio.paddingStart),
-                        state.audio.end + state.audio.paddingEnd,
+                        Math.max(0, state.audio.start! - state.audio.paddingStart),
+                        state.audio.end! + state.audio.paddingEnd,
                         state.audio.base64,
                         state.audio.extension
                     );
                 }
             }
 
-            if (audioClip && state.settingsProvider.preferMp3) {
+            if (audioClip && s.settingsProvider.preferMp3) {
                 audioClip = audioClip.toMp3(() => new Worker(mp3WorkerUrl));
             }
 
             let image;
 
-            if (state.image) {
-                image = Image.fromBase64(state.source, state.subtitle.start, state.image.base64, state.image.extension);
+            if (s.image) {
+                image = Image.fromBase64(s.source, s.subtitle.start, s.image.base64, s.image.extension);
             }
 
-            setSerializedAudio(state.audio);
-            setSerializedImage(state.image);
+            setSerializedAudio(s.audio);
+            setSerializedImage(s.image);
             setImageDialogOpen(false);
             setDisabled(false);
-            setSettingsProvider(state.settingsProvider);
-            setId(state.id);
+            setSettingsProvider(s.settingsProvider);
+            setId(s.id);
             setAudioClip(audioClip);
             setImage(image);
-            setThemeType(state.themeType || 'dark');
-            setOpen(state.open);
+            setThemeType(s.themeType || 'dark');
+            setOpen(s.open);
         });
     }, [bridge, mp3WorkerUrl]);
 
@@ -121,7 +146,18 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }) {
             setDisabled(true);
 
             try {
-                await anki.export(text, definition, audioClip, image, word, source, url, customFieldValues, tags, mode);
+                await anki!.export(
+                    text,
+                    definition,
+                    audioClip,
+                    image,
+                    word,
+                    source,
+                    url,
+                    customFieldValues,
+                    tags,
+                    mode
+                );
 
                 if (mode !== 'gui') {
                     setOpen(false);
@@ -131,7 +167,13 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }) {
             } catch (e) {
                 console.error(e);
                 setAlertSeverity('error');
-                setAlert(e.message);
+
+                if (e instanceof Error) {
+                    setAlert((e as Error).message);
+                } else {
+                    setAlert(String(e));
+                }
+
                 setAlertOpen(true);
             } finally {
                 setDisabled(false);
@@ -165,21 +207,23 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }) {
         }) => {
             setOpen(false);
             setImageDialogOpen(false);
+            const resumeUiState: AnkiUiRerecordState = {
+                subtitle: subtitle,
+                text: text,
+                sliderContext: sliderContext,
+                definition: definition,
+                image: serializedImage,
+                word: word,
+                source: source,
+                url: url,
+                customFieldValues: customFieldValues,
+                timestampInterval: timestampInterval,
+                lastAppliedTimestampIntervalToText: lastAppliedTimestampIntervalToText,
+            };
+
             bridge.finished({
                 command: 'rerecord',
-                uiState: {
-                    subtitle: subtitle,
-                    text: text,
-                    sliderContext: sliderContext,
-                    definition: definition,
-                    image: serializedImage,
-                    word: word,
-                    source: source,
-                    url: url,
-                    customFieldValues: customFieldValues,
-                    timestampInterval: timestampInterval,
-                    lastAppliedTimestampIntervalToText: lastAppliedTimestampIntervalToText,
-                },
+                uiState: resumeUiState,
                 id: id,
                 recordStart: timestampInterval[0],
                 recordEnd: timestampInterval[1],
@@ -202,27 +246,29 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }) {
                 </Alert>
             </Snackbar>
             <ImageDialog open={imageDialogOpen} image={image} onClose={() => setImageDialogOpen(false)} />
-            <AnkiDialog
-                open={open}
-                disabled={disabled}
-                text={text}
-                sliderContext={sliderContext}
-                audioClip={audioClip}
-                image={image}
-                source={source}
-                url={url}
-                settingsProvider={settingsProvider}
-                anki={anki}
-                onProceed={handleProceed}
-                onRerecord={handleRerecord}
-                onCancel={handleCancel}
-                onViewImage={handleViewImage}
-                definition={definition}
-                word={word}
-                customFieldValues={customFieldValues}
-                timestampInterval={timestampInterval}
-                lastAppliedTimestampIntervalToText={lastAppliedTimestampIntervalToText}
-            />
+            {sliderContext && settingsProvider && anki && (
+                <AnkiDialog
+                    open={open}
+                    disabled={disabled}
+                    text={text}
+                    sliderContext={sliderContext}
+                    audioClip={audioClip}
+                    image={image}
+                    source={source}
+                    url={url}
+                    settingsProvider={settingsProvider}
+                    anki={anki}
+                    onProceed={handleProceed}
+                    onRerecord={handleRerecord}
+                    onCancel={handleCancel}
+                    onViewImage={handleViewImage}
+                    definition={definition}
+                    word={word}
+                    customFieldValues={customFieldValues}
+                    timestampInterval={timestampInterval}
+                    lastAppliedTimestampIntervalToText={lastAppliedTimestampIntervalToText}
+                />
+            )}
         </ThemeProvider>
     );
 }

@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { makeStyles } from '@material-ui/styles';
-import { humanReadableTime } from '@project/common';
+import { makeStyles } from '@material-ui/core/styles';
+import { Anki, AnkiDialogSliderContext, AudioClip, Image, humanReadableTime, AnkiSettings } from '@project/common';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -13,10 +13,11 @@ import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import RestoreIcon from '@material-ui/icons/Restore';
 import SearchIcon from '@material-ui/icons/Search';
-import Slider from '@material-ui/core/Slider';
+import Slider, { Mark } from '@material-ui/core/Slider';
 import Tooltip from '@material-ui/core/Tooltip';
 import ZoomInIcon from '@material-ui/icons/ZoomIn';
 import TagsTextField from './TagsTextField';
+import { ExportMode } from '@project/common/src/Anki';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -40,7 +41,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function boundaryIntervalFromSliderContext(sliderContext) {
+function boundaryIntervalFromSliderContext(sliderContext: AnkiDialogSliderContext) {
     let min = null;
     let max = null;
 
@@ -57,8 +58,8 @@ function boundaryIntervalFromSliderContext(sliderContext) {
     return min !== null && max !== null && [min, max];
 }
 
-function sliderMarksFromSliderContext(sliderContext, boundary) {
-    const seenTimestamps = {};
+function sliderMarksFromSliderContext(sliderContext: AnkiDialogSliderContext, boundary: number[]): Mark[] {
+    const seenTimestamps: any = {};
 
     return sliderContext.subtitles
         .filter((s) => s.text.trim() !== '')
@@ -74,20 +75,71 @@ function sliderMarksFromSliderContext(sliderContext, boundary) {
                 label: `${s.text.trim().substring(0, Math.min(s.text.length, 3))}...`,
             };
         })
-        .filter((mark) => mark !== null)
-        .filter((mark) => mark.value >= boundary[0] && mark.value <= boundary[1]);
+        .filter((mark: Mark | null) => mark !== null)
+        .filter((mark: Mark | null) => mark!.value >= boundary[0] && mark!.value <= boundary[1]) as Mark[];
 }
 
-function sliderValueLabelFormat(ms) {
+function sliderValueLabelFormat(ms: number) {
     return humanReadableTime(ms, true);
 }
 
-function ValueLabelComponent({ children, open, value }) {
+interface ValueLabelComponentProps {
+    children: React.ReactElement;
+    open: boolean;
+    value: number;
+}
+
+function ValueLabelComponent({ children, open, value }: ValueLabelComponentProps) {
     return (
         <Tooltip open={open} enterTouchDelay={0} placement="top" title={value}>
             {children}
         </Tooltip>
     );
+}
+
+export interface RerecordParams {
+    text: string;
+    sliderContext: AnkiDialogSliderContext;
+    definition: string;
+    word: string;
+    source: string;
+    url: string;
+    customFieldValues: { [key: string]: string };
+    lastAppliedTimestampIntervalToText: number[];
+    timestampInterval: number[];
+}
+
+interface AnkiDialogProps {
+    open: boolean;
+    disabled: boolean;
+    text: string;
+    onProceed: (
+        text: string,
+        definition: string,
+        audioClip: AudioClip | undefined,
+        image: Image | undefined,
+        word: string,
+        source: string,
+        url: string,
+        customFieldValues: { [key: string]: string },
+        tags: string[],
+        mode: ExportMode
+    ) => void;
+    onRerecord: (params: RerecordParams) => void;
+    onCancel: () => void;
+    onViewImage: (image: Image) => void;
+    audioClip?: AudioClip;
+    image?: Image;
+    source: string;
+    url: string;
+    sliderContext: AnkiDialogSliderContext;
+    settingsProvider: AnkiSettings;
+    anki: Anki;
+    definition: string;
+    word: string;
+    customFieldValues: {[key: string]: string};
+    timestampInterval?: number[];
+    lastAppliedTimestampIntervalToText?: number[];
 }
 
 export default function AnkiDialog({
@@ -110,36 +162,37 @@ export default function AnkiDialog({
     customFieldValues: initialCustomFieldValues,
     timestampInterval: initialSelectedTimestampInterval,
     lastAppliedTimestampIntervalToText: initialLastAppliedTimestampIntervalToText,
-}) {
+}: AnkiDialogProps) {
     const classes = useStyles();
-    const [definition, setDefinition] = useState('');
-    const [text, setText] = useState();
-    const [word, setWord] = useState();
-    const [lastSearchedWord, setLastSearchedWord] = useState();
-    const [source, setSource] = useState(initialSource);
-    const [tags, setTags] = useState(settingsProvider.tags);
-    const [url, setUrl] = useState(initialUrl);
-    const [duplicateNotes, setDuplicateNotes] = useState([]);
-    const [wordTimestamp, setWordTimestamp] = useState(0);
-    const [customFieldValues, setCustomFieldValues] = useState({});
-    const [timestampInterval, setTimestampInterval] = useState();
-    const [initialTimestampInterval, setInitialTimestampInterval] = useState();
-    const [initialTimestampBoundaryInterval, setInitialTimestampBoundaryInterval] = useState();
-    const [timestampBoundaryInterval, setTimestampBoundaryInterval] = useState();
-    const [timestampMarks, setTimestampMarks] = useState();
-    const [lastAppliedTimestampIntervalToText, setLastAppliedTimestampIntervalToText] = useState();
+    const [definition, setDefinition] = useState<string>('');
+    const [text, setText] = useState<string>('');
+    const [word, setWord] = useState<string>('');
+    const [lastSearchedWord, setLastSearchedWord] = useState<string>();
+    const [source, setSource] = useState<string>(initialSource);
+    const [tags, setTags] = useState<string[]>(settingsProvider.tags);
+    const [url, setUrl] = useState<string>(initialUrl);
+    const [duplicateNotes, setDuplicateNotes] = useState<any[]>([]);
+    const [wordTimestamp, setWordTimestamp] = useState<number>(0);
+    const [customFieldValues, setCustomFieldValues] = useState<{[key: string]: string}>({});
+    const [timestampInterval, setTimestampInterval] = useState<number[]>();
+    const [initialTimestampInterval, setInitialTimestampInterval] = useState<number[]>();
+    const [initialTimestampBoundaryInterval, setInitialTimestampBoundaryInterval] = useState<number[]>();
+    const [timestampBoundaryInterval, setTimestampBoundaryInterval] = useState<number[]>();
+    const [timestampMarks, setTimestampMarks] = useState<Mark[]>();
+    const [lastAppliedTimestampIntervalToText, setLastAppliedTimestampIntervalToText] = useState<number[]>();
 
     useEffect(() => {
         const timestampInterval =
             initialSelectedTimestampInterval ||
             (sliderContext && [sliderContext.subtitleStart, sliderContext.subtitleEnd]);
-        const timestampBoundaryInterval = sliderContext && boundaryIntervalFromSliderContext(sliderContext);
+        const timestampBoundaryInterval = (sliderContext && boundaryIntervalFromSliderContext(sliderContext)) || undefined;
+        const timestampMarks = (sliderContext && sliderMarksFromSliderContext(sliderContext, timestampBoundaryInterval!)) || undefined;
         setTimestampInterval(timestampInterval);
         setInitialTimestampInterval(timestampInterval);
         setLastAppliedTimestampIntervalToText(initialLastAppliedTimestampIntervalToText || timestampInterval);
         setTimestampBoundaryInterval(timestampBoundaryInterval);
         setInitialTimestampBoundaryInterval(timestampBoundaryInterval);
-        setTimestampMarks(sliderContext && sliderMarksFromSliderContext(sliderContext, timestampBoundaryInterval));
+        setTimestampMarks(timestampMarks);
     }, [sliderContext, initialSelectedTimestampInterval, initialLastAppliedTimestampIntervalToText]);
 
     useEffect(() => {
@@ -192,14 +245,14 @@ export default function AnkiDialog({
         (e) => {
             e.preventDefault();
             e.stopPropagation();
-            audioClip.play();
+            audioClip!.play();
         },
         [audioClip]
     );
 
     const handleCustomFieldChange = useCallback(
-        (customFieldName, value) => {
-            const newCustomFieldValues = {};
+        (customFieldName: string, value: string) => {
+            const newCustomFieldValues: {[key: string]: string} = {};
             Object.assign(newCustomFieldValues, customFieldValues);
             newCustomFieldValues[customFieldName] = value;
             setCustomFieldValues(newCustomFieldValues);
@@ -222,7 +275,7 @@ export default function AnkiDialog({
         (e) => {
             e.preventDefault();
             e.stopPropagation();
-            onViewImage(image);
+            onViewImage(image!);
         },
         [image, onViewImage]
     );
@@ -232,14 +285,19 @@ export default function AnkiDialog({
     }, []);
 
     const handleApplyTimestampIntervalToText = useCallback(() => {
+        if (!timestampInterval) {
+            return;
+        }
+
         const intersectingSubtitles = [];
+        const interval = timestampInterval;
 
         for (const s of sliderContext.subtitles) {
             if (
-                (s.start >= timestampInterval[0] && s.start <= timestampInterval[1]) ||
-                (s.end >= timestampInterval[0] && s.end <= timestampInterval[1]) ||
-                (timestampInterval[0] >= s.start && timestampInterval[0] <= s.end) ||
-                (timestampInterval[1] >= s.start && timestampInterval[1] <= s.end)
+                (s.start >= interval[0] && s.start <= interval[1]) ||
+                (s.end >= interval[0] && s.end <= interval[1]) ||
+                (interval[0] >= s.start && interval[0] <= s.end) ||
+                (interval[1] >= s.start && interval[1] <= s.end)
             ) {
                 intersectingSubtitles.push(s.text);
             }
@@ -251,6 +309,10 @@ export default function AnkiDialog({
 
     const handleApplyTimestampIntervalToAudio = useCallback(
         (e) => {
+            if (!lastAppliedTimestampIntervalToText || !timestampInterval) {
+                return;
+            }
+
             e.stopPropagation();
             onRerecord({
                 text: text,
@@ -273,11 +335,16 @@ export default function AnkiDialog({
             definition,
             word,
             source,
+            url,
             customFieldValues,
         ]
     );
 
     const handleResetTimestampInterval = useCallback(() => {
+        if (!initialTimestampBoundaryInterval) {
+            return;
+        }
+
         setTimestampInterval(initialTimestampInterval);
         setTimestampBoundaryInterval(initialTimestampBoundaryInterval);
         setTimestampMarks(
@@ -286,6 +353,10 @@ export default function AnkiDialog({
     }, [initialTimestampInterval, initialTimestampBoundaryInterval, sliderContext]);
 
     const handleZoomInTimestampInterval = useCallback(() => {
+        if (!timestampBoundaryInterval || !timestampInterval) {
+            return;
+        }
+
         const newMin = (timestampBoundaryInterval[0] + timestampInterval[0]) / 2;
         const newMax = (timestampBoundaryInterval[1] + timestampInterval[1]) / 2;
         const newTimestampBoundaryInterval = [newMin, newMax];
@@ -324,6 +395,7 @@ export default function AnkiDialog({
                                         <span>
                                             <IconButton
                                                 disabled={
+                                                    (!timestampInterval || !lastAppliedTimestampIntervalToText) ||
                                                     (timestampInterval[0] === lastAppliedTimestampIntervalToText[0] &&
                                                         timestampInterval[1] ===
                                                             lastAppliedTimestampIntervalToText[1]) ||
@@ -409,6 +481,7 @@ export default function AnkiDialog({
                                                 <span>
                                                     <IconButton
                                                         disabled={
+                                                            (!timestampInterval || !initialTimestampInterval) ||
                                                             timestampInterval[0] === initialTimestampInterval[0] &&
                                                             timestampInterval[1] === initialTimestampInterval[1]
                                                         }

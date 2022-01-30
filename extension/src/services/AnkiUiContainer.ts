@@ -1,7 +1,7 @@
 import {
     AnkiSettings,
     AnkiUiContainerCurrentItem,
-    AnkiUiState,
+    AnkiUiRerecordState,
     AudioModel,
     ImageModel,
     SubtitleModel,
@@ -82,7 +82,7 @@ export default class AnkiUiContainer {
         });
     }
 
-    async showAfterRerecord(context: Binding, audio: AudioModel, uiState: AnkiUiState, id: string) {
+    async showAfterRerecord(context: Binding, audio: AudioModel, uiState: AnkiUiRerecordState, id: string) {
         if (!this.ankiSettings) {
             throw new Error('Unable to show Anki UI because settings are missing.');
         }

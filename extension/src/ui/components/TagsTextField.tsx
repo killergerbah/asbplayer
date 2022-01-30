@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { TextField } from "@material-ui/core";
+import { TextField, TextFieldProps } from "@material-ui/core";
 
-function extractTagsFromString(value) {
+function extractTagsFromString(value: string) {
     const splitTags = value.split(' ').join('').split(',');
     const tags = [];
 
@@ -12,7 +12,12 @@ function extractTagsFromString(value) {
     return tags;
 }
 
-export default function TagsTextField({tags, onTagsChange, ...props}) {
+export interface Props {
+    tags: string[];
+    onTagsChange: (tags: string[]) => void;
+}
+
+export default function TagsTextField({tags, onTagsChange, ...props}: Props & TextFieldProps) {
     const [value, setValue] = useState('');
 
     useEffect(() => {

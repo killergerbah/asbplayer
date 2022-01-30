@@ -39,7 +39,7 @@ export default class FrameBridgeServer {
                 message: message,
             });
         });
-        this.bridge.onFetch(async (url: string, body: any) => {
+        this.bridge.onFetch((url: string, body: any) => {
             return new Promise((resolve, reject) => {
                 const fetchId = uuidv4();
                 this.fetches[fetchId] = resolve;

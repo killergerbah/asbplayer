@@ -39,8 +39,8 @@ export interface AudioModel {
     readonly extension: 'webm' | 'mp3';
     readonly paddingStart: number;
     readonly paddingEnd: number;
-    readonly start: number;
-    readonly end: number;
+    readonly start?: number;
+    readonly end?: number;
 }
 
 export interface AnkiDialogSliderContext {
@@ -54,12 +54,43 @@ export interface AnkiUiState {
     readonly open: boolean;
     readonly id: string;
     readonly settingsProvider: AnkiSettings;
-    readonly source: string;
     readonly subtitle: SubtitleModel;
-    readonly surroundingSubtitles: [SubtitleModel];
+    readonly url: string;
+    readonly source: string;
     readonly image?: ImageModel;
     readonly audio?: AudioModel;
     readonly themeType: string;
+}
+
+export interface AnkiUiInitialState extends AnkiUiState {
+    readonly type: 'initial';
+    readonly surroundingSubtitles: [SubtitleModel];
+}
+
+export interface AnkiUiResumeState extends AnkiUiState {
+    readonly type: 'resume';
+
+    readonly text: string;
+    readonly timestampInterval: number[];
+    readonly sliderContext: AnkiDialogSliderContext;
+    readonly definition: string;
+    readonly word: string;
+    readonly customFieldValues: { [key: string]: string };
+    readonly lastAppliedTimestampIntervalToText: number[];
+}
+
+export interface AnkiUiRerecordState {
+    subtitle?: SubtitleModel;
+    text: string;
+    sliderContext: AnkiDialogSliderContext;
+    definition: string;
+    image?: ImageModel;
+    word: string;
+    source: string;
+    url: string;
+    customFieldValues: { [key: string]: string };
+    timestampInterval: number[];
+    lastAppliedTimestampIntervalToText: number[];
 }
 
 export interface AnkiUiDialogState {
