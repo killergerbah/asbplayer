@@ -1,7 +1,8 @@
 import { createMuiTheme } from '@material-ui/core/styles';
 import { red } from '@material-ui/core/colors';
+import { PaletteType } from '@material-ui/core';
 
-export const createTheme = (themeType) =>
+export const createTheme = (themeType: PaletteType) =>
     createMuiTheme({
         palette: {
             primary: {
@@ -16,6 +17,6 @@ export const createTheme = (themeType) =>
             background: {
                 default: 'rgba(0, 0, 0, 0)',
             },
-            type: themeType,
+            type: themeType as PaletteType,
         },
     });

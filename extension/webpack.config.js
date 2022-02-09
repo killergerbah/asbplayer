@@ -9,6 +9,7 @@ module.exports = (env, options) => ({
         'popup-ui': './src/popup-ui.ts',
         'anki-ui': './src/anki-ui.ts',
         'video-data-sync-ui': './src/video-data-sync-ui.ts',
+        asbplayer: './src/asbplayer.ts',
     },
     output: {
         filename: '[name].js',

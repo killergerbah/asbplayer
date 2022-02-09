@@ -22,6 +22,7 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import ImageDialog from './ImageDialog';
 import Snackbar from '@material-ui/core/Snackbar';
 import Bridge from '../Bridge';
+import { PaletteType } from '@material-ui/core';
 
 interface Props {
     bridge: Bridge;
@@ -52,7 +53,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
     const [alert, setAlert] = useState<string>('');
     const [themeType, setThemeType] = useState<string>('dark');
-    const theme = useMemo(() => createTheme(themeType), [themeType]);
+    const theme = useMemo(() => createTheme(themeType as PaletteType), [themeType]);
     const anki = useMemo(
         () => (settingsProvider ? new Anki(settingsProvider, bridge) : undefined),
         [settingsProvider, bridge]

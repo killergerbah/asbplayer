@@ -28,5 +28,5 @@ window.addEventListener('DOMContentLoaded', (e) => {
             command: 'version',
             version: manifest.version,
         },
-    });
+    }, "*");
 });

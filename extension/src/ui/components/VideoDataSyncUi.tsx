@@ -6,6 +6,7 @@ import { createTheme } from './theme';
 import VideoDataSyncDialog from './VideoDataSyncDialog';
 import Bridge from '../Bridge';
 import { VideoDataSubtitleTrack } from '@project/common';
+import { PaletteType } from '@material-ui/core';
 
 interface Props {
     bridge: Bridge;
@@ -21,7 +22,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [error, setError] = useState<string>('');
     const [themeType, setThemeType] = useState<string>();
 
-    const theme = useMemo(() => createTheme(themeType || 'dark'), [themeType]);
+    const theme = useMemo(() => createTheme((themeType || 'dark') as PaletteType), [themeType]);
 
     const handleCancel = useCallback(() => {
         closeDialog();
