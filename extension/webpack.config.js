@@ -4,7 +4,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = (env, options) => ({
     entry: {
-        video: './src/video.js',
+        video: './src/video.ts',
         background: './src/background.ts',
         'popup-ui': './src/popup-ui.ts',
         'anki-ui': './src/anki-ui.ts',

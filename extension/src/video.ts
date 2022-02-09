@@ -1,7 +1,7 @@
 import Binding from './services/Binding';
 
 window.addEventListener('load', (event) => {
-    const bindings = [];
+    const bindings: Binding[] = [];
     const pages = [];
     const urlObj = new URL(window.location.href);
 
@@ -32,11 +32,12 @@ window.addEventListener('load', (event) => {
     const interval = setInterval(() => {
         const videoElements = document.getElementsByTagName('video');
 
-        for (const v of videoElements) {
-            const bindingExists = bindings.filter((b) => b.video.isSameNode(v)).length > 0;
+        for (let i = 0; i < videoElements.length; ++i) {
+            const videoElement = videoElements[i];
+            const bindingExists = bindings.filter((b) => b.video.isSameNode(videoElement)).length > 0;
 
-            if (!bindingExists && _hasValidSource(v)) {
-                const b = new Binding(v, subSyncAvailable);
+            if (!bindingExists && _hasValidSource(videoElement)) {
+                const b = new Binding(videoElement, subSyncAvailable);
                 b.bind();
                 bindings.push(b);
             }
@@ -48,8 +49,10 @@ window.addEventListener('load', (event) => {
             const b = bindings[i];
             let videoElementExists = false;
 
-            for (const v of videoElements) {
-                if (v.isSameNode(b.video) && _hasValidSource(v)) {
+            for (let i = 0; i < videoElements.length; ++i) {
+                const videoElement = videoElements[i];
+
+                if (videoElement.isSameNode(b.video) && _hasValidSource(videoElement)) {
                     videoElementExists = true;
                     break;
                 }
@@ -62,7 +65,11 @@ window.addEventListener('load', (event) => {
         }
     }, 1000);
 
-    const messageListener = (request, sender, sendResponse) => {
+    const messageListener = (
+        request: any,
+        sender: chrome.runtime.MessageSender,
+        sendResponse: (response?: any) => void
+    ) => {
         if (request.sender === 'asbplayer-extension-to-video') {
             switch (request.message.command) {
                 case 'toggle-video-select':
@@ -121,21 +128,18 @@ window.addEventListener('load', (event) => {
     });
 });
 
-function _hasValidSource(videoElement) {
-    let isValid = false;
-
+function _hasValidSource(videoElement: HTMLVideoElement) {
     if (videoElement.src) {
-        isValid = true;
-    } else {
-        for (let index = 0, length = videoElement.children.length; index < length; index++) {
-            const elm = videoElement.children[index];
-            isValid = 'SOURCE' === elm.tagName && elm.src;
+        return true;
+    } 
 
-            if (isValid) {
-                break;
-            }
+    for (let index = 0, length = videoElement.children.length; index < length; index++) {
+        const elm = videoElement.children[index];
+
+        if ('SOURCE' === elm.tagName && (elm as HTMLSourceElement).src) {
+            return true;
         }
     }
 
-    return isValid;
+    return false;
 }
