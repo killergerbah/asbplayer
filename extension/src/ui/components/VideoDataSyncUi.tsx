@@ -4,16 +4,22 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { createTheme } from './theme';
 import VideoDataSyncDialog from './VideoDataSyncDialog';
+import Bridge from '../Bridge';
+import { VideoDataSubtitleTrack } from '@project/common';
 
-export default function VideoDataSyncUi({ bridge }) {
-    const [open, setOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [suggestedName, setSuggestedName] = useState('');
-    const [showSubSelect, setShowSubSelect] = useState(true);
-    const [subtitles, setSubtitles] = useState([{ language: '', url: '-', label: 'None' }]);
-    const [selectedSubtitle, setSelectedSubtitle] = useState('-');
-    const [error, setError] = useState('');
-    const [themeType, setThemeType] = useState();
+interface Props {
+    bridge: Bridge;
+}
+
+export default function VideoDataSyncUi({ bridge }: Props) {
+    const [open, setOpen] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [suggestedName, setSuggestedName] = useState<string>('');
+    const [showSubSelect, setShowSubSelect] = useState<boolean>(true);
+    const [subtitles, setSubtitles] = useState<VideoDataSubtitleTrack[]>([{ language: '', url: '-', label: 'None' }]);
+    const [selectedSubtitle, setSelectedSubtitle] = useState<string>('-');
+    const [error, setError] = useState<string>('');
+    const [themeType, setThemeType] = useState<string>();
 
     const theme = useMemo(() => createTheme(themeType || 'dark'), [themeType]);
 

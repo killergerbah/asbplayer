@@ -122,6 +122,12 @@ export interface VideoDataSubtitleTrack {
     url: string;
 }
 
+export interface ConfirmedVideoDataSubtitleTrack {
+    name: string;
+    language: string;
+    subtitleUrl: string;
+}
+
 export interface VideoData {
     basename: string;
     error?: string;

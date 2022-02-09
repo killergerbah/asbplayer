@@ -8,7 +8,7 @@ module.exports = (env, options) => ({
         background: './src/background.ts',
         'popup-ui': './src/popup-ui.ts',
         'anki-ui': './src/anki-ui.ts',
-        'video-data-sync-ui': './src/video-data-sync-ui.js',
+        'video-data-sync-ui': './src/video-data-sync-ui.ts',
     },
     output: {
         filename: '[name].js',

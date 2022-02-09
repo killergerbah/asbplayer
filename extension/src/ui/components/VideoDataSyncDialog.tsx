@@ -8,6 +8,7 @@ import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/styles';
+import { ConfirmedVideoDataSubtitleTrack, VideoDataSubtitleTrack } from '@project/common';
 import React, { useEffect, useState } from 'react';
 
 const createClasses = makeStyles((theme) => ({
@@ -25,12 +26,24 @@ const createClasses = makeStyles((theme) => ({
     },
 }));
 
-function calculateName(suggestedName, label) {
+function calculateName(suggestedName: string, label: string) {
     if (label) {
         return `${suggestedName} - ${label}`;
     }
 
     return suggestedName;
+}
+
+interface Props {
+    open: boolean;
+    isLoading: boolean;
+    suggestedName: string;
+    showSubSelect: boolean;
+    subtitles: VideoDataSubtitleTrack[];
+    selectedSubtitle: string;
+    error: string;
+    onCancel: () => void;
+    onConfirm: (track: ConfirmedVideoDataSubtitleTrack) => void;
 }
 
 export default function VideoDataSyncDialog({
@@ -43,7 +56,7 @@ export default function VideoDataSyncDialog({
     error,
     onCancel,
     onConfirm,
-}) {
+}: Props) {
     const [selected, setSelected] = useState('-');
     const [name, setName] = useState('');
     const trimmedName = name.trim();
@@ -72,7 +85,7 @@ export default function VideoDataSyncDialog({
                 name === suggestedName ||
                 subtitles.find((track) => track.url !== '-' && name === calculateName(suggestedName, track.label))
             ) {
-                const selectedTrack = subtitles.find((track) => track.url === selected);
+                const selectedTrack = subtitles.find((track) => track.url === selected)!;
 
                 if (selectedTrack.url === '-') {
                     return suggestedName;
@@ -96,7 +109,7 @@ export default function VideoDataSyncDialog({
             onEscapeKeyDown={onCancel}
         >
             <DialogTitle>Select Subtitles</DialogTitle>
-            <DialogContent className={classes.content}>
+            <DialogContent>
                 <form>
                     <Grid container direction="column" spacing={2}>
                         <Grid item>
@@ -145,7 +158,7 @@ export default function VideoDataSyncDialog({
                 <Button
                     disabled={!trimmedName}
                     onClick={() => {
-                        const { language } = subtitles.find((subtitle) => subtitle.url === selected);
+                        const { language } = subtitles.find((subtitle) => subtitle.url === selected)!;
                         onConfirm({ name: trimmedName, subtitleUrl: selected, language });
                     }}
                 >
