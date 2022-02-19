@@ -43,6 +43,7 @@ export interface RecordMediaAndForwardSubtitleMessage extends Message {
     readonly command: 'record-media-and-forward-subtitle';
     readonly subtitle: SubtitleModel;
     readonly surroundingSubtitles: SubtitleModel[];
+    readonly url?: string;
     readonly record: boolean;
     readonly screenshot: boolean;
     readonly showAnkiUi: boolean;
@@ -63,6 +64,7 @@ export interface StartRecordingMediaMessage extends Message {
     readonly rect?: RectModel;
     readonly maxImageWidth: number;
     readonly maxImageHeight: number;
+    readonly url?: string;
 }
 
 export interface StopRecordingMediaMessage extends Message {
@@ -72,6 +74,7 @@ export interface StopRecordingMediaMessage extends Message {
     readonly endTimestamp: number;
     readonly screenshot: boolean;
     readonly videoDuration: number;
+    readonly url?: string;
 }
 
 export interface CopyMessage extends Message {
@@ -79,6 +82,7 @@ export interface CopyMessage extends Message {
     readonly id: string;
     readonly subtitle: SubtitleModel;
     readonly surroundingSubtitles: SubtitleModel[];
+    readonly url?: string;
     readonly image?: ImageModel;
     readonly audio?: AudioModel;
 }
@@ -87,11 +91,12 @@ export interface ScreenshotTakenMessage extends Message {
     readonly command: 'screenshot-taken';
 }
 
-export interface ShowAnkUiMessage extends Message {
+export interface ShowAnkiUiMessage extends Message {
     readonly command: 'show-anki-ui';
     readonly id: string;
     readonly subtitle: SubtitleModel;
     readonly surroundingSubtitles: SubtitleModel[];
+    readonly url?: string;
     readonly image?: ImageModel;
     readonly audio?: AudioModel;
 }

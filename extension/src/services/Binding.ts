@@ -1,4 +1,4 @@
-import { AnkiUiContainerCurrentItem, AnkiUiState } from '@project/common';
+import { AnkiUiContainerCurrentItem, AnkiUiState, StartRecordingMediaMessage, StopRecordingMediaMessage, VideoToExtensionCommand } from '@project/common';
 import AnkiUiContainer from './AnkiUiContainer';
 import ControlsContainer from './ControlsContainer';
 import DragContainer from './DragContainer';
@@ -442,19 +442,21 @@ export default class Binding {
 
     async _toggleRecordingMedia(showAnkiUi: boolean) {
         if (this.recordingMedia) {
-            chrome.runtime.sendMessage({
+            const command: VideoToExtensionCommand<StopRecordingMediaMessage> = {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'stop-recording-media',
                     showAnkiUi: showAnkiUi,
-                    startTimestamp: this.recordingMediaStartedTimestamp,
+                    startTimestamp: this.recordingMediaStartedTimestamp!,
                     endTimestamp: this.video.currentTime * 1000,
                     screenshot: this.recordingMediaWithScreenshot,
                     videoDuration: this.video.duration * 1000,
                     url: this.url,
                 },
                 src: this.video.src,
-            });
+            };
+
+            chrome.runtime.sendMessage(command);
 
             this.recordingMedia = false;
             this.recordingMediaStartedTimestamp = undefined;
@@ -471,23 +473,23 @@ export default class Binding {
                 this.recordingMediaWithScreenshot = this.screenshot;
             }
 
-            const message = {
-                command: 'start-recording-media',
-                timestamp: timestamp,
-                record: this.recordMedia,
-                showAnkiUi: showAnkiUi,
-                screenshot: this.screenshot,
-                rect: this.screenshot ? this.video.getBoundingClientRect() : null,
-                maxImageWidth: this.maxImageWidth,
-                maxImageHeight: this.maxImageHeight,
-                url: this.url,
+            const command: VideoToExtensionCommand<StartRecordingMediaMessage> = {
+                sender: 'asbplayer-video',
+                message: {
+                    command: 'start-recording-media',
+                    timestamp: timestamp,
+                    record: this.recordMedia,
+                    showAnkiUi: showAnkiUi,
+                    screenshot: this.screenshot,
+                    rect: this.screenshot ? this.video.getBoundingClientRect() : undefined,
+                    maxImageWidth: this.maxImageWidth,
+                    maxImageHeight: this.maxImageHeight,
+                    url: this.url,
+                },
+                src: this.video.src,
             };
 
-            chrome.runtime.sendMessage({
-                sender: 'asbplayer-video',
-                message: message,
-                src: this.video.src,
-            });
+            chrome.runtime.sendMessage(command);
         }
     }
 
