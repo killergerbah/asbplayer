@@ -1,4 +1,20 @@
-import { AnkiUiContainerCurrentItem, AnkiUiState, StartRecordingMediaMessage, StopRecordingMediaMessage, VideoToExtensionCommand } from '@project/common';
+import {
+    AnkiUiContainerCurrentItem,
+    AnkiUiDialogState,
+    AnkiUiState,
+    CurrentTimeMessage,
+    PauseMessage,
+    PlaybackRateMessage,
+    PlayMessage,
+    ReadyMessage,
+    ReadyStateMessage,
+    RecordMediaAndForwardSubtitleMessage,
+    RerecordMediaMessage,
+    StartRecordingMediaMessage,
+    StopRecordingMediaMessage,
+    VideoHeartbeatMessage,
+    VideoToExtensionCommand,
+} from '@project/common';
 import AnkiUiContainer from './AnkiUiContainer';
 import ControlsContainer from './ControlsContainer';
 import DragContainer from './DragContainer';
@@ -22,7 +38,7 @@ export default class Binding {
     audioPaddingEnd: number;
     maxImageWidth: number;
     maxImageHeight: number;
-    
+
     private synced: boolean;
     private recordingMedia: boolean;
     private recordingMediaStartedTimestamp?: number;
@@ -92,14 +108,16 @@ export default class Binding {
                     bound = true;
                 }
 
-                chrome.runtime.sendMessage({
+                const command: VideoToExtensionCommand<ReadyStateMessage> = {
                     sender: 'asbplayer-video',
                     message: {
                         command: 'readyState',
                         value: 4,
                     },
                     src: this.video.src,
-                });
+                };
+
+                chrome.runtime.sendMessage(command);
             });
         }
     }
@@ -115,7 +133,7 @@ export default class Binding {
     }
 
     _notifyReady() {
-        chrome.runtime.sendMessage({
+        const command: VideoToExtensionCommand<ReadyMessage> = {
             sender: 'asbplayer-video',
             message: {
                 command: 'ready',
@@ -127,34 +145,40 @@ export default class Binding {
                 playbackRate: this.video.playbackRate,
             },
             src: this.video.src,
-        });
+        };
+
+        chrome.runtime.sendMessage(command);
     }
 
     _subscribe() {
         this.playListener = (event) => {
-            chrome.runtime.sendMessage({
+            const command: VideoToExtensionCommand<PlayMessage> = {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'play',
                     echo: false,
                 },
                 src: this.video.src,
-            });
+            };
+
+            chrome.runtime.sendMessage(command);
         };
 
         this.pauseListener = (event) => {
-            chrome.runtime.sendMessage({
+            const command: VideoToExtensionCommand<PauseMessage> = {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'pause',
                     echo: false,
                 },
                 src: this.video.src,
-            });
+            };
+
+            chrome.runtime.sendMessage(command);
         };
 
         this.seekedListener = (event) => {
-            chrome.runtime.sendMessage({
+            const command: VideoToExtensionCommand<CurrentTimeMessage> = {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'currentTime',
@@ -162,11 +186,13 @@ export default class Binding {
                     echo: false,
                 },
                 src: this.video.src,
-            });
+            };
+
+            chrome.runtime.sendMessage(command);
         };
 
         this.playbackRateListener = (event) => {
-            chrome.runtime.sendMessage({
+            const command: VideoToExtensionCommand<PlaybackRateMessage> = {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'playbackRate',
@@ -174,7 +200,9 @@ export default class Binding {
                     echo: false,
                 },
                 src: this.video.src,
-            });
+            };
+
+            chrome.runtime.sendMessage(command);
         };
 
         this.video.addEventListener('play', this.playListener);
@@ -190,13 +218,15 @@ export default class Binding {
         }
 
         this.heartbeatInterval = setInterval(() => {
-            chrome.runtime.sendMessage({
+            const command: VideoToExtensionCommand<VideoHeartbeatMessage> = {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'heartbeat',
                 },
                 src: this.video.src,
-            });
+            };
+
+            chrome.runtime.sendMessage(command);
         }, 1000);
 
         window.addEventListener('beforeunload', (event) => {
@@ -416,27 +446,27 @@ export default class Binding {
                 await this.play();
             }
 
-            const message = {
-                command: 'record-media-and-forward-subtitle',
-                subtitle: subtitle,
-                surroundingSubtitles: surroundingSubtitles,
-                record: this.recordMedia,
-                screenshot: this.screenshot,
-                url: this.url,
-                showAnkiUi: showAnkiUi,
-                audioPaddingStart: this.audioPaddingStart,
-                audioPaddingEnd: this.audioPaddingEnd,
-                playbackRate: this.video.playbackRate,
-                rect: this.screenshot ? this.video.getBoundingClientRect() : null,
-                maxImageWidth: this.maxImageWidth,
-                maxImageHeight: this.maxImageHeight,
+            const command: VideoToExtensionCommand<RecordMediaAndForwardSubtitleMessage> = {
+                sender: 'asbplayer-video',
+                message: {
+                    command: 'record-media-and-forward-subtitle',
+                    subtitle: subtitle,
+                    surroundingSubtitles: surroundingSubtitles,
+                    record: this.recordMedia,
+                    screenshot: this.screenshot,
+                    url: this.url,
+                    showAnkiUi: showAnkiUi,
+                    audioPaddingStart: this.audioPaddingStart,
+                    audioPaddingEnd: this.audioPaddingEnd,
+                    playbackRate: this.video.playbackRate,
+                    rect: this.screenshot ? this.video.getBoundingClientRect() : undefined,
+                    maxImageWidth: this.maxImageWidth,
+                    maxImageHeight: this.maxImageHeight,
+                },
+                src: this.video.src,
             };
 
-            chrome.runtime.sendMessage({
-                sender: 'asbplayer-video',
-                message: message,
-                src: this.video.src,
-            });
+            chrome.runtime.sendMessage(command);
         }
     }
 
@@ -512,7 +542,7 @@ export default class Binding {
         }
     }
 
-    async rerecord(start: number, end: number, currentItem: AnkiUiContainerCurrentItem, uiState: AnkiUiState) {
+    async rerecord(start: number, end: number, currentItem: AnkiUiContainerCurrentItem, uiState: AnkiUiDialogState) {
         const noSubtitles = this.subtitleContainer.subtitles.length === 0;
         const audioPaddingStart = noSubtitles ? 0 : this.audioPaddingStart;
         const audioPaddingEnd = noSubtitles ? 0 : this.audioPaddingEnd;
@@ -520,22 +550,22 @@ export default class Binding {
         this.seek(Math.max(0, start - audioPaddingStart) / 1000);
         await this.play();
 
-        const message = {
-            command: 'rerecord-media',
-            duration: end - start,
-            uiState: uiState,
-            audioPaddingStart: audioPaddingStart,
-            audioPaddingEnd: audioPaddingEnd,
-            currentItem: currentItem,
-            playbackRate: this.video.playbackRate,
-            timestamp: start,
+        const command: VideoToExtensionCommand<RerecordMediaMessage> = {
+            sender: 'asbplayer-video',
+            message: {
+                command: 'rerecord-media',
+                duration: end - start,
+                uiState: uiState,
+                audioPaddingStart: audioPaddingStart,
+                audioPaddingEnd: audioPaddingEnd,
+                currentItem: currentItem,
+                playbackRate: this.video.playbackRate,
+                timestamp: start,
+            },
+            src: this.video.src,
         };
 
-        chrome.runtime.sendMessage({
-            sender: 'asbplayer-video',
-            message: message,
-            src: this.video.src,
-        });
+        chrome.runtime.sendMessage(command);
     }
 
     seek(timestamp: number) {

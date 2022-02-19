@@ -1,10 +1,8 @@
-import { AnkiDialogSliderContext, AnkiSettings } from '.';
 import {
     RectModel,
     SubtitleModel,
     ImageModel,
     AudioModel,
-    CopiedSubtitleModel,
     AnkiUiDialogState,
     AnkiUiContainerCurrentItem,
 } from './Model';
@@ -141,4 +139,41 @@ export interface ToggleSubtitlesMessage extends Message {
 export interface ToggleSubtitlesInListMessage extends Message {
     command: 'toggleSubtitleTrackInList';
     track: number;
+}
+
+export interface ReadyStateMessage extends Message {
+    command: 'readyState';
+    value: number;
+}
+
+export interface ReadyMessage extends Message {
+    command: 'ready';
+    duration: number;
+    currentTime: number;
+    paused: boolean;
+    audioTracks: null;
+    selectedAudioTrack: null;
+    playbackRate: number;
+}
+
+export interface PlayMessage extends Message {
+    command: 'play';
+    echo: boolean;
+}
+
+export interface PauseMessage extends Message {
+    command: 'pause';
+    echo: boolean;
+}
+
+export interface CurrentTimeMessage extends Message {
+    command: 'currentTime';
+    value: number;
+    echo: boolean;
+}
+
+export interface PlaybackRateMessage extends Message {
+    command: 'playbackRate';
+    value: number;
+    echo: boolean;
 }
