@@ -159,7 +159,7 @@ export default class SubtitleContainer {
             }
         }
 
-        if (!subtitle || !index) {
+        if (subtitle === null || index === null) {
             return [null, null];
         }
 
