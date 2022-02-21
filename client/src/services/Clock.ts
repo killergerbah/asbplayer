@@ -1,12 +1,16 @@
 export default class Clock {
+    private accumulated: number;
+    private started: boolean;
+    private startTime?: number;
+
     constructor() {
         this.accumulated = 0;
         this.started = false;
     }
 
-    time(max) {
+    time(max: number) {
         if (this.started) {
-            return Math.min(max, this.accumulated + Date.now() - this.startTime);
+            return Math.min(max, this.accumulated + Date.now() - this.startTime!);
         }
 
         return Math.min(max, this.accumulated);
@@ -18,7 +22,7 @@ export default class Clock {
         }
 
         this.started = false;
-        this.accumulated += Date.now() - this.startTime;
+        this.accumulated += Date.now() - this.startTime!;
     }
 
     start() {
@@ -26,7 +30,7 @@ export default class Clock {
         this.started = true;
     }
 
-    setTime(time) {
+    setTime(time: number) {
         if (this.started) {
             this.startTime = Date.now();
             this.accumulated = time;
@@ -35,7 +39,7 @@ export default class Clock {
         }
     }
 
-    progress(max) {
+    progress(max: number) {
         return max === 0 ? 0 : Math.min(1, this.time(max) / max);
     }
 }

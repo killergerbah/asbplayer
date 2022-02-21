@@ -1,7 +1,22 @@
+import { AsbPlayerToVideoCommandV2, Message, VideoTabModel } from '@project/common';
 import { v4 as uuidv4 } from 'uuid';
 
+interface ExtensionMessage {
+    data: Message;
+    tabId: number;
+    src: string;
+}
+
 export default class ChromeExtension {
-    constructor(heartbeat) {
+    private readonly onMessageCallbacks: Array<(message: ExtensionMessage) => void>;
+    private readonly onTabsCallbacks: Array<(tabs: VideoTabModel[]) => void>;
+    private readonly versionPromise: Promise<string>;
+    private readonly id:string;
+
+    private tabs: VideoTabModel[];
+    private versionResolve?: (value: string | PromiseLike<string>) => void;
+
+    constructor(heartbeat: boolean) {
         this.onMessageCallbacks = [];
         this.onTabsCallbacks = [];
         this.tabs = [];
@@ -28,7 +43,7 @@ export default class ChromeExtension {
                     }
 
                     if (event.data.message.command === 'version') {
-                        this.versionResolve(event.data.message.version);
+                        this.versionResolve!(event.data.message.version);
                         return;
                     }
 
@@ -67,33 +82,35 @@ export default class ChromeExtension {
         return await this.versionPromise;
     }
 
-    sendMessage(message, tabId, src) {
-        window.postMessage({ sender: 'asbplayerv2', message: message, tabId: tabId, src: src }, '*');
+    sendMessage(message: Message, tabId: number, src: string) {
+        const command: AsbPlayerToVideoCommandV2<Message> = { sender: 'asbplayerv2', message: message, tabId: tabId, src: src };
+        window.postMessage(command, '*');
     }
 
-    publishMessage(message) {
+    publishMessage(message: Message) {
         for (const tab of this.tabs) {
-            window.postMessage({ sender: 'asbplayerv2', message: message, tabId: tab.id, src: tab.src }, '*');
+            const command: AsbPlayerToVideoCommandV2<Message> = { sender: 'asbplayerv2', message: message, tabId: tab.id, src: tab.src };
+            window.postMessage(command, '*');
         }
     }
 
-    subscribeTabs(callback) {
+    subscribeTabs(callback: (tabs: VideoTabModel[]) => void) {
         this.onTabsCallbacks.push(callback);
     }
 
-    unsubscribeTabs(callback) {
+    unsubscribeTabs(callback: (tabs: VideoTabModel[]) => void) {
         this._remove(callback, this.onTabsCallbacks);
     }
 
-    subscribe(callback) {
+    subscribe(callback: (message: ExtensionMessage) => void) {
         this.onMessageCallbacks.push(callback);
     }
 
-    unsubscribe(callback) {
+    unsubscribe(callback: (message: ExtensionMessage) => void) {
         this._remove(callback, this.onMessageCallbacks);
     }
 
-    _remove(callback, callbacks) {
+    _remove(callback: Function, callbacks: Function[]) {
         for (let i = callbacks.length - 1; i >= 0; --i) {
             if (callback === callbacks[i]) {
                 callbacks.splice(i, 1);

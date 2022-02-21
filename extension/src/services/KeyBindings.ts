@@ -1,6 +1,6 @@
 import {
     KeyBindings as CommonKeyBindings,
-    ToggleSubtitlesInListMessage,
+    ToggleSubtitlesInListFromVideoMessage,
     ToggleSubtitlesMessage,
     VideoToExtensionCommand,
 } from '@project/common';
@@ -77,7 +77,7 @@ export default class KeyBindings {
             (event, track) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                const command: VideoToExtensionCommand<ToggleSubtitlesInListMessage> = {
+                const command: VideoToExtensionCommand<ToggleSubtitlesInListFromVideoMessage> = {
                     sender: 'asbplayer-video',
                     message: {
                         command: 'toggleSubtitleTrackInList',

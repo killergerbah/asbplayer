@@ -1,4 +1,4 @@
-import { ActiveVideoElement } from '@project/common';
+import { ActiveVideoElement, VideoTabModel } from '@project/common';
 
 interface Asbplayer {
     id: string;
@@ -45,11 +45,12 @@ export default class TabRegistry {
                 if (videoElement.timestamp < expired) {
                     delete this.videoElements[id];
                 } else if (videoElement.tab.id) {
-                    activeVideoElements.push({
+                    const element: VideoTabModel = {
                         id: videoElement.tab.id,
                         title: videoElement.tab.title,
                         src: videoElement.src,
-                    });
+                    };
+                    activeVideoElements.push(element);
                 }
             }
 

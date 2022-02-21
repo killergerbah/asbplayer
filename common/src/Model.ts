@@ -145,3 +145,21 @@ export interface VideoDataUiState {
     selectedSubtitle?: string;
     showSubSelect?: boolean;
 }
+
+export interface VideoTabModel {
+    id: number; // Actually the tab ID
+    title?: string;
+    src: string; // Video src
+}
+
+export interface Rgb {
+    r: number;
+    g: number;
+    b: number;
+}
+
+export interface AudioTrackModel {
+    id: string;
+    label: string;
+    language: string;
+}

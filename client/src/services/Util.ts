@@ -1,4 +1,6 @@
-export function arrayEquals(a, b, equals = (a, b) => a === b) {
+import { Rgb } from "@project/common";
+
+export function arrayEquals(a: any[], b: any[], equals = (a: any, b: any) => a === b) {
     if (a.length !== b.length) {
         return false;
     }
@@ -12,7 +14,7 @@ export function arrayEquals(a, b, equals = (a, b) => a === b) {
     return true;
 }
 
-export function keysAreEqual(a, b) {
+export function keysAreEqual(a: any, b: any) {
     for (let key in a) {
         if (!(key in b)) {
             return false;
@@ -29,8 +31,8 @@ export function keysAreEqual(a, b) {
 }
 
 // https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
-function hexToRgb(hex) {
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+function hexToRgb(hex: string): Rgb {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)!;
     return {
         r: parseInt(result[1], 16),
         g: parseInt(result[2], 16),
@@ -38,16 +40,26 @@ function hexToRgb(hex) {
     };
 }
 
+interface SubtitleStyle {
+    subtitleColor: string;
+    subtitleSize: string;
+    subtitleOutlineThickness: number;
+    subtitleOutlineColor: string;
+    subtitleBackgroundOpacity: number;
+    subtitleBackgroundColor: string;
+    subtitleFontFamily: string;
+}
+
 export function computeStyles({
     subtitleColor,
-    subtitleSize,
+    subtitleSize, // TODO: Change this to number
     subtitleOutlineThickness,
     subtitleOutlineColor,
     subtitleBackgroundOpacity,
     subtitleBackgroundColor,
     subtitleFontFamily,
-}) {
-    const styles = {
+}: SubtitleStyle) {
+    const styles: any = {
         color: subtitleColor,
         fontSize: Number(subtitleSize),
     };
@@ -74,7 +86,11 @@ export function computeStyles({
     return styles;
 }
 
-export function timeDurationDisplay(milliseconds, totalMilliseconds, includeMilliseconds = true) {
+export function timeDurationDisplay(
+    milliseconds: number,
+    totalMilliseconds: number,
+    includeMilliseconds = true
+): string {
     if (milliseconds < 0) {
         return timeDurationDisplay(0, totalMilliseconds);
     }
@@ -103,10 +119,10 @@ export function timeDurationDisplay(milliseconds, totalMilliseconds, includeMill
     return pad(mins) + ':' + pad(secs);
 }
 
-function pad(n) {
+function pad(n: number) {
     return String(n).padStart(2, '0');
 }
 
-function padEnd(n) {
+function padEnd(n: number) {
     return String(n).padEnd(3, '0');
 }

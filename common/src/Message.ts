@@ -1,3 +1,4 @@
+import { AnkiSettings, MiscSettings, SubtitleSettings } from '.';
 import {
     RectModel,
     SubtitleModel,
@@ -5,6 +6,7 @@ import {
     AudioModel,
     AnkiUiDialogState,
     AnkiUiContainerCurrentItem,
+    AudioTrackModel,
 } from './Model';
 
 export interface Message {
@@ -83,6 +85,7 @@ export interface CopyMessage extends Message {
     readonly url?: string;
     readonly image?: ImageModel;
     readonly audio?: AudioModel;
+    readonly preventDuplicate?: boolean;
 }
 
 export interface ScreenshotTakenMessage extends Message {
@@ -127,7 +130,7 @@ export interface ExtensionSyncMessage extends Message {
     subtitles: SubtitleModel[];
 }
 
-export interface OffsetMessage extends Message {
+export interface OffsetFromVideoMessage extends Message {
     command: 'offset';
     value: number;
 }
@@ -136,44 +139,106 @@ export interface ToggleSubtitlesMessage extends Message {
     command: 'toggle-subtitles';
 }
 
-export interface ToggleSubtitlesInListMessage extends Message {
+export interface ToggleSubtitlesInListFromVideoMessage extends Message {
     command: 'toggleSubtitleTrackInList';
     track: number;
 }
 
-export interface ReadyStateMessage extends Message {
+export interface ReadyStateFromVideoMessage extends Message {
     command: 'readyState';
     value: number;
 }
 
-export interface ReadyMessage extends Message {
+export interface ReadyFromVideoMessage extends Message {
     command: 'ready';
     duration: number;
     currentTime: number;
     paused: boolean;
-    audioTracks: null;
-    selectedAudioTrack: null;
+    audioTracks?: AudioTrackModel[];
+    selectedAudioTrack?: string;
     playbackRate: number;
 }
 
-export interface PlayMessage extends Message {
+export interface ReadyToVideoMessage extends Message {
+    command: 'ready';
+    duration: number;
+}
+
+export interface PlayFromVideoMessage extends Message {
     command: 'play';
     echo: boolean;
 }
 
-export interface PauseMessage extends Message {
+export interface PauseFromVideoMessage extends Message {
     command: 'pause';
     echo: boolean;
 }
 
-export interface CurrentTimeMessage extends Message {
+export interface CurrentTimeFromVideoMessage extends Message {
     command: 'currentTime';
     value: number;
     echo: boolean;
 }
 
-export interface PlaybackRateMessage extends Message {
+export interface PlaybackRateFromVideoMessage extends Message {
     command: 'playbackRate';
     value: number;
     echo: boolean;
+}
+
+export interface AudioTrackSelectedFromVideoMessage extends Message {
+    readonly command: 'audioTrackSelected';
+    readonly id: string;
+}
+
+export interface AudioTrackSelectedToVideoMessage extends Message {
+    readonly command: 'audioTrackSelected';
+    readonly id: string;
+}
+
+export interface AnkiDialogRequestFromVideoMessage extends Message {
+    readonly command: 'ankiDialogRequest';
+    readonly forwardToVideo: boolean;
+}
+
+export interface ToggleSubtitleTrackInListFromVideoMessage extends Message {
+    readonly command: 'toggleSubtitleTrackInList';
+    readonly track: number;
+}
+
+export interface SubtitlesToVideoMessage extends Message {
+    command: 'subtitles';
+    value: SubtitleModel[];
+    name?: string;
+    names: string[];
+}
+
+export interface SubtitleSettingsToVideoMessage extends Message {
+    command: 'subtitleSettings';
+    value: SubtitleSettings;
+}
+
+export interface CondensedModeToggleToVideoMessage extends Message {
+    command: 'condensedModeToggle';
+    value: boolean;
+}
+
+export interface HideSubtitlePlayerToggleToVideoMessage extends Message {
+    command: 'hideSubtitlePlayerToggle';
+    value: boolean;
+}
+
+export interface FinishedAnkiDialogRequestToVideoMessage extends Message {
+    command: 'finishedAnkiDialogRequest';
+    resume: boolean;
+}
+
+export interface AnkiSettingsToVideoMessage extends Message {
+    command: 'ankiSettings';
+    value: AnkiSettings;
+}
+
+export interface MiscSettingsToVideoMessage extends Message {
+    command: 'miscSettings';
+    value: MiscSettings;
 }

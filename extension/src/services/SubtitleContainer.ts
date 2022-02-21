@@ -1,16 +1,11 @@
 import {
-    OffsetMessage,
+    OffsetFromVideoMessage,
+    Rgb,
     SubtitleModel,
     SubtitleSettings,
     surroundingSubtitles,
     VideoToExtensionCommand,
 } from '@project/common';
-
-interface Rgb {
-    r: number;
-    g: number;
-    b: number;
-}
 
 export default class SubtitleContainer {
     private readonly video: HTMLVideoElement;
@@ -188,7 +183,7 @@ export default class SubtitleContainer {
             track: s.track,
         }));
 
-        const command: VideoToExtensionCommand<OffsetMessage> = {
+        const command: VideoToExtensionCommand<OffsetFromVideoMessage> = {
             sender: 'asbplayer-video',
             message: {
                 command: 'offset',

@@ -2,12 +2,12 @@ import {
     AnkiUiContainerCurrentItem,
     AnkiUiDialogState,
     AnkiUiState,
-    CurrentTimeMessage,
-    PauseMessage,
-    PlaybackRateMessage,
-    PlayMessage,
-    ReadyMessage,
-    ReadyStateMessage,
+    CurrentTimeFromVideoMessage,
+    PauseFromVideoMessage,
+    PlaybackRateFromVideoMessage,
+    PlayFromVideoMessage,
+    ReadyFromVideoMessage,
+    ReadyStateFromVideoMessage,
     RecordMediaAndForwardSubtitleMessage,
     RerecordMediaMessage,
     StartRecordingMediaMessage,
@@ -108,7 +108,7 @@ export default class Binding {
                     bound = true;
                 }
 
-                const command: VideoToExtensionCommand<ReadyStateMessage> = {
+                const command: VideoToExtensionCommand<ReadyStateFromVideoMessage> = {
                     sender: 'asbplayer-video',
                     message: {
                         command: 'readyState',
@@ -133,15 +133,15 @@ export default class Binding {
     }
 
     _notifyReady() {
-        const command: VideoToExtensionCommand<ReadyMessage> = {
+        const command: VideoToExtensionCommand<ReadyFromVideoMessage> = {
             sender: 'asbplayer-video',
             message: {
                 command: 'ready',
                 duration: this.video.duration,
                 currentTime: this.video.currentTime,
                 paused: this.video.paused,
-                audioTracks: null,
-                selectedAudioTrack: null,
+                audioTracks: undefined,
+                selectedAudioTrack: undefined,
                 playbackRate: this.video.playbackRate,
             },
             src: this.video.src,
@@ -152,7 +152,7 @@ export default class Binding {
 
     _subscribe() {
         this.playListener = (event) => {
-            const command: VideoToExtensionCommand<PlayMessage> = {
+            const command: VideoToExtensionCommand<PlayFromVideoMessage> = {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'play',
@@ -165,7 +165,7 @@ export default class Binding {
         };
 
         this.pauseListener = (event) => {
-            const command: VideoToExtensionCommand<PauseMessage> = {
+            const command: VideoToExtensionCommand<PauseFromVideoMessage> = {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'pause',
@@ -178,7 +178,7 @@ export default class Binding {
         };
 
         this.seekedListener = (event) => {
-            const command: VideoToExtensionCommand<CurrentTimeMessage> = {
+            const command: VideoToExtensionCommand<CurrentTimeFromVideoMessage> = {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'currentTime',
@@ -192,7 +192,7 @@ export default class Binding {
         };
 
         this.playbackRateListener = (event) => {
-            const command: VideoToExtensionCommand<PlaybackRateMessage> = {
+            const command: VideoToExtensionCommand<PlaybackRateFromVideoMessage> = {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'playbackRate',
