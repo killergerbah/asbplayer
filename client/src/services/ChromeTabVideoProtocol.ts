@@ -1,0 +1,35 @@
+import { Message } from '@project/common';
+import ChromeExtension, { ExtensionMessage } from './ChromeExtension';
+import { VideoProtocol, VideoProtocolMessage } from './VideoProtocol';
+
+export default class ChromeTabVideoProtocol implements VideoProtocol {
+    private readonly tabId: number;
+    private readonly src: string;
+    private readonly extension: ChromeExtension;
+    private readonly listener: (message: ExtensionMessage) => void;
+
+    onMessage?: (message: VideoProtocolMessage) => void;
+
+    constructor(tabId: number, src: string, extension: ChromeExtension) {
+        this.tabId = tabId;
+        this.src = src;
+        this.listener = (message) => {
+            if (message.tabId === tabId && (!message.src || message.src === src)) {
+                this.onMessage?.({
+                    data: message.data,
+                });
+            }
+        };
+
+        extension.subscribe(this.listener);
+        this.extension = extension;
+    }
+
+    postMessage(message: Message) {
+        this.extension.sendMessage(message, this.tabId, this.src);
+    }
+
+    close() {
+        this.extension.unsubscribe(this.listener);
+    }
+}

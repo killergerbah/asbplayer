@@ -1,7 +1,7 @@
 import { AsbPlayerToVideoCommandV2, Message, VideoTabModel } from '@project/common';
 import { v4 as uuidv4 } from 'uuid';
 
-interface ExtensionMessage {
+export interface ExtensionMessage {
     data: Message;
     tabId: number;
     src: string;
