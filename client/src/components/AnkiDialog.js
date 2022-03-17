@@ -19,6 +19,8 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import ZoomInIcon from '@material-ui/icons/ZoomIn';
 import TagsTextField from './TagsTextField';
+import { speakerRegex, getSubtitleWithoutSpeaker } from '../services/Util.js';
+import { Checkbox, FormControlLabel } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -39,6 +41,10 @@ const useStyles = makeStyles((theme) => ({
         '& .MuiSlider-markLabel': {
             transform: 'translateX(-3%)',
         },
+    },
+    alignRight: {
+        display: 'flex',
+        justifyContent: 'flex-end',
     },
 }));
 
@@ -111,7 +117,10 @@ export default function AnkiDialog({
 }) {
     const classes = useStyles();
     const [definition, setDefinition] = useState('');
+    const [isSpeakerTextHidden, setIsSpeakerTextHidden] = useState(false);
     const [text, setText] = useState();
+    const [originalText, setOriginalText] = useState();
+    const [isTextChanged, setIsTextChanged] = useState(false);
     const [word, setWord] = useState();
     const [lastSearchedWord, setLastSearchedWord] = useState();
     const [source, setSource] = useState(initialSource);
@@ -131,6 +140,9 @@ export default function AnkiDialog({
 
     useEffect(() => {
         setText(initialText);
+        setOriginalText(initialText);
+        handleToggleSpeakerText(true);
+        setIsTextChanged(false);
         setDefinition('');
         setWord('');
         setSource(initialSource);
@@ -281,6 +293,20 @@ export default function AnkiDialog({
         [customFieldValues]
     );
 
+    const handleChangeText = (e) => {
+        setIsTextChanged(true);
+        return setText(e.target.value);
+    };
+
+    const handleToggleSpeakerText = (showSpeakerText) => {
+        if (showSpeakerText) {
+            setText(getSubtitleWithoutSpeaker(originalText));
+        } else {
+            setText(originalText);
+        }
+        setIsSpeakerTextHidden(showSpeakerText);
+    };
+
     let wordHelperText;
 
     if (word && word.trim() === lastSearchedWord && settingsProvider.wordField) {
@@ -322,7 +348,7 @@ export default function AnkiDialog({
                         rowsMax={8}
                         label="Sentence"
                         value={text}
-                        onChange={(e) => setText(e.target.value)}
+                        onChange={handleChangeText}
                         InputProps={{
                             endAdornment: timestampInterval && (
                                 <InputAdornment position="end">
@@ -346,6 +372,18 @@ export default function AnkiDialog({
                             ),
                         }}
                     />
+                    <div className={classes.alignRight}>
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={isSpeakerTextHidden}
+                                    onChange={(e) => handleToggleSpeakerText(e.target.checked)}
+                                />
+                            }
+                            label="Hide Speakers"
+                            disabled={isTextChanged}
+                        />
+                    </div>
                     <TextField
                         variant="filled"
                         color="secondary"

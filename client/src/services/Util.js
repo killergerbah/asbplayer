@@ -1,3 +1,6 @@
+// Regular expression for the speaker
+export const speakerRegex = /[（([].*[）)\]][\s]*/;
+
 export function arrayEquals(a, b, equals = (a, b) => a === b) {
     if (a.length !== b.length) {
         return false;
@@ -109,4 +112,17 @@ function pad(n) {
 
 function padEnd(n) {
     return String(n).padEnd(3, '0');
+}
+
+/**
+ * Remove the speaker from subtitles
+ * example:
+ *      before: （ガモちゃん）ふんふん
+ *      after: ふんふん
+ * @param {string} text
+ * @returns sliced text
+ */
+export function getSubtitleWithoutSpeaker(text) {
+    const globalRegex = new RegExp(speakerRegex.source, 'g');
+    return text?.replaceAll(globalRegex, '') || '';
 }
