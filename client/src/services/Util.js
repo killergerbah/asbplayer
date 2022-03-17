@@ -124,5 +124,5 @@ function padEnd(n) {
  */
 export function getSubtitleWithoutSpeaker(text) {
     const globalRegex = new RegExp(speakerRegex.source, 'g');
-    return text?.replaceAll(globalRegex, '') || '';
+    return text?.replaceAll(globalRegex, '');
 }

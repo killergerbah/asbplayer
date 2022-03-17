@@ -121,6 +121,7 @@ export default function AnkiDialog({
     const [text, setText] = useState();
     const [originalText, setOriginalText] = useState();
     const [isTextChanged, setIsTextChanged] = useState(false);
+    const [isSpeakerTextToggleShown, setIsSpeakerTextToggleShown] = useState(false);
     const [word, setWord] = useState();
     const [lastSearchedWord, setLastSearchedWord] = useState();
     const [source, setSource] = useState(initialSource);
@@ -141,7 +142,8 @@ export default function AnkiDialog({
     useEffect(() => {
         setText(initialText);
         setOriginalText(initialText);
-        handleToggleSpeakerText(true);
+        setIsSpeakerTextToggleShown(speakerRegex.test(initialText));
+        setIsSpeakerTextHidden(false);
         setIsTextChanged(false);
         setDefinition('');
         setWord('');
@@ -150,7 +152,7 @@ export default function AnkiDialog({
         setDuplicateNotes([]);
         setCustomFieldValues({});
         setTags(settingsProvider.tags);
-    }, [initialText, initialSource, initialUrl, settingsProvider.tags]);
+    }, [open, initialText, initialSource, initialUrl, settingsProvider.tags]);
 
     useEffect(() => {
         const timestampInterval = sliderContext && [sliderContext.subtitleStart, sliderContext.subtitleEnd];
@@ -299,6 +301,10 @@ export default function AnkiDialog({
     };
 
     const handleToggleSpeakerText = (showSpeakerText) => {
+        if (!originalText) {
+            return;
+        }
+
         if (showSpeakerText) {
             setText(getSubtitleWithoutSpeaker(originalText));
         } else {
@@ -372,18 +378,20 @@ export default function AnkiDialog({
                             ),
                         }}
                     />
-                    <div className={classes.alignRight}>
-                        <FormControlLabel
-                            control={
-                                <Checkbox
-                                    checked={isSpeakerTextHidden}
-                                    onChange={(e) => handleToggleSpeakerText(e.target.checked)}
-                                />
-                            }
-                            label="Hide Speakers"
-                            disabled={isTextChanged}
-                        />
-                    </div>
+                    {isSpeakerTextToggleShown && (
+                        <div className={classes.alignRight}>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={isSpeakerTextHidden}
+                                        onChange={(e) => handleToggleSpeakerText(e.target.checked)}
+                                    />
+                                }
+                                label="Hide Speakers"
+                                disabled={isTextChanged}
+                            />
+                        </div>
+                    )}
                     <TextField
                         variant="filled"
                         color="secondary"
