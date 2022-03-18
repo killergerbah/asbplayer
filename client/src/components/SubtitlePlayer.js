@@ -501,7 +501,7 @@ export default function SubtitlePlayer({
         }
     } else {
         subtitleTable = (
-            <TableContainer className={classes.table} on>
+            <TableContainer className={classes.table}>
                 <Table>
                     <TableBody>
                         {subtitles.map((s, index) => {
