@@ -1,7 +1,7 @@
 import { Menu, MenuItem } from '@material-ui/core';
 import React, { useState } from 'react';
 
-export default function ContextMenuWrapper({ menuItems, children }) {
+export default function ContextMenuWrapper({ menuItems, disabled, children }) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [styles, setStyles] = useState(undefined);
     const open = Boolean(anchorEl);
@@ -22,26 +22,32 @@ export default function ContextMenuWrapper({ menuItems, children }) {
 
     const handleClick = (clickHandler) => {
         handleClose();
-        clickHandler();
+        setTimeout(clickHandler, 100); // Give menu the chance to close
     };
 
     return (
-        <div onContextMenu={handleContexMenu}>
-            {children}
-            <Menu
-                id="basic-menu"
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleClose}
-                MenuListProps={{
-                    'aria-labelledby': 'basic-button',
-                }}
-                style={{ ...styles, position: 'fixed' }}
-            >
-                {menuItems.map(({ label, onClick }) => (
-                    <MenuItem onClick={() => handleClick(onClick)}>{label}</MenuItem>
-                ))}
-            </Menu>
-        </div>
+        <>
+            {disabled ? (
+                <>{children}</>
+            ) : (
+                <div onContextMenu={handleContexMenu}>
+                    {children}
+                    <Menu
+                        id="basic-menu"
+                        anchorEl={anchorEl}
+                        open={open}
+                        onClose={handleClose}
+                        MenuListProps={{
+                            'aria-labelledby': 'basic-button',
+                        }}
+                        style={{ ...styles, position: 'fixed' }}
+                    >
+                        {menuItems.map(({ label, onClick }) => (
+                            <MenuItem onClick={() => handleClick(onClick)}>{label}</MenuItem>
+                        ))}
+                    </Menu>
+                </div>
+            )}{' '}
+        </>
     );
 }

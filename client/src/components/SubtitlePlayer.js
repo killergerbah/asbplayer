@@ -528,6 +528,10 @@ export default function SubtitlePlayer({
     }
 
     const downloadAllSubtitles = () => {
+        if (!subtitles) {
+            return;
+        }
+
         const filename = prompt('Please enter a filename', title);
         if (filename == null) {
             return;
@@ -539,7 +543,7 @@ export default function SubtitlePlayer({
     const menuItems = [{ label: 'Download Subtitles', onClick: downloadAllSubtitles }];
 
     return (
-        <ContextMenuWrapper menuItems={menuItems}>
+        <ContextMenuWrapper menuItems={menuItems} disabled={subtitles === undefined || subtitles.length === 0}>
             <Paper square elevation={0} ref={containerRef} className={classes.container}>
                 {subtitleTable}
             </Paper>
