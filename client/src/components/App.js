@@ -909,6 +909,7 @@ function App() {
                                         )}
                                         <DragOverlay dragging={dragging} loading={loading} />
                                         <Player
+                                            title={fileName || 'asbplayer'}
                                             subtitleReader={subtitleReader}
                                             settingsProvider={settingsProvider}
                                             onCopy={handleCopy}

@@ -110,3 +110,35 @@ function pad(n) {
 function padEnd(n) {
     return String(n).padEnd(3, '0');
 }
+
+/**
+ *
+ * @param {string} filename
+ * @param {string} text
+ */
+export function createAndDownloadFile(filename, text) {
+    const url = window.URL.createObjectURL(new Blob([text]));
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+/**
+ *
+ * @param subtitle
+ * @returns {import("subtitle").Node}
+ */
+export function getSubtitleToNode({ text, start, end }) {
+    return {
+        type: 'cue',
+        data: {
+            start,
+            end,
+            text,
+        },
+    };
+}

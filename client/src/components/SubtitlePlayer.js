@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef, createRef } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { keysAreEqual } from '../services/Util';
+import { createAndDownloadFile, keysAreEqual, getSubtitleToNode } from '../services/Util';
 import { useWindowSize } from '../hooks/useWindowSize';
 import { KeyBindings, surroundingSubtitles } from '@project/common';
 import FileCopy from '@material-ui/icons/FileCopy';
@@ -12,6 +12,8 @@ import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
+import ContextMenuWrapper from './ContextMenu';
+import { stringifySync } from 'subtitle';
 
 const useSubtitlePlayerStyles = makeStyles((theme) => ({
     container: {
@@ -116,6 +118,7 @@ const SubtitleRow = React.memo((props) => {
 });
 
 export default function SubtitlePlayer({
+    title,
     clock,
     onSeek,
     onCopy,
@@ -498,7 +501,7 @@ export default function SubtitlePlayer({
         }
     } else {
         subtitleTable = (
-            <TableContainer className={classes.table}>
+            <TableContainer className={classes.table} on>
                 <Table>
                     <TableBody>
                         {subtitles.map((s, index) => {
@@ -524,9 +527,22 @@ export default function SubtitlePlayer({
         );
     }
 
+    const downloadAllSubtitles = () => {
+        const filename = prompt('Please enter a filename', title);
+        if (filename == null) {
+            return;
+        }
+        const srtText = stringifySync(subtitles.map(getSubtitleToNode), { format: 'SRT' });
+        createAndDownloadFile(`${filename || ''}.srt`, srtText);
+    };
+
+    const menuItems = [{ label: 'Download Subtitles', onClick: downloadAllSubtitles }];
+
     return (
-        <Paper square elevation={0} ref={containerRef} className={classes.container}>
-            {subtitleTable}
-        </Paper>
+        <ContextMenuWrapper menuItems={menuItems}>
+            <Paper square elevation={0} ref={containerRef} className={classes.container}>
+                {subtitleTable}
+            </Paper>
+        </ContextMenuWrapper>
     );
 }

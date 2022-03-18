@@ -49,6 +49,7 @@ function trackLength(audioRef, videoRef, subtitles, useOffset) {
 }
 
 export default function Player({
+    title,
     sources: { subtitleFiles, audioFile, audioFileUrl, videoFile, videoFileUrl },
     subtitleReader,
     settingsProvider,
@@ -764,6 +765,7 @@ export default function Player({
                             />
                         )}
                         <SubtitlePlayer
+                            title={title}
                             playing={playing}
                             subtitles={subtitles}
                             clock={clock}
