@@ -9,6 +9,7 @@ import {
     CondensedModeToggleToVideoMessage,
     CopyMessage,
     CurrentTimeFromVideoMessage,
+    CurrentTimeToVideoMessage,
     FinishedAnkiDialogRequestToVideoMessage,
     HideSubtitlePlayerToggleToVideoMessage,
     ImageModel,
@@ -51,7 +52,7 @@ export default class VideoChannel {
         image: ImageModel | undefined,
         url: string | undefined,
         preventDuplicate: boolean,
-        id: string
+        id: string | undefined
     ) => void)[];
     private condensedModeToggleCallbacks: (() => void)[];
     private hideSubtitlePlayerToggleCallbacks: (() => void)[];
@@ -214,7 +215,8 @@ export default class VideoChannel {
     set currentTime(value: number) {
         this.time = value;
         this.readyState = 3;
-        this.protocol.postMessage({ command: 'currentTime', value: this.time } as CurrentTimeFromVideoMessage);
+        const message: CurrentTimeToVideoMessage = { command: 'currentTime', value: this.time };
+        this.protocol.postMessage(message);
     }
 
     onReady(callback: (paused: boolean) => void) {
@@ -252,15 +254,17 @@ export default class VideoChannel {
         this.popOutToggleCallbacks.push(callback);
     }
 
-    onCopy(callback: (
-        subtitle: SubtitleModel,
-        surroundingSubtitles: SubtitleModel[],
-        audio: AudioModel | undefined,
-        image: ImageModel | undefined,
-        url: string | undefined,
-        preventDuplicate: boolean,
-        id: string
-    ) => void) {
+    onCopy(
+        callback: (
+            subtitle: SubtitleModel,
+            surroundingSubtitles: SubtitleModel[],
+            audio: AudioModel | undefined,
+            image: ImageModel | undefined,
+            url: string | undefined,
+            preventDuplicate: boolean,
+            id: string | undefined
+        ) => void
+    ) {
         this.copyCallbacks.push(callback);
     }
 
@@ -281,7 +285,8 @@ export default class VideoChannel {
     }
 
     ready(duration: number) {
-        this.protocol.postMessage({ command: 'ready', duration: duration } as ReadyToVideoMessage);
+        const message: ReadyToVideoMessage = { command: 'ready', duration: duration };
+        this.protocol.postMessage(message);
     }
 
     init() {
@@ -297,7 +302,8 @@ export default class VideoChannel {
     }
 
     audioTrackSelected(id: string) {
-        this.protocol.postMessage({ command: 'audioTrackSelected', id: id } as AudioTrackSelectedToVideoMessage);
+        const message: AudioTrackSelectedToVideoMessage = { command: 'audioTrackSelected', id: id };
+        this.protocol.postMessage(message);
     }
 
     subtitles(subtitles: SubtitleModel[], subtitleFileNames: string[]) {
@@ -310,15 +316,24 @@ export default class VideoChannel {
     }
 
     subtitleSettings(settings: SubtitleSettings) {
-        this.protocol.postMessage({ command: 'subtitleSettings', value: settings } as SubtitleSettingsToVideoMessage);
+        const message: SubtitleSettingsToVideoMessage = { command: 'subtitleSettings', value: settings };
+        this.protocol.postMessage(message);
     }
 
     condensedModeToggle(enabled: boolean) {
-        this.protocol.postMessage({ command: 'condensedModeToggle', value: enabled } as CondensedModeToggleToVideoMessage);
+        const message: CondensedModeToggleToVideoMessage = {
+            command: 'condensedModeToggle',
+            value: enabled,
+        };
+        this.protocol.postMessage(message);
     }
 
     hideSubtitlePlayerToggle(hidden: boolean) {
-        this.protocol.postMessage({ command: 'hideSubtitlePlayerToggle', value: hidden } as HideSubtitlePlayerToggleToVideoMessage);
+        const message: HideSubtitlePlayerToggleToVideoMessage = {
+            command: 'hideSubtitlePlayerToggle',
+            value: hidden,
+        };
+        this.protocol.postMessage(message);
     }
 
     ankiDialogRequest() {
@@ -326,15 +341,21 @@ export default class VideoChannel {
     }
 
     finishedAnkiDialogRequest(resume: boolean) {
-        this.protocol.postMessage({ command: 'finishedAnkiDialogRequest', resume: resume } as FinishedAnkiDialogRequestToVideoMessage);
+        const message: FinishedAnkiDialogRequestToVideoMessage = {
+            command: 'finishedAnkiDialogRequest',
+            resume: resume,
+        };
+        this.protocol.postMessage(message);
     }
 
     ankiSettings(settings: AnkiSettings) {
-        this.protocol.postMessage({ command: 'ankiSettings', value: settings } as AnkiSettingsToVideoMessage);
+        const message: AnkiSettingsToVideoMessage = { command: 'ankiSettings', value: settings };
+        this.protocol.postMessage(message);
     }
 
     miscSettings(settings: MiscSettings) {
-        this.protocol.postMessage({ command: 'miscSettings', value: settings } as MiscSettingsToVideoMessage);
+        const message: MiscSettingsToVideoMessage = { command: 'miscSettings', value: settings };
+        this.protocol.postMessage(message);
     }
 
     close() {

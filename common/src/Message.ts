@@ -79,7 +79,7 @@ export interface StopRecordingMediaMessage extends Message {
 
 export interface CopyMessage extends Message {
     readonly command: 'copy';
-    readonly id: string;
+    readonly id?: string;
     readonly subtitle: SubtitleModel;
     readonly surroundingSubtitles: SubtitleModel[];
     readonly url?: string;
@@ -114,76 +114,81 @@ export interface RerecordMediaMessage extends Message {
 }
 
 export interface ShowAnkiUiAfterRerecordMessage extends Message {
-    command: 'show-anki-ui-after-rerecord';
-    id: string;
-    uiState: AnkiUiDialogState;
-    audio: AudioModel;
+    readonly command: 'show-anki-ui-after-rerecord';
+    readonly id: string;
+    readonly uiState: AnkiUiDialogState;
+    readonly audio: AudioModel;
 }
 
 export interface PlayerSyncMessage extends Message {
-    command: 'syncv2';
-    subtitles: SubtitleModel[];
+    readonly command: 'syncv2';
+    readonly subtitles: SubtitleModel[];
 }
 
 export interface ExtensionSyncMessage extends Message {
-    command: 'sync';
-    subtitles: SubtitleModel[];
+    readonly command: 'sync';
+    readonly subtitles: SubtitleModel[];
 }
 
 export interface OffsetFromVideoMessage extends Message {
-    command: 'offset';
-    value: number;
+    readonly command: 'offset';
+    readonly value: number;
 }
 
 export interface ToggleSubtitlesMessage extends Message {
-    command: 'toggle-subtitles';
+    readonly command: 'toggle-subtitles';
 }
 
 export interface ToggleSubtitlesInListFromVideoMessage extends Message {
-    command: 'toggleSubtitleTrackInList';
-    track: number;
+    readonly command: 'toggleSubtitleTrackInList';
+    readonly track: number;
 }
 
 export interface ReadyStateFromVideoMessage extends Message {
-    command: 'readyState';
-    value: number;
+    readonly command: 'readyState';
+    readonly value: number;
 }
 
 export interface ReadyFromVideoMessage extends Message {
-    command: 'ready';
-    duration: number;
-    currentTime: number;
-    paused: boolean;
-    audioTracks?: AudioTrackModel[];
-    selectedAudioTrack?: string;
-    playbackRate: number;
+    readonly command: 'ready';
+    readonly duration: number;
+    readonly currentTime: number;
+    readonly paused: boolean;
+    readonly audioTracks?: AudioTrackModel[];
+    readonly selectedAudioTrack?: string;
+    readonly playbackRate: number;
 }
 
 export interface ReadyToVideoMessage extends Message {
-    command: 'ready';
-    duration: number;
+    readonly command: 'ready';
+    readonly duration: number;
 }
 
 export interface PlayFromVideoMessage extends Message {
-    command: 'play';
-    echo: boolean;
+    readonly command: 'play';
+    readonly echo: boolean;
 }
 
 export interface PauseFromVideoMessage extends Message {
-    command: 'pause';
-    echo: boolean;
+    readonly command: 'pause';
+    readonly echo: boolean;
 }
 
 export interface CurrentTimeFromVideoMessage extends Message {
-    command: 'currentTime';
-    value: number;
-    echo: boolean;
+    readonly command: 'currentTime';
+    readonly value: number;
+    readonly echo: boolean;
+}
+
+export interface CurrentTimeToVideoMessage extends Message {
+    readonly command: 'currentTime';
+    readonly value: number;
 }
 
 export interface PlaybackRateFromVideoMessage extends Message {
-    command: 'playbackRate';
-    value: number;
-    echo: boolean;
+    readonly command: 'playbackRate';
+    readonly value: number;
+    readonly echo: boolean;
 }
 
 export interface AudioTrackSelectedFromVideoMessage extends Message {
@@ -207,38 +212,38 @@ export interface ToggleSubtitleTrackInListFromVideoMessage extends Message {
 }
 
 export interface SubtitlesToVideoMessage extends Message {
-    command: 'subtitles';
-    value: SubtitleModel[];
-    name?: string;
-    names: string[];
+    readonly command: 'subtitles';
+    readonly value: SubtitleModel[];
+    readonly name?: string;
+    readonly names: string[];
 }
 
 export interface SubtitleSettingsToVideoMessage extends Message {
-    command: 'subtitleSettings';
-    value: SubtitleSettings;
+    readonly command: 'subtitleSettings';
+    readonly value: SubtitleSettings;
 }
 
 export interface CondensedModeToggleToVideoMessage extends Message {
-    command: 'condensedModeToggle';
-    value: boolean;
+    readonly command: 'condensedModeToggle';
+    readonly value: boolean;
 }
 
 export interface HideSubtitlePlayerToggleToVideoMessage extends Message {
-    command: 'hideSubtitlePlayerToggle';
-    value: boolean;
+    readonly command: 'hideSubtitlePlayerToggle';
+    readonly value: boolean;
 }
 
 export interface FinishedAnkiDialogRequestToVideoMessage extends Message {
-    command: 'finishedAnkiDialogRequest';
-    resume: boolean;
+    readonly command: 'finishedAnkiDialogRequest';
+    readonly resume: boolean;
 }
 
 export interface AnkiSettingsToVideoMessage extends Message {
-    command: 'ankiSettings';
-    value: AnkiSettings;
+    readonly command: 'ankiSettings';
+    readonly value: AnkiSettings;
 }
 
 export interface MiscSettingsToVideoMessage extends Message {
-    command: 'miscSettings';
-    value: MiscSettings;
+    readonly command: 'miscSettings';
+    readonly value: MiscSettings;
 }

@@ -1,16 +1,21 @@
+import { RefObject } from "react";
+
 export default class MediaAdapter {
-    constructor(ref) {
+    private readonly ref: RefObject<HTMLMediaElement>;
+    private readonly readyResolves: (() => void)[];
+
+    constructor(ref: RefObject<HTMLMediaElement>) {
         this.ref = ref;
         this.readyResolves = [];
     }
 
-    async seek(time) {
+    async seek(time: number) {
         return new Promise((resolve, reject) => {
             if (this.ref.current) {
                 this.ref.current.currentTime = time;
-                this._onMediaCanPlay(() => resolve());
+                this._onMediaCanPlay(() => resolve(undefined));
             } else {
-                resolve();
+                resolve(undefined);
             }
         });
     }
@@ -18,15 +23,15 @@ export default class MediaAdapter {
     async onReady() {
         return new Promise((resolve, reject) => {
             if (this.ref.current) {
-                this._onMediaCanPlay(() => resolve());
+                this._onMediaCanPlay(() => resolve(undefined));
             } else {
-                resolve();
+                resolve(undefined);
             }
         });
     }
 
-    _onMediaCanPlay(callback) {
-        if (this.ref.readyState === 4) {
+    _onMediaCanPlay(callback: () => void) {
+        if (this.ref.current?.readyState === 4) {
             callback();
             return;
         }
@@ -38,7 +43,10 @@ export default class MediaAdapter {
                 }
 
                 this.readyResolves.length = 0;
-                this.ref.current.oncanplay = null;
+
+                if (this.ref.current) {
+                    this.ref.current.oncanplay = null;
+                }
             };
         }
 

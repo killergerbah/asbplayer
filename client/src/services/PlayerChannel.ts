@@ -1,5 +1,22 @@
+import { AnkiDialogRequestFromVideoMessage, AudioTrackModel, AudioTrackSelectedFromVideoMessage, AudioTrackSelectedToVideoMessage, CondensedModeToggleToVideoMessage, CopyMessage, CurrentTimeToVideoMessage, FinishedAnkiDialogRequestToVideoMessage, HideSubtitlePlayerToggleToVideoMessage, OffsetFromVideoMessage, PauseFromVideoMessage, PlayFromVideoMessage, ReadyFromVideoMessage, ReadyStateFromVideoMessage, ReadyToVideoMessage, SubtitleModel, SubtitlesToVideoMessage, ToggleSubtitleTrackInListFromVideoMessage } from "@project/common";
+
 export default class PlayerChannel {
-    constructor(channel) {
+    private channel?: BroadcastChannel;
+    private time: number;
+    private duration: number;
+    private readyCallbacks: ((duration: number) => void)[];
+    private playCallbacks: (() => void)[];
+    private pauseCallbacks: (() => void)[];
+    private currentTimeCallbacks: ((currentTime: number) => void)[];
+    private audioTrackSelectedCallbacks: ((id: string) => void)[];
+    private closeCallbacks: (() => void)[];
+    private subtitlesCallbacks: ((subtitles: SubtitleModel[]) => void)[];
+    private condensedModeToggleCallbacks: ((enabled: boolean) => void)[];
+    private hideSubtitlePlayerToggleCallbacks: ((enabled: boolean) => void)[];
+    private ankiDialogRequestCallbacks: (() => void)[];
+    private finishedAnkiDialogRequestCallbacks: ((resume: boolean) => void)[];
+
+    constructor(channel: string) {
         this.channel = new BroadcastChannel(channel);
         this.time = 0;
         this.duration = 0;
@@ -23,8 +40,10 @@ export default class PlayerChannel {
                     // ignore, this is for the chrome extension
                     break;
                 case 'ready':
+                    const readyMessage = event.data as ReadyToVideoMessage;
+
                     for (let callback of that.readyCallbacks) {
-                        callback(event.data.duration);
+                        callback(readyMessage.duration);
                     }
                     break;
                 case 'play':
@@ -38,13 +57,17 @@ export default class PlayerChannel {
                     }
                     break;
                 case 'currentTime':
+                    const currentTimeMessage = event.data as CurrentTimeToVideoMessage;
+
                     for (let callback of that.currentTimeCallbacks) {
-                        callback(event.data.value);
+                        callback(currentTimeMessage.value);
                     }
                     break;
                 case 'audioTrackSelected':
+                    const audioTrackSelectedMessage = event.data as AudioTrackSelectedToVideoMessage;
+
                     for (let callback of that.audioTrackSelectedCallbacks) {
-                        callback(event.data.id);
+                        callback(audioTrackSelectedMessage.id);
                     }
                     break;
                 case 'close':
@@ -53,21 +76,27 @@ export default class PlayerChannel {
                     }
                     break;
                 case 'subtitles':
+                    const subtitlesMessage = event.data as SubtitlesToVideoMessage;
+
                     for (let callback of that.subtitlesCallbacks) {
-                        callback(event.data.value);
+                        callback(subtitlesMessage.value);
                     }
                     break;
                 case 'subtitleSettings':
                     // ignore
                     break;
                 case 'condensedModeToggle':
+                    const condensedModeToggleMessage = event.data as CondensedModeToggleToVideoMessage;
+
                     for (let callback of that.condensedModeToggleCallbacks) {
-                        callback(event.data.value);
+                        callback(condensedModeToggleMessage.value);
                     }
                     break;
                 case 'hideSubtitlePlayerToggle':
+                    const hideSubtitlePlayerToggleMessage = event.data as HideSubtitlePlayerToggleToVideoMessage;
+
                     for (let callback of that.hideSubtitlePlayerToggleCallbacks) {
-                        callback(event.data.value);
+                        callback(hideSubtitlePlayerToggleMessage.value);
                     }
                     break;
                 case 'ankiDialogRequest':
@@ -76,8 +105,10 @@ export default class PlayerChannel {
                     }
                     break;
                 case 'finishedAnkiDialogRequest':
+                    const finishedAnkiDialogRequestMessage = event.data as FinishedAnkiDialogRequestToVideoMessage;
+
                     for (let callback of that.finishedAnkiDialogRequestCallbacks) {
-                        callback(event.data.resume);
+                        callback(finishedAnkiDialogRequestMessage.resume);
                     }
                     break;
                 case 'ankiSettings':
@@ -101,92 +132,102 @@ export default class PlayerChannel {
         this.channel?.postMessage({ command: 'currentTime', value: this.time, echo: true });
     }
 
-    onPlay(callback) {
+    onPlay(callback: () => void) {
         this.playCallbacks.push(callback);
     }
 
-    onPause(callback) {
+    onPause(callback: () => void) {
         this.pauseCallbacks.push(callback);
     }
 
-    onCurrentTime(callback) {
+    onCurrentTime(callback: (currentTime: number) => void) {
         this.currentTimeCallbacks.push(callback);
     }
 
-    onAudioTrackSelected(callback) {
+    onAudioTrackSelected(callback: (id: string) => void) {
         this.audioTrackSelectedCallbacks.push(callback);
     }
 
-    onClose(callback) {
+    onClose(callback: () => void) {
         this.closeCallbacks.push(callback);
     }
 
-    onReady(callback) {
+    onReady(callback: () => void) {
         this.readyCallbacks.push(callback);
     }
 
-    onSubtitles(callback) {
+    onSubtitles(callback: (subtitles: SubtitleModel[]) => void) {
         this.subtitlesCallbacks.push(callback);
     }
 
-    onCondensedModeToggle(callback) {
+    onCondensedModeToggle(callback: (enabled: boolean) => void) {
         this.condensedModeToggleCallbacks.push(callback);
     }
 
-    onHideSubtitlePlayerToggle(callback) {
+    onHideSubtitlePlayerToggle(callback: (enabled: boolean) => void) {
         this.hideSubtitlePlayerToggleCallbacks.push(callback);
     }
 
-    onAnkiDialogRequest(callback) {
+    onAnkiDialogRequest(callback: () => void) {
         this.ankiDialogRequestCallbacks.push(callback);
     }
 
-    onFinishedAnkiDialogRequest(callback) {
+    onFinishedAnkiDialogRequest(callback: (resume: boolean) => void) {
         this.finishedAnkiDialogRequestCallbacks.push(callback);
     }
 
-    ready(duration, paused, audioTracks, selectedAudioTrack) {
-        this.channel?.postMessage({
+    ready(duration: number, paused: boolean, audioTracks: AudioTrackModel[], selectedAudioTrack: string) {
+        const message: ReadyFromVideoMessage = {
             command: 'ready',
             duration: duration,
             paused: paused,
             currentTime: 0,
             audioTracks: audioTracks,
             selectedAudioTrack: selectedAudioTrack,
-        });
+            playbackRate: 1,
+        };
+
+        this.channel?.postMessage(message);
     }
 
-    readyState(readyState) {
-        this.channel?.postMessage({ command: 'readyState', value: readyState });
+    readyState(readyState: number) {
+        const message: ReadyStateFromVideoMessage = { command: 'readyState', value: readyState };
+        this.channel?.postMessage(message);
     }
 
     play() {
-        this.channel?.postMessage({ command: 'play', echo: true });
+        const message: PlayFromVideoMessage = { command: 'play', echo: true };
+        this.channel?.postMessage(message);
     }
 
     pause() {
-        this.channel?.postMessage({ command: 'pause', echo: true });
+        const message: PauseFromVideoMessage = { command: 'pause', echo: true };
+        this.channel?.postMessage(message);
     }
 
-    audioTrackSelected(id) {
-        this.channel?.postMessage({ command: 'audioTrackSelected', id: id });
+    audioTrackSelected(id: string) {
+        const message: AudioTrackSelectedFromVideoMessage = { command: 'audioTrackSelected', id: id };
+        this.channel?.postMessage(message);
     }
 
-    offset(offset) {
-        this.channel?.postMessage({ command: 'offset', value: offset });
+    offset(offset: number) {
+        const message: OffsetFromVideoMessage = { command: 'offset', value: offset };
+        this.channel?.postMessage(message);
     }
 
     popOutToggle() {
         this.channel?.postMessage({ command: 'popOutToggle' });
     }
 
-    copy(subtitle, surroundingSubtitles, preventDuplicate) {
-        this.channel?.postMessage({
+    copy(subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], preventDuplicate: boolean) {
+        const message: CopyMessage = {
             command: 'copy',
             subtitle: subtitle,
             surroundingSubtitles: surroundingSubtitles,
             preventDuplicate: preventDuplicate,
-        });
+        };
+
+        this.channel?.postMessage(message);
     }
 
     condensedModeToggle() {
@@ -197,19 +238,21 @@ export default class PlayerChannel {
         this.channel?.postMessage({ command: 'hideSubtitlePlayerToggle' });
     }
 
-    ankiDialogRequest(forwardToVideo) {
-        this.channel?.postMessage({ command: 'ankiDialogRequest', forwardToVideo: forwardToVideo });
+    ankiDialogRequest(forwardToVideo: boolean) {
+        const message: AnkiDialogRequestFromVideoMessage = { command: 'ankiDialogRequest', forwardToVideo: forwardToVideo };
+        this.channel?.postMessage(message);
     }
 
-    toggleSubtitleTrackInList(track) {
-        this.channel?.postMessage({ command: 'toggleSubtitleTrackInList', track: track });
+    toggleSubtitleTrackInList(track: number) {
+        const message: ToggleSubtitleTrackInListFromVideoMessage = { command: 'toggleSubtitleTrackInList', track: track };
+        this.channel?.postMessage(message);
     }
 
     close() {
         if (this.channel) {
             this.channel.postMessage({ command: 'exit' });
             this.channel.close();
-            this.channel = null;
+            this.channel = undefined;
             this.playCallbacks = [];
             this.pauseCallbacks = [];
             this.currentTimeCallbacks = [];
