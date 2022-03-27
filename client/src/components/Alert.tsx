@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import MuiAlert from '@material-ui/lab/Alert';
+import MuiAlert, { Color } from '@material-ui/lab/Alert';
 import Grow from '@material-ui/core/Grow';
 
 const useAlertStyles = makeStyles({
@@ -15,7 +15,15 @@ const useAlertStyles = makeStyles({
     },
 });
 
-export default function Alert(props) {
+interface Props {
+    open: boolean;
+    autoHideDuration: number;
+    onClose: () => void;
+    severity: Color | undefined;
+    children: React.ReactNode
+}
+
+export default function Alert(props: Props) {
     const classes = useAlertStyles();
 
     useEffect(() => {
@@ -23,8 +31,6 @@ export default function Alert(props) {
             const timeout = setTimeout(props.onClose, props.autoHideDuration);
             return () => clearTimeout(timeout);
         }
-
-        return null;
     }, [props.open, props.autoHideDuration, props.onClose]);
 
     return (
