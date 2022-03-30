@@ -30,7 +30,9 @@ interface Props {
     extensionUrl: string;
     loading: boolean;
     dragging: boolean;
-    onFileSelector: React.MouseEventHandler<HTMLAnchorElement> & React.MouseEventHandler<HTMLSpanElement> & React.MouseEventHandler<HTMLLabelElement>
+    onFileSelector: React.MouseEventHandler<HTMLAnchorElement> &
+        React.MouseEventHandler<HTMLSpanElement> &
+        React.MouseEventHandler<HTMLLabelElement>;
 }
 
 export default function LandingPage({
