@@ -1,4 +1,4 @@
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, Theme } from '@material-ui/core/styles';
 import clsx from 'clsx';
 import AppBar from '@material-ui/core/AppBar';
 import BugReportIcon from '@material-ui/icons/BugReport';
@@ -8,10 +8,20 @@ import IconButton from '@material-ui/core/IconButton';
 import ListIcon from '@material-ui/icons/List';
 import SettingsIcon from '@material-ui/icons/Settings';
 import Toolbar from '@material-ui/core/Toolbar';
-import Tooltip from '@material-ui/core/Tooltip';
+import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 
-const useStyles = makeStyles((theme) => ({
+interface BarProps {
+    drawerWidth: number;
+    drawerOpen: boolean;
+    title: string;
+    onFileSelector: () => void;
+    onOpenHelp: () => void;
+    onOpenSettings: () => void;
+    onOpenCopyHistory: () => void;
+}
+
+const useStyles = makeStyles<Theme, BarProps, string>((theme) => ({
     title: {
         flexGrow: 1,
     },
@@ -52,18 +62,26 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const useCopyHistoryTooltipStyles = makeStyles((theme) => ({
+interface CopyHistoryTooltipStylesProps {
+    show: boolean;
+}
+
+interface CopyHistoryTooltipProps extends TooltipProps {
+    show: boolean;
+}
+
+const useCopyHistoryTooltipStyles = makeStyles<Theme, CopyHistoryTooltipStylesProps, string>((theme) => ({
     tooltip: ({ show }) => ({
         display: show ? 'block' : 'none',
     }),
 }));
 
-function CopyHistoryTooltip({ show, ...toolTipProps }) {
+function CopyHistoryTooltip({ show, ...toolTipProps }: CopyHistoryTooltipProps) {
     const classes = useCopyHistoryTooltipStyles({ show: show });
     return <Tooltip classes={classes} {...toolTipProps} />;
 }
 
-export default function Bar(props) {
+export default function Bar(props: BarProps) {
     const classes = useStyles(props);
     return (
         <AppBar
