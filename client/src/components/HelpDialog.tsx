@@ -24,9 +24,15 @@ const useStyles = makeStyles((theme) => ({
         textAlign: 'left',
     },
 }));
-export default function HelpDialog(props) {
+
+interface Props {
+    open: boolean;
+    extensionUrl: string;
+    onClose: () => void;
+}
+
+export default function HelpDialog({ open, extensionUrl, onClose }: Props) {
     const classes = useStyles();
-    const { open, extensionUrl, onClose } = props;
 
     return (
         <Dialog open={open} onBackdropClick={onClose} onEscapeKeyDown={onClose}>
