@@ -4,6 +4,7 @@ import gt from 'semver/functions/gt';
 import Fade from '@material-ui/core/Fade';
 import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
+import ChromeExtension from '../services/ChromeExtension';
 
 const useStyles = makeStyles((theme) => ({
     background: {
@@ -23,6 +24,15 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+interface Props {
+    extension: ChromeExtension;
+    latestExtensionVersion: string;
+    extensionUrl: string;
+    loading: boolean;
+    dragging: boolean;
+    onFileSelector: React.MouseEventHandler<HTMLAnchorElement> & React.MouseEventHandler<HTMLSpanElement> & React.MouseEventHandler<HTMLLabelElement>
+}
+
 export default function LandingPage({
     extension,
     latestExtensionVersion,
@@ -30,9 +40,9 @@ export default function LandingPage({
     loading,
     dragging,
     onFileSelector,
-}) {
+}: Props) {
     const classes = useStyles();
-    const [installedExtensionVersion, setInstalledExtensionVersion] = useState();
+    const [installedExtensionVersion, setInstalledExtensionVersion] = useState<string>();
 
     useEffect(() => {
         async function fetchInstalledExtensionVersion() {

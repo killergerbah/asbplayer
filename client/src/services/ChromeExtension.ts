@@ -78,7 +78,7 @@ export default class ChromeExtension {
         );
     }
 
-    async installedVersion() {
+    async installedVersion(): Promise<string> {
         return await this.versionPromise;
     }
 

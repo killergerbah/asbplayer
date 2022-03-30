@@ -4444,6 +4444,7 @@ __metadata:
     "@types/react-dom": ^17.0.11
     "@types/react-router": ^5.1.18
     "@types/react-router-dom": ^5.3.3
+    "@types/semver": ^7.3.9
     ass-compiler: 0.1.1
     eslint-config-react-app: ^6.0.0
     gh-pages: ^3.1.0
@@ -5140,6 +5141,13 @@ __metadata:
   version: 0.16.1
   resolution: "@types/scheduler@npm:0.16.1"
   checksum: 0124c2e4dee5e9b8c8524fcd6b1b8ea0b807b132e593925db04cdcc92ca2779a0d27c79414e60454b4458361a4d8319fa2b59d20585054f21617d1e9acf46a6f
+  languageName: node
+  linkType: hard
+
+"@types/semver@npm:^7.3.9":
+  version: 7.3.9
+  resolution: "@types/semver@npm:7.3.9"
+  checksum: 62edbef51565255ac6e4d0aa9437743ac899c12a54776882e71195a610cb8fa7b493f19f8f35429dec1d9eeb3f310eea0f9290489155f1713eebae5560669d67
   languageName: node
   linkType: hard
 
