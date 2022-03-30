@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useMemo } from 'react';
+import React, { useCallback, useState, useEffect, useMemo, ChangeEvent, ReactNode } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { computeStyles } from '../services/Util';
 import Button from '@material-ui/core/Button';
@@ -25,8 +25,10 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import TagsTextField from './TagsTextField';
+import { Theme } from '@material-ui/core/styles/createMuiTheme';
+import { Anki, AsbplayerSettings } from '@project/common';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles<Theme>((theme) => ({
     root: {
         '& .MuiTextField-root': {
             marginTop: theme.spacing(1),
@@ -62,7 +64,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const useSelectableSettingStyles = makeStyles((theme) => ({
+const useSelectableSettingStyles = makeStyles<Theme>((theme) => ({
     formControl: {
         margin: theme.spacing(1),
         minWidth: 120,
@@ -75,7 +77,25 @@ const useSelectableSettingStyles = makeStyles((theme) => ({
     },
 }));
 
-function SelectableSetting({ label, value, selections, removable, onChange, onSelectionChange, onRemoval }) {
+interface SelectableSettingProps {
+    label: string;
+    value: string;
+    selections?: string[];
+    removable?: boolean;
+    onChange: (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;
+    onSelectionChange: (event: ChangeEvent<{name?: string | undefined, value: unknown}>, child: ReactNode) => void;
+    onRemoval?: () => void;
+}
+
+function SelectableSetting({
+    label,
+    value,
+    selections,
+    removable,
+    onChange,
+    onSelectionChange,
+    onRemoval,
+}: SelectableSettingProps) {
     const classes = useSelectableSettingStyles();
 
     return (
@@ -111,40 +131,49 @@ function SelectableSetting({ label, value, selections, removable, onChange, onSe
     );
 }
 
-export default function SettingsDialog({ anki, open, settings, onClose }) {
+interface Props {
+    anki: Anki;
+    open: boolean;
+    settings: AsbplayerSettings;
+    onClose: (settings: AsbplayerSettings) => void;
+}
+
+export default function SettingsDialog({ anki, open, settings, onClose }: Props) {
     const classes = useStyles();
-    const [ankiConnectUrl, setAnkiConnectUrl] = useState(settings.ankiConnectUrl);
-    const [ankiConnectUrlError, setAnkiConnectUrlError] = useState();
-    const [ankiConnectUrlChangeTimestamp, setAnkiConnectUrlChangeTimestamp] = useState(0);
-    const [deck, setDeck] = useState(settings.deck || '');
-    const [deckNames, setDeckNames] = useState();
-    const [noteType, setNoteType] = useState(settings.noteType || '');
-    const [modelNames, setModelNames] = useState();
-    const [sentenceField, setSentenceField] = useState(settings.sentenceField || '');
-    const [definitionField, setDefinitionField] = useState(settings.definitionField || '');
-    const [audioField, setAudioField] = useState(settings.audioField || '');
-    const [imageField, setImageField] = useState(settings.imageField || '');
-    const [wordField, setWordField] = useState(settings.wordField || '');
-    const [sourceField, setSourceField] = useState(settings.sourceField || '');
-    const [urlField, setUrlField] = useState(settings.urlField || '');
-    const [customFields, setCustomFields] = useState(settings.customAnkiFields);
-    const [tags, setTags] = useState(settings.tags);
-    const [preferMp3, setPreferMp3] = useState(settings.preferMp3);
-    const [fieldNames, setFieldNames] = useState();
-    const [customFieldDialogOpen, setCustomFieldDialogOpen] = useState(false);
-    const [audioPaddingStart, setAudioPaddingStart] = useState(settings.audioPaddingStart);
-    const [audioPaddingEnd, setAudioPaddingEnd] = useState(settings.audioPaddingEnd);
-    const [maxImageWidth, setMaxImageWidth] = useState(settings.maxImageWidth);
-    const [maxImageHeight, setMaxImageHeight] = useState(settings.maxImageHeight);
-    const [subtitleColor, setSubtitleColor] = useState(settings.subtitleColor);
-    const [subtitleSize, setSubtitleSize] = useState(settings.subtitleSize);
-    const [subtitleOutlineColor, setSubtitleOutlineColor] = useState(settings.subtitleOutlineColor);
-    const [subtitleOutlineThickness, setSubtitleOutlineThickness] = useState(settings.subtitleOutlineThickness);
-    const [subtitleBackgroundColor, setSubtitleBackgroundColor] = useState(settings.subtitleBackgroundColor);
-    const [subtitleBackgroundOpacity, setSubtitleBackgroundOpacity] = useState(settings.subtitleBackgroundOpacity);
-    const [subtitleFontFamily, setSubtitleFontFamily] = useState(settings.subtitleFontFamily);
-    const [subtitlePreview, setSubtitlePreview] = useState(settings.subtitlePreview);
-    const [themeType, setThemeType] = useState(settings.themeType);
+    const [ankiConnectUrl, setAnkiConnectUrl] = useState<string>(settings.ankiConnectUrl);
+    const [ankiConnectUrlError, setAnkiConnectUrlError] = useState<string>();
+    const [ankiConnectUrlChangeTimestamp, setAnkiConnectUrlChangeTimestamp] = useState<number>(0);
+    const [deck, setDeck] = useState<string>(settings.deck || '');
+    const [deckNames, setDeckNames] = useState<string[]>();
+    const [noteType, setNoteType] = useState<string>(settings.noteType || '');
+    const [modelNames, setModelNames] = useState<string[]>();
+    const [sentenceField, setSentenceField] = useState<string>(settings.sentenceField || '');
+    const [definitionField, setDefinitionField] = useState<string>(settings.definitionField || '');
+    const [audioField, setAudioField] = useState<string>(settings.audioField || '');
+    const [imageField, setImageField] = useState<string>(settings.imageField || '');
+    const [wordField, setWordField] = useState<string>(settings.wordField || '');
+    const [sourceField, setSourceField] = useState<string>(settings.sourceField || '');
+    const [urlField, setUrlField] = useState<string>(settings.urlField || '');
+    const [customFields, setCustomFields] = useState<{ [key: string]: string }>(settings.customAnkiFields);
+    const [tags, setTags] = useState<string[]>(settings.tags);
+    const [preferMp3, setPreferMp3] = useState<boolean>(settings.preferMp3);
+    const [fieldNames, setFieldNames] = useState<string[]>();
+    const [customFieldDialogOpen, setCustomFieldDialogOpen] = useState<boolean>(false);
+    const [audioPaddingStart, setAudioPaddingStart] = useState<number>(settings.audioPaddingStart);
+    const [audioPaddingEnd, setAudioPaddingEnd] = useState<number>(settings.audioPaddingEnd);
+    const [maxImageWidth, setMaxImageWidth] = useState<number>(settings.maxImageWidth);
+    const [maxImageHeight, setMaxImageHeight] = useState<number>(settings.maxImageHeight);
+    const [subtitleColor, setSubtitleColor] = useState<string>(settings.subtitleColor);
+    const [subtitleSize, setSubtitleSize] = useState<number>(settings.subtitleSize);
+    const [subtitleOutlineColor, setSubtitleOutlineColor] = useState<string>(settings.subtitleOutlineColor);
+    const [subtitleOutlineThickness, setSubtitleOutlineThickness] = useState<number>(settings.subtitleOutlineThickness);
+    const [subtitleBackgroundColor, setSubtitleBackgroundColor] = useState<string>(settings.subtitleBackgroundColor);
+    const [subtitleBackgroundOpacity, setSubtitleBackgroundOpacity] = useState<number>(
+        settings.subtitleBackgroundOpacity
+    );
+    const [subtitleFontFamily, setSubtitleFontFamily] = useState<string>(settings.subtitleFontFamily);
+    const [subtitlePreview, setSubtitlePreview] = useState<string>(settings.subtitlePreview);
+    const [themeType, setThemeType] = useState<"dark" | "light">(settings.themeType);
 
     const handleAnkiConnectUrlChange = useCallback((e) => {
         setAnkiConnectUrl(e.target.value);
@@ -173,27 +202,27 @@ export default function SettingsDialog({ anki, open, settings, onClose }) {
     const handleSubtitleBackgroundOpacityChange = useCallback((e) => setSubtitleBackgroundOpacity(e.target.value), []);
     const handleSubtitleFontFamilyChange = useCallback((e) => setSubtitleFontFamily(e.target.value), []);
     const handleSubtitlePreviewChange = useCallback((e) => setSubtitlePreview(e.target.value), []);
-    const handleAddCustomField = useCallback((customFieldName) => {
-        setCustomFields((oldCustomFields) => {
-            const newCustomFields = {};
+    const handleAddCustomField = useCallback((customFieldName: string) => {
+        setCustomFields((oldCustomFields: { [key: string]: string }) => {
+            const newCustomFields: { [key: string]: string } = {};
             Object.assign(newCustomFields, oldCustomFields);
             newCustomFields[customFieldName] = '';
             return newCustomFields;
         });
         setCustomFieldDialogOpen(false);
     }, []);
-    const handleCustomFieldChange = useCallback((customFieldName, value) => {
-        setCustomFields((oldCustomFields) => {
-            const newCustomFields = {};
+    const handleCustomFieldChange = useCallback((customFieldName: string, value: string) => {
+        setCustomFields((oldCustomFields: { [key: string]: string }) => {
+            const newCustomFields: { [key: string]: string } = {};
             Object.assign(newCustomFields, oldCustomFields);
             newCustomFields[customFieldName] = value;
             return newCustomFields;
         });
     }, []);
     const handleCustomFieldRemoval = useCallback(
-        (customFieldName) =>
-            setCustomFields((oldCustomFields) => {
-                const newCustomFields = {};
+        (customFieldName: string) =>
+            setCustomFields((oldCustomFields: { [key: string]: string }) => {
+                const newCustomFields: { [key: string]: string } = {};
                 Object.assign(newCustomFields, oldCustomFields);
                 delete newCustomFields[customFieldName];
                 return newCustomFields;
@@ -239,16 +268,23 @@ export default function SettingsDialog({ anki, open, settings, onClose }) {
                 await anki.requestPermission(ankiConnectUrl);
                 setDeckNames(await anki.deckNames(ankiConnectUrl));
                 setModelNames(await anki.modelNames(ankiConnectUrl));
-                setAnkiConnectUrlError(null);
+                setAnkiConnectUrlError(undefined);
             } catch (e) {
                 if (canceled) {
                     return;
                 }
 
                 console.error(e);
-                setDeckNames(null);
-                setModelNames(null);
-                setAnkiConnectUrlError(e.message);
+                setDeckNames(undefined);
+                setModelNames(undefined);
+
+                if (e instanceof Error) {
+                    setAnkiConnectUrlError(e.message);
+                } else if (typeof e === 'string') {
+                    setAnkiConnectUrlError(e);
+                } else {
+                    setAnkiConnectUrlError(String(e));
+                }
             }
         }, 1000);
 
@@ -260,7 +296,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }) {
 
     useEffect(() => {
         if (!noteType || ankiConnectUrlError) {
-            return;
+            return undefined;
         }
 
         let canceled = false;
@@ -272,21 +308,30 @@ export default function SettingsDialog({ anki, open, settings, onClose }) {
                 }
 
                 setFieldNames(['', ...(await anki.modelFieldNames(noteType, ankiConnectUrl))]);
-                setAnkiConnectUrlError(null);
+                setAnkiConnectUrlError(undefined);
             } catch (e) {
                 if (canceled) {
                     return;
                 }
 
                 console.error(e);
-                setFieldNames(null);
-                setAnkiConnectUrlError(e.message);
+                setFieldNames(undefined);
+
+                if (e instanceof Error) {
+                    setAnkiConnectUrlError(e.message);
+                } else if (typeof e === 'string') {
+                    setAnkiConnectUrlError(e);
+                } else {
+                    setAnkiConnectUrlError(String(e));
+                }
             }
         }
 
         refreshFieldNames();
 
-        return () => (canceled = true);
+        return () => {
+            canceled = true;
+        };
     }, [anki, noteType, ankiConnectUrl, ankiConnectUrlError, ankiConnectUrlChangeTimestamp]);
 
     const handleClose = useCallback(() => {
@@ -317,6 +362,9 @@ export default function SettingsDialog({ anki, open, settings, onClose }) {
             audioPaddingEnd: audioPaddingEnd,
             maxImageWidth: maxImageWidth,
             maxImageHeight: maxImageHeight,
+            // The settings below are not currently mutable
+            surroundingSubtitlesCountRadius: 5000,
+            surroundingSubtitlesTimeRadius: 5000
         });
     }, [
         onClose,
@@ -354,9 +402,9 @@ export default function SettingsDialog({ anki, open, settings, onClose }) {
                 key={customFieldName}
                 label={`${customFieldName} Field`}
                 value={customFields[customFieldName]}
-                selections={fieldNames}
+                selections={fieldNames!}
                 onChange={(e) => handleCustomFieldChange(customFieldName, e.target.value)}
-                onSelectionChange={(e) => handleCustomFieldChange(customFieldName, e.target.value)}
+                onSelectionChange={(e) => handleCustomFieldChange(customFieldName, e.target.value as string)}
                 onRemoval={() => handleCustomFieldRemoval(customFieldName)}
                 removable={true}
             />

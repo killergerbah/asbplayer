@@ -34,14 +34,15 @@ export interface SubtitleSettings {
     readonly subtitleFontFamily: string;
 }
 
-export interface AsbplayerSettings extends MiscSettings, AnkiSettings, SubtitleSettings {}
+export interface AsbplayerSettings extends MiscSettings, AnkiSettings, SubtitleSettings {
+    readonly subtitlePreview: string;
+}
 
 export interface AsbplayerSettingsProvider extends AsbplayerSettings {
     readonly settings: AsbplayerSettings;
     readonly subtitleSettings: SubtitleSettings;
     readonly ankiSettings: AnkiSettings;
     readonly miscSettings: MiscSettings;
-    readonly subtitlePreview: string;
 
     // themeType: 'dark' | 'light';
     // ankiConnectUrl: string;

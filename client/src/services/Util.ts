@@ -42,7 +42,7 @@ function hexToRgb(hex: string): Rgb {
 
 interface SubtitleStyle {
     subtitleColor: string;
-    subtitleSize: string;
+    subtitleSize: number;
     subtitleOutlineThickness: number;
     subtitleOutlineColor: string;
     subtitleBackgroundOpacity: number;
@@ -52,7 +52,7 @@ interface SubtitleStyle {
 
 export function computeStyles({
     subtitleColor,
-    subtitleSize, // TODO: Change this to number
+    subtitleSize,
     subtitleOutlineThickness,
     subtitleOutlineColor,
     subtitleBackgroundOpacity,
