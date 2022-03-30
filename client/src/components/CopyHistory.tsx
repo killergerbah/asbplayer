@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { timeDurationDisplay } from '../services/Util';
+import { Theme } from '@material-ui/core';
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
@@ -16,8 +17,33 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import StarIcon from '@material-ui/icons/Star';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
+import { AudioModel, ImageModel } from '@project/common';
 
-const useStyles = makeStyles((theme) => ({
+export interface CopyHistoryItem {
+    name: string;
+    id: string;
+    text: string;
+    start: number;
+    end: number;
+    audioFile?: File;
+    videoFile?: File;
+    audio: AudioModel;
+    image: ImageModel;
+}
+
+interface CopyHistoryProps {
+    open: boolean;
+    drawerWidth: number;
+    items: CopyHistoryItem[];
+    onClose: () => void;
+    onDelete: (item: CopyHistoryItem) => void;
+    onAnki: (item: CopyHistoryItem) => void;
+    onSelect: (item: CopyHistoryItem) => void;
+    onClipAudio: (item: CopyHistoryItem) => void;
+    onDownloadImage: (item: CopyHistoryItem) => void;
+}
+
+const useStyles = makeStyles<Theme, CopyHistoryProps, string>((theme) => ({
     drawer: {
         width: ({ drawerWidth }) => drawerWidth,
         flexShrink: 0,
@@ -74,31 +100,40 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-function Menu(props) {
-    const { open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage, onDelete, item } = props;
+interface MenuProps {
+    open: boolean;
+    item?: CopyHistoryItem;
+    anchorEl?: Element;
+    onClose: () => void;
+    onSelect: (item: CopyHistoryItem) => void;
+    onClipAudio: (item: CopyHistoryItem) => void;
+    onDownloadImage: (item: CopyHistoryItem) => void;
+    onDelete: (item: CopyHistoryItem) => void;
+}
 
+function Menu({ open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage, onDelete, item }: MenuProps) {
     const handleCopy = useCallback(() => {
-        navigator.clipboard.writeText(item.text);
+        navigator.clipboard.writeText(item!.text);
         onClose();
     }, [item, onClose]);
 
     const handleJumpTo = useCallback(() => {
-        onSelect(item);
+        onSelect(item!);
         onClose();
     }, [item, onSelect, onClose]);
 
     const handleClipAudio = useCallback(() => {
-        onClipAudio(item);
+        onClipAudio(item!);
         onClose();
     }, [item, onClipAudio, onClose]);
 
     const handleDownloadImage = useCallback(() => {
-        onDownloadImage(item);
+        onDownloadImage(item!);
         onClose();
     }, [item, onDownloadImage, onClose]);
 
     const handleDelete = useCallback(() => {
-        onDelete(item);
+        onDelete(item!);
         onClose();
     }, [item, onDelete, onClose]);
 
@@ -146,34 +181,35 @@ function Menu(props) {
     );
 }
 
-export default function CopyHistory(props) {
+export default function CopyHistory(props: CopyHistoryProps) {
+    const onDelete = props.onDelete;
     const classes = useStyles(props);
     const scrollToBottomRefCallback = useCallback((element) => {
         if (element) {
             element.scrollIntoView();
         }
     }, []);
-    const [menuItem, setMenuItem] = useState();
-    const [menuOpen, setMenuOpen] = useState(false);
-    const [menuAnchorEl, setMenuAnchorEl] = useState();
+    const [menuItem, setMenuItem] = useState<CopyHistoryItem>();
+    const [menuOpen, setMenuOpen] = useState<boolean>(false);
+    const [menuAnchorEl, setMenuAnchorEl] = useState<Element>();
 
-    const handleMenu = useCallback((e, item) => {
+    const handleMenu = useCallback((e: React.MouseEvent, item) => {
         setMenuItem(item);
         setMenuOpen(true);
         setMenuAnchorEl(e.currentTarget);
     }, []);
 
-    const handleMenuClosed = useCallback((e, item) => {
-        setMenuItem(null);
+    const handleMenuClosed = useCallback(() => {
+        setMenuItem(undefined);
         setMenuOpen(false);
-        setMenuAnchorEl(null);
+        setMenuAnchorEl(undefined);
     }, []);
 
     const handleDelete = useCallback(
         (item) => {
-            props.onDelete(item);
+            onDelete(item);
         },
-        [props]
+        [onDelete]
     );
 
     let content;
@@ -182,7 +218,7 @@ export default function CopyHistory(props) {
         const items = [];
         let lastSeenItemName = null;
         let i = 0;
-        const itemNameCounters = {};
+        const itemNameCounters: { [name: string]: number } = {};
 
         for (const item of props.items) {
             if (lastSeenItemName === null || lastSeenItemName !== item.name) {
