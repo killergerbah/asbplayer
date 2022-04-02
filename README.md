@@ -101,6 +101,9 @@ The below information can also be found in asbplayer by clicking on the question
 # Install yarn
 npm install --global yarn
 
+# Make sure you're on yarn 3
+yarn set version berry && yarn set version canary 
+
 # Install dependencies
 yarn
 
@@ -110,3 +113,5 @@ yarn workspace @project/client run start
 # Build the extension to extension/dist
 yarn workspace @project/extension buildDev 
 ```
+
+If you problems building try deleting `node_modules` and rerunning `yarn`.
