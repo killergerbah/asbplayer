@@ -1,16 +1,27 @@
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef, MutableRefObject } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { v4 as uuidv4 } from 'uuid';
-import { KeyBindings, mockSurroundingSubtitles } from '@project/common';
+import {
+    AsbplayerSettingsProvider,
+    AudioModel,
+    AudioTrackModel,
+    ImageModel,
+    KeyBindings,
+    mockSurroundingSubtitles,
+    SubtitleModel,
+    VideoTabModel,
+} from '@project/common';
 import { timeDurationDisplay } from '../services/Util';
 import BroadcastChannelVideoProtocol from '../services/BroadcastChannelVideoProtocol';
 import ChromeTabVideoProtocol from '../services/ChromeTabVideoProtocol';
 import Clock from '../services/Clock';
-import Controls from './Controls';
+import Controls, { Point } from './Controls';
 import Grid from '@material-ui/core/Grid';
-import MediaAdapter from '../services/MediaAdapter';
-import SubtitlePlayer from './SubtitlePlayer';
+import MediaAdapter, { MediaElement } from '../services/MediaAdapter';
+import SubtitlePlayer, { DisplaySubtitleModel } from './SubtitlePlayer';
 import VideoChannel from '../services/VideoChannel';
+import ChromeExtension from '../services/ChromeExtension';
+import SubtitleReader from '../services/SubtitleReader';
 
 const useStyles = makeStyles({
     root: {
@@ -29,7 +40,12 @@ const useStyles = makeStyles({
     },
 });
 
-function trackLength(audioRef, videoRef, subtitles, useOffset) {
+function trackLength(
+    audioRef: MutableRefObject<HTMLAudioElement | null>,
+    videoRef: MutableRefObject<MediaElement | undefined>,
+    subtitles: SubtitleModel[] | undefined,
+    useOffset?: boolean
+) {
     let subtitlesLength;
     if (subtitles && subtitles.length > 0) {
         if (useOffset) {
@@ -46,6 +62,54 @@ function trackLength(audioRef, videoRef, subtitles, useOffset) {
     const videoLength = videoRef.current && videoRef.current.duration ? 1000 * videoRef.current.duration : 0;
 
     return Math.max(videoLength, Math.max(subtitlesLength, audioLength));
+}
+
+interface MediaSources {
+    subtitleFiles: File[];
+    audioFile?: File;
+    audioFileUrl?: string;
+    videoFile?: File;
+    videoFileUrl?: string;
+}
+
+interface AnkiDialogFinishedRequest {
+    resume: boolean;
+    timestamp: number;
+}
+
+interface PlayerProps {
+    sources: MediaSources;
+    subtitleReader: SubtitleReader;
+    settingsProvider: AsbplayerSettingsProvider;
+    extension: ChromeExtension;
+    videoFrameRef: MutableRefObject<HTMLIFrameElement>;
+    drawerOpen: boolean;
+    tab: VideoTabModel;
+    availableTabs: VideoTabModel[];
+    ankiDialogRequestToVideo: boolean;
+    ankiDialogRequested: boolean;
+    ankiDialogFinishedRequest: AnkiDialogFinishedRequest;
+    onError: (error: string) => void;
+    onUnloadAudio: (url: string) => void;
+    onUnloadVideo: (url: string) => void;
+    onCopy: (
+        subtitle: SubtitleModel,
+        surroundingSubtitles: SubtitleModel[],
+        audioFile: File | undefined,
+        videoFile: File | undefined,
+        subtitleFile: File | undefined,
+        audioTrack: string | undefined,
+        audio: AudioModel | undefined,
+        image: ImageModel | undefined,
+        url: string | undefined,
+        preventDuplicate: boolean | undefined,
+        id: string | undefined
+    ) => void;
+    onLoaded: () => void;
+    onTabSelected: (tab: VideoTabModel) => void;
+    onAnkiDialogRequest: (forwardToVideo?: boolean) => void;
+    disableKeyEvents: boolean;
+    jumpToSubtitle: SubtitleModel;
 }
 
 export default function Player({
@@ -69,33 +133,33 @@ export default function Player({
     onAnkiDialogRequest,
     disableKeyEvents,
     jumpToSubtitle,
-}) {
-    const [subtitles, setSubtitles] = useState();
-    const subtitlesRef = useRef();
+}: PlayerProps) {
+    const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>();
+    const subtitlesRef = useRef<SubtitleModel[]>();
     subtitlesRef.current = subtitles;
-    const [loadingSubtitles, setLoadingSubtitles] = useState(false);
-    const [playing, setPlaying] = useState(false);
-    const [lastJumpToTopTimestamp, setLastJumpToTopTimestamp] = useState(0);
-    const [offset, setOffset] = useState(0);
-    const playingRef = useRef();
+    const [loadingSubtitles, setLoadingSubtitles] = useState<boolean>(false);
+    const [playing, setPlaying] = useState<boolean>(false);
+    const [lastJumpToTopTimestamp, setLastJumpToTopTimestamp] = useState<number>(0);
+    const [offset, setOffset] = useState<number>(0);
+    const playingRef = useRef<boolean>();
     playingRef.current = playing;
-    const [, updateState] = useState();
-    const [audioTracks, setAudioTracks] = useState();
-    const [selectedAudioTrack, setSelectedAudioTrack] = useState();
-    const [channelId, setChannelId] = useState();
-    const [videoPopOut, setVideoPopOut] = useState(false);
-    const [, setResumeOnFinishedAnkiDialogRequest] = useState(false);
-    const [hideSubtitlePlayer, setHideSubtitlePlayer] = useState(false);
-    const hideSubtitlePlayerRef = useRef();
+    const [, updateState] = useState<any>();
+    const [audioTracks, setAudioTracks] = useState<AudioTrackModel[]>();
+    const [selectedAudioTrack, setSelectedAudioTrack] = useState<string>();
+    const [channelId, setChannelId] = useState<string>();
+    const [videoPopOut, setVideoPopOut] = useState<boolean>(false);
+    const [, setResumeOnFinishedAnkiDialogRequest] = useState<boolean>(false);
+    const [hideSubtitlePlayer, setHideSubtitlePlayer] = useState<boolean>(false);
+    const hideSubtitlePlayerRef = useRef<boolean>();
     hideSubtitlePlayerRef.current = hideSubtitlePlayer;
-    const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState({});
-    const [condensedModeEnabled, setCondensedModeEnabled] = useState(false);
-    const condensedModeEnabledRef = useRef();
+    const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState<{ [track: number]: boolean }>({});
+    const [condensedModeEnabled, setCondensedModeEnabled] = useState<boolean>(false);
+    const condensedModeEnabledRef = useRef<boolean>();
     condensedModeEnabledRef.current = condensedModeEnabled;
     const forceUpdate = useCallback(() => updateState({}), []);
-    const mousePositionRef = useRef({ x: 0, y: 0 });
-    const audioRef = useRef();
-    const videoRef = useRef();
+    const mousePositionRef = useRef<Point>({ x: 0, y: 0 });
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const videoRef = useRef<MediaElement>();
     const mediaAdapter = useMemo(() => {
         if (audioFileUrl) {
             return new MediaAdapter(audioRef);
@@ -103,11 +167,11 @@ export default function Player({
             return new MediaAdapter(videoRef);
         }
 
-        return new MediaAdapter({});
+        return new MediaAdapter({ current: null });
     }, [audioFileUrl, videoFileUrl, tab]);
-    const clock = useMemo(() => new Clock(), []);
+    const clock = useMemo<Clock>(() => new Clock(), []);
     const classes = useStyles();
-    const lengthRef = useRef(0);
+    const lengthRef = useRef<number>(0);
     lengthRef.current = trackLength(audioRef, videoRef, subtitles, true);
 
     const seek = useCallback(
@@ -144,10 +208,12 @@ export default function Player({
                 }));
 
                 if (forwardToVideo) {
-                    videoRef.current?.subtitles(
-                        newSubtitles,
-                        subtitleFiles.map((f) => f.name)
-                    );
+                    if (videoRef.current instanceof VideoChannel) {
+                        videoRef.current.subtitles(
+                            newSubtitles,
+                            subtitleFiles.map((f) => f.name)
+                        );
+                    }
                 }
 
                 return newSubtitles;
@@ -157,21 +223,25 @@ export default function Player({
     );
 
     useEffect(() => {
-        let channel = null;
+        let channel: VideoChannel | undefined = undefined;
         let channelClosed = false;
 
         async function init() {
-            videoRef.current?.close();
-            videoRef.current = null;
+            if (videoRef.current instanceof VideoChannel) {
+                videoRef.current.close();
+            }
+            videoRef.current = undefined;
             clock.setTime(0);
             clock.stop();
             setOffset(0);
             setPlaying(false);
-            setAudioTracks(null);
-            setSelectedAudioTrack(null);
+            setAudioTracks(undefined);
+            setSelectedAudioTrack(undefined);
             setCondensedModeEnabled(false);
-            audioRef.current.currentTime = 0;
-            audioRef.current.pause();
+            if (audioRef.current) {
+                audioRef.current.currentTime = 0;
+                audioRef.current.pause();
+            }
 
             let subtitles;
 
@@ -194,7 +264,11 @@ export default function Player({
                     setSubtitles(subtitles);
                     setLastJumpToTopTimestamp(Date.now());
                 } catch (e) {
-                    onError(e.message);
+                    if (e instanceof Error) {
+                        onError(e.message);
+                    } else {
+                        onError(String(e));
+                    }
                 } finally {
                     setLoadingSubtitles(false);
                 }
@@ -217,45 +291,51 @@ export default function Player({
                 } else if (tab) {
                     channel = new VideoChannel(new ChromeTabVideoProtocol(tab.id, tab.src, extension));
                     channel.init();
+                } else {
+                    // Not possible
+                    // But throw error so typescript recognizes channel as defined
+                    throw new Error('Unreachable code');
                 }
 
                 videoRef.current = channel;
                 let subscribed = false;
 
-                channel.onExit(() => onUnloadVideo(videoFileUrl));
+                channel.onExit(() => videoFileUrl && onUnloadVideo(videoFileUrl));
                 channel.onPopOutToggle(() => setVideoPopOut((popOut) => !popOut));
                 channel.onHideSubtitlePlayerToggle(() => {
                     setHideSubtitlePlayer((hidden) => {
-                        channel.hideSubtitlePlayerToggle(!hidden);
+                        channel?.hideSubtitlePlayerToggle(!hidden);
                         return !hidden;
                     });
                 });
                 channel.onReady((paused) => {
                     lengthRef.current = trackLength(audioRef, videoRef, subtitlesRef.current);
-                    channel.ready(lengthRef.current);
+                    channel?.ready(lengthRef.current);
 
                     if (subtitlesRef.current) {
-                        channel.subtitleSettings(settingsProvider.subtitleSettings);
-                        channel.subtitles(
+                        channel?.subtitleSettings(settingsProvider.subtitleSettings);
+                        channel?.subtitles(
                             subtitlesRef.current,
                             subtitleFiles.map((f) => f.name)
                         );
                     }
 
-                    channel.ankiSettings(settingsProvider.ankiSettings);
-                    channel.miscSettings(settingsProvider.miscSettings);
-                    channel.condensedModeToggle(condensedModeEnabledRef.current);
-                    channel.hideSubtitlePlayerToggle(hideSubtitlePlayerRef.current);
+                    channel?.ankiSettings(settingsProvider.ankiSettings);
+                    channel?.miscSettings(settingsProvider.miscSettings);
+                    channel?.condensedModeToggle(condensedModeEnabledRef.current ?? false);
+                    channel?.hideSubtitlePlayerToggle(hideSubtitlePlayerRef.current ?? false);
 
-                    if (channel.audioTracks && channel.audioTracks.length > 1) {
-                        setAudioTracks(videoRef.current.audioTracks);
-                        setSelectedAudioTrack(videoRef.current.selectedAudioTrack);
+                    if (channel?.audioTracks && channel?.audioTracks?.length > 1) {
+                        setAudioTracks(channel?.audioTracks);
+                        setSelectedAudioTrack(channel?.selectedAudioTrack);
                     } else {
-                        setAudioTracks(null);
-                        setSelectedAudioTrack(null);
+                        setAudioTracks(undefined);
+                        setSelectedAudioTrack(undefined);
                     }
 
-                    clock.setTime(videoRef.current.currentTime * 1000);
+                    if (videoRef.current) {
+                        clock.setTime(videoRef.current.currentTime * 1000);
+                    }
 
                     if (paused) {
                         clock.stop();
@@ -266,17 +346,17 @@ export default function Player({
                     setPlaying(!paused);
 
                     if (!subscribed) {
-                        channel.onPlay((forwardToMedia) => play(clock, mediaAdapter, forwardToMedia));
-                        channel.onPause((forwardToMedia) => pause(clock, mediaAdapter, forwardToMedia));
-                        channel.onOffset((offset) => applyOffset(Math.max(-lengthRef.current ?? 0, offset), false));
-                        channel.onCopy((subtitle, surroundingSubtitles, audio, image, url, preventDuplicate, id) =>
+                        channel?.onPlay((forwardToMedia) => play(clock, mediaAdapter, forwardToMedia));
+                        channel?.onPause((forwardToMedia) => pause(clock, mediaAdapter, forwardToMedia));
+                        channel?.onOffset((offset) => applyOffset(Math.max(-lengthRef.current ?? 0, offset), false));
+                        channel?.onCopy((subtitle, surroundingSubtitles, audio, image, url, preventDuplicate, id) =>
                             onCopy(
                                 subtitle,
                                 surroundingSubtitles,
                                 audioFile,
                                 videoFile,
-                                subtitle ? subtitleFiles[subtitle.track] : null,
-                                channel.selectedAudioTrack,
+                                subtitle ? subtitleFiles[subtitle.track] : undefined,
+                                channel?.selectedAudioTrack,
                                 audio,
                                 image,
                                 url,
@@ -284,14 +364,14 @@ export default function Player({
                                 id
                             )
                         );
-                        channel.onCondensedModeToggle(() =>
+                        channel?.onCondensedModeToggle(() =>
                             setCondensedModeEnabled((enabled) => {
                                 const newValue = !enabled;
-                                channel.condensedModeToggle(newValue);
+                                channel?.condensedModeToggle(newValue);
                                 return newValue;
                             })
                         );
-                        channel.onCurrentTime(async (currentTime, forwardToMedia) => {
+                        channel?.onCurrentTime(async (currentTime, forwardToMedia) => {
                             if (playingRef.current) {
                                 clock.stop();
                             }
@@ -302,7 +382,7 @@ export default function Player({
                                 clock.start();
                             }
                         });
-                        channel.onAudioTrackSelected(async (id) => {
+                        channel?.onAudioTrackSelected(async (id) => {
                             if (playingRef.current) {
                                 clock.stop();
                             }
@@ -314,8 +394,8 @@ export default function Player({
 
                             setSelectedAudioTrack(id);
                         });
-                        channel.onAnkiDialogRequest((forwardToVideo) => onAnkiDialogRequest(forwardToVideo));
-                        channel.onToggleSubtitleTrackInList((track) =>
+                        channel?.onAnkiDialogRequest((forwardToVideo) => onAnkiDialogRequest(forwardToVideo));
+                        channel?.onToggleSubtitleTrackInList((track) =>
                             setDisabledSubtitleTracks((tracks) => {
                                 const newTracks = { ...tracks };
                                 newTracks[track] = !tracks[track];
@@ -358,7 +438,7 @@ export default function Player({
         applyOffset,
     ]);
 
-    function play(clock, mediaAdapter, forwardToMedia) {
+    function play(clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) {
         setPlaying(true);
         clock.start();
 
@@ -367,7 +447,7 @@ export default function Player({
         }
     }
 
-    function pause(clock, mediaAdapter, forwardToMedia) {
+    function pause(clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) {
         setPlaying(false);
         clock.stop();
 
@@ -377,14 +457,17 @@ export default function Player({
     }
 
     useEffect(() => {
-        if (ankiDialogRequestToVideo) {
-            videoRef.current?.ankiDialogRequest();
+        if (ankiDialogRequestToVideo && videoRef.current instanceof VideoChannel) {
+            videoRef.current.ankiDialogRequest();
         }
     }, [ankiDialogRequestToVideo]);
 
     useEffect(() => {
         if (ankiDialogFinishedRequest && ankiDialogFinishedRequest.timestamp > 0) {
-            videoRef.current?.finishedAnkiDialogRequest(ankiDialogFinishedRequest.resume);
+            if (videoRef.current instanceof VideoChannel) {
+                videoRef.current.finishedAnkiDialogRequest(ankiDialogFinishedRequest.resume);
+            }
+
             setResumeOnFinishedAnkiDialogRequest((resumeOnFinishedAnkiDialogRequest) => {
                 if (resumeOnFinishedAnkiDialogRequest && ankiDialogFinishedRequest.resume) {
                     play(clock, mediaAdapter, true);
@@ -555,8 +638,8 @@ export default function Player({
 
     const handleAudioTrackSelected = useCallback(
         async (id) => {
-            if (videoRef.current) {
-                videoRef.current.audioTrackSelected(id);
+            if (videoRef.current instanceof VideoChannel) {
+                (videoRef.current as VideoChannel).audioTrackSelected(id);
             }
 
             pause(clock, mediaAdapter, true);
@@ -578,7 +661,7 @@ export default function Player({
     );
 
     const handleVolumeChange = useCallback((v) => {
-        if (audioRef.current) {
+        if (audioRef.current instanceof HTMLMediaElement) {
             audioRef.current.volume = v;
         }
     }, []);
@@ -643,22 +726,30 @@ export default function Player({
                         surroundingSubtitles,
                         audioFile,
                         videoFile,
-                        audioFile?.name ?? videoFile?.name,
-                        selectedAudioTrack
+                        undefined,
+                        selectedAudioTrack,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined
                     );
                 },
                 () => disableKeyEvents,
                 () => {
                     if (!lengthRef.current) {
-                        return null;
+                        return undefined;
                     }
 
                     const timestamp = clock.time(lengthRef.current);
+                    const end = Math.min(timestamp + 5000, lengthRef.current);
 
                     return {
                         text: '',
                         start: timestamp,
-                        end: Math.min(timestamp + 5000, lengthRef.current),
+                        originalStart: timestamp,
+                        end: end,
+                        originalEnd: end,
                         track: 0,
                     };
                 }
@@ -669,10 +760,13 @@ export default function Player({
                     event.preventDefault();
                     event.stopPropagation();
                     const timestamp = clock.time(lengthRef.current);
+                    const end = Math.min(timestamp + 5000, lengthRef.current);
                     const subtitle = {
                         text: '',
                         start: timestamp,
-                        end: Math.min(timestamp + 5000, lengthRef.current),
+                        originalStart: timestamp,
+                        end: end,
+                        originalEnd: end,
                         track: 0,
                     };
                     const surroundingSubtitles = mockSurroundingSubtitles(subtitle, lengthRef.current, 5000);
@@ -681,8 +775,13 @@ export default function Player({
                         surroundingSubtitles,
                         audioFile,
                         videoFile,
-                        audioFile?.name ?? videoFile?.name,
-                        selectedAudioTrack
+                        undefined,
+                        selectedAudioTrack,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined
                     );
 
                     onAnkiDialogRequest();
@@ -695,13 +794,11 @@ export default function Player({
                 unbindAnkiExport();
             };
         }
-
-        return null;
     }, [audioFile, videoFile, subtitles, clock, selectedAudioTrack, disableKeyEvents, onCopy, onAnkiDialogRequest]);
 
     const length = lengthRef.current;
     const loaded = audioFileUrl || videoFileUrl || subtitles;
-    const videoInWindow = loaded && videoFileUrl && !videoPopOut;
+    const videoInWindow = Boolean(loaded && videoFileUrl && !videoPopOut);
 
     return (
         <div onMouseMove={handleMouseMove} className={classes.root}>
@@ -714,7 +811,7 @@ export default function Player({
                             src={
                                 process.env.PUBLIC_URL +
                                 '/?video=' +
-                                encodeURIComponent(videoFileUrl) +
+                                encodeURIComponent(videoFileUrl!) +
                                 '&channel=' +
                                 channelId +
                                 '&popout=false'
@@ -723,7 +820,7 @@ export default function Player({
                         />
                     </Grid>
                 )}
-                {(!videoInWindow || subtitles?.length > 0) && (
+                {(!videoInWindow || (subtitles && subtitles?.length > 0)) && (
                     <Grid
                         item
                         style={{
@@ -740,22 +837,22 @@ export default function Player({
                                 displayLength={trackLength(audioRef, videoRef, subtitles, false)}
                                 audioTracks={audioTracks}
                                 selectedAudioTrack={selectedAudioTrack}
-                                tabs={!videoFileUrl && !audioFileUrl && availableTabs}
+                                tabs={(!videoFileUrl && !audioFileUrl && availableTabs) || undefined}
                                 selectedTab={tab}
                                 audioFile={audioFile?.name}
                                 videoFile={videoFile?.name}
                                 offsetEnabled={true}
                                 offset={offset}
                                 volumeEnabled={Boolean(audioFileUrl)}
-                                condensedModeToggleEnabled={Boolean(audioFileUrl) && subtitles?.length > 0}
+                                condensedModeToggleEnabled={Boolean(audioFileUrl) && subtitles && subtitles.length > 0}
                                 condensedModeEnabled={condensedModeEnabled}
                                 onPlay={handlePlay}
                                 onPause={handlePause}
                                 onSeek={handleSeek}
                                 onAudioTrackSelected={handleAudioTrackSelected}
                                 onTabSelected={onTabSelected}
-                                onUnloadAudio={() => onUnloadAudio(audioFileUrl)}
-                                onUnloadVideo={() => onUnloadVideo(videoFileUrl)}
+                                onUnloadAudio={() => audioFileUrl && onUnloadAudio(audioFileUrl)}
+                                onUnloadVideo={() => videoFileUrl && onUnloadVideo(videoFileUrl)}
                                 onOffsetChange={handleOffsetChange}
                                 onVolumeChange={handleVolumeChange}
                                 onCondensedModeToggle={handleCondensedModeToggle}
@@ -770,9 +867,9 @@ export default function Player({
                             length={length}
                             jumpToSubtitle={jumpToSubtitle}
                             drawerOpen={drawerOpen}
-                            compressed={videoFileUrl && !videoPopOut}
+                            compressed={Boolean(videoFileUrl && !videoPopOut)}
                             loading={loadingSubtitles}
-                            displayHelp={audioFile?.name || (videoPopOut && videoFile?.name)}
+                            displayHelp={audioFile?.name || (videoPopOut && videoFile?.name) || undefined}
                             disableKeyEvents={disableKeyEvents}
                             lastJumpToTopTimestamp={lastJumpToTopTimestamp}
                             hidden={videoInWindow && hideSubtitlePlayer}

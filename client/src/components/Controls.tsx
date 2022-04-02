@@ -401,7 +401,7 @@ function TabSelector({ open, anchorEl, onClose, tabs, selectedTab, onTabSelected
 interface MediaUnloaderProps {
     open: boolean;
     anchorEl?: Element;
-    file?: File;
+    file?: string;
     onUnload: () => void;
     onClose: () => void;
 }
@@ -433,7 +433,7 @@ function MediaUnloader({ open, anchorEl, onUnload, onClose, file }: MediaUnloade
     );
 }
 
-interface Point {
+export interface Point {
     x: number;
     y: number;
 }
@@ -448,7 +448,7 @@ interface ControlsProps {
     onAudioTrackSelected: (id: string) => void;
     onSeek: (progress: number) => void;
     mousePositionRef: MutableRefObject<Point>;
-    onShow: (show: boolean) => void;
+    onShow?: (show: boolean) => void;
     onPause: () => void;
     onPlay: () => void;
     onTabSelected?: (tab: VideoTabModel) => void;
@@ -467,8 +467,8 @@ interface ControlsProps {
     subtitlesEnabled?: boolean;
     subtitlesToggle?: boolean;
     onSubtitlesToggle?: () => void;
-    videoFile?: File;
-    audioFile?: File;
+    videoFile?: string;
+    audioFile?: string;
     audioTracks?: AudioTrackModel[];
     selectedAudioTrack?: string;
     tabs?: VideoTabModel[];

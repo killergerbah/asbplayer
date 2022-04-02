@@ -32,11 +32,7 @@ import { VideoProtocol } from './VideoProtocol';
 export default class VideoChannel {
     private readonly protocol: VideoProtocol;
     private time: number;
-    private duration: number;
     private isReady: boolean;
-    private readyState: number;
-    private audioTracks?: AudioTrackModel[];
-    private selectedAudioTrack?: string;
     private readyCallbacks: ((paused: boolean) => void)[];
     private playCallbacks: ((echo: boolean) => void)[];
     private pauseCallbacks: ((echo: boolean) => void)[];
@@ -59,7 +55,11 @@ export default class VideoChannel {
     private ankiDialogRequestCallbacks: ((forwardToVideo: boolean) => void)[];
     private toggleSubtitleTrackInListCallbacks: ((track: number) => void)[];
 
-    oncanplay?: () => void;
+    readyState: number;
+    oncanplay: ((ev: Event) => void) | null = null;
+    audioTracks?: AudioTrackModel[];
+    selectedAudioTrack?: string;
+    duration: number;
 
     constructor(protocol: VideoProtocol) {
         this.protocol = protocol;
@@ -105,7 +105,7 @@ export default class VideoChannel {
 
                     that.readyState = readyStateMessage.value;
                     if (that.readyState === 4) {
-                        that.oncanplay?.();
+                        that.oncanplay?.(new Event('canplay'));
                     }
                     break;
                 case 'play':
@@ -293,8 +293,10 @@ export default class VideoChannel {
         this.protocol.postMessage({ command: 'init' });
     }
 
-    play() {
+    // Return a promise to implement the analogous HTMLMediaElement method
+    play(): Promise<void> {
         this.protocol.postMessage({ command: 'play' });
+        return new Promise((resolve, reject) => resolve());
     }
 
     pause() {

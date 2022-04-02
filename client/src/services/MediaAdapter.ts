@@ -1,10 +1,19 @@
 import { RefObject } from "react";
 
+export interface MediaElement {
+    currentTime: number;
+    readyState: number;
+    oncanplay: ((ev: Event) => void) | null;
+    play: () => Promise<void>;
+    pause: () => void;
+    duration: number;
+}
+
 export default class MediaAdapter {
-    private readonly ref: RefObject<HTMLMediaElement>;
+    private readonly ref: RefObject<MediaElement | undefined>;
     private readonly readyResolves: (() => void)[];
 
-    constructor(ref: RefObject<HTMLMediaElement>) {
+    constructor(ref: RefObject<MediaElement | undefined>) {
         this.ref = ref;
         this.readyResolves = [];
     }

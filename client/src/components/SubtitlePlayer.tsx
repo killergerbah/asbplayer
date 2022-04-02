@@ -80,7 +80,7 @@ const useSubtitleRowStyles = makeStyles((theme) => ({
     },
 }));
 
-interface DisplaySubtitleModel extends SubtitleModel {
+export interface DisplaySubtitleModel extends SubtitleModel {
     displayTime: string;
 }
 
@@ -163,7 +163,7 @@ interface SubtitlePlayerProps {
     compressed: boolean;
     loading: boolean;
     drawerOpen: boolean;
-    displayHelp: boolean;
+    displayHelp?: string;
     disableKeyEvents: boolean;
     lastJumpToTopTimestamp: number;
     hidden: boolean;
