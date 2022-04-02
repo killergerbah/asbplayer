@@ -46,7 +46,6 @@ const preferMp3Key = 'preferMp3';
 const themeTypeKey = 'themeType';
 
 export default class SettingsProvider implements AsbplayerSettingsProvider {
-
     private _tags?: string[];
 
     constructor() {
@@ -84,6 +83,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             maxImageHeight: this.maxImageHeight,
             surroundingSubtitlesCountRadius: this.surroundingSubtitlesCountRadius,
             surroundingSubtitlesTimeRadius: this.surroundingSubtitlesTimeRadius,
+            volume: this.volume,
         };
     }
 
@@ -114,6 +114,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.audioPaddingEnd = newSettings.audioPaddingEnd;
         this.maxImageWidth = newSettings.maxImageWidth;
         this.maxImageHeight = newSettings.maxImageHeight;
+        this.volume = newSettings.volume;
     }
 
     get subtitleSettings() {
@@ -157,7 +158,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             themeType: this.themeType,
         };
     }
-    
+
     _getNumberItem(key: string, defaultValue: number) {
         const value = localStorage.getItem(key);
 
@@ -355,7 +356,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     get volume() {
-        return localStorage.getItem(volumeKey) || defaultVolume;
+        return this._getNumberItem(volumeKey, defaultVolume);
     }
 
     set volume(volume) {
@@ -371,7 +372,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     get themeType() {
-        const themeType = localStorage.getItem(themeTypeKey) as "dark" | "light" | null;
+        const themeType = localStorage.getItem(themeTypeKey) as 'dark' | 'light' | null;
 
         if (themeType === null) {
             return 'dark';
@@ -380,7 +381,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         return themeType;
     }
 
-    set themeType(themeType: "dark" | "light") {
+    set themeType(themeType: 'dark' | 'light') {
         localStorage.setItem(themeTypeKey, themeType);
     }
 

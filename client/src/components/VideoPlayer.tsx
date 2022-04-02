@@ -746,15 +746,6 @@ export default function VideoPlayer(props: Props) {
                 onClose={handleClose}
                 onHideSubtitlePlayerToggle={handleHideSubtitlePlayerToggle}
                 settingsProvider={settingsProvider}
-                displayLength={undefined}
-                onTabSelected={undefined}
-                onUnloadAudio={undefined}
-                onUnloadVideo={undefined}
-                disableKeyEvents={undefined}
-                videoFile={undefined}
-                audioFile={undefined}
-                tabs={undefined}
-                selectedTab={undefined}
             />
         </div>
     );

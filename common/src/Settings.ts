@@ -36,6 +36,7 @@ export interface SubtitleSettings {
 
 export interface AsbplayerSettings extends MiscSettings, AnkiSettings, SubtitleSettings {
     readonly subtitlePreview: string;
+    readonly volume: number;
 }
 
 export interface AsbplayerSettingsProvider extends AsbplayerSettings {
@@ -44,6 +45,8 @@ export interface AsbplayerSettingsProvider extends AsbplayerSettings {
     readonly ankiSettings: AnkiSettings;
     readonly miscSettings: MiscSettings;
 
+    subtitlePreview: string;
+    volume: number;
     // themeType: 'dark' | 'light';
     // ankiConnectUrl: string;
     // deck?: string;

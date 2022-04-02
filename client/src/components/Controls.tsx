@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useRef, MutableRefObject } from 'react';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
@@ -24,6 +24,8 @@ import Tooltip from '@material-ui/core/Tooltip';
 import VideocamIcon from '@material-ui/icons/Videocam';
 import VolumeOffIcon from '@material-ui/icons/VolumeOff';
 import VolumeUpIcon from '@material-ui/icons/VolumeUp';
+import { AsbplayerSettingsProvider, AudioTrackModel, VideoTabModel } from '@project/common';
+import Clock from '../services/Clock';
 
 const useControlStyles = makeStyles((theme) => ({
     container: {
@@ -228,23 +230,27 @@ const VolumeSlider = withStyles((theme) => ({
     },
 }))(Slider);
 
-function displayTime(milliseconds) {
+function displayTime(milliseconds: number) {
     const seconds = Math.floor(milliseconds / 1000);
     const minutes = Math.floor(seconds / 60);
     const secondsInMinute = seconds % 60;
     return String(minutes) + ':' + String(secondsInMinute).padStart(2, '0');
 }
 
-function elementWidth(element) {
+function elementWidth(element: HTMLElement) {
     const rect = element.getBoundingClientRect();
     return rect.right - rect.left;
 }
 
-function ProgressBar(props) {
+interface ProgressBarProps {
+    onSeek: (progress: number) => void;
+    value: number;
+}
+
+function ProgressBar({ onSeek, value }: ProgressBarProps) {
     const classes = useProgressBarStyles();
     const [mouseOver, setMouseOver] = useState(false);
     const containerRef = useRef(null);
-    const onSeek = props.onSeek;
 
     const handleClick = useCallback(
         (e) => {
@@ -259,7 +265,7 @@ function ProgressBar(props) {
 
     const handleMouseOver = useCallback(() => setMouseOver(true), []);
     const handleMouseOut = useCallback(() => setMouseOver(false), []);
-    const progressWidth = containerRef.current ? (elementWidth(containerRef.current) * props.value) / 100 : 0;
+    const progressWidth = containerRef.current ? (elementWidth(containerRef.current) * value) / 100 : 0;
     const fillStyle = { width: progressWidth };
     const handleStyle = { marginLeft: progressWidth };
     const fillContainerClassName = mouseOver
@@ -287,18 +293,34 @@ function ProgressBar(props) {
     );
 }
 
-function AudioTrackSelector(props) {
-    if (!props.audioTracks || props.audioTracks.length === 0) {
+interface AudioTrackSelectorProps {
+    open: boolean;
+    anchorEl?: Element;
+    audioTracks?: AudioTrackModel[];
+    selectedAudioTrack?: string;
+    onAudioTrackSelected: (id: string) => void;
+    onClose: () => void;
+}
+
+function AudioTrackSelector({
+    open,
+    anchorEl,
+    audioTracks,
+    selectedAudioTrack,
+    onAudioTrackSelected,
+    onClose,
+}: AudioTrackSelectorProps) {
+    if (!audioTracks || audioTracks.length === 0) {
         return null;
     }
 
-    const list = props.audioTracks.map((t) => {
+    const list = audioTracks.map((t) => {
         return (
             <ListItem
                 key={t.id}
-                selected={t.id === props.selectedAudioTrack}
+                selected={t.id === selectedAudioTrack}
                 button
-                onClick={() => props.onAudioTrackSelected(t.id)}
+                onClick={() => onAudioTrackSelected(t.id)}
             >
                 {t.language} {t.label}
             </ListItem>
@@ -309,9 +331,9 @@ function AudioTrackSelector(props) {
         <div>
             <Popover
                 disableEnforceFocus={true}
-                open={props.open}
-                anchorEl={props.anchorEl}
-                onClose={props.onClose}
+                open={open}
+                anchorEl={anchorEl}
+                onClose={onClose}
                 anchorOrigin={{
                     vertical: 'top',
                     horizontal: 'center',
@@ -327,7 +349,16 @@ function AudioTrackSelector(props) {
     );
 }
 
-function TabSelector({ open, anchorEl, onClose, tabs, selectedTab, onTabSelected }) {
+interface TabSelectorProps {
+    open: boolean;
+    anchorEl?: Element;
+    tabs?: VideoTabModel[];
+    selectedTab?: VideoTabModel;
+    onTabSelected: (tab: VideoTabModel) => void;
+    onClose: () => void;
+}
+
+function TabSelector({ open, anchorEl, onClose, tabs, selectedTab, onTabSelected }: TabSelectorProps) {
     if (!tabs || tabs.length === 0) {
         return null;
     }
@@ -367,14 +398,22 @@ function TabSelector({ open, anchorEl, onClose, tabs, selectedTab, onTabSelected
     );
 }
 
-function MediaUnloader(props) {
+interface MediaUnloaderProps {
+    open: boolean;
+    anchorEl?: Element;
+    file?: File;
+    onUnload: () => void;
+    onClose: () => void;
+}
+
+function MediaUnloader({ open, anchorEl, onUnload, onClose, file }: MediaUnloaderProps) {
     return (
         <div>
             <Popover
                 disableEnforceFocus={true}
-                open={props.open}
-                anchorEl={props.anchorEl}
-                onClose={props.onClose}
+                open={open}
+                anchorEl={anchorEl}
+                onClose={onClose}
                 anchorOrigin={{
                     vertical: 'top',
                     horizontal: 'center',
@@ -385,13 +424,64 @@ function MediaUnloader(props) {
                 }}
             >
                 <List>
-                    <ListItem button onClick={(e) => props.onUnload()}>
-                        Unload {props.file}
+                    <ListItem button onClick={(e) => onUnload()}>
+                        Unload {file}
                     </ListItem>
                 </List>
             </Popover>
         </div>
     );
+}
+
+interface Point {
+    x: number;
+    y: number;
+}
+
+interface ControlsProps {
+    clock: Clock;
+    playing: boolean;
+    length: number;
+    offsetEnabled?: boolean;
+    displayLength?: number;
+    offset: number;
+    onAudioTrackSelected: (id: string) => void;
+    onSeek: (progress: number) => void;
+    mousePositionRef: MutableRefObject<Point>;
+    onShow: (show: boolean) => void;
+    onPause: () => void;
+    onPlay: () => void;
+    onTabSelected?: (tab: VideoTabModel) => void;
+    onUnloadAudio?: () => void;
+    onUnloadVideo?: () => void;
+    onOffsetChange: (offset: number) => void;
+    onVolumeChange: (volume: number) => void;
+    disableKeyEvents?: boolean;
+    settingsProvider: AsbplayerSettingsProvider;
+    closeEnabled?: boolean;
+    onClose?: () => void;
+    volumeEnabled?: boolean;
+    condensedModeEnabled?: boolean;
+    condensedModeToggleEnabled?: boolean;
+    onCondensedModeToggle?: () => void;
+    subtitlesEnabled?: boolean;
+    subtitlesToggle?: boolean;
+    onSubtitlesToggle?: () => void;
+    videoFile?: File;
+    audioFile?: File;
+    audioTracks?: AudioTrackModel[];
+    selectedAudioTrack?: string;
+    tabs?: VideoTabModel[];
+    selectedTab?: VideoTabModel;
+    popOutEnabled?: boolean;
+    popOut?: boolean;
+    onPopOutToggle?: () => void;
+    fullscreenEnabled?: boolean;
+    fullscreen?: boolean;
+    onFullscreenToggle?: () => void;
+    hideSubtitlePlayerToggleEnabled?: boolean;
+    subtitlePlayerHidden?: boolean;
+    onHideSubtitlePlayerToggle?: () => void;
 }
 
 export default function Controls({
@@ -438,27 +528,27 @@ export default function Controls({
     hideSubtitlePlayerToggleEnabled,
     subtitlePlayerHidden,
     onHideSubtitlePlayerToggle,
-}) {
+}: ControlsProps) {
     const classes = useControlStyles();
-    const [show, setShow] = useState(true);
-    const [audioTrackSelectorOpen, setAudioTrackSelectorOpen] = useState(false);
-    const [audioTrackSelectorAnchorEl, setAudioTrackSelectorAnchorEl] = useState();
-    const [tabSelectorOpen, setTabSelectorOpen] = useState(false);
-    const [tabSelectorAnchorEl, setTabSelectorAnchorEl] = useState();
-    const [audioUnloaderOpen, setAudioUnloaderOpen] = useState(false);
-    const [audioUnloaderAnchorEl, setAudioUnloaderAnchorEl] = useState();
-    const [videoUnloaderOpen, setVideoUnloaderOpen] = useState(false);
-    const [videoUnloaderAnchorEl, setVideoUnloaderAnchorEl] = useState();
-    const [showVolumeBar, setShowVolumeBar] = useState(false);
-    const [volume, setVolume] = useState(100);
-    const [lastCommittedVolume, setLastCommittedVolume] = useState(100);
-    const lastMousePositionRef = useRef({ x: 0, y: 0 });
-    const lastShowTimestampRef = useRef(Date.now());
-    const lastOffsetInputChangeTimestampRef = useRef(Date.now());
-    const lastShowRef = useRef(true);
-    const forceShowRef = useRef(false);
-    const offsetInputRef = useRef();
-    const [, updateState] = useState();
+    const [show, setShow] = useState<boolean>(true);
+    const [audioTrackSelectorOpen, setAudioTrackSelectorOpen] = useState<boolean>(false);
+    const [audioTrackSelectorAnchorEl, setAudioTrackSelectorAnchorEl] = useState<Element>();
+    const [tabSelectorOpen, setTabSelectorOpen] = useState<boolean>(false);
+    const [tabSelectorAnchorEl, setTabSelectorAnchorEl] = useState<Element>();
+    const [audioUnloaderOpen, setAudioUnloaderOpen] = useState<boolean>(false);
+    const [audioUnloaderAnchorEl, setAudioUnloaderAnchorEl] = useState<Element>();
+    const [videoUnloaderOpen, setVideoUnloaderOpen] = useState<boolean>(false);
+    const [videoUnloaderAnchorEl, setVideoUnloaderAnchorEl] = useState<Element>();
+    const [showVolumeBar, setShowVolumeBar] = useState<boolean>(false);
+    const [volume, setVolume] = useState<number>(100);
+    const [lastCommittedVolume, setLastCommittedVolume] = useState<number>(100);
+    const lastMousePositionRef = useRef<Point>({ x: 0, y: 0 });
+    const lastShowTimestampRef = useRef<number>(Date.now());
+    const lastOffsetInputChangeTimestampRef = useRef<number>(Date.now());
+    const lastShowRef = useRef<boolean>(true);
+    const forceShowRef = useRef<boolean>(false);
+    const offsetInputRef = useRef<HTMLInputElement>();
+    const [, updateState] = useState<any>();
     const forceUpdate = useCallback(() => updateState({}), []);
 
     const handleSeek = useCallback(
@@ -468,11 +558,11 @@ export default function Controls({
         [onSeek]
     );
 
-    function handleMouseOver(e) {
+    function handleMouseOver() {
         forceShowRef.current = true;
     }
 
-    function handleMouseOut(e) {
+    function handleMouseOut() {
         forceShowRef.current = false;
     }
 
@@ -519,8 +609,8 @@ export default function Controls({
             return;
         }
 
-        function handleKey(event) {
-            if (event.keyCode === 13) {
+        function handleKey(event: KeyboardEvent) {
+            if (event.key === 'Enter') {
                 if (offsetInputRef.current === document.activeElement) {
                     const offset = Number(offsetInputRef.current.value);
 
@@ -554,7 +644,7 @@ export default function Controls({
     useEffect(() => {
         if (offsetInputRef.current) {
             if (offset === 0) {
-                offsetInputRef.current.value = null;
+                offsetInputRef.current.value = "";
             } else {
                 const offsetSeconds = offset / 1000;
                 const value = offsetSeconds >= 0 ? '+' + offsetSeconds.toFixed(2) : String(offsetSeconds.toFixed(2));
@@ -565,70 +655,70 @@ export default function Controls({
     }, [offset]);
 
     const handleAudioTrackSelectorClosed = useCallback(() => {
-        setAudioTrackSelectorAnchorEl(null);
+        setAudioTrackSelectorAnchorEl(undefined);
         setAudioTrackSelectorOpen(false);
     }, []);
 
-    const handleAudioTrackSelectorOpened = useCallback((e) => {
+    const handleAudioTrackSelectorOpened = useCallback((e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         setAudioTrackSelectorAnchorEl(e.currentTarget);
         setAudioTrackSelectorOpen(true);
     }, []);
 
     const handleAudioTrackSelected = useCallback(
-        (id) => {
+        (id: string) => {
             onAudioTrackSelected(id);
-            setAudioTrackSelectorAnchorEl(null);
+            setAudioTrackSelectorAnchorEl(undefined);
             setAudioTrackSelectorOpen(false);
         },
         [onAudioTrackSelected]
     );
 
     const handleTabSelectorClosed = useCallback(() => {
-        setTabSelectorAnchorEl(null);
+        setTabSelectorAnchorEl(undefined);
         setTabSelectorOpen(false);
     }, []);
 
-    const handleTabSelectorOpened = useCallback((e) => {
+    const handleTabSelectorOpened = useCallback((e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         setTabSelectorAnchorEl(e.currentTarget);
         setTabSelectorOpen(true);
     }, []);
 
     const handleTabSelected = useCallback(
         (tab) => {
-            onTabSelected(tab);
-            setTabSelectorAnchorEl(null);
+            onTabSelected?.(tab);
+            setTabSelectorAnchorEl(undefined);
             setTabSelectorOpen(false);
         },
         [onTabSelected]
     );
 
     const handleAudioUnloaderClosed = useCallback(() => {
-        setAudioUnloaderAnchorEl(null);
+        setAudioUnloaderAnchorEl(undefined);
         setAudioUnloaderOpen(false);
     }, []);
 
-    const handleAudioUnloaderOpened = useCallback((e) => {
+    const handleAudioUnloaderOpened = useCallback((e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         setAudioUnloaderAnchorEl(e.currentTarget);
         setAudioUnloaderOpen(true);
     }, []);
 
     const handleUnloadAudio = useCallback(() => {
-        onUnloadAudio();
+        onUnloadAudio?.();
         setAudioUnloaderOpen(false);
     }, [onUnloadAudio]);
 
-    const handleVideoUnloaderClosed = useCallback((e) => {
-        setVideoUnloaderAnchorEl(null);
+    const handleVideoUnloaderClosed = useCallback(() => {
+        setVideoUnloaderAnchorEl(undefined);
         setVideoUnloaderOpen(false);
     }, []);
 
-    const handleVideoUnloaderOpened = useCallback((e) => {
+    const handleVideoUnloaderOpened = useCallback((e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         setVideoUnloaderAnchorEl(e.currentTarget);
         setVideoUnloaderOpen(true);
     }, []);
 
     const handleUnloadVideo = useCallback(() => {
-        onUnloadVideo();
+        onUnloadVideo?.();
         setVideoUnloaderOpen(false);
     }, [onUnloadVideo]);
 
@@ -655,7 +745,7 @@ export default function Controls({
     );
 
     const handleVolumeToggle = useCallback(
-        (e, value) => {
+        () => {
             setVolume((volume) => {
                 const newVolume = volume > 0 ? 0 : lastCommittedVolume;
                 onVolumeChange(newVolume / 100);

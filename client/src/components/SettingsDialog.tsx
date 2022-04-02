@@ -363,8 +363,9 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
             maxImageWidth: maxImageWidth,
             maxImageHeight: maxImageHeight,
             // The settings below are not currently mutable
-            surroundingSubtitlesCountRadius: 5000,
-            surroundingSubtitlesTimeRadius: 5000
+            surroundingSubtitlesCountRadius: settings.surroundingSubtitlesCountRadius,
+            surroundingSubtitlesTimeRadius: settings.surroundingSubtitlesTimeRadius,
+            volume: settings.volume
         });
     }, [
         onClose,
@@ -394,6 +395,9 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
         audioPaddingEnd,
         maxImageWidth,
         maxImageHeight,
+        settings.surroundingSubtitlesCountRadius,
+        settings.surroundingSubtitlesTimeRadius,
+        settings.volume
     ]);
 
     const customFieldInputs = Object.keys(customFields).map((customFieldName) => {
