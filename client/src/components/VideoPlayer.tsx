@@ -261,6 +261,7 @@ export default function VideoPlayer(props: Props) {
 
         playerChannel.onAudioTrackSelected((id) => {
             selectAudioTrack(id);
+            setSelectedAudioTrack(id);
             playerChannel.audioTrackSelected(id);
         });
 
