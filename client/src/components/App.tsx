@@ -1,9 +1,22 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { Route, Redirect, Switch, useLocation } from 'react-router-dom';
-import { ThemeProvider, createMuiTheme, makeStyles } from '@material-ui/core/styles';
+import { ThemeProvider, createMuiTheme, makeStyles, Theme } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
 import { red } from '@material-ui/core/colors';
-import { Anki, AudioClip, Image, humanReadableTime } from '@project/common';
+import {
+    Anki,
+    AudioClip,
+    Image,
+    humanReadableTime,
+    AnkiDialogSliderContext,
+    SubtitleModel,
+    VideoTabModel,
+    SubtitleSettingsToVideoMessage,
+    AnkiSettingsToVideoMessage,
+    MiscSettingsToVideoMessage,
+    LegacyPlayerSyncMessage,
+    PlayerSyncMessage,
+} from '@project/common';
 import { v4 as uuidv4 } from 'uuid';
 import clsx from 'clsx';
 import Alert from './Alert';
@@ -14,18 +27,19 @@ import HelpDialog from './HelpDialog';
 import ImageDialog from './ImageDialog';
 import SubtitleReader from '../services/SubtitleReader';
 import Bar from './Bar';
-import ChromeExtension from '../services/ChromeExtension';
-import CopyHistory from './CopyHistory';
+import ChromeExtension, { ExtensionMessage } from '../services/ChromeExtension';
+import CopyHistory, { CopyHistoryItem } from './CopyHistory';
 import LandingPage from './LandingPage';
-import Player from './Player';
+import Player, { AnkiDialogFinishedRequest, MediaSources } from './Player';
 import SettingsDialog from './SettingsDialog';
 import SettingsProvider from '../services/SettingsProvider';
 import VideoPlayer from './VideoPlayer';
+import { Color } from '@material-ui/lab';
 
 const latestExtensionVersion = '0.17.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
 
-const useContentStyles = makeStyles((theme) => ({
+const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
     content: {
         flexGrow: 1,
         transition: theme.transitions.create('margin', {
@@ -43,10 +57,10 @@ const useContentStyles = makeStyles((theme) => ({
     }),
 }));
 
-function extractSources(files) {
+function extractSources(files: File[]): MediaSources {
     let subtitleFiles = [];
-    let audioFile = null;
-    let videoFile = null;
+    let audioFile = undefined;
+    let videoFile = undefined;
 
     for (const f of files) {
         const extensionStartIndex = f.name.lastIndexOf('.');
@@ -94,13 +108,18 @@ function extractSources(files) {
     return { subtitleFiles: subtitleFiles, audioFile: audioFile, videoFile: videoFile };
 }
 
-function audioClipFromItem(item, sliderContext, paddingStart, paddingEnd) {
+function audioClipFromItem(
+    item: CopyHistoryItem,
+    sliderContext: AnkiDialogSliderContext | undefined,
+    paddingStart: number,
+    paddingEnd: number
+) {
     if (item.audio) {
         const start = item.audio.start ?? item.start;
         const end = item.audio.end ?? item.end;
 
         return AudioClip.fromBase64(
-            item.subtitleFile.name,
+            item.subtitleFile!.name,
             Math.max(0, start - (item.audio.paddingStart ?? 0)),
             end + (item.audio.paddingEnd ?? 0),
             item.audio.base64,
@@ -121,41 +140,45 @@ function audioClipFromItem(item, sliderContext, paddingStart, paddingEnd) {
         }
 
         return AudioClip.fromFile(
-            item.audioFile || item.videoFile,
+            (item.audioFile || item.videoFile)!,
             Math.max(0, start - paddingStart),
             end + paddingEnd,
             item.audioTrack
         );
     }
 
-    return null;
+    return undefined;
 }
 
-function imageFromItem(item, maxWidth, maxHeight) {
+function imageFromItem(item: CopyHistoryItem, maxWidth: number, maxHeight: number) {
     if (item.image) {
-        return Image.fromBase64(item.subtitleFile.name, item.start, item.image.base64, item.image.extension);
+        return Image.fromBase64(item.subtitleFile!.name, item.start, item.image.base64, item.image.extension);
     }
 
     if (item.videoFile) {
         return Image.fromFile(item.videoFile, item.start, maxWidth, maxHeight);
     }
 
-    return null;
+    return undefined;
 }
 
-function itemSourceString(item) {
-    const source = item?.subtitleFile?.name ?? item?.audioFile?.name ?? item?.videoFile?.name;
+function itemSourceString(item: CopyHistoryItem | undefined) {
+    if (!item) {
+        return undefined;
+    }
+
+    const source = item.subtitleFile?.name ?? item.audioFile?.name ?? item.videoFile?.name;
 
     if (!source) {
-        return null;
+        return undefined;
     }
 
     return `${source} (${humanReadableTime(item.start)})`;
 }
 
-function itemSliderContext(item) {
+function itemSliderContext(item: CopyHistoryItem) {
     if (!item) {
-        return null;
+        return undefined;
     }
 
     return {
@@ -167,7 +190,7 @@ function itemSliderContext(item) {
     };
 }
 
-function revokeUrls(sources) {
+function revokeUrls(sources: MediaSources) {
     if (sources.audioFileUrl) {
         URL.revokeObjectURL(sources.audioFileUrl);
     }
@@ -177,7 +200,13 @@ function revokeUrls(sources) {
     }
 }
 
-function Content(props) {
+interface ContentProps {
+    drawerOpen: boolean;
+    drawerWidth: number;
+    children: React.ReactNode[];
+}
+
+function Content(props: ContentProps) {
     const classes = useContentStyles(props);
 
     return (
@@ -192,9 +221,9 @@ function Content(props) {
 }
 
 function App() {
-    const subtitleReader = useMemo(() => new SubtitleReader(), []);
-    const settingsProvider = useMemo(() => new SettingsProvider(), []);
-    const theme = useMemo(
+    const subtitleReader = useMemo<SubtitleReader>(() => new SubtitleReader(), []);
+    const settingsProvider = useMemo<SettingsProvider>(() => new SettingsProvider(), []);
+    const theme = useMemo<Theme>(
         () =>
             createMuiTheme({
                 palette: {
@@ -212,36 +241,36 @@ function App() {
             }),
         [settingsProvider.themeType]
     );
-    const anki = useMemo(() => new Anki(settingsProvider), [settingsProvider]);
+    const anki = useMemo<Anki>(() => new Anki(settingsProvider), [settingsProvider]);
     const location = useLocation();
     const inVideoPlayer = location.pathname === '/video';
-    const extension = useMemo(() => new ChromeExtension(!inVideoPlayer), [inVideoPlayer]);
-    const videoFrameRef = useRef();
+    const extension = useMemo<ChromeExtension>(() => new ChromeExtension(!inVideoPlayer), [inVideoPlayer]);
+    const videoFrameRef = useRef<HTMLIFrameElement>(null);
     const [width] = useWindowSize(!inVideoPlayer);
     const drawerRatio = videoFrameRef.current ? 0.2 : 0.3;
     const minDrawerSize = videoFrameRef.current ? 150 : 300;
     const drawerWidth = Math.max(minDrawerSize, width * drawerRatio);
-    const [copiedSubtitles, setCopiedSubtitles] = useState([]);
-    const copiedSubtitlesRef = useRef();
+    const [copiedSubtitles, setCopiedSubtitles] = useState<CopyHistoryItem[]>([]);
+    const copiedSubtitlesRef = useRef<CopyHistoryItem[]>([]);
     copiedSubtitlesRef.current = copiedSubtitles;
-    const [copyHistoryOpen, setCopyHistoryOpen] = useState(false);
-    const [alert, setAlert] = useState();
-    const [alertOpen, setAlertOpen] = useState(false);
-    const [alertSeverity, setAlertSeverity] = useState();
-    const [jumpToSubtitle, setJumpToSubtitle] = useState();
-    const [sources, setSources] = useState({ subtitleFiles: [] });
-    const [loading, setLoading] = useState(false);
-    const [dragging, setDragging] = useState(false);
-    const dragEnterRef = useRef();
-    const [fileName, setFileName] = useState();
-    const [ankiDialogOpen, setAnkiDialogOpen] = useState(false);
-    const [ankiDialogDisabled, setAnkiDialogDisabled] = useState(false);
-    const [ankiDialogItem, setAnkiDialogItem] = useState();
-    const ankiDialogItemSliderContext = useMemo(
+    const [copyHistoryOpen, setCopyHistoryOpen] = useState<boolean>(false);
+    const [alert, setAlert] = useState<string>();
+    const [alertOpen, setAlertOpen] = useState<boolean>(false);
+    const [alertSeverity, setAlertSeverity] = useState<Color>();
+    const [jumpToSubtitle, setJumpToSubtitle] = useState<SubtitleModel>();
+    const [sources, setSources] = useState<MediaSources>({ subtitleFiles: [] });
+    const [loading, setLoading] = useState<boolean>(false);
+    const [dragging, setDragging] = useState<boolean>(false);
+    const dragEnterRef = useRef<Element | null>(null);
+    const [fileName, setFileName] = useState<string>();
+    const [ankiDialogOpen, setAnkiDialogOpen] = useState<boolean>(false);
+    const [ankiDialogDisabled, setAnkiDialogDisabled] = useState<boolean>(false);
+    const [ankiDialogItem, setAnkiDialogItem] = useState<CopyHistoryItem>();
+    const ankiDialogItemSliderContext = useMemo<AnkiDialogSliderContext | undefined>(
         () => ankiDialogItem && itemSliderContext(ankiDialogItem),
         [ankiDialogItem]
     );
-    const ankiDialogAudioClip = useMemo(
+    const ankiDialogAudioClip = useMemo<AudioClip | undefined>(
         () =>
             ankiDialogItem &&
             audioClipFromItem(
@@ -257,23 +286,26 @@ function App() {
             settingsProvider.audioPaddingEnd,
         ]
     );
-    const ankiDialogImage = useMemo(
+    const ankiDialogImage = useMemo<Image | undefined>(
         () =>
             ankiDialogItem &&
             imageFromItem(ankiDialogItem, settingsProvider.maxImageWidth, settingsProvider.maxImageHeight),
         [ankiDialogItem, settingsProvider.maxImageWidth, settingsProvider.maxImageHeight]
     );
-    const [ankiDialogRequestToVideo, setAnkiDialogRequestToVideo] = useState();
-    const [ankiDialogRequested, setAnkiDialogRequested] = useState(false);
-    const [ankiDialogFinishedRequest, setAnkiDialogFinishedRequest] = useState({ timestamp: 0, resume: false });
-    const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
-    const [helpDialogOpen, setHelpDialogOpen] = useState(false);
-    const [imageDialogOpen, setImageDialogOpen] = useState(false);
-    const [disableKeyEvents, setDisableKeyEvents] = useState(false);
-    const [image, setImage] = useState();
-    const [tab, setTab] = useState();
-    const [availableTabs, setAvailableTabs] = useState([]);
-    const fileInputRef = useRef();
+    const [ankiDialogRequestToVideo, setAnkiDialogRequestToVideo] = useState<number>();
+    const [ankiDialogRequested, setAnkiDialogRequested] = useState<boolean>(false);
+    const [ankiDialogFinishedRequest, setAnkiDialogFinishedRequest] = useState<AnkiDialogFinishedRequest>({
+        timestamp: 0,
+        resume: false,
+    });
+    const [settingsDialogOpen, setSettingsDialogOpen] = useState<boolean>(false);
+    const [helpDialogOpen, setHelpDialogOpen] = useState<boolean>(false);
+    const [imageDialogOpen, setImageDialogOpen] = useState<boolean>(false);
+    const [disableKeyEvents, setDisableKeyEvents] = useState<boolean>(false);
+    const [image, setImage] = useState<Image>();
+    const [tab, setTab] = useState<VideoTabModel>();
+    const [availableTabs, setAvailableTabs] = useState<VideoTabModel[]>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const { subtitleFiles } = sources;
 
     const handleCopy = useCallback(
@@ -302,7 +334,7 @@ function App() {
                         subtitle.start === last.start &&
                         subtitle.end === last.end &&
                         subtitle.text === last.text &&
-                        subtitleFile.name === last.subtitleFile.name
+                        subtitleFile.name === last.subtitleFile?.name
                     ) {
                         return copiedSubtitles;
                     }
@@ -378,9 +410,21 @@ function App() {
             settingsProvider.settings = newSettings;
             setSettingsDialogOpen(false);
             setDisableKeyEvents(false);
-            extension.publishMessage({ command: 'subtitleSettings', value: settingsProvider.subtitleSettings });
-            extension.publishMessage({ command: 'ankiSettings', value: settingsProvider.ankiSettings });
-            extension.publishMessage({ command: 'miscSettings', value: settingsProvider.miscSettings });
+            const subtitleSettingsMessage: SubtitleSettingsToVideoMessage = {
+                command: 'subtitleSettings',
+                value: settingsProvider.subtitleSettings,
+            };
+            const ankiSettingsMessage: AnkiSettingsToVideoMessage = {
+                command: 'ankiSettings',
+                value: settingsProvider.ankiSettings,
+            };
+            const miscSettingsMessage: MiscSettingsToVideoMessage = {
+                command: 'miscSettings',
+                value: settingsProvider.miscSettings,
+            };
+            extension.publishMessage(subtitleSettingsMessage);
+            extension.publishMessage(ankiSettingsMessage);
+            extension.publishMessage(miscSettingsMessage);
         },
         [extension, settingsProvider]
     );
@@ -417,8 +461,8 @@ function App() {
 
                 return {
                     subtitleFiles: previous.subtitleFiles,
-                    audioFile: null,
-                    audioFileUrl: null,
+                    audioFile: undefined,
+                    audioFileUrl: undefined,
                     videoFile: previous.videoFile,
                     videoFileUrl: previous.videoFileUrl,
                 };
@@ -440,8 +484,8 @@ function App() {
                     subtitleFiles: previous.subtitleFiles,
                     audioFile: previous.audioFile,
                     audioFileUrl: previous.audioFileUrl,
-                    videoFile: null,
-                    videoFileUrl: null,
+                    videoFile: undefined,
+                    videoFileUrl: undefined,
                 };
             });
         },
@@ -453,19 +497,23 @@ function App() {
             try {
                 const clip = await audioClipFromItem(
                     item,
-                    null,
+                    undefined,
                     settingsProvider.audioPaddingStart,
                     settingsProvider.audioPaddingEnd
                 );
 
                 if (settingsProvider.preferMp3) {
-                    clip.toMp3().download();
+                    clip!.toMp3().download();
                 } else {
-                    clip.download();
+                    clip!.download();
                 }
             } catch (e) {
                 console.error(e);
-                handleError(e.message);
+                if (e instanceof Error) {
+                    handleError(e.message);
+                } else {
+                    handleError(String(e));
+                }
             }
         },
         [handleError, settingsProvider]
@@ -474,13 +522,21 @@ function App() {
     const handleDownloadImage = useCallback(
         async (item) => {
             try {
-                await imageFromItem(item).download();
+                (await imageFromItem(
+                    item,
+                    settingsProvider.maxImageWidth,
+                    settingsProvider.maxImageHeight
+                ))!.download();
             } catch (e) {
                 console.error(e);
-                handleError(e.message);
+                if (e instanceof Error) {
+                    handleError(e.message);
+                } else {
+                    handleError(String(e));
+                }
             }
         },
-        [handleError]
+        [handleError, settingsProvider]
     );
 
     const handleSelectCopyHistoryItem = useCallback(
@@ -490,7 +546,7 @@ function App() {
                 return;
             }
 
-            setJumpToSubtitle({ text: item.text, originalStart: item.originalStart });
+            setJumpToSubtitle(item);
         },
         [subtitleFiles, handleError]
     );
@@ -551,7 +607,11 @@ function App() {
                 }
             } catch (e) {
                 console.error(e);
-                handleError(e.message);
+                if (e instanceof Error) {
+                    handleError(e.message);
+                } else {
+                    handleError(String(e));
+                }
             } finally {
                 setAnkiDialogDisabled(false);
                 setDisableKeyEvents(false);
@@ -561,7 +621,7 @@ function App() {
     );
 
     const handleAnkiDialogRequest = useCallback((forwardToVideo) => {
-        if (copiedSubtitlesRef.current.length === 0) {
+        if (copiedSubtitlesRef.current!.length === 0) {
             return;
         }
 
@@ -583,7 +643,7 @@ function App() {
     }, []);
 
     useEffect(() => {
-        function onTabs(tabs) {
+        function onTabs(tabs: VideoTabModel[]) {
             if (tabs.length !== availableTabs.length) {
                 setAvailableTabs(tabs);
             } else {
@@ -606,8 +666,8 @@ function App() {
             let selectedTabMissing = tab && tabs.filter((t) => t.id === tab.id && t.src === tab.src).length === 0;
 
             if (selectedTabMissing) {
-                setTab(null);
-                handleError('Lost connection with tab ' + tab.id + ' ' + tab.title);
+                setTab(undefined);
+                handleError('Lost connection with tab ' + tab!.id + ' ' + tab!.title);
             }
         }
 
@@ -626,8 +686,8 @@ function App() {
                 setSources((previous) => {
                     setLoading(true);
 
-                    let videoFileUrl = null;
-                    let audioFileUrl = null;
+                    let videoFileUrl = undefined;
+                    let audioFileUrl = undefined;
 
                     if (videoFile || audioFile) {
                         revokeUrls(previous);
@@ -638,7 +698,7 @@ function App() {
                             audioFileUrl = URL.createObjectURL(audioFile);
                         }
 
-                        setTab(null);
+                        setTab(undefined);
                     } else {
                         videoFile = previous.videoFile;
                         videoFileUrl = previous.videoFileUrl;
@@ -663,14 +723,18 @@ function App() {
                 }
             } catch (e) {
                 console.error(e);
-                handleError(e.message);
+                if (e instanceof Error) {
+                    handleError(e.message);
+                } else {
+                    handleError(String(e));
+                }
             }
         },
         [handleError]
     );
 
     useEffect(() => {
-        async function onMessage(message) {
+        async function onMessage(message: ExtensionMessage) {
             if (message.data.command === 'sync' || message.data.command === 'syncv2') {
                 const tabs = availableTabs.filter((t) => {
                     if (t.id !== message.tabId) {
@@ -699,32 +763,37 @@ function App() {
                 }
 
                 const tab = tabs[0];
-                let subtitleFiles;
+                let subtitleFiles: File[];
 
                 if (message.data.command === 'sync') {
+                    const syncMessage = message.data as LegacyPlayerSyncMessage;
                     subtitleFiles = [
                         new File(
-                            [await (await fetch('data:text/plain;base64,' + message.data.subtitles.base64)).blob()],
-                            message.data.subtitles.name
+                            [await (await fetch('data:text/plain;base64,' + syncMessage.subtitles.base64)).blob()],
+                            syncMessage.subtitles.name
                         ),
                     ];
                 } else if (message.data.command === 'syncv2') {
+                    const syncMessage = message.data as PlayerSyncMessage;
                     subtitleFiles = await Promise.all(
-                        message.data.subtitles.map(
+                        syncMessage.subtitles.map(
                             async (s) =>
                                 new File([await (await fetch('data:text/plain;base64,' + s.base64)).blob()], s.name)
                         )
                     );
+                } else {
+                    console.error('Unknown message ' + message.data.command);
+                    return;
                 }
 
                 const subtitleFileName = subtitleFiles[0].name;
                 setFileName(subtitleFileName.substring(0, subtitleFileName.lastIndexOf('.')));
                 setSources({
                     subtitleFiles: subtitleFiles,
-                    audioFile: null,
-                    audioFileUrl: null,
-                    videoFile: null,
-                    videoFileUrl: null,
+                    audioFile: undefined,
+                    audioFileUrl: undefined,
+                    videoFile: undefined,
+                    videoFileUrl: undefined,
                 });
                 setTab(tab);
             }
@@ -736,7 +805,7 @@ function App() {
     }, [extension, availableTabs]);
 
     const handleDrop = useCallback(
-        (e) => {
+        (e: React.DragEvent) => {
             e.preventDefault();
 
             if (inVideoPlayer) {
@@ -767,12 +836,12 @@ function App() {
     const handleFileSelector = useCallback(() => fileInputRef.current?.click(), []);
 
     const handleDragEnter = useCallback(
-        (e) => {
+        (e: React.DragEvent) => {
             e.preventDefault();
             e.stopPropagation();
 
             if (!inVideoPlayer) {
-                dragEnterRef.current = e.target;
+                dragEnterRef.current = e.target as Element;
                 setDragging(true);
             }
         },
@@ -940,8 +1009,8 @@ function App() {
                         path="/video"
                         render={() => {
                             const params = new URLSearchParams(window.location.search);
-                            const videoFile = params.get('video');
-                            const channel = params.get('channel');
+                            const videoFile = params.get('video')!;
+                            const channel = params.get('channel')!;
                             const popOut = params.get('popout') === 'true';
 
                             return (

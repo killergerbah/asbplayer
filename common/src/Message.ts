@@ -120,14 +120,24 @@ export interface ShowAnkiUiAfterRerecordMessage extends Message {
     readonly audio: AudioModel;
 }
 
+export interface SerializedSubtitleFile {
+    name: string;
+    base64: string;
+}
+
+export interface LegacyPlayerSyncMessage extends Message {
+    readonly command: 'sync';
+    readonly subtitles: SerializedSubtitleFile;
+}
+
 export interface PlayerSyncMessage extends Message {
     readonly command: 'syncv2';
-    readonly subtitles: SubtitleModel[];
+    readonly subtitles: SerializedSubtitleFile[];
 }
 
 export interface ExtensionSyncMessage extends Message {
     readonly command: 'sync';
-    readonly subtitles: SubtitleModel[];
+    readonly subtitles: SerializedSubtitleFile[];
 }
 
 export interface OffsetFromVideoMessage extends Message {

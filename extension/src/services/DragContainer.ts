@@ -1,5 +1,6 @@
 import ImageElement from './ImageElement';
 import { bufferToBase64 } from './Base64';
+import { ExtensionSyncMessage, VideoToExtensionCommand } from '@project/common';
 
 export default class DragContainer {
     private readonly video: HTMLVideoElement;
@@ -62,7 +63,7 @@ export default class DragContainer {
                 }
             }
 
-            chrome.runtime.sendMessage({
+            const syncMessage: VideoToExtensionCommand<ExtensionSyncMessage> = {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'sync',
@@ -78,7 +79,9 @@ export default class DragContainer {
                     ),
                 },
                 src: this.video.src,
-            });
+            };
+
+            chrome.runtime.sendMessage(syncMessage);
         };
 
         this.dragOverListener = (e) => e.preventDefault();

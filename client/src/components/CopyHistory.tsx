@@ -17,18 +17,19 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import StarIcon from '@material-ui/icons/Star';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
-import { AudioModel, ImageModel } from '@project/common';
+import { AudioModel, ImageModel, SubtitleModel } from '@project/common';
 
-export interface CopyHistoryItem {
+export interface CopyHistoryItem extends SubtitleModel {
     name: string;
     id: string;
-    text: string;
-    start: number;
-    end: number;
+    surroundingSubtitles: SubtitleModel[];
     audioFile?: File;
+    audioTrack?: string;
     videoFile?: File;
+    subtitleFile?: File;
     audio: AudioModel;
     image: ImageModel;
+    url?: string;
 }
 
 interface CopyHistoryProps {

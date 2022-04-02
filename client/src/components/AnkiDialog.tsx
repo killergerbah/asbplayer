@@ -102,7 +102,7 @@ function ValueLabelComponent({ children, open, value }: ValueLabelComponentProps
 interface AnkiDialogProps {
     open: boolean;
     disabled: boolean;
-    text: string;
+    text?: string;
     onProceed: (
         text: string,
         definition: string,
@@ -120,9 +120,9 @@ interface AnkiDialogProps {
     onOpenSettings: () => void;
     audioClip?: AudioClip;
     image?: Image;
-    source: string;
-    url: string;
-    sliderContext: AnkiDialogSliderContext;
+    source?: string;
+    url?: string;
+    sliderContext?: AnkiDialogSliderContext;
     customFields: { [key: string]: string };
     settingsProvider: AnkiSettings;
     anki: Anki;
@@ -150,9 +150,9 @@ export default function AnkiDialog({
     const [text, setText] = useState<string>('');
     const [word, setWord] = useState<string>('');
     const [lastSearchedWord, setLastSearchedWord] = useState<string>();
-    const [source, setSource] = useState<string>(initialSource);
+    const [source, setSource] = useState<string | undefined>(initialSource);
     const [tags, setTags] = useState<string[]>(settingsProvider.tags);
-    const [url, setUrl] = useState<string>(initialUrl);
+    const [url, setUrl] = useState<string | undefined>(initialUrl);
     const [duplicateNotes, setDuplicateNotes] = useState<any[]>([]);
     const [wordTimestamp, setWordTimestamp] = useState<number>(0);
     const [customFieldValues, setCustomFieldValues] = useState<{ [key: string]: string }>({});
@@ -166,7 +166,7 @@ export default function AnkiDialog({
     const [audioClip, setAudioClip] = useState<AudioClip>();
 
     useEffect(() => {
-        setText(initialText);
+        setText(initialText ?? '');
         setDefinition('');
         setWord('');
         setSource(initialSource);
@@ -275,7 +275,7 @@ export default function AnkiDialog({
         const intersectingSubtitles = [];
         const interval = timestampInterval!;
 
-        for (const s of sliderContext.subtitles) {
+        for (const s of sliderContext!.subtitles) {
             if (
                 (s.start >= interval[0] && s.start <= interval[1]) ||
                 (s.end >= interval[0] && s.end <= interval[1]) ||
@@ -579,7 +579,18 @@ export default function AnkiDialog({
                 <Button
                     disabled={disabled}
                     onClick={() =>
-                        onProceed(text, definition, audioClip, image, word, source, url, customFieldValues, tags, 'gui')
+                        onProceed(
+                            text,
+                            definition,
+                            audioClip,
+                            image,
+                            word,
+                            source ?? '',
+                            url ?? '',
+                            customFieldValues,
+                            tags,
+                            'gui'
+                        )
                     }
                 >
                     Open in Anki
@@ -593,8 +604,8 @@ export default function AnkiDialog({
                             audioClip,
                             image,
                             word,
-                            source,
-                            url,
+                            source ?? '',
+                            url ?? '',
                             customFieldValues,
                             tags,
                             'updateLast'
@@ -612,8 +623,8 @@ export default function AnkiDialog({
                             audioClip,
                             image,
                             word,
-                            source,
-                            url,
+                            source ?? '',
+                            url ?? '',
                             customFieldValues,
                             tags,
                             'default'

@@ -64,7 +64,7 @@ function trackLength(
     return Math.max(videoLength, Math.max(subtitlesLength, audioLength));
 }
 
-interface MediaSources {
+export interface MediaSources {
     subtitleFiles: File[];
     audioFile?: File;
     audioFileUrl?: string;
@@ -72,7 +72,7 @@ interface MediaSources {
     videoFileUrl?: string;
 }
 
-interface AnkiDialogFinishedRequest {
+export interface AnkiDialogFinishedRequest {
     resume: boolean;
     timestamp: number;
 }
@@ -82,11 +82,11 @@ interface PlayerProps {
     subtitleReader: SubtitleReader;
     settingsProvider: AsbplayerSettingsProvider;
     extension: ChromeExtension;
-    videoFrameRef: MutableRefObject<HTMLIFrameElement>;
+    videoFrameRef: MutableRefObject<HTMLIFrameElement | null>;
     drawerOpen: boolean;
-    tab: VideoTabModel;
+    tab?: VideoTabModel;
     availableTabs: VideoTabModel[];
-    ankiDialogRequestToVideo: boolean;
+    ankiDialogRequestToVideo?: number;
     ankiDialogRequested: boolean;
     ankiDialogFinishedRequest: AnkiDialogFinishedRequest;
     onError: (error: string) => void;
@@ -109,7 +109,7 @@ interface PlayerProps {
     onTabSelected: (tab: VideoTabModel) => void;
     onAnkiDialogRequest: (forwardToVideo?: boolean) => void;
     disableKeyEvents: boolean;
-    jumpToSubtitle: SubtitleModel;
+    jumpToSubtitle?: SubtitleModel;
 }
 
 export default function Player({

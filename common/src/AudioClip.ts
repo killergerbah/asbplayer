@@ -100,12 +100,12 @@ class FileAudioData implements AudioData {
     private readonly _name: string;
     private readonly start: number;
     private readonly end: number;
-    private readonly trackId: string;
+    private readonly trackId?: string;
     private readonly _extension: string;
 
     private _blob?: Blob;
 
-    constructor(file: File, start: number, end: number, trackId: string) {
+    constructor(file: File, start: number, end: number, trackId?: string) {
         this.file = file;
         this._name = file.name + '_' + start + '_' + end;
         this.start = start;
@@ -310,7 +310,7 @@ export default class AudioClip {
         );
     }
 
-    static fromFile(file: File, start: number, end: number, trackId: string) {
+    static fromFile(file: File, start: number, end: number, trackId?: string) {
         return new AudioClip(new FileAudioData(file, start, end, trackId));
     }
 
