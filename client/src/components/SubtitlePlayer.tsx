@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useState, useMemo, useRef, createRef } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import React, { useCallback, useEffect, useState, useMemo, useRef, createRef, MutableRefObject } from 'react';
+import { makeStyles, Theme } from '@material-ui/core/styles';
 import { keysAreEqual } from '../services/Util';
 import { useWindowSize } from '../hooks/useWindowSize';
-import { KeyBindings, surroundingSubtitles } from '@project/common';
+import { AsbplayerSettingsProvider, KeyBindings, surroundingSubtitles, SubtitleModel } from '@project/common';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
 import Paper from '@material-ui/core/Paper';
@@ -10,10 +10,16 @@ import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
-import TableRow from '@material-ui/core/TableRow';
+import TableRow, { TableRowProps } from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
+import Clock from '../services/Clock';
 
-const useSubtitlePlayerStyles = makeStyles((theme) => ({
+interface StylesProps {
+    compressed: boolean;
+    windowWidth: number;
+}
+
+const useSubtitlePlayerStyles = makeStyles<Theme, StylesProps, string>((theme) => ({
     container: {
         height: 'calc(100vh - 64px)',
         position: 'relative',
@@ -74,46 +80,96 @@ const useSubtitleRowStyles = makeStyles((theme) => ({
     },
 }));
 
-const SubtitleRow = React.memo((props) => {
-    const { index, compressed, selected, disabled, subtitle, subtitleRef, onClick, onCopy, ...tableRowProps } = props;
-    const classes = useSubtitleRowStyles();
-    const textRef = useRef();
-    const [textSelected, setTextSelected] = useState(false);
-    let className = compressed ? classes.compressedSubtitle : classes.subtitle;
-    let disabledClassName = disabled ? classes.disabledSubtitle : '';
+interface DisplaySubtitleModel extends SubtitleModel {
+    displayTime: string;
+}
 
-    if (subtitle.start < 0 || subtitle.end < 0) {
-        return null;
+interface SubtitleRowProps extends TableRowProps {
+    index: number;
+    compressed: boolean;
+    selected: boolean;
+    disabled: boolean;
+    subtitle: DisplaySubtitleModel;
+    subtitleRef: MutableRefObject<HTMLTableRowElement>;
+    onClickSubtitle: (index: number) => void;
+    onCopySubtitle: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => void;
+}
+
+const SubtitleRow = React.memo(
+    ({
+        index,
+        compressed,
+        selected,
+        disabled,
+        subtitle,
+        subtitleRef,
+        onClickSubtitle,
+        onCopySubtitle,
+        ...tableRowProps
+    }: SubtitleRowProps) => {
+        const classes = useSubtitleRowStyles();
+        const textRef = useRef<HTMLSpanElement>(null);
+        const [textSelected, setTextSelected] = useState<boolean>(false);
+        let className = compressed ? classes.compressedSubtitle : classes.subtitle;
+        let disabledClassName = disabled ? classes.disabledSubtitle : '';
+
+        if (subtitle.start < 0 || subtitle.end < 0) {
+            return null;
+        }
+
+        function handleMouseUp() {
+            const selection = document.getSelection();
+            const selected =
+                selection?.type === 'Range' && textRef.current?.isSameNode(selection.anchorNode?.parentNode ?? null);
+            setTextSelected(selected ?? false);
+        }
+
+        return (
+            <TableRow
+                onClick={() => !textSelected && onClickSubtitle(index)}
+                onMouseUp={handleMouseUp}
+                ref={subtitleRef}
+                className={classes.subtitleRow}
+                selected={selected}
+                {...tableRowProps}
+            >
+                <TableCell className={className}>
+                    <span ref={textRef} className={disabledClassName}>
+                        {subtitle.text}
+                    </span>
+                </TableCell>
+                <TableCell className={classes.copyButton}>
+                    <IconButton onClick={(e) => onCopySubtitle(e, index)}>
+                        <FileCopy fontSize={compressed ? 'small' : 'default'} />
+                    </IconButton>
+                </TableCell>
+                <TableCell className={classes.timestamp}>{subtitle.displayTime}</TableCell>
+            </TableRow>
+        );
     }
+);
 
-    function handleMouseUp(e) {
-        var selection = document.getSelection();
-        setTextSelected(selection?.type === 'Range' && textRef.current?.isSameNode(selection.anchorNode.parentNode));
-    }
-
-    return (
-        <TableRow
-            onClick={(e) => !textSelected && onClick(index)}
-            onMouseUp={handleMouseUp}
-            ref={subtitleRef}
-            className={classes.subtitleRow}
-            selected={selected}
-            {...tableRowProps}
-        >
-            <TableCell className={className}>
-                <span ref={textRef} className={disabledClassName}>
-                    {subtitle.text}
-                </span>
-            </TableCell>
-            <TableCell className={classes.copyButton}>
-                <IconButton onClick={(e) => onCopy(e, index)}>
-                    <FileCopy fontSize={compressed ? 'small' : 'default'} />
-                </IconButton>
-            </TableCell>
-            <TableCell className={classes.timestamp}>{subtitle.displayTime}</TableCell>
-        </TableRow>
-    );
-});
+interface SubtitlePlayerProps {
+    clock: Clock;
+    onSeek: (progress: number, shouldPlay: boolean) => void;
+    onCopy: (subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], preventDuplicate: boolean) => void;
+    onOffsetChange: (offset: number) => void;
+    onAnkiDialogRequest: () => void;
+    onToggleSubtitleTrack: (track: number) => void;
+    playing: boolean;
+    subtitles?: DisplaySubtitleModel[];
+    length: number;
+    jumpToSubtitle?: SubtitleModel;
+    compressed: boolean;
+    loading: boolean;
+    drawerOpen: boolean;
+    displayHelp: boolean;
+    disableKeyEvents: boolean;
+    lastJumpToTopTimestamp: number;
+    hidden: boolean;
+    disabledSubtitleTracks: { [track: number]: boolean };
+    settingsProvider: AsbplayerSettingsProvider;
+}
 
 export default function SubtitlePlayer({
     clock,
@@ -135,36 +191,36 @@ export default function SubtitlePlayer({
     hidden,
     disabledSubtitleTracks,
     settingsProvider,
-}) {
-    const playingRef = useRef();
+}: SubtitlePlayerProps) {
+    const playingRef = useRef<boolean>();
     playingRef.current = playing;
-    const clockRef = useRef();
+    const clockRef = useRef<Clock>(clock);
     clockRef.current = clock;
-    const subtitleListRef = useRef();
+    const subtitleListRef = useRef<DisplaySubtitleModel[]>();
     subtitleListRef.current = subtitles;
-    const subtitleRefs = useMemo(
+    const subtitleRefs = useMemo<MutableRefObject<HTMLTableRowElement>[]>(
         () =>
             subtitles
                 ? Array(subtitles.length)
-                      .fill()
-                      .map((_, i) => createRef())
+                      .fill(undefined)
+                      .map((_) => createRef<HTMLTableRowElement>() as MutableRefObject<HTMLTableRowElement>)
                 : [],
         [subtitles]
     );
-    const subtitleRefsRef = useRef();
+    const subtitleRefsRef = useRef<MutableRefObject<HTMLTableRowElement>[]>([]);
     subtitleRefsRef.current = subtitleRefs;
-    const disableKeyEventsRef = useRef();
+    const disableKeyEventsRef = useRef<boolean>();
     disableKeyEventsRef.current = disableKeyEvents;
-    const [selectedSubtitleIndexes, setSelectedSubtitleIndexes] = useState({});
-    const selectedSubtitleIndexesRef = useRef({});
-    const lengthRef = useRef();
+    const [selectedSubtitleIndexes, setSelectedSubtitleIndexes] = useState<{ [index: number]: boolean }>({});
+    const selectedSubtitleIndexesRef = useRef<{ [index: number]: boolean }>({});
+    const lengthRef = useRef<number>(0);
     lengthRef.current = length;
-    const hiddenRef = useRef();
+    const hiddenRef = useRef<boolean>(false);
     hiddenRef.current = hidden;
-    const lastScrollTimestampRef = useRef(0);
-    const requestAnimationRef = useRef();
-    const containerRef = useRef();
-    const drawerOpenRef = useRef();
+    const lastScrollTimestampRef = useRef<number>(0);
+    const requestAnimationRef = useRef<number>();
+    const containerRef = useRef<HTMLElement>();
+    const drawerOpenRef = useRef<boolean>();
     drawerOpenRef.current = drawerOpen;
     const [windowWidth] = useWindowSize(true);
     const classes = useSubtitlePlayerStyles({ compressed, windowWidth });
@@ -172,7 +228,7 @@ export default function SubtitlePlayer({
     // This effect should be scheduled only once as re-scheduling seems to cause performance issues.
     // Therefore all of the state it operates on is contained in refs.
     useEffect(() => {
-        const update = (time) => {
+        const update = () => {
             const subtitles = subtitleListRef.current || [];
             const subtitleRefs = subtitleRefsRef.current;
             const length = lengthRef.current;
@@ -181,7 +237,7 @@ export default function SubtitlePlayer({
 
             let smallestIndex = Number.MAX_SAFE_INTEGER;
             let fallbackIndex = -1;
-            const currentSubtitleIndexes = {};
+            const currentSubtitleIndexes: { [index: number]: boolean } = {};
 
             for (let i = subtitles.length - 1; i >= 0; --i) {
                 const s = subtitles[i];
@@ -230,7 +286,11 @@ export default function SubtitlePlayer({
 
         requestAnimationRef.current = requestAnimationFrame(update);
 
-        return () => cancelAnimationFrame(requestAnimationRef.current);
+        return () => {
+            if (requestAnimationRef.current !== undefined) {
+                cancelAnimationFrame(requestAnimationRef.current);
+            }
+        };
     }, []);
 
     const scrollToCurrentSubtitle = useCallback(() => {
@@ -246,7 +306,7 @@ export default function SubtitlePlayer({
             return;
         }
 
-        const scrollToSubtitleRef = subtitleRefs[indexes[0]];
+        const scrollToSubtitleRef = subtitleRefs[Number(indexes[0])];
 
         scrollToSubtitleRef?.current?.scrollIntoView({
             block: 'center',
@@ -341,7 +401,7 @@ export default function SubtitlePlayer({
     }, [onSeek, subtitles, disableKeyEvents, clock, length]);
 
     useEffect(() => {
-        function handleScroll(event) {
+        function handleScroll() {
             lastScrollTimestampRef.current = Date.now();
         }
 
@@ -373,6 +433,7 @@ export default function SubtitlePlayer({
         }
 
         if (jumpToIndex !== -1) {
+            console.log(subtitleRefs[jumpToIndex]);
             subtitleRefs[jumpToIndex]?.current?.scrollIntoView({
                 block: 'center',
                 inline: 'nearest',
@@ -383,7 +444,7 @@ export default function SubtitlePlayer({
 
     const calculateSurroundingSubtitlesForIndex = useCallback(
         (index) => {
-            if (!selectedSubtitleIndexesRef.current) {
+            if (!selectedSubtitleIndexesRef.current || !subtitles) {
                 return [];
             }
 
@@ -401,8 +462,7 @@ export default function SubtitlePlayer({
         if (!selectedSubtitleIndexesRef.current) {
             return [];
         }
-
-        const index = Math.min(Object.keys(selectedSubtitleIndexesRef.current));
+        const index = Math.min(...Object.keys(selectedSubtitleIndexesRef.current).map((i) => Number(i)));
         return calculateSurroundingSubtitlesForIndex(index);
     }, [calculateSurroundingSubtitlesForIndex]);
 
@@ -413,12 +473,12 @@ export default function SubtitlePlayer({
                 event.stopPropagation();
                 onCopy(subtitle, calculateSurroundingSubtitles(), false);
             },
-            () => disableKeyEventsRef.current,
+            () => disableKeyEventsRef.current ?? false,
             () => {
-                const subtitleIndexes = Object.keys(selectedSubtitleIndexesRef.current);
+                const subtitleIndexes = Object.keys(selectedSubtitleIndexesRef.current).map((i) => Number(i));
 
-                if (!subtitleIndexes || subtitleIndexes.length === 0) {
-                    return null;
+                if (!subtitles || !subtitleIndexes || subtitleIndexes.length === 0) {
+                    return undefined;
                 }
 
                 const index = Math.min(...subtitleIndexes);
@@ -448,9 +508,9 @@ export default function SubtitlePlayer({
             (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                const subtitleIndexes = Object.keys(selectedSubtitleIndexesRef.current);
+                const subtitleIndexes = Object.keys(selectedSubtitleIndexesRef.current).map((i) => Number(i));
 
-                if (subtitleIndexes && subtitleIndexes.length > 0) {
+                if (subtitles && subtitleIndexes && subtitleIndexes.length > 0) {
                     const index = Math.min(...subtitleIndexes);
                     onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), true);
                 }
@@ -464,7 +524,11 @@ export default function SubtitlePlayer({
     }, [onAnkiDialogRequest, onCopy, subtitles, calculateSurroundingSubtitlesForIndex]);
 
     const handleClick = useCallback(
-        (index) => {
+        (index: number) => {
+            if (!subtitles) {
+                return;
+            }
+
             const selectedSubtitleIndexes = selectedSubtitleIndexesRef.current || {};
             onSeek(subtitles[index].start, !playingRef.current && index in selectedSubtitleIndexes);
         },
@@ -472,9 +536,14 @@ export default function SubtitlePlayer({
     );
 
     const handleCopy = useCallback(
-        (e, index) => {
+        (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => {
             e.preventDefault();
             e.stopPropagation();
+
+            if (!subtitles) {
+                return;
+            }
+
             onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), false);
         },
         [subtitles, calculateSurroundingSubtitlesForIndex, onCopy]
@@ -501,7 +570,7 @@ export default function SubtitlePlayer({
             <TableContainer className={classes.table}>
                 <Table>
                     <TableBody>
-                        {subtitles.map((s, index) => {
+                        {subtitles.map((s: SubtitleModel, index: number) => {
                             const selected = index in selectedSubtitleIndexes;
 
                             return (
@@ -513,8 +582,8 @@ export default function SubtitlePlayer({
                                     disabled={disabledSubtitleTracks[s.track]}
                                     subtitle={subtitles[index]}
                                     subtitleRef={subtitleRefs[index]}
-                                    onClick={handleClick}
-                                    onCopy={handleCopy}
+                                    onClickSubtitle={handleClick}
+                                    onCopySubtitle={handleCopy}
                                 />
                             );
                         })}
