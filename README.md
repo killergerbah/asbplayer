@@ -96,6 +96,12 @@ The below information can also be found in asbplayer by clicking on the question
   to browsers that have good compatibility. Personally, I use Microsoft Edge and paid one dollar for HEVC support.
 - Audio track selection for `mkv` files is available if experimental web platform features are enabled from [chrome://flags](chrome://flags).
 
+## Contributing
+
+- Consult with me on the corresponding issue before attempting changes to UI/UX. This is to reduce back-and-forth during review.
+- New code should be written in TypeScript. 
+- Format code according to the Prettier config and attempt to match the style of surrounding code.
+
 ## Building and running
 ```
 # Install yarn
