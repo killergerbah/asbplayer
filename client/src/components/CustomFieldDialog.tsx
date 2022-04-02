@@ -6,8 +6,15 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
-export default function CustomFieldDialog({ open, onProceed, onCancel, existingCustomFieldNames }) {
-    const [fieldName, setFieldName] = useState('');
+interface Props {
+    open: boolean;
+    onProceed: (fieldName: string) => void;
+    onCancel: () => void;
+    existingCustomFieldNames: string[];
+}
+
+export default function CustomFieldDialog({ open, onProceed, onCancel, existingCustomFieldNames }: Props) {
+    const [fieldName, setFieldName] = useState<string>('');
 
     useEffect(() => {
         setFieldName('');
