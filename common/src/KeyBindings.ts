@@ -1,13 +1,13 @@
 import { SubtitleModel } from '.';
 import KeyEvents from './KeyEvents';
-import KeySequence, { KeySequenceTransitionResult } from './KeySequence';
+import { KeySequenceTransitionResult } from './KeySequence';
 import KeySequences from './KeySequences';
 
 export default class KeyBindings {
-    static bindCopy(
-        onCopy: (event: KeyboardEvent, subtitle: SubtitleModel) => void,
+    static bindCopy<T extends SubtitleModel = SubtitleModel>(
+        onCopy: (event: KeyboardEvent, subtitle: T) => void,
         disabledGetter: () => boolean,
-        subtitleGetter: () => SubtitleModel,
+        subtitleGetter: () => T | undefined,
         useCapture = false
     ) {
         return KeyBindings._bindDown((event) => {

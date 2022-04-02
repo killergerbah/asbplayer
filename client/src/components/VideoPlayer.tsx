@@ -3,11 +3,24 @@ import { isMobile } from 'react-device-detect';
 import { makeStyles } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
 import { arrayEquals, computeStyles } from '../services/Util';
-import { KeyBindings, surroundingSubtitles, mockSurroundingSubtitles, humanReadableTime } from '@project/common';
+import {
+    KeyBindings,
+    surroundingSubtitles,
+    mockSurroundingSubtitles,
+    humanReadableTime,
+    SubtitleSettings,
+    SubtitleModel,
+    AudioTrackModel,
+} from '@project/common';
 import Alert from './Alert';
 import Clock from '../services/Clock';
 import Controls from './Controls';
 import PlayerChannel from '../services/PlayerChannel';
+import SettingsProvider from '../services/SettingsProvider';
+
+interface ExperimentalHTMLVideoElement extends HTMLVideoElement {
+    readonly audioTracks: any;
+}
 
 const useStyles = makeStyles({
     root: {
@@ -28,7 +41,7 @@ const useStyles = makeStyles({
     },
 });
 
-function makeSubtitleStyles(subtitleSettings) {
+function makeSubtitleStyles(subtitleSettings: SubtitleSettings) {
     return {
         position: 'absolute',
         paddingLeft: 20,
@@ -39,7 +52,12 @@ function makeSubtitleStyles(subtitleSettings) {
     };
 }
 
-function notifyReady(element, playerChannel, setAudioTracks, setSelectedAudioTrack) {
+function notifyReady(
+    element: ExperimentalHTMLVideoElement,
+    playerChannel: PlayerChannel,
+    setAudioTracks: React.Dispatch<React.SetStateAction<AudioTrackModel[] | undefined>>,
+    setSelectedAudioTrack: React.Dispatch<React.SetStateAction<string | undefined>>
+) {
     if (window.outerWidth && element.videoWidth > 0 && element.videoHeight > 0) {
         const availWidth = window.screen.availWidth - (window.outerWidth - window.innerWidth);
         const availHeight = window.screen.availHeight - (window.outerHeight - window.innerHeight);
@@ -51,8 +69,8 @@ function notifyReady(element, playerChannel, setAudioTracks, setSelectedAudioTra
         );
     }
 
-    let tracks;
-    let selectedTrack;
+    let tracks: AudioTrackModel[] | undefined;
+    let selectedTrack: string | undefined;
 
     if (element.audioTracks) {
         tracks = [];
@@ -69,8 +87,8 @@ function notifyReady(element, playerChannel, setAudioTracks, setSelectedAudioTra
             }
         }
     } else {
-        tracks = null;
-        selectedTrack = null;
+        tracks = undefined;
+        selectedTrack = undefined;
     }
 
     setAudioTracks(tracks);
@@ -78,9 +96,9 @@ function notifyReady(element, playerChannel, setAudioTracks, setSelectedAudioTra
     playerChannel.ready(element.duration, element.paused, tracks, selectedTrack);
 }
 
-function errorMessage(element) {
+function errorMessage(element: HTMLVideoElement) {
     let error;
-    switch (element.error.code) {
+    switch (element.error?.code) {
         case 1:
             error = 'Aborted';
             break;
@@ -98,7 +116,7 @@ function errorMessage(element) {
             break;
     }
 
-    return error + ': ' + (element.error.message || '<details missing>');
+    return error + ': ' + (element.error?.message || '<details missing>');
 }
 
 function useFullscreen() {
@@ -114,60 +132,73 @@ function useFullscreen() {
     return fullscreen;
 }
 
-export default function VideoPlayer(props) {
+interface Props {
+    settingsProvider: SettingsProvider;
+    videoFile: string;
+    channel: string;
+    popOut: boolean;
+    onError: (error: string) => void;
+}
+
+interface IndexedSubtitleModel extends SubtitleModel {
+    index: number;
+}
+
+export default function VideoPlayer(props: Props) {
     const classes = useStyles();
     const { settingsProvider, videoFile, channel, popOut, onError } = props;
-    const poppingInRef = useRef();
-    const videoRef = useRef();
+    const poppingInRef = useRef<boolean>();
+    const videoRef = useRef<ExperimentalHTMLVideoElement>();
     const [windowWidth, windowHeight] = useWindowSize(true);
     if (videoRef.current) {
         videoRef.current.width = windowWidth;
         videoRef.current.height = windowHeight;
     }
     const playerChannel = useMemo(() => new PlayerChannel(channel), [channel]);
-    const [playing, setPlaying] = useState(false);
+    const [playing, setPlaying] = useState<boolean>(false);
     const fullscreen = useFullscreen();
-    const fullscreenRef = useRef();
+    const fullscreenRef = useRef<boolean>();
     fullscreenRef.current = fullscreen;
-    const playingRef = useRef();
+    const playingRef = useRef<boolean>();
     playingRef.current = playing;
-    const [length, setLength] = useState(0);
-    const [offset, setOffset] = useState(0);
-    const [audioTracks, setAudioTracks] = useState();
-    const [selectedAudioTrack, setSelectedAudioTrack] = useState();
-    const [subtitles, setSubtitles] = useState([]);
-    const [showSubtitles, setShowSubtitles] = useState([]);
+    const [length, setLength] = useState<number>(0);
+    const [offset, setOffset] = useState<number>(0);
+    const [audioTracks, setAudioTracks] = useState<AudioTrackModel[]>();
+    const [selectedAudioTrack, setSelectedAudioTrack] = useState<string>();
+    const [subtitles, setSubtitles] = useState<SubtitleModel[]>([]);
+    const [showSubtitles, setShowSubtitles] = useState<IndexedSubtitleModel[]>([]);
     const [subtitlesEnabled, setSubtitlesEnabled] = useState(true);
-    const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState({});
-    const [condensedModeEnabled, setCondensedModeEnabled] = useState(false);
-    const [subtitlePlayerHidden, setSubtitlePlayerHidden] = useState(false);
-    const showSubtitlesRef = useRef([]);
+    const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState<{ [index: number]: boolean }>({});
+    const [condensedModeEnabled, setCondensedModeEnabled] = useState<boolean>(false);
+    const [subtitlePlayerHidden, setSubtitlePlayerHidden] = useState<boolean>(false);
+    const showSubtitlesRef = useRef<IndexedSubtitleModel[]>([]);
     showSubtitlesRef.current = showSubtitles;
     const clock = useMemo(() => new Clock(), []);
     const mousePositionRef = useRef({ x: 0, y: 0 });
-    const containerRef = useRef();
-    const [alert, setAlert] = useState();
-    const [alertOpen, setAlertOpen] = useState(false);
-    const [controlsShowing, setControlsShowing] = useState(true);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [alert, setAlert] = useState<string>();
+    const [alertOpen, setAlertOpen] = useState<boolean>(false);
+    const [controlsShowing, setControlsShowing] = useState<boolean>(true);
     const [returnToFullscreenOnFinishedAnkiDialogRequest, setReturnToFullscreenOnFinishedAnkiDialogRequest] =
-        useState(false);
-    const returnToFullscreenOnFinishedAnkiDialogRequestRef = useRef();
+        useState<boolean>(false);
+    const returnToFullscreenOnFinishedAnkiDialogRequestRef = useRef<boolean>();
     returnToFullscreenOnFinishedAnkiDialogRequestRef.current = returnToFullscreenOnFinishedAnkiDialogRequest;
 
     const videoRefCallback = useCallback(
         (element) => {
             if (element) {
-                videoRef.current = element;
+                const videoElement = element as ExperimentalHTMLVideoElement;
+                videoRef.current = videoElement;
 
-                if (element.readyState === 4) {
+                if (videoElement.readyState === 4) {
                     notifyReady(element, playerChannel, setAudioTracks, setSelectedAudioTrack);
                 } else {
-                    element.onloadeddata = (event) => {
+                    videoElement.onloadeddata = (event) => {
                         notifyReady(element, playerChannel, setAudioTracks, setSelectedAudioTrack);
                     };
                 }
 
-                element.oncanplay = (event) => {
+                videoElement.oncanplay = (event) => {
                     playerChannel.readyState(4);
 
                     if (playingRef.current) {
@@ -175,16 +206,23 @@ export default function VideoPlayer(props) {
                     }
                 };
 
-                element.ontimeupdate = (event) => clock.setTime(element.currentTime * 1000);
+                videoElement.ontimeupdate = (event) => clock.setTime(element.currentTime * 1000);
 
-                element.onerror = (event) => onError(errorMessage(element));
+                videoElement.onerror = (event) => onError(errorMessage(element));
             }
         },
         [clock, playerChannel, onError]
     );
 
-    function selectAudioTrack(id) {
-        for (let t of videoRef.current.audioTracks) {
+    function selectAudioTrack(id: string) {
+        const audioTracks = videoRef.current?.audioTracks;
+
+        if (!audioTracks) {
+            return;
+        }
+
+        // @ts-ignore
+        for (const t of audioTracks) {
             if (t.id === id) {
                 t.enabled = true;
             } else {
@@ -197,13 +235,13 @@ export default function VideoPlayer(props) {
         playerChannel.onReady((duration) => setLength(duration));
 
         playerChannel.onPlay(async () => {
-            await videoRef.current.play();
+            await videoRef.current?.play();
             clock.start();
             setPlaying(true);
         });
 
         playerChannel.onPause(() => {
-            videoRef.current.pause();
+            videoRef.current?.pause();
             clock.stop();
             setPlaying(false);
         });
@@ -293,7 +331,7 @@ export default function VideoPlayer(props) {
         [length, clock, playerChannel]
     );
 
-    function handleMouseMove(e) {
+    function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
         mousePositionRef.current.x = e.screenX;
         mousePositionRef.current.y = e.screenY;
     }
@@ -378,7 +416,7 @@ export default function VideoPlayer(props) {
     }, [playerChannel, subtitles, length, clock]);
 
     const calculateSurroundingSubtitles = useCallback(
-        (index) => {
+        (index: number) => {
             return surroundingSubtitles(
                 subtitles,
                 index,
@@ -390,7 +428,7 @@ export default function VideoPlayer(props) {
     );
 
     useEffect(() => {
-        const unbind = KeyBindings.bindCopy(
+        const unbind = KeyBindings.bindCopy<IndexedSubtitleModel>(
             (event, subtitle) => {
                 event.stopPropagation();
                 event.preventDefault();
@@ -417,17 +455,21 @@ export default function VideoPlayer(props) {
             () => {
                 if (!subtitles || subtitles.length === 0) {
                     const timestamp = clock.time(length);
+                    const end = Math.min(timestamp + 5000, length);
 
                     return {
                         text: '',
                         start: timestamp,
-                        end: Math.min(timestamp + 5000, length),
+                        originalStart: timestamp,
+                        end: end,
+                        originalEnd: end,
                         track: 0,
+                        index: 0,
                     };
                 }
 
                 if (!showSubtitlesRef.current || showSubtitlesRef.current.length === 0) {
-                    return null;
+                    return undefined;
                 }
 
                 return showSubtitlesRef.current[0];
@@ -520,16 +562,21 @@ export default function VideoPlayer(props) {
 
                 if (!subtitles || subtitles.length === 0) {
                     const timestamp = clock.time(length);
+                    const end = Math.min(timestamp + 5000, length);
                     const subtitle = {
                         text: '',
                         start: timestamp,
-                        end: Math.min(timestamp + 5000, length),
+                        originalStart: timestamp,
+                        end: end,
+                        originalEnd: end,
                         track: 0,
                     };
 
                     playerChannel.copy(subtitle, mockSurroundingSubtitles(subtitle, length, 5000), false);
                 } else if (showSubtitlesRef.current && showSubtitlesRef.current.length > 0) {
                     const currentSubtitle = showSubtitlesRef.current[0];
+
+                    // TODO fix
                     playerChannel.copy(currentSubtitle, calculateSurroundingSubtitles(currentSubtitle.index), true);
                 }
 
@@ -642,7 +689,7 @@ export default function VideoPlayer(props) {
         <div ref={containerRef} onMouseMove={handleMouseMove} className={classes.root}>
             <video
                 preload="auto"
-                nocontrols={1}
+                controls={false}
                 onClick={handleClick}
                 onDoubleClick={handleDoubleClick}
                 className={controlsShowing ? classes.video : `${classes.cursorHidden} ${classes.video}`}
@@ -699,6 +746,15 @@ export default function VideoPlayer(props) {
                 onClose={handleClose}
                 onHideSubtitlePlayerToggle={handleHideSubtitlePlayerToggle}
                 settingsProvider={settingsProvider}
+                displayLength={undefined}
+                onTabSelected={undefined}
+                onUnloadAudio={undefined}
+                onUnloadVideo={undefined}
+                disableKeyEvents={undefined}
+                videoFile={undefined}
+                audioFile={undefined}
+                tabs={undefined}
+                selectedTab={undefined}
             />
         </div>
     );

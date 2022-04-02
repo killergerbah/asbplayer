@@ -1,4 +1,23 @@
-import { AnkiDialogRequestFromVideoMessage, AudioTrackModel, AudioTrackSelectedFromVideoMessage, AudioTrackSelectedToVideoMessage, CondensedModeToggleToVideoMessage, CopyMessage, CurrentTimeToVideoMessage, FinishedAnkiDialogRequestToVideoMessage, HideSubtitlePlayerToggleToVideoMessage, OffsetFromVideoMessage, PauseFromVideoMessage, PlayFromVideoMessage, ReadyFromVideoMessage, ReadyStateFromVideoMessage, ReadyToVideoMessage, SubtitleModel, SubtitlesToVideoMessage, ToggleSubtitleTrackInListFromVideoMessage } from "@project/common";
+import {
+    AnkiDialogRequestFromVideoMessage,
+    AudioTrackModel,
+    AudioTrackSelectedFromVideoMessage,
+    AudioTrackSelectedToVideoMessage,
+    CondensedModeToggleToVideoMessage,
+    CopyMessage,
+    CurrentTimeToVideoMessage,
+    FinishedAnkiDialogRequestToVideoMessage,
+    HideSubtitlePlayerToggleToVideoMessage,
+    OffsetFromVideoMessage,
+    PauseFromVideoMessage,
+    PlayFromVideoMessage,
+    ReadyFromVideoMessage,
+    ReadyStateFromVideoMessage,
+    ReadyToVideoMessage,
+    SubtitleModel,
+    SubtitlesToVideoMessage,
+    ToggleSubtitleTrackInListFromVideoMessage,
+} from '@project/common';
 
 export default class PlayerChannel {
     private channel?: BroadcastChannel;
@@ -152,7 +171,7 @@ export default class PlayerChannel {
         this.closeCallbacks.push(callback);
     }
 
-    onReady(callback: () => void) {
+    onReady(callback: (duration: number) => void) {
         this.readyCallbacks.push(callback);
     }
 
@@ -176,7 +195,12 @@ export default class PlayerChannel {
         this.finishedAnkiDialogRequestCallbacks.push(callback);
     }
 
-    ready(duration: number, paused: boolean, audioTracks: AudioTrackModel[], selectedAudioTrack: string) {
+    ready(
+        duration: number,
+        paused: boolean,
+        audioTracks: AudioTrackModel[] | undefined,
+        selectedAudioTrack: string | undefined
+    ) {
         const message: ReadyFromVideoMessage = {
             command: 'ready',
             duration: duration,
@@ -219,7 +243,7 @@ export default class PlayerChannel {
         this.channel?.postMessage({ command: 'popOutToggle' });
     }
 
-    copy(subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], preventDuplicate: boolean) {
+    copy(subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], preventDuplicate?: boolean) {
         const message: CopyMessage = {
             command: 'copy',
             subtitle: subtitle,
@@ -239,12 +263,18 @@ export default class PlayerChannel {
     }
 
     ankiDialogRequest(forwardToVideo: boolean) {
-        const message: AnkiDialogRequestFromVideoMessage = { command: 'ankiDialogRequest', forwardToVideo: forwardToVideo };
+        const message: AnkiDialogRequestFromVideoMessage = {
+            command: 'ankiDialogRequest',
+            forwardToVideo: forwardToVideo,
+        };
         this.channel?.postMessage(message);
     }
 
     toggleSubtitleTrackInList(track: number) {
-        const message: ToggleSubtitleTrackInListFromVideoMessage = { command: 'toggleSubtitleTrackInList', track: track };
+        const message: ToggleSubtitleTrackInListFromVideoMessage = {
+            command: 'toggleSubtitleTrackInList',
+            track: track,
+        };
         this.channel?.postMessage(message);
     }
 
