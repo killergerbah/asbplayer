@@ -14,5 +14,6 @@
   "scripts": {
     "pretty": "yarn prettier --write './(client|common|extension)/src/**/*.(js|css)'",
     "pretty:check": "yarn prettier --check './(client|common|extension)/src/**/*.(js|css)'"
-  }
+  },
+  "packageManager": "yarn@3.2.0"
 }
