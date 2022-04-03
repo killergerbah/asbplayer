@@ -120,4 +120,4 @@ yarn workspace @project/client run start
 yarn workspace @project/extension buildDev 
 ```
 
-If you problems building try deleting `node_modules` and rerunning `yarn`.
+If you have problems building try deleting `node_modules` and re-running `yarn`.
