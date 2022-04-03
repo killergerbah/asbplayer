@@ -9,7 +9,7 @@ A browser-based media player for subtitle sentence mining.
 
 asbplayer is hosted at [https://killergerbah.github.io/asbplayer/](https://killergerbah.github.io/asbplayer/).
 
-If you've benefited from asbplayer please consider supporting my work by [buying me a coffee](https://github.com/sponsors/killergerbah?frequency=one-time).
+If you've benefited from asbplayer please consider supporting my work by [buying me a coffee](https://github.com/sponsors/killergerbah?frequency=one-time) ❤️.
 
 ## Usage
 The below information can also be found in asbplayer by clicking on the question mark button in the top right.
