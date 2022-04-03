@@ -1,9 +1,10 @@
-import { parse as parseAss } from 'ass-compiler';
+import { compile as parseAss } from 'ass-compiler';
 import { parseSync as parseSrt } from 'subtitle';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
 
 const tagRegex = RegExp('</?([^>]*)>', 'ig');
+const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
 const helperElement = document.createElement('div');
 
 interface SubtitleNode {
@@ -63,13 +64,18 @@ export default class SubtitleReader {
         }
 
         if (file.name.endsWith('.ass')) {
-            const nodes = parseAss(await file.text());
-            return nodes.events.dialogue.map((event) => ({
-                start: Math.round(event.Start * 1000),
-                end: Math.round(event.End * 1000),
-                text: event.Text.combined,
-                track: track,
-            }));
+            const nodes = parseAss(await file.text(), {});
+            return nodes.dialogues.map((dialogue) => {
+                return {
+                    start: Math.round(dialogue.start * 1000),
+                    end: Math.round(dialogue.end * 1000),
+                    text: dialogue.slices
+                        .flatMap((slice) => slice.fragments.map((fragment) => fragment.text))
+                        .join('')
+                        .replace(assNewLineRegex, '\n'),
+                    track: track,
+                };
+            });
         }
 
         if (file.name.endsWith('.ytxml')) {
