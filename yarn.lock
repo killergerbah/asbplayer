@@ -2193,6 +2193,7 @@ __metadata:
     "@types/semver": ^7.3.9
     ass-compiler: 0.1.1
     eslint-config-react-app: ^6.0.0
+    fast-xml-parser: ^4.0.7
     gh-pages: ^3.1.0
     lamejs: 1.2.0
     react: ^17.0.1
@@ -7216,6 +7217,17 @@ __metadata:
   version: 2.0.6
   resolution: "fast-levenshtein@npm:2.0.6"
   checksum: 92cfec0a8dfafd9c7a15fba8f2cc29cd0b62b85f056d99ce448bbcd9f708e18ab2764bda4dd5158364f4145a7c72788538994f0d1787b956ef0d1062b0f7c24c
+  languageName: node
+  linkType: hard
+
+"fast-xml-parser@npm:^4.0.7":
+  version: 4.0.7
+  resolution: "fast-xml-parser@npm:4.0.7"
+  dependencies:
+    strnum: ^1.0.5
+  bin:
+    fxparser: src/cli/cli.js
+  checksum: c80013da6c5f02bdf02f4f62c7e97c051c202280e3f740ef5e52a7608314466a5e2b7f877b4d9d275ad5934bf6c203e1634ecb78128177faf9d75efefa120db1
   languageName: node
   linkType: hard
 
@@ -14778,6 +14790,13 @@ __metadata:
   dependencies:
     escape-string-regexp: ^1.0.2
   checksum: f8d65d33ca2b49aabc66bb41d689dda7b8b9959d320e3a40a2ef4d7079ff2f67ffb72db43f179f48dbf9495c2e33742863feab7a584d180fa62505439162c191
+  languageName: node
+  linkType: hard
+
+"strnum@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "strnum@npm:1.0.5"
+  checksum: 651b2031db5da1bf4a77fdd2f116a8ac8055157c5420f5569f64879133825915ad461513e7202a16d7fec63c54fd822410d0962f8ca12385c4334891b9ae6dd2
   languageName: node
   linkType: hard
 

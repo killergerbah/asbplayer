@@ -1,6 +1,7 @@
 import { parse as parseAss } from 'ass-compiler';
 import { parseSync as parseSrt } from 'subtitle';
 import { WebVTT } from 'vtt.js';
+import { XMLParser } from 'fast-xml-parser';
 
 const tagRegex = RegExp('</?([^>]*)>', 'ig');
 const helperElement = document.createElement('div');
@@ -13,6 +14,8 @@ interface SubtitleNode {
 }
 
 export default class SubtitleReader {
+    private xmlParser?: XMLParser;
+
     async subtitles(files: File[]) {
         return (await Promise.all(files.map((f, i) => this._subtitles(f, i))))
             .flatMap((nodes) => nodes)
@@ -70,18 +73,19 @@ export default class SubtitleReader {
         }
 
         if (file.name.endsWith('.ytxml')) {
-            const xml = new window.DOMParser().parseFromString(await file.text(), 'text/xml');
-            const textNodes = xml.getElementsByTagName('text');
+            const text = await file.text();
+            const xml = this._xmlParser().parse(text);
+            const textNodes = xml['transcript']['text'];
             const subtitles = [];
 
             for (let index = 0, length = textNodes.length; index < length; index++) {
                 const elm = textNodes[index];
-                const start = parseFloat(elm.getAttribute('start') as string);
+                const start = parseFloat(elm['@_start']);
 
                 subtitles.push({
                     start: Math.floor(start * 1000),
-                    end: Math.floor((start + parseFloat(elm.getAttribute('dur') as string)) * 1000),
-                    text: this._decodeHTML(elm.textContent!.replace(tagRegex, '')),
+                    end: Math.floor((start + parseFloat(elm['@_dur'])) * 1000),
+                    text: this._decodeHTML(String(elm['#text']).replace(tagRegex, '')),
                     track,
                 });
             }
@@ -111,5 +115,13 @@ export default class SubtitleReader {
     _decodeHTML(text: string): string {
         helperElement.innerHTML = text;
         return helperElement.childNodes.length === 0 ? '' : helperElement.childNodes[0].nodeValue!;
+    }
+
+    _xmlParser() {
+        if (this.xmlParser === undefined) {
+            this.xmlParser = new XMLParser({ ignoreAttributes: false });
+        }
+
+        return this.xmlParser;
     }
 }
