@@ -1,14 +1,15 @@
 # asbplayer
 
-A browser-based media player intended to assist subtitle sentence mining.
+A browser-based media player for subtitle sentence mining.
 
-- Can sync subtitle files with HTML5 video elements as long as the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest) is installed.
-- A best-effort is made to ensure that subtitles displayed in video elements are text-selectable and can be scanned by
-  popup dictionary extensions like Yomi-chan.
-- Local media can be played in "condensed mode," skipping sections without subtitles.
-- Supports creation of audio/screenshot Anki flashcards from both streaming video and local media through AnkiConnect.
+- Load subtitle files onto streaming video elements and create media-rich Anki flashcards using the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest).
+  Once subtitles are loaded, in general they are text-selectable and can be scanned by popup dictionary extensions like Yomi-chan.
+- Create media-rich Anki flashcards from local media and subtitle files.
+- Even if you don't have subtitles, easily extract image and audio from local or streaming media for Anki flashcards.
 
 asbplayer is hosted at [https://killergerbah.github.io/asbplayer/](https://killergerbah.github.io/asbplayer/).
+
+If you've benefited from asbplayer please consider supporting my work by [buying me a coffee](https://github.com/sponsors/killergerbah?frequency=one-time).
 
 ## Usage
 The below information can also be found in asbplayer by clicking on the question mark button in the top right.
@@ -80,7 +81,7 @@ The below information can also be found in asbplayer by clicking on the question
     - Make sure that asbplayer is allowed by AnkiConnect, as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
     - Check that your browser or an ad blocker isn't blocking the request. A good place to start is by opening your browser's developer console and looking for errors.
 - asbplayer isn't including audio/screenshot in flashcards.
-    - If you're mining streaming video make sure you use an extension keyboard shortcut (`Ctrl+Shift+X` by default).
+    - If you're mining streaming video make sure you use an extension keyboard shortcut (`Ctrl+Shift+X` by default) from the tab with the streaming video.
 ### Demos
 
 - [Sentence mining streaming video with asbplayer (synchronous workflow)](https://www.youtube.com/watch?v=W9Lf3C7sRzc)
@@ -91,7 +92,7 @@ The below information can also be found in asbplayer by clicking on the question
 
 ### Browser compatibility
 
-- The asbplayer application and extension have only been tested on Chrome 91 and later and likely work on other Chromium-based browsers.
+- The asbplayer application and extension have only been tested on Chrome 100 and later and likely work on other Chromium-based browsers.
 - Local video file playback is supported only for codecs supported by the browser. The [animebook](https://github.com/animebook/animebook.github.io#video-format-support) readme has a detailed explanation of this and links
   to browsers that have good compatibility. Personally, I use Microsoft Edge and paid one dollar for HEVC support.
 - Audio track selection for `mkv` files is available if experimental web platform features are enabled from [chrome://flags](chrome://flags).
