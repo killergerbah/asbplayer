@@ -22,13 +22,14 @@ import { AudioModel, ImageModel, SubtitleModel } from '@project/common';
 export interface CopyHistoryItem extends SubtitleModel {
     name: string;
     id: string;
+    timestamp: number;
     surroundingSubtitles: SubtitleModel[];
     audioFile?: File;
     audioTrack?: string;
     videoFile?: File;
     subtitleFile?: File;
-    audio: AudioModel;
-    image: ImageModel;
+    audio?: AudioModel;
+    image?: ImageModel;
     url?: string;
 }
 

@@ -36,8 +36,7 @@ export default function CustomFieldDialog({ open, onProceed, onCancel, existingC
             disableEnforceFocus
             fullWidth
             maxWidth="xs"
-            onBackdropClick={onCancel}
-            onEscapeKeyDown={onCancel}
+            onClose={onCancel}
         >
             <DialogTitle>New Custom Field</DialogTitle>
             <DialogContent>

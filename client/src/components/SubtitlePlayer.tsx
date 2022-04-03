@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useMemo, useRef, createRef, MutableRefObject } from 'react';
+import React, { useCallback, useEffect, useState, useMemo, useRef, createRef, RefObject } from 'react';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { keysAreEqual } from '../services/Util';
 import { useWindowSize } from '../hooks/useWindowSize';
@@ -90,64 +90,53 @@ interface SubtitleRowProps extends TableRowProps {
     selected: boolean;
     disabled: boolean;
     subtitle: DisplaySubtitleModel;
-    subtitleRef: MutableRefObject<HTMLTableRowElement>;
+    subtitleRef: RefObject<HTMLTableRowElement>;
     onClickSubtitle: (index: number) => void;
     onCopySubtitle: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => void;
 }
 
-const SubtitleRow = React.memo(
-    ({
-        index,
-        compressed,
-        selected,
-        disabled,
-        subtitle,
-        subtitleRef,
-        onClickSubtitle,
-        onCopySubtitle,
-        ...tableRowProps
-    }: SubtitleRowProps) => {
-        const classes = useSubtitleRowStyles();
-        const textRef = useRef<HTMLSpanElement>(null);
-        const [textSelected, setTextSelected] = useState<boolean>(false);
-        let className = compressed ? classes.compressedSubtitle : classes.subtitle;
-        let disabledClassName = disabled ? classes.disabledSubtitle : '';
+const SubtitleRow = React.memo((props: SubtitleRowProps) => {
+    const { index, selected, subtitleRef, onClickSubtitle, onCopySubtitle, compressed, disabled, subtitle, ...tableRowProps } = props;
+    const classes = useSubtitleRowStyles();
+    const textRef = useRef<HTMLSpanElement>(null);
+    const [textSelected, setTextSelected] = useState<boolean>(false);
+    let className = compressed ? classes.compressedSubtitle : classes.subtitle;
+    let disabledClassName = disabled ? classes.disabledSubtitle : '';
 
-        if (subtitle.start < 0 || subtitle.end < 0) {
-            return null;
-        }
-
-        function handleMouseUp() {
-            const selection = document.getSelection();
-            const selected =
-                selection?.type === 'Range' && textRef.current?.isSameNode(selection.anchorNode?.parentNode ?? null);
-            setTextSelected(selected ?? false);
-        }
-
-        return (
-            <TableRow
-                onClick={() => !textSelected && onClickSubtitle(index)}
-                onMouseUp={handleMouseUp}
-                ref={subtitleRef}
-                className={classes.subtitleRow}
-                selected={selected}
-                {...tableRowProps}
-            >
-                <TableCell className={className}>
-                    <span ref={textRef} className={disabledClassName}>
-                        {subtitle.text}
-                    </span>
-                </TableCell>
-                <TableCell className={classes.copyButton}>
-                    <IconButton onClick={(e) => onCopySubtitle(e, index)}>
-                        <FileCopy fontSize={compressed ? 'small' : 'default'} />
-                    </IconButton>
-                </TableCell>
-                <TableCell className={classes.timestamp}>{subtitle.displayTime}</TableCell>
-            </TableRow>
-        );
+    if (subtitle.start < 0 || subtitle.end < 0) {
+        return null;
     }
-);
+
+    function handleMouseUp() {
+        const selection = document.getSelection();
+        const selected =
+            selection?.type === 'Range' && textRef.current?.isSameNode(selection.anchorNode?.parentNode ?? null);
+        setTextSelected(selected ?? false);
+    }
+
+    return (
+        <TableRow
+            onClick={() => !textSelected && onClickSubtitle(index)}
+            onMouseUp={handleMouseUp}
+            ref={subtitleRef}
+            className={classes.subtitleRow}
+            selected={selected}
+            {...tableRowProps}
+        >
+            <TableCell className={className}>
+                <span ref={textRef} className={disabledClassName}>
+                    {subtitle.text}
+                </span>
+            </TableCell>
+            <TableCell className={classes.copyButton}>
+                <IconButton onClick={(e) => onCopySubtitle(e, index)}>
+                    <FileCopy fontSize={compressed ? 'small' : 'medium'} />
+                </IconButton>
+            </TableCell>
+            <TableCell className={classes.timestamp}>{subtitle.displayTime}</TableCell>
+        </TableRow>
+    );
+});
 
 interface SubtitlePlayerProps {
     clock: Clock;
@@ -198,16 +187,16 @@ export default function SubtitlePlayer({
     clockRef.current = clock;
     const subtitleListRef = useRef<DisplaySubtitleModel[]>();
     subtitleListRef.current = subtitles;
-    const subtitleRefs = useMemo<MutableRefObject<HTMLTableRowElement>[]>(
+    const subtitleRefs = useMemo<RefObject<HTMLTableRowElement>[]>(
         () =>
             subtitles
                 ? Array(subtitles.length)
                       .fill(undefined)
-                      .map((_) => createRef<HTMLTableRowElement>() as MutableRefObject<HTMLTableRowElement>)
+                      .map((_) => createRef<HTMLTableRowElement>())
                 : [],
         [subtitles]
     );
-    const subtitleRefsRef = useRef<MutableRefObject<HTMLTableRowElement>[]>([]);
+    const subtitleRefsRef = useRef<RefObject<HTMLTableRowElement>[]>([]);
     subtitleRefsRef.current = subtitleRefs;
     const disableKeyEventsRef = useRef<boolean>();
     disableKeyEventsRef.current = disableKeyEvents;
@@ -433,7 +422,6 @@ export default function SubtitlePlayer({
         }
 
         if (jumpToIndex !== -1) {
-            console.log(subtitleRefs[jumpToIndex]);
             subtitleRefs[jumpToIndex]?.current?.scrollIntoView({
                 block: 'center',
                 inline: 'nearest',

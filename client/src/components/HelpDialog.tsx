@@ -35,7 +35,7 @@ export default function HelpDialog({ open, extensionUrl, onClose }: Props) {
     const classes = useStyles();
 
     return (
-        <Dialog open={open} onBackdropClick={onClose} onEscapeKeyDown={onClose}>
+        <Dialog open={open} onClose={onClose}>
             <DialogContent>
                 <Typography variant="h6">Loading files</Typography>
                 <Typography component="ul">

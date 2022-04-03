@@ -105,8 +105,7 @@ export default function VideoDataSyncDialog({
             fullWidth
             maxWidth="sm"
             open={open}
-            onBackdropClick={onCancel}
-            onEscapeKeyDown={onCancel}
+            onClose={onCancel}
         >
             <DialogTitle>Select Subtitles</DialogTitle>
             <DialogContent>

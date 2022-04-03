@@ -362,7 +362,6 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
             audioPaddingEnd: audioPaddingEnd,
             maxImageWidth: maxImageWidth,
             maxImageHeight: maxImageHeight,
-            // The settings below are not currently mutable
             surroundingSubtitlesCountRadius: settings.surroundingSubtitlesCountRadius,
             surroundingSubtitlesTimeRadius: settings.surroundingSubtitlesTimeRadius,
             volume: settings.volume
@@ -423,7 +422,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
                 onProceed={handleAddCustomField}
                 onCancel={() => setCustomFieldDialogOpen(false)}
             />
-            <Dialog open={open} maxWidth="xs" fullWidth onBackdropClick={handleClose} onEscapeKeyDown={handleClose}>
+            <Dialog open={open} maxWidth="xs" fullWidth onClose={handleClose}>
                 <DialogTitle>Settings</DialogTitle>
                 <DialogContent>
                     <Grid container direction="column" spacing={3}>

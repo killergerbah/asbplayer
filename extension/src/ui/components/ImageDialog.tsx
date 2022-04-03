@@ -83,7 +83,7 @@ export default function ImageDialog({ open, image, onClose }: Props) {
     }
 
     return (
-        <Dialog open={open} onBackdropClick={onClose} onEscapeKeyDown={onClose} maxWidth="lg">
+        <Dialog open={open} onClose={onClose} maxWidth="lg">
             <Card>
                 <CardMedia
                     className={classes.image}

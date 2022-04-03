@@ -373,8 +373,7 @@ export default function AnkiDialog({
             disableEnforceFocus
             fullWidth
             maxWidth="sm"
-            onBackdropClick={onCancel}
-            onEscapeKeyDown={onCancel}
+            onClose={onCancel}
         >
             <DialogTitle>Anki Export</DialogTitle>
             <DialogContent>
@@ -384,7 +383,7 @@ export default function AnkiDialog({
                         color="secondary"
                         multiline
                         fullWidth
-                        rowsMax={8}
+                        maxRows={8}
                         label="Sentence"
                         value={text}
                         onChange={(e) => setText(e.target.value)}
@@ -460,7 +459,7 @@ export default function AnkiDialog({
                             color="secondary"
                             fullWidth
                             multiline
-                            rowsMax={8}
+                            maxRows={8}
                             label={customFieldName}
                             value={customFieldValues[customFieldName] || ''}
                             onChange={(e) => handleCustomFieldChange(customFieldName, e.target.value)}

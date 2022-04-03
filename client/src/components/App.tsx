@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { Route, Redirect, Switch, useLocation } from 'react-router-dom';
-import { ThemeProvider, createMuiTheme, makeStyles, Theme } from '@material-ui/core/styles';
+import { ThemeProvider, createTheme, makeStyles, Theme } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
 import { red } from '@material-ui/core/colors';
 import {
@@ -16,6 +16,8 @@ import {
     MiscSettingsToVideoMessage,
     LegacyPlayerSyncMessage,
     PlayerSyncMessage,
+    AudioModel,
+    ImageModel,
 } from '@project/common';
 import { v4 as uuidv4 } from 'uuid';
 import clsx from 'clsx';
@@ -225,7 +227,7 @@ function App() {
     const settingsProvider = useMemo<SettingsProvider>(() => new SettingsProvider(), []);
     const theme = useMemo<Theme>(
         () =>
-            createMuiTheme({
+            createTheme({
                 palette: {
                     primary: {
                         main: '#49007a',
@@ -310,17 +312,17 @@ function App() {
 
     const handleCopy = useCallback(
         (
-            subtitle,
-            surroundingSubtitles,
-            audioFile,
-            videoFile,
-            subtitleFile,
-            audioTrack,
-            audio,
-            image,
-            url,
-            preventDuplicate,
-            id
+            subtitle: SubtitleModel,
+            surroundingSubtitles: SubtitleModel[],
+            audioFile: File | undefined,
+            videoFile: File | undefined,
+            subtitleFile: File | undefined,
+            audioTrack: string | undefined,
+            audio: AudioModel | undefined,
+            image: ImageModel | undefined,
+            url: string | undefined,
+            preventDuplicate: boolean | undefined,
+            id: string | undefined
         ) => {
             if (subtitle) {
                 navigator.clipboard.writeText(subtitle.text);
@@ -334,13 +336,13 @@ function App() {
                         subtitle.start === last.start &&
                         subtitle.end === last.end &&
                         subtitle.text === last.text &&
-                        subtitleFile.name === last.subtitleFile?.name
+                        subtitleFile?.name === last.subtitleFile?.name
                     ) {
                         return copiedSubtitles;
                     }
                 }
 
-                const newCopiedSubtitles = [];
+                const newCopiedSubtitles: CopyHistoryItem[] = [];
                 let updated = false;
 
                 for (const copiedSubtitle of copiedSubtitles) {
@@ -370,7 +372,7 @@ function App() {
                         surroundingSubtitles: surroundingSubtitles,
                         timestamp: Date.now(),
                         id: id || uuidv4(),
-                        name: fileName,
+                        name: fileName!,
                         subtitleFile: subtitleFile,
                         audioFile: audioFile,
                         videoFile: videoFile,

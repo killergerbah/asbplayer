@@ -47,31 +47,4 @@ export interface AsbplayerSettingsProvider extends AsbplayerSettings {
 
     subtitlePreview: string;
     volume: number;
-    // themeType: 'dark' | 'light';
-    // ankiConnectUrl: string;
-    // deck?: string;
-    // noteType?: string;
-    // sentenceField?: string;
-    // definitionField?: string;
-    // audioField?: string;
-    // imageField?: string;
-    // wordField?: string;
-    // customAnkiFields: { [key: string]: string };
-    // sourceField?: string;
-    // preferMp3: boolean;
-    // audioPaddingStart: number;
-    // audioPaddingEnd: number;
-    // maxImageWidth: number;
-    // maxImageHeight: number;
-    // surroundingSubtitlesCountRadius: number;
-    // surroundingSubtitlesTimeRadius: number;
-    // subtitleSize: number;
-    // subtitleColor: string;
-    // subtitleOutlineThickness: number;
-    // subtitleOutlineColor: string;
-    // subtitleBackgroundOpacity: number;
-    // subtitleBackgroundColor: string;
-    // subtitleFontFamily: string;
-    // subtitlePreview: string;
-    // volume: number;
 }

@@ -1,4 +1,4 @@
-import { createMuiTheme } from '@material-ui/core/styles';
+import { createTheme as createMuiTheme } from '@material-ui/core/styles';
 import { red } from '@material-ui/core/colors';
 import { PaletteType } from '@material-ui/core';
 

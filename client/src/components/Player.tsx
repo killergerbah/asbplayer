@@ -639,7 +639,7 @@ export default function Player({
     const handleAudioTrackSelected = useCallback(
         async (id) => {
             if (videoRef.current instanceof VideoChannel) {
-                (videoRef.current as VideoChannel).audioTrackSelected(id);
+                videoRef.current.audioTrackSelected(id);
             }
 
             pause(clock, mediaAdapter, true);
