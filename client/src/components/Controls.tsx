@@ -482,6 +482,7 @@ interface ControlsProps {
     hideSubtitlePlayerToggleEnabled?: boolean;
     subtitlePlayerHidden?: boolean;
     onHideSubtitlePlayerToggle?: () => void;
+    showOnMouseMovement: boolean;
 }
 
 export default function Controls({
@@ -528,6 +529,7 @@ export default function Controls({
     hideSubtitlePlayerToggleEnabled,
     subtitlePlayerHidden,
     onHideSubtitlePlayerToggle,
+    showOnMouseMovement,
 }: ControlsProps) {
     const classes = useControlStyles();
     const [show, setShow] = useState<boolean>(true);
@@ -548,6 +550,8 @@ export default function Controls({
     const lastShowRef = useRef<boolean>(true);
     const forceShowRef = useRef<boolean>(false);
     const offsetInputRef = useRef<HTMLInputElement>();
+    const containerRef = useRef<HTMLDivElement>(null);
+    const closeButtonRef = useRef<HTMLButtonElement>(null);
     const [, updateState] = useState<any>();
     const forceUpdate = useCallback(() => updateState({}), []);
 
@@ -578,15 +582,24 @@ export default function Controls({
 
     useEffect(() => {
         const interval = setInterval(() => {
-            const now = Date.now();
-            const currentShow =
-                now - lastShowTimestampRef.current < 2000 ||
-                Math.pow(mousePositionRef.current.x - lastMousePositionRef.current.x, 2) +
-                    Math.pow(mousePositionRef.current.y - lastMousePositionRef.current.y, 2) >
-                    100 ||
-                forceShowRef.current ||
-                offsetInputRef.current === document.activeElement ||
-                now - lastOffsetInputChangeTimestampRef.current < 2000;
+            let currentShow: boolean;
+
+            if (showOnMouseMovement) {
+                const now = Date.now();
+                currentShow =
+                    now - lastShowTimestampRef.current < 2000 ||
+                    Math.pow(mousePositionRef.current.x - lastMousePositionRef.current.x, 2) +
+                        Math.pow(mousePositionRef.current.y - lastMousePositionRef.current.y, 2) >
+                        100 ||
+                    forceShowRef.current ||
+                    offsetInputRef.current === document.activeElement ||
+                    now - lastOffsetInputChangeTimestampRef.current < 2000;
+            } else {
+                currentShow =
+                    ((containerRef.current && mousePositionRef.current.y > containerRef.current.offsetTop - 20) ||
+                        (closeButtonRef.current && mousePositionRef.current.y < closeButtonRef.current.offsetHeight + 20)) ??
+                    false;
+            }
 
             if (currentShow && !lastShowRef.current) {
                 lastShowTimestampRef.current = Date.now();
@@ -600,7 +613,7 @@ export default function Controls({
             lastMousePositionRef.current.y = mousePositionRef.current.y;
         }, 100);
         return () => clearInterval(interval);
-    }, [mousePositionRef, setShow, show]);
+    }, [mousePositionRef, showOnMouseMovement]);
 
     useEffect(() => onShow?.(show), [onShow, show]);
 
@@ -644,7 +657,7 @@ export default function Controls({
     useEffect(() => {
         if (offsetInputRef.current) {
             if (offset === 0) {
-                offsetInputRef.current.value = "";
+                offsetInputRef.current.value = '';
             } else {
                 const offsetSeconds = offset / 1000;
                 const value = offsetSeconds >= 0 ? '+' + offsetSeconds.toFixed(2) : String(offsetSeconds.toFixed(2));
@@ -744,16 +757,13 @@ export default function Controls({
         [settingsProvider]
     );
 
-    const handleVolumeToggle = useCallback(
-        () => {
-            setVolume((volume) => {
-                const newVolume = volume > 0 ? 0 : lastCommittedVolume;
-                onVolumeChange(newVolume / 100);
-                return newVolume;
-            });
-        },
-        [onVolumeChange, lastCommittedVolume]
-    );
+    const handleVolumeToggle = useCallback(() => {
+        setVolume((volume) => {
+            const newVolume = volume > 0 ? 0 : lastCommittedVolume;
+            onVolumeChange(newVolume / 100);
+            return newVolume;
+        });
+    }, [onVolumeChange, lastCommittedVolume]);
 
     const progress = clock.progress(length);
 
@@ -762,6 +772,7 @@ export default function Controls({
             {closeEnabled && (
                 <Fade in={show} timeout={200}>
                     <IconButton
+                        ref={closeButtonRef}
                         color="inherit"
                         className={classes.closeButton}
                         onClick={onClose}
@@ -785,7 +796,12 @@ export default function Controls({
                     </IconButton>
                 </Fade>
             )}
-            <div className={classes.container} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
+            <div
+                ref={containerRef}
+                className={classes.container}
+                onMouseOver={handleMouseOver}
+                onMouseOut={handleMouseOut}
+            >
                 <Fade in={show} timeout={200}>
                     <div className={classes.subContainer}>
                         <ProgressBar onSeek={handleSeek} value={progress * 100} />

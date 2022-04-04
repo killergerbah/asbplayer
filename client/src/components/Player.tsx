@@ -858,6 +858,7 @@ export default function Player({
                                 onCondensedModeToggle={handleCondensedModeToggle}
                                 disableKeyEvents={disableKeyEvents}
                                 settingsProvider={settingsProvider}
+                                showOnMouseMovement={true}
                             />
                         )}
                         <SubtitlePlayer

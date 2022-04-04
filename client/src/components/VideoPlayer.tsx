@@ -14,7 +14,7 @@ import {
 } from '@project/common';
 import Alert from './Alert';
 import Clock from '../services/Clock';
-import Controls from './Controls';
+import Controls, { Point } from './Controls';
 import PlayerChannel from '../services/PlayerChannel';
 import SettingsProvider from '../services/SettingsProvider';
 
@@ -173,12 +173,13 @@ export default function VideoPlayer(props: Props) {
     const [subtitlePlayerHidden, setSubtitlePlayerHidden] = useState<boolean>(false);
     const showSubtitlesRef = useRef<IndexedSubtitleModel[]>([]);
     showSubtitlesRef.current = showSubtitles;
-    const clock = useMemo(() => new Clock(), []);
-    const mousePositionRef = useRef({ x: 0, y: 0 });
+    const clock = useMemo<Clock>(() => new Clock(), []);
+    const mousePositionRef = useRef<Point>({ x: 0, y: 0 });
+    const [showCursor, setShowCursor] = useState<boolean>(false);
+    const lastMouseMovementTimestamp = useRef<number>(0);
     const containerRef = useRef<HTMLDivElement>(null);
     const [alert, setAlert] = useState<string>();
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
-    const [controlsShowing, setControlsShowing] = useState<boolean>(true);
     const [returnToFullscreenOnFinishedAnkiDialogRequest, setReturnToFullscreenOnFinishedAnkiDialogRequest] =
         useState<boolean>(false);
     const returnToFullscreenOnFinishedAnkiDialogRequestRef = useRef<boolean>();
@@ -333,8 +334,15 @@ export default function VideoPlayer(props: Props) {
     );
 
     function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
-        mousePositionRef.current.x = e.screenX;
-        mousePositionRef.current.y = e.screenY;
+        lastMouseMovementTimestamp.current = Date.now();
+
+        if (!containerRef.current) {
+            return;
+        }
+
+        var bounds = containerRef.current.getBoundingClientRect();
+        mousePositionRef.current.x =  e.clientX - bounds.left;
+        mousePositionRef.current.y = e.clientY - bounds.top;
     }
 
     const handleAudioTrackSelected = useCallback(
@@ -576,8 +584,6 @@ export default function VideoPlayer(props: Props) {
                     playerChannel.copy(subtitle, mockSurroundingSubtitles(subtitle, length, 5000), false);
                 } else if (showSubtitlesRef.current && showSubtitlesRef.current.length > 0) {
                     const currentSubtitle = showSubtitlesRef.current[0];
-
-                    // TODO fix
                     playerChannel.copy(currentSubtitle, calculateSurroundingSubtitles(currentSubtitle.index), true);
                 }
 
@@ -606,7 +612,6 @@ export default function VideoPlayer(props: Props) {
         return () => unbind();
     }, [playing, playerChannel]);
 
-    const handleShowControls = useCallback((showing) => setControlsShowing(showing), []);
     const handleSubtitlesToggle = useCallback(() => setSubtitlesEnabled((subtitlesEnabled) => !subtitlesEnabled), []);
 
     const handleFullscreenToggle = useCallback(() => {
@@ -686,6 +691,20 @@ export default function VideoPlayer(props: Props) {
         ]
     );
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (Date.now() - lastMouseMovementTimestamp.current > 300) {
+                if (showCursor) {
+                    setShowCursor(false);
+                }
+            } else if (!showCursor) {
+                setShowCursor(true);
+            }
+        }, 100);
+
+        return () => clearInterval(interval);
+    }, [showCursor])
+
     return (
         <div ref={containerRef} onMouseMove={handleMouseMove} className={classes.root}>
             <video
@@ -693,7 +712,7 @@ export default function VideoPlayer(props: Props) {
                 controls={false}
                 onClick={handleClick}
                 onDoubleClick={handleDoubleClick}
-                className={controlsShowing ? classes.video : `${classes.cursorHidden} ${classes.video}`}
+                className={showCursor ? classes.video : `${classes.cursorHidden} ${classes.video}`}
                 ref={videoRefCallback}
                 src={videoFile}
             />
@@ -733,7 +752,6 @@ export default function VideoPlayer(props: Props) {
                 condensedModeEnabled={condensedModeEnabled}
                 hideSubtitlePlayerToggleEnabled={subtitles?.length > 0 && !popOut && !fullscreen}
                 subtitlePlayerHidden={subtitlePlayerHidden}
-                onShow={handleShowControls}
                 onPlay={handlePlay}
                 onPause={handlePause}
                 onSeek={handleSeek}
@@ -747,6 +765,7 @@ export default function VideoPlayer(props: Props) {
                 onClose={handleClose}
                 onHideSubtitlePlayerToggle={handleHideSubtitlePlayerToggle}
                 settingsProvider={settingsProvider}
+                showOnMouseMovement={false}
             />
         </div>
     );
