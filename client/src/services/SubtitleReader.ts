@@ -81,6 +81,11 @@ export default class SubtitleReader {
         if (file.name.endsWith('.ytxml')) {
             const text = await file.text();
             const xml = this._xmlParser().parse(text);
+            
+            if (Object.keys(xml).length === 0) {
+                return [];
+            }
+            
             const textNodes = xml['transcript']['text'];
             const subtitles = [];
 
