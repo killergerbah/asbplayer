@@ -585,21 +585,24 @@ export default function Controls({
             let currentShow: boolean;
 
             if (showOnMouseMovement) {
-                const now = Date.now();
                 currentShow =
-                    now - lastShowTimestampRef.current < 2000 ||
+                    Date.now() - lastShowTimestampRef.current < 2000 ||
                     Math.pow(mousePositionRef.current.x - lastMousePositionRef.current.x, 2) +
                         Math.pow(mousePositionRef.current.y - lastMousePositionRef.current.y, 2) >
-                        100 ||
-                    forceShowRef.current ||
-                    offsetInputRef.current === document.activeElement ||
-                    now - lastOffsetInputChangeTimestampRef.current < 2000;
+                        100;
             } else {
                 currentShow =
                     ((containerRef.current && mousePositionRef.current.y > containerRef.current.offsetTop - 20) ||
-                        (closeButtonRef.current && mousePositionRef.current.y < closeButtonRef.current.offsetHeight + 20)) ??
+                        (closeButtonRef.current &&
+                            mousePositionRef.current.y < closeButtonRef.current.offsetHeight + 20)) ??
                     false;
             }
+
+            currentShow =
+                currentShow ||
+                forceShowRef.current ||
+                offsetInputRef.current === document.activeElement ||
+                Date.now() - lastOffsetInputChangeTimestampRef.current < 2000;
 
             if (currentShow && !lastShowRef.current) {
                 lastShowTimestampRef.current = Date.now();
