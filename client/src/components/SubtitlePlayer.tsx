@@ -16,12 +16,13 @@ import Clock from '../services/Clock';
 
 interface StylesProps {
     compressed: boolean;
+    appBarHidden: boolean;
     windowWidth: number;
 }
 
 const useSubtitlePlayerStyles = makeStyles<Theme, StylesProps, string>((theme) => ({
     container: {
-        height: 'calc(100vh - 64px)',
+        height: ({appBarHidden}) => appBarHidden ? '100vh' : 'calc(100vh - 64px)',
         position: 'relative',
         overflowX: 'hidden',
         backgroundColor: theme.palette.background.default,
@@ -96,7 +97,17 @@ interface SubtitleRowProps extends TableRowProps {
 }
 
 const SubtitleRow = React.memo((props: SubtitleRowProps) => {
-    const { index, selected, subtitleRef, onClickSubtitle, onCopySubtitle, compressed, disabled, subtitle, ...tableRowProps } = props;
+    const {
+        index,
+        selected,
+        subtitleRef,
+        onClickSubtitle,
+        onCopySubtitle,
+        compressed,
+        disabled,
+        subtitle,
+        ...tableRowProps
+    } = props;
     const classes = useSubtitleRowStyles();
     const textRef = useRef<HTMLSpanElement>(null);
     const [textSelected, setTextSelected] = useState<boolean>(false);
@@ -152,6 +163,7 @@ interface SubtitlePlayerProps {
     compressed: boolean;
     loading: boolean;
     drawerOpen: boolean;
+    appBarHidden: boolean;
     displayHelp?: string;
     disableKeyEvents: boolean;
     lastJumpToTopTimestamp: number;
@@ -174,6 +186,7 @@ export default function SubtitlePlayer({
     compressed,
     loading,
     drawerOpen,
+    appBarHidden,
     displayHelp,
     disableKeyEvents,
     lastJumpToTopTimestamp,
@@ -212,7 +225,7 @@ export default function SubtitlePlayer({
     const drawerOpenRef = useRef<boolean>();
     drawerOpenRef.current = drawerOpen;
     const [windowWidth] = useWindowSize(true);
-    const classes = useSubtitlePlayerStyles({ compressed, windowWidth });
+    const classes = useSubtitlePlayerStyles({ compressed, windowWidth, appBarHidden });
 
     // This effect should be scheduled only once as re-scheduling seems to cause performance issues.
     // Therefore all of the state it operates on is contained in refs.

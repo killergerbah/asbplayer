@@ -5,26 +5,28 @@ import { Theme } from '@material-ui/core';
 
 interface StylesProps {
     dragging: boolean;
+    appBarHidden: boolean;
 }
 
 interface Props {
     dragging: boolean;
+    appBarHidden: boolean;
     loading: boolean;
 }
 
-const useStyles = makeStyles<Theme, StylesProps, string>((theme) => ({
-    root: ({ dragging }) => ({
+const useStyles = makeStyles<Theme, StylesProps>((theme) => ({
+    root: ({ dragging, appBarHidden }) => ({
         position: 'absolute',
-        height: 'calc(100% - 64px)',
+        height: appBarHidden ? '100%' : 'calc(100% - 64px)',
         width: '100%',
         zIndex: 101,
         pointerEvents: dragging ? 'auto' : 'none',
     }),
-    transparentBackground: {
+    transparentBackground: ({ appBarHidden }) => ({
         '&::before': {
             content: "' '",
             position: 'absolute',
-            height: 'calc(100vh - 64px)',
+            height: appBarHidden ? '100vh' : 'calc(100vh - 64px)',
             width: '100%',
             display: 'flex',
             flexDirection: 'column',
@@ -41,11 +43,11 @@ const useStyles = makeStyles<Theme, StylesProps, string>((theme) => ({
         },
         width: '100%',
         height: '100%',
-    },
+    }),
 }));
 
-export default function DragOverlay({ dragging, loading }: Props) {
-    const classes = useStyles({ dragging: dragging });
+export default function DragOverlay({ dragging, appBarHidden, loading }: Props) {
+    const classes = useStyles({ dragging, appBarHidden });
 
     return (
         <div className={classes.root}>

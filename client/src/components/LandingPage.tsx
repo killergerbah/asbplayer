@@ -5,11 +5,16 @@ import Fade from '@material-ui/core/Fade';
 import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
 import ChromeExtension from '../services/ChromeExtension';
+import { Theme } from '@material-ui/core/styles';
 
-const useStyles = makeStyles((theme) => ({
-    background: {
+interface StylesProps {
+    appBarHidden: boolean;
+}
+
+const useStyles = makeStyles<Theme, StylesProps>((theme) => ({
+    background: ({ appBarHidden }) => ({
         position: 'absolute',
-        height: 'calc(100vh - 64px)',
+        height: appBarHidden ? '100vh' : 'calc(100vh - 64px)',
         width: '100%',
         zIndex: 100,
         display: 'flex',
@@ -18,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
         alignItems: 'center',
         padding: 15,
         textAlign: 'center',
-    },
+    }),
     browseLink: {
         cursor: 'pointer',
     },
@@ -30,6 +35,7 @@ interface Props {
     extensionUrl: string;
     loading: boolean;
     dragging: boolean;
+    appBarHidden: boolean;
     onFileSelector: React.MouseEventHandler<HTMLAnchorElement> &
         React.MouseEventHandler<HTMLSpanElement> &
         React.MouseEventHandler<HTMLLabelElement>;
@@ -41,9 +47,10 @@ export default function LandingPage({
     extensionUrl,
     loading,
     dragging,
+    appBarHidden,
     onFileSelector,
 }: Props) {
-    const classes = useStyles();
+    const classes = useStyles({ appBarHidden });
     const [installedExtensionVersion, setInstalledExtensionVersion] = useState<string>();
 
     useEffect(() => {

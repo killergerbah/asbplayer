@@ -256,6 +256,7 @@ function App() {
     const copiedSubtitlesRef = useRef<CopyHistoryItem[]>([]);
     copiedSubtitlesRef.current = copiedSubtitles;
     const [copyHistoryOpen, setCopyHistoryOpen] = useState<boolean>(false);
+    const [theaterMode, setTheaterMode] = useState<boolean>(settingsProvider.theaterMode);
     const [alert, setAlert] = useState<string>();
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
     const [alertSeverity, setAlertSeverity] = useState<Color>();
@@ -399,6 +400,10 @@ function App() {
 
     const handleOpenCopyHistory = useCallback(() => setCopyHistoryOpen((copyHistoryOpen) => !copyHistoryOpen), []);
     const handleCloseCopyHistory = useCallback(() => setCopyHistoryOpen(false), []);
+    const handleAppBarToggle = useCallback(() => {
+        settingsProvider.theaterMode = !settingsProvider.theaterMode;
+        setTheaterMode(settingsProvider.theaterMode);
+    }, [settingsProvider]);
     const handleOpenSettings = useCallback(() => {
         setDisableKeyEvents(true);
         setSettingsDialogOpen(true);
@@ -866,6 +871,7 @@ function App() {
     const nothingLoaded =
         (loading && !videoFrameRef.current) ||
         (sources.subtitleFiles.length === 0 && !sources.audioFile && !sources.videoFile);
+    const appBarHidden = sources.videoFile !== undefined && theaterMode;
 
     return (
         <ThemeProvider theme={theme}>
@@ -954,6 +960,7 @@ function App() {
                                         title={fileName || 'asbplayer'}
                                         drawerWidth={drawerWidth}
                                         drawerOpen={copyHistoryOpen}
+                                        hidden={appBarHidden}
                                         onOpenCopyHistory={handleOpenCopyHistory}
                                         onOpenSettings={handleOpenSettings}
                                         onOpenHelp={handleOpenHelp}
@@ -975,10 +982,11 @@ function App() {
                                                 extension={extension}
                                                 loading={loading}
                                                 dragging={dragging}
+                                                appBarHidden={appBarHidden}
                                                 onFileSelector={handleFileSelector}
                                             />
                                         )}
-                                        <DragOverlay dragging={dragging} loading={loading} />
+                                        <DragOverlay dragging={dragging} appBarHidden={appBarHidden} loading={loading} />
                                         <Player
                                             subtitleReader={subtitleReader}
                                             settingsProvider={settingsProvider}
@@ -989,6 +997,7 @@ function App() {
                                             onLoaded={handleSourcesLoaded}
                                             onTabSelected={handleTabSelected}
                                             onAnkiDialogRequest={handleAnkiDialogRequest}
+                                            onAppBarToggle={handleAppBarToggle}
                                             tab={tab}
                                             availableTabs={availableTabs}
                                             sources={sources}
@@ -996,6 +1005,7 @@ function App() {
                                             videoFrameRef={videoFrameRef}
                                             extension={extension}
                                             drawerOpen={copyHistoryOpen}
+                                            appBarHidden={appBarHidden}
                                             disableKeyEvents={disableKeyEvents}
                                             ankiDialogRequested={ankiDialogRequested}
                                             ankiDialogRequestToVideo={ankiDialogRequestToVideo}

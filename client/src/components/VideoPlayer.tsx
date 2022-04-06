@@ -171,6 +171,7 @@ export default function VideoPlayer(props: Props) {
     const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState<{ [index: number]: boolean }>({});
     const [condensedModeEnabled, setCondensedModeEnabled] = useState<boolean>(false);
     const [subtitlePlayerHidden, setSubtitlePlayerHidden] = useState<boolean>(false);
+    const [appBarHidden, setAppBarHidden] = useState<boolean>(settingsProvider.theaterMode);
     const showSubtitlesRef = useRef<IndexedSubtitleModel[]>([]);
     showSubtitlesRef.current = showSubtitles;
     const clock = useMemo<Clock>(() => new Clock(), []);
@@ -283,6 +284,7 @@ export default function VideoPlayer(props: Props) {
 
         playerChannel.onCondensedModeToggle((enabled) => setCondensedModeEnabled(enabled));
         playerChannel.onHideSubtitlePlayerToggle((hidden) => setSubtitlePlayerHidden(hidden));
+        playerChannel.onAppBarToggle((hidden) => setAppBarHidden(hidden));
         playerChannel.onAnkiDialogRequest(() => {
             if (fullscreenRef.current && !popOut) {
                 document.exitFullscreen();
@@ -341,7 +343,7 @@ export default function VideoPlayer(props: Props) {
         }
 
         var bounds = containerRef.current.getBoundingClientRect();
-        mousePositionRef.current.x =  e.clientX - bounds.left;
+        mousePositionRef.current.x = e.clientX - bounds.left;
         mousePositionRef.current.y = e.clientY - bounds.top;
     }
 
@@ -649,6 +651,10 @@ export default function VideoPlayer(props: Props) {
         playerChannel.hideSubtitlePlayerToggle();
     }, [playerChannel]);
 
+    const handleTheaterModeToggle = useCallback(() => {
+        playerChannel.appBarToggle();
+    }, [playerChannel]);
+
     const handleClick = useCallback(() => {
         if (playing) {
             playerChannel.pause();
@@ -703,7 +709,7 @@ export default function VideoPlayer(props: Props) {
         }, 100);
 
         return () => clearInterval(interval);
-    }, [showCursor])
+    }, [showCursor]);
 
     return (
         <div ref={containerRef} onMouseMove={handleMouseMove} className={classes.root}>
@@ -766,6 +772,9 @@ export default function VideoPlayer(props: Props) {
                 onHideSubtitlePlayerToggle={handleHideSubtitlePlayerToggle}
                 settingsProvider={settingsProvider}
                 showOnMouseMovement={false}
+                theaterModeToggleEnabled={true}
+                theaterModeEnabled={appBarHidden}
+                onTheaterModeToggle={handleTheaterModeToggle}
             />
         </div>
     );

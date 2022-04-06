@@ -1,5 +1,6 @@
 import {
     AnkiDialogRequestFromVideoMessage,
+    AppBarToggleMessageToVideoMessage,
     AudioTrackModel,
     AudioTrackSelectedFromVideoMessage,
     AudioTrackSelectedToVideoMessage,
@@ -31,7 +32,8 @@ export default class PlayerChannel {
     private closeCallbacks: (() => void)[];
     private subtitlesCallbacks: ((subtitles: SubtitleModel[]) => void)[];
     private condensedModeToggleCallbacks: ((enabled: boolean) => void)[];
-    private hideSubtitlePlayerToggleCallbacks: ((enabled: boolean) => void)[];
+    private hideSubtitlePlayerToggleCallbacks: ((hidden: boolean) => void)[];
+    private appBarToggleCallbacks: ((hidden: boolean) => void)[];
     private ankiDialogRequestCallbacks: (() => void)[];
     private finishedAnkiDialogRequestCallbacks: ((resume: boolean) => void)[];
 
@@ -48,6 +50,7 @@ export default class PlayerChannel {
         this.subtitlesCallbacks = [];
         this.condensedModeToggleCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
+        this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.finishedAnkiDialogRequestCallbacks = [];
 
@@ -118,6 +121,13 @@ export default class PlayerChannel {
                         callback(hideSubtitlePlayerToggleMessage.value);
                     }
                     break;
+                case 'appBarToggle':
+                    const appBarToggleMessage = event.data as AppBarToggleMessageToVideoMessage;
+
+                    for (let callback of that.appBarToggleCallbacks) {
+                        callback(appBarToggleMessage.value);
+                    }
+                    break;
                 case 'ankiDialogRequest':
                     for (let callback of that.ankiDialogRequestCallbacks) {
                         callback();
@@ -183,8 +193,12 @@ export default class PlayerChannel {
         this.condensedModeToggleCallbacks.push(callback);
     }
 
-    onHideSubtitlePlayerToggle(callback: (enabled: boolean) => void) {
+    onHideSubtitlePlayerToggle(callback: (hidden: boolean) => void) {
         this.hideSubtitlePlayerToggleCallbacks.push(callback);
+    }
+
+    onAppBarToggle(callback: (hidden: boolean) => void) {
+        this.appBarToggleCallbacks.push(callback);
     }
 
     onAnkiDialogRequest(callback: () => void) {
@@ -262,6 +276,10 @@ export default class PlayerChannel {
         this.channel?.postMessage({ command: 'hideSubtitlePlayerToggle' });
     }
 
+    appBarToggle() {
+        this.channel?.postMessage({ command: 'appBarToggle' });
+    }
+
     ankiDialogRequest(forwardToVideo: boolean) {
         const message: AnkiDialogRequestFromVideoMessage = {
             command: 'ankiDialogRequest',
@@ -292,6 +310,7 @@ export default class PlayerChannel {
             this.subtitlesCallbacks = [];
             this.condensedModeToggleCallbacks = [];
             this.hideSubtitlePlayerToggleCallbacks = [];
+            this.appBarToggleCallbacks = [];
             this.ankiDialogRequestCallbacks = [];
             this.finishedAnkiDialogRequestCallbacks = [];
         }

@@ -13,6 +13,7 @@ import ListItem from '@material-ui/core/ListItem';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import Popover from '@material-ui/core/Popover';
 import FullscreenIcon from '@material-ui/icons/Fullscreen';
+import AspectRatioIcon from '@material-ui/icons/AspectRatio';
 import FullscreenExitIcon from '@material-ui/icons/FullscreenExit';
 import PauseIcon from '@material-ui/icons/Pause';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
@@ -122,20 +123,14 @@ const useControlStyles = makeStyles((theme) => ({
         color: 'rgba(72, 72, 72, 0.7)',
         pointerEvents: 'auto',
     },
+    inactiveTopButton: {
+        color: 'rgba(255, 255, 255, 0.5)',
+        pointerEvents: 'auto',
+    },
     progress: {
         margin: 5,
     },
-    closeButton: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        pointerEvents: 'auto',
-        color: '#fff',
-    },
-    hideSubtitlePlayerToggleButton: {
-        position: 'absolute',
-        top: 0,
-        right: 0,
+    topButton: {
         pointerEvents: 'auto',
         color: '#fff',
     },
@@ -483,6 +478,9 @@ interface ControlsProps {
     subtitlePlayerHidden?: boolean;
     onHideSubtitlePlayerToggle?: () => void;
     showOnMouseMovement: boolean;
+    theaterModeToggleEnabled?: boolean;
+    theaterModeEnabled?: boolean;
+    onTheaterModeToggle?: () => void;
 }
 
 export default function Controls({
@@ -530,6 +528,9 @@ export default function Controls({
     subtitlePlayerHidden,
     onHideSubtitlePlayerToggle,
     showOnMouseMovement,
+    theaterModeToggleEnabled,
+    theaterModeEnabled,
+    onTheaterModeToggle
 }: ControlsProps) {
     const classes = useControlStyles();
     const [show, setShow] = useState<boolean>(true);
@@ -772,33 +773,48 @@ export default function Controls({
 
     return (
         <React.Fragment>
-            {closeEnabled && (
-                <Fade in={show} timeout={200}>
-                    <IconButton
-                        ref={closeButtonRef}
-                        color="inherit"
-                        className={classes.closeButton}
-                        onClick={onClose}
-                        onMouseOver={handleMouseOver}
-                        onMouseOut={handleMouseOut}
-                    >
-                        <CloseIcon />
-                    </IconButton>
-                </Fade>
-            )}
-            {hideSubtitlePlayerToggleEnabled && (
-                <Fade in={show} timeout={200}>
-                    <IconButton
-                        color="inherit"
-                        className={classes.hideSubtitlePlayerToggleButton}
-                        onClick={onHideSubtitlePlayerToggle}
-                        onMouseOver={handleMouseOver}
-                        onMouseOut={handleMouseOut}
-                    >
-                        {subtitlePlayerHidden ? <ArrowBackIcon /> : <ArrowForwardIcon />}
-                    </IconButton>
-                </Fade>
-            )}
+            <Fade in={show} timeout={200}>
+                <Grid container style={{position: 'absolute', top: 0}}>
+                    <Grid item style={{flexGrow: 1}}>
+                        {closeEnabled && (
+                            <IconButton
+                                ref={closeButtonRef}
+                                color="inherit"
+                                className={classes.topButton}
+                                onClick={onClose}
+                                onMouseOver={handleMouseOver}
+                                onMouseOut={handleMouseOut}
+                            >
+                                <CloseIcon />
+                            </IconButton>
+                        )}
+                    </Grid>
+                    <Grid item>
+                        {theaterModeToggleEnabled && (
+                            <IconButton
+                                color="inherit"
+                                className={theaterModeEnabled ? classes.topButton : classes.inactiveTopButton}
+                                onClick={onTheaterModeToggle}
+                                onMouseOver={handleMouseOver}
+                                onMouseOut={handleMouseOut}
+                            >
+                                <AspectRatioIcon />
+                            </IconButton>
+                        )}
+                        {hideSubtitlePlayerToggleEnabled && (
+                            <IconButton
+                                color="inherit"
+                                className={classes.topButton}
+                                onClick={onHideSubtitlePlayerToggle}
+                                onMouseOver={handleMouseOver}
+                                onMouseOut={handleMouseOut}
+                            >
+                                {subtitlePlayerHidden ? <ArrowBackIcon /> : <ArrowForwardIcon />}
+                            </IconButton>
+                        )}
+                    </Grid>
+                </Grid>
+            </Fade>
             <div
                 ref={containerRef}
                 className={classes.container}

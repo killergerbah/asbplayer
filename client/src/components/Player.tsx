@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback, useRef, MutableRefObject } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, Theme } from '@material-ui/core/styles';
 import { v4 as uuidv4 } from 'uuid';
 import {
     AsbplayerSettingsProvider,
@@ -23,12 +23,16 @@ import VideoChannel from '../services/VideoChannel';
 import ChromeExtension from '../services/ChromeExtension';
 import SubtitleReader from '../services/SubtitleReader';
 
-const useStyles = makeStyles({
-    root: {
-        height: 'calc(100vh - 64px)',
+interface StylesProps {
+    appBarHidden: boolean;
+}
+
+const useStyles = makeStyles<Theme, StylesProps>({
+    root: ({appBarHidden}) => ({
+        height: appBarHidden ? '100vh' : 'calc(100vh - 64px)',
         position: 'relative',
         overflowX: 'hidden',
-    },
+    }),
     container: {
         width: '100%',
         height: '100%',
@@ -85,6 +89,7 @@ interface PlayerProps {
     extension: ChromeExtension;
     videoFrameRef: MutableRefObject<HTMLIFrameElement | null>;
     drawerOpen: boolean;
+    appBarHidden: boolean;
     tab?: VideoTabModel;
     availableTabs: VideoTabModel[];
     ankiDialogRequestToVideo?: number;
@@ -109,6 +114,7 @@ interface PlayerProps {
     onLoaded: () => void;
     onTabSelected: (tab: VideoTabModel) => void;
     onAnkiDialogRequest: (forwardToVideo?: boolean) => void;
+    onAppBarToggle: () => void;
     disableKeyEvents: boolean;
     jumpToSubtitle?: SubtitleModel;
 }
@@ -120,6 +126,7 @@ export default function Player({
     extension,
     videoFrameRef,
     drawerOpen,
+    appBarHidden,
     tab,
     availableTabs,
     ankiDialogRequestToVideo,
@@ -132,8 +139,9 @@ export default function Player({
     onLoaded,
     onTabSelected,
     onAnkiDialogRequest,
+    onAppBarToggle,
     disableKeyEvents,
-    jumpToSubtitle,
+    jumpToSubtitle
 }: PlayerProps) {
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>();
     const subtitlesRef = useRef<SubtitleModel[]>();
@@ -171,7 +179,7 @@ export default function Player({
         return new MediaAdapter({ current: null });
     }, [audioFileUrl, videoFileUrl, tab]);
     const clock = useMemo<Clock>(() => new Clock(), []);
-    const classes = useStyles();
+    const classes = useStyles({appBarHidden});
     const lengthRef = useRef<number>(0);
     lengthRef.current = trackLength(audioRef, videoRef, subtitles, true);
 
@@ -309,6 +317,9 @@ export default function Player({
                         return !hidden;
                     });
                 });
+                channel.onAppBarToggle(() => {
+                    onAppBarToggle();
+                });
                 channel.onReady((paused) => {
                     lengthRef.current = trackLength(audioRef, videoRef, subtitlesRef.current);
                     channel?.ready(lengthRef.current);
@@ -428,6 +439,7 @@ export default function Player({
         onUnloadVideo,
         onCopy,
         onAnkiDialogRequest,
+        onAppBarToggle,
         subtitleFiles,
         audioFile,
         audioFileUrl,
@@ -797,6 +809,12 @@ export default function Player({
         }
     }, [audioFile, videoFile, subtitles, clock, selectedAudioTrack, disableKeyEvents, onCopy, onAnkiDialogRequest]);
 
+    useEffect(() => {
+        if (videoRef.current instanceof VideoChannel) {
+            videoRef.current.appBarToggle(appBarHidden);
+        }
+    }, [appBarHidden]);
+
     const length = lengthRef.current;
     const loaded = audioFileUrl || videoFileUrl || subtitles;
     const videoInWindow = Boolean(loaded && videoFileUrl && !videoPopOut);
@@ -869,6 +887,7 @@ export default function Player({
                             length={length}
                             jumpToSubtitle={jumpToSubtitle}
                             drawerOpen={drawerOpen}
+                            appBarHidden={appBarHidden}
                             compressed={Boolean(videoFileUrl && !videoPopOut)}
                             loading={loadingSubtitles}
                             displayHelp={audioFile?.name || (videoPopOut && videoFile?.name) || undefined}

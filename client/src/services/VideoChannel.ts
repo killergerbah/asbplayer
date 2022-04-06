@@ -2,6 +2,7 @@ import {
     AnkiDialogRequestFromVideoMessage,
     AnkiSettings,
     AnkiSettingsToVideoMessage,
+    AppBarToggleMessageToVideoMessage,
     AudioModel,
     AudioTrackModel,
     AudioTrackSelectedFromVideoMessage,
@@ -52,6 +53,7 @@ export default class VideoChannel {
     ) => void)[];
     private condensedModeToggleCallbacks: (() => void)[];
     private hideSubtitlePlayerToggleCallbacks: (() => void)[];
+    private appBarToggleCallbacks: (() => void)[];
     private ankiDialogRequestCallbacks: ((forwardToVideo: boolean) => void)[];
     private toggleSubtitleTrackInListCallbacks: ((track: number) => void)[];
 
@@ -79,6 +81,7 @@ export default class VideoChannel {
         this.copyCallbacks = [];
         this.condensedModeToggleCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
+        this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
 
@@ -179,6 +182,11 @@ export default class VideoChannel {
                         callback();
                     }
                     break;
+                case 'appBarToggle':
+                    for (let callback of that.appBarToggleCallbacks) {
+                        callback();
+                    }
+                    break;
                 case 'sync':
                     // ignore
                     break;
@@ -276,6 +284,10 @@ export default class VideoChannel {
         this.hideSubtitlePlayerToggleCallbacks.push(callback);
     }
 
+    onAppBarToggle(callback: () => void) {
+        this.appBarToggleCallbacks.push(callback);
+    }
+
     onAnkiDialogRequest(callback: (forwardToVideo: boolean) => void) {
         this.ankiDialogRequestCallbacks.push(callback);
     }
@@ -338,6 +350,14 @@ export default class VideoChannel {
         this.protocol.postMessage(message);
     }
 
+    appBarToggle(hidden: boolean) {
+        const message: AppBarToggleMessageToVideoMessage = {
+            command: 'appBarToggle',
+            value: hidden,
+        };
+        this.protocol.postMessage(message);
+    }
+
     ankiDialogRequest() {
         this.protocol.postMessage({ command: 'ankiDialogRequest' });
     }
@@ -374,6 +394,7 @@ export default class VideoChannel {
         this.copyCallbacks = [];
         this.condensedModeToggleCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
+        this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
     }

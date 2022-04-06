@@ -42,6 +42,7 @@ const audioPaddingEndKey = 'audioPaddingEnd';
 const maxImageWidthKey = 'maxImageWidth';
 const maxImageHeightKey = 'maxImageHeight';
 const volumeKey = 'volume';
+const theaterModeKey = 'theaterMode';
 const preferMp3Key = 'preferMp3';
 const themeTypeKey = 'themeType';
 
@@ -84,6 +85,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             surroundingSubtitlesCountRadius: this.surroundingSubtitlesCountRadius,
             surroundingSubtitlesTimeRadius: this.surroundingSubtitlesTimeRadius,
             volume: this.volume,
+            theaterMode: this.theaterMode,
         };
     }
 
@@ -115,6 +117,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.maxImageWidth = newSettings.maxImageWidth;
         this.maxImageHeight = newSettings.maxImageHeight;
         this.volume = newSettings.volume;
+        this.theaterMode = newSettings.theaterMode;
     }
 
     get subtitleSettings() {
@@ -361,6 +364,14 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
 
     set volume(volume) {
         localStorage.setItem(volumeKey, String(volume));
+    }
+
+    get theaterMode() {
+        return localStorage.getItem(theaterModeKey) === 'true' || false;
+    }
+
+    set theaterMode(theaterMode) {
+        localStorage.setItem(theaterModeKey, String(theaterMode));
     }
 
     get preferMp3() {

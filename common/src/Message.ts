@@ -243,6 +243,11 @@ export interface HideSubtitlePlayerToggleToVideoMessage extends Message {
     readonly value: boolean;
 }
 
+export interface AppBarToggleMessageToVideoMessage extends Message {
+    readonly command: 'appBarToggle';
+    readonly value: boolean;
+}
+
 export interface FinishedAnkiDialogRequestToVideoMessage extends Message {
     readonly command: 'finishedAnkiDialogRequest';
     readonly resume: boolean;

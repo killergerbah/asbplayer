@@ -37,6 +37,7 @@ export interface SubtitleSettings {
 export interface AsbplayerSettings extends MiscSettings, AnkiSettings, SubtitleSettings {
     readonly subtitlePreview: string;
     readonly volume: number;
+    readonly theaterMode: boolean;
 }
 
 export interface AsbplayerSettingsProvider extends AsbplayerSettings {
@@ -47,4 +48,5 @@ export interface AsbplayerSettingsProvider extends AsbplayerSettings {
 
     subtitlePreview: string;
     volume: number;
+    theaterMode: boolean;
 }

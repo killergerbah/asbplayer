@@ -14,6 +14,7 @@ import Typography from '@material-ui/core/Typography';
 interface BarProps {
     drawerWidth: number;
     drawerOpen: boolean;
+    hidden: boolean;
     title: string;
     onFileSelector: () => void;
     onOpenHelp: () => void;
@@ -89,6 +90,7 @@ export default function Bar(props: BarProps) {
             elevation={0}
             className={clsx(classes.appBar, {
                 [classes.appBarShift]: props.drawerOpen,
+                [classes.hide]: props.hidden
             })}
         >
             <Toolbar>
