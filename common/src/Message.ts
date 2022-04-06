@@ -1,4 +1,4 @@
-import { AnkiSettings, MiscSettings, SubtitleSettings } from '.';
+import { AnkiSettings, MiscSettings, SubtitleSettings } from './Settings';
 import {
     RectModel,
     SubtitleModel,

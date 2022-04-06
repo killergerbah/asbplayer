@@ -1,6 +1,7 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { Anki, AnkiDialogSliderContext, AudioClip, Image, humanReadableTime, AnkiSettings } from '@project/common';
+import { TagsTextField } from '@project/common/components';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -16,7 +17,6 @@ import SearchIcon from '@material-ui/icons/Search';
 import Slider, { Mark } from '@material-ui/core/Slider';
 import Tooltip from '@material-ui/core/Tooltip';
 import ZoomInIcon from '@material-ui/icons/ZoomIn';
-import TagsTextField from './TagsTextField';
 import { ExportMode } from '@project/common/src/Anki';
 
 const useStyles = makeStyles((theme) => ({

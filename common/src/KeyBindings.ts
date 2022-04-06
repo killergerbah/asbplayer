@@ -1,4 +1,4 @@
-import { SubtitleModel } from '.';
+import { SubtitleModel } from './Model';
 import KeyEvents from './KeyEvents';
 import { KeySequenceTransitionResult } from './KeySequence';
 import KeySequences from './KeySequences';

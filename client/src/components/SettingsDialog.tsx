@@ -24,9 +24,9 @@ import Radio from '@material-ui/core/Radio';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-import TagsTextField from './TagsTextField';
 import { Theme } from '@material-ui/core/styles';
 import { Anki, AsbplayerSettings } from '@project/common';
+import { TagsTextField } from '@project/common/components';
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {

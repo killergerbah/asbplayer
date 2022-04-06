@@ -19,7 +19,7 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import Alert, { Color } from '@material-ui/lab/Alert';
 import AnkiDialog from './AnkiDialog';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import ImageDialog from './ImageDialog';
+import { ImageDialog } from '@project/common/components';
 import Snackbar from '@material-ui/core/Snackbar';
 import Bridge from '../Bridge';
 import { PaletteType } from '@material-ui/core';

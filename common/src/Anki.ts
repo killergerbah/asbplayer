@@ -1,5 +1,7 @@
-import { AnkiSettings, AudioClip, Image } from '..';
+import AudioClip from './AudioClip';
+import Image from './Image';
 import { HttpFetcher, Fetcher } from './Fetcher';
+import { AnkiSettings } from './Settings';
 
 const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
 const fileNameSpecialCharacters = [':', '/', '\\', '<', '>', '"', '|', '?', '*', '^'];

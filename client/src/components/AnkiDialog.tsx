@@ -18,7 +18,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import ZoomInIcon from '@material-ui/icons/ZoomIn';
-import TagsTextField from './TagsTextField';
+import { TagsTextField } from '@project/common/components';
 import { ExportMode } from '@project/common/src/Anki';
 
 const useStyles = makeStyles((theme) => ({
