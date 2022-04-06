@@ -22,11 +22,10 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import clsx from 'clsx';
 import Alert from './Alert';
-import AnkiDialog from './AnkiDialog';
+import { AnkiDialog, ImageDialog } from '@project/common/components';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import DragOverlay from './DragOverlay';
 import HelpDialog from './HelpDialog';
-import ImageDialog from './ImageDialog';
 import SubtitleReader from '../services/SubtitleReader';
 import Bar from './Bar';
 import ChromeExtension, { ExtensionMessage } from '../services/ChromeExtension';
