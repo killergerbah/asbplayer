@@ -100,7 +100,7 @@ export default class SubtitleContainer {
                 !this.showingSubtitles ||
                 !this._arrayEquals(showingSubtitles, this.showingSubtitles) ||
                 (showOffset && offset !== this.showingOffset) ||
-                (!showOffset && this.showingOffset !== null)
+                (!showOffset && this.showingOffset !== undefined)
             ) {
                 const html = showingSubtitles.join('<br />');
                 this._subtitlesHtml(html);
