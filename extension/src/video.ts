@@ -84,20 +84,26 @@ window.addEventListener('load', (event) => {
                     }
 
                     if (bindings.length === 1) {
-                        // Special case - show dialog for the one video element
-                        bindings[0].showVideoSelect();
+                        const binding = bindings[0];
+                        
+                        if (binding.subscribed) {
+                            // Special case - show dialog for the one video element
+                            binding.showVideoSelect();
+                        }
                     } else {
                         // Toggle on
                         videoSelectMode = true;
 
                         for (const b of bindings) {
-                            b.bindVideoSelect(() => {
-                                for (const b of bindings) {
-                                    b.unbindVideoSelect();
-                                }
+                            if (b.subscribed) {
+                                b.bindVideoSelect(() => {
+                                    for (const b of bindings) {
+                                        b.unbindVideoSelect();
+                                    }
 
-                                videoSelectMode = false;
-                            });
+                                    videoSelectMode = false;
+                                });
+                            }
                         }
                     }
                     break;
@@ -131,7 +137,7 @@ window.addEventListener('load', (event) => {
 function _hasValidSource(videoElement: HTMLVideoElement) {
     if (videoElement.src) {
         return true;
-    } 
+    }
 
     for (let index = 0, length = videoElement.children.length; index < length; index++) {
         const elm = videoElement.children[index];

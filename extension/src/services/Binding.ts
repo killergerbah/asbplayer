@@ -38,6 +38,7 @@ export default class Binding {
     audioPaddingEnd: number;
     maxImageWidth: number;
     maxImageHeight: number;
+    subscribed: boolean = false;
 
     private synced: boolean;
     private recordingMedia: boolean;
@@ -361,6 +362,7 @@ export default class Binding {
         };
 
         chrome.runtime.onMessage.addListener(this.listener);
+        this.subscribed = true;
     }
 
     async _refreshSettings() {
@@ -415,6 +417,7 @@ export default class Binding {
         }
 
         if (this.heartbeatInterval) {
+            console.error('unsubscribe heartbeat ' + this.video.src);
             clearInterval(this.heartbeatInterval);
             this.heartbeatInterval = undefined;
         }
@@ -428,6 +431,7 @@ export default class Binding {
         this.dragContainer.unbind();
         this.keyBindings.unbind();
         this.videoDataSyncContainer.unbind();
+        this.subscribed = false;
     }
 
     async _copySubtitle(showAnkiUi: boolean) {
