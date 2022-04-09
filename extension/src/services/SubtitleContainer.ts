@@ -264,7 +264,7 @@ export default class SubtitleContainer {
     _applyNonFullscreenStyles(container: HTMLElement, div: HTMLElement) {
         const rect = this.video.getBoundingClientRect();
         container.style.maxWidth = rect.width + 'px';
-        container.style.top = rect.top + rect.height + window.pageYOffset - this.subtitlePositionOffsetBottom + 'px';
+        container.style.top = rect.top + rect.height + window.scrollY - this.subtitlePositionOffsetBottom + 'px';
         container.style.left = rect.left + rect.width / 2 + 'px';
         container.style.bottom = '';
 

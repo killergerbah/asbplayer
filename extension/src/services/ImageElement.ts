@@ -38,7 +38,7 @@ export default class ImageElement {
         const rect = this.video.getBoundingClientRect();
         const containerWidth = rect.width * 0.9;
         const containerHeight = rect.height * 0.9;
-        container.style.top = rect.top + rect.height * 0.05 + 'px';
+        container.style.top = rect.top + window.scrollY + rect.height * 0.05 + 'px';
         container.style.left = rect.left + rect.width * 0.05 + 'px';
         container.style.width = containerWidth + 'px';
         container.style.height = containerHeight + 'px';

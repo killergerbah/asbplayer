@@ -171,7 +171,7 @@ export default class DragContainer {
         // Shrink the drag zone slightly to avoid accidentally overflowing
         // e.g. when the video's rect changes for some reason
 
-        dragElement.style.top = rect.top + rect.height * 0.05 + 'px';
+        dragElement.style.top = rect.top + window.scrollY + rect.height * 0.05 + 'px';
         dragElement.style.left = rect.left + rect.width * 0.05 + 'px';
         dragElement.style.height = rect.height * 0.9 + 'px';
         dragElement.style.width = rect.width * 0.9 + 'px';
