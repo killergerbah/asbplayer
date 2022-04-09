@@ -2,6 +2,7 @@ import { makeStyles, Theme } from '@material-ui/core/styles';
 import clsx from 'clsx';
 import AppBar from '@material-ui/core/AppBar';
 import BugReportIcon from '@material-ui/icons/BugReport';
+import FavoriteIcon from '@material-ui/icons/Favorite';
 import HelpIcon from '@material-ui/icons/Help';
 import FolderOpenIcon from '@material-ui/icons/FolderOpen';
 import IconButton from '@material-ui/core/IconButton';
@@ -102,6 +103,18 @@ export default function Bar(props: BarProps) {
                 <Typography variant="h6" className={classes.title}>
                     {props.title}
                 </Typography>
+                <Tooltip title="Donate">
+                    <IconButton
+                        edge="end"
+                        color="inherit"
+                        component="a"
+                        href="https://github.com/sponsors/killergerbah?frequency=one-time"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        <FavoriteIcon />
+                    </IconButton>
+                </Tooltip>
                 <Tooltip title="Submit Issue">
                     <IconButton
                         edge="end"
