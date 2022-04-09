@@ -36,7 +36,7 @@ export default class SubtitleContainer {
     subtitleSettings?: SubtitleSettings;
     surroundingSubtitlesCountRadius: number;
     surroundingSubtitlesTimeRadius: number;
-    
+
     constructor(video: HTMLVideoElement) {
         this.video = video;
         this.subtitles = [];
@@ -265,6 +265,7 @@ export default class SubtitleContainer {
         const rect = this.video.getBoundingClientRect();
         container.style.maxWidth = rect.width + 'px';
         container.style.top = rect.top + rect.height + window.pageYOffset - this.subtitlePositionOffsetBottom + 'px';
+        container.style.left = rect.left + rect.width / 2 + 'px';
         container.style.bottom = '';
 
         this._applySubtitleSettings(div);
@@ -449,7 +450,7 @@ export default class SubtitleContainer {
         if (!result) {
             return { r: 255, g: 255, b: 255 };
         }
-        
+
         return {
             r: parseInt(result[1], 16),
             g: parseInt(result[2], 16),
