@@ -1,26 +1,26 @@
 {
   "files": {
-    "main.js": "/asbplayer/static/js/main.f271b266.chunk.js",
-    "main.js.map": "/asbplayer/static/js/main.f271b266.chunk.js.map",
-    "runtime-main.js": "/asbplayer/static/js/runtime-main.3ab5e667.js",
-    "runtime-main.js.map": "/asbplayer/static/js/runtime-main.3ab5e667.js.map",
+    "main.js": "/asbplayer/static/js/main.780545fe.chunk.js",
+    "main.js.map": "/asbplayer/static/js/main.780545fe.chunk.js.map",
+    "runtime-main.js": "/asbplayer/static/js/runtime-main.0f237308.js",
+    "runtime-main.js.map": "/asbplayer/static/js/runtime-main.0f237308.js.map",
     "static/css/2.2cc94e60.chunk.css": "/asbplayer/static/css/2.2cc94e60.chunk.css",
-    "static/js/2.a884fc5a.chunk.js": "/asbplayer/static/js/2.a884fc5a.chunk.js",
-    "static/js/2.a884fc5a.chunk.js.map": "/asbplayer/static/js/2.a884fc5a.chunk.js.map",
-    "static/js/3.1070cc67.chunk.js": "/asbplayer/static/js/3.1070cc67.chunk.js",
-    "static/js/3.1070cc67.chunk.js.map": "/asbplayer/static/js/3.1070cc67.chunk.js.map",
+    "static/js/2.f36edc2b.chunk.js": "/asbplayer/static/js/2.f36edc2b.chunk.js",
+    "static/js/2.f36edc2b.chunk.js.map": "/asbplayer/static/js/2.f36edc2b.chunk.js.map",
+    "static/js/3.59c1cc31.chunk.js": "/asbplayer/static/js/3.59c1cc31.chunk.js",
+    "static/js/3.59c1cc31.chunk.js.map": "/asbplayer/static/js/3.59c1cc31.chunk.js.map",
     "index.html": "/asbplayer/index.html",
     "static/css/2.2cc94e60.chunk.css.map": "/asbplayer/static/css/2.2cc94e60.chunk.css.map",
-    "static/js/2.a884fc5a.chunk.js.LICENSE.txt": "/asbplayer/static/js/2.a884fc5a.chunk.js.LICENSE.txt",
+    "static/js/2.f36edc2b.chunk.js.LICENSE.txt": "/asbplayer/static/js/2.f36edc2b.chunk.js.LICENSE.txt",
     "static/js/mp3-encoder.d9a88fab.worker.js": "/asbplayer/static/js/mp3-encoder.d9a88fab.worker.js",
     "static/js/mp3-encoder.d9a88fab.worker.js.map": "/asbplayer/static/js/mp3-encoder.d9a88fab.worker.js.map",
     "static/media/background-colored.cbc50e45.png": "/asbplayer/static/media/background-colored.cbc50e45.png",
     "static/media/index.css": "/asbplayer/static/media/roboto-vietnamese-400-normal.c0bec65d.woff2"
   },
   "entrypoints": [
-    "static/js/runtime-main.3ab5e667.js",
+    "static/js/runtime-main.0f237308.js",
     "static/css/2.2cc94e60.chunk.css",
-    "static/js/2.a884fc5a.chunk.js",
-    "static/js/main.f271b266.chunk.js"
+    "static/js/2.f36edc2b.chunk.js",
+    "static/js/main.780545fe.chunk.js"
   ]
 }
