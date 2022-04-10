@@ -7,10 +7,14 @@ import {
     VideoToExtensionCommand,
 } from '@project/common';
 
+interface SubtitleModelWithIndex extends SubtitleModel {
+    index: number;
+}
+
 export default class SubtitleContainer {
     private readonly video: HTMLVideoElement;
 
-    private showingSubtitles?: string[];
+    private showingSubtitles?: SubtitleModelWithIndex[];
     private lastLoadedMessageTimestamp: number;
     private lastOffsetChangeTimestamp: number;
     private showingOffset?: number;
@@ -28,12 +32,14 @@ export default class SubtitleContainer {
     private fullscreenSubtitlesElementFullscreenChangeListener?: (this: any, event: Event) => any;
     private fullscreenSubtitlesElementFullscreenPollingInterval?: NodeJS.Timer;
 
+    private subtitleSettings?: SubtitleSettings;
+    private subtitleStyles?: string;
+
     disabledSubtitleTracks: { [key: number]: boolean | undefined };
     subtitles: SubtitleModel[];
     subtitleFileNames?: string[];
     displaySubtitles: boolean;
     subtitlePositionOffsetBottom: number;
-    subtitleSettings?: SubtitleSettings;
     surroundingSubtitlesCountRadius: number;
     surroundingSubtitlesTimeRadius: number;
 
@@ -52,6 +58,11 @@ export default class SubtitleContainer {
         this.showingLoadedMessage = false;
     }
 
+    setSubtitleSettings(subtitleSettings: SubtitleSettings) {
+        this.subtitleSettings = subtitleSettings;
+        this.subtitleStyles = undefined;
+    }
+
     bind() {
         this.subtitlesInterval = setInterval(() => {
             if (this.lastLoadedMessageTimestamp > 0 && Date.now() - this.lastLoadedMessageTimestamp < 1000) {
@@ -59,7 +70,7 @@ export default class SubtitleContainer {
             }
 
             if (this.showingLoadedMessage) {
-                this._subtitlesHtml('');
+                this._setSubtitlesHtml('');
                 this.showingLoadedMessage = false;
             }
 
@@ -76,7 +87,7 @@ export default class SubtitleContainer {
 
             const offset = showOffset ? this._computeOffset() : 0;
             const now = 1000 * this.video.currentTime;
-            let showingSubtitles = [];
+            let showingSubtitles: SubtitleModelWithIndex[] = [];
 
             for (let i = 0; i < this.subtitles.length; ++i) {
                 const s = this.subtitles[i];
@@ -90,30 +101,63 @@ export default class SubtitleContainer {
                     now < s.end &&
                     (typeof s.track === 'undefined' || !this.disabledSubtitleTracks[s.track])
                 ) {
-                    showingSubtitles.push(s);
+                    showingSubtitles.push({ ...s, index: i });
                 }
             }
 
-            showingSubtitles = showingSubtitles.sort((s1, s2) => s1.track - s2.track).map((s) => s.text);
+            showingSubtitles = showingSubtitles.sort((s1, s2) => s1.track - s2.track);
 
             if (
                 !this.showingSubtitles ||
-                !this._arrayEquals(showingSubtitles, this.showingSubtitles) ||
+                !this._arrayEquals(showingSubtitles, this.showingSubtitles, (a, b) => a.index === b.index) ||
                 (showOffset && offset !== this.showingOffset) ||
                 (!showOffset && this.showingOffset !== undefined)
             ) {
-                const html = showingSubtitles.join('<br />');
-                this._subtitlesHtml(html);
+                const html = this._buildSubtitlesHtml(showingSubtitles);
+                this._setSubtitlesHtml(html);
                 this.showingSubtitles = showingSubtitles;
 
                 if (showOffset) {
-                    this._appendSubtitlesHtml(this._formatOffset(offset));
+                    this._appendSubtitlesHtml(this._buildTextHtml(this._formatOffset(offset)));
                     this.showingOffset = offset;
                 } else {
                     this.showingOffset = undefined;
                 }
             }
         }, 100);
+    }
+
+    private _buildSubtitlesHtml(subtitles: SubtitleModel[]) {
+        let content;
+        return subtitles
+            .map((subtitle) => {
+                if (subtitle.textImage) {
+                    const imageScale =
+                        ((this.subtitleSettings?.imageBasedSubtitleScaleFactor ?? 1) *
+                            this.video.getBoundingClientRect().width) /
+                        subtitle.textImage.screen.width;
+                    const width = imageScale * subtitle.textImage.image.width;
+
+                    content = `
+<div style="max-width:${width}px;">
+    <img
+        style="width:100%;"
+        alt="subtitle"
+        src="${subtitle.textImage.dataUrl}"
+    />
+</div>
+`;
+                } else {
+                    content = this._buildTextHtml(subtitle.text);
+                }
+
+                return content;
+            })
+            .join('\n');
+    }
+
+    private _buildTextHtml(text: string) {
+        return `<span style="${this._subtitleStyles()}">${text}</span><br>`;
     }
 
     unbind() {
@@ -197,7 +241,7 @@ export default class SubtitleContainer {
         this.lastOffsetChangeTimestamp = Date.now();
     }
 
-    _computeOffset(): number {
+    private _computeOffset(): number {
         if (!this.subtitles || this.subtitles.length === 0) {
             return 0;
         }
@@ -206,30 +250,30 @@ export default class SubtitleContainer {
         return s.start - s.originalStart;
     }
 
-    _formatOffset(offset: number): string {
+    private _formatOffset(offset: number): string {
         const roundedOffset = Math.floor(offset);
         return roundedOffset >= 0 ? '+' + roundedOffset + ' ms' : roundedOffset + ' ms';
     }
 
     showLoadedMessage(message: string) {
-        this._subtitlesHtml(message);
+        this._setSubtitlesHtml(this._buildTextHtml(message));
         this.showingLoadedMessage = true;
         this.lastLoadedMessageTimestamp = Date.now();
     }
 
-    _subtitlesHtml(html: string) {
+    private _setSubtitlesHtml(html: string) {
         this._subtitlesElement().innerHTML = html;
         this._fullscreenSubtitlesElement().innerHTML = html;
     }
 
-    _appendSubtitlesHtml(html: string) {
+    private _appendSubtitlesHtml(html: string) {
         const currentHtml = this._subtitlesElement().innerHTML;
         const newHtml = currentHtml && currentHtml.length > 0 ? currentHtml + '<br>' + html : html;
         this._subtitlesElement().innerHTML = newHtml;
         this._fullscreenSubtitlesElement().innerHTML = newHtml;
     }
 
-    _subtitlesElement(): HTMLElement {
+    private _subtitlesElement(): HTMLElement {
         if (this.subtitlesElement) {
             return this.subtitlesElement;
         }
@@ -261,17 +305,15 @@ export default class SubtitleContainer {
         return this.subtitlesElement;
     }
 
-    _applyNonFullscreenStyles(container: HTMLElement, div: HTMLElement) {
+    private _applyNonFullscreenStyles(container: HTMLElement, div: HTMLElement) {
         const rect = this.video.getBoundingClientRect();
         container.style.maxWidth = rect.width + 'px';
         container.style.top = rect.top + rect.height + window.scrollY - this.subtitlePositionOffsetBottom + 'px';
         container.style.left = rect.left + rect.width / 2 + 'px';
         container.style.bottom = '';
-
-        this._applySubtitleSettings(div);
     }
 
-    _fullscreenSubtitlesElement(): HTMLElement {
+    private _fullscreenSubtitlesElement(): HTMLElement {
         if (this.fullscreenSubtitlesElement) {
             return this.fullscreenSubtitlesElement;
         }
@@ -306,45 +348,58 @@ export default class SubtitleContainer {
         return this.fullscreenSubtitlesElement;
     }
 
-    _applyFullscreenStyles(container: HTMLElement, div: HTMLElement) {
-        this._applySubtitleSettings(div);
+    private _applyFullscreenStyles(container: HTMLElement, div: HTMLElement) {
         const rect = this.video.getBoundingClientRect();
         container.style.top = '';
         container.style.bottom = this.subtitlePositionOffsetBottom + 'px';
         container.style.maxWidth = '100%';
     }
 
-    _applySubtitleSettings(div: HTMLElement) {
+    private _subtitleStyles() {
+        if (this.subtitleStyles) {
+            return this.subtitleStyles;
+        }
+
         if (this.subtitleSettings) {
-            div.style.color = this.subtitleSettings.subtitleColor;
-            div.style.fontSize = this.subtitleSettings.subtitleSize + 'px';
+            const color = this.subtitleSettings.subtitleColor;
+            const fontSize = this.subtitleSettings.subtitleSize + 'px';
+            let textShadow: string;
 
             if (this.subtitleSettings.subtitleOutlineThickness > 0) {
                 const thickness = this.subtitleSettings.subtitleOutlineThickness;
                 const color = this.subtitleSettings.subtitleOutlineColor;
-                div.style.textShadow = `0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}`;
+                textShadow = `0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}`;
             } else {
-                div.style.textShadow = '';
+                textShadow = '';
             }
+
+            let backgroundColor: string;
 
             if (this.subtitleSettings.subtitleBackgroundOpacity > 0) {
                 const opacity = this.subtitleSettings.subtitleBackgroundOpacity;
                 const color = this.subtitleSettings.subtitleBackgroundColor;
                 const { r, g, b } = this._hexToRgb(color);
-                div.style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                backgroundColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
             } else {
-                div.style.backgroundColor = '';
+                backgroundColor = '';
             }
+
+            let fontFamily: string;
 
             if (this.subtitleSettings.subtitleFontFamily && this.subtitleSettings.subtitleFontFamily.length > 0) {
-                div.style.fontFamily = this.subtitleSettings.subtitleFontFamily;
+                fontFamily = this.subtitleSettings.subtitleFontFamily;
             } else {
-                div.style.fontFamily = '';
+                fontFamily = '';
             }
+
+            this.subtitleStyles = `color:${color};font-size:${fontSize};text-shadow:${textShadow};background-color:${backgroundColor};font-family:${fontFamily}`;
+            return this.subtitleStyles;
         }
+
+        return '';
     }
 
-    _findFullscreenSubtitlesContainer(subtitles: HTMLElement): HTMLElement {
+    private _findFullscreenSubtitlesContainer(subtitles: HTMLElement): HTMLElement {
         const testNode = subtitles.cloneNode(true) as HTMLElement;
         testNode.innerHTML = '&nbsp;'; // The node needs to take up some space to perform test clicks
         let current = this.video.parentElement;
@@ -379,7 +434,7 @@ export default class SubtitleContainer {
         return document.body;
     }
 
-    _clickable(container: HTMLElement, element: HTMLElement): boolean {
+    private _clickable(container: HTMLElement, element: HTMLElement): boolean {
         container.appendChild(element);
         const rect = element.getBoundingClientRect();
         const clickedElement = document.elementFromPoint(rect.x, rect.y);
@@ -388,13 +443,13 @@ export default class SubtitleContainer {
         return clickable;
     }
 
-    _arrayEquals(a: any[], b: any[]): boolean {
+    private _arrayEquals<T>(a: T[], b: T[], equals: (lhs: T, rhs: T) => boolean): boolean {
         if (a.length !== b.length) {
             return false;
         }
 
         for (let i = 0; i < a.length; ++i) {
-            if (a[i] !== b[i]) {
+            if (!equals(a[i], b[i])) {
                 return false;
             }
         }
@@ -402,7 +457,7 @@ export default class SubtitleContainer {
         return true;
     }
 
-    _hideSubtitles() {
+    private _hideSubtitles() {
         if (this.subtitlesElement) {
             if (this.subtitlesElementFullscreenChangeListener) {
                 document.removeEventListener('fullscreenchange', this.subtitlesElementFullscreenChangeListener);
@@ -444,7 +499,7 @@ export default class SubtitleContainer {
     }
 
     // https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
-    _hexToRgb(hex: string): Rgb {
+    private _hexToRgb(hex: string): Rgb {
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 
         if (!result) {

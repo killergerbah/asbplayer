@@ -80,6 +80,9 @@ function extractSources(files: FileList): MediaSources {
             case 'vtt':
                 subtitleFiles.push(f);
                 break;
+            case 'sup':
+                subtitleFiles.push(f);
+                break;
             case 'mkv':
             case 'mp4':
             case 'avi':
@@ -1009,7 +1012,7 @@ function App() {
                                     ref={fileInputRef}
                                     onChange={handleFileInputChange}
                                     type="file"
-                                    accept=".srt,.ass,.vtt,.mp3,.m4a,.aac,.flac,.ogg,.wav,.opus,.mkv,.mp4,.avi"
+                                    accept=".srt,.ass,.vtt,.sup,.mp3,.m4a,.aac,.flac,.ogg,.wav,.opus,.mkv,.mp4,.avi"
                                     multiple
                                     hidden
                                 />

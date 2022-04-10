@@ -3,6 +3,7 @@ import { makeStyles, Theme } from '@material-ui/core/styles';
 import { keysAreEqual } from '../services/Util';
 import { useWindowSize } from '../hooks/useWindowSize';
 import { AsbplayerSettingsProvider, KeyBindings, surroundingSubtitles, SubtitleModel } from '@project/common';
+import { SubtitleTextImage } from '@project/common/components';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
 import Paper from '@material-ui/core/Paper';
@@ -22,7 +23,7 @@ interface StylesProps {
 
 const useSubtitlePlayerStyles = makeStyles<Theme, StylesProps, string>((theme) => ({
     container: {
-        height: ({appBarHidden}) => appBarHidden ? '100vh' : 'calc(100vh - 64px)',
+        height: ({ appBarHidden }) => (appBarHidden ? '100vh' : 'calc(100vh - 64px)'),
         position: 'relative',
         overflowX: 'hidden',
         backgroundColor: theme.palette.background.default,
@@ -125,6 +126,14 @@ const SubtitleRow = React.memo((props: SubtitleRowProps) => {
         setTextSelected(selected ?? false);
     }
 
+    const content = subtitle.textImage ? (
+        <SubtitleTextImage availableWidth={window.screen.availWidth / 2} subtitle={subtitle} scale={1} />
+    ) : (
+        <span ref={textRef} className={disabledClassName}>
+            {subtitle.text}
+        </span>
+    );
+
     return (
         <TableRow
             onClick={() => !textSelected && onClickSubtitle(index)}
@@ -134,11 +143,7 @@ const SubtitleRow = React.memo((props: SubtitleRowProps) => {
             selected={selected}
             {...tableRowProps}
         >
-            <TableCell className={className}>
-                <span ref={textRef} className={disabledClassName}>
-                    {subtitle.text}
-                </span>
-            </TableCell>
+            <TableCell className={className}>{content}</TableCell>
             <TableCell className={classes.copyButton}>
                 <IconButton onClick={(e) => onCopySubtitle(e, index)}>
                     <FileCopy fontSize={compressed ? 'small' : 'medium'} />

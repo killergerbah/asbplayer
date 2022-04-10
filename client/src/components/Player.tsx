@@ -208,6 +208,7 @@ export default function Player({
 
                 const newSubtitles = subtitles.map((s) => ({
                     text: s.text,
+                    textImage: s.textImage,
                     start: s.originalStart + offset,
                     originalStart: s.originalStart,
                     end: s.originalEnd + offset,
@@ -252,7 +253,7 @@ export default function Player({
                 audioRef.current.pause();
             }
 
-            let subtitles;
+            let subtitles: DisplaySubtitleModel[] | undefined;
 
             if (subtitleFiles.length > 0) {
                 setLoadingSubtitles(true);
@@ -262,6 +263,7 @@ export default function Player({
                     const length = nodes.length > 0 ? nodes[nodes.length - 1].end : 0;
                     subtitles = nodes.map((s) => ({
                         text: s.text,
+                        textImage: s.textImage,
                         start: s.start,
                         originalStart: s.start,
                         end: s.end,
@@ -282,7 +284,7 @@ export default function Player({
                     setLoadingSubtitles(false);
                 }
             } else {
-                subtitles = null;
+                subtitles = undefined;
             }
 
             if (audioFileUrl) {

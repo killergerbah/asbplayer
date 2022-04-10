@@ -32,6 +32,7 @@ export interface SubtitleSettings {
     readonly subtitleBackgroundColor: string;
     readonly subtitleBackgroundOpacity: number;
     readonly subtitleFontFamily: string;
+    readonly imageBasedSubtitleScaleFactor: number;
 }
 
 export interface AsbplayerSettings extends MiscSettings, AnkiSettings, SubtitleSettings {

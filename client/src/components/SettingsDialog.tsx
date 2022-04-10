@@ -172,6 +172,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
         settings.subtitleBackgroundOpacity
     );
     const [subtitleFontFamily, setSubtitleFontFamily] = useState<string>(settings.subtitleFontFamily);
+    const [imageBasedSubtitleScaleFactor, setImageBasedSubtitleScaleFactor] = useState<number>(settings.imageBasedSubtitleScaleFactor);
     const [subtitlePreview, setSubtitlePreview] = useState<string>(settings.subtitlePreview);
     const [themeType, setThemeType] = useState<'dark' | 'light'>(settings.themeType);
 
@@ -303,6 +304,10 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
     );
     const handleSubtitlePreviewChange = useCallback(
         (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setSubtitlePreview(e.target.value),
+        []
+    );
+    const handleImageBasedSubtitleScaleFactorChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setImageBasedSubtitleScaleFactor(Number(e.target.value)),
         []
     );
     const handleAddCustomField = useCallback((customFieldName: string) => {
@@ -464,6 +469,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
             subtitleBackgroundOpacity: Number(subtitleBackgroundOpacity),
             subtitleFontFamily: subtitleFontFamily,
             subtitlePreview: subtitlePreview,
+            imageBasedSubtitleScaleFactor: imageBasedSubtitleScaleFactor,
             customAnkiFields: customFields,
             preferMp3: preferMp3,
             themeType: themeType,
@@ -499,6 +505,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
         subtitleBackgroundOpacity,
         subtitleFontFamily,
         subtitlePreview,
+        imageBasedSubtitleScaleFactor,
         themeType,
         audioPaddingStart,
         audioPaddingEnd,
@@ -793,6 +800,22 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
                                         value={subtitleFontFamily}
                                         color="secondary"
                                         onChange={handleSubtitleFontFamilyChange}
+                                    />
+                                </div>
+                                <div className={classes.subtitleSetting}>
+                                    <TextField
+                                        type="number"
+                                        label="Image-based Subtitle Scale Factor"
+                                        placeholder="Inherited"
+                                        fullWidth
+                                        inputProps={{
+                                            min: 0,
+                                            max: 1,
+                                            step: 0.1,
+                                        }}
+                                        value={imageBasedSubtitleScaleFactor}
+                                        color="secondary"
+                                        onChange={handleImageBasedSubtitleScaleFactorChange}
                                     />
                                 </div>
                                 <div className={classes.subtitlePreview}>
