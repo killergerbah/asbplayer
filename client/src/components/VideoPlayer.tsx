@@ -8,10 +8,10 @@ import {
     surroundingSubtitles,
     mockSurroundingSubtitles,
     humanReadableTime,
-    SubtitleSettings,
     SubtitleModel,
     AudioTrackModel,
 } from '@project/common';
+import { SubtitleTextImage } from '@project/common/components';
 import Alert from './Alert';
 import Clock from '../services/Clock';
 import Controls, { Point } from './Controls';
@@ -39,18 +39,14 @@ const useStyles = makeStyles({
     cursorHidden: {
         cursor: 'none',
     },
-});
-
-function makeSubtitleStyles(subtitleSettings: SubtitleSettings) {
-    return {
+    subtitleContainer: {
         position: 'absolute',
         paddingLeft: 20,
         paddingRight: 20,
         bottom: 100,
         textAlign: 'center',
-        ...computeStyles(subtitleSettings),
-    };
-}
+    },
+});
 
 function notifyReady(
     element: ExperimentalHTMLVideoElement,
@@ -399,6 +395,7 @@ export default function VideoPlayer(props: Props) {
             setSubtitles((subtitles) =>
                 subtitles.map((s) => ({
                     text: s.text,
+                    textImage: s.textImage,
                     start: s.originalStart + offset,
                     originalStart: s.originalStart,
                     end: s.originalEnd + offset,
@@ -675,10 +672,11 @@ export default function VideoPlayer(props: Props) {
         subtitleBackgroundColor,
         subtitleBackgroundOpacity,
         subtitleFontFamily,
+        imageBasedSubtitleScaleFactor
     } = settingsProvider.subtitleSettings;
     const subtitleStyles = useMemo(
         () =>
-            makeSubtitleStyles({
+            computeStyles({
                 subtitleSize,
                 subtitleColor,
                 subtitleOutlineThickness,
@@ -724,13 +722,23 @@ export default function VideoPlayer(props: Props) {
                 src={videoFile}
             />
             {subtitlesEnabled && (
-                <div style={subtitleStyles}>
-                    {showSubtitles.map((s) => (
-                        <React.Fragment key={s.index}>
-                            {s.text}
-                            <br />
-                        </React.Fragment>
-                    ))}
+                <div className={classes.subtitleContainer}>
+                    {showSubtitles.map((subtitle) => {
+                        let content;
+
+                        if (subtitle.textImage) {
+                            content = (
+                                <SubtitleTextImage
+                                    availableWidth={videoRef.current?.width ?? window.screen.availWidth}
+                                    subtitle={subtitle}
+                                    scale={imageBasedSubtitleScaleFactor}
+                                />
+                            );
+                        } else {
+                            content = <span style={subtitleStyles}>{subtitle.text}</span>;
+                        }
+                        return <React.Fragment key={subtitle.index}>{content}</React.Fragment>;
+                    })}
                 </div>
             )}
             {fullscreen && (

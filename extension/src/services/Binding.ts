@@ -276,7 +276,7 @@ export default class Binding {
                         this.synced = true;
                         break;
                     case 'subtitleSettings':
-                        this.subtitleContainer.subtitleSettings = request.message.value;
+                        this.subtitleContainer.setSubtitleSettings(request.message.value);
                         this.subtitleContainer.refresh();
                         break;
                     case 'ankiSettings':

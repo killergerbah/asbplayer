@@ -37,6 +37,7 @@ const subtitleBackgroundColorKey = 'subtitleBackgroundColor';
 const subtitleBackgroundOpacityKey = 'subtitleBackgroundOpacity';
 const subtitleFontFamilyKey = 'subtitleFontFamily';
 const subtitlePreviewKey = 'subtitlePreview';
+const imageBasedSubtitleScaleFactorKey = 'imageBasedSubtitleScaleFactor';
 const audioPaddingStartKey = 'audioPaddingStart';
 const audioPaddingEndKey = 'audioPaddingEnd';
 const maxImageWidthKey = 'maxImageWidth';
@@ -76,6 +77,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             subtitleBackgroundOpacity: this.subtitleBackgroundOpacity,
             subtitleFontFamily: this.subtitleFontFamily,
             subtitlePreview: this.subtitlePreview,
+            imageBasedSubtitleScaleFactor: this.imageBasedSubtitleScaleFactor,
             preferMp3: this.preferMp3,
             themeType: this.themeType,
             audioPaddingStart: this.audioPaddingStart,
@@ -109,6 +111,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.subtitleBackgroundOpacity = newSettings.subtitleBackgroundOpacity;
         this.subtitleFontFamily = newSettings.subtitleFontFamily;
         this.subtitlePreview = newSettings.subtitlePreview;
+        this.imageBasedSubtitleScaleFactor = newSettings.imageBasedSubtitleScaleFactor;
         this.customAnkiFields = newSettings.customAnkiFields;
         this.preferMp3 = newSettings.preferMp3;
         this.themeType = newSettings.themeType;
@@ -129,6 +132,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             subtitleBackgroundColor: this.subtitleBackgroundColor,
             subtitleBackgroundOpacity: this.subtitleBackgroundOpacity,
             subtitleFontFamily: this.subtitleFontFamily,
+            imageBasedSubtitleScaleFactor: this.imageBasedSubtitleScaleFactor
         };
     }
 
@@ -356,6 +360,14 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
 
     set subtitlePreview(subtitlePreview) {
         localStorage.setItem(subtitlePreviewKey, subtitlePreview);
+    }
+
+    get imageBasedSubtitleScaleFactor() {
+        return this._getNumberItem(imageBasedSubtitleScaleFactorKey, 1);
+    }
+
+    set imageBasedSubtitleScaleFactor(imageBasedSubtitleScaleFactor: number) {
+        localStorage.setItem(imageBasedSubtitleScaleFactorKey, String(imageBasedSubtitleScaleFactor));
     }
 
     get volume() {

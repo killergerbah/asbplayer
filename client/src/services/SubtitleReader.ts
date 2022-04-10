@@ -2,19 +2,24 @@ import { compile as parseAss } from 'ass-compiler';
 import { parseSync as parseSrt } from 'subtitle';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
+import { DisplaySet, parseDisplaySets as parsePgsDisplaySets } from './pgs-parser';
+import { SubtitleTextImage, CanvasResizer } from '@project/common';
 
 const tagRegex = RegExp('</?([^>]*)>', 'ig');
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
 const helperElement = document.createElement('div');
+const helperCanvas = document.createElement('canvas');
 
 interface SubtitleNode {
     start: number;
     end: number;
     text: string;
+    textImage?: SubtitleTextImage;
     track: number;
 }
 
 export default class SubtitleReader {
+    private readonly canvasResizer = new CanvasResizer();
     private xmlParser?: XMLParser;
 
     async subtitles(files: File[]) {
@@ -81,11 +86,11 @@ export default class SubtitleReader {
         if (file.name.endsWith('.ytxml')) {
             const text = await file.text();
             const xml = this._xmlParser().parse(text);
-            
+
             if (Object.keys(xml).length === 0) {
                 return [];
             }
-            
+
             const textNodes = xml['transcript']['text'];
             const subtitles = [];
 
@@ -104,6 +109,56 @@ export default class SubtitleReader {
                     text: this._decodeHTML(String(elm['#text']).replace(tagRegex, '')),
                     track,
                 });
+            }
+
+            return subtitles;
+        }
+
+        if (file.name.endsWith('.sup')) {
+            let imageDataArray: Uint8ClampedArray | undefined;
+            const subtitles = [];
+            let currentImageDisplaySet: DisplaySet | undefined;
+
+            // FIXME: Figure out how to remove conflicts with @types/node ReadableStream
+            // @ts-ignore
+            for await (const displaySet of parsePgsDisplaySets(file.stream())) {
+                if (displaySet.objectDefinitionSegments.length > 0) {
+                    if (currentImageDisplaySet === undefined) {
+                        currentImageDisplaySet = displaySet;
+                    }
+                } else if (currentImageDisplaySet !== undefined) {
+                    const screenWidth = currentImageDisplaySet.presentationCompositionSegment.width;
+                    const screenHeight = currentImageDisplaySet.presentationCompositionSegment.height;
+                    imageDataArray =
+                        imageDataArray === undefined || imageDataArray.length < screenHeight * screenWidth * 4
+                            ? new Uint8ClampedArray(screenWidth * screenHeight * 4)
+                            : imageDataArray;
+                    const imageData = currentImageDisplaySet.imageData(imageDataArray);
+                    helperCanvas.width = imageData.width;
+                    helperCanvas.height = imageData.height;
+                    const context = helperCanvas.getContext('2d')!;
+                    context.putImageData(imageData, 0, 0);
+                    subtitles.push({
+                        start:
+                            currentImageDisplaySet.objectDefinitionSegments[0].header.presentationTimestamp / 90 ?? 0,
+                        end: displaySet.endDefinitionSegment.header.presentationTimestamp / 90,
+                        text: '',
+                        textImage: {
+                            dataUrl: helperCanvas.toDataURL('image/png'),
+                            image: {
+                                width: imageData.width,
+                                height: imageData.height,
+                            },
+                            screen: {
+                                width: currentImageDisplaySet.presentationCompositionSegment.width,
+                                height: currentImageDisplaySet.presentationCompositionSegment.height,
+                            },
+                        },
+                        track,
+                    });
+                    
+                    currentImageDisplaySet = undefined;
+                }
             }
 
             return subtitles;

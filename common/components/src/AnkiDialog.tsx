@@ -1,6 +1,14 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import { Anki, AnkiDialogSliderContext, AudioClip, Image, humanReadableTime, AnkiSettings } from '@project/common';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
+import { makeStyles, withStyles } from '@material-ui/core/styles';
+import {
+    Anki,
+    AnkiDialogSliderContext,
+    AudioClip,
+    Image,
+    humanReadableTime,
+    AnkiSettings,
+    SubtitleModel,
+} from '@project/common';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -10,6 +18,7 @@ import DoneIcon from '@material-ui/icons/Done';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import Paper from '@material-ui/core/Paper';
 import RestoreIcon from '@material-ui/icons/Restore';
 import SearchIcon from '@material-ui/icons/Search';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -18,6 +27,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import ZoomInIcon from '@material-ui/icons/ZoomIn';
+import SubtitleTextImage from './SubtitleTextImage';
 import TagsTextField from './TagsTextField';
 import { ExportMode } from '@project/common/src/Anki';
 
@@ -64,7 +74,7 @@ function sliderMarksFromSliderContext(sliderContext: AnkiDialogSliderContext, bo
     const seenTimestamps: any = {};
 
     return sliderContext.subtitles
-        .filter((s) => s.text.trim() !== '')
+        .filter((s) => s.text.trim() !== '' || s.textImage !== undefined)
         .map((s) => {
             if (s.start in seenTimestamps) {
                 return null;
@@ -85,6 +95,15 @@ function sliderValueLabelFormat(ms: number) {
     return humanReadableTime(ms, true);
 }
 
+function subtitleIntersectsTimeInterval(subtitle: SubtitleModel, interval: number[]) {
+    return (
+        (subtitle.start >= interval[0] && subtitle.start <= interval[1]) ||
+        (subtitle.end >= interval[0] && subtitle.end <= interval[1]) ||
+        (interval[0] >= subtitle.start && interval[0] <= subtitle.end) ||
+        (interval[1] >= subtitle.start && interval[1] <= subtitle.end)
+    );
+}
+
 interface ValueLabelComponentProps {
     children: React.ReactElement;
     open: boolean;
@@ -98,6 +117,42 @@ function ValueLabelComponent({ children, open, value }: ValueLabelComponentProps
         </Tooltip>
     );
 }
+
+interface TextImageSetProps {
+    selectedSubtitles: SubtitleModel[];
+    width: number;
+}
+
+const useTextImageSetStyles = makeStyles((theme) => ({
+    root: {
+        marginBottom: theme.spacing(1),
+        padding: theme.spacing(1),
+        backgroundColor: theme.palette.action.disabledBackground,
+    },
+}));
+
+function TextImageSet({ selectedSubtitles, width }: TextImageSetProps) {
+    const classes = useTextImageSetStyles();
+
+    if (selectedSubtitles.length === 0 || width <= 0) {
+        return null;
+    }
+
+    return (
+        <Paper elevation={0} className={classes.root}>
+            {selectedSubtitles.map((s, index) => {
+                return <SubtitleTextImage key={index} availableWidth={width} subtitle={s} scale={1} />;
+            })}
+        </Paper>
+    );
+}
+
+const TextFieldEndAdornment = withStyles({
+    // Hack to recenter TextField end adornment
+    root: {
+        transform: 'translateY(-8px)',
+    },
+})(InputAdornment);
 
 export interface RerecordParams {
     text: string;
@@ -181,13 +236,18 @@ export default function AnkiDialog({
     const [wordTimestamp, setWordTimestamp] = useState<number>(0);
     const [customFieldValues, setCustomFieldValues] = useState<{ [key: string]: string }>({});
     const [timestampInterval, setTimestampInterval] = useState<number[]>();
+    const [selectedSubtitles, setSelectedSubtitles] = useState<SubtitleModel[]>([]);
     const [initialTimestampInterval, setInitialTimestampInterval] = useState<number[]>();
     const [initialTimestampBoundaryInterval, setInitialTimestampBoundaryInterval] = useState<number[]>();
     const [timestampBoundaryInterval, setTimestampBoundaryInterval] = useState<number[]>();
     const [timestampMarks, setTimestampMarks] = useState<Mark[]>();
     const [lastAppliedTimestampIntervalToText, setLastAppliedTimestampIntervalToText] = useState<number[]>();
     const [lastAppliedTimestampIntervalToAudio, setLastAppliedTimestampIntervalToAudio] = useState<number[]>();
+    const [width, setWidth] = useState<number>(0);
     const [audioClip, setAudioClip] = useState<AudioClip>();
+    const dialogRefCallback = useCallback((element: HTMLElement) => {
+        setWidth(element?.getBoundingClientRect().width ?? 0);
+    }, []);
 
     useEffect(() => {
         setText(initialText ?? '');
@@ -217,7 +277,13 @@ export default function AnkiDialog({
             (sliderContext && boundaryIntervalFromSliderContext(sliderContext)) || undefined;
         const timestampMarks =
             (sliderContext && sliderMarksFromSliderContext(sliderContext, timestampBoundaryInterval!)) || undefined;
+        const selectedSubtitles =
+            sliderContext === undefined || timestampInterval === undefined
+                ? []
+                : sliderContext.subtitles.filter((s) => subtitleIntersectsTimeInterval(s, timestampInterval));
+
         setTimestampInterval(timestampInterval);
+        setSelectedSubtitles(selectedSubtitles);
         setInitialTimestampInterval(timestampInterval);
         setLastAppliedTimestampIntervalToText(initialLastAppliedTimestampIntervalToText || timestampInterval);
         setLastAppliedTimestampIntervalToAudio(timestampInterval);
@@ -320,26 +386,26 @@ export default function AnkiDialog({
         [image, onViewImage]
     );
 
-    const handleTimestampIntervalChange = useCallback((e: React.ChangeEvent<{}>, newValue: number | number[]) => {
-        setTimestampInterval(newValue as number[]);
-    }, []);
+    const handleTimestampIntervalChange = useCallback(
+        (e: React.ChangeEvent<{}>, newValue: number | number[]) => {
+            const timestampInterval = newValue as number[];
+            setTimestampInterval(timestampInterval);
+            const selectedSubtitles = sliderContext!.subtitles.filter((s) =>
+                subtitleIntersectsTimeInterval(s, timestampInterval)
+            );
+            setSelectedSubtitles(selectedSubtitles);
+        },
+        [sliderContext]
+    );
 
     const handleApplyTimestampIntervalToText = useCallback(() => {
-        const intersectingSubtitles = [];
         const interval = timestampInterval!;
+        const newText = sliderContext!.subtitles
+            .filter((s) => subtitleIntersectsTimeInterval(s, interval))
+            .map((s) => s.text)
+            .join('\n');
 
-        for (const s of sliderContext!.subtitles) {
-            if (
-                (s.start >= interval[0] && s.start <= interval[1]) ||
-                (s.end >= interval[0] && s.end <= interval[1]) ||
-                (interval[0] >= s.start && interval[0] <= s.end) ||
-                (interval[1] >= s.start && interval[1] <= s.end)
-            ) {
-                intersectingSubtitles.push(s.text);
-            }
-        }
-
-        setText(intersectingSubtitles.join('\n'));
+        setText(newText);
         setLastAppliedTimestampIntervalToText(timestampInterval);
     }, [timestampInterval, sliderContext]);
 
@@ -386,6 +452,11 @@ export default function AnkiDialog({
             return;
         }
 
+        const selectedSubtitles =
+            sliderContext === undefined || initialTimestampInterval === undefined
+                ? []
+                : sliderContext.subtitles.filter((s) => subtitleIntersectsTimeInterval(s, initialTimestampInterval));
+        setSelectedSubtitles(selectedSubtitles);
         setTimestampInterval(initialTimestampInterval);
         setTimestampBoundaryInterval(initialTimestampBoundaryInterval);
         setTimestampMarks(
@@ -420,8 +491,14 @@ export default function AnkiDialog({
                     </IconButton>
                 )}
             </Toolbar>
-            <DialogContent>
+            <DialogContent ref={dialogRefCallback}>
                 <form className={classes.root}>
+                    {sliderContext && timestampInterval && (
+                        <TextImageSet
+                            selectedSubtitles={selectedSubtitles.filter((s) => s.textImage !== undefined)}
+                            width={width}
+                        />
+                    )}
                     <TextField
                         variant="filled"
                         color="secondary"
@@ -433,7 +510,7 @@ export default function AnkiDialog({
                         onChange={(e) => setText(e.target.value)}
                         InputProps={{
                             endAdornment: timestampInterval && (
-                                <InputAdornment position="end">
+                                <TextFieldEndAdornment position="end">
                                     <Tooltip title="Apply Selection">
                                         <span>
                                             <IconButton
@@ -452,7 +529,7 @@ export default function AnkiDialog({
                                             </IconButton>
                                         </span>
                                     </Tooltip>
-                                </InputAdornment>
+                                </TextFieldEndAdornment>
                             ),
                         }}
                     />
