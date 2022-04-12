@@ -335,9 +335,19 @@ export default function HelpDialog({ open, extensionUrl, onClose }: Props) {
                             color="secondary"
                             target="_blank"
                             rel="noreferrer"
-                            href="https://www.youtube.com/watch?v=J3E82spYqIk"
+                            href="https://www.youtube.com/watch?v=BSr_JusW8E8"
                         >
                             Sentence mining video files (synchronous workflow)
+                        </Link>
+                    </li>
+                    <li>
+                        <Link
+                            color="secondary"
+                            target="_blank"
+                            rel="noreferrer"
+                            href="https://www.youtube.com/watch?v=J3E82spYqIk"
+                        >
+                            Sentence mining video files (synchronous workflow using Yomichan export)
                         </Link>
                     </li>
                     <li>
