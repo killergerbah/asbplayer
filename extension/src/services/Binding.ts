@@ -417,7 +417,6 @@ export default class Binding {
         }
 
         if (this.heartbeatInterval) {
-            console.error('unsubscribe heartbeat ' + this.video.src);
             clearInterval(this.heartbeatInterval);
             this.heartbeatInterval = undefined;
         }
