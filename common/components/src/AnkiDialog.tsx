@@ -219,7 +219,7 @@ export default function AnkiDialog({
             (sliderContext && sliderMarksFromSliderContext(sliderContext, timestampBoundaryInterval!)) || undefined;
         setTimestampInterval(timestampInterval);
         setInitialTimestampInterval(timestampInterval);
-        setLastAppliedTimestampIntervalToText(timestampInterval);
+        setLastAppliedTimestampIntervalToText(initialLastAppliedTimestampIntervalToText || timestampInterval);
         setLastAppliedTimestampIntervalToAudio(timestampInterval);
         setTimestampBoundaryInterval(timestampBoundaryInterval);
         setInitialTimestampBoundaryInterval(timestampBoundaryInterval);
