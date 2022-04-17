@@ -36,8 +36,8 @@ export default class ImageElement {
 
     _applyImageContainerStyles(image: HTMLImageElement, container: HTMLDivElement) {
         const rect = this.video.getBoundingClientRect();
-        const containerWidth = rect.width * 0.9;
-        const containerHeight = rect.height * 0.9;
+        const containerWidth = Math.min(window.innerWidth, rect.width) * 0.9;
+        const containerHeight = Math.min(window.innerHeight, rect.height) * 0.9;
         container.style.top = rect.top + window.scrollY + rect.height * 0.05 + 'px';
         container.style.left = rect.left + rect.width * 0.05 + 'px';
         container.style.width = containerWidth + 'px';

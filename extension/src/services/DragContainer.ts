@@ -173,8 +173,8 @@ export default class DragContainer {
 
         dragElement.style.top = rect.top + window.scrollY + rect.height * 0.05 + 'px';
         dragElement.style.left = rect.left + rect.width * 0.05 + 'px';
-        dragElement.style.height = rect.height * 0.9 + 'px';
-        dragElement.style.width = rect.width * 0.9 + 'px';
+        dragElement.style.height = Math.min(window.innerHeight, rect.height) * 0.9 + 'px';
+        dragElement.style.width = Math.min(window.innerWidth, rect.width) * 0.9 + 'px';
     }
 
     unbind() {
