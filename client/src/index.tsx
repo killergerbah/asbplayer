@@ -1,14 +1,13 @@
 import '@fontsource/roboto';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import App from './components/App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 
-ReactDOM.render(
-    <BrowserRouter basename={process.env.PUBLIC_URL} forceRefresh={false}>
+createRoot(document.querySelector('#root')!).render(
+    <BrowserRouter basename={process.env.PUBLIC_URL}>
         <App />
-    </BrowserRouter>,
-    document.querySelector('#root')
+    </BrowserRouter>
 );
 
 // If you want to start measuring performance in your app, pass a function

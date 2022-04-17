@@ -186,7 +186,7 @@ function Menu({ open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage,
 export default function CopyHistory(props: CopyHistoryProps) {
     const onDelete = props.onDelete;
     const classes = useStyles(props);
-    const scrollToBottomRefCallback = useCallback((element) => {
+    const scrollToBottomRefCallback = useCallback((element: HTMLElement | null) => {
         if (element) {
             element.scrollIntoView();
         }
@@ -195,7 +195,7 @@ export default function CopyHistory(props: CopyHistoryProps) {
     const [menuOpen, setMenuOpen] = useState<boolean>(false);
     const [menuAnchorEl, setMenuAnchorEl] = useState<Element>();
 
-    const handleMenu = useCallback((e: React.MouseEvent, item) => {
+    const handleMenu = useCallback((e: React.MouseEvent, item: CopyHistoryItem) => {
         setMenuItem(item);
         setMenuOpen(true);
         setMenuAnchorEl(e.currentTarget);
@@ -208,7 +208,7 @@ export default function CopyHistory(props: CopyHistoryProps) {
     }, []);
 
     const handleDelete = useCallback(
-        (item) => {
+        (item: CopyHistoryItem) => {
             onDelete(item);
         },
         [onDelete]

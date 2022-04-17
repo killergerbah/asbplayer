@@ -1,4 +1,4 @@
-import { AsbplayerSettingsProvider } from '@project/common';
+import { AsbplayerSettings, AsbplayerSettingsProvider } from '@project/common';
 
 const defaultAnkiConnectUrl = 'http://127.0.0.1:8765';
 const defaultSubtitleSize = 36;
@@ -54,7 +54,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this._tags = this.tags;
     }
 
-    get settings() {
+    get settings(): AsbplayerSettings {
         return {
             ankiConnectUrl: this.ankiConnectUrl,
             deck: this.deck,
@@ -89,7 +89,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         };
     }
 
-    set settings(newSettings) {
+    set settings(newSettings: AsbplayerSettings) {
         this.ankiConnectUrl = newSettings.ankiConnectUrl;
         this.deck = newSettings.deck;
         this.noteType = newSettings.noteType;

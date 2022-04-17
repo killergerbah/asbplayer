@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
-import { Route, Redirect, Switch, useLocation } from 'react-router-dom';
+import { Route, Navigate, Routes, useLocation, useSearchParams } from 'react-router-dom';
 import { ThemeProvider, createTheme, makeStyles, Theme } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
 import { red } from '@material-ui/core/colors';
@@ -18,6 +18,7 @@ import {
     PlayerSyncMessage,
     AudioModel,
     ImageModel,
+    AsbplayerSettings,
 } from '@project/common';
 import { v4 as uuidv4 } from 'uuid';
 import clsx from 'clsx';
@@ -36,6 +37,7 @@ import SettingsDialog from './SettingsDialog';
 import SettingsProvider from '../services/SettingsProvider';
 import VideoPlayer from './VideoPlayer';
 import { Color } from '@material-ui/lab';
+import { ExportMode } from '@project/common/src/Anki';
 
 const latestExtensionVersion = '0.17.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
@@ -58,12 +60,13 @@ const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
     }),
 }));
 
-function extractSources(files: File[]): MediaSources {
+function extractSources(files: FileList): MediaSources {
     let subtitleFiles = [];
     let audioFile = undefined;
     let videoFile = undefined;
 
-    for (const f of files) {
+    for (let i = 0; i < files.length; ++i) {
+        const f = files[i];
         const extensionStartIndex = f.name.lastIndexOf('.');
 
         if (extensionStartIndex === -1) {
@@ -199,6 +202,42 @@ function revokeUrls(sources: MediaSources) {
     if (sources.videoFileUrl) {
         URL.revokeObjectURL(sources.videoFileUrl);
     }
+}
+
+interface NavigateToVideoProps {
+    searchParams: URLSearchParams;
+}
+
+function NavigateToVideo({ searchParams }: NavigateToVideoProps) {
+    const videoFile = searchParams.get('video')!;
+    const channel = searchParams.get('channel')!;
+    const popOut = searchParams.get('popout')!;
+
+    return (
+        <Navigate to={'/video?video=' + encodeURIComponent(videoFile) + '&channel=' + channel + '&popout=' + popOut} />
+    );
+}
+
+interface RenderVideoProps {
+    searchParams: URLSearchParams;
+    settingsProvider: SettingsProvider;
+    onError: (error: string) => void;
+}
+
+function RenderVideo({ searchParams, settingsProvider, onError }: RenderVideoProps) {
+    const videoFile = searchParams.get('video')!;
+    const channel = searchParams.get('channel')!;
+    const popOut = searchParams.get('popout')! === 'true';
+
+    return (
+        <VideoPlayer
+            settingsProvider={settingsProvider}
+            videoFile={videoFile}
+            popOut={popOut}
+            channel={channel}
+            onError={onError}
+        />
+    );
 }
 
 interface ContentProps {
@@ -412,7 +451,7 @@ function App() {
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
     const handleImageDialogClosed = useCallback(() => setImageDialogOpen(false), []);
     const handleCloseSettings = useCallback(
-        (newSettings) => {
+        (newSettings: AsbplayerSettings) => {
             settingsProvider.settings = newSettings;
             setSettingsDialogOpen(false);
             setDisableKeyEvents(false);
@@ -436,7 +475,7 @@ function App() {
     );
 
     const handleDeleteCopyHistoryItem = useCallback(
-        (item) => {
+        (item: CopyHistoryItem) => {
             const newCopiedSubtitles = [];
 
             for (let subtitle of copiedSubtitles) {
@@ -450,14 +489,14 @@ function App() {
         [copiedSubtitles]
     );
 
-    const handleError = useCallback((message) => {
+    const handleError = useCallback((message: string) => {
         setAlertSeverity('error');
         setAlert(message);
         setAlertOpen(true);
     }, []);
 
     const handleUnloadAudio = useCallback(
-        (audioFileUrl) => {
+        (audioFileUrl: string) => {
             if (audioFileUrl !== sources.audioFileUrl) {
                 return;
             }
@@ -478,7 +517,7 @@ function App() {
     );
 
     const handleUnloadVideo = useCallback(
-        (videoFileUrl) => {
+        (videoFileUrl: string) => {
             if (videoFileUrl !== sources.videoFileUrl) {
                 return;
             }
@@ -499,7 +538,7 @@ function App() {
     );
 
     const handleClipAudio = useCallback(
-        async (item) => {
+        async (item: CopyHistoryItem) => {
             try {
                 const clip = await audioClipFromItem(
                     item,
@@ -526,7 +565,7 @@ function App() {
     );
 
     const handleDownloadImage = useCallback(
-        async (item) => {
+        async (item: CopyHistoryItem) => {
             try {
                 (await imageFromItem(
                     item,
@@ -546,9 +585,9 @@ function App() {
     );
 
     const handleSelectCopyHistoryItem = useCallback(
-        (item) => {
-            if (subtitleFiles.filter((f) => f.name === item.subtitleFile.name).length === 0) {
-                handleError('Subtitle file ' + item.subtitleFile.name + ' is not open.');
+        (item: CopyHistoryItem) => {
+            if (!subtitleFiles.find((f) => f.name === item.subtitleFile?.name)) {
+                handleError('Subtitle file ' + item.subtitleFile?.name + ' is not open.');
                 return;
             }
 
@@ -557,7 +596,7 @@ function App() {
         [subtitleFiles, handleError]
     );
 
-    const handleAnki = useCallback((item) => {
+    const handleAnki = useCallback((item: CopyHistoryItem) => {
         setAnkiDialogItem(item);
         setAnkiDialogOpen(true);
         setAnkiDialogDisabled(false);
@@ -576,7 +615,18 @@ function App() {
     }, [ankiDialogRequested]);
 
     const handleAnkiDialogProceed = useCallback(
-        async (text, definition, audioClip, image, word, source, url, customFieldValues, tags, mode) => {
+        async (
+            text: string,
+            definition: string,
+            audioClip: AudioClip | undefined,
+            image: Image | undefined,
+            word: string,
+            source: string,
+            url: string,
+            customFieldValues: { [key: string]: string },
+            tags: string[],
+            mode: ExportMode
+        ) => {
             setAnkiDialogDisabled(true);
 
             try {
@@ -626,7 +676,7 @@ function App() {
         [anki, handleError, ankiDialogRequested]
     );
 
-    const handleAnkiDialogRequest = useCallback((forwardToVideo) => {
+    const handleAnkiDialogRequest = useCallback((forwardToVideo?: boolean) => {
         if (copiedSubtitlesRef.current!.length === 0) {
             return;
         }
@@ -643,7 +693,7 @@ function App() {
         }
     }, []);
 
-    const handleViewImage = useCallback((image) => {
+    const handleViewImage = useCallback((image: Image) => {
         setImage(image);
         setImageDialogOpen(true);
     }, []);
@@ -682,10 +732,10 @@ function App() {
         return () => extension.unsubscribeTabs(onTabs);
     }, [availableTabs, tab, extension, handleError]);
 
-    const handleTabSelected = useCallback((tab) => setTab(tab), []);
+    const handleTabSelected = useCallback((tab: VideoTabModel) => setTab(tab), []);
 
     const handleFiles = useCallback(
-        (files) => {
+        (files: FileList) => {
             try {
                 let { subtitleFiles, audioFile, videoFile } = extractSources(files);
 
@@ -842,7 +892,7 @@ function App() {
     const handleFileSelector = useCallback(() => fileInputRef.current?.click(), []);
 
     const handleDragEnter = useCallback(
-        (e: React.DragEvent) => {
+        (e: React.DragEvent<HTMLDivElement>) => {
             e.preventDefault();
             e.stopPropagation();
 
@@ -855,9 +905,9 @@ function App() {
     );
 
     const handleDragLeave = useCallback(
-        (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+        (e: React.DragEvent<HTMLDivElement>) => {
+            e.nativeEvent.preventDefault();
+            e.nativeEvent.stopPropagation();
 
             if (!inVideoPlayer && dragEnterRef.current === e.target) {
                 setDragging(false);
@@ -867,6 +917,12 @@ function App() {
     );
 
     const handleSourcesLoaded = useCallback(() => setLoading(false), []);
+    const [searchParams] = useSearchParams();
+
+    if (location.pathname === '/' && searchParams.get('video')) {
+        return <NavigateToVideo searchParams={searchParams} />;
+    }
+
     const nothingLoaded =
         (loading && !videoFrameRef.current) ||
         (sources.subtitleFiles.length === 0 && !sources.audioFile && !sources.videoFile);
@@ -884,158 +940,121 @@ function App() {
                 <Alert open={alertOpen} onClose={handleAlertClosed} autoHideDuration={3000} severity={alertSeverity}>
                     {alert}
                 </Alert>
-                <Switch>
+                <Routes>
                     <Route
-                        exact
-                        path="/"
-                        render={() => {
-                            const params = new URLSearchParams(window.location.search);
-                            const videoFile = params.get('video');
-                            const channel = params.get('channel');
-                            const popOut = params.get('popout');
-
-                            if (videoFile && channel) {
-                                return (
-                                    <Redirect
-                                        to={
-                                            '/video?video=' +
-                                            encodeURIComponent(videoFile) +
-                                            '&channel=' +
-                                            channel +
-                                            '&popout=' +
-                                            popOut
-                                        }
-                                    />
-                                );
-                            }
-
-                            return (
-                                <div>
-                                    <CopyHistory
-                                        items={copiedSubtitles}
-                                        open={copyHistoryOpen}
-                                        drawerWidth={drawerWidth}
-                                        onClose={handleCloseCopyHistory}
-                                        onDelete={handleDeleteCopyHistoryItem}
-                                        onClipAudio={handleClipAudio}
-                                        onDownloadImage={handleDownloadImage}
-                                        onSelect={handleSelectCopyHistoryItem}
-                                        onAnki={handleAnki}
-                                    />
-                                    <AnkiDialog
-                                        open={ankiDialogOpen}
-                                        disabled={ankiDialogDisabled}
-                                        text={ankiDialogItem?.text}
-                                        audioClip={ankiDialogAudioClip}
-                                        image={ankiDialogImage}
-                                        source={itemSourceString(ankiDialogItem)}
-                                        url={ankiDialogItem?.url}
-                                        sliderContext={ankiDialogItemSliderContext}
-                                        customFields={settingsProvider.customAnkiFields}
-                                        anki={anki}
-                                        settingsProvider={settingsProvider}
-                                        onCancel={handleAnkiDialogCancel}
-                                        onProceed={handleAnkiDialogProceed}
-                                        onViewImage={handleViewImage}
-                                        onOpenSettings={handleOpenSettings}
-                                    />
-                                    <ImageDialog
-                                        open={imageDialogOpen}
-                                        image={image}
-                                        onClose={handleImageDialogClosed}
-                                    />
-                                    <SettingsDialog
-                                        anki={anki}
-                                        open={settingsDialogOpen}
-                                        onClose={handleCloseSettings}
-                                        settings={settingsProvider.settings}
-                                    />
-                                    <HelpDialog
-                                        open={helpDialogOpen}
-                                        extensionUrl={extensionUrl}
-                                        onClose={handleCloseHelp}
-                                    />
-                                    <Bar
-                                        title={fileName || 'asbplayer'}
-                                        drawerWidth={drawerWidth}
-                                        drawerOpen={copyHistoryOpen}
-                                        hidden={appBarHidden}
-                                        onOpenCopyHistory={handleOpenCopyHistory}
-                                        onOpenSettings={handleOpenSettings}
-                                        onOpenHelp={handleOpenHelp}
-                                        onFileSelector={handleFileSelector}
-                                    />
-                                    <input
-                                        ref={fileInputRef}
-                                        onChange={handleFileInputChange}
-                                        type="file"
-                                        accept=".srt,.ass,.vtt,.mp3,.m4a,.aac,.flac,.ogg,.wav,.opus,.mkv,.mp4,.avi"
-                                        multiple
-                                        hidden
-                                    />
-                                    <Content drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen}>
-                                        {nothingLoaded && (
-                                            <LandingPage
-                                                latestExtensionVersion={latestExtensionVersion}
-                                                extensionUrl={extensionUrl}
-                                                extension={extension}
-                                                loading={loading}
-                                                dragging={dragging}
-                                                appBarHidden={appBarHidden}
-                                                onFileSelector={handleFileSelector}
-                                            />
-                                        )}
-                                        <DragOverlay dragging={dragging} appBarHidden={appBarHidden} loading={loading} />
-                                        <Player
-                                            subtitleReader={subtitleReader}
-                                            settingsProvider={settingsProvider}
-                                            onCopy={handleCopy}
-                                            onError={handleError}
-                                            onUnloadAudio={handleUnloadAudio}
-                                            onUnloadVideo={handleUnloadVideo}
-                                            onLoaded={handleSourcesLoaded}
-                                            onTabSelected={handleTabSelected}
-                                            onAnkiDialogRequest={handleAnkiDialogRequest}
-                                            onAppBarToggle={handleAppBarToggle}
-                                            tab={tab}
-                                            availableTabs={availableTabs}
-                                            sources={sources}
-                                            jumpToSubtitle={jumpToSubtitle}
-                                            videoFrameRef={videoFrameRef}
-                                            extension={extension}
-                                            drawerOpen={copyHistoryOpen}
-                                            appBarHidden={appBarHidden}
-                                            disableKeyEvents={disableKeyEvents}
-                                            ankiDialogRequested={ankiDialogRequested}
-                                            ankiDialogRequestToVideo={ankiDialogRequestToVideo}
-                                            ankiDialogFinishedRequest={ankiDialogFinishedRequest}
-                                        />
-                                    </Content>
-                                </div>
-                            );
-                        }}
-                    />
-                    <Route
-                        exact
                         path="/video"
-                        render={() => {
-                            const params = new URLSearchParams(window.location.search);
-                            const videoFile = params.get('video')!;
-                            const channel = params.get('channel')!;
-                            const popOut = params.get('popout') === 'true';
-
-                            return (
-                                <VideoPlayer
-                                    settingsProvider={settingsProvider}
-                                    videoFile={videoFile}
-                                    popOut={popOut}
-                                    channel={channel}
-                                    onError={handleError}
-                                />
-                            );
-                        }}
+                        element={
+                            <RenderVideo
+                                searchParams={searchParams}
+                                settingsProvider={settingsProvider}
+                                onError={handleError}
+                            />
+                        }
                     />
-                </Switch>
+                    <Route
+                        path="/"
+                        element={
+                            <div>
+                                <CopyHistory
+                                    items={copiedSubtitles}
+                                    open={copyHistoryOpen}
+                                    drawerWidth={drawerWidth}
+                                    onClose={handleCloseCopyHistory}
+                                    onDelete={handleDeleteCopyHistoryItem}
+                                    onClipAudio={handleClipAudio}
+                                    onDownloadImage={handleDownloadImage}
+                                    onSelect={handleSelectCopyHistoryItem}
+                                    onAnki={handleAnki}
+                                />
+                                <AnkiDialog
+                                    open={ankiDialogOpen}
+                                    disabled={ankiDialogDisabled}
+                                    text={ankiDialogItem?.text}
+                                    audioClip={ankiDialogAudioClip}
+                                    image={ankiDialogImage}
+                                    source={itemSourceString(ankiDialogItem)}
+                                    url={ankiDialogItem?.url}
+                                    sliderContext={ankiDialogItemSliderContext}
+                                    customFields={settingsProvider.customAnkiFields}
+                                    anki={anki}
+                                    settingsProvider={settingsProvider}
+                                    onCancel={handleAnkiDialogCancel}
+                                    onProceed={handleAnkiDialogProceed}
+                                    onViewImage={handleViewImage}
+                                    onOpenSettings={handleOpenSettings}
+                                />
+                                <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />
+                                <SettingsDialog
+                                    anki={anki}
+                                    open={settingsDialogOpen}
+                                    onClose={handleCloseSettings}
+                                    settings={settingsProvider.settings}
+                                />
+                                <HelpDialog
+                                    open={helpDialogOpen}
+                                    extensionUrl={extensionUrl}
+                                    onClose={handleCloseHelp}
+                                />
+                                <Bar
+                                    title={fileName || 'asbplayer'}
+                                    drawerWidth={drawerWidth}
+                                    drawerOpen={copyHistoryOpen}
+                                    hidden={appBarHidden}
+                                    onOpenCopyHistory={handleOpenCopyHistory}
+                                    onOpenSettings={handleOpenSettings}
+                                    onOpenHelp={handleOpenHelp}
+                                    onFileSelector={handleFileSelector}
+                                />
+                                <input
+                                    ref={fileInputRef}
+                                    onChange={handleFileInputChange}
+                                    type="file"
+                                    accept=".srt,.ass,.vtt,.mp3,.m4a,.aac,.flac,.ogg,.wav,.opus,.mkv,.mp4,.avi"
+                                    multiple
+                                    hidden
+                                />
+                                <Content drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen}>
+                                    {nothingLoaded && (
+                                        <LandingPage
+                                            latestExtensionVersion={latestExtensionVersion}
+                                            extensionUrl={extensionUrl}
+                                            extension={extension}
+                                            loading={loading}
+                                            dragging={dragging}
+                                            appBarHidden={appBarHidden}
+                                            onFileSelector={handleFileSelector}
+                                        />
+                                    )}
+                                    <DragOverlay dragging={dragging} appBarHidden={appBarHidden} loading={loading} />
+                                    <Player
+                                        subtitleReader={subtitleReader}
+                                        settingsProvider={settingsProvider}
+                                        onCopy={handleCopy}
+                                        onError={handleError}
+                                        onUnloadAudio={handleUnloadAudio}
+                                        onUnloadVideo={handleUnloadVideo}
+                                        onLoaded={handleSourcesLoaded}
+                                        onTabSelected={handleTabSelected}
+                                        onAnkiDialogRequest={handleAnkiDialogRequest}
+                                        onAppBarToggle={handleAppBarToggle}
+                                        tab={tab}
+                                        availableTabs={availableTabs}
+                                        sources={sources}
+                                        jumpToSubtitle={jumpToSubtitle}
+                                        videoFrameRef={videoFrameRef}
+                                        extension={extension}
+                                        drawerOpen={copyHistoryOpen}
+                                        appBarHidden={appBarHidden}
+                                        disableKeyEvents={disableKeyEvents}
+                                        ankiDialogRequested={ankiDialogRequested}
+                                        ankiDialogRequestToVideo={ankiDialogRequestToVideo}
+                                        ankiDialogFinishedRequest={ankiDialogFinishedRequest}
+                                    />
+                                </Content>
+                            </div>
+                        }
+                    />
+                </Routes>
             </div>
         </ThemeProvider>
     );

@@ -22,6 +22,8 @@ import { AnkiDialog, ImageDialog } from '@project/common/components';
 import Snackbar from '@material-ui/core/Snackbar';
 import Bridge from '../Bridge';
 import { PaletteType } from '@material-ui/core';
+import { ExportMode } from '@project/common/src/Anki';
+import { RerecordParams } from '@project/common/components/src/AnkiDialog';
 
 interface Props {
     bridge: Bridge;
@@ -142,7 +144,18 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
     }, [bridge, mp3WorkerUrl]);
 
     const handleProceed = useCallback(
-        async (text, definition, audioClip, image, word, source, url, customFieldValues, tags, mode) => {
+        async (
+            text: string,
+            definition: string,
+            audioClip: AudioClip | undefined,
+            image: Image | undefined,
+            word: string,
+            source: string,
+            url: string,
+            customFieldValues: { [key: string]: string },
+            tags: string[],
+            mode: ExportMode
+        ) => {
             setDisabled(true);
 
             try {
@@ -188,7 +201,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
         bridge.finished({ command: 'resume' });
     }, [bridge]);
 
-    const handleViewImage = useCallback((image) => {
+    const handleViewImage = useCallback((image: Image) => {
         setImage(image);
         setImageDialogOpen(true);
     }, []);
@@ -204,7 +217,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             customFieldValues,
             timestampInterval,
             lastAppliedTimestampIntervalToText,
-        }) => {
+        }: RerecordParams) => {
             setOpen(false);
             setImageDialogOpen(false);
             const resumeUiState: AnkiUiRerecordState = {

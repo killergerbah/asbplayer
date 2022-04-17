@@ -282,7 +282,7 @@ export default function AnkiDialog({
     }, [word, wordTimestamp, lastSearchedWord, anki, settingsProvider.wordField]);
 
     const handlePlayAudio = useCallback(
-        (e) => {
+        (e: React.MouseEvent<HTMLDivElement>) => {
             e.preventDefault();
             e.stopPropagation();
             audioClip!.play();
@@ -312,7 +312,7 @@ export default function AnkiDialog({
     }
 
     const handleViewImage = useCallback(
-        (e) => {
+        (e: React.MouseEvent<HTMLDivElement>) => {
             e.preventDefault();
             e.stopPropagation();
             onViewImage(image!);
@@ -320,8 +320,8 @@ export default function AnkiDialog({
         [image, onViewImage]
     );
 
-    const handleTimestampIntervalChange = useCallback((e, newValue) => {
-        setTimestampInterval(newValue);
+    const handleTimestampIntervalChange = useCallback((e: React.ChangeEvent<{}>, newValue: number | number[]) => {
+        setTimestampInterval(newValue as number[]);
     }, []);
 
     const handleApplyTimestampIntervalToText = useCallback(() => {
@@ -344,7 +344,7 @@ export default function AnkiDialog({
     }, [timestampInterval, sliderContext]);
 
     const handleApplyTimestampIntervalToAudio = useCallback(
-        (e) => {
+        (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
             e.stopPropagation();
             if (onRerecord) {
                 if (!lastAppliedTimestampIntervalToText || !timestampInterval) {

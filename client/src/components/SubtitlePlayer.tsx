@@ -444,7 +444,7 @@ export default function SubtitlePlayer({
     }, [hidden, jumpToSubtitle, subtitles, subtitleRefs]);
 
     const calculateSurroundingSubtitlesForIndex = useCallback(
-        (index) => {
+        (index: number) => {
             if (!selectedSubtitleIndexesRef.current || !subtitles) {
                 return [];
             }

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback, useRef, MutableRefObject } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef, MutableRefObject } from 'react';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -28,7 +28,7 @@ interface StylesProps {
 }
 
 const useStyles = makeStyles<Theme, StylesProps>({
-    root: ({appBarHidden}) => ({
+    root: ({ appBarHidden }) => ({
         height: appBarHidden ? '100vh' : 'calc(100vh - 64px)',
         position: 'relative',
         overflowX: 'hidden',
@@ -41,7 +41,7 @@ const useStyles = makeStyles<Theme, StylesProps>({
         width: '100%',
         height: '100%',
         border: 0,
-        display: 'block'
+        display: 'block',
     },
 });
 
@@ -141,7 +141,7 @@ export default function Player({
     onAnkiDialogRequest,
     onAppBarToggle,
     disableKeyEvents,
-    jumpToSubtitle
+    jumpToSubtitle,
 }: PlayerProps) {
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>();
     const subtitlesRef = useRef<SubtitleModel[]>();
@@ -179,12 +179,12 @@ export default function Player({
         return new MediaAdapter({ current: null });
     }, [audioFileUrl, videoFileUrl, tab]);
     const clock = useMemo<Clock>(() => new Clock(), []);
-    const classes = useStyles({appBarHidden});
+    const classes = useStyles({ appBarHidden });
     const lengthRef = useRef<number>(0);
     lengthRef.current = trackLength(audioRef, videoRef, subtitles, true);
 
     const seek = useCallback(
-        async (time, clock, forwardToMedia) => {
+        async (time: number, clock: Clock, forwardToMedia: boolean) => {
             clock.setTime(time);
             forceUpdate();
 
@@ -196,7 +196,7 @@ export default function Player({
     );
 
     const applyOffset = useCallback(
-        (offset, forwardToVideo) => {
+        (offset: number, forwardToVideo: boolean) => {
             setOffset(offset);
 
             setSubtitles((subtitles) => {
@@ -587,7 +587,7 @@ export default function Player({
     const handlePlay = useCallback(() => play(clock, mediaAdapter, true), [clock, mediaAdapter]);
     const handlePause = useCallback(() => pause(clock, mediaAdapter, true), [clock, mediaAdapter]);
     const handleSeek = useCallback(
-        async (progress) => {
+        async (progress: number) => {
             if (!lengthRef.current) {
                 return;
             }
@@ -606,7 +606,7 @@ export default function Player({
     );
 
     const handleSeekToSubtitle = useCallback(
-        async (time, shouldPlay) => {
+        async (time: number, shouldPlay: boolean) => {
             if (!shouldPlay) {
                 pause(clock, mediaAdapter, true);
             }
@@ -626,7 +626,7 @@ export default function Player({
     );
 
     const handleCopy = useCallback(
-        (subtitle, surroundingSubtitles, preventDuplicate) => {
+        (subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], preventDuplicate: boolean) => {
             onCopy(
                 subtitle,
                 surroundingSubtitles,
@@ -644,13 +644,13 @@ export default function Player({
         [onCopy, audioFile, videoFile, subtitleFiles, selectedAudioTrack]
     );
 
-    const handleMouseMove = useCallback((e) => {
+    const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         mousePositionRef.current.x = e.screenX;
         mousePositionRef.current.y = e.screenY;
     }, []);
 
     const handleAudioTrackSelected = useCallback(
-        async (id) => {
+        async (id: string) => {
             if (videoRef.current instanceof VideoChannel) {
                 videoRef.current.audioTrackSelected(id);
             }
@@ -667,22 +667,22 @@ export default function Player({
     );
 
     const handleOffsetChange = useCallback(
-        (offset) => {
+        (offset: number) => {
             applyOffset(Math.max(-lengthRef.current ?? 0, offset), true);
         },
         [applyOffset]
     );
 
-    const handleVolumeChange = useCallback((v) => {
+    const handleVolumeChange = useCallback((volume: number) => {
         if (audioRef.current instanceof HTMLMediaElement) {
-            audioRef.current.volume = v;
+            audioRef.current.volume = volume;
         }
     }, []);
 
-    const handleCondensedModeToggle = useCallback(() => setCondensedModeEnabled((v) => !v), []);
+    const handleCondensedModeToggle = useCallback(() => setCondensedModeEnabled((value) => !value), []);
 
     const handleToggleSubtitleTrack = useCallback(
-        (track) =>
+        (track: number) =>
             setDisabledSubtitleTracks((tracks) => {
                 const newTracks = { ...tracks };
                 newTracks[track] = !tracks[track];

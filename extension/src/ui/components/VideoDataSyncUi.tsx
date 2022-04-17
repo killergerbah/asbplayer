@@ -5,7 +5,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createTheme } from './theme';
 import VideoDataSyncDialog from './VideoDataSyncDialog';
 import Bridge from '../Bridge';
-import { VideoDataSubtitleTrack } from '@project/common';
+import { ConfirmedVideoDataSubtitleTrack, VideoDataSubtitleTrack } from '@project/common';
 import { PaletteType } from '@material-ui/core';
 
 interface Props {
@@ -29,7 +29,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
         bridge.finished({ command: 'cancel' });
     }, [bridge]);
     const handleConfirm = useCallback(
-        (data) => {
+        (data: ConfirmedVideoDataSubtitleTrack) => {
             closeDialog();
             bridge.finished({ command: 'confirm', data });
         },

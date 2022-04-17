@@ -83,7 +83,7 @@ interface SelectableSettingProps {
     selections?: string[];
     removable?: boolean;
     onChange: (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;
-    onSelectionChange: (event: ChangeEvent<{name?: string | undefined, value: unknown}>, child: ReactNode) => void;
+    onSelectionChange: (event: ChangeEvent<{ name?: string | undefined; value: unknown }>, child: ReactNode) => void;
     onRemoval?: () => void;
 }
 
@@ -173,35 +173,138 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
     );
     const [subtitleFontFamily, setSubtitleFontFamily] = useState<string>(settings.subtitleFontFamily);
     const [subtitlePreview, setSubtitlePreview] = useState<string>(settings.subtitlePreview);
-    const [themeType, setThemeType] = useState<"dark" | "light">(settings.themeType);
+    const [themeType, setThemeType] = useState<'dark' | 'light'>(settings.themeType);
 
-    const handleAnkiConnectUrlChange = useCallback((e) => {
+    const handleAnkiConnectUrlChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         setAnkiConnectUrl(e.target.value);
         setAnkiConnectUrlChangeTimestamp(Date.now());
     }, []);
 
-    const handleRetryAnkiConnectUrl = useCallback((e) => setAnkiConnectUrlChangeTimestamp(Date.now()), []);
-    const handleDeckChange = useCallback((e) => setDeck(e.target.value), []);
-    const handleNoteTypeChange = useCallback((e) => setNoteType(e.target.value), []);
-    const handleSentenceFieldChange = useCallback((e) => setSentenceField(e.target.value), []);
-    const handleDefinitionFieldChange = useCallback((e) => setDefinitionField(e.target.value), []);
-    const handleAudioFieldChange = useCallback((e) => setAudioField(e.target.value), []);
-    const handleImageFieldChange = useCallback((e) => setImageField(e.target.value), []);
-    const handleWordFieldChange = useCallback((e) => setWordField(e.target.value), []);
-    const handleSourceFieldChange = useCallback((e) => setSourceField(e.target.value), []);
-    const handleUrlFieldChange = useCallback((e) => setUrlField(e.target.value), []);
-    const handleAudioPaddingStart = useCallback((e) => setAudioPaddingStart(e.target.value), []);
-    const handleAudioPaddingEnd = useCallback((e) => setAudioPaddingEnd(e.target.value), []);
-    const handleMaxImageWidth = useCallback((e) => setMaxImageWidth(e.target.value), []);
-    const handleMaxImageHeight = useCallback((e) => setMaxImageHeight(e.target.value), []);
-    const handleSubtitleColorChange = useCallback((e) => setSubtitleColor(e.target.value), []);
-    const handleSubtitleSizeChange = useCallback((e) => setSubtitleSize(e.target.value), []);
-    const handleSubtitleOutlineColorChange = useCallback((e) => setSubtitleOutlineColor(e.target.value), []);
-    const handleSubtitleOutlineThicknessChange = useCallback((e) => setSubtitleOutlineThickness(e.target.value), []);
-    const handleSubtitleBackgroundColorChange = useCallback((e) => setSubtitleBackgroundColor(e.target.value), []);
-    const handleSubtitleBackgroundOpacityChange = useCallback((e) => setSubtitleBackgroundOpacity(e.target.value), []);
-    const handleSubtitleFontFamilyChange = useCallback((e) => setSubtitleFontFamily(e.target.value), []);
-    const handleSubtitlePreviewChange = useCallback((e) => setSubtitlePreview(e.target.value), []);
+    const handleRetryAnkiConnectUrl = useCallback(
+        (e: React.MouseEvent<HTMLButtonElement>) => setAnkiConnectUrlChangeTimestamp(Date.now()),
+        []
+    );
+    const handleDeckChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setDeck(e.target.value),
+        []
+    );
+    const handleDeckSelectionChange = useCallback(
+        (e: ChangeEvent<{ name?: string | undefined; value: unknown }>) => setDeck(e.target.value as string),
+        []
+    );
+    const handleNoteTypeChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setNoteType(e.target.value),
+        []
+    );
+    const handleNoteTypeSelectionChange = useCallback(
+        (e: ChangeEvent<{ name?: string | undefined; value: unknown }>) => setNoteType(e.target.value as string),
+        []
+    );
+    const handleSentenceFieldChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setSentenceField(e.target.value),
+        []
+    );
+    const handleSentenceFieldSelectionChange = useCallback(
+        (e: ChangeEvent<{ name?: string | undefined; value: unknown }>) => setSentenceField(e.target.value as string),
+        []
+    );
+    const handleDefinitionFieldChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setDefinitionField(e.target.value),
+        []
+    );
+    const handleDefinitionFieldSelectionChange = useCallback(
+        (e: ChangeEvent<{ name?: string | undefined; value: unknown }>) => setDefinitionField(e.target.value as string),
+        []
+    );
+    const handleAudioFieldChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setAudioField(e.target.value),
+        []
+    );
+    const handleAudioFieldSelectionChange = useCallback(
+        (e: ChangeEvent<{ name?: string | undefined; value: unknown }>) => setAudioField(e.target.value as string),
+        []
+    );
+    const handleImageFieldChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setImageField(e.target.value),
+        []
+    );
+    const handleImageFieldSelectionChange = useCallback(
+        (e: ChangeEvent<{ name?: string | undefined; value: unknown }>) => setImageField(e.target.value as string),
+        []
+    );
+    const handleWordFieldChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setWordField(e.target.value),
+        []
+    );
+    const handleWordFieldSelectionChange = useCallback(
+        (e: ChangeEvent<{ name?: string | undefined; value: unknown }>) => setWordField(e.target.value as string),
+        []
+    );
+    const handleSourceFieldChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setSourceField(e.target.value),
+        []
+    );
+    const handleSourceFieldSelectionChange = useCallback(
+        (e: ChangeEvent<{ name?: string | undefined; value: unknown }>) => setSourceField(e.target.value as string),
+        []
+    );
+    const handleUrlFieldChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setUrlField(e.target.value),
+        []
+    );
+    const handleUrlFieldSelectionChange = useCallback(
+        (e: ChangeEvent<{ name?: string | undefined; value: unknown }>) => setUrlField(e.target.value as string),
+        []
+    );
+    const handleAudioPaddingStart = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setAudioPaddingStart(Number(e.target.value)),
+        []
+    );
+    const handleAudioPaddingEnd = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setAudioPaddingEnd(Number(e.target.value)),
+        []
+    );
+    const handleMaxImageWidth = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setMaxImageWidth(Number(e.target.value)),
+        []
+    );
+    const handleMaxImageHeight = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setMaxImageHeight(Number(e.target.value)),
+        []
+    );
+    const handleSubtitleColorChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setSubtitleColor(e.target.value),
+        []
+    );
+    const handleSubtitleSizeChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setSubtitleSize(Number(e.target.value)),
+        []
+    );
+    const handleSubtitleOutlineColorChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setSubtitleOutlineColor(e.target.value),
+        []
+    );
+    const handleSubtitleOutlineThicknessChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setSubtitleOutlineThickness(Number(e.target.value)),
+        []
+    );
+    const handleSubtitleBackgroundColorChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setSubtitleBackgroundColor(e.target.value),
+        []
+    );
+    const handleSubtitleBackgroundOpacityChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) =>
+            setSubtitleBackgroundOpacity(Number(e.target.value)),
+        []
+    );
+    const handleSubtitleFontFamilyChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setSubtitleFontFamily(e.target.value),
+        []
+    );
+    const handleSubtitlePreviewChange = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setSubtitlePreview(e.target.value),
+        []
+    );
     const handleAddCustomField = useCallback((customFieldName: string) => {
         setCustomFields((oldCustomFields: { [key: string]: string }) => {
             const newCustomFields: { [key: string]: string } = {};
@@ -229,11 +332,17 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
             }),
         []
     );
-    const handleTagsChange = useCallback((newTags) => {
+    const handleTagsChange = useCallback((newTags: string[]) => {
         setTags(newTags);
     }, []);
-    const handlePreferMp3Change = useCallback((e) => setPreferMp3(e.target.checked), []);
-    const handleThemeTypeChange = useCallback((e) => setThemeType(e.target.value), []);
+    const handlePreferMp3Change = useCallback((e: ChangeEvent<HTMLInputElement>) => setPreferMp3(e.target.checked), []);
+    const handleThemeTypeChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+        if (e.target.value !== 'dark' && e.target.value !== 'light') {
+            throw new Error(`Invalid theme type ${e.target.value}`);
+        }
+
+        setThemeType(e.target.value);
+    }, []);
     const subtitlePreviewStyles = useMemo(
         () =>
             computeStyles({
@@ -365,7 +474,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
             surroundingSubtitlesCountRadius: settings.surroundingSubtitlesCountRadius,
             surroundingSubtitlesTimeRadius: settings.surroundingSubtitlesTimeRadius,
             volume: settings.volume,
-            theaterMode: settings.theaterMode
+            theaterMode: settings.theaterMode,
         });
     }, [
         onClose,
@@ -398,7 +507,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
         settings.surroundingSubtitlesCountRadius,
         settings.surroundingSubtitlesTimeRadius,
         settings.volume,
-        settings.theaterMode
+        settings.theaterMode,
     ]);
 
     const customFieldInputs = Object.keys(customFields).map((customFieldName) => {
@@ -466,63 +575,63 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
                                     value={deck}
                                     selections={deckNames}
                                     onChange={handleDeckChange}
-                                    onSelectionChange={handleDeckChange}
+                                    onSelectionChange={handleDeckSelectionChange}
                                 />
                                 <SelectableSetting
                                     label="Note Type"
                                     value={noteType}
                                     selections={modelNames}
                                     onChange={handleNoteTypeChange}
-                                    onSelectionChange={handleNoteTypeChange}
+                                    onSelectionChange={handleNoteTypeSelectionChange}
                                 />
                                 <SelectableSetting
                                     label="Sentence Field"
                                     value={sentenceField}
                                     selections={fieldNames}
                                     onChange={handleSentenceFieldChange}
-                                    onSelectionChange={handleSentenceFieldChange}
+                                    onSelectionChange={handleSentenceFieldSelectionChange}
                                 />
                                 <SelectableSetting
                                     label="Definition Field"
                                     value={definitionField}
                                     selections={fieldNames}
                                     onChange={handleDefinitionFieldChange}
-                                    onSelectionChange={handleDefinitionFieldChange}
+                                    onSelectionChange={handleDefinitionFieldSelectionChange}
                                 />
                                 <SelectableSetting
                                     label="Word Field"
                                     value={wordField}
                                     selections={fieldNames}
                                     onChange={handleWordFieldChange}
-                                    onSelectionChange={handleWordFieldChange}
+                                    onSelectionChange={handleWordFieldSelectionChange}
                                 />
                                 <SelectableSetting
                                     label="Audio Field"
                                     value={audioField}
                                     selections={fieldNames}
                                     onChange={handleAudioFieldChange}
-                                    onSelectionChange={handleAudioFieldChange}
+                                    onSelectionChange={handleAudioFieldSelectionChange}
                                 />
                                 <SelectableSetting
                                     label="Image Field"
                                     value={imageField}
                                     selections={fieldNames}
                                     onChange={handleImageFieldChange}
-                                    onSelectionChange={handleImageFieldChange}
+                                    onSelectionChange={handleImageFieldSelectionChange}
                                 />
                                 <SelectableSetting
                                     label="Source Field"
                                     value={sourceField}
                                     selections={fieldNames}
                                     onChange={handleSourceFieldChange}
-                                    onSelectionChange={handleSourceFieldChange}
+                                    onSelectionChange={handleSourceFieldSelectionChange}
                                 />
                                 <SelectableSetting
                                     label="URL Field"
                                     value={urlField}
                                     selections={fieldNames}
                                     onChange={handleUrlFieldChange}
-                                    onSelectionChange={handleUrlFieldChange}
+                                    onSelectionChange={handleUrlFieldSelectionChange}
                                 />
                                 {customFieldInputs}
                                 <Button

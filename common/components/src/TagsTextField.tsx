@@ -28,7 +28,7 @@ export default function TagsTextField({tags, onTagsChange, ...props}: Props & Te
         }
     }, [value, tags]);
 
-    const handleChange = useCallback((e) => {
+    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         let currentValue = e.target.value;
 
         if (

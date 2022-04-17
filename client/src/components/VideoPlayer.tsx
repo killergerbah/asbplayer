@@ -187,16 +187,16 @@ export default function VideoPlayer(props: Props) {
     returnToFullscreenOnFinishedAnkiDialogRequestRef.current = returnToFullscreenOnFinishedAnkiDialogRequest;
 
     const videoRefCallback = useCallback(
-        (element) => {
+        (element: HTMLVideoElement) => {
             if (element) {
                 const videoElement = element as ExperimentalHTMLVideoElement;
                 videoRef.current = videoElement;
 
                 if (videoElement.readyState === 4) {
-                    notifyReady(element, playerChannel, setAudioTracks, setSelectedAudioTrack);
+                    notifyReady(videoElement, playerChannel, setAudioTracks, setSelectedAudioTrack);
                 } else {
                     videoElement.onloadeddata = (event) => {
-                        notifyReady(element, playerChannel, setAudioTracks, setSelectedAudioTrack);
+                        notifyReady(videoElement, playerChannel, setAudioTracks, setSelectedAudioTrack);
                     };
                 }
 
@@ -324,7 +324,7 @@ export default function VideoPlayer(props: Props) {
     const handlePause = useCallback(() => playerChannel.pause(), [playerChannel]);
 
     const handleSeek = useCallback(
-        (progress) => {
+        (progress: number) => {
             if (playingRef.current) {
                 clock.stop();
             }
@@ -348,7 +348,7 @@ export default function VideoPlayer(props: Props) {
     }
 
     const handleAudioTrackSelected = useCallback(
-        (id) => {
+        (id: string) => {
             if (playingRef.current) {
                 clock.stop();
                 playerChannel.pause();
@@ -394,7 +394,7 @@ export default function VideoPlayer(props: Props) {
     }, [subtitles, disabledSubtitleTracks, clock, length]);
 
     const handleOffsetChange = useCallback(
-        (offset) => {
+        (offset: number) => {
             setOffset(offset);
             setSubtitles((subtitles) =>
                 subtitles.map((s) => ({
@@ -589,7 +589,8 @@ export default function VideoPlayer(props: Props) {
                     playerChannel.copy(currentSubtitle, calculateSurroundingSubtitles(currentSubtitle.index), true);
                 }
 
-                playerChannel.ankiDialogRequest(fullscreen);
+                // Ensure that anki dialog request is handled after the subtitle has appeared in copy history
+                setTimeout(() => playerChannel.ankiDialogRequest(fullscreen), 0);
             },
             () => false
         );
@@ -624,9 +625,9 @@ export default function VideoPlayer(props: Props) {
         }
     }, [fullscreen]);
 
-    const handleVolumeChange = useCallback((v) => {
+    const handleVolumeChange = useCallback((volume: number) => {
         if (videoRef.current) {
-            videoRef.current.volume = v;
+            videoRef.current.volume = volume;
         }
     }, []);
 

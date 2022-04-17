@@ -16,7 +16,7 @@ export default function PopupUi({ bridge, currentSettings, commands }: Props) {
     const theme = useMemo(() => createTheme(currentSettings.lastThemeType || 'dark'), [currentSettings.lastThemeType]);
 
     const handleSettingsChanged = useCallback(
-        (key, value) => {
+        (key: string, value: any) => {
             setSettings((old: any) => {
                 const settings = Object.assign({}, old);
                 settings[key] = value;

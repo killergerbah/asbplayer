@@ -248,7 +248,7 @@ function ProgressBar({ onSeek, value }: ProgressBarProps) {
     const containerRef = useRef(null);
 
     const handleClick = useCallback(
-        (e) => {
+        (e: React.MouseEvent<HTMLDivElement>) => {
             const rect = e.currentTarget.getBoundingClientRect();
             // Account for margins by subtracting 10 from left/right sides
             const width = rect.right - rect.left - 20;
@@ -557,7 +557,7 @@ export default function Controls({
     const forceUpdate = useCallback(() => updateState({}), []);
 
     const handleSeek = useCallback(
-        (progress) => {
+        (progress: number) => {
             onSeek(progress);
         },
         [onSeek]
@@ -648,7 +648,10 @@ export default function Controls({
         };
     }, [onOffsetChange, disableKeyEvents]);
 
-    const handleOffsetInputClicked = useCallback((e) => e.target.setSelectionRange(0, e.target.value?.length || 0), []);
+    const handleOffsetInputClicked = useCallback((e: React.MouseEvent<HTMLInputElement>) => {
+        const inputElement = e.target as HTMLInputElement;
+        inputElement.setSelectionRange(0, inputElement.value?.length || 0);
+    }, []);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -701,7 +704,7 @@ export default function Controls({
     }, []);
 
     const handleTabSelected = useCallback(
-        (tab) => {
+        (tab: VideoTabModel) => {
             onTabSelected?.(tab);
             setTabSelectorAnchorEl(undefined);
             setTabSelectorOpen(false);
@@ -743,7 +746,11 @@ export default function Controls({
     const handleVolumeMouseOver = useCallback(() => setShowVolumeBar(true), []);
 
     const handleVolumeChange = useCallback(
-        (e, value) => {
+        (e: React.ChangeEvent<{}>, value: number | number[]) => {
+            if (typeof value !== 'number') {
+                return;
+            }
+
             setVolume(value);
             onVolumeChange(value / 100);
         },
@@ -751,7 +758,11 @@ export default function Controls({
     );
 
     const handleVolumeChangeCommitted = useCallback(
-        (e, value) => {
+        (e: React.ChangeEvent<{}>, value: number | number[]) => {
+            if (typeof value !== 'number') {
+                return;
+            }
+
             if (value > 0) {
                 setLastCommittedVolume(value);
             }
