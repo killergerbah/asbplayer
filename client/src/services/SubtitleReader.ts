@@ -92,7 +92,7 @@ export default class SubtitleReader {
             for (let index = 0, length = textNodes.length; index < length; index++) {
                 const elm = textNodes[index];
 
-                if (!('#text' in elm)) {
+                if (!('#text' in elm) || !('@_dur' in elm) || !('@_start' in elm)) {
                     continue;
                 }
 
