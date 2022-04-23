@@ -298,6 +298,7 @@ function App() {
     copiedSubtitlesRef.current = copiedSubtitles;
     const [copyHistoryOpen, setCopyHistoryOpen] = useState<boolean>(false);
     const [theaterMode, setTheaterMode] = useState<boolean>(settingsProvider.theaterMode);
+    const [videoPopOut, setVideoPopOut] = useState<boolean>(false);
     const [alert, setAlert] = useState<string>();
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
     const [alertSeverity, setAlertSeverity] = useState<Color>();
@@ -445,6 +446,9 @@ function App() {
         settingsProvider.theaterMode = !settingsProvider.theaterMode;
         setTheaterMode(settingsProvider.theaterMode);
     }, [settingsProvider]);
+    const handleVideoPopOut = useCallback(() => {
+        setVideoPopOut((videoPopOut) => !videoPopOut);
+    }, []);
     const handleOpenSettings = useCallback(() => {
         setDisableKeyEvents(true);
         setSettingsDialogOpen(true);
@@ -929,7 +933,7 @@ function App() {
     const nothingLoaded =
         (loading && !videoFrameRef.current) ||
         (sources.subtitleFiles.length === 0 && !sources.audioFile && !sources.videoFile);
-    const appBarHidden = sources.videoFile !== undefined && theaterMode;
+    const appBarHidden = sources.videoFile !== undefined && theaterMode && !videoPopOut;
 
     return (
         <ThemeProvider theme={theme}>
@@ -1040,6 +1044,7 @@ function App() {
                                         onTabSelected={handleTabSelected}
                                         onAnkiDialogRequest={handleAnkiDialogRequest}
                                         onAppBarToggle={handleAppBarToggle}
+                                        onVideoPopOut={handleVideoPopOut}
                                         tab={tab}
                                         availableTabs={availableTabs}
                                         sources={sources}
@@ -1048,6 +1053,7 @@ function App() {
                                         extension={extension}
                                         drawerOpen={copyHistoryOpen}
                                         appBarHidden={appBarHidden}
+                                        videoPopOut={videoPopOut}
                                         disableKeyEvents={disableKeyEvents}
                                         ankiDialogRequested={ankiDialogRequested}
                                         ankiDialogRequestToVideo={ankiDialogRequestToVideo}

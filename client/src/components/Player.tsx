@@ -90,6 +90,7 @@ interface PlayerProps {
     videoFrameRef: MutableRefObject<HTMLIFrameElement | null>;
     drawerOpen: boolean;
     appBarHidden: boolean;
+    videoPopOut: boolean;
     tab?: VideoTabModel;
     availableTabs: VideoTabModel[];
     ankiDialogRequestToVideo?: number;
@@ -115,6 +116,7 @@ interface PlayerProps {
     onTabSelected: (tab: VideoTabModel) => void;
     onAnkiDialogRequest: (forwardToVideo?: boolean) => void;
     onAppBarToggle: () => void;
+    onVideoPopOut: () => void;
     disableKeyEvents: boolean;
     jumpToSubtitle?: SubtitleModel;
 }
@@ -127,6 +129,7 @@ export default function Player({
     videoFrameRef,
     drawerOpen,
     appBarHidden,
+    videoPopOut,
     tab,
     availableTabs,
     ankiDialogRequestToVideo,
@@ -140,6 +143,7 @@ export default function Player({
     onTabSelected,
     onAnkiDialogRequest,
     onAppBarToggle,
+    onVideoPopOut,
     disableKeyEvents,
     jumpToSubtitle,
 }: PlayerProps) {
@@ -156,7 +160,6 @@ export default function Player({
     const [audioTracks, setAudioTracks] = useState<AudioTrackModel[]>();
     const [selectedAudioTrack, setSelectedAudioTrack] = useState<string>();
     const [channelId, setChannelId] = useState<string>();
-    const [videoPopOut, setVideoPopOut] = useState<boolean>(false);
     const [, setResumeOnFinishedAnkiDialogRequest] = useState<boolean>(false);
     const [hideSubtitlePlayer, setHideSubtitlePlayer] = useState<boolean>(false);
     const hideSubtitlePlayerRef = useRef<boolean>();
@@ -312,7 +315,7 @@ export default function Player({
                 let subscribed = false;
 
                 channel.onExit(() => videoFileUrl && onUnloadVideo(videoFileUrl));
-                channel.onPopOutToggle(() => setVideoPopOut((popOut) => !popOut));
+                channel.onPopOutToggle(() => onVideoPopOut());
                 channel.onHideSubtitlePlayerToggle(() => {
                     setHideSubtitlePlayer((hidden) => {
                         channel?.hideSubtitlePlayerToggle(!hidden);
@@ -442,6 +445,7 @@ export default function Player({
         onCopy,
         onAnkiDialogRequest,
         onAppBarToggle,
+        onVideoPopOut,
         subtitleFiles,
         audioFile,
         audioFileUrl,
