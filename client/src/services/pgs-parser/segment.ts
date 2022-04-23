@@ -1,3 +1,5 @@
+import { BufferAdapter } from "./buffer";
+
 export enum SegmentType {
     pds = 20,
     ods = 21,
@@ -140,5 +142,5 @@ export interface ObjectDefinitionSegment extends Segment {
     readonly objectDataLength: number;
     readonly width?: number;
     readonly height?: number;
-    readonly objectData: Buffer;
+    readonly objectData: BufferAdapter;
 }

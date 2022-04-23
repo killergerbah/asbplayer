@@ -1,4 +1,81 @@
-export class CompositeBuffer {
+export interface BufferAdapter {
+    length: number;
+    at(index: number): number;
+    subarray(start: number, end: number): BufferAdapter;
+}
+
+export class Uint8ArrayBuffer implements BufferAdapter {
+    private readonly buffer: Uint8Array;
+
+    constructor(buffer: Uint8Array) {
+        this.buffer = buffer;
+    }
+
+    get length() {
+        return this.buffer.length;
+    }
+
+    at(index: number): number {
+        return this.buffer[index];
+    }
+
+    subarray(start: number, end: number) {
+        return new Uint8ArrayBuffer(this.buffer.subarray(start, end));
+    }
+}
+
+export class CompositeBuffer implements BufferAdapter {
+    private readonly buffers: BufferAdapter[] = [];
+
+    constructor(buffers: BufferAdapter[]) {
+        this.buffers = buffers;
+    }
+
+    get length(): number {
+        let length = 0;
+        for (const b of this.buffers) {
+            length += b.length;
+        }
+
+        return length;
+    }
+
+    at(index: number): number {
+        let previousBuffersLength = 0;
+
+        for (const buffer of this.buffers) {
+            const bufferIndex = index - previousBuffersLength;
+
+            if (bufferIndex < buffer.length) {
+                return buffer.at(bufferIndex);
+            }
+
+            previousBuffersLength += buffer.length;
+        }
+
+        throw new Error('Out of bounds');
+    }
+
+    subarray(start: number, end: number): BufferAdapter {
+        const chunks: BufferAdapter[] = [];
+        let previousBuffersLength = 0;
+
+        for (const buffer of this.buffers) {
+            const startBufferIndex = Math.max(0, start - previousBuffersLength);
+            const endBufferIndex = Math.min(buffer.length, end - previousBuffersLength);
+
+            if (endBufferIndex > 0 && startBufferIndex < endBufferIndex) {
+                chunks.push(buffer.subarray(startBufferIndex, endBufferIndex));
+            }
+
+            previousBuffersLength += buffer.length;
+        }
+
+        return new CompositeBuffer(chunks);
+    }
+}
+
+export class CompositeBufferReader {
     private buffers: Uint8Array[] = [];
 
     add(buffer: Uint8Array) {
@@ -15,9 +92,9 @@ export class CompositeBuffer {
         return length;
     }
 
-    read(bytes: number): Buffer {
+    read(bytes: number): BufferAdapter {
         if (bytes === 0) {
-            return Buffer.from([]);
+            return new CompositeBuffer([]);
         }
 
         const chunks: Uint8Array[] = [];
@@ -44,13 +121,13 @@ export class CompositeBuffer {
             chunks.push(buffer);
         }
 
-        return Buffer.concat(chunks.map((c) => Buffer.from(c)));
+        return new CompositeBuffer(chunks.map(c => new Uint8ArrayBuffer(c)));
     }
 }
 
 export class BufferGenerator {
     private stream: ReadableStream;
-    private accumulatedBuffer: CompositeBuffer = new CompositeBuffer();
+    private accumulatedBuffer: CompositeBufferReader = new CompositeBufferReader();
 
     requestedBytes: number = 0;
 
@@ -78,11 +155,11 @@ export class BufferGenerator {
 }
 
 export class BufferReader {
-    private bytes: Uint8Array;
+    private buffer: BufferAdapter;
     private _index: number = 0;
 
-    constructor(bytes: Uint8Array) {
-        this.bytes = bytes;
+    constructor(bytes: BufferAdapter) {
+        this.buffer = bytes;
     }
 
     get index() {
@@ -90,7 +167,7 @@ export class BufferReader {
     }
 
     get hasNext() {
-        return this._index < this.bytes.length;
+        return this._index < this.buffer.length;
     }
 
     readHex(bytes: number, limit?: number) {
@@ -104,7 +181,7 @@ export class BufferReader {
         const to = this._index + bytes - 1;
 
         for (let i = to; i >= from; --i) {
-            number += this.bytes[i] << (8 * digit);
+            number += this.buffer.at(i) << (8 * digit);
             ++digit;
         }
 
@@ -113,7 +190,7 @@ export class BufferReader {
     }
 
     readBuffer(bytes: number) {
-        const buffer = Buffer.from(this.bytes.subarray(this.index, this.index + bytes));
+        const buffer = this.buffer.subarray(this.index, this.index + bytes);
         this._index += bytes;
         return buffer;
     }

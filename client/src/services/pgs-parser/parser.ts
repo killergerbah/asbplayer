@@ -1,4 +1,4 @@
-import { BufferGenerator, BufferReader } from './buffer';
+import { BufferAdapter, BufferGenerator, BufferReader, CompositeBuffer } from './buffer';
 import {
     CompositionState,
     compositionStateFromByte,
@@ -20,20 +20,20 @@ import {
 const pgMagicNumber = 20551; // 0x5047
 
 export class RunLengthEncodedBuffer {
-    private readonly fragments: Buffer[];
+    private readonly encodedBuffer: BufferAdapter;
 
-    constructor(fragments: Buffer[]) {
-        this.fragments = fragments;
+    constructor(encodedBuffer: BufferAdapter) {
+        this.encodedBuffer = encodedBuffer;
     }
 
     decode(callback: (x: number, y: number, color: number) => void) {
         let encodedIndex = 0;
         let decodedLineIndex = 0;
         let currentLine = 0;
-        const encodedLength = this.encodedLength();
+        const encodedLength = this.encodedBuffer.length;
 
         while (encodedIndex < encodedLength) {
-            const firstByte = this.encodedByte(encodedIndex);
+            const firstByte = this.encodedBuffer.at(encodedIndex);
             let runLength;
             let color;
             let increment;
@@ -45,7 +45,7 @@ export class RunLengthEncodedBuffer {
                 runLength = 1;
                 increment = 1;
             } else {
-                const secondByte = this.encodedByte(encodedIndex + 1);
+                const secondByte = this.encodedBuffer.at(encodedIndex + 1);
 
                 if (secondByte === 0) {
                     // 00000000 00000000 - End of line
@@ -61,20 +61,20 @@ export class RunLengthEncodedBuffer {
                     increment = 2;
                 } else if (secondByte < 128) {
                     // 00000000 01LLLLLL LLLLLLLL - L pixels in color 0 (L between 64 and 16383)
-                    const thirdByte = this.encodedByte(encodedIndex + 2);
+                    const thirdByte = this.encodedBuffer.at(encodedIndex + 2);
                     color = 0;
                     runLength = ((secondByte - 64) << 8) + thirdByte;
                     increment = 3;
                 } else if (secondByte < 192) {
                     // 00000000 10LLLLLL CCCCCCCC - L pixels in color C (L between 3 and 63)
-                    const thirdByte = this.encodedByte(encodedIndex + 2);
+                    const thirdByte = this.encodedBuffer.at(encodedIndex + 2);
                     color = thirdByte;
                     runLength = secondByte - 128;
                     increment = 3;
                 } else {
                     // 00000000 11LLLLLL LLLLLLLL CCCCCCCC - L pixels in color C (L between 64 and 16383)
-                    const thirdByte = this.encodedByte(encodedIndex + 2);
-                    const fourthByte = this.encodedByte(encodedIndex + 3);
+                    const thirdByte = this.encodedBuffer.at(encodedIndex + 2);
+                    const fourthByte = this.encodedBuffer.at(encodedIndex + 3);
                     color = fourthByte;
                     runLength = ((secondByte - 192) << 8) + thirdByte;
                     increment = 4;
@@ -91,32 +91,6 @@ export class RunLengthEncodedBuffer {
 
             encodedIndex += increment;
         }
-    }
-
-    private encodedLength() {
-        let length = 0;
-
-        for (const fragment of this.fragments) {
-            length += fragment.length;
-        }
-
-        return length;
-    }
-
-    private encodedByte(index: number) {
-        let previousFragmentsLength = 0;
-
-        for (const fragment of this.fragments) {
-            const fragmentIndex = index - previousFragmentsLength;
-
-            if (fragmentIndex < fragment.length) {
-                return fragment[fragmentIndex];
-            }
-
-            previousFragmentsLength += fragment.length;
-        }
-
-        throw new Error(`Index out of range: ${index}`);
     }
 }
 
@@ -188,25 +162,25 @@ export class DisplaySet {
         const rgbaPalette = pds.paletteEntries.map((palette) => this.ycrcbToRgba(palette));
         const width = firstOds.width;
 
-        new RunLengthEncodedBuffer(this.objectDefinitionSegments.map((ods) => ods.objectData)).decode(
-            (x, y, paletteIndex) => {
-                const pixelIndex = y * width + x;
-                const imageDataOffset = pixelIndex * 4;
+        new RunLengthEncodedBuffer(
+            new CompositeBuffer(this.objectDefinitionSegments.map((ods) => ods.objectData))
+        ).decode((x, y, paletteIndex) => {
+            const pixelIndex = y * width + x;
+            const imageDataOffset = pixelIndex * 4;
 
-                if (paletteIndex >= rgbaPalette.length) {
-                    imageDataArray[imageDataOffset] = 0;
-                    imageDataArray[imageDataOffset + 1] = 0;
-                    imageDataArray[imageDataOffset + 2] = 0;
-                    imageDataArray[imageDataOffset + 3] = 0;
-                } else {
-                    const color = rgbaPalette[paletteIndex];
-                    imageDataArray[imageDataOffset] = color.r;
-                    imageDataArray[imageDataOffset + 1] = color.g;
-                    imageDataArray[imageDataOffset + 2] = color.b;
-                    imageDataArray[imageDataOffset + 3] = color.a;
-                }
+            if (paletteIndex >= rgbaPalette.length) {
+                imageDataArray[imageDataOffset] = 0;
+                imageDataArray[imageDataOffset + 1] = 0;
+                imageDataArray[imageDataOffset + 2] = 0;
+                imageDataArray[imageDataOffset + 3] = 0;
+            } else {
+                const color = rgbaPalette[paletteIndex];
+                imageDataArray[imageDataOffset] = color.r;
+                imageDataArray[imageDataOffset + 1] = color.g;
+                imageDataArray[imageDataOffset + 2] = color.b;
+                imageDataArray[imageDataOffset + 3] = color.a;
             }
-        );
+        });
 
         return new ImageData(
             imageDataArray.subarray(0, 4 * firstOds.width * firstOds.height),
@@ -421,7 +395,7 @@ function parseOdsSegment(reader: BufferReader, header: SegmentHeader): ObjectDef
     const objectDataLength = reader.readHex(3);
     let width: number | undefined;
     let height: number | undefined;
-    let objectData: Buffer;
+    let objectData: BufferAdapter;
 
     if (
         lastInSequenceFlag === LastInSequenceFlag.firstInSequence ||
