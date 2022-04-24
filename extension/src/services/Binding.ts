@@ -33,7 +33,6 @@ export default class Binding {
     recordMedia: boolean;
     screenshot: boolean;
     cleanScreenshot: boolean;
-    bindKeys: boolean;
     audioPaddingStart: number;
     audioPaddingEnd: number;
     maxImageWidth: number;
@@ -82,7 +81,6 @@ export default class Binding {
         this.recordMedia = true;
         this.screenshot = true;
         this.cleanScreenshot = true;
-        this.bindKeys = true;
         this.audioPaddingStart = 0;
         this.audioPaddingEnd = 500;
         this.maxImageWidth = 0;
@@ -366,7 +364,7 @@ export default class Binding {
     }
 
     async _refreshSettings() {
-        const currentSettings = await this.settings.get();
+        const currentSettings = await this.settings.getAll();
         this.recordMedia = currentSettings.recordMedia;
         this.screenshot = currentSettings.screenshot;
         this.cleanScreenshot = currentSettings.screenshot && currentSettings.cleanScreenshot;
@@ -374,14 +372,9 @@ export default class Binding {
         this.subtitleContainer.displaySubtitles = currentSettings.displaySubtitles;
         this.subtitleContainer.subtitlePositionOffsetBottom = currentSettings.subtitlePositionOffsetBottom;
         this.subtitleContainer.refresh();
-        this.bindKeys = currentSettings.bindKeys;
         this.videoDataSyncContainer.updateSettings(currentSettings);
-
-        if (currentSettings.bindKeys) {
-            this.keyBindings.bind(this);
-        } else {
-            this.keyBindings.unbind();
-        }
+        this.keyBindings.settings = currentSettings;
+        this.keyBindings.bind(this);
 
         if (currentSettings.subsDragAndDrop) {
             this.dragContainer.bind();

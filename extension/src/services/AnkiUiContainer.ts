@@ -137,9 +137,7 @@ export default class AnkiUiContainer {
         doc.close();
         await this.client.bind();
         this.client.onFinished((message) => {
-            if (context.bindKeys) {
-                context.keyBindings.bind(context);
-            }
+            context.keyBindings.bind(context);
             context.subtitleContainer.displaySubtitles = context.displaySubtitles;
             this.frame?.classList.add('asbplayer-hide');
             if (this.fullscreenElement) {

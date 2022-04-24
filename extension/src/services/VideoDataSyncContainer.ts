@@ -1,4 +1,4 @@
-import { VideoData, VideoDataSubtitleTrack, VideoDataUiState } from '@project/common';
+import { ExtensionSettings, VideoData, VideoDataSubtitleTrack, VideoDataUiState } from '@project/common';
 import { bufferToBase64 } from '../services/Base64';
 import FrameBridgeClient from '../services/FrameBridgeClient';
 import Binding from './Binding';
@@ -26,7 +26,7 @@ export default class VideoDataSyncContainer {
     private imageElement: ImageElement;
     private doneListener?: () => void;
     private autoSync?: boolean;
-    private lastLanguageSynced?: string;
+    private lastLanguageSynced: string;
     private boundFunction?: (event: Event) => void;
     private requested: boolean;
     private client?: FrameBridgeClient;
@@ -94,7 +94,7 @@ export default class VideoDataSyncContainer {
         this.doneListener = undefined;
     }
 
-    updateSettings({ autoSync = false, lastLanguageSynced = '' }) {
+    updateSettings({ autoSync, lastLanguageSynced }: ExtensionSettings) {
         this.autoSync = autoSync;
         this.lastLanguageSynced = lastLanguageSynced;
     }
@@ -229,10 +229,7 @@ export default class VideoDataSyncContainer {
             }
 
             if (shallUpdate) {
-                if (this.context.bindKeys) {
-                    this.context.keyBindings.bind(this.context);
-                }
-
+                this.context.keyBindings.bind(this.context);
                 this.context.subtitleContainer.displaySubtitles = this.context.displaySubtitles;
                 this.frame?.classList?.add('asbplayer-hide');
 

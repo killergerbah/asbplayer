@@ -15,7 +15,8 @@ import {
     Typography,
     Link,
 } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, withStyles } from '@material-ui/core/styles';
+import { ExtensionSettings } from '@project/common';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -27,6 +28,12 @@ const useStyles = makeStyles((theme) => ({
         margin: `${theme.spacing(1)}px 0px ${theme.spacing(1)}px 0px`,
     },
 }));
+
+const SmallTableCell = withStyles({
+    sizeSmall: {
+        padding: 0,
+    },
+})(TableCell);
 
 interface ExtensionKeyboardShortcutProps {
     commands: any;
@@ -47,7 +54,7 @@ function ExtensionKeyboardShortcut({ commands, commandName, onClick }: Extension
 interface PopupFormProps {
     commands: any;
     settings: any;
-    onSettingsChanged: (key: string, value: any) => void;
+    onSettingsChanged: <K extends keyof ExtensionSettings>(key: K, value: ExtensionSettings[K]) => void;
     onOpenExtensionShortcuts: () => void;
 }
 
@@ -81,7 +88,7 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                 min: 0,
                                 step: 1,
                             }}
-                            onChange={(e) => onSettingsChanged('subtitlePositionOffsetBottom', e.target.value)}
+                            onChange={(e) => onSettingsChanged('subtitlePositionOffsetBottom', Number(e.target.value))}
                         />
                     </FormGroup>
                 </Grid>
@@ -216,21 +223,16 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                 </Grid>
                 <Grid item>
                     <FormLabel component="legend">Synced Video Keyboard Shortcuts</FormLabel>
-                    <FormGroup>
-                        <FormControlLabel
-                            control={
-                                <Checkbox
-                                    checked={settings.bindKeys}
-                                    onChange={(e) => onSettingsChanged('bindKeys', e.target.checked)}
-                                />
-                            }
-                            label="Bind keyboard shortcuts"
-                        />
-                    </FormGroup>
                     <TableContainer>
                         <Table size="small">
                             <TableBody>
                                 <TableRow>
+                                    <SmallTableCell>
+                                        <Checkbox
+                                            checked={settings.bindPlay}
+                                            onChange={(e) => onSettingsChanged('bindPlay', e.target.checked)}
+                                        />
+                                    </SmallTableCell>
                                     <TableCell>
                                         <Typography variant="subtitle2">Space</Typography>
                                     </TableCell>
@@ -239,6 +241,12 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
+                                    <SmallTableCell>
+                                        <Checkbox
+                                            checked={settings.bindToggleSubtitles}
+                                            onChange={(e) => onSettingsChanged('bindToggleSubtitles', e.target.checked)}
+                                        />
+                                    </SmallTableCell>
                                     <TableCell>
                                         <Typography>S</Typography>
                                     </TableCell>
@@ -247,6 +255,14 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
+                                    <SmallTableCell>
+                                        <Checkbox
+                                            checked={settings.bindToggleSubtitleTrackInVideo}
+                                            onChange={(e) =>
+                                                onSettingsChanged('bindToggleSubtitleTrackInVideo', e.target.checked)
+                                            }
+                                        />
+                                    </SmallTableCell>
                                     <TableCell>
                                         <Typography variant="subtitle2">S+1, S+2...</Typography>
                                     </TableCell>
@@ -257,6 +273,17 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
+                                    <SmallTableCell>
+                                        <Checkbox
+                                            checked={settings.bindToggleSubtitleTrackInAsbplayer}
+                                            onChange={(e) =>
+                                                onSettingsChanged(
+                                                    'bindToggleSubtitleTrackInAsbplayer',
+                                                    e.target.checked
+                                                )
+                                            }
+                                        />
+                                    </SmallTableCell>
                                     <TableCell>
                                         <Typography variant="subtitle2">D+1, D+2...</Typography>
                                     </TableCell>
@@ -267,6 +294,12 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
+                                    <SmallTableCell>
+                                        <Checkbox
+                                            checked={settings.bindSeekToSubtitle}
+                                            onChange={(e) => onSettingsChanged('bindSeekToSubtitle', e.target.checked)}
+                                        />
+                                    </SmallTableCell>
                                     <TableCell>
                                         <Typography variant="subtitle2">Left/Right</Typography>
                                     </TableCell>
@@ -275,6 +308,14 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
+                                    <SmallTableCell>
+                                        <Checkbox
+                                            checked={settings.bindAdjustOffsetToSubtitle}
+                                            onChange={(e) =>
+                                                onSettingsChanged('bindAdjustOffsetToSubtitle', e.target.checked)
+                                            }
+                                        />
+                                    </SmallTableCell>
                                     <TableCell>
                                         <Typography variant="subtitle2">Ctrl+Left/Right or Shift+Left/Right</Typography>
                                     </TableCell>
@@ -285,6 +326,12 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
+                                    <SmallTableCell>
+                                        <Checkbox
+                                            checked={settings.bindAdjustOffset}
+                                            onChange={(e) => onSettingsChanged('bindAdjustOffset', e.target.checked)}
+                                        />
+                                    </SmallTableCell>
                                     <TableCell>
                                         <Typography variant="subtitle2">Ctrl+Shift+Left/Right</Typography>
                                     </TableCell>

@@ -1,5 +1,6 @@
-import { renderPopupUi } from './ui/popup';
+import { renderPopupUi, SettingsChangedMessage } from './ui/popup';
 import Settings from './services/Settings';
+import { ExtensionSettings } from '@project/common';
 
 const fetchShortcuts = () => {
     return new Promise((resolve, reject) => {
@@ -19,7 +20,7 @@ const fetchShortcuts = () => {
 
 document.addEventListener('DOMContentLoaded', async (e) => {
     const settings = new Settings();
-    const currentSettingsPromise = settings.get();
+    const currentSettingsPromise = settings.getAll();
     const commandsPromise = fetchShortcuts();
     const currentSettings = await currentSettingsPromise;
     const commands = await commandsPromise;
@@ -28,8 +29,10 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     bridge.onFinished((message: any) => {
         switch (message.command) {
             case 'settings-changed':
+                const key = message.key as keyof ExtensionSettings;
+                const settingsChangedMessage = message as SettingsChangedMessage<typeof key>;
                 const newSetting: any = {};
-                newSetting[message.key] = message.value;
+                newSetting[settingsChangedMessage.key] = settingsChangedMessage.value;
                 settings.set(newSetting);
                 chrome.runtime.sendMessage({
                     sender: 'asbplayer-popup',
