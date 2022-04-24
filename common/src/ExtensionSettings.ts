@@ -6,6 +6,8 @@ export interface ExtensionKeyBindingsSettings {
     bindSeekToSubtitle: boolean;
     bindAdjustOffsetToSubtitle: boolean;
     bindAdjustOffset: boolean;
+    bindSeekBackwardOrForward: boolean;
+    bindSeekToBeginningOfCurrentSubtitle: boolean;
 }
 
 export interface ExtensionSettings extends ExtensionKeyBindingsSettings {

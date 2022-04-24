@@ -16,9 +16,9 @@ export default class KeySequences {
     }
 
     static toggleSubtitleTrackInList() {
-        // Holding D, up 1...9
+        // Holding W, up 1...9
         return new KeySequence({
-            holding: [68],
+            holding: [87],
             up: [49, 50, 51, 52, 53, 54, 55, 56, 57],
             map: (event) => event.keyCode - 49,
         });

@@ -12,6 +12,8 @@ export default class KeyBindings {
 
     private unbindPlay: (() => void) | false = false;
     private unbindSeekToSubtitle: (() => void) | false = false;
+    private unbindSeekToBeginningOfCurrentSubtitle?: (() => void) | false = false;
+    private unbindSeekBackwardOrForward?: (() => void) | false = false;
     private unbindToggleSubtitles: (() => void) | false = false;
     private unbindToggleSubtitleTrackInVideo?: (() => void) | false = false;
     private unbindToggleSubtitleTrackInList?: (() => void) | false = false;
@@ -56,7 +58,6 @@ export default class KeyBindings {
                 (event, subtitle) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
-                    const progress = subtitle.start / length;
                     context.seek(subtitle.start / 1000);
                 },
                 () => false,
@@ -64,6 +65,39 @@ export default class KeyBindings {
                 () => context.subtitleContainer.subtitles,
                 true
             );
+
+        this.unbindSeekBackwardOrForward =
+            this.settings.bindSeekBackwardOrForward &&
+            CommonKeyBindings.bindSeekBackwardOrForward(
+                (event, forward) => {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+
+                    if (forward) {
+                        context.seek(Math.min(context.video.duration, context.video.currentTime + 5));
+                    } else {
+                        context.seek(Math.max(0, context.video.currentTime - 5));
+                    }
+                },
+                () => false,
+                true
+            );
+
+        this.unbindSeekToBeginningOfCurrentSubtitle =
+            this.settings.bindSeekToBeginningOfCurrentSubtitle &&
+            CommonKeyBindings.bindSeekToBeginningOfCurrentSubtitle(
+                (event, subtitle) => {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    context.seek(subtitle.start / 1000);
+                },
+                () => false,
+                () => context.video.currentTime * 1000,
+                () => context.subtitleContainer.subtitles,
+                true
+            );
+
+        this.bound = true;
 
         // We don't stop immediate propagation for "toggle subtitles" because we have knowledge that
         // the toggle-subtitle binding is a subset of the toggle-subtitle-track binding.
@@ -151,8 +185,6 @@ export default class KeyBindings {
                 () => context.subtitleContainer.subtitles,
                 true
             );
-
-        this.bound = true;
     }
 
     unbind() {
@@ -164,6 +196,16 @@ export default class KeyBindings {
         if (this.unbindSeekToSubtitle) {
             this.unbindSeekToSubtitle();
             this.unbindSeekToSubtitle = false;
+        }
+
+        if (this.unbindSeekToBeginningOfCurrentSubtitle) {
+            this.unbindSeekToBeginningOfCurrentSubtitle();
+            this.unbindSeekToBeginningOfCurrentSubtitle = false;
+        }
+
+        if (this.unbindSeekBackwardOrForward) {
+            this.unbindSeekBackwardOrForward();
+            this.unbindSeekBackwardOrForward = false;
         }
 
         if (this.unbindToggleSubtitles) {

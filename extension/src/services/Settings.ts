@@ -11,6 +11,8 @@ const defaults: ExtensionSettings = {
     bindToggleSubtitleTrackInVideo: true,
     bindToggleSubtitleTrackInAsbplayer: true,
     bindSeekToSubtitle: true,
+    bindSeekToBeginningOfCurrentSubtitle: true,
+    bindSeekBackwardOrForward: true,
     bindAdjustOffsetToSubtitle: true,
     bindAdjustOffset: true,
     subsDragAndDrop: true,

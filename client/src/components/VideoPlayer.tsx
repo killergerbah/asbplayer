@@ -423,6 +423,38 @@ export default function VideoPlayer(props: Props) {
         return () => unbind();
     }, [playerChannel, subtitles, length, clock]);
 
+    useEffect(() => {
+        const unbind = KeyBindings.bindSeekToBeginningOfCurrentSubtitle(
+            (event, subtitle) => {
+                event.stopPropagation();
+                event.preventDefault();
+                playerChannel.currentTime = subtitle.start / 1000;
+            },
+            () => !videoRef.current,
+            () => clock.time(length),
+            () => subtitles
+        );
+
+        return () => unbind();
+    }, [playerChannel, subtitles, length, clock]);
+
+    useEffect(() => {
+        const unbind = KeyBindings.bindSeekBackwardOrForward(
+            (event, forward) => {
+                event.stopPropagation();
+                event.preventDefault();
+                if (forward) {
+                    playerChannel.currentTime = Math.min(length / 1000, playerChannel.currentTime + 5);
+                } else {
+                    playerChannel.currentTime = Math.max(0, playerChannel.currentTime - 5);
+                }
+            },
+            () => !videoRef.current
+        );
+
+        return () => unbind();
+    }, [playerChannel, length]);
+
     const calculateSurroundingSubtitles = useCallback(
         (index: number) => {
             return surroundingSubtitles(
@@ -672,7 +704,7 @@ export default function VideoPlayer(props: Props) {
         subtitleBackgroundColor,
         subtitleBackgroundOpacity,
         subtitleFontFamily,
-        imageBasedSubtitleScaleFactor
+        imageBasedSubtitleScaleFactor,
     } = settingsProvider.subtitleSettings;
     const subtitleStyles = useMemo(
         () =>

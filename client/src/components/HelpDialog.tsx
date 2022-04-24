@@ -211,10 +211,18 @@ export default function HelpDialog({ open, extensionUrl, onClose }: Props) {
                             </TableRow>
                             <TableRow>
                                 <TableCell>
-                                    <Typography>D+1, D+2...</Typography>
+                                    <Typography>W+1, W+2...</Typography>
                                 </TableCell>
                                 <TableCell>
                                     <Typography>Toggle subtitle track 1, 2... in asbplayer</Typography>
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell>
+                                    <Typography>A/D</Typography>
+                                </TableCell>
+                                <TableCell>
+                                    <Typography>Seek backward/forward by 5 seconds</Typography>
                                 </TableCell>
                             </TableRow>
                             <TableRow>
@@ -223,6 +231,14 @@ export default function HelpDialog({ open, extensionUrl, onClose }: Props) {
                                 </TableCell>
                                 <TableCell>
                                     <Typography>Seek to previous/next subtitle</Typography>
+                                </TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell>
+                                    <Typography>Down</Typography>
+                                </TableCell>
+                                <TableCell>
+                                    <Typography>Seek to beginning of current subtitle</Typography>
                                 </TableCell>
                             </TableRow>
                             <TableRow>

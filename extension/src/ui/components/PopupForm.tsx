@@ -285,12 +285,26 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                         />
                                     </SmallTableCell>
                                     <TableCell>
-                                        <Typography variant="subtitle2">D+1, D+2...</Typography>
+                                        <Typography variant="subtitle2">W+1, W+2...</Typography>
                                     </TableCell>
                                     <TableCell>
                                         <Typography variant="subtitle2">
                                             Toggle subtitle track 1, 2... in asbplayer
                                         </Typography>
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <SmallTableCell>
+                                        <Checkbox
+                                            checked={settings.bindSeekBackwardOrForward}
+                                            onChange={(e) => onSettingsChanged('bindSeekBackwardOrForward', e.target.checked)}
+                                        />
+                                    </SmallTableCell>
+                                    <TableCell>
+                                        <Typography variant="subtitle2">A/D</Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="subtitle2">Seek backward/forward by 5 seconds</Typography>
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
@@ -305,6 +319,20 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     </TableCell>
                                     <TableCell>
                                         <Typography variant="subtitle2">Seek to previous/next subtitle</Typography>
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <SmallTableCell>
+                                        <Checkbox
+                                            checked={settings.bindSeekToBeginningOfCurrentSubtitle}
+                                            onChange={(e) => onSettingsChanged('bindSeekToBeginningOfCurrentSubtitle', e.target.checked)}
+                                        />
+                                    </SmallTableCell>
+                                    <TableCell>
+                                        <Typography variant="subtitle2">Down</Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="subtitle2">Seek to beginning of current subtitle</Typography>
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>

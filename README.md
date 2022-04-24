@@ -50,20 +50,22 @@ The below information can also be found in asbplayer by clicking on the question
 - Use the speed gauge button in the bottom right.
 
 ### Keyboard shortcuts
-|Keys        | Action              |
-|------------|---------------------|
-|Ctrl+Shift+A|Copy current subtitle|
-|Ctrl+Shift+Q|Copy current subtitle and open Anki export dialog|
-|Ctrl+Shift+Z (default, streaming video)|Copy current subtitle<br>When video is synced without a subtitle file, starts/stops recording audio|
-|Ctrl+Shift+X (default, streaming video)|Copy current subtitle and open Anki export dialog<br>When video is synced without a subtitle file, starts/stops recording audio|
-|Ctrl+Shift+F (default, streaming video)|Select video element to mine without a subtitle file, or with detected subtitles on supported sites|      
-|Space|Play/pause|
-|S|Toggle subtitles|
-|S+1, S+2...|Toggle subtitle track 1, 2... in video|
-|D+1, D+2...|Toggle subtitle track 1, 2... in asbplayer|
-|Left/Right|Seek to previous/next subtitle|
-|Ctrl+Left/Right or Shift+Left/Right|Adjust offset to previous/next subtitle
-|Ctrl+Shift+Left/Right|Adjust offset by +/- 100ms|
+| Keys                                    | Action                                                                                                                          |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Ctrl+Shift+A                            | Copy current subtitle                                                                                                           |
+| Ctrl+Shift+Q                            | Copy current subtitle and open Anki export dialog                                                                               |
+| Ctrl+Shift+Z (default, streaming video) | Copy current subtitle<br>When video is synced without a subtitle file, starts/stops recording audio                             |
+| Ctrl+Shift+X (default, streaming video) | Copy current subtitle and open Anki export dialog<br>When video is synced without a subtitle file, starts/stops recording audio |
+| Ctrl+Shift+F (default, streaming video) | Select video element to mine without a subtitle file, or with detected subtitles on supported sites                             |
+| Space                                   | Play/pause                                                                                                                      |
+| S                                       | Toggle subtitles                                                                                                                |
+| S+1, S+2...                             | Toggle subtitle track 1, 2... in video                                                                                          |
+| W+1, W+2...                             | Toggle subtitle track 1, 2... in asbplayer                                                                                      |
+| A/D                                     | Seek backward/forward by 5 seconds                                                                                              |
+| Left/Right                              | Seek to previous/next subtitle                                                                                                  |
+| Down                                    | Seek to beginning of current subtitle                                                                                           |
+| Ctrl+Left/Right or Shift+Left/Right     | Adjust offset to previous/next subtitle                                                                                         |
+| Ctrl+Shift+Left/Right                   | Adjust offset by +/- 100ms                                                                                                      |
 
 ### Common issues
 - asbplayer isn't detecting streaming video.

@@ -408,6 +408,38 @@ export default function SubtitlePlayer({
     }, [onSeek, subtitles, disableKeyEvents, clock, length]);
 
     useEffect(() => {
+        const unbind = KeyBindings.bindSeekToBeginningOfCurrentSubtitle(
+            (event, subtitle) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onSeek(subtitle.start, false);
+            },
+            () => disableKeyEvents,
+            () => clock.time(length),
+            () => subtitles
+        );
+
+        return () => unbind();
+    }, [onSeek, subtitles, disableKeyEvents, clock, length]);
+
+    useEffect(() => {
+        const unbind = KeyBindings.bindSeekBackwardOrForward(
+            (event, forward) => {
+                event.stopPropagation();
+                event.preventDefault();
+                if (forward) {
+                    onSeek(Math.min(length, clock.time(length) + 5000), false);
+                } else {
+                    onSeek(Math.max(0, clock.time(length) - 5000), false);
+                }
+            },
+            () => disableKeyEvents
+        );
+
+        return () => unbind();
+    }, [clock, length, disableKeyEvents, onSeek]);
+
+    useEffect(() => {
         function handleScroll() {
             lastScrollTimestampRef.current = Date.now();
         }

@@ -83,6 +83,85 @@ export default class KeyBindings {
         }, useCapture);
     }
 
+    static bindSeekToBeginningOfCurrentSubtitle(
+        onSeekToBeginningOfCurrentSubtitle: (event: KeyboardEvent, subtitle: SubtitleModel) => void,
+        disabledGetter: () => boolean,
+        timeGetter: () => number,
+        subtitlesGetter: () => SubtitleModel[] | undefined,
+        useCapture = false
+    ) {
+        return KeyBindings._bindDown((event) => {
+            if (disabledGetter()) {
+                return;
+            }
+
+            if (!KeyEvents.detectCurrentSubtitle(event)) {
+                return;
+            }
+
+            const subtitles = subtitlesGetter();
+
+            if (!subtitles || subtitles.length === 0) {
+                return;
+            }
+
+            const subtitle = KeyBindings._currentSubtitle(timeGetter(), subtitles);
+
+            if (subtitle !== undefined && subtitle.start >= 0 && subtitle.end >= 0) {
+                onSeekToBeginningOfCurrentSubtitle(event, subtitle);
+            }
+        }, useCapture);
+    }
+
+    static _currentSubtitle(time: number, subtitles: SubtitleModel[]) {
+        const now = time;
+        let currentSubtitle: SubtitleModel | undefined;
+        let minDiff = Number.MAX_SAFE_INTEGER;
+
+        for (let i = 0; i < subtitles.length; ++i) {
+            const s = subtitles[i];
+
+            if (s.start < 0 || s.end < 0) {
+                continue;
+            }
+
+            const diff = now - s.start;
+
+            if (now >= s.start && now < s.end) {
+                if (diff < minDiff) {
+                    currentSubtitle = s;
+                    minDiff = diff;
+                }
+            }
+        }
+
+        return currentSubtitle;
+    }
+
+    static bindSeekBackwardOrForward(
+        onSeekBackwardOrForward: (event: KeyboardEvent, forward: boolean) => void,
+        disabledGetter: () => boolean,
+        useCapture = false
+    ) {
+        return KeyBindings._bindDown((event) => {
+            if (disabledGetter()) {
+                return;
+            }
+
+            let forward: boolean;
+
+            if (KeyEvents.detectSeekBackward(event)) {
+                forward = false;
+            } else if (KeyEvents.detectSeekForward(event)) {
+                forward = true;
+            } else {
+                return;
+            }
+
+            onSeekBackwardOrForward(event, forward);
+        }, useCapture);
+    }
+
     static bindOffsetToSubtitle(
         onOffsetChange: (event: KeyboardEvent, newOffset: number) => void,
         disabledGetter: () => boolean,
