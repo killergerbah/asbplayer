@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useRef } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import {
     Anki,
@@ -29,7 +29,7 @@ import Typography from '@material-ui/core/Typography';
 import ZoomInIcon from '@material-ui/icons/ZoomIn';
 import SubtitleTextImage from './SubtitleTextImage';
 import TagsTextField from './TagsTextField';
-import { ExportMode } from '@project/common/src/Anki';
+import { AnkiExportMode } from '@project/common';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -154,7 +154,7 @@ const TextFieldEndAdornment = withStyles({
     },
 })(InputAdornment);
 
-export interface RerecordParams {
+export interface AnkiDialogRerecordParams {
     text: string;
     sliderContext: AnkiDialogSliderContext;
     definition: string;
@@ -180,9 +180,9 @@ interface AnkiDialogProps {
         url: string,
         customFieldValues: { [key: string]: string },
         tags: string[],
-        mode: ExportMode
+        mode: AnkiExportMode
     ) => void;
-    onRerecord?: (params: RerecordParams) => void;
+    onRerecord?: (params: AnkiDialogRerecordParams) => void;
     onCancel: () => void;
     onViewImage: (image: Image) => void;
     onOpenSettings?: () => void;
@@ -201,7 +201,7 @@ interface AnkiDialogProps {
     lastAppliedTimestampIntervalToText?: number[];
 }
 
-export default function AnkiDialog({
+export function AnkiDialog({
     open,
     disabled,
     text: initialText,

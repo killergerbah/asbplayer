@@ -6,9 +6,9 @@ import { AnkiSettings } from './Settings';
 const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
 const fileNameSpecialCharacters = [':', '/', '\\', '<', '>', '"', '|', '?', '*', '^'];
 
-export type ExportMode = 'gui' | 'updateLast' | 'default';
+export type AnkiExportMode = 'gui' | 'updateLast' | 'default';
 
-export default class Anki {
+export class Anki {
     private readonly settingsProvider: AnkiSettings;
     private readonly fetcher: Fetcher;
 
@@ -80,7 +80,7 @@ export default class Anki {
         url: string | undefined,
         customFieldValues: { [key: string]: string },
         tags: string[],
-        mode: ExportMode,
+        mode: AnkiExportMode,
         ankiConnectUrl?: string
     ) {
         const fields = {};

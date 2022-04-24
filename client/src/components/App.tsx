@@ -37,7 +37,7 @@ import SettingsDialog from './SettingsDialog';
 import SettingsProvider from '../services/SettingsProvider';
 import VideoPlayer from './VideoPlayer';
 import { Color } from '@material-ui/lab';
-import { ExportMode } from '@project/common/src/Anki';
+import { AnkiExportMode } from '@project/common';
 
 const latestExtensionVersion = '0.17.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
@@ -632,7 +632,7 @@ function App() {
             url: string,
             customFieldValues: { [key: string]: string },
             tags: string[],
-            mode: ExportMode
+            mode: AnkiExportMode
         ) => {
             setAnkiDialogDisabled(true);
 

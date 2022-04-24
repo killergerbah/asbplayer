@@ -22,8 +22,8 @@ import { AnkiDialog, ImageDialog } from '@project/common/components';
 import Snackbar from '@material-ui/core/Snackbar';
 import Bridge from '../Bridge';
 import { PaletteType } from '@material-ui/core';
-import { ExportMode } from '@project/common/src/Anki';
-import { RerecordParams } from '@project/common/components/src/AnkiDialog';
+import { AnkiExportMode } from '@project/common/src/Anki';
+import { AnkiDialogRerecordParams } from '@project/common/components';
 
 interface Props {
     bridge: Bridge;
@@ -154,7 +154,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             url: string,
             customFieldValues: { [key: string]: string },
             tags: string[],
-            mode: ExportMode
+            mode: AnkiExportMode
         ) => {
             setDisabled(true);
 
@@ -217,7 +217,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             customFieldValues,
             timestampInterval,
             lastAppliedTimestampIntervalToText,
-        }: RerecordParams) => {
+        }: AnkiDialogRerecordParams) => {
             setOpen(false);
             setImageDialogOpen(false);
             const resumeUiState: AnkiUiRerecordState = {
