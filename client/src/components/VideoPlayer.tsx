@@ -619,7 +619,8 @@ export default function VideoPlayer(props: Props) {
                 }
 
                 // Ensure that anki dialog request is handled after the subtitle has appeared in copy history
-                setTimeout(() => playerChannel.ankiDialogRequest(fullscreen), 0);
+                // FIXME: This is a hack
+                setTimeout(() => playerChannel.ankiDialogRequest(fullscreen), 10);
             },
             () => false
         );
