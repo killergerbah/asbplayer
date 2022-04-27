@@ -271,6 +271,7 @@ export default class Binding {
 
                         this.subtitleContainer.showLoadedMessage(loadedMessage);
                         this.videoDataSyncContainer.unbindVideoSelect();
+                        this.keyBindings.bind(this);
                         this.synced = true;
                         break;
                     case 'subtitleSettings':
@@ -374,7 +375,10 @@ export default class Binding {
         this.subtitleContainer.refresh();
         this.videoDataSyncContainer.updateSettings(currentSettings);
         this.keyBindings.settings = currentSettings;
-        this.keyBindings.bind(this);
+
+        if (this.synced) {
+            this.keyBindings.bind(this);
+        }
 
         if (currentSettings.subsDragAndDrop) {
             this.dragContainer.bind();

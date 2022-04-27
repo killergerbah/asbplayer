@@ -97,8 +97,6 @@ export default class KeyBindings {
                 true
             );
 
-        this.bound = true;
-
         // We don't stop immediate propagation for "toggle subtitles" because we have knowledge that
         // the toggle-subtitle binding is a subset of the toggle-subtitle-track binding.
         // Might be worth rethinking the KeyBindings API so we don't need this extra knowledge for things to work.
@@ -185,6 +183,8 @@ export default class KeyBindings {
                 () => context.subtitleContainer.subtitles,
                 true
             );
+
+        this.bound = true;
     }
 
     unbind() {
