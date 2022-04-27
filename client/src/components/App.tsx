@@ -39,7 +39,7 @@ import VideoPlayer from './VideoPlayer';
 import { Color } from '@material-ui/lab';
 import { AnkiExportMode } from '@project/common';
 
-const latestExtensionVersion = '0.17.0';
+const latestExtensionVersion = '0.18.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
 
 const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
