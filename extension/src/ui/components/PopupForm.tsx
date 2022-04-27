@@ -304,7 +304,7 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                         <Typography variant="subtitle2">A/D</Typography>
                                     </TableCell>
                                     <TableCell>
-                                        <Typography variant="subtitle2">Seek backward/forward by 5 seconds</Typography>
+                                        <Typography variant="subtitle2">Seek backward/forward by 10 seconds</Typography>
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>

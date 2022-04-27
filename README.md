@@ -61,7 +61,7 @@ The below information can also be found in asbplayer by clicking on the question
 | S                                       | Toggle subtitles                                                                                                                |
 | S+1, S+2...                             | Toggle subtitle track 1, 2... in video                                                                                          |
 | W+1, W+2...                             | Toggle subtitle track 1, 2... in asbplayer                                                                                      |
-| A/D                                     | Seek backward/forward by 5 seconds                                                                                              |
+| A/D                                     | Seek backward/forward by 10 seconds                                                                                             |
 | Left/Right                              | Seek to previous/next subtitle                                                                                                  |
 | Down                                    | Seek to beginning of current subtitle                                                                                           |
 | Ctrl+Left/Right or Shift+Left/Right     | Adjust offset to previous/next subtitle                                                                                         |

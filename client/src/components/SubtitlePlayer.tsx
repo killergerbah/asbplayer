@@ -428,9 +428,9 @@ export default function SubtitlePlayer({
                 event.stopPropagation();
                 event.preventDefault();
                 if (forward) {
-                    onSeek(Math.min(length, clock.time(length) + 5000), false);
+                    onSeek(Math.min(length, clock.time(length) + 10000), false);
                 } else {
-                    onSeek(Math.max(0, clock.time(length) - 5000), false);
+                    onSeek(Math.max(0, clock.time(length) - 10000), false);
                 }
             },
             () => disableKeyEvents

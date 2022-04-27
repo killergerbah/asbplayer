@@ -444,9 +444,9 @@ export default function VideoPlayer(props: Props) {
                 event.stopPropagation();
                 event.preventDefault();
                 if (forward) {
-                    playerChannel.currentTime = Math.min(length / 1000, playerChannel.currentTime + 5);
+                    playerChannel.currentTime = Math.min(length / 1000, playerChannel.currentTime + 10);
                 } else {
-                    playerChannel.currentTime = Math.max(0, playerChannel.currentTime - 5);
+                    playerChannel.currentTime = Math.max(0, playerChannel.currentTime - 10);
                 }
             },
             () => !videoRef.current

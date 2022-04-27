@@ -222,7 +222,7 @@ export default function HelpDialog({ open, extensionUrl, onClose }: Props) {
                                     <Typography>A/D</Typography>
                                 </TableCell>
                                 <TableCell>
-                                    <Typography>Seek backward/forward by 5 seconds</Typography>
+                                    <Typography>Seek backward/forward by 10 seconds</Typography>
                                 </TableCell>
                             </TableRow>
                             <TableRow>
