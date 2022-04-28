@@ -443,17 +443,19 @@ export default function VideoPlayer(props: Props) {
             (event, forward) => {
                 event.stopPropagation();
                 event.preventDefault();
+                const timestamp = clock.time(length);
+
                 if (forward) {
-                    playerChannel.currentTime = Math.min(length / 1000, playerChannel.currentTime + 10);
+                    playerChannel.currentTime = Math.min(length / 1000, (timestamp + 10000) / 1000);
                 } else {
-                    playerChannel.currentTime = Math.max(0, playerChannel.currentTime - 10);
+                    playerChannel.currentTime = Math.max(0, (timestamp - 10000) / 1000);
                 }
             },
             () => !videoRef.current
         );
 
         return () => unbind();
-    }, [playerChannel, length]);
+    }, [playerChannel, length, clock]);
 
     const calculateSurroundingSubtitles = useCallback(
         (index: number) => {

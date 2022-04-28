@@ -152,11 +152,7 @@ export default class PlayerChannel {
         };
     }
 
-    get currentTime() {
-        return this.time;
-    }
-
-    set currentTime(value) {
+    set currentTime(value: number) {
         this.time = value;
         this.channel?.postMessage({ command: 'currentTime', value: this.time, echo: true });
     }
