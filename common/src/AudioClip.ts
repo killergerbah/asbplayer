@@ -340,6 +340,10 @@ export default class AudioClip {
     }
 
     toMp3(mp3WorkerFactory = defaultMp3WorkerFactory) {
+        if (this.data instanceof Mp3AudioData) {
+            return this;
+        }
+        
         return new AudioClip(new Mp3AudioData(this.data, mp3WorkerFactory));
     }
 
