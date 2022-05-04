@@ -553,7 +553,9 @@ export default function SubtitlePlayer({
                     onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), true);
                 }
 
-                onAnkiDialogRequest();
+                // Ensure that anki dialog request is handled after the subtitle has appeared in copy history
+                // FIXME: This is a hack
+                setTimeout(() => onAnkiDialogRequest(), 100);
             },
             () => false
         );
