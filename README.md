@@ -16,7 +16,7 @@ Install the Chrome [extension](https://github.com/killergerbah/asbplayer/release
 1. Drag-and-drop a subtitle file into the video element you want to sync.
 2. Load a file into asbplayer and click on the camera in the bottom right to pick a video element to sync. This is the recommended way to load BluRay subtitle files onto streaming video.
 
-### Anki
+### Creating Anki flashcards
 Integration with AnkiConnect can be configured in the settings as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
 
 `Ctrl+Shift+X` (default bind) for streaming video or `Ctrl+Shift+Q` for local media files opens the Anki export dialog.
@@ -30,8 +30,8 @@ You can also adjust offset manually by clicking on the text field in the control
 
 ### Subtitle track detection for streaming video
 `Ctrl+Shift+F` (default bind) will show detected subtitle tracks for streaming video. Below are the sites where automatic subtitle detection is supported:
-1. Netflix (on main /watch url)
-2. Youtube (on main /watch url)
+- Netflix (on main /watch url)
+- Youtube (on main /watch url)
    
 `Ctrl+Shift+F` also allows you to choose an empty subtitle track so that you can mine streaming video without subtitles.
 
@@ -54,23 +54,27 @@ You can also adjust offset manually by clicking on the text field in the control
 | `Ctrl+Left/Right` or `Shift+Left/Right`   | Adjust offset to previous/next subtitle                                                                                         |
 | `Ctrl+Shift+Left/Right`                   | Adjust offset by +/- 100ms                                                                                                      |
 
-### Common issues
-- asbplayer isn't detecting streaming video.
-    - Try refreshing both the asbplayer tab and the video in the other tab.
-    - Make sure that in the extension details, the extension has access to all sites.
-      A lot of video players are loaded inside of iframes, so it's difficult to
-      list every single URL that the extension might need access to.
-- The extension keyboard shortcuts aren't working.
-    - Try uninstalling and reinstalling the extension and restarting Chrome.
-    - Make sure the extension isn't installed twice.
-    - Verify the keyboard shortcut is bound as in this [video](https://youtu.be/wYWbgovfNlI).
-- asbplayer can't connect to Anki. It shows an error message e.g. 'Failed to fetch.'
-    - If you're using Brave, make sure asbplayer isn't being blocked by Shield.
-    - Make sure that asbplayer is allowed by AnkiConnect, as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
-    - Check that your browser or an ad blocker isn't blocking the request. A good place to start is by opening your browser's developer console and looking for errors.
-- asbplayer isn't including audio/screenshot in flashcards.
-    - If you're mining streaming video make sure you use an extension keyboard shortcut (`Ctrl+Shift+X` by default) from the tab with the streaming video.
-### Demos
+## Common issues
+### asbplayer isn't detecting streaming video.
+- Try refreshing both the asbplayer tab and the video in the other tab.
+- Make sure that in the extension details, the extension has access to all sites.
+A lot of video players are loaded inside of iframes, so it's difficult to
+know every single URL that the extension might need access to.
+
+### The extension keyboard shortcuts aren't working.
+- Try uninstalling and reinstalling the extension and restarting Chrome.
+- Make sure the extension isn't installed twice.
+- Verify the keyboard shortcuts are bound as in this [video](https://youtu.be/wYWbgovfNlI).
+  
+### asbplayer can't connect to Anki. It shows an error message e.g. 'Failed to fetch.'
+- If you're using Brave, make sure asbplayer isn't being blocked by Shield.
+- Make sure that asbplayer is allowed by AnkiConnect, as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
+- Check that your browser or an ad blocker isn't blocking the request. A good place to start is by opening your browser's developer console and looking for errors.
+
+### asbplayer isn't including audio/screenshot in flashcards.
+- If you're mining streaming video make sure you use an extension keyboard shortcut (`Ctrl+Shift+X` by default) from the tab with the streaming video.
+
+## Demos
 
 - [Sentence mining streaming video with asbplayer (synchronous workflow)](https://www.youtube.com/watch?v=W9Lf3C7sRzc)
 - [Sentence mining streaming video with asbplayer (asynchronous workflow)](https://www.youtube.com/watch?v=kJXVVixD8H8)
@@ -79,17 +83,17 @@ You can also adjust offset manually by clicking on the text field in the control
 - [Sentence mining video files with asbplayer (synchronous workflow using Yomichan export)](https://www.youtube.com/watch?v=J3E82spYqIk)
 - [Sentence mining video files with asbplayer (asynchronous workflow)](https://www.youtube.com/watch?v=HsrrpnfM4pI)
 
-### Browser compatibility
+## Browser compatibility
 
 The asbplayer application and extension have only been tested on Chrome 100 and later and likely work on other Chromium-based browsers.
 
 Local video file playback is supported only for codecs supported by the browser. The [animebook](https://github.com/animebook/animebook.github.io#video-format-support) readme has a detailed explanation of this and links  to browsers that have good compatibility. Personally, I use Microsoft Edge and paid one dollar for HEVC support.
 
-Audio track selection for `mkv` files is available if experimental web platform features are enabled from [chrome://flags](chrome://flags).
+Audio track selection for `mkv` files is available if experimental web platform features are enabled from `chrome://flags`.
 
 ## Contributing
 
-Pull requests are welcome! However, to reduce back-and-forth during review ideally consult with me on the corresponding issue or on [Discord](https://discord.gg/ad7VAQru7m) before attempting changes to UI/UX.  Format code according to the Prettier config and attempt to match the style of surrounding code.
+Pull requests are welcome! However, to reduce back-and-forth during review ideally consult with me on the corresponding issue or on [Discord](https://discord.gg/ad7VAQru7m) before attempting changes to UI/UX.  When making changes, format code according to the Prettier config and attempt to match the style of surrounding code.
 
 ## Building and running
 ```
