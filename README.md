@@ -32,7 +32,8 @@ You can also adjust offset manually by clicking on the text field in the control
 `Ctrl+Shift+F` (default bind) will show detected subtitle tracks for streaming video. Below are the sites where automatic subtitle detection is supported:
 1. Netflix (on main /watch url)
 2. Youtube (on main /watch url)
-`Ctrl+Shift+F` also allows you to choose an empty subtitle track to allow you to mine streaming video without subtitles.
+   
+`Ctrl+Shift+F` also allows you to choose an empty subtitle track so that you can mine streaming video without subtitles.
 
 
 ### Keyboard shortcuts
