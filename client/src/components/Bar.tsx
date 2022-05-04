@@ -18,7 +18,6 @@ interface BarProps {
     hidden: boolean;
     title: string;
     onFileSelector: () => void;
-    onOpenHelp: () => void;
     onOpenSettings: () => void;
     onOpenCopyHistory: () => void;
 }
@@ -128,7 +127,14 @@ export default function Bar(props: BarProps) {
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Help">
-                    <IconButton edge="end" color="inherit" onClick={props.onOpenHelp}>
+                <IconButton
+                        edge="end"
+                        color="inherit"
+                        component="a"
+                        href="https://github.com/killergerbah/asbplayer#usage"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
                         <HelpIcon />
                     </IconButton>
                 </Tooltip>

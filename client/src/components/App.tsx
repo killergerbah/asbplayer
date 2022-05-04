@@ -26,7 +26,6 @@ import Alert from './Alert';
 import { AnkiDialog, ImageDialog } from '@project/common/components';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import DragOverlay from './DragOverlay';
-import HelpDialog from './HelpDialog';
 import SubtitleReader from '../services/SubtitleReader';
 import Bar from './Bar';
 import ChromeExtension, { ExtensionMessage } from '../services/ChromeExtension';
@@ -344,7 +343,6 @@ function App() {
         resume: false,
     });
     const [settingsDialogOpen, setSettingsDialogOpen] = useState<boolean>(false);
-    const [helpDialogOpen, setHelpDialogOpen] = useState<boolean>(false);
     const [imageDialogOpen, setImageDialogOpen] = useState<boolean>(false);
     const [disableKeyEvents, setDisableKeyEvents] = useState<boolean>(false);
     const [image, setImage] = useState<Image>();
@@ -453,8 +451,6 @@ function App() {
         setDisableKeyEvents(true);
         setSettingsDialogOpen(true);
     }, []);
-    const handleOpenHelp = useCallback(() => setHelpDialogOpen(true), []);
-    const handleCloseHelp = useCallback(() => setHelpDialogOpen(false), []);
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
     const handleImageDialogClosed = useCallback(() => setImageDialogOpen(false), []);
     const handleCloseSettings = useCallback(
@@ -997,11 +993,6 @@ function App() {
                                     onClose={handleCloseSettings}
                                     settings={settingsProvider.settings}
                                 />
-                                <HelpDialog
-                                    open={helpDialogOpen}
-                                    extensionUrl={extensionUrl}
-                                    onClose={handleCloseHelp}
-                                />
                                 <Bar
                                     title={fileName || 'asbplayer'}
                                     drawerWidth={drawerWidth}
@@ -1009,7 +1000,6 @@ function App() {
                                     hidden={appBarHidden}
                                     onOpenCopyHistory={handleOpenCopyHistory}
                                     onOpenSettings={handleOpenSettings}
-                                    onOpenHelp={handleOpenHelp}
                                     onFileSelector={handleFileSelector}
                                 />
                                 <input
