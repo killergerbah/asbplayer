@@ -15,8 +15,9 @@ export default class ChromeExtension {
 
     private tabs: VideoTabModel[];
     private versionResolve?: (value: string | PromiseLike<string>) => void;
+    private heartbeatStarted = false;
 
-    constructor(heartbeat: boolean) {
+    constructor() {
         this.onMessageCallbacks = [];
         this.onTabsCallbacks = [];
         this.tabs = [];
@@ -57,10 +58,13 @@ export default class ChromeExtension {
                 }
             }
         });
+    }
 
-        if (heartbeat) {
+    startHeartbeat() {
+        if (!this.heartbeatStarted) {
             this._sendHeartbeat();
             setInterval(() => this._sendHeartbeat(), 1000);
+            this.heartbeatStarted = true;
         }
     }
 

@@ -285,8 +285,10 @@ function App() {
     );
     const anki = useMemo<Anki>(() => new Anki(settingsProvider), [settingsProvider]);
     const location = useLocation();
-    const inVideoPlayer = location.pathname === '/video';
-    const extension = useMemo<ChromeExtension>(() => new ChromeExtension(!inVideoPlayer), [inVideoPlayer]);
+    const [searchParams] = useSearchParams();
+
+    const inVideoPlayer = location.pathname === '/video' || searchParams.get('video') !== null;
+    const extension = useMemo<ChromeExtension>(() => new ChromeExtension(), []);
     const videoFrameRef = useRef<HTMLIFrameElement>(null);
     const [width] = useWindowSize(!inVideoPlayer);
     const drawerRatio = videoFrameRef.current ? 0.2 : 0.3;
@@ -793,6 +795,10 @@ function App() {
     );
 
     useEffect(() => {
+        if (inVideoPlayer) {
+            return undefined;
+        }
+
         async function onMessage(message: ExtensionMessage) {
             if (message.data.command === 'sync' || message.data.command === 'syncv2') {
                 const tabs = availableTabs.filter((t) => {
@@ -859,9 +865,9 @@ function App() {
         }
 
         extension.subscribe(onMessage);
-
+        extension.startHeartbeat();
         return () => extension.unsubscribe(onMessage);
-    }, [extension, availableTabs]);
+    }, [extension, availableTabs, inVideoPlayer]);
 
     const handleDrop = useCallback(
         (e: React.DragEvent) => {
@@ -920,7 +926,6 @@ function App() {
     );
 
     const handleSourcesLoaded = useCallback(() => setLoading(false), []);
-    const [searchParams] = useSearchParams();
 
     if (location.pathname === '/' && searchParams.get('video')) {
         return <NavigateToVideo searchParams={searchParams} />;
