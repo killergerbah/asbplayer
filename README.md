@@ -1,16 +1,21 @@
 # asbplayer
-A browser-based media player for subtitle sentence mining. Combine subtitles and media extracted from streaming or local video sources to create media-rich Anki flashcards.
 
-asbplayer is hosted at [https://killergerbah.github.io/asbplayer/](https://killergerbah.github.io/asbplayer/).
+A browser-based media player for subtitle sentence mining, hosted at [https://killergerbah.github.io/asbplayer/](https://killergerbah.github.io/asbplayer/). Combine subtitles and media extracted from streaming or local video sources to create media-rich Anki flashcards.
 
-If you've benefited from asbplayer please consider supporting my work by [buying me a coffee](https://github.com/sponsors/killergerbah?frequency=one-time) ❤️. You can also talk with me and other language learners on [Discord](https://discord.gg/ad7VAQru7m).
+Talk with me and other language learners on [Discord](https://discord.gg/ad7VAQru7m).
+
+## Supporters
+Thank you to all the supporters of this project:
+[@vivekchoksi](https://www.github.com/vivekchoksi)
+
+If you've benefited from asbplayer, please consider [supporting my work](https://github.com/sponsors/killergerbah?frequency=one-time) ❤️.
 
 ## Usage
 
 ### Loading files
 Drag-and-drop media and subtitle files into the asbplayer window to load them.
 
-### Syncing with streaming video in another tab
+### Syncing with streaming video
 Install the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest). There are two ways to sync streaming video with asbplayer:
 
 1. Drag-and-drop a subtitle file into the video element you want to sync.
@@ -19,40 +24,43 @@ Install the Chrome [extension](https://github.com/killergerbah/asbplayer/release
 ### Creating Anki flashcards
 Integration with AnkiConnect can be configured in the settings as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
 
-`Ctrl+Shift+X` (default bind) for streaming video or `Ctrl+Shift+Q` for local media files opens the Anki export dialog.
+<kbd>Ctrl+Shift+X</kbd> (default bind) for streaming video or <kbd>Ctrl+Shift+Q</kbd> for local media files opens the Anki export dialog.
 
-`Ctrl+Shift+Z` (default bind) for streaming video or `Ctrl+Shift+A` for local media files will mine the current subtitle without opening the Anki export dialog. Cards can later be exported for these subtitles by opening the copy history in asbplayer.
+<kbd>Ctrl+Shift+Z</kbd> (default bind) for streaming video or <kbd>Ctrl+Shift+A</kbd> for local media files will mine the current subtitle without opening the Anki export dialog. Cards can later be exported for these subtitles by opening the copy history in asbplayer.
 
 ### Changing subtitle offset
-`Ctrl+Left/Right` will adjust subtitle offset so that the previous/next subtitle appears at the current timestamp. `Ctrl+Shift+Left/Right` will adjust offset by 100 ms increments.
+<kbd>Ctrl+Left/Right</kbd> will adjust subtitle offset so that the previous/next subtitle appears at the current timestamp. <kbd>Ctrl+Shift+Left/Right</kbd> will adjust offset by 100 ms increments.
 
-You can also adjust offset manually by clicking on the text field in the controls, typing a number, and pressing `Enter`.
+You can also adjust offset manually by clicking on the text field in the controls, typing a number, and pressing <kbd>Enter</kbd>.
 
 ### Subtitle track detection for streaming video
-`Ctrl+Shift+F` (default bind) will show detected subtitle tracks for streaming video. Below are the sites where automatic subtitle detection is supported:
+<kbd>Ctrl+Shift+F</kbd> (default bind) will show detected subtitle tracks for streaming video. Below are the sites where automatic subtitle detection is supported:
 - Netflix (on main /watch url)
 - Youtube (on main /watch url)
    
-`Ctrl+Shift+F` also allows you to choose an empty subtitle track so that you can mine streaming video without subtitles.
+<kbd>Ctrl+Shift+F</kbd> also allows you to choose an empty subtitle track so that you can mine streaming video without subtitles.
 
+### Audio track selection for mkv files
+
+An audio track selector will appear for `mkv` files if experimental web platform features are enabled from `chrome://flags`.
 
 ### Keyboard shortcuts
-| Keys                                      | Action                                                                                                                          |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `Ctrl+Shift+A`                            | Copy current subtitle                                                                                                           |
-| `Ctrl+Shift+Q`                            | Copy current subtitle and open Anki export dialog                                                                               |
-| `Ctrl+Shift+Z` (default, streaming video) | Copy current subtitle<br>When video is synced without a subtitle file, starts/stops recording audio                             |
-| `Ctrl+Shift+X` (default, streaming video) | Copy current subtitle and open Anki export dialog<br>When video is synced without a subtitle file, starts/stops recording audio |
-| `Ctrl+Shift+F` (default, streaming video) | Select video element to mine without a subtitle file, or with detected subtitles on supported sites                             |
-| `Space`                                   | Play/pause                                                                                                                      |
-| `S`                                       | Toggle subtitles                                                                                                                |
-| `S+1, S+2...`                             | Toggle subtitle track 1, 2... in video                                                                                          |
-| `W+1, W+2...`                             | Toggle subtitle track 1, 2... in asbplayer                                                                                      |
-| `A/D`                                     | Seek backward/forward by 10 seconds                                                                                             |
-| `Left/Right`                              | Seek to previous/next subtitle                                                                                                  |
-| `Down`                                    | Seek to beginning of current subtitle                                                                                           |
-| `Ctrl+Left/Right` or `Shift+Left/Right`   | Adjust offset to previous/next subtitle                                                                                         |
-| `Ctrl+Shift+Left/Right`                   | Adjust offset by +/- 100ms                                                                                                      |
+| Keys                                                      | Action                                                                                                                          |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| <kbd>Ctrl+Shift+A</kbd>                                   | Copy current subtitle                                                                                                           |
+| <kbd>Ctrl+Shift+Q</kbd>                                   | Copy current subtitle and open Anki export dialog                                                                               |
+| <kbd>Ctrl+Shift+Z</kbd> (default, streaming video)        | Copy current subtitle<br>When video is synced without a subtitle file, starts/stops recording audio                             |
+| <kbd>Ctrl+Shift+X</kbd> (default, streaming video)        | Copy current subtitle and open Anki export dialog<br>When video is synced without a subtitle file, starts/stops recording audio |
+| <kbd>Ctrl+Shift+F</kbd> (default, streaming video)        | Select video element to mine without a subtitle file, or with detected subtitles on supported sites                             |
+| <kbd>Space</kbd>                                          | Play/pause                                                                                                                      |
+| <kbd>S</kbd>                                              | Toggle subtitles                                                                                                                |
+| <kbd>S+1, S+2...</kbd>                                    | Toggle subtitle track 1, 2... in video                                                                                          |
+| <kbd>W+1, W+2...</kbd>                                    | Toggle subtitle track 1, 2... in asbplayer                                                                                      |
+| <kbd>A/D</kbd>                                            | Seek backward/forward by 10 seconds                                                                                             |
+| <kbd>Left/Right</kbd>                                     | Seek to previous/next subtitle                                                                                                  |
+| <kbd>Down</kbd>                                           | Seek to beginning of current subtitle                                                                                           |
+| <kbd>Ctrl+Left/Right</kbd> or <kbd>Shift+Left/Right</kbd> | Adjust offset to previous/next subtitle                                                                                         |
+| <kbd>Ctrl+Shift+Left/Right</kbd>                          | Adjust offset by +/- 100ms                                                                                                      |
 
 ## Common issues
 ### asbplayer isn't detecting streaming video.
@@ -72,7 +80,7 @@ know every single URL that the extension might need access to.
 - Check that your browser or an ad blocker isn't blocking the request. A good place to start is by opening your browser's developer console and looking for errors.
 
 ### asbplayer isn't including audio/screenshot in flashcards.
-- If you're mining streaming video make sure you use an extension keyboard shortcut (`Ctrl+Shift+X` by default) from the tab with the streaming video.
+- If you're mining streaming video make sure you use an extension keyboard shortcut (<kbd>Ctrl+Shift+X</kbd> by default) from the tab with the streaming video.
 
 ## Demos
 
@@ -85,15 +93,18 @@ know every single URL that the extension might need access to.
 
 ## Browser compatibility
 
-The asbplayer application and extension have only been tested on Chrome 100 and later and likely work on other Chromium-based browsers.
+The asbplayer application and extension have only been tested on Chrome 101 and later and likely work on other Chromium-based browsers.
 
 Local video file playback is supported only for codecs supported by the browser. The [animebook](https://github.com/animebook/animebook.github.io#video-format-support) readme has a detailed explanation of this and links  to browsers that have good compatibility. Personally, I use Microsoft Edge and paid one dollar for HEVC support.
-
-Audio track selection for `mkv` files is available if experimental web platform features are enabled from `chrome://flags`.
 
 ## Contributing
 
 Pull requests are welcome! However, to reduce back-and-forth during review ideally consult with me on the corresponding issue or on [Discord](https://discord.gg/ad7VAQru7m) before attempting changes to UI/UX.  When making changes, format code according to the Prettier config and attempt to match the style of surrounding code.
+
+Thank you to all those who have contributed to this project:
+[@Renji-XD](https://www.github.com/Renji-XD)
+[@MatiasIslaA](https://www.github.com/MatiasIslaA)
+[@cyphar](https://www.github.com/cyphar)
 
 ## Building and running
 ```
