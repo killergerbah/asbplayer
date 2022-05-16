@@ -801,7 +801,7 @@ function App() {
 
         async function onMessage(message: ExtensionMessage) {
             if (message.data.command === 'sync' || message.data.command === 'syncv2') {
-                const tabs = availableTabs.filter((t) => {
+                const tabs = extension.tabs.filter((t) => {
                     if (t.id !== message.tabId) {
                         return false;
                     }
@@ -867,7 +867,7 @@ function App() {
         extension.subscribe(onMessage);
         extension.startHeartbeat();
         return () => extension.unsubscribe(onMessage);
-    }, [extension, availableTabs, inVideoPlayer]);
+    }, [extension, inVideoPlayer]);
 
     const handleDrop = useCallback(
         (e: React.DragEvent) => {

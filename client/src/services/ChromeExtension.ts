@@ -8,12 +8,13 @@ export interface ExtensionMessage {
 }
 
 export default class ChromeExtension {
+    tabs: VideoTabModel[];
+
     private readonly onMessageCallbacks: Array<(message: ExtensionMessage) => void>;
     private readonly onTabsCallbacks: Array<(tabs: VideoTabModel[]) => void>;
     private readonly versionPromise: Promise<string>;
-    private readonly id:string;
+    private readonly id: string;
 
-    private tabs: VideoTabModel[];
     private versionResolve?: (value: string | PromiseLike<string>) => void;
     private heartbeatStarted = false;
 
@@ -87,13 +88,23 @@ export default class ChromeExtension {
     }
 
     sendMessage(message: Message, tabId: number, src: string) {
-        const command: AsbPlayerToVideoCommandV2<Message> = { sender: 'asbplayerv2', message: message, tabId: tabId, src: src };
+        const command: AsbPlayerToVideoCommandV2<Message> = {
+            sender: 'asbplayerv2',
+            message: message,
+            tabId: tabId,
+            src: src,
+        };
         window.postMessage(command, '*');
     }
 
     publishMessage(message: Message) {
         for (const tab of this.tabs) {
-            const command: AsbPlayerToVideoCommandV2<Message> = { sender: 'asbplayerv2', message: message, tabId: tab.id, src: tab.src };
+            const command: AsbPlayerToVideoCommandV2<Message> = {
+                sender: 'asbplayerv2',
+                message: message,
+                tabId: tab.id,
+                src: tab.src,
+            };
             window.postMessage(command, '*');
         }
     }
