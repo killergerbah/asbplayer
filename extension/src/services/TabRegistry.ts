@@ -106,7 +106,7 @@ export default class TabRegistry {
             if (!Object.keys(this.asbplayers).length) {
                 await this._createNewTab(videoTab);
             }
-            this._anyAsbplayerTab(videoTab, videoSrc, resolve, reject, 0, 5);
+            this._anyAsbplayerTab(videoTab, videoSrc, resolve, reject, 0, 10);
         });
     }
 
@@ -148,7 +148,7 @@ export default class TabRegistry {
     }
 
     _asbplayerReceivedVideoTabData(asbplayer: Asbplayer, videoTab: chrome.tabs.Tab, videoSrc: string) {
-        if (typeof asbplayer.receivedTabs === 'undefined') {
+        if (asbplayer.receivedTabs === undefined) {
             // Support older asbplayer clients that don't send the receivedTabs array
             return true;
         }
