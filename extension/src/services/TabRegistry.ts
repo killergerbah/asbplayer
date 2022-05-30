@@ -1,4 +1,5 @@
 import { ActiveVideoElement, VideoTabModel } from '@project/common';
+import Settings from './Settings';
 
 interface Asbplayer {
     id: string;
@@ -16,9 +17,9 @@ interface VideoElement {
 export default class TabRegistry {
     public readonly asbplayers: { [key: number]: Asbplayer };
     public readonly videoElements: { [key: string]: VideoElement };
-    private readonly settings: any;
+    private readonly settings: Settings;
 
-    constructor(settings: any) {
+    constructor(settings: Settings) {
         this.asbplayers = {};
         this.videoElements = {};
         this.settings = settings;
