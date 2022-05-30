@@ -220,6 +220,7 @@ export default class SubtitleContainer {
 
         this.subtitles = this.subtitles.map((s) => ({
             text: s.text,
+            textImage: s.textImage,
             start: s.originalStart + offset,
             originalStart: s.originalStart,
             end: s.originalEnd + offset,
