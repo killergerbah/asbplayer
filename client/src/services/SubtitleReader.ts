@@ -3,7 +3,7 @@ import { parseSync as parseSrt } from 'subtitle';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
 import { DisplaySet, parseDisplaySets as parsePgsDisplaySets } from './pgs-parser';
-import { SubtitleTextImage, CanvasResizer } from '@project/common';
+import { SubtitleTextImage } from '@project/common';
 
 const tagRegex = RegExp('</?([^>]*)>', 'ig');
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
@@ -19,7 +19,6 @@ interface SubtitleNode {
 }
 
 export default class SubtitleReader {
-    private readonly canvasResizer = new CanvasResizer();
     private xmlParser?: XMLParser;
 
     async subtitles(files: File[]) {
@@ -31,7 +30,12 @@ export default class SubtitleReader {
     async _subtitles(file: File, track: number): Promise<SubtitleNode[]> {
         if (file.name.endsWith('.srt')) {
             const nodes = parseSrt(await file.text());
-            return nodes.map((node: any) => ({ ...node.data, track: track }));
+            return nodes.map((node: any) => ({
+                start: node.data.start,
+                end: node.data.end,
+                text: node.data.text.replace(tagRegex, ''),
+                track: track,
+            }));
         }
 
         if (file.name.endsWith('.vtt') || file.name.endsWith('.nfvtt')) {
@@ -156,7 +160,7 @@ export default class SubtitleReader {
                         },
                         track,
                     });
-                    
+
                     currentImageDisplaySet = undefined;
                 }
             }
