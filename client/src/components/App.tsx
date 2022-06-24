@@ -871,6 +871,10 @@ function App() {
 
     const handleDrop = useCallback(
         (e: React.DragEvent) => {
+            if (ankiDialogOpen) {
+                return;
+            }
+
             e.preventDefault();
 
             if (inVideoPlayer) {
@@ -887,7 +891,7 @@ function App() {
 
             handleFiles(e.dataTransfer.files);
         },
-        [inVideoPlayer, handleError, handleFiles]
+        [inVideoPlayer, handleError, handleFiles, ankiDialogOpen]
     );
 
     const handleFileInputChange = useCallback(() => {
@@ -900,8 +904,20 @@ function App() {
 
     const handleFileSelector = useCallback(() => fileInputRef.current?.click(), []);
 
+    const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+        if (ankiDialogOpen) {
+            return;
+        }
+
+        e.preventDefault();
+    }, [ankiDialogOpen]);
+    
     const handleDragEnter = useCallback(
         (e: React.DragEvent<HTMLDivElement>) => {
+            if (ankiDialogOpen) {
+                return;
+            }
+
             e.preventDefault();
             e.stopPropagation();
 
@@ -910,7 +926,7 @@ function App() {
                 setDragging(true);
             }
         },
-        [inVideoPlayer]
+        [inVideoPlayer, ankiDialogOpen]
     );
 
     const handleDragLeave = useCallback(
@@ -941,7 +957,7 @@ function App() {
             <CssBaseline />
             <div
                 onDrop={handleDrop}
-                onDragOver={(e) => e.preventDefault()}
+                onDragOver={handleDragOver}
                 onDragEnter={handleDragEnter}
                 onDragLeave={handleDragLeave}
             >
