@@ -459,7 +459,11 @@ function App() {
         (newSettings: AsbplayerSettings) => {
             settingsProvider.settings = newSettings;
             setSettingsDialogOpen(false);
-            setDisableKeyEvents(false);
+
+            // ATM only the Anki dialog may appear under the settings dialog,
+            // so it's the only one we need to check to re-enable key events
+            setDisableKeyEvents(ankiDialogOpen);
+            
             const subtitleSettingsMessage: SubtitleSettingsToVideoMessage = {
                 command: 'subtitleSettings',
                 value: settingsProvider.subtitleSettings,
@@ -476,7 +480,7 @@ function App() {
             extension.publishMessage(ankiSettingsMessage);
             extension.publishMessage(miscSettingsMessage);
         },
-        [extension, settingsProvider]
+        [extension, settingsProvider, ankiDialogOpen]
     );
 
     const handleDeleteCopyHistoryItem = useCallback(
