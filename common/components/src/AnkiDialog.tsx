@@ -257,16 +257,11 @@ export function AnkiDialog({
         setUrl(initialUrl ?? '');
         setDuplicateNotes([]);
         setCustomFieldValues(initialCustomFieldValues ?? {});
+    }, [initialText, initialSource, initialDefinition, initialWord, initialCustomFieldValues, initialUrl]);
+
+    useEffect(() => {
         setTags(settingsProvider.tags);
-    }, [
-        initialText,
-        initialSource,
-        initialDefinition,
-        initialWord,
-        initialCustomFieldValues,
-        initialUrl,
-        settingsProvider.tags,
-    ]);
+    }, [settingsProvider.tags]);
 
     useEffect(() => {
         const timestampInterval =
