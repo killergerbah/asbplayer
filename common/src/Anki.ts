@@ -97,7 +97,7 @@ export class Anki {
                     fields,
                     this.settingsProvider.customAnkiFields[customFieldName],
                     customFieldValues[customFieldName],
-                    false
+                    true
                 );
             }
         }
