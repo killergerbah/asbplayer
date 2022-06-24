@@ -45,6 +45,8 @@ const useStyles = makeStyles({
         paddingRight: 20,
         bottom: 100,
         textAlign: 'center',
+        whiteSpace: 'pre-wrap',
+        lineHeight: 'normal',
     },
 });
 

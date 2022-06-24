@@ -7,25 +7,27 @@
 }
 
 .asbplayer-subtitles {
-    text-align: center;
+    text-align: center !important;
     color: white;
     text-shadow: 0 0 2px black, 0 0 2px black, 0 0 2px black, 0 0 2px black;
     font-size: 24px;
     padding-left: 10px;
     padding-right: 10px;
-    user-select: text;
-    line-height: normal;
+    user-select: text !important;
+    line-height: normal !important;
+    white-space: pre-wrap !important;
 }
 
 .asbplayer-fullscreen-subtitles {
-    text-align: center;
+    text-align: center !important;
     color: white;
     text-shadow: 0 0 2px black, 0 0 2px black, 0 0 2px black, 0 0 2px black;
     font-size: 36px;
     padding-left: 10px;
     padding-right: 10px;
-    user-select: text;
-    line-height: normal;
+    user-select: text !important;
+    line-height: normal !important;
+    white-space: pre-wrap !important;
 }
 
 .asbplayer-ui-frame {

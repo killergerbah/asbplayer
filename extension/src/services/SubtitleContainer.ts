@@ -388,12 +388,12 @@ export default class SubtitleContainer {
             let fontFamily: string;
 
             if (this.subtitleSettings.subtitleFontFamily && this.subtitleSettings.subtitleFontFamily.length > 0) {
-                fontFamily = this.subtitleSettings.subtitleFontFamily;
+                fontFamily = `${this.subtitleSettings.subtitleFontFamily}`;
             } else {
                 fontFamily = '';
             }
 
-            this.subtitleStyles = `color:${color};font-size:${fontSize};text-shadow:${textShadow};background-color:${backgroundColor};font-family:${fontFamily}`;
+            this.subtitleStyles = `color:${color} !important;font-size:${fontSize} !important;text-shadow:${textShadow} !important;background-color:${backgroundColor} !important;font-family:${fontFamily} !important`;
             return this.subtitleStyles;
         }
 

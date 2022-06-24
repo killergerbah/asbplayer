@@ -1,4 +1,4 @@
-import { Rgb } from "@project/common";
+import { Rgb } from '@project/common';
 
 export function arrayEquals(a: any[], b: any[], equals = (a: any, b: any) => a === b) {
     if (a.length !== b.length) {

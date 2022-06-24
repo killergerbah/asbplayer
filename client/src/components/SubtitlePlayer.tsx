@@ -56,6 +56,7 @@ const useSubtitleRowStyles = makeStyles((theme) => ({
         minWidth: 200,
         width: '100%',
         overflowWrap: 'anywhere',
+        whiteSpace: 'pre-wrap'
     },
     compressedSubtitle: {
         fontSize: 16,
@@ -63,6 +64,7 @@ const useSubtitleRowStyles = makeStyles((theme) => ({
         minWidth: 200,
         width: '100%',
         overflowWrap: 'anywhere',
+        whiteSpace: 'pre-wrap'
     },
     disabledSubtitle: {
         color: 'transparent',
