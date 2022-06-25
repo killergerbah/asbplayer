@@ -14,6 +14,7 @@
     padding-left: 10px;
     padding-right: 10px;
     user-select: text !important;
+    cursor: text !important;
     line-height: normal !important;
     white-space: pre-wrap !important;
 }
@@ -26,6 +27,7 @@
     padding-left: 10px;
     padding-right: 10px;
     user-select: text !important;
+    cursor: text !important;
     line-height: normal !important;
     white-space: pre-wrap !important;
 }
