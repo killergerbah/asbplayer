@@ -91,6 +91,11 @@ know every single URL that the extension might need access to.
 ### asbplayer isn't including audio/screenshot in flashcards.
 - If you're mining streaming video make sure you use an extension keyboard shortcut (<kbd>Ctrl+Shift+X</kbd> by default) from the tab with the streaming video.
 
+### asbplayer isn't properly cropping screenshots from streaming video.
+- If the site is using an iframe for the video player then asbplayer won't know how to crop the screenshot properly. You will have to mine subtitles in fullscreen mode.
+- Make sure the browser zoom setting is at 100%.
+- You can also disable cropping altogether using the extension settings menu.
+  
 ## Demos
 
 - [Sentence mining streaming video with asbplayer (synchronous workflow)](https://www.youtube.com/watch?v=W9Lf3C7sRzc)
