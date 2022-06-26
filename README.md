@@ -5,8 +5,9 @@ A browser-based media player for subtitle sentence mining, hosted at [https://ki
 Talk with me and other language learners on [Discord](https://discord.gg/ad7VAQru7m).
 
 ## Supporters
-Thank you to all the supporters of this project:
+Thank you to all of my sponsors:
 [@vivekchoksi](https://www.github.com/vivekchoksi)
+[@nzarbayezid](https://www.github.com/nzarbayezid)
 
 If you've benefited from asbplayer, please consider [supporting my work](https://github.com/sponsors/killergerbah?frequency=one-time) ❤️.
 
