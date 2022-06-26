@@ -29,6 +29,14 @@ Integration with AnkiConnect can be configured in the settings as in this [video
 
 <kbd>Ctrl+Shift+Z</kbd> (default bind) for streaming video or <kbd>Ctrl+Shift+A</kbd> for local media files will mine the current subtitle without opening the Anki export dialog. Cards can later be exported for these subtitles by opening the copy history in asbplayer.
 
+### Adjusting Anki flashcards
+
+All text fields can be edited before exporting an Anki flashcard.
+
+To adjust audio or subtitle selection, adjust the selected time interval for the card using the slider at the bottom of the export dialog.
+The newly selected time interval can be applied using the checkmark buttons in either the sentence or audio fields. See this [video](https://youtu.be/BSr_JusW8E8?t=34) for a demo of this.
+
+
 ### Changing subtitle offset
 <kbd>Ctrl+Left/Right</kbd> will adjust subtitle offset so that the previous/next subtitle appears at the current timestamp. <kbd>Ctrl+Shift+Left/Right</kbd> will adjust offset by 100 ms increments.
 
