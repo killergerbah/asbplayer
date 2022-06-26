@@ -1,7 +1,7 @@
 export default class KeyEvents {
     static detectCopy(event: KeyboardEvent) {
         // Ctrl + Shift + A
-        return event.ctrlKey && event.shiftKey && event.key === 'A';
+        return event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'a';
     }
 
     static detectDecreaseOffset(event: KeyboardEvent) {
@@ -11,8 +11,7 @@ export default class KeyEvents {
 
     static detectAnkiExport(event: KeyboardEvent) {
         // Ctrl + Shift + Q
-        console.log(event.key);
-        return event.ctrlKey && event.shiftKey && event.key === 'Q';
+        return event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'q';
     }
 
     static detectIncreaseOffset(event: KeyboardEvent) {
@@ -57,12 +56,12 @@ export default class KeyEvents {
 
     static detectSeekBackward(event: KeyboardEvent) {
         // A
-        return !KeyEvents.detectCopy(event) && event.key === 'a';
+        return !KeyEvents.detectCopy(event) && event.key.toLowerCase() === 'a';
     }
 
     static detectSeekForward(event: KeyboardEvent) {
         // D
-        return event.key === 'd';
+        return event.key.toLowerCase() === 'd';
     }
 
     static detectPlay(event: KeyboardEvent) {
