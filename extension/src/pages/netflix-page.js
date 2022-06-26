@@ -70,9 +70,44 @@ setTimeout(() => {
         player()?.pause();
     });
 
+    function determineBasename(titleId) {
+        const videoApi = getAPI()?.getVideoMetadataByVideoId?.(titleId)?.getCurrentVideo?.();
+        const actualTitle = videoApi?.getTitle?.();
+
+        if (!actualTitle) {
+            return [`${titleId}`, true];
+        }
+
+        let basename = actualTitle;
+
+        if (videoApi?.isEpisodic?.() === true) {
+            const season = `${videoApi?.getSeason()?._season?.seq}`.padStart(2, '0');
+            const ep = `${videoApi?.getEpisodeNumber?.()}`.padStart(2, '0');
+            const epTitle = videoApi?.getEpisodeTitle?.();
+            basename += ` S${season}E${ep} ${epTitle}`;
+        }
+
+        return [basename, false];
+    }
+
+    async function determineBasenameWithRetries(titleId, retries) {
+        if (retries <= 0) {
+            return `${titleId}`;
+        }
+
+        const [basename, shouldRetry] = determineBasename(titleId);
+
+        if (shouldRetry) {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            return await determineBasenameWithRetries(titleId, --retries);
+        }
+
+        return basename;
+    }
+
     document.addEventListener(
         'asbplayer-get-synced-data',
-        () => {
+        async () => {
             const response = { error: '', basename: '', extension: 'nfvtt', subtitles: [] };
             const np = player();
             const titleId = np?.getMovieId();
@@ -86,10 +121,8 @@ setTimeout(() => {
                 );
             }
 
-            const videoApi = getAPI()?.getVideoMetadataByVideoId?.(titleId)?.getCurrentVideo?.();
-            const title = videoApi?.getTitle?.() || titleId;
+            response.basename = await determineBasenameWithRetries(titleId, 5);
             const storedTracks = subTracks.get(titleId) || new Map();
-
             response.subtitles = np
                 .getTimedTextTrackList()
                 .filter((track) => storedTracks.has(track.trackId))
@@ -102,13 +135,6 @@ setTimeout(() => {
                         url: storedTracks.get(track.trackId),
                     };
                 });
-            response.basename = `${title}`;
-            if (videoApi?.isEpisodic?.() === true) {
-                const season = `${videoApi?.getSeason()?._season?.seq}`.padStart(2, '0');
-                const ep = `${videoApi?.getEpisodeNumber?.()}`.padStart(2, '0');
-                const epTitle = videoApi?.getEpisodeTitle?.();
-                response.basename += ` S${season}E${ep} ${epTitle}`;
-            }
 
             document.dispatchEvent(
                 new CustomEvent('asbplayer-synced-data', {
