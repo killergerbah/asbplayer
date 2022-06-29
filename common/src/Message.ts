@@ -4,9 +4,10 @@ import {
     SubtitleModel,
     ImageModel,
     AudioModel,
-    AnkiUiDialogState,
     AnkiUiContainerCurrentItem,
     AudioTrackModel,
+    AnkiUiRerecordState,
+    ConfirmedVideoDataSubtitleTrack,
 } from './Model';
 
 export interface Message {
@@ -121,7 +122,7 @@ export interface ShowAnkiUiMessage extends Message {
 export interface RerecordMediaMessage extends Message {
     readonly command: 'rerecord-media';
     readonly duration: number;
-    readonly uiState: AnkiUiDialogState;
+    readonly uiState: AnkiUiRerecordState;
     readonly audioPaddingStart: number;
     readonly audioPaddingEnd: number;
     readonly currentItem: AnkiUiContainerCurrentItem;
@@ -132,7 +133,7 @@ export interface RerecordMediaMessage extends Message {
 export interface ShowAnkiUiAfterRerecordMessage extends Message {
     readonly command: 'show-anki-ui-after-rerecord';
     readonly id: string;
-    readonly uiState: AnkiUiDialogState;
+    readonly uiState: AnkiUiRerecordState;
     readonly audio: AudioModel;
 }
 
@@ -277,4 +278,21 @@ export interface AnkiSettingsToVideoMessage extends Message {
 export interface MiscSettingsToVideoMessage extends Message {
     readonly command: 'miscSettings';
     readonly value: MiscSettings;
+}
+
+export interface AnkiUiBridgeResumeMessage extends Message {
+    readonly command: 'resume';
+}
+
+export interface AnkiUiBridgeRerecordMessage extends Message {
+    readonly command: 'rerecord';
+    readonly uiState: AnkiUiRerecordState;
+    readonly id: string;
+    readonly recordStart: number;
+    readonly recordEnd: number;
+}
+
+export interface VideoDataUiBridgeConfirmMessage extends Message {
+    readonly command: 'confirm';
+    readonly data: ConfirmedVideoDataSubtitleTrack;
 }

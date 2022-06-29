@@ -13,6 +13,8 @@ import {
     AnkiUiInitialState,
     AnkiUiResumeState,
     AnkiUiRerecordState,
+    AnkiUiBridgeRerecordMessage,
+    AnkiUiBridgeResumeMessage,
 } from '@project/common';
 import { createTheme } from './theme';
 import { ThemeProvider } from '@material-ui/core/styles';
@@ -175,7 +177,8 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 if (mode !== 'gui') {
                     setOpen(false);
                     setImageDialogOpen(false);
-                    bridge.finished({ command: 'resume' });
+                    const message: AnkiUiBridgeResumeMessage = { command: 'resume' };
+                    bridge.finished(message);
                 }
             } catch (e) {
                 console.error(e);
@@ -198,7 +201,8 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
     const handleCancel = useCallback(() => {
         setOpen(false);
         setImageDialogOpen(false);
-        bridge.finished({ command: 'resume' });
+        const message: AnkiUiBridgeResumeMessage = { command: 'resume' };
+        bridge.finished(message);
     }, [bridge]);
 
     const handleViewImage = useCallback((image: Image) => {
@@ -234,13 +238,15 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 lastAppliedTimestampIntervalToText: lastAppliedTimestampIntervalToText,
             };
 
-            bridge.finished({
+            const message: AnkiUiBridgeRerecordMessage = {
                 command: 'rerecord',
                 uiState: resumeUiState,
-                id: id,
+                id: id!,
                 recordStart: timestampInterval[0],
                 recordEnd: timestampInterval[1],
-            });
+            };
+
+            bridge.finished(message);
         },
         [serializedImage, subtitle, id]
     );

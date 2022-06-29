@@ -1,3 +1,5 @@
+import { Message } from "@project/common";
+
 export default class Bridge {
     private uiListener?: (state: any) => void;
     private clientListener?: (message: any) => void;
@@ -26,11 +28,11 @@ export default class Bridge {
         return await this.fetchDelegate(url, body);
     }
 
-    onFinished(clientListener: (message: any) => void) {
+    onFinished(clientListener: (message: Message) => void) {
         this.clientListener = clientListener;
     }
 
-    finished(message: any) {
+    finished(message: Message) {
         this.clientListener?.(message);
     }
 

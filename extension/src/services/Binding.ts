@@ -1,6 +1,6 @@
 import {
     AnkiUiContainerCurrentItem,
-    AnkiUiDialogState,
+    AnkiUiRerecordState,
     AnkiUiState,
     CurrentTimeFromVideoMessage,
     PauseFromVideoMessage,
@@ -13,7 +13,6 @@ import {
     StartRecordingMediaMessage,
     StopRecordingMediaMessage,
     TakeScreenshotFromExtensionMessage,
-    TakeScreenshotMessage,
     VideoHeartbeatMessage,
     VideoToExtensionCommand,
 } from '@project/common';
@@ -583,7 +582,7 @@ export default class Binding {
         return true;
     }
 
-    async rerecord(start: number, end: number, currentItem: AnkiUiContainerCurrentItem, uiState: AnkiUiDialogState) {
+    async rerecord(start: number, end: number, currentItem: AnkiUiContainerCurrentItem, uiState: AnkiUiRerecordState) {
         const noSubtitles = this.subtitleContainer.subtitles.length === 0;
         const audioPaddingStart = noSubtitles ? 0 : this.audioPaddingStart;
         const audioPaddingEnd = noSubtitles ? 0 : this.audioPaddingEnd;

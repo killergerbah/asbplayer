@@ -1,5 +1,6 @@
 import {
     AnkiSettings,
+    AnkiUiBridgeRerecordMessage,
     AnkiUiContainerCurrentItem,
     AnkiUiRerecordState,
     AudioModel,
@@ -161,8 +162,9 @@ export default class AnkiUiContainer {
                 context.play();
                 this.currentItem = undefined;
             } else if (message.command === 'rerecord') {
+                const rerecordMessage = message as AnkiUiBridgeRerecordMessage;
                 if (this.currentItem) {
-                    context.rerecord(message.recordStart, message.recordEnd, this.currentItem, message.uiState);
+                    context.rerecord(rerecordMessage.recordStart, rerecordMessage.recordEnd, this.currentItem, rerecordMessage.uiState);
                 } else {
                     console.error("Cannot rerecord because currentItem is undefined");
                 }

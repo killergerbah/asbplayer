@@ -105,20 +105,6 @@ export interface AnkiUiRerecordState {
     lastAppliedTimestampIntervalToText: number[];
 }
 
-export interface AnkiUiDialogState {
-    readonly subtitle: SubtitleModel;
-    readonly text: string;
-    readonly sliderContext: AnkiDialogSliderContext;
-    readonly definition: string;
-    readonly image?: ImageModel;
-    readonly audio?: AudioModel;
-    readonly word: string;
-    readonly source: string;
-    readonly customFieldValues: { [key: string]: string };
-    readonly timestampInterval: number[];
-    readonly lastAppliedTimestampIntervalToText: number[];
-}
-
 export interface AnkiUiContainerCurrentItem {
     readonly subtitle: SubtitleModel;
     readonly surroundingSubtitles: SubtitleModel[];
