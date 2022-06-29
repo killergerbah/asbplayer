@@ -105,6 +105,7 @@ interface PlayerProps {
         audioFile: File | undefined,
         videoFile: File | undefined,
         subtitleFile: File | undefined,
+        mediaTimestamp: number | undefined,
         audioTrack: string | undefined,
         audio: AudioModel | undefined,
         image: ImageModel | undefined,
@@ -373,6 +374,7 @@ export default function Player({
                                 audioFile,
                                 videoFile,
                                 subtitle ? subtitleFiles[subtitle.track] : undefined,
+                                clock.time(lengthRef.current),
                                 channel?.selectedAudioTrack,
                                 audio,
                                 image,
@@ -639,6 +641,7 @@ export default function Player({
                 audioFile,
                 videoFile,
                 subtitleFiles[subtitle.track],
+                clock.time(lengthRef.current),
                 selectedAudioTrack,
                 undefined,
                 undefined,
@@ -647,7 +650,7 @@ export default function Player({
                 undefined
             );
         },
-        [onCopy, audioFile, videoFile, subtitleFiles, selectedAudioTrack]
+        [clock, onCopy, audioFile, videoFile, subtitleFiles, selectedAudioTrack]
     );
 
     const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -746,6 +749,7 @@ export default function Player({
                         audioFile,
                         videoFile,
                         undefined,
+                        clock.time(lengthRef.current),
                         selectedAudioTrack,
                         undefined,
                         undefined,
@@ -795,6 +799,7 @@ export default function Player({
                         audioFile,
                         videoFile,
                         undefined,
+                        timestamp,
                         selectedAudioTrack,
                         undefined,
                         undefined,

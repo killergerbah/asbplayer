@@ -162,7 +162,7 @@ function imageFromItem(item: CopyHistoryItem, maxWidth: number, maxHeight: numbe
     }
 
     if (item.videoFile) {
-        return Image.fromFile(item.videoFile, item.start, maxWidth, maxHeight);
+        return Image.fromFile(item.videoFile, item.mediaTimestamp ?? item.start, maxWidth, maxHeight);
     }
 
     return undefined;
@@ -360,6 +360,7 @@ function App() {
             audioFile: File | undefined,
             videoFile: File | undefined,
             subtitleFile: File | undefined,
+            mediaTimestamp: number | undefined,
             audioTrack: string | undefined,
             audio: AudioModel | undefined,
             image: ImageModel | undefined,
@@ -381,6 +382,19 @@ function App() {
                         subtitle.text === last.text &&
                         subtitleFile?.name === last.subtitleFile?.name
                     ) {
+                        if (mediaTimestamp !== undefined && mediaTimestamp !== last.mediaTimestamp) {
+                            const updated = Object.assign({}, last);
+                            updated.mediaTimestamp = mediaTimestamp;
+                            const newCopiedSubtitles = [];
+
+                            for (let i = 0; i < copiedSubtitles.length - 1; ++i) {
+                                newCopiedSubtitles.push(copiedSubtitles[i]);
+                            }
+
+                            newCopiedSubtitles.push(updated);
+                            return newCopiedSubtitles;
+                        }
+
                         return copiedSubtitles;
                     }
                 }
@@ -390,13 +404,14 @@ function App() {
 
                 for (const copiedSubtitle of copiedSubtitles) {
                     if (id && copiedSubtitle.id === id) {
-                        const newCopiedSubtitle = {
+                        const newCopiedSubtitle: CopyHistoryItem = {
                             ...copiedSubtitle,
                             ...subtitle,
                             ...(surroundingSubtitles && { surroundingSubtitles: surroundingSubtitles }),
                             ...(subtitleFile && { subtitleFile: subtitleFile }),
                             ...(audioFile && { audioFile: audioFile }),
                             ...(videoFile && { videoFile: videoFile }),
+                            ...(mediaTimestamp && { mediaTimestamp: mediaTimestamp }),
                             ...(audioTrack && { audioTrack: audioTrack }),
                             ...(audio && { audio: audio }),
                             ...(image && { image: image }),
@@ -419,6 +434,7 @@ function App() {
                         subtitleFile: subtitleFile,
                         audioFile: audioFile,
                         videoFile: videoFile,
+                        mediaTimestamp: mediaTimestamp,
                         audioTrack: audioTrack,
                         audio: audio,
                         image: image,
@@ -463,7 +479,7 @@ function App() {
             // ATM only the Anki dialog may appear under the settings dialog,
             // so it's the only one we need to check to re-enable key events
             setDisableKeyEvents(ankiDialogOpen);
-            
+
             const subtitleSettingsMessage: SubtitleSettingsToVideoMessage = {
                 command: 'subtitleSettings',
                 value: settingsProvider.subtitleSettings,
@@ -908,14 +924,17 @@ function App() {
 
     const handleFileSelector = useCallback(() => fileInputRef.current?.click(), []);
 
-    const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-        if (ankiDialogOpen) {
-            return;
-        }
+    const handleDragOver = useCallback(
+        (e: React.DragEvent<HTMLDivElement>) => {
+            if (ankiDialogOpen) {
+                return;
+            }
 
-        e.preventDefault();
-    }, [ankiDialogOpen]);
-    
+            e.preventDefault();
+        },
+        [ankiDialogOpen]
+    );
+
     const handleDragEnter = useCallback(
         (e: React.DragEvent<HTMLDivElement>) => {
             if (ankiDialogOpen) {
