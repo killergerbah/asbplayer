@@ -40,6 +40,9 @@ export default class Binding {
     maxImageHeight: number;
     subscribed: boolean = false;
 
+    retakingScreenshot: boolean;
+    rerecordAnkiUiState?: AnkiUiRerecordState;
+
     private synced: boolean;
     private recordingMedia: boolean;
     private recordingMediaStartedTimestamp?: number;
@@ -91,6 +94,7 @@ export default class Binding {
         this.recordingMedia = false;
         this.recordingMediaWithScreenshot = false;
         this.preparingScreenshot = false;
+        this.retakingScreenshot = false;
     }
 
     get url() {
@@ -347,6 +351,15 @@ export default class Binding {
                         this._takeScreenshot();
                         break;
                     case 'screenshot-taken':
+                        if (this.retakingScreenshot) {
+                            if (this.rerecordAnkiUiState) {
+                                this.ankiUiContainer.showAfterRetakingScreenshot(this, request.message.image, this.rerecordAnkiUiState);
+                            }
+                            
+                            this.retakingScreenshot = false;
+                            this.rerecordAnkiUiState = undefined;
+                        }
+
                         if (this.cleanScreenshot) {
                             if (this.showControlsTimeout) {
                                 clearTimeout(this.showControlsTimeout);

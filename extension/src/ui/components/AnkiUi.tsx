@@ -15,6 +15,7 @@ import {
     AnkiUiRerecordState,
     AnkiUiBridgeRerecordMessage,
     AnkiUiBridgeResumeMessage,
+    AnkiUiBridgeRetakeScreenshotMessage,
 } from '@project/common';
 import { createTheme } from './theme';
 import { ThemeProvider } from '@material-ui/core/styles';
@@ -51,6 +52,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
     const [customFieldValues, setCustomFieldValues] = useState<{ [key: string]: string }>({});
     const [timestampInterval, setTimestampInterval] = useState<number[]>();
     const [lastAppliedTimestampIntervalToText, setLastAppliedTimestampIntervalToText] = useState<number[]>();
+    const [lastAppliedTimestampIntervalToAudio, setLastAppliedTimestampIntervalToAudio] = useState<number[]>();
     const [settingsProvider, setSettingsProvider] = useState<AnkiSettings>();
     const [alertSeverity, setAlertSeverity] = useState<Color>('error');
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
@@ -89,16 +91,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 setWord('');
                 setCustomFieldValues({});
                 setLastAppliedTimestampIntervalToText(undefined);
-
-                if (state.audio) {
-                    audioClip = AudioClip.fromBase64(
-                        state.source,
-                        Math.max(0, state.subtitle.start - state.audio.paddingStart),
-                        state.subtitle.end + state.audio.paddingEnd,
-                        state.audio.base64,
-                        state.audio.extension
-                    );
-                }
+                setLastAppliedTimestampIntervalToAudio(undefined);
             } else if (s.type === 'resume') {
                 const state = s as AnkiUiResumeState;
                 setText(state.text);
@@ -110,16 +103,22 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 setWord(state.word);
                 setCustomFieldValues(state.customFieldValues);
                 setLastAppliedTimestampIntervalToText(state.lastAppliedTimestampIntervalToText);
+                setLastAppliedTimestampIntervalToAudio(state.lastAppliedTimestampIntervalToAudio);
+            }
 
-                if (state.audio) {
-                    audioClip = AudioClip.fromBase64(
-                        state.source,
-                        Math.max(0, state.audio.start! - state.audio.paddingStart),
-                        state.audio.end! + state.audio.paddingEnd,
-                        state.audio.base64,
-                        state.audio.extension
-                    );
+            if (s.audio) {
+                let start: number;
+                let end: number;
+
+                if (s.audio.start !== undefined && s.audio.end !== undefined) {
+                    start = Math.max(0, s.audio.start! - s.audio.paddingStart);
+                    end = s.audio.end! + s.audio.paddingEnd;
+                } else {
+                    start = Math.max(0, s.subtitle.start - s.audio.paddingStart);
+                    end = s.subtitle.end + s.audio.paddingEnd;
                 }
+
+                audioClip = AudioClip.fromBase64(s.source, start, end, s.audio.base64, s.audio.extension);
             }
 
             if (audioClip && s.settingsProvider.preferMp3) {
@@ -224,26 +223,67 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
         }: AnkiDialogRerecordParams) => {
             setOpen(false);
             setImageDialogOpen(false);
-            const resumeUiState: AnkiUiRerecordState = {
-                subtitle: subtitle,
-                text: text,
-                sliderContext: sliderContext,
-                definition: definition,
+            const rerecordState: AnkiUiRerecordState = {
+                subtitle: subtitle!,
+                text,
+                sliderContext,
+                definition,
                 image: serializedImage,
-                word: word,
-                source: source,
-                url: url,
-                customFieldValues: customFieldValues,
-                timestampInterval: timestampInterval,
-                lastAppliedTimestampIntervalToText: lastAppliedTimestampIntervalToText,
+                word,
+                source,
+                url,
+                customFieldValues,
+                timestampInterval,
+                lastAppliedTimestampIntervalToText,
             };
 
             const message: AnkiUiBridgeRerecordMessage = {
                 command: 'rerecord',
-                uiState: resumeUiState,
+                uiState: rerecordState,
                 id: id!,
                 recordStart: timestampInterval[0],
                 recordEnd: timestampInterval[1],
+            };
+
+            bridge.finished(message);
+        },
+        [serializedImage, subtitle, id]
+    );
+
+    const handleRetakeScreenshot = useCallback(
+        ({
+            text,
+            sliderContext,
+            definition,
+            word,
+            source,
+            url,
+            customFieldValues,
+            timestampInterval,
+            lastAppliedTimestampIntervalToText,
+            lastAppliedTimestampIntervalToAudio,
+        }: AnkiDialogRerecordParams) => {
+            setOpen(false);
+            setImageDialogOpen(false);
+            const rerecordState: AnkiUiRerecordState = {
+                subtitle: subtitle!,
+                text,
+                sliderContext,
+                definition,
+                audio: serializedAudio,
+                word,
+                source,
+                url,
+                customFieldValues,
+                timestampInterval,
+                lastAppliedTimestampIntervalToText,
+                lastAppliedTimestampIntervalToAudio,
+            };
+
+            const message: AnkiUiBridgeRetakeScreenshotMessage = {
+                command: 'retake-screenshot',
+                uiState: rerecordState,
+                id: id!,
             };
 
             bridge.finished(message);
@@ -279,6 +319,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                     anki={anki}
                     onProceed={handleProceed}
                     onRerecord={handleRerecord}
+                    onRetakeScreenshot={handleRetakeScreenshot}
                     onCancel={handleCancel}
                     onViewImage={handleViewImage}
                     definition={definition}
@@ -287,6 +328,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                     customFieldValues={customFieldValues}
                     timestampInterval={timestampInterval}
                     lastAppliedTimestampIntervalToText={lastAppliedTimestampIntervalToText}
+                    lastAppliedTimestampIntervalToAudio={lastAppliedTimestampIntervalToAudio}
                 />
             )}
         </ThemeProvider>

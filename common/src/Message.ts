@@ -107,6 +107,7 @@ export interface TakeScreenshotFromExtensionMessage extends Message {
 
 export interface ScreenshotTakenMessage extends Message {
     readonly command: 'screenshot-taken';
+    readonly image: ImageModel;
 }
 
 export interface ShowAnkiUiMessage extends Message {
@@ -290,6 +291,12 @@ export interface AnkiUiBridgeRerecordMessage extends Message {
     readonly id: string;
     readonly recordStart: number;
     readonly recordEnd: number;
+}
+
+export interface AnkiUiBridgeRetakeScreenshotMessage extends Message {
+    readonly command: 'retake-screenshot';
+    readonly uiState: AnkiUiRerecordState;
+    readonly id: string;
 }
 
 export interface VideoDataUiBridgeConfirmMessage extends Message {

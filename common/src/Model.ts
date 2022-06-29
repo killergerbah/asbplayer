@@ -76,7 +76,7 @@ export interface AnkiUiState {
 
 export interface AnkiUiInitialState extends AnkiUiState {
     readonly type: 'initial';
-    readonly surroundingSubtitles: [SubtitleModel];
+    readonly surroundingSubtitles: SubtitleModel[];
 }
 
 export interface AnkiUiResumeState extends AnkiUiState {
@@ -89,20 +89,23 @@ export interface AnkiUiResumeState extends AnkiUiState {
     readonly word: string;
     readonly customFieldValues: { [key: string]: string };
     readonly lastAppliedTimestampIntervalToText: number[];
+    readonly lastAppliedTimestampIntervalToAudio?: number[];
 }
 
 export interface AnkiUiRerecordState {
-    subtitle?: SubtitleModel;
+    subtitle: SubtitleModel;
     text: string;
     sliderContext: AnkiDialogSliderContext;
     definition: string;
     image?: ImageModel;
+    audio?: AudioModel;
     word: string;
     source: string;
     url: string;
     customFieldValues: { [key: string]: string };
     timestampInterval: number[];
     lastAppliedTimestampIntervalToText: number[];
+    lastAppliedTimestampIntervalToAudio?: number[];
 }
 
 export interface AnkiUiContainerCurrentItem {

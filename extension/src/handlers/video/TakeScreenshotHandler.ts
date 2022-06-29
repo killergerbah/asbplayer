@@ -44,6 +44,10 @@ export default class TakeScreenshotHandler {
             sender: 'asbplayer-extension-to-video',
             message: {
                 command: 'screenshot-taken',
+                image: {
+                    base64: this.imageCapturer.lastImageBase64!,
+                    extension: 'jpeg',
+                },
             },
             src: takeScreenshotCommand.src,
         };

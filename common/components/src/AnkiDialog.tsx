@@ -11,6 +11,7 @@ import {
 } from '@project/common';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
+import CameraAltIcon from '@material-ui/icons/CameraAlt';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -163,6 +164,7 @@ export interface AnkiDialogRerecordParams {
     url: string;
     customFieldValues: { [key: string]: string };
     lastAppliedTimestampIntervalToText: number[];
+    lastAppliedTimestampIntervalToAudio?: number[];
     timestampInterval: number[];
 }
 
@@ -183,6 +185,7 @@ interface AnkiDialogProps {
         mode: AnkiExportMode
     ) => void;
     onRerecord?: (params: AnkiDialogRerecordParams) => void;
+    onRetakeScreenshot?: (params: AnkiDialogRerecordParams) => void;
     onCancel: () => void;
     onViewImage: (image: Image) => void;
     onOpenSettings?: () => void;
@@ -199,6 +202,7 @@ interface AnkiDialogProps {
     customFieldValues?: { [key: string]: string };
     timestampInterval?: number[];
     lastAppliedTimestampIntervalToText?: number[];
+    lastAppliedTimestampIntervalToAudio?: number[];
 }
 
 export function AnkiDialog({
@@ -210,6 +214,7 @@ export function AnkiDialog({
     onViewImage,
     onOpenSettings,
     onRerecord,
+    onRetakeScreenshot,
     audioClip: initialAudioClip,
     image,
     source: initialSource,
@@ -223,6 +228,7 @@ export function AnkiDialog({
     customFieldValues: initialCustomFieldValues,
     timestampInterval: initialSelectedTimestampInterval,
     lastAppliedTimestampIntervalToText: initialLastAppliedTimestampIntervalToText,
+    lastAppliedTimestampIntervalToAudio: initialLastAppliedTimestampIntervalToAudio,
 }: AnkiDialogProps) {
     const classes = useStyles();
     const [definition, setDefinition] = useState<string>('');
@@ -281,11 +287,16 @@ export function AnkiDialog({
         setSelectedSubtitles(selectedSubtitles);
         setInitialTimestampInterval(timestampInterval);
         setLastAppliedTimestampIntervalToText(initialLastAppliedTimestampIntervalToText || timestampInterval);
-        setLastAppliedTimestampIntervalToAudio(timestampInterval);
+        setLastAppliedTimestampIntervalToAudio(initialLastAppliedTimestampIntervalToAudio || timestampInterval);
         setTimestampBoundaryInterval(timestampBoundaryInterval);
         setInitialTimestampBoundaryInterval(timestampBoundaryInterval);
         setTimestampMarks(timestampMarks);
-    }, [sliderContext, initialSelectedTimestampInterval, initialLastAppliedTimestampIntervalToText]);
+    }, [
+        sliderContext,
+        initialSelectedTimestampInterval,
+        initialLastAppliedTimestampIntervalToText,
+        initialLastAppliedTimestampIntervalToAudio,
+    ]);
 
     useEffect(() => {
         if (!initialAudioClip) {
@@ -431,6 +442,44 @@ export function AnkiDialog({
         [
             onRerecord,
             lastAppliedTimestampIntervalToText,
+            timestampInterval,
+            text,
+            sliderContext,
+            definition,
+            word,
+            source,
+            url,
+            customFieldValues,
+        ]
+    );
+
+    const handleRetakeScreenshot = useCallback(
+        (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+            e.stopPropagation();
+            if (onRetakeScreenshot) {
+                if (!lastAppliedTimestampIntervalToText || !timestampInterval) {
+                    return;
+                }
+
+                e.stopPropagation();
+                onRetakeScreenshot({
+                    text: text,
+                    sliderContext: sliderContext!,
+                    definition: definition,
+                    word: word,
+                    source: source,
+                    url: url,
+                    customFieldValues: customFieldValues,
+                    lastAppliedTimestampIntervalToText: lastAppliedTimestampIntervalToText,
+                    lastAppliedTimestampIntervalToAudio: lastAppliedTimestampIntervalToAudio,
+                    timestampInterval: timestampInterval,
+                });
+            }
+        },
+        [
+            onRetakeScreenshot,
+            lastAppliedTimestampIntervalToText,
+            lastAppliedTimestampIntervalToAudio,
             timestampInterval,
             text,
             sliderContext,
@@ -599,10 +648,11 @@ export function AnkiDialog({
                                                         <IconButton
                                                             disabled={
                                                                 !timestampInterval ||
-                                                                !initialTimestampInterval ||
-                                                                (timestampInterval[0] === initialTimestampInterval[0] &&
+                                                                !lastAppliedTimestampIntervalToAudio ||
+                                                                (timestampInterval[0] ===
+                                                                    lastAppliedTimestampIntervalToAudio[0] &&
                                                                     timestampInterval[1] ===
-                                                                        initialTimestampInterval[1])
+                                                                        lastAppliedTimestampIntervalToAudio[1])
                                                             }
                                                             onClick={handleApplyTimestampIntervalToAudio}
                                                             edge="end"
@@ -642,7 +692,26 @@ export function AnkiDialog({
                     )}
                     {image && (
                         <div className={classes.mediaField} onClick={handleViewImage}>
-                            <TextField variant="filled" color="secondary" fullWidth value={image.name} label="Image" />
+                            <TextField
+                                variant="filled"
+                                color="secondary"
+                                fullWidth
+                                value={image.name}
+                                label="Image"
+                                InputProps={{
+                                    endAdornment: onRetakeScreenshot && (
+                                        <InputAdornment position="end">
+                                            <Tooltip title="Retake screenshot">
+                                                <span>
+                                                    <IconButton onClick={handleRetakeScreenshot} edge="end">
+                                                        <CameraAltIcon />
+                                                    </IconButton>
+                                                </span>
+                                            </Tooltip>
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
                         </div>
                     )}
                     <TextField

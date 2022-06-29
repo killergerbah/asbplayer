@@ -70,6 +70,10 @@ export default class RecordMediaHandler {
                 sender: 'asbplayer-extension-to-video',
                 message: {
                     command: 'screenshot-taken',
+                    image: {
+                        base64: this.imageCapturer.lastImageBase64!,
+                        extension: 'jpeg',
+                    },
                 },
                 src: recordMediaCommand.src,
             };
