@@ -65,11 +65,7 @@ export default class RecordMediaHandler {
         }
 
         if (imagePromise) {
-            const imageBase64 = await imagePromise;
-            imageModel = {
-                base64: imageBase64,
-                extension: 'jpeg',
-            };
+            await imagePromise;
             const screenshotTakenCommand: ExtensionToVideoCommand<ScreenshotTakenMessage> = {
                 sender: 'asbplayer-extension-to-video',
                 message: {
@@ -88,6 +84,14 @@ export default class RecordMediaHandler {
                 extension: 'webm',
                 paddingStart: recordMediaCommand.message.audioPaddingStart,
                 paddingEnd: recordMediaCommand.message.audioPaddingEnd,
+            };
+        }
+
+        if (imagePromise) {
+            // Use the last screenshot taken to allow user to re-take screenshot while audio is recording
+            imageModel = {
+                base64: this.imageCapturer.lastImageBase64!,
+                extension: 'jpeg',
             };
         }
 

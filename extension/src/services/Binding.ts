@@ -12,6 +12,8 @@ import {
     RerecordMediaMessage,
     StartRecordingMediaMessage,
     StopRecordingMediaMessage,
+    TakeScreenshotFromExtensionMessage,
+    TakeScreenshotMessage,
     VideoHeartbeatMessage,
     VideoToExtensionCommand,
 } from '@project/common';
@@ -43,6 +45,7 @@ export default class Binding {
     private recordingMedia: boolean;
     private recordingMediaStartedTimestamp?: number;
     private recordingMediaWithScreenshot: boolean;
+    private preparingScreenshot: boolean;
 
     readonly video: HTMLVideoElement;
     readonly subSyncAvailable: boolean;
@@ -88,6 +91,7 @@ export default class Binding {
         this.synced = false;
         this.recordingMedia = false;
         this.recordingMediaWithScreenshot = false;
+        this.preparingScreenshot = false;
     }
 
     get url() {
@@ -340,6 +344,9 @@ export default class Binding {
                             request.message.id
                         );
                         break;
+                    case 'take-screenshot':
+                        this._takeScreenshot();
+                        break;
                     case 'screenshot-taken':
                         if (this.cleanScreenshot) {
                             if (this.showControlsTimeout) {
@@ -428,6 +435,31 @@ export default class Binding {
         this.keyBindings.unbind();
         this.videoDataSyncContainer.unbind();
         this.subscribed = false;
+    }
+
+    async _takeScreenshot() {
+        if (!this.screenshot) {
+            return;
+        }
+
+        const ready = await this._prepareScreenshot();
+
+        if (!ready) {
+            return;
+        }
+
+        const command: VideoToExtensionCommand<TakeScreenshotFromExtensionMessage> = {
+            sender: 'asbplayer-video',
+            message: {
+                command: 'take-screenshot',
+                rect: this.video.getBoundingClientRect(),
+                maxImageWidth: this.maxImageWidth,
+                maxImageHeight: this.maxImageHeight,
+            },
+            src: this.video.src,
+        };
+
+        chrome.runtime.sendMessage(command);
     }
 
     async _copySubtitle(showAnkiUi: boolean) {
@@ -523,7 +555,13 @@ export default class Binding {
         }
     }
 
-    async _prepareScreenshot() {
+    async _prepareScreenshot(): Promise<boolean> {
+        if (this.preparingScreenshot) {
+            return false;
+        }
+
+        this.preparingScreenshot = true;
+
         if (this.showControlsTimeout) {
             clearTimeout(this.showControlsTimeout);
             this.showControlsTimeout = undefined;
@@ -539,7 +577,10 @@ export default class Binding {
                     .get(['displaySubtitles'])
                     .then(({ displaySubtitles }) => (this.subtitleContainer.displaySubtitles = displaySubtitles));
             }, 1000);
+            this.preparingScreenshot = false;
         }
+
+        return true;
     }
 
     async rerecord(start: number, end: number, currentItem: AnkiUiContainerCurrentItem, uiState: AnkiUiDialogState) {

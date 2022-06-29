@@ -52,6 +52,13 @@
                 "mac": "MacCtrl+Shift+F"
             },
             "description": "Select video element to mine without a subtitle file, or with detected subtitles on supported sites."
+        },
+        "take-screenshot": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+C",
+                "mac": "MacCtrl+Shift+C"
+            },
+            "description": "Manually take screenshot of currently synced video element."
         }
     },
     "web_accessible_resources": [

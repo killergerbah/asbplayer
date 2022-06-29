@@ -88,6 +88,22 @@ export interface CopyMessage extends Message {
     readonly preventDuplicate?: boolean;
 }
 
+export interface CopySubtitleMessage extends Message {
+    readonly command: 'copy-subtitle';
+    readonly showAnkiUi: boolean;
+}
+
+export interface TakeScreenshotMessage extends Message {
+    readonly command: 'take-screenshot';
+}
+
+export interface TakeScreenshotFromExtensionMessage extends Message {
+    readonly command: 'take-screenshot';
+    readonly rect: RectModel;
+    readonly maxImageWidth: number;
+    readonly maxImageHeight: number;
+}
+
 export interface ScreenshotTakenMessage extends Message {
     readonly command: 'screenshot-taken';
 }

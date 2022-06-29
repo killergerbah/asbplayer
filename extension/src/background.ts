@@ -16,7 +16,8 @@ import AsbplayerV2ToVideoCommandForwardingHandler from './handlers/asbplayerv2/A
 import AsbplayerHeartbeatHandler from './handlers/asbplayerv2/AsbplayerHeartbeatHandler';
 import RefreshSettingsHandler from './handlers/popup/RefreshSettingsHandler';
 import { CommandHandler } from './handlers/CommandHandler';
-import { Command, Message } from '@project/common';
+import { Command, CopySubtitleMessage, ExtensionToVideoCommand, Message, TakeScreenshotMessage } from '@project/common';
+import TakeScreenshotHandler from './handlers/video/TakeScreenshotHandler';
 
 const settings = new Settings();
 const tabRegistry = new TabRegistry(settings);
@@ -29,6 +30,7 @@ const handlers: CommandHandler[] = [
     new RerecordMediaHandler(audioRecorder),
     new StartRecordingMediaHandler(audioRecorder, imageCapturer),
     new StopRecordingMediaHandler(audioRecorder, imageCapturer),
+    new TakeScreenshotHandler(imageCapturer),
     new ToggleSubtitlesHandler(settings, tabRegistry),
     new SyncHandler(tabRegistry),
     new HttpPostHandler(),
@@ -62,21 +64,17 @@ chrome.commands.onCommand.addListener((command) => {
         switch (command) {
             case 'copy-subtitle':
             case 'copy-subtitle-with-dialog':
-                for (const tab of tabs) {
-                    for (const id in tabRegistry.videoElements) {
-                        const videoElementTab = tabRegistry.videoElements[id].tab;
-                        if (typeof videoElementTab.id !== 'undefined' && videoElementTab.id === tab.id) {
-                            chrome.tabs.sendMessage(videoElementTab.id, {
-                                sender: 'asbplayer-extension-to-video',
-                                message: {
-                                    command: 'copy-subtitle',
-                                    showAnkiUi: command === 'copy-subtitle-with-dialog',
-                                },
-                                src: tabRegistry.videoElements[id].src,
-                            });
-                        }
-                    }
-                }
+                _publishToVideoElements((id, src) => {
+                    const extensionToVideoCommand: ExtensionToVideoCommand<CopySubtitleMessage> = {
+                        sender: 'asbplayer-extension-to-video',
+                        message: {
+                            command: 'copy-subtitle',
+                            showAnkiUi: command === 'copy-subtitle-with-dialog',
+                        },
+                        src: src,
+                    };
+                    return extensionToVideoCommand;
+                }, tabs);
                 break;
             case 'toggle-video-select':
                 for (const tab of tabs) {
@@ -90,8 +88,35 @@ chrome.commands.onCommand.addListener((command) => {
                     }
                 }
                 break;
+            case 'take-screenshot':
+                _publishToVideoElements((id, src) => {
+                    const extensionToVideoCommand: ExtensionToVideoCommand<TakeScreenshotMessage> = {
+                        sender: 'asbplayer-extension-to-video',
+                        message: {
+                            command: 'take-screenshot',
+                        },
+                        src: src,
+                    };
+                    return extensionToVideoCommand;
+                }, tabs);
             default:
                 throw new Error('Unknown command ' + command);
         }
     });
 });
+
+function _publishToVideoElements(
+    messageFunction: (id: number, src: string) => ExtensionToVideoCommand<Message>,
+    tabs: chrome.tabs.Tab[]
+) {
+    for (const tab of tabs) {
+        for (const id in tabRegistry.videoElements) {
+            const videoElement = tabRegistry.videoElements[id];
+            const videoElementTab = videoElement.tab;
+
+            if (typeof videoElementTab.id !== 'undefined' && videoElementTab.id === tab.id) {
+                chrome.tabs.sendMessage(videoElementTab.id, messageFunction(videoElementTab.id, videoElement.src));
+            }
+        }
+    }
+}
