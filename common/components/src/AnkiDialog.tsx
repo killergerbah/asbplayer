@@ -165,6 +165,7 @@ export interface AnkiDialogRerecordParams {
     customFieldValues: { [key: string]: string };
     lastAppliedTimestampIntervalToText: number[];
     lastAppliedTimestampIntervalToAudio?: number[];
+    initialTimestampInterval: number[];
     timestampInterval: number[];
 }
 
@@ -200,6 +201,7 @@ interface AnkiDialogProps {
     word?: string;
     customFields: { [key: string]: string };
     customFieldValues?: { [key: string]: string };
+    initialTimestampInterval?: number[];
     timestampInterval?: number[];
     lastAppliedTimestampIntervalToText?: number[];
     lastAppliedTimestampIntervalToAudio?: number[];
@@ -227,6 +229,7 @@ export function AnkiDialog({
     word: initialWord,
     customFieldValues: initialCustomFieldValues,
     timestampInterval: initialSelectedTimestampInterval,
+    initialTimestampInterval: forceInitialTimestampInterval,
     lastAppliedTimestampIntervalToText: initialLastAppliedTimestampIntervalToText,
     lastAppliedTimestampIntervalToAudio: initialLastAppliedTimestampIntervalToAudio,
 }: AnkiDialogProps) {
@@ -285,7 +288,7 @@ export function AnkiDialog({
 
         setTimestampInterval(timestampInterval);
         setSelectedSubtitles(selectedSubtitles);
-        setInitialTimestampInterval(timestampInterval);
+        setInitialTimestampInterval(forceInitialTimestampInterval || timestampInterval);
         setLastAppliedTimestampIntervalToText(initialLastAppliedTimestampIntervalToText || timestampInterval);
         setLastAppliedTimestampIntervalToAudio(initialLastAppliedTimestampIntervalToAudio || timestampInterval);
         setTimestampBoundaryInterval(timestampBoundaryInterval);
@@ -293,6 +296,7 @@ export function AnkiDialog({
         setTimestampMarks(timestampMarks);
     }, [
         sliderContext,
+        forceInitialTimestampInterval,
         initialSelectedTimestampInterval,
         initialLastAppliedTimestampIntervalToText,
         initialLastAppliedTimestampIntervalToAudio,
@@ -419,7 +423,7 @@ export function AnkiDialog({
         (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
             e.stopPropagation();
             if (onRerecord) {
-                if (!lastAppliedTimestampIntervalToText || !timestampInterval) {
+                if (!lastAppliedTimestampIntervalToText || !timestampInterval || !initialTimestampInterval) {
                     return;
                 }
 
@@ -432,6 +436,7 @@ export function AnkiDialog({
                     source: source,
                     url: url,
                     customFieldValues: customFieldValues,
+                    initialTimestampInterval: initialTimestampInterval,
                     lastAppliedTimestampIntervalToText: lastAppliedTimestampIntervalToText,
                     timestampInterval: timestampInterval,
                 });
@@ -441,6 +446,7 @@ export function AnkiDialog({
         },
         [
             onRerecord,
+            initialTimestampInterval,
             lastAppliedTimestampIntervalToText,
             timestampInterval,
             text,
@@ -457,7 +463,7 @@ export function AnkiDialog({
         (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
             e.stopPropagation();
             if (onRetakeScreenshot) {
-                if (!lastAppliedTimestampIntervalToText || !timestampInterval) {
+                if (!lastAppliedTimestampIntervalToText || !timestampInterval || !initialTimestampInterval) {
                     return;
                 }
 
@@ -470,6 +476,7 @@ export function AnkiDialog({
                     source: source,
                     url: url,
                     customFieldValues: customFieldValues,
+                    initialTimestampInterval: initialTimestampInterval,
                     lastAppliedTimestampIntervalToText: lastAppliedTimestampIntervalToText,
                     lastAppliedTimestampIntervalToAudio: lastAppliedTimestampIntervalToAudio,
                     timestampInterval: timestampInterval,
@@ -478,6 +485,7 @@ export function AnkiDialog({
         },
         [
             onRetakeScreenshot,
+            initialTimestampInterval,
             lastAppliedTimestampIntervalToText,
             lastAppliedTimestampIntervalToAudio,
             timestampInterval,

@@ -49,6 +49,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
     const [definition, setDefinition] = useState('');
     const [word, setWord] = useState('');
     const [customFieldValues, setCustomFieldValues] = useState<{ [key: string]: string }>({});
+    const [initialTimestampInterval, setInitialTimestampInterval] = useState<number[]>();
     const [timestampInterval, setTimestampInterval] = useState<number[]>();
     const [lastAppliedTimestampIntervalToText, setLastAppliedTimestampIntervalToText] = useState<number[]>();
     const [lastAppliedTimestampIntervalToAudio, setLastAppliedTimestampIntervalToAudio] = useState<number[]>();
@@ -71,6 +72,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 const state = s as AnkiUiInitialState;
                 setText(state.subtitle.text);
                 setSubtitle(state.subtitle);
+                setInitialTimestampInterval(undefined);
                 setTimestampInterval(undefined);
                 setSliderContext({
                     subtitleStart: state.subtitle.start,
@@ -94,6 +96,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             } else if (s.type === 'resume') {
                 const state = s as AnkiUiResumeState;
                 setText(state.text);
+                setInitialTimestampInterval(state.initialTimestampInterval);
                 setTimestampInterval(state.timestampInterval);
                 setSliderContext(state.sliderContext);
                 setSource(state.source);
@@ -216,6 +219,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             source,
             url,
             customFieldValues,
+            initialTimestampInterval,
             timestampInterval,
             lastAppliedTimestampIntervalToText,
         }: AnkiDialogRerecordParams) => {
@@ -231,6 +235,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 source,
                 url,
                 customFieldValues,
+                initialTimestampInterval,
                 timestampInterval,
                 lastAppliedTimestampIntervalToText,
             };
@@ -256,6 +261,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             source,
             url,
             customFieldValues,
+            initialTimestampInterval,
             timestampInterval,
             lastAppliedTimestampIntervalToText,
             lastAppliedTimestampIntervalToAudio,
@@ -272,6 +278,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 source,
                 url,
                 customFieldValues,
+                initialTimestampInterval,
                 timestampInterval,
                 lastAppliedTimestampIntervalToText,
                 lastAppliedTimestampIntervalToAudio,
@@ -322,6 +329,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                     word={word}
                     customFields={settingsProvider.customAnkiFields}
                     customFieldValues={customFieldValues}
+                    initialTimestampInterval={initialTimestampInterval}
                     timestampInterval={timestampInterval}
                     lastAppliedTimestampIntervalToText={lastAppliedTimestampIntervalToText}
                     lastAppliedTimestampIntervalToAudio={lastAppliedTimestampIntervalToAudio}
