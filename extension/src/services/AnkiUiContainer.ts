@@ -50,7 +50,6 @@ export default class AnkiUiContainer {
     ) {
         if (!this.ankiSettings) {
             throw new Error('Unable to show Anki UI because settings are missing.');
-            return;
         }
 
         const subtitleFileNames = context.subtitleContainer.subtitleFileNames;
@@ -126,7 +125,7 @@ export default class AnkiUiContainer {
         }
 
         context.keyBindings.unbind();
-        context.subtitleContainer.displaySubtitles = false;
+        context.subtitleContainer.forceHideSubtitles = true;
     }
 
     async _client(context: Binding) {
@@ -146,7 +145,7 @@ export default class AnkiUiContainer {
         await this.client.bind();
         this.client.onFinished((message) => {
             context.keyBindings.bind(context);
-            context.subtitleContainer.displaySubtitles = context.displaySubtitles;
+            context.subtitleContainer.forceHideSubtitles = false;
             this.frame?.classList.add('asbplayer-hide');
             if (this.fullscreenElement) {
                 this.fullscreenElement.requestFullscreen();

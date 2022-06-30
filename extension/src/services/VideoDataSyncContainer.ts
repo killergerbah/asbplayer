@@ -230,7 +230,7 @@ export default class VideoDataSyncContainer {
 
             if (shallUpdate) {
                 this.context.keyBindings.bind(this.context);
-                this.context.subtitleContainer.displaySubtitles = this.context.displaySubtitles;
+                this.context.subtitleContainer.forceHideSubtitles = false;
                 this.frame?.classList?.add('asbplayer-hide');
 
                 if (this.fullscreenElement) {
@@ -276,7 +276,7 @@ export default class VideoDataSyncContainer {
         }
 
         this.context.keyBindings.unbind();
-        this.context.subtitleContainer.displaySubtitles = false;
+        this.context.subtitleContainer.forceHideSubtitles = true;
     }
 
     async _syncData(name: string, subtitleUrl = '-') {

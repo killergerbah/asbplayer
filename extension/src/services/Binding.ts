@@ -356,18 +356,10 @@ export default class Binding {
 
                         if (this.cleanScreenshot) {
                             this.controlsContainer.show();
-
-                            if (!this.retakingScreenshot) {
-                                this.settings
-                                    .get(['displaySubtitles'])
-                                    .then(
-                                        ({ displaySubtitles }) =>
-                                            (this.subtitleContainer.displaySubtitles = displaySubtitles)
-                                    );
-                            }
                         }
 
                         this.retakingScreenshot = false;
+                        this.subtitleContainer.forceHideSubtitles = false;
                         break;
                 }
             }
@@ -576,14 +568,12 @@ export default class Binding {
         }
 
         if (this.cleanScreenshot) {
-            this.subtitleContainer.displaySubtitles = false;
+            this.subtitleContainer.forceHideSubtitles = true;
             await this.controlsContainer.hide();
             this.showControlsTimeout = setTimeout(() => {
                 this.controlsContainer.show();
                 this.showControlsTimeout = undefined;
-                this.settings
-                    .get(['displaySubtitles'])
-                    .then(({ displaySubtitles }) => (this.subtitleContainer.displaySubtitles = displaySubtitles));
+                this.subtitleContainer.forceHideSubtitles = false;
             }, 1000);
             this.preparingScreenshot = false;
         }

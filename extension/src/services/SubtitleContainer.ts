@@ -38,6 +38,7 @@ export default class SubtitleContainer {
     disabledSubtitleTracks: { [key: number]: boolean | undefined };
     subtitles: SubtitleModel[];
     subtitleFileNames?: string[];
+    forceHideSubtitles: boolean;
     displaySubtitles: boolean;
     subtitlePositionOffsetBottom: number;
     surroundingSubtitlesCountRadius: number;
@@ -48,6 +49,7 @@ export default class SubtitleContainer {
         this.subtitles = [];
         this.showingSubtitles = [];
         this.disabledSubtitleTracks = {};
+        this.forceHideSubtitles = false;
         this.displaySubtitles = true;
         this.subtitlePositionOffsetBottom = 100;
         this.lastLoadedMessageTimestamp = 0;
@@ -76,7 +78,7 @@ export default class SubtitleContainer {
 
             const showOffset = this.lastOffsetChangeTimestamp > 0 && Date.now() - this.lastOffsetChangeTimestamp < 1000;
 
-            if (!showOffset && !this.displaySubtitles) {
+            if ((!showOffset && !this.displaySubtitles) || this.forceHideSubtitles) {
                 this._hideSubtitles();
                 return;
             }
