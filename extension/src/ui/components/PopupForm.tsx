@@ -179,9 +179,9 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                         />
                                     </TableCell>
                                     <TableCell>
-                                        <Typography variant="subtitle2">Copy current subtitle</Typography>
+                                        <Typography variant="subtitle2">Copy current subtitle.</Typography>
                                         <Typography variant="subtitle2">
-                                            When video is synced without a subtitle file, starts/stops recording audio
+                                            When video is synced without a subtitle file, starts/stops recording audio.
                                         </Typography>
                                     </TableCell>
                                 </TableRow>
@@ -195,10 +195,25 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     </TableCell>
                                     <TableCell>
                                         <Typography variant="subtitle2">
-                                            Copy current subtitle and open Anki export dialog
+                                            Copy current subtitle and open Anki export dialog.
                                         </Typography>
                                         <Typography variant="subtitle2">
-                                            When video is synced without a subtitle file, starts/stops recording audio
+                                            When video is synced without a subtitle file, starts/stops recording audio.
+                                        </Typography>
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>
+                                        <ExtensionKeyboardShortcut
+                                            commands={commands}
+                                            commandName="take-screenshot"
+                                            onClick={onOpenExtensionShortcuts}
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="subtitle2">
+                                            Manually take screenshot, overriding the one that is automatically taken
+                                            when mining.
                                         </Typography>
                                     </TableCell>
                                 </TableRow>
@@ -213,7 +228,7 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     <TableCell>
                                         <Typography variant="subtitle2">
                                             Select video element to mine without a subtitle file, or with detected
-                                            subtitles on supported sites
+                                            subtitles on supported sites.
                                         </Typography>
                                     </TableCell>
                                 </TableRow>
@@ -297,7 +312,9 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     <SmallTableCell>
                                         <Checkbox
                                             checked={settings.bindSeekBackwardOrForward}
-                                            onChange={(e) => onSettingsChanged('bindSeekBackwardOrForward', e.target.checked)}
+                                            onChange={(e) =>
+                                                onSettingsChanged('bindSeekBackwardOrForward', e.target.checked)
+                                            }
                                         />
                                     </SmallTableCell>
                                     <TableCell>
@@ -325,14 +342,21 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     <SmallTableCell>
                                         <Checkbox
                                             checked={settings.bindSeekToBeginningOfCurrentSubtitle}
-                                            onChange={(e) => onSettingsChanged('bindSeekToBeginningOfCurrentSubtitle', e.target.checked)}
+                                            onChange={(e) =>
+                                                onSettingsChanged(
+                                                    'bindSeekToBeginningOfCurrentSubtitle',
+                                                    e.target.checked
+                                                )
+                                            }
                                         />
                                     </SmallTableCell>
                                     <TableCell>
                                         <Typography variant="subtitle2">Down</Typography>
                                     </TableCell>
                                     <TableCell>
-                                        <Typography variant="subtitle2">Seek to beginning of current subtitle</Typography>
+                                        <Typography variant="subtitle2">
+                                            Seek to beginning of current subtitle
+                                        </Typography>
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>

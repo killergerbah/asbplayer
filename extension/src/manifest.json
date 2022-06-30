@@ -58,7 +58,7 @@
                 "default": "Ctrl+Shift+C",
                 "mac": "MacCtrl+Shift+C"
             },
-            "description": "Manually take screenshot of currently synced video element."
+            "description": "Manually take screenshot, overriding the one that is automatically taken when mining."
         }
     },
     "web_accessible_resources": [
