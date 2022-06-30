@@ -102,7 +102,7 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     onChange={(e) => onSettingsChanged('recordMedia', e.target.checked)}
                                 />
                             }
-                            label="Record audio when copying subtitle"
+                            label="Record audio when mining subtitle"
                         />
                         <FormControlLabel
                             control={
@@ -111,7 +111,7 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     onChange={(e) => onSettingsChanged('screenshot', e.target.checked)}
                                 />
                             }
-                            label="Take screenshot when copying subtitle"
+                            label="Take screenshot when mining subtitle"
                         />
                         <FormControlLabel
                             control={
@@ -179,7 +179,7 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                         />
                                     </TableCell>
                                     <TableCell>
-                                        <Typography variant="subtitle2">Copy current subtitle.</Typography>
+                                        <Typography variant="subtitle2">Mine current subtitle.</Typography>
                                         <Typography variant="subtitle2">
                                             When video is synced without a subtitle file, starts/stops recording audio.
                                         </Typography>
@@ -195,7 +195,7 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     </TableCell>
                                     <TableCell>
                                         <Typography variant="subtitle2">
-                                            Copy current subtitle and open Anki export dialog.
+                                            Mine current subtitle and open Anki export dialog.
                                         </Typography>
                                         <Typography variant="subtitle2">
                                             When video is synced without a subtitle file, starts/stops recording audio.

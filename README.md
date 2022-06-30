@@ -54,22 +54,23 @@ You can also adjust offset manually by clicking on the text field in the control
 An audio track selector will appear for `mkv` files if experimental web platform features are enabled from `chrome://flags`.
 
 ### Keyboard shortcuts
-| Keys                                                      | Action                                                                                                                          |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| <kbd>Ctrl+Shift+A</kbd>                                   | Copy current subtitle                                                                                                           |
-| <kbd>Ctrl+Shift+Q</kbd>                                   | Copy current subtitle and open Anki export dialog                                                                               |
-| <kbd>Ctrl+Shift+Z</kbd> (default, streaming video)        | Copy current subtitle<br>When video is synced without a subtitle file, starts/stops recording audio                             |
-| <kbd>Ctrl+Shift+X</kbd> (default, streaming video)        | Copy current subtitle and open Anki export dialog<br>When video is synced without a subtitle file, starts/stops recording audio |
-| <kbd>Ctrl+Shift+F</kbd> (default, streaming video)        | Select video element to mine without a subtitle file, or with detected subtitles on supported sites                             |
-| <kbd>Space</kbd>                                          | Play/pause                                                                                                                      |
-| <kbd>S</kbd>                                              | Toggle subtitles                                                                                                                |
-| <kbd>S+1, S+2...</kbd>                                    | Toggle subtitle track 1, 2... in video                                                                                          |
-| <kbd>W+1, W+2...</kbd>                                    | Toggle subtitle track 1, 2... in asbplayer                                                                                      |
-| <kbd>A/D</kbd>                                            | Seek backward/forward by 10 seconds                                                                                             |
-| <kbd>Left/Right</kbd>                                     | Seek to previous/next subtitle                                                                                                  |
-| <kbd>Down</kbd>                                           | Seek to beginning of current subtitle                                                                                           |
-| <kbd>Ctrl+Left/Right</kbd> or <kbd>Shift+Left/Right</kbd> | Adjust offset to previous/next subtitle                                                                                         |
-| <kbd>Ctrl+Shift+Left/Right</kbd>                          | Adjust offset by +/- 100ms                                                                                                      |
+| Keys                                                                   | Action                                                                                                                          |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| <kbd>Ctrl+Shift+A</kbd>                                                | Mine current subtitle                                                                                                           |
+| <kbd>Ctrl+Shift+Q</kbd>                                                | Mine current subtitle and open Anki export dialog                                                                               |
+| <kbd>Ctrl+Shift+Z</kbd> (default, extension)                     | Mine current subtitle<br>When video is synced without a subtitle file, starts/stops recording audio                             |
+| <kbd>Ctrl+Shift+X</kbd> (default, extension)                     | Mine current subtitle and open Anki export dialog<br>When video is synced without a subtitle file, starts/stops recording audio |
+| <kbd>Ctrl+Shift+V</kbd> (default, extension v0.19.x+) | Manually take screenshot, overriding the one that is automatically taken when mining                                            |
+| <kbd>Ctrl+Shift+F</kbd> (default, extension)                     | Select video element to mine without a subtitle file, or with detected subtitles on supported sites                             |
+| <kbd>Space</kbd>                                                       | Play/pause                                                                                                                      |
+| <kbd>S</kbd>                                                           | Toggle subtitles                                                                                                                |
+| <kbd>S+1, S+2...</kbd>                                                 | Toggle subtitle track 1, 2... in video                                                                                          |
+| <kbd>W+1, W+2...</kbd>                                                 | Toggle subtitle track 1, 2... in asbplayer                                                                                      |
+| <kbd>A/D</kbd>                                                         | Seek backward/forward by 10 seconds                                                                                             |
+| <kbd>Left/Right</kbd>                                                  | Seek to previous/next subtitle                                                                                                  |
+| <kbd>Down</kbd>                                                        | Seek to beginning of current subtitle                                                                                           |
+| <kbd>Ctrl+Left/Right</kbd> or <kbd>Shift+Left/Right</kbd>              | Adjust offset to previous/next subtitle                                                                                         |
+| <kbd>Ctrl+Shift+Left/Right</kbd>                                       | Adjust offset by +/- 100ms                                                                                                      |
 
 ## Common issues
 ### asbplayer isn't detecting streaming video.
