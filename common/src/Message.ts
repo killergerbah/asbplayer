@@ -102,11 +102,12 @@ export interface TakeScreenshotFromExtensionMessage extends Message {
     readonly rect: RectModel;
     readonly maxImageWidth: number;
     readonly maxImageHeight: number;
+    readonly ankiUiState?: AnkiUiRerecordState
 }
 
 export interface ScreenshotTakenMessage extends Message {
     readonly command: 'screenshot-taken';
-    readonly image: ImageModel;
+    readonly ankiUiState?: AnkiUiRerecordState
 }
 
 export interface ShowAnkiUiMessage extends Message {

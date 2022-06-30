@@ -1,5 +1,6 @@
 import {
     AnkiUiRerecordState,
+    CopyMessage,
     CurrentTimeFromVideoMessage,
     PauseFromVideoMessage,
     PlaybackRateFromVideoMessage,
@@ -349,22 +350,24 @@ export default class Binding {
                         }
 
                         if (this.retakingScreenshot) {
-                            if (this.rerecordAnkiUiState) {
-                                this.rerecordAnkiUiState.image = request.message.image;
-                                this.ankiUiContainer.showAfterRetakingScreenshot(this, this.rerecordAnkiUiState);
-                            }
-
-                            this.retakingScreenshot = false;
+                            this.ankiUiContainer.showAfterRetakingScreenshot(this, request.message.ankiUiState);
                             this.rerecordAnkiUiState = undefined;
-                        } else if (this.cleanScreenshot) {
-                            this.controlsContainer.show();
-                            this.settings
-                                .get(['displaySubtitles'])
-                                .then(
-                                    ({ displaySubtitles }) =>
-                                        (this.subtitleContainer.displaySubtitles = displaySubtitles)
-                                );
                         }
+
+                        if (this.cleanScreenshot) {
+                            this.controlsContainer.show();
+
+                            if (!this.retakingScreenshot) {
+                                this.settings
+                                    .get(['displaySubtitles'])
+                                    .then(
+                                        ({ displaySubtitles }) =>
+                                            (this.subtitleContainer.displaySubtitles = displaySubtitles)
+                                    );
+                            }
+                        }
+
+                        this.retakingScreenshot = false;
                         break;
                 }
             }
@@ -458,11 +461,13 @@ export default class Binding {
                 rect: this.video.getBoundingClientRect(),
                 maxImageWidth: this.maxImageWidth,
                 maxImageHeight: this.maxImageHeight,
+                ankiUiState: this.rerecordAnkiUiState,
             },
             src: this.video.src,
         };
 
         chrome.runtime.sendMessage(command);
+        this.rerecordAnkiUiState = undefined;
     }
 
     async _copySubtitle(showAnkiUi: boolean) {

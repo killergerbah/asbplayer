@@ -99,6 +99,7 @@ chrome.commands.onCommand.addListener((command) => {
                     };
                     return extensionToVideoCommand;
                 }, tabs);
+                break;
             default:
                 throw new Error('Unknown command ' + command);
         }

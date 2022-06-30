@@ -58,10 +58,6 @@ export default class StartRecordingMediaHandler {
                 sender: 'asbplayer-extension-to-video',
                 message: {
                     command: 'screenshot-taken',
-                    image: {
-                        base64: imageBase64,
-                        extension: 'jpeg',
-                    },
                 },
                 src: startRecordingCommand.src,
             };
