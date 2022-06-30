@@ -46,7 +46,6 @@ export default class Binding {
     private recordingMedia: boolean;
     private recordingMediaStartedTimestamp?: number;
     private recordingMediaWithScreenshot: boolean;
-    private preparingScreenshot: boolean;
 
     readonly video: HTMLVideoElement;
     readonly subSyncAvailable: boolean;
@@ -92,7 +91,6 @@ export default class Binding {
         this.synced = false;
         this.recordingMedia = false;
         this.recordingMediaWithScreenshot = false;
-        this.preparingScreenshot = false;
         this.retakingScreenshot = false;
     }
 
@@ -439,11 +437,7 @@ export default class Binding {
             return;
         }
 
-        const ready = await this._prepareScreenshot();
-
-        if (!ready) {
-            return;
-        }
+        await this._prepareScreenshot();
 
         const command: VideoToExtensionCommand<TakeScreenshotFromExtensionMessage> = {
             sender: 'asbplayer-video',
@@ -554,13 +548,7 @@ export default class Binding {
         }
     }
 
-    async _prepareScreenshot(): Promise<boolean> {
-        if (this.preparingScreenshot) {
-            return false;
-        }
-
-        this.preparingScreenshot = true;
-
+    async _prepareScreenshot() {
         if (this.showControlsTimeout) {
             clearTimeout(this.showControlsTimeout);
             this.showControlsTimeout = undefined;
@@ -574,10 +562,7 @@ export default class Binding {
                 this.showControlsTimeout = undefined;
                 this.subtitleContainer.forceHideSubtitles = false;
             }, 1000);
-            this.preparingScreenshot = false;
         }
-
-        return true;
     }
 
     async rerecord(start: number, end: number, uiState: AnkiUiRerecordState) {
