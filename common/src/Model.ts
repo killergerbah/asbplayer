@@ -64,7 +64,6 @@ export interface AnkiDialogSliderContext {
 export interface AnkiUiState {
     readonly type: 'initial' | 'resume';
     readonly open: boolean;
-    readonly id: string;
     readonly settingsProvider: AnkiSettings;
     readonly subtitle: SubtitleModel;
     readonly url: string;
@@ -106,15 +105,6 @@ export interface AnkiUiRerecordState {
     timestampInterval: number[];
     lastAppliedTimestampIntervalToText: number[];
     lastAppliedTimestampIntervalToAudio?: number[];
-}
-
-export interface AnkiUiContainerCurrentItem {
-    readonly subtitle: SubtitleModel;
-    readonly surroundingSubtitles: SubtitleModel[];
-    image?: ImageModel;
-    audio?: AudioModel;
-    url?: string;
-    id: string;
 }
 
 export interface VideoDataSubtitleTrack {

@@ -2,7 +2,6 @@ import {
     AnkiSettings,
     AnkiUiBridgeRerecordMessage,
     AnkiUiBridgeRetakeScreenshotMessage,
-    AnkiUiContainerCurrentItem,
     AnkiUiInitialState,
     AnkiUiRerecordState,
     AnkiUiResumeState,
@@ -33,7 +32,6 @@ async function html() {
 }
 
 export default class AnkiUiContainer {
-    private currentItem?: AnkiUiContainerCurrentItem;
     private client?: FrameBridgeClient;
     private frame?: HTMLIFrameElement;
     private fullscreenElement?: Element;
@@ -48,8 +46,7 @@ export default class AnkiUiContainer {
         subtitle: SubtitleModel,
         surroundingSubtitles: SubtitleModel[],
         image: ImageModel | undefined,
-        audio: AudioModel | undefined,
-        id: string
+        audio: AudioModel | undefined
     ) {
         if (!this.ankiSettings) {
             throw new Error('Unable to show Anki UI because settings are missing.');
@@ -60,19 +57,10 @@ export default class AnkiUiContainer {
         const client = await this._client(context);
         this._prepareShow(context);
         const url = context.url;
-        this.currentItem = {
-            subtitle: subtitle,
-            surroundingSubtitles: surroundingSubtitles,
-            image: image,
-            audio: audio,
-            url: url,
-            id: id,
-        };
         const themeType = (await context.settings.get(['lastThemeType'])).lastThemeType;
         const state: AnkiUiInitialState = {
             type: 'initial',
             open: true,
-            id: id,
             settingsProvider: this.ankiSettings,
             source:
                 (subtitleFileNames && (subtitle.track ? subtitleFileNames[subtitle.track] : subtitleFileNames[0])) ??
@@ -87,7 +75,7 @@ export default class AnkiUiContainer {
         client.updateState(state);
     }
 
-    async showAfterRerecord(context: Binding, audio: AudioModel, uiState: AnkiUiRerecordState, id: string) {
+    async showAfterRerecord(context: Binding, uiState: AnkiUiRerecordState) {
         if (!this.ankiSettings) {
             throw new Error('Unable to show Anki UI after rerecording because anki settings are undefined');
         }
@@ -95,15 +83,10 @@ export default class AnkiUiContainer {
         const client = await this._client(context);
         this._prepareShow(context);
 
-        if (this.currentItem) {
-            this.currentItem.audio = audio;
-        }
-
         const themeType = (await context.settings.get(['lastThemeType'])).lastThemeType;
         const state: AnkiUiResumeState = {
             ...uiState,
             type: 'resume',
-            id: id,
             open: true,
             settingsProvider: this.ankiSettings,
             themeType: themeType,
@@ -111,23 +94,20 @@ export default class AnkiUiContainer {
         client.updateState(state);
     }
 
-    async showAfterRetakingScreenshot(context: Binding, image: ImageModel, uiState: AnkiUiRerecordState) {
-        if (!this.currentItem) {
-            throw new Error('Unable to show anki UI after retaking screenshot because current item is undefined');
+    async showAfterRetakingScreenshot(context: Binding, uiState: AnkiUiRerecordState) {
+        if (!this.ankiSettings) {
+            throw new Error('Unable to show Anki UI after retaking screenshot because anki settings are undefined');
         }
 
         const client = await this._client(context);
         this._prepareShow(context);
-        this.currentItem.image = image;
 
         const themeType = (await context.settings.get(['lastThemeType'])).lastThemeType;
         const state: AnkiUiResumeState = {
             ...uiState,
-            image: image,
             type: 'resume',
-            id: this.currentItem.id,
             open: true,
-            settingsProvider: this.ankiSettings!,
+            settingsProvider: this.ankiSettings,
             themeType: themeType,
         };
         client.updateState(state);
@@ -188,30 +168,15 @@ export default class AnkiUiContainer {
             switch (message.command) {
                 case 'resume':
                     context.play();
-                    this.currentItem = undefined;
                     break;
                 case 'rerecord':
                     const rerecordMessage = message as AnkiUiBridgeRerecordMessage;
-                    if (this.currentItem) {
-                        context.rerecord(
-                            rerecordMessage.recordStart,
-                            rerecordMessage.recordEnd,
-                            this.currentItem,
-                            rerecordMessage.uiState
-                        );
-                    } else {
-                        console.error('Cannot rerecord because currentItem is undefined');
-                    }
+                    context.rerecord(rerecordMessage.recordStart, rerecordMessage.recordEnd, rerecordMessage.uiState);
                     break;
                 case 'retake-screenshot':
                     const retakeScreenshotMessage = message as AnkiUiBridgeRetakeScreenshotMessage;
-
-                    if (!this.currentItem) {
-                        console.error('Received retake-screenshot message even though currentItem is undefined');
-                    }
-
                     context.retakingScreenshot = true;
-                    context.rerecordAnkiUiState =  retakeScreenshotMessage.uiState;
+                    context.rerecordAnkiUiState = retakeScreenshotMessage.uiState;
                     break;
                 default:
                     console.error('Unknown message received from bridge: ' + message.command);

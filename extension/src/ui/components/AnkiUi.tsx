@@ -36,7 +36,6 @@ interface Props {
 export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
     const [open, setOpen] = useState<boolean>(false);
     const [disabled, setDisabled] = useState<boolean>(false);
-    const [id, setId] = useState<string>();
     const [subtitle, setSubtitle] = useState<SubtitleModel>();
     const [text, setText] = useState<string>('');
     const [audioClip, setAudioClip] = useState<AudioClip>();
@@ -136,7 +135,6 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             setImageDialogOpen(false);
             setDisabled(false);
             setSettingsProvider(s.settingsProvider);
-            setId(s.id);
             setAudioClip(audioClip);
             setImage(image);
             setThemeType(s.themeType || 'dark');
@@ -240,14 +238,13 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             const message: AnkiUiBridgeRerecordMessage = {
                 command: 'rerecord',
                 uiState: rerecordState,
-                id: id!,
                 recordStart: timestampInterval[0],
                 recordEnd: timestampInterval[1],
             };
 
             bridge.finished(message);
         },
-        [serializedImage, subtitle, id]
+        [serializedImage, subtitle]
     );
 
     const handleRetakeScreenshot = useCallback(
@@ -283,12 +280,11 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             const message: AnkiUiBridgeRetakeScreenshotMessage = {
                 command: 'retake-screenshot',
                 uiState: rerecordState,
-                id: id!,
             };
 
             bridge.finished(message);
         },
-        [serializedImage, subtitle, id]
+        [serializedImage, subtitle]
     );
 
     return (

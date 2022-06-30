@@ -1,7 +1,5 @@
 import {
-    AnkiUiContainerCurrentItem,
     AnkiUiRerecordState,
-    AnkiUiState,
     CurrentTimeFromVideoMessage,
     PauseFromVideoMessage,
     PlaybackRateFromVideoMessage,
@@ -335,17 +333,11 @@ export default class Binding {
                             request.message.subtitle,
                             request.message.surroundingSubtitles,
                             request.message.image,
-                            request.message.audio,
-                            request.message.id
+                            request.message.audio
                         );
                         break;
                     case 'show-anki-ui-after-rerecord':
-                        this.ankiUiContainer.showAfterRerecord(
-                            this,
-                            request.message.audio,
-                            request.message.uiState,
-                            request.message.id
-                        );
+                        this.ankiUiContainer.showAfterRerecord(this, request.message.uiState);
                         break;
                     case 'take-screenshot':
                         this._takeScreenshot();
@@ -353,9 +345,10 @@ export default class Binding {
                     case 'screenshot-taken':
                         if (this.retakingScreenshot) {
                             if (this.rerecordAnkiUiState) {
-                                this.ankiUiContainer.showAfterRetakingScreenshot(this, request.message.image, this.rerecordAnkiUiState);
+                                this.rerecordAnkiUiState.image = request.message.image;
+                                this.ankiUiContainer.showAfterRetakingScreenshot(this, this.rerecordAnkiUiState);
                             }
-                            
+
                             this.retakingScreenshot = false;
                             this.rerecordAnkiUiState = undefined;
                         }
@@ -595,7 +588,7 @@ export default class Binding {
         return true;
     }
 
-    async rerecord(start: number, end: number, currentItem: AnkiUiContainerCurrentItem, uiState: AnkiUiRerecordState) {
+    async rerecord(start: number, end: number, uiState: AnkiUiRerecordState) {
         const noSubtitles = this.subtitleContainer.subtitles.length === 0;
         const audioPaddingStart = noSubtitles ? 0 : this.audioPaddingStart;
         const audioPaddingEnd = noSubtitles ? 0 : this.audioPaddingEnd;
@@ -611,7 +604,6 @@ export default class Binding {
                 uiState: uiState,
                 audioPaddingStart: audioPaddingStart,
                 audioPaddingEnd: audioPaddingEnd,
-                currentItem: currentItem,
                 playbackRate: this.video.playbackRate,
                 timestamp: start,
             },

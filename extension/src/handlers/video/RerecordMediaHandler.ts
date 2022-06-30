@@ -61,10 +61,10 @@ export default class RerecordMediaHandler {
                     // let's just create a new item for now by using a new ID.
                     id: uuidv4(),
                     audio: audio,
-                    image: rerecordCommand.message.currentItem.image,
-                    url: rerecordCommand.message.currentItem.url,
-                    subtitle: rerecordCommand.message.currentItem.subtitle,
-                    surroundingSubtitles: rerecordCommand.message.currentItem.surroundingSubtitles,
+                    image: rerecordCommand.message.uiState.image,
+                    url: rerecordCommand.message.uiState.url,
+                    subtitle: rerecordCommand.message.uiState.subtitle,
+                    surroundingSubtitles: rerecordCommand.message.uiState.sliderContext.subtitles,
                 },
                 tabId: sender.tab!.id!,
                 src: rerecordCommand.src,
@@ -84,9 +84,7 @@ export default class RerecordMediaHandler {
             sender: 'asbplayer-extension-to-video',
             message: {
                 command: 'show-anki-ui-after-rerecord',
-                id: rerecordCommand.message.currentItem.id,
                 uiState: newUiState,
-                audio: audio,
             },
             src: rerecordCommand.src,
         };

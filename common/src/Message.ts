@@ -4,7 +4,6 @@ import {
     SubtitleModel,
     ImageModel,
     AudioModel,
-    AnkiUiContainerCurrentItem,
     AudioTrackModel,
     AnkiUiRerecordState,
     ConfirmedVideoDataSubtitleTrack,
@@ -126,16 +125,13 @@ export interface RerecordMediaMessage extends Message {
     readonly uiState: AnkiUiRerecordState;
     readonly audioPaddingStart: number;
     readonly audioPaddingEnd: number;
-    readonly currentItem: AnkiUiContainerCurrentItem;
     readonly playbackRate: number;
     readonly timestamp: number;
 }
 
 export interface ShowAnkiUiAfterRerecordMessage extends Message {
     readonly command: 'show-anki-ui-after-rerecord';
-    readonly id: string;
     readonly uiState: AnkiUiRerecordState;
-    readonly audio: AudioModel;
 }
 
 export interface SerializedSubtitleFile {
@@ -288,7 +284,6 @@ export interface AnkiUiBridgeResumeMessage extends Message {
 export interface AnkiUiBridgeRerecordMessage extends Message {
     readonly command: 'rerecord';
     readonly uiState: AnkiUiRerecordState;
-    readonly id: string;
     readonly recordStart: number;
     readonly recordEnd: number;
 }
@@ -296,7 +291,6 @@ export interface AnkiUiBridgeRerecordMessage extends Message {
 export interface AnkiUiBridgeRetakeScreenshotMessage extends Message {
     readonly command: 'retake-screenshot';
     readonly uiState: AnkiUiRerecordState;
-    readonly id: string;
 }
 
 export interface VideoDataUiBridgeConfirmMessage extends Message {
