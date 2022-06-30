@@ -1,6 +1,5 @@
 import {
     AnkiUiRerecordState,
-    CopyMessage,
     CurrentTimeFromVideoMessage,
     PauseFromVideoMessage,
     PlaybackRateFromVideoMessage,
