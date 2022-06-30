@@ -55,8 +55,8 @@
         },
         "take-screenshot": {
             "suggested_key": {
-                "default": "Ctrl+Shift+C",
-                "mac": "MacCtrl+Shift+C"
+                "default": "Ctrl+Shift+V",
+                "mac": "MacCtrl+Shift+V"
             },
             "description": "Manually take screenshot, overriding the one that is automatically taken when mining."
         }
