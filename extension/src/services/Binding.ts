@@ -349,9 +349,8 @@ export default class Binding {
                             this.showControlsTimeout = undefined;
                         }
 
-                        if (this.retakingScreenshot) {
+                        if (this.retakingScreenshot && request.message.ankiUiState) {
                             this.ankiUiContainer.showAfterRetakingScreenshot(this, request.message.ankiUiState);
-                            this.rerecordAnkiUiState = undefined;
                         }
 
                         if (this.cleanScreenshot) {
