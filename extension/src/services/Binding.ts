@@ -343,6 +343,11 @@ export default class Binding {
                         this._takeScreenshot();
                         break;
                     case 'screenshot-taken':
+                        if (this.showControlsTimeout) {
+                            clearTimeout(this.showControlsTimeout);
+                            this.showControlsTimeout = undefined;
+                        }
+
                         if (this.retakingScreenshot) {
                             if (this.rerecordAnkiUiState) {
                                 this.rerecordAnkiUiState.image = request.message.image;
@@ -351,14 +356,7 @@ export default class Binding {
 
                             this.retakingScreenshot = false;
                             this.rerecordAnkiUiState = undefined;
-                        }
-
-                        if (this.cleanScreenshot) {
-                            if (this.showControlsTimeout) {
-                                clearTimeout(this.showControlsTimeout);
-                                this.showControlsTimeout = undefined;
-                            }
-
+                        } else if (this.cleanScreenshot) {
                             this.controlsContainer.show();
                             this.settings
                                 .get(['displaySubtitles'])
