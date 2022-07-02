@@ -22,6 +22,8 @@ export default class SubtitleContainer {
     private subtitlesInterval?: NodeJS.Timer;
     private showingLoadedMessage: boolean;
 
+    private fullscreenStatusContainerElement?: HTMLElement;
+    private statusContainerElement?: HTMLElement;
     private fullscreenSubtitlesContainerElement?: HTMLElement;
     private fullscreenSubtitlesElement?: HTMLElement;
     private subtitlesContainerElement?: HTMLElement;
@@ -311,9 +313,9 @@ export default class SubtitleContainer {
     private _applyNonFullscreenStyles(container: HTMLElement, div: HTMLElement) {
         const rect = this.video.getBoundingClientRect();
         container.style.maxWidth = rect.width + 'px';
-        container.style.top = rect.top + rect.height + window.scrollY - this.subtitlePositionOffsetBottom + 'px';
+        container.style.top = '';
         container.style.left = rect.left + rect.width / 2 + 'px';
-        container.style.bottom = '';
+        container.style.bottom = (rect.bottom - rect.height + window.scrollY + this.subtitlePositionOffsetBottom) + 'px';
     }
 
     private _fullscreenSubtitlesElement(): HTMLElement {
