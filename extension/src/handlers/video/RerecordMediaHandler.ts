@@ -78,6 +78,7 @@ export default class RerecordMediaHandler {
         const newUiState = {
             ...rerecordCommand.message.uiState,
             audio: audio,
+            lastAppliedTimestampIntervalToAudio: rerecordCommand.message.uiState.timestampInterval,
         };
 
         const showAnkiUiAfterRerecordCommand: ExtensionToVideoCommand<ShowAnkiUiAfterRerecordMessage> = {
