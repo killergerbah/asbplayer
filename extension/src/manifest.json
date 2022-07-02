@@ -37,14 +37,14 @@
                 "default": "Ctrl+Shift+Z",
                 "mac": "MacCtrl+Shift+Z"
             },
-            "description": "Copy current subtitle."
+            "description": "Mine current subtitle."
         },
         "copy-subtitle-with-dialog": {
             "suggested_key": {
                 "default": "Ctrl+Shift+X",
                 "mac": "MacCtrl+Shift+X"
             },
-            "description": "Copy current subtitle and open Anki dialog."
+            "description": "Mine current subtitle and open Anki dialog."
         },
         "toggle-video-select": {
             "suggested_key": {
