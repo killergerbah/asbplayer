@@ -1,6 +1,6 @@
 import { Anki, AnkiSettings, AudioClip, AudioModel, Image, ImageModel, SubtitleModel } from '@project/common';
 
-export default function updateLastCard(
+export default async function updateLastCard(
     ankiSettings: AnkiSettings,
     subtitle: SubtitleModel,
     audioModel: AudioModel | undefined,
@@ -10,7 +10,7 @@ export default function updateLastCard(
 ) {
     const anki = new Anki(ankiSettings);
 
-    anki.export(
+    return await anki.export(
         subtitle.text,
         undefined,
         audioModel === undefined

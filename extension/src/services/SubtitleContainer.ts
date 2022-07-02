@@ -6,7 +6,7 @@ import {
     surroundingSubtitles,
     VideoToExtensionCommand,
 } from '@project/common';
-import { ElementOverlay } from './ElementOverlay';
+import { ElementOverlay, OffsetAnchor } from './ElementOverlay';
 
 interface SubtitleModelWithIndex extends SubtitleModel {
     index: number;
@@ -15,6 +15,7 @@ interface SubtitleModelWithIndex extends SubtitleModel {
 export default class SubtitleContainer {
     private readonly video: HTMLVideoElement;
     private readonly subtitlesElementOverlay: ElementOverlay;
+    private readonly notificationElementOverlay: ElementOverlay;
 
     private showingSubtitles?: SubtitleModelWithIndex[];
     private lastLoadedMessageTimestamp: number;
@@ -24,6 +25,7 @@ export default class SubtitleContainer {
     private showingLoadedMessage: boolean;
     private subtitleSettings?: SubtitleSettings;
     private subtitleStyles?: string;
+    private notificationElementOverlayHideTimeout?: NodeJS.Timer;
 
     disabledSubtitleTracks: { [key: number]: boolean | undefined };
     subtitles: SubtitleModel[];
@@ -40,7 +42,16 @@ export default class SubtitleContainer {
             'asbplayer-subtitles-container',
             'asbplayer-subtitles',
             'asbplayer-subtitles-container',
-            'asbplayer-fullscreen-subtitles'
+            'asbplayer-fullscreen-subtitles',
+            OffsetAnchor.bottom
+        );
+        this.notificationElementOverlay = new ElementOverlay(
+            video,
+            'asbplayer-subtitles-container',
+            'asbplayer-subtitles',
+            'asbplayer-subtitles-container',
+            'asbplayer-fullscreen-subtitles',
+            OffsetAnchor.top
         );
         this.subtitles = [];
         this.showingSubtitles = [];
@@ -56,7 +67,7 @@ export default class SubtitleContainer {
     }
 
     set subtitlePositionOffsetBottom(value: number) {
-        this.subtitlesElementOverlay.contentPositionOffsetBottom = value;
+        this.subtitlesElementOverlay.contentPositionOffset = value;
     }
 
     setSubtitleSettings(subtitleSettings: SubtitleSettings) {
@@ -167,11 +178,18 @@ export default class SubtitleContainer {
             this.subtitlesInterval = undefined;
         }
 
+        if (this.notificationElementOverlayHideTimeout) {
+            clearTimeout(this.notificationElementOverlayHideTimeout);
+            this.notificationElementOverlayHideTimeout = undefined;
+        }
+
         this._hideSubtitles();
+        this.notificationElementOverlay.hide();
     }
 
     refresh() {
         this.subtitlesElementOverlay.refresh();
+        this.notificationElementOverlay.refresh();
     }
 
     currentSubtitle(): [SubtitleModel | null, SubtitleModel[] | null] {
@@ -249,6 +267,19 @@ export default class SubtitleContainer {
     private _formatOffset(offset: number): string {
         const roundedOffset = Math.floor(offset);
         return roundedOffset >= 0 ? '+' + roundedOffset + ' ms' : roundedOffset + ' ms';
+    }
+
+    notification(notification: string) {
+        this.notificationElementOverlay.setHtml(this._buildTextHtml(notification));
+
+        if (this.notificationElementOverlayHideTimeout) {
+            clearTimeout(this.notificationElementOverlayHideTimeout);
+        }
+
+        this.notificationElementOverlayHideTimeout = setTimeout(() => {
+            this.notificationElementOverlay.hide();
+            this.notificationElementOverlayHideTimeout = undefined;
+        }, 3000);
     }
 
     showLoadedMessage(message: string) {

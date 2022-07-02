@@ -173,8 +173,26 @@ export class Anki {
 
                 const lastNoteId = recentNotes[recentNotes.length - 1];
                 params.note['id'] = lastNoteId;
-                await this._executeAction('updateNoteFields', params, ankiConnectUrl);
-                return lastNoteId;
+                const infoResponse = await this._executeAction('notesInfo', { notes: [lastNoteId] });
+
+                if (infoResponse.result.length > 0 && infoResponse.result[0].noteId === lastNoteId) {
+                    const info = infoResponse.result[0];
+                    await this._executeAction('updateNoteFields', params, ankiConnectUrl);
+
+                    if (!this.settingsProvider.wordField || !info.fields) {
+                        return info.noteId;
+                    }
+
+                    const wordField = info.fields[this.settingsProvider.wordField];
+
+                    if (!wordField || !wordField.value) {
+                        return info.noteId;
+                    }
+
+                    return wordField.value;
+                }
+
+                throw new Error('Could not update last card because the card info could not be fetched');
             case 'default':
                 return (await this._executeAction('addNote', params, ankiConnectUrl)).result;
             default:

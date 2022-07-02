@@ -112,6 +112,11 @@ export interface TakeScreenshotFromExtensionMessage extends Message {
     readonly ankiUiState?: AnkiUiSavedState
 }
 
+export interface CardUpdatedMessage extends Message {
+    readonly command: 'card-updated';
+    readonly cardName: string;
+}
+
 export interface ScreenshotTakenMessage extends Message {
     readonly command: 'screenshot-taken';
     readonly ankiUiState?: AnkiUiSavedState

@@ -101,8 +101,7 @@ export default class Binding {
 
     sourceString(timestamp: number, track: number = 0) {
         const subtitleFileNames = this.subtitleContainer.subtitleFileNames;
-        const subtitleFileNameToUse =
-            (subtitleFileNames && subtitleFileNames[track]) ?? '';
+        const subtitleFileNameToUse = (subtitleFileNames && subtitleFileNames[track]) ?? '';
         return subtitleFileNameToUse === '' ? '' : `${subtitleFileNameToUse} (${humanReadableTime(timestamp)})`;
     }
 
@@ -336,6 +335,9 @@ export default class Binding {
                                 this._toggleRecordingMedia(copySubtitleMessage.postMineAction);
                             }
                         }
+                        break;
+                    case 'card-updated':
+                        this.subtitleContainer.notification(`Updated card: ${request.message.cardName}`);
                         break;
                     case 'show-anki-ui':
                         this.ankiUiContainer.show(

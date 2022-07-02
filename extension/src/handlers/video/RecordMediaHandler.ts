@@ -14,6 +14,7 @@ import {
     ShowAnkiUiMessage,
     ScreenshotTakenMessage,
     PostMineAction,
+    CardUpdatedMessage,
 } from '@project/common';
 import updateLastCard from '../../functions/updateLastCard';
 
@@ -143,7 +144,7 @@ export default class RecordMediaHandler {
                 throw new Error('Cannot update last card because anki settings is undefined');
             }
 
-            updateLastCard(
+            const cardName = await updateLastCard(
                 recordMediaCommand.message.ankiSettings,
                 subtitle,
                 audioModel,
@@ -151,6 +152,17 @@ export default class RecordMediaHandler {
                 recordMediaCommand.message.sourceString,
                 recordMediaCommand.message.url
             );
+
+            const cardUpdatedCommand: ExtensionToVideoCommand<CardUpdatedMessage> = {
+                sender: 'asbplayer-extension-to-video',
+                message: {
+                    command: 'card-updated',
+                    cardName: `${cardName}`
+                },
+                src: recordMediaCommand.src
+            }
+
+            chrome.tabs.sendMessage(senderTab.id!, cardUpdatedCommand);
         }
     }
 

@@ -1,3 +1,8 @@
+export enum OffsetAnchor {
+    bottom,
+    top,
+}
+
 export class ElementOverlay {
     private readonly targetElement: HTMLElement;
 
@@ -5,6 +10,7 @@ export class ElementOverlay {
     private readonly nonFullscreenContentClassName: string;
     private readonly fullscreenContainerClassName: string;
     private readonly fullscreenContentClassName: string;
+    private readonly offsetAnchor: OffsetAnchor = OffsetAnchor.bottom;
 
     private fullscreenContainerElement?: HTMLElement;
     private fullscreenContentElement?: HTMLElement;
@@ -16,20 +22,22 @@ export class ElementOverlay {
     private fullscreenElementFullscreenChangeListener?: (this: any, event: Event) => any;
     private fullscreenElementFullscreenPollingInterval?: NodeJS.Timer;
 
-    contentPositionOffsetBottom: number = 100;
+    contentPositionOffset: number = 100;
 
     constructor(
         targetElement: HTMLElement,
         nonFullscreenContainerClassName: string,
         nonFullscreenContentClassName: string,
         fullscreenContainerClassName: string,
-        fullscreenContentClassName: string
+        fullscreenContentClassName: string,
+        offsetAnchor: OffsetAnchor
     ) {
         this.targetElement = targetElement;
         this.nonFullscreenContainerClassName = nonFullscreenContainerClassName;
         this.nonFullscreenContentClassName = nonFullscreenContentClassName;
         this.fullscreenContainerClassName = fullscreenContainerClassName;
         this.fullscreenContentClassName = fullscreenContentClassName;
+        this.offsetAnchor = offsetAnchor;
     }
 
     setHtml(html: string) {
@@ -124,10 +132,16 @@ export class ElementOverlay {
 
     private _applyNonFullscreenStyles(container: HTMLElement) {
         const rect = this.targetElement.getBoundingClientRect();
-        container.style.maxWidth = rect.width + 'px';
-        container.style.top = '';
         container.style.left = rect.left + rect.width / 2 + 'px';
-        container.style.bottom = rect.bottom - rect.height + window.scrollY + this.contentPositionOffsetBottom + 'px';
+        container.style.maxWidth = rect.width + 'px';
+
+        if (this.offsetAnchor === OffsetAnchor.bottom) {
+            container.style.top = '';
+            container.style.bottom = rect.bottom - rect.height + window.scrollY + this.contentPositionOffset + 'px';
+        } else {
+            container.style.top = rect.top + window.scrollY + this.contentPositionOffset + 'px';
+            container.style.bottom = '';
+        }
     }
 
     private _fullscreenContentElement(): HTMLElement {
@@ -166,9 +180,15 @@ export class ElementOverlay {
     }
 
     private _applyFullscreenStyles(container: HTMLElement) {
-        container.style.top = '';
-        container.style.bottom = this.contentPositionOffsetBottom + 'px';
         container.style.maxWidth = '100%';
+
+        if (this.offsetAnchor === OffsetAnchor.bottom) {
+            container.style.top = '';
+            container.style.bottom = this.contentPositionOffset + 'px';
+        } else {
+            container.style.top = this.contentPositionOffset + 'px';
+            container.style.bottom = '';
+        }
     }
 
     private _findFullscreenParentElement(container: HTMLElement): HTMLElement {

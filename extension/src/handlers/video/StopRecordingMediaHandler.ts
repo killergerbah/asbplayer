@@ -3,6 +3,7 @@ import ImageCapturer from '../../services/ImageCapturer';
 import { v4 as uuidv4 } from 'uuid';
 import {
     AudioModel,
+    CardUpdatedMessage,
     Command,
     CopyMessage,
     ExtensionToAsbPlayerCommand,
@@ -121,7 +122,7 @@ export default class StopRecordingMediaHandler {
                 throw new Error('Unable to update last card because anki settings is undefined');
             }
 
-            updateLastCard(
+            const cardName = await updateLastCard(
                 stopRecordingCommand.message.ankiSettings,
                 subtitle,
                 audioModel,
@@ -129,6 +130,17 @@ export default class StopRecordingMediaHandler {
                 stopRecordingCommand.message.sourceString,
                 stopRecordingCommand.message.url
             );
+
+            const cardUpdatedCommand: ExtensionToVideoCommand<CardUpdatedMessage> = {
+                sender: 'asbplayer-extension-to-video',
+                message: {
+                    command: 'card-updated',
+                    cardName: `${cardName}`
+                },
+                src: stopRecordingCommand.src
+            }
+
+            chrome.tabs.sendMessage(sender.tab!.id!, cardUpdatedCommand);
         }
     }
 
