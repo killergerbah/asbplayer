@@ -8,6 +8,7 @@ import {
     ImageModel,
     SubtitleModel,
     AnkiUiBridgeResumeMessage,
+    humanReadableTime,
 } from '@project/common';
 import Binding from './Binding';
 import FrameBridgeClient from './FrameBridgeClient';
@@ -52,18 +53,16 @@ export default class AnkiUiContainer {
             throw new Error('Unable to show Anki UI because settings are missing.');
         }
 
-        const subtitleFileNames = context.subtitleContainer.subtitleFileNames;
         const client = await this._client(context);
         this._prepareShow(context);
         const url = context.url;
         const themeType = (await context.settings.get(['lastThemeType'])).lastThemeType;
+
         const state: AnkiUiInitialState = {
             type: 'initial',
             open: true,
             settingsProvider: this.ankiSettings,
-            source:
-                (subtitleFileNames && (subtitle.track ? subtitleFileNames[subtitle.track] : subtitleFileNames[0])) ??
-                '',
+            source: context.sourceString(subtitle.start, subtitle.track),
             url: url,
             subtitle: subtitle,
             surroundingSubtitles: surroundingSubtitles,

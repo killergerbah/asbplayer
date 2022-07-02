@@ -156,3 +156,9 @@ export interface AudioTrackModel {
     label: string;
     language: string;
 }
+
+export enum PostMineAction {
+    none = 0,
+    showAnkiDialog = 1,
+    updateLastCard = 2,
+}

@@ -13,7 +13,9 @@ import {
     ExtensionToVideoCommand,
     ShowAnkiUiMessage,
     ScreenshotTakenMessage,
+    PostMineAction,
 } from '@project/common';
+import updateLastCard from '../../functions/updateLastCard';
 
 export default class RecordMediaHandler {
     private readonly audioRecorder: AudioRecorder;
@@ -120,7 +122,7 @@ export default class RecordMediaHandler {
             }
         });
 
-        if (recordMediaCommand.message.showAnkiUi) {
+        if (recordMediaCommand.message.postMineAction == PostMineAction.showAnkiDialog) {
             const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {
                 sender: 'asbplayer-extension-to-video',
                 message: {
@@ -136,6 +138,19 @@ export default class RecordMediaHandler {
             };
 
             chrome.tabs.sendMessage(senderTab.id!, showAnkiUiCommand);
+        } else if (recordMediaCommand.message.postMineAction == PostMineAction.updateLastCard) {
+            if (!recordMediaCommand.message.ankiSettings) {
+                throw new Error('Cannot update last card because anki settings is undefined');
+            }
+
+            updateLastCard(
+                recordMediaCommand.message.ankiSettings,
+                subtitle,
+                audioModel,
+                imageModel,
+                recordMediaCommand.message.sourceString,
+                recordMediaCommand.message.url
+            );
         }
     }
 

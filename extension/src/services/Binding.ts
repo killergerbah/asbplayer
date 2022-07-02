@@ -1,15 +1,19 @@
 import {
     AnkiUiSavedState,
+    CopySubtitleMessage,
     CurrentTimeFromVideoMessage,
+    humanReadableTime,
     PauseFromVideoMessage,
     PlaybackRateFromVideoMessage,
     PlayFromVideoMessage,
+    PostMineAction,
     ReadyFromVideoMessage,
     ReadyStateFromVideoMessage,
     RecordMediaAndForwardSubtitleMessage,
     RerecordMediaMessage,
     StartRecordingMediaMessage,
     StopRecordingMediaMessage,
+    SubtitleModel,
     TakeScreenshotFromExtensionMessage,
     VideoHeartbeatMessage,
     VideoToExtensionCommand,
@@ -93,6 +97,13 @@ export default class Binding {
 
     get url() {
         return window.location !== window.parent.location ? document.referrer : document.location.href;
+    }
+
+    sourceString(timestamp: number, track: number = 0) {
+        const subtitleFileNames = this.subtitleContainer.subtitleFileNames;
+        const subtitleFileNameToUse =
+            (subtitleFileNames && subtitleFileNames[track]) ?? '';
+        return subtitleFileNameToUse === '' ? '' : `${subtitleFileNameToUse} (${humanReadableTime(timestamp)})`;
     }
 
     bind() {
@@ -316,11 +327,13 @@ export default class Binding {
                         this._refreshSettings();
                         break;
                     case 'copy-subtitle':
+                        const copySubtitleMessage = request.message as CopySubtitleMessage;
+
                         if (this.synced) {
                             if (this.subtitleContainer.subtitles.length > 0) {
-                                this._copySubtitle(request.message.showAnkiUi);
+                                this._copySubtitle(copySubtitleMessage.postMineAction);
                             } else {
-                                this._toggleRecordingMedia(request.message.showAnkiUi);
+                                this._toggleRecordingMedia(copySubtitleMessage.postMineAction);
                             }
                         }
                         break;
@@ -452,7 +465,7 @@ export default class Binding {
         this.ankiUiSavedState = undefined;
     }
 
-    async _copySubtitle(showAnkiUi: boolean) {
+    async _copySubtitle(postMineAction: PostMineAction) {
         const [subtitle, surroundingSubtitles] = this.subtitleContainer.currentSubtitle();
 
         if (subtitle && surroundingSubtitles) {
@@ -468,6 +481,9 @@ export default class Binding {
                 await this.play();
             }
 
+            const ankiSettings =
+                postMineAction === PostMineAction.updateLastCard ? this.ankiUiContainer.ankiSettings : undefined;
+
             const command: VideoToExtensionCommand<RecordMediaAndForwardSubtitleMessage> = {
                 sender: 'asbplayer-video',
                 message: {
@@ -477,13 +493,15 @@ export default class Binding {
                     record: this.recordMedia,
                     screenshot: this.screenshot,
                     url: this.url,
-                    showAnkiUi: showAnkiUi,
+                    sourceString: this.sourceString(subtitle.start, subtitle.track),
+                    postMineAction: postMineAction,
                     audioPaddingStart: this.audioPaddingStart,
                     audioPaddingEnd: this.audioPaddingEnd,
                     playbackRate: this.video.playbackRate,
                     rect: this.screenshot ? this.video.getBoundingClientRect() : undefined,
                     maxImageWidth: this.maxImageWidth,
                     maxImageHeight: this.maxImageHeight,
+                    ankiSettings: ankiSettings,
                 },
                 src: this.video.src,
             };
@@ -492,18 +510,22 @@ export default class Binding {
         }
     }
 
-    async _toggleRecordingMedia(showAnkiUi: boolean) {
+    async _toggleRecordingMedia(postMineAction: PostMineAction) {
+        const ankiSettings =
+            postMineAction === PostMineAction.updateLastCard ? this.ankiUiContainer.ankiSettings : undefined;
         if (this.recordingMedia) {
             const command: VideoToExtensionCommand<StopRecordingMediaMessage> = {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'stop-recording-media',
-                    showAnkiUi: showAnkiUi,
+                    postMineAction: postMineAction,
                     startTimestamp: this.recordingMediaStartedTimestamp!,
                     endTimestamp: this.video.currentTime * 1000,
                     screenshot: this.recordingMediaWithScreenshot,
                     videoDuration: this.video.duration * 1000,
                     url: this.url,
+                    sourceString: this.sourceString(this.recordingMediaStartedTimestamp!),
+                    ankiSettings: ankiSettings,
                 },
                 src: this.video.src,
             };
@@ -533,12 +555,14 @@ export default class Binding {
                     command: 'start-recording-media',
                     timestamp: timestamp,
                     record: this.recordMedia,
-                    showAnkiUi: showAnkiUi,
+                    postMineAction: postMineAction,
                     screenshot: this.screenshot,
                     rect: this.screenshot ? this.video.getBoundingClientRect() : undefined,
                     maxImageWidth: this.maxImageWidth,
                     maxImageHeight: this.maxImageHeight,
                     url: this.url,
+                    sourceString: this.sourceString(timestamp),
+                    ankiSettings: ankiSettings,
                 },
                 src: this.video.src,
             };

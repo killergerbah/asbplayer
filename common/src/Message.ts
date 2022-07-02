@@ -7,6 +7,7 @@ import {
     AudioTrackModel,
     AnkiUiSavedState,
     ConfirmedVideoDataSubtitleTrack,
+    PostMineAction,
 } from './Model';
 
 export interface Message {
@@ -44,15 +45,17 @@ export interface RecordMediaAndForwardSubtitleMessage extends Message {
     readonly subtitle: SubtitleModel;
     readonly surroundingSubtitles: SubtitleModel[];
     readonly url?: string;
+    readonly sourceString: string;
     readonly record: boolean;
     readonly screenshot: boolean;
-    readonly showAnkiUi: boolean;
+    readonly postMineAction: PostMineAction;
     readonly audioPaddingStart: number;
     readonly audioPaddingEnd: number;
     readonly playbackRate: number;
     readonly rect?: RectModel;
     readonly maxImageWidth: number;
     readonly maxImageHeight: number;
+    readonly ankiSettings?: AnkiSettings;
 }
 
 export interface StartRecordingMediaMessage extends Message {
@@ -60,21 +63,25 @@ export interface StartRecordingMediaMessage extends Message {
     readonly record: boolean;
     readonly timestamp: number;
     readonly screenshot: boolean;
-    readonly showAnkiUi: boolean;
+    readonly postMineAction: PostMineAction;
     readonly rect?: RectModel;
     readonly maxImageWidth: number;
     readonly maxImageHeight: number;
     readonly url?: string;
+    readonly sourceString: string;
+    readonly ankiSettings?: AnkiSettings;
 }
 
 export interface StopRecordingMediaMessage extends Message {
     readonly command: 'stop-recording-media';
-    readonly showAnkiUi: boolean;
+    readonly postMineAction: PostMineAction;
     readonly startTimestamp: number;
     readonly endTimestamp: number;
     readonly screenshot: boolean;
     readonly videoDuration: number;
     readonly url?: string;
+    readonly sourceString: string;
+    readonly ankiSettings?: AnkiSettings;
 }
 
 export interface CopyMessage extends Message {
@@ -90,7 +97,7 @@ export interface CopyMessage extends Message {
 
 export interface CopySubtitleMessage extends Message {
     readonly command: 'copy-subtitle';
-    readonly showAnkiUi: boolean;
+    readonly postMineAction: PostMineAction;
 }
 
 export interface TakeScreenshotMessage extends Message {

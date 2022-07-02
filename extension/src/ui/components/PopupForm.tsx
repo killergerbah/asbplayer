@@ -206,6 +206,24 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                     <TableCell>
                                         <ExtensionKeyboardShortcut
                                             commands={commands}
+                                            commandName="update-last-card"
+                                            onClick={onOpenExtensionShortcuts}
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="subtitle2">
+                                            Update last-created Anki card with asbplayer-captured screenshot, audio,
+                                            etc.
+                                        </Typography>
+                                        <Typography variant="subtitle2">
+                                            When video is synced without a subtitle file, starts/stops recording audio.
+                                        </Typography>
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>
+                                        <ExtensionKeyboardShortcut
+                                            commands={commands}
                                             commandName="take-screenshot"
                                             onClick={onOpenExtensionShortcuts}
                                         />

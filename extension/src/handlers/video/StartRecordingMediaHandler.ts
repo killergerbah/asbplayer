@@ -8,12 +8,14 @@ import {
     ExtensionToVideoCommand,
     ImageModel,
     Message,
+    PostMineAction,
     ScreenshotTakenMessage,
     ShowAnkiUiMessage,
     StartRecordingMediaMessage,
     SubtitleModel,
     VideoToExtensionCommand,
 } from '@project/common';
+import updateLastCard from '../../functions/updateLastCard';
 
 export default class StartRecordingMediaHandler {
     private readonly audioRecorder: AudioRecorder;
@@ -76,10 +78,10 @@ export default class StartRecordingMediaHandler {
             };
             const id = uuidv4();
 
-            let image: ImageModel | undefined = undefined;
+            let imageModel: ImageModel | undefined = undefined;
 
             if (imageBase64) {
-                image = {
+                imageModel = {
                     base64: imageBase64,
                     extension: 'jpeg',
                 };
@@ -93,7 +95,7 @@ export default class StartRecordingMediaHandler {
                         id: id,
                         subtitle: subtitle,
                         surroundingSubtitles: [],
-                        image: image,
+                        image: imageModel,
                         url: startRecordingCommand.message.url,
                     },
                     tabId: sender.tab!.id!,
@@ -105,7 +107,7 @@ export default class StartRecordingMediaHandler {
                 }
             });
 
-            if (startRecordingCommand.message.showAnkiUi) {
+            if (startRecordingCommand.message.postMineAction === PostMineAction.showAnkiDialog) {
                 const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {
                     sender: 'asbplayer-extension-to-video',
                     message: {
@@ -113,13 +115,26 @@ export default class StartRecordingMediaHandler {
                         id: id,
                         subtitle: subtitle,
                         surroundingSubtitles: [],
-                        image: image,
+                        image: imageModel,
                         url: startRecordingCommand.message.url,
                     },
                     src: startRecordingCommand.src,
                 };
 
                 chrome.tabs.sendMessage(sender.tab!.id!, showAnkiUiCommand);
+            } else if (startRecordingCommand.message.postMineAction === PostMineAction.updateLastCard) {
+                if (!startRecordingCommand.message.ankiSettings) {
+                    throw new Error('Unable to update last card because anki settings is undefined');
+                }
+
+                updateLastCard(
+                    startRecordingCommand.message.ankiSettings,
+                    subtitle,
+                    undefined,
+                    imageModel,
+                    startRecordingCommand.message.sourceString,
+                    startRecordingCommand.message.url
+                );
             }
         }
     }

@@ -5,7 +5,6 @@ import {
     ImageModel,
     AudioClip,
     AudioModel,
-    humanReadableTime,
     SubtitleModel,
     AnkiDialogSliderContext,
     AnkiSettings,
@@ -107,7 +106,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                         },
                     ],
                 });
-                setSource(`${state.source} (${humanReadableTime(state.subtitle.start)})`);
+                setSource(state.source);
                 setUrl(state.url);
                 setDefinition('');
                 setWord('');

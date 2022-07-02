@@ -16,7 +16,14 @@ import AsbplayerV2ToVideoCommandForwardingHandler from './handlers/asbplayerv2/A
 import AsbplayerHeartbeatHandler from './handlers/asbplayerv2/AsbplayerHeartbeatHandler';
 import RefreshSettingsHandler from './handlers/popup/RefreshSettingsHandler';
 import { CommandHandler } from './handlers/CommandHandler';
-import { Command, CopySubtitleMessage, ExtensionToVideoCommand, Message, TakeScreenshotMessage } from '@project/common';
+import {
+    Command,
+    CopySubtitleMessage,
+    ExtensionToVideoCommand,
+    Message,
+    PostMineAction,
+    TakeScreenshotMessage,
+} from '@project/common';
 import TakeScreenshotHandler from './handlers/video/TakeScreenshotHandler';
 
 const settings = new Settings();
@@ -63,13 +70,14 @@ chrome.commands.onCommand.addListener((command) => {
 
         switch (command) {
             case 'copy-subtitle':
+            case 'update-last-card':
             case 'copy-subtitle-with-dialog':
                 _publishToVideoElements((id, src) => {
                     const extensionToVideoCommand: ExtensionToVideoCommand<CopySubtitleMessage> = {
                         sender: 'asbplayer-extension-to-video',
                         message: {
                             command: 'copy-subtitle',
-                            showAnkiUi: command === 'copy-subtitle-with-dialog',
+                            postMineAction: postMineActionFromCommand(command),
                         },
                         src: src,
                     };
@@ -105,6 +113,19 @@ chrome.commands.onCommand.addListener((command) => {
         }
     });
 });
+
+function postMineActionFromCommand(command: string) {
+    switch (command) {
+        case 'copy-subtitle':
+            return PostMineAction.none;
+        case 'copy-subtitle-with-dialog':
+            return PostMineAction.showAnkiDialog;
+        case 'update-last-card':
+            return PostMineAction.updateLastCard;
+        default:
+            throw new Error('Cannot determine post mine action for unknown command ' + command);
+    }
+}
 
 function _publishToVideoElements(
     messageFunction: (id: number, src: string) => ExtensionToVideoCommand<Message>,

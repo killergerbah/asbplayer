@@ -10,11 +10,13 @@ import {
     ImageModel,
     Message,
     mockSurroundingSubtitles,
+    PostMineAction,
     ShowAnkiUiMessage,
     StopRecordingMediaMessage,
     SubtitleModel,
     VideoToExtensionCommand,
 } from '@project/common';
+import updateLastCard from '../../functions/updateLastCard';
 
 export default class StopRecordingMediaHandler {
     private readonly audioRecorder: AudioRecorder;
@@ -58,17 +60,17 @@ export default class StopRecordingMediaHandler {
             5000
         );
 
-        let image: ImageModel | undefined = undefined;
+        let imageModel: ImageModel | undefined = undefined;
 
         if (stopRecordingCommand.message.screenshot && this.imageCapturer.lastImageBase64) {
-            image = {
+            imageModel = {
                 base64: this.imageCapturer.lastImageBase64,
                 extension: 'jpeg',
             };
         }
 
         const audioBase64 = await this.audioRecorder.stop();
-        const audio: AudioModel = {
+        const audioModel: AudioModel = {
             base64: audioBase64,
             extension: 'webm',
             paddingStart: 0,
@@ -85,8 +87,8 @@ export default class StopRecordingMediaHandler {
                     id: itemId,
                     subtitle: subtitle,
                     surroundingSubtitles: surroundingSubtitles,
-                    image: image,
-                    audio: audio,
+                    image: imageModel,
+                    audio: audioModel,
                     url: stopRecordingCommand.message.url,
                 },
                 tabId: sender.tab!.id!,
@@ -98,7 +100,7 @@ export default class StopRecordingMediaHandler {
             }
         });
 
-        if (stopRecordingCommand.message.showAnkiUi) {
+        if (stopRecordingCommand.message.postMineAction === PostMineAction.showAnkiDialog) {
             const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {
                 sender: 'asbplayer-extension-to-video',
                 message: {
@@ -106,14 +108,27 @@ export default class StopRecordingMediaHandler {
                     id: itemId,
                     subtitle: subtitle,
                     surroundingSubtitles: surroundingSubtitles,
-                    image: image,
-                    audio: audio,
+                    image: imageModel,
+                    audio: audioModel,
                     url: stopRecordingCommand.message.url,
                 },
                 src: stopRecordingCommand.src,
             };
 
             chrome.tabs.sendMessage(sender.tab!.id!, showAnkiUiCommand);
+        } else if (stopRecordingCommand.message.postMineAction === PostMineAction.updateLastCard) {
+            if (!stopRecordingCommand.message.ankiSettings) {
+                throw new Error('Unable to update last card because anki settings is undefined');
+            }
+
+            updateLastCard(
+                stopRecordingCommand.message.ankiSettings,
+                subtitle,
+                audioModel,
+                imageModel,
+                stopRecordingCommand.message.sourceString,
+                stopRecordingCommand.message.url
+            );
         }
     }
 
