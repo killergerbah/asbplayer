@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState, useMemo, useRef, createRef, Re
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { keysAreEqual } from '../services/Util';
 import { useWindowSize } from '../hooks/useWindowSize';
-import { AsbplayerSettingsProvider, KeyBindings, surroundingSubtitles, SubtitleModel } from '@project/common';
+import { AsbplayerSettingsProvider, KeyBindings, PostMineAction, surroundingSubtitles, SubtitleModel } from '@project/common';
 import { SubtitleTextImage } from '@project/common/components';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
@@ -159,9 +159,8 @@ const SubtitleRow = React.memo((props: SubtitleRowProps) => {
 interface SubtitlePlayerProps {
     clock: Clock;
     onSeek: (progress: number, shouldPlay: boolean) => void;
-    onCopy: (subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], preventDuplicate: boolean) => void;
+    onCopy: (subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], postMineAction: PostMineAction, preventDuplicate: boolean) => void;
     onOffsetChange: (offset: number) => void;
-    onAnkiDialogRequest: () => void;
     onToggleSubtitleTrack: (track: number) => void;
     playing: boolean;
     subtitles?: DisplaySubtitleModel[];
@@ -184,7 +183,6 @@ export default function SubtitlePlayer({
     onSeek,
     onCopy,
     onOffsetChange,
-    onAnkiDialogRequest,
     onToggleSubtitleTrack,
     playing,
     subtitles,
@@ -511,7 +509,7 @@ export default function SubtitlePlayer({
             (event, subtitle) => {
                 event.preventDefault();
                 event.stopPropagation();
-                onCopy(subtitle, calculateSurroundingSubtitles(), false);
+                onCopy(subtitle, calculateSurroundingSubtitles(), PostMineAction.none, false);
             },
             () => disableKeyEventsRef.current ?? false,
             () => {
@@ -552,18 +550,32 @@ export default function SubtitlePlayer({
 
                 if (subtitles && subtitleIndexes && subtitleIndexes.length > 0) {
                     const index = Math.min(...subtitleIndexes);
-                    onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), true);
+                    onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), PostMineAction.showAnkiDialog, true);
                 }
-
-                // Ensure that anki dialog request is handled after the subtitle has appeared in copy history
-                // FIXME: This is a hack
-                setTimeout(() => onAnkiDialogRequest(), 100);
             },
-            () => false
+            () => !subtitles || subtitles.length === 0 || disableKeyEvents
         );
 
         return () => unbind();
-    }, [onAnkiDialogRequest, onCopy, subtitles, calculateSurroundingSubtitlesForIndex]);
+    }, [onCopy, disableKeyEvents, subtitles, calculateSurroundingSubtitlesForIndex]);
+
+    useEffect(() => {
+        const unbind = KeyBindings.bindUpdateLastCard(
+            (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const subtitleIndexes = Object.keys(selectedSubtitleIndexesRef.current).map((i) => Number(i));
+
+                if (subtitles && subtitleIndexes && subtitleIndexes.length > 0) {
+                    const index = Math.min(...subtitleIndexes);
+                    onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), PostMineAction.updateLastCard, true);
+                }
+            },
+            () => !subtitles || subtitles.length === 0 || disableKeyEvents
+        );
+
+        return () => unbind();
+    }, [onCopy, disableKeyEvents, subtitles, calculateSurroundingSubtitlesForIndex]);
 
     const handleClick = useCallback(
         (index: number) => {
@@ -586,7 +598,7 @@ export default function SubtitlePlayer({
                 return;
             }
 
-            onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), false);
+            onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), PostMineAction.none, false);
         },
         [subtitles, calculateSurroundingSubtitlesForIndex, onCopy]
     );

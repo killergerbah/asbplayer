@@ -92,7 +92,10 @@ export interface CopyMessage extends Message {
     readonly url?: string;
     readonly image?: ImageModel;
     readonly audio?: AudioModel;
+
+    // asbplayer app only
     readonly preventDuplicate?: boolean;
+    readonly postMineAction?: PostMineAction;
 }
 
 export interface CopySubtitleMessage extends Message {
@@ -109,7 +112,7 @@ export interface TakeScreenshotFromExtensionMessage extends Message {
     readonly rect: RectModel;
     readonly maxImageWidth: number;
     readonly maxImageHeight: number;
-    readonly ankiUiState?: AnkiUiSavedState
+    readonly ankiUiState?: AnkiUiSavedState;
 }
 
 export interface CardUpdatedMessage extends Message {
@@ -119,7 +122,7 @@ export interface CardUpdatedMessage extends Message {
 
 export interface ScreenshotTakenMessage extends Message {
     readonly command: 'screenshot-taken';
-    readonly ankiUiState?: AnkiUiSavedState
+    readonly ankiUiState?: AnkiUiSavedState;
 }
 
 export interface ShowAnkiUiMessage extends Message {

@@ -19,6 +19,7 @@ import {
     OffsetFromVideoMessage,
     PauseFromVideoMessage,
     PlayFromVideoMessage,
+    PostMineAction,
     ReadyFromVideoMessage,
     ReadyStateFromVideoMessage,
     ReadyToVideoMessage,
@@ -48,6 +49,8 @@ export default class VideoChannel {
         audio: AudioModel | undefined,
         image: ImageModel | undefined,
         url: string | undefined,
+        postMineAction: PostMineAction,
+        fromVideo: boolean,
         preventDuplicate: boolean,
         id: string | undefined
     ) => void)[];
@@ -167,6 +170,8 @@ export default class VideoChannel {
                             copyMessage.audio,
                             copyMessage.image,
                             copyMessage.url,
+                            copyMessage.postMineAction ?? PostMineAction.none,
+                            true,
                             copyMessage.preventDuplicate ?? false,
                             copyMessage.id
                         );
@@ -269,6 +274,8 @@ export default class VideoChannel {
             audio: AudioModel | undefined,
             image: ImageModel | undefined,
             url: string | undefined,
+            postMineAction: PostMineAction,
+            fromVideo: boolean,
             preventDuplicate: boolean,
             id: string | undefined
         ) => void

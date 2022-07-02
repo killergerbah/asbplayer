@@ -47,6 +47,24 @@ export default class KeyBindings {
         }, useCapture);
     }
 
+    static bindUpdateLastCard(
+        onUpdateLastCard: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        useCapture = false
+    ) {
+        return KeyBindings._bindDown((event) => {
+            if (disabledGetter()) {
+                return;
+            }
+
+            if (!KeyEvents.detectUpdateLastCard(event)) {
+                return;
+            }
+
+            onUpdateLastCard(event);
+        }, useCapture);
+    }
+
     static bindSeekToSubtitle(
         onSeekToSubtitle: (event: KeyboardEvent, subtitle: SubtitleModel) => void,
         disabledGetter: () => boolean,

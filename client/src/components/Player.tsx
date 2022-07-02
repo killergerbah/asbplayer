@@ -8,6 +8,7 @@ import {
     ImageModel,
     KeyBindings,
     mockSurroundingSubtitles,
+    PostMineAction,
     SubtitleModel,
     VideoTabModel,
 } from '@project/common';
@@ -110,6 +111,8 @@ interface PlayerProps {
         audio: AudioModel | undefined,
         image: ImageModel | undefined,
         url: string | undefined,
+        postMineAction: PostMineAction | undefined,
+        fromVideo: boolean | undefined,
         preventDuplicate: boolean | undefined,
         id: string | undefined
     ) => void;
@@ -367,21 +370,34 @@ export default function Player({
                         channel?.onPlay((forwardToMedia) => play(clock, mediaAdapter, forwardToMedia));
                         channel?.onPause((forwardToMedia) => pause(clock, mediaAdapter, forwardToMedia));
                         channel?.onOffset((offset) => applyOffset(Math.max(-lengthRef.current ?? 0, offset), false));
-                        channel?.onCopy((subtitle, surroundingSubtitles, audio, image, url, preventDuplicate, id) =>
-                            onCopy(
+                        channel?.onCopy(
+                            (
                                 subtitle,
                                 surroundingSubtitles,
-                                audioFile,
-                                videoFile,
-                                subtitle ? subtitleFiles[subtitle.track] : undefined,
-                                clock.time(lengthRef.current),
-                                channel?.selectedAudioTrack,
                                 audio,
                                 image,
                                 url,
+                                postMineAction,
+                                fromVideo,
                                 preventDuplicate,
                                 id
-                            )
+                            ) =>
+                                onCopy(
+                                    subtitle,
+                                    surroundingSubtitles,
+                                    audioFile,
+                                    videoFile,
+                                    subtitle ? subtitleFiles[subtitle.track] : undefined,
+                                    clock.time(lengthRef.current),
+                                    channel?.selectedAudioTrack,
+                                    audio,
+                                    image,
+                                    url,
+                                    postMineAction,
+                                    fromVideo,
+                                    preventDuplicate,
+                                    id
+                                )
                         );
                         channel?.onCondensedModeToggle(() =>
                             setCondensedModeEnabled((enabled) => {
@@ -633,8 +649,13 @@ export default function Player({
         [clock, seek, mediaAdapter]
     );
 
-    const handleCopy = useCallback(
-        (subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], preventDuplicate: boolean) => {
+    const handleCopyFromSubtitlePlayer = useCallback(
+        (
+            subtitle: SubtitleModel,
+            surroundingSubtitles: SubtitleModel[],
+            postMineAction: PostMineAction,
+            preventDuplicate: boolean
+        ) => {
             onCopy(
                 subtitle,
                 surroundingSubtitles,
@@ -646,6 +667,8 @@ export default function Player({
                 undefined,
                 undefined,
                 undefined,
+                postMineAction,
+                false,
                 preventDuplicate,
                 undefined
             );
@@ -755,6 +778,8 @@ export default function Player({
                         undefined,
                         undefined,
                         undefined,
+                        undefined,
+                        undefined,
                         undefined
                     );
                 },
@@ -804,11 +829,11 @@ export default function Player({
                         undefined,
                         undefined,
                         undefined,
+                        PostMineAction.showAnkiDialog,
+                        false,
                         undefined,
                         undefined
                     );
-
-                    onAnkiDialogRequest();
                 },
                 () => false
             );
@@ -907,9 +932,8 @@ export default function Player({
                             hidden={videoInWindow && hideSubtitlePlayer}
                             disabledSubtitleTracks={disabledSubtitleTracks}
                             onSeek={handleSeekToSubtitle}
-                            onCopy={handleCopy}
+                            onCopy={handleCopyFromSubtitlePlayer}
                             onOffsetChange={handleOffsetChange}
-                            onAnkiDialogRequest={onAnkiDialogRequest}
                             onToggleSubtitleTrack={handleToggleSubtitleTrack}
                             settingsProvider={settingsProvider}
                         />

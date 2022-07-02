@@ -19,6 +19,7 @@ import {
     AudioModel,
     ImageModel,
     AsbplayerSettings,
+    PostMineAction,
 } from '@project/common';
 import { v4 as uuidv4 } from 'uuid';
 import clsx from 'clsx';
@@ -351,7 +352,96 @@ function App() {
     const [tab, setTab] = useState<VideoTabModel>();
     const [availableTabs, setAvailableTabs] = useState<VideoTabModel[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const ankiDialogRequestedRef = useRef<boolean>(false);
+    ankiDialogRequestedRef.current = ankiDialogRequested;
     const { subtitleFiles } = sources;
+
+    const handleError = useCallback((message: string) => {
+        setAlertSeverity('error');
+        setAlert(message);
+        setAlertOpen(true);
+    }, []);
+
+    const handleAnkiDialogRequest = useCallback((forwardToVideo?: boolean, ankiDialogItem?: CopyHistoryItem) => {
+        if (!ankiDialogItem && copiedSubtitlesRef.current!.length === 0) {
+            return;
+        }
+
+        const item = ankiDialogItem ?? copiedSubtitlesRef.current[copiedSubtitlesRef.current.length - 1];
+        setAnkiDialogItem(item);
+        setAnkiDialogOpen(true);
+        setAnkiDialogDisabled(false);
+        setDisableKeyEvents(true);
+        setAnkiDialogRequested(true);
+
+        if (forwardToVideo) {
+            setAnkiDialogRequestToVideo(Date.now());
+        }
+    }, []);
+
+    const handleAnkiDialogProceed = useCallback(
+        async (
+            text: string,
+            definition: string,
+            audioClip: AudioClip | undefined,
+            image: Image | undefined,
+            word: string,
+            source: string,
+            url: string,
+            customFieldValues: { [key: string]: string },
+            tags: string[],
+            mode: AnkiExportMode
+        ) => {
+            setAnkiDialogDisabled(true);
+
+            try {
+                const result = await anki.export(
+                    text,
+                    definition,
+                    audioClip,
+                    image,
+                    word,
+                    source,
+                    url,
+                    customFieldValues,
+                    tags,
+                    mode
+                );
+
+                if (mode !== 'gui') {
+                    if (mode === 'default') {
+                        setAlertSeverity('success');
+                        setAlert('Exported card: ' + result);
+                        setAlertOpen(true);
+                    } else if (mode === 'updateLast') {
+                        setAlertSeverity('success');
+                        setAlert('Updated card: ' + result);
+                        setAlertOpen(true);
+                    }
+
+                    setAnkiDialogOpen(false);
+
+                    // We need the ref to avoid causing a state change that would re-init Player
+                    // It's a future task to make the Player init hook depend on less state
+                    if (ankiDialogRequestedRef.current) {
+                        setAnkiDialogFinishedRequest({ timestamp: Date.now(), resume: true });
+                        setAnkiDialogRequested(false);
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+                if (e instanceof Error) {
+                    handleError(e.message);
+                } else {
+                    handleError(String(e));
+                }
+            } finally {
+                setAnkiDialogDisabled(false);
+                setDisableKeyEvents(false);
+            }
+        },
+        [anki, handleError]
+    );
 
     const handleCopy = useCallback(
         (
@@ -365,12 +455,30 @@ function App() {
             audio: AudioModel | undefined,
             image: ImageModel | undefined,
             url: string | undefined,
+            postMineAction: PostMineAction | undefined,
+            fromVideo: boolean | undefined,
             preventDuplicate: boolean | undefined,
             id: string | undefined
         ) => {
             if (subtitle) {
                 navigator.clipboard.writeText(subtitle.text);
             }
+
+            const newCopiedSubtitle = {
+                ...subtitle,
+                surroundingSubtitles: surroundingSubtitles,
+                timestamp: Date.now(),
+                id: id || uuidv4(),
+                name: fileName!,
+                subtitleFile: subtitleFile,
+                audioFile: audioFile,
+                videoFile: videoFile,
+                mediaTimestamp: mediaTimestamp,
+                audioTrack: audioTrack,
+                audio: audio,
+                image: image,
+                url: url,
+            };
 
             setCopiedSubtitles((copiedSubtitles) => {
                 if (preventDuplicate && copiedSubtitles.length > 0) {
@@ -383,15 +491,8 @@ function App() {
                         subtitleFile?.name === last.subtitleFile?.name
                     ) {
                         if (mediaTimestamp !== undefined && mediaTimestamp !== last.mediaTimestamp) {
-                            const updated = Object.assign({}, last);
-                            updated.mediaTimestamp = mediaTimestamp;
-                            const newCopiedSubtitles = [];
-
-                            for (let i = 0; i < copiedSubtitles.length - 1; ++i) {
-                                newCopiedSubtitles.push(copiedSubtitles[i]);
-                            }
-
-                            newCopiedSubtitles.push(updated);
+                            const newCopiedSubtitles = [...copiedSubtitles];
+                            newCopiedSubtitles[newCopiedSubtitles.length - 1] = newCopiedSubtitle;
                             return newCopiedSubtitles;
                         }
 
@@ -399,51 +500,44 @@ function App() {
                     }
                 }
 
-                const newCopiedSubtitles: CopyHistoryItem[] = [];
-                let updated = false;
-
-                for (const copiedSubtitle of copiedSubtitles) {
-                    if (id && copiedSubtitle.id === id) {
-                        const newCopiedSubtitle: CopyHistoryItem = {
-                            ...copiedSubtitle,
-                            ...subtitle,
-                            ...(surroundingSubtitles && { surroundingSubtitles: surroundingSubtitles }),
-                            ...(subtitleFile && { subtitleFile: subtitleFile }),
-                            ...(audioFile && { audioFile: audioFile }),
-                            ...(videoFile && { videoFile: videoFile }),
-                            ...(mediaTimestamp && { mediaTimestamp: mediaTimestamp }),
-                            ...(audioTrack && { audioTrack: audioTrack }),
-                            ...(audio && { audio: audio }),
-                            ...(image && { image: image }),
-                            ...(url && { url: url }),
-                        };
-                        newCopiedSubtitles.push(newCopiedSubtitle);
-                        updated = true;
-                    } else {
-                        newCopiedSubtitles.push(copiedSubtitle);
-                    }
-                }
-
-                if (!updated) {
-                    newCopiedSubtitles.push({
-                        ...subtitle,
-                        surroundingSubtitles: surroundingSubtitles,
-                        timestamp: Date.now(),
-                        id: id || uuidv4(),
-                        name: fileName!,
-                        subtitleFile: subtitleFile,
-                        audioFile: audioFile,
-                        videoFile: videoFile,
-                        mediaTimestamp: mediaTimestamp,
-                        audioTrack: audioTrack,
-                        audio: audio,
-                        image: image,
-                        url: url,
-                    });
-                }
-
-                return newCopiedSubtitles;
+                // Note: we are not dealing with the case where an item with the given ID is already in the list
+                return [...copiedSubtitles, newCopiedSubtitle];
             });
+
+            switch (postMineAction ?? PostMineAction.none) {
+                case PostMineAction.none:
+                    break;
+                case PostMineAction.showAnkiDialog:
+                    handleAnkiDialogRequest(fromVideo, newCopiedSubtitle);
+                    break;
+                case PostMineAction.updateLastCard:
+                    // FIXME: We should really rename the functions below because we're actually skipping the Anki dialog in this case
+                    setAnkiDialogRequested(true);
+                    handleAnkiDialogProceed(
+                        subtitle.text,
+                        '',
+                        audioClipFromItem(
+                            newCopiedSubtitle,
+                            undefined,
+                            settingsProvider.audioPaddingStart,
+                            settingsProvider.audioPaddingEnd
+                        ),
+                        imageFromItem(
+                            newCopiedSubtitle,
+                            settingsProvider.maxImageWidth,
+                            settingsProvider.maxImageHeight
+                        ),
+                        '',
+                        itemSourceString(newCopiedSubtitle) ?? '',
+                        '',
+                        {},
+                        settingsProvider.tags,
+                        'updateLast'
+                    );
+                    break;
+                default:
+                    throw new Error('Unknown post mine action: ' + postMineAction);
+            }
 
             if (subtitle) {
                 setAlertSeverity('success');
@@ -453,7 +547,7 @@ function App() {
                 setAlertOpen(true);
             }
         },
-        [fileName]
+        [fileName, settingsProvider, handleAnkiDialogProceed, handleAnkiDialogRequest]
     );
 
     const handleOpenCopyHistory = useCallback(() => setCopyHistoryOpen((copyHistoryOpen) => !copyHistoryOpen), []);
@@ -513,12 +607,6 @@ function App() {
         },
         [copiedSubtitles]
     );
-
-    const handleError = useCallback((message: string) => {
-        setAlertSeverity('error');
-        setAlert(message);
-        setAlertOpen(true);
-    }, []);
 
     const handleUnloadAudio = useCallback(
         (audioFileUrl: string) => {
@@ -638,85 +726,6 @@ function App() {
             setAnkiDialogRequested(false);
         }
     }, [ankiDialogRequested]);
-
-    const handleAnkiDialogProceed = useCallback(
-        async (
-            text: string,
-            definition: string,
-            audioClip: AudioClip | undefined,
-            image: Image | undefined,
-            word: string,
-            source: string,
-            url: string,
-            customFieldValues: { [key: string]: string },
-            tags: string[],
-            mode: AnkiExportMode
-        ) => {
-            setAnkiDialogDisabled(true);
-
-            try {
-                const result = await anki.export(
-                    text,
-                    definition,
-                    audioClip,
-                    image,
-                    word,
-                    source,
-                    url,
-                    customFieldValues,
-                    tags,
-                    mode
-                );
-
-                if (mode !== 'gui') {
-                    if (mode === 'default') {
-                        setAlertSeverity('success');
-                        setAlert('Export succeeded: ' + result);
-                        setAlertOpen(true);
-                    } else if (mode === 'updateLast') {
-                        setAlertSeverity('success');
-                        setAlert('Update succeeded: ' + result);
-                        setAlertOpen(true);
-                    }
-
-                    setAnkiDialogOpen(false);
-
-                    if (ankiDialogRequested) {
-                        setAnkiDialogFinishedRequest({ timestamp: Date.now(), resume: true });
-                        setAnkiDialogRequested(false);
-                    }
-                }
-            } catch (e) {
-                console.error(e);
-                if (e instanceof Error) {
-                    handleError(e.message);
-                } else {
-                    handleError(String(e));
-                }
-            } finally {
-                setAnkiDialogDisabled(false);
-                setDisableKeyEvents(false);
-            }
-        },
-        [anki, handleError, ankiDialogRequested]
-    );
-
-    const handleAnkiDialogRequest = useCallback((forwardToVideo?: boolean) => {
-        if (copiedSubtitlesRef.current!.length === 0) {
-            return;
-        }
-
-        const item = copiedSubtitlesRef.current[copiedSubtitlesRef.current.length - 1];
-        setAnkiDialogItem(item);
-        setAnkiDialogOpen(true);
-        setAnkiDialogDisabled(false);
-        setDisableKeyEvents(true);
-        setAnkiDialogRequested(true);
-
-        if (forwardToVideo) {
-            setAnkiDialogRequestToVideo(Date.now());
-        }
-    }, []);
 
     const handleViewImage = useCallback((image: Image) => {
         setImage(image);

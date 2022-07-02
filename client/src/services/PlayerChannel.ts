@@ -12,6 +12,7 @@ import {
     OffsetFromVideoMessage,
     PauseFromVideoMessage,
     PlayFromVideoMessage,
+    PostMineAction,
     ReadyFromVideoMessage,
     ReadyStateFromVideoMessage,
     ReadyToVideoMessage,
@@ -253,12 +254,18 @@ export default class PlayerChannel {
         this.channel?.postMessage({ command: 'popOutToggle' });
     }
 
-    copy(subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], preventDuplicate?: boolean) {
+    copy(
+        subtitle: SubtitleModel,
+        surroundingSubtitles: SubtitleModel[],
+        postMineAction: PostMineAction,
+        preventDuplicate?: boolean
+    ) {
         const message: CopyMessage = {
             command: 'copy',
             subtitle: subtitle,
             surroundingSubtitles: surroundingSubtitles,
             preventDuplicate: preventDuplicate,
+            postMineAction: postMineAction,
         };
 
         this.channel?.postMessage(message);

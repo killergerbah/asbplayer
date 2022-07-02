@@ -14,6 +14,11 @@ export default class KeyEvents {
         return event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'q';
     }
 
+    static detectUpdateLastCard(event: KeyboardEvent) {
+        // Ctrl + Shift + Y
+        return event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'y';
+    }
+
     static detectIncreaseOffset(event: KeyboardEvent) {
         // Ctrl + Shift + Left
         return event.ctrlKey && event.shiftKey && event.key === 'ArrowLeft';

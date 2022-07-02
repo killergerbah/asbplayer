@@ -10,6 +10,7 @@ import {
     humanReadableTime,
     SubtitleModel,
     AudioTrackModel,
+    PostMineAction,
 } from '@project/common';
 import { SubtitleTextImage } from '@project/common/components';
 import Alert from './Alert';
@@ -483,7 +484,8 @@ export default function VideoPlayer(props: Props) {
                     subtitle,
                     noSubtitles
                         ? mockSurroundingSubtitles(subtitle, length, 5000)
-                        : calculateSurroundingSubtitles(subtitle.index)
+                        : calculateSurroundingSubtitles(subtitle.index),
+                    PostMineAction.none
                 );
 
                 if (fullscreen) {
@@ -598,39 +600,65 @@ export default function VideoPlayer(props: Props) {
         return () => unbind();
     }, [handleOffsetChange, subtitles, clock, length]);
 
+    const extractSubtitles = useCallback(
+        (
+            noSubtitleCallback: (subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[]) => void,
+            subtitleCallback: (subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[]) => void
+        ) => {
+            if (!subtitles || subtitles.length === 0) {
+                const timestamp = clock.time(length);
+                const end = Math.min(timestamp + 5000, length);
+                const subtitle = {
+                    text: '',
+                    start: timestamp,
+                    originalStart: timestamp,
+                    end: end,
+                    originalEnd: end,
+                    track: 0,
+                };
+
+                noSubtitleCallback(subtitle, mockSurroundingSubtitles(subtitle, length, 5000));
+            } else if (showSubtitlesRef.current && showSubtitlesRef.current.length > 0) {
+                const currentSubtitle = showSubtitlesRef.current[0];
+                subtitleCallback(currentSubtitle, calculateSurroundingSubtitles(currentSubtitle.index));
+            }
+        },
+        [subtitles, calculateSurroundingSubtitles, length, clock]
+    );
+
     useEffect(() => {
-        const unbind = KeyBindings.bindAnkiExport(
+        return KeyBindings.bindAnkiExport(
             (event) => {
                 event.preventDefault();
                 event.stopPropagation();
 
-                if (!subtitles || subtitles.length === 0) {
-                    const timestamp = clock.time(length);
-                    const end = Math.min(timestamp + 5000, length);
-                    const subtitle = {
-                        text: '',
-                        start: timestamp,
-                        originalStart: timestamp,
-                        end: end,
-                        originalEnd: end,
-                        track: 0,
-                    };
-
-                    playerChannel.copy(subtitle, mockSurroundingSubtitles(subtitle, length, 5000), false);
-                } else if (showSubtitlesRef.current && showSubtitlesRef.current.length > 0) {
-                    const currentSubtitle = showSubtitlesRef.current[0];
-                    playerChannel.copy(currentSubtitle, calculateSurroundingSubtitles(currentSubtitle.index), true);
-                }
-
-                // Ensure that anki dialog request is handled after the subtitle has appeared in copy history
-                // FIXME: This is a hack
-                setTimeout(() => playerChannel.ankiDialogRequest(fullscreen), 100);
+                extractSubtitles(
+                    (subtitle, surroundingSubtitles) =>
+                        playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.showAnkiDialog, false),
+                    (subtitle, surroundingSubtitles) =>
+                        playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.showAnkiDialog, true)
+                );
             },
             () => false
         );
+    }, [playerChannel, extractSubtitles, fullscreen]);
 
-        return () => unbind();
-    }, [playerChannel, subtitles, clock, length, calculateSurroundingSubtitles, fullscreen]);
+    useEffect(() => {
+        return KeyBindings.bindUpdateLastCard(
+            (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                extractSubtitles(
+                    (subtitle, surroundingSubtitles) =>
+                        playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.updateLastCard, false),
+                    (subtitle, surroundingSubtitles) =>
+                        playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.updateLastCard, true)
+                );
+            },
+            () => false
+        );
+    }, [playerChannel, extractSubtitles]);
 
     useEffect(() => {
         const unbind = KeyBindings.bindPlay(
