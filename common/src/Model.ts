@@ -92,7 +92,7 @@ export interface AnkiUiResumeState extends AnkiUiState {
     readonly lastAppliedTimestampIntervalToAudio?: number[];
 }
 
-export interface AnkiUiRerecordState {
+export interface AnkiUiSavedState {
     subtitle: SubtitleModel;
     text: string;
     sliderContext: AnkiDialogSliderContext;

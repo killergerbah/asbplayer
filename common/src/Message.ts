@@ -5,7 +5,7 @@ import {
     ImageModel,
     AudioModel,
     AudioTrackModel,
-    AnkiUiRerecordState,
+    AnkiUiSavedState,
     ConfirmedVideoDataSubtitleTrack,
 } from './Model';
 
@@ -102,12 +102,12 @@ export interface TakeScreenshotFromExtensionMessage extends Message {
     readonly rect: RectModel;
     readonly maxImageWidth: number;
     readonly maxImageHeight: number;
-    readonly ankiUiState?: AnkiUiRerecordState
+    readonly ankiUiState?: AnkiUiSavedState
 }
 
 export interface ScreenshotTakenMessage extends Message {
     readonly command: 'screenshot-taken';
-    readonly ankiUiState?: AnkiUiRerecordState
+    readonly ankiUiState?: AnkiUiSavedState
 }
 
 export interface ShowAnkiUiMessage extends Message {
@@ -123,7 +123,7 @@ export interface ShowAnkiUiMessage extends Message {
 export interface RerecordMediaMessage extends Message {
     readonly command: 'rerecord-media';
     readonly duration: number;
-    readonly uiState: AnkiUiRerecordState;
+    readonly uiState: AnkiUiSavedState;
     readonly audioPaddingStart: number;
     readonly audioPaddingEnd: number;
     readonly playbackRate: number;
@@ -132,7 +132,7 @@ export interface RerecordMediaMessage extends Message {
 
 export interface ShowAnkiUiAfterRerecordMessage extends Message {
     readonly command: 'show-anki-ui-after-rerecord';
-    readonly uiState: AnkiUiRerecordState;
+    readonly uiState: AnkiUiSavedState;
 }
 
 export interface SerializedSubtitleFile {
@@ -280,18 +280,14 @@ export interface MiscSettingsToVideoMessage extends Message {
 
 export interface AnkiUiBridgeResumeMessage extends Message {
     readonly command: 'resume';
+    readonly uiState: AnkiUiSavedState;
 }
 
 export interface AnkiUiBridgeRerecordMessage extends Message {
     readonly command: 'rerecord';
-    readonly uiState: AnkiUiRerecordState;
+    readonly uiState: AnkiUiSavedState;
     readonly recordStart: number;
     readonly recordEnd: number;
-}
-
-export interface AnkiUiBridgeRetakeScreenshotMessage extends Message {
-    readonly command: 'retake-screenshot';
-    readonly uiState: AnkiUiRerecordState;
 }
 
 export interface VideoDataUiBridgeConfirmMessage extends Message {

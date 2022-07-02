@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Anki,
     Image,
@@ -12,10 +12,9 @@ import {
     AnkiUiState,
     AnkiUiInitialState,
     AnkiUiResumeState,
-    AnkiUiRerecordState,
+    AnkiUiSavedState,
     AnkiUiBridgeRerecordMessage,
     AnkiUiBridgeResumeMessage,
-    AnkiUiBridgeRetakeScreenshotMessage,
 } from '@project/common';
 import { createTheme } from './theme';
 import { ThemeProvider } from '@material-ui/core/styles';
@@ -26,7 +25,7 @@ import Snackbar from '@material-ui/core/Snackbar';
 import Bridge from '../Bridge';
 import { PaletteType } from '@material-ui/core';
 import { AnkiExportMode } from '@project/common/src/Anki';
-import { AnkiDialogRerecordParams } from '@project/common/components';
+import { AnkiDialogState } from '@project/common/components';
 
 interface Props {
     bridge: Bridge;
@@ -63,6 +62,28 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
         () => (settingsProvider ? new Anki(settingsProvider, bridge) : undefined),
         [settingsProvider, bridge]
     );
+    const dialogStateRef = useRef<AnkiDialogState>();
+
+    const savedState = useCallback(() => {
+        const dialogState = dialogStateRef.current!;
+        const savedState: AnkiUiSavedState = {
+            subtitle: subtitle!,
+            text: dialogState.text,
+            sliderContext: dialogState.sliderContext!,
+            definition: dialogState.definition,
+            image: serializedImage,
+            audio: serializedAudio,
+            word: dialogState.word,
+            source: dialogState.source,
+            url: dialogState.url,
+            customFieldValues: dialogState.customFieldValues,
+            initialTimestampInterval: dialogState.initialTimestampInterval!,
+            timestampInterval: dialogState.timestampInterval!,
+            lastAppliedTimestampIntervalToText: dialogState.lastAppliedTimestampIntervalToText!,
+            lastAppliedTimestampIntervalToAudio: dialogState.lastAppliedTimestampIntervalToAudio
+        };
+        return savedState;
+    }, [subtitle, serializedImage, serializedAudio]);
 
     useEffect(() => {
         return bridge.onStateUpdated((s: AnkiUiState) => {
@@ -177,7 +198,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 if (mode !== 'gui') {
                     setOpen(false);
                     setImageDialogOpen(false);
-                    const message: AnkiUiBridgeResumeMessage = { command: 'resume' };
+                    const message: AnkiUiBridgeResumeMessage = { command: 'resume', uiState: savedState() };
                     bridge.finished(message);
                 }
             } catch (e) {
@@ -195,104 +216,35 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 setDisabled(false);
             }
         },
-        [anki, bridge]
+        [anki, bridge, savedState]
     );
 
     const handleCancel = useCallback(() => {
         setOpen(false);
         setImageDialogOpen(false);
-        const message: AnkiUiBridgeResumeMessage = { command: 'resume' };
+        const message: AnkiUiBridgeResumeMessage = { command: 'resume', uiState: savedState() };
         bridge.finished(message);
-    }, [bridge]);
+    }, [bridge, savedState]);
 
     const handleViewImage = useCallback((image: Image) => {
         setImage(image);
         setImageDialogOpen(true);
     }, []);
 
-    const handleRerecord = useCallback(
-        ({
-            text,
-            sliderContext,
-            definition,
-            word,
-            source,
-            url,
-            customFieldValues,
-            initialTimestampInterval,
-            timestampInterval,
-            lastAppliedTimestampIntervalToText,
-        }: AnkiDialogRerecordParams) => {
-            setOpen(false);
-            setImageDialogOpen(false);
-            const rerecordState: AnkiUiRerecordState = {
-                subtitle: subtitle!,
-                text,
-                sliderContext,
-                definition,
-                image: serializedImage,
-                word,
-                source,
-                url,
-                customFieldValues,
-                initialTimestampInterval,
-                timestampInterval,
-                lastAppliedTimestampIntervalToText,
-            };
+    const handleRerecord = useCallback(() => {
+        setOpen(false);
+        setImageDialogOpen(false);
 
-            const message: AnkiUiBridgeRerecordMessage = {
-                command: 'rerecord',
-                uiState: rerecordState,
-                recordStart: timestampInterval[0],
-                recordEnd: timestampInterval[1],
-            };
+        const state = savedState();
+        const message: AnkiUiBridgeRerecordMessage = {
+            command: 'rerecord',
+            uiState: state,
+            recordStart: state.timestampInterval![0],
+            recordEnd: state.timestampInterval![1],
+        };
 
-            bridge.finished(message);
-        },
-        [serializedImage, subtitle]
-    );
-
-    const handleRetakeScreenshot = useCallback(
-        ({
-            text,
-            sliderContext,
-            definition,
-            word,
-            source,
-            url,
-            customFieldValues,
-            initialTimestampInterval,
-            timestampInterval,
-            lastAppliedTimestampIntervalToText,
-            lastAppliedTimestampIntervalToAudio,
-        }: AnkiDialogRerecordParams) => {
-            setOpen(false);
-            setImageDialogOpen(false);
-            const rerecordState: AnkiUiRerecordState = {
-                subtitle: subtitle!,
-                text,
-                sliderContext,
-                definition,
-                audio: serializedAudio,
-                word,
-                source,
-                url,
-                customFieldValues,
-                initialTimestampInterval,
-                timestampInterval,
-                lastAppliedTimestampIntervalToText,
-                lastAppliedTimestampIntervalToAudio,
-            };
-
-            const message: AnkiUiBridgeRetakeScreenshotMessage = {
-                command: 'retake-screenshot',
-                uiState: rerecordState,
-            };
-
-            bridge.finished(message);
-        },
-        [serializedImage, subtitle]
-    );
+        bridge.finished(message);
+    }, [bridge, savedState]);
 
     return (
         <ThemeProvider theme={theme}>
@@ -322,7 +274,6 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                     anki={anki}
                     onProceed={handleProceed}
                     onRerecord={handleRerecord}
-                    onRetakeScreenshot={handleRetakeScreenshot}
                     onCancel={handleCancel}
                     onViewImage={handleViewImage}
                     definition={definition}
@@ -333,6 +284,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                     timestampInterval={timestampInterval}
                     lastAppliedTimestampIntervalToText={lastAppliedTimestampIntervalToText}
                     lastAppliedTimestampIntervalToAudio={lastAppliedTimestampIntervalToAudio}
+                    stateRef={dialogStateRef}
                 />
             )}
         </ThemeProvider>

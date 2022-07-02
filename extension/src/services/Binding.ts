@@ -1,5 +1,5 @@
 import {
-    AnkiUiRerecordState,
+    AnkiUiSavedState,
     CurrentTimeFromVideoMessage,
     PauseFromVideoMessage,
     PlaybackRateFromVideoMessage,
@@ -38,8 +38,7 @@ export default class Binding {
     maxImageHeight: number;
     subscribed: boolean = false;
 
-    retakingScreenshot: boolean;
-    rerecordAnkiUiState?: AnkiUiRerecordState;
+    ankiUiSavedState?: AnkiUiSavedState;
 
     private synced: boolean;
     private recordingMedia: boolean;
@@ -90,7 +89,6 @@ export default class Binding {
         this.synced = false;
         this.recordingMedia = false;
         this.recordingMediaWithScreenshot = false;
-        this.retakingScreenshot = false;
     }
 
     get url() {
@@ -275,6 +273,7 @@ export default class Binding {
                         this.subtitleContainer.showLoadedMessage(loadedMessage);
                         this.videoDataSyncContainer.unbindVideoSelect();
                         this.keyBindings.bind(this);
+                        this.ankiUiSavedState = undefined;
                         this.synced = true;
                         break;
                     case 'subtitleSettings':
@@ -346,7 +345,7 @@ export default class Binding {
                             this.showControlsTimeout = undefined;
                         }
 
-                        if (this.retakingScreenshot && request.message.ankiUiState) {
+                        if (request.message.ankiUiState) {
                             this.ankiUiContainer.showAfterRetakingScreenshot(this, request.message.ankiUiState);
                         }
 
@@ -354,7 +353,6 @@ export default class Binding {
                             this.controlsContainer.show();
                         }
 
-                        this.retakingScreenshot = false;
                         this.subtitleContainer.forceHideSubtitles = false;
                         break;
                 }
@@ -445,13 +443,13 @@ export default class Binding {
                 rect: this.video.getBoundingClientRect(),
                 maxImageWidth: this.maxImageWidth,
                 maxImageHeight: this.maxImageHeight,
-                ankiUiState: this.rerecordAnkiUiState,
+                ankiUiState: this.ankiUiSavedState,
             },
             src: this.video.src,
         };
 
         chrome.runtime.sendMessage(command);
-        this.rerecordAnkiUiState = undefined;
+        this.ankiUiSavedState = undefined;
     }
 
     async _copySubtitle(showAnkiUi: boolean) {
@@ -515,6 +513,8 @@ export default class Binding {
             this.recordingMedia = false;
             this.recordingMediaStartedTimestamp = undefined;
         } else {
+            this.ankiUiSavedState = undefined;
+
             if (this.screenshot) {
                 await this._prepareScreenshot();
             }
@@ -564,7 +564,7 @@ export default class Binding {
         }
     }
 
-    async rerecord(start: number, end: number, uiState: AnkiUiRerecordState) {
+    async rerecord(start: number, end: number, uiState: AnkiUiSavedState) {
         const noSubtitles = this.subtitleContainer.subtitles.length === 0;
         const audioPaddingStart = noSubtitles ? 0 : this.audioPaddingStart;
         const audioPaddingEnd = noSubtitles ? 0 : this.audioPaddingEnd;

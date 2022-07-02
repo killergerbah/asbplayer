@@ -7,7 +7,7 @@ import {
     ExtensionToVideoCommand,
     ScreenshotTakenMessage,
     TakeScreenshotFromExtensionMessage,
-    AnkiUiRerecordState,
+    AnkiUiSavedState,
     ExtensionToAsbPlayerCommand,
     CopyMessage,
 } from '@project/common';
@@ -44,7 +44,7 @@ export default class TakeScreenshotHandler {
             takeScreenshotCommand.message.maxImageHeight
         );
 
-        let ankiUiState: AnkiUiRerecordState | undefined;
+        let ankiUiState: AnkiUiSavedState | undefined;
 
         if (takeScreenshotCommand.message.ankiUiState) {
             ankiUiState = takeScreenshotCommand.message.ankiUiState;

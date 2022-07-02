@@ -1,13 +1,13 @@
 import {
     AnkiSettings,
     AnkiUiBridgeRerecordMessage,
-    AnkiUiBridgeRetakeScreenshotMessage,
     AnkiUiInitialState,
-    AnkiUiRerecordState,
+    AnkiUiSavedState,
     AnkiUiResumeState,
     AudioModel,
     ImageModel,
     SubtitleModel,
+    AnkiUiBridgeResumeMessage,
 } from '@project/common';
 import Binding from './Binding';
 import FrameBridgeClient from './FrameBridgeClient';
@@ -74,7 +74,7 @@ export default class AnkiUiContainer {
         client.updateState(state);
     }
 
-    async showAfterRerecord(context: Binding, uiState: AnkiUiRerecordState) {
+    async showAfterRerecord(context: Binding, uiState: AnkiUiSavedState) {
         if (!this.ankiSettings) {
             throw new Error('Unable to show Anki UI after rerecording because anki settings are undefined');
         }
@@ -93,7 +93,7 @@ export default class AnkiUiContainer {
         client.updateState(state);
     }
 
-    async showAfterRetakingScreenshot(context: Binding, uiState: AnkiUiRerecordState) {
+    async showAfterRetakingScreenshot(context: Binding, uiState: AnkiUiSavedState) {
         if (!this.ankiSettings) {
             throw new Error('Unable to show Anki UI after retaking screenshot because anki settings are undefined');
         }
@@ -166,16 +166,13 @@ export default class AnkiUiContainer {
 
             switch (message.command) {
                 case 'resume':
+                    const resumeMessage = message as AnkiUiBridgeResumeMessage;
+                    context.ankiUiSavedState = resumeMessage.uiState;
                     context.play();
                     break;
                 case 'rerecord':
                     const rerecordMessage = message as AnkiUiBridgeRerecordMessage;
                     context.rerecord(rerecordMessage.recordStart, rerecordMessage.recordEnd, rerecordMessage.uiState);
-                    break;
-                case 'retake-screenshot':
-                    const retakeScreenshotMessage = message as AnkiUiBridgeRetakeScreenshotMessage;
-                    context.retakingScreenshot = true;
-                    context.rerecordAnkiUiState = retakeScreenshotMessage.uiState;
                     break;
                 default:
                     console.error('Unknown message received from bridge: ' + message.command);

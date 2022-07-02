@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { MutableRefObject, useCallback, useState, useEffect } from 'react';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import {
     Anki,
@@ -11,7 +11,6 @@ import {
 } from '@project/common';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
-import CameraAltIcon from '@material-ui/icons/CameraAlt';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -155,18 +154,18 @@ const TextFieldEndAdornment = withStyles({
     },
 })(InputAdornment);
 
-export interface AnkiDialogRerecordParams {
+export interface AnkiDialogState {
     text: string;
-    sliderContext: AnkiDialogSliderContext;
+    sliderContext?: AnkiDialogSliderContext;
     definition: string;
     word: string;
     source: string;
     url: string;
     customFieldValues: { [key: string]: string };
-    lastAppliedTimestampIntervalToText: number[];
+    lastAppliedTimestampIntervalToText?: number[];
     lastAppliedTimestampIntervalToAudio?: number[];
-    initialTimestampInterval: number[];
-    timestampInterval: number[];
+    initialTimestampInterval?: number[];
+    timestampInterval?: number[];
 }
 
 interface AnkiDialogProps {
@@ -185,8 +184,7 @@ interface AnkiDialogProps {
         tags: string[],
         mode: AnkiExportMode
     ) => void;
-    onRerecord?: (params: AnkiDialogRerecordParams) => void;
-    onRetakeScreenshot?: (params: AnkiDialogRerecordParams) => void;
+    onRerecord?: () => void;
     onCancel: () => void;
     onViewImage: (image: Image) => void;
     onOpenSettings?: () => void;
@@ -205,6 +203,7 @@ interface AnkiDialogProps {
     timestampInterval?: number[];
     lastAppliedTimestampIntervalToText?: number[];
     lastAppliedTimestampIntervalToAudio?: number[];
+    stateRef?: MutableRefObject<AnkiDialogState | undefined>;
 }
 
 export function AnkiDialog({
@@ -216,7 +215,6 @@ export function AnkiDialog({
     onViewImage,
     onOpenSettings,
     onRerecord,
-    onRetakeScreenshot,
     audioClip: initialAudioClip,
     image,
     source: initialSource,
@@ -232,6 +230,7 @@ export function AnkiDialog({
     initialTimestampInterval: forceInitialTimestampInterval,
     lastAppliedTimestampIntervalToText: initialLastAppliedTimestampIntervalToText,
     lastAppliedTimestampIntervalToAudio: initialLastAppliedTimestampIntervalToAudio,
+    stateRef,
 }: AnkiDialogProps) {
     const classes = useStyles();
     const [definition, setDefinition] = useState<string>('');
@@ -257,6 +256,22 @@ export function AnkiDialog({
     const dialogRefCallback = useCallback((element: HTMLElement) => {
         setWidth(element?.getBoundingClientRect().width ?? 0);
     }, []);
+
+    if (stateRef) {
+        stateRef.current = {
+            text,
+            sliderContext,
+            definition,
+            word,
+            source,
+            url,
+            customFieldValues,
+            initialTimestampInterval,
+            lastAppliedTimestampIntervalToText,
+            lastAppliedTimestampIntervalToAudio,
+            timestampInterval,
+        };
+    }
 
     useEffect(() => {
         setText(initialText ?? '');
@@ -421,82 +436,14 @@ export function AnkiDialog({
 
     const handleApplyTimestampIntervalToAudio = useCallback(
         (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-            e.stopPropagation();
             if (onRerecord) {
-                if (!lastAppliedTimestampIntervalToText || !timestampInterval || !initialTimestampInterval) {
-                    return;
-                }
-
                 e.stopPropagation();
-                onRerecord({
-                    text: text,
-                    sliderContext: sliderContext!,
-                    definition: definition,
-                    word: word,
-                    source: source,
-                    url: url,
-                    customFieldValues: customFieldValues,
-                    initialTimestampInterval: initialTimestampInterval,
-                    lastAppliedTimestampIntervalToText: lastAppliedTimestampIntervalToText,
-                    timestampInterval: timestampInterval,
-                });
+                onRerecord();
             } else {
                 setLastAppliedTimestampIntervalToAudio(timestampInterval);
             }
         },
-        [
-            onRerecord,
-            initialTimestampInterval,
-            lastAppliedTimestampIntervalToText,
-            timestampInterval,
-            text,
-            sliderContext,
-            definition,
-            word,
-            source,
-            url,
-            customFieldValues,
-        ]
-    );
-
-    const handleRetakeScreenshot = useCallback(
-        (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-            e.stopPropagation();
-            if (onRetakeScreenshot) {
-                if (!lastAppliedTimestampIntervalToText || !timestampInterval || !initialTimestampInterval) {
-                    return;
-                }
-
-                e.stopPropagation();
-                onRetakeScreenshot({
-                    text: text,
-                    sliderContext: sliderContext!,
-                    definition: definition,
-                    word: word,
-                    source: source,
-                    url: url,
-                    customFieldValues: customFieldValues,
-                    initialTimestampInterval: initialTimestampInterval,
-                    lastAppliedTimestampIntervalToText: lastAppliedTimestampIntervalToText,
-                    lastAppliedTimestampIntervalToAudio: lastAppliedTimestampIntervalToAudio,
-                    timestampInterval: timestampInterval,
-                });
-            }
-        },
-        [
-            onRetakeScreenshot,
-            initialTimestampInterval,
-            lastAppliedTimestampIntervalToText,
-            lastAppliedTimestampIntervalToAudio,
-            timestampInterval,
-            text,
-            sliderContext,
-            definition,
-            word,
-            source,
-            url,
-            customFieldValues,
-        ]
+        [onRerecord, timestampInterval]
     );
 
     const handleResetTimestampInterval = useCallback(() => {
@@ -700,26 +647,7 @@ export function AnkiDialog({
                     )}
                     {image && (
                         <div className={classes.mediaField} onClick={handleViewImage}>
-                            <TextField
-                                variant="filled"
-                                color="secondary"
-                                fullWidth
-                                value={image.name}
-                                label="Image"
-                                InputProps={{
-                                    endAdornment: onRetakeScreenshot && (
-                                        <InputAdornment position="end">
-                                            <Tooltip title="Retake screenshot">
-                                                <span>
-                                                    <IconButton onClick={handleRetakeScreenshot} edge="end">
-                                                        <CameraAltIcon />
-                                                    </IconButton>
-                                                </span>
-                                            </Tooltip>
-                                        </InputAdornment>
-                                    ),
-                                }}
-                            />
+                            <TextField variant="filled" color="secondary" fullWidth value={image.name} label="Image" />
                         </div>
                     )}
                     <TextField
