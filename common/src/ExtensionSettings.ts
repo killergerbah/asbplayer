@@ -1,5 +1,6 @@
 export interface ExtensionKeyBindingsSettings {
     bindPlay: boolean;
+    bindAutoPause: boolean;
     bindToggleSubtitles: boolean;
     bindToggleSubtitleTrackInVideo: boolean;
     bindToggleSubtitleTrackInAsbplayer: boolean;
@@ -9,6 +10,8 @@ export interface ExtensionKeyBindingsSettings {
     bindSeekBackwardOrForward: boolean;
     bindSeekToBeginningOfCurrentSubtitle: boolean;
 }
+
+
 
 export interface ExtensionSettings extends ExtensionKeyBindingsSettings {
     displaySubtitles: boolean;

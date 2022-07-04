@@ -20,6 +20,7 @@ import {
     ImageModel,
     AsbplayerSettings,
     PostMineAction,
+    PlayMode,
 } from '@project/common';
 import { v4 as uuidv4 } from 'uuid';
 import clsx from 'clsx';
@@ -225,9 +226,10 @@ interface RenderVideoProps {
     searchParams: URLSearchParams;
     settingsProvider: SettingsProvider;
     onError: (error: string) => void;
+    onAutoPauseModeChangedViaBind: (playMode: PlayMode) => void;
 }
 
-function RenderVideo({ searchParams, settingsProvider, onError }: RenderVideoProps) {
+function RenderVideo({ searchParams, settingsProvider, onError, onAutoPauseModeChangedViaBind }: RenderVideoProps) {
     const videoFile = searchParams.get('video')!;
     const channel = searchParams.get('channel')!;
     const popOut = searchParams.get('popout')! === 'true';
@@ -239,6 +241,7 @@ function RenderVideo({ searchParams, settingsProvider, onError }: RenderVideoPro
             popOut={popOut}
             channel={channel}
             onError={onError}
+            onAutoPauseModeChangedViaBind={onAutoPauseModeChangedViaBind}
         />
     );
 }
@@ -898,6 +901,20 @@ function App() {
         return () => extension.unsubscribe(onMessage);
     }, [extension, inVideoPlayer]);
 
+    const handleAutoPauseModeChangedViaBind = useCallback((playMode: PlayMode) => {
+        switch (playMode) {
+            case PlayMode.autoPause:
+                setAlert('Auto-pause: On');
+                setAlertSeverity('info');
+                setAlertOpen(true);
+                break;
+            case PlayMode.normal:
+                setAlert('Auto-pause: Off');
+                setAlertSeverity('info');
+                setAlertOpen(true);
+        }
+    }, []);
+
     const handleDrop = useCallback(
         (e: React.DragEvent) => {
             if (ankiDialogOpen) {
@@ -1004,6 +1021,7 @@ function App() {
                                 searchParams={searchParams}
                                 settingsProvider={settingsProvider}
                                 onError={handleError}
+                                onAutoPauseModeChangedViaBind={handleAutoPauseModeChangedViaBind}
                             />
                         }
                     />
@@ -1088,6 +1106,7 @@ function App() {
                                         onAnkiDialogRequest={handleAnkiDialogRequest}
                                         onAppBarToggle={handleAppBarToggle}
                                         onVideoPopOut={handleVideoPopOut}
+                                        onAutoPauseModeChangedViaBind={handleAutoPauseModeChangedViaBind}
                                         tab={tab}
                                         availableTabs={availableTabs}
                                         sources={sources}

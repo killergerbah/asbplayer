@@ -7,18 +7,21 @@ import {
 } from '@project/common';
 import Binding from './Binding';
 
+type Unbinder = (() => void) | false;
+
 export default class KeyBindings {
     settings?: ExtensionKeyBindingsSettings;
 
-    private unbindPlay: (() => void) | false = false;
-    private unbindSeekToSubtitle: (() => void) | false = false;
-    private unbindSeekToBeginningOfCurrentSubtitle?: (() => void) | false = false;
-    private unbindSeekBackwardOrForward?: (() => void) | false = false;
-    private unbindToggleSubtitles: (() => void) | false = false;
-    private unbindToggleSubtitleTrackInVideo?: (() => void) | false = false;
-    private unbindToggleSubtitleTrackInList?: (() => void) | false = false;
-    private unbindOffsetToSubtitle?: (() => void) | false = false;
-    private unbindAdjustOffset?: (() => void) | false = false;
+    private unbindPlay: Unbinder = false;
+    private unbindAutoPause: Unbinder = false;
+    private unbindSeekToSubtitle: Unbinder = false;
+    private unbindSeekToBeginningOfCurrentSubtitle?: Unbinder = false;
+    private unbindSeekBackwardOrForward?: Unbinder = false;
+    private unbindToggleSubtitles: Unbinder = false;
+    private unbindToggleSubtitleTrackInVideo?: Unbinder = false;
+    private unbindToggleSubtitleTrackInList?: Unbinder = false;
+    private unbindOffsetToSubtitle?: Unbinder = false;
+    private unbindAdjustOffset?: Unbinder = false;
 
     private bound: boolean;
 
@@ -42,6 +45,7 @@ export default class KeyBindings {
                 (event) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
+
                     if (context.video.paused) {
                         context.play();
                     } else {
@@ -49,6 +53,19 @@ export default class KeyBindings {
                     }
                 },
                 () => false,
+                true
+            );
+
+        this.unbindAutoPause =
+            this.settings.bindAutoPause &&
+            CommonKeyBindings.bindAutoPause(
+                (event) => {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+
+                    context.autoPauseEnabled = !context.autoPauseEnabled;
+                },
+                () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
                 true
             );
 
@@ -97,13 +114,19 @@ export default class KeyBindings {
                 true
             );
 
-        // We don't stop immediate propagation for "toggle subtitles" because we have knowledge that
-        // the toggle-subtitle binding is a subset of the toggle-subtitle-track binding.
+        // We don't stop immediate propagation for "toggle subtitles" when "toggle-subtitle-track" is enabled
+        // because we have knowledge that the "toggle-subtitle" sequence is a subset of the "toggle-subtitle-track" sequence,
+        // and we need the the "toggle-subtitle-track" sequence to receive the key event as well so that it can, for example, cancel itself.
         // Might be worth rethinking the KeyBindings API so we don't need this extra knowledge for things to work.
         this.unbindToggleSubtitles =
             this.settings.bindToggleSubtitles &&
             CommonKeyBindings.bindToggleSubtitles(
                 (event) => {
+                    if (this.settings && !this.settings.bindToggleSubtitleTrackInAsbplayer) {
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                    }
+
                     const toggleSubtitlesCommand: VideoToExtensionCommand<ToggleSubtitlesMessage> = {
                         sender: 'asbplayer-video',
                         message: {
@@ -114,7 +137,12 @@ export default class KeyBindings {
 
                     chrome.runtime.sendMessage(toggleSubtitlesCommand);
                 },
-                () => {},
+                (event) => {
+                    if (this.settings && !this.settings.bindToggleSubtitleTrackInAsbplayer) {
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                    }
+                },
                 () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
                 true
             );
@@ -191,6 +219,11 @@ export default class KeyBindings {
         if (this.unbindPlay) {
             this.unbindPlay();
             this.unbindPlay = false;
+        }
+
+        if (this.unbindAutoPause) {
+            this.unbindAutoPause();
+            this.unbindAutoPause = false;
         }
 
         if (this.unbindSeekToSubtitle) {

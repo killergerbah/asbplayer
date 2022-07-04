@@ -1,5 +1,6 @@
 import {
     AnkiUiSavedState,
+    AutoPausePreference,
     CopySubtitleMessage,
     CurrentTimeFromVideoMessage,
     humanReadableTime,
@@ -40,6 +41,7 @@ export default class Binding {
     private recordingMedia: boolean;
     private recordingMediaStartedTimestamp?: number;
     private recordingMediaWithScreenshot: boolean;
+    private _autoPauseEnabled: boolean = false;
 
     readonly video: HTMLVideoElement;
     readonly subSyncAvailable: boolean;
@@ -59,6 +61,7 @@ export default class Binding {
     private audioPaddingEnd: number;
     private maxImageWidth: number;
     private maxImageHeight: number;
+    private autoPausePreference: AutoPausePreference;
 
     private playListener?: EventListener;
     private pauseListener?: EventListener;
@@ -90,6 +93,7 @@ export default class Binding {
         this.audioPaddingEnd = 500;
         this.maxImageWidth = 0;
         this.maxImageHeight = 0;
+        this.autoPausePreference = AutoPausePreference.atEnd;
         this.copyToClipboardOnMine = true;
         this.synced = false;
         this.recordingMedia = false;
@@ -98,6 +102,36 @@ export default class Binding {
 
     get url() {
         return window.location !== window.parent.location ? document.referrer : document.location.href;
+    }
+
+    get autoPauseEnabled() {
+        return this._autoPauseEnabled;
+    }
+
+    set autoPauseEnabled(enabled: boolean) {
+        if (enabled) {
+            this.subtitleContainer.onStartedShowing = () => {
+                if (this.recordingMedia || this.autoPausePreference !== AutoPausePreference.atStart) {
+                    return;
+                }
+
+                this.pause();
+            };
+            this.subtitleContainer.onWillStopShowing = () => {
+                if (this.recordingMedia || this.autoPausePreference !== AutoPausePreference.atEnd) {
+                    return;
+                }
+
+                this.pause();
+            };
+            this.subtitleContainer.notification('Auto-pause: On');
+        } else {
+            this.subtitleContainer.onStartedShowing = undefined;
+            this.subtitleContainer.onWillStopShowing = undefined;
+            this.subtitleContainer.notification('Auto-pause: Off');
+        }
+
+        this._autoPauseEnabled = enabled;
     }
 
     sourceString(timestamp: number, track: number = 0) {
@@ -270,7 +304,8 @@ export default class Binding {
                         // ignore
                         break;
                     case 'subtitles':
-                        this.subtitleContainer.subtitles = request.message.value;
+                        const subtitles: SubtitleModel[] = request.message.value;
+                        this.subtitleContainer.subtitles = subtitles;
                         this.subtitleContainer.subtitleFileNames = request.message.names || [request.message.name];
 
                         let loadedMessage;
@@ -279,6 +314,10 @@ export default class Binding {
                             loadedMessage = request.message.names.join('<br>');
                         } else {
                             loadedMessage = request.message.name || '[Subtitles Loaded]';
+                        }
+
+                        if (this.autoPauseEnabled && (!subtitles || subtitles.length === 0)) {
+                            this.autoPauseEnabled = false;
                         }
 
                         this.subtitleContainer.showLoadedMessage(loadedMessage);
@@ -323,6 +362,7 @@ export default class Binding {
                     case 'miscSettings':
                         this.settings.set({ lastThemeType: request.message.value.themeType });
                         this.copyToClipboardOnMine = request.message.value.copyToClipboardOnMine;
+                        this.autoPausePreference = request.message.value.autoPausePreference;
                         break;
                     case 'settings-updated':
                         this._refreshSettings();
@@ -340,6 +380,10 @@ export default class Binding {
                         break;
                     case 'card-updated':
                         this.subtitleContainer.notification(`Updated card: ${request.message.cardName}`);
+                        break;
+                    case 'recording-finished':
+                        this.recordingMedia = false;
+                        this.recordingMediaStartedTimestamp = undefined;
                         break;
                     case 'show-anki-ui':
                         this.ankiUiContainer.show(
@@ -481,6 +525,8 @@ export default class Binding {
             }
 
             if (this.recordMedia) {
+                this.recordingMedia = true;
+                this.recordingMediaStartedTimestamp = this.video.currentTime * 1000;
                 const start = Math.max(0, subtitle.start - this.audioPaddingStart);
                 this.seek(start / 1000);
                 await this.play();
@@ -536,9 +582,6 @@ export default class Binding {
             };
 
             chrome.runtime.sendMessage(command);
-
-            this.recordingMedia = false;
-            this.recordingMediaStartedTimestamp = undefined;
         } else {
             this.ankiUiSavedState = undefined;
 
@@ -597,7 +640,8 @@ export default class Binding {
         const noSubtitles = this.subtitleContainer.subtitles.length === 0;
         const audioPaddingStart = noSubtitles ? 0 : this.audioPaddingStart;
         const audioPaddingEnd = noSubtitles ? 0 : this.audioPaddingEnd;
-
+        this.recordingMedia = true;
+        this.recordingMediaStartedTimestamp = this.video.currentTime * 1000;
         this.seek(Math.max(0, start - audioPaddingStart) / 1000);
         await this.play();
 

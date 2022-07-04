@@ -73,4 +73,9 @@ export default class KeyEvents {
         // Space
         return event.key === ' ';
     }
+
+    static detectAutoPause(event: KeyboardEvent) {
+        // Shift + P
+        return event.shiftKey && event.key.toLowerCase() === 'p';
+    }
 }

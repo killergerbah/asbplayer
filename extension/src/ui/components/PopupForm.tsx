@@ -276,6 +276,20 @@ export default function PopupForm({ commands, settings, onSettingsChanged, onOpe
                                 <TableRow>
                                     <SmallTableCell>
                                         <Checkbox
+                                            checked={settings.bindAutoPause}
+                                            onChange={(e) => onSettingsChanged('bindAutoPause', e.target.checked)}
+                                        />
+                                    </SmallTableCell>
+                                    <TableCell>
+                                        <Typography variant="subtitle2">Shift+P</Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="subtitle2">Toggle auto-pause</Typography>
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <SmallTableCell>
+                                        <Checkbox
                                             checked={settings.bindToggleSubtitles}
                                             onChange={(e) => onSettingsChanged('bindToggleSubtitles', e.target.checked)}
                                         />

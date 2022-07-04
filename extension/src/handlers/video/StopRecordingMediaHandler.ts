@@ -12,6 +12,7 @@ import {
     Message,
     mockSurroundingSubtitles,
     PostMineAction,
+    RecordingFinishedMessage,
     ShowAnkiUiMessage,
     StopRecordingMediaMessage,
     SubtitleModel,
@@ -37,110 +38,121 @@ export default class StopRecordingMediaHandler {
     }
 
     async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
-        const windowActive = await this._isWindowActive(sender.tab!.windowId);
-
-        if (!windowActive) {
-            console.error('Received record request from wrong window.');
-            return;
-        }
-
         const stopRecordingCommand = command as VideoToExtensionCommand<StopRecordingMediaMessage>;
 
-        const itemId = uuidv4();
-        const subtitle: SubtitleModel = {
-            text: '',
-            start: stopRecordingCommand.message.startTimestamp,
-            end: stopRecordingCommand.message.endTimestamp,
-            originalStart: stopRecordingCommand.message.startTimestamp,
-            originalEnd: stopRecordingCommand.message.startTimestamp,
-            track: 0,
-        };
-        const surroundingSubtitles = mockSurroundingSubtitles(
-            subtitle,
-            stopRecordingCommand.message.videoDuration,
-            5000
-        );
+        try {
+            const windowActive = await this._isWindowActive(sender.tab!.windowId);
 
-        let imageModel: ImageModel | undefined = undefined;
-
-        if (stopRecordingCommand.message.screenshot && this.imageCapturer.lastImageBase64) {
-            imageModel = {
-                base64: this.imageCapturer.lastImageBase64,
-                extension: 'jpeg',
-            };
-        }
-
-        const audioBase64 = await this.audioRecorder.stop();
-        const audioModel: AudioModel = {
-            base64: audioBase64,
-            extension: 'webm',
-            paddingStart: 0,
-            paddingEnd: 0,
-            start: stopRecordingCommand.message.startTimestamp,
-            end: stopRecordingCommand.message.endTimestamp,
-        };
-
-        chrome.tabs.query({}, (allTabs) => {
-            const copyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {
-                sender: 'asbplayer-extension-to-player',
-                message: {
-                    command: 'copy',
-                    id: itemId,
-                    subtitle: subtitle,
-                    surroundingSubtitles: surroundingSubtitles,
-                    image: imageModel,
-                    audio: audioModel,
-                    url: stopRecordingCommand.message.url,
-                },
-                tabId: sender.tab!.id!,
-                src: stopRecordingCommand.src,
-            };
-
-            for (let t of allTabs) {
-                chrome.tabs.sendMessage(t.id!, copyCommand);
-            }
-        });
-
-        if (stopRecordingCommand.message.postMineAction === PostMineAction.showAnkiDialog) {
-            const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {
-                sender: 'asbplayer-extension-to-video',
-                message: {
-                    command: 'show-anki-ui',
-                    id: itemId,
-                    subtitle: subtitle,
-                    surroundingSubtitles: surroundingSubtitles,
-                    image: imageModel,
-                    audio: audioModel,
-                    url: stopRecordingCommand.message.url,
-                },
-                src: stopRecordingCommand.src,
-            };
-
-            chrome.tabs.sendMessage(sender.tab!.id!, showAnkiUiCommand);
-        } else if (stopRecordingCommand.message.postMineAction === PostMineAction.updateLastCard) {
-            if (!stopRecordingCommand.message.ankiSettings) {
-                throw new Error('Unable to update last card because anki settings is undefined');
+            if (!windowActive) {
+                console.error('Received record request from wrong window.');
+                return;
             }
 
-            const cardName = await updateLastCard(
-                stopRecordingCommand.message.ankiSettings,
+            const itemId = uuidv4();
+            const subtitle: SubtitleModel = {
+                text: '',
+                start: stopRecordingCommand.message.startTimestamp,
+                end: stopRecordingCommand.message.endTimestamp,
+                originalStart: stopRecordingCommand.message.startTimestamp,
+                originalEnd: stopRecordingCommand.message.startTimestamp,
+                track: 0,
+            };
+            const surroundingSubtitles = mockSurroundingSubtitles(
                 subtitle,
-                audioModel,
-                imageModel,
-                stopRecordingCommand.message.sourceString,
-                stopRecordingCommand.message.url
+                stopRecordingCommand.message.videoDuration,
+                5000
             );
 
-            const cardUpdatedCommand: ExtensionToVideoCommand<CardUpdatedMessage> = {
-                sender: 'asbplayer-extension-to-video',
-                message: {
-                    command: 'card-updated',
-                    cardName: `${cardName}`
-                },
-                src: stopRecordingCommand.src
+            let imageModel: ImageModel | undefined = undefined;
+
+            if (stopRecordingCommand.message.screenshot && this.imageCapturer.lastImageBase64) {
+                imageModel = {
+                    base64: this.imageCapturer.lastImageBase64,
+                    extension: 'jpeg',
+                };
             }
 
-            chrome.tabs.sendMessage(sender.tab!.id!, cardUpdatedCommand);
+            const audioBase64 = await this.audioRecorder.stop();
+            const audioModel: AudioModel = {
+                base64: audioBase64,
+                extension: 'webm',
+                paddingStart: 0,
+                paddingEnd: 0,
+                start: stopRecordingCommand.message.startTimestamp,
+                end: stopRecordingCommand.message.endTimestamp,
+            };
+
+            chrome.tabs.query({}, (allTabs) => {
+                const copyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {
+                    sender: 'asbplayer-extension-to-player',
+                    message: {
+                        command: 'copy',
+                        id: itemId,
+                        subtitle: subtitle,
+                        surroundingSubtitles: surroundingSubtitles,
+                        image: imageModel,
+                        audio: audioModel,
+                        url: stopRecordingCommand.message.url,
+                    },
+                    tabId: sender.tab!.id!,
+                    src: stopRecordingCommand.src,
+                };
+
+                for (let t of allTabs) {
+                    chrome.tabs.sendMessage(t.id!, copyCommand);
+                }
+            });
+
+            if (stopRecordingCommand.message.postMineAction === PostMineAction.showAnkiDialog) {
+                const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {
+                    sender: 'asbplayer-extension-to-video',
+                    message: {
+                        command: 'show-anki-ui',
+                        id: itemId,
+                        subtitle: subtitle,
+                        surroundingSubtitles: surroundingSubtitles,
+                        image: imageModel,
+                        audio: audioModel,
+                        url: stopRecordingCommand.message.url,
+                    },
+                    src: stopRecordingCommand.src,
+                };
+
+                chrome.tabs.sendMessage(sender.tab!.id!, showAnkiUiCommand);
+            } else if (stopRecordingCommand.message.postMineAction === PostMineAction.updateLastCard) {
+                if (!stopRecordingCommand.message.ankiSettings) {
+                    throw new Error('Unable to update last card because anki settings is undefined');
+                }
+
+                const cardName = await updateLastCard(
+                    stopRecordingCommand.message.ankiSettings,
+                    subtitle,
+                    audioModel,
+                    imageModel,
+                    stopRecordingCommand.message.sourceString,
+                    stopRecordingCommand.message.url
+                );
+
+                const cardUpdatedCommand: ExtensionToVideoCommand<CardUpdatedMessage> = {
+                    sender: 'asbplayer-extension-to-video',
+                    message: {
+                        command: 'card-updated',
+                        cardName: `${cardName}`,
+                    },
+                    src: stopRecordingCommand.src,
+                };
+
+                chrome.tabs.sendMessage(sender.tab!.id!, cardUpdatedCommand);
+            }
+        } finally {
+            const recordingFinishedCommand: ExtensionToVideoCommand<RecordingFinishedMessage> = {
+                sender: 'asbplayer-extension-to-video',
+                message: {
+                    command: 'recording-finished',
+                },
+                src: stopRecordingCommand.src,
+            };
+            chrome.tabs.sendMessage(sender.tab!.id!, recordingFinishedCommand);
         }
     }
 

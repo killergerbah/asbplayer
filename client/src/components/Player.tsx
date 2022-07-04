@@ -5,9 +5,11 @@ import {
     AsbplayerSettingsProvider,
     AudioModel,
     AudioTrackModel,
+    AutoPausePreference,
     ImageModel,
     KeyBindings,
     mockSurroundingSubtitles,
+    PlayMode,
     PostMineAction,
     SubtitleModel,
     VideoTabModel,
@@ -121,6 +123,7 @@ interface PlayerProps {
     onAnkiDialogRequest: (forwardToVideo?: boolean) => void;
     onAppBarToggle: () => void;
     onVideoPopOut: () => void;
+    onAutoPauseModeChangedViaBind: (playMode: PlayMode) => void;
     disableKeyEvents: boolean;
     jumpToSubtitle?: SubtitleModel;
 }
@@ -148,6 +151,7 @@ export default function Player({
     onAnkiDialogRequest,
     onAppBarToggle,
     onVideoPopOut,
+    onAutoPauseModeChangedViaBind,
     disableKeyEvents,
     jumpToSubtitle,
 }: PlayerProps) {
@@ -169,9 +173,9 @@ export default function Player({
     const hideSubtitlePlayerRef = useRef<boolean>();
     hideSubtitlePlayerRef.current = hideSubtitlePlayer;
     const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState<{ [track: number]: boolean }>({});
-    const [condensedModeEnabled, setCondensedModeEnabled] = useState<boolean>(false);
-    const condensedModeEnabledRef = useRef<boolean>();
-    condensedModeEnabledRef.current = condensedModeEnabled;
+    const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
+    const playModeRef = useRef<PlayMode>();
+    playModeRef.current = playMode;
     const forceUpdate = useCallback(() => updateState({}), []);
     const mousePositionRef = useRef<Point>({ x: 0, y: 0 });
     const audioRef = useRef<HTMLAudioElement>(null);
@@ -254,7 +258,8 @@ export default function Player({
             setPlaying(false);
             setAudioTracks(undefined);
             setSelectedAudioTrack(undefined);
-            setCondensedModeEnabled(false);
+            setPlayMode(PlayMode.normal);
+
             if (audioRef.current) {
                 audioRef.current.currentTime = 0;
                 audioRef.current.pause();
@@ -343,7 +348,7 @@ export default function Player({
 
                     channel?.ankiSettings(settingsProvider.ankiSettings);
                     channel?.miscSettings(settingsProvider.miscSettings);
-                    channel?.condensedModeToggle(condensedModeEnabledRef.current ?? false);
+                    channel?.playMode(playModeRef.current!);
                     channel?.hideSubtitlePlayerToggle(hideSubtitlePlayerRef.current ?? false);
 
                     if (channel?.audioTracks && channel?.audioTracks?.length > 1) {
@@ -399,13 +404,10 @@ export default function Player({
                                     id
                                 )
                         );
-                        channel?.onCondensedModeToggle(() =>
-                            setCondensedModeEnabled((enabled) => {
-                                const newValue = !enabled;
-                                channel?.condensedModeToggle(newValue);
-                                return newValue;
-                            })
-                        );
+                        channel?.onPlayMode((playMode) => {
+                            setPlayMode(playMode);
+                            channel?.playMode(playMode);
+                        });
                         channel?.onCurrentTime(async (currentTime, forwardToMedia) => {
                             if (playingRef.current) {
                                 clock.stop();
@@ -523,7 +525,7 @@ export default function Player({
     }, [ankiDialogRequested, clock, mediaAdapter]);
 
     useEffect(() => {
-        if (!condensedModeEnabled) {
+        if (playMode !== PlayMode.condensed) {
             return;
         }
 
@@ -589,7 +591,23 @@ export default function Player({
         }, 100);
 
         return () => clearInterval(interval);
-    }, [subtitles, condensedModeEnabled, clock, seek]);
+    }, [subtitles, playMode, clock, seek]);
+
+    const handleOnStartedShowingSubtitle = useCallback(() => {
+        if (playMode !== PlayMode.autoPause || settingsProvider.autoPausePreference !== AutoPausePreference.atStart) {
+            return;
+        }
+
+        pause(clock, mediaAdapter, true);
+    }, [playMode, clock, mediaAdapter, settingsProvider]);
+
+    const handleOnWillStopShowingSubtitle = useCallback(() => {
+        if (playMode !== PlayMode.autoPause || settingsProvider.autoPausePreference !== AutoPausePreference.atEnd) {
+            return;
+        }
+
+        pause(clock, mediaAdapter, true);
+    }, [playMode, clock, mediaAdapter, settingsProvider]);
 
     useEffect(() => {
         if (videoPopOut && channelId && videoFileUrl) {
@@ -711,7 +729,7 @@ export default function Player({
         }
     }, []);
 
-    const handleCondensedModeToggle = useCallback(() => setCondensedModeEnabled((value) => !value), []);
+    const handlePlayMode = useCallback((playMode: PlayMode) => setPlayMode(playMode), []);
 
     const handleToggleSubtitleTrack = useCallback(
         (track: number) =>
@@ -758,6 +776,22 @@ export default function Player({
 
         return () => unbind();
     }, [playing, clock, mediaAdapter, disableKeyEvents]);
+
+    useEffect(() => {
+        return KeyBindings.bindAutoPause(
+            (event) => {
+                if (tab) {
+                    return;
+                }
+
+                event.preventDefault();
+                const newPlayMode = playMode === PlayMode.autoPause ? PlayMode.normal : PlayMode.autoPause;
+                setPlayMode(newPlayMode);
+                onAutoPauseModeChangedViaBind(newPlayMode);
+            },
+            () => disableKeyEvents
+        );
+    }, [disableKeyEvents, settingsProvider, playMode, tab, onAutoPauseModeChangedViaBind]);
 
     useEffect(() => {
         if ((audioFile || videoFile) && (!subtitles || subtitles.length === 0)) {
@@ -899,8 +933,8 @@ export default function Player({
                                 offsetEnabled={true}
                                 offset={offset}
                                 volumeEnabled={Boolean(audioFileUrl)}
-                                condensedModeToggleEnabled={Boolean(audioFileUrl) && subtitles && subtitles.length > 0}
-                                condensedModeEnabled={condensedModeEnabled}
+                                playModeEnabled={Boolean(videoFileUrl || audioFileUrl)}
+                                playMode={playMode}
                                 onPlay={handlePlay}
                                 onPause={handlePause}
                                 onSeek={handleSeek}
@@ -910,7 +944,7 @@ export default function Player({
                                 onUnloadVideo={() => videoFileUrl && onUnloadVideo(videoFileUrl)}
                                 onOffsetChange={handleOffsetChange}
                                 onVolumeChange={handleVolumeChange}
-                                onCondensedModeToggle={handleCondensedModeToggle}
+                                onPlayMode={handlePlayMode}
                                 disableKeyEvents={disableKeyEvents}
                                 settingsProvider={settingsProvider}
                                 showOnMouseMovement={true}
@@ -935,6 +969,8 @@ export default function Player({
                             onCopy={handleCopyFromSubtitlePlayer}
                             onOffsetChange={handleOffsetChange}
                             onToggleSubtitleTrack={handleToggleSubtitleTrack}
+                            onStartedShowing={handleOnStartedShowingSubtitle}
+                            onWillStopShowing={handleOnWillStopShowingSubtitle}
                             settingsProvider={settingsProvider}
                         />
                     </Grid>

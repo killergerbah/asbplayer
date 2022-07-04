@@ -2,7 +2,13 @@ import React, { useCallback, useEffect, useState, useMemo, useRef, createRef, Re
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { keysAreEqual } from '../services/Util';
 import { useWindowSize } from '../hooks/useWindowSize';
-import { AsbplayerSettingsProvider, KeyBindings, PostMineAction, surroundingSubtitles, SubtitleModel } from '@project/common';
+import {
+    AsbplayerSettingsProvider,
+    KeyBindings,
+    PostMineAction,
+    surroundingSubtitles,
+    SubtitleModel,
+} from '@project/common';
 import { SubtitleTextImage } from '@project/common/components';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';
@@ -56,7 +62,7 @@ const useSubtitleRowStyles = makeStyles((theme) => ({
         minWidth: 200,
         width: '100%',
         overflowWrap: 'anywhere',
-        whiteSpace: 'pre-wrap'
+        whiteSpace: 'pre-wrap',
     },
     compressedSubtitle: {
         fontSize: 16,
@@ -64,7 +70,7 @@ const useSubtitleRowStyles = makeStyles((theme) => ({
         minWidth: 200,
         width: '100%',
         overflowWrap: 'anywhere',
-        whiteSpace: 'pre-wrap'
+        whiteSpace: 'pre-wrap',
     },
     disabledSubtitle: {
         color: 'transparent',
@@ -159,9 +165,16 @@ const SubtitleRow = React.memo((props: SubtitleRowProps) => {
 interface SubtitlePlayerProps {
     clock: Clock;
     onSeek: (progress: number, shouldPlay: boolean) => void;
-    onCopy: (subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], postMineAction: PostMineAction, preventDuplicate: boolean) => void;
+    onCopy: (
+        subtitle: SubtitleModel,
+        surroundingSubtitles: SubtitleModel[],
+        postMineAction: PostMineAction,
+        preventDuplicate: boolean
+    ) => void;
     onOffsetChange: (offset: number) => void;
     onToggleSubtitleTrack: (track: number) => void;
+    onStartedShowing?: () => void;
+    onWillStopShowing?: () => void;
     playing: boolean;
     subtitles?: DisplaySubtitleModel[];
     length: number;
@@ -184,6 +197,8 @@ export default function SubtitlePlayer({
     onCopy,
     onOffsetChange,
     onToggleSubtitleTrack,
+    onStartedShowing,
+    onWillStopShowing,
     playing,
     subtitles,
     length,
@@ -231,6 +246,12 @@ export default function SubtitlePlayer({
     drawerOpenRef.current = drawerOpen;
     const [windowWidth] = useWindowSize(true);
     const classes = useSubtitlePlayerStyles({ compressed, windowWidth, appBarHidden });
+    const startedShowingSubtitleRef = useRef<SubtitleModel>();
+    const onStartedShowingRef = useRef<() => void>();
+    onStartedShowingRef.current = onStartedShowing;
+    const willStopShowingSubtitleRef = useRef<SubtitleModel>();
+    const onWillStopShowingRef = useRef<() => void>();
+    onWillStopShowingRef.current = onWillStopShowing;
 
     // This effect should be scheduled only once as re-scheduling seems to cause performance issues.
     // Therefore all of the state it operates on is contained in refs.
@@ -244,6 +265,10 @@ export default function SubtitlePlayer({
 
             let smallestIndex = Number.MAX_SAFE_INTEGER;
             let fallbackIndex = -1;
+            let startedShowing = false;
+            let startedShowingSubtitle: SubtitleModel | undefined;
+            let willStopShowing = false;
+            let willStopShowingSubtitle: SubtitleModel | undefined;
             const currentSubtitleIndexes: { [index: number]: boolean } = {};
 
             for (let i = subtitles.length - 1; i >= 0; --i) {
@@ -255,6 +280,18 @@ export default function SubtitlePlayer({
                     if (progress < end) {
                         smallestIndex = i < smallestIndex ? i : smallestIndex;
                         currentSubtitleIndexes[i] = true;
+                        const nextProgress = progress + 100 / length;
+
+                        if (!willStopShowing && nextProgress >= end) {
+                            willStopShowing = true;
+                            willStopShowingSubtitle = s;
+                        }
+
+                        // Add slight buffer to ensure sub is displaying on video
+                        if (!startedShowing && progress >= start + 100 / length && progress < start + 500 / length) {
+                            startedShowing = true;
+                            startedShowingSubtitle = s;
+                        }
                     }
 
                     if (fallbackIndex === -1) {
@@ -286,6 +323,16 @@ export default function SubtitlePlayer({
                         });
                     }
                 }
+            }
+
+            if (startedShowing && startedShowingSubtitleRef.current !== startedShowingSubtitle) {
+                onStartedShowingRef.current?.();
+                startedShowingSubtitleRef.current = startedShowingSubtitle;
+            }
+
+            if (willStopShowing && willStopShowingSubtitleRef.current !== willStopShowingSubtitle) {
+                onWillStopShowingRef.current?.();
+                willStopShowingSubtitleRef.current = willStopShowingSubtitle;
             }
 
             requestAnimationRef.current = requestAnimationFrame(update);
@@ -550,7 +597,12 @@ export default function SubtitlePlayer({
 
                 if (subtitles && subtitleIndexes && subtitleIndexes.length > 0) {
                     const index = Math.min(...subtitleIndexes);
-                    onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), PostMineAction.showAnkiDialog, true);
+                    onCopy(
+                        subtitles[index],
+                        calculateSurroundingSubtitlesForIndex(index),
+                        PostMineAction.showAnkiDialog,
+                        true
+                    );
                 }
             },
             () => !subtitles || subtitles.length === 0 || disableKeyEvents
@@ -568,7 +620,12 @@ export default function SubtitlePlayer({
 
                 if (subtitles && subtitleIndexes && subtitleIndexes.length > 0) {
                     const index = Math.min(...subtitleIndexes);
-                    onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), PostMineAction.updateLastCard, true);
+                    onCopy(
+                        subtitles[index],
+                        calculateSurroundingSubtitlesForIndex(index),
+                        PostMineAction.updateLastCard,
+                        true
+                    );
                 }
             },
             () => !subtitles || subtitles.length === 0 || disableKeyEvents

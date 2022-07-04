@@ -3,24 +3,32 @@ import KeySequence from './KeySequence';
 export default class KeySequences {
     static toggleSubtitles() {
         // Up S, canceled by 1...9
-        return new KeySequence({ up: [83], canceledBy: [49, 50, 51, 52, 53, 54, 55, 56, 57] });
+        return new KeySequence({ up: ['s'], canceledBy: ['1', '2', '3', '4', '5', '6', '7', '8', '9'] });
     }
 
     static toggleSubtitleTrack() {
         // Holding S, up 1...9
         return new KeySequence({
-            holding: [83],
-            up: [49, 50, 51, 52, 53, 54, 55, 56, 57],
-            map: (event) => event.keyCode - 49,
+            holding: ['s'],
+            up: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
+            map: (event) => Number(event.key) - 1,
         });
     }
 
     static toggleSubtitleTrackInList() {
         // Holding W, up 1...9
         return new KeySequence({
-            holding: [87],
-            up: [49, 50, 51, 52, 53, 54, 55, 56, 57],
-            map: (event) => event.keyCode - 49,
+            holding: ['w'],
+            up: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
+            map: (event) => Number(event.key) - 1,
+        });
+    }
+
+    static togglePlay() {
+        // Space
+        return new KeySequence({
+            up: [' '],
+            canceledBy: ['a', 'd'],
         });
     }
 }

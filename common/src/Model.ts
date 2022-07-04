@@ -162,3 +162,14 @@ export enum PostMineAction {
     showAnkiDialog = 1,
     updateLastCard = 2,
 }
+
+export enum AutoPausePreference {
+    atStart = 1,
+    atEnd = 2,
+}
+
+export enum PlayMode {
+    normal = 1,
+    condensed = 2,
+    autoPause = 3,
+}

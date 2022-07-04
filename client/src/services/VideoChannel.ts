@@ -7,7 +7,6 @@ import {
     AudioTrackModel,
     AudioTrackSelectedFromVideoMessage,
     AudioTrackSelectedToVideoMessage,
-    CondensedModeToggleToVideoMessage,
     CopyMessage,
     CurrentTimeFromVideoMessage,
     CurrentTimeToVideoMessage,
@@ -19,6 +18,8 @@ import {
     OffsetFromVideoMessage,
     PauseFromVideoMessage,
     PlayFromVideoMessage,
+    PlayMode,
+    PlayModeMessage,
     PostMineAction,
     ReadyFromVideoMessage,
     ReadyStateFromVideoMessage,
@@ -54,7 +55,7 @@ export default class VideoChannel {
         preventDuplicate: boolean,
         id: string | undefined
     ) => void)[];
-    private condensedModeToggleCallbacks: (() => void)[];
+    private playModeCallbacks: ((mode: PlayMode) => void)[];
     private hideSubtitlePlayerToggleCallbacks: (() => void)[];
     private appBarToggleCallbacks: (() => void)[];
     private ankiDialogRequestCallbacks: ((forwardToVideo: boolean) => void)[];
@@ -82,7 +83,7 @@ export default class VideoChannel {
         this.offsetCallbacks = [];
         this.popOutToggleCallbacks = [];
         this.copyCallbacks = [];
-        this.condensedModeToggleCallbacks = [];
+        this.playModeCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
         this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
@@ -177,9 +178,10 @@ export default class VideoChannel {
                         );
                     }
                     break;
-                case 'condensedModeToggle':
-                    for (let callback of that.condensedModeToggleCallbacks) {
-                        callback();
+                case 'playMode':
+                    for (let callback of that.playModeCallbacks) {
+                        const playModeMessage = event.data as PlayModeMessage;
+                        callback(playModeMessage.playMode);
                     }
                     break;
                 case 'hideSubtitlePlayerToggle':
@@ -283,8 +285,8 @@ export default class VideoChannel {
         this.copyCallbacks.push(callback);
     }
 
-    onCondensedModeToggle(callback: () => void) {
-        this.condensedModeToggleCallbacks.push(callback);
+    onPlayMode(callback: (playMode: PlayMode) => void) {
+        this.playModeCallbacks.push(callback);
     }
 
     onHideSubtitlePlayerToggle(callback: () => void) {
@@ -341,10 +343,10 @@ export default class VideoChannel {
         this.protocol.postMessage(message);
     }
 
-    condensedModeToggle(enabled: boolean) {
-        const message: CondensedModeToggleToVideoMessage = {
-            command: 'condensedModeToggle',
-            value: enabled,
+    playMode(playMode: PlayMode) {
+        const message: PlayModeMessage = {
+            command: 'playMode',
+            playMode: playMode,
         };
         this.protocol.postMessage(message);
     }
@@ -399,7 +401,7 @@ export default class VideoChannel {
         this.offsetCallbacks = [];
         this.popOutToggleCallbacks = [];
         this.copyCallbacks = [];
-        this.condensedModeToggleCallbacks = [];
+        this.playModeCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
         this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];

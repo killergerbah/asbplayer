@@ -25,7 +25,7 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import { Theme } from '@material-ui/core/styles';
-import { Anki, AsbplayerSettings } from '@project/common';
+import { Anki, AsbplayerSettings, AutoPausePreference } from '@project/common';
 import { TagsTextField } from '@project/common/components';
 
 const useStyles = makeStyles<Theme>((theme) => ({
@@ -178,6 +178,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
     const [subtitlePreview, setSubtitlePreview] = useState<string>(settings.subtitlePreview);
     const [themeType, setThemeType] = useState<'dark' | 'light'>(settings.themeType);
     const [copyToClipboardOnMine, setCopyToClipboardOnMine] = useState<boolean>(settings.copyToClipboardOnMine);
+    const [autoPausePreference, setAutoPausePreference] = useState<AutoPausePreference>(settings.autoPausePreference);
 
     const handleAnkiConnectUrlChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         setAnkiConnectUrl(e.target.value);
@@ -356,6 +357,9 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
         (e: ChangeEvent<HTMLInputElement>) => setCopyToClipboardOnMine(e.target.checked),
         []
     );
+    const handleAutoPausePreferenceChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+        setAutoPausePreference(Number(e.target.value) as AutoPausePreference);
+    }, []);
     const subtitlePreviewStyles = useMemo(
         () =>
             computeStyles({
@@ -490,6 +494,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
             volume: settings.volume,
             theaterMode: settings.theaterMode,
             copyToClipboardOnMine: copyToClipboardOnMine,
+            autoPausePreference: autoPausePreference,
         });
     }, [
         onClose,
@@ -525,6 +530,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
         settings.volume,
         settings.theaterMode,
         copyToClipboardOnMine,
+        autoPausePreference,
     ]);
 
     const customFieldInputs = Object.keys(customFields).map((customFieldName) => {
@@ -665,9 +671,23 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
                                     tags={tags}
                                     onTagsChange={handleTagsChange}
                                 />
+                            </FormGroup>
+                        </Grid>
+                        <Grid item>
+                            <FormLabel>Mining</FormLabel>
+                            <FormGroup className={classes.root}>
                                 <FormControlLabel
                                     control={<Checkbox checked={preferMp3} onChange={handlePreferMp3Change} />}
                                     label="Re-encode audio as mp3 (slower)"
+                                />
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={copyToClipboardOnMine}
+                                            onChange={handleCopyToClipboardOnMine}
+                                        />
+                                    }
+                                    label="Copy mined subtitles to clipboard"
                                 />
                                 <TextField
                                     type="number"
@@ -723,16 +743,32 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
                                         step: 1,
                                     }}
                                 />
+                            </FormGroup>
+                        </Grid>
+                        <Grid item>
+                            <FormLabel>Auto-pause Preference</FormLabel>
+                            <div>
                                 <FormControlLabel
                                     control={
-                                        <Checkbox
-                                            checked={copyToClipboardOnMine}
-                                            onChange={handleCopyToClipboardOnMine}
+                                        <Radio
+                                            checked={autoPausePreference === AutoPausePreference.atStart}
+                                            value={AutoPausePreference.atStart}
+                                            onChange={handleAutoPausePreferenceChange}
                                         />
                                     }
-                                    label="Copy mined subtitles to clipboard"
+                                    label="At Subtitle Start"
                                 />
-                            </FormGroup>
+                                <FormControlLabel
+                                    control={
+                                        <Radio
+                                            checked={autoPausePreference === AutoPausePreference.atEnd}
+                                            value={AutoPausePreference.atEnd}
+                                            onChange={handleAutoPausePreferenceChange}
+                                        />
+                                    }
+                                    label="At Subtitle End"
+                                />
+                            </div>
                         </Grid>
                         <Grid item>
                             <FormLabel>Video Subtitle Appearance</FormLabel>

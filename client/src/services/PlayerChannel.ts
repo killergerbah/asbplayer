@@ -4,7 +4,6 @@ import {
     AudioTrackModel,
     AudioTrackSelectedFromVideoMessage,
     AudioTrackSelectedToVideoMessage,
-    CondensedModeToggleToVideoMessage,
     CopyMessage,
     CurrentTimeToVideoMessage,
     FinishedAnkiDialogRequestToVideoMessage,
@@ -12,6 +11,8 @@ import {
     OffsetFromVideoMessage,
     PauseFromVideoMessage,
     PlayFromVideoMessage,
+    PlayMode,
+    PlayModeMessage,
     PostMineAction,
     ReadyFromVideoMessage,
     ReadyStateFromVideoMessage,
@@ -32,7 +33,7 @@ export default class PlayerChannel {
     private audioTrackSelectedCallbacks: ((id: string) => void)[];
     private closeCallbacks: (() => void)[];
     private subtitlesCallbacks: ((subtitles: SubtitleModel[]) => void)[];
-    private condensedModeToggleCallbacks: ((enabled: boolean) => void)[];
+    private playModeCallbacks: ((playMode: PlayMode) => void)[];
     private hideSubtitlePlayerToggleCallbacks: ((hidden: boolean) => void)[];
     private appBarToggleCallbacks: ((hidden: boolean) => void)[];
     private ankiDialogRequestCallbacks: (() => void)[];
@@ -49,7 +50,7 @@ export default class PlayerChannel {
         this.closeCallbacks = [];
         this.readyCallbacks = [];
         this.subtitlesCallbacks = [];
-        this.condensedModeToggleCallbacks = [];
+        this.playModeCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
         this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
@@ -108,11 +109,11 @@ export default class PlayerChannel {
                 case 'subtitleSettings':
                     // ignore
                     break;
-                case 'condensedModeToggle':
-                    const condensedModeToggleMessage = event.data as CondensedModeToggleToVideoMessage;
+                case 'playMode':
+                    const playModeMessage = event.data as PlayModeMessage;
 
-                    for (let callback of that.condensedModeToggleCallbacks) {
-                        callback(condensedModeToggleMessage.value);
+                    for (let callback of that.playModeCallbacks) {
+                        callback(playModeMessage.playMode);
                     }
                     break;
                 case 'hideSubtitlePlayerToggle':
@@ -186,8 +187,8 @@ export default class PlayerChannel {
         this.subtitlesCallbacks.push(callback);
     }
 
-    onCondensedModeToggle(callback: (enabled: boolean) => void) {
-        this.condensedModeToggleCallbacks.push(callback);
+    onPlayMode(callback: (playMode: PlayMode) => void) {
+        this.playModeCallbacks.push(callback);
     }
 
     onHideSubtitlePlayerToggle(callback: (hidden: boolean) => void) {
@@ -271,8 +272,8 @@ export default class PlayerChannel {
         this.channel?.postMessage(message);
     }
 
-    condensedModeToggle() {
-        this.channel?.postMessage({ command: 'condensedModeToggle' });
+    playMode(playMode: PlayMode) {
+        this.channel?.postMessage({ command: 'playMode', playMode: playMode });
     }
 
     hideSubtitlePlayerToggle() {
@@ -311,7 +312,7 @@ export default class PlayerChannel {
             this.closeCallbacks = [];
             this.readyCallbacks = [];
             this.subtitlesCallbacks = [];
-            this.condensedModeToggleCallbacks = [];
+            this.playModeCallbacks = [];
             this.hideSubtitlePlayerToggleCallbacks = [];
             this.appBarToggleCallbacks = [];
             this.ankiDialogRequestCallbacks = [];

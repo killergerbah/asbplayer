@@ -35,6 +35,9 @@ export default class SubtitleContainer {
     surroundingSubtitlesCountRadius: number;
     surroundingSubtitlesTimeRadius: number;
 
+    onStartedShowing?: () => void;
+    onWillStopShowing?: () => void;
+
     constructor(video: HTMLVideoElement) {
         this.video = video;
         this.subtitlesElementOverlay = new ElementOverlay(
@@ -75,6 +78,12 @@ export default class SubtitleContainer {
         this.subtitleStyles = undefined;
     }
 
+    private _showing(s: SubtitleModel, now: number) {
+        return (
+            now >= s.start && now < s.end && (typeof s.track === 'undefined' || !this.disabledSubtitleTracks[s.track])
+        );
+    }
+
     bind() {
         this.subtitlesInterval = setInterval(() => {
             if (this.lastLoadedMessageTimestamp > 0 && Date.now() - this.lastLoadedMessageTimestamp < 1000) {
@@ -99,7 +108,11 @@ export default class SubtitleContainer {
 
             const offset = showOffset ? this._computeOffset() : 0;
             const now = 1000 * this.video.currentTime;
+            const previous = now - 100;
+            const next = now + 100;
             let showingSubtitles: SubtitleModelWithIndex[] = [];
+            let startedShowing: boolean = false;
+            let willStopShowing: boolean = false;
 
             for (let i = 0; i < this.subtitles.length; ++i) {
                 const s = this.subtitles[i];
@@ -108,16 +121,27 @@ export default class SubtitleContainer {
                     continue;
                 }
 
-                if (
-                    now >= s.start &&
-                    now < s.end &&
-                    (typeof s.track === 'undefined' || !this.disabledSubtitleTracks[s.track])
-                ) {
-                    showingSubtitles.push({ ...s, index: i });
+                let indexedSubtitle: SubtitleModelWithIndex | undefined;
+
+                if (this._showing(s, now)) {
+                    indexedSubtitle = indexedSubtitle ?? { ...s, index: i };
+                    showingSubtitles.push(indexedSubtitle);
+
+                    if (!startedShowing && !this._showing(s, previous)) {
+                        startedShowing = true;
+                    }
+
+                    if (!willStopShowing && !this._showing(s, next)) {
+                        willStopShowing = true;
+                    }
                 }
             }
 
             showingSubtitles = showingSubtitles.sort((s1, s2) => s1.track - s2.track);
+
+            if (willStopShowing) {
+                this.onWillStopShowing?.();
+            }
 
             if (
                 !this.showingSubtitles ||
@@ -134,6 +158,10 @@ export default class SubtitleContainer {
                     this.showingOffset = offset;
                 } else {
                     this.showingOffset = undefined;
+                }
+
+                if (startedShowing) {
+                    this.onStartedShowing?.();
                 }
             }
         }, 100);

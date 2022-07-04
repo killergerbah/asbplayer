@@ -7,6 +7,7 @@ const defaults: ExtensionSettings = {
     cleanScreenshot: true,
     cropScreenshot: true,
     bindPlay: true,
+    bindAutoPause: true,
     bindToggleSubtitles: true,
     bindToggleSubtitleTrackInVideo: true,
     bindToggleSubtitleTrackInAsbplayer: true,

@@ -6,9 +6,9 @@ export enum KeySequenceTransitionResult {
 }
 
 export interface KeySequenceOptions {
-    up?: number[];
-    holding?: number[];
-    canceledBy?: number[];
+    up?: string[];
+    holding?: string[];
+    canceledBy?: string[];
     map?: (event: KeyboardEvent) => any;
 }
 
@@ -18,11 +18,11 @@ export interface KeySequenceTransition {
 }
 
 export default class KeySequence {
-    private up: number[];
-    private holding: number[];
-    private canceledBy: number[];
+    private up: string[];
+    private holding: string[];
+    private canceledBy: string[];
     private map: (event: KeyboardEvent) => any;
-    private currentlyHolding: { [key: number]: boolean };
+    private currentlyHolding: { [key: string]: boolean };
     private canceled: boolean;
 
     constructor({ up, holding, canceledBy, map }: KeySequenceOptions) {
@@ -44,27 +44,33 @@ export default class KeySequence {
         let extra = null;
 
         if (event.type === 'keydown') {
-            if (this.holding.includes(event.keyCode)) {
-                this.currentlyHolding[event.keyCode] = true;
+            const key = event.key.toLowerCase();
+            this.currentlyHolding[key] = true;
+
+            if (this.holding.includes(key)) {
                 this.canceled = false;
                 result = KeySequenceTransitionResult.ADVANCED;
-            }
-
-            if (this.canceledBy.includes(event.keyCode)) {
+            } else if (!this.up.includes(key)) {
                 this.canceled = true;
                 result = KeySequenceTransitionResult.CANCELED;
             }
 
-            if (this.up.includes(event.keyCode)) {
+            if (this.canceledBy.includes(key)) {
+                this.canceled = true;
+                result = KeySequenceTransitionResult.CANCELED;
+            }
+
+            if (this._holdingAll() && !this._holdingCancelingKey() && this.up.includes(key)) {
                 this.canceled = false;
                 result = KeySequenceTransitionResult.ADVANCED;
             }
         }
 
         if (event.type === 'keyup') {
-            delete this.currentlyHolding[event.keyCode];
+            const key = event.key.toLowerCase();
+            delete this.currentlyHolding[key];
 
-            if (this.up.includes(event.keyCode) && this._holdingAll() && !this.canceled) {
+            if (this.up.includes(key) && this._holdingAll() && !this.canceled) {
                 extra = this.map(event);
                 result = KeySequenceTransitionResult.COMPLETE;
             }
@@ -73,7 +79,17 @@ export default class KeySequence {
         return { result: result, extra: extra };
     }
 
-    _holdingAll() {
+    private _holdingCancelingKey() {
+        for (const key of Object.keys(this.currentlyHolding)) {
+            if (key in this.canceledBy) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private _holdingAll() {
         for (const key of this.holding) {
             if (!(key in this.currentlyHolding)) {
                 return false;

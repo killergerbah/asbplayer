@@ -283,7 +283,7 @@ export default class KeyBindings {
 
     static bindToggleSubtitles(
         onToggleSubtitles: (event: KeyboardEvent) => void,
-        onSequenceAdvanced: () => void,
+        onSequenceAdvanced: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,
         useCapture = false
     ) {
@@ -297,7 +297,7 @@ export default class KeyBindings {
             const transition = sequence.accept(event);
 
             if (transition.result === KeySequenceTransitionResult.ADVANCED) {
-                onSequenceAdvanced();
+                onSequenceAdvanced(event);
             } else if (transition.result === KeySequenceTransitionResult.COMPLETE) {
                 onToggleSubtitles(event);
             }
@@ -382,6 +382,24 @@ export default class KeyBindings {
             }
 
             onPlay(event);
+        }, useCapture);
+    }
+
+    static bindAutoPause(
+        onAutoPause: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        useCapture = false
+    ) {
+        return KeyBindings._bindDown((event) => {
+            if (disabledGetter()) {
+                return;
+            }
+
+            if (!KeyEvents.detectAutoPause(event)) {
+                return;
+            }
+
+            onAutoPause(event);
         }, useCapture);
     }
 

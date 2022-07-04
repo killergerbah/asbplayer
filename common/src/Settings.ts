@@ -1,6 +1,9 @@
+import { AutoPausePreference } from './Model';
+
 export interface MiscSettings {
     readonly themeType: 'dark' | 'light';
     readonly copyToClipboardOnMine: boolean;
+    readonly autoPausePreference: AutoPausePreference;
 }
 
 export interface AnkiSettings {
@@ -14,7 +17,7 @@ export interface AnkiSettings {
     readonly wordField?: string;
     readonly urlField?: string;
     readonly customAnkiFields: { [key: string]: string };
-    readonly tags: string[],
+    readonly tags: string[];
     readonly sourceField?: string;
     readonly preferMp3: boolean;
     readonly audioPaddingStart: number;

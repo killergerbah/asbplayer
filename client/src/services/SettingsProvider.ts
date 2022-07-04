@@ -1,4 +1,4 @@
-import { AsbplayerSettings, AsbplayerSettingsProvider } from '@project/common';
+import { AsbplayerSettings, AsbplayerSettingsProvider, AutoPausePreference } from '@project/common';
 
 const defaultAnkiConnectUrl = 'http://127.0.0.1:8765';
 const defaultSubtitleSize = 36;
@@ -16,6 +16,7 @@ const defaultMaxImageWidth = 0;
 const defaultMaxImageHeight = 0;
 const defaultSurroundingSubtitlesCountRadius = 1;
 const defaultSurroundingSubtitlesTimeRadius = 5000;
+const defaultAutoPausePreference = AutoPausePreference.atEnd;
 
 const ankiConnectUrlKey = 'ankiConnectUrl';
 const deckKey = 'deck';
@@ -47,6 +48,7 @@ const theaterModeKey = 'theaterMode';
 const preferMp3Key = 'preferMp3';
 const themeTypeKey = 'themeType';
 const copyToClipboardOnMineKey = 'copyToClipboardOnMine';
+const autoPausePreferenceKey = 'autoPausePreference';
 
 export default class SettingsProvider implements AsbplayerSettingsProvider {
     private _tags?: string[];
@@ -90,6 +92,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             volume: this.volume,
             theaterMode: this.theaterMode,
             copyToClipboardOnMine: this.copyToClipboardOnMine,
+            autoPausePreference: this.autoPausePreference,
         };
     }
 
@@ -124,6 +127,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.volume = newSettings.volume;
         this.theaterMode = newSettings.theaterMode;
         this.copyToClipboardOnMine = newSettings.copyToClipboardOnMine;
+        this.autoPausePreference = newSettings.autoPausePreference;
     }
 
     get subtitleSettings() {
@@ -167,6 +171,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         return {
             themeType: this.themeType,
             copyToClipboardOnMine: this.copyToClipboardOnMine,
+            autoPausePreference: this.autoPausePreference,
         };
     }
 
@@ -472,5 +477,13 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
 
     set copyToClipboardOnMine(copyToClipboardOnMine) {
         localStorage.setItem(copyToClipboardOnMineKey, String(copyToClipboardOnMine));
+    }
+
+    get autoPausePreference() {
+        return this._getNumberItem(autoPausePreferenceKey, defaultAutoPausePreference);
+    }
+
+    set autoPausePreference(autoPausePreference) {
+        localStorage.setItem(autoPausePreferenceKey, String(autoPausePreference));
     }
 }

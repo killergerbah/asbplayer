@@ -19,13 +19,12 @@ import PauseIcon from '@material-ui/icons/Pause';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import QueueMusicIcon from '@material-ui/icons/QueueMusic';
 import Slider from '@material-ui/core/Slider';
-import SpeedIcon from '@material-ui/icons/Speed';
+import TuneIcon from '@material-ui/icons/Tune';
 import SubtitlesIcon from '@material-ui/icons/Subtitles';
-import Tooltip from '@material-ui/core/Tooltip';
 import VideocamIcon from '@material-ui/icons/Videocam';
 import VolumeOffIcon from '@material-ui/icons/VolumeOff';
 import VolumeUpIcon from '@material-ui/icons/VolumeUp';
-import { AsbplayerSettingsProvider, AudioTrackModel, VideoTabModel } from '@project/common';
+import { AsbplayerSettingsProvider, AudioTrackModel, PlayMode, VideoTabModel } from '@project/common';
 import Clock from '../services/Clock';
 
 const useControlStyles = makeStyles((theme) => ({
@@ -428,6 +427,59 @@ function MediaUnloader({ open, anchorEl, onUnload, onClose, file }: MediaUnloade
     );
 }
 
+interface PlayModeSelectorProps {
+    open: boolean;
+    anchorEl?: Element;
+    selectedPlayMode?: PlayMode;
+    onPlayMode: (playMode: PlayMode) => void;
+    onClose: () => void;
+}
+
+function PlayModeSelector({ open, anchorEl, selectedPlayMode, onPlayMode, onClose }: PlayModeSelectorProps) {
+    return (
+        <div>
+            <Popover
+                disableEnforceFocus={true}
+                open={open}
+                anchorEl={anchorEl}
+                onClose={onClose}
+                anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'center',
+                }}
+                transformOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'center',
+                }}
+            >
+                <List>
+                    <ListItem
+                        selected={selectedPlayMode === PlayMode.normal}
+                        button
+                        onClick={(e) => onPlayMode(PlayMode.normal)}
+                    >
+                        Normal
+                    </ListItem>
+                    <ListItem
+                        selected={selectedPlayMode === PlayMode.condensed}
+                        button
+                        onClick={(e) => onPlayMode(PlayMode.condensed)}
+                    >
+                        Condensed
+                    </ListItem>
+                    <ListItem
+                        selected={selectedPlayMode === PlayMode.autoPause}
+                        button
+                        onClick={(e) => onPlayMode(PlayMode.autoPause)}
+                    >
+                        Auto-pause
+                    </ListItem>
+                </List>
+            </Popover>
+        </div>
+    );
+}
+
 export interface Point {
     x: number;
     y: number;
@@ -456,9 +508,9 @@ interface ControlsProps {
     closeEnabled?: boolean;
     onClose?: () => void;
     volumeEnabled?: boolean;
-    condensedModeEnabled?: boolean;
-    condensedModeToggleEnabled?: boolean;
-    onCondensedModeToggle?: () => void;
+    playMode?: PlayMode;
+    playModeEnabled?: boolean;
+    onPlayMode?: (playMode: PlayMode) => void;
     subtitlesEnabled?: boolean;
     subtitlesToggle?: boolean;
     onSubtitlesToggle?: () => void;
@@ -506,9 +558,9 @@ export default function Controls({
     closeEnabled,
     onClose,
     volumeEnabled,
-    condensedModeEnabled,
-    condensedModeToggleEnabled,
-    onCondensedModeToggle,
+    playMode,
+    playModeEnabled,
+    onPlayMode,
     subtitlesEnabled,
     subtitlesToggle,
     onSubtitlesToggle,
@@ -530,7 +582,7 @@ export default function Controls({
     showOnMouseMovement,
     theaterModeToggleEnabled,
     theaterModeEnabled,
-    onTheaterModeToggle
+    onTheaterModeToggle,
 }: ControlsProps) {
     const classes = useControlStyles();
     const [show, setShow] = useState<boolean>(true);
@@ -542,6 +594,8 @@ export default function Controls({
     const [audioUnloaderAnchorEl, setAudioUnloaderAnchorEl] = useState<Element>();
     const [videoUnloaderOpen, setVideoUnloaderOpen] = useState<boolean>(false);
     const [videoUnloaderAnchorEl, setVideoUnloaderAnchorEl] = useState<Element>();
+    const [playModeSelectorOpen, setPlayModeSelectorOpen] = useState<boolean>(false);
+    const [playModeSelectorAnchorEl, setPlayModeSelectorAnchorEl] = useState<Element>();
     const [showVolumeBar, setShowVolumeBar] = useState<boolean>(false);
     const [volume, setVolume] = useState<number>(100);
     const [lastCommittedVolume, setLastCommittedVolume] = useState<number>(100);
@@ -742,6 +796,25 @@ export default function Controls({
         setVideoUnloaderOpen(false);
     }, [onUnloadVideo]);
 
+    const handlePlayModeSelectorClosed = useCallback(() => {
+        setPlayModeSelectorAnchorEl(undefined);
+        setPlayModeSelectorOpen(false);
+    }, []);
+
+    const handlePlayModeSelectorOpened = useCallback((e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        setPlayModeSelectorAnchorEl(e.currentTarget);
+        setPlayModeSelectorOpen(true);
+    }, []);
+
+    const handlePlayModeSelected = useCallback(
+        (playMode: PlayMode) => {
+            onPlayMode?.(playMode);
+            setPlayModeSelectorAnchorEl(undefined);
+            setPlayModeSelectorOpen(false);
+        },
+        [onPlayMode]
+    );
+
     const handleVolumeMouseOut = useCallback(() => setShowVolumeBar(false), []);
     const handleVolumeMouseOver = useCallback(() => setShowVolumeBar(true), []);
 
@@ -785,8 +858,8 @@ export default function Controls({
     return (
         <React.Fragment>
             <Fade in={show} timeout={200}>
-                <Grid container style={{position: 'absolute', top: 0}}>
-                    <Grid item style={{flexGrow: 1}}>
+                <Grid container style={{ position: 'absolute', top: 0 }}>
+                    <Grid item style={{ flexGrow: 1 }}>
                         {closeEnabled && (
                             <IconButton
                                 ref={closeButtonRef}
@@ -890,19 +963,6 @@ export default function Controls({
                                 </Grid>
                             )}
                             <Grid item style={{ flexGrow: 1 }}></Grid>
-                            {condensedModeToggleEnabled && (
-                                <Grid item>
-                                    <Tooltip title="Condensed Mode">
-                                        <IconButton color="inherit" onClick={onCondensedModeToggle}>
-                                            <SpeedIcon
-                                                className={
-                                                    condensedModeEnabled ? classes.button : classes.inactiveButton
-                                                }
-                                            />
-                                        </IconButton>
-                                    </Tooltip>
-                                </Grid>
-                            )}
                             {subtitlesToggle && (
                                 <Grid item>
                                     <IconButton color="inherit" onClick={onSubtitlesToggle}>
@@ -938,6 +998,15 @@ export default function Controls({
                                     <IconButton color="inherit" onClick={handleTabSelectorOpened}>
                                         <VideocamIcon
                                             className={selectedTab ? classes.button : classes.inactiveButton}
+                                        />
+                                    </IconButton>
+                                </Grid>
+                            )}
+                            {playModeEnabled && (
+                                <Grid item>
+                                    <IconButton color="inherit" onClick={handlePlayModeSelectorOpened}>
+                                        <TuneIcon
+                                            className={playModeEnabled ? classes.button : classes.inactiveButton}
                                         />
                                     </IconButton>
                                 </Grid>
@@ -995,6 +1064,13 @@ export default function Controls({
                     file={videoFile}
                     onClose={handleVideoUnloaderClosed}
                     onUnload={handleUnloadVideo}
+                />
+                <PlayModeSelector
+                    open={playModeSelectorOpen && show}
+                    anchorEl={playModeSelectorAnchorEl}
+                    selectedPlayMode={playMode}
+                    onClose={handlePlayModeSelectorClosed}
+                    onPlayMode={handlePlayModeSelected}
                 />
             </div>
         </React.Fragment>

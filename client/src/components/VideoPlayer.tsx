@@ -11,6 +11,7 @@ import {
     SubtitleModel,
     AudioTrackModel,
     PostMineAction,
+    PlayMode,
 } from '@project/common';
 import { SubtitleTextImage } from '@project/common/components';
 import Alert from './Alert';
@@ -137,6 +138,7 @@ interface Props {
     channel: string;
     popOut: boolean;
     onError: (error: string) => void;
+    onAutoPauseModeChangedViaBind: (playMode: PlayMode) => void;
 }
 
 interface IndexedSubtitleModel extends SubtitleModel {
@@ -145,7 +147,7 @@ interface IndexedSubtitleModel extends SubtitleModel {
 
 export default function VideoPlayer(props: Props) {
     const classes = useStyles();
-    const { settingsProvider, videoFile, channel, popOut, onError } = props;
+    const { settingsProvider, videoFile, channel, popOut, onError, onAutoPauseModeChangedViaBind } = props;
     const poppingInRef = useRef<boolean>();
     const videoRef = useRef<ExperimentalHTMLVideoElement>();
     const [windowWidth, windowHeight] = useWindowSize(true);
@@ -168,7 +170,7 @@ export default function VideoPlayer(props: Props) {
     const [showSubtitles, setShowSubtitles] = useState<IndexedSubtitleModel[]>([]);
     const [subtitlesEnabled, setSubtitlesEnabled] = useState(true);
     const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState<{ [index: number]: boolean }>({});
-    const [condensedModeEnabled, setCondensedModeEnabled] = useState<boolean>(false);
+    const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
     const [subtitlePlayerHidden, setSubtitlePlayerHidden] = useState<boolean>(false);
     const [appBarHidden, setAppBarHidden] = useState<boolean>(settingsProvider.theaterMode);
     const showSubtitlesRef = useRef<IndexedSubtitleModel[]>([]);
@@ -281,7 +283,7 @@ export default function VideoPlayer(props: Props) {
             }
         });
 
-        playerChannel.onCondensedModeToggle((enabled) => setCondensedModeEnabled(enabled));
+        playerChannel.onPlayMode((playMode) => setPlayMode(playMode));
         playerChannel.onHideSubtitlePlayerToggle((hidden) => setSubtitlePlayerHidden(hidden));
         playerChannel.onAppBarToggle((hidden) => setAppBarHidden(hidden));
         playerChannel.onAnkiDialogRequest(() => {
@@ -677,6 +679,19 @@ export default function VideoPlayer(props: Props) {
         return () => unbind();
     }, [playing, playerChannel]);
 
+    useEffect(() => {
+        return KeyBindings.bindAutoPause(
+            (event) => {
+                event.preventDefault();
+                const newPlayMode =
+                    playMode === PlayMode.autoPause ? PlayMode.normal : PlayMode.autoPause;
+                playerChannel.playMode(newPlayMode);
+                onAutoPauseModeChangedViaBind(newPlayMode);
+            },
+            () => false
+        );
+    }, [playerChannel, playMode, onAutoPauseModeChangedViaBind]);
+
     const handleSubtitlesToggle = useCallback(() => setSubtitlesEnabled((subtitlesEnabled) => !subtitlesEnabled), []);
 
     const handleFullscreenToggle = useCallback(() => {
@@ -701,9 +716,12 @@ export default function VideoPlayer(props: Props) {
         }
     }, [playerChannel, popOut]);
 
-    const handleCondensedModeToggle = useCallback(() => {
-        playerChannel.condensedModeToggle();
-    }, [playerChannel]);
+    const handlePlayMode = useCallback(
+        (playMode: PlayMode) => {
+            playerChannel.playMode(playMode);
+        },
+        [playerChannel]
+    );
 
     const handleClose = useCallback(() => {
         playerChannel.close();
@@ -838,8 +856,8 @@ export default function VideoPlayer(props: Props) {
                 popOut={popOut}
                 volumeEnabled={true}
                 popOutEnabled={!isMobile}
-                condensedModeToggleEnabled={true}
-                condensedModeEnabled={condensedModeEnabled}
+                playModeEnabled={true}
+                playMode={playMode}
                 hideSubtitlePlayerToggleEnabled={subtitles?.length > 0 && !popOut && !fullscreen}
                 subtitlePlayerHidden={subtitlePlayerHidden}
                 onPlay={handlePlay}
@@ -851,7 +869,7 @@ export default function VideoPlayer(props: Props) {
                 onVolumeChange={handleVolumeChange}
                 onOffsetChange={handleOffsetChange}
                 onPopOutToggle={handlePopOutToggle}
-                onCondensedModeToggle={handleCondensedModeToggle}
+                onPlayMode={handlePlayMode}
                 onClose={handleClose}
                 onHideSubtitlePlayerToggle={handleHideSubtitlePlayerToggle}
                 settingsProvider={settingsProvider}

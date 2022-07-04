@@ -8,6 +8,7 @@ import {
     AnkiUiSavedState,
     ConfirmedVideoDataSubtitleTrack,
     PostMineAction,
+    PlayMode,
 } from './Model';
 
 export interface Message {
@@ -133,6 +134,10 @@ export interface ShowAnkiUiMessage extends Message {
     readonly url?: string;
     readonly image?: ImageModel;
     readonly audio?: AudioModel;
+}
+
+export interface RecordingFinishedMessage extends Message {
+    readonly command: 'recording-finished';
 }
 
 export interface RerecordMediaMessage extends Message {
@@ -263,9 +268,9 @@ export interface SubtitleSettingsToVideoMessage extends Message {
     readonly value: SubtitleSettings;
 }
 
-export interface CondensedModeToggleToVideoMessage extends Message {
-    readonly command: 'condensedModeToggle';
-    readonly value: boolean;
+export interface PlayModeMessage extends Message {
+    readonly command: 'playMode';
+    readonly playMode: PlayMode;
 }
 
 export interface HideSubtitlePlayerToggleToVideoMessage extends Message {
