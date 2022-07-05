@@ -760,7 +760,7 @@ export default function VideoPlayer(props: Props) {
             />
             {subtitlesEnabled && (
                 <div className={classes.subtitleContainer}>
-                    {showSubtitles.map((subtitle) => {
+                    {showSubtitles.map((subtitle, index) => {
                         let content;
 
                         if (subtitle.textImage) {
@@ -774,6 +774,16 @@ export default function VideoPlayer(props: Props) {
                         } else {
                             content = <span style={subtitleStyles}>{subtitle.text}</span>;
                         }
+
+                        if (index < showSubtitles.length - 1) {
+                            return (
+                                <React.Fragment key={subtitle.index}>
+                                    {content}
+                                    <br />
+                                </React.Fragment>
+                            );
+                        }
+
                         return <React.Fragment key={subtitle.index}>{content}</React.Fragment>;
                     })}
                 </div>
