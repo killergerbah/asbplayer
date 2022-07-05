@@ -46,6 +46,7 @@ const volumeKey = 'volume';
 const theaterModeKey = 'theaterMode';
 const preferMp3Key = 'preferMp3';
 const themeTypeKey = 'themeType';
+const copyToClipboardOnMineKey = 'copyToClipboardOnMine';
 
 export default class SettingsProvider implements AsbplayerSettingsProvider {
     private _tags?: string[];
@@ -88,6 +89,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             surroundingSubtitlesTimeRadius: this.surroundingSubtitlesTimeRadius,
             volume: this.volume,
             theaterMode: this.theaterMode,
+            copyToClipboardOnMine: this.copyToClipboardOnMine,
         };
     }
 
@@ -121,6 +123,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.maxImageHeight = newSettings.maxImageHeight;
         this.volume = newSettings.volume;
         this.theaterMode = newSettings.theaterMode;
+        this.copyToClipboardOnMine = newSettings.copyToClipboardOnMine;
     }
 
     get subtitleSettings() {
@@ -132,7 +135,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             subtitleBackgroundColor: this.subtitleBackgroundColor,
             subtitleBackgroundOpacity: this.subtitleBackgroundOpacity,
             subtitleFontFamily: this.subtitleFontFamily,
-            imageBasedSubtitleScaleFactor: this.imageBasedSubtitleScaleFactor
+            imageBasedSubtitleScaleFactor: this.imageBasedSubtitleScaleFactor,
         };
     }
 
@@ -163,6 +166,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     get miscSettings() {
         return {
             themeType: this.themeType,
+            copyToClipboardOnMine: this.copyToClipboardOnMine,
         };
     }
 
@@ -460,5 +464,13 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     get surroundingSubtitlesTimeRadius() {
         // For now, not configurable
         return defaultSurroundingSubtitlesTimeRadius;
+    }
+
+    get copyToClipboardOnMine() {
+        return localStorage.getItem(copyToClipboardOnMineKey) === 'true' || false;
+    }
+
+    set copyToClipboardOnMine(copyToClipboardOnMine) {
+        localStorage.setItem(copyToClipboardOnMineKey, String(copyToClipboardOnMine));
     }
 }

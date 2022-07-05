@@ -172,9 +172,12 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
         settings.subtitleBackgroundOpacity
     );
     const [subtitleFontFamily, setSubtitleFontFamily] = useState<string>(settings.subtitleFontFamily);
-    const [imageBasedSubtitleScaleFactor, setImageBasedSubtitleScaleFactor] = useState<number>(settings.imageBasedSubtitleScaleFactor);
+    const [imageBasedSubtitleScaleFactor, setImageBasedSubtitleScaleFactor] = useState<number>(
+        settings.imageBasedSubtitleScaleFactor
+    );
     const [subtitlePreview, setSubtitlePreview] = useState<string>(settings.subtitlePreview);
     const [themeType, setThemeType] = useState<'dark' | 'light'>(settings.themeType);
+    const [copyToClipboardOnMine, setCopyToClipboardOnMine] = useState<boolean>(settings.copyToClipboardOnMine);
 
     const handleAnkiConnectUrlChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         setAnkiConnectUrl(e.target.value);
@@ -307,7 +310,8 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
         []
     );
     const handleImageBasedSubtitleScaleFactorChange = useCallback(
-        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setImageBasedSubtitleScaleFactor(Number(e.target.value)),
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) =>
+            setImageBasedSubtitleScaleFactor(Number(e.target.value)),
         []
     );
     const handleAddCustomField = useCallback((customFieldName: string) => {
@@ -348,6 +352,10 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
 
         setThemeType(e.target.value);
     }, []);
+    const handleCopyToClipboardOnMine = useCallback(
+        (e: ChangeEvent<HTMLInputElement>) => setCopyToClipboardOnMine(e.target.checked),
+        []
+    );
     const subtitlePreviewStyles = useMemo(
         () =>
             computeStyles({
@@ -481,6 +489,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
             surroundingSubtitlesTimeRadius: settings.surroundingSubtitlesTimeRadius,
             volume: settings.volume,
             theaterMode: settings.theaterMode,
+            copyToClipboardOnMine: copyToClipboardOnMine,
         });
     }, [
         onClose,
@@ -515,6 +524,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
         settings.surroundingSubtitlesTimeRadius,
         settings.volume,
         settings.theaterMode,
+        copyToClipboardOnMine,
     ]);
 
     const customFieldInputs = Object.keys(customFields).map((customFieldName) => {
@@ -712,6 +722,15 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
                                         min: 0,
                                         step: 1,
                                     }}
+                                />
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={copyToClipboardOnMine}
+                                            onChange={handleCopyToClipboardOnMine}
+                                        />
+                                    }
+                                    label="Copy mined subtitles to clipboard"
                                 />
                             </FormGroup>
                         </Grid>

@@ -32,14 +32,6 @@ document.addEventListener('asbplayer-netflix-enabled', (e) => {
 });
 
 export default class Binding {
-    displaySubtitles: boolean;
-    recordMedia: boolean;
-    screenshot: boolean;
-    cleanScreenshot: boolean;
-    audioPaddingStart: number;
-    audioPaddingEnd: number;
-    maxImageWidth: number;
-    maxImageHeight: number;
     subscribed: boolean = false;
 
     ankiUiSavedState?: AnkiUiSavedState;
@@ -58,6 +50,15 @@ export default class Binding {
     readonly ankiUiContainer: AnkiUiContainer;
     readonly keyBindings: KeyBindings;
     readonly settings: Settings;
+
+    private copyToClipboardOnMine: boolean;
+    private recordMedia: boolean;
+    private screenshot: boolean;
+    private cleanScreenshot: boolean;
+    private audioPaddingStart: number;
+    private audioPaddingEnd: number;
+    private maxImageWidth: number;
+    private maxImageHeight: number;
 
     private playListener?: EventListener;
     private pauseListener?: EventListener;
@@ -82,7 +83,6 @@ export default class Binding {
         this.ankiUiContainer = new AnkiUiContainer();
         this.keyBindings = new KeyBindings();
         this.settings = new Settings();
-        this.displaySubtitles = true;
         this.recordMedia = true;
         this.screenshot = true;
         this.cleanScreenshot = true;
@@ -90,6 +90,7 @@ export default class Binding {
         this.audioPaddingEnd = 500;
         this.maxImageWidth = 0;
         this.maxImageHeight = 0;
+        this.copyToClipboardOnMine = true;
         this.synced = false;
         this.recordingMedia = false;
         this.recordingMediaWithScreenshot = false;
@@ -321,6 +322,7 @@ export default class Binding {
                         break;
                     case 'miscSettings':
                         this.settings.set({ lastThemeType: request.message.value.themeType });
+                        this.copyToClipboardOnMine = request.message.value.copyToClipboardOnMine;
                         break;
                     case 'settings-updated':
                         this._refreshSettings();
@@ -383,7 +385,6 @@ export default class Binding {
         this.recordMedia = currentSettings.recordMedia;
         this.screenshot = currentSettings.screenshot;
         this.cleanScreenshot = currentSettings.screenshot && currentSettings.cleanScreenshot;
-        this.displaySubtitles = currentSettings.displaySubtitles;
         this.subtitleContainer.displaySubtitles = currentSettings.displaySubtitles;
         this.subtitleContainer.subtitlePositionOffsetBottom = currentSettings.subtitlePositionOffsetBottom;
         this.subtitleContainer.refresh();
@@ -471,7 +472,9 @@ export default class Binding {
         const [subtitle, surroundingSubtitles] = this.subtitleContainer.currentSubtitle();
 
         if (subtitle && surroundingSubtitles) {
-            navigator.clipboard.writeText(subtitle.text);
+            if (this.copyToClipboardOnMine) {
+                navigator.clipboard.writeText(subtitle.text);
+            }
 
             if (this.screenshot) {
                 await this._prepareScreenshot();

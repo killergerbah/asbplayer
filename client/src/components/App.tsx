@@ -460,7 +460,7 @@ function App() {
             preventDuplicate: boolean | undefined,
             id: string | undefined
         ) => {
-            if (subtitle) {
+            if (subtitle && settingsProvider.copyToClipboardOnMine) {
                 navigator.clipboard.writeText(subtitle.text);
             }
 

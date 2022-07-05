@@ -1,5 +1,6 @@
 export interface MiscSettings {
     readonly themeType: 'dark' | 'light';
+    readonly copyToClipboardOnMine: boolean;
 }
 
 export interface AnkiSettings {
