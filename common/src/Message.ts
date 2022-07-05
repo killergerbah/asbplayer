@@ -298,6 +298,11 @@ export interface MiscSettingsToVideoMessage extends Message {
     readonly value: MiscSettings;
 }
 
+export interface AnkiUiBridgeRewindMessage extends Message {
+    readonly command: 'rewind';
+    readonly uiState: AnkiUiSavedState;
+}
+
 export interface AnkiUiBridgeResumeMessage extends Message {
     readonly command: 'resume';
     readonly uiState: AnkiUiSavedState;

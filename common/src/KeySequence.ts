@@ -45,14 +45,11 @@ export default class KeySequence {
 
         if (event.type === 'keydown') {
             const key = event.key.toLowerCase();
-            this.currentlyHolding[key] = true;
 
             if (this.holding.includes(key)) {
+                this.currentlyHolding[key] = true;
                 this.canceled = false;
                 result = KeySequenceTransitionResult.ADVANCED;
-            } else if (!this.up.includes(key)) {
-                this.canceled = true;
-                result = KeySequenceTransitionResult.CANCELED;
             }
 
             if (this.canceledBy.includes(key)) {
@@ -60,7 +57,7 @@ export default class KeySequence {
                 result = KeySequenceTransitionResult.CANCELED;
             }
 
-            if (this._holdingAll() && !this._holdingCancelingKey() && this.up.includes(key)) {
+            if (this.up.includes(key)) {
                 this.canceled = false;
                 result = KeySequenceTransitionResult.ADVANCED;
             }
@@ -79,17 +76,7 @@ export default class KeySequence {
         return { result: result, extra: extra };
     }
 
-    private _holdingCancelingKey() {
-        for (const key of Object.keys(this.currentlyHolding)) {
-            if (key in this.canceledBy) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private _holdingAll() {
+    _holdingAll() {
         for (const key of this.holding) {
             if (!(key in this.currentlyHolding)) {
                 return false;

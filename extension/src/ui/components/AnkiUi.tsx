@@ -14,6 +14,7 @@ import {
     AnkiUiSavedState,
     AnkiUiBridgeRerecordMessage,
     AnkiUiBridgeResumeMessage,
+    AnkiUiBridgeRewindMessage,
 } from '@project/common';
 import { createTheme } from './theme';
 import { ThemeProvider } from '@material-ui/core/styles';
@@ -225,6 +226,13 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
         bridge.finished(message);
     }, [bridge, savedState]);
 
+    const handleRewind = useCallback(() => {
+        setOpen(false);
+        setImageDialogOpen(false);
+        const message: AnkiUiBridgeRewindMessage = { command: 'rewind', uiState: savedState() };
+        bridge.finished(message);
+    }, [bridge, savedState]);
+
     const handleViewImage = useCallback((image: Image) => {
         setImage(image);
         setImageDialogOpen(true);
@@ -272,6 +280,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                     settingsProvider={settingsProvider}
                     anki={anki}
                     onProceed={handleProceed}
+                    onRewind={handleRewind}
                     onRerecord={handleRerecord}
                     onCancel={handleCancel}
                     onViewImage={handleViewImage}

@@ -126,6 +126,7 @@ interface PlayerProps {
     onAutoPauseModeChangedViaBind: (playMode: PlayMode) => void;
     disableKeyEvents: boolean;
     jumpToSubtitle?: SubtitleModel;
+    rewindSubtitle?: SubtitleModel;
 }
 
 export default function Player({
@@ -154,6 +155,7 @@ export default function Player({
     onAutoPauseModeChangedViaBind,
     disableKeyEvents,
     jumpToSubtitle,
+    rewindSubtitle,
 }: PlayerProps) {
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>();
     const subtitlesRef = useRef<SubtitleModel[]>();
@@ -884,6 +886,18 @@ export default function Player({
             videoRef.current.appBarToggle(appBarHidden);
         }
     }, [appBarHidden]);
+
+    useEffect(() => {
+        if (!rewindSubtitle) {
+            return;
+        }
+
+        if (playingRef.current) {
+            clock.stop();
+        }
+
+        handleSeekToSubtitle(rewindSubtitle.start, false);
+    }, [clock, rewindSubtitle, handleSeekToSubtitle]);
 
     const length = lengthRef.current;
     const loaded = audioFileUrl || videoFileUrl || subtitles;

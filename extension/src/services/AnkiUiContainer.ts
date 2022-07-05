@@ -8,7 +8,7 @@ import {
     ImageModel,
     SubtitleModel,
     AnkiUiBridgeResumeMessage,
-    humanReadableTime,
+    AnkiUiBridgeRewindMessage,
 } from '@project/common';
 import Binding from './Binding';
 import FrameBridgeClient from './FrameBridgeClient';
@@ -169,6 +169,11 @@ export default class AnkiUiContainer {
                     context.ankiUiSavedState = resumeMessage.uiState;
                     context.play();
                     break;
+                case 'rewind':
+                    const rewindMessage = message as AnkiUiBridgeRewindMessage;
+                    context.ankiUiSavedState = rewindMessage.uiState;
+                    context.pause();
+                    context.seek(rewindMessage.uiState.subtitle.start / 1000);
                 case 'rerecord':
                     const rerecordMessage = message as AnkiUiBridgeRerecordMessage;
                     context.rerecord(rerecordMessage.recordStart, rerecordMessage.recordEnd, rerecordMessage.uiState);

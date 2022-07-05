@@ -308,6 +308,7 @@ function App() {
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
     const [alertSeverity, setAlertSeverity] = useState<Color>();
     const [jumpToSubtitle, setJumpToSubtitle] = useState<SubtitleModel>();
+    const [rewindSubtitle, setRewindSubtitle] = useState<SubtitleModel>();
     const [sources, setSources] = useState<MediaSources>({ subtitleFiles: [] });
     const [loading, setLoading] = useState<boolean>(false);
     const [dragging, setDragging] = useState<boolean>(false);
@@ -707,7 +708,14 @@ function App() {
                 return;
             }
 
-            setJumpToSubtitle(item);
+            setJumpToSubtitle({
+                text: item.text,
+                start: item.start,
+                end: item.end,
+                originalStart: item.originalStart,
+                originalEnd: item.originalEnd,
+                track: item.track,
+            });
         },
         [subtitleFiles, handleError]
     );
@@ -729,6 +737,30 @@ function App() {
             setAnkiDialogRequested(false);
         }
     }, [ankiDialogRequested]);
+
+    const handleAnkiDialogRewind = useCallback(() => {
+        if (!ankiDialogItem) {
+            return;
+        }
+
+        if (!subtitleFiles.find((f) => f.name === ankiDialogItem.subtitleFile?.name)) {
+            handleError('Subtitle file ' + ankiDialogItem.subtitleFile?.name + ' is not open.');
+            return;
+        }
+
+        const subtitle = {
+            text: ankiDialogItem.text,
+            start: ankiDialogItem.start,
+            end: ankiDialogItem.end,
+            originalStart: ankiDialogItem.originalStart,
+            originalEnd: ankiDialogItem.originalEnd,
+            track: ankiDialogItem.track,
+        };
+        setRewindSubtitle(subtitle);
+        setJumpToSubtitle(subtitle);
+
+        handleAnkiDialogCancel();
+    }, [ankiDialogItem, subtitleFiles, handleAnkiDialogCancel, handleError]);
 
     const handleViewImage = useCallback((image: Image) => {
         setImage(image);
@@ -1053,6 +1085,7 @@ function App() {
                                     anki={anki}
                                     settingsProvider={settingsProvider}
                                     onCancel={handleAnkiDialogCancel}
+                                    onRewind={handleAnkiDialogRewind}
                                     onProceed={handleAnkiDialogProceed}
                                     onViewImage={handleViewImage}
                                     onOpenSettings={handleOpenSettings}
@@ -1111,6 +1144,7 @@ function App() {
                                         availableTabs={availableTabs}
                                         sources={sources}
                                         jumpToSubtitle={jumpToSubtitle}
+                                        rewindSubtitle={rewindSubtitle}
                                         videoFrameRef={videoFrameRef}
                                         extension={extension}
                                         drawerOpen={copyHistoryOpen}
