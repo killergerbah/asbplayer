@@ -828,7 +828,7 @@ export default function VideoPlayer(props: Props) {
                 onHideSubtitlePlayerToggle={handleHideSubtitlePlayerToggle}
                 settingsProvider={settingsProvider}
                 showOnMouseMovement={false}
-                theaterModeToggleEnabled={true}
+                theaterModeToggleEnabled={!popOut}
                 theaterModeEnabled={appBarHidden}
                 onTheaterModeToggle={handleTheaterModeToggle}
             />
