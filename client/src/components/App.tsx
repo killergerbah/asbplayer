@@ -61,7 +61,7 @@ const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
     }),
 }));
 
-function extractSources(files: FileList): MediaSources {
+function extractSources(files: FileList | File[]): MediaSources {
     let subtitleFiles = [];
     let audioFile = undefined;
     let videoFile = undefined;
@@ -804,7 +804,7 @@ function App() {
     const handleTabSelected = useCallback((tab: VideoTabModel) => setTab(tab), []);
 
     const handleFiles = useCallback(
-        (files: FileList) => {
+        (files: FileList | File[]) => {
             try {
                 let { subtitleFiles, audioFile, videoFile } = extractSources(files);
 
@@ -856,6 +856,54 @@ function App() {
             }
         },
         [handleError]
+    );
+
+    const handleDirectory = useCallback(
+        async (items: DataTransferItemList) => {
+            if (items.length !== 1) {
+                handleError('Cannot load more than one directory at a time');
+                return;
+            }
+
+            const fileSystemEntry = items[0].webkitGetAsEntry();
+
+            if (!fileSystemEntry || !fileSystemEntry.isDirectory) {
+                handleError('Failed to load directory');
+                return;
+            }
+
+            const fileSystemDirectoryEntry = fileSystemEntry as FileSystemDirectoryEntry;
+            
+            try {
+                const entries = await new Promise<FileSystemEntry[]>((resolve, reject) =>
+                    fileSystemDirectoryEntry.createReader().readEntries(resolve, reject)
+                );
+
+                if (entries.find((e) => e.isDirectory)) {
+                    handleError('Cannot load a directory with subdirectories');
+                    return;
+                }
+
+                const filePromises = entries.map(
+                    (e) => new Promise<File>((resolve, reject) => (e as FileSystemFileEntry).file(resolve, reject))
+                );
+                const files: File[] = [];
+
+                for (const f of filePromises) {
+                    files.push(await f);
+                }
+
+                handleFiles(files);
+            } catch (e) {
+                console.error(e);
+                if (e instanceof Error) {
+                    handleError(e.message);
+                } else {
+                    handleError(String(e));
+                }
+            }
+        },
+        [handleError, handleFiles]
     );
 
     useEffect(() => {
@@ -963,13 +1011,23 @@ function App() {
             setDragging(false);
             dragEnterRef.current = null;
 
-            if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) {
-                return;
+            function allDirectories(items: DataTransferItemList) {
+                for (let i = 0; i < items.length; ++i) {
+                    if (!items[i].webkitGetAsEntry()?.isDirectory) {
+                        return false;
+                    }
+                }
+
+                return true;
             }
 
-            handleFiles(e.dataTransfer.files);
+            if (e.dataTransfer.items && e.dataTransfer.items.length > 0 && allDirectories(e.dataTransfer.items)) {
+                handleDirectory(e.dataTransfer.items);
+            } else if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                handleFiles(e.dataTransfer.files);
+            }
         },
-        [inVideoPlayer, handleError, handleFiles, ankiDialogOpen]
+        [inVideoPlayer, handleError, handleFiles, handleDirectory, ankiDialogOpen]
     );
 
     const handleFileInputChange = useCallback(() => {
