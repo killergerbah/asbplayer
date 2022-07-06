@@ -4,7 +4,7 @@ import AppBar from '@material-ui/core/AppBar';
 import BugReportIcon from '@material-ui/icons/BugReport';
 import FavoriteIcon from '@material-ui/icons/Favorite';
 import HelpIcon from '@material-ui/icons/Help';
-import FolderOpenIcon from '@material-ui/icons/FolderOpen';
+import FolderIcon from '@material-ui/icons/Folder';
 import IconButton from '@material-ui/core/IconButton';
 import ListIcon from '@material-ui/icons/List';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -25,6 +25,9 @@ interface BarProps {
 const useStyles = makeStyles<Theme, BarProps, string>((theme) => ({
     title: {
         flexGrow: 1,
+    },
+    leftButton: {
+        marginRight: theme.spacing(1),
     },
     appBar: {
         transition: theme.transitions.create(['margin', 'width'], {
@@ -90,13 +93,13 @@ export default function Bar(props: BarProps) {
             elevation={0}
             className={clsx(classes.appBar, {
                 [classes.appBarShift]: props.drawerOpen,
-                [classes.hide]: props.hidden
+                [classes.hide]: props.hidden,
             })}
         >
             <Toolbar>
                 <Tooltip title="Open Files">
-                    <IconButton edge="start" color="inherit" onClick={props.onFileSelector}>
-                        <FolderOpenIcon />
+                    <IconButton edge="start" color="inherit" className={classes.leftButton} onClick={props.onFileSelector}>
+                        <FolderIcon />
                     </IconButton>
                 </Tooltip>
                 <Typography variant="h6" className={classes.title}>
@@ -127,7 +130,7 @@ export default function Bar(props: BarProps) {
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Help">
-                <IconButton
+                    <IconButton
                         edge="end"
                         color="inherit"
                         component="a"
