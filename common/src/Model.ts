@@ -71,6 +71,7 @@ export interface AnkiUiState {
     readonly image?: ImageModel;
     readonly audio?: AudioModel;
     readonly themeType: string;
+    readonly dialogRequestedTimestamp: number;
 }
 
 export interface AnkiUiInitialState extends AnkiUiState {
@@ -107,6 +108,7 @@ export interface AnkiUiSavedState {
     initialTimestampInterval: number[];
     lastAppliedTimestampIntervalToText: number[];
     lastAppliedTimestampIntervalToAudio?: number[];
+    dialogRequestedTimestamp: number;
 }
 
 export interface VideoDataSubtitleTrack {

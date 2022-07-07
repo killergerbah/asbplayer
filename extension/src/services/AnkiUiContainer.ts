@@ -69,6 +69,7 @@ export default class AnkiUiContainer {
             image: image,
             audio: audio,
             themeType: themeType,
+            dialogRequestedTimestamp: context.video.currentTime * 1000,
         };
         client.updateState(state);
     }
@@ -88,6 +89,7 @@ export default class AnkiUiContainer {
             open: true,
             settingsProvider: this.ankiSettings,
             themeType: themeType,
+            dialogRequestedTimestamp: context.video.currentTime * 1000,
         };
         client.updateState(state);
     }
@@ -167,7 +169,18 @@ export default class AnkiUiContainer {
                 case 'resume':
                     const resumeMessage = message as AnkiUiBridgeResumeMessage;
                     context.ankiUiSavedState = resumeMessage.uiState;
-                    context.play();
+
+                    if (resumeMessage.cardExported && resumeMessage.uiState.dialogRequestedTimestamp !== 0) {
+                        const seekTo = resumeMessage.uiState.dialogRequestedTimestamp / 1000;
+
+                        if (context.video.currentTime !== seekTo) {
+                            context.seek(seekTo);
+                        }
+
+                        context.play();
+                    } else {
+                        context.play();
+                    }
                     break;
                 case 'rewind':
                     const rewindMessage = message as AnkiUiBridgeRewindMessage;

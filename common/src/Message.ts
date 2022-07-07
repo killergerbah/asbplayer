@@ -306,6 +306,7 @@ export interface AnkiUiBridgeRewindMessage extends Message {
 export interface AnkiUiBridgeResumeMessage extends Message {
     readonly command: 'resume';
     readonly uiState: AnkiUiSavedState;
+    readonly cardExported: boolean;
 }
 
 export interface AnkiUiBridgeRerecordMessage extends Message {

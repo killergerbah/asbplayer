@@ -57,6 +57,8 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
     const [alert, setAlert] = useState<string>('');
     const [themeType, setThemeType] = useState<string>('dark');
+    const [dialogRequestedTimestamp, setDialogRequestedTimestamp] = useState<number>(0);
+
     const theme = useMemo(() => createTheme(themeType as PaletteType), [themeType]);
     const anki = useMemo(
         () => (settingsProvider ? new Anki(settingsProvider, bridge) : undefined),
@@ -80,10 +82,11 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             initialTimestampInterval: dialogState.initialTimestampInterval!,
             timestampInterval: dialogState.timestampInterval!,
             lastAppliedTimestampIntervalToText: dialogState.lastAppliedTimestampIntervalToText!,
-            lastAppliedTimestampIntervalToAudio: dialogState.lastAppliedTimestampIntervalToAudio
+            lastAppliedTimestampIntervalToAudio: dialogState.lastAppliedTimestampIntervalToAudio,
+            dialogRequestedTimestamp: dialogRequestedTimestamp,
         };
         return savedState;
-    }, [subtitle, serializedImage, serializedAudio]);
+    }, [subtitle, serializedImage, serializedAudio, dialogRequestedTimestamp]);
 
     useEffect(() => {
         return bridge.onStateUpdated((s: AnkiUiState) => {
@@ -154,6 +157,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 image = Image.fromBase64(s.source, s.subtitle.start, s.image.base64, s.image.extension);
             }
 
+            setDialogRequestedTimestamp(s.dialogRequestedTimestamp);
             setSerializedAudio(s.audio);
             setSerializedImage(s.image);
             setImageDialogOpen(false);
@@ -198,7 +202,11 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 if (mode !== 'gui') {
                     setOpen(false);
                     setImageDialogOpen(false);
-                    const message: AnkiUiBridgeResumeMessage = { command: 'resume', uiState: savedState() };
+                    const message: AnkiUiBridgeResumeMessage = {
+                        command: 'resume',
+                        uiState: savedState(),
+                        cardExported: true,
+                    };
                     bridge.finished(message);
                 }
             } catch (e) {
@@ -222,7 +230,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
     const handleCancel = useCallback(() => {
         setOpen(false);
         setImageDialogOpen(false);
-        const message: AnkiUiBridgeResumeMessage = { command: 'resume', uiState: savedState() };
+        const message: AnkiUiBridgeResumeMessage = { command: 'resume', uiState: savedState(), cardExported: false };
         bridge.finished(message);
     }, [bridge, savedState]);
 
