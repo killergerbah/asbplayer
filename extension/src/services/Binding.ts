@@ -362,7 +362,7 @@ export default class Binding {
                     case 'miscSettings':
                         this.settings.set({ lastThemeType: request.message.value.themeType });
                         this.copyToClipboardOnMine = request.message.value.copyToClipboardOnMine;
-                        this.autoPausePreference = request.message.value.autoPausePreference;
+                        this.autoPausePreference = request.message.value.autoPausePreference ?? this.autoPausePreference;
                         break;
                     case 'settings-updated':
                         this._refreshSettings();
