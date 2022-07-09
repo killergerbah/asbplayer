@@ -1,10 +1,13 @@
 import {
+    AnkiSettingsToVideoMessage,
     AnkiUiSavedState,
     AutoPausePreference,
     CardUpdatedMessage,
     CopySubtitleMessage,
     CurrentTimeFromVideoMessage,
+    CurrentTimeToVideoMessage,
     humanReadableTime,
+    MiscSettingsToVideoMessage,
     PauseFromVideoMessage,
     PlaybackRateFromVideoMessage,
     PlayFromVideoMessage,
@@ -13,10 +16,14 @@ import {
     ReadyStateFromVideoMessage,
     RecordMediaAndForwardSubtitleMessage,
     RerecordMediaMessage,
+    ScreenshotTakenMessage,
     ShowAnkiUiAfterRerecordMessage,
+    ShowAnkiUiMessage,
     StartRecordingMediaMessage,
     StopRecordingMediaMessage,
     SubtitleModel,
+    SubtitleSettingsToVideoMessage,
+    SubtitlesToVideoMessage,
     TakeScreenshotFromExtensionMessage,
     VideoHeartbeatMessage,
     VideoToExtensionCommand,
@@ -300,22 +307,24 @@ export default class Binding {
                         this.pause();
                         break;
                     case 'currentTime':
-                        this.seek(request.message.value);
+                        const currentTimeMessage = request.message as CurrentTimeToVideoMessage;
+                        this.seek(currentTimeMessage.value);
                         break;
                     case 'close':
                         // ignore
                         break;
                     case 'subtitles':
-                        const subtitles: SubtitleModel[] = request.message.value;
+                        const subtitlesMessage = request.message as SubtitlesToVideoMessage;
+                        const subtitles: SubtitleModel[] = subtitlesMessage.value;
                         this.subtitleContainer.subtitles = subtitles;
-                        this.subtitleContainer.subtitleFileNames = request.message.names || [request.message.name];
+                        this.subtitleContainer.subtitleFileNames = subtitlesMessage.names || [subtitlesMessage.name];
 
                         let loadedMessage;
 
-                        if (request.message.names) {
-                            loadedMessage = request.message.names.join('<br>');
+                        if (subtitlesMessage.names) {
+                            loadedMessage = subtitlesMessage.names.join('<br>');
                         } else {
-                            loadedMessage = request.message.name || '[Subtitles Loaded]';
+                            loadedMessage = subtitlesMessage.name || '[Subtitles Loaded]';
                         }
 
                         if (this.autoPauseEnabled && (!subtitles || subtitles.length === 0)) {
@@ -329,42 +338,45 @@ export default class Binding {
                         this.synced = true;
                         break;
                     case 'subtitleSettings':
-                        this.subtitleContainer.setSubtitleSettings(request.message.value);
+                        const subtitleSettingsMessage = request.message as SubtitleSettingsToVideoMessage;
+                        this.subtitleContainer.setSubtitleSettings(subtitleSettingsMessage.value);
                         this.subtitleContainer.refresh();
                         break;
                     case 'ankiSettings':
-                        const ankiSettings = request.message.value;
+                        const ankiSettingsMessage = request.message as AnkiSettingsToVideoMessage;
+                        const ankiSettings = {...ankiSettingsMessage.value};
                         ankiSettings.tags = typeof ankiSettings.tags === 'undefined' ? [] : ankiSettings.tags;
                         this.ankiUiContainer.ankiSettings = ankiSettings;
                         this.audioPaddingStart =
-                            typeof request.message.value.audioPaddingStart === 'undefined'
+                            typeof ankiSettingsMessage.value.audioPaddingStart === 'undefined'
                                 ? this.audioPaddingStart
-                                : request.message.value.audioPaddingStart;
+                                : ankiSettingsMessage.value.audioPaddingStart;
                         this.audioPaddingEnd =
-                            typeof request.message.value.audioPaddingEnd === 'undefined'
+                            typeof ankiSettingsMessage.value.audioPaddingEnd === 'undefined'
                                 ? this.audioPaddingEnd
-                                : request.message.value.audioPaddingEnd;
+                                : ankiSettingsMessage.value.audioPaddingEnd;
                         this.maxImageWidth =
-                            typeof request.message.value.maxImageWidth === 'undefined'
+                            typeof ankiSettingsMessage.value.maxImageWidth === 'undefined'
                                 ? this.maxImageWidth
-                                : request.message.value.maxImageWidth;
+                                : ankiSettingsMessage.value.maxImageWidth;
                         this.maxImageHeight =
-                            typeof request.message.value.maxImageHeight === 'undefined'
+                            typeof ankiSettingsMessage.value.maxImageHeight === 'undefined'
                                 ? this.maxImageHeight
-                                : request.message.value.maxImageHeight;
+                                : ankiSettingsMessage.value.maxImageHeight;
                         this.subtitleContainer.surroundingSubtitlesCountRadius =
-                            typeof request.message.value.surroundingSubtitlesCountRadius === 'undefined'
+                            typeof ankiSettingsMessage.value.surroundingSubtitlesCountRadius === 'undefined'
                                 ? this.subtitleContainer.surroundingSubtitlesCountRadius
-                                : request.message.value.surroundingSubtitlesCountRadius;
+                                : ankiSettingsMessage.value.surroundingSubtitlesCountRadius;
                         this.subtitleContainer.surroundingSubtitlesTimeRadius =
-                            typeof request.message.value.surroundingSubtitlesTimeRadius === 'undefined'
+                            typeof ankiSettingsMessage.value.surroundingSubtitlesTimeRadius === 'undefined'
                                 ? this.subtitleContainer.surroundingSubtitlesTimeRadius
-                                : request.message.value.surroundingSubtitlesTimeRadius;
+                                : ankiSettingsMessage.value.surroundingSubtitlesTimeRadius;
                         break;
                     case 'miscSettings':
-                        this.settings.set({ lastThemeType: request.message.value.themeType });
-                        this.copyToClipboardOnMine = request.message.value.copyToClipboardOnMine;
-                        this.autoPausePreference = request.message.value.autoPausePreference ?? this.autoPausePreference;
+                        const miscSettingsMessage = request.message as MiscSettingsToVideoMessage;
+                        this.settings.set({ lastThemeType: miscSettingsMessage.value.themeType });
+                        this.copyToClipboardOnMine = miscSettingsMessage.value.copyToClipboardOnMine;
+                        this.autoPausePreference = miscSettingsMessage.value.autoPausePreference ?? this.autoPausePreference;
                         break;
                     case 'settings-updated':
                         this._refreshSettings();
@@ -414,12 +426,13 @@ export default class Binding {
                         this.recordingMediaStartedTimestamp = undefined;
                         break;
                     case 'show-anki-ui':
+                        const showAnkiUiMessage = request.message as ShowAnkiUiMessage;
                         this.ankiUiContainer.show(
                             this,
-                            request.message.subtitle,
-                            request.message.surroundingSubtitles,
-                            request.message.image,
-                            request.message.audio
+                            showAnkiUiMessage.subtitle,
+                            showAnkiUiMessage.surroundingSubtitles,
+                            showAnkiUiMessage.image,
+                            showAnkiUiMessage.audio
                         );
                         break;
                     case 'show-anki-ui-after-rerecord':
@@ -430,20 +443,22 @@ export default class Binding {
                         this._takeScreenshot();
                         break;
                     case 'screenshot-taken':
+                        const screenshotTakenMessage = request.message as ScreenshotTakenMessage;
+
                         if (this.showControlsTimeout) {
                             clearTimeout(this.showControlsTimeout);
                             this.showControlsTimeout = undefined;
                         }
 
-                        if (request.message.ankiUiState) {
-                            this.ankiUiContainer.showAfterRetakingScreenshot(this, request.message.ankiUiState);
+                        this.subtitleContainer.forceHideSubtitles = false;
+
+                        if (screenshotTakenMessage.ankiUiState) {
+                            this.ankiUiContainer.showAfterRetakingScreenshot(this, screenshotTakenMessage.ankiUiState);
                         }
 
                         if (this.cleanScreenshot) {
                             this.controlsContainer.show();
                         }
-
-                        this.subtitleContainer.forceHideSubtitles = false;
                         break;
                 }
             }
