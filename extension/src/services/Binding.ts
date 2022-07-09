@@ -1,6 +1,7 @@
 import {
     AnkiUiSavedState,
     AutoPausePreference,
+    CardUpdatedMessage,
     CopySubtitleMessage,
     CurrentTimeFromVideoMessage,
     humanReadableTime,
@@ -12,6 +13,7 @@ import {
     ReadyStateFromVideoMessage,
     RecordMediaAndForwardSubtitleMessage,
     RerecordMediaMessage,
+    ShowAnkiUiAfterRerecordMessage,
     StartRecordingMediaMessage,
     StopRecordingMediaMessage,
     SubtitleModel,
@@ -383,7 +385,29 @@ export default class Binding {
                         }
                         break;
                     case 'card-updated':
+                        const cardUpdatedMessage = request.message as CardUpdatedMessage;
                         this.subtitleContainer.notification(`Updated card: ${request.message.cardName}`);
+                        this.ankiUiSavedState = {
+                            subtitle: cardUpdatedMessage.subtitle,
+                            text: '',
+                            sliderContext: {
+                                subtitleStart: cardUpdatedMessage.subtitle.start,
+                                subtitleEnd: cardUpdatedMessage.subtitle.end,
+                                subtitles: cardUpdatedMessage.surroundingSubtitles,
+                            },
+                            definition: '',
+                            image: cardUpdatedMessage.image,
+                            audio: cardUpdatedMessage.audio,
+                            word: cardUpdatedMessage.cardName,
+                            source: this.sourceString(cardUpdatedMessage.subtitle.start),
+                            url: cardUpdatedMessage.url ?? '',
+                            customFieldValues: {},
+                            timestampInterval: [cardUpdatedMessage.subtitle.start, cardUpdatedMessage.subtitle.end],
+                            initialTimestampInterval: [cardUpdatedMessage.subtitle.start, cardUpdatedMessage.subtitle.end],
+                            lastAppliedTimestampIntervalToText: [cardUpdatedMessage.subtitle.start, cardUpdatedMessage.subtitle.end],
+                            lastAppliedTimestampIntervalToAudio: [cardUpdatedMessage.subtitle.start, cardUpdatedMessage.subtitle.end],
+                            dialogRequestedTimestamp: this.video.currentTime * 1000
+                        };
                         break;
                     case 'recording-finished':
                         this.recordingMedia = false;
@@ -399,7 +423,8 @@ export default class Binding {
                         );
                         break;
                     case 'show-anki-ui-after-rerecord':
-                        this.ankiUiContainer.showAfterRerecord(this, request.message.uiState);
+                        const showAnkiUiAfterRerecordMessage = request.message as ShowAnkiUiAfterRerecordMessage
+                        this.ankiUiContainer.showAfterRerecord(this, showAnkiUiAfterRerecordMessage.uiState);
                         break;
                     case 'take-screenshot':
                         this._takeScreenshot();

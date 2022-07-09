@@ -119,6 +119,11 @@ export interface TakeScreenshotFromExtensionMessage extends Message {
 export interface CardUpdatedMessage extends Message {
     readonly command: 'card-updated';
     readonly cardName: string;
+    readonly subtitle: SubtitleModel,
+    readonly surroundingSubtitles: SubtitleModel[],
+    readonly image?: ImageModel,
+    readonly audio?: AudioModel,
+    readonly url?: string;
 }
 
 export interface ScreenshotTakenMessage extends Message {

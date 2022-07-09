@@ -95,7 +95,6 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             if (s.type === 'initial') {
                 const state = s as AnkiUiInitialState;
                 setText(state.subtitle.text);
-                setSubtitle(state.subtitle);
                 setInitialTimestampInterval(undefined);
                 setTimestampInterval(undefined);
                 setSliderContext({
@@ -110,8 +109,6 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                         },
                     ],
                 });
-                setSource(state.source);
-                setUrl(state.url);
                 setDefinition('');
                 setWord('');
                 setCustomFieldValues({});
@@ -123,8 +120,6 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 setInitialTimestampInterval(state.initialTimestampInterval);
                 setTimestampInterval(state.timestampInterval);
                 setSliderContext(state.sliderContext);
-                setSource(state.source);
-                setUrl(state.url);
                 setDefinition(state.definition);
                 setWord(state.word);
                 setCustomFieldValues(state.customFieldValues);
@@ -157,6 +152,9 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 image = Image.fromBase64(s.source, s.subtitle.start, s.image.base64, s.image.extension);
             }
 
+            setSubtitle(s.subtitle);
+            setSource(s.source);
+            setUrl(s.url);
             setDialogRequestedTimestamp(s.dialogRequestedTimestamp);
             setSerializedAudio(s.audio);
             setSerializedImage(s.image);

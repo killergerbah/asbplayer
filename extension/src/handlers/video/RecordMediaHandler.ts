@@ -160,6 +160,11 @@ export default class RecordMediaHandler {
                     message: {
                         command: 'card-updated',
                         cardName: `${cardName}`,
+                        subtitle,
+                        surroundingSubtitles: recordMediaCommand.message.surroundingSubtitles,
+                        audio: audioModel,
+                        image: imageModel,
+                        url: recordMediaCommand.message.url
                     },
                     src: recordMediaCommand.src,
                 };

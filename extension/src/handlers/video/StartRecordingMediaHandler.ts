@@ -77,6 +77,7 @@ export default class StartRecordingMediaHandler {
                 originalEnd: startRecordingCommand.message.timestamp,
                 track: 0,
             };
+            
             const id = uuidv4();
 
             let imageModel: ImageModel | undefined = undefined;
@@ -141,11 +142,15 @@ export default class StartRecordingMediaHandler {
                     sender: 'asbplayer-extension-to-video',
                     message: {
                         command: 'card-updated',
-                        cardName: `${cardName}`
+                        cardName: `${cardName}`,
+                        subtitle,
+                        surroundingSubtitles: [],
+                        image: imageModel,
+                        url: startRecordingCommand.message.url,
                     },
-                    src: startRecordingCommand.src
-                }
-    
+                    src: startRecordingCommand.src,
+                };
+
                 chrome.tabs.sendMessage(sender.tab!.id!, cardUpdatedCommand);
             }
         }

@@ -138,6 +138,11 @@ export default class StopRecordingMediaHandler {
                     message: {
                         command: 'card-updated',
                         cardName: `${cardName}`,
+                        subtitle,
+                        surroundingSubtitles: surroundingSubtitles,
+                        image: imageModel,
+                        audio: audioModel,
+                        url: stopRecordingCommand.message.url,
                     },
                     src: stopRecordingCommand.src,
                 };
