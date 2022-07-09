@@ -10,6 +10,7 @@ import {
     SubtitleModel,
 } from '@project/common';
 import Button from '@material-ui/core/Button';
+import FileCopyIcon from '@material-ui/icons/FileCopy';
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -477,6 +478,19 @@ export function AnkiDialog({
         setTimestampMarks(sliderContext && sliderMarksFromSliderContext(sliderContext, newTimestampBoundaryInterval));
     }, [timestampBoundaryInterval, timestampInterval, sliderContext]);
 
+    const handleCopyImageToClipboard = useCallback(
+        async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+            e.stopPropagation();
+
+            if (!image) {
+                return;
+            }
+
+            navigator.clipboard.write([new ClipboardItem({ 'image/png': await image.pngBlob() })]);
+        },
+        [image]
+    );
+
     const disableApplyTextSelection =
         !sliderContext || sliderContext.subtitles.filter((s) => s.text.trim() !== '').length === 0;
 
@@ -649,7 +663,26 @@ export function AnkiDialog({
                     )}
                     {image && (
                         <div className={classes.mediaField} onClick={handleViewImage}>
-                            <TextField variant="filled" color="secondary" fullWidth value={image.name} label="Image" />
+                            <TextField
+                                variant="filled"
+                                color="secondary"
+                                fullWidth
+                                value={image.name}
+                                label="Image"
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <Tooltip title="Copy to Clipboard">
+                                                <span>
+                                                    <IconButton onClick={handleCopyImageToClipboard} edge="end">
+                                                        <FileCopyIcon />
+                                                    </IconButton>
+                                                </span>
+                                            </Tooltip>
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
                         </div>
                     )}
                     <TextField

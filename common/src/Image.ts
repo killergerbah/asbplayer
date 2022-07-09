@@ -1,3 +1,4 @@
+import { resolveConfig } from 'prettier';
 import CanvasResizer from './CanvasResizer';
 
 class Base64ImageData implements ImageData {
@@ -65,6 +66,10 @@ class FileImageData implements ImageData {
         return this._name;
     }
 
+    get extension() {
+        return 'jpeg';
+    }
+
     async base64(): Promise<string> {
         return new Promise(async (resolve, reject) => {
             const canvas = await this._canvas();
@@ -126,6 +131,7 @@ class FileImageData implements ImageData {
 
 interface ImageData {
     name: string;
+    extension: string;
     base64: () => Promise<string>;
     dataUrl: () => Promise<string>;
     blob: () => Promise<Blob>;
@@ -156,12 +162,42 @@ export default class Image {
         return this.data.name;
     }
 
+    get extension() {
+        return this.data.extension;
+    }
+
     async base64() {
         return await this.data.base64();
     }
 
     async dataUrl() {
         return await this.data.dataUrl();
+    }
+
+    async blob() {
+        return await this.data.blob();
+    }
+
+    async pngBlob() {
+        return new Promise<Blob>(async (resolve, reject) => {
+            try {
+                createImageBitmap(await this.blob()).then((bitMap) => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = bitMap.width;
+                    canvas.height = bitMap.height;
+                    canvas.getContext('2d')!.drawImage(bitMap, 0, 0);
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            resolve(blob);
+                        } else {
+                            reject('Failed to convert to PNG');
+                        }
+                    }, 'image/png');
+                });
+            } catch (e) {
+                reject(e);
+            }
+        });
     }
 
     async download() {
