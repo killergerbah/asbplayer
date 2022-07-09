@@ -376,6 +376,10 @@ export default class Binding {
                             } else {
                                 this._toggleRecordingMedia(copySubtitleMessage.postMineAction);
                             }
+
+                            if (copySubtitleMessage.postMineAction === PostMineAction.showAnkiDialog) {
+                                this.ankiUiContainer.prime(this);
+                            }
                         }
                         break;
                     case 'card-updated':

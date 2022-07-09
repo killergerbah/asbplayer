@@ -42,6 +42,10 @@ export default class AnkiUiContainer {
 
     constructor() {}
 
+    prime(context: Binding) {
+        this._client(context);
+    }
+
     async show(
         context: Binding,
         subtitle: SubtitleModel,
@@ -53,8 +57,8 @@ export default class AnkiUiContainer {
             throw new Error('Unable to show Anki UI because settings are missing.');
         }
 
-        const client = await this._client(context);
         this._prepareShow(context);
+        const client = await this._client(context);
         const url = context.url;
         const themeType = (await context.settings.get(['lastThemeType'])).lastThemeType;
 
@@ -79,8 +83,8 @@ export default class AnkiUiContainer {
             throw new Error('Unable to show Anki UI after rerecording because anki settings are undefined');
         }
 
-        const client = await this._client(context);
         this._prepareShow(context);
+        const client = await this._client(context);
 
         const themeType = (await context.settings.get(['lastThemeType'])).lastThemeType;
         const state: AnkiUiResumeState = {
@@ -99,8 +103,8 @@ export default class AnkiUiContainer {
             throw new Error('Unable to show Anki UI after retaking screenshot because anki settings are undefined');
         }
 
-        const client = await this._client(context);
         this._prepareShow(context);
+        const client = await this._client(context);
 
         const themeType = (await context.settings.get(['lastThemeType'])).lastThemeType;
         const state: AnkiUiResumeState = {
