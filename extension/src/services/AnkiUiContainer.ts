@@ -191,6 +191,7 @@ export default class AnkiUiContainer {
                     context.ankiUiSavedState = rewindMessage.uiState;
                     context.pause();
                     context.seek(rewindMessage.uiState.subtitle.start / 1000);
+                    break;
                 case 'rerecord':
                     const rerecordMessage = message as AnkiUiBridgeRerecordMessage;
                     context.rerecord(rerecordMessage.recordStart, rerecordMessage.recordEnd, rerecordMessage.uiState);
