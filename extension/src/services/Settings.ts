@@ -19,7 +19,7 @@ const defaults: ExtensionSettings = {
     subsDragAndDrop: true,
     autoSync: false,
     lastLanguageSynced: '',
-    subtitlePositionOffsetBottom: 100,
+    subtitlePositionOffsetBottom: 75,
     asbplayerUrl: 'https://killergerbah.github.io/asbplayer/',
     lastThemeType: 'dark',
 };

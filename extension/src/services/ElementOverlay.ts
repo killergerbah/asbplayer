@@ -22,7 +22,7 @@ export class ElementOverlay {
     private fullscreenElementFullscreenChangeListener?: (this: any, event: Event) => any;
     private fullscreenElementFullscreenPollingInterval?: NodeJS.Timer;
 
-    contentPositionOffset: number = 100;
+    contentPositionOffset: number = 75;
 
     constructor(
         targetElement: HTMLElement,
