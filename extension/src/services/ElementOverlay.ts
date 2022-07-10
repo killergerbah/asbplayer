@@ -136,8 +136,10 @@ export class ElementOverlay {
         container.style.maxWidth = rect.width + 'px';
 
         if (this.offsetAnchor === OffsetAnchor.bottom) {
-            container.style.top = '';
-            container.style.bottom = rect.bottom - rect.height + window.scrollY + this.contentPositionOffset + 'px';
+            // There doesn't seem to be a way to calculate the correct bottom offset.
+            // Instead, use a large offset from the top.
+            container.style.top = rect.top + rect.height + window.scrollY - this.contentPositionOffset + 'px';
+            container.style.bottom = '';
         } else {
             container.style.top = rect.top + window.scrollY + this.contentPositionOffset + 'px';
             container.style.bottom = '';
