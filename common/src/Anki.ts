@@ -119,11 +119,12 @@ export class Anki {
         };
 
         const gui = mode === 'gui';
+        const updateLast = mode === 'updateLast';
 
         if (this.settingsProvider.audioField && audioClip) {
             const sanitizedName = this._sanitizeFileName(audioClip.name);
 
-            if (gui) {
+            if (gui || updateLast) {
                 const fileName = (await this._storeMediaFile(sanitizedName, await audioClip.base64(), ankiConnectUrl))
                     .result;
                 this._appendField(fields, this.settingsProvider.audioField, `[sound:${fileName}]`, false);
@@ -139,7 +140,7 @@ export class Anki {
         if (this.settingsProvider.imageField && image) {
             const sanitizedName = this._sanitizeFileName(image.name);
 
-            if (gui) {
+            if (gui || updateLast) {
                 const fileName = (await this._storeMediaFile(sanitizedName, await image.base64(), ankiConnectUrl))
                     .result;
                 this._appendField(
