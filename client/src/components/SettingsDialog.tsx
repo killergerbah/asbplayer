@@ -768,6 +768,10 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
                                     }
                                     label="At Subtitle End"
                                 />
+                                <FormHelperText>
+                                    Does not enable auto-pause. Sets the preference for when to pause when auto-pause is
+                                    enabled.
+                                </FormHelperText>
                             </div>
                         </Grid>
                         <Grid item>
