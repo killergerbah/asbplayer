@@ -106,23 +106,19 @@ export function timeDurationDisplay(
         const hrs = (milliseconds - mins) / 60;
 
         if (includeMilliseconds) {
-            return pad(hrs) + ':' + pad(mins) + ':' + pad(secs) + '.' + padEnd(ms);
+            return pad(hrs) + ':' + pad(mins) + ':' + pad(secs) + '.' + pad(ms, 3);
         }
 
         return pad(hrs) + ':' + pad(mins) + ':' + pad(secs);
     }
 
     if (includeMilliseconds) {
-        return pad(mins) + ':' + pad(secs) + '.' + padEnd(ms);
+        return pad(mins) + ':' + pad(secs) + '.' + pad(ms, 3);
     }
 
     return pad(mins) + ':' + pad(secs);
 }
 
-function pad(n: number) {
-    return String(n).padStart(2, '0');
-}
-
-function padEnd(n: number) {
-    return String(n).padEnd(3, '0');
+function pad(n: number, zeros: number = 2) {
+    return String(n).padStart(zeros, '0');
 }
