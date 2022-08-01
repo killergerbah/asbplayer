@@ -2,7 +2,7 @@ import Mp3Encoder from './Mp3Encoder';
 // eslint-disable-next-line
 // @ts-ignore
 import Worker from 'worker-loader!./mp3-encoder.js';
-const AUDIO_TYPES: { [key: string]: string } = { 'audio/ogg;codecs=opus': 'ogg', 'audio/webm;codecs=opus': 'webm' };
+const AUDIO_TYPES: { [key: string]: string } = { 'audio/ogg;codecs=opus': 'ogg', 'audio/webm;codecs=pcm': 'webm' };
 const [recorderMimeType, recorderExtension] = Object.keys(AUDIO_TYPES)
     .filter(MediaRecorder.isTypeSupported)
     .map((t) => [t as string, AUDIO_TYPES[t] as string])[0];
