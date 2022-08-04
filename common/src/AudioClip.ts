@@ -161,11 +161,6 @@ class FileAudioData implements AudioData {
             audio.oncanplay = async (e) => {
                 audio.play();
                 const stream = this._captureStream(audio);
-
-                for (const t of stream.getVideoTracks()) {
-                    t.stop();
-                }
-
                 const recorder = new MediaRecorder(stream, { mimeType: recorderMimeType });
                 const chunks: BlobPart[] = [];
 
@@ -174,12 +169,15 @@ class FileAudioData implements AudioData {
                 };
 
                 recorder.onstop = (e) => {
-                    resolve(new Blob(chunks));
+                    resolve(new Blob(chunks, { type: recorderMimeType }));
                 };
 
                 recorder.start();
                 await this._stopAudio(audio);
                 recorder.stop();
+                for (const track of stream.getAudioTracks()) {
+                    track.stop();
+                }
             };
         });
     }
@@ -204,15 +202,33 @@ class FileAudioData implements AudioData {
     }
 
     _captureStream(audio: ExperimentalAudioElement) {
+        let stream: MediaStream | undefined;
+
         if (typeof audio.captureStream === 'function') {
-            return audio.captureStream();
+            stream = audio.captureStream();
         }
 
         if (typeof audio.mozCaptureStream === 'function') {
-            return audio.mozCaptureStream();
+            stream = audio.mozCaptureStream();
         }
 
-        throw new Error('Unable to capture stream from audio');
+        if (stream === undefined) {
+            throw new Error('Unable to capture stream from audio');
+        }
+
+        const audioStream = new MediaStream();
+
+        for (const track of stream.getVideoTracks()) {
+            track.stop();
+        }
+
+        for (const track of stream.getAudioTracks()) {
+            if (track.enabled) {
+                audioStream.addTrack(track);
+            }
+        }
+
+        return audioStream;
     }
 
     async _stopAudio(audio: ExperimentalAudioElement): Promise<void> {
@@ -343,7 +359,7 @@ export default class AudioClip {
         if (this.data instanceof Mp3AudioData) {
             return this;
         }
-        
+
         return new AudioClip(new Mp3AudioData(this.data, mp3WorkerFactory));
     }
 
