@@ -83,9 +83,13 @@ A lot of video players are loaded inside of iframes, so it's difficult to
 know every single URL that the extension might need access to.
 
 ### The extension keyboard shortcuts aren't working.
+- Check `chrome://extensions/shortcuts` and make sure the shortcuts you're trying to use are bound.
+- You can also check the currently-bound shortcuts from the extension popup menu.
 - Try uninstalling and reinstalling the extension and restarting Chrome.
 - Make sure the extension isn't installed twice.
-- Verify the keyboard shortcuts are bound as in this [video](https://youtu.be/wYWbgovfNlI).
+
+### The asbplayer website keyboard shortcuts aren't working.
+- The asbplayer website keyboard shortcuts are different from the extension keyboard shortcuts. When using the asbplayer site e.g. for playing local media files use the correct shortuts as described [above](#keyboard-shortcuts) e.g. <kbd>Ctrl+Shift+Q</kbd> instead of <kbd>Ctrl+Shift+X</kbd>.
   
 ### asbplayer can't connect to Anki. It shows an error message e.g. 'Failed to fetch.'
 - If you're using Brave, make sure asbplayer isn't being blocked by Shield.
