@@ -8,6 +8,7 @@ Talk with me and other language learners on [Discord](https://discord.gg/ad7VAQr
 Thank you to all of my sponsors:
 [@vivekchoksi](https://www.github.com/vivekchoksi)
 [@nzarbayezid](https://www.github.com/nzarbayezid)
+[@ManuJapan](https://www.github.com/ManuJapan)
 
 If you've benefited from asbplayer, please consider [supporting my work](https://github.com/sponsors/killergerbah?frequency=one-time) ❤️.
 
