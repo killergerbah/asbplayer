@@ -2,9 +2,9 @@ import AudioClip from './AudioClip';
 import Image from './Image';
 import { HttpFetcher, Fetcher } from './Fetcher';
 import { AnkiSettings } from './Settings';
+import sanitize from 'sanitize-filename';
 
 const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
-const fileNameSpecialCharacters = [':', '/', '\\', '<', '>', '"', '|', '?', '*', '^'];
 
 export type AnkiExportMode = 'gui' | 'updateLast' | 'default';
 
@@ -217,19 +217,7 @@ export class Anki {
     }
 
     _sanitizeFileName(name: string) {
-        let sanitized = '';
-
-        for (let i = 0; i < name.length; ++i) {
-            const char = name[i];
-
-            if (fileNameSpecialCharacters.includes(char)) {
-                sanitized += '_';
-            } else {
-                sanitized += char;
-            }
-        }
-
-        return sanitized;
+        return sanitize(name, { replacement: '_' });
     }
 
     async _storeMediaFile(name: string, base64: string, ankiConnectUrl?: string) {

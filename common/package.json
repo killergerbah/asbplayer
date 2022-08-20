@@ -1,5 +1,8 @@
 {
   "private": true,
   "name": "@project/common",
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "dependencies": {
+    "sanitize-filename": "^1.6.3"
+  }
 }
