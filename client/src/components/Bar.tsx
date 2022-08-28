@@ -110,7 +110,7 @@ export default function Bar(props: BarProps) {
                         edge="end"
                         color="inherit"
                         component="a"
-                        href="https://github.com/sponsors/killergerbah?frequency=one-time"
+                        href="https://github.com/killergerbah/asbplayer#supporters"
                         target="_blank"
                         rel="noreferrer"
                     >
