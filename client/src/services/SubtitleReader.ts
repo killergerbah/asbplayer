@@ -1,5 +1,5 @@
 import { compile as parseAss } from 'ass-compiler';
-import { parseSync as parseSrt } from 'subtitle';
+import { Cue, Node, parseSync as parseSrt, stringifySync as writeSrt } from 'subtitle';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
 import { DisplaySet, parseDisplaySets as parsePgsDisplaySets } from './pgs-parser';
@@ -30,12 +30,17 @@ export default class SubtitleReader {
     async _subtitles(file: File, track: number): Promise<SubtitleNode[]> {
         if (file.name.endsWith('.srt')) {
             const nodes = parseSrt(await file.text());
-            return nodes.map((node: any) => ({
-                start: node.data.start,
-                end: node.data.end,
-                text: node.data.text.replace(tagRegex, ''),
-                track: track,
-            }));
+            return nodes
+                .filter((node) => node.type === 'cue')
+                .map((node) => {
+                    const cue = node.data as Cue;
+                    return {
+                        start: cue.start,
+                        end: cue.end,
+                        text: cue.text.replace(tagRegex, ''),
+                        track: track,
+                    };
+                });
         }
 
         if (file.name.endsWith('.vtt') || file.name.endsWith('.nfvtt')) {
@@ -198,5 +203,23 @@ export default class SubtitleReader {
         }
 
         return this.xmlParser;
+    }
+
+    subtitlesToSrt(subtitles: SubtitleNode[]) {
+        const nodes: Node[] = subtitles.map((subtitleNode) => {
+            return {
+                type: 'cue',
+                data: {
+                    start: subtitleNode.start,
+                    end: subtitleNode.end,
+                    text: subtitleNode.text,
+                },
+            };
+        });
+        return writeSrt(nodes, { format: 'SRT' });
+    }
+
+    async filesToSrt(files: File[]) {
+        return this.subtitlesToSrt(await this.subtitles(files));
     }
 }

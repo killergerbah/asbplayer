@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { timeDurationDisplay } from '../services/Util';
-import { Theme } from '@material-ui/core';
+import { ListItemSecondaryAction, Theme } from '@material-ui/core';
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
@@ -11,10 +11,10 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import ListSubheader from '@material-ui/core/ListSubheader';
 import Popover from '@material-ui/core/Popover';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import StarIcon from '@material-ui/icons/Star';
+import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import { AudioModel, ImageModel, SubtitleModel } from '@project/common';
@@ -44,6 +44,7 @@ interface CopyHistoryProps {
     onSelect: (item: CopyHistoryItem) => void;
     onClipAudio: (item: CopyHistoryItem) => void;
     onDownloadImage: (item: CopyHistoryItem) => void;
+    onDownloadSectionAsSrt: (name: string, items: CopyHistoryItem[]) => void;
 }
 
 const useStyles = makeStyles<Theme, CopyHistoryProps, string>((theme) => ({
@@ -222,23 +223,41 @@ export default function CopyHistory(props: CopyHistoryProps) {
         let lastSeenItemName = null;
         let i = 0;
         const itemNameCounters: { [name: string]: number } = {};
+        let itemsBySection: { [key: string]: CopyHistoryItem[] } = {};
+        let currentKey: string | undefined;
 
         for (const item of props.items) {
             if (lastSeenItemName === null || lastSeenItemName !== item.name) {
+
                 if (item.name in itemNameCounters) {
                     itemNameCounters[item.name]++;
                 } else {
                     itemNameCounters[item.name] = 0;
                 }
 
+                const key = item.name + '-' + itemNameCounters[item.name];
+                itemsBySection[key] = [];
                 lastSeenItemName = item.name;
+                currentKey = key;
+
                 items.push(
-                    <ListSubheader disableSticky={true} key={item.name + '-' + itemNameCounters[item.name]}>
-                        {item.name}
-                    </ListSubheader>
+                    <ListItem key={key}>
+                        <Typography color="textSecondary">{item.name}</Typography>
+                        <ListItemSecondaryAction>
+                            <Tooltip title="Download as SRT">
+                                <IconButton
+                                    onClick={() => props.onDownloadSectionAsSrt(item.name, itemsBySection[key])}
+                                    edge="end"
+                                >
+                                    <SaveAltIcon />
+                                </IconButton>
+                            </Tooltip>
+                        </ListItemSecondaryAction>
+                    </ListItem>
                 );
             }
 
+            itemsBySection[currentKey!].push(item);
             const ref = i === props.items.length - 1 ? scrollToBottomRefCallback : null;
 
             items.push(
@@ -286,7 +305,7 @@ export default function CopyHistory(props: CopyHistoryProps) {
     } else {
         content = (
             <div className={classes.emptyState}>
-                <Typography variant="h6">Copy history is empty.</Typography>
+                <Typography variant="h6">Mining history is empty.</Typography>
                 <Typography variant="caption">See the help for keyboard shortcuts.</Typography>
             </div>
         );

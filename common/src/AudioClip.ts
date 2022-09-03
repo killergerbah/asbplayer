@@ -2,6 +2,8 @@ import Mp3Encoder from './Mp3Encoder';
 // eslint-disable-next-line
 // @ts-ignore
 import Worker from 'worker-loader!./mp3-encoder.js';
+import sanitize from 'sanitize-filename';
+import { download } from './Util';
 const AUDIO_TYPES: { [key: string]: string } = { 'audio/ogg;codecs=opus': 'ogg', 'audio/webm;codecs=opus': 'webm' };
 const [recorderMimeType, recorderExtension] = Object.keys(AUDIO_TYPES)
     .filter(MediaRecorder.isTypeSupported)
@@ -344,15 +346,7 @@ export default class AudioClip {
 
     async download() {
         const blob = await this.data.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        document.body.appendChild(a);
-        a.style.display = 'none';
-        a.href = url;
-        a.download = this.name;
-        a.click();
-        URL.revokeObjectURL(url);
-        a.remove();
+        download(blob, this.name);
     }
 
     toMp3(mp3WorkerFactory = defaultMp3WorkerFactory) {

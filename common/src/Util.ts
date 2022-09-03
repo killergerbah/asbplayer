@@ -1,3 +1,4 @@
+import sanitize from 'sanitize-filename';
 import { SubtitleModel } from './Model';
 
 export function humanReadableTime(timestamp: number, nearestTenth = false): string {
@@ -108,4 +109,16 @@ function atBoundary(
     }
 
     return false;
+}
+
+export function download(blob: Blob, name: string) {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    document.body.appendChild(a);
+    a.style.display = 'none';
+    a.href = url;
+    a.download = sanitize(name);
+    a.click();
+    URL.revokeObjectURL(url);
+    a.remove();
 }

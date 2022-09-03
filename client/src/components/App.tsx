@@ -21,6 +21,7 @@ import {
     AsbplayerSettings,
     PostMineAction,
     PlayMode,
+    download,
 } from '@project/common';
 import { v4 as uuidv4 } from 'uuid';
 import clsx from 'clsx';
@@ -701,6 +702,16 @@ function App() {
         [handleError, settingsProvider]
     );
 
+    const handleDownloadCopyHistorySectionAsSrt = useCallback(
+        (name: string, items: CopyHistoryItem[]) => {
+            download(
+                new Blob([subtitleReader.subtitlesToSrt(items)], { type: 'text/plain' }),
+                `${name}_MiningHistory_${new Date().toISOString()}.srt`
+            );
+        },
+        [subtitleReader]
+    );
+
     const handleSelectCopyHistoryItem = useCallback(
         (item: CopyHistoryItem) => {
             if (!subtitleFiles.find((f) => f.name === item.subtitleFile?.name)) {
@@ -873,7 +884,7 @@ function App() {
             }
 
             const fileSystemDirectoryEntry = fileSystemEntry as FileSystemDirectoryEntry;
-            
+
             try {
                 const entries = await new Promise<FileSystemEntry[]>((resolve, reject) =>
                     fileSystemDirectoryEntry.createReader().readEntries(resolve, reject)
@@ -1040,6 +1051,25 @@ function App() {
 
     const handleFileSelector = useCallback(() => fileInputRef.current?.click(), []);
 
+    const handleDownloadSubtitleFilesAsSrt = useCallback(async () => {
+        if (sources.subtitleFiles === undefined) {
+            return;
+        }
+
+        const nonSupSubtitleFiles = sources.subtitleFiles.filter(f => !f.name.endsWith('.sup'));
+
+        if (nonSupSubtitleFiles.length === 0) {
+            return;
+        }
+
+        download(
+            new Blob([await subtitleReader.filesToSrt(nonSupSubtitleFiles)], {
+                type: 'text/plain',
+            }),
+            `${fileName}.srt`
+        );
+    }, [fileName, sources.subtitleFiles, subtitleReader]);
+
     const handleDragOver = useCallback(
         (e: React.DragEvent<HTMLDivElement>) => {
             if (ankiDialogOpen) {
@@ -1127,6 +1157,7 @@ function App() {
                                     onDelete={handleDeleteCopyHistoryItem}
                                     onClipAudio={handleClipAudio}
                                     onDownloadImage={handleDownloadImage}
+                                    onDownloadSectionAsSrt={handleDownloadCopyHistorySectionAsSrt}
                                     onSelect={handleSelectCopyHistoryItem}
                                     onAnki={handleAnki}
                                 />
@@ -1160,7 +1191,9 @@ function App() {
                                     drawerWidth={drawerWidth}
                                     drawerOpen={copyHistoryOpen}
                                     hidden={appBarHidden}
+                                    subtitleFiles={sources.subtitleFiles}
                                     onOpenCopyHistory={handleOpenCopyHistory}
+                                    onDownloadSubtitleFilesAsSrt={handleDownloadSubtitleFilesAsSrt}
                                     onOpenSettings={handleOpenSettings}
                                     onFileSelector={handleFileSelector}
                                 />

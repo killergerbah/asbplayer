@@ -11,18 +11,28 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import Popover from '@material-ui/core/Popover';
+import { useCallback, useState } from 'react';
 
 interface BarProps {
     drawerWidth: number;
     drawerOpen: boolean;
     hidden: boolean;
     title: string;
+    subtitleFiles?: File[];
     onFileSelector: () => void;
+    onDownloadSubtitleFilesAsSrt: () => void;
     onOpenSettings: () => void;
     onOpenCopyHistory: () => void;
 }
 
-const useStyles = makeStyles<Theme, BarProps, string>((theme) => ({
+interface StyleProps {
+    drawerWidth: number;
+}
+
+const useStyles = makeStyles<Theme, StyleProps, string>((theme) => ({
     title: {
         flexGrow: 1,
     },
@@ -85,81 +95,154 @@ function CopyHistoryTooltip({ show, ...toolTipProps }: CopyHistoryTooltipProps) 
     return <Tooltip classes={classes} {...toolTipProps} />;
 }
 
-export default function Bar(props: BarProps) {
-    const classes = useStyles(props);
+export default function Bar({
+    drawerWidth,
+    drawerOpen,
+    hidden,
+    title,
+    subtitleFiles,
+    onOpenSettings,
+    onOpenCopyHistory,
+    onFileSelector,
+    onDownloadSubtitleFilesAsSrt,
+}: BarProps) {
+    const classes = useStyles({ drawerWidth });
+    const [menuOpen, setMenuOpen] = useState<boolean>(false);
+    const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement>();
+    const canSaveAsSrt =
+        subtitleFiles !== undefined && subtitleFiles.find((f) => !f.name.endsWith('.sup')) !== undefined;
+
+    const handleFileAction = useCallback(
+        (event: React.MouseEvent<HTMLButtonElement>) => {
+            if (canSaveAsSrt) {
+                setMenuAnchorEl(event.currentTarget);
+                setMenuOpen(true);
+            } else {
+                onFileSelector();
+            }
+        },
+        [onFileSelector, canSaveAsSrt]
+    );
+
+    const handleMenuClose = useCallback(() => {
+        setMenuOpen(false);
+    }, []);
+
+    const handleOpenFilesFromMenu = useCallback(() => {
+        setMenuOpen(false);
+        onFileSelector();
+    }, [onFileSelector]);
+
+    const handleDownloadSubtitleFilesAsSrt = useCallback(() => {
+        setMenuOpen(false);
+        onDownloadSubtitleFilesAsSrt();
+    }, [onDownloadSubtitleFilesAsSrt]);
+
     return (
-        <AppBar
-            position="static"
-            elevation={0}
-            className={clsx(classes.appBar, {
-                [classes.appBarShift]: props.drawerOpen,
-                [classes.hide]: props.hidden,
-            })}
-        >
-            <Toolbar>
-                <Tooltip title="Open Files">
-                    <IconButton edge="start" color="inherit" className={classes.leftButton} onClick={props.onFileSelector}>
-                        <FolderIcon />
-                    </IconButton>
-                </Tooltip>
-                <Typography variant="h6" className={classes.title}>
-                    {props.title}
-                </Typography>
-                <Tooltip title="Donate">
-                    <IconButton
-                        edge="end"
-                        color="inherit"
-                        component="a"
-                        href="https://github.com/killergerbah/asbplayer#supporters"
-                        target="_blank"
-                        rel="noreferrer"
+        <>
+            {canSaveAsSrt && (
+                <Popover
+                    open={menuOpen}
+                    anchorEl={menuAnchorEl}
+                    onClose={handleMenuClose}
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'center',
+                    }}
+                >
+                    <List>
+                        <ListItem button onClick={handleOpenFilesFromMenu}>
+                            Open Files
+                        </ListItem>
+                        <ListItem button onClick={handleDownloadSubtitleFilesAsSrt}>
+                            Download Subtitles as SRT
+                        </ListItem>
+                    </List>
+                </Popover>
+            )}
+            <AppBar
+                position="static"
+                elevation={0}
+                className={clsx(classes.appBar, {
+                    [classes.appBarShift]: drawerOpen,
+                    [classes.hide]: hidden,
+                })}
+            >
+                <Toolbar>
+                    <Tooltip
+                        disableFocusListener={canSaveAsSrt}
+                        disableHoverListener={canSaveAsSrt}
+                        disableTouchListener={canSaveAsSrt}
+                        title="Open Files"
                     >
-                        <FavoriteIcon />
-                    </IconButton>
-                </Tooltip>
-                <Tooltip title="Submit Issue">
-                    <IconButton
-                        edge="end"
-                        color="inherit"
-                        component="a"
-                        href="https://github.com/killergerbah/asbplayer/issues"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        <BugReportIcon />
-                    </IconButton>
-                </Tooltip>
-                <Tooltip title="Help">
-                    <IconButton
-                        edge="end"
-                        color="inherit"
-                        component="a"
-                        href="https://github.com/killergerbah/asbplayer#usage"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        <HelpIcon />
-                    </IconButton>
-                </Tooltip>
-                <Tooltip title="Settings">
-                    <IconButton edge="end" color="inherit" onClick={props.onOpenSettings}>
-                        <SettingsIcon />
-                    </IconButton>
-                </Tooltip>
-                <CopyHistoryTooltip title="Copy History" show={!props.drawerOpen}>
-                    <IconButton
-                        edge="end"
-                        color="inherit"
-                        aria-label="menu"
-                        className={clsx(classes.copyHistoryButton, {
-                            [classes.copyHistoryButtonShift]: props.drawerOpen,
-                        })}
-                        onClick={props.onOpenCopyHistory}
-                    >
-                        <ListIcon />
-                    </IconButton>
-                </CopyHistoryTooltip>
-            </Toolbar>
-        </AppBar>
+                        <IconButton
+                            edge="start"
+                            color="inherit"
+                            className={classes.leftButton}
+                            onClick={handleFileAction}
+                        >
+                            <FolderIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <Typography variant="h6" className={classes.title}>
+                        {title}
+                    </Typography>
+                    <Tooltip title="Donate">
+                        <IconButton
+                            edge="end"
+                            color="inherit"
+                            component="a"
+                            href="https://github.com/killergerbah/asbplayer#supporters"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            <FavoriteIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Submit Issue">
+                        <IconButton
+                            edge="end"
+                            color="inherit"
+                            component="a"
+                            href="https://github.com/killergerbah/asbplayer/issues"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            <BugReportIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Help">
+                        <IconButton
+                            edge="end"
+                            color="inherit"
+                            component="a"
+                            href="https://github.com/killergerbah/asbplayer#usage"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            <HelpIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Settings">
+                        <IconButton edge="end" color="inherit" onClick={onOpenSettings}>
+                            <SettingsIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <CopyHistoryTooltip title="Mining History" show={!drawerOpen}>
+                        <IconButton
+                            edge="end"
+                            color="inherit"
+                            aria-label="menu"
+                            className={clsx(classes.copyHistoryButton, {
+                                [classes.copyHistoryButtonShift]: drawerOpen,
+                            })}
+                            onClick={onOpenCopyHistory}
+                        >
+                            <ListIcon />
+                        </IconButton>
+                    </CopyHistoryTooltip>
+                </Toolbar>
+            </AppBar>
+        </>
     );
 }

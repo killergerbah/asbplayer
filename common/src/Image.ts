@@ -1,5 +1,7 @@
 import { resolveConfig } from 'prettier';
+import sanitize from 'sanitize-filename';
 import CanvasResizer from './CanvasResizer';
+import { download } from './Util';
 
 class Base64ImageData implements ImageData {
     private readonly _name: string;
@@ -202,14 +204,6 @@ export default class Image {
 
     async download() {
         const blob = await this.data.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        document.body.appendChild(a);
-        a.style.display = 'none';
-        a.href = url;
-        a.download = this.data.name;
-        a.click();
-        URL.revokeObjectURL(url);
-        a.remove();
+        download(blob, this.data.name);
     }
 }
