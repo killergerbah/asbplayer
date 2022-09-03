@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.js": "/asbplayer/static/js/main.f27b1c0a.chunk.js",
-    "main.js.map": "/asbplayer/static/js/main.f27b1c0a.chunk.js.map",
+    "main.js": "/asbplayer/static/js/main.fc6cbe34.chunk.js",
+    "main.js.map": "/asbplayer/static/js/main.fc6cbe34.chunk.js.map",
     "runtime-main.js": "/asbplayer/static/js/runtime-main.02178d59.js",
     "runtime-main.js.map": "/asbplayer/static/js/runtime-main.02178d59.js.map",
     "static/css/2.2cc94e60.chunk.css": "/asbplayer/static/css/2.2cc94e60.chunk.css",
-    "static/js/2.4e4cef69.chunk.js": "/asbplayer/static/js/2.4e4cef69.chunk.js",
-    "static/js/2.4e4cef69.chunk.js.map": "/asbplayer/static/js/2.4e4cef69.chunk.js.map",
+    "static/js/2.c03e7c8a.chunk.js": "/asbplayer/static/js/2.c03e7c8a.chunk.js",
+    "static/js/2.c03e7c8a.chunk.js.map": "/asbplayer/static/js/2.c03e7c8a.chunk.js.map",
     "static/js/3.463ebf6e.chunk.js": "/asbplayer/static/js/3.463ebf6e.chunk.js",
     "static/js/3.463ebf6e.chunk.js.map": "/asbplayer/static/js/3.463ebf6e.chunk.js.map",
     "index.html": "/asbplayer/index.html",
     "static/css/2.2cc94e60.chunk.css.map": "/asbplayer/static/css/2.2cc94e60.chunk.css.map",
-    "static/js/2.4e4cef69.chunk.js.LICENSE.txt": "/asbplayer/static/js/2.4e4cef69.chunk.js.LICENSE.txt",
+    "static/js/2.c03e7c8a.chunk.js.LICENSE.txt": "/asbplayer/static/js/2.c03e7c8a.chunk.js.LICENSE.txt",
     "static/js/mp3-encoder.d9a88fab.worker.js": "/asbplayer/static/js/mp3-encoder.d9a88fab.worker.js",
     "static/js/mp3-encoder.d9a88fab.worker.js.map": "/asbplayer/static/js/mp3-encoder.d9a88fab.worker.js.map",
     "static/media/background-colored.cbc50e45.png": "/asbplayer/static/media/background-colored.cbc50e45.png",
@@ -20,7 +20,7 @@
   "entrypoints": [
     "static/js/runtime-main.02178d59.js",
     "static/css/2.2cc94e60.chunk.css",
-    "static/js/2.4e4cef69.chunk.js",
-    "static/js/main.f27b1c0a.chunk.js"
+    "static/js/2.c03e7c8a.chunk.js",
+    "static/js/main.fc6cbe34.chunk.js"
   ]
 }
