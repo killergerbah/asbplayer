@@ -704,8 +704,20 @@ function App() {
 
     const handleDownloadCopyHistorySectionAsSrt = useCallback(
         (name: string, items: CopyHistoryItem[]) => {
+            const deduplicated: SubtitleModel[] = [];
+
+            for (const item of items) {
+                if (
+                    deduplicated.find(
+                        (i) => i.start === item.start && i.end === item.end && i.text === item.text
+                    ) === undefined
+                ) {
+                    deduplicated.push(item);
+                }
+            }
+
             download(
-                new Blob([subtitleReader.subtitlesToSrt(items)], { type: 'text/plain' }),
+                new Blob([subtitleReader.subtitlesToSrt(deduplicated)], { type: 'text/plain' }),
                 `${name}_MiningHistory_${new Date().toISOString()}.srt`
             );
         },
@@ -1056,7 +1068,7 @@ function App() {
             return;
         }
 
-        const nonSupSubtitleFiles = sources.subtitleFiles.filter(f => !f.name.endsWith('.sup'));
+        const nonSupSubtitleFiles = sources.subtitleFiles.filter((f) => !f.name.endsWith('.sup'));
 
         if (nonSupSubtitleFiles.length === 0) {
             return;
