@@ -16,6 +16,7 @@ import {
     PostMineAction,
     CardUpdatedMessage,
     RecordingFinishedMessage,
+    AudioClip,
 } from '@project/common';
 import updateLastCard from '../../functions/updateLastCard';
 
@@ -164,7 +165,7 @@ export default class RecordMediaHandler {
                         surroundingSubtitles: recordMediaCommand.message.surroundingSubtitles,
                         audio: audioModel,
                         image: imageModel,
-                        url: recordMediaCommand.message.url
+                        url: recordMediaCommand.message.url,
                     },
                     src: recordMediaCommand.src,
                 };

@@ -9,13 +9,19 @@ export default async function updateLastCard(
     url: string | undefined
 ) {
     const anki = new Anki(ankiSettings);
+    let audioClip =
+        audioModel === undefined
+            ? undefined
+            : AudioClip.fromBase64(sourceString, subtitle.start, subtitle.end, audioModel.base64, audioModel.extension);
+
+    if (audioClip !== undefined && ankiSettings.preferMp3) {
+        audioClip = audioClip.toMp3();
+    }
 
     return await anki.export(
         subtitle.text,
         undefined,
-        audioModel === undefined
-            ? undefined
-            : AudioClip.fromBase64(sourceString, subtitle.start, subtitle.end, audioModel.base64, audioModel.extension),
+        audioClip,
         imageModel === undefined
             ? undefined
             : Image.fromBase64(sourceString, subtitle.start, imageModel.base64, imageModel.extension),
