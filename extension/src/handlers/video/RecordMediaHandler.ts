@@ -69,7 +69,9 @@ export default class RecordMediaHandler {
                 imagePromise = this.imageCapturer.capture(
                     recordMediaCommand.message.rect!,
                     recordMediaCommand.message.maxImageWidth,
-                    recordMediaCommand.message.maxImageHeight
+                    recordMediaCommand.message.maxImageHeight,
+                    senderTab.id!,
+                    recordMediaCommand.src
                 );
             }
 

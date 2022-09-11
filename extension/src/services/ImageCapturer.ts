@@ -1,4 +1,4 @@
-import { CanvasResizer } from '@project/common';
+import { CanvasResizer, CropAndResizeMessage, ExtensionToVideoCommand } from '@project/common';
 import { RectModel } from '@project/common';
 import Settings from './Settings';
 
@@ -12,17 +12,24 @@ export default class ImageCapturer {
         this.canvasResizer = new CanvasResizer();
     }
 
-    capture(rect: RectModel, maxWidth: number, maxHeight: number): Promise<string> {
+    capture(rect: RectModel, maxWidth: number, maxHeight: number, tabId: number, src: string): Promise<string> {
         return new Promise(async (resolve, reject) => {
             chrome.tabs.captureVisibleTab({ format: 'jpeg' }, async (dataUrl) => {
-                const croppedDataUrl = await this._cropAndResize(dataUrl, rect, maxWidth, maxHeight);
+                const croppedDataUrl = await this._cropAndResize(dataUrl, rect, maxWidth, maxHeight, tabId, src);
                 this.lastImageBase64 = croppedDataUrl.substring(croppedDataUrl.indexOf(',') + 1);
                 resolve(this.lastImageBase64);
             });
         });
     }
 
-    _cropAndResize(dataUrl: string, rect: RectModel, maxWidth: number, maxHeight: number): Promise<string> {
+    _cropAndResize(
+        dataUrl: string,
+        rect: RectModel,
+        maxWidth: number,
+        maxHeight: number,
+        tabId: number,
+        src: string
+    ): Promise<string> {
         return new Promise(async (resolve, reject) => {
             const cropScreenshot = (await this.settings.get(['cropScreenshot'])).cropScreenshot;
 
@@ -31,30 +38,14 @@ export default class ImageCapturer {
                 return;
             }
 
-            const image = new Image();
-            image.onload = async () => {
-                const canvas = document.createElement('canvas');
-                const r = window.devicePixelRatio;
-                const width = rect.width * r;
-                const height = rect.height * r;
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d')!;
-                ctx.drawImage(image, rect.left * r, rect.top * r, width, height, 0, 0, width, height);
-
-                if (maxWidth > 0 || maxHeight > 0) {
-                    try {
-                        await this.canvasResizer.resize(canvas, ctx, maxWidth, maxHeight);
-                        resolve(canvas.toDataURL('image/jpeg'));
-                    } catch (e) {
-                        reject(e);
-                    }
-                } else {
-                    resolve(canvas.toDataURL('image/jpeg'));
-                }
+            const cropAndResizeCommand: ExtensionToVideoCommand<CropAndResizeMessage> = {
+                sender: 'asbplayer-extension-to-video',
+                message: { command: 'crop-and-resize', dataUrl, rect, maxWidth, maxHeight },
+                src: src,
             };
 
-            image.src = dataUrl;
+            const response = await chrome.tabs.sendMessage(tabId, cropAndResizeCommand);
+            resolve(response.dataUrl);
         });
     }
 }

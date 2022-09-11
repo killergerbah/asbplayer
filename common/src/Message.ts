@@ -325,3 +325,11 @@ export interface VideoDataUiBridgeConfirmMessage extends Message {
     readonly command: 'confirm';
     readonly data: ConfirmedVideoDataSubtitleTrack;
 }
+
+export interface CropAndResizeMessage extends Message {
+    readonly command: 'crop-and-resize'
+    readonly dataUrl: string;
+    readonly rect: RectModel;
+    readonly maxWidth: number;
+    readonly maxHeight: number;
+}

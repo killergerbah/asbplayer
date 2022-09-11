@@ -2,8 +2,10 @@ import {
     AnkiSettingsToVideoMessage,
     AnkiUiSavedState,
     AutoPausePreference,
+    CanvasResizer,
     CardUpdatedMessage,
     CopySubtitleMessage,
+    CropAndResizeMessage,
     CurrentTimeFromVideoMessage,
     CurrentTimeToVideoMessage,
     humanReadableTime,
@@ -15,6 +17,7 @@ import {
     ReadyFromVideoMessage,
     ReadyStateFromVideoMessage,
     RecordMediaAndForwardSubtitleMessage,
+    RectModel,
     RerecordMediaMessage,
     ScreenshotTakenMessage,
     ShowAnkiUiAfterRerecordMessage,
@@ -344,7 +347,7 @@ export default class Binding {
                         break;
                     case 'ankiSettings':
                         const ankiSettingsMessage = request.message as AnkiSettingsToVideoMessage;
-                        const ankiSettings = {...ankiSettingsMessage.value};
+                        const ankiSettings = { ...ankiSettingsMessage.value };
                         ankiSettings.tags = typeof ankiSettings.tags === 'undefined' ? [] : ankiSettings.tags;
                         this.ankiUiContainer.ankiSettings = ankiSettings;
                         this.audioPaddingStart =
@@ -376,7 +379,8 @@ export default class Binding {
                         const miscSettingsMessage = request.message as MiscSettingsToVideoMessage;
                         this.settings.set({ lastThemeType: miscSettingsMessage.value.themeType });
                         this.copyToClipboardOnMine = miscSettingsMessage.value.copyToClipboardOnMine;
-                        this.autoPausePreference = miscSettingsMessage.value.autoPausePreference ?? this.autoPausePreference;
+                        this.autoPausePreference =
+                            miscSettingsMessage.value.autoPausePreference ?? this.autoPausePreference;
                         break;
                     case 'settings-updated':
                         this._refreshSettings();
@@ -411,10 +415,19 @@ export default class Binding {
                             url: cardUpdatedMessage.url ?? '',
                             customFieldValues: {},
                             timestampInterval: [cardUpdatedMessage.subtitle.start, cardUpdatedMessage.subtitle.end],
-                            initialTimestampInterval: [cardUpdatedMessage.subtitle.start, cardUpdatedMessage.subtitle.end],
-                            lastAppliedTimestampIntervalToText: [cardUpdatedMessage.subtitle.start, cardUpdatedMessage.subtitle.end],
-                            lastAppliedTimestampIntervalToAudio: [cardUpdatedMessage.subtitle.start, cardUpdatedMessage.subtitle.end],
-                            dialogRequestedTimestamp: this.video.currentTime * 1000
+                            initialTimestampInterval: [
+                                cardUpdatedMessage.subtitle.start,
+                                cardUpdatedMessage.subtitle.end,
+                            ],
+                            lastAppliedTimestampIntervalToText: [
+                                cardUpdatedMessage.subtitle.start,
+                                cardUpdatedMessage.subtitle.end,
+                            ],
+                            lastAppliedTimestampIntervalToAudio: [
+                                cardUpdatedMessage.subtitle.start,
+                                cardUpdatedMessage.subtitle.end,
+                            ],
+                            dialogRequestedTimestamp: this.video.currentTime * 1000,
                         };
                         break;
                     case 'recording-finished':
@@ -432,7 +445,7 @@ export default class Binding {
                         );
                         break;
                     case 'show-anki-ui-after-rerecord':
-                        const showAnkiUiAfterRerecordMessage = request.message as ShowAnkiUiAfterRerecordMessage
+                        const showAnkiUiAfterRerecordMessage = request.message as ShowAnkiUiAfterRerecordMessage;
                         this.ankiUiContainer.showAfterRerecord(this, showAnkiUiAfterRerecordMessage.uiState);
                         break;
                     case 'take-screenshot':
@@ -456,6 +469,16 @@ export default class Binding {
                             this.controlsContainer.show();
                         }
                         break;
+                    case 'crop-and-resize':
+                        const cropAndResizeMessage = request.message as CropAndResizeMessage;
+                        this._cropAndResize(
+                            cropAndResizeMessage.dataUrl,
+                            cropAndResizeMessage.rect,
+                            cropAndResizeMessage.maxWidth,
+                            cropAndResizeMessage.maxHeight,
+                            sendResponse
+                        );
+                        return true;
                 }
             }
         };
@@ -783,5 +806,38 @@ export default class Binding {
 
     showVideoSelect() {
         this.videoDataSyncContainer.show();
+    }
+
+    private async _cropAndResize(
+        dataUrl: string,
+        rect: RectModel,
+        maxWidth: number,
+        maxHeight: number,
+        sendResponse: (response?: any) => void
+    ) {
+        const image = new Image();
+        image.onload = async () => {
+            const canvas = document.createElement('canvas');
+            const r = window.devicePixelRatio;
+            const width = rect.width * r;
+            const height = rect.height * r;
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d')!;
+            ctx.drawImage(image, rect.left * r, rect.top * r, width, height, 0, 0, width, height);
+
+            if (maxWidth > 0 || maxHeight > 0) {
+                try {
+                    await new CanvasResizer().resize(canvas, ctx, maxWidth, maxHeight);
+                    sendResponse({ dataUrl: canvas.toDataURL('image/jpeg') });
+                } catch (e) {
+                    console.error('Failed to crop and resize image: ' + e);
+                }
+            } else {
+                sendResponse({ dataUrl: canvas.toDataURL('image/jpeg') });
+            }
+        };
+
+        image.src = dataUrl;
     }
 }

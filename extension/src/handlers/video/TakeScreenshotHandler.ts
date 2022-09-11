@@ -44,7 +44,9 @@ export default class TakeScreenshotHandler {
         await this.imageCapturer.capture(
             takeScreenshotCommand.message.rect,
             takeScreenshotCommand.message.maxImageWidth,
-            takeScreenshotCommand.message.maxImageHeight
+            takeScreenshotCommand.message.maxImageHeight,
+            sender.tab!.id!,
+            takeScreenshotCommand.src
         );
 
         let ankiUiState: AnkiUiSavedState | undefined;
