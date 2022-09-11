@@ -119,10 +119,10 @@ export interface TakeScreenshotFromExtensionMessage extends Message {
 export interface CardUpdatedMessage extends Message {
     readonly command: 'card-updated';
     readonly cardName: string;
-    readonly subtitle: SubtitleModel,
-    readonly surroundingSubtitles: SubtitleModel[],
-    readonly image?: ImageModel,
-    readonly audio?: AudioModel,
+    readonly subtitle: SubtitleModel;
+    readonly surroundingSubtitles: SubtitleModel[];
+    readonly image?: ImageModel;
+    readonly audio?: AudioModel;
     readonly url?: string;
 }
 
@@ -327,9 +327,33 @@ export interface VideoDataUiBridgeConfirmMessage extends Message {
 }
 
 export interface CropAndResizeMessage extends Message {
-    readonly command: 'crop-and-resize'
+    readonly command: 'crop-and-resize';
     readonly dataUrl: string;
     readonly rect: RectModel;
     readonly maxWidth: number;
     readonly maxHeight: number;
+}
+
+export interface StartRecordingAudioWithTimeoutMessage extends Message {
+    readonly command: 'start-recording-audio-with-timeout';
+    readonly timeout: number;
+    readonly preferMp3: boolean;
+}
+
+export interface StartRecordingAudio extends Message {
+    readonly command: 'start-recording-audio';
+}
+
+export interface StopRecordingAudioMessage extends Message {
+    readonly command: 'stop-recording-audio';
+    readonly preferMp3: boolean;
+}
+
+export interface OptionsPageReadyMessage extends Message {
+    readonly command: 'options-page-ready';
+}
+
+export interface AudioBase64Message extends Message {
+    readonly command: 'audio-base64';
+    readonly base64: string;
 }

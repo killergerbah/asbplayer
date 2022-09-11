@@ -17,12 +17,13 @@ import {
     VideoToExtensionCommand,
 } from '@project/common';
 import updateLastCard from '../../functions/updateLastCard';
+import OptionsPageAudioRecorder from '../../services/OptionsPageAudioRecorder';
 
 export default class StartRecordingMediaHandler {
-    private readonly audioRecorder: AudioRecorder;
+    private readonly audioRecorder: OptionsPageAudioRecorder;
     private readonly imageCapturer: ImageCapturer;
 
-    constructor(audioRecorder: AudioRecorder, imageCapturer: ImageCapturer) {
+    constructor(audioRecorder: OptionsPageAudioRecorder, imageCapturer: ImageCapturer) {
         this.audioRecorder = audioRecorder;
         this.imageCapturer = imageCapturer;
     }

@@ -1,4 +1,4 @@
-import AudioRecorder from '../../services/AudioRecorder';
+import OptionsPageAudioRecorder from '../../services/OptionsPageAudioRecorder';
 import ImageCapturer from '../../services/ImageCapturer';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -22,11 +22,11 @@ import updateLastCard from '../../functions/updateLastCard';
 import TabRegistry from '../../services/TabRegistry';
 
 export default class StopRecordingMediaHandler {
-    private readonly audioRecorder: AudioRecorder;
+    private readonly audioRecorder: OptionsPageAudioRecorder;
     private readonly imageCapturer: ImageCapturer;
     private readonly tabRegistry: TabRegistry;
 
-    constructor(audioRecorder: AudioRecorder, imageCapturer: ImageCapturer, tabRegistry: TabRegistry) {
+    constructor(audioRecorder: OptionsPageAudioRecorder, imageCapturer: ImageCapturer, tabRegistry: TabRegistry) {
         this.audioRecorder = audioRecorder;
         this.imageCapturer = imageCapturer;
         this.tabRegistry = tabRegistry;
@@ -75,10 +75,11 @@ export default class StopRecordingMediaHandler {
                 };
             }
 
-            const audioBase64 = await this.audioRecorder.stop();
+            const mp3 = stopRecordingCommand.message.ankiSettings?.preferMp3 ?? false;
+            const audioBase64 = await this.audioRecorder.stop(mp3);
             const audioModel: AudioModel = {
                 base64: audioBase64,
-                extension: 'webm',
+                extension: mp3 ? 'mp3' : 'webm',
                 paddingStart: 0,
                 paddingEnd: 0,
                 start: stopRecordingCommand.message.startTimestamp,

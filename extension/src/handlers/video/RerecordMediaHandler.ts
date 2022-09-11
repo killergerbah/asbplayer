@@ -13,12 +13,13 @@ import {
     VideoToExtensionCommand,
 } from '@project/common';
 import TabRegistry from '../../services/TabRegistry';
+import OptionsPageAudioRecorder from '../../services/OptionsPageAudioRecorder';
 
 export default class RerecordMediaHandler {
-    private readonly audioRecorder: AudioRecorder;
+    private readonly audioRecorder: OptionsPageAudioRecorder;
     private readonly tabRegistry: TabRegistry;
 
-    constructor(audioRecorder: AudioRecorder, tabRegistry: TabRegistry) {
+    constructor(audioRecorder: OptionsPageAudioRecorder, tabRegistry: TabRegistry) {
         this.audioRecorder = audioRecorder;
         this.tabRegistry = tabRegistry;
     }
@@ -45,7 +46,8 @@ export default class RerecordMediaHandler {
             const audio: AudioModel = {
                 base64: await this.audioRecorder.startWithTimeout(
                     rerecordCommand.message.duration / rerecordCommand.message.playbackRate +
-                        rerecordCommand.message.audioPaddingEnd
+                        rerecordCommand.message.audioPaddingEnd,
+                    false
                 ),
                 extension: 'webm',
                 paddingStart: rerecordCommand.message.audioPaddingStart,

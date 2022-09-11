@@ -32,3 +32,11 @@ export interface ExtensionToAsbPlayerCommand<T extends Message> extends Command<
     readonly tabId: number;
     readonly src: string;
 }
+
+export interface ExtensionToOptionsPageCommand<T extends Message> extends Command<T> {
+    readonly sender: 'asbplayer-extension-to-options-page';
+}
+
+export interface OptionsPageToExtensionCommand<T extends Message> extends Command<T> {
+    readonly sender: 'asbplayer-options-page'
+}

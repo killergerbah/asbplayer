@@ -1,6 +1,5 @@
 import TabRegistry from './services/TabRegistry';
 import Settings from './services/Settings';
-import AudioRecorder from './services/AudioRecorder';
 import ImageCapturer from './services/ImageCapturer';
 import VideoHeartbeatHandler from './handlers/video/VideoHeartbeatHandler';
 import RecordMediaHandler from './handlers/video/RecordMediaHandler';
@@ -25,18 +24,21 @@ import {
     TakeScreenshotMessage,
 } from '@project/common';
 import TakeScreenshotHandler from './handlers/video/TakeScreenshotHandler';
+import OptionsPageAudioRecorder from './services/OptionsPageAudioRecorder';
+import OptionsPageReadyHandler from './handlers/options/OptionsPageReadyHandler';
+import AudioBase64Handler from './handlers/options/AudioBase64Handler';
 
 const settings = new Settings();
 const tabRegistry = new TabRegistry(settings);
-const audioRecorder = new AudioRecorder();
+const optionsPageAudioRecorder = new OptionsPageAudioRecorder();
 const imageCapturer = new ImageCapturer(settings);
 
 const handlers: CommandHandler[] = [
     new VideoHeartbeatHandler(tabRegistry),
-    new RecordMediaHandler(audioRecorder, imageCapturer, tabRegistry),
-    new RerecordMediaHandler(audioRecorder, tabRegistry),
-    new StartRecordingMediaHandler(audioRecorder, imageCapturer),
-    new StopRecordingMediaHandler(audioRecorder, imageCapturer, tabRegistry),
+    new RecordMediaHandler(optionsPageAudioRecorder, imageCapturer, tabRegistry),
+    new RerecordMediaHandler(optionsPageAudioRecorder, tabRegistry),
+    new StartRecordingMediaHandler(optionsPageAudioRecorder, imageCapturer),
+    new StopRecordingMediaHandler(optionsPageAudioRecorder, imageCapturer, tabRegistry),
     new TakeScreenshotHandler(imageCapturer, tabRegistry),
     new ToggleSubtitlesHandler(settings, tabRegistry),
     new SyncHandler(tabRegistry),
@@ -46,6 +48,8 @@ const handlers: CommandHandler[] = [
     new AsbplayerHeartbeatHandler(tabRegistry),
     new AsbplayerV2ToVideoCommandForwardingHandler(),
     new RefreshSettingsHandler(tabRegistry),
+    new OptionsPageReadyHandler(optionsPageAudioRecorder),
+    new AudioBase64Handler(optionsPageAudioRecorder),
 ];
 
 chrome.runtime.onMessage.addListener((request: Command<Message>, sender, sendResponse) => {
@@ -73,7 +77,7 @@ chrome.commands.onCommand.addListener((command) => {
             case 'update-last-card':
             case 'copy-subtitle-with-dialog':
                 tabRegistry.publishCommandToVideoElements((videoElement) => {
-                    if (tabs.find(t => t.id === videoElement.tab.id) === undefined) {
+                    if (tabs.find((t) => t.id === videoElement.tab.id) === undefined) {
                         return undefined;
                     }
 
@@ -102,7 +106,7 @@ chrome.commands.onCommand.addListener((command) => {
                 break;
             case 'take-screenshot':
                 tabRegistry.publishCommandToVideoElements((videoElement) => {
-                    if (tabs.find(t => t.id === videoElement.tab.id) === undefined) {
+                    if (tabs.find((t) => t.id === videoElement.tab.id) === undefined) {
                         return undefined;
                     }
 

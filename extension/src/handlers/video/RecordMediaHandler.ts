@@ -1,4 +1,3 @@
-import AudioRecorder from '../../services/AudioRecorder';
 import ImageCapturer from '../../services/ImageCapturer';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -19,13 +18,14 @@ import {
 } from '@project/common';
 import updateLastCard from '../../functions/updateLastCard';
 import TabRegistry from '../../services/TabRegistry';
+import OptionsPageAudioRecorder from '../../services/OptionsPageAudioRecorder';
 
 export default class RecordMediaHandler {
-    private readonly audioRecorder: AudioRecorder;
+    private readonly audioRecorder: OptionsPageAudioRecorder;
     private readonly imageCapturer: ImageCapturer;
     private readonly tabRegistry: TabRegistry;
 
-    constructor(audioRecorder: AudioRecorder, imageCapturer: ImageCapturer, tabRegistry: TabRegistry) {
+    constructor(audioRecorder: OptionsPageAudioRecorder, imageCapturer: ImageCapturer, tabRegistry: TabRegistry) {
         this.audioRecorder = audioRecorder;
         this.imageCapturer = imageCapturer;
         this.tabRegistry = tabRegistry;
@@ -57,12 +57,13 @@ export default class RecordMediaHandler {
             let imagePromise = undefined;
             let imageModel: ImageModel | undefined = undefined;
             let audioModel: AudioModel | undefined = undefined;
+            const mp3 = recordMediaCommand.message.ankiSettings?.preferMp3 ?? false;
 
             if (recordMediaCommand.message.record) {
                 const time =
                     (subtitle.end - subtitle.start) / recordMediaCommand.message.playbackRate +
                     recordMediaCommand.message.audioPaddingEnd;
-                audioPromise = this.audioRecorder.startWithTimeout(time);
+                audioPromise = this.audioRecorder.startWithTimeout(time, mp3);
             }
 
             if (recordMediaCommand.message.screenshot) {
@@ -91,7 +92,7 @@ export default class RecordMediaHandler {
                 const audioBase64 = await audioPromise;
                 audioModel = {
                     base64: audioBase64,
-                    extension: 'webm',
+                    extension: mp3 ? 'mp3' : 'webm',
                     paddingStart: recordMediaCommand.message.audioPaddingStart,
                     paddingEnd: recordMediaCommand.message.audioPaddingEnd,
                 };

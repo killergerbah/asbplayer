@@ -1,4 +1,4 @@
-import { AnkiSettings, AudioModel, ImageModel, SubtitleModel } from '@project/common';
+import { Anki, AnkiSettings, AudioClip, AudioModel, Image, ImageModel, SubtitleModel } from '@project/common';
 
 export default async function updateLastCard(
     ankiSettings: AnkiSettings,
@@ -8,29 +8,24 @@ export default async function updateLastCard(
     sourceString: string,
     url: string | undefined
 ) {
-    return 'not implemented';
-    // const anki = new Anki(ankiSettings);
-    // let audioClip =
-    //     audioModel === undefined
-    //         ? undefined
-    //         : AudioClip.fromBase64(sourceString, subtitle.start, subtitle.end, audioModel.base64, audioModel.extension);
+    const anki = new Anki(ankiSettings);
+    let audioClip =
+        audioModel === undefined
+            ? undefined
+            : AudioClip.fromBase64(sourceString, subtitle.start, subtitle.end, audioModel.base64, audioModel.extension);
 
-    // if (audioClip !== undefined && ankiSettings.preferMp3) {
-    //     audioClip = audioClip.toMp3();
-    // }
-
-    // return await anki.export(
-    //     subtitle.text,
-    //     undefined,
-    //     audioClip,
-    //     imageModel === undefined
-    //         ? undefined
-    //         : Image.fromBase64(sourceString, subtitle.start, imageModel.base64, imageModel.extension),
-    //     undefined,
-    //     sourceString,
-    //     url,
-    //     {},
-    //     ankiSettings.tags,
-    //     'updateLast'
-    // );
+    return await anki.export(
+        subtitle.text,
+        undefined,
+        audioClip,
+        imageModel === undefined
+            ? undefined
+            : Image.fromBase64(sourceString, subtitle.start, imageModel.base64, imageModel.extension),
+        undefined,
+        sourceString,
+        url,
+        {},
+        ankiSettings.tags,
+        'updateLast'
+    );
 }
