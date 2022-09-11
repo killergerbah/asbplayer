@@ -23,20 +23,15 @@ export default class ToggleSubtitlesHandler {
         const displaySubtitles = (await this.settings.get(['displaySubtitles'])).displaySubtitles as boolean;
         await this.settings.set({ displaySubtitles: !displaySubtitles });
 
-        for (const id in this.tabRegistry.videoElements) {
+        this.tabRegistry.publishCommandToVideoElements((videoElement) => {
             const settingsUpdatedCommand: ExtensionToVideoCommand<SettingsUpdatedMessage> = {
                 sender: 'asbplayer-extension-to-video',
                 message: {
                     command: 'settings-updated',
                 },
-                src: this.tabRegistry.videoElements[id].src,
+                src: videoElement.src
             };
-
-            const tabId = this.tabRegistry.videoElements[id].tab.id;
-
-            if (typeof tabId !== 'undefined') {
-                chrome.tabs.sendMessage(tabId, settingsUpdatedCommand);
-            }
-        }
+            return settingsUpdatedCommand;
+        });
     }
 }

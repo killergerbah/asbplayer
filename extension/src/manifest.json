@@ -2,20 +2,19 @@
     "name": "asbplayer",
     "description": "Sync asbplayer with streaming video",
     "version": "0.19.0",
-    "manifest_version": 2,
+    "manifest_version": 3,
     "icons": {
         "16": "assets/icon16.png",
         "48": "assets/icon48.png",
         "128": "assets/icon128.png"
     },
     "permissions": ["tabs", "tabCapture", "activeTab", "storage"],
-    "browser_action": {
+    "action": {
         "default_title": "asbplayer",
         "default_popup": "popup-ui.html"
     },
     "background": {
-        "persistent": false,
-        "scripts": ["background.js"]
+        "service_worker": "background.js"
     },
     "content_scripts": [
         {
@@ -23,7 +22,8 @@
             "exclude_globs": ["*://killergerbah.github.io/asbplayer*", "*://localhost:*/*"],
             "js": ["video.js"],
             "css": ["video.css"],
-            "all_frames": true
+            "all_frames": true,
+            "run_at": "document_idle"
         },
         {
             "matches": ["*://killergerbah.github.io/asbplayer*", "*://localhost:*/*"],
@@ -65,11 +65,17 @@
         }
     },
     "web_accessible_resources": [
-        "assets/image.png",
-        "pages/netflix-page.js",
-        "pages/youtube-page.js",
-        "anki-ui.js",
-        "mp3-encoder.worker.js",
-        "video-data-sync-ui.js"
+        {
+            "resources": [
+                "assets/image.png",
+                "pages/netflix-page.js",
+                "pages/youtube-page.js",
+                "anki-ui.js",
+                "mp3-encoder.worker.js",
+                "video-data-sync-ui.js"
+            ],
+            "matches": ["<all_urls>"]
+        }
+
     ]
 }

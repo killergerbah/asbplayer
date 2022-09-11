@@ -2238,7 +2238,7 @@ __metadata:
     "@material-ui/icons": ^4.11.2
     "@material-ui/lab": ^4.0.0-alpha.57
     "@project/common": 0.1.0
-    "@types/chrome": ^0.0.176
+    "@types/chrome": ^0.0.196
     "@types/dom-mediacapture-record": ^1.0.11
     "@types/react": ^18.0.0
     "@types/react-dom": ^18.0.0
@@ -2606,13 +2606,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chrome@npm:^0.0.176":
-  version: 0.0.176
-  resolution: "@types/chrome@npm:0.0.176"
+"@types/chrome@npm:^0.0.196":
+  version: 0.0.196
+  resolution: "@types/chrome@npm:0.0.196"
   dependencies:
     "@types/filesystem": "*"
     "@types/har-format": "*"
-  checksum: a3bc96e623f7745a8a8c6436817f6a745ea0d32fa202da2b0c7932d18609f00561d5e946c57f184054836086292fe71d38991136c6a51dd40d7757e780c36493
+  checksum: 34a4523882174d11bfc46c3c83be5fbd1958d1811f6e63ce383e6f0587496a7ddb438ab0d333b554c2a44361a541ed693cad32c3ca608cafde23f3d1d44569a0
   languageName: node
   linkType: hard
 

@@ -20,12 +20,7 @@ export default class AsbplayerHeartbeatHandler {
         const message = command.message as AsbplayerHeartbeatMessage;
 
         if (typeof sender.tab?.id !== 'undefined') {
-            this.tabRegistry.asbplayers[sender.tab.id] = {
-                tab: sender.tab,
-                id: message.id,
-                timestamp: Date.now(),
-                receivedTabs: message.receivedTabs,
-            };
+            this.tabRegistry.onAsbplayerHeartbeat(sender.tab, message.id, message.receivedTabs);
         }
 
         return false;

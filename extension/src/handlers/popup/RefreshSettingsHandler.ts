@@ -17,21 +17,16 @@ export default class RefreshSettingsHandler {
     }
 
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
-        for (const id in this.tabRegistry.videoElements) {
+        this.tabRegistry.publishCommandToVideoElements((videoElement) => {
             const settingsUpdatedCommand: ExtensionToVideoCommand<SettingsUpdatedMessage> = {
                 sender: 'asbplayer-extension-to-video',
                 message: {
                     command: 'settings-updated',
                 },
-                src: this.tabRegistry.videoElements[id].src,
+                src: videoElement.src,
             };
-
-            const tabId = this.tabRegistry.videoElements[id].tab.id;
-
-            if (typeof tabId !== 'undefined') {
-                chrome.tabs.sendMessage(tabId, settingsUpdatedCommand);
-            }
-        }
+            return settingsUpdatedCommand;
+        });
 
         return false;
     }

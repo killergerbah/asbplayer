@@ -1,84 +1,203 @@
-import { ActiveVideoElement, VideoTabModel } from '@project/common';
+import {
+    ActiveVideoElement,
+    ExtensionToAsbPlayerCommand,
+    ExtensionToVideoCommand,
+    Message,
+    VideoTabModel,
+} from '@project/common';
 import Settings from './Settings';
+
+interface SlimTab {
+    id: number;
+    title: string;
+    url: string;
+}
 
 interface Asbplayer {
     id: string;
-    tab: chrome.tabs.Tab;
+    tab: SlimTab;
     timestamp: number;
     receivedTabs?: ActiveVideoElement[];
 }
 
 interface VideoElement {
-    tab: chrome.tabs.Tab;
+    tab: SlimTab;
     timestamp: number;
     src: string;
 }
 
 export default class TabRegistry {
-    public readonly asbplayers: { [key: number]: Asbplayer };
-    public readonly videoElements: { [key: string]: VideoElement };
     private readonly settings: Settings;
 
     constructor(settings: Settings) {
-        this.asbplayers = {};
-        this.videoElements = {};
         this.settings = settings;
-        setInterval(() => this.publish(), 1000);
     }
 
-    async publish() {
-        return new Promise<void>((resolve, reject) => {
-            const expired = Date.now() - 5000;
+    private async _fetchVideoElementState(): Promise<{ [key: string]: VideoElement }> {
+        return (
+            ((await chrome.storage.session.get('tabRegistryVideoElements')).tabRegistryVideoElements as {
+                [key: string]: VideoElement;
+            }) ?? {}
+        );
+    }
 
-            for (const tabId in this.asbplayers) {
-                const asbplayer = this.asbplayers[tabId];
+    private _saveVideoElementState(state: { [key: string]: VideoElement }) {
+        chrome.storage.session.set({ tabRegistryVideoElements: state });
+    }
 
-                if (asbplayer.timestamp < expired) {
-                    delete this.asbplayers[tabId];
-                }
+    private async _videoElements(mutator?: (videoElements: { [key: string]: VideoElement }) => void) {
+        const tabs = await chrome.tabs.query({});
+        const videoElements = await this._fetchVideoElementState();
+
+        for (const id in videoElements) {
+            const videoElement = videoElements[id];
+            const disappeared =
+                tabs.find((t) => t.id === videoElement.tab.id && t.url === videoElement.tab.url) === undefined;
+
+            if (disappeared) {
+                delete videoElements[id];
             }
+        }
 
-            const activeVideoElements: ActiveVideoElement[] = [];
+        mutator?.(videoElements);
+        this._saveVideoElementState(videoElements);
+        return videoElements;
+    }
 
-            for (const id in this.videoElements) {
-                const videoElement = this.videoElements[id];
+    private async _fetchAsbplayerState(): Promise<{ [key: string]: Asbplayer }> {
+        return (
+            ((await chrome.storage.session.get('tabRegistryAsbplayers')).tabRegistryAsbplayers as {
+                [key: string]: Asbplayer;
+            }) ?? {}
+        );
+    }
 
-                if (videoElement.timestamp < expired) {
-                    delete this.videoElements[id];
-                } else if (videoElement.tab.id) {
-                    const element: VideoTabModel = {
-                        id: videoElement.tab.id,
-                        title: videoElement.tab.title,
-                        src: videoElement.src,
-                    };
-                    activeVideoElements.push(element);
-                }
+    private async _saveAsbplayerState(state: { [key: string]: Asbplayer }) {
+        chrome.storage.session.set({ tabRegistryAsbplayers: state });
+    }
+
+    private async _asbplayers(mutator?: (asbplayers: { [key: string]: Asbplayer }) => void) {
+        const tabs = await chrome.tabs.query({});
+        const asbplayers = await this._fetchAsbplayerState();
+
+        for (const tabId in asbplayers) {
+            const asbplayer = asbplayers[tabId];
+            const disappeared =
+                tabs.find((t) => t.id === asbplayer.tab.id && t.url === asbplayer.tab.url) === undefined;
+
+            if (disappeared) {
+                delete asbplayers[tabId];
             }
+        }
 
-            chrome.tabs.query({}, (allTabs) => {
-                if (!allTabs) {
-                    // Chrome doesn't allow tabs to be queried when the user is dragging tabs
-                    resolve();
-                    return;
-                }
+        mutator?.(asbplayers);
+        this._saveAsbplayerState(asbplayers);
+        return asbplayers;
+    }
 
-                for (let t of allTabs) {
-                    if (!t.id) {
-                        continue;
-                    }
+    async onAsbplayerHeartbeat(tab: chrome.tabs.Tab, asbplayerId: string, receivedTabs?: ActiveVideoElement[]) {
+        if (tab.id === undefined) {
+            return;
+        }
 
-                    chrome.tabs.sendMessage(t.id, {
-                        sender: 'asbplayer-extension-to-player',
-                        message: {
-                            command: 'tabs',
-                            tabs: activeVideoElements,
-                        },
-                    });
-                }
+        const tabId = tab.id;
 
-                resolve();
-            });
+        await this._asbplayers((asbplayers) => {
+            asbplayers[tabId] = {
+                tab: {
+                    id: tabId,
+                    title: tab.title ?? '',
+                    url: tab.url ?? '',
+                },
+                id: asbplayerId,
+                timestamp: Date.now(),
+                receivedTabs: receivedTabs,
+            };
         });
+
+        try {
+            await chrome.tabs.sendMessage(tabId, {
+                sender: 'asbplayer-extension-to-player',
+                message: {
+                    command: 'tabs',
+                    tabs: await this._activeVideoElements(),
+                },
+            });
+        } catch (e) {
+            // Swallow
+        }
+    }
+
+    private async _activeVideoElements() {
+        const videoElements = await this._videoElements();
+        const activeVideoElements: ActiveVideoElement[] = [];
+
+        for (const id in videoElements) {
+            const videoElement = videoElements[id];
+
+            if (videoElement.tab.id) {
+                const element: VideoTabModel = {
+                    id: videoElement.tab.id,
+                    title: videoElement.tab.title,
+                    src: videoElement.src,
+                };
+                activeVideoElements.push(element);
+            }
+        }
+
+        return activeVideoElements;
+    }
+
+    async onVideoElementHeartbeat(tab: chrome.tabs.Tab, src: string) {
+        if (tab.id === undefined) {
+            return;
+        }
+
+        const tabId = tab.id;
+
+        this._videoElements(
+            (videoElements) =>
+                (videoElements[tab.id + ':' + src] = {
+                    tab: {
+                        id: tabId,
+                        title: tab.title ?? '',
+                        url: tab.url ?? '',
+                    },
+                    src: src,
+                    timestamp: Date.now(),
+                })
+        );
+    }
+
+    async publishCommandToAsbplayer<T extends Message>(command: ExtensionToAsbPlayerCommand<T>) {
+        const asbplayers = await this._asbplayers();
+
+        for (const tabId in asbplayers) {
+            try {
+                await chrome.tabs.sendMessage(Number(tabId), command);
+            } catch (e) {
+                // Swallow as this usually only indicates that the tab is not an asbplayer tab
+            }
+        }
+    }
+
+    async publishCommandToVideoElements<T extends Message>(
+        commandFactory: (videoElement: VideoElement) => ExtensionToVideoCommand<T> | undefined
+    ) {
+        const videoElements = await this._videoElements();
+
+        for (const id in videoElements) {
+            const videoElement = videoElements[id];
+            const tabId = videoElement.tab.id;
+
+            if (typeof tabId !== 'undefined') {
+                const command = commandFactory(videoElement);
+
+                if (command !== undefined) {
+                    chrome.tabs.sendMessage(tabId, command);
+                }
+            }
+        }
     }
 
     async findAsbplayerTab(videoTab: chrome.tabs.Tab, videoSrc: string) {
@@ -86,8 +205,10 @@ export default class TabRegistry {
         const now = Date.now();
         let min = null;
 
-        for (const tabId in this.asbplayers) {
-            const asbplayer = this.asbplayers[tabId];
+        const asbplayers = await this._asbplayers();
+
+        for (const tabId in asbplayers) {
+            const asbplayer = asbplayers[tabId];
 
             if (this._asbplayerReceivedVideoTabData(asbplayer, videoTab, videoSrc)) {
                 const elapsed = now - asbplayer.timestamp;
@@ -104,7 +225,7 @@ export default class TabRegistry {
         }
 
         return new Promise(async (resolve, reject) => {
-            if (!Object.keys(this.asbplayers).length) {
+            if (!Object.keys(asbplayers).length) {
                 await this._createNewTab(videoTab);
             }
             this._anyAsbplayerTab(videoTab, videoSrc, resolve, reject, 0, 10);
@@ -125,7 +246,7 @@ export default class TabRegistry {
         });
     }
 
-    _anyAsbplayerTab(
+    async _anyAsbplayerTab(
         videoTab: chrome.tabs.Tab,
         videoSrc: string,
         resolve: (value: number | PromiseLike<number>) => void,
@@ -138,8 +259,10 @@ export default class TabRegistry {
             return;
         }
 
-        for (const tabId in this.asbplayers) {
-            if (this._asbplayerReceivedVideoTabData(this.asbplayers[tabId], videoTab, videoSrc)) {
+        const asbplayers = await this._asbplayers();
+
+        for (const tabId in asbplayers) {
+            if (this._asbplayerReceivedVideoTabData(asbplayers[tabId], videoTab, videoSrc)) {
                 resolve(Number(tabId));
                 return;
             }

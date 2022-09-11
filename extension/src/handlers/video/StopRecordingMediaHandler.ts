@@ -19,14 +19,17 @@ import {
     VideoToExtensionCommand,
 } from '@project/common';
 import updateLastCard from '../../functions/updateLastCard';
+import TabRegistry from '../../services/TabRegistry';
 
 export default class StopRecordingMediaHandler {
     private readonly audioRecorder: AudioRecorder;
     private readonly imageCapturer: ImageCapturer;
+    private readonly tabRegistry: TabRegistry;
 
-    constructor(audioRecorder: AudioRecorder, imageCapturer: ImageCapturer) {
+    constructor(audioRecorder: AudioRecorder, imageCapturer: ImageCapturer, tabRegistry: TabRegistry) {
         this.audioRecorder = audioRecorder;
         this.imageCapturer = imageCapturer;
+        this.tabRegistry = tabRegistry;
     }
 
     get sender() {
@@ -82,26 +85,21 @@ export default class StopRecordingMediaHandler {
                 end: stopRecordingCommand.message.endTimestamp,
             };
 
-            chrome.tabs.query({}, (allTabs) => {
-                const copyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {
-                    sender: 'asbplayer-extension-to-player',
-                    message: {
-                        command: 'copy',
-                        id: itemId,
-                        subtitle: subtitle,
-                        surroundingSubtitles: surroundingSubtitles,
-                        image: imageModel,
-                        audio: audioModel,
-                        url: stopRecordingCommand.message.url,
-                    },
-                    tabId: sender.tab!.id!,
-                    src: stopRecordingCommand.src,
-                };
-
-                for (let t of allTabs) {
-                    chrome.tabs.sendMessage(t.id!, copyCommand);
-                }
-            });
+            const copyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {
+                sender: 'asbplayer-extension-to-player',
+                message: {
+                    command: 'copy',
+                    id: itemId,
+                    subtitle: subtitle,
+                    surroundingSubtitles: surroundingSubtitles,
+                    image: imageModel,
+                    audio: audioModel,
+                    url: stopRecordingCommand.message.url,
+                },
+                tabId: sender.tab!.id!,
+                src: stopRecordingCommand.src,
+            };
+            this.tabRegistry.publishCommandToAsbplayer(copyCommand);
 
             if (stopRecordingCommand.message.postMineAction === PostMineAction.showAnkiDialog) {
                 const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {

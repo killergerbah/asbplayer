@@ -77,7 +77,7 @@ export default class StartRecordingMediaHandler {
                 originalEnd: startRecordingCommand.message.timestamp,
                 track: 0,
             };
-            
+
             const id = uuidv4();
 
             let imageModel: ImageModel | undefined = undefined;

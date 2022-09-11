@@ -2,12 +2,7 @@ import Mp3Encoder from './Mp3Encoder';
 // eslint-disable-next-line
 // @ts-ignore
 import Worker from 'worker-loader!./mp3-encoder.js';
-import sanitize from 'sanitize-filename';
 import { download } from './Util';
-const AUDIO_TYPES: { [key: string]: string } = { 'audio/ogg;codecs=opus': 'ogg', 'audio/webm;codecs=opus': 'webm' };
-const [recorderMimeType, recorderExtension] = Object.keys(AUDIO_TYPES)
-    .filter(MediaRecorder.isTypeSupported)
-    .map((t) => [t as string, AUDIO_TYPES[t] as string])[0];
 const defaultMp3WorkerFactory = () => new Worker();
 
 interface ExperimentalAudioElement extends HTMLAudioElement {
@@ -104,16 +99,31 @@ class FileAudioData implements AudioData {
     private readonly end: number;
     private readonly trackId?: string;
     private readonly _extension: string;
+    private readonly recorderMimeType: string;
+    private readonly recorderExtension: string;
 
     private _blob?: Blob;
 
     constructor(file: File, start: number, end: number, trackId?: string) {
+        const [recorderMimeType, recorderExtension] = FileAudioData._recorderConfiguration();
+        this.recorderMimeType = recorderMimeType;
+        this.recorderExtension = recorderExtension;
         this.file = file;
         this._name = file.name + '_' + start + '_' + end;
         this.start = start;
         this.end = end;
         this.trackId = trackId;
         this._extension = recorderExtension;
+    }
+
+    private static _recorderConfiguration() {
+        const AUDIO_TYPES: { [key: string]: string } = {
+            'audio/ogg;codecs=opus': 'ogg',
+            'audio/webm;codecs=opus': 'webm',
+        };
+        return Object.keys(AUDIO_TYPES)
+            .filter(MediaRecorder.isTypeSupported)
+            .map((t) => [t as string, AUDIO_TYPES[t] as string])[0];
     }
 
     get name(): string {
@@ -163,7 +173,7 @@ class FileAudioData implements AudioData {
             audio.oncanplay = async (e) => {
                 audio.play();
                 const stream = this._captureStream(audio);
-                const recorder = new MediaRecorder(stream, { mimeType: recorderMimeType });
+                const recorder = new MediaRecorder(stream, { mimeType: this.recorderMimeType });
                 const chunks: BlobPart[] = [];
 
                 recorder.ondataavailable = (e) => {
@@ -171,7 +181,7 @@ class FileAudioData implements AudioData {
                 };
 
                 recorder.onstop = (e) => {
-                    resolve(new Blob(chunks, { type: recorderMimeType }));
+                    resolve(new Blob(chunks, { type: this.recorderMimeType }));
                 };
 
                 recorder.start();

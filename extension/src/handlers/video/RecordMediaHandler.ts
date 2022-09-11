@@ -16,17 +16,19 @@ import {
     PostMineAction,
     CardUpdatedMessage,
     RecordingFinishedMessage,
-    AudioClip,
 } from '@project/common';
 import updateLastCard from '../../functions/updateLastCard';
+import TabRegistry from '../../services/TabRegistry';
 
 export default class RecordMediaHandler {
     private readonly audioRecorder: AudioRecorder;
     private readonly imageCapturer: ImageCapturer;
+    private readonly tabRegistry: TabRegistry;
 
-    constructor(audioRecorder: AudioRecorder, imageCapturer: ImageCapturer) {
+    constructor(audioRecorder: AudioRecorder, imageCapturer: ImageCapturer, tabRegistry: TabRegistry) {
         this.audioRecorder = audioRecorder;
         this.imageCapturer = imageCapturer;
+        this.tabRegistry = tabRegistry;
     }
 
     get sender() {
@@ -111,20 +113,13 @@ export default class RecordMediaHandler {
                 audio: audioModel,
             };
 
-            chrome.tabs.query({}, (allTabs) => {
-                const copyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {
-                    sender: 'asbplayer-extension-to-player',
-                    message: message,
-                    tabId: senderTab.id!,
-                    src: recordMediaCommand.src,
-                };
-
-                for (let t of allTabs) {
-                    if (t.id) {
-                        chrome.tabs.sendMessage(t.id, copyCommand);
-                    }
-                }
-            });
+            const copyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {
+                sender: 'asbplayer-extension-to-player',
+                message: message,
+                tabId: senderTab.id!,
+                src: recordMediaCommand.src,
+            };
+            this.tabRegistry.publishCommandToAsbplayer(copyCommand);
 
             if (recordMediaCommand.message.postMineAction == PostMineAction.showAnkiDialog) {
                 const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {

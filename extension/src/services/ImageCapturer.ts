@@ -28,6 +28,7 @@ export default class ImageCapturer {
 
             if (!cropScreenshot) {
                 resolve(dataUrl);
+                return;
             }
 
             const image = new Image();

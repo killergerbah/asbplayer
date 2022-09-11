@@ -33,15 +33,15 @@ const imageCapturer = new ImageCapturer(settings);
 
 const handlers: CommandHandler[] = [
     new VideoHeartbeatHandler(tabRegistry),
-    new RecordMediaHandler(audioRecorder, imageCapturer),
-    new RerecordMediaHandler(audioRecorder),
+    new RecordMediaHandler(audioRecorder, imageCapturer, tabRegistry),
+    new RerecordMediaHandler(audioRecorder, tabRegistry),
     new StartRecordingMediaHandler(audioRecorder, imageCapturer),
-    new StopRecordingMediaHandler(audioRecorder, imageCapturer),
-    new TakeScreenshotHandler(imageCapturer),
+    new StopRecordingMediaHandler(audioRecorder, imageCapturer, tabRegistry),
+    new TakeScreenshotHandler(imageCapturer, tabRegistry),
     new ToggleSubtitlesHandler(settings, tabRegistry),
     new SyncHandler(tabRegistry),
     new HttpPostHandler(),
-    new VideoToAsbplayerCommandForwardingHandler(),
+    new VideoToAsbplayerCommandForwardingHandler(tabRegistry),
     new AsbplayerToVideoCommandForwardingHandler(),
     new AsbplayerHeartbeatHandler(tabRegistry),
     new AsbplayerV2ToVideoCommandForwardingHandler(),
@@ -72,17 +72,21 @@ chrome.commands.onCommand.addListener((command) => {
             case 'copy-subtitle':
             case 'update-last-card':
             case 'copy-subtitle-with-dialog':
-                _publishToVideoElements((id, src) => {
+                tabRegistry.publishCommandToVideoElements((videoElement) => {
+                    if (tabs.find(t => t.id === videoElement.tab.id) === undefined) {
+                        return undefined;
+                    }
+
                     const extensionToVideoCommand: ExtensionToVideoCommand<CopySubtitleMessage> = {
                         sender: 'asbplayer-extension-to-video',
                         message: {
                             command: 'copy-subtitle',
                             postMineAction: postMineActionFromCommand(command),
                         },
-                        src: src,
+                        src: videoElement.src,
                     };
                     return extensionToVideoCommand;
-                }, tabs);
+                });
                 break;
             case 'toggle-video-select':
                 for (const tab of tabs) {
@@ -97,16 +101,20 @@ chrome.commands.onCommand.addListener((command) => {
                 }
                 break;
             case 'take-screenshot':
-                _publishToVideoElements((id, src) => {
+                tabRegistry.publishCommandToVideoElements((videoElement) => {
+                    if (tabs.find(t => t.id === videoElement.tab.id) === undefined) {
+                        return undefined;
+                    }
+
                     const extensionToVideoCommand: ExtensionToVideoCommand<TakeScreenshotMessage> = {
                         sender: 'asbplayer-extension-to-video',
                         message: {
                             command: 'take-screenshot',
                         },
-                        src: src,
+                        src: videoElement.src,
                     };
                     return extensionToVideoCommand;
-                }, tabs);
+                });
                 break;
             default:
                 throw new Error('Unknown command ' + command);
@@ -124,21 +132,5 @@ function postMineActionFromCommand(command: string) {
             return PostMineAction.updateLastCard;
         default:
             throw new Error('Cannot determine post mine action for unknown command ' + command);
-    }
-}
-
-function _publishToVideoElements(
-    messageFunction: (id: number, src: string) => ExtensionToVideoCommand<Message>,
-    tabs: chrome.tabs.Tab[]
-) {
-    for (const tab of tabs) {
-        for (const id in tabRegistry.videoElements) {
-            const videoElement = tabRegistry.videoElements[id];
-            const videoElementTab = videoElement.tab;
-
-            if (typeof videoElementTab.id !== 'undefined' && videoElementTab.id === tab.id) {
-                chrome.tabs.sendMessage(videoElementTab.id, messageFunction(videoElementTab.id, videoElement.src));
-            }
-        }
     }
 }

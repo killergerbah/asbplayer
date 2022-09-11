@@ -1,7 +1,13 @@
 import { Command, ExtensionToAsbPlayerCommand, Message, VideoToExtensionCommand } from '@project/common';
-import { CommandHandler } from '../CommandHandler';
+import TabRegistry from '../../services/TabRegistry';
 
 export default class VideoToAsbplayerCommandForwardingHandler {
+    private readonly tabRegistry: TabRegistry;
+
+    constructor(tabRegistry: TabRegistry) {
+        this.tabRegistry = tabRegistry;
+    }
+
     get sender() {
         return 'asbplayer-video';
     }
@@ -12,22 +18,17 @@ export default class VideoToAsbplayerCommandForwardingHandler {
 
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
         const videoToExtensionCommand = command as VideoToExtensionCommand<Message>;
-        chrome.tabs.query({}, (allTabs) => {
-            if (typeof sender.tab?.id !== 'undefined') {
-                const extensionToPlayerCommand: ExtensionToAsbPlayerCommand<Message> = {
-                    sender: 'asbplayer-extension-to-player',
-                    message: command.message,
-                    tabId: sender.tab.id,
-                    src: videoToExtensionCommand.src,
-                };
-    
-                for (let t of allTabs) {
-                    if (typeof t.id !== 'undefined') {
-                        chrome.tabs.sendMessage(t.id, extensionToPlayerCommand);
-                    }
-                }
-            }
-        });
+
+        if (typeof sender.tab?.id !== 'undefined') {
+            const extensionToPlayerCommand: ExtensionToAsbPlayerCommand<Message> = {
+                sender: 'asbplayer-extension-to-player',
+                message: command.message,
+                tabId: sender.tab.id,
+                src: videoToExtensionCommand.src,
+            };
+            this.tabRegistry.publishCommandToAsbplayer(extensionToPlayerCommand);
+        }
+
         return false;
     }
 }

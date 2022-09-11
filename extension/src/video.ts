@@ -1,6 +1,6 @@
 import Binding from './services/Binding';
 
-window.addEventListener('load', (event) => {
+const bind = () => {
     const bindings: Binding[] = [];
     const pages = [];
     const urlObj = new URL(window.location.href);
@@ -85,7 +85,7 @@ window.addEventListener('load', (event) => {
 
                     if (bindings.length === 1) {
                         const binding = bindings[0];
-                        
+
                         if (binding.subscribed) {
                             // Special case - show dialog for the one video element
                             binding.showVideoSelect();
@@ -132,7 +132,17 @@ window.addEventListener('load', (event) => {
         clearInterval(interval);
         chrome.runtime.onMessage.removeListener(messageListener);
     });
-});
+};
+
+if (document.readyState === 'complete') {
+    bind();
+} else {
+    document.addEventListener('readystatechange', (event) => {
+        if (document.readyState === 'complete') {
+            bind();
+        }
+    });
+}
 
 function _hasValidSource(videoElement: HTMLVideoElement) {
     if (videoElement.src) {

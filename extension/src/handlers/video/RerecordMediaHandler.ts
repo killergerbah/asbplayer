@@ -12,12 +12,15 @@ import {
     ShowAnkiUiAfterRerecordMessage,
     VideoToExtensionCommand,
 } from '@project/common';
+import TabRegistry from '../../services/TabRegistry';
 
 export default class RerecordMediaHandler {
     private readonly audioRecorder: AudioRecorder;
+    private readonly tabRegistry: TabRegistry;
 
-    constructor(audioRecorder: AudioRecorder) {
+    constructor(audioRecorder: AudioRecorder, tabRegistry: TabRegistry) {
         this.audioRecorder = audioRecorder;
+        this.tabRegistry = tabRegistry;
     }
 
     get sender() {
@@ -53,29 +56,24 @@ export default class RerecordMediaHandler {
                     rerecordCommand.message.duration / rerecordCommand.message.playbackRate,
             };
 
-            chrome.tabs.query({}, (allTabs) => {
-                const copyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {
-                    sender: 'asbplayer-extension-to-player',
-                    message: {
-                        command: 'copy',
-                        // Ideally we send the same ID so that asbplayer can update the existing item.
-                        // There's a bug where asbplayer isn't properly updating the item right now, so
-                        // let's just create a new item for now by using a new ID.
-                        id: uuidv4(),
-                        audio: audio,
-                        image: rerecordCommand.message.uiState.image,
-                        url: rerecordCommand.message.uiState.url,
-                        subtitle: rerecordCommand.message.uiState.subtitle,
-                        surroundingSubtitles: rerecordCommand.message.uiState.sliderContext.subtitles,
-                    },
-                    tabId: sender.tab!.id!,
-                    src: rerecordCommand.src,
-                };
-
-                for (let t of allTabs) {
-                    chrome.tabs.sendMessage(t.id!, copyCommand);
-                }
-            });
+            const copyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {
+                sender: 'asbplayer-extension-to-player',
+                message: {
+                    command: 'copy',
+                    // Ideally we send the same ID so that asbplayer can update the existing item.
+                    // There's a bug where asbplayer isn't properly updating the item right now, so
+                    // let's just create a new item for now by using a new ID.
+                    id: uuidv4(),
+                    audio: audio,
+                    image: rerecordCommand.message.uiState.image,
+                    url: rerecordCommand.message.uiState.url,
+                    subtitle: rerecordCommand.message.uiState.subtitle,
+                    surroundingSubtitles: rerecordCommand.message.uiState.sliderContext.subtitles,
+                },
+                tabId: sender.tab!.id!,
+                src: rerecordCommand.src,
+            };
+            this.tabRegistry.publishCommandToAsbplayer(copyCommand);
 
             const newUiState = {
                 ...rerecordCommand.message.uiState,
