@@ -27,8 +27,21 @@ export interface AsbplayerHeartbeatMessage extends Message {
     readonly receivedTabs?: ActiveVideoElement[];
 }
 
+export interface TabsMessage extends Message {
+    readonly command: 'tabs';
+    readonly tabs: ActiveVideoElement[];
+    readonly ackRequested: boolean;
+}
+
+export interface AckTabsMessage extends Message {
+    readonly command: 'ackTabs';
+    readonly id: string;
+    readonly receivedTabs: ActiveVideoElement[];
+}
+
 export interface VideoHeartbeatMessage extends Message {
     readonly command: 'heartbeat';
+    readonly synced: boolean;
 }
 
 export interface HttpPostMessage extends Message {
@@ -349,8 +362,8 @@ export interface StopRecordingAudioMessage extends Message {
     readonly preferMp3: boolean;
 }
 
-export interface OptionsPageReadyMessage extends Message {
-    readonly command: 'options-page-ready';
+export interface BackgroundPageReadyMessage extends Message {
+    readonly command: 'background-page-ready';
 }
 
 export interface AudioBase64Message extends Message {

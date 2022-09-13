@@ -10,7 +10,7 @@ module.exports = (env, options) => ({
         'anki-ui': './src/anki-ui.ts',
         'video-data-sync-ui': './src/video-data-sync-ui.ts',
         asbplayer: './src/asbplayer.ts',
-        options: './src/options.ts',
+        'background-page': './src/background-page.ts',
     },
     output: {
         filename: '[name].js',

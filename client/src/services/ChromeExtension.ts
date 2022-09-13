@@ -1,4 +1,4 @@
-import { AsbPlayerToVideoCommandV2, Message, VideoTabModel } from '@project/common';
+import { AsbPlayerToVideoCommandV2, ExtensionToAsbPlayerCommandTabsCommand, Message, VideoTabModel } from '@project/common';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface ExtensionMessage {
@@ -35,10 +35,25 @@ export default class ChromeExtension {
             if (event.data.sender === 'asbplayer-extension-to-player') {
                 if (event.data.message) {
                     if (event.data.message.command === 'tabs') {
-                        this.tabs = event.data.message.tabs;
+                        const tabsCommand = event.data as ExtensionToAsbPlayerCommandTabsCommand;
+                        this.tabs = tabsCommand.message.tabs;
 
                         for (let c of this.onTabsCallbacks) {
                             c(this.tabs);
+                        }
+
+                        if (tabsCommand.message.ackRequested) {
+                            window.postMessage(
+                                {
+                                    sender: 'asbplayerv2',
+                                    message: {
+                                        command: 'ackTabs',
+                                        id: this.id,
+                                        receivedTabs: this.tabs,
+                                    },
+                                },
+                                '*'
+                            );
                         }
 
                         return;

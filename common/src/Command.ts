@@ -1,4 +1,4 @@
-import { Message } from './Message';
+import { Message, TabsMessage } from './Message';
 
 export interface Command<T extends Message> {
     readonly sender: string;
@@ -33,10 +33,14 @@ export interface ExtensionToAsbPlayerCommand<T extends Message> extends Command<
     readonly src: string;
 }
 
-export interface ExtensionToOptionsPageCommand<T extends Message> extends Command<T> {
-    readonly sender: 'asbplayer-extension-to-options-page';
+export interface ExtensionToAsbPlayerCommandTabsCommand extends Command<TabsMessage> {
+    readonly sender: 'asbplayer-extension-to-player';
 }
 
-export interface OptionsPageToExtensionCommand<T extends Message> extends Command<T> {
-    readonly sender: 'asbplayer-options-page'
+export interface ExtensionToBackgroundPageCommand<T extends Message> extends Command<T> {
+    readonly sender: 'asbplayer-extension-to-background-page';
+}
+
+export interface BackgroundPageToExtensionCommand<T extends Message> extends Command<T> {
+    readonly sender: 'asbplayer-background-page'
 }

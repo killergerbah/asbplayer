@@ -279,6 +279,7 @@ export default class Binding {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'heartbeat',
+                    synced: this.synced,
                 },
                 src: this.video.src,
             };

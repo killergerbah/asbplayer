@@ -18,14 +18,14 @@ import {
 } from '@project/common';
 import updateLastCard from '../../functions/updateLastCard';
 import TabRegistry from '../../services/TabRegistry';
-import OptionsPageAudioRecorder from '../../services/OptionsPageAudioRecorder';
+import BackgroundPageAudioRecorder from '../../services/BackgroundPageAudioRecorder';
 
 export default class RecordMediaHandler {
-    private readonly audioRecorder: OptionsPageAudioRecorder;
+    private readonly audioRecorder: BackgroundPageAudioRecorder;
     private readonly imageCapturer: ImageCapturer;
     private readonly tabRegistry: TabRegistry;
 
-    constructor(audioRecorder: OptionsPageAudioRecorder, imageCapturer: ImageCapturer, tabRegistry: TabRegistry) {
+    constructor(audioRecorder: BackgroundPageAudioRecorder, imageCapturer: ImageCapturer, tabRegistry: TabRegistry) {
         this.audioRecorder = audioRecorder;
         this.imageCapturer = imageCapturer;
         this.tabRegistry = tabRegistry;
@@ -122,7 +122,7 @@ export default class RecordMediaHandler {
                 tabId: senderTab.id!,
                 src: recordMediaCommand.src,
             };
-            this.tabRegistry.publishCommandToAsbplayer(copyCommand);
+            this.tabRegistry.publishCommandToAsbplayers(copyCommand);
 
             if (recordMediaCommand.message.postMineAction == PostMineAction.showAnkiDialog) {
                 const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {

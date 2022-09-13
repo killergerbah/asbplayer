@@ -26,6 +26,7 @@ export default class SyncHandler {
     async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
         try {
             const extensionSyncCommand = command as VideoToExtensionCommand<ExtensionSyncMessage>;
+            await this.tabRegistry.publishTabsToAsbplayers();
             const chosenTabId = await this.tabRegistry.findAsbplayerTab(sender.tab!, extensionSyncCommand.src);
 
             const playerSyncCommand: ExtensionToAsbPlayerCommand<PlayerSyncMessage> = {

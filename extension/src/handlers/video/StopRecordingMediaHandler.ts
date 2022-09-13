@@ -1,4 +1,4 @@
-import OptionsPageAudioRecorder from '../../services/OptionsPageAudioRecorder';
+import BackgroundPageAudioRecorder from '../../services/BackgroundPageAudioRecorder';
 import ImageCapturer from '../../services/ImageCapturer';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -22,11 +22,11 @@ import updateLastCard from '../../functions/updateLastCard';
 import TabRegistry from '../../services/TabRegistry';
 
 export default class StopRecordingMediaHandler {
-    private readonly audioRecorder: OptionsPageAudioRecorder;
+    private readonly audioRecorder: BackgroundPageAudioRecorder;
     private readonly imageCapturer: ImageCapturer;
     private readonly tabRegistry: TabRegistry;
 
-    constructor(audioRecorder: OptionsPageAudioRecorder, imageCapturer: ImageCapturer, tabRegistry: TabRegistry) {
+    constructor(audioRecorder: BackgroundPageAudioRecorder, imageCapturer: ImageCapturer, tabRegistry: TabRegistry) {
         this.audioRecorder = audioRecorder;
         this.imageCapturer = imageCapturer;
         this.tabRegistry = tabRegistry;
@@ -100,7 +100,7 @@ export default class StopRecordingMediaHandler {
                 tabId: sender.tab!.id!,
                 src: stopRecordingCommand.src,
             };
-            this.tabRegistry.publishCommandToAsbplayer(copyCommand);
+            this.tabRegistry.publishCommandToAsbplayers(copyCommand);
 
             if (stopRecordingCommand.message.postMineAction === PostMineAction.showAnkiDialog) {
                 const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {

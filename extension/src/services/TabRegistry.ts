@@ -1,6 +1,7 @@
 import {
     ActiveVideoElement,
-    ExtensionToAsbPlayerCommand,
+    Command,
+    ExtensionToAsbPlayerCommandTabsCommand,
     ExtensionToVideoCommand,
     Message,
     VideoTabModel,
@@ -21,13 +22,15 @@ interface Asbplayer {
 }
 
 interface VideoElement {
+    src: string;
     tab: SlimTab;
     timestamp: number;
-    src: string;
+    synced: boolean;
 }
 
 export default class TabRegistry {
     private readonly settings: Settings;
+    private onNoSyncedElementsCallback?: () => void;
 
     constructor(settings: Settings) {
         this.settings = settings;
@@ -45,9 +48,10 @@ export default class TabRegistry {
         chrome.storage.session.set({ tabRegistryVideoElements: state });
     }
 
-    private async _videoElements(mutator?: (videoElements: { [key: string]: VideoElement }) => void) {
+    private async _videoElements(mutator?: (videoElements: { [key: string]: VideoElement }) => boolean) {
         const tabs = await chrome.tabs.query({});
         const videoElements = await this._fetchVideoElementState();
+        let changed = false;
 
         for (const id in videoElements) {
             const videoElement = videoElements[id];
@@ -55,12 +59,19 @@ export default class TabRegistry {
                 tabs.find((t) => t.id === videoElement.tab.id && t.url === videoElement.tab.url) === undefined;
 
             if (disappeared) {
+                changed = true;
                 delete videoElements[id];
             }
         }
 
-        mutator?.(videoElements);
-        this._saveVideoElementState(videoElements);
+        if (mutator !== undefined) {
+            changed = changed || mutator(videoElements);
+        }
+
+        if (changed) {
+            this._saveVideoElementState(videoElements);
+        }
+
         return videoElements;
     }
 
@@ -76,9 +87,10 @@ export default class TabRegistry {
         chrome.storage.session.set({ tabRegistryAsbplayers: state });
     }
 
-    private async _asbplayers(mutator?: (asbplayers: { [key: string]: Asbplayer }) => void) {
+    private async _asbplayers(mutator?: (asbplayers: { [key: string]: Asbplayer }) => boolean) {
         const tabs = await chrome.tabs.query({});
         const asbplayers = await this._fetchAsbplayerState();
+        let changed = false;
 
         for (const tabId in asbplayers) {
             const asbplayer = asbplayers[tabId];
@@ -86,16 +98,49 @@ export default class TabRegistry {
                 tabs.find((t) => t.id === asbplayer.tab.id && t.url === asbplayer.tab.url) === undefined;
 
             if (disappeared) {
+                changed = true;
                 delete asbplayers[tabId];
             }
         }
 
-        mutator?.(asbplayers);
-        this._saveAsbplayerState(asbplayers);
+        if (mutator !== undefined) {
+            changed = changed || mutator(asbplayers);
+        }
+
+        if (changed) {
+            this._saveAsbplayerState(asbplayers);
+        }
+
         return asbplayers;
     }
 
     async onAsbplayerHeartbeat(tab: chrome.tabs.Tab, asbplayerId: string, receivedTabs?: ActiveVideoElement[]) {
+        if (tab.id === undefined) {
+            return;
+        }
+
+        this._updateAsbplayers(tab, asbplayerId, receivedTabs);
+
+        try {
+            const command: ExtensionToAsbPlayerCommandTabsCommand = {
+                sender: 'asbplayer-extension-to-player',
+                message: {
+                    command: 'tabs',
+                    tabs: await this._activeVideoElements(),
+                    ackRequested: false,
+                },
+            };
+            await chrome.tabs.sendMessage(tab.id, command);
+        } catch (e) {
+            // Swallow
+        }
+    }
+
+    async onAsbplayerAckTabs(tab: chrome.tabs.Tab, asbplayerId: string, receivedTabs?: ActiveVideoElement[]) {
+        this._updateAsbplayers(tab, asbplayerId, receivedTabs);
+    }
+
+    private async _updateAsbplayers(tab: chrome.tabs.Tab, asbplayerId: string, receivedTabs?: ActiveVideoElement[]) {
         if (tab.id === undefined) {
             return;
         }
@@ -113,19 +158,8 @@ export default class TabRegistry {
                 timestamp: Date.now(),
                 receivedTabs: receivedTabs,
             };
+            return true;
         });
-
-        try {
-            await chrome.tabs.sendMessage(tabId, {
-                sender: 'asbplayer-extension-to-player',
-                message: {
-                    command: 'tabs',
-                    tabs: await this._activeVideoElements(),
-                },
-            });
-        } catch (e) {
-            // Swallow
-        }
     }
 
     private async _activeVideoElements() {
@@ -148,28 +182,53 @@ export default class TabRegistry {
         return activeVideoElements;
     }
 
-    async onVideoElementHeartbeat(tab: chrome.tabs.Tab, src: string) {
+    async onVideoElementHeartbeat(tab: chrome.tabs.Tab, src: string, synced: boolean) {
         if (tab.id === undefined) {
             return;
         }
 
         const tabId = tab.id;
 
-        this._videoElements(
-            (videoElements) =>
-                (videoElements[tab.id + ':' + src] = {
-                    tab: {
-                        id: tabId,
-                        title: tab.title ?? '',
-                        url: tab.url ?? '',
-                    },
-                    src: src,
-                    timestamp: Date.now(),
-                })
-        );
+        const videoElements = await this._videoElements((videoElements) => {
+            videoElements[tab.id + ':' + src] = {
+                tab: {
+                    id: tabId,
+                    title: tab.title ?? '',
+                    url: tab.url ?? '',
+                },
+                src: src,
+                timestamp: Date.now(),
+                synced: synced,
+            };
+            return true;
+        });
+
+        if (
+            this.onNoSyncedElementsCallback !== undefined &&
+            Object.values(videoElements).find((v) => v.synced) === undefined
+        ) {
+            this.onNoSyncedElementsCallback();
+        }
     }
 
-    async publishCommandToAsbplayer<T extends Message>(command: ExtensionToAsbPlayerCommand<T>) {
+    onNoSyncedElements(callback: () => void) {
+        this.onNoSyncedElementsCallback = callback;
+    }
+
+    async publishTabsToAsbplayers() {
+        const tabsCommand: ExtensionToAsbPlayerCommandTabsCommand = {
+            sender: 'asbplayer-extension-to-player',
+            message: {
+                command: 'tabs',
+                tabs: await this._activeVideoElements(),
+                ackRequested: true,
+            },
+        };
+
+        await this.publishCommandToAsbplayers(tabsCommand);
+    }
+
+    async publishCommandToAsbplayers<T extends Message>(command: Command<T>) {
         const asbplayers = await this._asbplayers();
 
         for (const tabId in asbplayers) {

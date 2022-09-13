@@ -1,8 +1,8 @@
 import {
     StartRecordingAudioWithTimeoutMessage,
     StopRecordingAudioMessage,
-    OptionsPageToExtensionCommand,
-    OptionsPageReadyMessage,
+    BackgroundPageToExtensionCommand,
+    BackgroundPageReadyMessage,
     AudioBase64Message,
 } from '@project/common';
 import Mp3Encoder from '@project/common/src/Mp3Encoder';
@@ -21,8 +21,8 @@ const _sendAudioBase64 = async (base64: string, preferMp3: boolean) => {
         base64 = bufferToBase64(await mp3Blob.arrayBuffer());
     }
 
-    const command: OptionsPageToExtensionCommand<AudioBase64Message> = {
-        sender: 'asbplayer-options-page',
+    const command: BackgroundPageToExtensionCommand<AudioBase64Message> = {
+        sender: 'asbplayer-background-page',
         message: {
             command: 'audio-base64',
             base64: base64,
@@ -34,7 +34,7 @@ const _sendAudioBase64 = async (base64: string, preferMp3: boolean) => {
 
 window.onload = () => {
     chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
-        if (request.sender === 'asbplayer-extension-to-options-page') {
+        if (request.sender === 'asbplayer-extension-to-background-page') {
             switch (request.message.command) {
                 case 'start-recording-audio-with-timeout':
                     const startRecordingAudioWithTimeoutMessage =
@@ -54,10 +54,10 @@ window.onload = () => {
         }
     });
 
-    const readyCommand: OptionsPageToExtensionCommand<OptionsPageReadyMessage> = {
-        sender: 'asbplayer-options-page',
+    const readyCommand: BackgroundPageToExtensionCommand<BackgroundPageReadyMessage> = {
+        sender: 'asbplayer-background-page',
         message: {
-            command: 'options-page-ready',
+            command: 'background-page-ready',
         },
     };
     chrome.runtime.sendMessage(readyCommand);

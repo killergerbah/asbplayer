@@ -13,13 +13,13 @@ import {
     VideoToExtensionCommand,
 } from '@project/common';
 import TabRegistry from '../../services/TabRegistry';
-import OptionsPageAudioRecorder from '../../services/OptionsPageAudioRecorder';
+import BackgroundPageAudioRecorder from '../../services/BackgroundPageAudioRecorder';
 
 export default class RerecordMediaHandler {
-    private readonly audioRecorder: OptionsPageAudioRecorder;
+    private readonly audioRecorder: BackgroundPageAudioRecorder;
     private readonly tabRegistry: TabRegistry;
 
-    constructor(audioRecorder: OptionsPageAudioRecorder, tabRegistry: TabRegistry) {
+    constructor(audioRecorder: BackgroundPageAudioRecorder, tabRegistry: TabRegistry) {
         this.audioRecorder = audioRecorder;
         this.tabRegistry = tabRegistry;
     }
@@ -75,7 +75,7 @@ export default class RerecordMediaHandler {
                 tabId: sender.tab!.id!,
                 src: rerecordCommand.src,
             };
-            this.tabRegistry.publishCommandToAsbplayer(copyCommand);
+            this.tabRegistry.publishCommandToAsbplayers(copyCommand);
 
             const newUiState = {
                 ...rerecordCommand.message.uiState,

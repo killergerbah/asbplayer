@@ -24,21 +24,22 @@ import {
     TakeScreenshotMessage,
 } from '@project/common';
 import TakeScreenshotHandler from './handlers/video/TakeScreenshotHandler';
-import OptionsPageAudioRecorder from './services/OptionsPageAudioRecorder';
-import OptionsPageReadyHandler from './handlers/options/OptionsPageReadyHandler';
-import AudioBase64Handler from './handlers/options/AudioBase64Handler';
+import BackgroundPageAudioRecorder from './services/BackgroundPageAudioRecorder';
+import BackgroundPageReadyHandler from './handlers/backgroundpage/BackgroundPageReadyHandler';
+import AudioBase64Handler from './handlers/backgroundpage/AudioBase64Handler';
+import AckTabsHandler from './handlers/asbplayerv2/AckTabsHandler';
 
 const settings = new Settings();
 const tabRegistry = new TabRegistry(settings);
-const optionsPageAudioRecorder = new OptionsPageAudioRecorder();
+const backgroundPageAudioRecorder = new BackgroundPageAudioRecorder(tabRegistry);
 const imageCapturer = new ImageCapturer(settings);
 
 const handlers: CommandHandler[] = [
     new VideoHeartbeatHandler(tabRegistry),
-    new RecordMediaHandler(optionsPageAudioRecorder, imageCapturer, tabRegistry),
-    new RerecordMediaHandler(optionsPageAudioRecorder, tabRegistry),
-    new StartRecordingMediaHandler(optionsPageAudioRecorder, imageCapturer),
-    new StopRecordingMediaHandler(optionsPageAudioRecorder, imageCapturer, tabRegistry),
+    new RecordMediaHandler(backgroundPageAudioRecorder, imageCapturer, tabRegistry),
+    new RerecordMediaHandler(backgroundPageAudioRecorder, tabRegistry),
+    new StartRecordingMediaHandler(backgroundPageAudioRecorder, imageCapturer),
+    new StopRecordingMediaHandler(backgroundPageAudioRecorder, imageCapturer, tabRegistry),
     new TakeScreenshotHandler(imageCapturer, tabRegistry),
     new ToggleSubtitlesHandler(settings, tabRegistry),
     new SyncHandler(tabRegistry),
@@ -46,10 +47,11 @@ const handlers: CommandHandler[] = [
     new VideoToAsbplayerCommandForwardingHandler(tabRegistry),
     new AsbplayerToVideoCommandForwardingHandler(),
     new AsbplayerHeartbeatHandler(tabRegistry),
+    new AckTabsHandler(tabRegistry),
     new AsbplayerV2ToVideoCommandForwardingHandler(),
     new RefreshSettingsHandler(tabRegistry),
-    new OptionsPageReadyHandler(optionsPageAudioRecorder),
-    new AudioBase64Handler(optionsPageAudioRecorder),
+    new BackgroundPageReadyHandler(backgroundPageAudioRecorder),
+    new AudioBase64Handler(backgroundPageAudioRecorder),
 ];
 
 chrome.runtime.onMessage.addListener((request: Command<Message>, sender, sendResponse) => {
