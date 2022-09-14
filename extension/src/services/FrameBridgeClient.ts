@@ -1,17 +1,20 @@
-import { HttpPostMessage, VideoToExtensionCommand } from "@project/common";
+import { HttpPostMessage, VideoToExtensionCommand } from '@project/common';
 
 export default class FrameBridgeClient {
     private readonly frame: HTMLIFrameElement;
     private readonly videoSrc: string;
+    private readonly allowedFetchUrl?: string;
+
     private frameId?: string;
     private windowMessageListener?: (event: MessageEvent) => void;
     private bindPromise?: Promise<void>;
     private finishedListener?: (message: any) => void;
 
-    constructor(frame: HTMLIFrameElement, videoSrc: string) {
+    constructor(frame: HTMLIFrameElement, videoSrc: string, allowedFetchUrl?: string) {
         this.frame = frame;
         this.videoSrc = videoSrc;
         this.bindPromise = undefined;
+        this.allowedFetchUrl = allowedFetchUrl;
     }
 
     async bind() {
@@ -73,6 +76,11 @@ export default class FrameBridgeClient {
                         break;
                     case 'fetch':
                         const message = event.data.message;
+
+                        if (this.allowedFetchUrl === undefined || message.url !== this.allowedFetchUrl) {
+                            return;
+                        }
+
                         const httpPostCommand: VideoToExtensionCommand<HttpPostMessage> = {
                             sender: 'asbplayer-video',
                             message: {
@@ -80,28 +88,23 @@ export default class FrameBridgeClient {
                                 url: message.url as string,
                                 body: message.body as any,
                             },
-                            src: this.videoSrc
+                            src: this.videoSrc,
                         };
-                        chrome.runtime.sendMessage(
-                            httpPostCommand,
-                            (postResponse) => {
-                                const response = postResponse
-                                    ? postResponse
-                                    : { error: chrome.runtime.lastError?.message };
-                                this.frame.contentWindow?.postMessage(
-                                    {
-                                        sender: 'asbplayer-video',
-                                        message: {
-                                            command: 'resolveFetch',
-                                            response: response,
-                                            id: this.frameId,
-                                            fetchId: message.fetchId,
-                                        },
+                        chrome.runtime.sendMessage(httpPostCommand, (postResponse) => {
+                            const response = postResponse ? postResponse : { error: chrome.runtime.lastError?.message };
+                            this.frame.contentWindow?.postMessage(
+                                {
+                                    sender: 'asbplayer-video',
+                                    message: {
+                                        command: 'resolveFetch',
+                                        response: response,
+                                        id: this.frameId,
+                                        fetchId: message.fetchId,
                                     },
-                                    '*'
-                                );
-                            }
-                        );
+                                },
+                                '*'
+                            );
+                        });
                         break;
                 }
             };

@@ -1,5 +1,21 @@
 import { Command, HttpPostMessage, Message } from '@project/common';
 
+const allowedKeys = ['version', 'action', 'params'];
+const allowedActions = [
+    'guiAddCards',
+    'deckNames',
+    'modelNames',
+    'modelFieldNames',
+    'findNotes',
+    'guiBrowse',
+    'requestPermission',
+    'findNotes',
+    'notesInfo',
+    'updateNoteFields',
+    'addNote',
+    'storeMediaFile',
+];
+
 export default class HttpPostHandler {
     constructor() {}
 
@@ -14,6 +30,11 @@ export default class HttpPostHandler {
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) {
         const message = command.message as HttpPostMessage;
 
+        if (!this._validateBody(message.body)) {
+            sendResponse({ error: 'Invalid request' });
+            return;
+        }
+
         fetch(message.url, {
             method: 'POST',
             body: JSON.stringify(message.body),
@@ -21,6 +42,30 @@ export default class HttpPostHandler {
             .then((response) => response.json())
             .then((json) => sendResponse(json))
             .catch((e) => sendResponse({ error: e.message }));
+
+        return true;
+    }
+
+    private _validateBody(body: any) {
+        const bodyKeys = Object.keys(body);
+
+        for (const k of bodyKeys) {
+            if (!allowedKeys.includes(k)) {
+                return false;
+            }
+        }
+
+        const version = body['version'];
+
+        if (version !== undefined && typeof version !== 'number') {
+            return false;
+        }
+
+        const action = body['action'];
+
+        if (action !== undefined && !allowedActions.includes(action)) {
+            return false;
+        }
 
         return true;
     }
