@@ -100,14 +100,12 @@ class FileAudioData implements AudioData {
     private readonly trackId?: string;
     private readonly _extension: string;
     private readonly recorderMimeType: string;
-    private readonly recorderExtension: string;
 
     private _blob?: Blob;
 
     constructor(file: File, start: number, end: number, trackId?: string) {
         const [recorderMimeType, recorderExtension] = FileAudioData._recorderConfiguration();
         this.recorderMimeType = recorderMimeType;
-        this.recorderExtension = recorderExtension;
         this.file = file;
         this._name = file.name + '_' + start + '_' + end;
         this.start = start;
@@ -361,6 +359,10 @@ export default class AudioClip {
 
     toMp3(mp3WorkerFactory = defaultMp3WorkerFactory) {
         if (this.data instanceof Mp3AudioData) {
+            return this;
+        }
+
+        if (this.data.extension === 'mp3') {
             return this;
         }
 
