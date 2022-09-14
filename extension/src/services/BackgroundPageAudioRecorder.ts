@@ -6,28 +6,51 @@ import {
 } from '@project/common';
 import TabRegistry from './TabRegistry';
 
-export default class BackgroundPageAudioRecorder {
-    private readonly tabRegistry: TabRegistry;
+const backgroundPageUrl = `chrome-extension://${chrome.runtime.id}/background-page.html`;
 
+export default class BackgroundPageAudioRecorder {
     private backgroundPageResolve?: (value: chrome.tabs.Tab) => void;
     private audioBase64Resolve?: (value: string) => void;
 
     constructor(tabRegistry: TabRegistry) {
-        this.tabRegistry = tabRegistry;
         tabRegistry.onNoSyncedElements(async () => {
-            const tabId = (await chrome.storage.session.get('backgroundPageTabId')).backgroundPageTabId;
-
-            if (await this._tabDoesNotExist(tabId)) {
-                return;
-            }
-
-            await chrome.tabs.remove(tabId);
+            this._removeBackgroundPage();
         });
+        tabRegistry.onSyncedElement(async () => {
+            this._backgroundPageTabId();
+        });
+        this._removeOrphanedBackgroundPage();
+    }
+
+    private async _removeBackgroundPage() {
+        const tabId = await this._fetchBackgroundPageTabId();
+
+        if (await this._tabDoesNotExist(tabId)) {
+            return;
+        }
+
+        await chrome.tabs.remove(tabId);
+    }
+
+    private async _removeOrphanedBackgroundPage() {
+        const tabId = await this._fetchBackgroundPageTabId();
+        const tabs = await chrome.tabs.query({});
+
+        for (const tab of tabs) {
+            if (tab.url === backgroundPageUrl && tab.id && tab.id !== tabId) {
+                await chrome.tabs.remove(tab.id);
+            }
+        }
     }
 
     onBackgroundPageReady(tab: chrome.tabs.Tab) {
-        this.backgroundPageResolve?.(tab);
+        if (this.backgroundPageResolve === undefined) {
+            return false;
+        }
+
+        this.backgroundPageResolve(tab);
         this.backgroundPageResolve = undefined;
+        return true;
     }
 
     onAudioBase64(base64: string) {
@@ -72,6 +95,7 @@ export default class BackgroundPageAudioRecorder {
 
     async stop(preferMp3: boolean): Promise<string> {
         const tabId = await this._backgroundPageTabId();
+
         const command: ExtensionToBackgroundPageCommand<StopRecordingAudioMessage> = {
             sender: 'asbplayer-extension-to-background-page',
             message: {
@@ -84,17 +108,17 @@ export default class BackgroundPageAudioRecorder {
     }
 
     private async _backgroundPageTabId() {
-        const tabId = (await chrome.storage.session.get('backgroundPageTabId')).backgroundPageTabId;
+        const tabId = await this._fetchBackgroundPageTabId();
 
         if (await this._tabDoesNotExist(tabId)) {
             this.audioBase64Resolve = undefined;
             await chrome.tabs.create({
                 pinned: true,
                 active: false,
-                url: `chrome-extension://${chrome.runtime.id}/background-page.html`,
+                url: backgroundPageUrl,
             });
             const tab = await this._backgroundPageReady();
-            await chrome.storage.session.set({ backgroundPageTabId: tab.id });
+            await this._setBackgroundPageTabId(tab.id!);
             return tab.id!;
         }
 
@@ -124,5 +148,13 @@ export default class BackgroundPageAudioRecorder {
         return new Promise((resolve, reject) => {
             this.backgroundPageResolve = resolve;
         });
+    }
+
+    private async _fetchBackgroundPageTabId() {
+        return (await chrome.storage.session.get('backgroundPageTabId')).backgroundPageTabId;
+    }
+
+    private async _setBackgroundPageTabId(tabId: number) {
+        await chrome.storage.session.set({ backgroundPageTabId: tabId });
     }
 }

@@ -28,12 +28,16 @@ const _sendAudioBase64 = async (base64: string, preferMp3: boolean) => {
             base64: base64,
         },
     };
-    
+
     chrome.runtime.sendMessage(command);
 };
 
-window.onload = () => {
-    chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+window.onload = async () => {
+    const listener = async (
+        request: any,
+        sender: chrome.runtime.MessageSender,
+        sendResponse: (response?: any) => void
+    ) => {
         if (request.sender === 'asbplayer-extension-to-background-page') {
             switch (request.message.command) {
                 case 'start-recording-audio-with-timeout':
@@ -52,6 +56,11 @@ window.onload = () => {
                     _sendAudioBase64(await audioRecorder.stop(), stopRecordingAudioMessage.preferMp3);
             }
         }
+    };
+    chrome.runtime.onMessage.addListener(listener);
+
+    window.addEventListener('beforeunload', (event) => {
+        chrome.runtime.onMessage.removeListener(listener);
     });
 
     const readyCommand: BackgroundPageToExtensionCommand<BackgroundPageReadyMessage> = {
@@ -60,5 +69,9 @@ window.onload = () => {
             command: 'background-page-ready',
         },
     };
-    chrome.runtime.sendMessage(readyCommand);
+    const acked = await chrome.runtime.sendMessage(readyCommand);
+
+    if (!acked) {
+        window.close();
+    }
 };

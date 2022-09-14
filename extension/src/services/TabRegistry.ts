@@ -31,9 +31,19 @@ interface VideoElement {
 export default class TabRegistry {
     private readonly settings: Settings;
     private onNoSyncedElementsCallback?: () => void;
+    private onSyncedElementCallback?: () => void;
 
     constructor(settings: Settings) {
         this.settings = settings;
+
+        // Update video element state on tab changes
+        // Triggers events for when synced video elements appear/disappear
+        chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
+            this._videoElements();
+        });
+        chrome.tabs.onUpdated.addListener((tabId, removeInfo) => {
+            this._videoElements();
+        });
     }
 
     private async _fetchVideoElementState(): Promise<{ [key: string]: VideoElement }> {
@@ -51,6 +61,8 @@ export default class TabRegistry {
     private async _videoElements(mutator?: (videoElements: { [key: string]: VideoElement }) => boolean) {
         const tabs = await chrome.tabs.query({});
         const videoElements = await this._fetchVideoElementState();
+        const oldVideoElements = { ...videoElements };
+
         let changed = false;
 
         for (const id in videoElements) {
@@ -70,6 +82,15 @@ export default class TabRegistry {
 
         if (changed) {
             this._saveVideoElementState(videoElements);
+        }
+
+        const oldSyncedElementExists = Object.values(oldVideoElements).find((v) => v.synced) !== undefined;
+        const syncedElementExists = Object.values(videoElements).find((v) => v.synced) !== undefined;
+
+        if (this.onNoSyncedElementsCallback !== undefined && oldSyncedElementExists && !syncedElementExists) {
+            this.onNoSyncedElementsCallback();
+        } else if (this.onSyncedElementCallback !== undefined && !oldSyncedElementExists && syncedElementExists) {
+            this.onSyncedElementCallback();
         }
 
         return videoElements;
@@ -189,7 +210,7 @@ export default class TabRegistry {
 
         const tabId = tab.id;
 
-        const videoElements = await this._videoElements((videoElements) => {
+        await this._videoElements((videoElements) => {
             videoElements[tab.id + ':' + src] = {
                 tab: {
                     id: tabId,
@@ -202,17 +223,14 @@ export default class TabRegistry {
             };
             return true;
         });
-
-        if (
-            this.onNoSyncedElementsCallback !== undefined &&
-            Object.values(videoElements).find((v) => v.synced) === undefined
-        ) {
-            this.onNoSyncedElementsCallback();
-        }
     }
 
     onNoSyncedElements(callback: () => void) {
         this.onNoSyncedElementsCallback = callback;
+    }
+
+    onSyncedElement(callback: () => void) {
+        this.onSyncedElementCallback = callback;
     }
 
     async publishTabsToAsbplayers() {
