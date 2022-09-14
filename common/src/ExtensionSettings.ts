@@ -11,8 +11,6 @@ export interface ExtensionKeyBindingsSettings {
     bindSeekToBeginningOfCurrentSubtitle: boolean;
 }
 
-
-
 export interface ExtensionSettings extends ExtensionKeyBindingsSettings {
     displaySubtitles: boolean;
     recordMedia: boolean;
@@ -21,7 +19,7 @@ export interface ExtensionSettings extends ExtensionKeyBindingsSettings {
     cropScreenshot: boolean;
     subsDragAndDrop: boolean;
     autoSync: boolean;
-    lastLanguageSynced: string;
+    lastLanguagesSynced: { [key: string]: string };
     subtitlePositionOffsetBottom: number;
     asbplayerUrl: string;
     lastThemeType: 'dark' | 'light';

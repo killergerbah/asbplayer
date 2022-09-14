@@ -21,12 +21,13 @@ function html() {
 
 export default class VideoDataSyncContainer {
     private readonly context: Binding;
+    private readonly domain: string;
 
     private videoSelectBound?: boolean;
     private imageElement: ImageElement;
     private doneListener?: () => void;
     private autoSync?: boolean;
-    private lastLanguageSynced: string;
+    private lastLanguagesSynced: { [key: string]: string };
     private boundFunction?: (event: Event) => void;
     private requested: boolean;
     private client?: FrameBridgeClient;
@@ -42,9 +43,18 @@ export default class VideoDataSyncContainer {
         this.imageElement = new ImageElement(context.video);
         this.doneListener;
         this.autoSync = false;
-        this.lastLanguageSynced = '';
+        this.lastLanguagesSynced = {};
         this.boundFunction;
         this.requested = false;
+        this.domain = new URL(window.location.href).host;
+    }
+
+    private get lastLanguageSynced() {
+        return this.lastLanguagesSynced[this.domain] ?? '';
+    }
+
+    private set lastLanguageSynced(value: string) {
+        this.lastLanguagesSynced[this.domain] = value;
     }
 
     bindVideoSelect(doneListener: () => void) {
@@ -94,9 +104,9 @@ export default class VideoDataSyncContainer {
         this.doneListener = undefined;
     }
 
-    updateSettings({ autoSync, lastLanguageSynced }: ExtensionSettings) {
+    updateSettings({ autoSync, lastLanguagesSynced }: ExtensionSettings) {
         this.autoSync = autoSync;
-        this.lastLanguageSynced = lastLanguageSynced;
+        this.lastLanguagesSynced = lastLanguagesSynced;
     }
 
     requestSubtitles() {
@@ -222,7 +232,7 @@ export default class VideoDataSyncContainer {
             if ('confirm' === message.command) {
                 if (this.lastLanguageSynced !== message.data.language && this.syncedData) {
                     this.lastLanguageSynced = message.data.language;
-                    await this.context.settings.set({ lastLanguageSynced: this.lastLanguageSynced }).catch(() => {});
+                    await this.context.settings.set({ lastLanguagesSynced: this.lastLanguagesSynced }).catch(() => {});
                 }
 
                 shallUpdate = await this._syncData(message.data.name, message.data.subtitleUrl);
