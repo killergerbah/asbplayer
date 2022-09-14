@@ -5,7 +5,7 @@ const fetchTimeout = 5000;
 
 export default class FrameBridgeServer {
     private readonly bridge: Bridge;
-    private readonly fetches: {[key: string]: (response: any) => void};
+    private readonly fetches: { [key: string]: (response: any) => void };
     private id?: string;
     private windowMessageListener?: (event: MessageEvent) => void;
 
@@ -18,6 +18,10 @@ export default class FrameBridgeServer {
         this.id = uuidv4();
         this.windowMessageListener = (event) => {
             if (event.data.sender !== 'asbplayer-video' || event.data.message.id !== this.id) {
+                return;
+            }
+
+            if (event.source !== window.parent) {
                 return;
             }
 
