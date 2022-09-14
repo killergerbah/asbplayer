@@ -39,7 +39,7 @@ export default class Settings {
         }
 
         return new Promise((resolve, reject) => {
-            chrome.storage.sync.get(parameters, (data) => {
+            chrome.storage.local.get(parameters, (data) => {
                 const result: any = {};
 
                 for (const key in parameters) {
@@ -53,7 +53,7 @@ export default class Settings {
 
     async set(settings: Partial<ExtensionSettings>) {
         return new Promise((resolve, reject) => {
-            chrome.storage.sync.set(settings, () => resolve(undefined));
+            chrome.storage.local.set(settings, () => resolve(undefined));
         });
     }
 }
