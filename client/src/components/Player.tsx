@@ -973,6 +973,7 @@ export default function Player({
                             drawerOpen={drawerOpen}
                             appBarHidden={appBarHidden}
                             compressed={Boolean(videoFileUrl && !videoPopOut)}
+                            copyButtonEnabled={tab === undefined}
                             loading={loadingSubtitles}
                             displayHelp={audioFile?.name || (videoPopOut && videoFile?.name) || undefined}
                             disableKeyEvents={disableKeyEvents}

@@ -100,6 +100,7 @@ interface SubtitleRowProps extends TableRowProps {
     selected: boolean;
     disabled: boolean;
     subtitle: DisplaySubtitleModel;
+    copyButtonEnabled: boolean;
     subtitleRef: RefObject<HTMLTableRowElement>;
     onClickSubtitle: (index: number) => void;
     onCopySubtitle: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => void;
@@ -115,6 +116,7 @@ const SubtitleRow = React.memo((props: SubtitleRowProps) => {
         compressed,
         disabled,
         subtitle,
+        copyButtonEnabled,
         ...tableRowProps
     } = props;
     const classes = useSubtitleRowStyles();
@@ -152,11 +154,13 @@ const SubtitleRow = React.memo((props: SubtitleRowProps) => {
             {...tableRowProps}
         >
             <TableCell className={className}>{content}</TableCell>
-            <TableCell className={classes.copyButton}>
-                <IconButton onClick={(e) => onCopySubtitle(e, index)}>
-                    <FileCopy fontSize={compressed ? 'small' : 'medium'} />
-                </IconButton>
-            </TableCell>
+            {copyButtonEnabled && (
+                <TableCell className={classes.copyButton}>
+                    <IconButton onClick={(e) => onCopySubtitle(e, index)}>
+                        <FileCopy fontSize={compressed ? 'small' : 'medium'} />
+                    </IconButton>
+                </TableCell>
+            )}
             <TableCell className={classes.timestamp}>{subtitle.displayTime}</TableCell>
         </TableRow>
     );
@@ -180,6 +184,7 @@ interface SubtitlePlayerProps {
     length: number;
     jumpToSubtitle?: SubtitleModel;
     compressed: boolean;
+    copyButtonEnabled: boolean;
     loading: boolean;
     drawerOpen: boolean;
     appBarHidden: boolean;
@@ -204,6 +209,7 @@ export default function SubtitlePlayer({
     length,
     jumpToSubtitle,
     compressed,
+    copyButtonEnabled,
     loading,
     drawerOpen,
     appBarHidden,
@@ -690,6 +696,7 @@ export default function SubtitlePlayer({
                                     index={index}
                                     compressed={compressed}
                                     selected={selected}
+                                    copyButtonEnabled={copyButtonEnabled}
                                     disabled={disabledSubtitleTracks[s.track]}
                                     subtitle={subtitles[index]}
                                     subtitleRef={subtitleRefs[index]}
