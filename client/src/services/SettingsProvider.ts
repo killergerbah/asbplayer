@@ -14,8 +14,8 @@ const defaultAudioPaddingStart = 0;
 const defaultAudioPaddingEnd = 500;
 const defaultMaxImageWidth = 0;
 const defaultMaxImageHeight = 0;
-const defaultSurroundingSubtitlesCountRadius = 1;
-const defaultSurroundingSubtitlesTimeRadius = 5000;
+const defaultSurroundingSubtitlesCountRadius = 2;
+const defaultSurroundingSubtitlesTimeRadius = 10000;
 const defaultAutoPausePreference = AutoPausePreference.atEnd;
 
 const ankiConnectUrlKey = 'ankiConnectUrl';
@@ -43,6 +43,8 @@ const audioPaddingStartKey = 'audioPaddingStart';
 const audioPaddingEndKey = 'audioPaddingEnd';
 const maxImageWidthKey = 'maxImageWidth';
 const maxImageHeightKey = 'maxImageHeight';
+const surroundingSubtitlesCountRadiusKey = 'surroundingSubtitlesCountRadius';
+const surroundingSubtitlesTimeRadiusKey = 'surroundingSubtitlesTimeRadius';
 const volumeKey = 'volume';
 const theaterModeKey = 'theaterMode';
 const preferMp3Key = 'preferMp3';
@@ -124,6 +126,8 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.audioPaddingEnd = newSettings.audioPaddingEnd;
         this.maxImageWidth = newSettings.maxImageWidth;
         this.maxImageHeight = newSettings.maxImageHeight;
+        this.surroundingSubtitlesCountRadius = newSettings.surroundingSubtitlesCountRadius;
+        this.surroundingSubtitlesTimeRadius = newSettings.surroundingSubtitlesTimeRadius;
         this.volume = newSettings.volume;
         this.theaterMode = newSettings.theaterMode;
         this.copyToClipboardOnMine = newSettings.copyToClipboardOnMine;
@@ -462,13 +466,19 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     get surroundingSubtitlesCountRadius() {
-        // For now, not configurable
-        return defaultSurroundingSubtitlesCountRadius;
+        return this._getNumberItem(surroundingSubtitlesCountRadiusKey, defaultSurroundingSubtitlesCountRadius);
+    }
+
+    set surroundingSubtitlesCountRadius(surroundingSubtitlesCountRadius) {
+        localStorage.setItem(surroundingSubtitlesCountRadiusKey, String(surroundingSubtitlesCountRadius));
     }
 
     get surroundingSubtitlesTimeRadius() {
-        // For now, not configurable
-        return defaultSurroundingSubtitlesTimeRadius;
+        return this._getNumberItem(surroundingSubtitlesTimeRadiusKey, defaultSurroundingSubtitlesTimeRadius);
+    }
+
+    set surroundingSubtitlesTimeRadius(surroundingSubtitlesTimeRadius) {
+        localStorage.setItem(surroundingSubtitlesTimeRadiusKey, String(surroundingSubtitlesTimeRadius));
     }
 
     get copyToClipboardOnMine() {

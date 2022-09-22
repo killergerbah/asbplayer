@@ -163,6 +163,12 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
     const [audioPaddingEnd, setAudioPaddingEnd] = useState<number>(settings.audioPaddingEnd);
     const [maxImageWidth, setMaxImageWidth] = useState<number>(settings.maxImageWidth);
     const [maxImageHeight, setMaxImageHeight] = useState<number>(settings.maxImageHeight);
+    const [surroundingSubtitlesCountRadius, setSurroundingSubtitlesCountRadius] = useState<number>(
+        settings.surroundingSubtitlesCountRadius
+    );
+    const [surroundingSubtitlesTimeRadius, setSurroundingSubtitlesTimeRadius] = useState<number>(
+        settings.surroundingSubtitlesTimeRadius
+    );
     const [subtitleColor, setSubtitleColor] = useState<string>(settings.subtitleColor);
     const [subtitleSize, setSubtitleSize] = useState<number>(settings.subtitleSize);
     const [subtitleOutlineColor, setSubtitleOutlineColor] = useState<string>(settings.subtitleOutlineColor);
@@ -275,6 +281,16 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
     );
     const handleMaxImageHeight = useCallback(
         (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setMaxImageHeight(Number(e.target.value)),
+        []
+    );
+    const handleSurroundingSubtitlesCountRadius = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) =>
+            setSurroundingSubtitlesCountRadius(Number(e.target.value)),
+        []
+    );
+    const handleSurroundingSubtitlesTimeRadius = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) =>
+            setSurroundingSubtitlesTimeRadius(Number(e.target.value)),
         []
     );
     const handleSubtitleColorChange = useCallback(
@@ -489,8 +505,8 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
             audioPaddingEnd: audioPaddingEnd,
             maxImageWidth: maxImageWidth,
             maxImageHeight: maxImageHeight,
-            surroundingSubtitlesCountRadius: settings.surroundingSubtitlesCountRadius,
-            surroundingSubtitlesTimeRadius: settings.surroundingSubtitlesTimeRadius,
+            surroundingSubtitlesCountRadius: surroundingSubtitlesCountRadius,
+            surroundingSubtitlesTimeRadius: surroundingSubtitlesTimeRadius,
             volume: settings.volume,
             theaterMode: settings.theaterMode,
             copyToClipboardOnMine: copyToClipboardOnMine,
@@ -525,8 +541,8 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
         audioPaddingEnd,
         maxImageWidth,
         maxImageHeight,
-        settings.surroundingSubtitlesCountRadius,
-        settings.surroundingSubtitlesTimeRadius,
+        surroundingSubtitlesCountRadius,
+        surroundingSubtitlesTimeRadius,
         settings.volume,
         settings.theaterMode,
         copyToClipboardOnMine,
@@ -741,6 +757,33 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
                                     inputProps={{
                                         min: 0,
                                         step: 1,
+                                    }}
+                                />
+                                <TextField
+                                    type="number"
+                                    label="Surround Subtitles Count Radius"
+                                    fullWidth
+                                    value={surroundingSubtitlesCountRadius}
+                                    color="secondary"
+                                    onChange={handleSurroundingSubtitlesCountRadius}
+                                    inputProps={{
+                                        min: 1,
+                                        step: 1,
+                                    }}
+                                />
+                                <TextField
+                                    type="number"
+                                    label="Surrounding Subtitles Time Radius"
+                                    fullWidth
+                                    value={surroundingSubtitlesTimeRadius}
+                                    color="secondary"
+                                    onChange={handleSurroundingSubtitlesTimeRadius}
+                                    inputProps={{
+                                        min: 0,
+                                        step: 1,
+                                    }}
+                                    InputProps={{
+                                        endAdornment: <InputAdornment position="end">ms</InputAdornment>,
                                     }}
                                 />
                             </FormGroup>

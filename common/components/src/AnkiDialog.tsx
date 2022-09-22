@@ -8,6 +8,7 @@ import {
     humanReadableTime,
     AnkiSettings,
     SubtitleModel,
+    surroundingSubtitles,
 } from '@project/common';
 import Button from '@material-ui/core/Button';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
@@ -28,6 +29,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import ZoomInIcon from '@material-ui/icons/ZoomIn';
+import ZoomOutIcon from '@material-ui/icons/ZoomOut';
 import SubtitleTextImage from './SubtitleTextImage';
 import TagsTextField from './TagsTextField';
 import { AnkiExportMode } from '@project/common';
@@ -54,11 +56,24 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+const boundaryIntervalSubtitleCountRadius = 1;
+const boundaryIntervalSubtitleTimeRadius = 5000;
+
 function boundaryIntervalFromSliderContext(sliderContext: AnkiDialogSliderContext) {
+    let index = sliderContext.subtitles.findIndex((s) => s.start === sliderContext.subtitleStart);
+    index = index === -1 ? sliderContext.subtitles.length / 2 : index;
+
+    const subtitlesToDisplay = surroundingSubtitles(
+        sliderContext.subtitles,
+        index,
+        boundaryIntervalSubtitleCountRadius,
+        boundaryIntervalSubtitleTimeRadius
+    );
+
     let min = null;
     let max = null;
 
-    for (const s of sliderContext.subtitles) {
+    for (const s of subtitlesToDisplay) {
         if (min === null || s.start < min) {
             min = s.start;
         }
@@ -478,6 +493,18 @@ export function AnkiDialog({
         setTimestampMarks(sliderContext && sliderMarksFromSliderContext(sliderContext, newTimestampBoundaryInterval));
     }, [timestampBoundaryInterval, timestampInterval, sliderContext]);
 
+    const handleZoomOutTimestampInterval = useCallback(() => {
+        if (!timestampBoundaryInterval || !timestampInterval) {
+            return;
+        }
+
+        const newMin = 2 * timestampBoundaryInterval[0] - timestampInterval[0];
+        const newMax = 2 * timestampBoundaryInterval[1] - timestampInterval[1];
+        const newTimestampBoundaryInterval = [newMin, newMax];
+        setTimestampBoundaryInterval(newTimestampBoundaryInterval);
+        setTimestampMarks(sliderContext && sliderMarksFromSliderContext(sliderContext, newTimestampBoundaryInterval));
+    }, [timestampBoundaryInterval, timestampInterval, sliderContext]);
+
     const handleCopyImageToClipboard = useCallback(
         async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
             e.stopPropagation();
@@ -753,6 +780,19 @@ export function AnkiDialog({
                                             onClick={handleZoomInTimestampInterval}
                                         >
                                             <ZoomInIcon />
+                                        </IconButton>
+                                    </span>
+                                </Tooltip>
+                            </Grid>
+                            <Grid item>
+                                <Tooltip title="Zoom Out">
+                                    <span>
+                                        <IconButton
+                                            edge="end"
+                                            style={{ marginTop: -8 }}
+                                            onClick={handleZoomOutTimestampInterval}
+                                        >
+                                            <ZoomOutIcon />
                                         </IconButton>
                                     </span>
                                 </Tooltip>
