@@ -44,6 +44,9 @@ document.addEventListener('DOMContentLoaded', async (e) => {
             case 'open-extension-shortcuts':
                 chrome.tabs.create({ active: true, url: 'chrome://extensions/shortcuts' });
                 break;
+            case 'open-update-url':
+                chrome.tabs.create({ active: true, url: message.url });
+                break;
             default:
                 console.error('Unknown command ' + message.command);
         }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
     Box,
     FormGroup,
@@ -14,9 +14,11 @@ import {
     TextField,
     Typography,
     Link,
+    Button,
 } from '@material-ui/core';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import { ExtensionSettings } from '@project/common';
+import { LatestExtensionInfo } from '../../services/VersionChecker';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -54,16 +56,40 @@ function ExtensionKeyboardShortcut({ commands, commandName, onClick }: Extension
 interface PopupFormProps {
     commands: any;
     settings: any;
+    latestVersionInfo?: LatestExtensionInfo;
     onSettingsChanged: <K extends keyof ExtensionSettings>(key: K, value: ExtensionSettings[K]) => void;
     onOpenExtensionShortcuts: () => void;
+    onOpenUpdateUrl: (url: string) => void;
 }
 
-export default function PopupForm({ commands, settings, onSettingsChanged, onOpenExtensionShortcuts }: PopupFormProps) {
+export default function PopupForm({
+    commands,
+    settings,
+    latestVersionInfo,
+    onSettingsChanged,
+    onOpenExtensionShortcuts,
+    onOpenUpdateUrl,
+}: PopupFormProps) {
     const classes = useStyles();
 
     return (
         <Box className={classes.root}>
             <Grid container direction="column" spacing={2}>
+                <Grid item>
+                    <Typography variant="caption">v{chrome.runtime.getManifest().version}</Typography>
+                </Grid>
+                {latestVersionInfo && (
+                    <Grid item>
+                        <Button
+                            fullWidth
+                            onClick={() => onOpenUpdateUrl(latestVersionInfo.url)}
+                            variant="contained"
+                            color="secondary"
+                        >
+                            Update Available
+                        </Button>
+                    </Grid>
+                )}
                 <Grid item>
                     <FormLabel component="legend">Subtitles</FormLabel>
                     <FormGroup>

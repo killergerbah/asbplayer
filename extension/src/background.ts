@@ -28,8 +28,20 @@ import BackgroundPageAudioRecorder from './services/BackgroundPageAudioRecorder'
 import BackgroundPageReadyHandler from './handlers/backgroundpage/BackgroundPageReadyHandler';
 import AudioBase64Handler from './handlers/backgroundpage/AudioBase64Handler';
 import AckTabsHandler from './handlers/asbplayerv2/AckTabsHandler';
+import VersionChecker from './services/VersionChecker';
 
 const settings = new Settings();
+const versionChecker = new VersionChecker(settings);
+
+chrome.runtime.onStartup.addListener(async () => {
+    const [newVersionAvailable] = await versionChecker.newVersionAvailable();
+
+    if (newVersionAvailable === true) {
+        await chrome.action.setBadgeBackgroundColor({ color: 'red' });
+        await chrome.action.setBadgeText({ text: '!' });
+    }
+});
+
 const tabRegistry = new TabRegistry(settings);
 const backgroundPageAudioRecorder = new BackgroundPageAudioRecorder(tabRegistry);
 const imageCapturer = new ImageCapturer(settings);

@@ -1,10 +1,12 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { CssBaseline } from '@material-ui/core';
 import { createTheme } from './theme';
 import { ThemeProvider } from '@material-ui/core/styles';
 import PopupForm from './PopupForm';
 import Bridge from '../Bridge';
 import { ExtensionSettings } from '@project/common';
+import Settings from '../../services/Settings';
+import VersionChecker, { LatestExtensionInfo } from '../../services/VersionChecker';
 
 interface Props {
     bridge: Bridge;
@@ -22,9 +24,28 @@ export interface OpenExtensionShortcutsMessage {
     command: 'open-extension-shortcuts';
 }
 
+export interface OpenUpdateUrlMessage {
+    command: 'open-update-url';
+    url: string;
+}
+
 export function PopupUi({ bridge, currentSettings, commands }: Props) {
     const [settings, setSettings] = useState(currentSettings);
+    const [latestVersionInfo, setLatestVersionInfo] = useState<LatestExtensionInfo>();
     const theme = useMemo(() => createTheme(currentSettings.lastThemeType || 'dark'), [currentSettings.lastThemeType]);
+    const versionChecker = useMemo(() => new VersionChecker(new Settings()), []);
+
+    useEffect(() => {
+        const checkLatestVersion = async () => {
+            const [newVersionAvailable, latestVersionInfo] = await versionChecker.newVersionAvailable();
+
+            if (newVersionAvailable) {
+                setLatestVersionInfo(latestVersionInfo);
+            }
+        };
+
+        checkLatestVersion();
+    }, [versionChecker]);
 
     function handleSettingsChanged<K extends keyof ExtensionSettings>(key: K, value: ExtensionSettings[K]) {
         setSettings((old: any) => {
@@ -43,14 +64,24 @@ export function PopupUi({ bridge, currentSettings, commands }: Props) {
         bridge.finished(message);
     }, [bridge]);
 
+    const handleOpenUpdateUrl = useCallback(
+        (url: string) => {
+            const message: OpenUpdateUrlMessage = { command: 'open-update-url', url };
+            bridge.finished(message);
+        },
+        [bridge]
+    );
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <PopupForm
                 commands={commands}
                 settings={settings}
+                latestVersionInfo={latestVersionInfo}
                 onSettingsChanged={handleSettingsChangedCallback}
                 onOpenExtensionShortcuts={handleOpenExtensionShortcuts}
+                onOpenUpdateUrl={handleOpenUpdateUrl}
             />
         </ThemeProvider>
     );
