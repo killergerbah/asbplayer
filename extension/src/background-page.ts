@@ -5,7 +5,7 @@ import {
     BackgroundPageReadyMessage,
     AudioBase64Message,
 } from '@project/common';
-import Mp3Encoder from '@project/common/src/Mp3Encoder';
+import { Mp3Encoder } from '@project/common';
 import AudioRecorder from './services/AudioRecorder';
 import { bufferToBase64 } from './services/Base64';
 

@@ -1,5 +1,6 @@
 export { default as KeyBindings } from './src/KeyBindings';
 export { default as AudioClip } from './src/AudioClip';
+export { default as Mp3Encoder } from './src/Mp3Encoder';
 export { default as Image } from './src/Image';
 export * from './src/Anki';
 export { default as CanvasResizer } from './src/CanvasResizer';
