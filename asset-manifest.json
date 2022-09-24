@@ -1,26 +1,26 @@
 {
   "files": {
-    "main.js": "/asbplayer-staging/static/js/main.dcdb9d06.chunk.js",
-    "main.js.map": "/asbplayer-staging/static/js/main.dcdb9d06.chunk.js.map",
-    "runtime-main.js": "/asbplayer-staging/static/js/runtime-main.84745e15.js",
-    "runtime-main.js.map": "/asbplayer-staging/static/js/runtime-main.84745e15.js.map",
-    "static/css/2.aa351a51.chunk.css": "/asbplayer-staging/static/css/2.aa351a51.chunk.css",
-    "static/js/2.a68fbd1c.chunk.js": "/asbplayer-staging/static/js/2.a68fbd1c.chunk.js",
-    "static/js/2.a68fbd1c.chunk.js.map": "/asbplayer-staging/static/js/2.a68fbd1c.chunk.js.map",
-    "static/js/3.be5674d3.chunk.js": "/asbplayer-staging/static/js/3.be5674d3.chunk.js",
-    "static/js/3.be5674d3.chunk.js.map": "/asbplayer-staging/static/js/3.be5674d3.chunk.js.map",
-    "index.html": "/asbplayer-staging/index.html",
-    "static/css/2.aa351a51.chunk.css.map": "/asbplayer-staging/static/css/2.aa351a51.chunk.css.map",
-    "static/js/2.a68fbd1c.chunk.js.LICENSE.txt": "/asbplayer-staging/static/js/2.a68fbd1c.chunk.js.LICENSE.txt",
-    "static/js/mp3-encoder.cb82d5b8.worker.js": "/asbplayer-staging/static/js/mp3-encoder.cb82d5b8.worker.js",
-    "static/js/mp3-encoder.cb82d5b8.worker.js.map": "/asbplayer-staging/static/js/mp3-encoder.cb82d5b8.worker.js.map",
-    "static/media/background-colored.cbc50e45.png": "/asbplayer-staging/static/media/background-colored.cbc50e45.png",
-    "static/media/index.css": "/asbplayer-staging/static/media/roboto-vietnamese-400-normal.c0bec65d.woff2"
+    "main.js": "/asbplayer/static/js/main.5df5ed1e.chunk.js",
+    "main.js.map": "/asbplayer/static/js/main.5df5ed1e.chunk.js.map",
+    "runtime-main.js": "/asbplayer/static/js/runtime-main.02178d59.js",
+    "runtime-main.js.map": "/asbplayer/static/js/runtime-main.02178d59.js.map",
+    "static/css/2.2cc94e60.chunk.css": "/asbplayer/static/css/2.2cc94e60.chunk.css",
+    "static/js/2.1cbf1297.chunk.js": "/asbplayer/static/js/2.1cbf1297.chunk.js",
+    "static/js/2.1cbf1297.chunk.js.map": "/asbplayer/static/js/2.1cbf1297.chunk.js.map",
+    "static/js/3.463ebf6e.chunk.js": "/asbplayer/static/js/3.463ebf6e.chunk.js",
+    "static/js/3.463ebf6e.chunk.js.map": "/asbplayer/static/js/3.463ebf6e.chunk.js.map",
+    "index.html": "/asbplayer/index.html",
+    "static/css/2.2cc94e60.chunk.css.map": "/asbplayer/static/css/2.2cc94e60.chunk.css.map",
+    "static/js/2.1cbf1297.chunk.js.LICENSE.txt": "/asbplayer/static/js/2.1cbf1297.chunk.js.LICENSE.txt",
+    "static/js/mp3-encoder.7f842300.worker.js": "/asbplayer/static/js/mp3-encoder.7f842300.worker.js",
+    "static/js/mp3-encoder.7f842300.worker.js.map": "/asbplayer/static/js/mp3-encoder.7f842300.worker.js.map",
+    "static/media/background-colored.cbc50e45.png": "/asbplayer/static/media/background-colored.cbc50e45.png",
+    "static/media/index.css": "/asbplayer/static/media/roboto-vietnamese-400-normal.c0bec65d.woff2"
   },
   "entrypoints": [
-    "static/js/runtime-main.84745e15.js",
-    "static/css/2.aa351a51.chunk.css",
-    "static/js/2.a68fbd1c.chunk.js",
-    "static/js/main.dcdb9d06.chunk.js"
+    "static/js/runtime-main.02178d59.js",
+    "static/css/2.2cc94e60.chunk.css",
+    "static/js/2.1cbf1297.chunk.js",
+    "static/js/main.5df5ed1e.chunk.js"
   ]
 }
