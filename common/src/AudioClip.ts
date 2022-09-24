@@ -169,24 +169,28 @@ class FileAudioData implements AudioData {
             const audio = await this._audioElement(this.file, true);
 
             audio.oncanplay = async (e) => {
-                audio.play();
-                const stream = this._captureStream(audio);
-                const recorder = new MediaRecorder(stream, { mimeType: this.recorderMimeType });
-                const chunks: BlobPart[] = [];
+                try {
+                    audio.play();
+                    const stream = this._captureStream(audio);
+                    const recorder = new MediaRecorder(stream, { mimeType: this.recorderMimeType });
+                    const chunks: BlobPart[] = [];
 
-                recorder.ondataavailable = (e) => {
-                    chunks.push(e.data);
-                };
+                    recorder.ondataavailable = (e) => {
+                        chunks.push(e.data);
+                    };
 
-                recorder.onstop = (e) => {
-                    resolve(new Blob(chunks, { type: this.recorderMimeType }));
-                };
+                    recorder.onstop = (e) => {
+                        resolve(new Blob(chunks, { type: this.recorderMimeType }));
+                    };
 
-                recorder.start();
-                await this._stopAudio(audio);
-                recorder.stop();
-                for (const track of stream.getAudioTracks()) {
-                    track.stop();
+                    recorder.start();
+                    await this._stopAudio(audio);
+                    recorder.stop();
+                    for (const track of stream.getAudioTracks()) {
+                        track.stop();
+                    }
+                } catch (e) {
+                    reject(e);
                 }
             };
         });
