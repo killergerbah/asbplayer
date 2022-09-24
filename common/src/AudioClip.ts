@@ -18,7 +18,7 @@ interface AudioData {
     blob: () => Promise<Blob>;
     base64: () => Promise<string>;
     slice: (start: number, end: number) => AudioData;
-    isSliceable: (start: number, end: number) => boolean;
+    isSliceable: () => boolean;
 }
 
 class Base64AudioData implements AudioData {
@@ -87,7 +87,7 @@ class Base64AudioData implements AudioData {
         return this;
     }
 
-    isSliceable(start: number, end: number) {
+    isSliceable() {
         return false;
     }
 }
@@ -257,7 +257,7 @@ class FileAudioData implements AudioData {
         return new FileAudioData(this.file, start, end, this.trackId);
     }
 
-    isSliceable(start: number, end: number) {
+    isSliceable() {
         return true;
     }
 }
@@ -312,8 +312,8 @@ class Mp3AudioData implements AudioData {
         return new Mp3AudioData(this.data.slice(start, end), this.workerFactory);
     }
 
-    isSliceable(start: number, end: number) {
-        return this.data.isSliceable(start, end);
+    isSliceable() {
+        return this.data.isSliceable();
     }
 }
 
@@ -373,7 +373,7 @@ export default class AudioClip {
         return new AudioClip(this.data.slice(start, end));
     }
 
-    isSliceable(start: number, end: number) {
-        return this.data.isSliceable(start, end);
+    isSliceable() {
+        return this.data.isSliceable();
     }
 }

@@ -1176,7 +1176,6 @@ function App() {
                                 <AnkiDialog
                                     open={ankiDialogOpen}
                                     disabled={ankiDialogDisabled}
-                                    text={ankiDialogItem?.text}
                                     audioClip={ankiDialogAudioClip}
                                     image={ankiDialogImage}
                                     source={itemSourceString(ankiDialogItem)}

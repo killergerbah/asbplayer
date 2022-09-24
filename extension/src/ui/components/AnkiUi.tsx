@@ -36,7 +36,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
     const [open, setOpen] = useState<boolean>(false);
     const [disabled, setDisabled] = useState<boolean>(false);
     const [subtitle, setSubtitle] = useState<SubtitleModel>();
-    const [text, setText] = useState<string>('');
+    const [text, setText] = useState<string>();
     const [audioClip, setAudioClip] = useState<AudioClip>();
     const [serializedAudio, setSerializedAudio] = useState<AudioModel>();
     const [image, setImage] = useState<Image>();
@@ -96,7 +96,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
 
             if (s.type === 'initial') {
                 const state = s as AnkiUiInitialState;
-                setText(state.subtitle.text);
+                setText(undefined);
                 setInitialTimestampInterval(undefined);
                 setTimestampBoundaryInterval(undefined);
                 setTimestampInterval(undefined);

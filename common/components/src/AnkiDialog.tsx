@@ -17,9 +17,11 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DoneIcon from '@material-ui/icons/Done';
+import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import LockIcon from '@material-ui/icons/Lock';
 import Paper from '@material-ui/core/Paper';
 import RestoreIcon from '@material-ui/icons/Restore';
 import SearchIcon from '@material-ui/icons/Search';
@@ -295,6 +297,17 @@ export function AnkiDialog({
         };
     }
 
+    const textForTimestampInterval = useCallback(
+        (timestampInterval: number[]) => {
+            return sliderContext!.subtitles
+                .filter((s) => subtitleIntersectsTimeInterval(s, timestampInterval))
+                .filter((s) => s.text.trim() !== '')
+                .map((s) => s.text)
+                .join('\n'); 
+        },
+        [sliderContext]
+    );
+
     useEffect(() => {
         setText(initialText ?? '');
         setDefinition(initialDefinition ?? '');
@@ -322,7 +335,13 @@ export function AnkiDialog({
             sliderContext === undefined || timestampInterval === undefined
                 ? []
                 : sliderContext.subtitles.filter((s) => subtitleIntersectsTimeInterval(s, timestampInterval));
-
+        setText(
+            initialText ??
+                selectedSubtitles
+                    .filter((s) => s.text.trim() !== '')
+                    .map((s) => s.text)
+                    .join('\n')
+        );
         setTimestampInterval(timestampInterval);
         setSelectedSubtitles(selectedSubtitles);
         setInitialTimestampInterval(forceInitialTimestampInterval || timestampInterval);
@@ -434,28 +453,41 @@ export function AnkiDialog({
         [image, onViewImage]
     );
 
-    const handleTimestampIntervalChange = useCallback(
-        (e: React.ChangeEvent<{}>, newValue: number | number[]) => {
-            const timestampInterval = newValue as number[];
-            setTimestampInterval(timestampInterval);
-            const selectedSubtitles = sliderContext!.subtitles.filter((s) =>
-                subtitleIntersectsTimeInterval(s, timestampInterval)
-            );
-            setSelectedSubtitles(selectedSubtitles);
-        },
-        [sliderContext]
-    );
-
     const handleApplyTimestampIntervalToText = useCallback(() => {
-        const interval = timestampInterval!;
-        const newText = sliderContext!.subtitles
-            .filter((s) => subtitleIntersectsTimeInterval(s, interval))
-            .map((s) => s.text)
-            .join('\n');
+        if (timestampInterval === undefined) {
+            return;
+        }
 
+        const newText = textForTimestampInterval(timestampInterval);
         setText(newText);
         setLastAppliedTimestampIntervalToText(timestampInterval);
-    }, [timestampInterval, sliderContext]);
+    }, [textForTimestampInterval, timestampInterval]);
+
+    const handleTimestampIntervalChange = useCallback(
+        (e: React.ChangeEvent<{}>, newValue: number | number[]) => {
+            const newTimestampInterval = newValue as number[];
+            setTimestampInterval(newTimestampInterval);
+            const selectedSubtitles = sliderContext!.subtitles.filter((s) =>
+                subtitleIntersectsTimeInterval(s, newTimestampInterval)
+            );
+            setSelectedSubtitles(selectedSubtitles);
+
+            if (lastAppliedTimestampIntervalToText !== undefined) {
+                const expectedUnchangedText = textForTimestampInterval(lastAppliedTimestampIntervalToText);
+
+                if (text.trim() === expectedUnchangedText.trim()) {
+                    const newText = textForTimestampInterval(newTimestampInterval);
+                    setText(newText);
+                    setLastAppliedTimestampIntervalToText(newTimestampInterval);
+                }
+            }
+
+            if (onRerecord === undefined && audioClip?.isSliceable() === true) {
+                setLastAppliedTimestampIntervalToAudio(newTimestampInterval);
+            }
+        },
+        [sliderContext, text, lastAppliedTimestampIntervalToText, textForTimestampInterval]
+    );
 
     const handleApplyTimestampIntervalToAudio = useCallback(
         (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -503,7 +535,7 @@ export function AnkiDialog({
             return;
         }
 
-        const newMin = 2 * timestampBoundaryInterval[0] - timestampInterval[0];
+        const newMin = Math.max(0, 2 * timestampBoundaryInterval[0] - timestampInterval[0]);
         const newMax = 2 * timestampBoundaryInterval[1] - timestampInterval[1];
         const newTimestampBoundaryInterval = [newMin, newMax];
         setTimestampBoundaryInterval(newTimestampBoundaryInterval);
@@ -525,6 +557,29 @@ export function AnkiDialog({
 
     const disableApplyTextSelection =
         !sliderContext || sliderContext.subtitles.filter((s) => s.text.trim() !== '').length === 0;
+
+    let audioActionElement: JSX.Element | undefined = undefined;
+
+    if (onRerecord !== undefined) {
+        audioActionElement = (
+            <Tooltip title="Apply Selection (rerecord)">
+                <span>
+                    <IconButton
+                        disabled={
+                            !timestampInterval ||
+                            !lastAppliedTimestampIntervalToAudio ||
+                            (timestampInterval[0] === lastAppliedTimestampIntervalToAudio[0] &&
+                                timestampInterval[1] === lastAppliedTimestampIntervalToAudio[1])
+                        }
+                        onClick={handleApplyTimestampIntervalToAudio}
+                        edge="end"
+                    >
+                        <FiberManualRecordIcon />
+                    </IconButton>
+                </span>
+            </Tooltip>
+        );
+    }
 
     return (
         <Dialog open={open} disableEnforceFocus fullWidth maxWidth="sm" onClose={onCancel}>
@@ -642,52 +697,14 @@ export function AnkiDialog({
                                 fullWidth
                                 value={audioClip.name}
                                 label="Audio"
+                                helperText={
+                                    onRerecord === undefined &&
+                                    !audioClip.isSliceable() &&
+                                    'Audio clip cannot be updated because it is pre-recorded'
+                                }
                                 InputProps={{
-                                    endAdornment: timestampInterval && (
-                                        <InputAdornment position="end">
-                                            {onRerecord ? (
-                                                <Tooltip title="Apply Selection (rerecord)">
-                                                    <span>
-                                                        <IconButton
-                                                            disabled={
-                                                                !timestampInterval ||
-                                                                !lastAppliedTimestampIntervalToAudio ||
-                                                                (timestampInterval[0] ===
-                                                                    lastAppliedTimestampIntervalToAudio[0] &&
-                                                                    timestampInterval[1] ===
-                                                                        lastAppliedTimestampIntervalToAudio[1])
-                                                            }
-                                                            onClick={handleApplyTimestampIntervalToAudio}
-                                                            edge="end"
-                                                        >
-                                                            <DoneIcon />
-                                                        </IconButton>
-                                                    </span>
-                                                </Tooltip>
-                                            ) : (
-                                                <Tooltip title={'Apply Selection'}>
-                                                    <span>
-                                                        <IconButton
-                                                            disabled={
-                                                                !lastAppliedTimestampIntervalToAudio ||
-                                                                (timestampInterval[0] ===
-                                                                    lastAppliedTimestampIntervalToAudio[0] &&
-                                                                    timestampInterval[1] ===
-                                                                        lastAppliedTimestampIntervalToAudio[1]) ||
-                                                                !audioClip.isSliceable(
-                                                                    timestampInterval[0],
-                                                                    timestampInterval[1]
-                                                                )
-                                                            }
-                                                            onClick={handleApplyTimestampIntervalToAudio}
-                                                            edge="end"
-                                                        >
-                                                            <DoneIcon />
-                                                        </IconButton>
-                                                    </span>
-                                                </Tooltip>
-                                            )}
-                                        </InputAdornment>
+                                    endAdornment: audioActionElement && timestampInterval && (
+                                        <InputAdornment position="end">{audioActionElement}</InputAdornment>
                                     ),
                                 }}
                             />
