@@ -85,6 +85,7 @@ export interface AnkiUiResumeState extends AnkiUiState {
     readonly text: string;
     readonly initialTimestampInterval: number[];
     readonly timestampInterval: number[];
+    readonly timestampBoundaryInterval?: number[];
     readonly sliderContext: AnkiDialogSliderContext;
     readonly definition: string;
     readonly word: string;
@@ -106,6 +107,7 @@ export interface AnkiUiSavedState {
     customFieldValues: { [key: string]: string };
     timestampInterval: number[];
     initialTimestampInterval: number[];
+    timestampBoundaryInterval?: number[];
     lastAppliedTimestampIntervalToText: number[];
     lastAppliedTimestampIntervalToAudio?: number[];
     dialogRequestedTimestamp: number;

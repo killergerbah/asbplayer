@@ -181,6 +181,7 @@ export interface AnkiDialogState {
     lastAppliedTimestampIntervalToText?: number[];
     lastAppliedTimestampIntervalToAudio?: number[];
     initialTimestampInterval?: number[];
+    timestampBoundaryInterval?: number[];
     timestampInterval?: number[];
 }
 
@@ -217,6 +218,7 @@ interface AnkiDialogProps {
     customFields: { [key: string]: string };
     customFieldValues?: { [key: string]: string };
     initialTimestampInterval?: number[];
+    timestampBoundaryInterval?: number[];
     timestampInterval?: number[];
     lastAppliedTimestampIntervalToText?: number[];
     lastAppliedTimestampIntervalToAudio?: number[];
@@ -245,6 +247,7 @@ export function AnkiDialog({
     word: initialWord,
     customFieldValues: initialCustomFieldValues,
     timestampInterval: initialSelectedTimestampInterval,
+    timestampBoundaryInterval: forceTimestampBoundaryInterval,
     initialTimestampInterval: forceInitialTimestampInterval,
     lastAppliedTimestampIntervalToText: initialLastAppliedTimestampIntervalToText,
     lastAppliedTimestampIntervalToAudio: initialLastAppliedTimestampIntervalToAudio,
@@ -285,6 +288,7 @@ export function AnkiDialog({
             url,
             customFieldValues,
             initialTimestampInterval,
+            timestampBoundaryInterval,
             lastAppliedTimestampIntervalToText,
             lastAppliedTimestampIntervalToAudio,
             timestampInterval,
@@ -324,13 +328,14 @@ export function AnkiDialog({
         setInitialTimestampInterval(forceInitialTimestampInterval || timestampInterval);
         setLastAppliedTimestampIntervalToText(initialLastAppliedTimestampIntervalToText || timestampInterval);
         setLastAppliedTimestampIntervalToAudio(initialLastAppliedTimestampIntervalToAudio || timestampInterval);
-        setTimestampBoundaryInterval(timestampBoundaryInterval);
+        setTimestampBoundaryInterval(forceTimestampBoundaryInterval ?? timestampBoundaryInterval);
         setInitialTimestampBoundaryInterval(timestampBoundaryInterval);
         setTimestampMarks(timestampMarks);
     }, [
         sliderContext,
         forceInitialTimestampInterval,
         initialSelectedTimestampInterval,
+        forceTimestampBoundaryInterval,
         initialLastAppliedTimestampIntervalToText,
         initialLastAppliedTimestampIntervalToAudio,
     ]);

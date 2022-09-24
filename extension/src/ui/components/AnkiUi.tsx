@@ -50,6 +50,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
     const [customFieldValues, setCustomFieldValues] = useState<{ [key: string]: string }>({});
     const [initialTimestampInterval, setInitialTimestampInterval] = useState<number[]>();
     const [timestampInterval, setTimestampInterval] = useState<number[]>();
+    const [timestampBoundaryInterval, setTimestampBoundaryInterval] = useState<number[]>();
     const [lastAppliedTimestampIntervalToText, setLastAppliedTimestampIntervalToText] = useState<number[]>();
     const [lastAppliedTimestampIntervalToAudio, setLastAppliedTimestampIntervalToAudio] = useState<number[]>();
     const [settingsProvider, setSettingsProvider] = useState<AnkiSettings>();
@@ -81,6 +82,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             customFieldValues: dialogState.customFieldValues,
             initialTimestampInterval: dialogState.initialTimestampInterval!,
             timestampInterval: dialogState.timestampInterval!,
+            timestampBoundaryInterval: dialogState.timestampBoundaryInterval,
             lastAppliedTimestampIntervalToText: dialogState.lastAppliedTimestampIntervalToText!,
             lastAppliedTimestampIntervalToAudio: dialogState.lastAppliedTimestampIntervalToAudio,
             dialogRequestedTimestamp: dialogRequestedTimestamp,
@@ -96,6 +98,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 const state = s as AnkiUiInitialState;
                 setText(state.subtitle.text);
                 setInitialTimestampInterval(undefined);
+                setTimestampBoundaryInterval(undefined);
                 setTimestampInterval(undefined);
                 setSliderContext({
                     subtitleStart: state.subtitle.start,
@@ -119,6 +122,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 setText(state.text);
                 setInitialTimestampInterval(state.initialTimestampInterval);
                 setTimestampInterval(state.timestampInterval);
+                setTimestampBoundaryInterval(state.timestampBoundaryInterval)
                 setSliderContext(state.sliderContext);
                 setDefinition(state.definition);
                 setWord(state.word);
@@ -295,6 +299,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                     customFields={settingsProvider.customAnkiFields}
                     customFieldValues={customFieldValues}
                     initialTimestampInterval={initialTimestampInterval}
+                    timestampBoundaryInterval={timestampBoundaryInterval}
                     timestampInterval={timestampInterval}
                     lastAppliedTimestampIntervalToText={lastAppliedTimestampIntervalToText}
                     lastAppliedTimestampIntervalToAudio={lastAppliedTimestampIntervalToAudio}
