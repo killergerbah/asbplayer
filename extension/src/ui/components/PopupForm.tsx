@@ -128,7 +128,7 @@ export default function PopupForm({
                                     onChange={(e) => onSettingsChanged('recordMedia', e.target.checked)}
                                 />
                             }
-                            label="Record audio when mining subtitle"
+                            label="Record audio"
                         />
                         <FormControlLabel
                             control={
@@ -137,7 +137,7 @@ export default function PopupForm({
                                     onChange={(e) => onSettingsChanged('screenshot', e.target.checked)}
                                 />
                             }
-                            label="Take screenshot when mining subtitle"
+                            label="Take screenshot"
                         />
                         <FormControlLabel
                             control={
