@@ -95,17 +95,11 @@ export default class SubtitleContainer {
                 this.showingLoadedMessage = false;
             }
 
-            const showOffset = this.lastOffsetChangeTimestamp > 0 && Date.now() - this.lastOffsetChangeTimestamp < 1000;
-
-            if ((!showOffset && !this.displaySubtitles) || this.forceHideSubtitles) {
-                this._hideSubtitles();
-                return;
-            }
-
             if (this.subtitles.length === 0) {
                 return;
             }
 
+            const showOffset = this.lastOffsetChangeTimestamp > 0 && Date.now() - this.lastOffsetChangeTimestamp < 1000;
             const offset = showOffset ? this._computeOffset() : 0;
             const now = 1000 * this.video.currentTime;
             const previous = now - 100;
@@ -143,6 +137,15 @@ export default class SubtitleContainer {
                 this.onWillStopShowing?.();
             }
 
+            if (startedShowing) {
+                this.onStartedShowing?.();
+            }
+
+            if ((!showOffset && !this.displaySubtitles) || this.forceHideSubtitles) {
+                this._hideSubtitles();
+                return;
+            }
+
             if (
                 !this.showingSubtitles ||
                 !this._arrayEquals(showingSubtitles, this.showingSubtitles, (a, b) => a.index === b.index) ||
@@ -158,10 +161,6 @@ export default class SubtitleContainer {
                     this.showingOffset = offset;
                 } else {
                     this.showingOffset = undefined;
-                }
-
-                if (startedShowing) {
-                    this.onStartedShowing?.();
                 }
             }
         }, 100);
