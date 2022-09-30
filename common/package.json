@@ -3,6 +3,7 @@
   "name": "@project/common",
   "version": "0.1.0",
   "dependencies": {
+    "hotkeys-js": "^3.10.0",
     "sanitize-filename": "^1.6.3"
   }
 }

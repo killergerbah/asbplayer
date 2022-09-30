@@ -243,15 +243,19 @@ export default class TabRegistry {
             },
         };
 
-        await this.publishCommandToAsbplayers(tabsCommand);
+        await this.publishCommandToAsbplayers(() => tabsCommand);
     }
 
-    async publishCommandToAsbplayers<T extends Message>(command: Command<T>) {
+    async publishCommandToAsbplayers<T extends Message>(commandFactory: (asbplayer: Asbplayer) => Command<T> | undefined) {
         const asbplayers = await this._asbplayers();
 
         for (const tabId in asbplayers) {
             try {
-                await chrome.tabs.sendMessage(Number(tabId), command);
+                const command = commandFactory(asbplayers[tabId]);
+
+                if (command !== undefined) {
+                    await chrome.tabs.sendMessage(Number(tabId), command);
+                }
             } catch (e) {
                 // Swallow as this usually only indicates that the tab is not an asbplayer tab
             }

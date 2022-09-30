@@ -1,4 +1,9 @@
-import { AsbPlayerToVideoCommandV2, ExtensionToAsbPlayerCommandTabsCommand, Message, VideoTabModel } from '@project/common';
+import {
+    AsbPlayerToVideoCommandV2,
+    ExtensionToAsbPlayerCommandTabsCommand,
+    Message,
+    VideoTabModel,
+} from '@project/common';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface ExtensionMessage {
@@ -9,6 +14,7 @@ export interface ExtensionMessage {
 
 export default class ChromeExtension {
     tabs: VideoTabModel[];
+    installed: boolean;
 
     private readonly onMessageCallbacks: Array<(message: ExtensionMessage) => void>;
     private readonly onTabsCallbacks: Array<(tabs: VideoTabModel[]) => void>;
@@ -22,9 +28,11 @@ export default class ChromeExtension {
         this.onMessageCallbacks = [];
         this.onTabsCallbacks = [];
         this.tabs = [];
+        this.installed = false;
         this.versionPromise = new Promise((resolve, reject) => {
             this.versionResolve = resolve;
         });
+        this.versionPromise.then(() => (this.installed = true));
         this.id = uuidv4();
 
         window.addEventListener('message', (event) => {
@@ -96,6 +104,15 @@ export default class ChromeExtension {
             },
             '*'
         );
+    }
+
+    openShortcuts() {
+        window.postMessage({
+            sender: 'asbplayerv2',
+            message: {
+                command: 'open-extension-shortcuts',
+            },
+        });
     }
 
     async installedVersion(): Promise<string> {

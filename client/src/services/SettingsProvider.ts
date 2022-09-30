@@ -1,4 +1,11 @@
-import { AsbplayerSettings, AsbplayerSettingsProvider, AutoPausePreference } from '@project/common';
+import {
+    AsbplayerSettings,
+    AsbplayerSettingsProvider,
+    AutoPausePreference,
+    KeyBindName,
+    KeyBindSet,
+} from '@project/common';
+import { isMacOs } from 'react-device-detect';
 
 const defaultAnkiConnectUrl = 'http://127.0.0.1:8765';
 const defaultSubtitleSize = 36;
@@ -17,6 +24,27 @@ const defaultMaxImageHeight = 0;
 const defaultSurroundingSubtitlesCountRadius = 2;
 const defaultSurroundingSubtitlesTimeRadius = 10000;
 const defaultAutoPausePreference = AutoPausePreference.atEnd;
+const defaultKeyBindSet: KeyBindSet = {
+    togglePlay: { keys: 'space' },
+    toggleAutoPause: { keys: isMacOs ? '⇧+P' : 'shift+P' },
+    toggleSubtitles: { keys: 'S' },
+    toggleVideoSubtitleTrack1: { keys: '1' },
+    toggleVideoSubtitleTrack2: { keys: '2' },
+    toggleAsbplayerSubtitleTrack1: { keys: 'W+1' },
+    toggleAsbplayerSubtitleTrack2: { keys: 'W+2' },
+    seekBackward: { keys: 'A' },
+    seekForward: { keys: 'D' },
+    seekToPreviousSubtitle: { keys: 'left' },
+    seekToNextSubtitle: { keys: 'right' },
+    seekToBeginningOfCurrentSubtitle: { keys: 'down' },
+    adjustOffsetToPreviousSubtitle: { keys: isMacOs ? '⇧+left' : 'ctrl+left' },
+    adjustOffsetToNextSubtitle: { keys: isMacOs ? '⇧+right' : 'ctrl+right' },
+    decreaseOffset: { keys: isMacOs ? '⇧+⌃+right' : 'ctrl+shift+right' },
+    increaseOffset: { keys: isMacOs ? '⇧+⌃+left' : 'ctrl+shift+left' },
+    copySubtitle: { keys: isMacOs ? '⇧+⌃+Z' : 'ctrl+shift+Z' },
+    ankiExport: { keys: isMacOs ? '⇧+⌃+X' : 'ctrl+shift+X' },
+    updateLastCard: { keys: isMacOs ? '⇧+⌃+U' : 'ctrl+shift+U' },
+};
 
 const ankiConnectUrlKey = 'ankiConnectUrl';
 const deckKey = 'deck';
@@ -51,13 +79,16 @@ const preferMp3Key = 'preferMp3';
 const themeTypeKey = 'themeType';
 const copyToClipboardOnMineKey = 'copyToClipboardOnMine';
 const autoPausePreferenceKey = 'autoPausePreference';
+const keyBindSetKey = 'keyBindSet';
 
 export default class SettingsProvider implements AsbplayerSettingsProvider {
     private _tags?: string[];
+    private _keyBindSet?: KeyBindSet;
 
     constructor() {
-        // Cache tags so that it can be used in useEffect dependencies
+        // Cache for use in useEffect dependencies
         this._tags = this.tags;
+        this._keyBindSet = this.keyBindSet;
     }
 
     get settings(): AsbplayerSettings {
@@ -95,6 +126,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             theaterMode: this.theaterMode,
             copyToClipboardOnMine: this.copyToClipboardOnMine,
             autoPausePreference: this.autoPausePreference,
+            keyBindSet: this.keyBindSet,
         };
     }
 
@@ -132,6 +164,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.theaterMode = newSettings.theaterMode;
         this.copyToClipboardOnMine = newSettings.copyToClipboardOnMine;
         this.autoPausePreference = newSettings.autoPausePreference;
+        this.keyBindSet = newSettings.keyBindSet;
     }
 
     get subtitleSettings() {
@@ -176,6 +209,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             themeType: this.themeType,
             copyToClipboardOnMine: this.copyToClipboardOnMine,
             autoPausePreference: this.autoPausePreference,
+            keyBindSet: this.keyBindSet,
         };
     }
 
@@ -495,5 +529,36 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
 
     set autoPausePreference(autoPausePreference) {
         localStorage.setItem(autoPausePreferenceKey, String(autoPausePreference));
+    }
+
+    get keyBindSet() {
+        if (this._keyBindSet !== undefined) {
+            return this._keyBindSet;
+        }
+
+        let serialized = localStorage.getItem(keyBindSetKey);
+
+        if (serialized === null) {
+            this._keyBindSet = defaultKeyBindSet;
+            return defaultKeyBindSet;
+        }
+
+        const keyBindSet = JSON.parse(serialized);
+
+        for (const key of Object.keys(defaultKeyBindSet)) {
+            const keyBindName = key as KeyBindName;
+
+            if (keyBindSet[keyBindName] === undefined) {
+                keyBindSet[keyBindName] = defaultKeyBindSet[keyBindName];
+            }
+        }
+
+        this._keyBindSet = keyBindSet;
+        return keyBindSet as KeyBindSet;
+    }
+
+    set keyBindSet(keyBindSet) {
+        localStorage.setItem(keyBindSetKey, JSON.stringify(keyBindSet));
+        this._keyBindSet = undefined;
     }
 }

@@ -11,9 +11,6 @@ import {
     AnkiDialogSliderContext,
     SubtitleModel,
     VideoTabModel,
-    SubtitleSettingsToVideoMessage,
-    AnkiSettingsToVideoMessage,
-    MiscSettingsToVideoMessage,
     LegacyPlayerSyncMessage,
     PlayerSyncMessage,
     AudioModel,
@@ -40,6 +37,9 @@ import SettingsProvider from '../services/SettingsProvider';
 import VideoPlayer from './VideoPlayer';
 import { Color } from '@material-ui/lab';
 import { AnkiExportMode } from '@project/common';
+import { DefaultKeyBinder } from '@project/common/src/KeyBinder';
+import AppKeyBinder from '../services/AppKeyBinder';
+import VideoChannel from '../services/VideoChannel';
 
 const latestExtensionVersion = '0.20.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
@@ -226,11 +226,18 @@ function NavigateToVideo({ searchParams }: NavigateToVideoProps) {
 interface RenderVideoProps {
     searchParams: URLSearchParams;
     settingsProvider: SettingsProvider;
+    extension: ChromeExtension;
     onError: (error: string) => void;
     onAutoPauseModeChangedViaBind: (playMode: PlayMode) => void;
 }
 
-function RenderVideo({ searchParams, settingsProvider, onError, onAutoPauseModeChangedViaBind }: RenderVideoProps) {
+function RenderVideo({
+    searchParams,
+    settingsProvider,
+    extension,
+    onError,
+    onAutoPauseModeChangedViaBind,
+}: RenderVideoProps) {
     const videoFile = searchParams.get('video')!;
     const channel = searchParams.get('channel')!;
     const popOut = searchParams.get('popout')! === 'true';
@@ -238,6 +245,7 @@ function RenderVideo({ searchParams, settingsProvider, onError, onAutoPauseModeC
     return (
         <VideoPlayer
             settingsProvider={settingsProvider}
+            extension={extension}
             videoFile={videoFile}
             popOut={popOut}
             channel={channel}
@@ -294,7 +302,13 @@ function App() {
 
     const inVideoPlayer = location.pathname === '/video' || searchParams.get('video') !== null;
     const extension = useMemo<ChromeExtension>(() => new ChromeExtension(), []);
+    const keyBinder = useMemo<AppKeyBinder>(
+        () => new AppKeyBinder(new DefaultKeyBinder(settingsProvider.keyBindSet), extension),
+        [settingsProvider.keyBindSet, extension]
+    );
+    useEffect(() => () => keyBinder.unsubscribeFromExtension(), [keyBinder]);
     const videoFrameRef = useRef<HTMLIFrameElement>(null);
+    const videoChannelRef = useRef<VideoChannel>(null);
     const [width] = useWindowSize(!inVideoPlayer);
     const drawerRatio = videoFrameRef.current ? 0.2 : 0.3;
     const minDrawerSize = videoFrameRef.current ? 150 : 300;
@@ -579,23 +593,11 @@ function App() {
             // so it's the only one we need to check to re-enable key events
             setDisableKeyEvents(ankiDialogOpen);
 
-            const subtitleSettingsMessage: SubtitleSettingsToVideoMessage = {
-                command: 'subtitleSettings',
-                value: settingsProvider.subtitleSettings,
-            };
-            const ankiSettingsMessage: AnkiSettingsToVideoMessage = {
-                command: 'ankiSettings',
-                value: settingsProvider.ankiSettings,
-            };
-            const miscSettingsMessage: MiscSettingsToVideoMessage = {
-                command: 'miscSettings',
-                value: settingsProvider.miscSettings,
-            };
-            extension.publishMessage(subtitleSettingsMessage);
-            extension.publishMessage(ankiSettingsMessage);
-            extension.publishMessage(miscSettingsMessage);
+            videoChannelRef.current?.subtitleSettings(settingsProvider.subtitleSettings);
+            videoChannelRef.current?.ankiSettings(settingsProvider.ankiSettings);
+            videoChannelRef.current?.miscSettings(settingsProvider.miscSettings);
         },
-        [extension, settingsProvider, ankiDialogOpen]
+        [settingsProvider, ankiDialogOpen]
     );
 
     const handleDeleteCopyHistoryItem = useCallback(
@@ -708,9 +710,8 @@ function App() {
 
             for (const item of items) {
                 if (
-                    deduplicated.find(
-                        (i) => i.start === item.start && i.end === item.end && i.text === item.text
-                    ) === undefined
+                    deduplicated.find((i) => i.start === item.start && i.end === item.end && i.text === item.text) ===
+                    undefined
                 ) {
                     deduplicated.push(item);
                 }
@@ -1152,6 +1153,7 @@ function App() {
                             <RenderVideo
                                 searchParams={searchParams}
                                 settingsProvider={settingsProvider}
+                                extension={extension}
                                 onError={handleError}
                                 onAutoPauseModeChangedViaBind={handleAutoPauseModeChangedViaBind}
                             />
@@ -1193,6 +1195,7 @@ function App() {
                                 <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />
                                 <SettingsDialog
                                     anki={anki}
+                                    extension={extension}
                                     open={settingsDialogOpen}
                                     onClose={handleCloseSettings}
                                     settings={settingsProvider.settings}
@@ -1248,6 +1251,7 @@ function App() {
                                         jumpToSubtitle={jumpToSubtitle}
                                         rewindSubtitle={rewindSubtitle}
                                         videoFrameRef={videoFrameRef}
+                                        videoChannelRef={videoChannelRef}
                                         extension={extension}
                                         drawerOpen={copyHistoryOpen}
                                         appBarHidden={appBarHidden}
@@ -1256,6 +1260,7 @@ function App() {
                                         ankiDialogRequested={ankiDialogRequested}
                                         ankiDialogRequestToVideo={ankiDialogRequestToVideo}
                                         ankiDialogFinishedRequest={ankiDialogFinishedRequest}
+                                        keyBinder={keyBinder}
                                     />
                                 </Content>
                             </div>

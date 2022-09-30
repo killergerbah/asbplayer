@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import {
     Box,
     FormGroup,
@@ -17,7 +17,7 @@ import {
     Button,
 } from '@material-ui/core';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
-import { ExtensionSettings } from '@project/common';
+import { ExtensionKeyBindingsSettings, ExtensionSettings } from '@project/common';
 import { LatestExtensionInfo } from '../../services/VersionChecker';
 
 const useStyles = makeStyles((theme) => ({
@@ -52,6 +52,44 @@ function ExtensionKeyboardShortcut({ commands, commandName, onClick }: Extension
         </Link>
     );
 }
+
+interface SyncedVideoKeyboardShortcutRowProps {
+    label: string;
+    enabled: boolean;
+    settingsKey: keyof ExtensionKeyBindingsSettings;
+    onChange: <K extends keyof ExtensionKeyBindingsSettings>(key: K, enabled: boolean) => void;
+}
+
+function SyncedVideoKeyboardShortcutRow({
+    label,
+    enabled,
+    settingsKey,
+    onChange,
+}: SyncedVideoKeyboardShortcutRowProps) {
+    return (
+        <TableRow>
+            <SmallTableCell>
+                <Checkbox checked={enabled} onChange={(e) => onChange(settingsKey, e.target.checked)} />
+            </SmallTableCell>
+            <TableCell>
+                <Typography variant="subtitle2">{label}</Typography>
+            </TableCell>
+        </TableRow>
+    );
+}
+
+const keyboardShortcutLabels: { [key in keyof ExtensionKeyBindingsSettings]: string } = {
+    bindPlay: 'Play/pause',
+    bindAutoPause: 'Toggle auto-pause',
+    bindToggleSubtitles: 'Toggle subtitles',
+    bindToggleSubtitleTrackInVideo: 'Toggle subtitle track in video',
+    bindToggleSubtitleTrackInAsbplayer: 'Toggle subtitle track in asbplayer',
+    bindSeekBackwardOrForward: 'Seek backward/forward 10 seconds',
+    bindSeekToSubtitle: 'Seek to previous/next subtitle',
+    bindSeekToBeginningOfCurrentSubtitle: 'Seek to beginning of current subtitle',
+    bindAdjustOffsetToSubtitle: 'Adjust subtitle offset so that previous/next subtitle is at current timestamp',
+    bindAdjustOffset: 'Adjust offset by +/- 100 ms',
+};
 
 interface PopupFormProps {
     commands: any;
@@ -285,170 +323,17 @@ export default function PopupForm({
                     <TableContainer>
                         <Table size="small">
                             <TableBody>
-                                <TableRow>
-                                    <SmallTableCell>
-                                        <Checkbox
-                                            checked={settings.bindPlay}
-                                            onChange={(e) => onSettingsChanged('bindPlay', e.target.checked)}
+                                {Object.keys(keyboardShortcutLabels).map((key) => {
+                                    const keyBindingSetting = key as keyof ExtensionKeyBindingsSettings;
+                                    return (
+                                        <SyncedVideoKeyboardShortcutRow
+                                            enabled={settings[keyBindingSetting]}
+                                            label={keyboardShortcutLabels[keyBindingSetting]}
+                                            settingsKey={keyBindingSetting}
+                                            onChange={onSettingsChanged}
                                         />
-                                    </SmallTableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">Space</Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">Play/pause</Typography>
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <SmallTableCell>
-                                        <Checkbox
-                                            checked={settings.bindAutoPause}
-                                            onChange={(e) => onSettingsChanged('bindAutoPause', e.target.checked)}
-                                        />
-                                    </SmallTableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">Shift+P</Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">Toggle auto-pause</Typography>
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <SmallTableCell>
-                                        <Checkbox
-                                            checked={settings.bindToggleSubtitles}
-                                            onChange={(e) => onSettingsChanged('bindToggleSubtitles', e.target.checked)}
-                                        />
-                                    </SmallTableCell>
-                                    <TableCell>
-                                        <Typography>S</Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">Toggle subtitles</Typography>
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <SmallTableCell>
-                                        <Checkbox
-                                            checked={settings.bindToggleSubtitleTrackInVideo}
-                                            onChange={(e) =>
-                                                onSettingsChanged('bindToggleSubtitleTrackInVideo', e.target.checked)
-                                            }
-                                        />
-                                    </SmallTableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">S+1, S+2...</Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">
-                                            Toggle subtitle track 1, 2... in video
-                                        </Typography>
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <SmallTableCell>
-                                        <Checkbox
-                                            checked={settings.bindToggleSubtitleTrackInAsbplayer}
-                                            onChange={(e) =>
-                                                onSettingsChanged(
-                                                    'bindToggleSubtitleTrackInAsbplayer',
-                                                    e.target.checked
-                                                )
-                                            }
-                                        />
-                                    </SmallTableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">W+1, W+2...</Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">
-                                            Toggle subtitle track 1, 2... in asbplayer
-                                        </Typography>
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <SmallTableCell>
-                                        <Checkbox
-                                            checked={settings.bindSeekBackwardOrForward}
-                                            onChange={(e) =>
-                                                onSettingsChanged('bindSeekBackwardOrForward', e.target.checked)
-                                            }
-                                        />
-                                    </SmallTableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">A/D</Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">Seek backward/forward by 10 seconds</Typography>
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <SmallTableCell>
-                                        <Checkbox
-                                            checked={settings.bindSeekToSubtitle}
-                                            onChange={(e) => onSettingsChanged('bindSeekToSubtitle', e.target.checked)}
-                                        />
-                                    </SmallTableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">Left/Right</Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">Seek to previous/next subtitle</Typography>
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <SmallTableCell>
-                                        <Checkbox
-                                            checked={settings.bindSeekToBeginningOfCurrentSubtitle}
-                                            onChange={(e) =>
-                                                onSettingsChanged(
-                                                    'bindSeekToBeginningOfCurrentSubtitle',
-                                                    e.target.checked
-                                                )
-                                            }
-                                        />
-                                    </SmallTableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">Down</Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">
-                                            Seek to beginning of current subtitle
-                                        </Typography>
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <SmallTableCell>
-                                        <Checkbox
-                                            checked={settings.bindAdjustOffsetToSubtitle}
-                                            onChange={(e) =>
-                                                onSettingsChanged('bindAdjustOffsetToSubtitle', e.target.checked)
-                                            }
-                                        />
-                                    </SmallTableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">Ctrl+Left/Right or Shift+Left/Right</Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">
-                                            Adjust offset to previous/next subtitle
-                                        </Typography>
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <SmallTableCell>
-                                        <Checkbox
-                                            checked={settings.bindAdjustOffset}
-                                            onChange={(e) => onSettingsChanged('bindAdjustOffset', e.target.checked)}
-                                        />
-                                    </SmallTableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">Ctrl+Shift+Left/Right</Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">Adjust offset by +/- 100 ms</Typography>
-                                    </TableCell>
-                                </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     </TableContainer>

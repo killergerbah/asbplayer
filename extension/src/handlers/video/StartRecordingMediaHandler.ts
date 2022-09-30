@@ -37,13 +37,6 @@ export default class StartRecordingMediaHandler {
     }
 
     async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
-        const windowActive = await this._isWindowActive(sender.tab!.windowId);
-
-        if (!windowActive) {
-            console.error('Received record request from wrong window.');
-            return;
-        }
-
         const startRecordingCommand = command as VideoToExtensionCommand<StartRecordingMediaMessage>;
 
         if (startRecordingCommand.message.record) {
@@ -157,13 +150,5 @@ export default class StartRecordingMediaHandler {
                 chrome.tabs.sendMessage(sender.tab!.id!, cardUpdatedCommand);
             }
         }
-    }
-
-    async _isWindowActive(windowId: number) {
-        return new Promise((resolve, reject) => {
-            chrome.windows.getLastFocused((window) => {
-                resolve(window.id === windowId);
-            });
-        });
     }
 }

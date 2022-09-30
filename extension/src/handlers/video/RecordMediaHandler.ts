@@ -44,13 +44,6 @@ export default class RecordMediaHandler {
         const recordMediaCommand = command as VideoToExtensionCommand<RecordMediaAndForwardSubtitleMessage>;
 
         try {
-            const windowActive = await this._isWindowActive(senderTab.windowId);
-
-            if (!windowActive) {
-                console.error('Received record request from wrong window.');
-                return;
-            }
-
             const itemId = uuidv4();
             const subtitle = recordMediaCommand.message.subtitle;
             let audioPromise = undefined;
@@ -122,7 +115,7 @@ export default class RecordMediaHandler {
                 tabId: senderTab.id!,
                 src: recordMediaCommand.src,
             };
-            this.tabRegistry.publishCommandToAsbplayers(copyCommand);
+            this.tabRegistry.publishCommandToAsbplayers(() => copyCommand);
 
             if (recordMediaCommand.message.postMineAction == PostMineAction.showAnkiDialog) {
                 const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {
@@ -182,13 +175,5 @@ export default class RecordMediaHandler {
                 chrome.tabs.sendMessage(senderTab.id!, recordingFinishedCommand);
             }
         }
-    }
-
-    async _isWindowActive(windowId: number) {
-        return new Promise((resolve, reject) => {
-            chrome.windows.getLastFocused((window) => {
-                resolve(window.id === windowId);
-            });
-        });
     }
 }

@@ -1,16 +1,19 @@
 import {
     ExtensionKeyBindingsSettings,
-    KeyBindings as CommonKeyBindings,
+    KeyBindSet,
     ToggleSubtitlesInListFromVideoMessage,
     ToggleSubtitlesMessage,
     VideoToExtensionCommand,
 } from '@project/common';
+import { DefaultKeyBinder } from '@project/common/src/KeyBinder';
 import Binding from './Binding';
 
 type Unbinder = (() => void) | false;
 
 export default class KeyBindings {
     settings?: ExtensionKeyBindingsSettings;
+
+    private keyBinder: DefaultKeyBinder | undefined;
 
     private unbindPlay: Unbinder = false;
     private unbindAutoPause: Unbinder = false;
@@ -29,9 +32,19 @@ export default class KeyBindings {
         this.bound = false;
     }
 
+    set keyBindSet(keyBindSet: KeyBindSet) {
+        this.unbind();
+        this.keyBinder = new DefaultKeyBinder(keyBindSet);
+    }
+
     bind(context: Binding) {
         if (!this.settings) {
             console.error('Settings are not defined - cannot bind keys');
+            return;
+        }
+
+        if (!this.keyBinder) {
+            console.error('KeyBinder not defined (probably did not receive KeyBindSet) - cannot bind keys');
             return;
         }
 
@@ -41,7 +54,7 @@ export default class KeyBindings {
 
         this.unbindPlay =
             this.settings.bindPlay &&
-            CommonKeyBindings.bindPlay(
+            this.keyBinder.bindPlay(
                 (event) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -58,7 +71,7 @@ export default class KeyBindings {
 
         this.unbindAutoPause =
             this.settings.bindAutoPause &&
-            CommonKeyBindings.bindAutoPause(
+            this.keyBinder.bindAutoPause(
                 (event) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -71,7 +84,7 @@ export default class KeyBindings {
 
         this.unbindSeekToSubtitle =
             this.settings.bindSeekToSubtitle &&
-            CommonKeyBindings.bindSeekToSubtitle(
+            this.keyBinder.bindSeekToSubtitle(
                 (event, subtitle) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -85,7 +98,7 @@ export default class KeyBindings {
 
         this.unbindSeekBackwardOrForward =
             this.settings.bindSeekBackwardOrForward &&
-            CommonKeyBindings.bindSeekBackwardOrForward(
+            this.keyBinder.bindSeekBackwardOrForward(
                 (event, forward) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -102,7 +115,7 @@ export default class KeyBindings {
 
         this.unbindSeekToBeginningOfCurrentSubtitle =
             this.settings.bindSeekToBeginningOfCurrentSubtitle &&
-            CommonKeyBindings.bindSeekToBeginningOfCurrentSubtitle(
+            this.keyBinder.bindSeekToBeginningOfCurrentSubtitle(
                 (event, subtitle) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -114,13 +127,9 @@ export default class KeyBindings {
                 true
             );
 
-        // We don't stop immediate propagation for "toggle subtitles" when "toggle-subtitle-track" is enabled
-        // because we have knowledge that the "toggle-subtitle" sequence is a subset of the "toggle-subtitle-track" sequence,
-        // and we need the the "toggle-subtitle-track" sequence to receive the key event as well so that it can, for example, cancel itself.
-        // Might be worth rethinking the KeyBindings API so we don't need this extra knowledge for things to work.
         this.unbindToggleSubtitles =
             this.settings.bindToggleSubtitles &&
-            CommonKeyBindings.bindToggleSubtitles(
+            this.keyBinder.bindToggleSubtitles(
                 (event) => {
                     if (this.settings && !this.settings.bindToggleSubtitleTrackInAsbplayer) {
                         event.preventDefault();
@@ -137,28 +146,18 @@ export default class KeyBindings {
 
                     chrome.runtime.sendMessage(toggleSubtitlesCommand);
                 },
-                (event) => {
-                    if (this.settings && !this.settings.bindToggleSubtitleTrackInAsbplayer) {
-                        event.preventDefault();
-                        event.stopImmediatePropagation();
-                    }
-                },
                 () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
                 true
             );
 
         this.unbindToggleSubtitleTrackInVideo =
             this.settings.bindToggleSubtitleTrackInVideo &&
-            CommonKeyBindings.bindToggleSubtitleTrackInVideo(
+            this.keyBinder.bindToggleSubtitleTrackInVideo(
                 (event, track) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
                     context.subtitleContainer.disabledSubtitleTracks[track] =
                         !context.subtitleContainer.disabledSubtitleTracks[track];
-                },
-                (event) => {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
                 },
                 () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
                 true
@@ -166,7 +165,7 @@ export default class KeyBindings {
 
         this.unbindToggleSubtitleTrackInList =
             this.settings.bindToggleSubtitleTrackInAsbplayer &&
-            CommonKeyBindings.bindToggleSubtitleTrackInList(
+            this.keyBinder.bindToggleSubtitleTrackInList(
                 (event, track) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -180,14 +179,13 @@ export default class KeyBindings {
                     };
                     chrome.runtime.sendMessage(command);
                 },
-                (event) => {},
                 () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
                 true
             );
 
         this.unbindOffsetToSubtitle =
             this.settings.bindAdjustOffsetToSubtitle &&
-            CommonKeyBindings.bindOffsetToSubtitle(
+            this.keyBinder.bindOffsetToSubtitle(
                 (event, offset) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -201,7 +199,7 @@ export default class KeyBindings {
 
         this.unbindAdjustOffset =
             this.settings.bindAdjustOffset &&
-            CommonKeyBindings.bindAdjustOffset(
+            this.keyBinder.bindAdjustOffset(
                 (event, offset) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();

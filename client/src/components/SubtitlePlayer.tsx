@@ -4,10 +4,10 @@ import { keysAreEqual } from '../services/Util';
 import { useWindowSize } from '../hooks/useWindowSize';
 import {
     AsbplayerSettingsProvider,
-    KeyBindings,
     PostMineAction,
     surroundingSubtitles,
     SubtitleModel,
+    KeyBinder,
 } from '@project/common';
 import { SubtitleTextImage } from '@project/common/components';
 import FileCopy from '@material-ui/icons/FileCopy';
@@ -194,6 +194,7 @@ interface SubtitlePlayerProps {
     hidden: boolean;
     disabledSubtitleTracks: { [track: number]: boolean };
     settingsProvider: AsbplayerSettingsProvider;
+    keyBinder: KeyBinder;
 }
 
 export default function SubtitlePlayer({
@@ -219,6 +220,7 @@ export default function SubtitlePlayer({
     hidden,
     disabledSubtitleTracks,
     settingsProvider,
+    keyBinder,
 }: SubtitlePlayerProps) {
     const playingRef = useRef<boolean>();
     playingRef.current = playing;
@@ -417,7 +419,7 @@ export default function SubtitlePlayer({
     }, [lastJumpToTopTimestamp]);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindAdjustOffset(
+        const unbind = keyBinder.bindAdjustOffset(
             (event, offset) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -428,10 +430,10 @@ export default function SubtitlePlayer({
         );
 
         return () => unbind();
-    }, [onOffsetChange, disableKeyEvents, subtitles]);
+    }, [keyBinder, onOffsetChange, disableKeyEvents, subtitles]);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindOffsetToSubtitle(
+        const unbind = keyBinder.bindOffsetToSubtitle(
             (event, offset) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -443,10 +445,10 @@ export default function SubtitlePlayer({
         );
 
         return () => unbind();
-    }, [onOffsetChange, disableKeyEvents, clock, subtitles, length]);
+    }, [keyBinder, onOffsetChange, disableKeyEvents, clock, subtitles, length]);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindSeekToSubtitle(
+        const unbind = keyBinder.bindSeekToSubtitle(
             (event, subtitle) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -458,10 +460,10 @@ export default function SubtitlePlayer({
         );
 
         return () => unbind();
-    }, [onSeek, subtitles, disableKeyEvents, clock, length]);
+    }, [keyBinder, onSeek, subtitles, disableKeyEvents, clock, length]);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindSeekToBeginningOfCurrentSubtitle(
+        const unbind = keyBinder.bindSeekToBeginningOfCurrentSubtitle(
             (event, subtitle) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -473,10 +475,10 @@ export default function SubtitlePlayer({
         );
 
         return () => unbind();
-    }, [onSeek, subtitles, disableKeyEvents, clock, length]);
+    }, [keyBinder, onSeek, subtitles, disableKeyEvents, clock, length]);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindSeekBackwardOrForward(
+        const unbind = keyBinder.bindSeekBackwardOrForward(
             (event, forward) => {
                 event.stopPropagation();
                 event.preventDefault();
@@ -490,7 +492,7 @@ export default function SubtitlePlayer({
         );
 
         return () => unbind();
-    }, [clock, length, disableKeyEvents, onSeek]);
+    }, [keyBinder, clock, length, disableKeyEvents, onSeek]);
 
     useEffect(() => {
         function handleScroll() {
@@ -557,45 +559,46 @@ export default function SubtitlePlayer({
         return calculateSurroundingSubtitlesForIndex(index);
     }, [calculateSurroundingSubtitlesForIndex]);
 
+    const calculateCurrentSubtitle = useCallback(() => {
+        const subtitleIndexes = Object.keys(selectedSubtitleIndexesRef.current).map((i) => Number(i));
+
+        if (!subtitles || !subtitleIndexes || subtitleIndexes.length === 0) {
+            return undefined;
+        }
+
+        const index = Math.min(...subtitleIndexes);
+        return subtitles[index];
+    }, [subtitles]);
+
     useEffect(() => {
-        const unbind = KeyBindings.bindCopy(
+        const unbind = keyBinder.bindCopy(
             (event, subtitle) => {
                 event.preventDefault();
                 event.stopPropagation();
                 onCopy(subtitle, calculateSurroundingSubtitles(), PostMineAction.none, false);
             },
             () => disableKeyEventsRef.current ?? false,
-            () => {
-                const subtitleIndexes = Object.keys(selectedSubtitleIndexesRef.current).map((i) => Number(i));
-
-                if (!subtitles || !subtitleIndexes || subtitleIndexes.length === 0) {
-                    return undefined;
-                }
-
-                const index = Math.min(...subtitleIndexes);
-                return subtitles[index];
-            }
+            () => calculateCurrentSubtitle()
         );
 
         return () => unbind();
-    }, [subtitles, calculateSurroundingSubtitles, onCopy]);
+    }, [keyBinder, calculateCurrentSubtitle, calculateSurroundingSubtitles, onCopy]);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindToggleSubtitleTrackInList(
+        const unbind = keyBinder.bindToggleSubtitleTrackInList(
             (event, track) => {
                 event.preventDefault();
                 event.stopPropagation();
                 onToggleSubtitleTrack(track);
             },
-            () => {},
             () => disableKeyEvents
         );
 
         return () => unbind();
-    }, [disableKeyEvents, onToggleSubtitleTrack]);
+    }, [keyBinder, disableKeyEvents, onToggleSubtitleTrack]);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindAnkiExport(
+        const unbind = keyBinder.bindAnkiExport(
             (event) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -615,10 +618,10 @@ export default function SubtitlePlayer({
         );
 
         return () => unbind();
-    }, [onCopy, disableKeyEvents, subtitles, calculateSurroundingSubtitlesForIndex]);
+    }, [keyBinder, onCopy, disableKeyEvents, subtitles, calculateSurroundingSubtitlesForIndex]);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindUpdateLastCard(
+        const unbind = keyBinder.bindUpdateLastCard(
             (event) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -638,7 +641,7 @@ export default function SubtitlePlayer({
         );
 
         return () => unbind();
-    }, [onCopy, disableKeyEvents, subtitles, calculateSurroundingSubtitlesForIndex]);
+    }, [keyBinder, onCopy, disableKeyEvents, subtitles, calculateSurroundingSubtitlesForIndex]);
 
     const handleClick = useCallback(
         (index: number) => {

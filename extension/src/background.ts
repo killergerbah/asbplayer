@@ -18,6 +18,7 @@ import { CommandHandler } from './handlers/CommandHandler';
 import {
     Command,
     CopySubtitleMessage,
+    ExtensionToAsbPlayerCommand,
     ExtensionToVideoCommand,
     Message,
     PostMineAction,
@@ -29,6 +30,7 @@ import BackgroundPageReadyHandler from './handlers/backgroundpage/BackgroundPage
 import AudioBase64Handler from './handlers/backgroundpage/AudioBase64Handler';
 import AckTabsHandler from './handlers/asbplayerv2/AckTabsHandler';
 import VersionChecker from './services/VersionChecker';
+import OpenExtensionShortcutsHandler from './handlers/asbplayerv2/OpenExtensionShortcutsHandler';
 
 const settings = new Settings();
 const versionChecker = new VersionChecker(settings);
@@ -60,6 +62,7 @@ const handlers: CommandHandler[] = [
     new AsbplayerToVideoCommandForwardingHandler(),
     new AsbplayerHeartbeatHandler(tabRegistry),
     new AckTabsHandler(tabRegistry),
+    new OpenExtensionShortcutsHandler(),
     new AsbplayerV2ToVideoCommandForwardingHandler(),
     new RefreshSettingsHandler(tabRegistry),
     new BackgroundPageReadyHandler(backgroundPageAudioRecorder),
@@ -81,7 +84,7 @@ chrome.runtime.onMessage.addListener((request: Command<Message>, sender, sendRes
 });
 
 chrome.commands.onCommand.addListener((command) => {
-    chrome.tabs.query({ active: true }, (tabs) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (!tabs || tabs.length === 0) {
             return;
         }
@@ -90,6 +93,7 @@ chrome.commands.onCommand.addListener((command) => {
             case 'copy-subtitle':
             case 'update-last-card':
             case 'copy-subtitle-with-dialog':
+                const postMineAction = postMineActionFromCommand(command);
                 tabRegistry.publishCommandToVideoElements((videoElement) => {
                     if (tabs.find((t) => t.id === videoElement.tab.id) === undefined) {
                         return undefined;
@@ -99,11 +103,26 @@ chrome.commands.onCommand.addListener((command) => {
                         sender: 'asbplayer-extension-to-video',
                         message: {
                             command: 'copy-subtitle',
-                            postMineAction: postMineActionFromCommand(command),
+                            postMineAction: postMineAction,
                         },
                         src: videoElement.src,
                     };
                     return extensionToVideoCommand;
+                });
+
+                tabRegistry.publishCommandToAsbplayers((asbplayer) => {
+                    if (tabs.find((t) => t.id === asbplayer.tab.id) === undefined) {
+                        return undefined;
+                    }
+
+                    const extensionToPlayerCommand: Command<CopySubtitleMessage> = {
+                        sender: 'asbplayer-extension-to-player',
+                        message: {
+                            command: 'copy-subtitle',
+                            postMineAction: postMineAction,
+                        },
+                    };
+                    return extensionToPlayerCommand;
                 });
                 break;
             case 'toggle-video-select':

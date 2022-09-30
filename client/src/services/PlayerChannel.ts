@@ -1,5 +1,7 @@
 import {
     AnkiDialogRequestFromVideoMessage,
+    AnkiSettings,
+    AnkiSettingsToVideoMessage,
     AppBarToggleMessageToVideoMessage,
     AudioTrackModel,
     AudioTrackSelectedFromVideoMessage,
@@ -8,6 +10,8 @@ import {
     CurrentTimeToVideoMessage,
     FinishedAnkiDialogRequestToVideoMessage,
     HideSubtitlePlayerToggleToVideoMessage,
+    MiscSettings,
+    MiscSettingsToVideoMessage,
     OffsetFromVideoMessage,
     PauseFromVideoMessage,
     PlayFromVideoMessage,
@@ -18,6 +22,8 @@ import {
     ReadyStateFromVideoMessage,
     ReadyToVideoMessage,
     SubtitleModel,
+    SubtitleSettings,
+    SubtitleSettingsToVideoMessage,
     SubtitlesToVideoMessage,
     ToggleSubtitleTrackInListFromVideoMessage,
 } from '@project/common';
@@ -25,7 +31,6 @@ import {
 export default class PlayerChannel {
     private channel?: BroadcastChannel;
     private time: number;
-    private duration: number;
     private readyCallbacks: ((duration: number) => void)[];
     private playCallbacks: (() => void)[];
     private pauseCallbacks: (() => void)[];
@@ -38,11 +43,13 @@ export default class PlayerChannel {
     private appBarToggleCallbacks: ((hidden: boolean) => void)[];
     private ankiDialogRequestCallbacks: (() => void)[];
     private finishedAnkiDialogRequestCallbacks: ((resume: boolean) => void)[];
+    private subtitleSettingsCallbacks: ((subtitleSettings: SubtitleSettings) => void)[];
+    private miscSettingsCallbacks: ((miscSettings: MiscSettings) => void)[];
+    private ankiSettingsCallbacks: ((ankiSettings: AnkiSettings) => void)[];
 
     constructor(channel: string) {
         this.channel = new BroadcastChannel(channel);
         this.time = 0;
-        this.duration = 0;
         this.playCallbacks = [];
         this.pauseCallbacks = [];
         this.currentTimeCallbacks = [];
@@ -55,6 +62,9 @@ export default class PlayerChannel {
         this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.finishedAnkiDialogRequestCallbacks = [];
+        this.subtitleSettingsCallbacks = [];
+        this.miscSettingsCallbacks = [];
+        this.ankiSettingsCallbacks = [];
 
         const that = this;
 
@@ -107,7 +117,11 @@ export default class PlayerChannel {
                     }
                     break;
                 case 'subtitleSettings':
-                    // ignore
+                    const subtitleSettingsMessage = event.data as SubtitleSettingsToVideoMessage;
+
+                    for (let callback of that.subtitleSettingsCallbacks) {
+                        callback(subtitleSettingsMessage.value);
+                    }
                     break;
                 case 'playMode':
                     const playModeMessage = event.data as PlayModeMessage;
@@ -143,10 +157,18 @@ export default class PlayerChannel {
                     }
                     break;
                 case 'ankiSettings':
-                    // ignore
+                    const ankiSettingsMessage = event.data as AnkiSettingsToVideoMessage;
+
+                    for (let callback of that.ankiSettingsCallbacks) {
+                        callback(ankiSettingsMessage.value);
+                    }
                     break;
                 case 'miscSettings':
-                    // ignore
+                    const miscSettingsMessage = event.data as MiscSettingsToVideoMessage;
+
+                    for (let callback of that.miscSettingsCallbacks) {
+                        callback(miscSettingsMessage.value);
+                    }
                     break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
@@ -205,6 +227,18 @@ export default class PlayerChannel {
 
     onFinishedAnkiDialogRequest(callback: (resume: boolean) => void) {
         this.finishedAnkiDialogRequestCallbacks.push(callback);
+    }
+
+    onSubtitleSettings(callback: (subtitleSettings: SubtitleSettings) => void){
+        this.subtitleSettingsCallbacks.push(callback);
+    }
+
+    onMiscSettings(callback: (miscSettings: MiscSettings) => void) {
+        this.miscSettingsCallbacks.push(callback);
+    }
+
+    onAnkiSettings(callback: (ankiSettings: AnkiSettings) => void) {
+        this.ankiSettingsCallbacks.push(callback);
     }
 
     ready(
@@ -317,6 +351,9 @@ export default class PlayerChannel {
             this.appBarToggleCallbacks = [];
             this.ankiDialogRequestCallbacks = [];
             this.finishedAnkiDialogRequestCallbacks = [];
+            this.subtitleSettingsCallbacks = [];
+            this.miscSettingsCallbacks = [];
+            this.ankiSettingsCallbacks = [];
         }
     }
 }

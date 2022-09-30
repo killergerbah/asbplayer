@@ -7,7 +7,7 @@ import {
     AudioTrackModel,
     AutoPausePreference,
     ImageModel,
-    KeyBindings,
+    KeyBinder,
     mockSurroundingSubtitles,
     PlayMode,
     PostMineAction,
@@ -89,8 +89,10 @@ interface PlayerProps {
     sources: MediaSources;
     subtitleReader: SubtitleReader;
     settingsProvider: AsbplayerSettingsProvider;
+    keyBinder: KeyBinder;
     extension: ChromeExtension;
     videoFrameRef: MutableRefObject<HTMLIFrameElement | null>;
+    videoChannelRef: MutableRefObject<VideoChannel | null>;
     drawerOpen: boolean;
     appBarHidden: boolean;
     videoPopOut: boolean;
@@ -133,8 +135,10 @@ export default function Player({
     sources: { subtitleFiles, audioFile, audioFileUrl, videoFile, videoFileUrl },
     subtitleReader,
     settingsProvider,
+    keyBinder,
     extension,
     videoFrameRef,
+    videoChannelRef,
     drawerOpen,
     appBarHidden,
     videoPopOut,
@@ -254,6 +258,7 @@ export default function Player({
                 videoRef.current.close();
             }
             videoRef.current = undefined;
+            videoChannelRef.current = null;
             clock.setTime(0);
             clock.stop();
             setOffset(0);
@@ -323,6 +328,7 @@ export default function Player({
                 }
 
                 videoRef.current = channel;
+                videoChannelRef.current = channel;
                 let subscribed = false;
 
                 channel.onExit(() => videoFileUrl && onUnloadVideo(videoFileUrl));
@@ -476,6 +482,7 @@ export default function Player({
         tab,
         forceUpdate,
         videoFrameRef,
+        videoChannelRef,
         applyOffset,
     ]);
 
@@ -763,7 +770,7 @@ export default function Player({
     }, [clock, subtitles, mediaAdapter, seek, tab]);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindPlay(
+        const unbind = keyBinder.bindPlay(
             (event) => {
                 event.preventDefault();
 
@@ -777,10 +784,10 @@ export default function Player({
         );
 
         return () => unbind();
-    }, [playing, clock, mediaAdapter, disableKeyEvents]);
+    }, [keyBinder, playing, clock, mediaAdapter, disableKeyEvents]);
 
     useEffect(() => {
-        return KeyBindings.bindAutoPause(
+        return keyBinder.bindAutoPause(
             (event) => {
                 if (tab) {
                     return;
@@ -793,11 +800,11 @@ export default function Player({
             },
             () => disableKeyEvents
         );
-    }, [disableKeyEvents, settingsProvider, playMode, tab, onAutoPauseModeChangedViaBind]);
+    }, [keyBinder, disableKeyEvents, settingsProvider, playMode, tab, onAutoPauseModeChangedViaBind]);
 
     useEffect(() => {
         if ((audioFile || videoFile) && (!subtitles || subtitles.length === 0)) {
-            const unbindCopy = KeyBindings.bindCopy(
+            const unbindCopy = keyBinder.bindCopy(
                 (event, subtitle) => {
                     event.preventDefault();
                     event.stopPropagation();
@@ -839,7 +846,7 @@ export default function Player({
                 }
             );
 
-            const unbindAnkiExport = KeyBindings.bindAnkiExport(
+            const unbindAnkiExport = keyBinder.bindAnkiExport(
                 (event) => {
                     event.preventDefault();
                     event.stopPropagation();
@@ -879,7 +886,7 @@ export default function Player({
                 unbindAnkiExport();
             };
         }
-    }, [audioFile, videoFile, subtitles, clock, selectedAudioTrack, disableKeyEvents, onCopy, onAnkiDialogRequest]);
+    }, [keyBinder, audioFile, videoFile, subtitles, clock, selectedAudioTrack, disableKeyEvents, onCopy, onAnkiDialogRequest]);
 
     useEffect(() => {
         if (videoRef.current instanceof VideoChannel) {
@@ -987,6 +994,7 @@ export default function Player({
                             onStartedShowing={handleOnStartedShowingSubtitle}
                             onWillStopShowing={handleOnWillStopShowingSubtitle}
                             settingsProvider={settingsProvider}
+                            keyBinder={keyBinder}
                         />
                     </Grid>
                 )}

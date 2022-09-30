@@ -32,13 +32,6 @@ export default class TakeScreenshotHandler {
 
     async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
         const senderTab = sender.tab!;
-        const windowActive = await this._isWindowActive(senderTab.windowId);
-
-        if (!windowActive) {
-            console.error('Received screenshot request from wrong window.');
-            return;
-        }
-
         const takeScreenshotCommand = command as VideoToExtensionCommand<TakeScreenshotFromExtensionMessage>;
 
         await this.imageCapturer.capture(
@@ -76,7 +69,7 @@ export default class TakeScreenshotHandler {
                 src: takeScreenshotCommand.src,
             };
 
-            this.tabRegistry.publishCommandToAsbplayers(copyCommand);
+            this.tabRegistry.publishCommandToAsbplayers(() => copyCommand);
         }
 
         const screenshotTakenCommand: ExtensionToVideoCommand<ScreenshotTakenMessage> = {
@@ -89,13 +82,5 @@ export default class TakeScreenshotHandler {
         };
 
         chrome.tabs.sendMessage(senderTab.id!, screenshotTakenCommand);
-    }
-
-    async _isWindowActive(windowId: number) {
-        return new Promise((resolve, reject) => {
-            chrome.windows.getLastFocused((window) => {
-                resolve(window.id === windowId);
-            });
-        });
     }
 }

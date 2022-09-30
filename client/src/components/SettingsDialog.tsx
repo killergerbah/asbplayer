@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useMemo, ChangeEvent, ReactNode } from 'react';
+import React, { useCallback, useState, useEffect, useMemo, ChangeEvent, ReactNode, useRef } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { computeStyles } from '../services/Util';
 import Button from '@material-ui/core/Button';
@@ -8,6 +8,7 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import EditIcon from '@material-ui/icons/Edit';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
@@ -25,8 +26,12 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import { Theme } from '@material-ui/core/styles';
-import { Anki, AsbplayerSettings, AutoPausePreference } from '@project/common';
+import { Anki, AsbplayerSettings, AutoPausePreference, KeyBindSet, KeyBindName } from '@project/common';
 import { TagsTextField } from '@project/common/components';
+import hotkeys from 'hotkeys-js';
+import Typography from '@material-ui/core/Typography';
+import ChromeExtension from '../services/ChromeExtension';
+import { isMacOs } from 'react-device-detect';
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
@@ -131,14 +136,204 @@ function SelectableSetting({
     );
 }
 
+interface KeyBindProperties {
+    label: string;
+    extensionOverridden: boolean;
+}
+
+const keyBindProperties: { [key in KeyBindName]: KeyBindProperties } = {
+    copySubtitle: { label: 'Mine current subtitle', extensionOverridden: true },
+    ankiExport: { label: 'Mine current subtitle and open Anki dialog', extensionOverridden: true },
+    updateLastCard: {
+        label: 'Update last-created Anki card with asbplayer-captured screenshot, audio, etc.',
+        extensionOverridden: true,
+    },
+    togglePlay: { label: 'Play/pause', extensionOverridden: false },
+    toggleAutoPause: { label: 'Toggle auto-pause', extensionOverridden: false },
+    toggleSubtitles: { label: 'Toggle subtitles', extensionOverridden: false },
+    toggleVideoSubtitleTrack1: { label: 'Toggle subtitle track 1 in video', extensionOverridden: false },
+    toggleVideoSubtitleTrack2: { label: 'Toggle subtitle track 2 in video', extensionOverridden: false },
+    toggleAsbplayerSubtitleTrack1: { label: 'Toggle subtitle track 1 in asbplayer', extensionOverridden: false },
+    toggleAsbplayerSubtitleTrack2: { label: 'Toggle subtitle track 2 in asbplayer', extensionOverridden: false },
+    seekBackward: { label: 'Seek backward 10 seconds', extensionOverridden: false },
+    seekForward: { label: 'Seek forward 10 seconds', extensionOverridden: false },
+    seekToPreviousSubtitle: { label: 'Seek to previous subtitle', extensionOverridden: false },
+    seekToNextSubtitle: { label: 'Seek to next subtitle', extensionOverridden: false },
+    seekToBeginningOfCurrentSubtitle: { label: 'Seek to beginning of current subtitle', extensionOverridden: false },
+    adjustOffsetToPreviousSubtitle: {
+        label: 'Adjust subtitle offset so that previous subtitle is at current timestamp',
+        extensionOverridden: false,
+    },
+    adjustOffsetToNextSubtitle: {
+        label: 'Adjust subtitle offset so that next subtitle is at current timestamp',
+        extensionOverridden: false,
+    },
+    increaseOffset: { label: 'Adjust subtitle offset by +100ms', extensionOverridden: false },
+    decreaseOffset: { label: 'Adjust subtitle offset by -100ms', extensionOverridden: false },
+};
+
+// hotkeys only returns strings for a Mac while requiring the OS-specific keys for the actual binds
+const modifierKeyReplacements: { [key: string]: string } = isMacOs
+    ? {}
+    : {
+          '⌃': 'ctrl',
+          '⇧': 'shift',
+          '⌥': 'alt',
+      };
+
+const modifierKeys = ['⌃', '⇧', '⌥', 'ctrl', 'shift', 'alt', 'option', 'control', 'command', '⌘'];
+
+const useKeyBindFieldStyles = makeStyles<Theme>((theme) => ({
+    container: {
+        marginTop: theme.spacing(1),
+        marginBottom: theme.spacing(1),
+    },
+    labelItem: {},
+}));
+
+interface KeyBindFieldProps {
+    label: string;
+    keys: string;
+    extensionOverridden: boolean;
+    onKeysChange: (keys: string) => void;
+    onOpenExtensionShortcuts: () => void;
+}
+
+function KeyBindField({ label, keys, extensionOverridden, onKeysChange, onOpenExtensionShortcuts }: KeyBindFieldProps) {
+    const classes = useKeyBindFieldStyles();
+    const [currentKeyString, setCurrentKeyString] = useState<string>(keys);
+    const currentKeyStringRef = useRef<string>();
+    currentKeyStringRef.current = currentKeyString;
+    const onKeysChangeRef = useRef<(keys: string) => void>();
+    onKeysChangeRef.current = onKeysChange;
+    const [editing, setEditing] = useState<boolean>(false);
+
+    const handleEditKeyBinding = useCallback(
+        (event: React.MouseEvent) => {
+            if (event.nativeEvent.detail === 0) {
+                return;
+            }
+
+            if (extensionOverridden) {
+                onOpenExtensionShortcuts();
+                return;
+            }
+
+            setCurrentKeyString('');
+            setEditing(true);
+        },
+        [onOpenExtensionShortcuts, extensionOverridden]
+    );
+
+    const ref = useRef<HTMLButtonElement>(null);
+
+    useEffect(() => {
+        if (!editing) {
+            return;
+        }
+
+        const handler = (event: KeyboardEvent) => {
+            if (event.type === 'keydown') {
+                // The ts declaration is missing getPressedKeyString()
+                // @ts-ignore
+                const pressed = hotkeys.getPressedKeyString() as string[];
+                console.log(pressed);
+                setCurrentKeyString(
+                    pressed
+                        .map((key) => {
+                            return modifierKeyReplacements[key] ?? key;
+                        })
+                        .sort((a, b) => {
+                            const isAModifier = modifierKeys.includes(a);
+                            const isBModifier = modifierKeys.includes(b);
+
+                            if (isAModifier && !isBModifier) {
+                                return -1;
+                            }
+
+                            if (!isAModifier && isBModifier) {
+                                return 1;
+                            }
+
+                            return 0;
+                        })
+                        .join('+')
+                );
+            } else if (event.type === 'keyup') {
+                setEditing(false);
+
+                // Need to use refs because hotkeys returns the wrong keys
+                // if the handler is bound/unbound.
+                if (currentKeyStringRef.current) {
+                    onKeysChangeRef.current!(currentKeyStringRef.current);
+                }
+            }
+        };
+
+        hotkeys('*', { keyup: true }, handler);
+        return () => hotkeys.unbind('*', handler);
+    }, [editing]);
+
+    useEffect(() => {
+        const handler = (event: MouseEvent) => {
+            if (editing && !ref.current?.contains(event.target as Node)) {
+                setEditing(false);
+                setCurrentKeyString('');
+                onKeysChange('');
+            }
+        };
+        window.document.addEventListener('click', handler);
+        return () => window.document.removeEventListener('click', handler);
+    }, [editing, onKeysChange]);
+
+    let placeholder: string;
+
+    if (editing) {
+        placeholder = 'Recording';
+    } else if (extensionOverridden) {
+        placeholder = 'Overridden';
+    } else {
+        placeholder = 'Unbound';
+    }
+
+    return (
+        <Grid container className={classes.container} wrap={'nowrap'} spacing={1}>
+            <Grid item className={classes.labelItem} xs={6}>
+                <Typography>{label}</Typography>
+            </Grid>
+            <Grid item xs={6}>
+                <TextField
+                    placeholder={placeholder}
+                    size="small"
+                    contentEditable={false}
+                    disabled={extensionOverridden}
+                    helperText={extensionOverridden ? 'Use extension shortcut' : undefined}
+                    value={currentKeyString}
+                    color="secondary"
+                    InputProps={{
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <IconButton ref={ref} onClick={handleEditKeyBinding}>
+                                    <EditIcon />
+                                </IconButton>
+                            </InputAdornment>
+                        ),
+                    }}
+                />
+            </Grid>
+        </Grid>
+    );
+}
+
 interface Props {
     anki: Anki;
+    extension: ChromeExtension;
     open: boolean;
     settings: AsbplayerSettings;
     onClose: (settings: AsbplayerSettings) => void;
 }
 
-export default function SettingsDialog({ anki, open, settings, onClose }: Props) {
+export default function SettingsDialog({ anki, extension, open, settings, onClose }: Props) {
     const classes = useStyles();
     const [ankiConnectUrl, setAnkiConnectUrl] = useState<string>(settings.ankiConnectUrl);
     const [ankiConnectUrlError, setAnkiConnectUrlError] = useState<string>();
@@ -185,6 +380,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
     const [themeType, setThemeType] = useState<'dark' | 'light'>(settings.themeType);
     const [copyToClipboardOnMine, setCopyToClipboardOnMine] = useState<boolean>(settings.copyToClipboardOnMine);
     const [autoPausePreference, setAutoPausePreference] = useState<AutoPausePreference>(settings.autoPausePreference);
+    const [keyBindSet, setKeyBindSet] = useState<KeyBindSet>(settings.keyBindSet);
 
     const handleAnkiConnectUrlChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         setAnkiConnectUrl(e.target.value);
@@ -376,6 +572,14 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
     const handleAutoPausePreferenceChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         setAutoPausePreference(Number(e.target.value) as AutoPausePreference);
     }, []);
+    const handleKeysChange = useCallback((keys: string, keyBindName: KeyBindName) => {
+        setKeyBindSet((keyBindSet) => {
+            const newKeyBindSet = { ...keyBindSet };
+            newKeyBindSet[keyBindName] = { keys };
+            return newKeyBindSet;
+        });
+    }, []);
+
     const subtitlePreviewStyles = useMemo(
         () =>
             computeStyles({
@@ -511,6 +715,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
             theaterMode: settings.theaterMode,
             copyToClipboardOnMine: copyToClipboardOnMine,
             autoPausePreference: autoPausePreference,
+            keyBindSet: keyBindSet,
         });
     }, [
         onClose,
@@ -547,6 +752,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
         settings.theaterMode,
         copyToClipboardOnMine,
         autoPausePreference,
+        keyBindSet,
     ]);
 
     const customFieldInputs = Object.keys(customFields).map((customFieldName) => {
@@ -819,7 +1025,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
                         </Grid>
                         <Grid item>
                             <FormLabel>Video Subtitle Appearance</FormLabel>
-                            <FormGroup>
+                            <FormGroup className={classes.root}>
                                 <div className={classes.subtitleSetting}>
                                     <TextField
                                         type="color"
@@ -954,6 +1160,29 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
                                     label="Dark"
                                 />
                             </div>
+                        </Grid>
+                        <Grid item id="keyboard-shortcuts">
+                            <FormLabel>Keyboard Shortcuts</FormLabel>
+                            <FormGroup>
+                                {Object.keys(keyBindProperties).map((key) => {
+                                    const keyBindName = key as KeyBindName;
+                                    const properties = keyBindProperties[keyBindName];
+                                    return (
+                                        <KeyBindField
+                                            key={key}
+                                            label={properties.label}
+                                            keys={
+                                                extension.installed && properties.extensionOverridden
+                                                    ? ''
+                                                    : keyBindSet[keyBindName].keys
+                                            }
+                                            extensionOverridden={extension.installed && properties.extensionOverridden}
+                                            onKeysChange={(keys) => handleKeysChange(keys, keyBindName)}
+                                            onOpenExtensionShortcuts={() => extension.openShortcuts()}
+                                        />
+                                    );
+                                })}
+                            </FormGroup>
                         </Grid>
                     </Grid>
                 </DialogContent>

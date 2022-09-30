@@ -4,7 +4,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
 import { arrayEquals, computeStyles } from '../services/Util';
 import {
-    KeyBindings,
     surroundingSubtitles,
     mockSurroundingSubtitles,
     humanReadableTime,
@@ -12,6 +11,10 @@ import {
     AudioTrackModel,
     PostMineAction,
     PlayMode,
+    MiscSettings,
+    SubtitleSettings,
+    DefaultKeyBinder,
+    AnkiSettings,
 } from '@project/common';
 import { SubtitleTextImage } from '@project/common/components';
 import Alert from './Alert';
@@ -19,6 +22,8 @@ import Clock from '../services/Clock';
 import Controls, { Point } from './Controls';
 import PlayerChannel from '../services/PlayerChannel';
 import SettingsProvider from '../services/SettingsProvider';
+import AppKeyBinder from '../services/AppKeyBinder';
+import ChromeExtension from '../services/ChromeExtension';
 
 interface ExperimentalHTMLVideoElement extends HTMLVideoElement {
     readonly audioTracks: any;
@@ -134,6 +139,7 @@ function useFullscreen() {
 
 interface Props {
     settingsProvider: SettingsProvider;
+    extension: ChromeExtension;
     videoFile: string;
     channel: string;
     popOut: boolean;
@@ -145,9 +151,16 @@ interface IndexedSubtitleModel extends SubtitleModel {
     index: number;
 }
 
-export default function VideoPlayer(props: Props) {
+export default function VideoPlayer({
+    settingsProvider,
+    extension,
+    videoFile,
+    channel,
+    popOut,
+    onError,
+    onAutoPauseModeChangedViaBind,
+}: Props) {
     const classes = useStyles();
-    const { settingsProvider, videoFile, channel, popOut, onError, onAutoPauseModeChangedViaBind } = props;
     const poppingInRef = useRef<boolean>();
     const videoRef = useRef<ExperimentalHTMLVideoElement>();
     const [windowWidth, windowHeight] = useWindowSize(true);
@@ -186,7 +199,11 @@ export default function VideoPlayer(props: Props) {
         useState<boolean>(false);
     const returnToFullscreenOnFinishedAnkiDialogRequestRef = useRef<boolean>();
     returnToFullscreenOnFinishedAnkiDialogRequestRef.current = returnToFullscreenOnFinishedAnkiDialogRequest;
-
+    const [miscSettings, setMiscSettings] = useState<MiscSettings>(settingsProvider.miscSettings);
+    const [subtitleSettings, setSubtitleSettings] = useState<SubtitleSettings>(settingsProvider.subtitleSettings);
+    const [ankiSettings, setAnkiSettings] = useState<AnkiSettings>(settingsProvider.ankiSettings);
+    const keyBinder = useMemo<AppKeyBinder>(() => new AppKeyBinder(new DefaultKeyBinder(miscSettings.keyBindSet), extension), [miscSettings.keyBindSet, extension]);
+    useEffect(() => () => keyBinder.unsubscribeFromExtension(), [keyBinder]);
     const videoRefCallback = useCallback(
         (element: HTMLVideoElement) => {
             if (element) {
@@ -307,6 +324,10 @@ export default function VideoPlayer(props: Props) {
             }
         });
 
+        playerChannel.onSubtitleSettings(setSubtitleSettings);
+        playerChannel.onMiscSettings(setMiscSettings);
+        playerChannel.onAnkiSettings(setAnkiSettings);
+
         window.onbeforeunload = (e) => {
             if (!poppingInRef.current) {
                 playerChannel.close();
@@ -414,7 +435,7 @@ export default function VideoPlayer(props: Props) {
     );
 
     useEffect(() => {
-        const unbind = KeyBindings.bindSeekToSubtitle(
+        return keyBinder.bindSeekToSubtitle(
             (event, subtitle) => {
                 event.stopPropagation();
                 event.preventDefault();
@@ -424,12 +445,10 @@ export default function VideoPlayer(props: Props) {
             () => clock.time(length),
             () => subtitles
         );
-
-        return () => unbind();
-    }, [playerChannel, subtitles, length, clock]);
+    }, [keyBinder, playerChannel, subtitles, length, clock]);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindSeekToBeginningOfCurrentSubtitle(
+        return keyBinder.bindSeekToBeginningOfCurrentSubtitle(
             (event, subtitle) => {
                 event.stopPropagation();
                 event.preventDefault();
@@ -439,12 +458,10 @@ export default function VideoPlayer(props: Props) {
             () => clock.time(length),
             () => subtitles
         );
-
-        return () => unbind();
-    }, [playerChannel, subtitles, length, clock]);
+    }, [keyBinder, playerChannel, subtitles, length, clock]);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindSeekBackwardOrForward(
+        return keyBinder.bindSeekBackwardOrForward(
             (event, forward) => {
                 event.stopPropagation();
                 event.preventDefault();
@@ -458,24 +475,22 @@ export default function VideoPlayer(props: Props) {
             },
             () => !videoRef.current
         );
-
-        return () => unbind();
-    }, [playerChannel, length, clock]);
+    }, [keyBinder, playerChannel, length, clock]);
 
     const calculateSurroundingSubtitles = useCallback(
         (index: number) => {
             return surroundingSubtitles(
                 subtitles,
                 index,
-                settingsProvider.surroundingSubtitlesCountRadius,
-                settingsProvider.surroundingSubtitlesTimeRadius
+                ankiSettings.surroundingSubtitlesCountRadius,
+                ankiSettings.surroundingSubtitlesTimeRadius
             );
         },
-        [subtitles, settingsProvider.surroundingSubtitlesCountRadius, settingsProvider.surroundingSubtitlesTimeRadius]
+        [subtitles, ankiSettings.surroundingSubtitlesCountRadius, ankiSettings.surroundingSubtitlesTimeRadius]
     );
 
     useEffect(() => {
-        const unbind = KeyBindings.bindCopy<IndexedSubtitleModel>(
+        return keyBinder.bindCopy<IndexedSubtitleModel>(
             (event, subtitle) => {
                 event.stopPropagation();
                 event.preventDefault();
@@ -523,12 +538,10 @@ export default function VideoPlayer(props: Props) {
                 return showSubtitlesRef.current[0];
             }
         );
-
-        return () => unbind();
-    }, [playerChannel, clock, length, subtitles, calculateSurroundingSubtitles, fullscreen]);
+    }, [keyBinder, playerChannel, clock, length, subtitles, calculateSurroundingSubtitles, fullscreen]);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindAdjustOffset(
+        return keyBinder.bindAdjustOffset(
             (event, offset) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -537,26 +550,21 @@ export default function VideoPlayer(props: Props) {
             () => false,
             () => subtitles
         );
-
-        return () => unbind();
-    }, [handleOffsetChange, subtitles]);
+    }, [keyBinder, handleOffsetChange, subtitles]);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindToggleSubtitles(
+        return keyBinder.bindToggleSubtitles(
             (event) => {
                 event.preventDefault();
                 event.stopPropagation();
                 setSubtitlesEnabled((enabled) => !enabled);
             },
-            () => {},
             () => false
         );
-
-        return () => unbind();
-    }, []);
+    }, [keyBinder]);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindToggleSubtitleTrackInVideo(
+        return keyBinder.bindToggleSubtitleTrackInVideo(
             (event, track) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -566,29 +574,23 @@ export default function VideoPlayer(props: Props) {
                     return newTracks;
                 });
             },
-            () => {},
             () => false
         );
-
-        return () => unbind();
-    }, []);
+    }, [keyBinder]);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindToggleSubtitleTrackInList(
+        return keyBinder.bindToggleSubtitleTrackInList(
             (event, track) => {
                 event.preventDefault();
                 event.stopPropagation();
                 playerChannel.toggleSubtitleTrackInList(track);
             },
-            () => {},
             () => false
         );
-
-        return () => unbind();
-    }, [playerChannel]);
+    }, [keyBinder, playerChannel]);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindOffsetToSubtitle(
+        return keyBinder.bindOffsetToSubtitle(
             (event, offset) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -598,9 +600,7 @@ export default function VideoPlayer(props: Props) {
             () => clock.time(length),
             () => subtitles
         );
-
-        return () => unbind();
-    }, [handleOffsetChange, subtitles, clock, length]);
+    }, [keyBinder, handleOffsetChange, subtitles, clock, length]);
 
     const extractSubtitles = useCallback(
         (
@@ -629,7 +629,7 @@ export default function VideoPlayer(props: Props) {
     );
 
     useEffect(() => {
-        return KeyBindings.bindAnkiExport(
+        return keyBinder.bindAnkiExport(
             (event) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -643,10 +643,10 @@ export default function VideoPlayer(props: Props) {
             },
             () => false
         );
-    }, [playerChannel, extractSubtitles, fullscreen]);
+    }, [keyBinder, playerChannel, extractSubtitles, fullscreen]);
 
     useEffect(() => {
-        return KeyBindings.bindUpdateLastCard(
+        return keyBinder.bindUpdateLastCard(
             (event) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -660,10 +660,10 @@ export default function VideoPlayer(props: Props) {
             },
             () => false
         );
-    }, [playerChannel, extractSubtitles]);
+    }, [keyBinder, playerChannel, extractSubtitles]);
 
     useEffect(() => {
-        const unbind = KeyBindings.bindPlay(
+        return keyBinder.bindPlay(
             (event) => {
                 event.preventDefault();
 
@@ -675,22 +675,19 @@ export default function VideoPlayer(props: Props) {
             },
             () => false
         );
-
-        return () => unbind();
-    }, [playing, playerChannel]);
+    }, [keyBinder, playing, playerChannel]);
 
     useEffect(() => {
-        return KeyBindings.bindAutoPause(
+        return keyBinder.bindAutoPause(
             (event) => {
                 event.preventDefault();
-                const newPlayMode =
-                    playMode === PlayMode.autoPause ? PlayMode.normal : PlayMode.autoPause;
+                const newPlayMode = playMode === PlayMode.autoPause ? PlayMode.normal : PlayMode.autoPause;
                 playerChannel.playMode(newPlayMode);
                 onAutoPauseModeChangedViaBind(newPlayMode);
             },
             () => false
         );
-    }, [playerChannel, playMode, onAutoPauseModeChangedViaBind]);
+    }, [keyBinder, playerChannel, playMode, onAutoPauseModeChangedViaBind]);
 
     const handleSubtitlesToggle = useCallback(() => setSubtitlesEnabled((subtitlesEnabled) => !subtitlesEnabled), []);
 
@@ -756,7 +753,7 @@ export default function VideoPlayer(props: Props) {
         subtitleBackgroundOpacity,
         subtitleFontFamily,
         imageBasedSubtitleScaleFactor,
-    } = settingsProvider.subtitleSettings;
+    } = subtitleSettings;
     const subtitleStyles = useMemo(
         () =>
             computeStyles({
@@ -874,7 +871,7 @@ export default function VideoPlayer(props: Props) {
                 onHideSubtitlePlayerToggle={handleHideSubtitlePlayerToggle}
                 settingsProvider={settingsProvider}
                 showOnMouseMovement={false}
-                theaterModeToggleEnabled={!popOut}
+                theaterModeToggleEnabled={!popOut && !fullscreen}
                 theaterModeEnabled={appBarHidden}
                 onTheaterModeToggle={handleTheaterModeToggle}
             />

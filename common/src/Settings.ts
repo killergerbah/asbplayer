@@ -4,6 +4,7 @@ export interface MiscSettings {
     readonly themeType: 'dark' | 'light';
     readonly copyToClipboardOnMine: boolean;
     readonly autoPausePreference: AutoPausePreference;
+    readonly keyBindSet: KeyBindSet;
 }
 
 export interface AnkiSettings {
@@ -38,6 +39,36 @@ export interface SubtitleSettings {
     readonly subtitleFontFamily: string;
     readonly imageBasedSubtitleScaleFactor: number;
 }
+
+export interface KeyBind {
+    readonly keys: string;
+}
+
+export interface KeyBindSet {
+    readonly togglePlay: KeyBind;
+    readonly toggleAutoPause: KeyBind;
+    readonly toggleSubtitles: KeyBind;
+    readonly toggleVideoSubtitleTrack1: KeyBind;
+    readonly toggleVideoSubtitleTrack2: KeyBind;
+    readonly toggleAsbplayerSubtitleTrack1: KeyBind;
+    readonly toggleAsbplayerSubtitleTrack2: KeyBind;
+    readonly seekBackward: KeyBind;
+    readonly seekForward: KeyBind;
+    readonly seekToPreviousSubtitle: KeyBind;
+    readonly seekToNextSubtitle: KeyBind;
+    readonly seekToBeginningOfCurrentSubtitle: KeyBind;
+    readonly adjustOffsetToPreviousSubtitle: KeyBind;
+    readonly adjustOffsetToNextSubtitle: KeyBind;
+    readonly decreaseOffset: KeyBind;
+    readonly increaseOffset: KeyBind;
+
+    // Overridable by extension
+    readonly copySubtitle: KeyBind;
+    readonly ankiExport: KeyBind;
+    readonly updateLastCard: KeyBind;
+}
+
+export type KeyBindName = keyof KeyBindSet;
 
 export interface AsbplayerSettings extends MiscSettings, AnkiSettings, SubtitleSettings {
     readonly subtitlePreview: string;
