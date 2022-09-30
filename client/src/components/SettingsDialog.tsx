@@ -761,7 +761,7 @@ export default function SettingsDialog({ anki, open, settings, onClose }: Props)
                                 />
                                 <TextField
                                     type="number"
-                                    label="Surround Subtitles Count Radius"
+                                    label="Surrounding Subtitles Count Radius"
                                     fullWidth
                                     value={surroundingSubtitlesCountRadius}
                                     color="secondary"
