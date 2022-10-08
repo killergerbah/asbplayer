@@ -41,7 +41,7 @@ import { DefaultKeyBinder } from '@project/common/src/KeyBinder';
 import AppKeyBinder from '../services/AppKeyBinder';
 import VideoChannel from '../services/VideoChannel';
 
-const latestExtensionVersion = '0.20.0';
+const latestExtensionVersion = '0.21.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
 
 const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
