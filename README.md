@@ -15,6 +15,8 @@ If you've benefited from asbplayer, please consider supporting my work via [Gith
 
 ## Usage
 
+Note: The keyboard shortcuts mentioned below are the default ones.
+
 ### Loading files
 
 Drag-and-drop media and subtitle files into the asbplayer window to load them.
@@ -30,9 +32,7 @@ Install the Chrome [extension](https://github.com/killergerbah/asbplayer/release
 
 Integration with AnkiConnect can be configured in the settings as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
 
-<kbd>Ctrl+Shift+X</kbd> (default bind) for streaming video or <kbd>Ctrl+Shift+Q</kbd> for local media files opens the Anki export dialog.
-
-<kbd>Ctrl+Shift+Z</kbd> (default bind) for streaming video or <kbd>Ctrl+Shift+A</kbd> for local media files will mine the current subtitle without opening the Anki export dialog. Cards can later be exported for these subtitles by opening the copy history in asbplayer.
+<kbd>Ctrl+Shift+X</kbd> opens the Anki export dialog.
 
 ### Adjusting Anki flashcards
 
@@ -49,7 +49,7 @@ You can also adjust offset manually by clicking on the text field in the control
 
 ### Subtitle track detection for streaming video
 
-<kbd>Ctrl+Shift+F</kbd> (default bind) will show detected subtitle tracks for streaming video. Below are the sites where automatic subtitle detection is supported:
+<kbd>Ctrl+Shift+F</kbd> will show detected subtitle tracks for streaming video. Below are the sites where automatic subtitle detection is supported:
 
 -   Netflix (on main /watch url)
 -   Youtube (on main /watch url)
@@ -62,7 +62,7 @@ An audio track selector will appear for `mkv` files if experimental web platform
 
 ### Keyboard shortcuts
 
-Most keyboard shortcuts shared by the extension and the website are configurable from the asbplayer website settings. Extension-only shortcuts and some shared shortcuts that require special access to chrome extension features are configurable from `chrome://extension/shortcuts`. Below are the default shortcuts.
+Most keyboard shortcuts shared by the extension and the website are customizable from the asbplayer website settings. Extension-only shortcuts and some shared shortcuts that require special access to chrome extension features are customizable from `chrome://extension/shortcuts`. Below are the default shortcuts.
 
 | Action                                                                                              | Keys                                                                     |
 | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
