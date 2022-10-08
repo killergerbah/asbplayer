@@ -99,3 +99,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+/**! 
+ * hotkeys-js v3.10.0 
+ * A simple micro-library for defining and dispatching keyboard shortcuts. It has no dependencies. 
+ * 
+ * Copyright (c) 2022 kenny wong <wowohoo@qq.com> 
+ * http://jaywcjlove.github.io/hotkeys 
+ * Licensed under the MIT license 
+ */
