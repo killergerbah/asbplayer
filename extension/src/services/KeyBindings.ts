@@ -44,7 +44,7 @@ export default class KeyBindings {
         }
 
         if (!this.keyBinder) {
-            console.error('KeyBinder not defined (probably did not receive KeyBindSet) - cannot bind keys');
+            // Expected
             return;
         }
 
@@ -131,10 +131,8 @@ export default class KeyBindings {
             this.settings.bindToggleSubtitles &&
             this.keyBinder.bindToggleSubtitles(
                 (event) => {
-                    if (this.settings && !this.settings.bindToggleSubtitleTrackInAsbplayer) {
-                        event.preventDefault();
-                        event.stopImmediatePropagation();
-                    }
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
 
                     const toggleSubtitlesCommand: VideoToExtensionCommand<ToggleSubtitlesMessage> = {
                         sender: 'asbplayer-video',
