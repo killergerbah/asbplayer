@@ -139,7 +139,7 @@ Most keyboard shortcuts shared by the extension and the website are customizable
 
 ## Browser compatibility
 
-The asbplayer application and extension have only been tested on Chrome 101 and later and likely work on other Chromium-based browsers.
+The asbplayer application and extension have only been tested on the latest version Chrome and likely work on other Chromium-based browsers.
 
 Local video file playback is supported only for codecs supported by the browser. The [animebook](https://github.com/animebook/animebook.github.io#video-format-support) readme has a detailed explanation of this and links to browsers that have good compatibility. Personally, I use Microsoft Edge and paid one dollar for HEVC support.
 
