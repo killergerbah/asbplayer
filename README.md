@@ -109,6 +109,10 @@ Most keyboard shortcuts shared by the extension and the website are customizable
 -   Make sure that asbplayer is allowed by AnkiConnect, as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
 -   Check that your browser or an ad blocker isn't blocking the request. A good place to start is by opening your browser's developer console and looking for errors.
 
+### asbplayer shows a black screen when loading a local video file.
+
+-   See the [Browser Compatibility](#browser-compatibility) section.
+
 ### asbplayer isn't including audio/screenshot in flashcards.
 
 -   If you're mining streaming video make sure you use an extension keyboard shortcut (<kbd>Ctrl+Shift+X</kbd> by default) from the tab with the streaming video.
