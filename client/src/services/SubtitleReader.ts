@@ -2,7 +2,7 @@ import { compile as parseAss } from 'ass-compiler';
 import { Cue, Node, parseSync as parseSrt, stringifySync as writeSrt } from 'subtitle';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
-import { DisplaySet, parseDisplaySets as parsePgsDisplaySets } from './pgs-parser';
+import { DisplaySet, parseDisplaySets } from './pgs-parser';
 import { SubtitleTextImage } from '@project/common';
 
 const tagRegex = RegExp('</?([^>]*)>', 'ig');
@@ -124,13 +124,26 @@ export default class SubtitleReader {
         }
 
         if (file.name.endsWith('.sup')) {
-            let imageDataArray: Uint8ClampedArray | undefined;
-            const subtitles = [];
-            let currentImageDisplaySet: DisplaySet | undefined;
+            const subtitles: SubtitleNode[] = [];
+            await file
+                .stream()
+                // FIXME: Figure out how to remove conflicts with @types/node ReadableStream
+                // @ts-ignore
+                .pipeThrough(parseDisplaySets())
+                .pipeTo(this._displaySetsToSubtitles(subtitles, track));
 
-            // FIXME: Figure out how to remove conflicts with @types/node ReadableStream
-            // @ts-ignore
-            for await (const displaySet of parsePgsDisplaySets(file.stream())) {
+            return subtitles;
+        }
+
+        throw new Error('Unsupported subtitle file format');
+    }
+
+    private _displaySetsToSubtitles(subtitles: SubtitleNode[], track: number) {
+        let imageDataArray: Uint8ClampedArray | undefined;
+        let currentImageDisplaySet: DisplaySet | undefined;
+
+        return new WritableStream({
+            write(displaySet, controller) {
                 if (displaySet.objectDefinitionSegments.length > 0) {
                     if (currentImageDisplaySet === undefined) {
                         currentImageDisplaySet = displaySet;
@@ -168,15 +181,11 @@ export default class SubtitleReader {
 
                     currentImageDisplaySet = undefined;
                 }
-            }
-
-            return subtitles;
-        }
-
-        throw new Error('Unsupported subtitle file format');
+            },
+        });
     }
 
-    _fixRTL(line: string): string {
+    private _fixRTL(line: string): string {
         const index1 = line.indexOf('&lrm;');
         const index2 = line.indexOf('&rlm;');
         let newLine = '';
@@ -192,12 +201,12 @@ export default class SubtitleReader {
         return line;
     }
 
-    _decodeHTML(text: string): string {
+    private _decodeHTML(text: string): string {
         helperElement.innerHTML = text;
         return helperElement.childNodes.length === 0 ? '' : helperElement.childNodes[0].nodeValue!;
     }
 
-    _xmlParser() {
+    private _xmlParser() {
         if (this.xmlParser === undefined) {
             this.xmlParser = new XMLParser({ ignoreAttributes: false });
         }

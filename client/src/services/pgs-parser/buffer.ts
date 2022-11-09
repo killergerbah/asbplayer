@@ -125,35 +125,6 @@ export class CompositeBufferReader {
     }
 }
 
-export class BufferGenerator {
-    private stream: ReadableStream;
-    private accumulatedBuffer: CompositeBufferReader = new CompositeBufferReader();
-
-    requestedBytes: number = 0;
-
-    constructor(stream: ReadableStream) {
-        this.stream = stream;
-    }
-
-    async *buffers() {
-        const reader = this.stream.getReader();
-
-        while (true) {
-            if (this.accumulatedBuffer.length >= this.requestedBytes) {
-                yield this.accumulatedBuffer.read(this.requestedBytes);
-            } else {
-                const result = await reader.read();
-
-                if (result.done) {
-                    break;
-                }
-
-                this.accumulatedBuffer.add(result.value as Uint8Array);
-            }
-        }
-    }
-}
-
 export class BufferReader {
     private buffer: BufferAdapter;
     private _index: number = 0;

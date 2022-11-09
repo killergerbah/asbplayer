@@ -1,4 +1,4 @@
-import { BufferAdapter, BufferGenerator, BufferReader, CompositeBuffer } from './buffer';
+import { BufferAdapter, BufferReader, CompositeBuffer, CompositeBufferReader } from './buffer';
 import {
     CompositionState,
     compositionStateFromByte,
@@ -16,6 +16,31 @@ import {
     segmentTypeFromByte,
     WindowDefinitionSegment,
 } from './segment';
+
+export function parseDisplaySets(): TransformStream {
+    const parser = new DisplaySetParser();
+    const accumulatedBuffer = new CompositeBufferReader();
+    let requestedBytes = 13;
+
+    return new TransformStream({
+        transform(chunk, controller) {
+            accumulatedBuffer.add(chunk);
+
+            while (accumulatedBuffer.length >= requestedBytes) {
+                requestedBytes = parser.consume(accumulatedBuffer.read(requestedBytes));
+
+                if (parser.ready) {
+                    controller.enqueue(parser.next());
+                }
+            }
+        },
+        flush(controller) {
+            if (parser.ready) {
+                controller.enqueue(parser.next());
+            }
+        }
+    });
+}
 
 const pgMagicNumber = 20551; // 0x5047
 
@@ -206,79 +231,80 @@ export class DisplaySet {
     }
 }
 
-export async function* parseDisplaySets(s: ReadableStream) {
-    const bufferGenerator = new BufferGenerator(s);
-    bufferGenerator.requestedBytes = 13;
+class DisplaySetParser {
+    header: SegmentHeader | undefined;
+    lastDisplaySet: DisplaySet | undefined;
+    presentationCompositionSegment: PresentationCompositionSegment | undefined;
+    windowDefinitionSegments: WindowDefinitionSegment[] = [];
+    paletteDefinitionSegments: PaletteDefinitionSegment[] = [];
+    objectDefinitionSegments: ObjectDefinitionSegment[] = [];
+    ready: boolean = false;
 
-    let header: SegmentHeader | undefined;
-    let lastDisplaySet: DisplaySet | undefined;
-    let presentationCompositionSegment: PresentationCompositionSegment | undefined;
-    let windowDefinitionSegments: WindowDefinitionSegment[] = [];
-    let paletteDefinitionSegments: PaletteDefinitionSegment[] = [];
-    let objectDefinitionSegments: ObjectDefinitionSegment[] = [];
+    next() {
+        this.ready = false;
+        return this.lastDisplaySet!;
+    }
 
-    for await (const buffer of bufferGenerator.buffers()) {
+    consume(buffer: BufferAdapter) {
         const reader = new BufferReader(buffer);
 
-        if (header) {
-            switch (header.segmentType) {
+        if (this.header) {
+            switch (this.header.segmentType) {
                 case SegmentType.pcs:
-                    if (presentationCompositionSegment !== undefined) {
+                    if (this.presentationCompositionSegment !== undefined) {
                         throw new Error(`Unexpected PDS`);
                     }
 
-                    presentationCompositionSegment = parsePcsSegment(reader, header);
+                    this.presentationCompositionSegment = parsePcsSegment(reader, this.header);
                     break;
                 case SegmentType.wds:
-                    if (presentationCompositionSegment === undefined) {
+                    if (this.presentationCompositionSegment === undefined) {
                         throw new Error(`Unexpected WDS`);
                     }
 
-                    windowDefinitionSegments.push(parseWdsSegment(reader, header));
+                    this.windowDefinitionSegments.push(parseWdsSegment(reader, this.header));
                     break;
                 case SegmentType.pds:
-                    if (presentationCompositionSegment === undefined) {
+                    if (this.presentationCompositionSegment === undefined) {
                         throw new Error(`Unexpected PDS`);
                     }
 
-                    paletteDefinitionSegments.push(parsePdsSegment(reader, header));
+                    this.paletteDefinitionSegments.push(parsePdsSegment(reader, this.header));
                     break;
                 case SegmentType.ods:
-                    if (presentationCompositionSegment === undefined) {
+                    if (this.presentationCompositionSegment === undefined) {
                         throw new Error(`Unexpected ODS`);
                     }
 
-                    const ods = parseOdsSegment(reader, header);
-                    objectDefinitionSegments.push(ods);
+                    const ods = parseOdsSegment(reader, this.header);
+                    this.objectDefinitionSegments.push(ods);
                     break;
                 case SegmentType.end:
-                    if (presentationCompositionSegment === undefined) {
+                    if (this.presentationCompositionSegment === undefined) {
                         throw new Error(`Unexpected end segment`);
                     }
 
-                    const endDefinitionSegment = { header };
-                    lastDisplaySet = new DisplaySet(
-                        presentationCompositionSegment,
-                        windowDefinitionSegments,
-                        paletteDefinitionSegments,
-                        objectDefinitionSegments,
+                    const endDefinitionSegment = { header: this.header };
+                    this.lastDisplaySet = new DisplaySet(
+                        this.presentationCompositionSegment,
+                        this.windowDefinitionSegments,
+                        this.paletteDefinitionSegments,
+                        this.objectDefinitionSegments,
                         endDefinitionSegment,
-                        lastDisplaySet
+                        this.lastDisplaySet
                     );
-
-                    yield lastDisplaySet;
-
-                    presentationCompositionSegment = undefined;
-                    windowDefinitionSegments = [];
-                    paletteDefinitionSegments = [];
-                    objectDefinitionSegments = [];
+                    this.ready = true;
+                    this.presentationCompositionSegment = undefined;
+                    this.windowDefinitionSegments = [];
+                    this.paletteDefinitionSegments = [];
+                    this.objectDefinitionSegments = [];
                     break;
                 default:
-                    throw new Error(`Unknown segment type: ${header.segmentType}`);
+                    throw new Error(`Unknown segment type: ${this.header.segmentType}`);
             }
 
-            header = undefined;
-            bufferGenerator.requestedBytes = 13;
+            this.header = undefined;
+            return 13;
         } else {
             const magicNumber = reader.readHex(2);
 
@@ -290,8 +316,8 @@ export async function* parseDisplaySets(s: ReadableStream) {
             const decodingTimestamp = reader.readHex(4);
             const segmentType = segmentTypeFromByte(reader.readHex(1));
             const segmentSize = reader.readHex(2);
-            header = { presentationTimestamp, decodingTimestamp, segmentType, segmentSize };
-            bufferGenerator.requestedBytes = segmentSize;
+            this.header = { presentationTimestamp, decodingTimestamp, segmentType, segmentSize };
+            return segmentSize;
         }
     }
 }
