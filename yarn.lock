@@ -2204,6 +2204,7 @@ __metadata:
     gh-pages: ^3.1.0
     hotkeys-js: ^3.10.0
     lamejs: 1.2.0
+    pgs-parser: 0.1.0
     react: ^18.0.0
     react-device-detect: 1.17.0
     react-dom: ^18.0.0
@@ -11643,6 +11644,13 @@ __metadata:
   version: 2.1.0
   resolution: "performance-now@npm:2.1.0"
   checksum: 534e641aa8f7cba160f0afec0599b6cecefbb516a2e837b512be0adbe6c1da5550e89c78059c7fabc5c9ffdf6627edabe23eb7c518c4500067a898fa65c2b550
+  languageName: node
+  linkType: hard
+
+"pgs-parser@npm:0.1.0":
+  version: 0.1.0
+  resolution: "pgs-parser@npm:0.1.0"
+  checksum: d7e88b5ca9da38abdd4f560e022c4e1f48ada20235622e2c31c4aa8b562d38776758ae2295f5e113c48e786f24d823d39e95fe9b800b83415a89f4d1c587d529
   languageName: node
   linkType: hard
 

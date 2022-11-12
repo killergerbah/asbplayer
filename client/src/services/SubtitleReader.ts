@@ -2,7 +2,7 @@ import { compile as parseAss } from 'ass-compiler';
 import { Cue, Node, parseSync as parseSrt, stringifySync as writeSrt } from 'subtitle';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
-import { DisplaySet, parseDisplaySets } from './pgs-parser';
+import { DisplaySet, parseDisplaySets } from 'pgs-parser';
 import { SubtitleTextImage } from '@project/common';
 
 const tagRegex = RegExp('</?([^>]*)>', 'ig');
@@ -142,7 +142,7 @@ export default class SubtitleReader {
         let imageDataArray: Uint8ClampedArray | undefined;
         let currentImageDisplaySet: DisplaySet | undefined;
 
-        return new WritableStream({
+        return new WritableStream<DisplaySet>({
             write(displaySet, controller) {
                 if (displaySet.objectDefinitionSegments.length > 0) {
                     if (currentImageDisplaySet === undefined) {
