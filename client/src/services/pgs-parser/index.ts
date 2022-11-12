@@ -10,3 +10,4 @@ export type {
     PaletteDefinitionSegment,
     ObjectDefinitionSegment,
 } from './segment';
+export type { BufferAdapter } from './buffer';

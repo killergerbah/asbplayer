@@ -17,7 +17,9 @@ import {
     WindowDefinitionSegment,
 } from './segment';
 
-export function parseDisplaySets(): TransformStream {
+const pgMagicNumber = 20551; // 0x5047
+
+export function parseDisplaySets(): TransformStream<Uint8Array, DisplaySet> {
     const parser = new DisplaySetParser();
     const accumulatedBuffer = new CompositeBufferReader();
     let requestedBytes = 13;
@@ -38,84 +40,74 @@ export function parseDisplaySets(): TransformStream {
             if (parser.ready) {
                 controller.enqueue(parser.next());
             }
-        }
+        },
     });
 }
 
-const pgMagicNumber = 20551; // 0x5047
+function rleDecode(encodedBuffer: BufferAdapter, callback: (x: number, y: number, color: number) => void) {
+    let encodedIndex = 0;
+    let decodedLineIndex = 0;
+    let currentLine = 0;
+    const encodedLength = encodedBuffer.length;
 
-export class RunLengthEncodedBuffer {
-    private readonly encodedBuffer: BufferAdapter;
+    while (encodedIndex < encodedLength) {
+        const firstByte = encodedBuffer.at(encodedIndex);
+        let runLength;
+        let color;
+        let increment;
 
-    constructor(encodedBuffer: BufferAdapter) {
-        this.encodedBuffer = encodedBuffer;
-    }
+        // Deal with each possible code
+        if (firstByte > 0) {
+            // CCCCCCCC	- One pixel in color C
+            color = firstByte;
+            runLength = 1;
+            increment = 1;
+        } else {
+            const secondByte = encodedBuffer.at(encodedIndex + 1);
 
-    decode(callback: (x: number, y: number, color: number) => void) {
-        let encodedIndex = 0;
-        let decodedLineIndex = 0;
-        let currentLine = 0;
-        const encodedLength = this.encodedBuffer.length;
-
-        while (encodedIndex < encodedLength) {
-            const firstByte = this.encodedBuffer.at(encodedIndex);
-            let runLength;
-            let color;
-            let increment;
-
-            // Deal with each possible code
-            if (firstByte > 0) {
-                // CCCCCCCC	- One pixel in color C
-                color = firstByte;
-                runLength = 1;
-                increment = 1;
+            if (secondByte === 0) {
+                // 00000000 00000000 - End of line
+                color = 0;
+                runLength = 0;
+                increment = 2;
+                decodedLineIndex = 0;
+                ++currentLine;
+            } else if (secondByte < 64) {
+                // 00000000 00LLLLLL - L pixels in color 0 (L between 1 and 63)
+                color = 0;
+                runLength = secondByte;
+                increment = 2;
+            } else if (secondByte < 128) {
+                // 00000000 01LLLLLL LLLLLLLL - L pixels in color 0 (L between 64 and 16383)
+                const thirdByte = encodedBuffer.at(encodedIndex + 2);
+                color = 0;
+                runLength = ((secondByte - 64) << 8) + thirdByte;
+                increment = 3;
+            } else if (secondByte < 192) {
+                // 00000000 10LLLLLL CCCCCCCC - L pixels in color C (L between 3 and 63)
+                const thirdByte = encodedBuffer.at(encodedIndex + 2);
+                color = thirdByte;
+                runLength = secondByte - 128;
+                increment = 3;
             } else {
-                const secondByte = this.encodedBuffer.at(encodedIndex + 1);
-
-                if (secondByte === 0) {
-                    // 00000000 00000000 - End of line
-                    color = 0;
-                    runLength = 0;
-                    increment = 2;
-                    decodedLineIndex = 0;
-                    ++currentLine;
-                } else if (secondByte < 64) {
-                    // 00000000 00LLLLLL - L pixels in color 0 (L between 1 and 63)
-                    color = 0;
-                    runLength = secondByte;
-                    increment = 2;
-                } else if (secondByte < 128) {
-                    // 00000000 01LLLLLL LLLLLLLL - L pixels in color 0 (L between 64 and 16383)
-                    const thirdByte = this.encodedBuffer.at(encodedIndex + 2);
-                    color = 0;
-                    runLength = ((secondByte - 64) << 8) + thirdByte;
-                    increment = 3;
-                } else if (secondByte < 192) {
-                    // 00000000 10LLLLLL CCCCCCCC - L pixels in color C (L between 3 and 63)
-                    const thirdByte = this.encodedBuffer.at(encodedIndex + 2);
-                    color = thirdByte;
-                    runLength = secondByte - 128;
-                    increment = 3;
-                } else {
-                    // 00000000 11LLLLLL LLLLLLLL CCCCCCCC - L pixels in color C (L between 64 and 16383)
-                    const thirdByte = this.encodedBuffer.at(encodedIndex + 2);
-                    const fourthByte = this.encodedBuffer.at(encodedIndex + 3);
-                    color = fourthByte;
-                    runLength = ((secondByte - 192) << 8) + thirdByte;
-                    increment = 4;
-                }
+                // 00000000 11LLLLLL LLLLLLLL CCCCCCCC - L pixels in color C (L between 64 and 16383)
+                const thirdByte = encodedBuffer.at(encodedIndex + 2);
+                const fourthByte = encodedBuffer.at(encodedIndex + 3);
+                color = fourthByte;
+                runLength = ((secondByte - 192) << 8) + thirdByte;
+                increment = 4;
             }
-
-            if (runLength > 0) {
-                for (let x = decodedLineIndex; x < decodedLineIndex + runLength; ++x) {
-                    callback(x, currentLine, color);
-                }
-                // decodedLine.fill(color, decodedLineIndex, decodedLineIndex + runLength);
-                decodedLineIndex += runLength;
-            }
-
-            encodedIndex += increment;
         }
+
+        if (runLength > 0) {
+            for (let x = decodedLineIndex; x < decodedLineIndex + runLength; ++x) {
+                callback(x, currentLine, color);
+            }
+
+            decodedLineIndex += runLength;
+        }
+
+        encodedIndex += increment;
     }
 }
 
@@ -187,25 +179,26 @@ export class DisplaySet {
         const rgbaPalette = pds.paletteEntries.map((palette) => this.ycrcbToRgba(palette));
         const width = firstOds.width;
 
-        new RunLengthEncodedBuffer(
-            new CompositeBuffer(this.objectDefinitionSegments.map((ods) => ods.objectData))
-        ).decode((x, y, paletteIndex) => {
-            const pixelIndex = y * width + x;
-            const imageDataOffset = pixelIndex * 4;
+        rleDecode(
+            new CompositeBuffer(this.objectDefinitionSegments.map((ods) => ods.objectData)),
+            (x, y, paletteIndex) => {
+                const pixelIndex = y * width + x;
+                const imageDataOffset = pixelIndex * 4;
 
-            if (paletteIndex >= rgbaPalette.length) {
-                imageDataArray[imageDataOffset] = 0;
-                imageDataArray[imageDataOffset + 1] = 0;
-                imageDataArray[imageDataOffset + 2] = 0;
-                imageDataArray[imageDataOffset + 3] = 0;
-            } else {
-                const color = rgbaPalette[paletteIndex];
-                imageDataArray[imageDataOffset] = color.r;
-                imageDataArray[imageDataOffset + 1] = color.g;
-                imageDataArray[imageDataOffset + 2] = color.b;
-                imageDataArray[imageDataOffset + 3] = color.a;
+                if (paletteIndex >= rgbaPalette.length) {
+                    imageDataArray[imageDataOffset] = 0;
+                    imageDataArray[imageDataOffset + 1] = 0;
+                    imageDataArray[imageDataOffset + 2] = 0;
+                    imageDataArray[imageDataOffset + 3] = 0;
+                } else {
+                    const color = rgbaPalette[paletteIndex];
+                    imageDataArray[imageDataOffset] = color.r;
+                    imageDataArray[imageDataOffset + 1] = color.g;
+                    imageDataArray[imageDataOffset + 2] = color.b;
+                    imageDataArray[imageDataOffset + 3] = color.a;
+                }
             }
-        });
+        );
 
         return new ImageData(
             imageDataArray.subarray(0, 4 * firstOds.width * firstOds.height),
@@ -232,17 +225,18 @@ export class DisplaySet {
 }
 
 class DisplaySetParser {
-    header: SegmentHeader | undefined;
-    lastDisplaySet: DisplaySet | undefined;
-    presentationCompositionSegment: PresentationCompositionSegment | undefined;
-    windowDefinitionSegments: WindowDefinitionSegment[] = [];
-    paletteDefinitionSegments: PaletteDefinitionSegment[] = [];
-    objectDefinitionSegments: ObjectDefinitionSegment[] = [];
+    private header: SegmentHeader | undefined;
+    private lastDisplaySet: DisplaySet | undefined;
+    private presentationCompositionSegment: PresentationCompositionSegment | undefined;
+    private windowDefinitionSegments: WindowDefinitionSegment[] = [];
+    private paletteDefinitionSegments: PaletteDefinitionSegment[] = [];
+    private objectDefinitionSegments: ObjectDefinitionSegment[] = [];
+
     ready: boolean = false;
 
     next() {
         this.ready = false;
-        return this.lastDisplaySet!;
+        return this.lastDisplaySet;
     }
 
     consume(buffer: BufferAdapter) {
