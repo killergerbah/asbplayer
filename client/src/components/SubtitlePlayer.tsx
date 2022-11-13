@@ -7,6 +7,7 @@ import {
     PostMineAction,
     surroundingSubtitles,
     SubtitleModel,
+    SubtitleCollection,
     KeyBinder,
 } from '@project/common';
 import { SubtitleTextImage } from '@project/common/components';
@@ -92,6 +93,7 @@ const useSubtitleRowStyles = makeStyles((theme) => ({
 
 export interface DisplaySubtitleModel extends SubtitleModel {
     displayTime: string;
+    index: number;
 }
 
 interface SubtitleRowProps extends TableRowProps {
@@ -237,6 +239,12 @@ export default function SubtitlePlayer({
                 : [],
         [subtitles]
     );
+    const subtitleCollection = useMemo<SubtitleCollection<DisplaySubtitleModel>>(
+        () => new SubtitleCollection(subtitles ?? [], { returnLastShown: true, showingCheckRadiusMs: 100 }),
+        [subtitles]
+    );
+    const subtitleCollectionRef = useRef<SubtitleCollection<DisplaySubtitleModel>>(subtitleCollection);
+    subtitleCollectionRef.current = subtitleCollection;
     const subtitleRefsRef = useRef<RefObject<HTMLTableRowElement>[]>([]);
     subtitleRefsRef.current = subtitleRefs;
     const disableKeyEventsRef = useRef<boolean>();
@@ -265,61 +273,28 @@ export default function SubtitlePlayer({
     // Therefore all of the state it operates on is contained in refs.
     useEffect(() => {
         const update = () => {
-            const subtitles = subtitleListRef.current || [];
             const subtitleRefs = subtitleRefsRef.current;
-            const length = lengthRef.current;
             const clock = clockRef.current;
-            const progress = clock.progress(lengthRef.current);
-
-            let smallestIndex = Number.MAX_SAFE_INTEGER;
-            let fallbackIndex = -1;
-            let startedShowing = false;
-            let startedShowingSubtitle: SubtitleModel | undefined;
-            let willStopShowing = false;
-            let willStopShowingSubtitle: SubtitleModel | undefined;
             const currentSubtitleIndexes: { [index: number]: boolean } = {};
+            const timestamp = clock.time(lengthRef.current);
 
-            for (let i = subtitles.length - 1; i >= 0; --i) {
-                const s = subtitles[i];
-                const start = s.start / length;
-                const end = s.end / length;
+            let slice = subtitleCollectionRef.current.subtitlesAt(timestamp);
+            const showing = slice.showing.length === 0 ? slice.lastShown ?? [] : slice.showing;
+            let smallestIndex: number | undefined;
 
-                if (progress >= start) {
-                    if (progress < end) {
-                        smallestIndex = i < smallestIndex ? i : smallestIndex;
-                        currentSubtitleIndexes[i] = true;
-                        const nextProgress = progress + 100 / length;
+            for (const s of showing) {
+                currentSubtitleIndexes[s.index] = true;
 
-                        if (!willStopShowing && nextProgress >= end) {
-                            willStopShowing = true;
-                            willStopShowingSubtitle = s;
-                        }
-
-                        // Add slight buffer to ensure sub is displaying on video
-                        if (!startedShowing && progress >= start + 100 / length && progress < start + 500 / length) {
-                            startedShowing = true;
-                            startedShowingSubtitle = s;
-                        }
-                    }
-
-                    if (fallbackIndex === -1) {
-                        fallbackIndex = i;
-                    }
-                } else if (smallestIndex !== Number.MAX_SAFE_INTEGER) {
-                    break;
+                if (smallestIndex === undefined || s.index < smallestIndex) {
+                    smallestIndex = s.index;
                 }
-            }
-
-            // Attempt to highlight *something* if no subtitles were found at the current timestamp
-            if (smallestIndex === Number.MAX_SAFE_INTEGER && fallbackIndex !== -1) {
-                currentSubtitleIndexes[fallbackIndex] = true;
             }
 
             if (!keysAreEqual(currentSubtitleIndexes, selectedSubtitleIndexesRef.current)) {
                 selectedSubtitleIndexesRef.current = currentSubtitleIndexes;
                 setSelectedSubtitleIndexes(currentSubtitleIndexes);
 
-                if (smallestIndex !== Number.MAX_SAFE_INTEGER) {
+                if (smallestIndex !== undefined) {
                     const scrollToSubtitleRef = subtitleRefs[smallestIndex];
                     const allowScroll = !hiddenRef.current && Date.now() - lastScrollTimestampRef.current > 5000;
 
@@ -333,14 +308,20 @@ export default function SubtitlePlayer({
                 }
             }
 
-            if (startedShowing && startedShowingSubtitleRef.current !== startedShowingSubtitle) {
-                onStartedShowingRef.current?.();
-                startedShowingSubtitleRef.current = startedShowingSubtitle;
+            if (startedShowingSubtitleRef.current !== slice.startedShowing) {
+                if (slice.startedShowing !== undefined) {
+                    onStartedShowingRef.current?.();
+                }
+
+                startedShowingSubtitleRef.current = slice.startedShowing;
             }
 
-            if (willStopShowing && willStopShowingSubtitleRef.current !== willStopShowingSubtitle) {
-                onWillStopShowingRef.current?.();
-                willStopShowingSubtitleRef.current = willStopShowingSubtitle;
+            if (willStopShowingSubtitleRef.current !== slice.willStopShowing) {
+                if (slice.willStopShowing !== undefined) {
+                    onWillStopShowingRef.current?.();
+                }
+
+                willStopShowingSubtitleRef.current = slice.willStopShowing;
             }
 
             requestAnimationRef.current = requestAnimationFrame(update);

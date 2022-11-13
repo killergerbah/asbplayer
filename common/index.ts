@@ -10,3 +10,4 @@ export * from './src/Settings';
 export * from './src/Model';
 export * from './src/Message';
 export * from './src/ExtensionSettings';
+export * from './src/SubtitleCollection';

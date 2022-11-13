@@ -15,6 +15,8 @@ import {
     SubtitleSettings,
     DefaultKeyBinder,
     AnkiSettings,
+    SubtitleCollection,
+    AutoPausePreference,
 } from '@project/common';
 import { SubtitleTextImage } from '@project/common/components';
 import Alert from './Alert';
@@ -179,8 +181,18 @@ export default function VideoPlayer({
     const [offset, setOffset] = useState<number>(0);
     const [audioTracks, setAudioTracks] = useState<AudioTrackModel[]>();
     const [selectedAudioTrack, setSelectedAudioTrack] = useState<string>();
-    const [subtitles, setSubtitles] = useState<SubtitleModel[]>([]);
+    const [subtitles, setSubtitles] = useState<IndexedSubtitleModel[]>([]);
+    const subtitleCollection = useMemo<SubtitleCollection<IndexedSubtitleModel>>(
+        () =>
+            new SubtitleCollection<IndexedSubtitleModel>(subtitles, {
+                returnLastShown: false,
+                showingCheckRadiusMs: 100,
+            }),
+        [subtitles]
+    );
     const [showSubtitles, setShowSubtitles] = useState<IndexedSubtitleModel[]>([]);
+    const [startedShowingSubtitle, setStartedShowingSubtitle] = useState<IndexedSubtitleModel>();
+    const [willStopShowingSubtitle, setWillStopShowingSubtitle] = useState<IndexedSubtitleModel>();
     const [subtitlesEnabled, setSubtitlesEnabled] = useState(true);
     const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState<{ [index: number]: boolean }>({});
     const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
@@ -202,7 +214,10 @@ export default function VideoPlayer({
     const [miscSettings, setMiscSettings] = useState<MiscSettings>(settingsProvider.miscSettings);
     const [subtitleSettings, setSubtitleSettings] = useState<SubtitleSettings>(settingsProvider.subtitleSettings);
     const [ankiSettings, setAnkiSettings] = useState<AnkiSettings>(settingsProvider.ankiSettings);
-    const keyBinder = useMemo<AppKeyBinder>(() => new AppKeyBinder(new DefaultKeyBinder(miscSettings.keyBindSet), extension), [miscSettings.keyBindSet, extension]);
+    const keyBinder = useMemo<AppKeyBinder>(
+        () => new AppKeyBinder(new DefaultKeyBinder(miscSettings.keyBindSet), extension),
+        [miscSettings.keyBindSet, extension]
+    );
     useEffect(() => () => keyBinder.unsubscribeFromExtension(), [keyBinder]);
     const videoRefCallback = useCallback(
         (element: HTMLVideoElement) => {
@@ -291,7 +306,7 @@ export default function VideoPlayer({
         });
 
         playerChannel.onSubtitles((subtitles) => {
-            setSubtitles(subtitles);
+            setSubtitles(subtitles.map((s, i) => ({ ...s, index: i })));
 
             if (subtitles && subtitles.length > 0) {
                 const s = subtitles[0];
@@ -392,16 +407,33 @@ export default function VideoPlayer({
         const interval = setInterval(() => {
             const now = clock.time(length);
             let showSubtitles = [];
+            const slice = subtitleCollection.subtitlesAt(now);
 
-            for (let i = 0; i < subtitles.length; ++i) {
-                const s = subtitles[i];
-
-                if (now >= s.start && now < s.end && !disabledSubtitleTracks[s.track]) {
-                    showSubtitles.push({ ...s, index: i });
+            for (const s of slice.showing) {
+                if (!disabledSubtitleTracks[s.track]) {
+                    showSubtitles.push(s);
                 }
+            }
 
-                if (now < s.start) {
-                    break;
+            if (playMode === PlayMode.autoPause) {
+                if (miscSettings.autoPausePreference === AutoPausePreference.atStart) {
+                    if (
+                        slice.startedShowing &&
+                        slice.startedShowing !== startedShowingSubtitle &&
+                        !disabledSubtitleTracks[slice.startedShowing.track]
+                    ) {
+                        playerChannel.pause();
+                        setStartedShowingSubtitle(slice.startedShowing);
+                    }
+                } else {
+                    if (
+                        slice.willStopShowing &&
+                        slice.willStopShowing !== willStopShowingSubtitle &&
+                        !disabledSubtitleTracks[slice.willStopShowing.track]
+                    ) {
+                        playerChannel.pause();
+                        setWillStopShowingSubtitle(slice.willStopShowing);
+                    }
                 }
             }
 
@@ -410,16 +442,27 @@ export default function VideoPlayer({
             if (!arrayEquals(showSubtitles, showSubtitlesRef.current, (s1, s2) => s1.index === s2.index)) {
                 setShowSubtitles(showSubtitles);
             }
-        }, 50);
+        }, 100);
 
         return () => clearTimeout(interval);
-    }, [subtitles, disabledSubtitleTracks, clock, length]);
+    }, [
+        subtitleCollection,
+        playerChannel,
+        playMode,
+        subtitles,
+        disabledSubtitleTracks,
+        clock,
+        length,
+        miscSettings,
+        startedShowingSubtitle,
+        willStopShowingSubtitle,
+    ]);
 
     const handleOffsetChange = useCallback(
         (offset: number) => {
             setOffset(offset);
             setSubtitles((subtitles) =>
-                subtitles.map((s) => ({
+                subtitles.map((s, i) => ({
                     text: s.text,
                     textImage: s.textImage,
                     start: s.originalStart + offset,
@@ -427,6 +470,7 @@ export default function VideoPlayer({
                     end: s.originalEnd + offset,
                     originalEnd: s.originalEnd,
                     track: s.track,
+                    index: i,
                 }))
             );
             playerChannel.offset(offset);

@@ -1633,6 +1633,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@flatten-js/interval-tree@npm:^1.0.19":
+  version: 1.0.19
+  resolution: "@flatten-js/interval-tree@npm:1.0.19"
+  checksum: 5d95efd272bd9a2bb2db730048a22b0d86cd6af1bc60d27bd746c6ed90a06b4d55f931815c3daea9557d7fac1d8ea2a8a807cfce49115eb7203950a7847ae65f
+  languageName: node
+  linkType: hard
+
 "@fontsource/roboto@npm:^4.5.0":
   version: 4.5.5
   resolution: "@fontsource/roboto@npm:4.5.5"
@@ -2224,6 +2231,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@project/common@workspace:common"
   dependencies:
+    "@flatten-js/interval-tree": ^1.0.19
     hotkeys-js: ^3.10.0
     sanitize-filename: ^1.6.3
   languageName: unknown

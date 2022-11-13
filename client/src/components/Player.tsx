@@ -223,7 +223,7 @@ export default function Player({
 
                 const length = subtitles.length > 0 ? subtitles[subtitles.length - 1].end + offset : 0;
 
-                const newSubtitles = subtitles.map((s) => ({
+                const newSubtitles = subtitles.map((s, i) => ({
                     text: s.text,
                     textImage: s.textImage,
                     start: s.originalStart + offset,
@@ -232,6 +232,7 @@ export default function Player({
                     originalEnd: s.originalEnd,
                     displayTime: timeDurationDisplay(s.originalStart + offset, length),
                     track: s.track,
+                    index: i,
                 }));
 
                 if (forwardToVideo) {
@@ -280,7 +281,7 @@ export default function Player({
                 try {
                     const nodes = await subtitleReader.subtitles(subtitleFiles);
                     const length = nodes.length > 0 ? nodes[nodes.length - 1].end : 0;
-                    subtitles = nodes.map((s) => ({
+                    subtitles = nodes.map((s, i) => ({
                         text: s.text,
                         textImage: s.textImage,
                         start: s.start,
@@ -289,6 +290,7 @@ export default function Player({
                         originalEnd: s.end,
                         displayTime: timeDurationDisplay(s.start, length),
                         track: s.track,
+                        index: i,
                     }));
 
                     setSubtitles(subtitles);
@@ -603,20 +605,28 @@ export default function Player({
     }, [subtitles, playMode, clock, seek]);
 
     const handleOnStartedShowingSubtitle = useCallback(() => {
-        if (playMode !== PlayMode.autoPause || settingsProvider.autoPausePreference !== AutoPausePreference.atStart) {
+        if (
+            playMode !== PlayMode.autoPause ||
+            settingsProvider.autoPausePreference !== AutoPausePreference.atStart ||
+            videoFileUrl // Let VideoPlayer do the auto-pausing
+        ) {
             return;
         }
 
         pause(clock, mediaAdapter, true);
-    }, [playMode, clock, mediaAdapter, settingsProvider]);
+    }, [playMode, clock, mediaAdapter, videoFileUrl, settingsProvider]);
 
     const handleOnWillStopShowingSubtitle = useCallback(() => {
-        if (playMode !== PlayMode.autoPause || settingsProvider.autoPausePreference !== AutoPausePreference.atEnd) {
+        if (
+            playMode !== PlayMode.autoPause ||
+            settingsProvider.autoPausePreference !== AutoPausePreference.atEnd ||
+            videoFileUrl // Let VideoPlayer do the auto-pausing
+        ) {
             return;
         }
 
         pause(clock, mediaAdapter, true);
-    }, [playMode, clock, mediaAdapter, settingsProvider]);
+    }, [playMode, clock, mediaAdapter, videoFileUrl, settingsProvider]);
 
     useEffect(() => {
         if (videoPopOut && channelId && videoFileUrl) {
@@ -886,7 +896,17 @@ export default function Player({
                 unbindAnkiExport();
             };
         }
-    }, [keyBinder, audioFile, videoFile, subtitles, clock, selectedAudioTrack, disableKeyEvents, onCopy, onAnkiDialogRequest]);
+    }, [
+        keyBinder,
+        audioFile,
+        videoFile,
+        subtitles,
+        clock,
+        selectedAudioTrack,
+        disableKeyEvents,
+        onCopy,
+        onAnkiDialogRequest,
+    ]);
 
     useEffect(() => {
         if (videoRef.current instanceof VideoChannel) {
