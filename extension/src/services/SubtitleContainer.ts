@@ -1,6 +1,7 @@
 import {
     OffsetFromVideoMessage,
     Rgb,
+    SubtitleCollection,
     SubtitleModel,
     SubtitleSettings,
     surroundingSubtitles,
@@ -26,9 +27,9 @@ export default class SubtitleContainer {
     private subtitleSettings?: SubtitleSettings;
     private subtitleStyles?: string;
     private notificationElementOverlayHideTimeout?: NodeJS.Timer;
-
+    private _subtitles: SubtitleModelWithIndex[];
+    private subtitleCollection: SubtitleCollection<SubtitleModelWithIndex>;
     disabledSubtitleTracks: { [key: number]: boolean | undefined };
-    subtitles: SubtitleModel[];
     subtitleFileNames?: string[];
     forceHideSubtitles: boolean;
     displaySubtitles: boolean;
@@ -56,7 +57,8 @@ export default class SubtitleContainer {
             'asbplayer-fullscreen-subtitles',
             OffsetAnchor.top
         );
-        this.subtitles = [];
+        this._subtitles = [];
+        this.subtitleCollection = new SubtitleCollection<SubtitleModelWithIndex>([]);
         this.showingSubtitles = [];
         this.disabledSubtitleTracks = {};
         this.forceHideSubtitles = false;
@@ -69,6 +71,15 @@ export default class SubtitleContainer {
         this.showingLoadedMessage = false;
     }
 
+    get subtitles() {
+        return this._subtitles;
+    }
+
+    set subtitles(subtitles) {
+        this._subtitles = subtitles;
+        this.subtitleCollection = new SubtitleCollection(subtitles, { showingCheckRadiusMs: 100 });
+    }
+
     set subtitlePositionOffsetBottom(value: number) {
         this.subtitlesElementOverlay.contentPositionOffset = value;
     }
@@ -76,12 +87,6 @@ export default class SubtitleContainer {
     setSubtitleSettings(subtitleSettings: SubtitleSettings) {
         this.subtitleSettings = subtitleSettings;
         this.subtitleStyles = undefined;
-    }
-
-    private _showing(s: SubtitleModel, now: number) {
-        return (
-            now >= s.start && now < s.end && (typeof s.track === 'undefined' || !this.disabledSubtitleTracks[s.track])
-        );
     }
 
     bind() {
@@ -102,42 +107,15 @@ export default class SubtitleContainer {
             const showOffset = this.lastOffsetChangeTimestamp > 0 && Date.now() - this.lastOffsetChangeTimestamp < 1000;
             const offset = showOffset ? this._computeOffset() : 0;
             const now = 1000 * this.video.currentTime;
-            const previous = now - 100;
-            const next = now + 100;
             let showingSubtitles: SubtitleModelWithIndex[] = [];
-            let startedShowing: boolean = false;
-            let willStopShowing: boolean = false;
+            const slice = this.subtitleCollection.subtitlesAt(now);
+            showingSubtitles = slice.showing.filter((s) => this._trackEnabled(s)).sort((s1, s2) => s1.track - s2.track);
 
-            for (let i = 0; i < this.subtitles.length; ++i) {
-                const s = this.subtitles[i];
-
-                if (s.start < 0 || s.end < 0) {
-                    continue;
-                }
-
-                let indexedSubtitle: SubtitleModelWithIndex | undefined;
-
-                if (this._showing(s, now)) {
-                    indexedSubtitle = indexedSubtitle ?? { ...s, index: i };
-                    showingSubtitles.push(indexedSubtitle);
-
-                    if (!startedShowing && !this._showing(s, previous)) {
-                        startedShowing = true;
-                    }
-
-                    if (!willStopShowing && !this._showing(s, next)) {
-                        willStopShowing = true;
-                    }
-                }
-            }
-
-            showingSubtitles = showingSubtitles.sort((s1, s2) => s1.track - s2.track);
-
-            if (willStopShowing) {
+            if (slice.willStopShowing && this._trackEnabled(slice.willStopShowing)) {
                 this.onWillStopShowing?.();
             }
 
-            if (startedShowing) {
+            if (slice.startedShowing && this._trackEnabled(slice.startedShowing)) {
                 this.onStartedShowing?.();
             }
 
@@ -164,6 +142,10 @@ export default class SubtitleContainer {
                 }
             }
         }, 100);
+    }
+
+    private _trackEnabled(subtitle: SubtitleModel) {
+        return subtitle.track === undefined || !this.disabledSubtitleTracks[subtitle.track];
     }
 
     private _buildSubtitlesHtml(subtitles: SubtitleModel[]) {
@@ -266,6 +248,7 @@ export default class SubtitleContainer {
             end: s.originalEnd + offset,
             originalEnd: s.originalEnd,
             track: s.track,
+            index: s.index,
         }));
 
         const command: VideoToExtensionCommand<OffsetFromVideoMessage> = {

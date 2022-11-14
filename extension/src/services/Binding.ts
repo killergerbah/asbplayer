@@ -320,7 +320,7 @@ export default class Binding {
                     case 'subtitles':
                         const subtitlesMessage = request.message as SubtitlesToVideoMessage;
                         const subtitles: SubtitleModel[] = subtitlesMessage.value;
-                        this.subtitleContainer.subtitles = subtitles;
+                        this.subtitleContainer.subtitles = subtitles.map((s, index) => ({ ...s, index }));
                         this.subtitleContainer.subtitleFileNames = subtitlesMessage.names || [subtitlesMessage.name];
 
                         let loadedMessage;

@@ -18,7 +18,9 @@ export interface SubtitleCollectionOptions {
 export class SubtitleCollection<T extends SubtitleModel> {
     static emptySubtitleCollection = new SubtitleCollection([]);
 
+    // Tree for subtitles
     private readonly tree: IntervalTree<T>;
+    // Tree for gaps between subtitles. The gaps are populated with the last subtitle before the gap.
     private readonly gapsTree?: IntervalTree<T>;
     private readonly options: SubtitleCollectionOptions;
 
