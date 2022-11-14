@@ -1,30 +1,38 @@
-import IntervalTree, { NumericTuple } from '@flatten-js/interval-tree';
+import IntervalTree, { Interval, NumericTuple } from '@flatten-js/interval-tree';
 import { SubtitleModel } from './Model';
 
 export interface SubtitleSlice<T> {
     showing: T[];
     lastShown?: T[];
+    nextToShow?: T[];
     startedShowing?: T;
     willStopShowing?: T;
 }
 
 export interface SubtitleCollectionOptions {
-    returnLastShown: boolean;
+    returnLastShown?: boolean;
+    returnNextToShow?: boolean;
     showingCheckRadiusMs?: number;
 }
 
 export class SubtitleCollection<T extends SubtitleModel> {
+    static emptySubtitleCollection = new SubtitleCollection([]);
+
     private readonly tree: IntervalTree<T>;
     private readonly gapsTree?: IntervalTree<T>;
-    private readonly showingCheckRadiusMs?: number;
+    private readonly options: SubtitleCollectionOptions;
 
-    constructor(subtitles: T[], options: SubtitleCollectionOptions) {
+    constructor(subtitles: T[], options: SubtitleCollectionOptions = {}) {
         this.tree = new IntervalTree<T>();
-        this.showingCheckRadiusMs = options.showingCheckRadiusMs;
+        this.options = options;
 
-        if (options.returnLastShown) {
+        if (options.returnLastShown || options.returnNextToShow) {
             let last: T | undefined;
             this.gapsTree = new IntervalTree<T>();
+
+            if (subtitles.length > 0 && subtitles[0].start > 0) {
+                this.gapsTree.insert([0, subtitles[0].start - 1], subtitles[0]);
+            }
 
             for (const s of subtitles) {
                 this.tree.insert([s.start, s.end], s);
@@ -42,24 +50,39 @@ export class SubtitleCollection<T extends SubtitleModel> {
         }
     }
 
+    static empty<S extends SubtitleModel>() {
+        return SubtitleCollection.emptySubtitleCollection as SubtitleCollection<S>;
+    }
+
     subtitlesAt(timestamp: number): SubtitleSlice<T> {
         const interval: NumericTuple = [timestamp, timestamp];
         const showing = this.tree.search(interval) as T[];
         let lastShown: T[] | undefined;
+        let nextToShow: T[] | undefined;
         let startedShowing: T | undefined;
         let willStopShowing: T | undefined;
 
         if (showing.length === 0) {
             if (this.gapsTree !== undefined) {
-                lastShown = this.gapsTree.search(interval) as T[];
+                // One of returnLastShown or returnNextToShow is true due to constructor
+                const gapIntervals: Interval[] = [];
+                lastShown = this.gapsTree.search(interval, (s, i) => {
+                    gapIntervals.push(i);
+                    return s;
+                }) as T[];
+
+                if (lastShown.length > 0 && this.options.returnNextToShow) {
+                    const nextStart = gapIntervals[0].high + 1;
+                    nextToShow = this.tree.search([nextStart, nextStart]) as T[];
+                }
             }
-        } else if (this.showingCheckRadiusMs !== undefined) {
+        } else if (this.options.showingCheckRadiusMs !== undefined) {
             for (const s of showing) {
-                if (willStopShowing === undefined && s.end < timestamp + this.showingCheckRadiusMs) {
+                if (willStopShowing === undefined && s.end < timestamp + this.options.showingCheckRadiusMs) {
                     willStopShowing = s;
                 }
 
-                if (startedShowing === undefined && timestamp - this.showingCheckRadiusMs < s.start) {
+                if (startedShowing === undefined && timestamp - this.options.showingCheckRadiusMs < s.start) {
                     startedShowing = s;
                 }
 
@@ -69,6 +92,6 @@ export class SubtitleCollection<T extends SubtitleModel> {
             }
         }
 
-        return { showing, lastShown, startedShowing, willStopShowing };
+        return { showing, lastShown, nextToShow, startedShowing, willStopShowing };
     }
 }

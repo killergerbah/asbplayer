@@ -11,6 +11,7 @@ import {
     mockSurroundingSubtitles,
     PlayMode,
     PostMineAction,
+    SubtitleCollection,
     SubtitleModel,
     VideoTabModel,
 } from '@project/common';
@@ -161,7 +162,19 @@ export default function Player({
     jumpToSubtitle,
     rewindSubtitle,
 }: PlayerProps) {
+    const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
+    const playModeRef = useRef<PlayMode>();
+    playModeRef.current = playMode;
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>();
+    const subtitleCollection = useMemo<SubtitleCollection<DisplaySubtitleModel>>(
+        () =>
+            new SubtitleCollection(subtitles ?? [], {
+                returnLastShown: true,
+                returnNextToShow: playMode === PlayMode.condensed,
+                showingCheckRadiusMs: 100,
+            }),
+        [subtitles, playMode]
+    );
     const subtitlesRef = useRef<SubtitleModel[]>();
     subtitlesRef.current = subtitles;
     const [loadingSubtitles, setLoadingSubtitles] = useState<boolean>(false);
@@ -179,9 +192,6 @@ export default function Player({
     const hideSubtitlePlayerRef = useRef<boolean>();
     hideSubtitlePlayerRef.current = hideSubtitlePlayer;
     const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState<{ [track: number]: boolean }>({});
-    const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
-    const playModeRef = useRef<PlayMode>();
-    playModeRef.current = playMode;
     const forceUpdate = useCallback(() => updateState({}), []);
     const mousePositionRef = useRef<Point>({ x: 0, y: 0 });
     const audioRef = useRef<HTMLAudioElement>(null);
@@ -554,32 +564,13 @@ export default function Player({
                 return;
             }
 
-            const progress = clock.progress(length);
+            const timestamp = clock.time(length);
+            const slice = subtitleCollection.subtitlesAt(timestamp);
 
-            let currentOrNextIndex = 0;
-            let currentIndex = -1;
+            if (slice.nextToShow && slice.nextToShow.length > 0) {
+                const nextSubtitle = slice.nextToShow[0];
 
-            for (let i = subtitles.length - 1; i >= 0; --i) {
-                const s = subtitles[i];
-                const start = s.start / length;
-                const end = s.end / length;
-
-                if (progress >= start) {
-                    if (progress < end) {
-                        currentIndex = i;
-                        currentOrNextIndex = i;
-                    } else {
-                        currentOrNextIndex = Math.min(subtitles.length - 1, i + 1);
-                    }
-
-                    break;
-                }
-            }
-
-            if (currentIndex !== currentOrNextIndex) {
-                const nextSubtitle = subtitles[currentOrNextIndex];
-
-                if (nextSubtitle.start - progress * length < expectedSeekTime + 500) {
+                if (nextSubtitle.start - timestamp < expectedSeekTime + 500) {
                     return;
                 }
 
@@ -602,7 +593,7 @@ export default function Player({
         }, 100);
 
         return () => clearInterval(interval);
-    }, [subtitles, playMode, clock, seek]);
+    }, [subtitles, subtitleCollection, playMode, clock, seek]);
 
     const handleOnStartedShowingSubtitle = useCallback(() => {
         if (
@@ -994,6 +985,7 @@ export default function Player({
                         <SubtitlePlayer
                             playing={playing}
                             subtitles={subtitles}
+                            subtitleCollection={subtitleCollection}
                             clock={clock}
                             length={length}
                             jumpToSubtitle={jumpToSubtitle}

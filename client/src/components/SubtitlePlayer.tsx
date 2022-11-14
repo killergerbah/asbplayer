@@ -183,6 +183,7 @@ interface SubtitlePlayerProps {
     onWillStopShowing?: () => void;
     playing: boolean;
     subtitles?: DisplaySubtitleModel[];
+    subtitleCollection?: SubtitleCollection<DisplaySubtitleModel>;
     length: number;
     jumpToSubtitle?: SubtitleModel;
     compressed: boolean;
@@ -209,6 +210,7 @@ export default function SubtitlePlayer({
     onWillStopShowing,
     playing,
     subtitles,
+    subtitleCollection,
     length,
     jumpToSubtitle,
     compressed,
@@ -239,12 +241,8 @@ export default function SubtitlePlayer({
                 : [],
         [subtitles]
     );
-    const subtitleCollection = useMemo<SubtitleCollection<DisplaySubtitleModel>>(
-        () => new SubtitleCollection(subtitles ?? [], { returnLastShown: true, showingCheckRadiusMs: 100 }),
-        [subtitles]
-    );
-    const subtitleCollectionRef = useRef<SubtitleCollection<DisplaySubtitleModel>>(subtitleCollection);
-    subtitleCollectionRef.current = subtitleCollection;
+    const subtitleCollectionRef = useRef<SubtitleCollection<DisplaySubtitleModel>>(SubtitleCollection.empty<DisplaySubtitleModel>());
+    subtitleCollectionRef.current = subtitleCollection ?? SubtitleCollection.empty<DisplaySubtitleModel>();
     const subtitleRefsRef = useRef<RefObject<HTMLTableRowElement>[]>([]);
     subtitleRefsRef.current = subtitleRefs;
     const disableKeyEventsRef = useRef<boolean>();
