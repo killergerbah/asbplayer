@@ -444,10 +444,7 @@ export default function VideoPlayer({
             }
         }, 100);
 
-        return () => {
-            clearTimeout(interval);
-            console.log('reassign');
-        };
+        return () => clearTimeout(interval);
     }, [
         subtitleCollection,
         playerChannel,

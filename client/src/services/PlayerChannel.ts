@@ -69,7 +69,6 @@ export default class PlayerChannel {
         const that = this;
 
         this.channel.onmessage = (event) => {
-            console.log(event);
             switch (event.data.command) {
                 case 'init':
                     // ignore, this is for the chrome extension

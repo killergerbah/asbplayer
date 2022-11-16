@@ -237,7 +237,7 @@ export default function PopupForm({
                                     onChange={(e) => onSettingsChanged('subsDragAndDrop', e.target.checked)}
                                 />
                             }
-                            label="Allow file drag-and-drop to sync"
+                            label="Allow subtitle file drag-and-drop"
                         />
                         <FormControlLabel
                             control={
@@ -246,7 +246,7 @@ export default function PopupForm({
                                     onChange={(e) => onSettingsChanged('autoSync', e.target.checked)}
                                 />
                             }
-                            label="Automatically sync detected subtitles"
+                            label="Auto-sync detected subtitles"
                         />
                     </FormGroup>
                 </Grid>
