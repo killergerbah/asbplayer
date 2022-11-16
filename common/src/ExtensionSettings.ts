@@ -1,6 +1,7 @@
 export interface ExtensionKeyBindingsSettings {
     bindPlay: boolean;
     bindAutoPause: boolean;
+    bindCondensedPlayback: boolean;
     bindToggleSubtitles: boolean;
     bindToggleSubtitleTrackInVideo: boolean;
     bindToggleSubtitleTrackInAsbplayer: boolean;

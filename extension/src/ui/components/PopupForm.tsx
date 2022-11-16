@@ -81,6 +81,7 @@ function SyncedVideoKeyboardShortcutRow({
 const keyboardShortcutLabels: { [key in keyof ExtensionKeyBindingsSettings]: string } = {
     bindPlay: 'Play/pause',
     bindAutoPause: 'Toggle auto-pause',
+    bindCondensedPlayback: 'Toggle condensed-mode',
     bindToggleSubtitles: 'Toggle subtitles',
     bindToggleSubtitleTrackInVideo: 'Toggle subtitle track in video',
     bindToggleSubtitleTrackInAsbplayer: 'Toggle subtitle track in asbplayer',

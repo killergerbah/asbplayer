@@ -38,6 +38,7 @@ export default class SubtitleContainer {
 
     onStartedShowing?: () => void;
     onWillStopShowing?: () => void;
+    onNextToShow?: (subtitle: SubtitleModel) => void;
 
     constructor(video: HTMLVideoElement) {
         this.video = video;
@@ -77,7 +78,7 @@ export default class SubtitleContainer {
 
     set subtitles(subtitles) {
         this._subtitles = subtitles;
-        this.subtitleCollection = new SubtitleCollection(subtitles, { showingCheckRadiusMs: 100 });
+        this.subtitleCollection = new SubtitleCollection(subtitles, { showingCheckRadiusMs: 150, returnNextToShow: true });
     }
 
     set subtitlePositionOffsetBottom(value: number) {
@@ -119,12 +120,13 @@ export default class SubtitleContainer {
                 this.onStartedShowing?.();
             }
 
-            if ((!showOffset && !this.displaySubtitles) || this.forceHideSubtitles) {
-                this._hideSubtitles();
-                return;
+            if (slice.nextToShow && slice.nextToShow.length > 0) {
+                this.onNextToShow?.(slice.nextToShow[0]);
             }
 
-            if (
+            if ((!showOffset && !this.displaySubtitles) || this.forceHideSubtitles) {
+                this._hideSubtitles();
+            } else if (
                 !this.showingSubtitles ||
                 !this._arrayEquals(showingSubtitles, this.showingSubtitles, (a, b) => a.index === b.index) ||
                 (showOffset && offset !== this.showingOffset) ||

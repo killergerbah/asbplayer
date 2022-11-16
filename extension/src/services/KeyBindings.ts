@@ -1,6 +1,7 @@
 import {
     ExtensionKeyBindingsSettings,
     KeyBindSet,
+    PlayMode,
     ToggleSubtitlesInListFromVideoMessage,
     ToggleSubtitlesMessage,
     VideoToExtensionCommand,
@@ -17,6 +18,7 @@ export default class KeyBindings {
 
     private unbindPlay: Unbinder = false;
     private unbindAutoPause: Unbinder = false;
+    private unbindCondensedPlayback: Unbinder = false;
     private unbindSeekToSubtitle: Unbinder = false;
     private unbindSeekToBeginningOfCurrentSubtitle?: Unbinder = false;
     private unbindSeekBackwardOrForward?: Unbinder = false;
@@ -76,7 +78,20 @@ export default class KeyBindings {
                     event.preventDefault();
                     event.stopImmediatePropagation();
 
-                    context.autoPauseEnabled = !context.autoPauseEnabled;
+                    context.playMode = context.playMode === PlayMode.autoPause ? PlayMode.normal : PlayMode.autoPause;
+                },
+                () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
+                true
+            );
+
+        this.unbindCondensedPlayback =
+            this.settings.bindCondensedPlayback &&
+            this.keyBinder.bindCondensedPlayback(
+                (event) => {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+
+                    context.playMode = context.playMode === PlayMode.condensed ? PlayMode.normal : PlayMode.condensed;
                 },
                 () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
                 true
@@ -220,6 +235,11 @@ export default class KeyBindings {
         if (this.unbindAutoPause) {
             this.unbindAutoPause();
             this.unbindAutoPause = false;
+        }
+
+        if (this.unbindCondensedPlayback) {
+            this.unbindCondensedPlayback();
+            this.unbindCondensedPlayback = false;
         }
 
         if (this.unbindSeekToSubtitle) {

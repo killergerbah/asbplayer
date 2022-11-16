@@ -13,6 +13,7 @@ import {
     PauseFromVideoMessage,
     PlaybackRateFromVideoMessage,
     PlayFromVideoMessage,
+    PlayMode,
     PostMineAction,
     ReadyFromVideoMessage,
     ReadyStateFromVideoMessage,
@@ -53,7 +54,7 @@ export default class Binding {
     private recordingMedia: boolean;
     private recordingMediaStartedTimestamp?: number;
     private recordingMediaWithScreenshot: boolean;
-    private _autoPauseEnabled: boolean = false;
+    private _playMode: PlayMode = PlayMode.normal;
 
     readonly video: HTMLVideoElement;
     readonly subSyncAvailable: boolean;
@@ -116,34 +117,50 @@ export default class Binding {
         return window.location !== window.parent.location ? document.referrer : document.location.href;
     }
 
-    get autoPauseEnabled() {
-        return this._autoPauseEnabled;
+    get playMode() {
+        return this._playMode;
     }
 
-    set autoPauseEnabled(enabled: boolean) {
-        if (enabled) {
-            this.subtitleContainer.onStartedShowing = () => {
-                if (this.recordingMedia || this.autoPausePreference !== AutoPausePreference.atStart) {
-                    return;
-                }
+    set playMode(newPlayMode: PlayMode) {
+        switch (newPlayMode) {
+            case PlayMode.autoPause:
+                this.subtitleContainer.onStartedShowing = () => {
+                    if (this.recordingMedia || this.autoPausePreference !== AutoPausePreference.atStart) {
+                        return;
+                    }
 
-                this.pause();
-            };
-            this.subtitleContainer.onWillStopShowing = () => {
-                if (this.recordingMedia || this.autoPausePreference !== AutoPausePreference.atEnd) {
-                    return;
-                }
+                    this.pause();
+                };
+                this.subtitleContainer.onWillStopShowing = () => {
+                    if (this.recordingMedia || this.autoPausePreference !== AutoPausePreference.atEnd) {
+                        return;
+                    }
 
-                this.pause();
-            };
-            this.subtitleContainer.notification('Auto-pause: On');
-        } else {
-            this.subtitleContainer.onStartedShowing = undefined;
-            this.subtitleContainer.onWillStopShowing = undefined;
-            this.subtitleContainer.notification('Auto-pause: Off');
+                    this.pause();
+                };
+                this.subtitleContainer.notification('Auto-pause: On');
+                break;
+            case PlayMode.condensed:
+                this.subtitleContainer.onNextToShow = (subtitle) => {
+                    this.seek(subtitle.start / 1000);
+                };
+                this.subtitleContainer.notification('Condensed playback: On');
+                break;
+            case PlayMode.normal:
+                if (this._playMode === PlayMode.autoPause) {
+                    this.subtitleContainer.onStartedShowing = undefined;
+                    this.subtitleContainer.onWillStopShowing = undefined;
+                    this.subtitleContainer.notification('Auto-pause: Off');
+                } else if (this._playMode === PlayMode.condensed) {
+                    this.subtitleContainer.onNextToShow = undefined;
+                    this.subtitleContainer.notification('Condensed playback: Off');
+                }
+                break;
+            default:
+                console.error('Unknown play mode' + newPlayMode);
         }
 
-        this._autoPauseEnabled = enabled;
+        this._playMode = newPlayMode;
     }
 
     sourceString(timestamp: number, track: number = 0) {
@@ -331,8 +348,8 @@ export default class Binding {
                             loadedMessage = subtitlesMessage.name || '[Subtitles Loaded]';
                         }
 
-                        if (this.autoPauseEnabled && (!subtitles || subtitles.length === 0)) {
-                            this.autoPauseEnabled = false;
+                        if (this._playMode !== PlayMode.normal && (!subtitles || subtitles.length === 0)) {
+                            this.playMode = PlayMode.normal;
                         }
 
                         this.subtitleContainer.showLoadedMessage(loadedMessage);
