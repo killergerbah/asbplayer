@@ -19,6 +19,7 @@ import {
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import { ExtensionKeyBindingsSettings, ExtensionSettings } from '@project/common';
 import { LatestExtensionInfo } from '../../services/VersionChecker';
+import InputAdornment from '@material-ui/core/InputAdornment';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -130,7 +131,7 @@ export default function PopupForm({
                     </Grid>
                 )}
                 <Grid item>
-                    <FormLabel component="legend">Subtitles</FormLabel>
+                    <FormLabel component="legend">Playback</FormLabel>
                     <FormGroup>
                         <FormControlLabel
                             control={
@@ -154,6 +155,25 @@ export default function PopupForm({
                                 step: 1,
                             }}
                             onChange={(e) => onSettingsChanged('subtitlePositionOffsetBottom', Number(e.target.value))}
+                        />
+                        <TextField
+                            className={classes.textField}
+                            variant="filled"
+                            type="number"
+                            color="secondary"
+                            fullWidth
+                            label="Condensed playback minimum skip interval"
+                            value={settings.condensedPlaybackMinimumSkipIntervalMs}
+                            onChange={(e) =>
+                                onSettingsChanged('condensedPlaybackMinimumSkipIntervalMs', Number(e.target.value))
+                            }
+                            inputProps={{
+                                min: 0,
+                                step: 1,
+                            }}
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                            }}
                         />
                     </FormGroup>
                 </Grid>
@@ -231,7 +251,7 @@ export default function PopupForm({
                     </FormGroup>
                 </Grid>
                 <Grid item>
-                    <FormLabel component="legend">Extension Keyboard Shortcuts</FormLabel>
+                    <FormLabel component="legend">Mining Keyboard Shortcuts</FormLabel>
                     <TableContainer>
                         <Table size="small">
                             <TableBody>
@@ -320,7 +340,7 @@ export default function PopupForm({
                     </TableContainer>
                 </Grid>
                 <Grid item>
-                    <FormLabel component="legend">Synced Video Keyboard Shortcuts</FormLabel>
+                    <FormLabel component="legend">Playback Keyboard Shortcuts</FormLabel>
                     <TableContainer>
                         <Table size="small">
                             <TableBody>

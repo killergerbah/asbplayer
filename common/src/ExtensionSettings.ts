@@ -22,6 +22,7 @@ export interface ExtensionSettings extends ExtensionKeyBindingsSettings {
     autoSync: boolean;
     lastLanguagesSynced: { [key: string]: string };
     subtitlePositionOffsetBottom: number;
+    condensedPlaybackMinimumSkipIntervalMs: number;
     asbplayerUrl: string;
     lastThemeType: 'dark' | 'light';
 }

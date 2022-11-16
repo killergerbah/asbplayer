@@ -75,6 +75,7 @@ export default class Binding {
     private maxImageWidth: number;
     private maxImageHeight: number;
     private autoPausePreference: AutoPausePreference;
+    private condensedPlaybackMinimumSkipIntervalMs = 1000;
 
     private playListener?: EventListener;
     private pauseListener?: EventListener;
@@ -142,7 +143,9 @@ export default class Binding {
                 break;
             case PlayMode.condensed:
                 this.subtitleContainer.onNextToShow = (subtitle) => {
-                    this.seek(subtitle.start / 1000);
+                    if (subtitle.start - this.video.currentTime * 1000 > this.condensedPlaybackMinimumSkipIntervalMs) {
+                        this.seek(subtitle.start / 1000);
+                    }
                 };
                 this.subtitleContainer.notification('Condensed playback: On');
                 break;
@@ -515,6 +518,7 @@ export default class Binding {
         this.subtitleContainer.refresh();
         this.videoDataSyncContainer.updateSettings(currentSettings);
         this.keyBindings.setSettings(this, currentSettings);
+        this.condensedPlaybackMinimumSkipIntervalMs = currentSettings.condensedPlaybackMinimumSkipIntervalMs;
 
         if (currentSettings.subsDragAndDrop) {
             this.dragContainer.bind();

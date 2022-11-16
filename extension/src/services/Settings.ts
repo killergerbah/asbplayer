@@ -20,6 +20,7 @@ const defaults: ExtensionSettings = {
     subsDragAndDrop: true,
     autoSync: false,
     lastLanguagesSynced: {},
+    condensedPlaybackMinimumSkipIntervalMs: 1000,
     subtitlePositionOffsetBottom: 75,
     asbplayerUrl: 'https://killergerbah.github.io/asbplayer/',
     lastThemeType: 'dark',
