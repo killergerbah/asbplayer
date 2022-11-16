@@ -398,8 +398,7 @@ export default class Binding {
                         this.copyToClipboardOnMine = miscSettingsMessage.value.copyToClipboardOnMine;
                         this.autoPausePreference =
                             miscSettingsMessage.value.autoPausePreference ?? this.autoPausePreference;
-                        this.keyBindings.keyBindSet = miscSettingsMessage.value.keyBindSet;
-                        this.keyBindings.bind(this);
+                        this.keyBindings.setKeyBindSet(this, miscSettingsMessage.value.keyBindSet);
                         break;
                     case 'settings-updated':
                         this._refreshSettings();
@@ -515,7 +514,7 @@ export default class Binding {
         this.subtitleContainer.subtitlePositionOffsetBottom = currentSettings.subtitlePositionOffsetBottom;
         this.subtitleContainer.refresh();
         this.videoDataSyncContainer.updateSettings(currentSettings);
-        this.keyBindings.settings = currentSettings;
+        this.keyBindings.setSettings(this, currentSettings);
 
         if (currentSettings.subsDragAndDrop) {
             this.dragContainer.bind();

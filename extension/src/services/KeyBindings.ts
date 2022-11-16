@@ -8,12 +8,12 @@ import {
 } from '@project/common';
 import { DefaultKeyBinder } from '@project/common/src/KeyBinder';
 import Binding from './Binding';
+import { keyBindSettingsKeys } from './Settings';
 
 type Unbinder = (() => void) | false;
 
 export default class KeyBindings {
-    settings?: ExtensionKeyBindingsSettings;
-
+    private _settings?: ExtensionKeyBindingsSettings;
     private keyBinder: DefaultKeyBinder | undefined;
 
     private unbindPlay: Unbinder = false;
@@ -34,13 +34,33 @@ export default class KeyBindings {
         this.bound = false;
     }
 
-    set keyBindSet(keyBindSet: KeyBindSet) {
-        this.unbind();
+    setSettings(context: Binding, newSettings: ExtensionKeyBindingsSettings) {
+        const oldSettings = this._settings;
+        this._settings = newSettings;
+        if (!oldSettings || this._hasDiff(oldSettings, newSettings)) {
+            this.unbind();
+            this.bind(context);
+        }
+    }
+
+    private _hasDiff(a: ExtensionKeyBindingsSettings, b: ExtensionKeyBindingsSettings) {
+        for (const key of keyBindSettingsKeys) {
+            if (a[key] !== b[key]) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    setKeyBindSet(context: Binding, keyBindSet: KeyBindSet) {
         this.keyBinder = new DefaultKeyBinder(keyBindSet);
+        this.unbind();
+        this.bind(context);
     }
 
     bind(context: Binding) {
-        if (!this.settings) {
+        if (!this._settings) {
             console.error('Settings are not defined - cannot bind keys');
             return;
         }
@@ -55,7 +75,7 @@ export default class KeyBindings {
         }
 
         this.unbindPlay =
-            this.settings.bindPlay &&
+            this._settings.bindPlay &&
             this.keyBinder.bindPlay(
                 (event) => {
                     event.preventDefault();
@@ -72,7 +92,7 @@ export default class KeyBindings {
             );
 
         this.unbindAutoPause =
-            this.settings.bindAutoPause &&
+            this._settings.bindAutoPause &&
             this.keyBinder.bindAutoPause(
                 (event) => {
                     event.preventDefault();
@@ -85,7 +105,7 @@ export default class KeyBindings {
             );
 
         this.unbindCondensedPlayback =
-            this.settings.bindCondensedPlayback &&
+            this._settings.bindCondensedPlayback &&
             this.keyBinder.bindCondensedPlayback(
                 (event) => {
                     event.preventDefault();
@@ -98,7 +118,7 @@ export default class KeyBindings {
             );
 
         this.unbindSeekToSubtitle =
-            this.settings.bindSeekToSubtitle &&
+            this._settings.bindSeekToSubtitle &&
             this.keyBinder.bindSeekToSubtitle(
                 (event, subtitle) => {
                     event.preventDefault();
@@ -112,7 +132,7 @@ export default class KeyBindings {
             );
 
         this.unbindSeekBackwardOrForward =
-            this.settings.bindSeekBackwardOrForward &&
+            this._settings.bindSeekBackwardOrForward &&
             this.keyBinder.bindSeekBackwardOrForward(
                 (event, forward) => {
                     event.preventDefault();
@@ -129,7 +149,7 @@ export default class KeyBindings {
             );
 
         this.unbindSeekToBeginningOfCurrentSubtitle =
-            this.settings.bindSeekToBeginningOfCurrentSubtitle &&
+            this._settings.bindSeekToBeginningOfCurrentSubtitle &&
             this.keyBinder.bindSeekToBeginningOfCurrentSubtitle(
                 (event, subtitle) => {
                     event.preventDefault();
@@ -143,7 +163,7 @@ export default class KeyBindings {
             );
 
         this.unbindToggleSubtitles =
-            this.settings.bindToggleSubtitles &&
+            this._settings.bindToggleSubtitles &&
             this.keyBinder.bindToggleSubtitles(
                 (event) => {
                     event.preventDefault();
@@ -164,7 +184,7 @@ export default class KeyBindings {
             );
 
         this.unbindToggleSubtitleTrackInVideo =
-            this.settings.bindToggleSubtitleTrackInVideo &&
+            this._settings.bindToggleSubtitleTrackInVideo &&
             this.keyBinder.bindToggleSubtitleTrackInVideo(
                 (event, track) => {
                     event.preventDefault();
@@ -177,7 +197,7 @@ export default class KeyBindings {
             );
 
         this.unbindToggleSubtitleTrackInList =
-            this.settings.bindToggleSubtitleTrackInAsbplayer &&
+            this._settings.bindToggleSubtitleTrackInAsbplayer &&
             this.keyBinder.bindToggleSubtitleTrackInList(
                 (event, track) => {
                     event.preventDefault();
@@ -197,7 +217,7 @@ export default class KeyBindings {
             );
 
         this.unbindOffsetToSubtitle =
-            this.settings.bindAdjustOffsetToSubtitle &&
+            this._settings.bindAdjustOffsetToSubtitle &&
             this.keyBinder.bindOffsetToSubtitle(
                 (event, offset) => {
                     event.preventDefault();
@@ -211,7 +231,7 @@ export default class KeyBindings {
             );
 
         this.unbindAdjustOffset =
-            this.settings.bindAdjustOffset &&
+            this._settings.bindAdjustOffset &&
             this.keyBinder.bindAdjustOffset(
                 (event, offset) => {
                     event.preventDefault();

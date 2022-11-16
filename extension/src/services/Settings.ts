@@ -1,4 +1,4 @@
-import { ExtensionSettings } from '@project/common';
+import { ExtensionSettings, ExtensionKeyBindingsSettings } from '@project/common';
 
 const defaults: ExtensionSettings = {
     displaySubtitles: true,
@@ -24,6 +24,25 @@ const defaults: ExtensionSettings = {
     asbplayerUrl: 'https://killergerbah.github.io/asbplayer/',
     lastThemeType: 'dark',
 };
+
+// TypeScript will ensure that this object has all the key binding settings keys.
+// We then use the object to export an array of all the key binding settings keys.
+// There doesn't seem to be a more direct way to do this with just an array.
+const keyBindSettingsObject: { [key in keyof ExtensionKeyBindingsSettings]: boolean } = {
+    bindPlay: true,
+    bindAutoPause: true,
+    bindCondensedPlayback: true,
+    bindToggleSubtitles: true,
+    bindToggleSubtitleTrackInVideo: true,
+    bindToggleSubtitleTrackInAsbplayer: true,
+    bindSeekToSubtitle: true,
+    bindSeekToBeginningOfCurrentSubtitle: true,
+    bindSeekBackwardOrForward: true,
+    bindAdjustOffsetToSubtitle: true,
+    bindAdjustOffset: true,
+};
+
+export const keyBindSettingsKeys = Object.keys(keyBindSettingsObject) as (keyof ExtensionKeyBindingsSettings)[];
 
 type SettingsKey = keyof ExtensionSettings;
 
