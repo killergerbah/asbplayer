@@ -146,7 +146,7 @@ interface Props {
     channel: string;
     popOut: boolean;
     onError: (error: string) => void;
-    onAutoPauseModeChangedViaBind: (playMode: PlayMode) => void;
+    onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
 }
 
 interface IndexedSubtitleModel extends SubtitleModel {
@@ -160,7 +160,7 @@ export default function VideoPlayer({
     channel,
     popOut,
     onError,
-    onAutoPauseModeChangedViaBind,
+    onPlayModeChangedViaBind,
 }: Props) {
     const classes = useStyles();
     const poppingInRef = useRef<boolean>();
@@ -186,7 +186,7 @@ export default function VideoPlayer({
         () =>
             new SubtitleCollection<IndexedSubtitleModel>(subtitles, {
                 returnLastShown: false,
-                showingCheckRadiusMs: 100,
+                showingCheckRadiusMs: 150,
             }),
         [subtitles]
     );
@@ -444,7 +444,10 @@ export default function VideoPlayer({
             }
         }, 100);
 
-        return () => clearTimeout(interval);
+        return () => {
+            clearTimeout(interval);
+            console.log('reassign');
+        };
     }, [
         subtitleCollection,
         playerChannel,
@@ -721,17 +724,29 @@ export default function VideoPlayer({
         );
     }, [keyBinder, playing, playerChannel]);
 
+    const togglePlayMode = useCallback(
+        (event: KeyboardEvent, togglePlayMode: PlayMode) => {
+            event.preventDefault();
+            const newPlayMode = playMode === togglePlayMode ? PlayMode.normal : togglePlayMode;
+            playerChannel.playMode(newPlayMode);
+            onPlayModeChangedViaBind(playMode, newPlayMode);
+        },
+        [playMode, playerChannel, onPlayModeChangedViaBind]
+    );
+
     useEffect(() => {
         return keyBinder.bindAutoPause(
-            (event) => {
-                event.preventDefault();
-                const newPlayMode = playMode === PlayMode.autoPause ? PlayMode.normal : PlayMode.autoPause;
-                playerChannel.playMode(newPlayMode);
-                onAutoPauseModeChangedViaBind(newPlayMode);
-            },
+            (event) => togglePlayMode(event, PlayMode.autoPause),
             () => false
         );
-    }, [keyBinder, playerChannel, playMode, onAutoPauseModeChangedViaBind]);
+    }, [keyBinder, togglePlayMode]);
+
+    useEffect(() => {
+        return keyBinder.bindCondensedPlayback(
+            (event) => togglePlayMode(event, PlayMode.condensed),
+            () => false
+        );
+    }, [keyBinder, togglePlayMode]);
 
     const handleSubtitlesToggle = useCallback(() => setSubtitlesEnabled((subtitlesEnabled) => !subtitlesEnabled), []);
 
@@ -897,7 +912,7 @@ export default function VideoPlayer({
                 popOut={popOut}
                 volumeEnabled={true}
                 popOutEnabled={!isMobile}
-                playModeEnabled={true}
+                playModeEnabled={subtitles && subtitles.length > 0}
                 playMode={playMode}
                 hideSubtitlePlayerToggleEnabled={subtitles?.length > 0 && !popOut && !fullscreen}
                 subtitlePlayerHidden={subtitlePlayerHidden}

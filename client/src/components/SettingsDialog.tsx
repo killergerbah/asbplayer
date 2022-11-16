@@ -150,6 +150,7 @@ const keyBindProperties: { [key in KeyBindName]: KeyBindProperties } = {
     },
     togglePlay: { label: 'Play/pause', extensionOverridden: false },
     toggleAutoPause: { label: 'Toggle auto-pause', extensionOverridden: false },
+    toggleCondensedPlayback: { label: 'Toggle condensed playback', extensionOverridden: false },
     toggleSubtitles: { label: 'Toggle subtitles', extensionOverridden: false },
     toggleVideoSubtitleTrack1: { label: 'Toggle subtitle track 1 in video', extensionOverridden: false },
     toggleVideoSubtitleTrack2: { label: 'Toggle subtitle track 2 in video', extensionOverridden: false },

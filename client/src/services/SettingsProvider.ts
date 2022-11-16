@@ -27,6 +27,7 @@ const defaultAutoPausePreference = AutoPausePreference.atEnd;
 const defaultKeyBindSet: KeyBindSet = {
     togglePlay: { keys: 'space' },
     toggleAutoPause: { keys: isMacOs ? '⇧+P' : 'shift+P' },
+    toggleCondensedPlayback: { keys: isMacOs ? '⇧+O' : 'shift+O' },
     toggleSubtitles: { keys: 'S' },
     toggleVideoSubtitleTrack1: { keys: '1' },
     toggleVideoSubtitleTrack2: { keys: '2' },

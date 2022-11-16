@@ -126,7 +126,7 @@ interface PlayerProps {
     onAnkiDialogRequest: (forwardToVideo?: boolean) => void;
     onAppBarToggle: () => void;
     onVideoPopOut: () => void;
-    onAutoPauseModeChangedViaBind: (playMode: PlayMode) => void;
+    onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
     disableKeyEvents: boolean;
     jumpToSubtitle?: SubtitleModel;
     rewindSubtitle?: SubtitleModel;
@@ -157,7 +157,7 @@ export default function Player({
     onAnkiDialogRequest,
     onAppBarToggle,
     onVideoPopOut,
-    onAutoPauseModeChangedViaBind,
+    onPlayModeChangedViaBind,
     disableKeyEvents,
     jumpToSubtitle,
     rewindSubtitle,
@@ -177,6 +177,7 @@ export default function Player({
     );
     const subtitlesRef = useRef<SubtitleModel[]>();
     subtitlesRef.current = subtitles;
+    const playModeEnabled = subtitles && subtitles.length > 0 && Boolean(videoFileUrl || audioFileUrl);
     const [loadingSubtitles, setLoadingSubtitles] = useState<boolean>(false);
     const [playing, setPlaying] = useState<boolean>(false);
     const [lastJumpToTopTimestamp, setLastJumpToTopTimestamp] = useState<number>(0);
@@ -787,21 +788,34 @@ export default function Player({
         return () => unbind();
     }, [keyBinder, playing, clock, mediaAdapter, disableKeyEvents]);
 
+    const togglePlayMode = useCallback((event: KeyboardEvent, togglePlayMode: PlayMode) => {
+        if (!playModeEnabled) {
+            return;
+        }
+
+        event.preventDefault();
+        const newPlayMode = playMode === togglePlayMode ? PlayMode.normal : togglePlayMode;
+        setPlayMode(newPlayMode);
+        onPlayModeChangedViaBind(playMode, newPlayMode);
+
+        if (videoRef.current instanceof VideoChannel) {
+            videoRef.current.playMode(newPlayMode);
+        }
+    }, [playMode, playModeEnabled, onPlayModeChangedViaBind]);
+
     useEffect(() => {
         return keyBinder.bindAutoPause(
-            (event) => {
-                if (tab) {
-                    return;
-                }
-
-                event.preventDefault();
-                const newPlayMode = playMode === PlayMode.autoPause ? PlayMode.normal : PlayMode.autoPause;
-                setPlayMode(newPlayMode);
-                onAutoPauseModeChangedViaBind(newPlayMode);
-            },
+            (event) => togglePlayMode(event, PlayMode.autoPause),
             () => disableKeyEvents
         );
-    }, [keyBinder, disableKeyEvents, settingsProvider, playMode, tab, onAutoPauseModeChangedViaBind]);
+    }, [togglePlayMode, keyBinder, disableKeyEvents]);
+
+    useEffect(() => {
+        return keyBinder.bindCondensedPlayback(
+            (event) => togglePlayMode(event, PlayMode.condensed),
+            () => disableKeyEvents
+        );
+    }, [togglePlayMode, keyBinder, disableKeyEvents]);
 
     useEffect(() => {
         if ((audioFile || videoFile) && (!subtitles || subtitles.length === 0)) {
@@ -965,7 +979,7 @@ export default function Player({
                                 offsetEnabled={true}
                                 offset={offset}
                                 volumeEnabled={Boolean(audioFileUrl)}
-                                playModeEnabled={Boolean(videoFileUrl || audioFileUrl)}
+                                playModeEnabled={playModeEnabled}
                                 playMode={playMode}
                                 onPlay={handlePlay}
                                 onPause={handlePause}

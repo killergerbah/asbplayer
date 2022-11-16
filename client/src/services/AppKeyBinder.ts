@@ -188,4 +188,12 @@ export default class AppKeyBinder implements KeyBinder {
     ): () => void {
         return this.defaultKeyBinder.bindAutoPause(onAutoPause, disabledGetter, useCapture);
     }
+
+    bindCondensedPlayback(
+        onCondensedPlayback: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        useCapture?: boolean | undefined
+    ): () => void {
+        return this.defaultKeyBinder.bindCondensedPlayback(onCondensedPlayback, disabledGetter, useCapture);
+    }
 }

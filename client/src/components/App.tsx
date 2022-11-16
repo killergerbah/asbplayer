@@ -228,7 +228,7 @@ interface RenderVideoProps {
     settingsProvider: SettingsProvider;
     extension: ChromeExtension;
     onError: (error: string) => void;
-    onAutoPauseModeChangedViaBind: (playMode: PlayMode) => void;
+    onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
 }
 
 function RenderVideo({
@@ -236,7 +236,7 @@ function RenderVideo({
     settingsProvider,
     extension,
     onError,
-    onAutoPauseModeChangedViaBind,
+    onPlayModeChangedViaBind,
 }: RenderVideoProps) {
     const videoFile = searchParams.get('video')!;
     const channel = searchParams.get('channel')!;
@@ -250,7 +250,7 @@ function RenderVideo({
             popOut={popOut}
             channel={channel}
             onError={onError}
-            onAutoPauseModeChangedViaBind={onAutoPauseModeChangedViaBind}
+            onPlayModeChangedViaBind={onPlayModeChangedViaBind}
         />
     );
 }
@@ -1005,18 +1005,25 @@ function App() {
         return () => extension.unsubscribe(onMessage);
     }, [extension, inVideoPlayer]);
 
-    const handleAutoPauseModeChangedViaBind = useCallback((playMode: PlayMode) => {
-        switch (playMode) {
+    const handleAutoPauseModeChangedViaBind = useCallback((oldPlayMode: PlayMode, newPlayMode: PlayMode) => {
+        switch (newPlayMode) {
             case PlayMode.autoPause:
                 setAlert('Auto-pause: On');
-                setAlertSeverity('info');
-                setAlertOpen(true);
+                break;
+            case PlayMode.condensed:
+                setAlert('Condensed playback: On');
                 break;
             case PlayMode.normal:
-                setAlert('Auto-pause: Off');
-                setAlertSeverity('info');
-                setAlertOpen(true);
+                if (oldPlayMode === PlayMode.autoPause) {
+                    setAlert('Auto-pause: Off');
+                } else if (oldPlayMode === PlayMode.condensed) {
+                    setAlert('Condensed playback: Off')
+                }
+                break;
         }
+
+        setAlertSeverity('info');
+        setAlertOpen(true);
     }, []);
 
     const handleDrop = useCallback(
@@ -1155,7 +1162,7 @@ function App() {
                                 settingsProvider={settingsProvider}
                                 extension={extension}
                                 onError={handleError}
-                                onAutoPauseModeChangedViaBind={handleAutoPauseModeChangedViaBind}
+                                onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
                             />
                         }
                     />
@@ -1244,7 +1251,7 @@ function App() {
                                         onAnkiDialogRequest={handleAnkiDialogRequest}
                                         onAppBarToggle={handleAppBarToggle}
                                         onVideoPopOut={handleVideoPopOut}
-                                        onAutoPauseModeChangedViaBind={handleAutoPauseModeChangedViaBind}
+                                        onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
                                         tab={tab}
                                         availableTabs={availableTabs}
                                         sources={sources}

@@ -47,6 +47,7 @@ export interface KeyBind {
 export interface KeyBindSet {
     readonly togglePlay: KeyBind;
     readonly toggleAutoPause: KeyBind;
+    readonly toggleCondensedPlayback: KeyBind;
     readonly toggleSubtitles: KeyBind;
     readonly toggleVideoSubtitleTrack1: KeyBind;
     readonly toggleVideoSubtitleTrack2: KeyBind;

@@ -72,6 +72,11 @@ export interface KeyBinder {
         disabledGetter: () => boolean,
         useCapture?: boolean
     ): () => void;
+    bindCondensedPlayback(
+        onCondensedPlayback: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        useCapture?: boolean
+    ): () => void;
 }
 
 export class DefaultKeyBinder implements KeyBinder {
@@ -545,6 +550,26 @@ export class DefaultKeyBinder implements KeyBinder {
 
     bindAutoPause(onAutoPause: (event: KeyboardEvent) => void, disabledGetter: () => boolean, useCapture = false) {
         const shortcut = this.keyBindSet.toggleAutoPause.keys;
+
+        if (!shortcut) {
+            return () => {};
+        }
+
+        const handler = (event: KeyboardEvent) => {
+            if (disabledGetter()) {
+                return;
+            }
+
+            onAutoPause(event);
+        };
+        hotkeys(shortcut, { capture: useCapture }, handler);
+        return () => {
+            hotkeys.unbind(shortcut, handler);
+        };
+    }
+
+    bindCondensedPlayback(onAutoPause: (event: KeyboardEvent) => void, disabledGetter: () => boolean, useCapture = false) {
+        const shortcut = this.keyBindSet.toggleCondensedPlayback.keys;
 
         if (!shortcut) {
             return () => {};
