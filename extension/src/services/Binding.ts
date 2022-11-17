@@ -142,9 +142,24 @@ export default class Binding {
                 this.subtitleContainer.notification('Auto-pause: On');
                 break;
             case PlayMode.condensed:
-                this.subtitleContainer.onNextToShow = (subtitle) => {
-                    if (subtitle.start - this.video.currentTime * 1000 > this.condensedPlaybackMinimumSkipIntervalMs) {
+                let seeking = false;
+                this.subtitleContainer.onNextToShow = async (subtitle) => {
+                    try {
+                        if (
+                            this.recordingMedia ||
+                            seeking ||
+                            subtitle.start - this.video.currentTime * 1000 <=
+                                this.condensedPlaybackMinimumSkipIntervalMs
+                        ) {
+                            return;
+                        }
+
+                        seeking = true;
                         this.seek(subtitle.start / 1000);
+                        await this.play();
+                        seeking = false;
+                    } finally {
+                        seeking = false;
                     }
                 };
                 this.subtitleContainer.notification('Condensed playback: On');
@@ -160,7 +175,7 @@ export default class Binding {
                 }
                 break;
             default:
-                console.error('Unknown play mode' + newPlayMode);
+                console.error('Unknown play mode ' + newPlayMode);
         }
 
         this._playMode = newPlayMode;
