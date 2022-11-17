@@ -13,7 +13,7 @@ export default class RefreshSettingsHandler {
     }
 
     get command() {
-        return null;
+        return 'settings-updated';
     }
 
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {

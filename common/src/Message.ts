@@ -370,3 +370,7 @@ export interface AudioBase64Message extends Message {
     readonly command: 'audio-base64';
     readonly base64: string;
 }
+
+export interface EditKeyboardShortcutsMessage extends Message {
+    readonly command: 'edit-keyboard-shortcuts';
+}

@@ -365,6 +365,7 @@ function App() {
         resume: false,
     });
     const [settingsDialogOpen, setSettingsDialogOpen] = useState<boolean>(false);
+    const [settingsDialogScrollToId, setSettingsDialogScrollToId] = useState<string>();
     const [imageDialogOpen, setImageDialogOpen] = useState<boolean>(false);
     const [disableKeyEvents, setDisableKeyEvents] = useState<boolean>(false);
     const [image, setImage] = useState<Image>();
@@ -1017,7 +1018,7 @@ function App() {
                 if (oldPlayMode === PlayMode.autoPause) {
                     setAlert('Auto-pause: Off');
                 } else if (oldPlayMode === PlayMode.condensed) {
-                    setAlert('Condensed playback: Off')
+                    setAlert('Condensed playback: Off');
                 }
                 break;
         }
@@ -1132,6 +1133,20 @@ function App() {
 
     const handleSourcesLoaded = useCallback(() => setLoading(false), []);
 
+    useEffect(() => {
+        var view = searchParams.get('view');
+        if (view === 'settings') {
+            setSettingsDialogOpen(true);
+
+            if (location.hash && location.hash.startsWith('#')) {
+                const id = location.hash.substring(1, location.hash.length);
+                setSettingsDialogScrollToId(id);
+            }
+
+            return;
+        }
+    }, [searchParams, location]);
+
     if (location.pathname === '/' && searchParams.get('video')) {
         return <NavigateToVideo searchParams={searchParams} />;
     }
@@ -1206,6 +1221,7 @@ function App() {
                                     open={settingsDialogOpen}
                                     onClose={handleCloseSettings}
                                     settings={settingsProvider.settings}
+                                    scrollToId={settingsDialogScrollToId}
                                 />
                                 <Bar
                                     title={fileName || 'asbplayer'}

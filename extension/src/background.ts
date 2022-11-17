@@ -18,7 +18,6 @@ import { CommandHandler } from './handlers/CommandHandler';
 import {
     Command,
     CopySubtitleMessage,
-    ExtensionToAsbPlayerCommand,
     ExtensionToVideoCommand,
     Message,
     PostMineAction,
@@ -31,6 +30,7 @@ import AudioBase64Handler from './handlers/backgroundpage/AudioBase64Handler';
 import AckTabsHandler from './handlers/asbplayerv2/AckTabsHandler';
 import VersionChecker from './services/VersionChecker';
 import OpenExtensionShortcutsHandler from './handlers/asbplayerv2/OpenExtensionShortcutsHandler';
+import EditKeyboardShortcutsHandler from './handlers/popup/EditKeyboardShortcutsHandler';
 
 const settings = new Settings();
 const versionChecker = new VersionChecker(settings);
@@ -67,6 +67,7 @@ const handlers: CommandHandler[] = [
     new RefreshSettingsHandler(tabRegistry),
     new BackgroundPageReadyHandler(backgroundPageAudioRecorder),
     new AudioBase64Handler(backgroundPageAudioRecorder),
+    new EditKeyboardShortcutsHandler(settings),
 ];
 
 chrome.runtime.onMessage.addListener((request: Command<Message>, sender, sendResponse) => {

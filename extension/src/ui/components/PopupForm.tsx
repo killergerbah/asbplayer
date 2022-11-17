@@ -15,11 +15,13 @@ import {
     Typography,
     Link,
     Button,
+    IconButton,
 } from '@material-ui/core';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import { ExtensionKeyBindingsSettings, ExtensionSettings } from '@project/common';
 import { LatestExtensionInfo } from '../../services/VersionChecker';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import { Edit } from '@material-ui/icons';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -59,6 +61,7 @@ interface SyncedVideoKeyboardShortcutRowProps {
     enabled: boolean;
     settingsKey: keyof ExtensionKeyBindingsSettings;
     onChange: <K extends keyof ExtensionKeyBindingsSettings>(key: K, enabled: boolean) => void;
+    onClick: () => void;
 }
 
 function SyncedVideoKeyboardShortcutRow({
@@ -66,15 +69,21 @@ function SyncedVideoKeyboardShortcutRow({
     enabled,
     settingsKey,
     onChange,
+    onClick,
 }: SyncedVideoKeyboardShortcutRowProps) {
     return (
         <TableRow>
-            <SmallTableCell>
-                <Checkbox checked={enabled} onChange={(e) => onChange(settingsKey, e.target.checked)} />
-            </SmallTableCell>
             <TableCell>
                 <Typography variant="subtitle2">{label}</Typography>
             </TableCell>
+            <SmallTableCell>
+                <IconButton size="small" onClick={onClick}>
+                    <Edit />
+                </IconButton>
+            </SmallTableCell>
+            <SmallTableCell>
+                <Checkbox checked={enabled} onChange={(e) => onChange(settingsKey, e.target.checked)} />
+            </SmallTableCell>
         </TableRow>
     );
 }
@@ -100,6 +109,7 @@ interface PopupFormProps {
     onSettingsChanged: <K extends keyof ExtensionSettings>(key: K, value: ExtensionSettings[K]) => void;
     onOpenExtensionShortcuts: () => void;
     onOpenUpdateUrl: (url: string) => void;
+    onVideoKeyboardShortcutClicked: () => void;
 }
 
 export default function PopupForm({
@@ -109,6 +119,7 @@ export default function PopupForm({
     onSettingsChanged,
     onOpenExtensionShortcuts,
     onOpenUpdateUrl,
+    onVideoKeyboardShortcutClicked,
 }: PopupFormProps) {
     const classes = useStyles();
 
@@ -257,27 +268,20 @@ export default function PopupForm({
                             <TableBody>
                                 <TableRow>
                                     <TableCell>
+                                        <Typography variant="subtitle2">Mine current subtitle.</Typography>
+                                        <Typography variant="subtitle2">
+                                            When video is synced without a subtitle file, starts/stops recording audio.
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell>
                                         <ExtensionKeyboardShortcut
                                             commands={commands}
                                             commandName="copy-subtitle"
                                             onClick={onOpenExtensionShortcuts}
                                         />
                                     </TableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">Mine current subtitle.</Typography>
-                                        <Typography variant="subtitle2">
-                                            When video is synced without a subtitle file, starts/stops recording audio.
-                                        </Typography>
-                                    </TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell>
-                                        <ExtensionKeyboardShortcut
-                                            commands={commands}
-                                            commandName="copy-subtitle-with-dialog"
-                                            onClick={onOpenExtensionShortcuts}
-                                        />
-                                    </TableCell>
                                     <TableCell>
                                         <Typography variant="subtitle2">
                                             Mine current subtitle and open Anki export dialog.
@@ -286,15 +290,15 @@ export default function PopupForm({
                                             When video is synced without a subtitle file, starts/stops recording audio.
                                         </Typography>
                                     </TableCell>
-                                </TableRow>
-                                <TableRow>
                                     <TableCell>
                                         <ExtensionKeyboardShortcut
                                             commands={commands}
-                                            commandName="update-last-card"
+                                            commandName="copy-subtitle-with-dialog"
                                             onClick={onOpenExtensionShortcuts}
                                         />
                                     </TableCell>
+                                </TableRow>
+                                <TableRow>
                                     <TableCell>
                                         <Typography variant="subtitle2">
                                             Update last-created Anki card with asbplayer-captured screenshot, audio,
@@ -304,8 +308,21 @@ export default function PopupForm({
                                             When video is synced without a subtitle file, starts/stops recording audio.
                                         </Typography>
                                     </TableCell>
+                                    <TableCell>
+                                        <ExtensionKeyboardShortcut
+                                            commands={commands}
+                                            commandName="update-last-card"
+                                            onClick={onOpenExtensionShortcuts}
+                                        />
+                                    </TableCell>
                                 </TableRow>
                                 <TableRow>
+                                    <TableCell>
+                                        <Typography variant="subtitle2">
+                                            Manually take screenshot, overriding the one that is automatically taken
+                                            when mining.
+                                        </Typography>
+                                    </TableCell>
                                     <TableCell>
                                         <ExtensionKeyboardShortcut
                                             commands={commands}
@@ -313,26 +330,20 @@ export default function PopupForm({
                                             onClick={onOpenExtensionShortcuts}
                                         />
                                     </TableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">
-                                            Manually take screenshot, overriding the one that is automatically taken
-                                            when mining.
-                                        </Typography>
-                                    </TableCell>
                                 </TableRow>
                                 <TableRow>
+                                    <TableCell>
+                                        <Typography variant="subtitle2">
+                                            Select video element to mine without a subtitle file, or with detected
+                                            subtitles on supported sites.
+                                        </Typography>
+                                    </TableCell>
                                     <TableCell>
                                         <ExtensionKeyboardShortcut
                                             commands={commands}
                                             commandName="toggle-video-select"
                                             onClick={onOpenExtensionShortcuts}
                                         />
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">
-                                            Select video element to mine without a subtitle file, or with detected
-                                            subtitles on supported sites.
-                                        </Typography>
                                     </TableCell>
                                 </TableRow>
                             </TableBody>
@@ -348,10 +359,12 @@ export default function PopupForm({
                                     const keyBindingSetting = key as keyof ExtensionKeyBindingsSettings;
                                     return (
                                         <SyncedVideoKeyboardShortcutRow
+                                            key={keyBindingSetting}
                                             enabled={settings[keyBindingSetting]}
                                             label={keyboardShortcutLabels[keyBindingSetting]}
                                             settingsKey={keyBindingSetting}
                                             onChange={onSettingsChanged}
+                                            onClick={onVideoKeyboardShortcutClicked}
                                         />
                                     );
                                 })}

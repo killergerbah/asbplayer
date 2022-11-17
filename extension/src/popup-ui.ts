@@ -1,6 +1,11 @@
 import { renderPopupUi, SettingsChangedMessage } from './ui/popup';
 import Settings from './services/Settings';
-import { ExtensionSettings } from '@project/common';
+import {
+    EditKeyboardShortcutsMessage,
+    ExtensionSettings,
+    PopupToExtensionCommand,
+    SettingsUpdatedMessage,
+} from '@project/common';
 
 const fetchShortcuts = () => {
     return new Promise((resolve, reject) => {
@@ -26,26 +31,36 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     const commands = await commandsPromise;
     const rootElement = document.getElementById('root')!;
     const bridge = renderPopupUi(rootElement, { currentSettings, commands });
-    bridge.onFinished((message: any) => {
+    bridge.onFinished(async (message: any) => {
         switch (message.command) {
             case 'settings-changed':
                 const key = message.key as keyof ExtensionSettings;
                 const settingsChangedMessage = message as SettingsChangedMessage<typeof key>;
                 const newSetting: any = {};
                 newSetting[settingsChangedMessage.key] = settingsChangedMessage.value;
-                settings.set(newSetting);
-                chrome.runtime.sendMessage({
+                await settings.set(newSetting);
+                const settingsUpdatedCommand: PopupToExtensionCommand<SettingsUpdatedMessage> = {
                     sender: 'asbplayer-popup',
                     message: {
                         command: 'settings-updated',
                     },
-                });
+                };
+                chrome.runtime.sendMessage(settingsUpdatedCommand);
                 break;
             case 'open-extension-shortcuts':
                 chrome.tabs.create({ active: true, url: 'chrome://extensions/shortcuts' });
                 break;
             case 'open-update-url':
                 chrome.tabs.create({ active: true, url: message.url });
+                break;
+            case 'edit-video-keyboard-shortcuts':
+                const editKeyboardShortcutsMessage: PopupToExtensionCommand<EditKeyboardShortcutsMessage> = {
+                    sender: 'asbplayer-popup',
+                    message: {
+                        command: 'edit-keyboard-shortcuts',
+                    },
+                };
+                chrome.runtime.sendMessage(editKeyboardShortcutsMessage);
                 break;
             default:
                 console.error('Unknown command ' + message.command);

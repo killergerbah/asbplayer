@@ -33,6 +33,10 @@ export interface ExtensionToAsbPlayerCommand<T extends Message> extends Command<
     readonly src: string;
 }
 
+export interface PopupToExtensionCommand<T extends Message> extends Command<T> {
+    readonly sender: 'asbplayer-popup';
+}
+
 export interface ExtensionToAsbPlayerCommandTabsCommand extends Command<TabsMessage> {
     readonly sender: 'asbplayer-extension-to-player';
 }
@@ -42,5 +46,5 @@ export interface ExtensionToBackgroundPageCommand<T extends Message> extends Com
 }
 
 export interface BackgroundPageToExtensionCommand<T extends Message> extends Command<T> {
-    readonly sender: 'asbplayer-background-page'
+    readonly sender: 'asbplayer-background-page';
 }

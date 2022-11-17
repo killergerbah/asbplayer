@@ -331,10 +331,11 @@ interface Props {
     extension: ChromeExtension;
     open: boolean;
     settings: AsbplayerSettings;
+    scrollToId?: string;
     onClose: (settings: AsbplayerSettings) => void;
 }
 
-export default function SettingsDialog({ anki, extension, open, settings, onClose }: Props) {
+export default function SettingsDialog({ anki, extension, open, settings, scrollToId, onClose }: Props) {
     const classes = useStyles();
     const [ankiConnectUrl, setAnkiConnectUrl] = useState<string>(settings.ankiConnectUrl);
     const [ankiConnectUrlError, setAnkiConnectUrlError] = useState<string>();
@@ -771,6 +772,14 @@ export default function SettingsDialog({ anki, extension, open, settings, onClos
         );
     });
 
+    useEffect(() => {
+        if (!scrollToId) {
+            return;
+        }
+
+        setTimeout(() => document.getElementById(scrollToId)?.scrollIntoView({ behavior: 'smooth' }), 0);
+    }, [scrollToId]);
+
     return (
         <React.Fragment>
             <CustomFieldDialog
@@ -783,7 +792,7 @@ export default function SettingsDialog({ anki, extension, open, settings, onClos
                 <DialogTitle>Settings</DialogTitle>
                 <DialogContent>
                     <Grid container direction="column" spacing={3}>
-                        <Grid item>
+                        <Grid item id="anki">
                             <FormLabel>Anki</FormLabel>
                             <FormGroup className={classes.root}>
                                 <TextField
@@ -896,7 +905,7 @@ export default function SettingsDialog({ anki, extension, open, settings, onClos
                                 />
                             </FormGroup>
                         </Grid>
-                        <Grid item>
+                        <Grid item id="mining">
                             <FormLabel>Mining</FormLabel>
                             <FormGroup className={classes.root}>
                                 <FormControlLabel
@@ -995,7 +1004,7 @@ export default function SettingsDialog({ anki, extension, open, settings, onClos
                                 />
                             </FormGroup>
                         </Grid>
-                        <Grid item>
+                        <Grid item id="auto-pause">
                             <FormLabel>Auto-pause Preference</FormLabel>
                             <div>
                                 <FormControlLabel
@@ -1024,7 +1033,7 @@ export default function SettingsDialog({ anki, extension, open, settings, onClos
                                 </FormHelperText>
                             </div>
                         </Grid>
-                        <Grid item>
+                        <Grid item id="video-subtitle-appearance">
                             <FormLabel>Video Subtitle Appearance</FormLabel>
                             <FormGroup className={classes.root}>
                                 <div className={classes.subtitleSetting}>
@@ -1137,7 +1146,7 @@ export default function SettingsDialog({ anki, extension, open, settings, onClos
                                 </div>
                             </FormGroup>
                         </Grid>
-                        <Grid item>
+                        <Grid item id="theme">
                             <FormLabel>Theme</FormLabel>
                             <div>
                                 <FormControlLabel

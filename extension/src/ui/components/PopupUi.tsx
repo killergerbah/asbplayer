@@ -29,6 +29,10 @@ export interface OpenUpdateUrlMessage {
     url: string;
 }
 
+export interface EditVideoKeyboardShorcutsMessage {
+    command: 'edit-video-keyboard-shortcuts';
+}
+
 export function PopupUi({ bridge, currentSettings, commands }: Props) {
     const [settings, setSettings] = useState(currentSettings);
     const [latestVersionInfo, setLatestVersionInfo] = useState<LatestExtensionInfo>();
@@ -72,6 +76,11 @@ export function PopupUi({ bridge, currentSettings, commands }: Props) {
         [bridge]
     );
 
+    const handleVideoKeyboardShortcutClicked = useCallback(() => {
+        const message: EditVideoKeyboardShorcutsMessage = { command: 'edit-video-keyboard-shortcuts' };
+        bridge.finished(message);
+    }, [bridge]);
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
@@ -82,6 +91,7 @@ export function PopupUi({ bridge, currentSettings, commands }: Props) {
                 onSettingsChanged={handleSettingsChangedCallback}
                 onOpenExtensionShortcuts={handleOpenExtensionShortcuts}
                 onOpenUpdateUrl={handleOpenUpdateUrl}
+                onVideoKeyboardShortcutClicked={handleVideoKeyboardShortcutClicked}
             />
         </ThemeProvider>
     );
