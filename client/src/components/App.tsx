@@ -42,7 +42,7 @@ import AppKeyBinder from '../services/AppKeyBinder';
 import VideoChannel from '../services/VideoChannel';
 import { ChromeExtensionProvider } from '../services/ChromeExtensionProvider';
 
-const latestExtensionVersion = '0.21.0';
+const latestExtensionVersion = '0.22.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
 
 const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
