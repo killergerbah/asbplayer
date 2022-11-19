@@ -21,7 +21,7 @@ import { makeStyles, withStyles } from '@material-ui/core/styles';
 import { ExtensionKeyBindingsSettings, ExtensionSettings } from '@project/common';
 import { LatestExtensionInfo } from '../../services/VersionChecker';
 import InputAdornment from '@material-ui/core/InputAdornment';
-import { Edit } from '@material-ui/icons';
+import EditIcon from '@material-ui/icons/Edit';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -78,7 +78,7 @@ function SyncedVideoKeyboardShortcutRow({
             </TableCell>
             <SmallTableCell>
                 <IconButton size="small" onClick={onClick}>
-                    <Edit />
+                    <EditIcon />
                 </IconButton>
             </SmallTableCell>
             <SmallTableCell>

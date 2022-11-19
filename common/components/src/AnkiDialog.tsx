@@ -21,7 +21,6 @@ import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
-import LockIcon from '@material-ui/icons/Lock';
 import Paper from '@material-ui/core/Paper';
 import RestoreIcon from '@material-ui/icons/Restore';
 import SearchIcon from '@material-ui/icons/Search';
