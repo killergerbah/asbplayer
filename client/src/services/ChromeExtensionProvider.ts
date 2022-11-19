@@ -13,10 +13,11 @@ export class ChromeExtensionProvider {
             if (event.data.sender === 'asbplayer-extension-to-player') {
                 if (event.data.message.command === 'version') {
                     for (const callback of this.callbacks) {
+                        this.extension.unbind();
                         this.extension = new ChromeExtension(event.data.message.version);
                         callback(this.extension);
                     }
-                    
+
                     window.removeEventListener('message', listener);
                 }
             }

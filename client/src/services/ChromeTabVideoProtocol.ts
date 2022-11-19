@@ -7,6 +7,7 @@ export default class ChromeTabVideoProtocol implements VideoProtocol {
     private readonly src: string;
     private readonly extension: ChromeExtension;
     private readonly listener: (message: ExtensionMessage) => void;
+    private readonly unsubscribeFromExtension: () => void;
 
     onMessage?: (message: VideoProtocolMessage) => void;
 
@@ -21,7 +22,7 @@ export default class ChromeTabVideoProtocol implements VideoProtocol {
             }
         };
 
-        extension.subscribe(this.listener);
+        this.unsubscribeFromExtension = extension.subscribe(this.listener);
         this.extension = extension;
     }
 
@@ -30,6 +31,6 @@ export default class ChromeTabVideoProtocol implements VideoProtocol {
     }
 
     close() {
-        this.extension.unsubscribe(this.listener);
+        this.unsubscribeFromExtension();
     }
 }

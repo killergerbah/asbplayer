@@ -304,12 +304,11 @@ function App() {
     const inVideoPlayer = location.pathname === '/video' || searchParams.get('video') !== null;
     const extensionProvider = useMemo(() => new ChromeExtensionProvider(), []);
     const [extension, setExtension] = useState<ChromeExtension>(extensionProvider.extension);
-    useEffect(() =>  extensionProvider.onChromeExtension(setExtension), [extensionProvider]);
+    useEffect(() => extensionProvider.onChromeExtension(setExtension), [extensionProvider]);
     const keyBinder = useMemo<AppKeyBinder>(
         () => new AppKeyBinder(new DefaultKeyBinder(settingsProvider.keyBindSet), extension),
         [settingsProvider.keyBindSet, extension]
     );
-    useEffect(() => () => keyBinder.unsubscribeFromExtension(), [keyBinder]);
     const videoFrameRef = useRef<HTMLIFrameElement>(null);
     const videoChannelRef = useRef<VideoChannel>(null);
     const [width] = useWindowSize(!inVideoPlayer);
@@ -824,9 +823,7 @@ function App() {
             }
         }
 
-        extension.subscribeTabs(onTabs);
-
-        return () => extension.unsubscribeTabs(onTabs);
+        return extension.subscribeTabs(onTabs);
     }, [availableTabs, tab, extension, handleError]);
 
     const handleTabSelected = useCallback((tab: VideoTabModel) => setTab(tab), []);
@@ -1004,9 +1001,9 @@ function App() {
             }
         }
 
-        extension.subscribe(onMessage);
+        const unsubscribe = extension.subscribe(onMessage);
         extension.startHeartbeat();
-        return () => extension.unsubscribe(onMessage);
+        return unsubscribe;
     }, [extension, inVideoPlayer]);
 
     const handleAutoPauseModeChangedViaBind = useCallback((oldPlayMode: PlayMode, newPlayMode: PlayMode) => {

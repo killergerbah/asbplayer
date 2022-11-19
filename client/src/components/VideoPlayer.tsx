@@ -218,7 +218,6 @@ export default function VideoPlayer({
         () => new AppKeyBinder(new DefaultKeyBinder(miscSettings.keyBindSet), extension),
         [miscSettings.keyBindSet, extension]
     );
-    useEffect(() => () => keyBinder.unsubscribeFromExtension(), [keyBinder]);
     const videoRefCallback = useCallback(
         (element: HTMLVideoElement) => {
             if (element) {

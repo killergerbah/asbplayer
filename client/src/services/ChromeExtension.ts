@@ -20,9 +20,9 @@ export default class ChromeExtension {
     tabs: VideoTabModel[];
     installed: boolean;
 
-    private readonly onMessageCallbacks: Array<(message: ExtensionMessage) => void>;
-    private readonly onTabsCallbacks: Array<(tabs: VideoTabModel[]) => void>;
-
+    private readonly windowEventListener: (event: MessageEvent) => void;
+    private onMessageCallbacks: Array<(message: ExtensionMessage) => void>;
+    private onTabsCallbacks: Array<(tabs: VideoTabModel[]) => void>;
     private heartbeatStarted = false;
 
     constructor(version?: string) {
@@ -31,8 +31,7 @@ export default class ChromeExtension {
         this.tabs = [];
         this.installed = version !== undefined;
         this.version = version ?? '';
-
-        window.addEventListener('message', (event) => {
+        this.windowEventListener = (event: MessageEvent) => {
             if (event.source !== window) {
                 return;
             }
@@ -73,7 +72,9 @@ export default class ChromeExtension {
                     }
                 }
             }
-        });
+        };
+
+        window.addEventListener('message', this.windowEventListener);
     }
 
     startHeartbeat() {
@@ -84,7 +85,7 @@ export default class ChromeExtension {
         }
     }
 
-    _sendHeartbeat() {
+    private _sendHeartbeat() {
         window.postMessage(
             {
                 sender: 'asbplayerv2',
@@ -131,18 +132,12 @@ export default class ChromeExtension {
 
     subscribeTabs(callback: (tabs: VideoTabModel[]) => void) {
         this.onTabsCallbacks.push(callback);
-    }
-
-    unsubscribeTabs(callback: (tabs: VideoTabModel[]) => void) {
-        this._remove(callback, this.onTabsCallbacks);
+        return () => this._remove(callback, this.onTabsCallbacks);
     }
 
     subscribe(callback: (message: ExtensionMessage) => void) {
         this.onMessageCallbacks.push(callback);
-    }
-
-    unsubscribe(callback: (message: ExtensionMessage) => void) {
-        this._remove(callback, this.onMessageCallbacks);
+        return () => this._remove(callback, this.onMessageCallbacks);
     }
 
     _remove(callback: Function, callbacks: Function[]) {
@@ -152,5 +147,11 @@ export default class ChromeExtension {
                 break;
             }
         }
+    }
+
+    unbind() {
+        window.removeEventListener('message', this.windowEventListener);
+        this.onMessageCallbacks = [];
+        this.onTabsCallbacks = [];
     }
 }

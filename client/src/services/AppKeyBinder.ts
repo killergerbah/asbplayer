@@ -40,10 +40,6 @@ export default class AppKeyBinder implements KeyBinder {
         extension.subscribe(this.onExtensionMessage);
     }
 
-    unsubscribeFromExtension() {
-        this.extension.unsubscribe(this.onExtensionMessage);
-    }
-
     bindCopy<T extends SubtitleModel = SubtitleModel>(
         onCopy: (event: KeyboardEvent, subtitle: T) => void,
         disabledGetter: () => boolean,
