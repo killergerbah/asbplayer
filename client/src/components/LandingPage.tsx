@@ -55,7 +55,7 @@ export default function LandingPage({
 
     useEffect(() => {
         async function fetchInstalledExtensionVersion() {
-            setInstalledExtensionVersion(await extension.installedVersion());
+            setInstalledExtensionVersion(extension.version);
         }
 
         fetchInstalledExtensionVersion();

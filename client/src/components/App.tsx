@@ -40,6 +40,7 @@ import { AnkiExportMode } from '@project/common';
 import { DefaultKeyBinder } from '@project/common/src/KeyBinder';
 import AppKeyBinder from '../services/AppKeyBinder';
 import VideoChannel from '../services/VideoChannel';
+import { ChromeExtensionProvider } from '../services/ChromeExtensionProvider';
 
 const latestExtensionVersion = '0.21.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
@@ -301,7 +302,9 @@ function App() {
     const [searchParams] = useSearchParams();
 
     const inVideoPlayer = location.pathname === '/video' || searchParams.get('video') !== null;
-    const extension = useMemo<ChromeExtension>(() => new ChromeExtension(), []);
+    const extensionProvider = useMemo(() => new ChromeExtensionProvider(), []);
+    const [extension, setExtension] = useState<ChromeExtension>(extensionProvider.extension);
+    useEffect(() =>  extensionProvider.onChromeExtension(setExtension), [extensionProvider]);
     const keyBinder = useMemo<AppKeyBinder>(
         () => new AppKeyBinder(new DefaultKeyBinder(settingsProvider.keyBindSet), extension),
         [settingsProvider.keyBindSet, extension]
@@ -1142,8 +1145,6 @@ function App() {
                 const id = location.hash.substring(1, location.hash.length);
                 setSettingsDialogScrollToId(id);
             }
-
-            return;
         }
     }, [searchParams, location]);
 

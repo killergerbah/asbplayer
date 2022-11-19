@@ -12,28 +12,25 @@ export interface ExtensionMessage {
     src: string;
 }
 
+const id = uuidv4();
+
 export default class ChromeExtension {
+    readonly version: string;
+
     tabs: VideoTabModel[];
     installed: boolean;
 
     private readonly onMessageCallbacks: Array<(message: ExtensionMessage) => void>;
     private readonly onTabsCallbacks: Array<(tabs: VideoTabModel[]) => void>;
-    private readonly versionPromise: Promise<string>;
-    private readonly id: string;
 
-    private versionResolve?: (value: string | PromiseLike<string>) => void;
     private heartbeatStarted = false;
 
-    constructor() {
+    constructor(version?: string) {
         this.onMessageCallbacks = [];
         this.onTabsCallbacks = [];
         this.tabs = [];
-        this.installed = false;
-        this.versionPromise = new Promise((resolve, reject) => {
-            this.versionResolve = resolve;
-        });
-        this.versionPromise.then(() => (this.installed = true));
-        this.id = uuidv4();
+        this.installed = version !== undefined;
+        this.version = version ?? '';
 
         window.addEventListener('message', (event) => {
             if (event.source !== window) {
@@ -42,34 +39,29 @@ export default class ChromeExtension {
 
             if (event.data.sender === 'asbplayer-extension-to-player') {
                 if (event.data.message) {
-                    if (event.data.message.command === 'tabs') {
-                        const tabsCommand = event.data as ExtensionToAsbPlayerCommandTabsCommand;
-                        this.tabs = tabsCommand.message.tabs;
+                    switch (event.data.message.command) {
+                        case 'tabs':
+                            const tabsCommand = event.data as ExtensionToAsbPlayerCommandTabsCommand;
+                            this.tabs = tabsCommand.message.tabs;
 
-                        for (let c of this.onTabsCallbacks) {
-                            c(this.tabs);
-                        }
+                            for (let c of this.onTabsCallbacks) {
+                                c(this.tabs);
+                            }
 
-                        if (tabsCommand.message.ackRequested) {
-                            window.postMessage(
-                                {
-                                    sender: 'asbplayerv2',
-                                    message: {
-                                        command: 'ackTabs',
-                                        id: this.id,
-                                        receivedTabs: this.tabs,
+                            if (tabsCommand.message.ackRequested) {
+                                window.postMessage(
+                                    {
+                                        sender: 'asbplayerv2',
+                                        message: {
+                                            command: 'ackTabs',
+                                            id: id,
+                                            receivedTabs: this.tabs,
+                                        },
                                     },
-                                },
-                                '*'
-                            );
-                        }
-
-                        return;
-                    }
-
-                    if (event.data.message.command === 'version') {
-                        this.versionResolve!(event.data.message.version);
-                        return;
+                                    '*'
+                                );
+                            }
+                            return;
                     }
 
                     for (let c of this.onMessageCallbacks) {
@@ -98,7 +90,7 @@ export default class ChromeExtension {
                 sender: 'asbplayerv2',
                 message: {
                     command: 'heartbeat',
-                    id: this.id,
+                    id: id,
                     receivedTabs: this.tabs,
                 },
             },
@@ -113,10 +105,6 @@ export default class ChromeExtension {
                 command: 'open-extension-shortcuts',
             },
         });
-    }
-
-    async installedVersion(): Promise<string> {
-        return await this.versionPromise;
     }
 
     sendMessage(message: Message, tabId: number, src: string) {
