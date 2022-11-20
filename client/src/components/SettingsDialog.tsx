@@ -209,6 +209,8 @@ function KeyBindField({ label, keys, extensionOverridden, onKeysChange, onOpenEx
     onKeysChangeRef.current = onKeysChange;
     const [editing, setEditing] = useState<boolean>(false);
 
+    useEffect(() => setCurrentKeyString(keys), [keys]);
+
     const handleEditKeyBinding = useCallback(
         (event: React.MouseEvent) => {
             if (event.nativeEvent.detail === 0) {
