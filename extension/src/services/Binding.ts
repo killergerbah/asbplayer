@@ -148,6 +148,7 @@ export default class Binding {
                         if (
                             this.recordingMedia ||
                             seeking ||
+                            this.video.paused ||
                             subtitle.start - this.video.currentTime * 1000 <=
                                 this.condensedPlaybackMinimumSkipIntervalMs
                         ) {
