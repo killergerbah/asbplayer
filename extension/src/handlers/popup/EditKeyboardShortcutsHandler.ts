@@ -1,11 +1,10 @@
-import { Command, Message } from '@project/common';
-import Settings from '../../services/Settings';
+import { Command, EditKeyboardShortcutsMessage, ExtensionToAsbPlayerCommand, Message } from '@project/common';
+import TabRegistry from '../../services/TabRegistry';
 
 export default class EditKeyboardShortcutsHandler {
-    private readonly settings: Settings;
-
-    constructor(settings: Settings) {
-        this.settings = settings;
+    private readonly tabRegistry: TabRegistry;
+    constructor(tabRegistry: TabRegistry) {
+        this.tabRegistry = tabRegistry;
     }
 
     get sender() {
@@ -17,11 +16,19 @@ export default class EditKeyboardShortcutsHandler {
     }
 
     async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
-        const baseUrl = (await this.settings.get(['asbplayerUrl'])).asbplayerUrl;
+        const tabId = await this.tabRegistry.findAsbplayerTab();
+        const editKeyboardShortcutsCommand: ExtensionToAsbPlayerCommand<EditKeyboardShortcutsMessage> = {
+            sender: 'asbplayer-extension-to-player',
+            message: {
+                command: 'edit-keyboard-shortcuts',
+            },
+        };
 
-        chrome.tabs.create({
-            active: true,
-            url: `${baseUrl}?view=settings#keyboard-shortcuts`
-        });
+        await chrome.tabs.sendMessage(Number(tabId), editKeyboardShortcutsCommand);
+        const tab = await chrome.tabs.update(tabId, { active: true });
+
+        if (tab !== undefined) {
+            await chrome.windows.update(tab.windowId, { focused: true });
+        }
     }
 }

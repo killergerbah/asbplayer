@@ -1,5 +1,6 @@
 import {
     AsbPlayerToVideoCommandV2,
+    ExtensionToAsbPlayerCommand,
     ExtensionToAsbPlayerCommandTabsCommand,
     Message,
     VideoTabModel,
@@ -8,8 +9,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 export interface ExtensionMessage {
     data: Message;
-    tabId: number;
-    src: string;
+    tabId?: number;
+    src?: string;
 }
 
 const id = uuidv4();
@@ -36,40 +37,40 @@ export default class ChromeExtension {
                 return;
             }
 
-            if (event.data.sender === 'asbplayer-extension-to-player') {
-                if (event.data.message) {
-                    switch (event.data.message.command) {
-                        case 'tabs':
-                            const tabsCommand = event.data as ExtensionToAsbPlayerCommandTabsCommand;
-                            this.tabs = tabsCommand.message.tabs;
+            if (event.data.sender !== 'asbplayer-extension-to-player' || !event.data.message) {
+                return;
+            }
 
-                            for (let c of this.onTabsCallbacks) {
-                                c(this.tabs);
-                            }
+            if (event.data.message.command === 'tabs') {
+                const tabsCommand = event.data as ExtensionToAsbPlayerCommandTabsCommand;
+                this.tabs = tabsCommand.message.tabs;
 
-                            if (tabsCommand.message.ackRequested) {
-                                window.postMessage(
-                                    {
-                                        sender: 'asbplayerv2',
-                                        message: {
-                                            command: 'ackTabs',
-                                            id: id,
-                                            receivedTabs: this.tabs,
-                                        },
-                                    },
-                                    '*'
-                                );
-                            }
-                            return;
-                    }
+                for (let c of this.onTabsCallbacks) {
+                    c(this.tabs);
+                }
 
-                    for (let c of this.onMessageCallbacks) {
-                        c({
-                            data: event.data.message,
-                            tabId: event.data.tabId,
-                            src: event.data.src,
-                        });
-                    }
+                if (tabsCommand.message.ackRequested) {
+                    window.postMessage(
+                        {
+                            sender: 'asbplayerv2',
+                            message: {
+                                command: 'ackTabs',
+                                id: id,
+                                receivedTabs: this.tabs,
+                            },
+                        },
+                        '*'
+                    );
+                }
+            } else {
+                const command = event.data as ExtensionToAsbPlayerCommand<Message>;
+
+                for (let c of this.onMessageCallbacks) {
+                    c({
+                        data: command.message,
+                        tabId: command.tabId,
+                        src: command.src,
+                    });
                 }
             }
         };

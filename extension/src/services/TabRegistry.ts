@@ -1,3 +1,4 @@
+import { Filter } from '@material-ui/icons';
 import {
     ActiveVideoElement,
     Command,
@@ -246,7 +247,9 @@ export default class TabRegistry {
         await this.publishCommandToAsbplayers(() => tabsCommand);
     }
 
-    async publishCommandToAsbplayers<T extends Message>(commandFactory: (asbplayer: Asbplayer) => Command<T> | undefined) {
+    async publishCommandToAsbplayers<T extends Message>(
+        commandFactory: (asbplayer: Asbplayer) => Command<T> | undefined
+    ) {
         const asbplayers = await this._asbplayers();
 
         for (const tabId in asbplayers) {
@@ -281,7 +284,7 @@ export default class TabRegistry {
         }
     }
 
-    async findAsbplayerTab(videoTab: chrome.tabs.Tab, videoSrc: string) {
+    async findAsbplayerTab(filter?: (asbplayer: Asbplayer) => boolean): Promise<number> {
         let chosenTabId = null;
         const now = Date.now();
         let min = null;
@@ -291,7 +294,7 @@ export default class TabRegistry {
         for (const tabId in asbplayers) {
             const asbplayer = asbplayers[tabId];
 
-            if (this._asbplayerReceivedVideoTabData(asbplayer, videoTab, videoSrc)) {
+            if (filter === undefined || filter(asbplayer)) {
                 const elapsed = now - asbplayer.timestamp;
 
                 if (min === null || elapsed < min) {
@@ -302,25 +305,27 @@ export default class TabRegistry {
         }
 
         if (chosenTabId) {
-            return chosenTabId;
+            return Number(chosenTabId);
         }
 
         return new Promise(async (resolve, reject) => {
             if (!Object.keys(asbplayers).length) {
-                await this._createNewTab(videoTab);
+                await this._createNewTab();
             }
-            this._anyAsbplayerTab(videoTab, videoSrc, resolve, reject, 0, 10);
+            this._anyAsbplayerTab(resolve, reject, 0, 10, filter);
         });
     }
 
-    async _createNewTab(videoTab: chrome.tabs.Tab) {
+    async _createNewTab() {
         return new Promise<chrome.tabs.Tab>(async (resolve, reject) => {
+            const activeTabs = await chrome.tabs.query({active: true});
+            const activeTabIndex = !activeTabs || activeTabs.length === 0 ? undefined : activeTabs[0].index + 1;
             chrome.tabs.create(
                 {
                     active: false,
                     selected: false,
                     url: (await this.settings.get(['asbplayerUrl'])).asbplayerUrl,
-                    index: videoTab.index + 1,
+                    index: activeTabIndex
                 },
                 resolve
             );
@@ -328,12 +333,11 @@ export default class TabRegistry {
     }
 
     async _anyAsbplayerTab(
-        videoTab: chrome.tabs.Tab,
-        videoSrc: string,
         resolve: (value: number | PromiseLike<number>) => void,
         reject: (reason?: any) => void,
         attempt: number,
-        maxAttempts: number
+        maxAttempts: number,
+        filter?: (asbplayer: Asbplayer) => boolean
     ) {
         if (attempt >= maxAttempts) {
             reject(new Error('Could not find or create an asbplayer tab'));
@@ -343,27 +347,12 @@ export default class TabRegistry {
         const asbplayers = await this._asbplayers();
 
         for (const tabId in asbplayers) {
-            if (this._asbplayerReceivedVideoTabData(asbplayers[tabId], videoTab, videoSrc)) {
+            if (filter === undefined || filter(asbplayers[tabId])) {
                 resolve(Number(tabId));
                 return;
             }
         }
 
-        setTimeout(() => this._anyAsbplayerTab(videoTab, videoSrc, resolve, reject, attempt + 1, maxAttempts), 1000);
-    }
-
-    _asbplayerReceivedVideoTabData(asbplayer: Asbplayer, videoTab: chrome.tabs.Tab, videoSrc: string) {
-        if (asbplayer.receivedTabs === undefined) {
-            // Support older asbplayer clients that don't send the receivedTabs array
-            return true;
-        }
-
-        for (const tab of asbplayer.receivedTabs) {
-            if (tab.id == videoTab.id && tab.src === videoSrc) {
-                return true;
-            }
-        }
-
-        return false;
+        setTimeout(() => this._anyAsbplayerTab(resolve, reject, attempt + 1, maxAttempts, filter), 1000);
     }
 }

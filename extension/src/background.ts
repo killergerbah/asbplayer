@@ -67,7 +67,7 @@ const handlers: CommandHandler[] = [
     new RefreshSettingsHandler(tabRegistry),
     new BackgroundPageReadyHandler(backgroundPageAudioRecorder),
     new AudioBase64Handler(backgroundPageAudioRecorder),
-    new EditKeyboardShortcutsHandler(settings),
+    new EditKeyboardShortcutsHandler(tabRegistry),
 ];
 
 chrome.runtime.onMessage.addListener((request: Command<Message>, sender, sendResponse) => {

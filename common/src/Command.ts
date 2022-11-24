@@ -29,8 +29,8 @@ export interface VideoToExtensionCommand<T extends Message> extends Command<T> {
 
 export interface ExtensionToAsbPlayerCommand<T extends Message> extends Command<T> {
     readonly sender: 'asbplayer-extension-to-player';
-    readonly tabId: number;
-    readonly src: string;
+    readonly tabId?: number;
+    readonly src?: string;
 }
 
 export interface PopupToExtensionCommand<T extends Message> extends Command<T> {

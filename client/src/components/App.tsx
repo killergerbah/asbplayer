@@ -591,6 +591,7 @@ function App() {
         (newSettings: AsbplayerSettings) => {
             settingsProvider.settings = newSettings;
             setSettingsDialogOpen(false);
+            setSettingsDialogScrollToId(undefined);
 
             // ATM only the Anki dialog may appear under the settings dialog,
             // so it's the only one we need to check to re-enable key events
@@ -998,6 +999,9 @@ function App() {
                     videoFileUrl: undefined,
                 });
                 setTab(tab);
+            } else if (message.data.command === 'edit-keyboard-shortcuts') {
+                setSettingsDialogOpen(true);
+                setSettingsDialogScrollToId('keyboard-shortcuts');
             }
         }
 

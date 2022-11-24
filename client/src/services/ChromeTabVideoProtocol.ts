@@ -15,7 +15,7 @@ export default class ChromeTabVideoProtocol implements VideoProtocol {
         this.tabId = tabId;
         this.src = src;
         this.listener = (message) => {
-            if (message.tabId === tabId && (!message.src || message.src === src)) {
+            if (message.tabId === tabId && message.src === src) {
                 this.onMessage?.({
                     data: message.data,
                 });
