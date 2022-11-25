@@ -2,13 +2,13 @@ import React, { useCallback, useState, useEffect, useMemo, ChangeEvent, ReactNod
 import { makeStyles } from '@material-ui/styles';
 import { computeStyles } from '../services/Util';
 import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
 import CustomFieldDialog from './CustomFieldDialog';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import EditIcon from '@material-ui/icons/Edit';
+import InfoIcon from '@material-ui/icons/Info';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
@@ -32,6 +32,9 @@ import hotkeys from 'hotkeys-js';
 import Typography from '@material-ui/core/Typography';
 import ChromeExtension from '../services/ChromeExtension';
 import { isMacOs } from 'react-device-detect';
+import Switch from '@material-ui/core/Switch';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import Tooltip from '@material-ui/core/Tooltip';
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
@@ -66,6 +69,10 @@ const useStyles = makeStyles<Theme>((theme) => ({
     },
     addFieldButton: {
         width: '100%',
+    },
+    switchLabel: {
+        justifyContent: 'space-between',
+        marginLeft: 0,
     },
 }));
 
@@ -911,17 +918,21 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                             <FormLabel>Mining</FormLabel>
                             <FormGroup className={classes.root}>
                                 <FormControlLabel
-                                    control={<Checkbox checked={preferMp3} onChange={handlePreferMp3Change} />}
+                                    control={<Switch checked={preferMp3} onChange={handlePreferMp3Change} />}
                                     label="Re-encode audio as mp3 (slower)"
+                                    labelPlacement="start"
+                                    className={classes.switchLabel}
                                 />
                                 <FormControlLabel
                                     control={
-                                        <Checkbox
+                                        <Switch
                                             checked={copyToClipboardOnMine}
                                             onChange={handleCopyToClipboardOnMine}
                                         />
                                     }
                                     label="Copy mined subtitles to clipboard"
+                                    labelPlacement="start"
+                                    className={classes.switchLabel}
                                 />
                                 <TextField
                                     type="number"
@@ -1007,8 +1018,21 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                             </FormGroup>
                         </Grid>
                         <Grid item id="auto-pause">
-                            <FormLabel>Auto-pause Preference</FormLabel>
-                            <div>
+                            <Grid container direction="row" spacing={1}>
+                                <Grid item>
+                                    <FormLabel>Auto-pause Preference</FormLabel>
+                                </Grid>
+                                <Grid item>
+                                    <Tooltip
+                                        title="Does not enable auto-pause. Sets the preference for when to pause when auto-pause is
+                                    enabled."
+                                        placement="top"
+                                    >
+                                        <InfoIcon fontSize="small" />
+                                    </Tooltip>
+                                </Grid>
+                            </Grid>
+                            <RadioGroup row>
                                 <FormControlLabel
                                     control={
                                         <Radio
@@ -1029,11 +1053,11 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                     }
                                     label="At Subtitle End"
                                 />
-                                <FormHelperText>
+                            </RadioGroup>
+                            {/* <FormHelperText>
                                     Does not enable auto-pause. Sets the preference for when to pause when auto-pause is
                                     enabled.
-                                </FormHelperText>
-                            </div>
+                                </FormHelperText> */}
                         </Grid>
                         <Grid item id="video-subtitle-appearance">
                             <FormLabel>Video Subtitle Appearance</FormLabel>
