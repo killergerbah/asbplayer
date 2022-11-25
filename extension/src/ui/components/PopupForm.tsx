@@ -16,6 +16,7 @@ import {
     Link,
     Button,
     IconButton,
+    Switch,
 } from '@material-ui/core';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import { ExtensionKeyBindingsSettings, ExtensionSettings } from '@project/common';
@@ -32,6 +33,10 @@ const useStyles = makeStyles((theme) => ({
     textField: {
         margin: `${theme.spacing(1)}px 0px ${theme.spacing(1)}px 0px`,
     },
+    switchLabel: {
+        justifyContent: 'space-between',
+        marginLeft: 0,
+    },
 }));
 
 const SmallTableCell = withStyles({
@@ -40,19 +45,22 @@ const SmallTableCell = withStyles({
     },
 })(TableCell);
 
-interface ExtensionKeyboardShortcutProps {
-    commands: any;
-    commandName: string;
+interface ExtensionKeyboardShortcutRowProps {
+    label: string;
+    command: string;
     onClick: () => void;
 }
 
-function ExtensionKeyboardShortcut({ commands, commandName, onClick }: ExtensionKeyboardShortcutProps) {
-    const commandIsBound = commandName in commands && commands[commandName];
-
+function ExtensionKeyboardShortcutRow({ label, command, onClick }: ExtensionKeyboardShortcutRowProps) {
     return (
-        <Link variant="subtitle2" underline="always" href="#" color="inherit" onClick={onClick}>
-            {commandIsBound ? commands[commandName] : 'Unbound'}
-        </Link>
+        <TableRow>
+            <TableCell style={{ paddingLeft: 0 }}>{label}</TableCell>
+            <TableCell style={{ paddingRight: 0 }} align="right">
+                <Link variant="subtitle2" underline="always" href="#" color="inherit" onClick={onClick}>
+                    {command ?? 'Unbound'}
+                </Link>
+            </TableCell>
+        </TableRow>
     );
 }
 
@@ -73,7 +81,7 @@ function SyncedVideoKeyboardShortcutRow({
 }: SyncedVideoKeyboardShortcutRowProps) {
     return (
         <TableRow>
-            <TableCell>
+            <TableCell style={{ paddingLeft: 0 }}>
                 <Typography variant="subtitle2">{label}</Typography>
             </TableCell>
             <SmallTableCell>
@@ -81,12 +89,24 @@ function SyncedVideoKeyboardShortcutRow({
                     <EditIcon />
                 </IconButton>
             </SmallTableCell>
-            <SmallTableCell>
-                <Checkbox checked={enabled} onChange={(e) => onChange(settingsKey, e.target.checked)} />
+            <SmallTableCell style={{ paddingRight: 0 }}>
+                <Switch checked={enabled} onChange={(e) => onChange(settingsKey, e.target.checked)} />
             </SmallTableCell>
         </TableRow>
     );
 }
+
+const extensionKeyboardShortcutLabels: any = {
+    'copy-subtitle':
+        'Mine current subtitle.\nWhen video is synced without a subtitle file, starts/stops recording audio.',
+    'copy-subtitle-with-dialog':
+        'Mine current subtitle and open Anki export dialog.\nWhen video is synced without a subtitle file, starts/stops recording audio.',
+    'update-last-card':
+        'Update last-created Anki card with asbplayer-captured media.\nWhen video is synced without a subtitle file, starts/stops recording audio.',
+    'take-screenshot': 'Manually take screenshot, overriding the one that is automatically taken when mining.',
+    'toggle-video-select':
+        'Select video element to mine without a subtitle file, or with detected subtitles on supported sites.',
+};
 
 const keyboardShortcutLabels: { [key in keyof ExtensionKeyBindingsSettings]: string } = {
     bindPlay: 'Play/pause',
@@ -145,13 +165,15 @@ export default function PopupForm({
                     <FormLabel component="legend">Playback</FormLabel>
                     <FormGroup>
                         <FormControlLabel
+                            className={classes.switchLabel}
                             control={
-                                <Checkbox
+                                <Switch
                                     checked={settings.displaySubtitles}
                                     onChange={(e) => onSettingsChanged('displaySubtitles', e.target.checked)}
                                 />
                             }
-                            label="Display subtitles in synced video elements"
+                            label="Display subtitles"
+                            labelPlacement="start"
                         />
                         <TextField
                             className={classes.textField}
@@ -192,40 +214,48 @@ export default function PopupForm({
                     <FormLabel component="legend">Mining</FormLabel>
                     <FormGroup>
                         <FormControlLabel
+                            className={classes.switchLabel}
                             control={
-                                <Checkbox
+                                <Switch
                                     checked={settings.recordMedia}
                                     onChange={(e) => onSettingsChanged('recordMedia', e.target.checked)}
                                 />
                             }
                             label="Record audio"
+                            labelPlacement="start"
                         />
                         <FormControlLabel
+                            className={classes.switchLabel}
                             control={
-                                <Checkbox
+                                <Switch
                                     checked={settings.screenshot}
                                     onChange={(e) => onSettingsChanged('screenshot', e.target.checked)}
                                 />
                             }
                             label="Take screenshot"
+                            labelPlacement="start"
                         />
                         <FormControlLabel
+                            className={classes.switchLabel}
                             control={
-                                <Checkbox
+                                <Switch
                                     checked={settings.cleanScreenshot}
                                     onChange={(e) => onSettingsChanged('cleanScreenshot', e.target.checked)}
                                 />
                             }
                             label="Clean screenshot"
+                            labelPlacement="start"
                         />
                         <FormControlLabel
+                            className={classes.switchLabel}
                             control={
-                                <Checkbox
+                                <Switch
                                     checked={settings.cropScreenshot}
                                     onChange={(e) => onSettingsChanged('cropScreenshot', e.target.checked)}
                                 />
                             }
                             label="Crop screenshot"
+                            labelPlacement="start"
                         />
                     </FormGroup>
                 </Grid>
@@ -242,22 +272,26 @@ export default function PopupForm({
                             onChange={(e) => onSettingsChanged('asbplayerUrl', e.target.value)}
                         />
                         <FormControlLabel
+                            className={classes.switchLabel}
                             control={
-                                <Checkbox
+                                <Switch
                                     checked={settings.subsDragAndDrop}
                                     onChange={(e) => onSettingsChanged('subsDragAndDrop', e.target.checked)}
                                 />
                             }
                             label="Allow subtitle file drag-and-drop"
+                            labelPlacement="start"
                         />
                         <FormControlLabel
+                            className={classes.switchLabel}
                             control={
-                                <Checkbox
+                                <Switch
                                     checked={settings.autoSync}
                                     onChange={(e) => onSettingsChanged('autoSync', e.target.checked)}
                                 />
                             }
                             label="Auto-sync detected subtitles"
+                            labelPlacement="start"
                         />
                     </FormGroup>
                 </Grid>
@@ -266,86 +300,16 @@ export default function PopupForm({
                     <TableContainer>
                         <Table size="small">
                             <TableBody>
-                                <TableRow>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">Mine current subtitle.</Typography>
-                                        <Typography variant="subtitle2">
-                                            When video is synced without a subtitle file, starts/stops recording audio.
-                                        </Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <ExtensionKeyboardShortcut
-                                            commands={commands}
-                                            commandName="copy-subtitle"
+                                {Object.keys(extensionKeyboardShortcutLabels).map((commandName) => {
+                                    return (
+                                        <ExtensionKeyboardShortcutRow
+                                            key={commandName}
+                                            label={extensionKeyboardShortcutLabels[commandName]}
+                                            command={commands[commandName]}
                                             onClick={onOpenExtensionShortcuts}
                                         />
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">
-                                            Mine current subtitle and open Anki export dialog.
-                                        </Typography>
-                                        <Typography variant="subtitle2">
-                                            When video is synced without a subtitle file, starts/stops recording audio.
-                                        </Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <ExtensionKeyboardShortcut
-                                            commands={commands}
-                                            commandName="copy-subtitle-with-dialog"
-                                            onClick={onOpenExtensionShortcuts}
-                                        />
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">
-                                            Update last-created Anki card with asbplayer-captured screenshot, audio,
-                                            etc.
-                                        </Typography>
-                                        <Typography variant="subtitle2">
-                                            When video is synced without a subtitle file, starts/stops recording audio.
-                                        </Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <ExtensionKeyboardShortcut
-                                            commands={commands}
-                                            commandName="update-last-card"
-                                            onClick={onOpenExtensionShortcuts}
-                                        />
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">
-                                            Manually take screenshot, overriding the one that is automatically taken
-                                            when mining.
-                                        </Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <ExtensionKeyboardShortcut
-                                            commands={commands}
-                                            commandName="take-screenshot"
-                                            onClick={onOpenExtensionShortcuts}
-                                        />
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell>
-                                        <Typography variant="subtitle2">
-                                            Select video element to mine without a subtitle file, or with detected
-                                            subtitles on supported sites.
-                                        </Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <ExtensionKeyboardShortcut
-                                            commands={commands}
-                                            commandName="toggle-video-select"
-                                            onClick={onOpenExtensionShortcuts}
-                                        />
-                                    </TableCell>
-                                </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     </TableContainer>
