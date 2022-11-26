@@ -392,6 +392,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
     const [copyToClipboardOnMine, setCopyToClipboardOnMine] = useState<boolean>(settings.copyToClipboardOnMine);
     const [autoPausePreference, setAutoPausePreference] = useState<AutoPausePreference>(settings.autoPausePreference);
     const [keyBindSet, setKeyBindSet] = useState<KeyBindSet>(settings.keyBindSet);
+    const [rememberSubtitleOffset, setRememberSubtitleOffset] = useState<boolean>(settings.rememberSubtitleOffset);
 
     const handleAnkiConnectUrlChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         setAnkiConnectUrl(e.target.value);
@@ -590,6 +591,10 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
             return newKeyBindSet;
         });
     }, []);
+    const handleRememberSubtitleOffsetChange = useCallback(
+        (e: ChangeEvent<HTMLInputElement>) => setRememberSubtitleOffset(e.target.checked),
+        []
+    );
 
     const subtitlePreviewStyles = useMemo(
         () =>
@@ -722,11 +727,10 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
             maxImageHeight: maxImageHeight,
             surroundingSubtitlesCountRadius: surroundingSubtitlesCountRadius,
             surroundingSubtitlesTimeRadius: surroundingSubtitlesTimeRadius,
-            volume: settings.volume,
-            theaterMode: settings.theaterMode,
             copyToClipboardOnMine: copyToClipboardOnMine,
             autoPausePreference: autoPausePreference,
             keyBindSet: keyBindSet,
+            rememberSubtitleOffset: rememberSubtitleOffset,
         });
     }, [
         onClose,
@@ -759,11 +763,10 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         maxImageHeight,
         surroundingSubtitlesCountRadius,
         surroundingSubtitlesTimeRadius,
-        settings.volume,
-        settings.theaterMode,
         copyToClipboardOnMine,
         autoPausePreference,
         keyBindSet,
+        rememberSubtitleOffset,
     ]);
 
     const customFieldInputs = Object.keys(customFields).map((customFieldName) => {
@@ -1014,6 +1017,22 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                     InputProps={{
                                         endAdornment: <InputAdornment position="end">ms</InputAdornment>,
                                     }}
+                                />
+                            </FormGroup>
+                        </Grid>
+                        <Grid item id="playback">
+                            <FormLabel>Playback</FormLabel>
+                            <FormGroup>
+                                <FormControlLabel
+                                    control={
+                                        <Switch
+                                            checked={rememberSubtitleOffset}
+                                            onChange={handleRememberSubtitleOffsetChange}
+                                        />
+                                    }
+                                    label="Remember subtitle offset"
+                                    labelPlacement="start"
+                                    className={classes.switchLabel}
                                 />
                             </FormGroup>
                         </Grid>

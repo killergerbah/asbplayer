@@ -26,6 +26,7 @@ import SubtitlePlayer, { DisplaySubtitleModel } from './SubtitlePlayer';
 import VideoChannel from '../services/VideoChannel';
 import ChromeExtension from '../services/ChromeExtension';
 import SubtitleReader from '../services/SubtitleReader';
+import PlaybackPreferences from '../services/PlaybackPreferences';
 import lte from 'semver/functions/lte';
 
 interface StylesProps {
@@ -91,6 +92,7 @@ interface PlayerProps {
     sources: MediaSources;
     subtitleReader: SubtitleReader;
     settingsProvider: AsbplayerSettingsProvider;
+    playbackPreferences: PlaybackPreferences;
     keyBinder: KeyBinder;
     extension: ChromeExtension;
     videoFrameRef: MutableRefObject<HTMLIFrameElement | null>;
@@ -137,6 +139,7 @@ export default function Player({
     sources: { subtitleFiles, audioFile, audioFileUrl, videoFile, videoFileUrl },
     subtitleReader,
     settingsProvider,
+    playbackPreferences,
     keyBinder,
     extension,
     videoFrameRef,
@@ -227,7 +230,6 @@ export default function Player({
     const applyOffset = useCallback(
         (offset: number, forwardToVideo: boolean) => {
             setOffset(offset);
-
             setSubtitles((subtitles) => {
                 if (!subtitles) {
                     return;
@@ -263,8 +265,9 @@ export default function Player({
 
                 return newSubtitles;
             });
+            playbackPreferences.offset = offset;
         },
-        [subtitleFiles, extension, tab]
+        [subtitleFiles, extension, playbackPreferences, tab]
     );
 
     useEffect(() => {
@@ -279,7 +282,8 @@ export default function Player({
             videoChannelRef.current = null;
             clock.setTime(0);
             clock.stop();
-            setOffset(0);
+            const offset = playbackPreferences.offset;
+            setOffset(offset);
             setPlaying(false);
             setAudioTracks(undefined);
             setSelectedAudioTrack(undefined);
@@ -297,15 +301,16 @@ export default function Player({
 
                 try {
                     const nodes = await subtitleReader.subtitles(subtitleFiles);
-                    const length = nodes.length > 0 ? nodes[nodes.length - 1].end : 0;
+                    const length = nodes.length > 0 ? nodes[nodes.length - 1].end + offset : 0;
+
                     subtitles = nodes.map((s, i) => ({
                         text: s.text,
                         textImage: s.textImage,
-                        start: s.start,
+                        start: s.start + offset,
                         originalStart: s.start,
-                        end: s.end,
+                        end: s.end + offset,
                         originalEnd: s.end,
-                        displayTime: timeDurationDisplay(s.start, length),
+                        displayTime: timeDurationDisplay(s.start + offset, length),
                         track: s.track,
                         index: i,
                     }));
@@ -483,6 +488,7 @@ export default function Player({
         subtitleReader,
         extension,
         settingsProvider,
+        playbackPreferences,
         clock,
         mediaAdapter,
         seek,
@@ -1001,7 +1007,7 @@ export default function Player({
                                 onVolumeChange={handleVolumeChange}
                                 onPlayMode={handlePlayMode}
                                 disableKeyEvents={disableKeyEvents}
-                                settingsProvider={settingsProvider}
+                                playbackPreferences={playbackPreferences}
                                 showOnMouseMovement={true}
                             />
                         )}

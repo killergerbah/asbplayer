@@ -5,6 +5,7 @@ export interface MiscSettings {
     readonly copyToClipboardOnMine: boolean;
     readonly autoPausePreference: AutoPausePreference;
     readonly keyBindSet: KeyBindSet;
+    readonly rememberSubtitleOffset: boolean;
 }
 
 export interface AnkiSettings {
@@ -72,9 +73,7 @@ export interface KeyBindSet {
 export type KeyBindName = keyof KeyBindSet;
 
 export interface AsbplayerSettings extends MiscSettings, AnkiSettings, SubtitleSettings {
-    readonly subtitlePreview: string;
-    readonly volume: number;
-    readonly theaterMode: boolean;
+    subtitlePreview: string;
 }
 
 export interface AsbplayerSettingsProvider extends AsbplayerSettings {
@@ -82,8 +81,4 @@ export interface AsbplayerSettingsProvider extends AsbplayerSettings {
     readonly subtitleSettings: SubtitleSettings;
     readonly ankiSettings: AnkiSettings;
     readonly miscSettings: MiscSettings;
-
-    subtitlePreview: string;
-    volume: number;
-    theaterMode: boolean;
 }

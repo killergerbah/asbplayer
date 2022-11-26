@@ -24,8 +24,9 @@ import SubtitlesIcon from '@material-ui/icons/Subtitles';
 import VideocamIcon from '@material-ui/icons/Videocam';
 import VolumeOffIcon from '@material-ui/icons/VolumeOff';
 import VolumeUpIcon from '@material-ui/icons/VolumeUp';
-import { AsbplayerSettingsProvider, AudioTrackModel, PlayMode, VideoTabModel } from '@project/common';
+import { AudioTrackModel, PlayMode, VideoTabModel } from '@project/common';
 import Clock from '../services/Clock';
+import PlaybackPreferences from '../services/PlaybackPreferences';
 
 const useControlStyles = makeStyles((theme) => ({
     container: {
@@ -504,7 +505,7 @@ interface ControlsProps {
     onOffsetChange: (offset: number) => void;
     onVolumeChange: (volume: number) => void;
     disableKeyEvents?: boolean;
-    settingsProvider: AsbplayerSettingsProvider;
+    playbackPreferences: PlaybackPreferences;
     closeEnabled?: boolean;
     onClose?: () => void;
     volumeEnabled?: boolean;
@@ -554,7 +555,7 @@ export default function Controls({
     onOffsetChange,
     onVolumeChange,
     disableKeyEvents,
-    settingsProvider,
+    playbackPreferences,
     closeEnabled,
     onClose,
     volumeEnabled,
@@ -626,14 +627,14 @@ export default function Controls({
     }
 
     useEffect(() => {
-        const savedVolume = Number(settingsProvider.volume);
+        const savedVolume = Number(playbackPreferences.volume);
         setVolume(savedVolume);
         onVolumeChange(savedVolume / 100);
 
         if (savedVolume > 0) {
             setLastCommittedVolume(savedVolume);
         }
-    }, [settingsProvider, onVolumeChange]);
+    }, [playbackPreferences, onVolumeChange]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -840,9 +841,9 @@ export default function Controls({
                 setLastCommittedVolume(value);
             }
 
-            settingsProvider.volume = value;
+            playbackPreferences.volume = value;
         },
-        [settingsProvider]
+        [playbackPreferences]
     );
 
     const handleVolumeToggle = useCallback(() => {

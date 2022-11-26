@@ -16,7 +16,6 @@ const defaultSubtitleBackgroundColor = '#000000';
 const defaultSubtitleBackgroundOpacity = 0.5;
 const defaultSubtitleFontFamily = '';
 const defaultSubtitlePreview = 'アあ安';
-const defaultVolume = 100;
 const defaultAudioPaddingStart = 0;
 const defaultAudioPaddingEnd = 500;
 const defaultMaxImageWidth = 0;
@@ -74,13 +73,12 @@ const maxImageWidthKey = 'maxImageWidth';
 const maxImageHeightKey = 'maxImageHeight';
 const surroundingSubtitlesCountRadiusKey = 'surroundingSubtitlesCountRadius';
 const surroundingSubtitlesTimeRadiusKey = 'surroundingSubtitlesTimeRadius';
-const volumeKey = 'volume';
-const theaterModeKey = 'theaterMode';
 const preferMp3Key = 'preferMp3';
 const themeTypeKey = 'themeType';
 const copyToClipboardOnMineKey = 'copyToClipboardOnMine';
 const autoPausePreferenceKey = 'autoPausePreference';
 const keyBindSetKey = 'keyBindSet';
+const rememberSubtitleOffsetKey = 'rememberSubtitleOffset';
 
 export default class SettingsProvider implements AsbplayerSettingsProvider {
     private _tags?: string[];
@@ -123,11 +121,10 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             maxImageHeight: this.maxImageHeight,
             surroundingSubtitlesCountRadius: this.surroundingSubtitlesCountRadius,
             surroundingSubtitlesTimeRadius: this.surroundingSubtitlesTimeRadius,
-            volume: this.volume,
-            theaterMode: this.theaterMode,
             copyToClipboardOnMine: this.copyToClipboardOnMine,
             autoPausePreference: this.autoPausePreference,
             keyBindSet: this.keyBindSet,
+            rememberSubtitleOffset: this.rememberSubtitleOffset,
         };
     }
 
@@ -160,12 +157,11 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.maxImageWidth = newSettings.maxImageWidth;
         this.maxImageHeight = newSettings.maxImageHeight;
         this.surroundingSubtitlesCountRadius = newSettings.surroundingSubtitlesCountRadius;
-        this.surroundingSubtitlesTimeRadius = newSettings.surroundingSubtitlesTimeRadius;
-        this.volume = newSettings.volume;
-        this.theaterMode = newSettings.theaterMode;
+        this.surroundingSubtitlesTimeRadius = newSettings.surroundingSubtitlesTimeRadius
         this.copyToClipboardOnMine = newSettings.copyToClipboardOnMine;
         this.autoPausePreference = newSettings.autoPausePreference;
         this.keyBindSet = newSettings.keyBindSet;
+        this.rememberSubtitleOffset = newSettings.rememberSubtitleOffset;
     }
 
     get subtitleSettings() {
@@ -211,6 +207,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             copyToClipboardOnMine: this.copyToClipboardOnMine,
             autoPausePreference: this.autoPausePreference,
             keyBindSet: this.keyBindSet,
+            rememberSubtitleOffset: this.rememberSubtitleOffset,
         };
     }
 
@@ -418,22 +415,6 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         localStorage.setItem(imageBasedSubtitleScaleFactorKey, String(imageBasedSubtitleScaleFactor));
     }
 
-    get volume() {
-        return this._getNumberItem(volumeKey, defaultVolume);
-    }
-
-    set volume(volume) {
-        localStorage.setItem(volumeKey, String(volume));
-    }
-
-    get theaterMode() {
-        return localStorage.getItem(theaterModeKey) === 'true' || false;
-    }
-
-    set theaterMode(theaterMode) {
-        localStorage.setItem(theaterModeKey, String(theaterMode));
-    }
-
     get preferMp3() {
         return localStorage.getItem(preferMp3Key) === 'true' || false;
     }
@@ -561,5 +542,13 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     set keyBindSet(keyBindSet) {
         localStorage.setItem(keyBindSetKey, JSON.stringify(keyBindSet));
         this._keyBindSet = undefined;
+    }
+
+    get rememberSubtitleOffset() {
+        return localStorage.getItem(rememberSubtitleOffsetKey) === 'true' || false;
+    }
+
+    set rememberSubtitleOffset(rememberSubtitleOffset) {
+        localStorage.setItem(rememberSubtitleOffsetKey, String(rememberSubtitleOffset));
     }
 }

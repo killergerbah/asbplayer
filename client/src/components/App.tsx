@@ -41,6 +41,7 @@ import { DefaultKeyBinder } from '@project/common/src/KeyBinder';
 import AppKeyBinder from '../services/AppKeyBinder';
 import VideoChannel from '../services/VideoChannel';
 import { ChromeExtensionProvider } from '../services/ChromeExtensionProvider';
+import PlaybackPreferences from '../services/PlaybackPreferences';
 
 const latestExtensionVersion = '0.22.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
@@ -227,6 +228,7 @@ function NavigateToVideo({ searchParams }: NavigateToVideoProps) {
 interface RenderVideoProps {
     searchParams: URLSearchParams;
     settingsProvider: SettingsProvider;
+    playbackPreferences: PlaybackPreferences;
     extension: ChromeExtension;
     onError: (error: string) => void;
     onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
@@ -235,6 +237,7 @@ interface RenderVideoProps {
 function RenderVideo({
     searchParams,
     settingsProvider,
+    playbackPreferences,
     extension,
     onError,
     onPlayModeChangedViaBind,
@@ -246,6 +249,7 @@ function RenderVideo({
     return (
         <VideoPlayer
             settingsProvider={settingsProvider}
+            playbackPreferences={playbackPreferences}
             extension={extension}
             videoFile={videoFile}
             popOut={popOut}
@@ -279,6 +283,10 @@ function Content(props: ContentProps) {
 function App() {
     const subtitleReader = useMemo<SubtitleReader>(() => new SubtitleReader(), []);
     const settingsProvider = useMemo<SettingsProvider>(() => new SettingsProvider(), []);
+    const playbackPreferences = useMemo<PlaybackPreferences>(
+        () => new PlaybackPreferences(settingsProvider),
+        [settingsProvider]
+    );
     const theme = useMemo<Theme>(
         () =>
             createTheme({
@@ -319,7 +327,7 @@ function App() {
     const copiedSubtitlesRef = useRef<CopyHistoryItem[]>([]);
     copiedSubtitlesRef.current = copiedSubtitles;
     const [copyHistoryOpen, setCopyHistoryOpen] = useState<boolean>(false);
-    const [theaterMode, setTheaterMode] = useState<boolean>(settingsProvider.theaterMode);
+    const [theaterMode, setTheaterMode] = useState<boolean>(playbackPreferences.theaterMode);
     const [videoPopOut, setVideoPopOut] = useState<boolean>(false);
     const [alert, setAlert] = useState<string>();
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
@@ -575,9 +583,9 @@ function App() {
     const handleOpenCopyHistory = useCallback(() => setCopyHistoryOpen((copyHistoryOpen) => !copyHistoryOpen), []);
     const handleCloseCopyHistory = useCallback(() => setCopyHistoryOpen(false), []);
     const handleAppBarToggle = useCallback(() => {
-        settingsProvider.theaterMode = !settingsProvider.theaterMode;
-        setTheaterMode(settingsProvider.theaterMode);
-    }, [settingsProvider]);
+        playbackPreferences.theaterMode = !playbackPreferences.theaterMode;
+        setTheaterMode(playbackPreferences.theaterMode);
+    }, [playbackPreferences]);
     const handleVideoPopOut = useCallback(() => {
         setVideoPopOut((videoPopOut) => !videoPopOut);
     }, []);
@@ -1177,6 +1185,7 @@ function App() {
                             <RenderVideo
                                 searchParams={searchParams}
                                 settingsProvider={settingsProvider}
+                                playbackPreferences={playbackPreferences}
                                 extension={extension}
                                 onError={handleError}
                                 onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
@@ -1260,6 +1269,7 @@ function App() {
                                     <Player
                                         subtitleReader={subtitleReader}
                                         settingsProvider={settingsProvider}
+                                        playbackPreferences={playbackPreferences}
                                         onCopy={handleCopy}
                                         onError={handleError}
                                         onUnloadAudio={handleUnloadAudio}

@@ -26,6 +26,7 @@ import PlayerChannel from '../services/PlayerChannel';
 import SettingsProvider from '../services/SettingsProvider';
 import AppKeyBinder from '../services/AppKeyBinder';
 import ChromeExtension from '../services/ChromeExtension';
+import PlaybackPreferences from '../services/PlaybackPreferences';
 
 interface ExperimentalHTMLVideoElement extends HTMLVideoElement {
     readonly audioTracks: any;
@@ -141,6 +142,7 @@ function useFullscreen() {
 
 interface Props {
     settingsProvider: SettingsProvider;
+    playbackPreferences: PlaybackPreferences;
     extension: ChromeExtension;
     videoFile: string;
     channel: string;
@@ -155,6 +157,7 @@ interface IndexedSubtitleModel extends SubtitleModel {
 
 export default function VideoPlayer({
     settingsProvider,
+    playbackPreferences,
     extension,
     videoFile,
     channel,
@@ -197,7 +200,7 @@ export default function VideoPlayer({
     const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState<{ [index: number]: boolean }>({});
     const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
     const [subtitlePlayerHidden, setSubtitlePlayerHidden] = useState<boolean>(false);
-    const [appBarHidden, setAppBarHidden] = useState<boolean>(settingsProvider.theaterMode);
+    const [appBarHidden, setAppBarHidden] = useState<boolean>(playbackPreferences.theaterMode);
     const showSubtitlesRef = useRef<IndexedSubtitleModel[]>([]);
     showSubtitlesRef.current = showSubtitles;
     const clock = useMemo<Clock>(() => new Clock(), []);
@@ -929,7 +932,7 @@ export default function VideoPlayer({
                 onPlayMode={handlePlayMode}
                 onClose={handleClose}
                 onHideSubtitlePlayerToggle={handleHideSubtitlePlayerToggle}
-                settingsProvider={settingsProvider}
+                playbackPreferences={playbackPreferences}
                 showOnMouseMovement={false}
                 theaterModeToggleEnabled={!popOut && !fullscreen}
                 theaterModeEnabled={appBarHidden}

@@ -309,7 +309,10 @@ export default class SubtitleContainer {
         loadedMessage = this.subtitleFileNames.join('<br>');
         if (this.subtitles.length > 0) {
             const offset = this.subtitles[0].start - this.subtitles[0].originalStart;
-            loadedMessage += `<br>${this._formatOffset(offset)}`;
+
+            if (offset !== 0) {
+                loadedMessage += `<br>${this._formatOffset(offset)}`;
+            }
         }
 
         this._setSubtitlesHtml(this._buildTextHtml(loadedMessage));
