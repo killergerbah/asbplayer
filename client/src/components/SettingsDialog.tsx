@@ -1054,10 +1054,6 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                     label="At Subtitle End"
                                 />
                             </RadioGroup>
-                            {/* <FormHelperText>
-                                    Does not enable auto-pause. Sets the preference for when to pause when auto-pause is
-                                    enabled.
-                                </FormHelperText> */}
                         </Grid>
                         <Grid item id="video-subtitle-appearance">
                             <FormLabel>Video Subtitle Appearance</FormLabel>

@@ -16,6 +16,7 @@ import {
     MiscSettings,
     MiscSettingsToVideoMessage,
     OffsetFromVideoMessage,
+    OffsetToVideoMessage,
     PauseFromVideoMessage,
     PlayFromVideoMessage,
     PlayMode,
@@ -336,6 +337,11 @@ export default class VideoChannel {
             name: subtitleFileNames.length > 0 ? subtitleFileNames[0] : null,
             names: subtitleFileNames,
         } as SubtitlesToVideoMessage);
+    }
+
+    offset(offset: number) {
+        const message: OffsetToVideoMessage = { command: 'offset', value: offset };
+        this.protocol.postMessage(message);
     }
 
     subtitleSettings(settings: SubtitleSettings) {

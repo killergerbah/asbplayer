@@ -265,6 +265,22 @@ export default function VideoPlayer({
         }
     }
 
+    const updateSubtitlesWithOffset = useCallback((offset: number) => {
+        setOffset(offset);
+        setSubtitles((subtitles) =>
+            subtitles.map((s, i) => ({
+                text: s.text,
+                textImage: s.textImage,
+                start: s.originalStart + offset,
+                originalStart: s.originalStart,
+                end: s.originalEnd + offset,
+                originalEnd: s.originalEnd,
+                track: s.track,
+                index: i,
+            }))
+        );
+    }, []);
+
     useEffect(() => {
         playerChannel.onReady((duration) => setLength(duration));
 
@@ -341,6 +357,7 @@ export default function VideoPlayer({
         playerChannel.onSubtitleSettings(setSubtitleSettings);
         playerChannel.onMiscSettings(setMiscSettings);
         playerChannel.onAnkiSettings(setAnkiSettings);
+        playerChannel.onOffset(updateSubtitlesWithOffset);
 
         window.onbeforeunload = (e) => {
             if (!poppingInRef.current) {
@@ -349,7 +366,7 @@ export default function VideoPlayer({
         };
 
         return () => playerChannel.close();
-    }, [clock, playerChannel, popOut]);
+    }, [clock, playerChannel, updateSubtitlesWithOffset, popOut]);
 
     const handlePlay = useCallback(() => {
         if (videoRef.current) {
@@ -459,22 +476,10 @@ export default function VideoPlayer({
 
     const handleOffsetChange = useCallback(
         (offset: number) => {
-            setOffset(offset);
-            setSubtitles((subtitles) =>
-                subtitles.map((s, i) => ({
-                    text: s.text,
-                    textImage: s.textImage,
-                    start: s.originalStart + offset,
-                    originalStart: s.originalStart,
-                    end: s.originalEnd + offset,
-                    originalEnd: s.originalEnd,
-                    track: s.track,
-                    index: i,
-                }))
-            );
+            updateSubtitlesWithOffset(offset);
             playerChannel.offset(offset);
         },
-        [playerChannel]
+        [playerChannel, updateSubtitlesWithOffset]
     );
 
     useEffect(() => {

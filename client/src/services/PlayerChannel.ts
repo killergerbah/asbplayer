@@ -13,6 +13,7 @@ import {
     MiscSettings,
     MiscSettingsToVideoMessage,
     OffsetFromVideoMessage,
+    OffsetToVideoMessage,
     PauseFromVideoMessage,
     PlayFromVideoMessage,
     PlayMode,
@@ -38,6 +39,7 @@ export default class PlayerChannel {
     private audioTrackSelectedCallbacks: ((id: string) => void)[];
     private closeCallbacks: (() => void)[];
     private subtitlesCallbacks: ((subtitles: SubtitleModel[]) => void)[];
+    private offsetCallbacks: ((offset: number) => void)[];
     private playModeCallbacks: ((playMode: PlayMode) => void)[];
     private hideSubtitlePlayerToggleCallbacks: ((hidden: boolean) => void)[];
     private appBarToggleCallbacks: ((hidden: boolean) => void)[];
@@ -57,6 +59,7 @@ export default class PlayerChannel {
         this.closeCallbacks = [];
         this.readyCallbacks = [];
         this.subtitlesCallbacks = [];
+        this.offsetCallbacks = [];
         this.playModeCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
         this.appBarToggleCallbacks = [];
@@ -114,6 +117,13 @@ export default class PlayerChannel {
 
                     for (let callback of that.subtitlesCallbacks) {
                         callback(subtitlesMessage.value);
+                    }
+                    break;
+                case 'offset':
+                    const offsetMessage = event.data as OffsetToVideoMessage;
+
+                    for (const callback of that.offsetCallbacks) {
+                        callback(offsetMessage.value);
                     }
                     break;
                 case 'subtitleSettings':
@@ -209,6 +219,10 @@ export default class PlayerChannel {
         this.subtitlesCallbacks.push(callback);
     }
 
+    onOffset(callback: (offset: number) => void) {
+        this.offsetCallbacks.push(callback);
+    }
+
     onPlayMode(callback: (playMode: PlayMode) => void) {
         this.playModeCallbacks.push(callback);
     }
@@ -229,7 +243,7 @@ export default class PlayerChannel {
         this.finishedAnkiDialogRequestCallbacks.push(callback);
     }
 
-    onSubtitleSettings(callback: (subtitleSettings: SubtitleSettings) => void){
+    onSubtitleSettings(callback: (subtitleSettings: SubtitleSettings) => void) {
         this.subtitleSettingsCallbacks.push(callback);
     }
 
@@ -346,6 +360,7 @@ export default class PlayerChannel {
             this.closeCallbacks = [];
             this.readyCallbacks = [];
             this.subtitlesCallbacks = [];
+            this.offsetCallbacks = [];
             this.playModeCallbacks = [];
             this.hideSubtitlePlayerToggleCallbacks = [];
             this.appBarToggleCallbacks = [];

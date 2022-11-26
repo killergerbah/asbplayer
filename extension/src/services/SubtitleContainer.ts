@@ -78,7 +78,10 @@ export default class SubtitleContainer {
 
     set subtitles(subtitles) {
         this._subtitles = subtitles;
-        this.subtitleCollection = new SubtitleCollection(subtitles, { showingCheckRadiusMs: 150, returnNextToShow: true });
+        this.subtitleCollection = new SubtitleCollection(subtitles, {
+            showingCheckRadiusMs: 150,
+            returnNextToShow: true,
+        });
     }
 
     set subtitlePositionOffsetBottom(value: number) {
@@ -237,7 +240,7 @@ export default class SubtitleContainer {
         ];
     }
 
-    offset(offset: number) {
+    offset(offset: number, skipNotifyPlayer = false) {
         if (!this.subtitles || this.subtitles.length === 0) {
             return;
         }
@@ -253,18 +256,20 @@ export default class SubtitleContainer {
             index: s.index,
         }));
 
-        const command: VideoToExtensionCommand<OffsetFromVideoMessage> = {
-            sender: 'asbplayer-video',
-            message: {
-                command: 'offset',
-                value: offset,
-            },
-            src: this.video.src,
-        };
-
-        chrome.runtime.sendMessage(command);
-
         this.lastOffsetChangeTimestamp = Date.now();
+
+        if (!skipNotifyPlayer) {
+            const command: VideoToExtensionCommand<OffsetFromVideoMessage> = {
+                sender: 'asbplayer-video',
+                message: {
+                    command: 'offset',
+                    value: offset,
+                },
+                src: this.video.src,
+            };
+
+            chrome.runtime.sendMessage(command);
+        }
     }
 
     private _computeOffset(): number {
@@ -294,8 +299,20 @@ export default class SubtitleContainer {
         }, 3000);
     }
 
-    showLoadedMessage(message: string) {
-        this._setSubtitlesHtml(this._buildTextHtml(message));
+    showLoadedMessage() {
+        if (!this.subtitleFileNames) {
+            return;
+        }
+
+        let loadedMessage;
+
+        loadedMessage = this.subtitleFileNames.join('<br>');
+        if (this.subtitles.length > 0) {
+            const offset = this.subtitles[0].start - this.subtitles[0].originalStart;
+            loadedMessage += `<br>${this._formatOffset(offset)}`;
+        }
+
+        this._setSubtitlesHtml(this._buildTextHtml(loadedMessage));
         this.showingLoadedMessage = true;
         this.lastLoadedMessageTimestamp = Date.now();
     }

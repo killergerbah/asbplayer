@@ -26,6 +26,7 @@ import SubtitlePlayer, { DisplaySubtitleModel } from './SubtitlePlayer';
 import VideoChannel from '../services/VideoChannel';
 import ChromeExtension from '../services/ChromeExtension';
 import SubtitleReader from '../services/SubtitleReader';
+import lte from 'semver/functions/lte';
 
 interface StylesProps {
     appBarHidden: boolean;
@@ -248,17 +249,22 @@ export default function Player({
 
                 if (forwardToVideo) {
                     if (videoRef.current instanceof VideoChannel) {
-                        videoRef.current.subtitles(
-                            newSubtitles,
-                            subtitleFiles.map((f) => f.name)
-                        );
+                        videoRef.current.offset(offset);
+
+                        // Older versions of extension don't support the offset message
+                        if (tab !== undefined && extension.installed && lte(extension.version, '0.22.0')) {
+                            videoRef.current.subtitles(
+                                newSubtitles,
+                                subtitleFiles.map((f) => f.name)
+                            );
+                        }
                     }
                 }
 
                 return newSubtitles;
             });
         },
-        [subtitleFiles]
+        [subtitleFiles, extension, tab]
     );
 
     useEffect(() => {
@@ -788,20 +794,23 @@ export default function Player({
         return () => unbind();
     }, [keyBinder, playing, clock, mediaAdapter, disableKeyEvents]);
 
-    const togglePlayMode = useCallback((event: KeyboardEvent, togglePlayMode: PlayMode) => {
-        if (!playModeEnabled) {
-            return;
-        }
+    const togglePlayMode = useCallback(
+        (event: KeyboardEvent, togglePlayMode: PlayMode) => {
+            if (!playModeEnabled) {
+                return;
+            }
 
-        event.preventDefault();
-        const newPlayMode = playMode === togglePlayMode ? PlayMode.normal : togglePlayMode;
-        setPlayMode(newPlayMode);
-        onPlayModeChangedViaBind(playMode, newPlayMode);
+            event.preventDefault();
+            const newPlayMode = playMode === togglePlayMode ? PlayMode.normal : togglePlayMode;
+            setPlayMode(newPlayMode);
+            onPlayModeChangedViaBind(playMode, newPlayMode);
 
-        if (videoRef.current instanceof VideoChannel) {
-            videoRef.current.playMode(newPlayMode);
-        }
-    }, [playMode, playModeEnabled, onPlayModeChangedViaBind]);
+            if (videoRef.current instanceof VideoChannel) {
+                videoRef.current.playMode(newPlayMode);
+            }
+        },
+        [playMode, playModeEnabled, onPlayModeChangedViaBind]
+    );
 
     useEffect(() => {
         return keyBinder.bindAutoPause(

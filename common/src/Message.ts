@@ -198,6 +198,11 @@ export interface OffsetFromVideoMessage extends Message {
     readonly value: number;
 }
 
+export interface OffsetToVideoMessage extends Message {
+    readonly command: 'offset';
+    readonly value: number;
+}
+
 export interface ToggleSubtitlesMessage extends Message {
     readonly command: 'toggle-subtitles';
 }

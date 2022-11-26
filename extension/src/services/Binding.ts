@@ -10,6 +10,7 @@ import {
     CurrentTimeToVideoMessage,
     humanReadableTime,
     MiscSettingsToVideoMessage,
+    OffsetToVideoMessage,
     PauseFromVideoMessage,
     PlaybackRateFromVideoMessage,
     PlayFromVideoMessage,
@@ -359,22 +360,18 @@ export default class Binding {
                         this.subtitleContainer.subtitles = subtitles.map((s, index) => ({ ...s, index }));
                         this.subtitleContainer.subtitleFileNames = subtitlesMessage.names || [subtitlesMessage.name];
 
-                        let loadedMessage;
-
-                        if (subtitlesMessage.names) {
-                            loadedMessage = subtitlesMessage.names.join('<br>');
-                        } else {
-                            loadedMessage = subtitlesMessage.name || '[Subtitles Loaded]';
-                        }
-
                         if (this._playMode !== PlayMode.normal && (!subtitles || subtitles.length === 0)) {
                             this.playMode = PlayMode.normal;
                         }
 
-                        this.subtitleContainer.showLoadedMessage(loadedMessage);
+                        this.subtitleContainer.showLoadedMessage();
                         this.videoDataSyncContainer.unbindVideoSelect();
                         this.ankiUiSavedState = undefined;
                         this.synced = true;
+                        break;
+                    case 'offset':
+                        const offsetMessage = request.message as OffsetToVideoMessage;
+                        this.subtitleContainer.offset(offsetMessage.value, true);
                         break;
                     case 'subtitleSettings':
                         const subtitleSettingsMessage = request.message as SubtitleSettingsToVideoMessage;
