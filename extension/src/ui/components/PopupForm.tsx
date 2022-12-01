@@ -1,24 +1,21 @@
 import React from 'react';
-import {
-    Box,
-    FormGroup,
-    FormControlLabel,
-    FormLabel,
-    Grid,
-    Checkbox,
-    TableContainer,
-    Table,
-    TableBody,
-    TableRow,
-    TableCell,
-    TextField,
-    Typography,
-    Link,
-    Button,
-    IconButton,
-    Switch,
-} from '@material-ui/core';
-import { makeStyles, withStyles } from '@material-ui/core/styles';
+import Box from '@material-ui/core/Box';
+import FormGroup from '@material-ui/core/FormGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormLabel from '@material-ui/core/FormLabel';
+import Grid from '@material-ui/core/Grid';
+import TableContainer from '@material-ui/core/TableContainer';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableRow from '@material-ui/core/TableRow';
+import TableCell from '@material-ui/core/TableCell';
+import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
+import Link from '@material-ui/core/Link';
+import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import Switch from '@material-ui/core/Switch';
+import { makeStyles } from '@material-ui/core/styles';
 import { ExtensionKeyBindingsSettings, ExtensionSettings } from '@project/common';
 import { LatestExtensionInfo } from '../../services/VersionChecker';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -38,12 +35,6 @@ const useStyles = makeStyles((theme) => ({
         marginLeft: 0,
     },
 }));
-
-const SmallTableCell = withStyles({
-    sizeSmall: {
-        padding: 0,
-    },
-})(TableCell);
 
 interface ExtensionKeyboardShortcutRowProps {
     label: string;
@@ -69,7 +60,7 @@ interface SyncedVideoKeyboardShortcutRowProps {
     enabled: boolean;
     settingsKey: keyof ExtensionKeyBindingsSettings;
     onChange: <K extends keyof ExtensionKeyBindingsSettings>(key: K, enabled: boolean) => void;
-    onClick: () => void;
+    switchLabelClass: string;
 }
 
 function SyncedVideoKeyboardShortcutRow({
@@ -77,22 +68,15 @@ function SyncedVideoKeyboardShortcutRow({
     enabled,
     settingsKey,
     onChange,
-    onClick,
+    switchLabelClass,
 }: SyncedVideoKeyboardShortcutRowProps) {
     return (
-        <TableRow>
-            <TableCell style={{ paddingLeft: 0 }}>
-                <Typography variant="subtitle2">{label}</Typography>
-            </TableCell>
-            <SmallTableCell>
-                <IconButton size="small" onClick={onClick}>
-                    <EditIcon />
-                </IconButton>
-            </SmallTableCell>
-            <SmallTableCell style={{ paddingRight: 0 }}>
-                <Switch checked={enabled} onChange={(e) => onChange(settingsKey, e.target.checked)} />
-            </SmallTableCell>
-        </TableRow>
+        <FormControlLabel
+            className={switchLabelClass}
+            control={<Switch checked={enabled} onChange={(e) => onChange(settingsKey, e.target.checked)} />}
+            label={label}
+            labelPlacement="start"
+        />
     );
 }
 
@@ -315,26 +299,31 @@ export default function PopupForm({
                     </TableContainer>
                 </Grid>
                 <Grid item>
-                    <FormLabel component="legend">Playback Keyboard Shortcuts</FormLabel>
-                    <TableContainer>
-                        <Table size="small">
-                            <TableBody>
-                                {Object.keys(keyboardShortcutLabels).map((key) => {
-                                    const keyBindingSetting = key as keyof ExtensionKeyBindingsSettings;
-                                    return (
-                                        <SyncedVideoKeyboardShortcutRow
-                                            key={keyBindingSetting}
-                                            enabled={settings[keyBindingSetting]}
-                                            label={keyboardShortcutLabels[keyBindingSetting]}
-                                            settingsKey={keyBindingSetting}
-                                            onChange={onSettingsChanged}
-                                            onClick={onVideoKeyboardShortcutClicked}
-                                        />
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                    <Grid container direction="row" spacing={1}>
+                        <Grid item style={{ flexGrow: 1 }}>
+                            <FormLabel component="legend">Playback Keyboard Shortcuts</FormLabel>
+                        </Grid>
+                        <Grid item>
+                            <IconButton style={{ padding: 0 }} onClick={onVideoKeyboardShortcutClicked}>
+                                <EditIcon fontSize="small" />
+                            </IconButton>
+                        </Grid>
+                    </Grid>
+                    <FormGroup>
+                        {Object.keys(keyboardShortcutLabels).map((key) => {
+                            const keyBindingSetting = key as keyof ExtensionKeyBindingsSettings;
+                            return (
+                                <SyncedVideoKeyboardShortcutRow
+                                    key={keyBindingSetting}
+                                    enabled={settings[keyBindingSetting]}
+                                    label={keyboardShortcutLabels[keyBindingSetting]}
+                                    settingsKey={keyBindingSetting}
+                                    onChange={onSettingsChanged}
+                                    switchLabelClass={classes.switchLabel}
+                                />
+                            );
+                        })}
+                    </FormGroup>
                 </Grid>
             </Grid>
         </Box>
