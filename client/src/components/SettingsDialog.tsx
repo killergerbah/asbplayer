@@ -317,7 +317,7 @@ function KeyBindField({ label, keys, extensionOverridden, onKeysChange, onOpenEx
                     size="small"
                     contentEditable={false}
                     disabled={extensionOverridden}
-                    helperText={extensionOverridden ? 'Use extension shortcut' : undefined}
+                    helperText={extensionOverridden ? 'Extension shortcut' : undefined}
                     value={currentKeyString}
                     color="secondary"
                     InputProps={{
@@ -1224,7 +1224,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                             label={properties.label}
                                             keys={
                                                 extension.installed && properties.extensionOverridden
-                                                    ? ''
+                                                    ? extension.extensionCommands[keyBindName] ?? ''
                                                     : keyBindSet[keyBindName].keys
                                             }
                                             extensionOverridden={extension.installed && properties.extensionOverridden}

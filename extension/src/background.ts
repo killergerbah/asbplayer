@@ -31,6 +31,7 @@ import AckTabsHandler from './handlers/asbplayerv2/AckTabsHandler';
 import VersionChecker from './services/VersionChecker';
 import OpenExtensionShortcutsHandler from './handlers/asbplayerv2/OpenExtensionShortcutsHandler';
 import EditKeyboardShortcutsHandler from './handlers/popup/EditKeyboardShortcutsHandler';
+import ExtensionCommandsHandler from './handlers/asbplayerv2/ExtensionCommandsHandler';
 
 const settings = new Settings();
 const versionChecker = new VersionChecker(settings);
@@ -63,6 +64,7 @@ const handlers: CommandHandler[] = [
     new AsbplayerHeartbeatHandler(tabRegistry),
     new AckTabsHandler(tabRegistry),
     new OpenExtensionShortcutsHandler(),
+    new ExtensionCommandsHandler(),
     new AsbplayerV2ToVideoCommandForwardingHandler(),
     new RefreshSettingsHandler(tabRegistry),
     new BackgroundPageReadyHandler(backgroundPageAudioRecorder),

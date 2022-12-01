@@ -17,6 +17,7 @@ const id = uuidv4();
 
 export default class ChromeExtension {
     readonly version: string;
+    readonly extensionCommands: { [key: string]: string | undefined };
 
     tabs: VideoTabModel[];
     installed: boolean;
@@ -26,12 +27,13 @@ export default class ChromeExtension {
     private onTabsCallbacks: Array<(tabs: VideoTabModel[]) => void>;
     private heartbeatStarted = false;
 
-    constructor(version?: string) {
+    constructor(version?: string, extensionCommands?: { [key: string]: string | undefined }) {
         this.onMessageCallbacks = [];
         this.onTabsCallbacks = [];
         this.tabs = [];
         this.installed = version !== undefined;
         this.version = version ?? '';
+        this.extensionCommands = extensionCommands ?? {};
         this.windowEventListener = (event: MessageEvent) => {
             if (event.source !== window) {
                 return;

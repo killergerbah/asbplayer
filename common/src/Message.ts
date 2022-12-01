@@ -379,3 +379,9 @@ export interface AudioBase64Message extends Message {
 export interface EditKeyboardShortcutsMessage extends Message {
     readonly command: 'edit-keyboard-shortcuts';
 }
+
+export interface ExtensionVersionMessage extends Message {
+    readonly command: 'version';
+    version: string;
+    extensionCommands?: { [key: string]: string | undefined };
+}

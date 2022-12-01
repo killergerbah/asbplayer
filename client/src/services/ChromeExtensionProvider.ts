@@ -1,4 +1,11 @@
+import { ExtensionVersionMessage } from '@project/common';
 import ChromeExtension from './ChromeExtension';
+
+const keyBindNameMap: any = {
+    'copy-subtitle': 'copySubtitle',
+    'copy-subtitle-with-dialog': 'ankiExport',
+    'update-last-card': 'updateLastCard',
+};
 
 export class ChromeExtensionProvider {
     extension: ChromeExtension = new ChromeExtension();
@@ -12,9 +19,19 @@ export class ChromeExtensionProvider {
 
             if (event.data.sender === 'asbplayer-extension-to-player') {
                 if (event.data.message.command === 'version') {
+                    const message = event.data.message as ExtensionVersionMessage;
+
                     for (const callback of this.callbacks) {
                         this.extension.unbind();
-                        this.extension = new ChromeExtension(event.data.message.version);
+                        const translatedCommands: { [key: string]: string | undefined } = {};
+                        const extensionCommands = message.extensionCommands ?? {};
+                        
+                        for (const extensionCommandName of Object.keys(extensionCommands)) {
+                            translatedCommands[keyBindNameMap[extensionCommandName]] =
+                                extensionCommands[extensionCommandName];
+                        }
+
+                        this.extension = new ChromeExtension(message.version, translatedCommands);
                         callback(this.extension);
                     }
 

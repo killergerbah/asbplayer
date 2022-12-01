@@ -21,13 +21,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 const manifest = chrome.runtime.getManifest();
 
-window.addEventListener('DOMContentLoaded', (e) => {
+window.addEventListener('DOMContentLoaded', async (e) => {
+    const extensionCommands = await chrome.runtime.sendMessage({
+        sender: 'asbplayerv2',
+        message: {
+            command: 'extension-commands',
+        },
+    });
+    
     window.postMessage(
         {
             sender: 'asbplayer-extension-to-player',
             message: {
                 command: 'version',
                 version: manifest.version,
+                extensionCommands
             },
         },
         '*'
