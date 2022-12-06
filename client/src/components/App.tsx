@@ -82,9 +82,9 @@ function extractSources(files: FileList | File[]): MediaSources {
             case 'ass':
             case 'srt':
             case 'vtt':
-                subtitleFiles.push(f);
-                break;
+            case 'nfvtt':
             case 'sup':
+            case 'ytxml':
                 subtitleFiles.push(f);
                 break;
             case 'mkv':

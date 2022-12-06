@@ -30,21 +30,40 @@ setTimeout(() => {
         return undefined;
     }
 
+    function extractUrlLegacy(track) {
+        if (track.isForcedNarrative || track.isNoneTrack || !track.cdnlist?.length || !track.ttDownloadables) {
+            return undefined;
+        }
+
+        const webvttDL = track.ttDownloadables[webvtt];
+
+        if (!webvttDL?.downloadUrls) {
+            return undefined;
+        }
+
+
+        return webvttDL.downloadUrls[track.cdnlist.find((cdn) => webvttDL.downloadUrls[cdn.id])?.id];
+    }
+
+    function extractUrl(track) {
+        if (track.isForcedNarrative || track.isNoneTrack || !track.ttDownloadables) {
+            return undefined;
+        }
+
+        const webvttDL = track.ttDownloadables[webvtt];
+
+        if (!webvttDL?.urls || webvttDL.urls.length === 0) {
+            return undefined;
+        }
+
+        return webvttDL.urls[0].url;
+    }
+
     function storeSubTrack(video) {
         const timedTextracks = video.timedtexttracks || [];
 
         for (const track of timedTextracks) {
-            if (track.isForcedNarrative || track.isNoneTrack || !track.cdnlist?.length || !track.ttDownloadables) {
-                continue;
-            }
-
-            const webvttDL = track.ttDownloadables[webvtt];
-
-            if (!webvttDL?.downloadUrls) {
-                continue;
-            }
-
-            const url = webvttDL.downloadUrls[track.cdnlist.find((cdn) => webvttDL.downloadUrls[cdn.id])?.id];
+            const url = extractUrlLegacy(track) ?? extractUrl(track);
 
             if (!url) {
                 continue;
