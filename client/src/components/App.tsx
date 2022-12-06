@@ -43,7 +43,7 @@ import VideoChannel from '../services/VideoChannel';
 import { ChromeExtensionProvider } from '../services/ChromeExtensionProvider';
 import PlaybackPreferences from '../services/PlaybackPreferences';
 
-const latestExtensionVersion = '0.22.0';
+const latestExtensionVersion = '0.23.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
 
 const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
