@@ -247,7 +247,6 @@ function KeyBindField({ label, keys, extensionOverridden, onKeysChange, onOpenEx
                 // The ts declaration is missing getPressedKeyString()
                 // @ts-ignore
                 const pressed = hotkeys.getPressedKeyString() as string[];
-                console.log(pressed);
                 setCurrentKeyString(
                     pressed
                         .map((key) => {
