@@ -361,7 +361,7 @@ function TabSelector({ open, anchorEl, onClose, tabs, selectedTab, onTabSelected
     const list = tabs.map((t) => {
         return (
             <ListItem
-                key={t.id}
+                key={`${t.id}:${t.src}`}
                 selected={selectedTab && t.id === selectedTab.id && t.src === selectedTab.src}
                 button
                 onClick={() => onTabSelected(t)}
