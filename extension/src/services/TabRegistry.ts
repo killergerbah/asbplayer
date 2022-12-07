@@ -1,4 +1,3 @@
-import { Filter } from '@material-ui/icons';
 import {
     ActiveVideoElement,
     Command,
