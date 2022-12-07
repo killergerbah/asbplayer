@@ -10,6 +10,7 @@ Thank you to all of my sponsors:
 [@vivekchoksi](https://www.github.com/vivekchoksi)
 [@nzarbayezid](https://www.github.com/nzarbayezid)
 [@ManuJapan](https://www.github.com/ManuJapan)
+AdamM
 
 If you've benefited from asbplayer, please consider supporting my work via [Github Sponsors](https://github.com/sponsors/killergerbah?frequency=one-time) or [Ko-fi](https://ko-fi.com/killergerbah).
 
