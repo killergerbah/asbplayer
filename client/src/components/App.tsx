@@ -1191,6 +1191,7 @@ function App() {
         (loading && !videoFrameRef.current) ||
         (sources.subtitleFiles.length === 0 && !sources.audioFile && !sources.videoFile);
     const appBarHidden = sources.videoFile !== undefined && ((theaterMode && !videoPopOut) || videoFullscreen);
+    const effectiveCopyHistoryOpen = copyHistoryOpen && !videoFullscreen;
 
     return (
         <ThemeProvider theme={theme}>
@@ -1224,7 +1225,7 @@ function App() {
                             <div>
                                 <CopyHistory
                                     items={copiedSubtitles}
-                                    open={copyHistoryOpen && !videoFullscreen}
+                                    open={effectiveCopyHistoryOpen}
                                     drawerWidth={drawerWidth}
                                     onClose={handleCloseCopyHistory}
                                     onDelete={handleDeleteCopyHistoryItem}
@@ -1263,7 +1264,7 @@ function App() {
                                 <Bar
                                     title={fileName || 'asbplayer'}
                                     drawerWidth={drawerWidth}
-                                    drawerOpen={copyHistoryOpen}
+                                    drawerOpen={effectiveCopyHistoryOpen}
                                     hidden={appBarHidden}
                                     subtitleFiles={sources.subtitleFiles}
                                     onOpenCopyHistory={handleOpenCopyHistory}
@@ -1279,7 +1280,7 @@ function App() {
                                     multiple
                                     hidden
                                 />
-                                <Content drawerWidth={drawerWidth} drawerOpen={copyHistoryOpen}>
+                                <Content drawerWidth={drawerWidth} drawerOpen={effectiveCopyHistoryOpen}>
                                     {nothingLoaded && (
                                         <LandingPage
                                             latestExtensionVersion={latestExtensionVersion}
@@ -1316,7 +1317,7 @@ function App() {
                                         videoFrameRef={videoFrameRef}
                                         videoChannelRef={videoChannelRef}
                                         extension={extension}
-                                        drawerOpen={copyHistoryOpen}
+                                        drawerOpen={effectiveCopyHistoryOpen}
                                         appBarHidden={appBarHidden}
                                         videoFullscreen={videoFullscreen}
                                         hideSubtitlePlayer={hideSubtitlePlayer || videoFullscreen}
