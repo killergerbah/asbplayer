@@ -8,7 +8,7 @@ import {
     AudioTrackSelectedToVideoMessage,
     CopyMessage,
     CurrentTimeToVideoMessage,
-    FinishedAnkiDialogRequestToVideoMessage,
+    FullscreenToggleMessageToVideoMessage,
     HideSubtitlePlayerToggleToVideoMessage,
     MiscSettings,
     MiscSettingsToVideoMessage,
@@ -43,8 +43,7 @@ export default class PlayerChannel {
     private playModeCallbacks: ((playMode: PlayMode) => void)[];
     private hideSubtitlePlayerToggleCallbacks: ((hidden: boolean) => void)[];
     private appBarToggleCallbacks: ((hidden: boolean) => void)[];
-    private ankiDialogRequestCallbacks: (() => void)[];
-    private finishedAnkiDialogRequestCallbacks: ((resume: boolean) => void)[];
+    private fullscreenToggleCallbacks: ((hidden: boolean) => void)[];
     private subtitleSettingsCallbacks: ((subtitleSettings: SubtitleSettings) => void)[];
     private miscSettingsCallbacks: ((miscSettings: MiscSettings) => void)[];
     private ankiSettingsCallbacks: ((ankiSettings: AnkiSettings) => void)[];
@@ -63,8 +62,7 @@ export default class PlayerChannel {
         this.playModeCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
         this.appBarToggleCallbacks = [];
-        this.ankiDialogRequestCallbacks = [];
-        this.finishedAnkiDialogRequestCallbacks = [];
+        this.fullscreenToggleCallbacks = [];
         this.subtitleSettingsCallbacks = [];
         this.miscSettingsCallbacks = [];
         this.ankiSettingsCallbacks = [];
@@ -154,16 +152,11 @@ export default class PlayerChannel {
                         callback(appBarToggleMessage.value);
                     }
                     break;
-                case 'ankiDialogRequest':
-                    for (let callback of that.ankiDialogRequestCallbacks) {
-                        callback();
-                    }
-                    break;
-                case 'finishedAnkiDialogRequest':
-                    const finishedAnkiDialogRequestMessage = event.data as FinishedAnkiDialogRequestToVideoMessage;
+                case 'fullscreenToggle':
+                    const fullscreenToggleMessage = event.data as FullscreenToggleMessageToVideoMessage;
 
-                    for (let callback of that.finishedAnkiDialogRequestCallbacks) {
-                        callback(finishedAnkiDialogRequestMessage.resume);
+                    for (const callback of that.fullscreenToggleCallbacks) {
+                        callback(fullscreenToggleMessage.value);
                     }
                     break;
                 case 'ankiSettings':
@@ -235,12 +228,8 @@ export default class PlayerChannel {
         this.appBarToggleCallbacks.push(callback);
     }
 
-    onAnkiDialogRequest(callback: () => void) {
-        this.ankiDialogRequestCallbacks.push(callback);
-    }
-
-    onFinishedAnkiDialogRequest(callback: (resume: boolean) => void) {
-        this.finishedAnkiDialogRequestCallbacks.push(callback);
+    onFullscreenToggle(callback: (fullscreen: boolean) => void) {
+        this.fullscreenToggleCallbacks.push(callback);
     }
 
     onSubtitleSettings(callback: (subtitleSettings: SubtitleSettings) => void) {
@@ -332,10 +321,13 @@ export default class PlayerChannel {
         this.channel?.postMessage({ command: 'appBarToggle' });
     }
 
+    fullscreenToggle() {
+        this.channel?.postMessage({ command: 'fullscreenToggle' });
+    }
+
     ankiDialogRequest(forwardToVideo: boolean) {
         const message: AnkiDialogRequestFromVideoMessage = {
             command: 'ankiDialogRequest',
-            forwardToVideo: forwardToVideo,
         };
         this.channel?.postMessage(message);
     }
@@ -364,8 +356,7 @@ export default class PlayerChannel {
             this.playModeCallbacks = [];
             this.hideSubtitlePlayerToggleCallbacks = [];
             this.appBarToggleCallbacks = [];
-            this.ankiDialogRequestCallbacks = [];
-            this.finishedAnkiDialogRequestCallbacks = [];
+            this.fullscreenToggleCallbacks = [];
             this.subtitleSettingsCallbacks = [];
             this.miscSettingsCallbacks = [];
             this.ankiSettingsCallbacks = [];

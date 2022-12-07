@@ -312,6 +312,7 @@ function App() {
     const inVideoPlayer = location.pathname === '/video' || searchParams.get('video') !== null;
     const extensionProvider = useMemo(() => new ChromeExtensionProvider(), []);
     const [extension, setExtension] = useState<ChromeExtension>(extensionProvider.extension);
+    const [videoFullscreen, setVideoFullscreen] = useState<boolean>(false);
     useEffect(() => extensionProvider.onChromeExtension(setExtension), [extensionProvider]);
     const keyBinder = useMemo<AppKeyBinder>(
         () => new AppKeyBinder(new DefaultKeyBinder(settingsProvider.keyBindSet), extension),
@@ -328,6 +329,7 @@ function App() {
     copiedSubtitlesRef.current = copiedSubtitles;
     const [copyHistoryOpen, setCopyHistoryOpen] = useState<boolean>(false);
     const [theaterMode, setTheaterMode] = useState<boolean>(playbackPreferences.theaterMode);
+    const [hideSubtitlePlayer, setHideSubtitlePlayer] = useState<boolean>(false);
     const [videoPopOut, setVideoPopOut] = useState<boolean>(false);
     const [alert, setAlert] = useState<string>();
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
@@ -368,7 +370,6 @@ function App() {
             imageFromItem(ankiDialogItem, settingsProvider.maxImageWidth, settingsProvider.maxImageHeight),
         [ankiDialogItem, settingsProvider.maxImageWidth, settingsProvider.maxImageHeight]
     );
-    const [ankiDialogRequestToVideo, setAnkiDialogRequestToVideo] = useState<number>();
     const [ankiDialogRequested, setAnkiDialogRequested] = useState<boolean>(false);
     const [ankiDialogFinishedRequest, setAnkiDialogFinishedRequest] = useState<AnkiDialogFinishedRequest>({
         timestamp: 0,
@@ -392,7 +393,7 @@ function App() {
         setAlertOpen(true);
     }, []);
 
-    const handleAnkiDialogRequest = useCallback((forwardToVideo?: boolean, ankiDialogItem?: CopyHistoryItem) => {
+    const handleAnkiDialogRequest = useCallback((ankiDialogItem?: CopyHistoryItem) => {
         if (!ankiDialogItem && copiedSubtitlesRef.current!.length === 0) {
             return;
         }
@@ -403,10 +404,6 @@ function App() {
         setAnkiDialogDisabled(false);
         setDisableKeyEvents(true);
         setAnkiDialogRequested(true);
-
-        if (forwardToVideo) {
-            setAnkiDialogRequestToVideo(Date.now());
-        }
     }, []);
 
     const handleAnkiDialogProceed = useCallback(
@@ -486,7 +483,6 @@ function App() {
             image: ImageModel | undefined,
             url: string | undefined,
             postMineAction: PostMineAction | undefined,
-            fromVideo: boolean | undefined,
             preventDuplicate: boolean | undefined,
             id: string | undefined
         ) => {
@@ -538,7 +534,7 @@ function App() {
                 case PostMineAction.none:
                     break;
                 case PostMineAction.showAnkiDialog:
-                    handleAnkiDialogRequest(fromVideo, newCopiedSubtitle);
+                    handleAnkiDialogRequest(newCopiedSubtitle);
                     break;
                 case PostMineAction.updateLastCard:
                     // FIXME: We should really rename the functions below because we're actually skipping the Anki dialog in this case
@@ -580,12 +576,41 @@ function App() {
         [fileName, settingsProvider, handleAnkiDialogProceed, handleAnkiDialogRequest]
     );
 
-    const handleOpenCopyHistory = useCallback(() => setCopyHistoryOpen((copyHistoryOpen) => !copyHistoryOpen), []);
+    const handleOpenCopyHistory = useCallback(() => {
+        setCopyHistoryOpen((copyHistoryOpen) => !copyHistoryOpen);
+        setVideoFullscreen(false);
+    }, []);
     const handleCloseCopyHistory = useCallback(() => setCopyHistoryOpen(false), []);
     const handleAppBarToggle = useCallback(() => {
-        playbackPreferences.theaterMode = !playbackPreferences.theaterMode;
-        setTheaterMode(playbackPreferences.theaterMode);
+        const newValue = !playbackPreferences.theaterMode;
+        playbackPreferences.theaterMode = newValue;
+        setTheaterMode(newValue);
+        setVideoFullscreen(false);
     }, [playbackPreferences]);
+    const handleFullscreenToggle = useCallback(() => {
+        setVideoFullscreen((fullscreen) => !fullscreen);
+    }, []);
+    useEffect(() => {
+        if (videoFullscreen) {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            }
+        } else if (document.fullscreenElement) {
+            document.exitFullscreen();
+        }
+    }, [videoFullscreen]);
+    useEffect(() => {
+        const listener = () => {
+            if (!document.fullscreenElement) {
+                setVideoFullscreen(false);
+            }
+        };
+        document.addEventListener('fullscreenchange', listener);
+        return () => document.removeEventListener('fullscreenchange', listener);
+    }, []);
+    const handleHideSubtitlePlayer = useCallback(() => {
+        setHideSubtitlePlayer((hidden) => !hidden);
+    }, []);
     const handleVideoPopOut = useCallback(() => {
         setVideoPopOut((videoPopOut) => !videoPopOut);
     }, []);
@@ -665,6 +690,7 @@ function App() {
                     videoFileUrl: undefined,
                 };
             });
+            setVideoFullscreen(false);
         },
         [sources]
     );
@@ -1164,7 +1190,7 @@ function App() {
     const nothingLoaded =
         (loading && !videoFrameRef.current) ||
         (sources.subtitleFiles.length === 0 && !sources.audioFile && !sources.videoFile);
-    const appBarHidden = sources.videoFile !== undefined && theaterMode && !videoPopOut;
+    const appBarHidden = sources.videoFile !== undefined && ((theaterMode && !videoPopOut) || videoFullscreen);
 
     return (
         <ThemeProvider theme={theme}>
@@ -1198,7 +1224,7 @@ function App() {
                             <div>
                                 <CopyHistory
                                     items={copiedSubtitles}
-                                    open={copyHistoryOpen}
+                                    open={copyHistoryOpen && !videoFullscreen}
                                     drawerWidth={drawerWidth}
                                     onClose={handleCloseCopyHistory}
                                     onDelete={handleDeleteCopyHistoryItem}
@@ -1278,6 +1304,8 @@ function App() {
                                         onTabSelected={handleTabSelected}
                                         onAnkiDialogRequest={handleAnkiDialogRequest}
                                         onAppBarToggle={handleAppBarToggle}
+                                        onFullscreenToggle={handleFullscreenToggle}
+                                        onHideSubtitlePlayer={handleHideSubtitlePlayer}
                                         onVideoPopOut={handleVideoPopOut}
                                         onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
                                         tab={tab}
@@ -1290,10 +1318,11 @@ function App() {
                                         extension={extension}
                                         drawerOpen={copyHistoryOpen}
                                         appBarHidden={appBarHidden}
+                                        videoFullscreen={videoFullscreen}
+                                        hideSubtitlePlayer={hideSubtitlePlayer || videoFullscreen}
                                         videoPopOut={videoPopOut}
                                         disableKeyEvents={disableKeyEvents}
                                         ankiDialogRequested={ankiDialogRequested}
-                                        ankiDialogRequestToVideo={ankiDialogRequestToVideo}
                                         ankiDialogFinishedRequest={ankiDialogFinishedRequest}
                                         keyBinder={keyBinder}
                                     />

@@ -1,5 +1,4 @@
 import {
-    AnkiDialogRequestFromVideoMessage,
     AnkiSettings,
     AnkiSettingsToVideoMessage,
     AppBarToggleMessageToVideoMessage,
@@ -10,7 +9,7 @@ import {
     CopyMessage,
     CurrentTimeFromVideoMessage,
     CurrentTimeToVideoMessage,
-    FinishedAnkiDialogRequestToVideoMessage,
+    FullscreenToggleMessageToVideoMessage,
     HideSubtitlePlayerToggleToVideoMessage,
     ImageModel,
     MiscSettings,
@@ -52,14 +51,14 @@ export default class VideoChannel {
         image: ImageModel | undefined,
         url: string | undefined,
         postMineAction: PostMineAction,
-        fromVideo: boolean,
         preventDuplicate: boolean,
         id: string | undefined
     ) => void)[];
     private playModeCallbacks: ((mode: PlayMode) => void)[];
     private hideSubtitlePlayerToggleCallbacks: (() => void)[];
     private appBarToggleCallbacks: (() => void)[];
-    private ankiDialogRequestCallbacks: ((forwardToVideo: boolean) => void)[];
+    private fullscreenToggleCallbacks: (() => void)[];
+    private ankiDialogRequestCallbacks: (() => void)[];
     private toggleSubtitleTrackInListCallbacks: ((track: number) => void)[];
 
     readyState: number;
@@ -87,6 +86,7 @@ export default class VideoChannel {
         this.playModeCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
         this.appBarToggleCallbacks = [];
+        this.fullscreenToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
 
@@ -173,7 +173,6 @@ export default class VideoChannel {
                             copyMessage.image,
                             copyMessage.url,
                             copyMessage.postMineAction ?? PostMineAction.none,
-                            true,
                             copyMessage.preventDuplicate ?? false,
                             copyMessage.id
                         );
@@ -195,6 +194,11 @@ export default class VideoChannel {
                         callback();
                     }
                     break;
+                case 'fullscreenToggle':
+                    for (const callback of this.fullscreenToggleCallbacks) {
+                        callback();
+                    }
+                    break;
                 case 'sync':
                     // ignore
                     break;
@@ -202,10 +206,8 @@ export default class VideoChannel {
                     // ignore
                     break;
                 case 'ankiDialogRequest':
-                    const ankiDialogRequestMessage = event.data as AnkiDialogRequestFromVideoMessage;
-
                     for (let callback of that.ankiDialogRequestCallbacks) {
-                        callback(ankiDialogRequestMessage.forwardToVideo);
+                        callback();
                     }
                     break;
                 case 'toggleSubtitleTrackInList':
@@ -278,7 +280,6 @@ export default class VideoChannel {
             image: ImageModel | undefined,
             url: string | undefined,
             postMineAction: PostMineAction,
-            fromVideo: boolean,
             preventDuplicate: boolean,
             id: string | undefined
         ) => void
@@ -298,7 +299,11 @@ export default class VideoChannel {
         this.appBarToggleCallbacks.push(callback);
     }
 
-    onAnkiDialogRequest(callback: (forwardToVideo: boolean) => void) {
+    onFullscreenToggle(callback: () => void) {
+        this.fullscreenToggleCallbacks.push(callback);
+    }
+
+    onAnkiDialogRequest(callback: () => void) {
         this.ankiDialogRequestCallbacks.push(callback);
     }
 
@@ -373,14 +378,10 @@ export default class VideoChannel {
         this.protocol.postMessage(message);
     }
 
-    ankiDialogRequest() {
-        this.protocol.postMessage({ command: 'ankiDialogRequest' });
-    }
-
-    finishedAnkiDialogRequest(resume: boolean) {
-        const message: FinishedAnkiDialogRequestToVideoMessage = {
-            command: 'finishedAnkiDialogRequest',
-            resume: resume,
+    fullscreenToggle(fullscreen: boolean) {
+        const message: FullscreenToggleMessageToVideoMessage = {
+            command: 'fullscreenToggle',
+            value: fullscreen,
         };
         this.protocol.postMessage(message);
     }
@@ -410,6 +411,7 @@ export default class VideoChannel {
         this.playModeCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
         this.appBarToggleCallbacks = [];
+        this.fullscreenToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
     }

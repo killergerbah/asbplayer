@@ -6,7 +6,6 @@ import { arrayEquals, computeStyles } from '../services/Util';
 import {
     surroundingSubtitles,
     mockSurroundingSubtitles,
-    humanReadableTime,
     SubtitleModel,
     AudioTrackModel,
     PostMineAction,
@@ -19,7 +18,6 @@ import {
     AutoPausePreference,
 } from '@project/common';
 import { SubtitleTextImage } from '@project/common/components';
-import Alert from './Alert';
 import Clock from '../services/Clock';
 import Controls, { Point } from './Controls';
 import PlayerChannel from '../services/PlayerChannel';
@@ -127,19 +125,6 @@ function errorMessage(element: HTMLVideoElement) {
     return error + ': ' + (element.error?.message || '<details missing>');
 }
 
-function useFullscreen() {
-    const [fullscreen, setFullscreen] = useState(Boolean(document.fullscreenElement));
-
-    useEffect(() => {
-        const listener = () => setFullscreen(Boolean(document.fullscreenElement));
-        document.addEventListener('fullscreenchange', listener);
-
-        return () => document.removeEventListener('fullscreenchange', listener);
-    }, []);
-
-    return fullscreen;
-}
-
 interface Props {
     settingsProvider: SettingsProvider;
     playbackPreferences: PlaybackPreferences;
@@ -175,9 +160,7 @@ export default function VideoPlayer({
     }
     const playerChannel = useMemo(() => new PlayerChannel(channel), [channel]);
     const [playing, setPlaying] = useState<boolean>(false);
-    const fullscreen = useFullscreen();
-    const fullscreenRef = useRef<boolean>();
-    fullscreenRef.current = fullscreen;
+    const [fullscreen, setFullscreen] = useState<boolean>(false);
     const playingRef = useRef<boolean>();
     playingRef.current = playing;
     const [length, setLength] = useState<number>(0);
@@ -208,12 +191,6 @@ export default function VideoPlayer({
     const [showCursor, setShowCursor] = useState<boolean>(false);
     const lastMouseMovementTimestamp = useRef<number>(0);
     const containerRef = useRef<HTMLDivElement>(null);
-    const [alert, setAlert] = useState<string>();
-    const [alertOpen, setAlertOpen] = useState<boolean>(false);
-    const [returnToFullscreenOnFinishedAnkiDialogRequest, setReturnToFullscreenOnFinishedAnkiDialogRequest] =
-        useState<boolean>(false);
-    const returnToFullscreenOnFinishedAnkiDialogRequestRef = useRef<boolean>();
-    returnToFullscreenOnFinishedAnkiDialogRequestRef.current = returnToFullscreenOnFinishedAnkiDialogRequest;
     const [miscSettings, setMiscSettings] = useState<MiscSettings>(settingsProvider.miscSettings);
     const [subtitleSettings, setSubtitleSettings] = useState<SubtitleSettings>(settingsProvider.subtitleSettings);
     const [ankiSettings, setAnkiSettings] = useState<AnkiSettings>(settingsProvider.ankiSettings);
@@ -336,27 +313,7 @@ export default function VideoPlayer({
         playerChannel.onPlayMode((playMode) => setPlayMode(playMode));
         playerChannel.onHideSubtitlePlayerToggle((hidden) => setSubtitlePlayerHidden(hidden));
         playerChannel.onAppBarToggle((hidden) => setAppBarHidden(hidden));
-        playerChannel.onAnkiDialogRequest(() => {
-            if (fullscreenRef.current && !popOut) {
-                document.exitFullscreen();
-                setReturnToFullscreenOnFinishedAnkiDialogRequest(true);
-            }
-        });
-
-        playerChannel.onFinishedAnkiDialogRequest(async (resume) => {
-            if (returnToFullscreenOnFinishedAnkiDialogRequestRef.current) {
-                if (resume) {
-                    try {
-                        await containerRef.current?.requestFullscreen();
-                    } catch (e) {
-                        console.error(e);
-                    }
-                }
-
-                setReturnToFullscreenOnFinishedAnkiDialogRequest(false);
-            }
-        });
-
+        playerChannel.onFullscreenToggle((fullscreen) => setFullscreen(fullscreen));
         playerChannel.onSubtitleSettings(setSubtitleSettings);
         playerChannel.onMiscSettings(setMiscSettings);
         playerChannel.onAnkiSettings(setAnkiSettings);
@@ -555,15 +512,6 @@ export default function VideoPlayer({
                         : calculateSurroundingSubtitles(subtitle.index),
                     PostMineAction.none
                 );
-
-                if (fullscreen) {
-                    setAlert(
-                        subtitle.text === ''
-                            ? `Saved ${humanReadableTime(subtitle.start)}`
-                            : `Copied: "${subtitle.text}"`
-                    );
-                    setAlertOpen(true);
-                }
             },
             () => false,
             () => {
@@ -589,7 +537,7 @@ export default function VideoPlayer({
                 return showSubtitlesRef.current[0];
             }
         );
-    }, [keyBinder, playerChannel, clock, length, subtitles, calculateSurroundingSubtitles, fullscreen]);
+    }, [keyBinder, playerChannel, clock, length, subtitles, calculateSurroundingSubtitles]);
 
     useEffect(() => {
         return keyBinder.bindAdjustOffset(
@@ -694,7 +642,7 @@ export default function VideoPlayer({
             },
             () => false
         );
-    }, [keyBinder, playerChannel, extractSubtitles, fullscreen]);
+    }, [keyBinder, playerChannel, extractSubtitles]);
 
     useEffect(() => {
         return keyBinder.bindUpdateLastCard(
@@ -755,12 +703,20 @@ export default function VideoPlayer({
     const handleSubtitlesToggle = useCallback(() => setSubtitlesEnabled((subtitlesEnabled) => !subtitlesEnabled), []);
 
     const handleFullscreenToggle = useCallback(() => {
-        if (fullscreen) {
-            document.exitFullscreen();
+        if (popOut) {
+            setFullscreen(fullscreen => {
+                if (fullscreen) {
+                    document.exitFullscreen();
+                } else {
+                    document.documentElement.requestFullscreen();
+                }
+
+                return !fullscreen;
+            });
         } else {
-            containerRef.current?.requestFullscreen();
+            playerChannel.fullscreenToggle();
         }
-    }, [fullscreen]);
+    }, [playerChannel, popOut]);
 
     const handleVolumeChange = useCallback((volume: number) => {
         if (videoRef.current) {
@@ -806,7 +762,6 @@ export default function VideoPlayer({
 
     const handleDoubleClick = useCallback(() => handleFullscreenToggle(), [handleFullscreenToggle]);
 
-    const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
     const {
         subtitleSize,
         subtitleColor,
@@ -893,11 +848,6 @@ export default function VideoPlayer({
                         return <React.Fragment key={subtitle.index}>{content}</React.Fragment>;
                     })}
                 </div>
-            )}
-            {fullscreen && (
-                <Alert open={alertOpen} onClose={handleAlertClosed} autoHideDuration={3000} severity="success">
-                    {alert}
-                </Alert>
             )}
             <Controls
                 mousePositionRef={mousePositionRef}

@@ -271,7 +271,6 @@ export interface AudioTrackSelectedToVideoMessage extends Message {
 
 export interface AnkiDialogRequestFromVideoMessage extends Message {
     readonly command: 'ankiDialogRequest';
-    readonly forwardToVideo: boolean;
 }
 
 export interface ToggleSubtitleTrackInListFromVideoMessage extends Message {
@@ -303,6 +302,11 @@ export interface HideSubtitlePlayerToggleToVideoMessage extends Message {
 
 export interface AppBarToggleMessageToVideoMessage extends Message {
     readonly command: 'appBarToggle';
+    readonly value: boolean;
+}
+
+export interface FullscreenToggleMessageToVideoMessage extends Message {
+    readonly command: 'fullscreenToggle';
     readonly value: boolean;
 }
 

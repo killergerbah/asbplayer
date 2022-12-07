@@ -99,10 +99,11 @@ interface PlayerProps {
     videoChannelRef: MutableRefObject<VideoChannel | null>;
     drawerOpen: boolean;
     appBarHidden: boolean;
+    videoFullscreen: boolean;
+    hideSubtitlePlayer: boolean;
     videoPopOut: boolean;
     tab?: VideoTabModel;
     availableTabs: VideoTabModel[];
-    ankiDialogRequestToVideo?: number;
     ankiDialogRequested: boolean;
     ankiDialogFinishedRequest: AnkiDialogFinishedRequest;
     onError: (error: string) => void;
@@ -120,14 +121,15 @@ interface PlayerProps {
         image: ImageModel | undefined,
         url: string | undefined,
         postMineAction: PostMineAction | undefined,
-        fromVideo: boolean | undefined,
         preventDuplicate: boolean | undefined,
         id: string | undefined
     ) => void;
     onLoaded: () => void;
     onTabSelected: (tab: VideoTabModel) => void;
-    onAnkiDialogRequest: (forwardToVideo?: boolean) => void;
+    onAnkiDialogRequest: () => void;
     onAppBarToggle: () => void;
+    onFullscreenToggle: () => void;
+    onHideSubtitlePlayer: () => void;
     onVideoPopOut: () => void;
     onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
     disableKeyEvents: boolean;
@@ -146,10 +148,11 @@ export default function Player({
     videoChannelRef,
     drawerOpen,
     appBarHidden,
+    videoFullscreen,
+    hideSubtitlePlayer,
     videoPopOut,
     tab,
     availableTabs,
-    ankiDialogRequestToVideo,
     ankiDialogRequested,
     ankiDialogFinishedRequest,
     onError,
@@ -160,6 +163,8 @@ export default function Player({
     onTabSelected,
     onAnkiDialogRequest,
     onAppBarToggle,
+    onFullscreenToggle,
+    onHideSubtitlePlayer,
     onVideoPopOut,
     onPlayModeChangedViaBind,
     disableKeyEvents,
@@ -193,7 +198,6 @@ export default function Player({
     const [selectedAudioTrack, setSelectedAudioTrack] = useState<string>();
     const [channelId, setChannelId] = useState<string>();
     const [, setResumeOnFinishedAnkiDialogRequest] = useState<boolean>(false);
-    const [hideSubtitlePlayer, setHideSubtitlePlayer] = useState<boolean>(false);
     const hideSubtitlePlayerRef = useRef<boolean>();
     hideSubtitlePlayerRef.current = hideSubtitlePlayer;
     const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState<{ [track: number]: boolean }>({});
@@ -358,13 +362,13 @@ export default function Player({
                 channel.onExit(() => videoFileUrl && onUnloadVideo(videoFileUrl));
                 channel.onPopOutToggle(() => onVideoPopOut());
                 channel.onHideSubtitlePlayerToggle(() => {
-                    setHideSubtitlePlayer((hidden) => {
-                        channel?.hideSubtitlePlayerToggle(!hidden);
-                        return !hidden;
-                    });
+                    onHideSubtitlePlayer();
                 });
                 channel.onAppBarToggle(() => {
                     onAppBarToggle();
+                });
+                channel.onFullscreenToggle(() => {
+                    onFullscreenToggle();
                 });
                 channel.onReady((paused) => {
                     lengthRef.current = trackLength(audioRef, videoRef, subtitlesRef.current);
@@ -415,7 +419,6 @@ export default function Player({
                                 image,
                                 url,
                                 postMineAction,
-                                fromVideo,
                                 preventDuplicate,
                                 id
                             ) =>
@@ -431,7 +434,6 @@ export default function Player({
                                     image,
                                     url,
                                     postMineAction,
-                                    fromVideo,
                                     preventDuplicate,
                                     id
                                 )
@@ -463,7 +465,7 @@ export default function Player({
 
                             setSelectedAudioTrack(id);
                         });
-                        channel?.onAnkiDialogRequest((forwardToVideo) => onAnkiDialogRequest(forwardToVideo));
+                        channel?.onAnkiDialogRequest(() => onAnkiDialogRequest());
                         channel?.onToggleSubtitleTrackInList((track) =>
                             setDisabledSubtitleTracks((tracks) => {
                                 const newTracks = { ...tracks };
@@ -497,7 +499,9 @@ export default function Player({
         onUnloadVideo,
         onCopy,
         onAnkiDialogRequest,
+        onHideSubtitlePlayer,
         onAppBarToggle,
+        onFullscreenToggle,
         onVideoPopOut,
         subtitleFiles,
         audioFile,
@@ -530,17 +534,7 @@ export default function Player({
     }
 
     useEffect(() => {
-        if (ankiDialogRequestToVideo && videoRef.current instanceof VideoChannel) {
-            videoRef.current.ankiDialogRequest();
-        }
-    }, [ankiDialogRequestToVideo]);
-
-    useEffect(() => {
         if (ankiDialogFinishedRequest && ankiDialogFinishedRequest.timestamp > 0) {
-            if (videoRef.current instanceof VideoChannel) {
-                videoRef.current.finishedAnkiDialogRequest(ankiDialogFinishedRequest.resume);
-            }
-
             setResumeOnFinishedAnkiDialogRequest((resumeOnFinishedAnkiDialogRequest) => {
                 if (resumeOnFinishedAnkiDialogRequest && ankiDialogFinishedRequest.resume) {
                     play(clock, mediaAdapter, true);
@@ -709,7 +703,6 @@ export default function Player({
                 undefined,
                 undefined,
                 postMineAction,
-                false,
                 preventDuplicate,
                 undefined
             );
@@ -852,7 +845,6 @@ export default function Player({
                         undefined,
                         undefined,
                         undefined,
-                        undefined,
                         undefined
                     );
                 },
@@ -903,7 +895,6 @@ export default function Player({
                         undefined,
                         undefined,
                         PostMineAction.showAnkiDialog,
-                        false,
                         undefined,
                         undefined
                     );
@@ -933,6 +924,18 @@ export default function Player({
             videoRef.current.appBarToggle(appBarHidden);
         }
     }, [appBarHidden]);
+
+    useEffect(() => {
+        if (videoRef.current instanceof VideoChannel) {
+            videoRef.current.hideSubtitlePlayerToggle(hideSubtitlePlayer);
+        }
+    }, [hideSubtitlePlayer]);
+
+    useEffect(() => {
+        if (videoRef.current instanceof VideoChannel) {
+            videoRef.current.fullscreenToggle(videoFullscreen);
+        }
+    }, [videoFullscreen]);
 
     useEffect(() => {
         if (!rewindSubtitle) {
