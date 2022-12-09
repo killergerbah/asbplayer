@@ -19,6 +19,7 @@ interface Asbplayer {
     tab: SlimTab;
     timestamp: number;
     receivedTabs?: ActiveVideoElement[];
+    videoPlayer: boolean;
 }
 
 interface VideoElement {
@@ -135,12 +136,17 @@ export default class TabRegistry {
         return asbplayers;
     }
 
-    async onAsbplayerHeartbeat(tab: chrome.tabs.Tab, asbplayerId: string, receivedTabs?: ActiveVideoElement[]) {
+    async onAsbplayerHeartbeat(
+        tab: chrome.tabs.Tab,
+        asbplayerId: string,
+        videoPlayer: boolean,
+        receivedTabs?: ActiveVideoElement[]
+    ) {
         if (tab.id === undefined) {
             return;
         }
 
-        this._updateAsbplayers(tab, asbplayerId, receivedTabs);
+        this._updateAsbplayers(tab, asbplayerId, videoPlayer, receivedTabs);
 
         try {
             const command: ExtensionToAsbPlayerCommandTabsCommand = {
@@ -158,10 +164,15 @@ export default class TabRegistry {
     }
 
     async onAsbplayerAckTabs(tab: chrome.tabs.Tab, asbplayerId: string, receivedTabs?: ActiveVideoElement[]) {
-        this._updateAsbplayers(tab, asbplayerId, receivedTabs);
+        this._updateAsbplayers(tab, asbplayerId, false, receivedTabs);
     }
 
-    private async _updateAsbplayers(tab: chrome.tabs.Tab, asbplayerId: string, receivedTabs?: ActiveVideoElement[]) {
+    private async _updateAsbplayers(
+        tab: chrome.tabs.Tab,
+        asbplayerId: string,
+        videoPlayer: boolean,
+        receivedTabs?: ActiveVideoElement[]
+    ) {
         if (tab.id === undefined) {
             return;
         }
@@ -178,6 +189,7 @@ export default class TabRegistry {
                 id: asbplayerId,
                 timestamp: Date.now(),
                 receivedTabs: receivedTabs,
+                videoPlayer: videoPlayer,
             };
             return true;
         });
@@ -243,7 +255,7 @@ export default class TabRegistry {
             },
         };
 
-        await this.publishCommandToAsbplayers(() => tabsCommand);
+        await this.publishCommandToAsbplayers((asbplayer) => (asbplayer.videoPlayer ? undefined : tabsCommand));
     }
 
     async publishCommandToAsbplayers<T extends Message>(
@@ -317,14 +329,14 @@ export default class TabRegistry {
 
     async _createNewTab() {
         return new Promise<chrome.tabs.Tab>(async (resolve, reject) => {
-            const activeTabs = await chrome.tabs.query({active: true});
+            const activeTabs = await chrome.tabs.query({ active: true });
             const activeTabIndex = !activeTabs || activeTabs.length === 0 ? undefined : activeTabs[0].index + 1;
             chrome.tabs.create(
                 {
                     active: false,
                     selected: false,
                     url: (await this.settings.get(['asbplayerUrl'])).asbplayerUrl,
-                    index: activeTabIndex
+                    index: activeTabIndex,
                 },
                 resolve
             );

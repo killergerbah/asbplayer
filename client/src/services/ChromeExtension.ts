@@ -5,6 +5,7 @@ import {
     Message,
     VideoTabModel,
 } from '@project/common';
+import { gt } from 'semver';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface ExtensionMessage {
@@ -80,22 +81,33 @@ export default class ChromeExtension {
         window.addEventListener('message', this.windowEventListener);
     }
 
-    startHeartbeat() {
+    startHeartbeat(fromVideoPlayer: boolean) {
+        if (!this.installed) {
+            return;
+        }
+
         if (!this.heartbeatStarted) {
-            this._sendHeartbeat();
-            setInterval(() => this._sendHeartbeat(), 1000);
+            if (fromVideoPlayer) {
+                if (gt(this.version, '0.23.0')) {
+                    setInterval(() => this._sendHeartbeat(true), 1000);
+                }
+            } else {
+                setInterval(() => this._sendHeartbeat(false), 1000);
+            }
+
             this.heartbeatStarted = true;
         }
     }
 
-    private _sendHeartbeat() {
+    private _sendHeartbeat(fromVideoPlayer: boolean) {
         window.postMessage(
             {
                 sender: 'asbplayerv2',
                 message: {
                     command: 'heartbeat',
                     id: id,
-                    receivedTabs: this.tabs,
+                    receivedTabs: fromVideoPlayer ? [] : this.tabs,
+                    videoPlayer: fromVideoPlayer
                 },
             },
             '*'

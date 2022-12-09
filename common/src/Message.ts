@@ -25,6 +25,7 @@ export interface AsbplayerHeartbeatMessage extends Message {
     readonly command: 'heartbeat';
     readonly id: string;
     readonly receivedTabs?: ActiveVideoElement[];
+    readonly videoPlayer: boolean;
 }
 
 export interface TabsMessage extends Message {

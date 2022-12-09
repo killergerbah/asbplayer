@@ -16,7 +16,7 @@ export default class EditKeyboardShortcutsHandler {
     }
 
     async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
-        const tabId = await this.tabRegistry.findAsbplayerTab();
+        const tabId = await this.tabRegistry.findAsbplayerTab((asbplayer) => !asbplayer.videoPlayer);
         const editKeyboardShortcutsCommand: ExtensionToAsbPlayerCommand<EditKeyboardShortcutsMessage> = {
             sender: 'asbplayer-extension-to-player',
             message: {

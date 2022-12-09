@@ -968,6 +968,7 @@ function App() {
 
     useEffect(() => {
         if (inVideoPlayer) {
+            extension.startHeartbeat(true);
             return undefined;
         }
 
@@ -1040,7 +1041,7 @@ function App() {
         }
 
         const unsubscribe = extension.subscribe(onMessage);
-        extension.startHeartbeat();
+        extension.startHeartbeat(false);
         return unsubscribe;
     }, [extension, inVideoPlayer]);
 
