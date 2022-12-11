@@ -25,6 +25,7 @@ import SettingsProvider from '../services/SettingsProvider';
 import AppKeyBinder from '../services/AppKeyBinder';
 import ChromeExtension from '../services/ChromeExtension';
 import PlaybackPreferences from '../services/PlaybackPreferences';
+import { AnkiDialogFinishedRequest } from './Player';
 
 interface ExperimentalHTMLVideoElement extends HTMLVideoElement {
     readonly audioTracks: any;
@@ -132,6 +133,7 @@ interface Props {
     videoFile: string;
     channel: string;
     popOut: boolean;
+    ankiDialogFinishedRequest: AnkiDialogFinishedRequest;
     onAnkiDialogRequest: (
         videoFileUrl: string,
         videoFileName: string,
@@ -155,6 +157,7 @@ export default function VideoPlayer({
     videoFile,
     channel,
     popOut,
+    ankiDialogFinishedRequest,
     onAnkiDialogRequest,
     onError,
     onPlayModeChangedViaBind,
@@ -177,6 +180,7 @@ export default function VideoPlayer({
     const [offset, setOffset] = useState<number>(0);
     const [audioTracks, setAudioTracks] = useState<AudioTrackModel[]>();
     const [selectedAudioTrack, setSelectedAudioTrack] = useState<string>();
+    const [, setResumeOnFinishedAnkiDialogRequest] = useState<boolean>(false);
     const [subtitles, setSubtitles] = useState<IndexedSubtitleModel[]>([]);
     const subtitleCollection = useMemo<SubtitleCollection<IndexedSubtitleModel>>(
         () =>
@@ -671,6 +675,11 @@ export default function VideoPlayer({
                             );
                         }
                     );
+
+                    if (playing) {
+                        playerChannel.pause();
+                        setResumeOnFinishedAnkiDialogRequest(true);
+                    }
                 } else {
                     extractSubtitles(
                         (subtitle, surroundingSubtitles) =>
@@ -693,7 +702,20 @@ export default function VideoPlayer({
         selectedAudioTrack,
         onAnkiDialogRequest,
         popOut,
+        playing,
     ]);
+
+    useEffect(() => {
+        if (ankiDialogFinishedRequest && ankiDialogFinishedRequest.timestamp > 0) {
+            setResumeOnFinishedAnkiDialogRequest((resumeOnFinishedAnkiDialogRequest) => {
+                if (resumeOnFinishedAnkiDialogRequest && ankiDialogFinishedRequest.resume) {
+                    playerChannel.play();
+                }
+
+                return false;
+            });
+        }
+    }, [ankiDialogFinishedRequest, playerChannel]);
 
     useEffect(() => {
         return keyBinder.bindUpdateLastCard(

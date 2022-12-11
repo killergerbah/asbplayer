@@ -230,6 +230,7 @@ interface RenderVideoProps {
     settingsProvider: SettingsProvider;
     playbackPreferences: PlaybackPreferences;
     extension: ChromeExtension;
+    ankiDialogFinishedRequest: AnkiDialogFinishedRequest;
     onAnkiDialogRequest: (
         videoFileUrl: string,
         videoFileName: string,
@@ -247,6 +248,7 @@ function RenderVideo({
     settingsProvider,
     playbackPreferences,
     extension,
+    ankiDialogFinishedRequest,
     onAnkiDialogRequest,
     onError,
     onPlayModeChangedViaBind,
@@ -263,6 +265,7 @@ function RenderVideo({
             videoFile={videoFile}
             popOut={popOut}
             channel={channel}
+            ankiDialogFinishedRequest={ankiDialogFinishedRequest}
             onAnkiDialogRequest={onAnkiDialogRequest}
             onError={onError}
             onPlayModeChangedViaBind={onPlayModeChangedViaBind}
@@ -1252,6 +1255,7 @@ function App() {
                                     settingsProvider={settingsProvider}
                                     playbackPreferences={playbackPreferences}
                                     extension={extension}
+                                    ankiDialogFinishedRequest={ankiDialogFinishedRequest}
                                     onAnkiDialogRequest={handleAnkiDialogRequestFromVideoPlayer}
                                     onError={handleError}
                                     onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
