@@ -1,4 +1,5 @@
 import {
+    AlertMessage,
     AnkiDialogRequestFromVideoMessage,
     AnkiSettings,
     AnkiSettingsToVideoMessage,
@@ -46,6 +47,7 @@ export default class PlayerChannel {
     private subtitleSettingsCallbacks: ((subtitleSettings: SubtitleSettings) => void)[];
     private miscSettingsCallbacks: ((miscSettings: MiscSettings) => void)[];
     private ankiSettingsCallbacks: ((ankiSettings: AnkiSettings) => void)[];
+    private alertCallbacks: ((message: string, severity: string) => void)[];
 
     constructor(channel: string) {
         this.channel = new BroadcastChannel(channel);
@@ -64,6 +66,7 @@ export default class PlayerChannel {
         this.subtitleSettingsCallbacks = [];
         this.miscSettingsCallbacks = [];
         this.ankiSettingsCallbacks = [];
+        this.alertCallbacks = [];
 
         const that = this;
 
@@ -171,6 +174,13 @@ export default class PlayerChannel {
                         callback(miscSettingsMessage.value);
                     }
                     break;
+                case 'alert':
+                    const alertMessage = event.data as AlertMessage;
+
+                    for (const callback of that.alertCallbacks) {
+                        callback(alertMessage.message, alertMessage.severity);
+                    }
+                    break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }
@@ -239,6 +249,10 @@ export default class PlayerChannel {
 
     onAnkiSettings(callback: (ankiSettings: AnkiSettings) => void) {
         this.ankiSettingsCallbacks.push(callback);
+    }
+
+    onAlert(callback: (message: string, severity: string) => void) {
+        this.alertCallbacks.push(callback);
     }
 
     ready(
@@ -357,6 +371,7 @@ export default class PlayerChannel {
             this.subtitleSettingsCallbacks = [];
             this.miscSettingsCallbacks = [];
             this.ankiSettingsCallbacks = [];
+            this.alertCallbacks = [];
         }
     }
 }

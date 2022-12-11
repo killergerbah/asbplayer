@@ -513,6 +513,9 @@ export default class Binding {
                             sendResponse
                         );
                         return true;
+                    case 'alert':
+                        // ignore
+                        break;
                 }
             }
         };

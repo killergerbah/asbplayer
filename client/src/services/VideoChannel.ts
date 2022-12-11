@@ -1,4 +1,5 @@
 import {
+    AlertMessage,
     AnkiSettings,
     AnkiSettingsToVideoMessage,
     AppBarToggleMessageToVideoMessage,
@@ -394,6 +395,11 @@ export default class VideoChannel {
     miscSettings(settings: MiscSettings) {
         const message: MiscSettingsToVideoMessage = { command: 'miscSettings', value: settings };
         this.protocol.postMessage(message);
+    }
+
+    alert(message: string, severity: string) {
+        const msg: AlertMessage = { command: 'alert', message, severity };
+        this.protocol.postMessage(msg);
     }
 
     close() {

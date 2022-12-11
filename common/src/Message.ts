@@ -391,3 +391,9 @@ export interface ExtensionVersionMessage extends Message {
     version: string;
     extensionCommands?: { [key: string]: string | undefined };
 }
+
+export interface AlertMessage extends Message {
+    readonly command: 'alert';
+    readonly severity: string;
+    readonly message: string;
+}

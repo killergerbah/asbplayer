@@ -26,6 +26,8 @@ import AppKeyBinder from '../services/AppKeyBinder';
 import ChromeExtension from '../services/ChromeExtension';
 import PlaybackPreferences from '../services/PlaybackPreferences';
 import { AnkiDialogFinishedRequest } from './Player';
+import { Color } from '@material-ui/lab/Alert';
+import Alert from './Alert';
 
 interface ExperimentalHTMLVideoElement extends HTMLVideoElement {
     readonly audioTracks: any;
@@ -208,6 +210,10 @@ export default function VideoPlayer({
     const [miscSettings, setMiscSettings] = useState<MiscSettings>(settingsProvider.miscSettings);
     const [subtitleSettings, setSubtitleSettings] = useState<SubtitleSettings>(settingsProvider.subtitleSettings);
     const [ankiSettings, setAnkiSettings] = useState<AnkiSettings>(settingsProvider.ankiSettings);
+    const [alertOpen, setAlertOpen] = useState<boolean>(false);
+    const [alertMessage, setAlertMessage] = useState<string>('');
+    const [alertSeverity, setAlertSeverity] = useState<Color>('info');
+
     const keyBinder = useMemo<AppKeyBinder>(
         () => new AppKeyBinder(new DefaultKeyBinder(miscSettings.keyBindSet), extension),
         [miscSettings.keyBindSet, extension]
@@ -335,6 +341,13 @@ export default function VideoPlayer({
         playerChannel.onMiscSettings(setMiscSettings);
         playerChannel.onAnkiSettings(setAnkiSettings);
         playerChannel.onOffset(updateSubtitlesWithOffset);
+        playerChannel.onAlert((message, severity) => {
+            if (popOut) {
+                setAlertOpen(true);
+                setAlertMessage(message);
+                setAlertSeverity(severity as Color);
+            }
+        });
 
         window.onbeforeunload = (e) => {
             if (!poppingInRef.current) {
@@ -881,8 +894,13 @@ export default function VideoPlayer({
         return () => clearInterval(interval);
     }, [showCursor]);
 
+    const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
+
     return (
         <div ref={containerRef} onMouseMove={handleMouseMove} className={classes.root}>
+            <Alert open={alertOpen} onClose={handleAlertClosed} autoHideDuration={3000} severity={alertSeverity}>
+                {alertMessage}
+            </Alert>
             <video
                 preload="auto"
                 controls={false}

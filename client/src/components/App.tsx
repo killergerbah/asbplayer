@@ -1223,6 +1223,12 @@ function App() {
         }
     }, [searchParams, location]);
 
+    useEffect(() => {
+        if (alertOpen && alert && alertSeverity) {
+            videoChannelRef.current?.alert(alert, alertSeverity);
+        }
+    }, [alert, alertSeverity, alertOpen]);
+
     if (location.pathname === '/' && searchParams.get('video')) {
         return <NavigateToVideo searchParams={searchParams} />;
     }
