@@ -311,7 +311,7 @@ export default class VideoChannel {
         this.toggleSubtitleTrackInListCallbacks.push(callback);
     }
 
-    ready(duration: number, videoFileName: string) {
+    ready(duration: number, videoFileName?: string) {
         const message: ReadyToVideoMessage = { command: 'ready', duration, videoFileName };
         this.protocol.postMessage(message);
     }

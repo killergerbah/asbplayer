@@ -31,7 +31,7 @@ import {
 
 export default class PlayerChannel {
     private channel?: BroadcastChannel;
-    private readyCallbacks: ((duration: number, videoFileName: string) => void)[];
+    private readyCallbacks: ((duration: number, videoFileName?: string) => void)[];
     private playCallbacks: (() => void)[];
     private pauseCallbacks: (() => void)[];
     private currentTimeCallbacks: ((currentTime: number) => void)[];
@@ -201,7 +201,7 @@ export default class PlayerChannel {
         this.closeCallbacks.push(callback);
     }
 
-    onReady(callback: (duration: number, videoFileName: string) => void) {
+    onReady(callback: (duration: number, videoFileName?: string) => void) {
         this.readyCallbacks.push(callback);
     }
 

@@ -652,7 +652,7 @@ export default function VideoPlayer({
                             playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.none, false);
                             onAnkiDialogRequest(
                                 videoFile,
-                                videoFileName!,
+                                videoFileName ?? '',
                                 selectedAudioTrack,
                                 subtitle,
                                 surroundingSubtitles,
@@ -663,7 +663,7 @@ export default function VideoPlayer({
                             playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.none, true);
                             onAnkiDialogRequest(
                                 videoFile,
-                                videoFileName!,
+                                videoFileName ?? '',
                                 selectedAudioTrack,
                                 subtitle,
                                 surroundingSubtitles,
