@@ -31,8 +31,7 @@ import {
 
 export default class PlayerChannel {
     private channel?: BroadcastChannel;
-    private time: number;
-    private readyCallbacks: ((duration: number) => void)[];
+    private readyCallbacks: ((duration: number, videoFileName: string) => void)[];
     private playCallbacks: (() => void)[];
     private pauseCallbacks: (() => void)[];
     private currentTimeCallbacks: ((currentTime: number) => void)[];
@@ -50,7 +49,6 @@ export default class PlayerChannel {
 
     constructor(channel: string) {
         this.channel = new BroadcastChannel(channel);
-        this.time = 0;
         this.playCallbacks = [];
         this.pauseCallbacks = [];
         this.currentTimeCallbacks = [];
@@ -78,7 +76,7 @@ export default class PlayerChannel {
                     const readyMessage = event.data as ReadyToVideoMessage;
 
                     for (let callback of that.readyCallbacks) {
-                        callback(readyMessage.duration);
+                        callback(readyMessage.duration, readyMessage.videoFileName);
                     }
                     break;
                 case 'play':
@@ -180,8 +178,7 @@ export default class PlayerChannel {
     }
 
     set currentTime(value: number) {
-        this.time = value;
-        this.channel?.postMessage({ command: 'currentTime', value: this.time, echo: true });
+        this.channel?.postMessage({ command: 'currentTime', value: value, echo: true });
     }
 
     onPlay(callback: () => void) {
@@ -204,7 +201,7 @@ export default class PlayerChannel {
         this.closeCallbacks.push(callback);
     }
 
-    onReady(callback: (duration: number) => void) {
+    onReady(callback: (duration: number, videoFileName: string) => void) {
         this.readyCallbacks.push(callback);
     }
 

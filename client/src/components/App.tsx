@@ -230,6 +230,14 @@ interface RenderVideoProps {
     settingsProvider: SettingsProvider;
     playbackPreferences: PlaybackPreferences;
     extension: ChromeExtension;
+    onAnkiDialogRequest: (
+        videoFileUrl: string,
+        videoFileName: string,
+        selectedAudioTrack: string | undefined,
+        subtitle: SubtitleModel,
+        surroundingSubtitles: SubtitleModel[],
+        timestamp: number
+    ) => void;
     onError: (error: string) => void;
     onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
 }
@@ -239,6 +247,7 @@ function RenderVideo({
     settingsProvider,
     playbackPreferences,
     extension,
+    onAnkiDialogRequest,
     onError,
     onPlayModeChangedViaBind,
 }: RenderVideoProps) {
@@ -254,6 +263,7 @@ function RenderVideo({
             videoFile={videoFile}
             popOut={popOut}
             channel={channel}
+            onAnkiDialogRequest={onAnkiDialogRequest}
             onError={onError}
             onPlayModeChangedViaBind={onPlayModeChangedViaBind}
         />
@@ -405,6 +415,32 @@ function App() {
         setDisableKeyEvents(true);
         setAnkiDialogRequested(true);
     }, []);
+
+    const handleAnkiDialogRequestFromVideoPlayer = useCallback(
+        async (
+            videoFileUrl: string,
+            videoFileName: string,
+            selectedAudioTrack: string | undefined,
+            subtitle: SubtitleModel,
+            surroundingSubtitles: SubtitleModel[],
+            timestamp: number
+        ) => {
+            const item = {
+                ...subtitle,
+                surroundingSubtitles: surroundingSubtitles,
+                timestamp: Date.now(),
+                id: uuidv4(),
+                name: videoFileName,
+                mediaTimestamp: timestamp,
+                videoFile: await fetch(videoFileUrl)
+                    .then((r) => r.blob())
+                    .then((blobFile) => new File([blobFile], videoFileName)),
+                selectedAudioTrack: selectedAudioTrack,
+            };
+            handleAnkiDialogRequest(item);
+        },
+        [handleAnkiDialogRequest]
+    );
 
     const handleAnkiDialogProceed = useCallback(
         async (
@@ -1210,14 +1246,34 @@ function App() {
                     <Route
                         path="/video"
                         element={
-                            <RenderVideo
-                                searchParams={searchParams}
-                                settingsProvider={settingsProvider}
-                                playbackPreferences={playbackPreferences}
-                                extension={extension}
-                                onError={handleError}
-                                onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
-                            />
+                            <>
+                                <RenderVideo
+                                    searchParams={searchParams}
+                                    settingsProvider={settingsProvider}
+                                    playbackPreferences={playbackPreferences}
+                                    extension={extension}
+                                    onAnkiDialogRequest={handleAnkiDialogRequestFromVideoPlayer}
+                                    onError={handleError}
+                                    onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
+                                />
+                                <AnkiDialog
+                                    open={ankiDialogOpen}
+                                    disabled={ankiDialogDisabled}
+                                    audioClip={ankiDialogAudioClip}
+                                    image={ankiDialogImage}
+                                    source={itemSourceString(ankiDialogItem)}
+                                    url={ankiDialogItem?.url}
+                                    sliderContext={ankiDialogItemSliderContext}
+                                    customFields={settingsProvider.customAnkiFields}
+                                    anki={anki}
+                                    settingsProvider={settingsProvider}
+                                    onCancel={handleAnkiDialogCancel}
+                                    onRewind={handleAnkiDialogRewind}
+                                    onProceed={handleAnkiDialogProceed}
+                                    onViewImage={handleViewImage}
+                                />
+                                <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />
+                            </>
                         }
                     />
                     <Route

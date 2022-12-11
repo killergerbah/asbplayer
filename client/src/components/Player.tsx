@@ -372,7 +372,7 @@ export default function Player({
                 });
                 channel.onReady((paused) => {
                     lengthRef.current = trackLength(audioRef, videoRef, subtitlesRef.current);
-                    channel?.ready(lengthRef.current);
+                    channel?.ready(lengthRef.current, videoFile!.name);
 
                     if (subtitlesRef.current) {
                         channel?.subtitleSettings(settingsProvider.subtitleSettings);

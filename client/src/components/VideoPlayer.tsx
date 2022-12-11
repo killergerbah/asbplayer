@@ -132,6 +132,14 @@ interface Props {
     videoFile: string;
     channel: string;
     popOut: boolean;
+    onAnkiDialogRequest: (
+        videoFileUrl: string,
+        videoFileName: string,
+        selectedAudioTrack: string | undefined,
+        subtitle: SubtitleModel,
+        surroundingSubtitles: SubtitleModel[],
+        timestamp: number
+    ) => void;
     onError: (error: string) => void;
     onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
 }
@@ -147,6 +155,7 @@ export default function VideoPlayer({
     videoFile,
     channel,
     popOut,
+    onAnkiDialogRequest,
     onError,
     onPlayModeChangedViaBind,
 }: Props) {
@@ -164,6 +173,7 @@ export default function VideoPlayer({
     const playingRef = useRef<boolean>();
     playingRef.current = playing;
     const [length, setLength] = useState<number>(0);
+    const [videoFileName, setVideoFileName] = useState<string>();
     const [offset, setOffset] = useState<number>(0);
     const [audioTracks, setAudioTracks] = useState<AudioTrackModel[]>();
     const [selectedAudioTrack, setSelectedAudioTrack] = useState<string>();
@@ -262,7 +272,10 @@ export default function VideoPlayer({
     }, []);
 
     useEffect(() => {
-        playerChannel.onReady((duration) => setLength(duration));
+        playerChannel.onReady((duration, videoFileName) => {
+            setLength(duration);
+            setVideoFileName(videoFileName);
+        });
 
         playerChannel.onPlay(async () => {
             await videoRef.current?.play();
@@ -633,16 +646,54 @@ export default function VideoPlayer({
                 event.preventDefault();
                 event.stopPropagation();
 
-                extractSubtitles(
-                    (subtitle, surroundingSubtitles) =>
-                        playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.showAnkiDialog, false),
-                    (subtitle, surroundingSubtitles) =>
-                        playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.showAnkiDialog, true)
-                );
+                if (popOut) {
+                    extractSubtitles(
+                        (subtitle, surroundingSubtitles) => {
+                            playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.none, false);
+                            onAnkiDialogRequest(
+                                videoFile,
+                                videoFileName!,
+                                selectedAudioTrack,
+                                subtitle,
+                                surroundingSubtitles,
+                                clock.time(length)
+                            );
+                        },
+                        (subtitle, surroundingSubtitles) => {
+                            playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.none, true);
+                            onAnkiDialogRequest(
+                                videoFile,
+                                videoFileName!,
+                                selectedAudioTrack,
+                                subtitle,
+                                surroundingSubtitles,
+                                clock.time(length)
+                            );
+                        }
+                    );
+                } else {
+                    extractSubtitles(
+                        (subtitle, surroundingSubtitles) =>
+                            playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.showAnkiDialog, false),
+                        (subtitle, surroundingSubtitles) =>
+                            playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.showAnkiDialog, true)
+                    );
+                }
             },
             () => false
         );
-    }, [keyBinder, playerChannel, extractSubtitles]);
+    }, [
+        keyBinder,
+        playerChannel,
+        extractSubtitles,
+        clock,
+        length,
+        videoFile,
+        videoFileName,
+        selectedAudioTrack,
+        onAnkiDialogRequest,
+        popOut,
+    ]);
 
     useEffect(() => {
         return keyBinder.bindUpdateLastCard(
@@ -704,7 +755,7 @@ export default function VideoPlayer({
 
     const handleFullscreenToggle = useCallback(() => {
         if (popOut) {
-            setFullscreen(fullscreen => {
+            setFullscreen((fullscreen) => {
                 if (fullscreen) {
                     document.exitFullscreen();
                 } else {
