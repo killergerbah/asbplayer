@@ -44,6 +44,8 @@ const defaultKeyBindSet: KeyBindSet = {
     copySubtitle: { keys: isMacOs ? '⇧+⌃+Z' : 'ctrl+shift+Z' },
     ankiExport: { keys: isMacOs ? '⇧+⌃+X' : 'ctrl+shift+X' },
     updateLastCard: { keys: isMacOs ? '⇧+⌃+U' : 'ctrl+shift+U' },
+    decreasePlaybackRate: { keys: isMacOs ? '⇧+⌃+[' : 'ctrl+shift+[' },
+    increasePlaybackRate: { keys: isMacOs ? '⇧+⌃+]' : 'ctrl+shift+]' },
 };
 
 const ankiConnectUrlKey = 'ankiConnectUrl';
@@ -157,7 +159,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.maxImageWidth = newSettings.maxImageWidth;
         this.maxImageHeight = newSettings.maxImageHeight;
         this.surroundingSubtitlesCountRadius = newSettings.surroundingSubtitlesCountRadius;
-        this.surroundingSubtitlesTimeRadius = newSettings.surroundingSubtitlesTimeRadius
+        this.surroundingSubtitlesTimeRadius = newSettings.surroundingSubtitlesTimeRadius;
         this.copyToClipboardOnMine = newSettings.copyToClipboardOnMine;
         this.autoPausePreference = newSettings.autoPausePreference;
         this.keyBindSet = newSettings.keyBindSet;

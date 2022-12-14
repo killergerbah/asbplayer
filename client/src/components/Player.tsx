@@ -813,6 +813,20 @@ export default function Player({
         return () => unbind();
     }, [keyBinder, playing, clock, mediaAdapter, disableKeyEvents]);
 
+    useEffect(() => {
+        return keyBinder.bindAdjustPlaybackRate(
+            (event, increase) => {
+                event.preventDefault();
+                if (increase) {
+                    updatePlaybackRate(Math.min(5, playbackRate + 0.1), true);
+                } else {
+                    updatePlaybackRate(Math.max(0.1, playbackRate - 0.1), true);
+                }
+            },
+            () => disableKeyEvents
+        );
+    }, [updatePlaybackRate, playbackRate, disableKeyEvents, keyBinder]);
+
     const togglePlayMode = useCallback(
         (event: KeyboardEvent, togglePlayMode: PlayMode) => {
             if (!playModeEnabled) {

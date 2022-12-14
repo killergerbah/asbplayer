@@ -745,7 +745,7 @@ export default function Controls({
                         return;
                     }
 
-                    if (Number.isNaN(newPlaybackRate) || newPlaybackRate < 0.25 || newPlaybackRate > 5) {
+                    if (Number.isNaN(newPlaybackRate) || newPlaybackRate < 0.1 || newPlaybackRate > 5) {
                         return;
                     }
 

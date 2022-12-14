@@ -178,6 +178,8 @@ const keyBindProperties: { [key in KeyBindName]: KeyBindProperties } = {
     },
     increaseOffset: { label: 'Adjust subtitle offset by +100ms', extensionOverridden: false },
     decreaseOffset: { label: 'Adjust subtitle offset by -100ms', extensionOverridden: false },
+    increasePlaybackRate: { label: 'Adjust playback rate by +0.1', extensionOverridden: false },
+    decreasePlaybackRate: { label: 'Adjust playback rate by -0.1', extensionOverridden: false },
 };
 
 // hotkeys only returns strings for a Mac while requiring the OS-specific keys for the actual binds

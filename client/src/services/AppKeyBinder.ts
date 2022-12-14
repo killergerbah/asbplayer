@@ -97,7 +97,7 @@ export default class AppKeyBinder implements KeyBinder {
             }
         }
     }
-    
+
     bindSeekToSubtitle(
         onSeekToSubtitle: (event: KeyboardEvent, subtitle: SubtitleModel) => void,
         disabledGetter: () => boolean,
@@ -105,7 +105,13 @@ export default class AppKeyBinder implements KeyBinder {
         subtitlesGetter: () => SubtitleModel[] | undefined,
         useCapture?: boolean | undefined
     ): () => void {
-        return this.defaultKeyBinder.bindSeekToSubtitle(onSeekToSubtitle, disabledGetter, timeGetter, subtitlesGetter, useCapture);
+        return this.defaultKeyBinder.bindSeekToSubtitle(
+            onSeekToSubtitle,
+            disabledGetter,
+            timeGetter,
+            subtitlesGetter,
+            useCapture
+        );
     }
 
     bindSeekToBeginningOfCurrentSubtitle(
@@ -115,7 +121,13 @@ export default class AppKeyBinder implements KeyBinder {
         subtitlesGetter: () => SubtitleModel[] | undefined,
         useCapture?: boolean | undefined
     ): () => void {
-        return this.defaultKeyBinder.bindSeekToBeginningOfCurrentSubtitle(onSeekToBeginningOfCurrentSubtitle, disabledGetter, timeGetter, subtitlesGetter, useCapture);
+        return this.defaultKeyBinder.bindSeekToBeginningOfCurrentSubtitle(
+            onSeekToBeginningOfCurrentSubtitle,
+            disabledGetter,
+            timeGetter,
+            subtitlesGetter,
+            useCapture
+        );
     }
 
     bindSeekBackwardOrForward(
@@ -133,7 +145,13 @@ export default class AppKeyBinder implements KeyBinder {
         subtitlesGetter: () => SubtitleModel[] | undefined,
         useCapture?: boolean | undefined
     ): () => void {
-        return this.defaultKeyBinder.bindOffsetToSubtitle(onOffsetChange, disabledGetter, timeGetter, subtitlesGetter, useCapture);
+        return this.defaultKeyBinder.bindOffsetToSubtitle(
+            onOffsetChange,
+            disabledGetter,
+            timeGetter,
+            subtitlesGetter,
+            useCapture
+        );
     }
 
     bindAdjustOffset(
@@ -143,6 +161,14 @@ export default class AppKeyBinder implements KeyBinder {
         useCapture?: boolean | undefined
     ): () => void {
         return this.defaultKeyBinder.bindAdjustOffset(onOffsetChange, disabledGetter, subtitlesGetter, useCapture);
+    }
+
+    bindAdjustPlaybackRate(
+        onAdjustPlaybackRate: (event: KeyboardEvent, increase: boolean) => void,
+        disabledGetter: () => boolean,
+        useCapture = false
+    ) {
+        return this.defaultKeyBinder.bindAdjustPlaybackRate(onAdjustPlaybackRate, disabledGetter, useCapture);
     }
 
     bindToggleSubtitles(
@@ -166,7 +192,11 @@ export default class AppKeyBinder implements KeyBinder {
         disabledGetter: () => boolean,
         useCapture?: boolean | undefined
     ): () => void {
-        return this.defaultKeyBinder.bindToggleSubtitleTrackInList(onToggleSubtitleTrackInList, disabledGetter, useCapture);
+        return this.defaultKeyBinder.bindToggleSubtitleTrackInList(
+            onToggleSubtitleTrackInList,
+            disabledGetter,
+            useCapture
+        );
     }
 
     bindPlay(

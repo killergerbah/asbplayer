@@ -103,7 +103,8 @@ const keyboardShortcutLabels: { [key in keyof ExtensionKeyBindingsSettings]: str
     bindSeekToSubtitle: 'Seek to previous/next subtitle',
     bindSeekToBeginningOfCurrentSubtitle: 'Seek to beginning of current subtitle',
     bindAdjustOffsetToSubtitle: 'Adjust subtitle offset so that previous/next subtitle is at current timestamp',
-    bindAdjustOffset: 'Adjust offset by +/- 100 ms',
+    bindAdjustOffset: 'Adjust offset by ±100 ms',
+    bindAdjustPlaybackRate: 'Adjust playback rate by ±0.1'
 };
 
 interface PopupFormProps {

@@ -14,6 +14,8 @@ export default class Clock {
     }
 
     set rate(rate: number) {
+        this.accumulated += this._elapsed();
+        this.startTime = Date.now();
         this._rate = rate;
     }
 

@@ -282,6 +282,21 @@ export default function VideoPlayer({
         );
     }, []);
 
+    const updatePlaybackRate = useCallback(
+        (playbackRate: number, forwardToPlayer: boolean) => {
+            if (videoRef.current) {
+                videoRef.current.playbackRate = playbackRate;
+                clock.rate = playbackRate;
+                setPlaybackRate(playbackRate);
+
+                if (forwardToPlayer) {
+                    playerChannel.playbackRate(playbackRate);
+                }
+            }
+        },
+        [playerChannel, clock]
+    );
+
     useEffect(() => {
         playerChannel.onReady((duration, videoFileName) => {
             setLength(duration);
@@ -343,9 +358,7 @@ export default function VideoPlayer({
         playerChannel.onAnkiSettings(setAnkiSettings);
         playerChannel.onOffset(updateSubtitlesWithOffset);
         playerChannel.onPlaybackRate((playbackRate) => {
-            if (videoRef.current) {
-                videoRef.current.playbackRate = playbackRate;
-            }
+            updatePlaybackRate(playbackRate, false);
         });
         playerChannel.onAlert((message, severity) => {
             if (popOut) {
@@ -362,7 +375,7 @@ export default function VideoPlayer({
         };
 
         return () => playerChannel.close();
-    }, [clock, playerChannel, updateSubtitlesWithOffset, popOut]);
+    }, [clock, playerChannel, updateSubtitlesWithOffset, updatePlaybackRate, popOut]);
 
     const handlePlay = useCallback(() => {
         if (videoRef.current) {
@@ -480,14 +493,9 @@ export default function VideoPlayer({
 
     const handlePlaybackRateChange = useCallback(
         (playbackRate: number) => {
-            if (videoRef.current) {
-                videoRef.current.playbackRate = playbackRate;
-                clock.rate = playbackRate;
-                playerChannel.playbackRate(playbackRate);
-                setPlaybackRate(playbackRate);
-            }
+            updatePlaybackRate(playbackRate, true);
         },
-        [playerChannel, clock]
+        [updatePlaybackRate]
     );
 
     useEffect(() => {
@@ -598,6 +606,20 @@ export default function VideoPlayer({
             () => subtitles
         );
     }, [keyBinder, handleOffsetChange, subtitles]);
+
+    useEffect(() => {
+        return keyBinder.bindAdjustPlaybackRate(
+            (event, increase) => {
+                event.preventDefault();
+                if (increase) {
+                    updatePlaybackRate(Math.min(5, playbackRate + 0.1), true);
+                } else {
+                    updatePlaybackRate(Math.max(0.1, playbackRate - 0.1), true);
+                }
+            },
+            () => false
+        );
+    }, [updatePlaybackRate, playbackRate, keyBinder]);
 
     useEffect(() => {
         return keyBinder.bindToggleSubtitles(

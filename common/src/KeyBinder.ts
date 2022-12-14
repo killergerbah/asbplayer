@@ -51,6 +51,11 @@ export interface KeyBinder {
         subtitlesGetter: () => SubtitleModel[] | undefined,
         useCapture?: boolean
     ): () => void;
+    bindAdjustPlaybackRate(
+        onAdjustPlaybackRate: (event: KeyboardEvent, increase: boolean) => void,
+        disabledGetter: () => boolean,
+        useCapture?: boolean
+    ): () => void;
     bindToggleSubtitles(
         onToggleSubtitles: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,
@@ -428,6 +433,42 @@ export class DefaultKeyBinder implements KeyBinder {
         };
     }
 
+    bindAdjustPlaybackRate(
+        onAdjustPlaybackRate: (event: KeyboardEvent, increase: boolean) => void,
+        disabledGetter: () => boolean,
+        useCapture = false
+    ) {
+        const delegate = (event: KeyboardEvent, increase: boolean) => {
+            if (disabledGetter()) {
+                return;
+            }
+
+            onAdjustPlaybackRate(event, increase);
+        };
+        const increaseShortcut = this.keyBindSet.increasePlaybackRate.keys;
+        const decreaseShortcut = this.keyBindSet.decreasePlaybackRate.keys;
+        const decreaseHandler = (event: KeyboardEvent) => delegate(event, false);
+        const increaseHandler = (event: KeyboardEvent) => delegate(event, true);
+
+        if (decreaseShortcut) {
+            hotkeys(decreaseShortcut, { capture: useCapture }, decreaseHandler);
+        }
+
+        if (increaseShortcut) {
+            hotkeys(increaseShortcut, { capture: useCapture }, increaseHandler);
+        }
+
+        return () => {
+            if (decreaseShortcut) {
+                hotkeys.unbind(decreaseShortcut, decreaseHandler);
+            }
+
+            if (increaseShortcut) {
+                hotkeys.unbind(increaseShortcut, increaseHandler);
+            }
+        };
+    }
+
     bindToggleSubtitles(
         onToggleSubtitles: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,
@@ -568,7 +609,11 @@ export class DefaultKeyBinder implements KeyBinder {
         };
     }
 
-    bindCondensedPlayback(onAutoPause: (event: KeyboardEvent) => void, disabledGetter: () => boolean, useCapture = false) {
+    bindCondensedPlayback(
+        onAutoPause: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        useCapture = false
+    ) {
         const shortcut = this.keyBindSet.toggleCondensedPlayback.keys;
 
         if (!shortcut) {

@@ -27,6 +27,7 @@ export default class KeyBindings {
     private unbindToggleSubtitleTrackInList?: Unbinder = false;
     private unbindOffsetToSubtitle?: Unbinder = false;
     private unbindAdjustOffset?: Unbinder = false;
+    private unbindAdjustPlaybackRate?: Unbinder = false;
 
     private bound: boolean;
 
@@ -240,6 +241,26 @@ export default class KeyBindings {
                 },
                 () => false,
                 () => context.subtitleContainer.subtitles,
+                true
+            );
+
+        this.unbindAdjustPlaybackRate =
+            this._settings.bindAdjustPlaybackRate &&
+            this.keyBinder.bindAdjustPlaybackRate(
+                (event, increase) => {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+
+                    if (increase) {
+                        context.video.playbackRate = Math.min(5, Math.round(context.video.playbackRate * 10 + 1) / 10);
+                    } else {
+                        context.video.playbackRate = Math.max(
+                            0.1,
+                            Math.round(context.video.playbackRate * 10 - 1) / 10
+                        );
+                    }
+                },
+                () => false,
                 true
             );
 

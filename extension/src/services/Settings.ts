@@ -17,6 +17,7 @@ const defaults: ExtensionSettings = {
     bindSeekBackwardOrForward: true,
     bindAdjustOffsetToSubtitle: true,
     bindAdjustOffset: true,
+    bindAdjustPlaybackRate: true,
     subsDragAndDrop: true,
     autoSync: false,
     lastLanguagesSynced: {},
@@ -41,6 +42,7 @@ const keyBindSettingsObject: { [key in keyof ExtensionKeyBindingsSettings]: bool
     bindSeekBackwardOrForward: true,
     bindAdjustOffsetToSubtitle: true,
     bindAdjustOffset: true,
+    bindAdjustPlaybackRate: true,
 };
 
 export const keyBindSettingsKeys = Object.keys(keyBindSettingsObject) as (keyof ExtensionKeyBindingsSettings)[];
