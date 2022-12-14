@@ -323,6 +323,11 @@ export default class KeyBindings {
             this.unbindAdjustOffset = false;
         }
 
+        if (this.unbindAdjustPlaybackRate) {
+            this.unbindAdjustPlaybackRate();
+            this.unbindAdjustPlaybackRate = false;
+        }
+
         this.bound = false;
     }
 }
