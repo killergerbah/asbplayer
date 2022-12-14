@@ -18,6 +18,8 @@ import {
     OffsetFromVideoMessage,
     OffsetToVideoMessage,
     PauseFromVideoMessage,
+    PlaybackRateFromVideoMessage,
+    PlaybackRateToVideoMessage,
     PlayFromVideoMessage,
     PlayMode,
     PlayModeMessage,
@@ -44,6 +46,7 @@ export default class VideoChannel {
     private currentTimeCallbacks: ((currentTime: number, echo: boolean) => void)[];
     private exitCallbacks: (() => void)[];
     private offsetCallbacks: ((offset: number) => void)[];
+    private playbackRateCallbacks: ((playbackRate: number, echo: boolean) => void)[];
     private popOutToggleCallbacks: (() => void)[];
     private copyCallbacks: ((
         subtitle: SubtitleModel,
@@ -67,6 +70,7 @@ export default class VideoChannel {
     audioTracks?: AudioTrackModel[];
     selectedAudioTrack?: string;
     duration: number;
+    _playbackRate: number;
 
     constructor(protocol: VideoProtocol) {
         this.protocol = protocol;
@@ -74,6 +78,7 @@ export default class VideoChannel {
         this.duration = 0;
         this.isReady = false;
         this.readyState = 0;
+        this._playbackRate = 1;
         this.selectedAudioTrack = undefined;
         this.readyCallbacks = [];
         this.playCallbacks = [];
@@ -82,6 +87,7 @@ export default class VideoChannel {
         this.audioTrackSelectedCallbacks = [];
         this.exitCallbacks = [];
         this.offsetCallbacks = [];
+        this.playbackRateCallbacks = [];
         this.popOutToggleCallbacks = [];
         this.copyCallbacks = [];
         this.playModeCallbacks = [];
@@ -104,6 +110,7 @@ export default class VideoChannel {
                     that.selectedAudioTrack = readyMessage.selectedAudioTrack;
                     that.readyState = 4;
                     that.time = readyMessage.currentTime;
+                    this._playbackRate = readyMessage.playbackRate;
 
                     for (let callback of that.readyCallbacks) {
                         callback(readyMessage.paused);
@@ -156,6 +163,13 @@ export default class VideoChannel {
 
                     for (let callback of that.offsetCallbacks) {
                         callback(offsetMessage.value);
+                    }
+                    break;
+                case 'playbackRate':
+                    const playbackRateMessage = event.data as PlaybackRateFromVideoMessage;
+
+                    for (const callback of that.playbackRateCallbacks) {
+                        callback(playbackRateMessage.value, playbackRateMessage.echo);
                     }
                     break;
                 case 'popOutToggle':
@@ -218,9 +232,6 @@ export default class VideoChannel {
                         callback(toggleSubtitleTrackInListMessage.track);
                     }
                     break;
-                case 'playbackRate':
-                    // ignore for now
-                    break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }
@@ -235,6 +246,16 @@ export default class VideoChannel {
         this.time = value;
         this.readyState = 3;
         const message: CurrentTimeToVideoMessage = { command: 'currentTime', value: this.time };
+        this.protocol.postMessage(message);
+    }
+
+    get playbackRate() {
+        return this._playbackRate;
+    }
+
+
+    set playbackRate(playbackRate: number) {
+        const message: PlaybackRateToVideoMessage = { command: 'playbackRate', value: playbackRate };
         this.protocol.postMessage(message);
     }
 
@@ -267,6 +288,10 @@ export default class VideoChannel {
 
     onOffset(callback: (offset: number) => void) {
         this.offsetCallbacks.push(callback);
+    }
+
+    onPlaybackRate(callback: (playbackRate: number, echo: boolean) => void) {
+        this.playbackRateCallbacks.push(callback);
     }
 
     onPopOutToggle(callback: () => void) {
@@ -412,6 +437,7 @@ export default class VideoChannel {
         this.audioTrackSelectedCallbacks = [];
         this.exitCallbacks = [];
         this.offsetCallbacks = [];
+        this.playbackRateCallbacks = [];
         this.popOutToggleCallbacks = [];
         this.copyCallbacks = [];
         this.playModeCallbacks = [];

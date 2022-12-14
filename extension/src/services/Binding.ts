@@ -13,6 +13,7 @@ import {
     OffsetToVideoMessage,
     PauseFromVideoMessage,
     PlaybackRateFromVideoMessage,
+    PlaybackRateToVideoMessage,
     PlayFromVideoMessage,
     PlayMode,
     PostMineAction,
@@ -372,6 +373,10 @@ export default class Binding {
                     case 'offset':
                         const offsetMessage = request.message as OffsetToVideoMessage;
                         this.subtitleContainer.offset(offsetMessage.value, true);
+                        break;
+                    case 'playbackRate':
+                        const playbackRateMessage = request.message as PlaybackRateToVideoMessage;
+                        this.video.playbackRate = playbackRateMessage.value;
                         break;
                     case 'subtitleSettings':
                         const subtitleSettingsMessage = request.message as SubtitleSettingsToVideoMessage;

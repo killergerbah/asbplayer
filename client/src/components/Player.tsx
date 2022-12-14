@@ -191,6 +191,7 @@ export default function Player({
     const [playing, setPlaying] = useState<boolean>(false);
     const [lastJumpToTopTimestamp, setLastJumpToTopTimestamp] = useState<number>(0);
     const [offset, setOffset] = useState<number>(0);
+    const [playbackRate, setPlaybackRate] = useState<number>(1);
     const playingRef = useRef<boolean>();
     playingRef.current = playing;
     const [, updateState] = useState<any>();
@@ -229,6 +230,18 @@ export default function Player({
             }
         },
         [forceUpdate, mediaAdapter]
+    );
+
+    const updatePlaybackRate = useCallback(
+        (playbackRate: number, forwardToMedia: boolean) => {
+            clock.rate = playbackRate;
+            setPlaybackRate(playbackRate);
+
+            if (forwardToMedia) {
+                mediaAdapter.playbackRate(playbackRate);
+            }
+        },
+        [clock, mediaAdapter]
     );
 
     const applyOffset = useCallback(
@@ -407,21 +420,20 @@ export default function Player({
 
                     setPlaying(!paused);
 
+                    if (channel?.playbackRate) {
+                        clock.rate = channel.playbackRate;
+                        setPlaybackRate(channel.playbackRate);
+                    }
+
                     if (!subscribed) {
                         channel?.onPlay((forwardToMedia) => play(clock, mediaAdapter, forwardToMedia));
                         channel?.onPause((forwardToMedia) => pause(clock, mediaAdapter, forwardToMedia));
                         channel?.onOffset((offset) => applyOffset(Math.max(-lengthRef.current ?? 0, offset), false));
+                        channel?.onPlaybackRate((playbackRate, forwardToMedia) =>
+                            updatePlaybackRate(playbackRate, forwardToMedia)
+                        );
                         channel?.onCopy(
-                            (
-                                subtitle,
-                                surroundingSubtitles,
-                                audio,
-                                image,
-                                url,
-                                postMineAction,
-                                preventDuplicate,
-                                id
-                            ) =>
+                            (subtitle, surroundingSubtitles, audio, image, url, postMineAction, preventDuplicate, id) =>
                                 onCopy(
                                     subtitle,
                                     surroundingSubtitles,
@@ -513,6 +525,7 @@ export default function Player({
         videoFrameRef,
         videoChannelRef,
         applyOffset,
+        updatePlaybackRate,
     ]);
 
     function play(clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) {
@@ -744,6 +757,13 @@ export default function Player({
             audioRef.current.volume = volume;
         }
     }, []);
+
+    const handlePlaybackRateChange = useCallback(
+        (playbackRate: number) => {
+            updatePlaybackRate(playbackRate, true);
+        },
+        [updatePlaybackRate]
+    );
 
     const handlePlayMode = useCallback((playMode: PlayMode) => setPlayMode(playMode), []);
 
@@ -996,6 +1016,8 @@ export default function Player({
                                 videoFile={videoFile?.name}
                                 offsetEnabled={true}
                                 offset={offset}
+                                playbackRate={playbackRate}
+                                onPlaybackRateChange={handlePlaybackRateChange}
                                 volumeEnabled={Boolean(audioFileUrl)}
                                 playModeEnabled={playModeEnabled}
                                 playMode={playMode}

@@ -2,15 +2,24 @@ export default class Clock {
     private accumulated: number;
     private started: boolean;
     private startTime?: number;
+    private _rate = 1;
 
     constructor() {
         this.accumulated = 0;
         this.started = false;
     }
 
+    get rate() {
+        return this._rate;
+    }
+
+    set rate(rate: number) {
+        this._rate = rate;
+    }
+
     time(max: number) {
         if (this.started) {
-            return Math.min(max, this.accumulated + Date.now() - this.startTime!);
+            return Math.min(max, this.accumulated + this._elapsed());
         }
 
         return Math.min(max, this.accumulated);
@@ -22,7 +31,11 @@ export default class Clock {
         }
 
         this.started = false;
-        this.accumulated += Date.now() - this.startTime!;
+        this.accumulated += this._elapsed();
+    }
+
+    private _elapsed() {
+        return (Date.now() - this.startTime!) * this._rate;
     }
 
     start() {

@@ -102,7 +102,7 @@ function notifyReady(
 
     setAudioTracks(tracks);
     setSelectedAudioTrack(selectedTrack);
-    playerChannel.ready(element.duration, element.paused, tracks, selectedTrack);
+    playerChannel.ready(element.duration, element.paused, element.playbackRate, tracks, selectedTrack);
 }
 
 function errorMessage(element: HTMLVideoElement) {
@@ -180,6 +180,7 @@ export default function VideoPlayer({
     const [length, setLength] = useState<number>(0);
     const [videoFileName, setVideoFileName] = useState<string>();
     const [offset, setOffset] = useState<number>(0);
+    const [playbackRate, setPlaybackRate] = useState<number>(1);
     const [audioTracks, setAudioTracks] = useState<AudioTrackModel[]>();
     const [selectedAudioTrack, setSelectedAudioTrack] = useState<string>();
     const [, setResumeOnFinishedAnkiDialogRequest] = useState<boolean>(false);
@@ -341,6 +342,11 @@ export default function VideoPlayer({
         playerChannel.onMiscSettings(setMiscSettings);
         playerChannel.onAnkiSettings(setAnkiSettings);
         playerChannel.onOffset(updateSubtitlesWithOffset);
+        playerChannel.onPlaybackRate((playbackRate) => {
+            if (videoRef.current) {
+                videoRef.current.playbackRate = playbackRate;
+            }
+        });
         playerChannel.onAlert((message, severity) => {
             if (popOut) {
                 setAlertOpen(true);
@@ -470,6 +476,18 @@ export default function VideoPlayer({
             playerChannel.offset(offset);
         },
         [playerChannel, updateSubtitlesWithOffset]
+    );
+
+    const handlePlaybackRateChange = useCallback(
+        (playbackRate: number) => {
+            if (videoRef.current) {
+                videoRef.current.playbackRate = playbackRate;
+                clock.rate = playbackRate;
+                playerChannel.playbackRate(playbackRate);
+                setPlaybackRate(playbackRate);
+            }
+        },
+        [playerChannel, clock]
     );
 
     useEffect(() => {
@@ -951,6 +969,7 @@ export default function VideoPlayer({
                 subtitlesEnabled={subtitlesEnabled}
                 offsetEnabled={true}
                 offset={offset}
+                playbackRate={playbackRate}
                 fullscreenEnabled={true}
                 fullscreen={fullscreen}
                 closeEnabled={!popOut}
@@ -969,6 +988,7 @@ export default function VideoPlayer({
                 onFullscreenToggle={handleFullscreenToggle}
                 onVolumeChange={handleVolumeChange}
                 onOffsetChange={handleOffsetChange}
+                onPlaybackRateChange={handlePlaybackRateChange}
                 onPopOutToggle={handlePopOutToggle}
                 onPlayMode={handlePlayMode}
                 onClose={handleClose}

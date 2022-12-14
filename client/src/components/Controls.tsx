@@ -27,6 +27,7 @@ import VolumeUpIcon from '@material-ui/icons/VolumeUp';
 import { AudioTrackModel, PlayMode, VideoTabModel } from '@project/common';
 import Clock from '../services/Clock';
 import PlaybackPreferences from '../services/PlaybackPreferences';
+import Tooltip from '@material-ui/core/Tooltip';
 
 const useControlStyles = makeStyles((theme) => ({
     container: {
@@ -50,7 +51,7 @@ const useControlStyles = makeStyles((theme) => ({
         fontSize: 20,
         marginLeft: 10,
     },
-    offsetInput: {
+    numberInput: {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -493,6 +494,7 @@ interface ControlsProps {
     offsetEnabled?: boolean;
     displayLength?: number;
     offset: number;
+    playbackRate: number;
     onAudioTrackSelected: (id: string) => void;
     onSeek: (progress: number) => void;
     mousePositionRef: MutableRefObject<Point>;
@@ -503,6 +505,7 @@ interface ControlsProps {
     onUnloadAudio?: () => void;
     onUnloadVideo?: () => void;
     onOffsetChange: (offset: number) => void;
+    onPlaybackRateChange: (playbackRate: number) => void;
     onVolumeChange: (volume: number) => void;
     disableKeyEvents?: boolean;
     playbackPreferences: PlaybackPreferences;
@@ -543,6 +546,7 @@ export default function Controls({
     offsetEnabled,
     displayLength,
     offset,
+    playbackRate,
     onAudioTrackSelected,
     onSeek,
     mousePositionRef,
@@ -553,6 +557,7 @@ export default function Controls({
     onUnloadAudio,
     onUnloadVideo,
     onOffsetChange,
+    onPlaybackRateChange,
     onVolumeChange,
     disableKeyEvents,
     playbackPreferences,
@@ -600,12 +605,16 @@ export default function Controls({
     const [showVolumeBar, setShowVolumeBar] = useState<boolean>(false);
     const [volume, setVolume] = useState<number>(100);
     const [lastCommittedVolume, setLastCommittedVolume] = useState<number>(100);
+
     const lastMousePositionRef = useRef<Point>({ x: 0, y: 0 });
     const lastShowTimestampRef = useRef<number>(Date.now());
-    const lastOffsetInputChangeTimestampRef = useRef<number>(Date.now());
+    const lastNumberInputChangeTimestampRef = useRef<number>(Date.now());
     const lastShowRef = useRef<boolean>(true);
     const forceShowRef = useRef<boolean>(false);
+    const [offsetInputWidth, setOffsetInputWidth] = useState<number>(5);
+    const [playbackRateInputWidth, setPlaybackRateInputWidth] = useState<number>(1);
     const offsetInputRef = useRef<HTMLInputElement>();
+    const playbackRateInputRef = useRef<HTMLInputElement>();
     const containerRef = useRef<HTMLDivElement>(null);
     const closeButtonRef = useRef<HTMLButtonElement>(null);
     const [, updateState] = useState<any>();
@@ -658,7 +667,8 @@ export default function Controls({
                 currentShow ||
                 forceShowRef.current ||
                 offsetInputRef.current === document.activeElement ||
-                Date.now() - lastOffsetInputChangeTimestampRef.current < 2000;
+                playbackRateInputRef.current === document.activeElement ||
+                Date.now() - lastNumberInputChangeTimestampRef.current < 2000;
 
             if (currentShow && !lastShowRef.current) {
                 lastShowTimestampRef.current = Date.now();
@@ -676,6 +686,37 @@ export default function Controls({
 
     useEffect(() => onShow?.(show), [onShow, show]);
 
+    const updateOffset = useCallback((offset: number) => {
+        if (offsetInputRef.current) {
+            if (offset === 0) {
+                offsetInputRef.current.value = '';
+                setOffsetInputWidth(5);
+            } else {
+                const offsetSeconds = offset / 1000;
+                const value = offsetSeconds >= 0 ? '+' + offsetSeconds.toFixed(2) : String(offsetSeconds.toFixed(2));
+                offsetInputRef.current.value = value;
+                lastNumberInputChangeTimestampRef.current = Date.now();
+                setOffsetInputWidth(value.length);
+            }
+            offsetInputRef.current.blur();
+        }
+    }, []);
+
+    const updatePlaybackRate = useCallback((playbackRate: number) => {
+        if (playbackRateInputRef.current) {
+            if (playbackRate === 1) {
+                playbackRateInputRef.current.value = '';
+                setPlaybackRateInputWidth(5);
+            } else {
+                const value = '×' + String(playbackRate.toFixed(2));
+                playbackRateInputRef.current.value = value;
+                lastNumberInputChangeTimestampRef.current = Date.now();
+                setPlaybackRateInputWidth(value.length);
+            }
+            playbackRateInputRef.current.blur();
+        }
+    }, []);
+
     useEffect(() => {
         if (disableKeyEvents) {
             return;
@@ -684,14 +725,31 @@ export default function Controls({
         function handleKey(event: KeyboardEvent) {
             if (event.key === 'Enter') {
                 if (offsetInputRef.current === document.activeElement) {
-                    const offset = Number(offsetInputRef.current.value);
+                    const newOffset = Number(offsetInputRef.current.value);
 
-                    if (Number.isNaN(offset)) {
+                    if (newOffset === offset) {
+                        updateOffset(offset);
                         return;
                     }
 
-                    onOffsetChange(offset * 1000);
-                    offsetInputRef.current.blur();
+                    if (Number.isNaN(newOffset)) {
+                        return;
+                    }
+
+                    onOffsetChange(newOffset * 1000);
+                } else if (playbackRateInputRef.current === document.activeElement) {
+                    const newPlaybackRate = Number(playbackRateInputRef.current.value);
+
+                    if (playbackRate === newPlaybackRate) {
+                        updatePlaybackRate(playbackRate);
+                        return;
+                    }
+
+                    if (Number.isNaN(newPlaybackRate) || newPlaybackRate < 0.25 || newPlaybackRate > 5) {
+                        return;
+                    }
+
+                    onPlaybackRateChange(newPlaybackRate);
                 }
             }
         }
@@ -701,9 +759,17 @@ export default function Controls({
         return () => {
             window.removeEventListener('keydown', handleKey);
         };
-    }, [onOffsetChange, disableKeyEvents]);
+    }, [
+        onOffsetChange,
+        onPlaybackRateChange,
+        updateOffset,
+        updatePlaybackRate,
+        offset,
+        playbackRate,
+        disableKeyEvents,
+    ]);
 
-    const handleOffsetInputClicked = useCallback((e: React.MouseEvent<HTMLInputElement>) => {
+    const handleNumberInputClicked = useCallback((e: React.MouseEvent<HTMLInputElement>) => {
         const inputElement = e.target as HTMLInputElement;
         inputElement.setSelectionRange(0, inputElement.value?.length || 0);
     }, []);
@@ -717,17 +783,12 @@ export default function Controls({
     }, [forceUpdate]);
 
     useEffect(() => {
-        if (offsetInputRef.current) {
-            if (offset === 0) {
-                offsetInputRef.current.value = '';
-            } else {
-                const offsetSeconds = offset / 1000;
-                const value = offsetSeconds >= 0 ? '+' + offsetSeconds.toFixed(2) : String(offsetSeconds.toFixed(2));
-                offsetInputRef.current.value = value;
-                lastOffsetInputChangeTimestampRef.current = Date.now();
-            }
-        }
-    }, [offset]);
+        updateOffset(offset);
+    }, [offset, updateOffset]);
+
+    useEffect(() => {
+        updatePlaybackRate(playbackRate);
+    }, [playbackRate, updatePlaybackRate]);
 
     const handleAudioTrackSelectorClosed = useCallback(() => {
         setAudioTrackSelectorAnchorEl(undefined);
@@ -954,15 +1015,34 @@ export default function Controls({
                             </Grid>
                             {offsetEnabled && (
                                 <Grid item>
-                                    <Input
-                                        inputRef={offsetInputRef}
-                                        disableUnderline={true}
-                                        className={classes.offsetInput}
-                                        placeholder={'±' + Number(0).toFixed(2)}
-                                        onClick={handleOffsetInputClicked}
-                                    />
+                                    <Tooltip title="Subtitle Offset">
+                                        <Input
+                                            style={{
+                                                width: `${offsetInputWidth}ch`,
+                                            }}
+                                            inputRef={offsetInputRef}
+                                            disableUnderline={true}
+                                            className={classes.numberInput}
+                                            placeholder={'±' + Number(0).toFixed(2)}
+                                            onClick={handleNumberInputClicked}
+                                        />
+                                    </Tooltip>
                                 </Grid>
                             )}
+                            <Grid item>
+                                <Tooltip title="Playback Rate">
+                                    <Input
+                                        style={{
+                                            width: `${playbackRateInputWidth}ch`,
+                                        }}
+                                        inputRef={playbackRateInputRef}
+                                        disableUnderline={true}
+                                        className={classes.numberInput}
+                                        placeholder={'×' + Number(1).toFixed(2)}
+                                        onClick={handleNumberInputClicked}
+                                    />
+                                </Tooltip>
+                            </Grid>
                             <Grid item style={{ flexGrow: 1 }}></Grid>
                             {subtitlesToggle && (
                                 <Grid item>

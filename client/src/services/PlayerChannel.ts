@@ -16,6 +16,8 @@ import {
     OffsetFromVideoMessage,
     OffsetToVideoMessage,
     PauseFromVideoMessage,
+    PlaybackRateFromVideoMessage,
+    PlaybackRateToVideoMessage,
     PlayFromVideoMessage,
     PlayMode,
     PlayModeMessage,
@@ -40,6 +42,7 @@ export default class PlayerChannel {
     private closeCallbacks: (() => void)[];
     private subtitlesCallbacks: ((subtitles: SubtitleModel[]) => void)[];
     private offsetCallbacks: ((offset: number) => void)[];
+    private playbackRateCallbacks: ((playbackRate: number) => void)[];
     private playModeCallbacks: ((playMode: PlayMode) => void)[];
     private hideSubtitlePlayerToggleCallbacks: ((hidden: boolean) => void)[];
     private appBarToggleCallbacks: ((hidden: boolean) => void)[];
@@ -59,6 +62,7 @@ export default class PlayerChannel {
         this.readyCallbacks = [];
         this.subtitlesCallbacks = [];
         this.offsetCallbacks = [];
+        this.playbackRateCallbacks = [];
         this.playModeCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
         this.appBarToggleCallbacks = [];
@@ -123,6 +127,13 @@ export default class PlayerChannel {
 
                     for (const callback of that.offsetCallbacks) {
                         callback(offsetMessage.value);
+                    }
+                    break;
+                case 'playbackRate':
+                    const playbackRateMessage = event.data as PlaybackRateToVideoMessage;
+
+                    for (const callback of that.playbackRateCallbacks) {
+                        callback(playbackRateMessage.value);
                     }
                     break;
                 case 'subtitleSettings':
@@ -223,6 +234,10 @@ export default class PlayerChannel {
         this.offsetCallbacks.push(callback);
     }
 
+    onPlaybackRate(callback: (playbackRate: number) => void) {
+        this.playbackRateCallbacks.push(callback);
+    }
+
     onPlayMode(callback: (playMode: PlayMode) => void) {
         this.playModeCallbacks.push(callback);
     }
@@ -258,6 +273,7 @@ export default class PlayerChannel {
     ready(
         duration: number,
         paused: boolean,
+        playbackRate: number,
         audioTracks: AudioTrackModel[] | undefined,
         selectedAudioTrack: string | undefined
     ) {
@@ -268,7 +284,7 @@ export default class PlayerChannel {
             currentTime: 0,
             audioTracks: audioTracks,
             selectedAudioTrack: selectedAudioTrack,
-            playbackRate: 1,
+            playbackRate: playbackRate,
         };
 
         this.channel?.postMessage(message);
@@ -296,6 +312,11 @@ export default class PlayerChannel {
 
     offset(offset: number) {
         const message: OffsetFromVideoMessage = { command: 'offset', value: offset };
+        this.channel?.postMessage(message);
+    }
+
+    playbackRate(playbackRate: number) {
+        const message: PlaybackRateFromVideoMessage = { command: 'playbackRate', value: playbackRate, echo: true };
         this.channel?.postMessage(message);
     }
 
@@ -364,6 +385,7 @@ export default class PlayerChannel {
             this.readyCallbacks = [];
             this.subtitlesCallbacks = [];
             this.offsetCallbacks = [];
+            this.playbackRateCallbacks = [];
             this.playModeCallbacks = [];
             this.hideSubtitlePlayerToggleCallbacks = [];
             this.appBarToggleCallbacks = [];

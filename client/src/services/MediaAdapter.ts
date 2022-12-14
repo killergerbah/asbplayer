@@ -3,6 +3,7 @@ import { RefObject } from "react";
 export interface MediaElement {
     currentTime: number;
     readyState: number;
+    playbackRate: number;
     oncanplay: ((ev: Event) => void) | null;
     play: () => Promise<void>;
     pause: () => void;
@@ -68,5 +69,11 @@ export default class MediaAdapter {
 
     pause() {
         this.ref.current?.pause();
+    }
+
+    playbackRate(playbackRate: number) {
+        if (this.ref.current) {
+            this.ref.current.playbackRate = playbackRate;
+        }
     }
 }
