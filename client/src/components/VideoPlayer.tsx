@@ -140,6 +140,7 @@ interface Props {
         videoFileUrl: string,
         videoFileName: string,
         selectedAudioTrack: string | undefined,
+        playbackRate: number,
         subtitle: SubtitleModel,
         surroundingSubtitles: SubtitleModel[],
         timestamp: number
@@ -711,6 +712,7 @@ export default function VideoPlayer({
                                 videoFile,
                                 videoFileName ?? '',
                                 selectedAudioTrack,
+                                playbackRate,
                                 subtitle,
                                 surroundingSubtitles,
                                 clock.time(length)
@@ -722,6 +724,7 @@ export default function VideoPlayer({
                                 videoFile,
                                 videoFileName ?? '',
                                 selectedAudioTrack,
+                                playbackRate,
                                 subtitle,
                                 surroundingSubtitles,
                                 clock.time(length)
@@ -753,6 +756,7 @@ export default function VideoPlayer({
         videoFile,
         videoFileName,
         selectedAudioTrack,
+        playbackRate,
         onAnkiDialogRequest,
         popOut,
         playing,

@@ -122,7 +122,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 setText(state.text);
                 setInitialTimestampInterval(state.initialTimestampInterval);
                 setTimestampInterval(state.timestampInterval);
-                setTimestampBoundaryInterval(state.timestampBoundaryInterval)
+                setTimestampBoundaryInterval(state.timestampBoundaryInterval);
                 setSliderContext(state.sliderContext);
                 setDefinition(state.definition);
                 setWord(state.word);
@@ -143,7 +143,14 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                     end = s.subtitle.end + s.audio.paddingEnd;
                 }
 
-                audioClip = AudioClip.fromBase64(s.source, start, end, s.audio.base64, s.audio.extension);
+                audioClip = AudioClip.fromBase64(
+                    s.source,
+                    start,
+                    end,
+                    s.audio.playbackRate ?? 1,
+                    s.audio.base64,
+                    s.audio.extension
+                );
             }
 
             if (audioClip && s.settingsProvider.preferMp3) {

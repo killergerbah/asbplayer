@@ -25,15 +25,17 @@ class Base64AudioData implements AudioData {
     private readonly _name: string;
     private readonly start: number;
     private readonly end: number;
+    private readonly playbackRate: number;
     private readonly _base64: string;
     private readonly _extension: string;
 
     private cachedBlob?: Blob;
 
-    constructor(baseName: string, start: number, end: number, base64: string, extension: string) {
+    constructor(baseName: string, start: number, end: number, playbackRate: number, base64: string, extension: string) {
         this._name = baseName + '_' + Math.floor(start) + '_' + Math.floor(end);
         this.start = start;
         this.end = end;
+        this.playbackRate = playbackRate;
         this._base64 = base64;
         this._extension = extension;
     }
@@ -70,7 +72,7 @@ class Base64AudioData implements AudioData {
                 audio.src = '';
                 URL.revokeObjectURL(src);
                 resolve(undefined);
-            }, this.end - this.start + 1000);
+            }, (this.end - this.start) / this.playbackRate + 1000);
         });
     }
 
@@ -97,19 +99,21 @@ class FileAudioData implements AudioData {
     private readonly _name: string;
     private readonly start: number;
     private readonly end: number;
+    private readonly playbackRate: number;
     private readonly trackId?: string;
     private readonly _extension: string;
     private readonly recorderMimeType: string;
 
     private _blob?: Blob;
 
-    constructor(file: File, start: number, end: number, trackId?: string) {
+    constructor(file: File, start: number, end: number, playbackRate: number, trackId?: string) {
         const [recorderMimeType, recorderExtension] = FileAudioData._recorderConfiguration();
         this.recorderMimeType = recorderMimeType;
         this.file = file;
         this._name = file.name + '_' + start + '_' + end;
         this.start = start;
         this.end = end;
+        this.playbackRate = playbackRate;
         this.trackId = trackId;
         this._extension = recorderExtension;
     }
@@ -210,6 +214,7 @@ class FileAudioData implements AudioData {
                 }
 
                 audio.currentTime = this.start / 1000;
+                audio.playbackRate = this.playbackRate;
                 resolve(audio);
             };
         });
@@ -253,12 +258,12 @@ class FileAudioData implements AudioData {
                 audio.src = '';
                 URL.revokeObjectURL(src);
                 resolve(undefined);
-            }, this.end - this.start + 100);
+            }, (this.end - this.start) / this.playbackRate + 100);
         });
     }
 
     slice(start: number, end: number) {
-        return new FileAudioData(this.file, start, end, this.trackId);
+        return new FileAudioData(this.file, start, end, this.playbackRate, this.trackId);
     }
 
     isSliceable() {
@@ -328,20 +333,28 @@ export default class AudioClip {
         this.data = data;
     }
 
-    static fromBase64(subtitleFileName: string, start: number, end: number, base64: string, extension: string) {
+    static fromBase64(
+        subtitleFileName: string,
+        start: number,
+        end: number,
+        playbackRate: number,
+        base64: string,
+        extension: string
+    ) {
         return new AudioClip(
             new Base64AudioData(
                 subtitleFileName.substring(0, subtitleFileName.lastIndexOf('.')),
                 start,
                 end,
+                playbackRate,
                 base64,
                 extension
             )
         );
     }
 
-    static fromFile(file: File, start: number, end: number, trackId?: string) {
-        return new AudioClip(new FileAudioData(file, start, end, trackId));
+    static fromFile(file: File, start: number, end: number, playbackRate: number, trackId?: string) {
+        return new AudioClip(new FileAudioData(file, start, end, playbackRate, trackId));
     }
 
     get name() {

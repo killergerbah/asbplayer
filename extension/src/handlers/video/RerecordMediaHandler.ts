@@ -49,6 +49,7 @@ export default class RerecordMediaHandler {
                 end:
                     rerecordCommand.message.timestamp +
                     rerecordCommand.message.duration / rerecordCommand.message.playbackRate,
+                playbackRate: rerecordCommand.message.playbackRate,
             };
 
             const copyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {

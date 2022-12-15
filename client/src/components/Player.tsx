@@ -117,6 +117,7 @@ interface PlayerProps {
         subtitleFile: File | undefined,
         mediaTimestamp: number | undefined,
         audioTrack: string | undefined,
+        filePlaybackRate: number | undefined,
         audio: AudioModel | undefined,
         image: ImageModel | undefined,
         url: string | undefined,
@@ -442,6 +443,7 @@ export default function Player({
                                     subtitle ? subtitleFiles[subtitle.track] : undefined,
                                     clock.time(lengthRef.current),
                                     channel?.selectedAudioTrack,
+                                    channel?.playbackRate,
                                     audio,
                                     image,
                                     url,
@@ -712,6 +714,7 @@ export default function Player({
                 subtitleFiles[subtitle.track],
                 clock.time(lengthRef.current),
                 selectedAudioTrack,
+                playbackRate,
                 undefined,
                 undefined,
                 undefined,
@@ -720,7 +723,7 @@ export default function Player({
                 undefined
             );
         },
-        [clock, onCopy, audioFile, videoFile, subtitleFiles, selectedAudioTrack]
+        [clock, onCopy, audioFile, videoFile, subtitleFiles, selectedAudioTrack, playbackRate]
     );
 
     const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -874,6 +877,7 @@ export default function Player({
                         undefined,
                         clock.time(lengthRef.current),
                         selectedAudioTrack,
+                        playbackRate,
                         undefined,
                         undefined,
                         undefined,
@@ -925,6 +929,7 @@ export default function Player({
                         undefined,
                         timestamp,
                         selectedAudioTrack,
+                        playbackRate,
                         undefined,
                         undefined,
                         undefined,
@@ -947,6 +952,7 @@ export default function Player({
         videoFile,
         subtitles,
         clock,
+        playbackRate,
         selectedAudioTrack,
         disableKeyEvents,
         onCopy,

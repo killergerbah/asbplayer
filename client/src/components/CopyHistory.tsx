@@ -27,6 +27,7 @@ export interface CopyHistoryItem extends SubtitleModel {
     audioFile?: File;
     audioTrack?: string;
     videoFile?: File;
+    filePlaybackRate?: number;
     subtitleFile?: File;
     mediaTimestamp?: number;
     audio?: AudioModel;

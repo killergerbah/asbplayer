@@ -53,6 +53,7 @@ export interface AudioModel {
     readonly paddingEnd: number;
     readonly start?: number;
     readonly end?: number;
+    readonly playbackRate?: number;
 }
 
 export interface AnkiDialogSliderContext {

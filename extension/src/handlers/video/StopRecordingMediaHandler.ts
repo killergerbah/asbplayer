@@ -77,6 +77,7 @@ export default class StopRecordingMediaHandler {
                 paddingEnd: 0,
                 start: stopRecordingCommand.message.startTimestamp,
                 end: stopRecordingCommand.message.endTimestamp,
+                playbackRate: stopRecordingCommand.message.playbackRate,
             };
 
             const copyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {

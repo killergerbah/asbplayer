@@ -88,6 +88,7 @@ export default class RecordMediaHandler {
                     extension: mp3 ? 'mp3' : 'webm',
                     paddingStart: recordMediaCommand.message.audioPaddingStart,
                     paddingEnd: recordMediaCommand.message.audioPaddingEnd,
+                    playbackRate: recordMediaCommand.message.playbackRate,
                 };
             }
 

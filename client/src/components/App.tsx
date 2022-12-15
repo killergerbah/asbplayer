@@ -133,6 +133,7 @@ function audioClipFromItem(
             item.subtitleFile!.name,
             Math.max(0, start - (item.audio.paddingStart ?? 0)),
             end + (item.audio.paddingEnd ?? 0),
+            item.audio.playbackRate ?? 1,
             item.audio.base64,
             item.audio.extension
         );
@@ -154,6 +155,7 @@ function audioClipFromItem(
             (item.audioFile || item.videoFile)!,
             Math.max(0, start - paddingStart),
             end + paddingEnd,
+            item.filePlaybackRate ?? 1,
             item.audioTrack
         );
     }
@@ -235,6 +237,7 @@ interface RenderVideoProps {
         videoFileUrl: string,
         videoFileName: string,
         selectedAudioTrack: string | undefined,
+        playbackRate: number,
         subtitle: SubtitleModel,
         surroundingSubtitles: SubtitleModel[],
         timestamp: number
@@ -424,6 +427,7 @@ function App() {
             videoFileUrl: string,
             videoFileName: string,
             selectedAudioTrack: string | undefined,
+            playbackRate: number,
             subtitle: SubtitleModel,
             surroundingSubtitles: SubtitleModel[],
             timestamp: number
@@ -439,6 +443,7 @@ function App() {
                     .then((r) => r.blob())
                     .then((blobFile) => new File([blobFile], videoFileName)),
                 selectedAudioTrack: selectedAudioTrack,
+                filePlaybackRate: playbackRate,
             };
             handleAnkiDialogRequest(item);
         },
@@ -518,6 +523,7 @@ function App() {
             subtitleFile: File | undefined,
             mediaTimestamp: number | undefined,
             audioTrack: string | undefined,
+            filePlaybackRate: number | undefined,
             audio: AudioModel | undefined,
             image: ImageModel | undefined,
             url: string | undefined,
@@ -538,6 +544,7 @@ function App() {
                 subtitleFile: subtitleFile,
                 audioFile: audioFile,
                 videoFile: videoFile,
+                filePlaybackRate: filePlaybackRate,
                 mediaTimestamp: mediaTimestamp,
                 audioTrack: audioTrack,
                 audio: audio,

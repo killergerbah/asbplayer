@@ -92,6 +92,7 @@ export interface StopRecordingMediaMessage extends Message {
     readonly postMineAction: PostMineAction;
     readonly startTimestamp: number;
     readonly endTimestamp: number;
+    readonly playbackRate: number;
     readonly screenshot: boolean;
     readonly videoDuration: number;
     readonly url?: string;

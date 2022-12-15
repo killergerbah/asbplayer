@@ -675,6 +675,7 @@ export default class Binding {
                     postMineAction: postMineAction,
                     startTimestamp: this.recordingMediaStartedTimestamp!,
                     endTimestamp: this.video.currentTime * 1000,
+                    playbackRate: this.video.playbackRate,
                     screenshot: this.recordingMediaWithScreenshot,
                     videoDuration: this.video.duration * 1000,
                     url: this.url,
