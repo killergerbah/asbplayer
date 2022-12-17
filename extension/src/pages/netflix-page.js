@@ -41,7 +41,6 @@ setTimeout(() => {
             return undefined;
         }
 
-
         return webvttDL.downloadUrls[track.cdnlist.find((cdn) => webvttDL.downloadUrls[cdn.id])?.id];
     }
 

@@ -12,7 +12,14 @@ export default async function updateLastCard(
     let audioClip =
         audioModel === undefined
             ? undefined
-            : AudioClip.fromBase64(sourceString, subtitle.start, subtitle.end, audioModel.playbackRate ?? 1, audioModel.base64, audioModel.extension);
+            : AudioClip.fromBase64(
+                  sourceString,
+                  subtitle.start,
+                  subtitle.end,
+                  audioModel.playbackRate ?? 1,
+                  audioModel.base64,
+                  audioModel.extension
+              );
 
     return await anki.export(
         subtitle.text,

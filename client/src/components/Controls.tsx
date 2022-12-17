@@ -612,7 +612,7 @@ export default function Controls({
     const lastShowRef = useRef<boolean>(true);
     const forceShowRef = useRef<boolean>(false);
     const [offsetInputWidth, setOffsetInputWidth] = useState<number>(5);
-    const [playbackRateInputWidth, setPlaybackRateInputWidth] = useState<number>(1);
+    const [playbackRateInputWidth, setPlaybackRateInputWidth] = useState<number>(5);
     const offsetInputRef = useRef<HTMLInputElement>();
     const playbackRateInputRef = useRef<HTMLInputElement>();
     const containerRef = useRef<HTMLDivElement>(null);
@@ -1025,6 +1025,7 @@ export default function Controls({
                                             className={classes.numberInput}
                                             placeholder={'±' + Number(0).toFixed(2)}
                                             onClick={handleNumberInputClicked}
+                                            onChange={(e) => setOffsetInputWidth(Math.max(5, e.target.value.length))}
                                         />
                                     </Tooltip>
                                 </Grid>
@@ -1034,12 +1035,14 @@ export default function Controls({
                                     <Input
                                         style={{
                                             width: `${playbackRateInputWidth}ch`,
+                                            marginLeft: 4
                                         }}
                                         inputRef={playbackRateInputRef}
                                         disableUnderline={true}
                                         className={classes.numberInput}
                                         placeholder={'×' + Number(1).toFixed(2)}
                                         onClick={handleNumberInputClicked}
+                                        onChange={(e) => setPlaybackRateInputWidth(Math.max(5, e.target.value.length))}
                                     />
                                 </Tooltip>
                             </Grid>
