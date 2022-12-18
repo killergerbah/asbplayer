@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { isMobile } from 'react-device-detect';
 import { makeStyles } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
-import { arrayEquals, computeStyles } from '../services/Util';
+import { arrayEquals, computeStyles } from '../services/util';
 import {
     surroundingSubtitles,
     mockSurroundingSubtitles,

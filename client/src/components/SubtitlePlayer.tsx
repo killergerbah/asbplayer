@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef, createRef, RefObject } from 'react';
 import { makeStyles, Theme } from '@material-ui/core/styles';
-import { keysAreEqual } from '../services/Util';
+import { keysAreEqual } from '../services/util';
 import { useWindowSize } from '../hooks/useWindowSize';
 import {
     AsbplayerSettingsProvider,

@@ -1,7 +1,7 @@
 import { resolveConfig } from 'prettier';
 import sanitize from 'sanitize-filename';
 import CanvasResizer from './CanvasResizer';
-import { download } from './Util';
+import { download } from './util';
 
 class Base64ImageData implements ImageData {
     private readonly _name: string;

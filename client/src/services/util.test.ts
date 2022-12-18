@@ -1,4 +1,4 @@
-import { timeDurationDisplay } from './Util';
+import { timeDurationDisplay } from './util';
 
 it('correctly displays timestamps less than 100 ms', () => {
     expect(timeDurationDisplay(50, 100, true)).toEqual('00:00.050');

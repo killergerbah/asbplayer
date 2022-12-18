@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useEffect, useMemo, ChangeEvent, ReactNode, useRef } from 'react';
 import { makeStyles } from '@material-ui/styles';
-import { computeStyles } from '../services/Util';
+import { computeStyles } from '../services/util';
 import Button from '@material-ui/core/Button';
 import CustomFieldDialog from './CustomFieldDialog';
 import Dialog from '@material-ui/core/Dialog';

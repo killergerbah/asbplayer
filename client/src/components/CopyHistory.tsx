@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { timeDurationDisplay } from '../services/Util';
+import { timeDurationDisplay } from '../services/util';
 import { ListItemSecondaryAction, Theme } from '@material-ui/core';
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';

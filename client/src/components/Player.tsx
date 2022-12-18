@@ -15,7 +15,7 @@ import {
     SubtitleModel,
     VideoTabModel,
 } from '@project/common';
-import { timeDurationDisplay } from '../services/Util';
+import { timeDurationDisplay } from '../services/util';
 import BroadcastChannelVideoProtocol from '../services/BroadcastChannelVideoProtocol';
 import ChromeTabVideoProtocol from '../services/ChromeTabVideoProtocol';
 import Clock from '../services/Clock';
