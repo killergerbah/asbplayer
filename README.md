@@ -30,11 +30,8 @@ Otherwise, the following steps will work for any language:
 6. Drag-and-drop a subtitle file into the streaming video you want to mine. You may have to [adjust the subtitle offset](#adjusting-subtitle-offset) to get the subtitles in sync.
 7. When a subtitle appears that you want to mine, use <kbd>Ctrl+Shift+X</kbd> to mine it.
 
+
 ## Usage
-
-### Loading files
-
-Drag-and-drop media and subtitle files into the asbplayer window to load them.
 
 ### Syncing with streaming video
 
@@ -43,18 +40,22 @@ Install the Chrome [extension](https://github.com/killergerbah/asbplayer/release
 1. Drag-and-drop a subtitle file into the video element you want to sync.
 2. Load a file into asbplayer and click on the camera in the bottom right to pick a video element to sync. This is the recommended way to load BluRay subtitle files onto streaming video.
 
+### Loading files
+
+Drag-and-drop media and subtitle files into the asbplayer window to load them.
+
 ### Creating Anki flashcards
 
-Integration with AnkiConnect can be configured in the settings as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
+Make sure Anki and AnkiConnect are installed. Integration with AnkiConnect can be configured in the [settings](https://killergerbah.github.io/asbplayer/?view=settings) as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
 
-<kbd>Ctrl+Shift+X</kbd> opens the Anki export dialog.
+When a subtitle that you want to mine appears, <kbd>Ctrl+Shift+X</kbd> opens the Anki export dialog.
 
 ### Adjusting Anki flashcards
 
-All text fields can be edited before exporting an Anki flashcard.
+All text fields can be edited from the Anki export dialog before exporting the Anki flashcard.
 
 To adjust audio or subtitle selection, adjust the selected time interval for the card using the slider at the bottom of the export dialog.
-The newly selected time interval can be applied using the checkmark buttons in either the sentence or audio fields. See this [video](https://youtu.be/BSr_JusW8E8?t=34) for a demo of this.
+The newly selected time interval can be applied using the buttons in either the sentence or audio fields. See this [video](https://youtu.be/BSr_JusW8E8?t=34) for a demo of this.
 
 ### Adjusting subtitle offset
 
