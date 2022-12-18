@@ -1,8 +1,11 @@
 # asbplayer
 
-A browser-based media player for subtitle sentence mining, hosted at [https://killergerbah.github.io/asbplayer/](https://killergerbah.github.io/asbplayer/). Combine subtitles and media extracted from streaming or local video sources to create media-rich Anki flashcards.
+asbplayer is a browser-based media player and Chrome extension for subtitle sentence mining, hosted at [https://killergerbah.github.io/asbplayer/](https://killergerbah.github.io/asbplayer/). Use asbplayer to combine subtitles and media extracted from streaming or local video sources to create media-rich Anki flashcards.
 
-Talk with me and other language learners on [Discord](https://discord.gg/ad7VAQru7m).
+# Contact
+
+- Submit bugs or feature requests from the (issues page)[https://github.com/killergerbah/asbplayer/issues].
+- Join the [Discord](https://discord.gg/ad7VAQru7m) server to talk with me and other language learners.
 
 ## Supporters
 
@@ -14,9 +17,21 @@ AdamM
 
 If you've benefited from asbplayer, please consider supporting my work via [Github Sponsors](https://github.com/sponsors/killergerbah?frequency=one-time) or [Ko-fi](https://ko-fi.com/killergerbah).
 
-## Usage
+## Getting Started (streaming video)
 
-Note: The keyboard shortcuts mentioned below are the default ones.
+If your target language is Japanese, follow one of the [community guides](#community-guides).
+
+Otherwise, the following steps will work for any language:
+
+1. Install a popup dictionary Chrome extension.
+2. Install the asbplayer Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest).
+3. Install [Anki](https://apps.ankiweb.net/), and create a deck and note type.
+4. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
+5. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect with your deck and note type.
+6. Drag-and-drop a subtitle file into the streaming video you want to mine. You may have to [adjust the subtitle offset](#adjusting-subtitle-offset) to get the subtitles in sync.
+7. When a subtitle appears that you want to mine, use `Ctrl+Shift+X` to mine it.
+
+## Usage
 
 ### Loading files
 
@@ -42,11 +57,11 @@ All text fields can be edited before exporting an Anki flashcard.
 To adjust audio or subtitle selection, adjust the selected time interval for the card using the slider at the bottom of the export dialog.
 The newly selected time interval can be applied using the checkmark buttons in either the sentence or audio fields. See this [video](https://youtu.be/BSr_JusW8E8?t=34) for a demo of this.
 
-### Changing subtitle offset
+### Adjusting subtitle offset
 
 <kbd>Ctrl+Left/Right</kbd> will adjust subtitle offset so that the previous/next subtitle appears at the current timestamp. <kbd>Ctrl+Shift+Left/Right</kbd> will adjust offset by 100 ms increments.
 
-You can also adjust offset manually by clicking on the text field in the controls, typing a number, and pressing <kbd>Enter</kbd>.
+You can also adjust offset manually by clicking on the "Subtitle Offset" text field in the controls in the asbplayer tab, typing a number, and pressing <kbd>Enter</kbd>.
 
 ### Subtitle track detection for streaming video
 
@@ -126,12 +141,8 @@ Most keyboard shortcuts shared by the extension and the website are customizable
 
 ## Demos
 
--   [Sentence mining streaming video with asbplayer (synchronous workflow)](https://www.youtube.com/watch?v=W9Lf3C7sRzc)
--   [Sentence mining streaming video with asbplayer (asynchronous workflow)](https://www.youtube.com/watch?v=kJXVVixD8H8)
--   [Sentence mining streaming video with asbplayer (no subtitle file)](https://www.youtube.com/watch?v=sgrJF99WX-Q)
--   [Sentence mining video files with asbplayer (synchronous workflow)](https://www.youtube.com/watch?v=BSr_JusW8E8)
--   [Sentence mining video files with asbplayer (synchronous workflow using Yomichan export)](https://www.youtube.com/watch?v=J3E82spYqIk)
--   [Sentence mining video files with asbplayer (asynchronous workflow)](https://www.youtube.com/watch?v=HsrrpnfM4pI)
+-   [3 ways to mine streaming video with asbplayer](https://www.youtube.com/watch?v=HrIJZ6cUMFw)
+-   [Sentence mining a video file with asbplayer](https://www.youtube.com/watch?v=BSr_JusW8E8)
 
 ## Community guides
 
