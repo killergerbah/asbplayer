@@ -28,7 +28,7 @@ Otherwise, the following steps will work for any language:
 4. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
 5. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect with your deck and note type.
 6. Drag-and-drop a subtitle file into the streaming video you want to mine. You may have to [adjust the subtitle offset](#adjusting-subtitle-offset) to get the subtitles in sync.
-7. When a subtitle appears that you want to mine, use `Ctrl+Shift+X` to mine it.
+7. When a subtitle appears that you want to mine, use <kbd>Ctrl+Shift+X</kbd> to mine it.
 
 ## Usage
 
