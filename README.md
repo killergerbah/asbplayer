@@ -22,13 +22,14 @@ If your target language is Japanese, follow one of the [community guides](#commu
 
 Otherwise, the following steps will work for any language:
 
-1. Install a popup dictionary Chrome extension.
+1. Install a popup dictionary Chrome extension for your target language.
 2. Install the asbplayer Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest).
 3. Install [Anki](https://apps.ankiweb.net/), and create a deck and note type.
 4. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
 5. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect with your deck and note type.
 6. Drag-and-drop a subtitle file into the streaming video you want to mine. You may have to [adjust the subtitle offset](#adjusting-subtitle-offset) to get the subtitles in sync.
-7. When a subtitle appears that you want to mine, use <kbd>Ctrl+Shift+X</kbd> to mine it.
+7. When a subtitle appears that you want to mine, use <kbd>Ctrl+Shift+X</kbd> to open the Anki dialog.
+8. Fill in the definition and word fields and then export the card. To fill in the definition field you may use the popup dictionary you installed in step 1.
 
 
 ## Usage
