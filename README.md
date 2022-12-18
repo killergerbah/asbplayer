@@ -2,10 +2,9 @@
 
 asbplayer is a browser-based media player and Chrome extension for subtitle sentence mining, hosted at [https://killergerbah.github.io/asbplayer/](https://killergerbah.github.io/asbplayer/). Use asbplayer to combine subtitles and media extracted from streaming or local video sources to create media-rich Anki flashcards.
 
-# Contact
+## Contact
 
-- Submit bugs or feature requests from the (issues page)[https://github.com/killergerbah/asbplayer/issues].
-- Join the [Discord](https://discord.gg/ad7VAQru7m) server to talk with me and other language learners.
+Submit bugs or feature requests from the (issues page)[https://github.com/killergerbah/asbplayer/issues]. Join the [Discord](https://discord.gg/ad7VAQru7m) server to talk with me and other language learners.
 
 ## Supporters
 
