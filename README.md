@@ -38,11 +38,11 @@ Otherwise, the following steps will work for any language:
 Install the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest). There are two ways to sync streaming video with asbplayer:
 
 1. Drag-and-drop a subtitle file into the video element you want to sync.
-2. Load a file into asbplayer and click on the camera in the bottom right to pick a video element to sync. This is the recommended way to load BluRay subtitle files onto streaming video.
+2. Load a file into the [asbplayer site](https://killergerbah.github.io/asbplayer/) and click on the camera in the bottom right to pick a video element to sync. This is the recommended way to load BluRay subtitle files onto streaming video.
 
 ### Loading files
 
-Drag-and-drop media and subtitle files into the asbplayer window to load them.
+Drag-and-drop media and subtitle files into the [asbplayer site](https://killergerbah.github.io/asbplayer/) to load them.
 
 ### Creating Anki flashcards
 
