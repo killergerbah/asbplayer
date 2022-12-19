@@ -22,6 +22,7 @@ import {
     Message,
     PostMineAction,
     TakeScreenshotMessage,
+    ToggleRecordingMessage,
 } from '@project/common';
 import TakeScreenshotHandler from './handlers/video/TakeScreenshotHandler';
 import BackgroundPageAudioRecorder from './services/BackgroundPageAudioRecorder';
@@ -150,6 +151,22 @@ chrome.commands.onCommand.addListener((command) => {
                         sender: 'asbplayer-extension-to-video',
                         message: {
                             command: 'take-screenshot',
+                        },
+                        src: videoElement.src,
+                    };
+                    return extensionToVideoCommand;
+                });
+                break;
+            case 'toggle-recording':
+                tabRegistry.publishCommandToVideoElements((videoElement) => {
+                    if (tabs.find((t) => t.id === videoElement.tab.id) === undefined) {
+                        return undefined;
+                    }
+
+                    const extensionToVideoCommand: ExtensionToVideoCommand<ToggleRecordingMessage> = {
+                        sender: 'asbplayer-extension-to-video',
+                        message: {
+                            command: 'toggle-recording',
                         },
                         src: videoElement.src,
                     };

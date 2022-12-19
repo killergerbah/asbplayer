@@ -45,7 +45,7 @@ export default class StopRecordingMediaHandler {
 
         try {
             const itemId = uuidv4();
-            const subtitle: SubtitleModel = {
+            const subtitle: SubtitleModel = stopRecordingCommand.message.subtitle ?? {
                 text: '',
                 start: stopRecordingCommand.message.startTimestamp,
                 end: stopRecordingCommand.message.endTimestamp,
@@ -53,11 +53,9 @@ export default class StopRecordingMediaHandler {
                 originalEnd: stopRecordingCommand.message.startTimestamp,
                 track: 0,
             };
-            const surroundingSubtitles = mockSurroundingSubtitles(
-                subtitle,
-                stopRecordingCommand.message.videoDuration,
-                5000
-            );
+            const surroundingSubtitles =
+                stopRecordingCommand.message.surroundingSubtitles ??
+                mockSurroundingSubtitles(subtitle, stopRecordingCommand.message.videoDuration, 5000);
 
             let imageModel: ImageModel | undefined = undefined;
 

@@ -62,6 +62,9 @@
                 "mac": "MacCtrl+Shift+V"
             },
             "description": "Manually take screenshot, overriding the one that is automatically taken when mining."
+        },
+        "toggle-recording": {
+            "description": "Manually start/stop audio recording, even when a subtitle file is loaded."
         }
     },
     "web_accessible_resources": [

@@ -32,7 +32,7 @@ export function surroundingSubtitles(
     for (let i = index; i >= 0; --i) {
         startIndex = i;
 
-        if (atBoundary(subtitles, startIndex, index, countRadius, timeRadius, false)) {
+        if (atBoundary(subtitles, startIndex, index, countRadius, timeRadius, Direction.backward)) {
             break;
         }
     }
@@ -42,12 +42,85 @@ export function surroundingSubtitles(
     for (let i = index; i <= subtitles.length - 1; ++i) {
         endIndex = i;
 
-        if (atBoundary(subtitles, endIndex, index, countRadius, timeRadius, true)) {
+        if (atBoundary(subtitles, endIndex, index, countRadius, timeRadius, Direction.forward)) {
             break;
         }
     }
 
     return subtitles.slice(startIndex, endIndex + 1);
+}
+
+function indexNearTimestamp(subtitles: SubtitleModel[], timestamp: number, direction: Direction) {
+    if (direction === Direction.forward) {
+        for (let i = 0; i < subtitles.length; ++i) {
+            if (subtitles[i].start >= timestamp) {
+                return i;
+            }
+        }
+    } else {
+        for (let i = subtitles.length - 1; i >= 0; --i) {
+            if (subtitles[i].start <= timestamp) {
+                return i;
+            }
+        }
+    }
+
+    return undefined;
+}
+
+export function surroundingSubtitlesAroundInterval(
+    subtitles: SubtitleModel[],
+    startTimestamp: number,
+    endTimestamp: number,
+    countRadius: number,
+    timeRadius: number
+) {
+    if (subtitles.length === 0) {
+        return {};
+    }
+
+    let startBoundaryIndex = 0;
+    const indexAfterStartTimestamp =
+        indexNearTimestamp(subtitles, startTimestamp, Direction.forward) ?? subtitles.length - 1;
+
+    for (let i = 0; i < subtitles.length; ++i) {
+        startBoundaryIndex = i;
+
+        if (
+            withinBoundaryAroundInterval(
+                subtitles,
+                i,
+                countRadius,
+                timeRadius,
+                startTimestamp,
+                indexAfterStartTimestamp
+            )
+        ) {
+            break;
+        }
+    }
+
+    let endBoundaryIndex = subtitles.length - 1;
+    const indexBeforeEndTimestamp = indexNearTimestamp(subtitles, endTimestamp, Direction.backward) ?? 0;
+
+    for (let i = subtitles.length - 1; i >= 0; --i) {
+        endBoundaryIndex = i;
+
+        if (
+            withinBoundaryAroundInterval(subtitles, i, countRadius, timeRadius, endTimestamp, indexBeforeEndTimestamp)
+        ) {
+            break;
+        }
+    }
+
+    if (endBoundaryIndex <= startBoundaryIndex) {
+        return {};
+    }
+
+    return {
+        surroundingSubtitles: subtitles.slice(startBoundaryIndex, endBoundaryIndex + 1),
+        subtitle: subtitles[indexAfterStartTimestamp],
+    };
 }
 
 export function mockSurroundingSubtitles(
@@ -85,17 +158,22 @@ export function mockSurroundingSubtitles(
     return subtitles;
 }
 
+enum Direction {
+    forward,
+    backward,
+}
+
 function atBoundary(
     subtitles: SubtitleModel[],
     index: number,
     initialIndex: number,
     countRadius: number,
     timeRadius: number,
-    sign: boolean
+    direction: Direction
 ): boolean {
     let next;
 
-    if (sign) {
+    if (direction == Direction.forward) {
         next = index + 1 < subtitles.length ? subtitles[index + 1] : null;
     } else {
         next = index - 1 >= 0 ? subtitles[index - 1] : null;
@@ -105,6 +183,23 @@ function atBoundary(
         Math.abs(initialIndex - index) >= countRadius &&
         (next === null || Math.abs(next.start - subtitles[initialIndex].start) >= timeRadius)
     ) {
+        return true;
+    }
+
+    return false;
+}
+
+function withinBoundaryAroundInterval(
+    subtitles: SubtitleModel[],
+    index: number,
+    countRadius: number,
+    timeRadius: number,
+    timestamp: number,
+    indexNearTimestamp: number
+): boolean {
+    const current = subtitles[index];
+
+    if (Math.abs(indexNearTimestamp - index) <= countRadius || Math.abs(current.start - timestamp) <= timeRadius) {
         return true;
     }
 

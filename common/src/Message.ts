@@ -98,6 +98,8 @@ export interface StopRecordingMediaMessage extends Message {
     readonly url?: string;
     readonly sourceString: string;
     readonly ankiSettings?: AnkiSettings;
+    readonly subtitle?: SubtitleModel;
+    readonly surroundingSubtitles?: SubtitleModel[];
 }
 
 export interface CopyMessage extends Message {
@@ -168,6 +170,10 @@ export interface RerecordMediaMessage extends Message {
     readonly audioPaddingEnd: number;
     readonly playbackRate: number;
     readonly timestamp: number;
+}
+
+export interface ToggleRecordingMessage extends Message {
+    readonly command: 'toggle-recording';
 }
 
 export interface ShowAnkiUiAfterRerecordMessage extends Message {

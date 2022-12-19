@@ -9,7 +9,7 @@ import {
 } from '@project/common';
 import { ElementOverlay, OffsetAnchor } from './ElementOverlay';
 
-interface SubtitleModelWithIndex extends SubtitleModel {
+export interface SubtitleModelWithIndex extends SubtitleModel {
     index: number;
 }
 

@@ -30,6 +30,7 @@ import {
     SubtitleModel,
     SubtitleSettingsToVideoMessage,
     SubtitlesToVideoMessage,
+    surroundingSubtitlesAroundInterval,
     TakeScreenshotFromExtensionMessage,
     VideoHeartbeatMessage,
     VideoToExtensionCommand,
@@ -39,7 +40,7 @@ import ControlsContainer from './ControlsContainer';
 import DragContainer from './DragContainer';
 import KeyBindings from './KeyBindings';
 import Settings from './Settings';
-import SubtitleContainer from './SubtitleContainer';
+import SubtitleContainer, { SubtitleModelWithIndex } from './SubtitleContainer';
 import VideoDataSyncContainer from './VideoDataSyncContainer';
 
 let netflix = false;
@@ -436,6 +437,11 @@ export default class Binding {
                             }
                         }
                         break;
+                    case 'toggle-recording':
+                        if (this.synced) {
+                            this._toggleRecordingMedia(PostMineAction.showAnkiDialog);
+                        }
+                        break;
                     case 'card-updated':
                         const cardUpdatedMessage = request.message as CardUpdatedMessage;
                         this.subtitleContainer.notification(`Updated card: ${request.message.cardName}`);
@@ -668,19 +674,21 @@ export default class Binding {
         const ankiSettings =
             postMineAction === PostMineAction.updateLastCard ? this.ankiUiContainer.ankiSettings : undefined;
         if (this.recordingMedia) {
+            const currentTimestamp = this.video.currentTime * 1000;
             const command: VideoToExtensionCommand<StopRecordingMediaMessage> = {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'stop-recording-media',
                     postMineAction: postMineAction,
                     startTimestamp: this.recordingMediaStartedTimestamp!,
-                    endTimestamp: this.video.currentTime * 1000,
+                    endTimestamp: currentTimestamp,
                     playbackRate: this.video.playbackRate,
                     screenshot: this.recordingMediaWithScreenshot,
                     videoDuration: this.video.duration * 1000,
                     url: this.url,
                     sourceString: this.sourceString(this.recordingMediaStartedTimestamp!),
                     ankiSettings: ankiSettings,
+                    ...this._surroundingSubtitlesAroundInterval(this.recordingMediaStartedTimestamp!, currentTimestamp),
                 },
                 src: this.video.src,
             };
@@ -721,6 +729,16 @@ export default class Binding {
 
             chrome.runtime.sendMessage(command);
         }
+    }
+
+    private _surroundingSubtitlesAroundInterval(start: number, end: number) {
+        return surroundingSubtitlesAroundInterval(
+            this.subtitleContainer.subtitles,
+            start,
+            end,
+            this.ankiUiContainer.ankiSettings!.surroundingSubtitlesCountRadius,
+            this.ankiUiContainer.ankiSettings!.surroundingSubtitlesTimeRadius
+        );
     }
 
     async _prepareScreenshot() {

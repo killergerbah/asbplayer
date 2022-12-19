@@ -88,6 +88,7 @@ const extensionKeyboardShortcutLabels: any = {
     'update-last-card':
         'Update last-created Anki card with asbplayer-captured media.\nWhen video is synced without a subtitle file, starts/stops recording audio.',
     'take-screenshot': 'Manually take screenshot, overriding the one that is automatically taken when mining.',
+    'toggle-recording': 'Manually start/stop audio recording, even when a subtitle file is loaded.',
     'toggle-video-select':
         'Select video element to mine without a subtitle file, or with detected subtitles on supported sites.',
 };
