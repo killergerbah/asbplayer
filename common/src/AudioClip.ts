@@ -29,6 +29,8 @@ class Base64AudioData implements AudioData {
     private readonly _base64: string;
     private readonly _extension: string;
 
+    private playingAudio?: HTMLAudioElement;
+    private stopAudioTimeout?: NodeJS.Timeout;
     private cachedBlob?: Blob;
 
     constructor(baseName: string, start: number, end: number, playbackRate: number, base64: string, extension: string) {
@@ -57,23 +59,35 @@ class Base64AudioData implements AudioData {
     }
 
     async play(): Promise<void> {
+        if (this.playingAudio) {
+            this.stopAudio(this.playingAudio);
+            clearTimeout(this.stopAudioTimeout!);
+            this.playingAudio = undefined;
+            this.stopAudioTimeout = undefined;
+            return;
+        }
+
         const blob = await this._blob();
         const audio = new Audio();
         audio.src = URL.createObjectURL(blob);
         audio.preload = 'none';
         audio.load();
+        this.playingAudio = audio;
 
         await audio.play();
 
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                audio.pause();
-                const src = audio.src;
-                audio.src = '';
-                URL.revokeObjectURL(src);
-                resolve(undefined);
-            }, (this.end - this.start) / this.playbackRate + 1000);
-        });
+        this.stopAudioTimeout = setTimeout(() => {
+            this.stopAudio(audio);
+            this.playingAudio = undefined;
+            this.stopAudioTimeout = undefined;
+        }, (this.end - this.start) / this.playbackRate + 1000);
+    }
+
+    private stopAudio(audio: HTMLAudioElement) {
+        audio.pause();
+        const src = audio.src;
+        audio.src = '';
+        URL.revokeObjectURL(src);
     }
 
     async _blob() {
@@ -103,6 +117,13 @@ class FileAudioData implements AudioData {
     private readonly trackId?: string;
     private readonly _extension: string;
     private readonly recorderMimeType: string;
+
+    private clippingAudio?: HTMLAudioElement;
+    private clippingAudioReject?: (error: string) => void;
+    private stopClippingTimeout?: NodeJS.Timeout;
+
+    private playingAudio?: HTMLAudioElement;
+    private stopAudioTimeout?: NodeJS.Timeout;
 
     private _blob?: Blob;
 
@@ -139,12 +160,18 @@ class FileAudioData implements AudioData {
     async base64() {
         return new Promise<string>(async (resolve, reject) => {
             var reader = new FileReader();
-            reader.readAsDataURL(await this.blob());
-            reader.onloadend = () => {
-                const result = reader.result as string;
-                const base64 = result.substring(result.indexOf(',') + 1);
-                resolve(base64);
-            };
+            const blob = await this.blob();
+
+            if (blob === undefined) {
+                reject('Did not finish recording blob');
+            } else {
+                reader.readAsDataURL(blob);
+                reader.onloadend = () => {
+                    const result = reader.result as string;
+                    const base64 = result.substring(result.indexOf(',') + 1);
+                    resolve(base64);
+                };
+            }
         });
     }
 
@@ -154,10 +181,23 @@ class FileAudioData implements AudioData {
             return;
         }
 
+        if (this.playingAudio) {
+            this.stopAudio(this.playingAudio);
+            clearTimeout(this.stopAudioTimeout!);
+            this.playingAudio = undefined;
+            this.stopAudioTimeout = undefined;
+            return;
+        }
+
         const audio = await this._audioElement(this._blob, false);
         audio.currentTime = 0;
         await audio.play();
-        await this._stopAudio(audio);
+        this.playingAudio = audio;
+        this.stopAudioTimeout = setTimeout(() => {
+            this.stopAudio(audio);
+            this.stopAudioTimeout = undefined;
+            this.playingAudio = undefined;
+        }, (this.end - this.start) / this.playbackRate + 100);
     }
 
     async blob() {
@@ -165,15 +205,28 @@ class FileAudioData implements AudioData {
             this._blob = await this._clipAudio();
         }
 
+        if (this._blob === undefined) {
+            throw new Error('Did not finish recording blob');
+        }
+
         return this._blob;
     }
 
-    async _clipAudio(): Promise<Blob> {
-        return new Promise(async (resolve, reject) => {
-            const audio = await this._audioElement(this.file, true);
+    async _clipAudio(): Promise<Blob | undefined> {
+        if (this.clippingAudio) {
+            this.stopAudio(this.clippingAudio);
+            clearTimeout(this.stopClippingTimeout!);
+            this.clippingAudioReject?.('Did not finish recording blob');
+            this.clippingAudio = undefined;
+            this.stopClippingTimeout = undefined;
+            this.clippingAudioReject = undefined;
+            return undefined;
+        }
 
-            audio.oncanplay = async (e) => {
-                try {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const audio = await this._audioElement(this.file, true);
+                audio.oncanplay = async (e) => {
                     audio.play();
                     const stream = this._captureStream(audio);
                     const recorder = new MediaRecorder(stream, { mimeType: this.recorderMimeType });
@@ -183,24 +236,37 @@ class FileAudioData implements AudioData {
                         chunks.push(e.data);
                     };
 
+                    let finished = false;
+
                     recorder.onstop = (e) => {
-                        resolve(new Blob(chunks, { type: this.recorderMimeType }));
+                        if (finished) {
+                            resolve(new Blob(chunks, { type: this.recorderMimeType }));
+                        }
                     };
 
                     recorder.start();
-                    await this._stopAudio(audio);
-                    recorder.stop();
-                    for (const track of stream.getAudioTracks()) {
-                        track.stop();
-                    }
-                } catch (e) {
-                    reject(e);
-                }
-            };
+
+                    this.clippingAudioReject = reject;
+                    this.clippingAudio = audio;
+                    this.stopClippingTimeout = setTimeout(() => {
+                        this.stopAudio(audio);
+                        this.clippingAudio = undefined;
+                        this.stopClippingTimeout = undefined;
+                        this.clippingAudioReject = undefined;
+                        finished = true;
+                        recorder.stop();
+                        for (const track of stream.getAudioTracks()) {
+                            track.stop();
+                        }
+                    }, (this.end - this.start) / this.playbackRate + 100);
+                };
+            } catch (e) {
+                reject(e);
+            }
         });
     }
 
-    _audioElement(source: Blob, selectTrack: boolean): Promise<ExperimentalAudioElement> {
+    private _audioElement(source: Blob, selectTrack: boolean): Promise<ExperimentalAudioElement> {
         const audio = new Audio() as ExperimentalAudioElement;
         audio.src = URL.createObjectURL(source);
 
@@ -220,7 +286,14 @@ class FileAudioData implements AudioData {
         });
     }
 
-    _captureStream(audio: ExperimentalAudioElement) {
+    private stopAudio(audio: HTMLAudioElement) {
+        audio.pause();
+        const src = audio.src;
+        audio.src = '';
+        URL.revokeObjectURL(src);
+    }
+
+    private _captureStream(audio: ExperimentalAudioElement) {
         let stream: MediaStream | undefined;
 
         if (typeof audio.captureStream === 'function') {
@@ -248,18 +321,6 @@ class FileAudioData implements AudioData {
         }
 
         return audioStream;
-    }
-
-    async _stopAudio(audio: ExperimentalAudioElement): Promise<void> {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                audio.pause();
-                const src = audio.src;
-                audio.src = '';
-                URL.revokeObjectURL(src);
-                resolve(undefined);
-            }, (this.end - this.start) / this.playbackRate + 100);
-        });
     }
 
     slice(start: number, end: number) {
