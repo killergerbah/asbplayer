@@ -14,6 +14,8 @@ interface ExperimentalAudioElement extends HTMLAudioElement {
 interface AudioData {
     name: string;
     extension: string;
+    start: number;
+    end: number;
     play: () => Promise<void>;
     blob: () => Promise<Blob>;
     base64: () => Promise<string>;
@@ -23,8 +25,8 @@ interface AudioData {
 
 class Base64AudioData implements AudioData {
     private readonly _name: string;
-    private readonly start: number;
-    private readonly end: number;
+    private readonly _start: number;
+    private readonly _end: number;
     private readonly playbackRate: number;
     private readonly _base64: string;
     private readonly _extension: string;
@@ -35,8 +37,8 @@ class Base64AudioData implements AudioData {
 
     constructor(baseName: string, start: number, end: number, playbackRate: number, base64: string, extension: string) {
         this._name = baseName + '_' + Math.floor(start) + '_' + Math.floor(end);
-        this.start = start;
-        this.end = end;
+        this._start = start;
+        this._end = end;
         this.playbackRate = playbackRate;
         this._base64 = base64;
         this._extension = extension;
@@ -48,6 +50,14 @@ class Base64AudioData implements AudioData {
 
     get extension(): string {
         return this._extension;
+    }
+
+    get start(): number {
+        return this._start;
+    }
+
+    get end(): number {
+        return this._end;
     }
 
     async base64() {
@@ -80,7 +90,7 @@ class Base64AudioData implements AudioData {
             this.stopAudio(audio);
             this.playingAudio = undefined;
             this.stopAudioTimeout = undefined;
-        }, (this.end - this.start) / this.playbackRate + 1000);
+        }, (this._end - this._start) / this.playbackRate + 1000);
     }
 
     private stopAudio(audio: HTMLAudioElement) {
@@ -111,8 +121,8 @@ class Base64AudioData implements AudioData {
 class FileAudioData implements AudioData {
     private readonly file: File;
     private readonly _name: string;
-    private readonly start: number;
-    private readonly end: number;
+    private readonly _start: number;
+    private readonly _end: number;
     private readonly playbackRate: number;
     private readonly trackId?: string;
     private readonly _extension: string;
@@ -132,8 +142,8 @@ class FileAudioData implements AudioData {
         this.recorderMimeType = recorderMimeType;
         this.file = file;
         this._name = file.name + '_' + start + '_' + end;
-        this.start = start;
-        this.end = end;
+        this._start = start;
+        this._end = end;
         this.playbackRate = playbackRate;
         this.trackId = trackId;
         this._extension = recorderExtension;
@@ -155,6 +165,14 @@ class FileAudioData implements AudioData {
 
     get extension(): string {
         return this._extension;
+    }
+
+    get start() {
+        return this._start;
+    }
+
+    get end() {
+        return this._end;
     }
 
     async base64() {
@@ -197,7 +215,7 @@ class FileAudioData implements AudioData {
             this.stopAudio(audio);
             this.stopAudioTimeout = undefined;
             this.playingAudio = undefined;
-        }, (this.end - this.start) / this.playbackRate + 100);
+        }, (this._end - this._start) / this.playbackRate + 100);
     }
 
     async blob() {
@@ -258,7 +276,7 @@ class FileAudioData implements AudioData {
                         for (const track of stream.getAudioTracks()) {
                             track.stop();
                         }
-                    }, (this.end - this.start) / this.playbackRate + 100);
+                    }, (this._end - this._start) / this.playbackRate + 100);
                 };
             } catch (e) {
                 reject(e);
@@ -279,7 +297,7 @@ class FileAudioData implements AudioData {
                     }
                 }
 
-                audio.currentTime = this.start / 1000;
+                audio.currentTime = this._start / 1000;
                 audio.playbackRate = this.playbackRate;
                 resolve(audio);
             };
@@ -350,6 +368,14 @@ class Mp3AudioData implements AudioData {
         return 'mp3';
     }
 
+    get start() {
+        return this.data.start;
+    }
+
+    get end() {
+        return this.data.end;
+    }
+
     async base64() {
         return new Promise<string>(async (resolve, reject) => {
             try {
@@ -416,6 +442,14 @@ export default class AudioClip {
 
     static fromFile(file: File, start: number, end: number, playbackRate: number, trackId?: string) {
         return new AudioClip(new FileAudioData(file, start, end, playbackRate, trackId));
+    }
+
+    get start() {
+        return this.data.start;
+    }
+
+    get end() {
+        return this.data.end;
     }
 
     get name() {

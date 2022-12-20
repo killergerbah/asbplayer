@@ -302,7 +302,7 @@ export function AnkiDialog({
                 .filter((s) => subtitleIntersectsTimeInterval(s, timestampInterval))
                 .filter((s) => s.text.trim() !== '')
                 .map((s) => s.text)
-                .join('\n'); 
+                .join('\n');
         },
         [sliderContext]
     );

@@ -94,43 +94,6 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
         return bridge.onStateUpdated((s: AnkiUiState) => {
             let audioClip;
 
-            if (s.type === 'initial') {
-                const state = s as AnkiUiInitialState;
-                setText(undefined);
-                setInitialTimestampInterval(undefined);
-                setTimestampBoundaryInterval(undefined);
-                setTimestampInterval(undefined);
-                setSliderContext({
-                    subtitleStart: state.subtitle.start,
-                    subtitleEnd: state.subtitle.end,
-                    subtitles: state.surroundingSubtitles || [
-                        {
-                            start: state.subtitle.start,
-                            end: state.subtitle.end,
-                            text: state.subtitle.text,
-                            track: state.subtitle.track,
-                        },
-                    ],
-                });
-                setDefinition('');
-                setWord('');
-                setCustomFieldValues({});
-                setLastAppliedTimestampIntervalToText(undefined);
-                setLastAppliedTimestampIntervalToAudio(undefined);
-            } else if (s.type === 'resume') {
-                const state = s as AnkiUiResumeState;
-                setText(state.text);
-                setInitialTimestampInterval(state.initialTimestampInterval);
-                setTimestampInterval(state.timestampInterval);
-                setTimestampBoundaryInterval(state.timestampBoundaryInterval);
-                setSliderContext(state.sliderContext);
-                setDefinition(state.definition);
-                setWord(state.word);
-                setCustomFieldValues(state.customFieldValues);
-                setLastAppliedTimestampIntervalToText(state.lastAppliedTimestampIntervalToText);
-                setLastAppliedTimestampIntervalToAudio(state.lastAppliedTimestampIntervalToAudio);
-            }
-
             if (s.audio) {
                 let start: number;
                 let end: number;
@@ -161,6 +124,48 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
 
             if (s.image) {
                 image = Image.fromBase64(s.source, s.subtitle.start, s.image.base64, s.image.extension);
+            }
+
+            if (s.type === 'initial') {
+                const state = s as AnkiUiInitialState;
+                const sliderContext = {
+                    subtitleStart: state.subtitle.start,
+                    subtitleEnd: state.subtitle.end,
+                    subtitles: state.surroundingSubtitles || [
+                        {
+                            start: state.subtitle.start,
+                            end: state.subtitle.end,
+                            text: state.subtitle.text,
+                            track: state.subtitle.track,
+                        },
+                    ],
+                };
+                setText(undefined);
+                setTimestampInterval(
+                    (audioClip && [audioClip.start, audioClip.end]) ||
+                        (sliderContext && [sliderContext.subtitleStart, sliderContext.subtitleEnd]) ||
+                        undefined
+                );
+                setTimestampBoundaryInterval(undefined);
+                setInitialTimestampInterval(undefined);
+                setSliderContext(sliderContext);
+                setDefinition('');
+                setWord('');
+                setCustomFieldValues({});
+                setLastAppliedTimestampIntervalToText(undefined);
+                setLastAppliedTimestampIntervalToAudio(undefined);
+            } else if (s.type === 'resume') {
+                const state = s as AnkiUiResumeState;
+                setText(state.text);
+                setInitialTimestampInterval(state.initialTimestampInterval);
+                setTimestampInterval(state.timestampInterval);
+                setTimestampBoundaryInterval(state.timestampBoundaryInterval);
+                setSliderContext(state.sliderContext);
+                setDefinition(state.definition);
+                setWord(state.word);
+                setCustomFieldValues(state.customFieldValues);
+                setLastAppliedTimestampIntervalToText(state.lastAppliedTimestampIntervalToText);
+                setLastAppliedTimestampIntervalToAudio(state.lastAppliedTimestampIntervalToAudio);
             }
 
             setSubtitle(s.subtitle);
