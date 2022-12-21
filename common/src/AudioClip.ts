@@ -90,7 +90,7 @@ class Base64AudioData implements AudioData {
             this.stopAudio(audio);
             this.playingAudio = undefined;
             this.stopAudioTimeout = undefined;
-        }, (this._end - this._start) / this.playbackRate + 1000);
+        }, (this._end - this._start) / this.playbackRate + 100);
     }
 
     private stopAudio(audio: HTMLAudioElement) {
