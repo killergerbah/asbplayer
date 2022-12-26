@@ -296,6 +296,7 @@ export function AnkiDialog({
         };
     }
 
+    // TODO, only include subtitle if more than .x of it is included
     const textForTimestampInterval = useCallback(
         (timestampInterval: number[]) => {
             return sliderContext!.subtitles

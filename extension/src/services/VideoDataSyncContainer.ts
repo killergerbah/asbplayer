@@ -195,6 +195,9 @@ export default class VideoDataSyncContainer {
             case 'www.youtube.com':
                 shallBlock = !urlObj.pathname.startsWith('/watch');
                 break;
+            case 'tver.jp':
+                shallBlock = !urlObj.pathname.startsWith('/episodes');
+                break;
             default:
                 break;
         }

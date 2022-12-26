@@ -49,9 +49,9 @@ export default class SubtitleReader {
                 const parser = new WebVTT.Parser(window, WebVTT.StringDecoder());
                 const cues: any[] = [];
                 parser.oncue = (c: any) => {
-                    if (isFromNetflix) {
-                        c.text = c.text.replace(tagRegex, '');
+                    c.text = c.text.replace(tagRegex, '');
 
+                    if (isFromNetflix) {
                         const lines = c.text.split('\n');
                         const newLines = [];
 

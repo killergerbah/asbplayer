@@ -17,6 +17,10 @@ const bind = () => {
             subSyncAvailable = true;
             pages.push(chrome.runtime.getURL('pages/youtube-page.js'));
             break;
+        case 'tver.jp':
+            subSyncAvailable = true;
+            pages.push(chrome.runtime.getURL('pages/tver-page.js'));
+            break;
         default:
             break;
     }

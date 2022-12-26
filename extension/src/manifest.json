@@ -73,6 +73,7 @@
                 "assets/image.png",
                 "pages/netflix-page.js",
                 "pages/youtube-page.js",
+                "pages/tver-page.js",
                 "anki-ui.js",
                 "mp3-encoder.worker.js",
                 "video-data-sync-ui.js"
