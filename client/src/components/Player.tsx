@@ -28,6 +28,7 @@ import ChromeExtension from '../services/ChromeExtension';
 import SubtitleReader from '../services/SubtitleReader';
 import PlaybackPreferences from '../services/PlaybackPreferences';
 import lte from 'semver/functions/lte';
+import gte from 'semver/functions/gte';
 
 interface StylesProps {
     appBarHidden: boolean;
@@ -1037,6 +1038,7 @@ export default function Player({
                                 offsetEnabled={true}
                                 offset={offset}
                                 playbackRate={playbackRate}
+                                playbackRateEnabled={tab && extension.installed && gte(extension.version, '0.24.0')}
                                 onPlaybackRateChange={handlePlaybackRateChange}
                                 volumeEnabled={Boolean(audioFileUrl)}
                                 playModeEnabled={playModeEnabled}

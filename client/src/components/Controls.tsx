@@ -495,6 +495,7 @@ interface ControlsProps {
     displayLength?: number;
     offset: number;
     playbackRate: number;
+    playbackRateEnabled?: boolean;
     onAudioTrackSelected: (id: string) => void;
     onSeek: (progress: number) => void;
     mousePositionRef: MutableRefObject<Point>;
@@ -547,6 +548,7 @@ export default function Controls({
     displayLength,
     offset,
     playbackRate,
+    playbackRateEnabled,
     onAudioTrackSelected,
     onSeek,
     mousePositionRef,
@@ -1030,22 +1032,26 @@ export default function Controls({
                                     </Tooltip>
                                 </Grid>
                             )}
-                            <Grid item>
-                                <Tooltip title="Playback Rate">
-                                    <Input
-                                        style={{
-                                            width: `${playbackRateInputWidth}ch`,
-                                            marginLeft: 4
-                                        }}
-                                        inputRef={playbackRateInputRef}
-                                        disableUnderline={true}
-                                        className={classes.numberInput}
-                                        placeholder={'×' + Number(1).toFixed(2)}
-                                        onClick={handleNumberInputClicked}
-                                        onChange={(e) => setPlaybackRateInputWidth(Math.max(5, e.target.value.length))}
-                                    />
-                                </Tooltip>
-                            </Grid>
+                            {playbackRateEnabled && (
+                                <Grid item>
+                                    <Tooltip title="Playback Rate">
+                                        <Input
+                                            style={{
+                                                width: `${playbackRateInputWidth}ch`,
+                                                marginLeft: 4,
+                                            }}
+                                            inputRef={playbackRateInputRef}
+                                            disableUnderline={true}
+                                            className={classes.numberInput}
+                                            placeholder={'×' + Number(1).toFixed(2)}
+                                            onClick={handleNumberInputClicked}
+                                            onChange={(e) =>
+                                                setPlaybackRateInputWidth(Math.max(5, e.target.value.length))
+                                            }
+                                        />
+                                    </Tooltip>
+                                </Grid>
+                            )}
                             <Grid item style={{ flexGrow: 1 }}></Grid>
                             {subtitlesToggle && (
                                 <Grid item>
