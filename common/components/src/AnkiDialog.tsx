@@ -113,12 +113,16 @@ function sliderValueLabelFormat(ms: number) {
 }
 
 function subtitleIntersectsTimeInterval(subtitle: SubtitleModel, interval: number[]) {
-    return (
-        (subtitle.start >= interval[0] && subtitle.start <= interval[1]) ||
-        (subtitle.end >= interval[0] && subtitle.end <= interval[1]) ||
-        (interval[0] >= subtitle.start && interval[0] <= subtitle.end) ||
-        (interval[1] >= subtitle.start && interval[1] <= subtitle.end)
-    );
+    const length = Math.max(0, subtitle.end - subtitle.start);
+
+    if (length === 0) {
+        return false;
+    }
+
+    const overlapStart = Math.max(subtitle.start, interval[0]);
+    const overlapEnd = Math.min(subtitle.end, interval[1]);
+
+    return overlapEnd - overlapStart >= length / 2;
 }
 
 interface ValueLabelComponentProps {
@@ -296,7 +300,6 @@ export function AnkiDialog({
         };
     }
 
-    // TODO, only include subtitle if more than .x of it is included
     const textForTimestampInterval = useCallback(
         (timestampInterval: number[]) => {
             return sliderContext!.subtitles
