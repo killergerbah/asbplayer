@@ -3,8 +3,8 @@
   "name": "@project/extension",
   "version": "0.1.0",
   "scripts": {
-    "buildDev": "webpack --config webpack.config.js --mode development",
-    "buildProd": "webpack --config webpack.config.js --mode production"
+    "buildDev": "NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode development",
+    "buildProd": "NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode production"
   },
   "dependencies": {
     "@fontsource/roboto": "^4.5.0",
