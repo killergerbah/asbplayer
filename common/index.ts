@@ -11,3 +11,4 @@ export * from './src/Model';
 export * from './src/Message';
 export * from './src/ExtensionSettings';
 export * from './src/SubtitleCollection';
+export { default as AutoPauseContext } from './src/AutoPauseContext';

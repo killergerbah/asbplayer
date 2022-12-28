@@ -128,14 +128,14 @@ export default class Binding {
     set playMode(newPlayMode: PlayMode) {
         switch (newPlayMode) {
             case PlayMode.autoPause:
-                this.subtitleContainer.onStartedShowing = () => {
+                this.subtitleContainer.autoPauseContext.onStartedShowing = () => {
                     if (this.recordingMedia || this.autoPausePreference !== AutoPausePreference.atStart) {
                         return;
                     }
 
                     this.pause();
                 };
-                this.subtitleContainer.onWillStopShowing = () => {
+                this.subtitleContainer.autoPauseContext.onWillStopShowing = () => {
                     if (this.recordingMedia || this.autoPausePreference !== AutoPausePreference.atEnd) {
                         return;
                     }
@@ -170,8 +170,8 @@ export default class Binding {
                 break;
             case PlayMode.normal:
                 if (this._playMode === PlayMode.autoPause) {
-                    this.subtitleContainer.onStartedShowing = undefined;
-                    this.subtitleContainer.onWillStopShowing = undefined;
+                    this.subtitleContainer.autoPauseContext.onStartedShowing = undefined;
+                    this.subtitleContainer.autoPauseContext.onWillStopShowing = undefined;
                     this.subtitleContainer.notification('Auto-pause: Off');
                 } else if (this._playMode === PlayMode.condensed) {
                     this.subtitleContainer.onNextToShow = undefined;
@@ -285,6 +285,8 @@ export default class Binding {
             };
 
             chrome.runtime.sendMessage(command);
+
+            this.subtitleContainer.autoPauseContext.clear();
         };
 
         this.playbackRateListener = (event) => {

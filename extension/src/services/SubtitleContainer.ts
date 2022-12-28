@@ -7,6 +7,7 @@ import {
     surroundingSubtitles,
     VideoToExtensionCommand,
 } from '@project/common';
+import { AutoPauseContext } from '@project/common';
 import { ElementOverlay, OffsetAnchor } from './ElementOverlay';
 
 export interface SubtitleModelWithIndex extends SubtitleModel {
@@ -36,8 +37,8 @@ export default class SubtitleContainer {
     surroundingSubtitlesCountRadius: number;
     surroundingSubtitlesTimeRadius: number;
 
-    onStartedShowing?: () => void;
-    onWillStopShowing?: () => void;
+    readonly autoPauseContext: AutoPauseContext = new AutoPauseContext();
+
     onNextToShow?: (subtitle: SubtitleModel) => void;
 
     constructor(video: HTMLVideoElement) {
@@ -82,6 +83,7 @@ export default class SubtitleContainer {
             showingCheckRadiusMs: 150,
             returnNextToShow: true,
         });
+        this.autoPauseContext.clear();
     }
 
     set subtitlePositionOffsetBottom(value: number) {
@@ -116,11 +118,11 @@ export default class SubtitleContainer {
             showingSubtitles = slice.showing.filter((s) => this._trackEnabled(s)).sort((s1, s2) => s1.track - s2.track);
 
             if (slice.willStopShowing && this._trackEnabled(slice.willStopShowing)) {
-                this.onWillStopShowing?.();
+                this.autoPauseContext.willStopShowing(slice.willStopShowing);
             }
 
             if (slice.startedShowing && this._trackEnabled(slice.startedShowing)) {
-                this.onStartedShowing?.();
+                this.autoPauseContext.startedShowing(slice.startedShowing);
             }
 
             if (slice.nextToShow && slice.nextToShow.length > 0) {

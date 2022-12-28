@@ -16,6 +16,7 @@ import {
     AnkiSettings,
     SubtitleCollection,
     AutoPausePreference,
+    AutoPauseContext,
 } from '@project/common';
 import { SubtitleTextImage } from '@project/common/components';
 import Clock from '../services/Clock';
@@ -195,8 +196,6 @@ export default function VideoPlayer({
         [subtitles]
     );
     const [showSubtitles, setShowSubtitles] = useState<IndexedSubtitleModel[]>([]);
-    const [startedShowingSubtitle, setStartedShowingSubtitle] = useState<IndexedSubtitleModel>();
-    const [willStopShowingSubtitle, setWillStopShowingSubtitle] = useState<IndexedSubtitleModel>();
     const [subtitlesEnabled, setSubtitlesEnabled] = useState(true);
     const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState<{ [index: number]: boolean }>({});
     const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
@@ -215,6 +214,26 @@ export default function VideoPlayer({
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
     const [alertMessage, setAlertMessage] = useState<string>('');
     const [alertSeverity, setAlertSeverity] = useState<Color>('info');
+    const autoPauseContext = useMemo(() => {
+        const context = new AutoPauseContext();
+        context.onStartedShowing = () => {
+            if (playMode !== PlayMode.autoPause || miscSettings.autoPausePreference !== AutoPausePreference.atStart) {
+                return;
+            }
+
+            playerChannel.pause();
+        };
+        context.onWillStopShowing = () => {
+            if (playMode !== PlayMode.autoPause || miscSettings.autoPausePreference !== AutoPausePreference.atEnd) {
+                return;
+            }
+
+            playerChannel.pause();
+        };
+        return context;
+    }, [playerChannel, miscSettings, playMode]);
+    const autoPauseContextRef = useRef<AutoPauseContext>();
+    autoPauseContextRef.current = autoPauseContext;
 
     const keyBinder = useMemo<AppKeyBinder>(
         () => new AppKeyBinder(new DefaultKeyBinder(miscSettings.keyBindSet), extension),
@@ -327,6 +346,7 @@ export default function VideoPlayer({
 
             clock.stop();
             clock.setTime(currentTime * 1000);
+            autoPauseContextRef.current?.clear();
         });
 
         playerChannel.onAudioTrackSelected((id) => {
@@ -348,6 +368,8 @@ export default function VideoPlayer({
                 const offset = s.start - s.originalStart;
                 setOffset(offset);
             }
+
+            autoPauseContextRef.current?.clear();
         });
 
         playerChannel.onPlayMode((playMode) => setPlayMode(playMode));
@@ -441,26 +463,12 @@ export default function VideoPlayer({
                 }
             }
 
-            if (playMode === PlayMode.autoPause) {
-                if (miscSettings.autoPausePreference === AutoPausePreference.atStart) {
-                    if (
-                        slice.startedShowing &&
-                        slice.startedShowing !== startedShowingSubtitle &&
-                        !disabledSubtitleTracks[slice.startedShowing.track]
-                    ) {
-                        playerChannel.pause();
-                        setStartedShowingSubtitle(slice.startedShowing);
-                    }
-                } else {
-                    if (
-                        slice.willStopShowing &&
-                        slice.willStopShowing !== willStopShowingSubtitle &&
-                        !disabledSubtitleTracks[slice.willStopShowing.track]
-                    ) {
-                        playerChannel.pause();
-                        setWillStopShowingSubtitle(slice.willStopShowing);
-                    }
-                }
+            if (slice.startedShowing && !disabledSubtitleTracks[slice.startedShowing.track]) {
+                autoPauseContext.startedShowing(slice.startedShowing);
+            }
+
+            if (slice.willStopShowing && !disabledSubtitleTracks[slice.willStopShowing.track]) {
+                autoPauseContext.willStopShowing(slice.willStopShowing);
             }
 
             showSubtitles = showSubtitles.sort((s1, s2) => s1.track - s2.track);
@@ -471,18 +479,7 @@ export default function VideoPlayer({
         }, 100);
 
         return () => clearTimeout(interval);
-    }, [
-        subtitleCollection,
-        playerChannel,
-        playMode,
-        subtitles,
-        disabledSubtitleTracks,
-        clock,
-        length,
-        miscSettings,
-        startedShowingSubtitle,
-        willStopShowingSubtitle,
-    ]);
+    }, [subtitleCollection, playerChannel, subtitles, disabledSubtitleTracks, clock, length, autoPauseContext]);
 
     const handleOffsetChange = useCallback(
         (offset: number) => {

@@ -9,6 +9,7 @@ import {
     SubtitleModel,
     SubtitleCollection,
     KeyBinder,
+    AutoPauseContext,
 } from '@project/common';
 import { SubtitleTextImage } from '@project/common/components';
 import FileCopy from '@material-ui/icons/FileCopy';
@@ -179,8 +180,7 @@ interface SubtitlePlayerProps {
     ) => void;
     onOffsetChange: (offset: number) => void;
     onToggleSubtitleTrack: (track: number) => void;
-    onStartedShowing?: () => void;
-    onWillStopShowing?: () => void;
+    autoPauseContext: AutoPauseContext;
     playing: boolean;
     subtitles?: DisplaySubtitleModel[];
     subtitleCollection?: SubtitleCollection<DisplaySubtitleModel>;
@@ -206,8 +206,7 @@ export default function SubtitlePlayer({
     onCopy,
     onOffsetChange,
     onToggleSubtitleTrack,
-    onStartedShowing,
-    onWillStopShowing,
+    autoPauseContext,
     playing,
     subtitles,
     subtitleCollection,
@@ -241,7 +240,9 @@ export default function SubtitlePlayer({
                 : [],
         [subtitles]
     );
-    const subtitleCollectionRef = useRef<SubtitleCollection<DisplaySubtitleModel>>(SubtitleCollection.empty<DisplaySubtitleModel>());
+    const subtitleCollectionRef = useRef<SubtitleCollection<DisplaySubtitleModel>>(
+        SubtitleCollection.empty<DisplaySubtitleModel>()
+    );
     subtitleCollectionRef.current = subtitleCollection ?? SubtitleCollection.empty<DisplaySubtitleModel>();
     const subtitleRefsRef = useRef<RefObject<HTMLTableRowElement>[]>([]);
     subtitleRefsRef.current = subtitleRefs;
@@ -260,12 +261,8 @@ export default function SubtitlePlayer({
     drawerOpenRef.current = drawerOpen;
     const [windowWidth] = useWindowSize(true);
     const classes = useSubtitlePlayerStyles({ compressed, windowWidth, appBarHidden });
-    const startedShowingSubtitleRef = useRef<SubtitleModel>();
-    const onStartedShowingRef = useRef<() => void>();
-    onStartedShowingRef.current = onStartedShowing;
-    const willStopShowingSubtitleRef = useRef<SubtitleModel>();
-    const onWillStopShowingRef = useRef<() => void>();
-    onWillStopShowingRef.current = onWillStopShowing;
+    const autoPauseContextRef = useRef<AutoPauseContext>();
+    autoPauseContextRef.current = autoPauseContext;
 
     // This effect should be scheduled only once as re-scheduling seems to cause performance issues.
     // Therefore all of the state it operates on is contained in refs.
@@ -306,20 +303,12 @@ export default function SubtitlePlayer({
                 }
             }
 
-            if (startedShowingSubtitleRef.current !== slice.startedShowing) {
-                if (slice.startedShowing !== undefined) {
-                    onStartedShowingRef.current?.();
-                }
-
-                startedShowingSubtitleRef.current = slice.startedShowing;
+            if (slice.startedShowing !== undefined) {
+                autoPauseContextRef.current?.startedShowing(slice.startedShowing);
             }
 
-            if (willStopShowingSubtitleRef.current !== slice.willStopShowing) {
-                if (slice.willStopShowing !== undefined) {
-                    onWillStopShowingRef.current?.();
-                }
-
-                willStopShowingSubtitleRef.current = slice.willStopShowing;
+            if (slice.willStopShowing !== undefined) {
+                autoPauseContextRef.current?.willStopShowing(slice.willStopShowing);
             }
 
             requestAnimationRef.current = requestAnimationFrame(update);
