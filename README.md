@@ -32,7 +32,6 @@ Otherwise, the following steps will work for any language:
 7. When a subtitle appears that you want to mine, use <kbd>Ctrl+Shift+X</kbd> to open the Anki dialog.
 8. Fill in the definition and word fields and then export the card. To fill in the definition field you may use the popup dictionary you installed in step 1.
 
-
 ## Usage
 
 ### Syncing with streaming video
@@ -71,6 +70,7 @@ You can also adjust offset manually by clicking on the "Subtitle Offset" text fi
 
 -   Netflix (on main /watch url)
 -   Youtube (on main /watch url)
+-   TVer
 
 <kbd>Ctrl+Shift+F</kbd> also allows you to choose an empty subtitle track so that you can mine streaming video without subtitles.
 
@@ -98,7 +98,8 @@ Most keyboard shortcuts shared by the extension and the website are customizable
 | Seek to previous/next subtitle                                                                      | <kbd>Left/Right</kbd>                                                    |
 | Seek to beginning of current subtitle                                                               | <kbd>Down</kbd>                                                          |
 | Adjust offset to previous/next subtitle                                                             | <kbd>Ctrl+Left/Right</kbd> or <kbd>Shift+Left/Right</kbd>                |
-| Adjust offset by +/- 100ms                                                                          | <kbd>Ctrl+Shift+Left/Right</kbd>                                         |
+| Adjust offset by ±100ms                                                                             | <kbd>Ctrl+Shift+Left/Right</kbd>                                         |
+| Adjust playback rate by ±0.1                                                                        | <kbd>Ctrl+Shift+[/]</kbd>                                                |
 
 ## Common issues
 
