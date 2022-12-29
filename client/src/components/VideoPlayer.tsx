@@ -993,6 +993,7 @@ export default function VideoPlayer({
                 offsetEnabled={true}
                 offset={offset}
                 playbackRate={playbackRate}
+                playbackRateEnabled={true}
                 fullscreenEnabled={true}
                 fullscreen={fullscreen}
                 closeEnabled={!popOut}
