@@ -1,5 +1,14 @@
 let basename = undefined;
 let subtitles = [];
+let path = window.location.pathname;
+
+function tryResetState() {
+    if (path !== window.location.pathname) {
+        basename = undefined;
+        subtitles = [];
+        path = window.location.pathname;
+    }
+}
 
 setTimeout(() => {
     const originalParse = JSON.parse;
@@ -7,7 +16,7 @@ setTimeout(() => {
     JSON.parse = function () {
         const value = originalParse.apply(this, arguments);
         if (value?.text_tracks instanceof Array) {
-            subtitles = [];
+            tryResetState();
 
             for (const track of value.text_tracks) {
                 if (
@@ -20,12 +29,15 @@ setTimeout(() => {
                 ) {
                     const label =
                         typeof track.label === 'string' ? `${track.srclang} - ${track?.label}` : track.srclang;
-                    
-                    subtitles.push({
-                        label: label,
-                        language: track.srclang.toLowerCase(),
-                        url: track.sources[0].src.replace(/^http:\/\//, 'https://'),
-                    });
+                    const language = track.srclang.toLowerCase();
+
+                    if (subtitles.find((s) => s.language === language) === undefined) {
+                        subtitles.push({
+                            label: label,
+                            language: language,
+                            url: track.sources[0].src.replace(/^http:\/\//, 'https://'),
+                        });
+                    }
                 }
             }
 
@@ -40,15 +52,14 @@ setTimeout(() => {
 
 document.addEventListener(
     'asbplayer-get-synced-data',
-    async () => {
+    () => {
+        tryResetState();
         const response = { error: '', basename: basename ?? document.title, extension: 'vtt', subtitles: subtitles };
         document.dispatchEvent(
             new CustomEvent('asbplayer-synced-data', {
                 detail: response,
             })
         );
-        basename = undefined;
-        subtitles = [];
     },
     false
 );
