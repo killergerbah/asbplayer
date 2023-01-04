@@ -1,0 +1,24 @@
+{
+    "pages": [
+        {
+            "host": "www.netflix.com",
+            "script": "netflix-page.js",
+            "path": "/watch"
+        },
+        {
+            "host": "www.youtube.com",
+            "script": "youtube-page.js",
+            "path": "/watch"
+        },
+        {
+            "host": "tver.jp",
+            "script": "tver-page.js",
+            "path": "/episodes"
+        },
+        {
+            "host": "www.b-ch.com",
+            "script": "bandai-channel-page.js",
+            "path": "/titles"
+        }
+    ]
+}

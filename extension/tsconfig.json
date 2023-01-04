@@ -6,7 +6,8 @@
         "jsx": "react",
         "esModuleInterop": true,
         "strict": true,
-        "downlevelIteration": true
+        "downlevelIteration": true,
+        "resolveJsonModule": true
     },
     "include": ["./src/**/*"]
 }

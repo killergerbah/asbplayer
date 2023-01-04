@@ -3,6 +3,7 @@ import { bufferToBase64 } from '../services/Base64';
 import FrameBridgeClient from '../services/FrameBridgeClient';
 import Binding from './Binding';
 import ImageElement from './ImageElement';
+import pagesConfig from '../pages.json';
 
 function html() {
     return `<!DOCTYPE html>
@@ -185,21 +186,13 @@ export default class VideoDataSyncContainer {
 
     _blockRequest() {
         let shallBlock = false;
-
         const urlObj = new URL(window.location.href);
 
-        switch (urlObj.host) {
-            case 'www.netflix.com':
-                shallBlock = !urlObj.pathname.startsWith('/watch');
+        for (const page of pagesConfig.pages) {
+            if (urlObj.host === page.host) {
+                shallBlock = !urlObj.pathname.startsWith(page.path);
                 break;
-            case 'www.youtube.com':
-                shallBlock = !urlObj.pathname.startsWith('/watch');
-                break;
-            case 'tver.jp':
-                shallBlock = !urlObj.pathname.startsWith('/episodes');
-                break;
-            default:
-                break;
+            }
         }
 
         return shallBlock;

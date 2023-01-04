@@ -1,36 +1,21 @@
 import Binding from './services/Binding';
+import pagesConfig from './pages.json';
 
 const bind = () => {
     const bindings: Binding[] = [];
-    const pages = [];
-    const urlObj = new URL(window.location.href);
 
+    const urlObj = new URL(window.location.href);
     let videoSelectMode = false;
     let subSyncAvailable = false;
 
-    switch (urlObj.host) {
-        case 'www.netflix.com':
+    for (const page of pagesConfig.pages) {
+        if (urlObj.host === page.host) {
             subSyncAvailable = true;
-            pages.push(chrome.runtime.getURL('pages/netflix-page.js'));
-            break;
-        case 'www.youtube.com':
-            subSyncAvailable = true;
-            pages.push(chrome.runtime.getURL('pages/youtube-page.js'));
-            break;
-        case 'tver.jp':
-            subSyncAvailable = true;
-            pages.push(chrome.runtime.getURL('pages/tver-page.js'));
-            break;
-        default:
-            break;
-    }
-
-    for (let index = 0, length = pages.length; index < length; index++) {
-        const s = document.createElement('script');
-
-        s.src = pages[index];
-        s.onload = () => s.remove();
-        (document.head || document.documentElement).appendChild(s);
+            const s = document.createElement('script');
+            s.src = chrome.runtime.getURL(`pages/${page.script}`);
+            s.onload = () => s.remove();
+            (document.head || document.documentElement).appendChild(s);
+        }
     }
 
     const interval = setInterval(() => {
