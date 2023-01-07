@@ -88,6 +88,7 @@ Most keyboard shortcuts shared by the extension and the website are customizable
 | Mine current subtitle and open Anki export dialog                                                   | <kbd>Ctrl+Shift+X</kbd>                                                  |
 | Update last-created Anki card with asbplayer-captured screenshot, audio, etc                        | <kbd>Ctrl+Shift+U</kbd>                                                  |
 | Manually take screenshot, overriding the one that is automatically taken when mining                | <kbd>Ctrl+Shift+V</kbd> (extension only)                                 |
+| Manually start/stop audio recording, even when a subtitle file is loaded.                           | (unbound by default, extension only)                                     |
 | Select video element to mine without a subtitle file, or with detected subtitles on supported sites | <kbd>Ctrl+Shift+F</kbd> (extension only)                                 |
 | Play/pause                                                                                          | <kbd>Space</kbd>                                                         |
 | Toggle auto-pause                                                                                   | <kbd>Shift+P</kbd>                                                       |
