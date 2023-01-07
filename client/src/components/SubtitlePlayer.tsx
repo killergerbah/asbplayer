@@ -164,7 +164,9 @@ const SubtitleRow = React.memo((props: SubtitleRowProps) => {
                     </IconButton>
                 </TableCell>
             )}
-            <TableCell className={classes.timestamp}>{subtitle.displayTime}</TableCell>
+            <TableCell className={classes.timestamp}>
+                <div>{`\n${subtitle.displayTime}\n`}</div>
+            </TableCell>
         </TableRow>
     );
 });
