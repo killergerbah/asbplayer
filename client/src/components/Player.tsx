@@ -793,6 +793,19 @@ export default function Player({
         []
     );
 
+    const handleSubtitlesSelected = useCallback(
+        (subtitles: SubtitleModel[]) => {
+            if (subtitles.length === 0 || !settingsProvider.autoCopyCurrentSubtitle || !document.hasFocus()) {
+                return;
+            }
+
+            navigator.clipboard.writeText(subtitles.map((s) => s.text).join('\n')).catch((e) => {
+                // ignore
+            });
+        },
+        [settingsProvider.autoCopyCurrentSubtitle]
+    );
+
     useEffect(() => {
         if (tab) {
             return;
@@ -1091,6 +1104,7 @@ export default function Player({
                             onCopy={handleCopyFromSubtitlePlayer}
                             onOffsetChange={handleOffsetChange}
                             onToggleSubtitleTrack={handleToggleSubtitleTrack}
+                            onSubtitlesSelected={handleSubtitlesSelected}
                             autoPauseContext={autoPauseContext}
                             settingsProvider={settingsProvider}
                             keyBinder={keyBinder}

@@ -111,7 +111,7 @@ export default class Binding {
         this.maxImageWidth = 0;
         this.maxImageHeight = 0;
         this.autoPausePreference = AutoPausePreference.atEnd;
-        this.copyToClipboardOnMine = true;
+        this.copyToClipboardOnMine = false;
         this.synced = false;
         this.recordingMedia = false;
         this.recordingMediaWithScreenshot = false;
@@ -424,6 +424,8 @@ export default class Binding {
                         this.autoPausePreference =
                             miscSettingsMessage.value.autoPausePreference ?? this.autoPausePreference;
                         this.keyBindings.setKeyBindSet(this, miscSettingsMessage.value.keyBindSet);
+                        this.subtitleContainer.autoCopyCurrentSubtitle =
+                            miscSettingsMessage.value.autoCopyCurrentSubtitle ?? false;
                         break;
                     case 'settings-updated':
                         this._refreshSettings();

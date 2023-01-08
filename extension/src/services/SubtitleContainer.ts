@@ -36,6 +36,7 @@ export default class SubtitleContainer {
     displaySubtitles: boolean;
     surroundingSubtitlesCountRadius: number;
     surroundingSubtitlesTimeRadius: number;
+    autoCopyCurrentSubtitle: boolean;
 
     readonly autoPauseContext: AutoPauseContext = new AutoPauseContext();
 
@@ -71,6 +72,7 @@ export default class SubtitleContainer {
         this.surroundingSubtitlesCountRadius = 1;
         this.surroundingSubtitlesTimeRadius = 5000;
         this.showingLoadedMessage = false;
+        this.autoCopyCurrentSubtitle = false;
     }
 
     get subtitles() {
@@ -146,6 +148,12 @@ export default class SubtitleContainer {
                     this.showingOffset = offset;
                 } else {
                     this.showingOffset = undefined;
+                }
+
+                if (this.autoCopyCurrentSubtitle && showingSubtitles.length > 0 && document.hasFocus()) {
+                    navigator.clipboard.writeText(showingSubtitles.map((s) => s.text).join('\n')).catch((e) => {
+                        // ignore
+                    });
                 }
             }
         }, 100);

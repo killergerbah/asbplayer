@@ -81,6 +81,7 @@ const copyToClipboardOnMineKey = 'copyToClipboardOnMine';
 const autoPausePreferenceKey = 'autoPausePreference';
 const keyBindSetKey = 'keyBindSet';
 const rememberSubtitleOffsetKey = 'rememberSubtitleOffset';
+const autoCopyCurrentSubtitleKey = 'autoCopyCurrentSubtitle';
 
 export default class SettingsProvider implements AsbplayerSettingsProvider {
     private _tags?: string[];
@@ -127,6 +128,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             autoPausePreference: this.autoPausePreference,
             keyBindSet: this.keyBindSet,
             rememberSubtitleOffset: this.rememberSubtitleOffset,
+            autoCopyCurrentSubtitle: this.autoCopyCurrentSubtitle,
         };
     }
 
@@ -164,6 +166,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.autoPausePreference = newSettings.autoPausePreference;
         this.keyBindSet = newSettings.keyBindSet;
         this.rememberSubtitleOffset = newSettings.rememberSubtitleOffset;
+        this.autoCopyCurrentSubtitle = newSettings.autoCopyCurrentSubtitle;
     }
 
     get subtitleSettings() {
@@ -210,6 +213,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             autoPausePreference: this.autoPausePreference,
             keyBindSet: this.keyBindSet,
             rememberSubtitleOffset: this.rememberSubtitleOffset,
+            autoCopyCurrentSubtitle: this.autoCopyCurrentSubtitle,
         };
     }
 
@@ -552,5 +556,13 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
 
     set rememberSubtitleOffset(rememberSubtitleOffset) {
         localStorage.setItem(rememberSubtitleOffsetKey, String(rememberSubtitleOffset));
+    }
+
+    get autoCopyCurrentSubtitle() {
+        return localStorage.getItem(autoCopyCurrentSubtitleKey) === 'true' || false;
+    }
+
+    set autoCopyCurrentSubtitle(autoCopyCurrentSubtitle) {
+        localStorage.setItem(autoCopyCurrentSubtitleKey, String(autoCopyCurrentSubtitle));
     }
 }

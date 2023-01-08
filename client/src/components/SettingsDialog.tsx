@@ -394,6 +394,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
     const [autoPausePreference, setAutoPausePreference] = useState<AutoPausePreference>(settings.autoPausePreference);
     const [keyBindSet, setKeyBindSet] = useState<KeyBindSet>(settings.keyBindSet);
     const [rememberSubtitleOffset, setRememberSubtitleOffset] = useState<boolean>(settings.rememberSubtitleOffset);
+    const [autoCopyCurrentSubtitle, setAutoCopyCurrentSubtitle] = useState<boolean>(settings.autoCopyCurrentSubtitle);
 
     const handleAnkiConnectUrlChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         setAnkiConnectUrl(e.target.value);
@@ -596,6 +597,10 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         (e: ChangeEvent<HTMLInputElement>) => setRememberSubtitleOffset(e.target.checked),
         []
     );
+    const handleAutoCopyCurrentSubtitle = useCallback(
+        (e: ChangeEvent<HTMLInputElement>) => setAutoCopyCurrentSubtitle(e.target.checked),
+        []
+    );
 
     const subtitlePreviewStyles = useMemo(
         () =>
@@ -732,6 +737,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
             autoPausePreference: autoPausePreference,
             keyBindSet: keyBindSet,
             rememberSubtitleOffset: rememberSubtitleOffset,
+            autoCopyCurrentSubtitle: autoCopyCurrentSubtitle,
         });
     }, [
         onClose,
@@ -768,6 +774,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         autoPausePreference,
         keyBindSet,
         rememberSubtitleOffset,
+        autoCopyCurrentSubtitle,
     ]);
 
     const customFieldInputs = Object.keys(customFields).map((customFieldName) => {
@@ -1032,6 +1039,17 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                         />
                                     }
                                     label="Remember subtitle offset"
+                                    labelPlacement="start"
+                                    className={classes.switchLabel}
+                                />
+                                <FormControlLabel
+                                    control={
+                                        <Switch
+                                            checked={autoCopyCurrentSubtitle}
+                                            onChange={handleAutoCopyCurrentSubtitle}
+                                        />
+                                    }
+                                    label="Auto-copy current subtitle to clipboard"
                                     labelPlacement="start"
                                     className={classes.switchLabel}
                                 />

@@ -475,11 +475,25 @@ export default function VideoPlayer({
 
             if (!arrayEquals(showSubtitles, showSubtitlesRef.current, (s1, s2) => s1.index === s2.index)) {
                 setShowSubtitles(showSubtitles);
+                if (showSubtitles.length > 0 && miscSettings.autoCopyCurrentSubtitle && document.hasFocus()) {
+                    navigator.clipboard.writeText(showSubtitles.map((s) => s.text).join('\n')).catch((e) => {
+                        // ignore
+                    });
+                }
             }
         }, 100);
 
         return () => clearTimeout(interval);
-    }, [subtitleCollection, playerChannel, subtitles, disabledSubtitleTracks, clock, length, autoPauseContext]);
+    }, [
+        subtitleCollection,
+        playerChannel,
+        subtitles,
+        disabledSubtitleTracks,
+        clock,
+        length,
+        autoPauseContext,
+        miscSettings,
+    ]);
 
     const handleOffsetChange = useCallback(
         (offset: number) => {

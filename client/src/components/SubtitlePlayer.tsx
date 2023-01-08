@@ -182,6 +182,7 @@ interface SubtitlePlayerProps {
     ) => void;
     onOffsetChange: (offset: number) => void;
     onToggleSubtitleTrack: (track: number) => void;
+    onSubtitlesSelected: (subtitles: SubtitleModel[]) => void;
     autoPauseContext: AutoPauseContext;
     playing: boolean;
     subtitles?: DisplaySubtitleModel[];
@@ -208,6 +209,7 @@ export default function SubtitlePlayer({
     onCopy,
     onOffsetChange,
     onToggleSubtitleTrack,
+    onSubtitlesSelected,
     autoPauseContext,
     playing,
     subtitles,
@@ -265,6 +267,8 @@ export default function SubtitlePlayer({
     const classes = useSubtitlePlayerStyles({ compressed, windowWidth, appBarHidden });
     const autoPauseContextRef = useRef<AutoPauseContext>();
     autoPauseContextRef.current = autoPauseContext;
+    const onSubtitlesSelectedRef = useRef<(subtitles: SubtitleModel[]) => void>();
+    onSubtitlesSelectedRef.current = onSubtitlesSelected;
 
     // This effect should be scheduled only once as re-scheduling seems to cause performance issues.
     // Therefore all of the state it operates on is contained in refs.
@@ -290,6 +294,7 @@ export default function SubtitlePlayer({
             if (!keysAreEqual(currentSubtitleIndexes, selectedSubtitleIndexesRef.current)) {
                 selectedSubtitleIndexesRef.current = currentSubtitleIndexes;
                 setSelectedSubtitleIndexes(currentSubtitleIndexes);
+                onSubtitlesSelectedRef.current?.(showing);
 
                 if (smallestIndex !== undefined) {
                     const scrollToSubtitleRef = subtitleRefs[smallestIndex];
