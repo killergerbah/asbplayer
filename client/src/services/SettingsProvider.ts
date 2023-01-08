@@ -47,6 +47,7 @@ const defaultKeyBindSet: KeyBindSet = {
     decreasePlaybackRate: { keys: isMacOs ? '⇧+⌃+[' : 'ctrl+shift+[' },
     increasePlaybackRate: { keys: isMacOs ? '⇧+⌃+]' : 'ctrl+shift+]' },
 };
+const defaultPreferMp3 = true;
 
 const ankiConnectUrlKey = 'ankiConnectUrl';
 const deckKey = 'deck';
@@ -421,8 +422,19 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         localStorage.setItem(imageBasedSubtitleScaleFactorKey, String(imageBasedSubtitleScaleFactor));
     }
 
-    get preferMp3() {
-        return localStorage.getItem(preferMp3Key) === 'true' || false;
+    get preferMp3(): boolean {
+        const value = localStorage.getItem(preferMp3Key);
+
+        if (value !== null) {
+            if (value === 'true') {
+                return true;
+            }
+
+            return false;
+        }
+
+
+        return defaultPreferMp3;
     }
 
     set preferMp3(preferMp3) {
