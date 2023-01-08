@@ -193,7 +193,7 @@ export default class SubtitleContainer {
     }
 
     private _buildTextHtml(text: string) {
-        return `<span style="${this._subtitleStyles()}">${text}</span><br>`;
+        return `<span style="${this._subtitleStyles()}">${text}</span>`;
     }
 
     unbind() {
