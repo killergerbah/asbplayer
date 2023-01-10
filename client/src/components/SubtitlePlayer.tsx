@@ -427,7 +427,7 @@ export default function SubtitlePlayer({
             (event, subtitle) => {
                 event.preventDefault();
                 event.stopPropagation();
-                onSeek(subtitle.start, false);
+                onSeek(subtitle.start, playingRef.current ?? false);
             },
             () => disableKeyEvents,
             () => clock.time(length),
@@ -442,7 +442,7 @@ export default function SubtitlePlayer({
             (event, subtitle) => {
                 event.preventDefault();
                 event.stopPropagation();
-                onSeek(subtitle.start, false);
+                onSeek(subtitle.start, playingRef.current ?? false);
             },
             () => disableKeyEvents,
             () => clock.time(length),
@@ -458,9 +458,9 @@ export default function SubtitlePlayer({
                 event.stopPropagation();
                 event.preventDefault();
                 if (forward) {
-                    onSeek(Math.min(length, clock.time(length) + 10000), false);
+                    onSeek(Math.min(length, clock.time(length) + 10000), playingRef.current ?? false);
                 } else {
-                    onSeek(Math.max(0, clock.time(length) - 10000), false);
+                    onSeek(Math.max(0, clock.time(length) - 10000), playingRef.current ?? false);
                 }
             },
             () => disableKeyEvents
