@@ -1,24 +1,34 @@
 {
     "pages": [
         {
-            "host": "www.netflix.com",
+            "host": "www\\.netflix\\.com",
             "script": "netflix-page.js",
-            "path": "/watch"
+            "path": "/watch",
+            "autoSyncEnabled": true
         },
         {
-            "host": "www.youtube.com",
+            "host": "www\\.youtube\\.com",
             "script": "youtube-page.js",
-            "path": "/watch"
+            "path": "/watch",
+            "autoSyncEnabled": true
         },
         {
-            "host": "tver.jp",
+            "host": "tver\\.jp",
             "script": "tver-page.js",
-            "path": "/episodes"
+            "path": "/episodes",
+            "autoSyncEnabled": true
         },
         {
-            "host": "www.b-ch.com",
+            "host": "www\\.b-ch\\.com",
             "script": "bandai-channel-page.js",
-            "path": "/titles"
+            "path": "/titles",
+            "autoSyncEnabled": true
+        },
+        {
+            "host": "www\\.amazon\\..+",
+            "script": "amazon-prime-page.js",
+            "path": "/gp/video/detail",
+            "autoSyncEnabled": false
         }
     ]
 }

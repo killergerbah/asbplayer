@@ -27,6 +27,10 @@ const createClasses = makeStyles((theme) => ({
 }));
 
 function calculateName(suggestedName: string, label: string) {
+    if (suggestedName === '' && label) {
+        return label;
+    }
+    
     if (label) {
         return `${suggestedName} - ${label}`;
     }
@@ -72,7 +76,7 @@ export default function VideoDataSyncDialog({
 
     useEffect(() => {
         setName((name) => {
-            if (!suggestedName || !subtitles) {
+            if (!subtitles) {
                 // Unable to calculate the video name
                 return name;
             }

@@ -3,7 +3,7 @@ import { bufferToBase64 } from '../services/Base64';
 import FrameBridgeClient from '../services/FrameBridgeClient';
 import Binding from './Binding';
 import ImageElement from './ImageElement';
-import pagesConfig from '../pages.json';
+import { currentPageConfig } from './pages';
 
 function html() {
     return `<!DOCTYPE html>
@@ -186,24 +186,32 @@ export default class VideoDataSyncContainer {
 
     _blockRequest() {
         let shallBlock = false;
-        const urlObj = new URL(window.location.href);
+        const { url, page } = currentPageConfig();
 
-        for (const page of pagesConfig.pages) {
-            if (urlObj.host === page.host) {
-                shallBlock = !urlObj.pathname.startsWith(page.path);
-                break;
-            }
+        if (page === undefined) {
+            return shallBlock;
         }
 
+        shallBlock = !url.pathname.startsWith(page.path);
         return shallBlock;
     }
 
     _setSyncedData({ detail: data }: CustomEvent) {
         this.syncedData = data;
 
-        if (this.requested || this.autoSync) {
+        if (this.requested || this._canAutoSync()) {
             this.show(this.requested);
         }
+    }
+
+    private _canAutoSync(): boolean {
+        const { page } = currentPageConfig();
+
+        if (page === undefined) {
+            return this.autoSync ?? false;
+        }
+
+        return this.autoSync === true && page.autoSyncEnabled;
     }
 
     async _client() {

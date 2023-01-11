@@ -20,6 +20,7 @@ interface SubtitleNode {
 
 export default class SubtitleReader {
     private xmlParser?: XMLParser;
+    private dfxpXmlParser?: XMLParser;
 
     async subtitles(files: File[]) {
         return (await Promise.all(files.map((f, i) => this._subtitles(f, i))))
@@ -135,7 +136,35 @@ export default class SubtitleReader {
             return subtitles;
         }
 
+        if (file.name.endsWith('.dfxp')) {
+            const text = await file.text();
+            const xml = this._dfxpXmlParser().parse(text);
+            const textNodes = xml['tt']['body']['div']['p'];
+            const subtitles = [];
+
+            for (let index = 0, length = textNodes.length; index < length; index++) {
+                const elm = textNodes[index];
+                subtitles.push({
+                    text: this._decodeHTML(elm['#text']).replace(/\n$/, ''),
+                    start: this._parseTtmlTimestamp(elm['@_begin']),
+                    end: this._parseTtmlTimestamp(elm['@_end']),
+                    track,
+                });
+            }
+
+            return subtitles;
+        }
+
         throw new Error('Unsupported subtitle file format');
+    }
+
+    private _parseTtmlTimestamp(timestamp: string) {
+        const parts = timestamp.split(':');
+        const milliseconds = Math.floor(parseFloat(parts[parts.length - 1]) * 1000);
+        const minutes = parts.length < 2 ? 0 : Number(parts[parts.length - 2]);
+        const hours = parts.length < 3 ? 0 : Number(parts[parts.length - 3]);
+
+        return milliseconds + minutes * 60000 + hours * 3600000;
     }
 
     private _displaySetsToSubtitles(subtitles: SubtitleNode[], track: number) {
@@ -208,10 +237,29 @@ export default class SubtitleReader {
 
     private _xmlParser() {
         if (this.xmlParser === undefined) {
-            this.xmlParser = new XMLParser({ ignoreAttributes: false });
+            this.xmlParser = new XMLParser({
+                ignoreAttributes: false,
+            });
         }
 
         return this.xmlParser;
+    }
+
+    private _dfxpXmlParser() {
+        if (this.dfxpXmlParser === undefined) {
+            this.dfxpXmlParser = new XMLParser({
+                ignoreAttributes: false,
+                removeNSPrefix: true,
+                isArray: (name, jpath, isLeafNode, isAttribute) => {
+                    return name === 'p';
+                },
+                tagValueProcessor: (tagName, tagValue, jPath, hasAttributes, isLeafNode) => {
+                    return tagValue + '\n';
+                },
+            });
+        }
+
+        return this.dfxpXmlParser;
     }
 
     subtitlesToSrt(subtitles: SubtitleNode[]) {

@@ -58,7 +58,13 @@ export default class DragContainer {
 
                 const extension = f.name.substring(extensionStartIndex + 1, f.name.length);
 
-                if (extension === 'ass' || extension === 'srt' || extension === 'vtt' || extension === 'sup') {
+                if (
+                    extension === 'ass' ||
+                    extension === 'srt' ||
+                    extension === 'vtt' ||
+                    extension === 'sup' ||
+                    extension === 'dfxp'
+                ) {
                     files.push(f);
                 }
             }

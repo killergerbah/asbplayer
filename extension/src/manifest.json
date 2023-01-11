@@ -75,6 +75,7 @@
                 "pages/youtube-page.js",
                 "pages/tver-page.js",
                 "pages/bandai-channel-page.js",
+                "pages/amazon-prime-page.js",
                 "anki-ui.js",
                 "mp3-encoder.worker.js",
                 "video-data-sync-ui.js"

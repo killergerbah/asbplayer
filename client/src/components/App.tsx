@@ -85,6 +85,7 @@ function extractSources(files: FileList | File[]): MediaSources {
             case 'nfvtt':
             case 'sup':
             case 'ytxml':
+            case 'dfxp':
                 subtitleFiles.push(f);
                 break;
             case 'mkv':

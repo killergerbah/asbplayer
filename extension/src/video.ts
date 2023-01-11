@@ -1,22 +1,10 @@
 import Binding from './services/Binding';
-import pagesConfig from './pages.json';
+import { loadPageScripts } from './services/pages';
 
 const bind = () => {
     const bindings: Binding[] = [];
-
-    const urlObj = new URL(window.location.href);
     let videoSelectMode = false;
-    let subSyncAvailable = false;
-
-    for (const page of pagesConfig.pages) {
-        if (urlObj.host === page.host) {
-            subSyncAvailable = true;
-            const s = document.createElement('script');
-            s.src = chrome.runtime.getURL(`pages/${page.script}`);
-            s.onload = () => s.remove();
-            (document.head || document.documentElement).appendChild(s);
-        }
-    }
+    let subSyncAvailable = loadPageScripts();
 
     const interval = setInterval(() => {
         const videoElements = document.getElementsByTagName('video');
