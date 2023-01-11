@@ -586,15 +586,21 @@ function App() {
                 case PostMineAction.updateLastCard:
                     // FIXME: We should really rename the functions below because we're actually skipping the Anki dialog in this case
                     setAnkiDialogRequested(true);
+                    let audioClip = audioClipFromItem(
+                        newCopiedSubtitle,
+                        undefined,
+                        settingsProvider.audioPaddingStart,
+                        settingsProvider.audioPaddingEnd
+                    );
+
+                    if (audioClip && settingsProvider.preferMp3) {
+                        audioClip = audioClip.toMp3();
+                    }
+
                     handleAnkiDialogProceed(
                         subtitle.text,
                         '',
-                        audioClipFromItem(
-                            newCopiedSubtitle,
-                            undefined,
-                            settingsProvider.audioPaddingStart,
-                            settingsProvider.audioPaddingEnd
-                        ),
+                        audioClip,
                         imageFromItem(
                             newCopiedSubtitle,
                             settingsProvider.maxImageWidth,
