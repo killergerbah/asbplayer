@@ -19,11 +19,6 @@ setTimeout(() => {
         // @ts-ignore
         const value = originalParse.apply(this, arguments);
 
-        if (typeof value?.catalogMetadata?.catalog?.title === 'string') {
-            tryResetState();
-            // basename = value.catalogMetadata.catalog.title;
-        }
-
         if (value?.subtitleUrls instanceof Array) {
             tryResetState();
             for (const track of value.subtitleUrls) {
@@ -51,7 +46,7 @@ setTimeout(() => {
             tryResetState();
             const response = {
                 error: '',
-                basename: basename ?? document.title,
+                basename: basename,
                 extension: 'dfxp',
                 subtitles: subtitles,
             };
