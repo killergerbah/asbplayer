@@ -4,31 +4,50 @@
             "host": "www\\.netflix\\.com",
             "script": "netflix-page.js",
             "path": "/watch",
-            "autoSyncEnabled": true
+            "autoSync": {
+                "enabled": true
+            }
         },
         {
             "host": "www\\.youtube\\.com",
             "script": "youtube-page.js",
             "path": "/watch",
-            "autoSyncEnabled": true
+            "autoSync": {
+                "enabled": true
+            }
         },
         {
             "host": "tver\\.jp",
             "script": "tver-page.js",
             "path": "/episodes",
-            "autoSyncEnabled": true
+            "autoSync": {
+                "enabled": true
+            }
         },
         {
             "host": "www\\.b-ch\\.com",
             "script": "bandai-channel-page.js",
             "path": "/titles",
-            "autoSyncEnabled": true
+            "autoSync": {
+                "enabled": true
+            }
         },
         {
             "host": "www\\.amazon\\..+",
             "script": "amazon-prime-page.js",
             "path": "/gp/video/detail",
-            "autoSyncEnabled": false
+            "autoSync": {
+                "enabled": false
+            }
+        },
+        {
+            "host": "www\\.hulu\\..+",
+            "script": "hulu-page.js",
+            "path": "/watch",
+            "autoSync": {
+                "enabled": true,
+                "elementId": "content-video-player"
+            }
         }
     ]
 }

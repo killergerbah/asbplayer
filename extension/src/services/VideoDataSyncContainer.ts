@@ -211,7 +211,11 @@ export default class VideoDataSyncContainer {
             return this.autoSync ?? false;
         }
 
-        return this.autoSync === true && page.autoSyncEnabled;
+        return (
+            this.autoSync === true &&
+            page.autoSync.enabled &&
+            (page.autoSync.elementId === undefined || this.context.video.id === page.autoSync.elementId)
+        );
     }
 
     async _client() {
