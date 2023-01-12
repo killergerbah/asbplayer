@@ -15,9 +15,17 @@ document.addEventListener(
                 })
                 .then((pageString) => new window.DOMParser().parseFromString(pageString, 'text/html'))
                 .then((page) => {
-                    const playerScript = [...page.body.querySelectorAll('script')].find((elm) =>
-                        elm.textContent.includes('ytInitialPlayerResponse')
-                    );
+                    const scriptElements = page.body.querySelectorAll('script');
+                    let playerScript;
+
+                    for (let i = 0; i < scriptElements.length; ++i) {
+                        const elm = scriptElements[i];
+
+                        if (elm.textContent?.includes('ytInitialPlayerResponse')) {
+                            playerScript = elm;
+                            break;
+                        }
+                    }
 
                     if (!playerScript) {
                         throw new Error('YT Player Context not found...');
@@ -32,7 +40,7 @@ document.addEventListener(
 
             response.basename = playerContext.videoDetails?.title || document.title;
             response.subtitles = (playerContext?.captions?.playerCaptionsTracklistRenderer?.captionTracks || []).map(
-                (track) => {
+                (track: any) => {
                     return {
                         label: `${track.languageCode} - ${track.name?.simpleText}`,
                         language: track.languageCode.toLowerCase(),
@@ -41,7 +49,11 @@ document.addEventListener(
                 }
             );
         } catch (error) {
-            response.error = error.message;
+            if (error instanceof Error) {
+                response.error = error.message;
+            } else {
+                response.error = String(error);
+            }
         } finally {
             document.dispatchEvent(
                 new CustomEvent('asbplayer-synced-data', {

@@ -1,19 +1,22 @@
-let basename = undefined;
-let subtitles = [];
-let path = window.location.pathname;
-
-function tryResetState() {
-    if (path !== window.location.pathname) {
-        basename = undefined;
-        subtitles = [];
-        path = window.location.pathname;
-    }
-}
+import { VideoDataSubtitleTrack } from '@project/common';
 
 setTimeout(() => {
+    let basename: string | undefined = undefined;
+    let subtitles: VideoDataSubtitleTrack[] = [];
+    let path = window.location.pathname;
+
+    function tryResetState() {
+        if (path !== window.location.pathname) {
+            basename = undefined;
+            subtitles = [];
+            path = window.location.pathname;
+        }
+    }
+
     const originalParse = JSON.parse;
 
     JSON.parse = function () {
+        // @ts-ignore
         const value = originalParse.apply(this, arguments);
         if (value?.text_tracks instanceof Array) {
             tryResetState();
@@ -48,18 +51,23 @@ setTimeout(() => {
 
         return value;
     };
-}, 0);
 
-document.addEventListener(
-    'asbplayer-get-synced-data',
-    () => {
-        tryResetState();
-        const response = { error: '', basename: basename ?? document.title, extension: 'vtt', subtitles: subtitles };
-        document.dispatchEvent(
-            new CustomEvent('asbplayer-synced-data', {
-                detail: response,
-            })
-        );
-    },
-    false
-);
+    document.addEventListener(
+        'asbplayer-get-synced-data',
+        () => {
+            tryResetState();
+            const response = {
+                error: '',
+                basename: basename ?? document.title,
+                extension: 'vtt',
+                subtitles: subtitles,
+            };
+            document.dispatchEvent(
+                new CustomEvent('asbplayer-synced-data', {
+                    detail: response,
+                })
+            );
+        },
+        false
+    );
+}, 0);

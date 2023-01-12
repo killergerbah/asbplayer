@@ -1,6 +1,7 @@
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const glob = require('glob');
 
 module.exports = (env, options) => ({
     entry: {
@@ -11,6 +12,11 @@ module.exports = (env, options) => ({
         'video-data-sync-ui': './src/video-data-sync-ui.ts',
         asbplayer: './src/asbplayer.ts',
         'background-page': './src/background-page.ts',
+        ...Object.fromEntries(
+            glob
+                .sync('./src/pages/*.ts')
+                .map((filePath) => [filePath.substring(filePath.lastIndexOf('/pages'), filePath.length - 3), filePath])
+        ),
     },
     output: {
         filename: '[name].js',
