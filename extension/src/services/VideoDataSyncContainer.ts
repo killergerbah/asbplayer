@@ -214,7 +214,9 @@ export default class VideoDataSyncContainer {
         return (
             this.autoSync === true &&
             page.autoSync.enabled &&
-            (page.autoSync.elementId === undefined || this.context.video.id === page.autoSync.elementId)
+            (page.autoSync.elementId === undefined || this.context.video.id === page.autoSync.elementId) &&
+            (page.autoSync.videoSrc === undefined ||
+                new RegExp(page.autoSync.videoSrc).exec(this.context.video.src) !== null)
         );
     }
 
