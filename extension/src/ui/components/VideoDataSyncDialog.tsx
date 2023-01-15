@@ -30,7 +30,7 @@ function calculateName(suggestedName: string, label: string) {
     if (suggestedName === '' && label) {
         return label;
     }
-    
+
     if (label) {
         return `${suggestedName} - ${label}`;
     }
@@ -104,13 +104,7 @@ export default function VideoDataSyncDialog({
     }, [suggestedName, selected, subtitles]);
 
     return (
-        <Dialog
-            disableEnforceFocus
-            fullWidth
-            maxWidth="sm"
-            open={open}
-            onClose={onCancel}
-        >
+        <Dialog disableEnforceFocus fullWidth maxWidth="sm" open={open} onClose={onCancel}>
             <DialogTitle>Select Subtitles</DialogTitle>
             <DialogContent>
                 <form>
@@ -161,8 +155,8 @@ export default function VideoDataSyncDialog({
                 <Button
                     disabled={!trimmedName}
                     onClick={() => {
-                        const { language } = subtitles.find((subtitle) => subtitle.url === selected)!;
-                        onConfirm({ name: trimmedName, subtitleUrl: selected, language });
+                        const { language, m3U8BaseUrl } = subtitles.find((subtitle) => subtitle.url === selected)!;
+                        onConfirm({ name: trimmedName, subtitleUrl: selected, language, m3U8BaseUrl: m3U8BaseUrl });
                     }}
                 >
                     Confirm

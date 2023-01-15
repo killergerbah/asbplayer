@@ -1,9 +1,18 @@
-import { ExtensionSettings, VideoData, VideoDataSubtitleTrack, VideoDataUiState } from '@project/common';
+import {
+    ExtensionSettings,
+    ExtensionSyncMessage,
+    SerializedSubtitleFile,
+    VideoData,
+    VideoDataSubtitleTrack,
+    VideoDataUiState,
+    VideoToExtensionCommand,
+} from '@project/common';
 import { bufferToBase64 } from '../services/Base64';
 import FrameBridgeClient from '../services/FrameBridgeClient';
 import Binding from './Binding';
 import ImageElement from './ImageElement';
 import { currentPageConfig } from './pages';
+import { Parser as m3U8Parser } from 'm3u8-parser';
 
 function html() {
     return `<!DOCTYPE html>
@@ -159,7 +168,8 @@ export default class VideoDataSyncContainer {
             if (
                 (await this._syncData(
                     this._defaultVideoName(this.syncedData?.basename, selectedSub),
-                    selectedSub.url
+                    selectedSub.url,
+                    selectedSub.m3U8BaseUrl
                 )) &&
                 this.doneListener
             ) {
@@ -192,7 +202,7 @@ export default class VideoDataSyncContainer {
             return shallBlock;
         }
 
-        shallBlock = !url.pathname.startsWith(page.path);
+        shallBlock = !new RegExp(page.path).test(url.pathname);
         return shallBlock;
     }
 
@@ -215,8 +225,7 @@ export default class VideoDataSyncContainer {
             this.autoSync === true &&
             page.autoSync.enabled &&
             (page.autoSync.elementId === undefined || this.context.video.id === page.autoSync.elementId) &&
-            (page.autoSync.videoSrc === undefined ||
-                new RegExp(page.autoSync.videoSrc).exec(this.context.video.src) !== null)
+            (page.autoSync.videoSrc === undefined || new RegExp(page.autoSync.videoSrc).test(this.context.video.src))
         );
     }
 
@@ -245,7 +254,11 @@ export default class VideoDataSyncContainer {
                     await this.context.settings.set({ lastLanguagesSynced: this.lastLanguagesSynced }).catch(() => {});
                 }
 
-                shallUpdate = await this._syncData(message.data.name, message.data.subtitleUrl);
+                shallUpdate = await this._syncData(
+                    message.data.name,
+                    message.data.subtitleUrl,
+                    message.data.m3U8BaseUrl
+                );
             }
 
             if (shallUpdate) {
@@ -299,40 +312,25 @@ export default class VideoDataSyncContainer {
         this.context.subtitleContainer.forceHideSubtitles = true;
     }
 
-    async _syncData(name: string, subtitleUrl = '-') {
+    async _syncData(name: string, subtitleUrl: string, m3U8BaseUrl: string | undefined) {
         try {
-            let response: ArrayBuffer | void;
+            let subtitles: SerializedSubtitleFile[] | undefined;
+            subtitles = await this._subtitlesForUrl(name, subtitleUrl, m3U8BaseUrl);
 
-            if ('-' !== subtitleUrl) {
-                response = await fetch(subtitleUrl)
-                    .then((webResponse) => {
-                        if (!webResponse.ok) {
-                            throw new Error(
-                                `Subtitle Retrieval failed with Status ${webResponse.status}/${webResponse.statusText}...`
-                            );
-                        }
-                        return webResponse.arrayBuffer();
-                    })
-                    .catch((error) => {
-                        this._reportError(name, error.message);
-                    });
-
-                if (!response) return false;
+            if (subtitles === undefined) {
+                return false;
             }
 
-            chrome.runtime.sendMessage({
+            const command: VideoToExtensionCommand<ExtensionSyncMessage> = {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'sync',
-                    subtitles: [
-                        {
-                            name: `${name}.${this.syncedData?.extension || 'srt'}`,
-                            base64: response ? bufferToBase64(response) : '',
-                        },
-                    ],
+                    subtitles: subtitles,
+                    flatten: this.syncedData?.extension === 'm3u8',
                 },
                 src: this.context.video.src,
-            });
+            };
+            chrome.runtime.sendMessage(command);
             return true;
         } catch (error) {
             if (typeof (error as Error).message !== 'undefined') {
@@ -341,6 +339,77 @@ export default class VideoDataSyncContainer {
 
             return false;
         }
+    }
+
+    private async _subtitlesForUrl(
+        name: string,
+        url: string,
+        m3U8BaseUrl?: string
+    ): Promise<SerializedSubtitleFile[] | undefined> {
+        const extension = this.syncedData?.extension || 'srt';
+
+        if (url === '-') {
+            return [
+                {
+                    name: `${name}.${this.syncedData?.extension || 'srt'}`,
+                    base64: '',
+                },
+            ];
+        }
+        
+        const response = await fetch(url).catch((error) => {
+            this._reportError(name, error.message);
+        });
+
+        if (!response) {
+            return undefined;
+        }
+
+        if (extension === 'm3u8') {
+            const m3U8Response = await fetch(url);
+            const parser = new m3U8Parser();
+            parser.push(await m3U8Response.text());
+            parser.end();
+
+            if (!parser.manifest.segments || parser.manifest.segments.length === 0) {
+                return undefined;
+            }
+
+            const firstUri = parser.manifest.segments[0].uri;
+            const extension = firstUri.substring(firstUri.lastIndexOf('.') + 1);
+            const promises = parser.manifest.segments
+                .filter((s: any) => !s.discontinuity && s.uri)
+                .map((s: any) => fetch(`${m3U8BaseUrl}/${s.uri}`));
+            const tracks = [];
+
+            for (const p of promises) {
+                const response = await p;
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Subtitle Retrieval failed with Status ${response.status}/${response.statusText}...`
+                    );
+                }
+
+                tracks.push({
+                    name: `${name}.${extension}`,
+                    base64: bufferToBase64(await response.arrayBuffer()),
+                });
+            }
+
+            return tracks;
+        }
+
+        if (!response.ok) {
+            throw new Error(`Subtitle Retrieval failed with Status ${response.status}/${response.statusText}...`);
+        }
+
+        return [
+            {
+                name: `${name}.${this.syncedData?.extension || 'srt'}`,
+                base64: response ? bufferToBase64(await response.arrayBuffer()) : '',
+            },
+        ];
     }
 
     async _reportError(suggestedName: string, error: string) {

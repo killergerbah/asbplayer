@@ -49,6 +49,14 @@
                 "enabled": true,
                 "elementId": "content-video-player"
             }
+        },
+        {
+            "host": "www\\.disneyplus\\..+",
+            "script": "disney-plus-page.js",
+            "path": "/.+/video",
+            "autoSync": {
+                "enabled": true
+            }
         }
     ]
 }

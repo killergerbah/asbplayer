@@ -6,7 +6,7 @@ export function currentPageConfig() {
     for (const page of pagesConfig.pages) {
         const regex = new RegExp(page.host);
 
-        if (regex.exec(urlObj.host) !== null) {
+        if (regex.test(urlObj.host)) {
             return { url: urlObj, page };
         }
     }

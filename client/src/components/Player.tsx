@@ -79,6 +79,7 @@ function trackLength(
 
 export interface MediaSources {
     subtitleFiles: File[];
+    flattenSubtitleFiles?: boolean;
     audioFile?: File;
     audioFileUrl?: string;
     videoFile?: File;
@@ -141,7 +142,7 @@ interface PlayerProps {
 }
 
 export default function Player({
-    sources: { subtitleFiles, audioFile, audioFileUrl, videoFile, videoFileUrl },
+    sources: { subtitleFiles, flattenSubtitleFiles, audioFile, audioFileUrl, videoFile, videoFileUrl },
     subtitleReader,
     settingsProvider,
     playbackPreferences,
@@ -355,7 +356,7 @@ export default function Player({
                 setLoadingSubtitles(true);
 
                 try {
-                    const nodes = await subtitleReader.subtitles(subtitleFiles);
+                    const nodes = await subtitleReader.subtitles(subtitleFiles, flattenSubtitleFiles);
                     const length = nodes.length > 0 ? nodes[nodes.length - 1].end + offset : 0;
 
                     subtitles = nodes.map((s, i) => ({
@@ -429,7 +430,7 @@ export default function Player({
                         channel?.subtitleSettings(settingsProvider.subtitleSettings);
                         channel?.subtitles(
                             subtitlesRef.current,
-                            subtitleFiles.map((f) => f.name)
+                            flattenSubtitleFiles ? [subtitleFiles[0].name] : subtitleFiles.map((f) => f.name)
                         );
                     }
 
@@ -565,6 +566,7 @@ export default function Player({
         videoChannelRef,
         applyOffset,
         updatePlaybackRate,
+        flattenSubtitleFiles,
     ]);
 
     function play(clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) {

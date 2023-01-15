@@ -9,5 +9,5 @@
         "downlevelIteration": true,
         "resolveJsonModule": true
     },
-    "include": ["./src/**/*"]
+    "include": ["./src/**/*", "decs.d.ts"]
 }

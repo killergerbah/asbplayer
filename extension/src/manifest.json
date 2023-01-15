@@ -77,6 +77,7 @@
                 "pages/bandai-channel-page.js",
                 "pages/amazon-prime-page.js",
                 "pages/hulu-page.js",
+                "pages/disney-plus-page.js",
                 "anki-ui.js",
                 "mp3-encoder.worker.js",
                 "video-data-sync-ui.js"

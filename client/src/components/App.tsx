@@ -1055,6 +1055,7 @@ function App() {
 
                 const tab = tabs[0];
                 let subtitleFiles: File[];
+                let flatten = false;
 
                 if (message.data.command === 'sync') {
                     const syncMessage = message.data as LegacyPlayerSyncMessage;
@@ -1072,6 +1073,7 @@ function App() {
                                 new File([await (await fetch('data:text/plain;base64,' + s.base64)).blob()], s.name)
                         )
                     );
+                    flatten = syncMessage.flatten ?? false;
                 } else {
                     console.error('Unknown message ' + message.data.command);
                     return;
@@ -1081,6 +1083,7 @@ function App() {
                 setFileName(subtitleFileName.substring(0, subtitleFileName.lastIndexOf('.')));
                 setSources({
                     subtitleFiles: subtitleFiles,
+                    flattenSubtitleFiles: flatten,
                     audioFile: undefined,
                     audioFileUrl: undefined,
                     videoFile: undefined,

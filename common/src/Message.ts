@@ -194,11 +194,13 @@ export interface LegacyPlayerSyncMessage extends Message {
 export interface PlayerSyncMessage extends Message {
     readonly command: 'syncv2';
     readonly subtitles: SerializedSubtitleFile[];
+    readonly flatten?: boolean;
 }
 
 export interface ExtensionSyncMessage extends Message {
     readonly command: 'sync';
     readonly subtitles: SerializedSubtitleFile[];
+    readonly flatten?: boolean;
 }
 
 export interface OffsetFromVideoMessage extends Message {

@@ -118,12 +118,14 @@ export interface VideoDataSubtitleTrack {
     label: string;
     language: string;
     url: string;
+    m3U8BaseUrl?: string;
 }
 
 export interface ConfirmedVideoDataSubtitleTrack {
     name: string;
     language: string;
     subtitleUrl: string;
+    m3U8BaseUrl?: string;
 }
 
 export interface VideoData {
