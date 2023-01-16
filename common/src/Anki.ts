@@ -50,7 +50,7 @@ export class Anki {
         return response.result;
     }
 
-    _escapeQuery(query: string) {
+    private _escapeQuery(query: string) {
         let escaped = '';
 
         for (let i = 0; i < query.length; ++i) {
@@ -178,6 +178,19 @@ export class Anki {
 
                 if (infoResponse.result.length > 0 && infoResponse.result[0].noteId === lastNoteId) {
                     const info = infoResponse.result[0];
+
+                    if (
+                        this.settingsProvider.sentenceField &&
+                        info.fields &&
+                        typeof info.fields[this.settingsProvider.sentenceField]?.value === 'string' &&
+                        typeof params.note.fields[this.settingsProvider.sentenceField] === 'string'
+                    ) {
+                        params.note.fields[this.settingsProvider.sentenceField] = this._inheritHtmlMarkup(
+                            params.note.fields[this.settingsProvider.sentenceField],
+                            info.fields[this.settingsProvider.sentenceField].value
+                        );
+                    }
+
                     await this._executeAction('updateNoteFields', params, ankiConnectUrl);
 
                     if (!this.settingsProvider.wordField || !info.fields) {
@@ -201,7 +214,7 @@ export class Anki {
         }
     }
 
-    _appendField(fields: any, fieldName: string | undefined, value: string | undefined, multiline: boolean) {
+    private _appendField(fields: any, fieldName: string | undefined, value: string | undefined, multiline: boolean) {
         if (!fieldName || !value) {
             return;
         }
@@ -216,15 +229,33 @@ export class Anki {
         fields[fieldName] = newValue;
     }
 
-    _sanitizeFileName(name: string) {
+    private _sanitizeFileName(name: string) {
         return sanitize(name, { replacement: '_' });
     }
 
-    async _storeMediaFile(name: string, base64: string, ankiConnectUrl?: string) {
+    private _inheritHtmlMarkup(original: string, markedUp: string) {
+        const htmlTagRegex = RegExp('<[^>]*>(.*?)</[^>]*>', 'ig');
+        const markedUpWithoutBreaklines = markedUp.replace('<br>', '');
+        let inherited = original;
+
+        while (true) {
+            const match = htmlTagRegex.exec(markedUpWithoutBreaklines);
+
+            if (match === null || match.length < 2) {
+                break;
+            }
+
+            inherited = inherited.replace(match[1], match[0]);
+        }
+
+        return inherited;
+    }
+
+    private async _storeMediaFile(name: string, base64: string, ankiConnectUrl?: string) {
         return this._executeAction('storeMediaFile', { filename: name, data: base64 }, ankiConnectUrl);
     }
 
-    async _executeAction(action: string, params: any, ankiConnectUrl?: string) {
+    private async _executeAction(action: string, params: any, ankiConnectUrl?: string) {
         const body: any = {
             action: action,
             version: 6,
