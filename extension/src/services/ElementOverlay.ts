@@ -41,15 +41,15 @@ export class ElementOverlay {
     }
 
     setHtml(html: string) {
-        this._nonFullscreenContentElement().innerHTML = html;
-        this._fullscreenContentElement().innerHTML = html;
+        this._nonFullscreenContentElement().innerHTML = `${html}\n`;
+        this._fullscreenContentElement().innerHTML = `${html}\n`;
     }
 
     appendHtml(html: string) {
         const currentHtml = this._nonFullscreenContentElement().innerHTML;
         const newHtml = currentHtml && currentHtml.length > 0 ? currentHtml + '<br>' + html : html;
-        this._nonFullscreenContentElement().innerHTML = newHtml;
-        this._fullscreenContentElement().innerHTML = newHtml;
+        this._nonFullscreenContentElement().innerHTML = `${newHtml}\n`;
+        this._fullscreenContentElement().innerHTML = `${newHtml}\n`;
     }
 
     refresh() {
