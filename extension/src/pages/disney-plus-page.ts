@@ -2,10 +2,6 @@ import { VideoDataSubtitleTrack } from '@project/common';
 import { Parser } from 'm3u8-parser';
 
 setTimeout(() => {
-    let basename: string = '';
-    let subtitles: VideoDataSubtitleTrack[] = [];
-    let path = window.location.pathname;
-
     function basenameFromDOM(): string {
         const titleElements = document.getElementsByClassName('title-field');
         const subtitleElements = document.getElementsByClassName('subtitle-field');
@@ -47,69 +43,78 @@ setTimeout(() => {
         return basename;
     }
 
-    function tryResetState() {
-        if (path !== window.location.pathname) {
-            basename = basenameFromDOM();
-            subtitles = [];
-            path = window.location.pathname;
-        }
-    }
-
     function baseUrlForUrl(url: string) {
         return url.substring(0, url.lastIndexOf('/'));
     }
 
-    function m3U8(url: string, callback: (m3u8: any) => void) {
-        setTimeout(() => {
-            fetch(url)
-                .then((response) => response.text())
-                .then((text) => {
-                    const parser = new Parser();
-                    parser.push(text);
-                    parser.end();
-                    callback(parser.manifest);
-                });
-        }, 0);
+    function m3U8(url: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                fetch(url)
+                    .then((response) => response.text())
+                    .then((text) => {
+                        const parser = new Parser();
+                        parser.push(text);
+                        parser.end();
+                        resolve(parser.manifest);
+                    })
+                    .catch(reject);
+            }, 0);
+        });
     }
 
-    function completeM3U8(url: string) {
-        setTimeout(() => {
-            m3U8(url, (manifest: any) => {
-                if (manifest.playlists instanceof Array && manifest.playlists.length > 0) {
-                    const subtitleGroup = manifest.mediaGroups?.SUBTITLES;
+    function completeM3U8(url: string): Promise<VideoDataSubtitleTrack[]> {
+        return new Promise((resolve, reject) => {
+            setTimeout(async () => {
+                try {
+                    const manifest = await m3U8(url);
 
-                    if (subtitleGroup && subtitleGroup['sub-main']) {
-                        const tracks = subtitleGroup['sub-main'];
-                        for (const label of Object.keys(tracks)) {
-                            const track = tracks[label];
+                    if (manifest.playlists instanceof Array && manifest.playlists.length > 0) {
+                        const subtitleGroup = manifest.mediaGroups?.SUBTITLES;
 
-                            if (track && typeof track.language === 'string' && typeof track.uri === 'string') {
-                                const baseUrl = baseUrlForUrl(url);
-                                tryResetState();
-                                const subtitleM3U8Url = `${baseUrl}/${track.uri}`;
-                                subtitles.push({
-                                    label: label,
-                                    language: track.language,
-                                    url: `${baseUrl}/${track.uri}`,
-                                    m3U8BaseUrl: baseUrlForUrl(subtitleM3U8Url),
-                                });
+                        if (subtitleGroup && subtitleGroup['sub-main']) {
+                            const tracks = subtitleGroup['sub-main'];
+                            const subtitles: VideoDataSubtitleTrack[] = [];
+
+                            for (const label of Object.keys(tracks)) {
+                                const track = tracks[label];
+
+                                if (track && typeof track.language === 'string' && typeof track.uri === 'string') {
+                                    const baseUrl = baseUrlForUrl(url);
+                                    const subtitleM3U8Url = `${baseUrl}/${track.uri}`;
+                                    subtitles.push({
+                                        label: label,
+                                        language: track.language,
+                                        url: `${baseUrl}/${track.uri}`,
+                                        m3U8BaseUrl: baseUrlForUrl(subtitleM3U8Url),
+                                    });
+                                }
                             }
+
+                            resolve(subtitles);
+                            return;
                         }
                     }
+
+                    reject(new Error('Subtitles not found.'));
+                } catch (e) {
+                    reject(e);
                 }
-            });
-        }, 0);
+            }, 0);
+        });
     }
 
+    let subtitlesPromise: Promise<VideoDataSubtitleTrack[]> | undefined;
+
     const originalParse = JSON.parse;
-    JSON.parse = function (stringified) {
+    JSON.parse = function () {
         // @ts-ignore
         const value = originalParse.apply(this, arguments);
         if (value?.stream?.sources instanceof Array && value.stream.sources.length > 0) {
             const url = value.stream.sources[0].complete?.url;
 
             if (url) {
-                completeM3U8(url);
+                subtitlesPromise = completeM3U8(url);
             }
         }
 
@@ -119,29 +124,56 @@ setTimeout(() => {
     document.addEventListener(
         'asbplayer-get-synced-data',
         async () => {
-            tryResetState();
-            subtitles.sort((a, b) => {
-                if (a.label < b.label) {
-                    return -1;
-                }
+            if (!subtitlesPromise) {
+                document.dispatchEvent(
+                    new CustomEvent('asbplayer-synced-data', {
+                        detail: {
+                            error: 'Could not extract subtitle track information.',
+                            basename: '',
+                            extension: 'm3u8',
+                            subtitles: [],
+                        },
+                    })
+                );
+                return;
+            }
 
-                if (a.label > b.label) {
-                    return 1;
-                }
+            try {
+                const subtitles = await subtitlesPromise;
+                subtitlesPromise = undefined;
+                subtitles.sort((a, b) => {
+                    if (a.label < b.label) {
+                        return -1;
+                    }
 
-                return 0;
-            });
-            const response = {
-                error: '',
-                basename: basename === '' ? await basenameFromDOMWithRetries(5) : basename,
-                extension: 'm3u8',
-                subtitles: subtitles,
-            };
-            document.dispatchEvent(
-                new CustomEvent('asbplayer-synced-data', {
-                    detail: response,
-                })
-            );
+                    if (a.label > b.label) {
+                        return 1;
+                    }
+
+                    return 0;
+                });
+                document.dispatchEvent(
+                    new CustomEvent('asbplayer-synced-data', {
+                        detail: {
+                            error: '',
+                            basename: (await basenameFromDOMWithRetries(10)) ?? '',
+                            extension: 'm3u8',
+                            subtitles: subtitles,
+                        },
+                    })
+                );
+            } catch (e) {
+                document.dispatchEvent(
+                    new CustomEvent('asbplayer-synced-data', {
+                        detail: {
+                            error: e instanceof Error ? e.message : String(e),
+                            basename: '',
+                            extension: 'm3u8',
+                            subtitles: [],
+                        },
+                    })
+                );
+            }
         },
         false
     );
