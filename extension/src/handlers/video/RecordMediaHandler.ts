@@ -61,11 +61,9 @@ export default class RecordMediaHandler {
 
             if (recordMediaCommand.message.screenshot) {
                 imagePromise = this.imageCapturer.capture(
-                    recordMediaCommand.message.rect!,
-                    recordMediaCommand.message.maxImageWidth,
-                    recordMediaCommand.message.maxImageHeight,
                     senderTab.id!,
-                    recordMediaCommand.src
+                    recordMediaCommand.src,
+                    recordMediaCommand.message.imageDelay
                 );
             }
 
@@ -95,7 +93,7 @@ export default class RecordMediaHandler {
             if (imagePromise) {
                 // Use the last screenshot taken to allow user to re-take screenshot while audio is recording
                 imageModel = {
-                    base64: this.imageCapturer.lastImageBase64!,
+                    base64: this.imageCapturer.consumeImage()!,
                     extension: 'jpeg',
                 };
             }

@@ -59,9 +59,16 @@ export default class StopRecordingMediaHandler {
 
             let imageModel: ImageModel | undefined = undefined;
 
-            if (stopRecordingCommand.message.screenshot && this.imageCapturer.lastImageBase64) {
+            if (stopRecordingCommand.message.screenshot) {
+                let lastImageBase64 = this.imageCapturer.consumeImage();
+
+                if (lastImageBase64 === undefined) {
+                    await this.imageCapturer.capture(sender.tab!.id!, stopRecordingCommand.src, 0);
+                    lastImageBase64 = this.imageCapturer.consumeImage()!;
+                }
+
                 imageModel = {
-                    base64: this.imageCapturer.lastImageBase64,
+                    base64: lastImageBase64,
                     extension: 'jpeg',
                 };
             }

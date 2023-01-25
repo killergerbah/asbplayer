@@ -20,7 +20,6 @@ import {
     ReadyFromVideoMessage,
     ReadyStateFromVideoMessage,
     RecordMediaAndForwardSubtitleMessage,
-    RectModel,
     RerecordMediaMessage,
     ScreenshotTakenMessage,
     ShowAnkiUiAfterRerecordMessage,
@@ -91,7 +90,6 @@ export default class Binding {
         sendResponse: (response?: any) => void
     ) => void;
     private heartbeatInterval?: NodeJS.Timeout;
-    private showControlsTimeout?: NodeJS.Timeout;
 
     constructor(video: HTMLVideoElement, syncAvailable: boolean) {
         this.video = video;
@@ -503,31 +501,17 @@ export default class Binding {
                         break;
                     case 'screenshot-taken':
                         const screenshotTakenMessage = request.message as ScreenshotTakenMessage;
-
-                        if (this.showControlsTimeout) {
-                            clearTimeout(this.showControlsTimeout);
-                            this.showControlsTimeout = undefined;
-                        }
-
                         this.subtitleContainer.forceHideSubtitles = false;
 
                         if (screenshotTakenMessage.ankiUiState) {
                             this.ankiUiContainer.showAfterRetakingScreenshot(this, screenshotTakenMessage.ankiUiState);
                         }
 
-                        if (this.cleanScreenshot) {
-                            this.controlsContainer.show();
-                        }
+                        this.controlsContainer.show();
                         break;
                     case 'crop-and-resize':
                         const cropAndResizeMessage = request.message as CropAndResizeMessage;
-                        this._cropAndResize(
-                            cropAndResizeMessage.dataUrl,
-                            cropAndResizeMessage.rect,
-                            cropAndResizeMessage.maxWidth,
-                            cropAndResizeMessage.maxHeight,
-                            sendResponse
-                        );
+                        this._cropAndResize(cropAndResizeMessage.dataUrl, sendResponse);
                         return true;
                     case 'alert':
                         // ignore
@@ -613,9 +597,6 @@ export default class Binding {
             sender: 'asbplayer-video',
             message: {
                 command: 'take-screenshot',
-                rect: this.video.getBoundingClientRect(),
-                maxImageWidth: this.maxImageWidth,
-                maxImageHeight: this.maxImageHeight,
                 ankiUiState: this.ankiUiSavedState,
             },
             src: this.video.src,
@@ -661,10 +642,8 @@ export default class Binding {
                     postMineAction: postMineAction,
                     audioPaddingStart: this.audioPaddingStart,
                     audioPaddingEnd: this.audioPaddingEnd,
+                    imageDelay: this.ankiUiContainer.ankiSettings?.imageDelay ?? 0,
                     playbackRate: this.video.playbackRate,
-                    rect: this.screenshot ? this.video.getBoundingClientRect() : undefined,
-                    maxImageWidth: this.maxImageWidth,
-                    maxImageHeight: this.maxImageHeight,
                     ankiSettings: ankiSettings,
                 },
                 src: this.video.src,
@@ -721,11 +700,9 @@ export default class Binding {
                     record: this.recordMedia,
                     postMineAction: postMineAction,
                     screenshot: this.screenshot,
-                    rect: this.screenshot ? this.video.getBoundingClientRect() : undefined,
-                    maxImageWidth: this.maxImageWidth,
-                    maxImageHeight: this.maxImageHeight,
                     url: this.url,
                     sourceString: this.sourceString(timestamp),
+                    imageDelay: this.ankiUiContainer.ankiSettings?.imageDelay ?? 0,
                     ankiSettings: ankiSettings,
                 },
                 src: this.video.src,
@@ -746,19 +723,9 @@ export default class Binding {
     }
 
     async _prepareScreenshot() {
-        if (this.showControlsTimeout) {
-            clearTimeout(this.showControlsTimeout);
-            this.showControlsTimeout = undefined;
-        }
-
         if (this.cleanScreenshot) {
             this.subtitleContainer.forceHideSubtitles = true;
             await this.controlsContainer.hide();
-            this.showControlsTimeout = setTimeout(() => {
-                this.controlsContainer.show();
-                this.showControlsTimeout = undefined;
-                this.subtitleContainer.forceHideSubtitles = false;
-            }, 1000);
         }
     }
 
@@ -871,14 +838,12 @@ export default class Binding {
         this.videoDataSyncContainer.show();
     }
 
-    private async _cropAndResize(
-        dataUrl: string,
-        rect: RectModel,
-        maxWidth: number,
-        maxHeight: number,
-        sendResponse: (response?: any) => void
-    ) {
+    private async _cropAndResize(dataUrl: string, sendResponse: (response?: any) => void) {
         const image = new Image();
+        const rect = this.video.getBoundingClientRect();
+        const maxWidth = this.maxImageHeight;
+        const maxHeight = this.maxImageHeight;
+
         image.onload = async () => {
             const canvas = document.createElement('canvas');
             const r = window.devicePixelRatio;

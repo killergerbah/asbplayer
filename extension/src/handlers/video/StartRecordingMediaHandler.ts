@@ -43,16 +43,9 @@ export default class StartRecordingMediaHandler {
             this.audioRecorder.start();
         }
 
-        let imageBase64 = null;
-
         if (startRecordingCommand.message.screenshot) {
-            imageBase64 = await this.imageCapturer.capture(
-                startRecordingCommand.message.rect!,
-                startRecordingCommand.message.maxImageWidth,
-                startRecordingCommand.message.maxImageHeight,
-                sender.tab!.id!,
-                startRecordingCommand.src
-            );
+            const imageDelay = startRecordingCommand.message.record ? startRecordingCommand.message.imageDelay : 0;
+            await this.imageCapturer.capture(sender.tab!.id!, startRecordingCommand.src, imageDelay);
             const screenshotTakenCommand: ExtensionToVideoCommand<ScreenshotTakenMessage> = {
                 sender: 'asbplayer-extension-to-video',
                 message: {
@@ -77,6 +70,7 @@ export default class StartRecordingMediaHandler {
             const id = uuidv4();
 
             let imageModel: ImageModel | undefined = undefined;
+            const imageBase64 = this.imageCapturer.consumeImage();
 
             if (imageBase64) {
                 imageModel = {

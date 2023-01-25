@@ -368,6 +368,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
     const [customFieldDialogOpen, setCustomFieldDialogOpen] = useState<boolean>(false);
     const [audioPaddingStart, setAudioPaddingStart] = useState<number>(settings.audioPaddingStart);
     const [audioPaddingEnd, setAudioPaddingEnd] = useState<number>(settings.audioPaddingEnd);
+    const [imageDelay, setImageDelay] = useState<number>(settings.imageDelay);
     const [maxImageWidth, setMaxImageWidth] = useState<number>(settings.maxImageWidth);
     const [maxImageHeight, setMaxImageHeight] = useState<number>(settings.maxImageHeight);
     const [surroundingSubtitlesCountRadius, setSurroundingSubtitlesCountRadius] = useState<number>(
@@ -483,6 +484,10 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
     );
     const handleAudioPaddingEnd = useCallback(
         (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setAudioPaddingEnd(Number(e.target.value)),
+        []
+    );
+    const handleImageDelay = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setImageDelay(Number(e.target.value)),
         []
     );
     const handleMaxImageWidth = useCallback(
@@ -729,6 +734,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
             themeType: themeType,
             audioPaddingStart: audioPaddingStart,
             audioPaddingEnd: audioPaddingEnd,
+            imageDelay: imageDelay,
             maxImageWidth: maxImageWidth,
             maxImageHeight: maxImageHeight,
             surroundingSubtitlesCountRadius: surroundingSubtitlesCountRadius,
@@ -766,6 +772,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         themeType,
         audioPaddingStart,
         audioPaddingEnd,
+        imageDelay,
         maxImageWidth,
         maxImageHeight,
         surroundingSubtitlesCountRadius,
@@ -967,6 +974,21 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                     value={audioPaddingEnd}
                                     color="secondary"
                                     onChange={handleAudioPaddingEnd}
+                                    inputProps={{
+                                        min: 0,
+                                        step: 1,
+                                    }}
+                                    InputProps={{
+                                        endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                                    }}
+                                />
+                                <TextField
+                                    type="number"
+                                    label="Image Capture Delay"
+                                    fullWidth
+                                    value={imageDelay}
+                                    color="secondary"
+                                    onChange={handleImageDelay}
                                     inputProps={{
                                         min: 0,
                                         step: 1,

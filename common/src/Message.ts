@@ -66,10 +66,8 @@ export interface RecordMediaAndForwardSubtitleMessage extends Message {
     readonly postMineAction: PostMineAction;
     readonly audioPaddingStart: number;
     readonly audioPaddingEnd: number;
+    readonly imageDelay: number;
     readonly playbackRate: number;
-    readonly rect?: RectModel;
-    readonly maxImageWidth: number;
-    readonly maxImageHeight: number;
     readonly ankiSettings?: AnkiSettings;
 }
 
@@ -79,9 +77,7 @@ export interface StartRecordingMediaMessage extends Message {
     readonly timestamp: number;
     readonly screenshot: boolean;
     readonly postMineAction: PostMineAction;
-    readonly rect?: RectModel;
-    readonly maxImageWidth: number;
-    readonly maxImageHeight: number;
+    readonly imageDelay: number;
     readonly url?: string;
     readonly sourceString: string;
     readonly ankiSettings?: AnkiSettings;
@@ -127,9 +123,6 @@ export interface TakeScreenshotMessage extends Message {
 
 export interface TakeScreenshotFromExtensionMessage extends Message {
     readonly command: 'take-screenshot';
-    readonly rect: RectModel;
-    readonly maxImageWidth: number;
-    readonly maxImageHeight: number;
     readonly ankiUiState?: AnkiUiSavedState;
 }
 
@@ -367,9 +360,6 @@ export interface VideoDataUiBridgeConfirmMessage extends Message {
 export interface CropAndResizeMessage extends Message {
     readonly command: 'crop-and-resize';
     readonly dataUrl: string;
-    readonly rect: RectModel;
-    readonly maxWidth: number;
-    readonly maxHeight: number;
 }
 
 export interface StartRecordingAudioWithTimeoutMessage extends Message {
