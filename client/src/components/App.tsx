@@ -164,13 +164,13 @@ function audioClipFromItem(
     return undefined;
 }
 
-function imageFromItem(item: CopyHistoryItem, maxWidth: number, maxHeight: number) {
+function imageFromItem(item: CopyHistoryItem, maxWidth: number, maxHeight: number, imageDelay: number) {
     if (item.image) {
         return Image.fromBase64(item.subtitleFile!.name, item.start, item.image.base64, item.image.extension);
     }
 
     if (item.videoFile) {
-        return Image.fromFile(item.videoFile, item.mediaTimestamp ?? item.start, maxWidth, maxHeight);
+        return Image.fromFile(item.videoFile, (item.mediaTimestamp ?? item.start) + imageDelay, maxWidth, maxHeight);
     }
 
     return undefined;
@@ -384,7 +384,12 @@ function App() {
     const ankiDialogImage = useMemo<Image | undefined>(
         () =>
             ankiDialogItem &&
-            imageFromItem(ankiDialogItem, settingsProvider.maxImageWidth, settingsProvider.maxImageHeight),
+            imageFromItem(
+                ankiDialogItem,
+                settingsProvider.maxImageWidth,
+                settingsProvider.maxImageHeight,
+                settingsProvider.imageDelay
+            ),
         [ankiDialogItem, settingsProvider.maxImageWidth, settingsProvider.maxImageHeight]
     );
     const [ankiDialogRequested, setAnkiDialogRequested] = useState<boolean>(false);
@@ -604,7 +609,8 @@ function App() {
                         imageFromItem(
                             newCopiedSubtitle,
                             settingsProvider.maxImageWidth,
-                            settingsProvider.maxImageHeight
+                            settingsProvider.maxImageHeight,
+                            settingsProvider.imageDelay
                         ),
                         '',
                         itemSourceString(newCopiedSubtitle) ?? '',
@@ -781,7 +787,8 @@ function App() {
                 (await imageFromItem(
                     item,
                     settingsProvider.maxImageWidth,
-                    settingsProvider.maxImageHeight
+                    settingsProvider.maxImageHeight,
+                    settingsProvider.imageDelay
                 ))!.download();
             } catch (e) {
                 console.error(e);
