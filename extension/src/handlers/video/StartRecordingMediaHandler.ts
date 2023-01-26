@@ -43,9 +43,11 @@ export default class StartRecordingMediaHandler {
             this.audioRecorder.start();
         }
 
+        let imageBase64: string | undefined;
+
         if (startRecordingCommand.message.screenshot) {
             const imageDelay = startRecordingCommand.message.record ? startRecordingCommand.message.imageDelay : 0;
-            await this.imageCapturer.capture(sender.tab!.id!, startRecordingCommand.src, imageDelay);
+            imageBase64 = await this.imageCapturer.capture(sender.tab!.id!, startRecordingCommand.src, imageDelay);
             const screenshotTakenCommand: ExtensionToVideoCommand<ScreenshotTakenMessage> = {
                 sender: 'asbplayer-extension-to-video',
                 message: {
@@ -70,13 +72,14 @@ export default class StartRecordingMediaHandler {
             const id = uuidv4();
 
             let imageModel: ImageModel | undefined = undefined;
-            const imageBase64 = this.imageCapturer.consumeImage();
-
+            
             if (imageBase64) {
                 imageModel = {
                     base64: imageBase64,
                     extension: 'jpeg',
                 };
+
+                this.imageCapturer.lastImageBase64 = undefined;
             }
 
             chrome.tabs.query({}, (allTabs) => {

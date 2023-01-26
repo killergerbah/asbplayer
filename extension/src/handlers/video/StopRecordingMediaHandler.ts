@@ -60,17 +60,18 @@ export default class StopRecordingMediaHandler {
             let imageModel: ImageModel | undefined = undefined;
 
             if (stopRecordingCommand.message.screenshot) {
-                let lastImageBase64 = this.imageCapturer.consumeImage();
+                let lastImageBase64 = this.imageCapturer.lastImageBase64;
 
                 if (lastImageBase64 === undefined) {
-                    await this.imageCapturer.capture(sender.tab!.id!, stopRecordingCommand.src, 0);
-                    lastImageBase64 = this.imageCapturer.consumeImage()!;
+                    lastImageBase64 = await this.imageCapturer.capture(sender.tab!.id!, stopRecordingCommand.src, 0);
                 }
 
                 imageModel = {
                     base64: lastImageBase64,
                     extension: 'jpeg',
                 };
+
+                this.imageCapturer.lastImageBase64 = undefined;
             }
 
             const mp3 = stopRecordingCommand.message.ankiSettings?.preferMp3 ?? false;

@@ -34,14 +34,14 @@ export default class TakeScreenshotHandler {
         const senderTab = sender.tab!;
         const takeScreenshotCommand = command as VideoToExtensionCommand<TakeScreenshotFromExtensionMessage>;
 
-        await this.imageCapturer.capture(sender.tab!.id!, takeScreenshotCommand.src, 0);
+        const imageBase64 = await this.imageCapturer.capture(sender.tab!.id!, takeScreenshotCommand.src, 0);
 
         let ankiUiState: AnkiUiSavedState | undefined;
 
         if (takeScreenshotCommand.message.ankiUiState) {
             ankiUiState = takeScreenshotCommand.message.ankiUiState;
             ankiUiState.image = {
-                base64: this.imageCapturer.consumeImage()!,
+                base64: imageBase64,
                 extension: 'jpeg',
             };
             const copyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {

@@ -4,22 +4,17 @@ import Settings from './Settings';
 
 export default class ImageCapturer {
     private readonly settings: Settings;
-    private imageBase64Promise: Promise<void> | undefined;
-    private imageBase64Resolve: ((value: void) => void) | undefined;
-    private lastImageBase64?: string;
+    private imageBase64Promise: Promise<string> | undefined;
+    private imageBase64Resolve: ((value: string) => void) | undefined;
     private lastCaptureId?: string;
+
+    lastImageBase64?: string;
 
     constructor(settings: Settings) {
         this.settings = settings;
     }
 
-    consumeImage(): string | undefined {
-        const base64 = this.lastImageBase64;
-        this.lastImageBase64 = undefined;
-        return base64;
-    }
-
-    capture(tabId: number, src: string, delay: number): Promise<void> {
+    capture(tabId: number, src: string, delay: number): Promise<string> {
         if (this.imageBase64Resolve !== undefined && this.imageBase64Promise !== undefined) {
             this._captureWithDelay(tabId, src, delay, this.imageBase64Resolve);
             return this.imageBase64Promise;
@@ -33,7 +28,7 @@ export default class ImageCapturer {
         return this.imageBase64Promise;
     }
 
-    private _captureWithDelay(tabId: number, src: string, delay: number, resolve: (value: void) => void) {
+    private _captureWithDelay(tabId: number, src: string, delay: number, resolve: (value: string) => void) {
         const captureId = uuidv4();
         this.lastCaptureId = captureId;
         setTimeout(() => {
@@ -51,7 +46,7 @@ export default class ImageCapturer {
                 }
 
                 this.lastImageBase64 = croppedDataUrl.substring(croppedDataUrl.indexOf(',') + 1);
-                resolve();
+                resolve(this.lastImageBase64);
                 this.imageBase64Promise = undefined;
                 this.imageBase64Resolve = undefined;
                 this.lastCaptureId = undefined;
