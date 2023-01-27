@@ -1,20 +1,25 @@
 import { CropAndResizeMessage, ExtensionToVideoCommand } from '@project/common';
-import { v4 as uuidv4 } from 'uuid';
 import Settings from './Settings';
 
 export default class ImageCapturer {
     private readonly settings: Settings;
     private imageBase64Promise: Promise<string> | undefined;
     private imageBase64Resolve: ((value: string) => void) | undefined;
-    private lastCaptureId?: string;
+    private lastCaptureTimeoutId?: NodeJS.Timeout;
 
-    lastImageBase64?: string;
+    private _lastImageBase64?: string;
 
     constructor(settings: Settings) {
         this.settings = settings;
     }
 
+    get lastImageBase64() {
+        return this._lastImageBase64;
+    }
+
     capture(tabId: number, src: string, delay: number): Promise<string> {
+        this._lastImageBase64 = undefined;
+
         if (this.imageBase64Resolve !== undefined && this.imageBase64Promise !== undefined) {
             this._captureWithDelay(tabId, src, delay, this.imageBase64Resolve);
             return this.imageBase64Promise;
@@ -29,29 +34,28 @@ export default class ImageCapturer {
     }
 
     private _captureWithDelay(tabId: number, src: string, delay: number, resolve: (value: string) => void) {
-        const captureId = uuidv4();
-        this.lastCaptureId = captureId;
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
             chrome.tabs.captureVisibleTab({ format: 'jpeg' }, async (dataUrl) => {
-                if (captureId !== this.lastCaptureId) {
+                if (timeoutId !== this.lastCaptureTimeoutId) {
                     // The promise was already resolved by another call to capture with a shorter delay
                     return;
                 }
 
                 const croppedDataUrl = await this._cropAndResize(dataUrl, tabId, src);
 
-                if (captureId !== this.lastCaptureId) {
+                if (timeoutId !== this.lastCaptureTimeoutId) {
                     // The promise was already resolved by another call to capture with a shorter delay
                     return;
                 }
 
-                this.lastImageBase64 = croppedDataUrl.substring(croppedDataUrl.indexOf(',') + 1);
-                resolve(this.lastImageBase64);
+                this._lastImageBase64 = croppedDataUrl.substring(croppedDataUrl.indexOf(',') + 1);
+                resolve(this._lastImageBase64);
                 this.imageBase64Promise = undefined;
                 this.imageBase64Resolve = undefined;
-                this.lastCaptureId = undefined;
+                this.lastCaptureTimeoutId = undefined;
             });
         }, delay);
+        this.lastCaptureTimeoutId = timeoutId;
     }
 
     private _cropAndResize(dataUrl: string, tabId: number, src: string): Promise<string> {

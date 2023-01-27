@@ -72,14 +72,12 @@ export default class StartRecordingMediaHandler {
             const id = uuidv4();
 
             let imageModel: ImageModel | undefined = undefined;
-            
+
             if (imageBase64) {
                 imageModel = {
                     base64: imageBase64,
                     extension: 'jpeg',
                 };
-
-                this.imageCapturer.lastImageBase64 = undefined;
             }
 
             chrome.tabs.query({}, (allTabs) => {

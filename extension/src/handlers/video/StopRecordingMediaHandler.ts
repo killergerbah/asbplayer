@@ -70,8 +70,6 @@ export default class StopRecordingMediaHandler {
                     base64: lastImageBase64,
                     extension: 'jpeg',
                 };
-
-                this.imageCapturer.lastImageBase64 = undefined;
             }
 
             const mp3 = stopRecordingCommand.message.ankiSettings?.preferMp3 ?? false;
