@@ -984,7 +984,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                 />
                                 <TextField
                                     type="number"
-                                    label="Image Capture Delay"
+                                    label="Image Capture Delay (streaming video only)"
                                     fullWidth
                                     value={imageDelay}
                                     color="secondary"
