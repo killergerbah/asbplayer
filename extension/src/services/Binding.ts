@@ -78,6 +78,7 @@ export default class Binding {
     private maxImageHeight: number;
     private autoPausePreference: AutoPausePreference;
     private condensedPlaybackMinimumSkipIntervalMs = 1000;
+    private imageDelay = 0;
 
     private playListener?: EventListener;
     private pauseListener?: EventListener;
@@ -535,6 +536,7 @@ export default class Binding {
         this.videoDataSyncContainer.updateSettings(currentSettings);
         this.keyBindings.setSettings(this, currentSettings);
         this.condensedPlaybackMinimumSkipIntervalMs = currentSettings.condensedPlaybackMinimumSkipIntervalMs;
+        this.imageDelay = currentSettings.imageDelay;
 
         if (currentSettings.subsDragAndDrop) {
             this.dragContainer.bind();
@@ -642,7 +644,7 @@ export default class Binding {
                     postMineAction: postMineAction,
                     audioPaddingStart: this.audioPaddingStart,
                     audioPaddingEnd: this.audioPaddingEnd,
-                    imageDelay: this.ankiUiContainer.ankiSettings?.imageDelay ?? 0,
+                    imageDelay: this.imageDelay,
                     playbackRate: this.video.playbackRate,
                     ankiSettings: ankiSettings,
                 },
@@ -702,7 +704,7 @@ export default class Binding {
                     screenshot: this.screenshot,
                     url: this.url,
                     sourceString: this.sourceString(timestamp),
-                    imageDelay: this.ankiUiContainer.ankiSettings?.imageDelay ?? 0,
+                    imageDelay: this.imageDelay,
                     ankiSettings: ankiSettings,
                 },
                 src: this.video.src,

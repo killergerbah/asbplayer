@@ -105,7 +105,7 @@ const keyboardShortcutLabels: { [key in keyof ExtensionKeyBindingsSettings]: str
     bindSeekToBeginningOfCurrentSubtitle: 'Seek to beginning of current subtitle',
     bindAdjustOffsetToSubtitle: 'Adjust subtitle offset so that previous/next subtitle is at current timestamp',
     bindAdjustOffset: 'Adjust offset by ±100 ms',
-    bindAdjustPlaybackRate: 'Adjust playback rate by ±0.1'
+    bindAdjustPlaybackRate: 'Adjust playback rate by ±0.1',
 };
 
 interface PopupFormProps {
@@ -242,6 +242,23 @@ export default function PopupForm({
                             }
                             label="Crop screenshot"
                             labelPlacement="start"
+                        />
+                        <TextField
+                            className={classes.textField}
+                            variant="filled"
+                            type="number"
+                            color="secondary"
+                            fullWidth
+                            label="Screenshot capture delay"
+                            value={settings.imageDelay}
+                            onChange={(e) => onSettingsChanged('imageDelay', Number(e.target.value))}
+                            inputProps={{
+                                min: 0,
+                                step: 1,
+                            }}
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                            }}
                         />
                     </FormGroup>
                 </Grid>

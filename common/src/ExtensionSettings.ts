@@ -26,4 +26,5 @@ export interface ExtensionSettings extends ExtensionKeyBindingsSettings {
     condensedPlaybackMinimumSkipIntervalMs: number;
     asbplayerUrl: string;
     lastThemeType: 'dark' | 'light';
+    imageDelay: number;
 }

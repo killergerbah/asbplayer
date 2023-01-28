@@ -72,7 +72,6 @@ const subtitlePreviewKey = 'subtitlePreview';
 const imageBasedSubtitleScaleFactorKey = 'imageBasedSubtitleScaleFactor';
 const audioPaddingStartKey = 'audioPaddingStart';
 const audioPaddingEndKey = 'audioPaddingEnd';
-const imageDelayKey = 'imageDelay';
 const maxImageWidthKey = 'maxImageWidth';
 const maxImageHeightKey = 'maxImageHeight';
 const surroundingSubtitlesCountRadiusKey = 'surroundingSubtitlesCountRadius';
@@ -122,7 +121,6 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             themeType: this.themeType,
             audioPaddingStart: this.audioPaddingStart,
             audioPaddingEnd: this.audioPaddingEnd,
-            imageDelay: this.imageDelay,
             maxImageWidth: this.maxImageWidth,
             maxImageHeight: this.maxImageHeight,
             surroundingSubtitlesCountRadius: this.surroundingSubtitlesCountRadius,
@@ -163,7 +161,6 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.audioPaddingEnd = newSettings.audioPaddingEnd;
         this.maxImageWidth = newSettings.maxImageWidth;
         this.maxImageHeight = newSettings.maxImageHeight;
-        this.imageDelay = newSettings.imageDelay;
         this.surroundingSubtitlesCountRadius = newSettings.surroundingSubtitlesCountRadius;
         this.surroundingSubtitlesTimeRadius = newSettings.surroundingSubtitlesTimeRadius;
         this.copyToClipboardOnMine = newSettings.copyToClipboardOnMine;
@@ -203,7 +200,6 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             preferMp3: this.preferMp3,
             audioPaddingStart: this.audioPaddingStart,
             audioPaddingEnd: this.audioPaddingEnd,
-            imageDelay: this.imageDelay,
             maxImageWidth: this.maxImageWidth,
             maxImageHeight: this.maxImageHeight,
             surroundingSubtitlesCountRadius: this.surroundingSubtitlesCountRadius,
@@ -500,14 +496,6 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
 
     set maxImageHeight(maxImageHeight) {
         localStorage.setItem(maxImageHeightKey, String(maxImageHeight));
-    }
-
-    set imageDelay(imageDelay) {
-        localStorage.setItem(imageDelayKey, String(imageDelay));
-    }
-
-    get imageDelay() {
-        return this._getNumberItem(imageDelayKey, 0);
     }
 
     get surroundingSubtitlesCountRadius() {

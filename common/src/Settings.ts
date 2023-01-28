@@ -25,7 +25,6 @@ export interface AnkiSettings {
     readonly preferMp3: boolean;
     readonly audioPaddingStart: number;
     readonly audioPaddingEnd: number;
-    readonly imageDelay: number;
     readonly maxImageWidth: number;
     readonly maxImageHeight: number;
     readonly surroundingSubtitlesCountRadius: number;
