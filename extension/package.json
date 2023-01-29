@@ -4,7 +4,8 @@
   "version": "0.1.0",
   "scripts": {
     "buildDev": "NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode development",
-    "buildProd": "NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode production"
+    "buildProd": "NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode production",
+    "packageProd": "yarn buildProd && zip asbplayer-extension-$(jq -r .version src/manifest.json).zip -r dist"
   },
   "dependencies": {
     "@fontsource/roboto": "^4.5.0",
