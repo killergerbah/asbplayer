@@ -70,7 +70,11 @@ You can also adjust offset manually by clicking on the "Subtitle Offset" text fi
 
 -   Netflix (on main /watch url)
 -   Youtube (on main /watch url)
+-   Disney Plus
+-   Amazon Prime
+-   Hulu
 -   TVer
+-   Bandai Channel
 
 <kbd>Ctrl+Shift+F</kbd> also allows you to choose an empty subtitle track so that you can mine streaming video without subtitles.
 
