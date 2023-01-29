@@ -133,6 +133,7 @@ export default class SubtitleContainer {
 
             if ((!showOffset && !this.displaySubtitles) || this.forceHideSubtitles) {
                 this._hideSubtitles();
+                this._autoCopyToClipboard(showingSubtitles);
             } else if (
                 !this.showingSubtitles ||
                 !this._arrayEquals(showingSubtitles, this.showingSubtitles, (a, b) => a.index === b.index) ||
@@ -150,13 +151,17 @@ export default class SubtitleContainer {
                     this.showingOffset = undefined;
                 }
 
-                if (this.autoCopyCurrentSubtitle && showingSubtitles.length > 0 && document.hasFocus()) {
-                    navigator.clipboard.writeText(showingSubtitles.map((s) => s.text).join('\n')).catch((e) => {
-                        // ignore
-                    });
-                }
+                this._autoCopyToClipboard(showingSubtitles);
             }
         }, 100);
+    }
+
+    private _autoCopyToClipboard(subtitles: SubtitleModel[]) {
+        if (this.autoCopyCurrentSubtitle && subtitles.length > 0 && document.hasFocus()) {
+            navigator.clipboard.writeText(subtitles.map((s) => s.text).join('\n')).catch((e) => {
+                // ignore
+            });
+        }
     }
 
     private _trackEnabled(subtitle: SubtitleModel) {
