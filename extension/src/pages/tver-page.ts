@@ -1,27 +1,8 @@
-import { VideoDataSubtitleTrack } from '@project/common';
-import { extractExtension } from './util';
+import { extractExtension, inferTracksFromJson } from './util';
 
-setTimeout(() => {
-    let basename: string | undefined = undefined;
-    let subtitles: VideoDataSubtitleTrack[] = [];
-    let path = window.location.pathname;
-
-    function tryResetState() {
-        if (path !== window.location.pathname) {
-            basename = undefined;
-            subtitles = [];
-            path = window.location.pathname;
-        }
-    }
-
-    const originalParse = JSON.parse;
-
-    JSON.parse = function () {
-        // @ts-ignore
-        const value = originalParse.apply(this, arguments);
+inferTracksFromJson({
+    onJson: (value, addTrack, setBasename) => {
         if (value?.text_tracks instanceof Array) {
-            tryResetState();
-
             for (const track of value.text_tracks) {
                 if (
                     track.kind === 'captions' &&
@@ -36,41 +17,19 @@ setTimeout(() => {
                     const language = track.srclang.toLowerCase();
                     const url = track.sources[0].src;
 
-                    if (subtitles.find((s) => s.language === language) === undefined) {
-                        subtitles.push({
-                            label: label,
-                            language: language,
-                            url: url.replace(/^http:\/\//, 'https://'),
-                            extension: extractExtension(url, 'vtt'),
-                        });
-                    }
+                    addTrack({
+                        label: label,
+                        language: language,
+                        url: url.replace(/^http:\/\//, 'https://'),
+                        extension: extractExtension(url, 'vtt'),
+                    });
                 }
             }
 
             if (typeof value?.name === 'string') {
-                basename = value?.name;
+                setBasename(value?.name);
             }
         }
-
-        return value;
-    };
-
-    document.addEventListener(
-        'asbplayer-get-synced-data',
-        () => {
-            tryResetState();
-            const response = {
-                error: '',
-                basename: basename ?? document.title,
-                extension: 'vtt',
-                subtitles: subtitles,
-            };
-            document.dispatchEvent(
-                new CustomEvent('asbplayer-synced-data', {
-                    detail: response,
-                })
-            );
-        },
-        false
-    );
-}, 0);
+    },
+    waitForBasename: true,
+});

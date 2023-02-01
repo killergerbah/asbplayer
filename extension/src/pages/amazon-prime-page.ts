@@ -1,14 +1,7 @@
-import { VideoDataSubtitleTrack } from '@project/common';
-import { extractExtension } from './util';
+import { extractExtension, inferTracksFromJson } from './util';
 
-setTimeout(() => {
-    const subtitlesByPath: { [key: string]: VideoDataSubtitleTrack[] } = {};
-    const originalParse = JSON.parse;
-
-    JSON.parse = function () {
-        // @ts-ignore
-        const value = originalParse.apply(this, arguments);
-
+inferTracksFromJson({
+    onJson: (value, addTrack) => {
         if (value?.subtitleUrls instanceof Array) {
             for (const track of value.subtitleUrls) {
                 if (
@@ -17,12 +10,10 @@ setTimeout(() => {
                     typeof track.languageCode === 'string' &&
                     typeof track.displayName === 'string'
                 ) {
-                    if (typeof subtitlesByPath[window.location.pathname] === 'undefined') {
-                        subtitlesByPath[window.location.pathname] = [];
-                    }
+                    const label = `${value.catalogMetadata.catalog.title} ${track.displayName}`;
 
-                    subtitlesByPath[window.location.pathname].push({
-                        label: `${value.catalogMetadata.catalog.title} ${track.displayName}`,
+                    addTrack({
+                        label: label,
                         language: track.languageCode.toLowerCase(),
                         url: track.url,
                         extension: extractExtension(track.url, 'dfxp'),
@@ -30,24 +21,6 @@ setTimeout(() => {
                 }
             }
         }
-
-        return value;
-    };
-
-    document.addEventListener(
-        'asbplayer-get-synced-data',
-        () => {
-            const response = {
-                error: '',
-                basename: '',
-                subtitles: subtitlesByPath[window.location.pathname] ?? [],
-            };
-            document.dispatchEvent(
-                new CustomEvent('asbplayer-synced-data', {
-                    detail: response,
-                })
-            );
-        },
-        false
-    );
-}, 0);
+    },
+    waitForBasename: false,
+});

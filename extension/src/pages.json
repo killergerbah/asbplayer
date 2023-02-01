@@ -39,6 +39,12 @@
             "autoSync": {
                 "enabled": true,
                 "videoSrc": "^blob:.+"
+            },
+            "ignore": {
+                "class": "tst-video-overlay-player-html5",
+                "style": {
+                    "display": "none"
+                }
             }
         },
         {

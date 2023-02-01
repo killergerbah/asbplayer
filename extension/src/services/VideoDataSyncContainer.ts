@@ -12,7 +12,7 @@ import { bufferToBase64 } from '../services/Base64';
 import FrameBridgeClient from '../services/FrameBridgeClient';
 import Binding from './Binding';
 import ImageElement from './ImageElement';
-import { currentPageConfig } from './pages';
+import { currentPageDelegate } from './pages';
 import { Parser as m3U8Parser } from 'm3u8-parser';
 
 function html() {
@@ -47,6 +47,7 @@ export default class VideoDataSyncContainer {
     private wasPaused?: boolean;
     private fullscreenElement?: Element;
     private activeElement?: Element;
+    private autoSyncing: boolean = false;
 
     constructor(context: Binding) {
         this.context = context;
@@ -168,17 +169,22 @@ export default class VideoDataSyncContainer {
 
         const selectedSub = state.subtitles!.find((subtitle) => subtitle.language === this.lastLanguageSynced);
 
-        if (selectedSub && !userRequested && !state.error) {
-            if (
-                (await this._syncData(
-                    this._defaultVideoName(this.syncedData?.basename, selectedSub),
-                    selectedSub.extension,
-                    selectedSub.url,
-                    selectedSub.m3U8BaseUrl
-                )) &&
-                this.doneListener
-            ) {
-                this.doneListener();
+        if (selectedSub && !userRequested && !state.error && !this.autoSyncing) {
+            this.autoSyncing = true;
+            try {
+                if (
+                    (await this._syncData(
+                        this._defaultVideoName(this.syncedData?.basename, selectedSub),
+                        selectedSub.extension,
+                        selectedSub.url,
+                        selectedSub.m3U8BaseUrl
+                    )) &&
+                    this.doneListener
+                ) {
+                    this.doneListener();
+                }
+            } finally {
+                this.autoSyncing = false;
             }
             return;
         }
@@ -196,18 +202,22 @@ export default class VideoDataSyncContainer {
             return basename ?? '';
         }
 
-        return `${basename} - ${subtitleTrack.label}`;
+        if (basename) {
+            return `${basename} - ${subtitleTrack.label}`;
+        }
+
+        return subtitleTrack.label;
     }
 
     _blockRequest() {
         let shallBlock = false;
-        const { url, page } = currentPageConfig();
+        const page = currentPageDelegate();
 
         if (page === undefined) {
             return shallBlock;
         }
 
-        shallBlock = !new RegExp(page.path).test(url.pathname);
+        shallBlock = !page.isVideoPage();
         return shallBlock;
     }
 
@@ -220,18 +230,13 @@ export default class VideoDataSyncContainer {
     }
 
     private _canAutoSync(): boolean {
-        const { page } = currentPageConfig();
+        const page = currentPageDelegate();
 
         if (page === undefined) {
             return this.autoSync ?? false;
         }
 
-        return (
-            this.autoSync === true &&
-            page.autoSync.enabled &&
-            (page.autoSync.elementId === undefined || this.context.video.id === page.autoSync.elementId) &&
-            (page.autoSync.videoSrc === undefined || new RegExp(page.autoSync.videoSrc).test(this.context.video.src))
-        );
+        return this.autoSync === true && page.canAutoSync(this.context.video);
     }
 
     async _client() {

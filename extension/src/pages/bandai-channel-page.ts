@@ -1,18 +1,31 @@
-import { VideoDataSubtitleTrack } from '@project/common';
-import { extractExtension } from './util';
+import { extractExtension, inferTracksFromJson, poll } from './util';
 
-setTimeout(() => {
-    let basename: string | undefined = undefined;
-    let subtitles: VideoDataSubtitleTrack[] = [];
-    const originalParse = JSON.parse;
+function basenameFromDOM() {
+    const seriesElement = document.getElementById('bch-series-title');
+    const episodeElement = document.getElementById('bch-story-title');
 
-    JSON.parse = function () {
-        // @ts-ignore
-        const value = originalParse.apply(this, arguments);
+    if (!seriesElement || !episodeElement) {
+        return undefined;
+    }
+
+    if (!seriesElement.textContent) {
+        return undefined;
+    }
+
+    if (!episodeElement.childNodes || episodeElement.childNodes.length === 0) {
+        return undefined;
+    }
+
+    return `${seriesElement.textContent} ${episodeElement.childNodes[0].nodeValue}`;
+}
+
+let basename: string | undefined = undefined;
+
+inferTracksFromJson({
+    onJson: (value, addTrack, setBasename) => {
+        let basename: string | undefined;
 
         if (value?.bc?.text_tracks instanceof Array) {
-            subtitles = [];
-
             for (const track of value.bc.text_tracks) {
                 if (
                     track.kind === 'subtitles' &&
@@ -25,7 +38,7 @@ setTimeout(() => {
                     const label =
                         typeof track.label === 'string' ? `${track.srclang} - ${track?.label}` : track.srclang;
                     const url = track.sources[0].src.replace(/^http:\/\//, 'https://');
-                    subtitles.push({
+                    addTrack({
                         label: label,
                         language: track.srclang.toLowerCase(),
                         url: url,
@@ -36,51 +49,30 @@ setTimeout(() => {
 
             if (typeof value.bc.name === 'string') {
                 basename = value.bc.name;
+                setBasename(value.bc.name);
             }
         }
 
         if (basename === undefined && typeof value?.bch?.episode_title === 'string') {
             basename = value.bch.episode_title;
+            setBasename(value.bch.episode_title);
         }
 
         return value;
-    };
+    },
+    onRequest: (addTrack, setBasename) => {
+        setBasename(basename ?? document.title);
 
-    function basenameFromDOM() {
-        const seriesElement = document.getElementById('bch-series-title');
-        const episodeElement = document.getElementById('bch-story-title');
+        poll(() => {
+            const basename = basenameFromDOM();
 
-        if (!seriesElement || !episodeElement) {
-            return undefined;
-        }
+            if (basename) {
+                setBasename(basename);
+                return true;
+            }
 
-        if (!seriesElement.textContent) {
-            return undefined;
-        }
-
-        if (!episodeElement.childNodes || episodeElement.childNodes.length === 0) {
-            return undefined;
-        }
-
-        return `${seriesElement.textContent} ${episodeElement.childNodes[0].nodeValue}`;
-    }
-
-    document.addEventListener(
-        'asbplayer-get-synced-data',
-        () => {
-            const response = {
-                error: '',
-                basename: basename ?? basenameFromDOM() ?? document.title,
-                subtitles: subtitles,
-            };
-            document.dispatchEvent(
-                new CustomEvent('asbplayer-synced-data', {
-                    detail: response,
-                })
-            );
-            basename = undefined;
-            subtitles = [];
-        },
-        false
-    );
-}, 0);
+            return false;
+        });
+    },
+    waitForBasename: true,
+});

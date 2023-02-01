@@ -1,10 +1,11 @@
 import Binding from './services/Binding';
-import { loadPageScripts } from './services/pages';
+import { currentPageDelegate } from './services/pages';
 
 const bind = () => {
     const bindings: Binding[] = [];
+    const page = currentPageDelegate();
     let videoSelectMode = false;
-    let subSyncAvailable = loadPageScripts();
+    let subSyncAvailable = page?.loadScripts() ?? false;
 
     const interval = setInterval(() => {
         const videoElements = document.getElementsByTagName('video');
@@ -13,7 +14,7 @@ const bind = () => {
             const videoElement = videoElements[i];
             const bindingExists = bindings.filter((b) => b.video.isSameNode(videoElement)).length > 0;
 
-            if (!bindingExists && _hasValidSource(videoElement)) {
+            if (!bindingExists && _hasValidSource(videoElement) && !page?.shouldIgnore(videoElement)) {
                 const b = new Binding(videoElement, subSyncAvailable);
                 b.bind();
                 bindings.push(b);
