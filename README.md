@@ -71,7 +71,6 @@ You can also adjust offset manually by clicking on the "Subtitle Offset" text fi
 -   Netflix (on main /watch url)
 -   Youtube (on main /watch url)
 -   Disney Plus
--   Amazon Prime
 -   Hulu
 -   TVer
 -   Bandai Channel
