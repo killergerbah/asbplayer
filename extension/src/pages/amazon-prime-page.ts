@@ -1,18 +1,8 @@
 import { VideoDataSubtitleTrack } from '@project/common';
+import { extractExtension } from './util';
 
 setTimeout(() => {
-    let basename: string | undefined = '';
-    let subtitles: VideoDataSubtitleTrack[] = [];
-    let path = window.location.pathname;
-
-    function tryResetState() {
-        if (path !== window.location.pathname) {
-            basename = undefined;
-            subtitles = [];
-            path = window.location.pathname;
-        }
-    }
-
+    const subtitlesByPath: { [key: string]: VideoDataSubtitleTrack[] } = {};
     const originalParse = JSON.parse;
 
     JSON.parse = function () {
@@ -20,7 +10,6 @@ setTimeout(() => {
         const value = originalParse.apply(this, arguments);
 
         if (value?.subtitleUrls instanceof Array) {
-            tryResetState();
             for (const track of value.subtitleUrls) {
                 if (
                     typeof value?.catalogMetadata?.catalog?.title === 'string' &&
@@ -28,10 +17,15 @@ setTimeout(() => {
                     typeof track.languageCode === 'string' &&
                     typeof track.displayName === 'string'
                 ) {
-                    subtitles.push({
+                    if (typeof subtitlesByPath[window.location.pathname] === 'undefined') {
+                        subtitlesByPath[window.location.pathname] = [];
+                    }
+
+                    subtitlesByPath[window.location.pathname].push({
                         label: `${value.catalogMetadata.catalog.title} ${track.displayName}`,
                         language: track.languageCode.toLowerCase(),
                         url: track.url,
+                        extension: extractExtension(track.url, 'dfxp'),
                     });
                 }
             }
@@ -43,12 +37,10 @@ setTimeout(() => {
     document.addEventListener(
         'asbplayer-get-synced-data',
         () => {
-            tryResetState();
             const response = {
                 error: '',
-                basename: basename,
-                extension: 'dfxp',
-                subtitles: subtitles,
+                basename: '',
+                subtitles: subtitlesByPath[window.location.pathname] ?? [],
             };
             document.dispatchEvent(
                 new CustomEvent('asbplayer-synced-data', {

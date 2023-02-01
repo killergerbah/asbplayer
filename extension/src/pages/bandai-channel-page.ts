@@ -1,4 +1,5 @@
 import { VideoDataSubtitleTrack } from '@project/common';
+import { extractExtension } from './util';
 
 setTimeout(() => {
     let basename: string | undefined = undefined;
@@ -23,11 +24,12 @@ setTimeout(() => {
                 ) {
                     const label =
                         typeof track.label === 'string' ? `${track.srclang} - ${track?.label}` : track.srclang;
-
+                    const url = track.sources[0].src.replace(/^http:\/\//, 'https://');
                     subtitles.push({
                         label: label,
                         language: track.srclang.toLowerCase(),
-                        url: track.sources[0].src.replace(/^http:\/\//, 'https://'),
+                        url: url,
+                        extension: extractExtension(url, 'vtt'),
                     });
                 }
             }
@@ -69,7 +71,6 @@ setTimeout(() => {
             const response = {
                 error: '',
                 basename: basename ?? basenameFromDOM() ?? document.title,
-                extension: 'vtt',
                 subtitles: subtitles,
             };
             document.dispatchEvent(

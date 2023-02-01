@@ -1,4 +1,5 @@
 import {
+    ConfirmedVideoDataSubtitleTrack,
     ExtensionSettings,
     ExtensionSyncMessage,
     SerializedSubtitleFile,
@@ -148,7 +149,10 @@ export default class VideoDataSyncContainer {
                   open: true,
                   isLoading: false,
                   suggestedName: this.syncedData.basename,
-                  subtitles: [{ language: '', url: '-', label: 'None' }, ...this.syncedData.subtitles],
+                  subtitles: [
+                      { language: '', url: '-', label: 'None', extension: 'srt' },
+                      ...this.syncedData.subtitles,
+                  ],
                   error: this.syncedData.error,
                   themeType: themeType,
               }
@@ -156,7 +160,7 @@ export default class VideoDataSyncContainer {
                   open: true,
                   isLoading: this.context.subSyncAvailable,
                   showSubSelect: true,
-                  subtitles: [{ language: '', url: '-', label: 'None' }],
+                  subtitles: [{ language: '', url: '-', label: 'None', extension: 'srt' }],
                   themeType: themeType,
               };
 
@@ -168,6 +172,7 @@ export default class VideoDataSyncContainer {
             if (
                 (await this._syncData(
                     this._defaultVideoName(this.syncedData?.basename, selectedSub),
+                    selectedSub.extension,
                     selectedSub.url,
                     selectedSub.m3U8BaseUrl
                 )) &&
@@ -254,11 +259,9 @@ export default class VideoDataSyncContainer {
                     await this.context.settings.set({ lastLanguagesSynced: this.lastLanguagesSynced }).catch(() => {});
                 }
 
-                shallUpdate = await this._syncData(
-                    message.data.name,
-                    message.data.subtitleUrl,
-                    message.data.m3U8BaseUrl
-                );
+                const data = message.data as ConfirmedVideoDataSubtitleTrack;
+
+                shallUpdate = await this._syncData(data.name, data.extension, data.subtitleUrl, data.m3U8BaseUrl);
             }
 
             if (shallUpdate) {
@@ -312,10 +315,10 @@ export default class VideoDataSyncContainer {
         this.context.subtitleContainer.forceHideSubtitles = true;
     }
 
-    async _syncData(name: string, subtitleUrl: string, m3U8BaseUrl: string | undefined) {
+    async _syncData(name: string, extension: string, subtitleUrl: string, m3U8BaseUrl: string | undefined) {
         try {
             let subtitles: SerializedSubtitleFile[] | undefined;
-            subtitles = await this._subtitlesForUrl(name, subtitleUrl, m3U8BaseUrl);
+            subtitles = await this._subtitlesForUrl(name, extension, subtitleUrl, m3U8BaseUrl);
 
             if (subtitles === undefined) {
                 return false;
@@ -326,7 +329,7 @@ export default class VideoDataSyncContainer {
                 message: {
                     command: 'sync',
                     subtitles: subtitles,
-                    flatten: this.syncedData?.extension === 'm3u8',
+                    flatten: m3U8BaseUrl !== undefined,
                 },
                 src: this.context.video.src,
             };
@@ -343,20 +346,19 @@ export default class VideoDataSyncContainer {
 
     private async _subtitlesForUrl(
         name: string,
+        extension: string,
         url: string,
         m3U8BaseUrl?: string
     ): Promise<SerializedSubtitleFile[] | undefined> {
-        const extension = this.syncedData?.extension || 'srt';
-
         if (url === '-') {
             return [
                 {
-                    name: `${name}.${this.syncedData?.extension || 'srt'}`,
+                    name: `${name}.${extension}`,
                     base64: '',
                 },
             ];
         }
-        
+
         const response = await fetch(url).catch((error) => {
             this._reportError(name, error.message);
         });
@@ -376,7 +378,7 @@ export default class VideoDataSyncContainer {
             }
 
             const firstUri = parser.manifest.segments[0].uri;
-            const extension = firstUri.substring(firstUri.lastIndexOf('.') + 1);
+            const partExtension = firstUri.substring(firstUri.lastIndexOf('.') + 1);
             const promises = parser.manifest.segments
                 .filter((s: any) => !s.discontinuity && s.uri)
                 .map((s: any) => fetch(`${m3U8BaseUrl}/${s.uri}`));
@@ -392,7 +394,7 @@ export default class VideoDataSyncContainer {
                 }
 
                 tracks.push({
-                    name: `${name}.${extension}`,
+                    name: `${name}.${partExtension}`,
                     base64: bufferToBase64(await response.arrayBuffer()),
                 });
             }
@@ -406,7 +408,7 @@ export default class VideoDataSyncContainer {
 
         return [
             {
-                name: `${name}.${this.syncedData?.extension || 'srt'}`,
+                name: `${name}.${extension}`,
                 base64: response ? bufferToBase64(await response.arrayBuffer()) : '',
             },
         ];

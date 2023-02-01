@@ -1,7 +1,9 @@
+import { VideoData } from '@project/common';
+
 document.addEventListener(
     'asbplayer-get-synced-data',
     async () => {
-        const response = { error: '', basename: '', extension: 'ytxml', subtitles: [] };
+        const response: VideoData = { error: '', basename: '', subtitles: [] };
 
         try {
             const playerContext = await fetch(window.location.href)
@@ -45,6 +47,7 @@ document.addEventListener(
                         label: `${track.languageCode} - ${track.name?.simpleText}`,
                         language: track.languageCode.toLowerCase(),
                         url: track.baseUrl,
+                        extension: 'ytxml',
                     };
                 }
             );

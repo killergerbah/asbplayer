@@ -1,4 +1,5 @@
 import { VideoDataSubtitleTrack } from '@project/common';
+import { extractExtension } from './util';
 
 setTimeout(() => {
     function isObject(val: any) {
@@ -19,6 +20,7 @@ setTimeout(() => {
                             label: language,
                             language: language.toLowerCase(),
                             url: url,
+                            extension: extractExtension(url, 'vtt'),
                         });
                     }
                 }
@@ -131,7 +133,6 @@ setTimeout(() => {
             const response = {
                 error: error,
                 basename: basename,
-                extension: 'vtt',
                 subtitles: subtitles,
             };
 

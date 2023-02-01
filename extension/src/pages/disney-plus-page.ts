@@ -85,8 +85,9 @@ setTimeout(() => {
                                     subtitles.push({
                                         label: label,
                                         language: track.language,
-                                        url: `${baseUrl}/${track.uri}`,
+                                        url: subtitleM3U8Url,
                                         m3U8BaseUrl: baseUrlForUrl(subtitleM3U8Url),
+                                        extension: 'm3u8',
                                     });
                                 }
                             }
@@ -130,7 +131,6 @@ setTimeout(() => {
                         detail: {
                             error: 'Could not extract subtitle track information.',
                             basename: '',
-                            extension: 'm3u8',
                             subtitles: [],
                         },
                     })

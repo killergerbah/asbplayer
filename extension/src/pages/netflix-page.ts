@@ -1,3 +1,5 @@
+import { VideoData } from '@project/common';
+
 declare const netflix: any | undefined;
 
 setTimeout(() => {
@@ -128,7 +130,7 @@ setTimeout(() => {
     document.addEventListener(
         'asbplayer-get-synced-data',
         async () => {
-            const response = { error: '', basename: '', extension: 'nfvtt', subtitles: [] };
+            const response: VideoData = { error: '', basename: '', subtitles: [] };
             const np = player();
             const titleId = np?.getMovieId();
 
@@ -153,6 +155,7 @@ setTimeout(() => {
                         }`,
                         language: track.bcp47.toLowerCase(),
                         url: storedTracks.get(track.trackId),
+                        extension: 'nfvtt',
                     };
                 });
 

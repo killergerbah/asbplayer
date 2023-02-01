@@ -155,8 +155,8 @@ export default function VideoDataSyncDialog({
                 <Button
                     disabled={!trimmedName}
                     onClick={() => {
-                        const { language, m3U8BaseUrl } = subtitles.find((subtitle) => subtitle.url === selected)!;
-                        onConfirm({ name: trimmedName, subtitleUrl: selected, language, m3U8BaseUrl: m3U8BaseUrl });
+                        const { language, extension, m3U8BaseUrl } = subtitles.find((subtitle) => subtitle.url === selected)!;
+                        onConfirm({ name: trimmedName, extension: extension, subtitleUrl: selected, language, m3U8BaseUrl: m3U8BaseUrl });
                     }}
                 >
                     Confirm

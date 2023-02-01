@@ -5,7 +5,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createTheme } from './theme';
 import VideoDataSyncDialog from './VideoDataSyncDialog';
 import Bridge from '../Bridge';
-import { ConfirmedVideoDataSubtitleTrack, VideoDataSubtitleTrack, VideoDataUiBridgeConfirmMessage } from '@project/common';
+import {
+    ConfirmedVideoDataSubtitleTrack,
+    VideoDataSubtitleTrack,
+    VideoDataUiBridgeConfirmMessage,
+} from '@project/common';
 import { PaletteType } from '@material-ui/core';
 
 interface Props {
@@ -17,7 +21,9 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [suggestedName, setSuggestedName] = useState<string>('');
     const [showSubSelect, setShowSubSelect] = useState<boolean>(true);
-    const [subtitles, setSubtitles] = useState<VideoDataSubtitleTrack[]>([{ language: '', url: '-', label: 'None' }]);
+    const [subtitles, setSubtitles] = useState<VideoDataSubtitleTrack[]>([
+        { language: '', url: '-', label: 'None', extension: 'srt' },
+    ]);
     const [selectedSubtitle, setSelectedSubtitle] = useState<string>('-');
     const [error, setError] = useState<string>('');
     const [themeType, setThemeType] = useState<string>();

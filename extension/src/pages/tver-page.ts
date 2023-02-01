@@ -1,4 +1,5 @@
 import { VideoDataSubtitleTrack } from '@project/common';
+import { extractExtension } from './util';
 
 setTimeout(() => {
     let basename: string | undefined = undefined;
@@ -33,12 +34,14 @@ setTimeout(() => {
                     const label =
                         typeof track.label === 'string' ? `${track.srclang} - ${track?.label}` : track.srclang;
                     const language = track.srclang.toLowerCase();
+                    const url = track.sources[0].src;
 
                     if (subtitles.find((s) => s.language === language) === undefined) {
                         subtitles.push({
                             label: label,
                             language: language,
-                            url: track.sources[0].src.replace(/^http:\/\//, 'https://'),
+                            url: url.replace(/^http:\/\//, 'https://'),
+                            extension: extractExtension(url, 'vtt'),
                         });
                     }
                 }
