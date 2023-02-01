@@ -1,5 +1,5 @@
 import { compile as parseAss } from 'ass-compiler';
-import { Cue, Node, parseSync as parseSrt, stringifySync as writeSrt } from 'subtitle';
+import { Cue, parseSync as parseSrt, Node as SrtNode, stringifySync as writeSrt } from 'subtitle';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
 import { DisplaySet, parseDisplaySets } from 'pgs-parser';
@@ -20,7 +20,6 @@ interface SubtitleNode {
 
 export default class SubtitleReader {
     private xmlParser?: XMLParser;
-    private dfxpXmlParser?: XMLParser;
 
     async subtitles(files: File[], flatten?: boolean) {
         return (await Promise.all(files.map((f, i) => this._subtitles(f, flatten === true ? 0 : i))))
@@ -136,18 +135,26 @@ export default class SubtitleReader {
             return subtitles;
         }
 
-        if (file.name.endsWith('.dfxp')) {
+        if (file.name.endsWith('.dfxp') || file.name.endsWith('ttml2')) {
             const text = await file.text();
-            const xml = this._dfxpXmlParser().parse(text);
-            const textNodes = xml['tt']['body']['div']['p'];
-            const subtitles = [];
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(text, 'application/xml');
+            const nodes = this._xmlNodePath(doc.documentElement, ['body', 'div']);
+            const subtitles: SubtitleNode[] = [];
 
-            for (let index = 0, length = textNodes.length; index < length; index++) {
-                const elm = textNodes[index];
+            for (let index = 0, length = nodes.length; index < length; index++) {
+                const elm = nodes[index];
+                const beginAttribute = elm.getAttribute('begin');
+                const endAttribute = elm.getAttribute('end');
+
+                if (beginAttribute === null || endAttribute === null) {
+                    continue;
+                }
+
                 subtitles.push({
-                    text: this._decodeHTML(elm['#text']).replace(/\n$/, ''),
-                    start: this._parseTtmlTimestamp(elm['@_begin']),
-                    end: this._parseTtmlTimestamp(elm['@_end']),
+                    text: elm.textContent ?? '',
+                    start: this._parseTtmlTimestamp(beginAttribute),
+                    end: this._parseTtmlTimestamp(endAttribute),
                     track,
                 });
             }
@@ -165,6 +172,40 @@ export default class SubtitleReader {
         const hours = parts.length < 3 ? 0 : Number(parts[parts.length - 3]);
 
         return milliseconds + minutes * 60000 + hours * 3600000;
+    }
+
+    private _xmlNodePath(parent: Element, path: string[]): Element[] {
+        if (path.length === 0) {
+            const children: Element[] = [];
+
+            for (let i = 0; i < parent.children.length; ++i) {
+                const node = parent.children[i];
+                children.push(node);
+            }
+
+            return children;
+        }
+
+        for (let i = 0; i < parent.children.length; ++i) {
+            const node = parent.children[i];
+            const tag = this._dropTagNamespace(node.tagName);
+
+            if (tag === path[0]) {
+                return this._xmlNodePath(node, path.slice(1));
+            }
+        }
+
+        throw new Error('Failied to parse XML path');
+    }
+
+    private _dropTagNamespace(tag: string) {
+        const colonIndex = tag.lastIndexOf(':');
+
+        if (colonIndex !== -1) {
+            return tag.substring(colonIndex + 1);
+        }
+
+        return tag;
     }
 
     private _displaySetsToSubtitles(subtitles: SubtitleNode[], track: number) {
@@ -232,7 +273,7 @@ export default class SubtitleReader {
 
     private _decodeHTML(text: string): string {
         helperElement.innerHTML = text;
-        return helperElement.childNodes.length === 0 ? '' : helperElement.childNodes[0].nodeValue!;
+        return helperElement.textContent ?? helperElement.innerText;
     }
 
     private _xmlParser() {
@@ -245,25 +286,8 @@ export default class SubtitleReader {
         return this.xmlParser;
     }
 
-    private _dfxpXmlParser() {
-        if (this.dfxpXmlParser === undefined) {
-            this.dfxpXmlParser = new XMLParser({
-                ignoreAttributes: false,
-                removeNSPrefix: true,
-                isArray: (name, jpath, isLeafNode, isAttribute) => {
-                    return name === 'p';
-                },
-                tagValueProcessor: (tagName, tagValue, jPath, hasAttributes, isLeafNode) => {
-                    return tagValue + '\n';
-                },
-            });
-        }
-
-        return this.dfxpXmlParser;
-    }
-
     subtitlesToSrt(subtitles: SubtitleNode[]) {
-        const nodes: Node[] = subtitles.map((subtitleNode) => {
+        const nodes: SrtNode[] = subtitles.map((subtitleNode) => {
             return {
                 type: 'cue',
                 data: {

@@ -379,6 +379,8 @@ export default function Player({
                     } else {
                         onError(String(e));
                     }
+
+                    setSubtitles([]);
                 } finally {
                     setLoadingSubtitles(false);
                 }
