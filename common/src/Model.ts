@@ -133,7 +133,7 @@ export interface ConfirmedVideoDataSubtitleTrack {
 export interface VideoData {
     basename: string;
     error?: string;
-    subtitles: VideoDataSubtitleTrack[];
+    subtitles?: VideoDataSubtitleTrack[];
 }
 
 export interface VideoDataUiState {

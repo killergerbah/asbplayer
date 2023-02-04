@@ -11,10 +11,10 @@ export function extractExtension(url: string, fallback: string) {
     return extension;
 }
 
-export function poll(test: () => boolean, timeout: number = 10000) {
-    return new Promise<void>(async (resolve, reject) => {
+export function poll(test: () => boolean, timeout: number = 10000): Promise<boolean> {
+    return new Promise<boolean>(async (resolve, reject) => {
         if (test()) {
-            resolve();
+            resolve(true);
         }
 
         const t0 = Date.now();
@@ -29,7 +29,7 @@ export function poll(test: () => boolean, timeout: number = 10000) {
             });
         }
 
-        resolve();
+        resolve(passed);
     });
 }
 
@@ -49,7 +49,7 @@ export function inferTracksFromJson({ onJson, onRequest, waitForBasename }: Infe
     setTimeout(() => {
         const subtitlesByPath: SubtitlesByPath = {};
         let basename = '';
-        let waiting = false;
+        let trackDataRequestHandled = false;
 
         const originalParse = JSON.parse;
 
@@ -57,35 +57,39 @@ export function inferTracksFromJson({ onJson, onRequest, waitForBasename }: Infe
             // @ts-ignore
             const value = originalParse.apply(this, arguments);
             let tracksFound = false;
+            let basenameFound = false;
 
             onJson(
                 value,
                 (track) => {
-                    if (typeof subtitlesByPath[window.location.pathname] === 'undefined') {
-                        subtitlesByPath[window.location.pathname] = [];
+                    const path = window.location.pathname;
+
+                    if (typeof subtitlesByPath[path] === 'undefined') {
+                        subtitlesByPath[path] = [];
                     }
 
                     if (
-                        subtitlesByPath[window.location.pathname].find(
-                            (s) => s.label === track.label && s.language === track.language
-                        ) === undefined
+                        subtitlesByPath[path].find((s) => s.label === track.label && s.language === track.language) ===
+                        undefined
                     ) {
-                        subtitlesByPath[window.location.pathname].push(track);
+                        subtitlesByPath[path].push(track);
                         tracksFound = true;
                     }
                 },
                 (theBasename) => {
                     basename = theBasename;
+                    basenameFound = true;
                 }
             );
 
-            if (!waiting && tracksFound) {
+            if (trackDataRequestHandled && (tracksFound || basenameFound)) {
+                // Only notify additional tracks after the initial request for track info
                 document.dispatchEvent(
                     new CustomEvent('asbplayer-synced-data', {
                         detail: {
                             error: '',
                             basename: basename,
-                            subtitles: subtitlesByPath[window.location.pathname] ?? [],
+                            subtitles: subtitlesByPath[window.location.pathname],
                         },
                     })
                 );
@@ -107,20 +111,34 @@ export function inferTracksFromJson({ onJson, onRequest, waitForBasename }: Infe
             async () => {
                 onRequest?.(
                     (track) => {
-                        if (typeof subtitlesByPath[window.location.pathname] === 'undefined') {
-                            subtitlesByPath[window.location.pathname] = [];
+                        const path = window.location.pathname;
+
+                        if (typeof subtitlesByPath[path] === 'undefined') {
+                            subtitlesByPath[path] = [];
                         }
 
                         if (
-                            subtitlesByPath[window.location.pathname].find(
+                            subtitlesByPath[path].find(
                                 (s) => s.label === track.label && s.language === track.language
                             ) === undefined
                         ) {
-                            subtitlesByPath[window.location.pathname].push(track);
+                            subtitlesByPath[path].push(track);
                         }
                     },
                     (theBasename) => {
                         basename = theBasename;
+                        if (!trackDataRequestHandled) {
+                            // Notify basename even if still waiting for subtitle track info
+                            document.dispatchEvent(
+                                new CustomEvent('asbplayer-synced-data', {
+                                    detail: {
+                                        error: '',
+                                        basename: basename,
+                                        subtitles: undefined,
+                                    },
+                                })
+                            );
+                        }
                     }
                 );
 
@@ -128,9 +146,7 @@ export function inferTracksFromJson({ onJson, onRequest, waitForBasename }: Infe
                     (!waitForBasename || basename !== '') && window.location.pathname in subtitlesByPath;
 
                 if (!ready()) {
-                    waiting = true;
                     await poll(ready);
-                    waiting = false;
                 }
 
                 document.dispatchEvent(
@@ -144,6 +160,7 @@ export function inferTracksFromJson({ onJson, onRequest, waitForBasename }: Infe
                 );
 
                 garbageCollect();
+                trackDataRequestHandled = true;
             },
             false
         );

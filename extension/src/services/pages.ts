@@ -43,7 +43,6 @@ export class PageDelegate {
         s.src = chrome.runtime.getURL(`pages/${this.config.script}`);
         s.onload = () => s.remove();
         (document.head || document.documentElement).appendChild(s);
-        return true;
     }
 
     shouldIgnore(element: HTMLVideoElement) {

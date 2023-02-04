@@ -5,7 +5,7 @@ const bind = () => {
     const bindings: Binding[] = [];
     const page = currentPageDelegate();
     let videoSelectMode = false;
-    let subSyncAvailable = page?.loadScripts() ?? false;
+    let subSyncAvailable = page !== undefined;
 
     const interval = setInterval(() => {
         const videoElements = document.getElementsByTagName('video');

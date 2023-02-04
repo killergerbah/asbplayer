@@ -13,7 +13,7 @@
     "@material-ui/icons": "^4.11.2",
     "@material-ui/lab": "^4.0.0-alpha.57",
     "@project/common": "0.1.0",
-    "@types/chrome": "^0.0.196",
+    "@types/chrome": "^0.0.211",
     "@types/dom-mediacapture-record": "^1.0.11",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",

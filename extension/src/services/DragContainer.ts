@@ -63,7 +63,8 @@ export default class DragContainer {
                     extension === 'srt' ||
                     extension === 'vtt' ||
                     extension === 'sup' ||
-                    extension === 'dfxp'
+                    extension === 'dfxp' ||
+                    extension ===  'ttml2'
                 ) {
                     files.push(f);
                 }

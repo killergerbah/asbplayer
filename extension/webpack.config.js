@@ -6,6 +6,7 @@ const glob = require('glob');
 module.exports = (env, options) => ({
     entry: {
         video: './src/video.ts',
+        page: './src/page.ts',
         background: './src/background.ts',
         'popup-ui': './src/popup-ui.ts',
         'anki-ui': './src/anki-ui.ts',

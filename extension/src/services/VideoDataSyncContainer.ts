@@ -40,7 +40,6 @@ export default class VideoDataSyncContainer {
     private autoSync?: boolean;
     private lastLanguagesSynced: { [key: string]: string };
     private boundFunction?: (event: Event) => void;
-    private requested: boolean;
     private client?: FrameBridgeClient;
     private frame?: HTMLIFrameElement;
     private syncedData?: VideoData;
@@ -48,6 +47,7 @@ export default class VideoDataSyncContainer {
     private fullscreenElement?: Element;
     private activeElement?: Element;
     private autoSyncing: boolean = false;
+    private waitingForSubtitles: boolean = false;
 
     constructor(context: Binding) {
         this.context = context;
@@ -57,7 +57,6 @@ export default class VideoDataSyncContainer {
         this.autoSync = false;
         this.lastLanguagesSynced = {};
         this.boundFunction;
-        this.requested = false;
         this.domain = new URL(window.location.href).host;
     }
 
@@ -110,7 +109,6 @@ export default class VideoDataSyncContainer {
             this.frame = undefined;
         }
 
-        this.requested = false;
         this.wasPaused = undefined;
         this.videoSelectBound = false;
         this.doneListener = undefined;
@@ -122,82 +120,93 @@ export default class VideoDataSyncContainer {
     }
 
     requestSubtitles() {
-        if (!this.context.subSyncAvailable || this._blockRequest()) {
+        if (!this.context.subSyncAvailable || !currentPageDelegate()?.isVideoPage()) {
             return;
         }
 
         this.syncedData = undefined;
 
         if (!this.boundFunction) {
+            let allowAutoSync = true;
+
             this.boundFunction = (event: Event) => {
-                this._setSyncedData(event as CustomEvent);
+                const data = (event as CustomEvent).detail as VideoData;
+                const autoSync = allowAutoSync && data.subtitles !== undefined;
+                this.waitingForSubtitles = data.subtitles === undefined;
+                this._setSyncedData(data, autoSync);
+
+                if (autoSync) {
+                    // Only attempt auto-sync on first response with subtitles received
+                    allowAutoSync = false;
+                }
             };
             document.addEventListener('asbplayer-synced-data', this.boundFunction, false);
         }
 
         document.dispatchEvent(new CustomEvent('asbplayer-get-synced-data'));
+        this.waitingForSubtitles = true;
     }
 
     async show(userRequested = true) {
-        if (this._blockRequest()) {
-            if (this.doneListener) this.doneListener();
+        if (!userRequested && this.syncedData?.subtitles === undefined) {
+            // Not user-requested and subtitles track detection is not finished
             return;
         }
 
-        const themeType = (await this.context.settings.get(['lastThemeType'])).lastThemeType;
-        let state: VideoDataUiState = this.syncedData
-            ? {
-                  open: true,
-                  isLoading: false,
-                  suggestedName: this.syncedData.basename,
-                  subtitles: [
-                      { language: '', url: '-', label: 'None', extension: 'srt' },
-                      ...this.syncedData.subtitles,
-                  ],
-                  error: this.syncedData.error,
-                  themeType: themeType,
-              }
-            : {
-                  open: true,
-                  isLoading: this.context.subSyncAvailable,
-                  showSubSelect: true,
-                  subtitles: [{ language: '', url: '-', label: 'None', extension: 'srt' }],
-                  themeType: themeType,
-              };
+        const subtitleTrackChoices = [
+            { language: '', url: '-', label: 'None', extension: 'srt' },
+            ...(this.syncedData?.subtitles ?? []),
+        ];
+        const selectedSub = subtitleTrackChoices.find((subtitle) => subtitle.language === this.lastLanguageSynced);
 
-        this.requested = userRequested;
-
-        const selectedSub = state.subtitles!.find((subtitle) => subtitle.language === this.lastLanguageSynced);
-
-        if (selectedSub && !userRequested && !state.error && !this.autoSyncing) {
-            this.autoSyncing = true;
-            try {
-                if (
-                    (await this._syncData(
-                        this._defaultVideoName(this.syncedData?.basename, selectedSub),
-                        selectedSub.extension,
-                        selectedSub.url,
-                        selectedSub.m3U8BaseUrl
-                    )) &&
-                    this.doneListener
-                ) {
-                    this.doneListener();
+        if (selectedSub !== undefined && !userRequested && !this.syncedData?.error) {
+            // Instead of showing, auto-sync
+            if (!this.autoSyncing) {
+                this.autoSyncing = true;
+                try {
+                    if (
+                        (await this._syncData(
+                            this._defaultVideoName(this.syncedData?.basename, selectedSub),
+                            selectedSub.extension,
+                            selectedSub.url,
+                            selectedSub.m3U8BaseUrl
+                        )) &&
+                        this.doneListener
+                    ) {
+                        this.doneListener();
+                    }
+                } finally {
+                    this.autoSyncing = false;
                 }
-            } finally {
-                this.autoSyncing = false;
             }
-            return;
+        } else {
+            // Either user-requested or we couldn't auto-sync subtitles with the preferred language
+            const themeType = (await this.context.settings.get(['lastThemeType'])).lastThemeType;
+            let state: VideoDataUiState = this.syncedData
+                ? {
+                      open: true,
+                      isLoading: this.syncedData.subtitles === undefined,
+                      suggestedName: this.syncedData.basename,
+                      subtitles: subtitleTrackChoices,
+                      error: this.syncedData.error,
+                      themeType: themeType,
+                  }
+                : {
+                      open: true,
+                      isLoading: this.context.subSyncAvailable && this.waitingForSubtitles,
+                      showSubSelect: true,
+                      subtitles: subtitleTrackChoices,
+                      themeType: themeType,
+                  };
+            state.selectedSubtitle = selectedSub?.url || '-';
+
+            const client = await this._client();
+            this._prepareShow();
+            client.updateState(state);
         }
-
-        state.selectedSubtitle = selectedSub?.url || '-';
-
-        const client = await this._client();
-
-        this._prepareShow();
-        client.updateState(state);
     }
 
-    _defaultVideoName(basename: string | undefined, subtitleTrack: VideoDataSubtitleTrack) {
+    private _defaultVideoName(basename: string | undefined, subtitleTrack: VideoDataSubtitleTrack) {
         if (subtitleTrack.url === '-') {
             return basename ?? '';
         }
@@ -209,23 +218,11 @@ export default class VideoDataSyncContainer {
         return subtitleTrack.label;
     }
 
-    _blockRequest() {
-        let shallBlock = false;
-        const page = currentPageDelegate();
-
-        if (page === undefined) {
-            return shallBlock;
-        }
-
-        shallBlock = !page.isVideoPage();
-        return shallBlock;
-    }
-
-    _setSyncedData({ detail: data }: CustomEvent) {
+    private _setSyncedData(data: VideoData, autoSync: boolean) {
         this.syncedData = data;
-
-        if (this.requested || this._canAutoSync()) {
-            this.show(this.requested);
+        
+        if (autoSync && this._canAutoSync()) {
+            this.show(false);
         }
     }
 
@@ -239,7 +236,7 @@ export default class VideoDataSyncContainer {
         return this.autoSync === true && page.canAutoSync(this.context.video);
     }
 
-    async _client() {
+    private async _client() {
         if (this.client) {
             await this.client.bind();
             this.frame?.classList?.remove('asbplayer-hide');
@@ -296,14 +293,12 @@ export default class VideoDataSyncContainer {
                 this.wasPaused = undefined;
                 if (this.doneListener) this.doneListener();
             }
-
-            this.requested = false;
         });
 
         return this.client;
     }
 
-    _prepareShow() {
+    private _prepareShow() {
         this.wasPaused = this.wasPaused ?? this.context.video.paused;
         this.context.pause();
 
@@ -320,7 +315,7 @@ export default class VideoDataSyncContainer {
         this.context.subtitleContainer.forceHideSubtitles = true;
     }
 
-    async _syncData(name: string, extension: string, subtitleUrl: string, m3U8BaseUrl: string | undefined) {
+    private async _syncData(name: string, extension: string, subtitleUrl: string, m3U8BaseUrl: string | undefined) {
         try {
             let subtitles: SerializedSubtitleFile[] | undefined;
             subtitles = await this._subtitlesForUrl(name, extension, subtitleUrl, m3U8BaseUrl);
@@ -419,7 +414,7 @@ export default class VideoDataSyncContainer {
         ];
     }
 
-    async _reportError(suggestedName: string, error: string) {
+    private async _reportError(suggestedName: string, error: string) {
         const client = await this._client();
         const themeType = (await this.context.settings.get(['lastThemeType'])).lastThemeType;
 
@@ -429,10 +424,10 @@ export default class VideoDataSyncContainer {
             open: true,
             isLoading: false,
             suggestedName,
-            showSubSelect: this.context.subSyncAvailable,
+            showSubSelect: true,
             subtitles: [{ language: '', url: '-', label: 'None' }, ...(this.syncedData?.subtitles || [])],
             selectedSubtitle:
-                this.syncedData?.subtitles.find((subtitle) => subtitle.language === this.lastLanguageSynced)?.url ||
+                this.syncedData?.subtitles?.find((subtitle) => subtitle.language === this.lastLanguageSynced)?.url ||
                 '-',
             error,
             themeType: themeType,

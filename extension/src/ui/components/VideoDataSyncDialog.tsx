@@ -67,12 +67,12 @@ export default function VideoDataSyncDialog({
     const classes = createClasses();
 
     useEffect(() => {
-        if (open && !isLoading) {
+        if (open) {
             setSelected(selectedSubtitle);
         } else if (!open) {
             setName('');
         }
-    }, [open, isLoading, selectedSubtitle]);
+    }, [open, selectedSubtitle]);
 
     useEffect(() => {
         setName((name) => {

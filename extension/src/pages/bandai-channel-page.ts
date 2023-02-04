@@ -19,8 +19,6 @@ function basenameFromDOM() {
     return `${seriesElement.textContent} ${episodeElement.childNodes[0].nodeValue}`;
 }
 
-let basename: string | undefined = undefined;
-
 inferTracksFromJson({
     onJson: (value, addTrack, setBasename) => {
         let basename: string | undefined;
@@ -57,13 +55,9 @@ inferTracksFromJson({
             basename = value.bch.episode_title;
             setBasename(value.bch.episode_title);
         }
-
-        return value;
     },
     onRequest: (addTrack, setBasename) => {
-        setBasename(basename ?? document.title);
-
-        poll(() => {
+        const succeeded = poll(() => {
             const basename = basenameFromDOM();
 
             if (basename) {
@@ -73,6 +67,10 @@ inferTracksFromJson({
 
             return false;
         });
+
+        if (!succeeded) {
+            setBasename(document.title);
+        }
     },
     waitForBasename: true,
 });

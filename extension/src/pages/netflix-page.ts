@@ -8,6 +8,10 @@ setTimeout(() => {
     const subTracks = new Map();
 
     function getAPI() {
+        if (typeof netflix === 'undefined') {
+            return undefined;
+        }
+
         return netflix?.appContext?.state?.playerApp?.getAPI?.();
     }
 
@@ -168,33 +172,33 @@ setTimeout(() => {
         false
     );
 
-    if (getVideoPlayer()) {
-        const originalStringify = JSON.stringify;
-        JSON.stringify = function (value) {
-            if ('string' === typeof value?.url && -1 < value.url.search(manifestPattern)) {
-                for (let objectValue of Object.values(value)) {
-                    (objectValue as any)?.profiles?.unshift(webvtt);
-                }
+    const originalStringify = JSON.stringify;
+    JSON.stringify = function (value) {
+        if ('string' === typeof value?.url && -1 < value.url.search(manifestPattern)) {
+            for (let objectValue of Object.values(value)) {
+                (objectValue as any)?.profiles?.unshift(webvtt);
             }
+        }
 
-            // @ts-ignore
-            return originalStringify.apply(this, arguments);
-        };
+        // @ts-ignore
+        return originalStringify.apply(this, arguments);
+    };
 
-        const originalParse = JSON.parse;
-        JSON.parse = function () {
-            // @ts-ignore
-            const value = originalParse.apply(this, arguments);
+    const originalParse = JSON.parse;
+    JSON.parse = function () {
+        // @ts-ignore
+        const value = originalParse.apply(this, arguments);
 
-            if (value?.result?.movieId) storeSubTrack(value.result);
+        if (value?.result?.movieId) storeSubTrack(value.result);
 
-            return value;
-        };
+        return value;
+    };
 
+    document.addEventListener('asbplayer-query-netflix', () => {
         document.dispatchEvent(
             new CustomEvent('asbplayer-netflix-enabled', {
-                detail: true,
+                detail: getVideoPlayer() !== undefined,
             })
         );
-    }
+    });
 }, 0);

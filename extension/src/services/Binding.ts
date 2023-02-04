@@ -46,6 +46,7 @@ let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
     netflix = (e as CustomEvent).detail;
 });
+document.dispatchEvent(new CustomEvent('asbplayer-query-netflix'));
 
 export default class Binding {
     subscribed: boolean = false;

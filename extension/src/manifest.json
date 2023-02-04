@@ -26,6 +26,13 @@
             "run_at": "document_idle"
         },
         {
+            "matches": ["*://*/*"],
+            "exclude_globs": ["*://killergerbah.github.io/asbplayer*", "*://localhost:*/*"],
+            "js": ["page.js"],
+            "all_frames": true,
+            "run_at": "document_start"
+        },
+        {
             "matches": ["*://killergerbah.github.io/asbplayer*", "*://localhost:*/*"],
             "js": ["asbplayer.js"],
             "run_at": "document_start"
