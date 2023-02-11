@@ -19,7 +19,12 @@ interface SubtitleNode {
 }
 
 export default class SubtitleReader {
+    private readonly _filterRegex?: RegExp;
     private xmlParser?: XMLParser;
+
+    constructor(filterRegex: string) {
+        this._filterRegex = filterRegex.trim() === '' ? undefined : new RegExp(filterRegex);
+    }
 
     async subtitles(files: File[], flatten?: boolean) {
         return (await Promise.all(files.map((f, i) => this._subtitles(f, flatten === true ? 0 : i))))
@@ -37,7 +42,7 @@ export default class SubtitleReader {
                     return {
                         start: cue.start,
                         end: cue.end,
-                        text: cue.text.replace(tagRegex, ''),
+                        text: this._filterText(cue.text).replace(tagRegex, ''),
                         track: track,
                     };
                 });
@@ -49,7 +54,7 @@ export default class SubtitleReader {
                 const parser = new WebVTT.Parser(window, WebVTT.StringDecoder());
                 const cues: any[] = [];
                 parser.oncue = (c: any) => {
-                    c.text = c.text.replace(tagRegex, '');
+                    c.text = this._filterText(c.text).replace(tagRegex, '');
 
                     if (isFromNetflix) {
                         const lines = c.text.split('\n');
@@ -83,10 +88,9 @@ export default class SubtitleReader {
                 return {
                     start: Math.round(dialogue.start * 1000),
                     end: Math.round(dialogue.end * 1000),
-                    text: dialogue.slices
-                        .flatMap((slice) => slice.fragments.map((fragment) => fragment.text))
-                        .join('')
-                        .replace(assNewLineRegex, '\n'),
+                    text: this._filterText(
+                        dialogue.slices.flatMap((slice) => slice.fragments.map((fragment) => fragment.text)).join('')
+                    ).replace(assNewLineRegex, '\n'),
                     track: track,
                 };
             });
@@ -115,7 +119,7 @@ export default class SubtitleReader {
                 subtitles.push({
                     start: Math.floor(start * 1000),
                     end: Math.floor((start + parseFloat(elm['@_dur'])) * 1000),
-                    text: this._decodeHTML(String(elm['#text']).replace(tagRegex, '')),
+                    text: this._filterText(this._decodeHTML(String(elm['#text'])).replace(tagRegex, '')),
                     track,
                 });
             }
@@ -152,7 +156,7 @@ export default class SubtitleReader {
                 }
 
                 subtitles.push({
-                    text: elm.textContent ?? '',
+                    text: this._filterText(elm.textContent ?? ''),
                     start: this._parseTtmlTimestamp(beginAttribute),
                     end: this._parseTtmlTimestamp(endAttribute),
                     track,
@@ -284,6 +288,14 @@ export default class SubtitleReader {
         }
 
         return this.xmlParser;
+    }
+
+    private _filterText(text: string): string {
+        if (this._filterRegex === undefined) {
+            return text;
+        }
+
+        return text.replace(this._filterRegex, '');
     }
 
     subtitlesToSrt(subtitles: SubtitleNode[]) {

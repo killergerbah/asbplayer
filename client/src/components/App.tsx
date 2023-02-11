@@ -299,8 +299,11 @@ function Content(props: ContentProps) {
 }
 
 function App() {
-    const subtitleReader = useMemo<SubtitleReader>(() => new SubtitleReader(), []);
     const settingsProvider = useMemo<SettingsProvider>(() => new SettingsProvider(), []);
+    const subtitleReader = useMemo<SubtitleReader>(
+        () => new SubtitleReader(settingsProvider.subtitleRegexFilter),
+        [settingsProvider.subtitleRegexFilter]
+    );
     const playbackPreferences = useMemo<PlaybackPreferences>(
         () => new PlaybackPreferences(settingsProvider),
         [settingsProvider]

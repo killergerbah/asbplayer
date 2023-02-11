@@ -89,6 +89,15 @@ const useSelectableSettingStyles = makeStyles<Theme>((theme) => ({
     },
 }));
 
+function regexIsValid(regex: string) {
+    try {
+        new RegExp(regex.trim());
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 interface SelectableSettingProps {
     label: string;
     value: string;
@@ -395,6 +404,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
     const [keyBindSet, setKeyBindSet] = useState<KeyBindSet>(settings.keyBindSet);
     const [rememberSubtitleOffset, setRememberSubtitleOffset] = useState<boolean>(settings.rememberSubtitleOffset);
     const [autoCopyCurrentSubtitle, setAutoCopyCurrentSubtitle] = useState<boolean>(settings.autoCopyCurrentSubtitle);
+    const [subtitleRegexFilter, setSubtitleRegexFilter] = useState<string>(settings.subtitleRegexFilter);
 
     const handleAnkiConnectUrlChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         setAnkiConnectUrl(e.target.value);
@@ -601,6 +611,10 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         (e: ChangeEvent<HTMLInputElement>) => setAutoCopyCurrentSubtitle(e.target.checked),
         []
     );
+    const handleSubtitleRegexFilter = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setSubtitleRegexFilter(e.target.value.trim()),
+        []
+    );
 
     const subtitlePreviewStyles = useMemo(
         () =>
@@ -738,6 +752,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
             keyBindSet: keyBindSet,
             rememberSubtitleOffset: rememberSubtitleOffset,
             autoCopyCurrentSubtitle: autoCopyCurrentSubtitle,
+            subtitleRegexFilter: subtitleRegexFilter,
         });
     }, [
         onClose,
@@ -775,6 +790,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         keyBindSet,
         rememberSubtitleOffset,
         autoCopyCurrentSubtitle,
+        subtitleRegexFilter,
     ]);
 
     const customFieldInputs = Object.keys(customFields).map((customFieldName) => {
@@ -800,6 +816,8 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         setTimeout(() => document.getElementById(scrollToId)?.scrollIntoView({ behavior: 'smooth' }), 0);
     }, [scrollToId]);
 
+    const validRegex = regexIsValid(subtitleRegexFilter);
+
     return (
         <React.Fragment>
             <CustomFieldDialog
@@ -812,7 +830,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                 <DialogTitle>Settings</DialogTitle>
                 <DialogContent>
                     <Grid container direction="column" spacing={3}>
-                        <Grid item id="anki">
+                        <Grid item id="anki-settings">
                             <FormLabel>Anki</FormLabel>
                             <FormGroup className={classes.root}>
                                 <TextField
@@ -925,7 +943,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                 />
                             </FormGroup>
                         </Grid>
-                        <Grid item id="mining">
+                        <Grid item id="mining-settings">
                             <FormLabel>Mining</FormLabel>
                             <FormGroup className={classes.root}>
                                 <FormControlLabel
@@ -1028,8 +1046,8 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                 />
                             </FormGroup>
                         </Grid>
-                        <Grid item id="playback">
-                            <FormLabel>Playback</FormLabel>
+                        <Grid item id="misc-settings">
+                            <FormLabel>Misc</FormLabel>
                             <FormGroup>
                                 <FormControlLabel
                                     control={
@@ -1054,8 +1072,17 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                     className={classes.switchLabel}
                                 />
                             </FormGroup>
+                            <TextField
+                                label="Subtitle Regex Filter"
+                                fullWidth
+                                value={subtitleRegexFilter}
+                                color="secondary"
+                                error={!validRegex}
+                                helperText={validRegex ? undefined : 'Invalid regular expression'}
+                                onChange={handleSubtitleRegexFilter}
+                            />
                         </Grid>
-                        <Grid item id="auto-pause">
+                        <Grid item id="auto-pause-settings">
                             <Grid container direction="row" spacing={1}>
                                 <Grid item>
                                     <FormLabel>Auto-pause Preference</FormLabel>
@@ -1206,7 +1233,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                 </div>
                             </FormGroup>
                         </Grid>
-                        <Grid item id="theme">
+                        <Grid item id="theme-settings">
                             <FormLabel>Theme</FormLabel>
                             <div>
                                 <FormControlLabel

@@ -83,6 +83,7 @@ const autoPausePreferenceKey = 'autoPausePreference';
 const keyBindSetKey = 'keyBindSet';
 const rememberSubtitleOffsetKey = 'rememberSubtitleOffset';
 const autoCopyCurrentSubtitleKey = 'autoCopyCurrentSubtitle';
+const subtitleRegexFilterKey = 'subtitleRegexFilter';
 
 export default class SettingsProvider implements AsbplayerSettingsProvider {
     private _tags?: string[];
@@ -130,6 +131,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             keyBindSet: this.keyBindSet,
             rememberSubtitleOffset: this.rememberSubtitleOffset,
             autoCopyCurrentSubtitle: this.autoCopyCurrentSubtitle,
+            subtitleRegexFilter: this.subtitleRegexFilter,
         };
     }
 
@@ -168,6 +170,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.keyBindSet = newSettings.keyBindSet;
         this.rememberSubtitleOffset = newSettings.rememberSubtitleOffset;
         this.autoCopyCurrentSubtitle = newSettings.autoCopyCurrentSubtitle;
+        this.subtitleRegexFilter = newSettings.subtitleRegexFilter;
     }
 
     get subtitleSettings() {
@@ -215,6 +218,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             keyBindSet: this.keyBindSet,
             rememberSubtitleOffset: this.rememberSubtitleOffset,
             autoCopyCurrentSubtitle: this.autoCopyCurrentSubtitle,
+            subtitleRegexFilter: this.subtitleRegexFilter,
         };
     }
 
@@ -575,5 +579,13 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
 
     set autoCopyCurrentSubtitle(autoCopyCurrentSubtitle) {
         localStorage.setItem(autoCopyCurrentSubtitleKey, String(autoCopyCurrentSubtitle));
+    }
+
+    get subtitleRegexFilter() {
+        return localStorage.getItem(subtitleRegexFilterKey) ?? '';
+    }
+
+    set subtitleRegexFilter(subtitleRegexFilter: string) {
+        localStorage.setItem(subtitleRegexFilterKey, subtitleRegexFilter);
     }
 }
