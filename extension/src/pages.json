@@ -3,7 +3,7 @@
         {
             "host": "www\\.netflix\\.com",
             "script": "netflix-page.js",
-            "path": "/watch",
+            "path": "watch",
             "autoSync": {
                 "enabled": true
             }
@@ -11,7 +11,7 @@
         {
             "host": "www\\.youtube\\.com",
             "script": "youtube-page.js",
-            "path": "/watch",
+            "path": "watch",
             "autoSync": {
                 "enabled": true
             }
@@ -19,7 +19,7 @@
         {
             "host": "tver\\.jp",
             "script": "tver-page.js",
-            "path": "/episodes",
+            "path": "episodes",
             "autoSync": {
                 "enabled": true
             }
@@ -27,7 +27,7 @@
         {
             "host": "www\\.b-ch\\.com",
             "script": "bandai-channel-page.js",
-            "path": "/titles",
+            "path": "titles",
             "autoSync": {
                 "enabled": true
             }
@@ -35,7 +35,7 @@
         {
             "host": "www\\.amazon\\..+",
             "script": "amazon-prime-page.js",
-            "path": "/gp/video/detail",
+            "path": ".*",
             "autoSync": {
                 "enabled": true,
                 "videoSrc": "^blob:.+"
@@ -50,7 +50,7 @@
         {
             "host": "www\\.hulu\\..+",
             "script": "hulu-page.js",
-            "path": "/watch",
+            "path": "watch",
             "autoSync": {
                 "enabled": true,
                 "elementId": "content-video-player"
@@ -59,7 +59,7 @@
         {
             "host": "www\\.disneyplus\\..+",
             "script": "disney-plus-page.js",
-            "path": "/.+/video",
+            "path": "video",
             "autoSync": {
                 "enabled": true
             }
