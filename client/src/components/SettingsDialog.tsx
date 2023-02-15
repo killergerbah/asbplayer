@@ -405,6 +405,9 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
     const [rememberSubtitleOffset, setRememberSubtitleOffset] = useState<boolean>(settings.rememberSubtitleOffset);
     const [autoCopyCurrentSubtitle, setAutoCopyCurrentSubtitle] = useState<boolean>(settings.autoCopyCurrentSubtitle);
     const [subtitleRegexFilter, setSubtitleRegexFilter] = useState<string>(settings.subtitleRegexFilter);
+    const [subtitleRegexFilterTextReplacement, setSubtitleRegexFilterTextReplacement] = useState<string>(
+        settings.subtitleRegexFilterTextReplacement
+    );
 
     const handleAnkiConnectUrlChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         setAnkiConnectUrl(e.target.value);
@@ -615,6 +618,11 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setSubtitleRegexFilter(e.target.value.trim()),
         []
     );
+    const handleSubtitleRegexFilterTextReplacement = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) =>
+            setSubtitleRegexFilterTextReplacement(e.target.value),
+        []
+    );
 
     const subtitlePreviewStyles = useMemo(
         () =>
@@ -753,6 +761,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
             rememberSubtitleOffset: rememberSubtitleOffset,
             autoCopyCurrentSubtitle: autoCopyCurrentSubtitle,
             subtitleRegexFilter: subtitleRegexFilter,
+            subtitleRegexFilterTextReplacement: subtitleRegexFilterTextReplacement,
         });
     }, [
         onClose,
@@ -791,6 +800,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         rememberSubtitleOffset,
         autoCopyCurrentSubtitle,
         subtitleRegexFilter,
+        subtitleRegexFilterTextReplacement,
     ]);
 
     const customFieldInputs = Object.keys(customFields).map((customFieldName) => {
@@ -1048,7 +1058,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                         </Grid>
                         <Grid item id="misc-settings">
                             <FormLabel>Misc</FormLabel>
-                            <FormGroup>
+                            <FormGroup className={classes.root}>
                                 <FormControlLabel
                                     control={
                                         <Switch
@@ -1071,16 +1081,23 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                     labelPlacement="start"
                                     className={classes.switchLabel}
                                 />
+                                <TextField
+                                    label="Subtitle Regex Filter"
+                                    fullWidth
+                                    value={subtitleRegexFilter}
+                                    color="secondary"
+                                    error={!validRegex}
+                                    helperText={validRegex ? undefined : 'Invalid regular expression'}
+                                    onChange={handleSubtitleRegexFilter}
+                                />
+                                <TextField
+                                    label="Subtitle Regex Filter Text Replacement"
+                                    fullWidth
+                                    value={subtitleRegexFilterTextReplacement}
+                                    color="secondary"
+                                    onChange={handleSubtitleRegexFilterTextReplacement}
+                                />
                             </FormGroup>
-                            <TextField
-                                label="Subtitle Regex Filter"
-                                fullWidth
-                                value={subtitleRegexFilter}
-                                color="secondary"
-                                error={!validRegex}
-                                helperText={validRegex ? undefined : 'Invalid regular expression'}
-                                onChange={handleSubtitleRegexFilter}
-                            />
                         </Grid>
                         <Grid item id="auto-pause-settings">
                             <Grid container direction="row" spacing={1}>

@@ -18,16 +18,17 @@ interface SubtitleNode {
     track: number;
 }
 
+export interface TextFilter {
+    regex: RegExp;
+    replacement: string;
+}
+
 export default class SubtitleReader {
-    private readonly _filterRegex?: RegExp;
+    private readonly _textFilter?: TextFilter;
     private xmlParser?: XMLParser;
 
-    constructor(filterRegex: string) {
-        try {
-            this._filterRegex = filterRegex.trim() === '' ? undefined : new RegExp(filterRegex);
-        } catch (e) {
-            this._filterRegex = undefined;
-        }
+    constructor(textFilter?: TextFilter) {
+        this._textFilter = textFilter;
     }
 
     async subtitles(files: File[], flatten?: boolean) {
@@ -295,11 +296,11 @@ export default class SubtitleReader {
     }
 
     private _filterText(text: string): string {
-        if (this._filterRegex === undefined) {
+        if (this._textFilter === undefined) {
             return text;
         }
 
-        return text.replace(this._filterRegex, '');
+        return text.replace(this._textFilter.regex, this._textFilter.replacement);
     }
 
     subtitlesToSrt(subtitles: SubtitleNode[]) {

@@ -301,8 +301,22 @@ function Content(props: ContentProps) {
 function App() {
     const settingsProvider = useMemo<SettingsProvider>(() => new SettingsProvider(), []);
     const subtitleReader = useMemo<SubtitleReader>(
-        () => new SubtitleReader(settingsProvider.subtitleRegexFilter),
-        [settingsProvider.subtitleRegexFilter]
+        () => {
+            let regex: RegExp | undefined;
+
+            try {
+                regex = settingsProvider.subtitleRegexFilter.trim() === '' ? undefined : new RegExp(settingsProvider.subtitleRegexFilter);
+            } catch (e) {
+                regex = undefined;
+            }
+
+            if (regex !== undefined) {
+                return new SubtitleReader({regex, replacement: settingsProvider.subtitleRegexFilterTextReplacement});
+            }
+
+            return new SubtitleReader();
+        },
+        [settingsProvider.subtitleRegexFilter, settingsProvider.subtitleRegexFilterTextReplacement]
     );
     const playbackPreferences = useMemo<PlaybackPreferences>(
         () => new PlaybackPreferences(settingsProvider),

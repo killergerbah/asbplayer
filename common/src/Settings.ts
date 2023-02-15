@@ -8,6 +8,7 @@ export interface MiscSettings {
     readonly rememberSubtitleOffset: boolean;
     readonly autoCopyCurrentSubtitle: boolean;
     readonly subtitleRegexFilter:  string;
+    readonly subtitleRegexFilterTextReplacement: string;
 }
 
 export interface AnkiSettings {

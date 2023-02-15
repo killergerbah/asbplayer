@@ -84,6 +84,7 @@ const keyBindSetKey = 'keyBindSet';
 const rememberSubtitleOffsetKey = 'rememberSubtitleOffset';
 const autoCopyCurrentSubtitleKey = 'autoCopyCurrentSubtitle';
 const subtitleRegexFilterKey = 'subtitleRegexFilter';
+const subtitleRegexFilterTextReplacementKey = 'subtitleRegexFilterTextReplacement';
 
 export default class SettingsProvider implements AsbplayerSettingsProvider {
     private _tags?: string[];
@@ -132,6 +133,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             rememberSubtitleOffset: this.rememberSubtitleOffset,
             autoCopyCurrentSubtitle: this.autoCopyCurrentSubtitle,
             subtitleRegexFilter: this.subtitleRegexFilter,
+            subtitleRegexFilterTextReplacement: this.subtitleRegexFilterTextReplacement,
         };
     }
 
@@ -171,6 +173,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.rememberSubtitleOffset = newSettings.rememberSubtitleOffset;
         this.autoCopyCurrentSubtitle = newSettings.autoCopyCurrentSubtitle;
         this.subtitleRegexFilter = newSettings.subtitleRegexFilter;
+        this.subtitleRegexFilterTextReplacement = newSettings.subtitleRegexFilterTextReplacement;
     }
 
     get subtitleSettings() {
@@ -219,6 +222,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             rememberSubtitleOffset: this.rememberSubtitleOffset,
             autoCopyCurrentSubtitle: this.autoCopyCurrentSubtitle,
             subtitleRegexFilter: this.subtitleRegexFilter,
+            subtitleRegexFilterTextReplacement: this.subtitleRegexFilterTextReplacement,
         };
     }
 
@@ -587,5 +591,13 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
 
     set subtitleRegexFilter(subtitleRegexFilter: string) {
         localStorage.setItem(subtitleRegexFilterKey, subtitleRegexFilter);
+    }
+
+    get subtitleRegexFilterTextReplacement() {
+        return localStorage.getItem(subtitleRegexFilterTextReplacementKey) ?? '';
+    }
+
+    set subtitleRegexFilterTextReplacement(subtitleRegexFilterTextReplacement: string) {
+        localStorage.setItem(subtitleRegexFilterTextReplacementKey, subtitleRegexFilterTextReplacement);
     }
 }
