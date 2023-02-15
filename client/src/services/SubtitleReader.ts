@@ -23,7 +23,11 @@ export default class SubtitleReader {
     private xmlParser?: XMLParser;
 
     constructor(filterRegex: string) {
-        this._filterRegex = filterRegex.trim() === '' ? undefined : new RegExp(filterRegex);
+        try {
+            this._filterRegex = filterRegex.trim() === '' ? undefined : new RegExp(filterRegex);
+        } catch (e) {
+            this._filterRegex = undefined;
+        }
     }
 
     async subtitles(files: File[], flatten?: boolean) {
