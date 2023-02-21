@@ -1,8 +1,20 @@
-import { Anki, AnkiSettings, AudioClip, AudioModel, Image, ImageModel, SubtitleModel } from '@project/common';
+import {
+    Anki,
+    AnkiSettings,
+    AudioClip,
+    AudioModel,
+    extractText,
+    Image,
+    ImageModel,
+    joinSubtitles,
+    subtitleIntersectsTimeInterval,
+    SubtitleModel,
+} from '@project/common';
 
 export default async function updateLastCard(
     ankiSettings: AnkiSettings,
     subtitle: SubtitleModel,
+    surroundingSubtitles: SubtitleModel[],
     audioModel: AudioModel | undefined,
     imageModel: ImageModel | undefined,
     sourceString: string,
@@ -22,7 +34,7 @@ export default async function updateLastCard(
               );
 
     return await anki.export(
-        subtitle.text,
+        extractText(subtitle, surroundingSubtitles),
         undefined,
         audioClip,
         imageModel === undefined

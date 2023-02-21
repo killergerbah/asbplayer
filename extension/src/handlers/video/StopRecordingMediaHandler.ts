@@ -124,6 +124,7 @@ export default class StopRecordingMediaHandler {
                 const cardName = await updateLastCard(
                     stopRecordingCommand.message.ankiSettings,
                     subtitle,
+                    surroundingSubtitles,
                     audioModel,
                     imageModel,
                     stopRecordingCommand.message.sourceString,

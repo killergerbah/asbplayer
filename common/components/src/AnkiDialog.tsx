@@ -9,6 +9,8 @@ import {
     AnkiSettings,
     SubtitleModel,
     surroundingSubtitles,
+    subtitleIntersectsTimeInterval,
+    joinSubtitles,
 } from '@project/common';
 import Button from '@material-ui/core/Button';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
@@ -110,19 +112,6 @@ function sliderMarksFromSliderContext(sliderContext: AnkiDialogSliderContext, bo
 
 function sliderValueLabelFormat(ms: number) {
     return humanReadableTime(ms, true);
-}
-
-function subtitleIntersectsTimeInterval(subtitle: SubtitleModel, interval: number[]) {
-    const length = Math.max(0, subtitle.end - subtitle.start);
-
-    if (length === 0) {
-        return false;
-    }
-
-    const overlapStart = Math.max(subtitle.start, interval[0]);
-    const overlapEnd = Math.min(subtitle.end, interval[1]);
-
-    return overlapEnd - overlapStart >= length / 2;
 }
 
 interface ValueLabelComponentProps {
@@ -302,11 +291,9 @@ export function AnkiDialog({
 
     const textForTimestampInterval = useCallback(
         (timestampInterval: number[]) => {
-            return sliderContext!.subtitles
-                .filter((s) => subtitleIntersectsTimeInterval(s, timestampInterval))
-                .filter((s) => s.text.trim() !== '')
-                .map((s) => s.text)
-                .join('\n');
+            return joinSubtitles(
+                sliderContext!.subtitles.filter((s) => subtitleIntersectsTimeInterval(s, timestampInterval))
+            );
         },
         [sliderContext]
     );
@@ -338,13 +325,7 @@ export function AnkiDialog({
             sliderContext === undefined || timestampInterval === undefined
                 ? []
                 : sliderContext.subtitles.filter((s) => subtitleIntersectsTimeInterval(s, timestampInterval));
-        setText(
-            initialText ??
-                selectedSubtitles
-                    .filter((s) => s.text.trim() !== '')
-                    .map((s) => s.text)
-                    .join('\n')
-        );
+        setText(initialText ?? joinSubtitles(selectedSubtitles));
         setTimestampInterval(timestampInterval);
         setSelectedSubtitles(selectedSubtitles);
         setInitialTimestampInterval(forceInitialTimestampInterval || timestampInterval);

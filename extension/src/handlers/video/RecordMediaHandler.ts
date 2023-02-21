@@ -15,6 +15,7 @@ import {
     PostMineAction,
     CardUpdatedMessage,
     RecordingFinishedMessage,
+    surroundingSubtitles,
 } from '@project/common';
 import updateLastCard from '../../functions/updateLastCard';
 import TabRegistry from '../../services/TabRegistry';
@@ -142,6 +143,7 @@ export default class RecordMediaHandler {
                 const cardName = await updateLastCard(
                     recordMediaCommand.message.ankiSettings,
                     subtitle,
+                    recordMediaCommand.message.surroundingSubtitles,
                     audioModel,
                     imageModel,
                     recordMediaCommand.message.sourceString,

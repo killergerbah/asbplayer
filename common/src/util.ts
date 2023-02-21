@@ -206,6 +206,35 @@ function withinBoundaryAroundInterval(
     return false;
 }
 
+export function subtitleIntersectsTimeInterval(subtitle: SubtitleModel, interval: number[]) {
+    const length = Math.max(0, subtitle.end - subtitle.start);
+
+    if (length === 0) {
+        return false;
+    }
+
+    const overlapStart = Math.max(subtitle.start, interval[0]);
+    const overlapEnd = Math.min(subtitle.end, interval[1]);
+
+    return overlapEnd - overlapStart >= length / 2;
+}
+
+export function joinSubtitles(subtitles: SubtitleModel[]) {
+    return subtitles
+        .filter((s) => s.text.trim() !== '')
+        .map((s) => s.text)
+        .join('\n');
+}
+
+export function extractText(subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[]) {
+    if (surroundingSubtitles.length === 0) {
+        return subtitle.text;
+    }
+
+    const interval = [subtitle.start, subtitle.end];
+    return joinSubtitles(surroundingSubtitles.filter((s) => subtitleIntersectsTimeInterval(s, interval)));
+}
+
 export function download(blob: Blob, name: string) {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');

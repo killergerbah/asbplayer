@@ -1,4 +1,3 @@
-import AudioRecorder from '../../services/AudioRecorder';
 import ImageCapturer from '../../services/ImageCapturer';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -123,6 +122,7 @@ export default class StartRecordingMediaHandler {
                 const cardName = await updateLastCard(
                     startRecordingCommand.message.ankiSettings,
                     subtitle,
+                    [],
                     undefined,
                     imageModel,
                     startRecordingCommand.message.sourceString,
