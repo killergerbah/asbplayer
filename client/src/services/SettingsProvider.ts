@@ -6,6 +6,7 @@ import {
     KeyBindSet,
 } from '@project/common';
 import { isMacOs } from 'react-device-detect';
+import CachedLocalStorage from './CachedLocalStorage';
 
 const defaultAnkiConnectUrl = 'http://127.0.0.1:8765';
 const defaultSubtitleSize = 36;
@@ -89,6 +90,7 @@ const subtitleRegexFilterTextReplacementKey = 'subtitleRegexFilterTextReplacemen
 export default class SettingsProvider implements AsbplayerSettingsProvider {
     private _tags?: string[];
     private _keyBindSet?: KeyBindSet;
+    private _storage = new CachedLocalStorage();
 
     constructor() {
         // Cache for use in useEffect dependencies
@@ -227,7 +229,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     _getNumberItem(key: string, defaultValue: number) {
-        const value = localStorage.getItem(key);
+        const value = this._storage.get(key);
 
         if (value === null) {
             return defaultValue;
@@ -238,22 +240,22 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
 
     _setOptionalItem(key: string, value?: string) {
         if (typeof value === 'undefined') {
-            localStorage.removeItem(key);
+            this._storage.delete(key);
         } else {
-            localStorage.setItem(key, value);
+            this._storage.set(key, value);
         }
     }
 
     get ankiConnectUrl() {
-        return localStorage.getItem(ankiConnectUrlKey) || defaultAnkiConnectUrl;
+        return this._storage.get(ankiConnectUrlKey) || defaultAnkiConnectUrl;
     }
 
     set ankiConnectUrl(url) {
-        localStorage.setItem(ankiConnectUrlKey, url);
+        this._storage.set(ankiConnectUrlKey, url);
     }
 
     get deck() {
-        return localStorage.getItem(deckKey) ?? undefined;
+        return this._storage.get(deckKey) ?? undefined;
     }
 
     set deck(deck) {
@@ -261,7 +263,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     get noteType() {
-        return localStorage.getItem(noteTypeKey) ?? undefined;
+        return this._storage.get(noteTypeKey) ?? undefined;
     }
 
     set noteType(noteType) {
@@ -269,7 +271,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     get sentenceField() {
-        return localStorage.getItem(sentenceFieldKey) ?? undefined;
+        return this._storage.get(sentenceFieldKey) ?? undefined;
     }
 
     set sentenceField(sentenceField) {
@@ -277,7 +279,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     get definitionField() {
-        return localStorage.getItem(definitionFieldKey) ?? undefined;
+        return this._storage.get(definitionFieldKey) ?? undefined;
     }
 
     set definitionField(definitionField) {
@@ -285,7 +287,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     get audioField() {
-        return localStorage.getItem(audioFieldKey) ?? undefined;
+        return this._storage.get(audioFieldKey) ?? undefined;
     }
 
     set audioField(audioField) {
@@ -293,7 +295,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     get imageField() {
-        return localStorage.getItem(imageFieldKey) ?? undefined;
+        return this._storage.get(imageFieldKey) ?? undefined;
     }
 
     set imageField(imageField) {
@@ -301,7 +303,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     get wordField() {
-        return localStorage.getItem(wordFieldKey) ?? undefined;
+        return this._storage.get(wordFieldKey) ?? undefined;
     }
 
     set wordField(wordField) {
@@ -309,7 +311,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     get sourceField() {
-        return localStorage.getItem(sourceFieldKey) ?? undefined;
+        return this._storage.get(sourceFieldKey) ?? undefined;
     }
 
     set sourceField(sourceField) {
@@ -317,7 +319,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     get urlField() {
-        return localStorage.getItem(urlFieldKey) ?? undefined;
+        return this._storage.get(urlFieldKey) ?? undefined;
     }
 
     set urlField(urlField) {
@@ -325,7 +327,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     get customAnkiFields() {
-        const ankiFieldsString = localStorage.getItem(customAnkiFieldsKey);
+        const ankiFieldsString = this._storage.get(customAnkiFieldsKey);
 
         if (ankiFieldsString) {
             return JSON.parse(ankiFieldsString);
@@ -335,7 +337,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     set customAnkiFields(customAnkiFields) {
-        localStorage.setItem(customAnkiFieldsKey, JSON.stringify(customAnkiFields));
+        this._storage.set(customAnkiFieldsKey, JSON.stringify(customAnkiFields));
     }
 
     get tags() {
@@ -343,7 +345,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             return this._tags;
         }
 
-        const tagsString = localStorage.getItem(tagsKey);
+        const tagsString = this._storage.get(tagsKey);
 
         if (tagsString) {
             this._tags = JSON.parse(tagsString) as string[];
@@ -354,16 +356,16 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     set tags(tags) {
-        localStorage.setItem(tagsKey, JSON.stringify(tags));
+        this._storage.set(tagsKey, JSON.stringify(tags));
         this._tags = undefined;
     }
 
     get subtitleColor() {
-        return localStorage.getItem(subtitleColorKey) || defaultSubtitleColor;
+        return this._storage.get(subtitleColorKey) || defaultSubtitleColor;
     }
 
     set subtitleColor(subtitleColor) {
-        localStorage.setItem(subtitleColorKey, subtitleColor);
+        this._storage.set(subtitleColorKey, subtitleColor);
     }
 
     get subtitleSize() {
@@ -371,15 +373,15 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     set subtitleSize(subtitleSize) {
-        localStorage.setItem(subtitleSizeKey, String(subtitleSize));
+        this._storage.set(subtitleSizeKey, String(subtitleSize));
     }
 
     get subtitleOutlineColor() {
-        return localStorage.getItem(subtitleOutlineColorKey) || defaultSubtitleOutlineColor;
+        return this._storage.get(subtitleOutlineColorKey) || defaultSubtitleOutlineColor;
     }
 
     set subtitleOutlineColor(subtitleOutlineColor) {
-        localStorage.setItem(subtitleOutlineColorKey, subtitleOutlineColor);
+        this._storage.set(subtitleOutlineColorKey, subtitleOutlineColor);
     }
 
     get subtitleOutlineThickness() {
@@ -387,15 +389,15 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     set subtitleOutlineThickness(subtitleOutlineThickness) {
-        localStorage.setItem(subtitleOutlineThicknessKey, String(subtitleOutlineThickness));
+        this._storage.set(subtitleOutlineThicknessKey, String(subtitleOutlineThickness));
     }
 
     get subtitleBackgroundColor() {
-        return localStorage.getItem(subtitleBackgroundColorKey) || defaultSubtitleBackgroundColor;
+        return this._storage.get(subtitleBackgroundColorKey) || defaultSubtitleBackgroundColor;
     }
 
     set subtitleBackgroundColor(subtitleBackgroundColor) {
-        localStorage.setItem(subtitleBackgroundColorKey, subtitleBackgroundColor);
+        this._storage.set(subtitleBackgroundColorKey, subtitleBackgroundColor);
     }
 
     get subtitleBackgroundOpacity() {
@@ -403,23 +405,23 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     set subtitleBackgroundOpacity(subtitleBackgroundOpacity) {
-        localStorage.setItem(subtitleBackgroundOpacityKey, String(subtitleBackgroundOpacity));
+        this._storage.set(subtitleBackgroundOpacityKey, String(subtitleBackgroundOpacity));
     }
 
     get subtitleFontFamily() {
-        return localStorage.getItem(subtitleFontFamilyKey) || defaultSubtitleFontFamily;
+        return this._storage.get(subtitleFontFamilyKey) || defaultSubtitleFontFamily;
     }
 
     set subtitleFontFamily(subtitleFontFamily) {
-        localStorage.setItem(subtitleFontFamilyKey, subtitleFontFamily);
+        this._storage.set(subtitleFontFamilyKey, subtitleFontFamily);
     }
 
     get subtitlePreview() {
-        return localStorage.getItem(subtitlePreviewKey) || defaultSubtitlePreview;
+        return this._storage.get(subtitlePreviewKey) || defaultSubtitlePreview;
     }
 
     set subtitlePreview(subtitlePreview) {
-        localStorage.setItem(subtitlePreviewKey, subtitlePreview);
+        this._storage.set(subtitlePreviewKey, subtitlePreview);
     }
 
     get imageBasedSubtitleScaleFactor() {
@@ -427,11 +429,11 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     set imageBasedSubtitleScaleFactor(imageBasedSubtitleScaleFactor: number) {
-        localStorage.setItem(imageBasedSubtitleScaleFactorKey, String(imageBasedSubtitleScaleFactor));
+        this._storage.set(imageBasedSubtitleScaleFactorKey, String(imageBasedSubtitleScaleFactor));
     }
 
     get preferMp3(): boolean {
-        const value = localStorage.getItem(preferMp3Key);
+        const value = this._storage.get(preferMp3Key);
 
         if (value !== null) {
             if (value === 'true') {
@@ -445,11 +447,11 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     set preferMp3(preferMp3) {
-        localStorage.setItem(preferMp3Key, String(preferMp3));
+        this._storage.set(preferMp3Key, String(preferMp3));
     }
 
     get themeType() {
-        const themeType = localStorage.getItem(themeTypeKey) as 'dark' | 'light' | null;
+        const themeType = this._storage.get(themeTypeKey) as 'dark' | 'light' | null;
 
         if (themeType === null) {
             return 'dark';
@@ -459,11 +461,11 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     set themeType(themeType: 'dark' | 'light') {
-        localStorage.setItem(themeTypeKey, themeType);
+        this._storage.set(themeTypeKey, themeType);
     }
 
     get audioPaddingStart() {
-        const value = localStorage.getItem(audioPaddingStartKey);
+        const value = this._storage.get(audioPaddingStartKey);
 
         if (!value) {
             return defaultAudioPaddingStart;
@@ -473,7 +475,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     set audioPaddingStart(audioPaddingStart) {
-        localStorage.setItem(audioPaddingStartKey, String(audioPaddingStart));
+        this._storage.set(audioPaddingStartKey, String(audioPaddingStart));
     }
 
     get audioPaddingEnd() {
@@ -481,11 +483,11 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     set audioPaddingEnd(audioPaddingEnd) {
-        localStorage.setItem(audioPaddingEndKey, String(audioPaddingEnd));
+        this._storage.set(audioPaddingEndKey, String(audioPaddingEnd));
     }
 
     get maxImageWidth() {
-        const value = localStorage.getItem(maxImageWidthKey);
+        const value = this._storage.get(maxImageWidthKey);
 
         if (!value) {
             return defaultMaxImageWidth;
@@ -495,7 +497,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     set maxImageWidth(maxImageWidth) {
-        localStorage.setItem(maxImageWidthKey, String(maxImageWidth));
+        this._storage.set(maxImageWidthKey, String(maxImageWidth));
     }
 
     get maxImageHeight() {
@@ -503,7 +505,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     set maxImageHeight(maxImageHeight) {
-        localStorage.setItem(maxImageHeightKey, String(maxImageHeight));
+        this._storage.set(maxImageHeightKey, String(maxImageHeight));
     }
 
     get surroundingSubtitlesCountRadius() {
@@ -511,7 +513,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     set surroundingSubtitlesCountRadius(surroundingSubtitlesCountRadius) {
-        localStorage.setItem(surroundingSubtitlesCountRadiusKey, String(surroundingSubtitlesCountRadius));
+        this._storage.set(surroundingSubtitlesCountRadiusKey, String(surroundingSubtitlesCountRadius));
     }
 
     get surroundingSubtitlesTimeRadius() {
@@ -519,15 +521,15 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     set surroundingSubtitlesTimeRadius(surroundingSubtitlesTimeRadius) {
-        localStorage.setItem(surroundingSubtitlesTimeRadiusKey, String(surroundingSubtitlesTimeRadius));
+        this._storage.set(surroundingSubtitlesTimeRadiusKey, String(surroundingSubtitlesTimeRadius));
     }
 
     get copyToClipboardOnMine() {
-        return localStorage.getItem(copyToClipboardOnMineKey) === 'true' || false;
+        return this._storage.get(copyToClipboardOnMineKey) === 'true' || false;
     }
 
     set copyToClipboardOnMine(copyToClipboardOnMine) {
-        localStorage.setItem(copyToClipboardOnMineKey, String(copyToClipboardOnMine));
+        this._storage.set(copyToClipboardOnMineKey, String(copyToClipboardOnMine));
     }
 
     get autoPausePreference() {
@@ -535,7 +537,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     set autoPausePreference(autoPausePreference) {
-        localStorage.setItem(autoPausePreferenceKey, String(autoPausePreference));
+        this._storage.set(autoPausePreferenceKey, String(autoPausePreference));
     }
 
     get keyBindSet() {
@@ -543,7 +545,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             return this._keyBindSet;
         }
 
-        let serialized = localStorage.getItem(keyBindSetKey);
+        let serialized = this._storage.get(keyBindSetKey);
 
         if (serialized === null) {
             this._keyBindSet = defaultKeyBindSet;
@@ -565,39 +567,39 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
     }
 
     set keyBindSet(keyBindSet) {
-        localStorage.setItem(keyBindSetKey, JSON.stringify(keyBindSet));
+        this._storage.set(keyBindSetKey, JSON.stringify(keyBindSet));
         this._keyBindSet = undefined;
     }
 
     get rememberSubtitleOffset() {
-        return localStorage.getItem(rememberSubtitleOffsetKey) === 'true' || false;
+        return this._storage.get(rememberSubtitleOffsetKey) === 'true' || false;
     }
 
     set rememberSubtitleOffset(rememberSubtitleOffset) {
-        localStorage.setItem(rememberSubtitleOffsetKey, String(rememberSubtitleOffset));
+        this._storage.set(rememberSubtitleOffsetKey, String(rememberSubtitleOffset));
     }
 
     get autoCopyCurrentSubtitle() {
-        return localStorage.getItem(autoCopyCurrentSubtitleKey) === 'true' || false;
+        return this._storage.get(autoCopyCurrentSubtitleKey) === 'true' || false;
     }
 
     set autoCopyCurrentSubtitle(autoCopyCurrentSubtitle) {
-        localStorage.setItem(autoCopyCurrentSubtitleKey, String(autoCopyCurrentSubtitle));
+        this._storage.set(autoCopyCurrentSubtitleKey, String(autoCopyCurrentSubtitle));
     }
 
     get subtitleRegexFilter() {
-        return localStorage.getItem(subtitleRegexFilterKey) ?? '';
+        return this._storage.get(subtitleRegexFilterKey) ?? '';
     }
 
     set subtitleRegexFilter(subtitleRegexFilter: string) {
-        localStorage.setItem(subtitleRegexFilterKey, subtitleRegexFilter);
+        this._storage.set(subtitleRegexFilterKey, subtitleRegexFilter);
     }
 
     get subtitleRegexFilterTextReplacement() {
-        return localStorage.getItem(subtitleRegexFilterTextReplacementKey) ?? '';
+        return this._storage.get(subtitleRegexFilterTextReplacementKey) ?? '';
     }
 
     set subtitleRegexFilterTextReplacement(subtitleRegexFilterTextReplacement: string) {
-        localStorage.setItem(subtitleRegexFilterTextReplacementKey, subtitleRegexFilterTextReplacement);
+        this._storage.set(subtitleRegexFilterTextReplacementKey, subtitleRegexFilterTextReplacement);
     }
 }
