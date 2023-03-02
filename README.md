@@ -14,6 +14,7 @@ Thank you to all of my sponsors:
 [@ManuJapan](https://www.github.com/ManuJapan)
 AdamM
 realgoodsmiley
+Alex
 
 If you've benefited from asbplayer, please consider supporting my work via [Github Sponsors](https://github.com/sponsors/killergerbah?frequency=one-time) or [Ko-fi](https://ko-fi.com/killergerbah).
 
