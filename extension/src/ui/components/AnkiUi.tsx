@@ -275,6 +275,31 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
         bridge.finished(message);
     }, [bridge, savedState]);
 
+    const lastFocusOutRef = useRef<HTMLElement>();
+
+    const handleFocusOut = useCallback((event: FocusEvent) => {
+        if (event.target instanceof HTMLElement) {
+            lastFocusOutRef.current = event.target;
+        }
+    }, []);
+
+    useEffect(() => {
+        return bridge.onMessage((message) => {
+            if (message.command === 'focus') {
+                lastFocusOutRef.current?.focus();
+            }
+        });
+    }, [bridge]);
+
+    useEffect(() => {
+        if (open) {
+            window.removeEventListener('focusout', handleFocusOut);
+            window.addEventListener('focusout', handleFocusOut);
+        } else {
+            window.removeEventListener('focusout', handleFocusOut);
+        }
+    }, [open, handleFocusOut]);
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />

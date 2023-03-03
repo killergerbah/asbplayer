@@ -148,6 +148,16 @@ export default class AnkiUiContainer {
         doc.write(await html());
         doc.close();
         await this.client.bind();
+        window.addEventListener('focusin', (event: FocusEvent) => {
+            if (this.frame?.classList.contains('asbplayer-hide')) {
+                return;
+            }
+
+            // Refocus Anki UI to workaround sites like Netflix that automatically
+            // take focus away when hiding video controls
+            this.client?.sendMessage({ command: 'focus' });
+        });
+
         this.client.onFinished((message) => {
             context.keyBindings.bind(context);
             context.subtitleContainer.forceHideSubtitles = false;

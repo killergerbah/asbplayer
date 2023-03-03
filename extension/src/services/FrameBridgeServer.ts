@@ -35,6 +35,9 @@ export default class FrameBridgeServer {
                         delete this.fetches[event.data.message.fetchId];
                     }
                     break;
+                case 'sendMessage':
+                    this.bridge.sendMessage(event.data.message.message);
+                    break;
             }
         };
         this.bridge.onFinished((message: any) => {

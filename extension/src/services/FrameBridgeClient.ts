@@ -41,6 +41,24 @@ export default class FrameBridgeClient {
         );
     }
 
+    sendMessage(message: any) {
+        if (!this.frameId) {
+            throw new Error('Attempted to update state when frame is not ready');
+        }
+
+        this.frame.contentWindow?.postMessage(
+            {
+                sender: 'asbplayer-video',
+                message: {
+                    command: 'sendMessage',
+                    message: message,
+                    id: this.frameId,
+                },
+            },
+            '*'
+        );
+    }
+
     onFinished(listener: (message: any) => void) {
         this.finishedListener = listener;
     }

@@ -1,7 +1,8 @@
-import { Message } from "@project/common";
+import { Message } from '@project/common';
 
 export default class Bridge {
     private uiListener?: (state: any) => void;
+    private messageListener?: (message: any) => void;
     private clientListener?: (message: any) => void;
     private fetchDelegate?: (url: string, body: any) => Promise<void>;
 
@@ -14,6 +15,17 @@ export default class Bridge {
 
     updateState(state: any) {
         setTimeout(() => this.uiListener?.(state), 0);
+    }
+
+    sendMessage(message: any) {
+        setTimeout(() => this.messageListener?.(message), 0);
+    }
+
+    onMessage(messageListener: (message: any) => void) {
+        this.messageListener = messageListener;
+        return () => {
+            this.messageListener = undefined;
+        };
     }
 
     onFetch(fetchDelegate: (url: string, body: any) => Promise<void>) {
@@ -38,6 +50,7 @@ export default class Bridge {
 
     unbind() {
         this.uiListener = undefined;
+        this.messageListener = undefined;
         this.clientListener = undefined;
         this.fetchDelegate = undefined;
     }
