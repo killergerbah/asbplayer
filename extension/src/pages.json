@@ -63,6 +63,14 @@
             "autoSync": {
                 "enabled": true
             }
+        },
+        {
+            "host": "video.unext.jp",
+            "script": "unext.js",
+            "path": "play",
+            "autoSync": {
+                "enabled": false
+            }
         }
     ]
 }
