@@ -1,16 +1,19 @@
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { ThemeProvider } from '@material-ui/core/styles';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { createTheme } from './theme';
 import VideoDataSyncDialog from './VideoDataSyncDialog';
 import Bridge from '../Bridge';
 import {
     ConfirmedVideoDataSubtitleTrack,
+    SerializedSubtitleFile,
     VideoDataSubtitleTrack,
     VideoDataUiBridgeConfirmMessage,
+    VideoDataUiBridgeOpenFileMessage,
 } from '@project/common';
 import { PaletteType } from '@material-ui/core';
+import { bufferToBase64 } from '../../services/Base64';
 
 interface Props {
     bridge: Bridge;
@@ -18,6 +21,7 @@ interface Props {
 
 export default function VideoDataSyncUi({ bridge }: Props) {
     const [open, setOpen] = useState<boolean>(false);
+    const [disabled, setDisabled] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [suggestedName, setSuggestedName] = useState<string>('');
     const [showSubSelect, setShowSubSelect] = useState<boolean>(true);
@@ -31,24 +35,17 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const theme = useMemo(() => createTheme((themeType || 'dark') as PaletteType), [themeType]);
 
     const handleCancel = useCallback(() => {
-        closeDialog();
+        setOpen(false);
         bridge.finished({ command: 'cancel' });
     }, [bridge]);
     const handleConfirm = useCallback(
         (data: ConfirmedVideoDataSubtitleTrack) => {
-            closeDialog();
+            setOpen(false);
             const message: VideoDataUiBridgeConfirmMessage = { command: 'confirm', data };
             bridge.finished(message);
         },
         [bridge]
     );
-
-    function closeDialog() {
-        setOpen(false);
-        setSuggestedName('');
-        setSelectedSubtitle('-');
-        setError('');
-    }
 
     useEffect(() => {
         bridge.onStateUpdated((state) => {
@@ -86,11 +83,43 @@ export default function VideoDataSyncUi({ bridge }: Props) {
         });
     }, [bridge]);
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileInputChange = useCallback(async () => {
+        const files = fileInputRef.current?.files;
+
+        if (files && files.length > 0) {
+            try {
+                setDisabled(true);
+                const subtitles: SerializedSubtitleFile[] = [];
+
+                for (let i = 0; i < files.length; ++i) {
+                    const f = files[i];
+                    const base64 = await bufferToBase64(await f.arrayBuffer());
+
+                    subtitles.push({
+                        name: f.name,
+                        base64: base64,
+                    });
+                }
+
+                setOpen(false);
+                const message: VideoDataUiBridgeOpenFileMessage = { command: 'openFile', subtitles };
+                bridge.finished(message);
+            } finally {
+                setDisabled(false);
+            }
+        }
+    }, [bridge]);
+
+    const handleOpenFile = useCallback(() => fileInputRef.current?.click(), []);
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <VideoDataSyncDialog
                 open={open}
+                disabled={disabled}
                 isLoading={isLoading}
                 suggestedName={suggestedName}
                 showSubSelect={showSubSelect}
@@ -98,7 +127,16 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                 selectedSubtitle={selectedSubtitle}
                 error={error}
                 onCancel={handleCancel}
+                onOpenFile={handleOpenFile}
                 onConfirm={handleConfirm}
+            />
+            <input
+                ref={fileInputRef}
+                onChange={handleFileInputChange}
+                type="file"
+                accept=".srt,.ass,.vtt,.sup,.dfxp,.ttml2"
+                multiple
+                hidden
             />
         </ThemeProvider>
     );

@@ -357,6 +357,11 @@ export interface VideoDataUiBridgeConfirmMessage extends Message {
     readonly data: ConfirmedVideoDataSubtitleTrack;
 }
 
+export interface VideoDataUiBridgeOpenFileMessage extends Message {
+    readonly command: 'openFile';
+    readonly subtitles: SerializedSubtitleFile[];
+}
+
 export interface CropAndResizeMessage extends Message {
     readonly command: 'crop-and-resize';
     readonly dataUrl: string;

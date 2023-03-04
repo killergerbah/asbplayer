@@ -187,6 +187,7 @@ export default class VideoDataSyncContainer {
                       open: true,
                       isLoading: this.syncedData.subtitles === undefined,
                       suggestedName: this.syncedData.basename,
+                      selectedSubtitle: '-',
                       subtitles: subtitleTrackChoices,
                       error: this.syncedData.error,
                       themeType: themeType,
@@ -194,6 +195,9 @@ export default class VideoDataSyncContainer {
                 : {
                       open: true,
                       isLoading: this.context.subSyncAvailable && this.waitingForSubtitles,
+                      suggestedName: '',
+                      selectedSubtitle: '-',
+                      error: '',
                       showSubSelect: true,
                       subtitles: subtitleTrackChoices,
                       themeType: themeType,
@@ -220,7 +224,7 @@ export default class VideoDataSyncContainer {
 
     private _setSyncedData(data: VideoData, autoSync: boolean) {
         this.syncedData = data;
-        
+
         if (autoSync && this._canAutoSync()) {
             this.show(false);
         }
@@ -264,6 +268,17 @@ export default class VideoDataSyncContainer {
                 const data = message.data as ConfirmedVideoDataSubtitleTrack;
 
                 shallUpdate = await this._syncData(data.name, data.extension, data.subtitleUrl, data.m3U8BaseUrl);
+            } else if ('openFile' === message.command) {
+                const subtitles = message.subtitles as SerializedSubtitleFile[];
+
+                try {
+                    this._syncSubtitles(subtitles, false);
+                    shallUpdate = true;
+                } catch (e) {
+                    if (e instanceof Error) {
+                        this._reportError(e.message);
+                    }
+                }
             }
 
             if (shallUpdate) {
@@ -324,24 +339,28 @@ export default class VideoDataSyncContainer {
                 return false;
             }
 
-            const command: VideoToExtensionCommand<ExtensionSyncMessage> = {
-                sender: 'asbplayer-video',
-                message: {
-                    command: 'sync',
-                    subtitles: subtitles,
-                    flatten: m3U8BaseUrl !== undefined,
-                },
-                src: this.context.video.src,
-            };
-            chrome.runtime.sendMessage(command);
+            this._syncSubtitles(subtitles, m3U8BaseUrl !== undefined);
             return true;
         } catch (error) {
             if (typeof (error as Error).message !== 'undefined') {
-                this._reportError(name, `Data Sync failed: ${(error as Error).message}`);
+                this._reportError(`Data Sync failed: ${(error as Error).message}`);
             }
 
             return false;
         }
+    }
+
+    private _syncSubtitles(subtitles: SerializedSubtitleFile[], flatten: boolean) {
+        const command: VideoToExtensionCommand<ExtensionSyncMessage> = {
+            sender: 'asbplayer-video',
+            message: {
+                command: 'sync',
+                subtitles: subtitles,
+                flatten: flatten,
+            },
+            src: this.context.video.src,
+        };
+        chrome.runtime.sendMessage(command);
     }
 
     private async _subtitlesForUrl(
@@ -360,7 +379,7 @@ export default class VideoDataSyncContainer {
         }
 
         const response = await fetch(url).catch((error) => {
-            this._reportError(name, error.message);
+            this._reportError(error.message);
         });
 
         if (!response) {
@@ -414,7 +433,7 @@ export default class VideoDataSyncContainer {
         ];
     }
 
-    private async _reportError(suggestedName: string, error: string) {
+    private async _reportError(error: string) {
         const client = await this._client();
         const themeType = (await this.context.settings.get(['lastThemeType'])).lastThemeType;
 
@@ -423,7 +442,6 @@ export default class VideoDataSyncContainer {
         return client.updateState({
             open: true,
             isLoading: false,
-            suggestedName,
             showSubSelect: true,
             subtitles: [{ language: '', url: '-', label: 'None' }, ...(this.syncedData?.subtitles || [])],
             selectedSubtitle:

@@ -40,6 +40,7 @@ function calculateName(suggestedName: string, label: string) {
 
 interface Props {
     open: boolean;
+    disabled: boolean;
     isLoading: boolean;
     suggestedName: string;
     showSubSelect: boolean;
@@ -47,11 +48,13 @@ interface Props {
     selectedSubtitle: string;
     error: string;
     onCancel: () => void;
+    onOpenFile: () => void;
     onConfirm: (track: ConfirmedVideoDataSubtitleTrack) => void;
 }
 
 export default function VideoDataSyncDialog({
     open,
+    disabled,
     isLoading,
     suggestedName,
     showSubSelect,
@@ -59,6 +62,7 @@ export default function VideoDataSyncDialog({
     selectedSubtitle,
     error,
     onCancel,
+    onOpenFile,
     onConfirm,
 }: Props) {
     const [selected, setSelected] = useState('-');
@@ -117,6 +121,7 @@ export default function VideoDataSyncDialog({
                                 variant="filled"
                                 label="Video Name"
                                 value={name}
+                                disabled={disabled}
                                 onChange={(e) => setName(e.target.value)}
                             />
                         </Grid>
@@ -131,7 +136,7 @@ export default function VideoDataSyncDialog({
                                     label="Subtitle Track"
                                     helperText={error || ''}
                                     value={selected}
-                                    disabled={isLoading}
+                                    disabled={isLoading || disabled}
                                     onChange={(e) => setSelected(e.target.value)}
                                 >
                                     {subtitles.map((subtitle) => (
@@ -151,12 +156,25 @@ export default function VideoDataSyncDialog({
                 </form>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => onCancel()}>Cancel</Button>
+                <Button disabled={disabled} onClick={() => onCancel()}>
+                    Cancel
+                </Button>
+                <Button disabled={disabled} onClick={() => onOpenFile()}>
+                    Open Files
+                </Button>
                 <Button
-                    disabled={!trimmedName}
+                    disabled={!trimmedName || disabled}
                     onClick={() => {
-                        const { language, extension, m3U8BaseUrl } = subtitles.find((subtitle) => subtitle.url === selected)!;
-                        onConfirm({ name: trimmedName, extension: extension, subtitleUrl: selected, language, m3U8BaseUrl: m3U8BaseUrl });
+                        const { language, extension, m3U8BaseUrl } = subtitles.find(
+                            (subtitle) => subtitle.url === selected
+                        )!;
+                        onConfirm({
+                            name: trimmedName,
+                            extension: extension,
+                            subtitleUrl: selected,
+                            language,
+                            m3U8BaseUrl: m3U8BaseUrl,
+                        });
                     }}
                 >
                     Confirm
