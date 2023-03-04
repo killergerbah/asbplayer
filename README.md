@@ -37,10 +37,11 @@ Otherwise, the following steps will work for any language:
 
 ### Syncing with streaming video
 
-Install the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest). There are two ways to sync streaming video with asbplayer:
+Install the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest). There are three ways to sync streaming video with asbplayer:
 
 1. Drag-and-drop a subtitle file into the video element you want to sync.
 2. Load a file into the [asbplayer site](https://killergerbah.github.io/asbplayer/) and click on the camera in the bottom right to pick a video element to sync. This is the recommended way to load BluRay subtitle files onto streaming video.
+3. Use <kbd>Ctrl+Shift+F</kbd> to select a video element to sync. From the dialog that appears you can choose whether to load an [auto-detected subtitle track](#subtitle-track-detection-for-streaming-video) or an empty one.
 
 ### Loading files
 
@@ -69,8 +70,8 @@ You can also adjust offset manually by clicking on the "Subtitle Offset" text fi
 
 <kbd>Ctrl+Shift+F</kbd> will show detected subtitle tracks for streaming video. Below are the sites where automatic subtitle detection is supported:
 
--   Netflix (on main /watch url)
--   Youtube (on main /watch url)
+-   Netflix
+-   Youtube
 -   Disney Plus
 -   Hulu
 -   TVer
