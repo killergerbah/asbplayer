@@ -395,6 +395,10 @@ export interface EditKeyboardShortcutsMessage extends Message {
     readonly command: 'edit-keyboard-shortcuts';
 }
 
+export interface OpenAsbplayerSettingsMessage extends Message {
+    readonly command: 'open-asbplayer-settings';
+}
+
 export interface ExtensionVersionMessage extends Message {
     readonly command: 'version';
     version: string;

@@ -33,6 +33,7 @@ import VersionChecker from './services/VersionChecker';
 import OpenExtensionShortcutsHandler from './handlers/asbplayerv2/OpenExtensionShortcutsHandler';
 import EditKeyboardShortcutsHandler from './handlers/popup/EditKeyboardShortcutsHandler';
 import ExtensionCommandsHandler from './handlers/asbplayerv2/ExtensionCommandsHandler';
+import OpenAsbplayerSettingsHandler from './handlers/video/OpenAsbplayerSettingsHandler';
 
 const settings = new Settings();
 const versionChecker = new VersionChecker(settings);
@@ -60,6 +61,7 @@ const handlers: CommandHandler[] = [
     new ToggleSubtitlesHandler(settings, tabRegistry),
     new SyncHandler(tabRegistry),
     new HttpPostHandler(),
+    new OpenAsbplayerSettingsHandler(tabRegistry),
     new VideoToAsbplayerCommandForwardingHandler(tabRegistry),
     new AsbplayerToVideoCommandForwardingHandler(),
     new AsbplayerHeartbeatHandler(tabRegistry),

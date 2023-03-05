@@ -25,7 +25,7 @@ export default class Bridge {
         this.messageListener = messageListener;
         return () => {
             this.messageListener = undefined;
-        };
+        }
     }
 
     onFetch(fetchDelegate: (url: string, body: any) => Promise<void>) {

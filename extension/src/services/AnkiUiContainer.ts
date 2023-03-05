@@ -9,6 +9,8 @@ import {
     SubtitleModel,
     AnkiUiBridgeResumeMessage,
     AnkiUiBridgeRewindMessage,
+    OpenAsbplayerSettingsMessage,
+    VideoToExtensionCommand,
 } from '@project/common';
 import Binding from './Binding';
 import FrameBridgeClient from './FrameBridgeClient';
@@ -37,8 +39,16 @@ export default class AnkiUiContainer {
     private frame?: HTMLIFrameElement;
     private fullscreenElement?: Element;
     private activeElement?: Element;
+    private _ankiSettings?: AnkiSettings;
 
-    ankiSettings?: AnkiSettings;
+    get ankiSettings() {
+        return this._ankiSettings;
+    }
+
+    set ankiSettings(value) {
+        this._ankiSettings = value;
+        this.client?.sendMessage({ command: 'ankiSettings', value });
+    }
 
     constructor() {}
 
@@ -53,7 +63,7 @@ export default class AnkiUiContainer {
         image: ImageModel | undefined,
         audio: AudioModel | undefined
     ) {
-        if (!this.ankiSettings) {
+        if (!this._ankiSettings) {
             throw new Error('Unable to show Anki UI because settings are missing.');
         }
 
@@ -65,7 +75,7 @@ export default class AnkiUiContainer {
         const state: AnkiUiInitialState = {
             type: 'initial',
             open: true,
-            settingsProvider: this.ankiSettings,
+            settingsProvider: this._ankiSettings,
             source: context.sourceString(subtitle.start, subtitle.track),
             url: url,
             subtitle: subtitle,
@@ -79,7 +89,7 @@ export default class AnkiUiContainer {
     }
 
     async showAfterRerecord(context: Binding, uiState: AnkiUiSavedState) {
-        if (!this.ankiSettings) {
+        if (!this._ankiSettings) {
             throw new Error('Unable to show Anki UI after rerecording because anki settings are undefined');
         }
 
@@ -91,7 +101,7 @@ export default class AnkiUiContainer {
             ...uiState,
             type: 'resume',
             open: true,
-            settingsProvider: this.ankiSettings,
+            settingsProvider: this._ankiSettings,
             themeType: themeType,
             dialogRequestedTimestamp: context.video.currentTime * 1000,
         };
@@ -99,7 +109,7 @@ export default class AnkiUiContainer {
     }
 
     async showAfterRetakingScreenshot(context: Binding, uiState: AnkiUiSavedState) {
-        if (!this.ankiSettings) {
+        if (!this._ankiSettings) {
             throw new Error('Unable to show Anki UI after retaking screenshot because anki settings are undefined');
         }
 
@@ -111,7 +121,7 @@ export default class AnkiUiContainer {
             ...uiState,
             type: 'resume',
             open: true,
-            settingsProvider: this.ankiSettings,
+            settingsProvider: this._ankiSettings,
             themeType: themeType,
         };
         client.updateState(state);
@@ -141,7 +151,7 @@ export default class AnkiUiContainer {
 
         this.frame = document.createElement('iframe');
         this.frame.className = 'asbplayer-ui-frame';
-        this.client = new FrameBridgeClient(this.frame, context.video.src, this.ankiSettings!.ankiConnectUrl);
+        this.client = new FrameBridgeClient(this.frame, context.video.src, this._ankiSettings!.ankiConnectUrl);
         document.body.appendChild(this.frame);
         const doc = this.frame.contentDocument!;
         doc.open();
@@ -159,6 +169,18 @@ export default class AnkiUiContainer {
         });
 
         this.client.onFinished((message) => {
+            if (message.command === 'openSettings') {
+                const command: VideoToExtensionCommand<OpenAsbplayerSettingsMessage> = {
+                    sender: 'asbplayer-video',
+                    message: {
+                        command: 'open-asbplayer-settings',
+                    },
+                    src: context.video.src,
+                };
+                chrome.runtime.sendMessage(command);
+                return;
+            }
+
             context.keyBindings.bind(context);
             context.subtitleContainer.forceHideSubtitles = false;
             this.frame?.classList.add('asbplayer-hide');

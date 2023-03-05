@@ -1112,6 +1112,8 @@ function App() {
             } else if (message.data.command === 'edit-keyboard-shortcuts') {
                 setSettingsDialogOpen(true);
                 setSettingsDialogScrollToId('keyboard-shortcuts');
+            } else if (message.data.command === 'open-asbplayer-settings') {
+                setSettingsDialogOpen(true);
             }
         }
 

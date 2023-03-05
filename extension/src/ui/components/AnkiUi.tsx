@@ -275,6 +275,10 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
         bridge.finished(message);
     }, [bridge, savedState]);
 
+    const handleOpenSettings = useCallback(() => {
+        bridge.finished({ command: 'openSettings' });
+    }, [bridge]);
+
     const lastFocusOutRef = useRef<HTMLElement>();
 
     const handleFocusOut = useCallback((event: FocusEvent) => {
@@ -287,6 +291,8 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
         return bridge.onMessage((message) => {
             if (message.command === 'focus') {
                 lastFocusOutRef.current?.focus();
+            } else if (message.command === 'ankiSettings') {
+                setSettingsProvider(message.value);
             }
         });
     }, [bridge]);
@@ -331,6 +337,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                     onRerecord={handleRerecord}
                     onCancel={handleCancel}
                     onViewImage={handleViewImage}
+                    onOpenSettings={handleOpenSettings}
                     definition={definition}
                     word={word}
                     customFields={settingsProvider.customAnkiFields}
