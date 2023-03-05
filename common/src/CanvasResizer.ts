@@ -13,7 +13,7 @@ export default class CanvasResizer {
             if (ratio < 1) {
                 const newWidth = canvas.width * ratio;
                 const newHeight = canvas.height * ratio;
-                createImageBitmap(canvas, { resizeWidth: newWidth, resizeHeight: newHeight })
+                createImageBitmap(canvas, { resizeWidth: newWidth, resizeHeight: newHeight, resizeQuality: 'high' })
                     .then((sprite) => {
                         canvas.width = newWidth;
                         canvas.height = newHeight;
