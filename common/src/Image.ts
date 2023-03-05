@@ -1,5 +1,3 @@
-import { resolveConfig } from 'prettier';
-import sanitize from 'sanitize-filename';
 import CanvasResizer from './CanvasResizer';
 import { download } from './util';
 
