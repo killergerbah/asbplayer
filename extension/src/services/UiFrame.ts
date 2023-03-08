@@ -8,6 +8,11 @@ export default class UiFrame {
     constructor(html: string, fetchOptions?: FetchOptions) {
         this.frame = document.createElement('iframe');
         this.frame.className = 'asbplayer-ui-frame';
+
+        // Prevent iframe from showing up with solid background
+        // https://stackoverflow.com/questions/69591128/chrome-is-forcing-a-white-background-on-frames-only-on-some-websites
+        this.frame.style.colorScheme = 'normal';
+        
         this._client = new FrameBridgeClient(this.frame, fetchOptions);
         this._html = html;
     }
