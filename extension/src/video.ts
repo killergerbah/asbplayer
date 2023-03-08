@@ -1,10 +1,10 @@
 import Binding from './services/Binding';
 import { currentPageDelegate } from './services/pages';
+import VideoSelectModeContainer from './services/VideoSelectModeContainer';
 
 const bind = () => {
     const bindings: Binding[] = [];
     const page = currentPageDelegate();
-    let videoSelectMode = false;
     let subSyncAvailable = page !== undefined;
 
     const interval = setInterval(() => {
@@ -43,62 +43,8 @@ const bind = () => {
         }
     }, 1000);
 
-    const messageListener = (
-        request: any,
-        sender: chrome.runtime.MessageSender,
-        sendResponse: (response?: any) => void
-    ) => {
-        if (request.sender === 'asbplayer-extension-to-video') {
-            switch (request.message.command) {
-                case 'toggle-video-select':
-                    if (videoSelectMode) {
-                        // Toggle off
-                        for (const b of bindings) {
-                            b.unbindVideoSelect();
-                        }
-
-                        videoSelectMode = false;
-                        break;
-                    }
-
-                    if (bindings.length === 1) {
-                        const binding = bindings[0];
-
-                        if (binding.subscribed) {
-                            // Special case - show dialog for the one video element
-                            binding.showVideoSelect();
-                        }
-                    } else {
-                        // Toggle on
-                        videoSelectMode = true;
-
-                        for (const b of bindings) {
-                            if (b.subscribed) {
-                                b.bindVideoSelect(() => {
-                                    for (const b of bindings) {
-                                        b.unbindVideoSelect();
-                                    }
-
-                                    videoSelectMode = false;
-                                });
-                            }
-                        }
-                    }
-                    break;
-                case 'subtitles':
-                    for (const b of bindings) {
-                        b.unbindVideoSelect();
-                    }
-
-                    videoSelectMode = false;
-                    break;
-                default:
-                // ignore
-            }
-        }
-    };
-
-    chrome.runtime.onMessage.addListener(messageListener);
+    const videoSelectModeContainer = new VideoSelectModeContainer(bindings);
+    videoSelectModeContainer.bind();
 
     window.addEventListener('beforeunload', (event) => {
         for (let b of bindings) {
@@ -108,7 +54,7 @@ const bind = () => {
         bindings.length = 0;
 
         clearInterval(interval);
-        chrome.runtime.onMessage.removeListener(messageListener);
+        videoSelectModeContainer.unbind();
     });
 };
 

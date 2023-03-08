@@ -410,3 +410,8 @@ export interface AlertMessage extends Message {
     readonly severity: string;
     readonly message: string;
 }
+
+export interface VideoSelectModeConfirmMessage extends Message {
+    readonly command: 'confirm';
+    readonly doNotShowDialogAgain: boolean;
+}

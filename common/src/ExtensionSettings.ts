@@ -27,4 +27,5 @@ export interface ExtensionSettings extends ExtensionKeyBindingsSettings {
     asbplayerUrl: string;
     lastThemeType: 'dark' | 'light';
     imageDelay: number;
+    showVideoSelectModeDialog: boolean;
 }

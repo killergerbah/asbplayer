@@ -4,6 +4,7 @@ export default class UiFrame {
     readonly frame: HTMLIFrameElement;
     private readonly _client: FrameBridgeClient;
     private readonly _html: string;
+    private _bound = false;
 
     constructor(html: string, fetchOptions?: FetchOptions) {
         this.frame = document.createElement('iframe');
@@ -17,22 +18,31 @@ export default class UiFrame {
         this._html = html;
     }
 
+    get bound() {
+        return this._bound;
+    }
+
+    get hidden() {
+        return this.frame.classList.contains('asbplayer-hide');
+    }
+
     async bind() {
+        if (this._bound) {
+            return;
+        }
+
         document.body.appendChild(this.frame);
         const doc = this.frame.contentDocument!;
         doc.open();
         doc.write(this._html);
         doc.close();
+        this._bound = true;
         await this._client.bind();
     }
 
     async client() {
         await this._client.bind();
         return this._client;
-    }
-
-    get hidden() {
-        return this.frame.classList.contains('asbplayer-hide');
     }
 
     show() {
@@ -46,5 +56,6 @@ export default class UiFrame {
     unbind() {
         this._client.unbind();
         this.frame.remove();
+        this._bound = false;
     }
 }
