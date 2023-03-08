@@ -13,7 +13,7 @@ import {
     VideoToExtensionCommand,
 } from '@project/common';
 import Binding from './Binding';
-import FrameBridgeClient from './FrameBridgeClient';
+import UiFrame from './UiFrame';
 
 // We need to write the HTML into the iframe manually so that the iframe keeps it's about:blank URL.
 // Otherwise, Chrome won't insert content scripts into the iframe (e.g. Yomichan won't work).
@@ -35,10 +35,10 @@ async function html() {
 }
 
 export default class AnkiUiContainer {
-    private client?: FrameBridgeClient;
-    private frame?: HTMLIFrameElement;
+    private frame?: UiFrame;
     private fullscreenElement?: Element;
     private activeElement?: Element;
+    private focusInListener?: (event: FocusEvent) => void;
     private _ankiSettings?: AnkiSettings;
 
     get ankiSettings() {
@@ -47,7 +47,10 @@ export default class AnkiUiContainer {
 
     set ankiSettings(value) {
         this._ankiSettings = value;
-        this.client?.sendClientMessage({ command: 'ankiSettings', value });
+
+        if (this.frame) {
+            this.frame.client().then((client) => client.sendClientMessage({ command: 'ankiSettings', value }));
+        }
     }
 
     constructor() {}
@@ -127,7 +130,7 @@ export default class AnkiUiContainer {
         client.updateState(state);
     }
 
-    _prepareShow(context: Binding) {
+    private _prepareShow(context: Binding) {
         context.pause();
 
         if (document.fullscreenElement) {
@@ -143,32 +146,30 @@ export default class AnkiUiContainer {
         context.subtitleContainer.forceHideSubtitles = true;
     }
 
-    async _client(context: Binding) {
-        if (this.client) {
-            this.frame?.classList.remove('asbplayer-hide');
-            return this.client;
+    private async _client(context: Binding) {
+        if (this.frame) {
+            this.frame.show();
+            return await this.frame.client();
         }
 
-        this.frame = document.createElement('iframe');
-        this.frame.className = 'asbplayer-ui-frame';
-        this.client = new FrameBridgeClient(this.frame, context.video.src, this._ankiSettings!.ankiConnectUrl);
-        document.body.appendChild(this.frame);
-        const doc = this.frame.contentDocument!;
-        doc.open();
-        doc.write(await html());
-        doc.close();
-        await this.client.bind();
-        window.addEventListener('focusin', (event: FocusEvent) => {
-            if (this.frame?.classList.contains('asbplayer-hide')) {
+        this.frame = new UiFrame(await html(), {
+            videoSrc: context.video.src,
+            allowedFetchUrl: this._ankiSettings!.ankiConnectUrl,
+        });
+        await this.frame.bind();
+        const client = await this.frame.client();
+        this.focusInListener = (event: FocusEvent) => {
+            if (this.frame === undefined || this.frame.hidden) {
                 return;
             }
 
             // Refocus Anki UI to workaround sites like Netflix that automatically
             // take focus away when hiding video controls
-            this.client?.sendClientMessage({ command: 'focus' });
-        });
+            client.sendClientMessage({ command: 'focus' });
+        };
+        window.addEventListener('focusin', this.focusInListener);
 
-        this.client.onServerMessage((message) => {
+        client.onServerMessage((message) => {
             if (message.command === 'openSettings') {
                 const command: VideoToExtensionCommand<OpenAsbplayerSettingsMessage> = {
                     sender: 'asbplayer-video',
@@ -183,7 +184,7 @@ export default class AnkiUiContainer {
 
             context.keyBindings.bind(context);
             context.subtitleContainer.forceHideSubtitles = false;
-            this.frame?.classList.add('asbplayer-hide');
+            this.frame?.hide();
             if (this.fullscreenElement) {
                 this.fullscreenElement.requestFullscreen();
                 this.fullscreenElement = undefined;
@@ -233,18 +234,16 @@ export default class AnkiUiContainer {
             }
         });
 
-        return this.client;
+        return client;
     }
 
     unbind() {
-        if (this.client) {
-            this.client.unbind();
-            this.client = undefined;
-        }
+        this.frame?.unbind();
+        this.frame = undefined;
 
-        if (this.frame) {
-            this.frame.remove();
-            this.frame = undefined;
+        if (this.focusInListener) {
+            window.removeEventListener('focusin', this.focusInListener);
+            this.focusInListener = undefined;
         }
     }
 }

@@ -9,11 +9,11 @@ import {
     VideoToExtensionCommand,
 } from '@project/common';
 import { bufferToBase64 } from '../services/Base64';
-import FrameBridgeClient from '../services/FrameBridgeClient';
 import Binding from './Binding';
 import ImageElement from './ImageElement';
 import { currentPageDelegate } from './pages';
 import { Parser as m3U8Parser } from 'm3u8-parser';
+import UiFrame from './UiFrame';
 
 function html() {
     return `<!DOCTYPE html>
@@ -40,8 +40,7 @@ export default class VideoDataSyncContainer {
     private autoSync?: boolean;
     private lastLanguagesSynced: { [key: string]: string };
     private boundFunction?: (event: Event) => void;
-    private client?: FrameBridgeClient;
-    private frame?: HTMLIFrameElement;
+    private frame?: UiFrame;
     private syncedData?: VideoData;
     private wasPaused?: boolean;
     private fullscreenElement?: Element;
@@ -98,17 +97,8 @@ export default class VideoDataSyncContainer {
 
     unbindVideoSelect() {
         this.imageElement.remove();
-
-        if (this.client) {
-            this.client.unbind();
-            this.client = undefined;
-        }
-
-        if (this.frame) {
-            this.frame.remove();
-            this.frame = undefined;
-        }
-
+        this.frame?.unbind();
+        this.frame = undefined;
         this.wasPaused = undefined;
         this.videoSelectBound = false;
         this.doneListener = undefined;
@@ -241,22 +231,15 @@ export default class VideoDataSyncContainer {
     }
 
     private async _client() {
-        if (this.client) {
-            await this.client.bind();
-            this.frame?.classList?.remove('asbplayer-hide');
-            return this.client;
+        if (this.frame) {
+            this.frame.show();
+            return await this.frame.client();
         }
 
-        this.frame = document.createElement('iframe');
-        this.frame.className = 'asbplayer-ui-frame';
-        this.client = new FrameBridgeClient(this.frame, this.context.video.src);
-        document.body.appendChild(this.frame);
-        const doc = this.frame.contentDocument!;
-        doc.open();
-        doc.write(await html());
-        doc.close();
-        await this.client.bind();
-        this.client.onServerMessage(async (message) => {
+        this.frame = new UiFrame(html());
+        await this.frame.bind();
+        const client = await this.frame.client();
+        client.onServerMessage(async (message) => {
             let shallUpdate = true;
 
             if ('confirm' === message.command) {
@@ -284,7 +267,7 @@ export default class VideoDataSyncContainer {
             if (shallUpdate) {
                 this.context.keyBindings.bind(this.context);
                 this.context.subtitleContainer.forceHideSubtitles = false;
-                this.frame?.classList?.add('asbplayer-hide');
+                this.frame?.hide();
 
                 if (this.fullscreenElement) {
                     this.fullscreenElement.requestFullscreen();
@@ -310,7 +293,7 @@ export default class VideoDataSyncContainer {
             }
         });
 
-        return this.client;
+        return client;
     }
 
     private _prepareShow() {

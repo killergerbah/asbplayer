@@ -1,20 +1,23 @@
 import { HttpPostMessage, VideoToExtensionCommand } from '@project/common';
 
+export interface FetchOptions {
+    videoSrc: string;
+    allowedFetchUrl?: string;
+}
+
 export default class FrameBridgeClient {
     private readonly frame: HTMLIFrameElement;
-    private readonly videoSrc: string;
-    private readonly allowedFetchUrl?: string;
+    private readonly fetchOptions?: FetchOptions;
 
     private frameId?: string;
     private windowMessageListener?: (event: MessageEvent) => void;
     private bindPromise?: Promise<void>;
     private serverMessageListener?: (message: any) => void;
 
-    constructor(frame: HTMLIFrameElement, videoSrc: string, allowedFetchUrl?: string) {
+    constructor(frame: HTMLIFrameElement, fetchOptions?: FetchOptions) {
         this.frame = frame;
-        this.videoSrc = videoSrc;
+        this.fetchOptions = fetchOptions;
         this.bindPromise = undefined;
-        this.allowedFetchUrl = allowedFetchUrl;
     }
 
     async bind() {
@@ -95,7 +98,14 @@ export default class FrameBridgeClient {
                     case 'fetch':
                         const message = event.data.message;
 
-                        if (this.allowedFetchUrl === undefined || message.url !== this.allowedFetchUrl) {
+                        if (this.fetchOptions === undefined) {
+                            return;
+                        }
+
+                        if (
+                            this.fetchOptions.allowedFetchUrl === undefined ||
+                            message.url !== this.fetchOptions.allowedFetchUrl
+                        ) {
                             return;
                         }
 
@@ -106,7 +116,7 @@ export default class FrameBridgeClient {
                                 url: message.url as string,
                                 body: message.body as any,
                             },
-                            src: this.videoSrc,
+                            src: this.fetchOptions.videoSrc,
                         };
                         chrome.runtime.sendMessage(httpPostCommand, (postResponse) => {
                             const response = postResponse ? postResponse : { error: chrome.runtime.lastError?.message };
