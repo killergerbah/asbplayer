@@ -61,7 +61,7 @@
                 "default": "Ctrl+Shift+F",
                 "mac": "MacCtrl+Shift+F"
             },
-            "description": "Select video element to mine without a subtitle file, or with detected subtitles on supported sites."
+            "description": "Select video element and subtitle tracks to sync with asbplayer."
         },
         "take-screenshot": {
             "suggested_key": {

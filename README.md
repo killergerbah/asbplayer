@@ -81,31 +81,31 @@ You can also adjust offset manually by clicking on the "Subtitle Offset" text fi
 
 ### Audio track selection for mkv files
 
-An audio track selector will appear for `mkv` files if experimental web platform features are enabled from `chrome://flags`.
+An audio track selector will appear for `mkv` files if experimental web platform features are enabled from `chrome://flags`. Note that enabling this flag may cause issues with other features of asbplayer, such as card creation from streaming sources.
 
 ### Keyboard shortcuts
 
 Most keyboard shortcuts shared by the extension and the website are customizable from the [asbplayer website settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts). Extension-only shortcuts and some shared shortcuts that require special access to Chrome extension features are customizable from `chrome://extension/shortcuts`. Below are the default shortcuts.
 
-| Action                                                                                              | Keys                                                                     |
-| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Mine current subtitle                                                                               | <kbd>Ctrl+Shift+Z</kbd> (unbound by default when extension is installed) |
-| Mine current subtitle and open Anki export dialog                                                   | <kbd>Ctrl+Shift+X</kbd>                                                  |
-| Update last-created Anki card with asbplayer-captured screenshot, audio, etc                        | <kbd>Ctrl+Shift+U</kbd>                                                  |
-| Manually take screenshot, overriding the one that is automatically taken when mining                | <kbd>Ctrl+Shift+V</kbd> (extension only)                                 |
-| Manually start/stop audio recording, even when a subtitle file is loaded.                           | (unbound by default, extension only)                                     |
-| Select video element to mine without a subtitle file, or with detected subtitles on supported sites | <kbd>Ctrl+Shift+F</kbd> (extension only)                                 |
-| Play/pause                                                                                          | <kbd>Space</kbd>                                                         |
-| Toggle auto-pause                                                                                   | <kbd>Shift+P</kbd>                                                       |
-| Toggle subtitles                                                                                    | <kbd>S</kbd>                                                             |
-| Toggle subtitle track 1 or 2 in video                                                               | <kbd>1, 2...</kbd>                                                       |
-| Toggle subtitle track 1 or 2 in asbplayer                                                           | <kbd>W+1, W+2...</kbd>                                                   |
-| Seek backward/forward by 10 seconds                                                                 | <kbd>A/D</kbd>                                                           |
-| Seek to previous/next subtitle                                                                      | <kbd>Left/Right</kbd>                                                    |
-| Seek to beginning of current subtitle                                                               | <kbd>Down</kbd>                                                          |
-| Adjust offset to previous/next subtitle                                                             | <kbd>Ctrl+Left/Right</kbd> or <kbd>Shift+Left/Right</kbd>                |
-| Adjust offset by ±100ms                                                                             | <kbd>Ctrl+Shift+Left/Right</kbd>                                         |
-| Adjust playback rate by ±0.1                                                                        | <kbd>Ctrl+Shift+[/]</kbd>                                                |
+| Action                                                                               | Keys                                                                     |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| Mine current subtitle                                                                | <kbd>Ctrl+Shift+Z</kbd> (unbound by default when extension is installed) |
+| Mine current subtitle and open Anki export dialog                                    | <kbd>Ctrl+Shift+X</kbd>                                                  |
+| Update last-created Anki card with asbplayer-captured screenshot, audio, etc         | <kbd>Ctrl+Shift+U</kbd>                                                  |
+| Manually take screenshot, overriding the one that is automatically taken when mining | <kbd>Ctrl+Shift+V</kbd> (extension only)                                 |
+| Manually start/stop audio recording, even when a subtitle file is loaded.            | (unbound by default, extension only)                                     |
+| Select video element and subtitle tracks to sync with asbplayer                      | <kbd>Ctrl+Shift+F</kbd> (extension only)                                 |
+| Play/pause                                                                           | <kbd>Space</kbd>                                                         |
+| Toggle auto-pause                                                                    | <kbd>Shift+P</kbd>                                                       |
+| Toggle subtitles                                                                     | <kbd>S</kbd>                                                             |
+| Toggle subtitle track 1 or 2 in video                                                | <kbd>1, 2...</kbd>                                                       |
+| Toggle subtitle track 1 or 2 in asbplayer                                            | <kbd>W+1, W+2...</kbd>                                                   |
+| Seek backward/forward by 10 seconds                                                  | <kbd>A/D</kbd>                                                           |
+| Seek to previous/next subtitle                                                       | <kbd>Left/Right</kbd>                                                    |
+| Seek to beginning of current subtitle                                                | <kbd>Down</kbd>                                                          |
+| Adjust offset to previous/next subtitle                                              | <kbd>Ctrl+Left/Right</kbd> or <kbd>Shift+Left/Right</kbd>                |
+| Adjust offset by ±100ms                                                              | <kbd>Ctrl+Shift+Left/Right</kbd>                                         |
+| Adjust playback rate by ±0.1                                                         | <kbd>Ctrl+Shift+[/]</kbd>                                                |
 
 ## Common issues
 
@@ -133,6 +133,7 @@ Most keyboard shortcuts shared by the extension and the website are customizable
 -   If you're using Brave, make sure asbplayer isn't being blocked by Shield.
 -   Make sure that asbplayer is allowed by AnkiConnect, as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
 -   Check that your browser or an ad blocker isn't blocking the request. A good place to start is by opening your browser's developer console and looking for errors.
+-   As of this writing enabling experimental web platform features is known to cause this issue. Try disabling this flag from `chrome://flags`.
 
 ### When loading a local file asbplayer either shows a black screen, or doesn't play audio.
 
