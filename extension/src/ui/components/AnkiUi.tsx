@@ -221,7 +221,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                         uiState: savedState(),
                         cardExported: true,
                     };
-                    bridge.finished(message);
+                    bridge.sendServerMessage(message);
                 }
             } catch (e) {
                 console.error(e);
@@ -245,14 +245,14 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
         setOpen(false);
         setImageDialogOpen(false);
         const message: AnkiUiBridgeResumeMessage = { command: 'resume', uiState: savedState(), cardExported: false };
-        bridge.finished(message);
+        bridge.sendServerMessage(message);
     }, [bridge, savedState]);
 
     const handleRewind = useCallback(() => {
         setOpen(false);
         setImageDialogOpen(false);
         const message: AnkiUiBridgeRewindMessage = { command: 'rewind', uiState: savedState() };
-        bridge.finished(message);
+        bridge.sendServerMessage(message);
     }, [bridge, savedState]);
 
     const handleViewImage = useCallback((image: Image) => {
@@ -272,11 +272,11 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             recordEnd: state.timestampInterval![1],
         };
 
-        bridge.finished(message);
+        bridge.sendServerMessage(message);
     }, [bridge, savedState]);
 
     const handleOpenSettings = useCallback(() => {
-        bridge.finished({ command: 'openSettings' });
+        bridge.sendServerMessage({ command: 'openSettings' });
     }, [bridge]);
 
     const lastFocusOutRef = useRef<HTMLElement>();
@@ -288,7 +288,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
     }, []);
 
     useEffect(() => {
-        return bridge.onMessage((message) => {
+        return bridge.onClientMessage((message) => {
             if (message.command === 'focus') {
                 lastFocusOutRef.current?.focus();
             } else if (message.command === 'ankiSettings') {

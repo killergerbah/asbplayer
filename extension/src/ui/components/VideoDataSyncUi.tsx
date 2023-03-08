@@ -36,13 +36,13 @@ export default function VideoDataSyncUi({ bridge }: Props) {
 
     const handleCancel = useCallback(() => {
         setOpen(false);
-        bridge.finished({ command: 'cancel' });
+        bridge.sendServerMessage({ command: 'cancel' });
     }, [bridge]);
     const handleConfirm = useCallback(
         (data: ConfirmedVideoDataSubtitleTrack) => {
             setOpen(false);
             const message: VideoDataUiBridgeConfirmMessage = { command: 'confirm', data };
-            bridge.finished(message);
+            bridge.sendServerMessage(message);
         },
         [bridge]
     );
@@ -105,7 +105,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
 
                 setOpen(false);
                 const message: VideoDataUiBridgeOpenFileMessage = { command: 'openFile', subtitles };
-                bridge.finished(message);
+                bridge.sendServerMessage(message);
             } finally {
                 setDisabled(false);
             }

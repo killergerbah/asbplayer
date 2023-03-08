@@ -35,14 +35,14 @@ export default class FrameBridgeServer {
                         delete this.fetches[event.data.message.fetchId];
                     }
                     break;
-                case 'sendMessage':
-                    this.bridge.sendMessage(event.data.message.message);
+                case 'sendClientMessage':
+                    this.bridge.sendClientMessage(event.data.message.message);
                     break;
             }
         };
-        this.bridge.onFinished((message: any) => {
+        this.bridge.onServerMessage((message: any) => {
             this._postMessage({
-                command: 'onFinished',
+                command: 'onServerMessage',
                 message: message,
             });
         });

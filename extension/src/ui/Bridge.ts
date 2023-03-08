@@ -17,11 +17,11 @@ export default class Bridge {
         setTimeout(() => this.uiListener?.(state), 0);
     }
 
-    sendMessage(message: any) {
+    sendClientMessage(message: any) {
         setTimeout(() => this.messageListener?.(message), 0);
     }
 
-    onMessage(messageListener: (message: any) => void) {
+    onClientMessage(messageListener: (message: any) => void) {
         this.messageListener = messageListener;
         return () => {
             this.messageListener = undefined;
@@ -40,11 +40,11 @@ export default class Bridge {
         return await this.fetchDelegate(url, body);
     }
 
-    onFinished(clientListener: (message: Message) => void) {
+    onServerMessage(clientListener: (message: Message) => void) {
         this.clientListener = clientListener;
     }
 
-    finished(message: Message) {
+    sendServerMessage(message: Message) {
         this.clientListener?.(message);
     }
 

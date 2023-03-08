@@ -47,7 +47,7 @@ export default class AnkiUiContainer {
 
     set ankiSettings(value) {
         this._ankiSettings = value;
-        this.client?.sendMessage({ command: 'ankiSettings', value });
+        this.client?.sendClientMessage({ command: 'ankiSettings', value });
     }
 
     constructor() {}
@@ -165,10 +165,10 @@ export default class AnkiUiContainer {
 
             // Refocus Anki UI to workaround sites like Netflix that automatically
             // take focus away when hiding video controls
-            this.client?.sendMessage({ command: 'focus' });
+            this.client?.sendClientMessage({ command: 'focus' });
         });
 
-        this.client.onFinished((message) => {
+        this.client.onServerMessage((message) => {
             if (message.command === 'openSettings') {
                 const command: VideoToExtensionCommand<OpenAsbplayerSettingsMessage> = {
                     sender: 'asbplayer-video',

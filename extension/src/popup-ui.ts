@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     const commands = await commandsPromise;
     const rootElement = document.getElementById('root')!;
     const bridge = renderPopupUi(rootElement, { currentSettings, commands });
-    bridge.onFinished(async (message: any) => {
+    bridge.onServerMessage(async (message: any) => {
         switch (message.command) {
             case 'settings-changed':
                 const key = message.key as keyof ExtensionSettings;

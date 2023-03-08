@@ -256,7 +256,7 @@ export default class VideoDataSyncContainer {
         doc.write(await html());
         doc.close();
         await this.client.bind();
-        this.client.onFinished(async (message) => {
+        this.client.onServerMessage(async (message) => {
             let shallUpdate = true;
 
             if ('confirm' === message.command) {

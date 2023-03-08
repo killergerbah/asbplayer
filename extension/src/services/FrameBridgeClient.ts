@@ -8,7 +8,7 @@ export default class FrameBridgeClient {
     private frameId?: string;
     private windowMessageListener?: (event: MessageEvent) => void;
     private bindPromise?: Promise<void>;
-    private finishedListener?: (message: any) => void;
+    private serverMessageListener?: (message: any) => void;
 
     constructor(frame: HTMLIFrameElement, videoSrc: string, allowedFetchUrl?: string) {
         this.frame = frame;
@@ -41,7 +41,7 @@ export default class FrameBridgeClient {
         );
     }
 
-    sendMessage(message: any) {
+    sendClientMessage(message: any) {
         if (!this.frameId) {
             throw new Error('Attempted to update state when frame is not ready');
         }
@@ -50,7 +50,7 @@ export default class FrameBridgeClient {
             {
                 sender: 'asbplayer-video',
                 message: {
-                    command: 'sendMessage',
+                    command: 'sendClientMessage',
                     message: message,
                     id: this.frameId,
                 },
@@ -59,8 +59,8 @@ export default class FrameBridgeClient {
         );
     }
 
-    onFinished(listener: (message: any) => void) {
-        this.finishedListener = listener;
+    onServerMessage(listener: (message: any) => void) {
+        this.serverMessageListener = listener;
     }
 
     unbind() {
@@ -69,7 +69,7 @@ export default class FrameBridgeClient {
             this.windowMessageListener = undefined;
         }
 
-        this.finishedListener = undefined;
+        this.serverMessageListener = undefined;
     }
 
     _bindClient(): Promise<void> {
@@ -87,9 +87,9 @@ export default class FrameBridgeClient {
                         ready = true;
                         resolve();
                         break;
-                    case 'onFinished':
-                        if (this.finishedListener) {
-                            this.finishedListener(event.data.message.message);
+                    case 'onServerMessage':
+                        if (this.serverMessageListener) {
+                            this.serverMessageListener(event.data.message.message);
                         }
                         break;
                     case 'fetch':

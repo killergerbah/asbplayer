@@ -58,27 +58,27 @@ export function PopupUi({ bridge, currentSettings, commands }: Props) {
             return settings;
         });
         const message: SettingsChangedMessage<K> = { command: 'settings-changed', key, value };
-        bridge.finished(message);
+        bridge.sendServerMessage(message);
     }
 
     const handleSettingsChangedCallback = useCallback(handleSettingsChanged, []);
 
     const handleOpenExtensionShortcuts = useCallback(() => {
         const message: OpenExtensionShortcutsMessage = { command: 'open-extension-shortcuts' };
-        bridge.finished(message);
+        bridge.sendServerMessage(message);
     }, [bridge]);
 
     const handleOpenUpdateUrl = useCallback(
         (url: string) => {
             const message: OpenUpdateUrlMessage = { command: 'open-update-url', url };
-            bridge.finished(message);
+            bridge.sendServerMessage(message);
         },
         [bridge]
     );
 
     const handleVideoKeyboardShortcutClicked = useCallback(() => {
         const message: EditVideoKeyboardShorcutsMessage = { command: 'edit-video-keyboard-shortcuts' };
-        bridge.finished(message);
+        bridge.sendServerMessage(message);
     }, [bridge]);
 
     return (
