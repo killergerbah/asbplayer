@@ -142,7 +142,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 };
                 setText(undefined);
                 setTimestampInterval(
-                    (audioClip && [audioClip.start, audioClip.end]) ||
+                    (s.audio?.start && s.audio?.end && [s.audio.start, s.audio.end]) ||
                         (sliderContext && [sliderContext.subtitleStart, sliderContext.subtitleEnd]) ||
                         undefined
                 );
