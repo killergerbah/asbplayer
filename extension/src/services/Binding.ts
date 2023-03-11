@@ -513,7 +513,7 @@ export default class Binding {
                         break;
                     case 'crop-and-resize':
                         const cropAndResizeMessage = request.message as CropAndResizeMessage;
-                        this._cropAndResize(cropAndResizeMessage.dataUrl, sendResponse);
+                        this.cropAndResize(cropAndResizeMessage.dataUrl).then((dataUrl) => sendResponse({ dataUrl }));
                         return true;
                     case 'alert':
                         // ignore
@@ -837,38 +837,41 @@ export default class Binding {
         this.videoDataSyncContainer.unbindVideoSelect();
     }
 
-    showVideoSelect() {
+    showVideoDataDialog() {
         this.videoDataSyncContainer.show();
     }
 
-    private async _cropAndResize(dataUrl: string, sendResponse: (response?: any) => void) {
-        const image = new Image();
-        const rect = this.video.getBoundingClientRect();
-        const maxWidth = this.maxImageHeight;
-        const maxHeight = this.maxImageHeight;
+    async cropAndResize(tabImageDataUrl: string): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            const rect = this.video.getBoundingClientRect();
+            const maxWidth = this.maxImageHeight;
+            const maxHeight = this.maxImageHeight;
 
-        image.onload = async () => {
-            const canvas = document.createElement('canvas');
-            const r = window.devicePixelRatio;
-            const width = rect.width * r;
-            const height = rect.height * r;
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d')!;
-            ctx.drawImage(image, rect.left * r, rect.top * r, width, height, 0, 0, width, height);
+            image.onload = async () => {
+                const canvas = document.createElement('canvas');
+                const r = window.devicePixelRatio;
+                const width = rect.width * r;
+                const height = rect.height * r;
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d')!;
+                ctx.drawImage(image, rect.left * r, rect.top * r, width, height, 0, 0, width, height);
 
-            if (maxWidth > 0 || maxHeight > 0) {
-                try {
-                    await new CanvasResizer().resize(canvas, ctx, maxWidth, maxHeight);
-                    sendResponse({ dataUrl: canvas.toDataURL('image/jpeg') });
-                } catch (e) {
-                    console.error('Failed to crop and resize image: ' + e);
+                if (maxWidth > 0 || maxHeight > 0) {
+                    try {
+                        await new CanvasResizer().resize(canvas, ctx, maxWidth, maxHeight);
+                        resolve(canvas.toDataURL('image/jpeg'));
+                    } catch (e) {
+                        console.error('Failed to crop and resize image: ' + e);
+                        reject(e);
+                    }
+                } else {
+                    resolve(canvas.toDataURL('image/jpeg'));
                 }
-            } else {
-                sendResponse({ dataUrl: canvas.toDataURL('image/jpeg') });
-            }
-        };
+            };
 
-        image.src = dataUrl;
+            image.src = tabImageDataUrl;
+        });
     }
 }

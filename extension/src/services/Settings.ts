@@ -26,7 +26,6 @@ const defaults: ExtensionSettings = {
     asbplayerUrl: 'https://killergerbah.github.io/asbplayer/',
     lastThemeType: 'dark',
     imageDelay: 0,
-    showVideoSelectModeDialog: true,
 };
 
 // TypeScript will ensure that this object has all the key binding settings keys.

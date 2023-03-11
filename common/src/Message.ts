@@ -413,5 +413,13 @@ export interface AlertMessage extends Message {
 
 export interface VideoSelectModeConfirmMessage extends Message {
     readonly command: 'confirm';
-    readonly doNotShowDialogAgain: boolean;
+    readonly selectedVideoElementSrc: string;
+}
+
+export interface VideoSelectModeCancelMessage extends Message {
+    readonly command: 'cancel';
+}
+
+export interface CaptureVisibleTabMessage extends Message {
+    readonly command: 'capture-visible-tab';
 }

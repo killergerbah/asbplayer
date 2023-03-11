@@ -94,7 +94,7 @@ Most keyboard shortcuts shared by the extension and the website are customizable
 | Update last-created Anki card with asbplayer-captured screenshot, audio, etc         | <kbd>Ctrl+Shift+U</kbd>                                                  |
 | Manually take screenshot, overriding the one that is automatically taken when mining | <kbd>Ctrl+Shift+V</kbd> (extension only)                                 |
 | Manually start/stop audio recording, even when a subtitle file is loaded.            | (unbound by default, extension only)                                     |
-| Select video element and subtitle tracks to sync with asbplayer                      | <kbd>Ctrl+Shift+F</kbd> (extension only)                                 |
+| Select subtitle tracks to sync with asbplayer                                        | <kbd>Ctrl+Shift+F</kbd> (extension only)                                 |
 | Play/pause                                                                           | <kbd>Space</kbd>                                                         |
 | Toggle auto-pause                                                                    | <kbd>Shift+P</kbd>                                                       |
 | Toggle subtitles                                                                     | <kbd>S</kbd>                                                             |

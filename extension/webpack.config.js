@@ -11,7 +11,7 @@ module.exports = (env, options) => ({
         'popup-ui': './src/popup-ui.ts',
         'anki-ui': './src/anki-ui.ts',
         'video-data-sync-ui': './src/video-data-sync-ui.ts',
-        'video-select-mode-ui': './src/video-select-mode-ui.ts',
+        'video-select-ui': './src/video-select-ui.ts',
         asbplayer: './src/asbplayer.ts',
         'background-page': './src/background-page.ts',
         ...Object.fromEntries(

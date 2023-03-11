@@ -1,5 +1,5 @@
 import FrameBridgeServer from './services/FrameBridgeServer';
-import { renderVideoSelectModeUi } from './ui/video-select-mode';
+import { renderVideoSelectModeUi } from './ui/video-select';
 
 window.addEventListener('load', () => {
     const bridge = renderVideoSelectModeUi(document.getElementById('root')!);

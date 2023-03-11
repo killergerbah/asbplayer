@@ -61,7 +61,7 @@
                 "default": "Ctrl+Shift+F",
                 "mac": "MacCtrl+Shift+F"
             },
-            "description": "Select video element and subtitle tracks to sync with asbplayer."
+            "description": "Select subtitle tracks to sync with asbplayer."
         },
         "take-screenshot": {
             "suggested_key": {
@@ -89,7 +89,7 @@
                 "anki-ui.js",
                 "mp3-encoder.worker.js",
                 "video-data-sync-ui.js",
-                "video-select-mode-ui.js"
+                "video-select-ui.js"
             ],
             "matches": ["<all_urls>"]
         }

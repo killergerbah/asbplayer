@@ -27,6 +27,10 @@ export interface VideoToExtensionCommand<T extends Message> extends Command<T> {
     readonly src: string;
 }
 
+export interface ForegroundToExtensionCommand<T extends Message> extends Command<T> {
+    readonly sender: 'asbplayer-foreground';
+}
+
 export interface ExtensionToAsbPlayerCommand<T extends Message> extends Command<T> {
     readonly sender: 'asbplayer-extension-to-player';
     readonly tabId?: number;

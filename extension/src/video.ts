@@ -1,6 +1,6 @@
 import Binding from './services/Binding';
 import { currentPageDelegate } from './services/pages';
-import VideoSelectModeContainer from './services/VideoSelectModeContainer';
+import VideoSelectContainer from './services/VideoSelectContainer';
 
 const bind = () => {
     const bindings: Binding[] = [];
@@ -43,7 +43,7 @@ const bind = () => {
         }
     }, 1000);
 
-    const videoSelectModeContainer = new VideoSelectModeContainer(bindings);
+    const videoSelectModeContainer = new VideoSelectContainer(bindings);
     videoSelectModeContainer.bind();
 
     window.addEventListener('beforeunload', (event) => {

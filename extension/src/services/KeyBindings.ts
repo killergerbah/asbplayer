@@ -62,12 +62,10 @@ export default class KeyBindings {
 
     bind(context: Binding) {
         if (!this._settings) {
-            console.error('Settings are not defined - cannot bind keys');
             return;
         }
 
         if (!this.keyBinder) {
-            // Expected
             return;
         }
 
