@@ -133,13 +133,13 @@ export default class AnkiUiContainer {
     private _prepareShow(context: Binding) {
         context.pause();
 
+        if (document.activeElement) {
+            this.activeElement = document.activeElement;
+        }
+
         if (document.fullscreenElement) {
             this.fullscreenElement = document.fullscreenElement;
             document.exitFullscreen();
-        }
-
-        if (document.activeElement) {
-            this.activeElement = document.activeElement;
         }
 
         context.keyBindings.unbind();
@@ -185,6 +185,7 @@ export default class AnkiUiContainer {
             context.keyBindings.bind(context);
             context.subtitleContainer.forceHideSubtitles = false;
             this.frame?.hide();
+
             if (this.fullscreenElement) {
                 this.fullscreenElement.requestFullscreen();
                 this.fullscreenElement = undefined;

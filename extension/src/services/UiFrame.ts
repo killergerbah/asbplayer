@@ -5,6 +5,7 @@ export default class UiFrame {
     private readonly _client: FrameBridgeClient;
     private readonly _html: string;
     private _bound = false;
+    private _unbound = false;
 
     constructor(html: string, fetchOptions?: FetchOptions) {
         this.frame = document.createElement('iframe');
@@ -13,7 +14,7 @@ export default class UiFrame {
         // Prevent iframe from showing up with solid background
         // https://stackoverflow.com/questions/69591128/chrome-is-forcing-a-white-background-on-frames-only-on-some-websites
         this.frame.style.colorScheme = 'normal';
-        
+
         this._client = new FrameBridgeClient(this.frame, fetchOptions);
         this._html = html;
     }
@@ -29,6 +30,10 @@ export default class UiFrame {
     async bind() {
         if (this._bound) {
             return;
+        }
+
+        if (this._unbound) {
+            throw new Error('Trying to bind frame that has been unbound');
         }
 
         document.body.appendChild(this.frame);
@@ -51,11 +56,12 @@ export default class UiFrame {
 
     hide() {
         this.frame.classList.add('asbplayer-hide');
+        this.frame.blur();
     }
 
     unbind() {
         this._client.unbind();
         this.frame.remove();
-        this._bound = false;
+        this._unbound = true;
     }
 }
