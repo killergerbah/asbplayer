@@ -40,7 +40,7 @@ import DragContainer from './DragContainer';
 import KeyBindings from './KeyBindings';
 import Settings from './Settings';
 import SubtitleContainer, { SubtitleModelWithIndex } from './SubtitleContainer';
-import SyncButtonContainer from './SyncButtonContainer';
+import VideoOverlayContainer from './VideoOverlayContainer';
 import VideoDataSyncContainer from './VideoDataSyncContainer';
 
 let netflix = false;
@@ -67,7 +67,7 @@ export default class Binding {
     readonly controlsContainer: ControlsContainer;
     readonly dragContainer: DragContainer;
     readonly ankiUiContainer: AnkiUiContainer;
-    readonly syncButtonContainer: SyncButtonContainer;
+    readonly videoOverlayContainer: VideoOverlayContainer;
     readonly keyBindings: KeyBindings;
     readonly settings: Settings;
 
@@ -103,7 +103,7 @@ export default class Binding {
         this.controlsContainer = new ControlsContainer(video);
         this.dragContainer = new DragContainer(video);
         this.ankiUiContainer = new AnkiUiContainer();
-        this.syncButtonContainer = new SyncButtonContainer(video);
+        this.videoOverlayContainer = new VideoOverlayContainer(this);
         this.keyBindings = new KeyBindings();
         this.settings = new Settings();
         this.recordMedia = true;
@@ -229,7 +229,7 @@ export default class Binding {
         });
         this.subtitleContainer.bind();
         this.dragContainer.bind();
-        this.syncButtonContainer.bind(this);
+        this.videoOverlayContainer.bind();
     }
 
     _notifyReady() {
@@ -436,14 +436,7 @@ export default class Binding {
                         break;
                     case 'copy-subtitle':
                         const copySubtitleMessage = request.message as CopySubtitleMessage;
-
-                        if (this.synced) {
-                            if (this.subtitleContainer.subtitles.length > 0) {
-                                this._copySubtitle(copySubtitleMessage.postMineAction);
-                            } else {
-                                this._toggleRecordingMedia(copySubtitleMessage.postMineAction);
-                            }
-                        }
+                        this.copySubtitle(copySubtitleMessage.postMineAction);
                         break;
                     case 'toggle-recording':
                         if (this.synced) {
@@ -590,7 +583,7 @@ export default class Binding {
         this.dragContainer.unbind();
         this.keyBindings.unbind();
         this.videoDataSyncContainer.unbind();
-        this.syncButtonContainer.unbind();
+        this.videoOverlayContainer.unbind();
         this.subscribed = false;
     }
 
@@ -614,7 +607,17 @@ export default class Binding {
         this.ankiUiSavedState = undefined;
     }
 
-    async _copySubtitle(postMineAction: PostMineAction) {
+    copySubtitle(postMineAction: PostMineAction) {
+        if (this.synced) {
+            if (this.subtitleContainer.subtitles.length > 0) {
+                this._copySubtitle(postMineAction);
+            } else {
+                this._toggleRecordingMedia(postMineAction);
+            }
+        }
+    }
+
+    private async _copySubtitle(postMineAction: PostMineAction) {
         const [subtitle, surroundingSubtitles] = this.subtitleContainer.currentSubtitle();
 
         if (subtitle && surroundingSubtitles) {

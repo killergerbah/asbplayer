@@ -12,6 +12,7 @@ module.exports = (env, options) => ({
         'anki-ui': './src/anki-ui.ts',
         'video-data-sync-ui': './src/video-data-sync-ui.ts',
         'video-select-ui': './src/video-select-ui.ts',
+        'video-overlay-ui': './src/video-overlay-ui.ts',
         asbplayer: './src/asbplayer.ts',
         'background-page': './src/background-page.ts',
         ...Object.fromEntries(

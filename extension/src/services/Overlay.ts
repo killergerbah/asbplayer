@@ -83,7 +83,7 @@ export default class Overlay {
         }
     }
 
-    hide() {
+    remove() {
         if (this._nonFullscreenContentElement) {
             if (this._nonFullscreenElementFullscreenChangeListener) {
                 document.removeEventListener('fullscreenchange', this._nonFullscreenElementFullscreenChangeListener);

@@ -22,7 +22,6 @@ export default class FrameBridgeClient {
 
     async bind() {
         this.bindPromise = this.bindPromise || this._bindClient();
-
         return this.bindPromise;
     }
 

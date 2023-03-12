@@ -89,7 +89,8 @@
                 "anki-ui.js",
                 "mp3-encoder.worker.js",
                 "video-data-sync-ui.js",
-                "video-select-ui.js"
+                "video-select-ui.js",
+                "video-overlay-ui.js"
             ],
             "matches": ["<all_urls>"]
         }

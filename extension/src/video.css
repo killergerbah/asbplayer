@@ -1,9 +1,9 @@
 .asbplayer-subtitles-container {
-    position: absolute;
+    position: absolute !important;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) !important;
     display: inline-block;
-    z-index: 2147483647;
+    z-index: 2147483647 !important;
 }
 
 .asbplayer-subtitles {
@@ -11,8 +11,8 @@
     color: white;
     text-shadow: 0 0 2px black, 0 0 2px black, 0 0 2px black, 0 0 2px black;
     font-size: 24px;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
     user-select: text !important;
     cursor: text !important;
     line-height: normal !important;
@@ -40,7 +40,7 @@
     width: 100% !important;
     height: 100% !important;
     z-index: 2147483647 !important;
-    border: 0;
+    border: 0 !important;
 }
 
 .asbplayer-hide {
@@ -48,23 +48,23 @@
 }
 
 .asbplayer-drag-zone-initial {
-    position: absolute;
-    pointer-events: none;
-    z-index: 2147483647;
+    position: absolute !important;
+    pointer-events: none !important;
+    z-index: 2147483647 !important;
 }
 
 .asbplayer-drag-zone-dragging {
-    pointer-events: all;
+    pointer-events: all !important;
 }
 
 .asbplayer-image {
-    position: relative;
-    pointer-events: none;
+    position: relative !important;
+    pointer-events: none !important;
 }
 
-.asbplayer-image-fade-in {
-    animation-duration: 0.2s;
-    animation-name: asbplayer-fade-in;
+.asbplayer-fade-in {
+    animation-duration: 0.2s !important;
+    animation-name: asbplayer-fade-in !important;
 }
 
 @keyframes asbplayer-fade-in {
@@ -78,58 +78,31 @@
 }
 
 .asbplayer-image-fill-container {
-    position: absolute;
-    z-index: 2147483647;
-    background-color: rgba(0, 0, 0, 0.5);
+    position: absolute !important;
+    z-index: 2147483647 !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
 }
 
-.asbplayer-image-corner-container {
-    position: absolute;
-    z-index: 2147483647;
+.asbplayer-video-overlay-container {
+    position: absolute !important;
+    z-index: 2147483647 !important;
 }
-
 
 .asbplayer-drag-image {
-    pointer-events: none;
+    pointer-events: none !important;
 }
 
 .asbplayer-mouse-over-image {
-    position: absolute;
-    z-index: 2147483647;
+    position: absolute !important;
+    z-index: 2147483647 !important;
 }
 
 .asbplayer-mouse-over-image {
-    background-color: rgba(0, 0, 0, 0.5);
-    opacity: 0;
-    transition: 0.2s;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    opacity: 0 !important;
+    transition: 0.2s !important;
 }
 
 .asbplayer-mouse-over-image:hover {
-    opacity: 1;
-}
-
-.asbplayer-sync-button {
-    cursor: pointer;
-    opacity: 0.5;
-    filter: grayscale(100%);
-}
-
-.asbplayer-sync-button:hover {
-    opacity: 1;
-    filter: none;
-}
-
-.asbplayer-sync-button-fade-in {
-    animation-duration: 0.2s;
-    animation-name: asbplayer-sync-button-fade-in;
-}
-
-@keyframes asbplayer-sync-button-fade-in {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: .5;
-    }
+    opacity: 1 !important;
 }

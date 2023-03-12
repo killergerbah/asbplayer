@@ -1,4 +1,4 @@
-import ImageElement, { Layout } from './ImageElement';
+import ImageElement from './ImageElement';
 import { bufferToBase64 } from './Base64';
 import { ExtensionSyncMessage, VideoToExtensionCommand } from '@project/common';
 
@@ -24,7 +24,7 @@ export default class DragContainer {
 
     constructor(video: HTMLVideoElement) {
         this.video = video;
-        this.imageElement = new ImageElement(video, Layout.fill);
+        this.imageElement = new ImageElement(video);
         this.bound = false;
     }
 
