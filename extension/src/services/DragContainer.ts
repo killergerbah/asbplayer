@@ -1,4 +1,4 @@
-import ImageElement from './ImageElement';
+import ImageElement, { Layout } from './ImageElement';
 import { bufferToBase64 } from './Base64';
 import { ExtensionSyncMessage, VideoToExtensionCommand } from '@project/common';
 
@@ -24,7 +24,7 @@ export default class DragContainer {
 
     constructor(video: HTMLVideoElement) {
         this.video = video;
-        this.imageElement = new ImageElement(video);
+        this.imageElement = new ImageElement(video, Layout.fill);
         this.bound = false;
     }
 
@@ -37,8 +37,7 @@ export default class DragContainer {
             e.preventDefault();
 
             this.dragEnterElement = null;
-            this.imageElement.element().classList.add('asbplayer-hide');
-            this.imageElement.element().classList.remove('asbplayer-image-fade-in');
+            this.imageElement.hide();
             this._dragElement().classList.remove('asbplayer-drag-zone-dragging');
             this._dragElement().classList.add('asbplayer-hide');
 
@@ -64,7 +63,7 @@ export default class DragContainer {
                     extension === 'vtt' ||
                     extension === 'sup' ||
                     extension === 'dfxp' ||
-                    extension ===  'ttml2'
+                    extension === 'ttml2'
                 ) {
                     files.push(f);
                 }
@@ -97,17 +96,15 @@ export default class DragContainer {
             e.preventDefault();
 
             this.dragEnterElement = e.target;
-            this.imageElement.element().classList.add('asbplayer-drag-image');
-            this.imageElement.element().classList.remove('asbplayer-hide');
-            this.imageElement.element().classList.add('asbplayer-image-fade-in');
+            this.imageElement.containerHtmlElement.classList.add('asbplayer-drag-image');
+            this.imageElement.show();
         };
 
         this.dragLeaveListener = (e) => {
             e.preventDefault();
 
             if (this.dragEnterElement === e.target) {
-                this.imageElement.element().classList.add('asbplayer-hide');
-                this.imageElement.element().classList.remove('asbplayer-image-fade-in');
+                this.imageElement.hide();
                 this._dragElement().classList.remove('asbplayer-drag-zone-dragging');
                 this._dragElement().classList.add('asbplayer-hide');
             }
@@ -115,8 +112,7 @@ export default class DragContainer {
 
         this.bodyDropListener = (e) => {
             e.preventDefault();
-            this.imageElement.element().classList.add('asbplayer-hide');
-            this.imageElement.element().classList.remove('asbplayer-image-fade-in');
+            this.imageElement.hide();
             this._dragElement().classList.remove('asbplayer-drag-zone-dragging');
             this._dragElement().classList.add('asbplayer-hide');
         };
@@ -134,8 +130,7 @@ export default class DragContainer {
             e.preventDefault();
 
             if (this.bodyDragEnterElement === e.target) {
-                this.imageElement.element().classList.add('asbplayer-hide');
-                this.imageElement.element().classList.remove('asbplayer-image-fade-in');
+                this.imageElement.hide();
                 this._dragElement().classList.remove('asbplayer-drag-zone-dragging');
                 this._dragElement().classList.add('asbplayer-hide');
             }

@@ -10,7 +10,7 @@ import {
 } from '@project/common';
 import { bufferToBase64 } from '../services/Base64';
 import Binding from './Binding';
-import ImageElement from './ImageElement';
+import ImageElement, { Layout } from './ImageElement';
 import { currentPageDelegate } from './pages';
 import { Parser as m3U8Parser } from 'm3u8-parser';
 import UiFrame from './UiFrame';
@@ -51,7 +51,7 @@ export default class VideoDataSyncContainer {
     constructor(context: Binding) {
         this.context = context;
         this.videoSelectBound = false;
-        this.imageElement = new ImageElement(context.video);
+        this.imageElement = new ImageElement(context.video, Layout.fill);
         this.doneListener;
         this.autoSync = false;
         this.lastLanguagesSynced = {};
@@ -72,7 +72,7 @@ export default class VideoDataSyncContainer {
             throw new Error('Video select container already bound');
         }
 
-        const image = this.imageElement.element();
+        const image = this.imageElement.containerHtmlElement;
         image.classList.remove('asbplayer-hide');
         image.classList.add('asbplayer-mouse-over-image');
 

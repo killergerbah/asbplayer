@@ -77,11 +77,17 @@
     }
 }
 
-.asbplayer-image-container {
+.asbplayer-image-fill-container {
     position: absolute;
     z-index: 2147483647;
     background-color: rgba(0, 0, 0, 0.5);
 }
+
+.asbplayer-image-corner-container {
+    position: absolute;
+    z-index: 2147483647;
+}
+
 
 .asbplayer-drag-image {
     pointer-events: none;
@@ -100,4 +106,30 @@
 
 .asbplayer-mouse-over-image:hover {
     opacity: 1;
+}
+
+.asbplayer-sync-button {
+    cursor: pointer;
+    opacity: 0.7;
+    filter: grayscale(100%);
+}
+
+.asbplayer-sync-button:hover {
+    opacity: 1;
+    filter: none;
+}
+
+.asbplayer-sync-button-fade-in {
+    animation-duration: 0.2s;
+    animation-name: asbplayer-sync-button-fade-in;
+}
+
+@keyframes asbplayer-sync-button-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: .7;
+    }
 }

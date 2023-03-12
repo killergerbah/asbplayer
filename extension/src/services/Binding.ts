@@ -40,6 +40,7 @@ import DragContainer from './DragContainer';
 import KeyBindings from './KeyBindings';
 import Settings from './Settings';
 import SubtitleContainer, { SubtitleModelWithIndex } from './SubtitleContainer';
+import SyncButtonContainer from './SyncButtonContainer';
 import VideoDataSyncContainer from './VideoDataSyncContainer';
 
 let netflix = false;
@@ -66,6 +67,7 @@ export default class Binding {
     readonly controlsContainer: ControlsContainer;
     readonly dragContainer: DragContainer;
     readonly ankiUiContainer: AnkiUiContainer;
+    readonly syncButtonContainer: SyncButtonContainer;
     readonly keyBindings: KeyBindings;
     readonly settings: Settings;
 
@@ -101,6 +103,7 @@ export default class Binding {
         this.controlsContainer = new ControlsContainer(video);
         this.dragContainer = new DragContainer(video);
         this.ankiUiContainer = new AnkiUiContainer();
+        this.syncButtonContainer = new SyncButtonContainer(video);
         this.keyBindings = new KeyBindings();
         this.settings = new Settings();
         this.recordMedia = true;
@@ -226,6 +229,7 @@ export default class Binding {
         });
         this.subtitleContainer.bind();
         this.dragContainer.bind();
+        this.syncButtonContainer.bind(this);
     }
 
     _notifyReady() {
@@ -586,6 +590,7 @@ export default class Binding {
         this.dragContainer.unbind();
         this.keyBindings.unbind();
         this.videoDataSyncContainer.unbind();
+        this.syncButtonContainer.unbind();
         this.subscribed = false;
     }
 
