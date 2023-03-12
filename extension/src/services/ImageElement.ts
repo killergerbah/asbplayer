@@ -1,3 +1,5 @@
+import Overlay from './Overlay';
+
 const fillImageWidth = 300;
 const fillImageHeight = 300;
 const cornerImageWidth = 48;
@@ -12,6 +14,7 @@ export enum Layout {
 
 export default class ImageElement {
     private readonly _video: HTMLVideoElement;
+    private readonly _overlay: Overlay;
     private readonly _layout: Layout;
     private _imageElement?: HTMLDivElement;
     private _containerElement?: HTMLDivElement;
@@ -21,6 +24,15 @@ export default class ImageElement {
     constructor(video: HTMLVideoElement, layout: Layout, fadeInClass?: string) {
         this._video = video;
         this._layout = layout;
+        this._overlay = new Overlay(this._video, {
+            onFullscreenContainerElementCreated: (container) => {
+                if (this._layout === Layout.fill) {
+                    container.classList.add('asbplayer-image-fill-container');
+                } else {
+                    container.classList.add('asbplayer-image-corner-container');
+                }
+            },
+        });
         this._fadeInClass = fadeInClass ?? 'asbplayer-image-fade-in';
     }
 
@@ -31,15 +43,6 @@ export default class ImageElement {
 
         this._init();
         return this._containerElement!;
-    }
-
-    get imageHtmlElement() {
-        if (this._imageElement) {
-            return this._imageElement;
-        }
-        
-        this._init();
-        return this._imageElement!;
     }
 
     private _init() {
@@ -53,7 +56,8 @@ export default class ImageElement {
         this._applyImageContainerStyles(image, container);
 
         container.appendChild(image);
-        document.body.appendChild(container);
+        this._overlay.setChild(container);
+        // document.body.appendChild(container);
 
         this._imageElementStylesInterval = setInterval(() => this._applyImageContainerStyles(image, container), 1000);
         this._containerElement = container;

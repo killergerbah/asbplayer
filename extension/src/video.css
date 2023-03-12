@@ -110,7 +110,7 @@
 
 .asbplayer-sync-button {
     cursor: pointer;
-    opacity: 0.7;
+    opacity: 0.5;
     filter: grayscale(100%);
 }
 
@@ -130,6 +130,6 @@
     }
 
     to {
-        opacity: .7;
+        opacity: .5;
     }
 }

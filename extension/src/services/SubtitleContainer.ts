@@ -8,7 +8,7 @@ import {
     VideoToExtensionCommand,
 } from '@project/common';
 import { AutoPauseContext } from '@project/common';
-import { ElementOverlay, OffsetAnchor } from './ElementOverlay';
+import { TextOverlay, OffsetAnchor } from './TextOverlay';
 
 export interface SubtitleModelWithIndex extends SubtitleModel {
     index: number;
@@ -16,8 +16,8 @@ export interface SubtitleModelWithIndex extends SubtitleModel {
 
 export default class SubtitleContainer {
     private readonly video: HTMLVideoElement;
-    private readonly subtitlesElementOverlay: ElementOverlay;
-    private readonly notificationElementOverlay: ElementOverlay;
+    private readonly subtitlesElementOverlay: TextOverlay;
+    private readonly notificationElementOverlay: TextOverlay;
 
     private showingSubtitles?: SubtitleModelWithIndex[];
     private lastLoadedMessageTimestamp: number;
@@ -44,20 +44,24 @@ export default class SubtitleContainer {
 
     constructor(video: HTMLVideoElement) {
         this.video = video;
-        this.subtitlesElementOverlay = new ElementOverlay(
+        this.subtitlesElementOverlay = new TextOverlay(
             video,
-            'asbplayer-subtitles-container',
-            'asbplayer-subtitles',
-            'asbplayer-subtitles-container',
-            'asbplayer-fullscreen-subtitles',
+            {
+                nonFullscreenContainerClassName: 'asbplayer-subtitles-container',
+                nonFullscreenContentClassName: 'asbplayer-subtitles',
+                fullscreenContainerClassName: 'asbplayer-subtitles-container',
+                fullscreenContentClassName: 'asbplayer-fullscreen-subtitles',
+            },
             OffsetAnchor.bottom
         );
-        this.notificationElementOverlay = new ElementOverlay(
+        this.notificationElementOverlay = new TextOverlay(
             video,
-            'asbplayer-subtitles-container',
-            'asbplayer-subtitles',
-            'asbplayer-subtitles-container',
-            'asbplayer-fullscreen-subtitles',
+            {
+                nonFullscreenContainerClassName: 'asbplayer-subtitles-container',
+                nonFullscreenContentClassName: 'asbplayer-subtitles',
+                fullscreenContainerClassName: 'asbplayer-subtitles-container',
+                fullscreenContentClassName: 'asbplayer-fullscreen-subtitles',
+            },
             OffsetAnchor.top
         );
         this._subtitles = [];

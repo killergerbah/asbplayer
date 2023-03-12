@@ -8,7 +8,7 @@ export default class SyncButtonContainer {
     private _clickListener?: (event: MouseEvent) => void;
     private _pauseListener?: () => void;
     private _playListener?: () => void;
-    private _fullscreenChangeListener?: () => void;
+    // private _fullscreenChangeListener?: () => void;
     private _mousemoveListener?: (e: MouseEvent) => void;
     private _bound = false;
     private _canShow = false;
@@ -50,18 +50,18 @@ export default class SyncButtonContainer {
         this._playListener = () => {
             this._canShow = false;
         };
-        this._fullscreenChangeListener = () => {
-            if (document.fullscreenElement) {
-                this._canShow = false;
-                this._hide();
-            } else {
-                this._canShow = true;
-            }
-        };
+        // this._fullscreenChangeListener = () => {
+        //     if (document.fullscreenElement) {
+        //         this._canShow = false;
+        //         this._hide();
+        //     } else {
+        //         this._canShow = true;
+        //     }
+        // };
         this._video.addEventListener('pause', this._pauseListener);
         this._video.addEventListener('play', this._playListener);
         this._video.addEventListener('playing', this._playListener);
-        document.addEventListener('fullscreenchange', this._fullscreenChangeListener);
+        // document.addEventListener('fullscreenchange', this._fullscreenChangeListener);
         this._bound = true;
     }
 
@@ -100,10 +100,10 @@ export default class SyncButtonContainer {
             this._playListener = undefined;
         }
 
-        if (this._fullscreenChangeListener) {
-            document.removeEventListener('fullscreenchange', this._fullscreenChangeListener);
-            this._fullscreenChangeListener = undefined;
-        }
+        // if (this._fullscreenChangeListener) {
+        //     document.removeEventListener('fullscreenchange', this._fullscreenChangeListener);
+        //     this._fullscreenChangeListener = undefined;
+        // }
 
         if (this._clickListener) {
             this._imageElement.containerHtmlElement.removeEventListener('click', this._clickListener);
