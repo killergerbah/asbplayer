@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { CssBaseline } from '@material-ui/core';
+import CssBaseline from '@material-ui/core/CssBaseline';
 import { createTheme } from './theme';
-import { ThemeProvider } from '@material-ui/core/styles';
+import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import PopupForm from './PopupForm';
 import Bridge from '../Bridge';
 import { ExtensionSettings } from '@project/common';

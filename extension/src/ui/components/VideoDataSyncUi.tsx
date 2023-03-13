@@ -1,5 +1,5 @@
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { ThemeProvider } from '@material-ui/core/styles';
+import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { createTheme } from './theme';
