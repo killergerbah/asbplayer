@@ -13,7 +13,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Popover from '@material-ui/core/Popover';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
-import StarIcon from '@material-ui/icons/Star';
+import NoteAddIcon from '@material-ui/icons/NoteAdd';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
@@ -271,7 +271,7 @@ export default function CopyHistory(props: CopyHistoryProps) {
                     <ListItemIcon classes={{ root: classes.listItemIconRoot }}>
                         <Tooltip title="Export to Anki">
                             <IconButton onClick={() => props.onAnki(item)}>
-                                <StarIcon fontSize="small" />
+                                <NoteAddIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
                     </ListItemIcon>
