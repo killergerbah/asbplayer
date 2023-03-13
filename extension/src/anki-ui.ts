@@ -1,5 +1,6 @@
 import { renderAnkiUi } from './ui/anki';
 import FrameBridgeServer from './services/FrameBridgeServer';
+import { WindowMessageProtocol } from './services/FrameBridgeProtocol';
 
 window.addEventListener('load', (e) => {
     const mp3WorkerUrl = URL.createObjectURL(
@@ -7,7 +8,7 @@ window.addEventListener('load', (e) => {
     );
 
     const bridge = renderAnkiUi(document.getElementById('root')!, mp3WorkerUrl);
-    const listener = new FrameBridgeServer(bridge);
+    const listener = new FrameBridgeServer(bridge, new WindowMessageProtocol('asbplayer-frame', 'asbplayer-video', window.parent));
     listener.bind();
 
     window.addEventListener('unload', (e) => {

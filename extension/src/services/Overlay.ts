@@ -73,13 +73,11 @@ export default class Overlay {
 
     setChild(childElement: HTMLElement) {
         this._childElement = childElement;
-        const fullscreenContent = this._getFullscreenContentElement();
-        const nonFullscreenContent = this._getNonFullscreenContentElement();
 
         if (document.fullscreenElement) {
-            fullscreenContent.appendChild(this._childElement);
+            this._getFullscreenContentElement().appendChild(this._childElement);
         } else {
-            nonFullscreenContent.appendChild(this._childElement);
+            this._getNonFullscreenContentElement().appendChild(this._childElement);
         }
     }
 
@@ -91,6 +89,7 @@ export default class Overlay {
 
             if (this._nonFullscreenElementFullscreenPollingInterval) {
                 clearInterval(this._nonFullscreenElementFullscreenPollingInterval);
+                this._nonFullscreenElementFullscreenPollingInterval = undefined;
             }
 
             this._nonFullscreenContentElement.remove();
@@ -106,6 +105,7 @@ export default class Overlay {
 
             if (this._fullscreenElementFullscreenPollingInterval) {
                 clearInterval(this._fullscreenElementFullscreenPollingInterval);
+                this._nonFullscreenElementFullscreenPollingInterval = undefined;
             }
 
             this._fullscreenContentElement.remove();
@@ -142,7 +142,6 @@ export default class Overlay {
                 container.style.display = '';
 
                 if (this._childElement && this._childElement.parentElement !== content) {
-                    this._childElement.remove();
                     content.appendChild(this._childElement);
                 }
             }
@@ -177,18 +176,15 @@ export default class Overlay {
 
         this._onFullscreenContainerElementCreated?.(container);
         this._findFullscreenParentElement(container).appendChild(container);
-        container.style.display = 'none';
 
         const toggle = () => {
             if (document.fullscreenElement) {
                 if (container.style.display === 'none') {
                     container.style.display = '';
-                    container.remove();
                     this._findFullscreenParentElement(container).appendChild(container);
                 }
 
                 if (this._childElement && this._childElement.parentElement !== content) {
-                    this._childElement.remove();
                     content.appendChild(this._childElement);
                 }
             } else {

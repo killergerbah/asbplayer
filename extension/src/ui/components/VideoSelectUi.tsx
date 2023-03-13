@@ -10,7 +10,8 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
-import { PaletteType, ThemeProvider } from '@material-ui/core';
+import ThemeProvider from '@material-ui/styles/ThemeProvider';
+import { PaletteType } from '@material-ui/core';
 import Bridge from '../Bridge';
 import { VideoSelectModeCancelMessage, VideoSelectModeConfirmMessage } from '@project/common';
 

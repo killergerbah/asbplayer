@@ -1,9 +1,11 @@
 import FrameBridgeClient, { FetchOptions } from './FrameBridgeClient';
+import { WindowMessageProtocol } from './FrameBridgeProtocol';
 
 export default class UiFrame {
     readonly frame: HTMLIFrameElement;
-    private readonly _client: FrameBridgeClient;
     private readonly _html: string;
+    private readonly _fetchOptions?: FetchOptions;
+    private _client?: FrameBridgeClient;
     private _bound = false;
     private _unbound = false;
 
@@ -14,8 +16,6 @@ export default class UiFrame {
         // Prevent iframe from showing up with solid background
         // https://stackoverflow.com/questions/69591128/chrome-is-forcing-a-white-background-on-frames-only-on-some-websites
         this.frame.style.colorScheme = 'normal';
-
-        this._client = new FrameBridgeClient(this.frame, fetchOptions);
         this._html = html;
     }
 
@@ -41,13 +41,17 @@ export default class UiFrame {
         doc.open();
         doc.write(this._html);
         doc.close();
+        this._client = new FrameBridgeClient(
+            new WindowMessageProtocol('asbplayer-video', 'asbplayer-frame', this.frame.contentWindow!),
+            this._fetchOptions
+        );
         this._bound = true;
         await this._client.bind();
     }
 
     async client() {
-        await this._client.bind();
-        return this._client;
+        await this._client!.bind();
+        return this._client!;
     }
 
     show() {
@@ -60,7 +64,7 @@ export default class UiFrame {
     }
 
     unbind() {
-        this._client.unbind();
+        this._client?.unbind();
         this.frame.remove();
         this._unbound = true;
     }

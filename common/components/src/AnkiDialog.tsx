@@ -1,5 +1,6 @@
 import React, { MutableRefObject, useCallback, useState, useEffect } from 'react';
-import { makeStyles, withStyles } from '@material-ui/core/styles';
+import makeStyles from '@material-ui/core/styles/makeStyles';
+import withStyles from '@material-ui/core/styles/withStyles';
 import {
     Anki,
     AnkiDialogSliderContext,

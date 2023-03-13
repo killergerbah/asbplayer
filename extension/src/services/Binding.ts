@@ -39,7 +39,7 @@ import ControlsContainer from './ControlsContainer';
 import DragContainer from './DragContainer';
 import KeyBindings from './KeyBindings';
 import Settings from './Settings';
-import SubtitleContainer, { SubtitleModelWithIndex } from './SubtitleContainer';
+import SubtitleContainer from './SubtitleContainer';
 import VideoOverlayContainer from './VideoOverlayContainer';
 import VideoDataSyncContainer from './VideoDataSyncContainer';
 
@@ -54,8 +54,8 @@ export default class Binding {
 
     ankiUiSavedState?: AnkiUiSavedState;
 
-    private synced: boolean;
-    private recordingMedia: boolean;
+    private _synced: boolean;
+    private _recordingMedia: boolean;
     private recordingMediaStartedTimestamp?: number;
     private recordingMediaWithScreenshot: boolean;
     private _playMode: PlayMode = PlayMode.normal;
@@ -115,9 +115,17 @@ export default class Binding {
         this.maxImageHeight = 0;
         this.autoPausePreference = AutoPausePreference.atEnd;
         this.copyToClipboardOnMine = false;
-        this.synced = false;
-        this.recordingMedia = false;
+        this._synced = false;
+        this._recordingMedia = false;
         this.recordingMediaWithScreenshot = false;
+    }
+
+    get synced() {
+        return this._synced;
+    }
+
+    get recordingMedia() {
+        return this._recordingMedia;
     }
 
     get url() {
@@ -132,14 +140,14 @@ export default class Binding {
         switch (newPlayMode) {
             case PlayMode.autoPause:
                 this.subtitleContainer.autoPauseContext.onStartedShowing = () => {
-                    if (this.recordingMedia || this.autoPausePreference !== AutoPausePreference.atStart) {
+                    if (this._recordingMedia || this.autoPausePreference !== AutoPausePreference.atStart) {
                         return;
                     }
 
                     this.pause();
                 };
                 this.subtitleContainer.autoPauseContext.onWillStopShowing = () => {
-                    if (this.recordingMedia || this.autoPausePreference !== AutoPausePreference.atEnd) {
+                    if (this._recordingMedia || this.autoPausePreference !== AutoPausePreference.atEnd) {
                         return;
                     }
 
@@ -152,7 +160,7 @@ export default class Binding {
                 this.subtitleContainer.onNextToShow = async (subtitle) => {
                     try {
                         if (
-                            this.recordingMedia ||
+                            this._recordingMedia ||
                             seeking ||
                             this.video.paused ||
                             subtitle.start - this.video.currentTime * 1000 <=
@@ -325,7 +333,7 @@ export default class Binding {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'heartbeat',
-                    synced: this.synced,
+                    synced: this._synced,
                 },
                 src: this.video.src,
             };
@@ -376,7 +384,7 @@ export default class Binding {
                         this.subtitleContainer.showLoadedMessage();
                         this.videoDataSyncContainer.unbindVideoSelect();
                         this.ankiUiSavedState = undefined;
-                        this.synced = true;
+                        this._synced = true;
                         break;
                     case 'offset':
                         const offsetMessage = request.message as OffsetToVideoMessage;
@@ -439,7 +447,7 @@ export default class Binding {
                         this.copySubtitle(copySubtitleMessage.postMineAction);
                         break;
                     case 'toggle-recording':
-                        if (this.synced) {
+                        if (this._synced) {
                             this._toggleRecordingMedia(PostMineAction.showAnkiDialog);
                         }
                         break;
@@ -478,7 +486,7 @@ export default class Binding {
                         };
                         break;
                     case 'recording-finished':
-                        this.recordingMedia = false;
+                        this._recordingMedia = false;
                         this.recordingMediaStartedTimestamp = undefined;
                         break;
                     case 'show-anki-ui':
@@ -608,7 +616,7 @@ export default class Binding {
     }
 
     copySubtitle(postMineAction: PostMineAction) {
-        if (this.synced) {
+        if (this._synced) {
             if (this.subtitleContainer.subtitles.length > 0) {
                 this._copySubtitle(postMineAction);
             } else {
@@ -630,7 +638,7 @@ export default class Binding {
             }
 
             if (this.recordMedia) {
-                this.recordingMedia = true;
+                this._recordingMedia = true;
                 this.recordingMediaStartedTimestamp = this.video.currentTime * 1000;
                 const start = Math.max(0, subtitle.start - this.audioPaddingStart);
                 this.seek(start / 1000);
@@ -667,7 +675,7 @@ export default class Binding {
     async _toggleRecordingMedia(postMineAction: PostMineAction) {
         const ankiSettings =
             postMineAction === PostMineAction.updateLastCard ? this.ankiUiContainer.ankiSettings : undefined;
-        if (this.recordingMedia) {
+        if (this._recordingMedia) {
             const currentTimestamp = this.video.currentTime * 1000;
             const command: VideoToExtensionCommand<StopRecordingMediaMessage> = {
                 sender: 'asbplayer-video',
@@ -698,10 +706,12 @@ export default class Binding {
             const timestamp = this.video.currentTime * 1000;
 
             if (this.recordMedia) {
-                this.recordingMedia = true;
+                this._recordingMedia = true;
                 this.recordingMediaStartedTimestamp = timestamp;
                 this.recordingMediaWithScreenshot = this.screenshot;
             }
+
+            await this.video.play();
 
             const command: VideoToExtensionCommand<StartRecordingMediaMessage> = {
                 sender: 'asbplayer-video',
@@ -744,7 +754,7 @@ export default class Binding {
         const noSubtitles = this.subtitleContainer.subtitles.length === 0;
         const audioPaddingStart = noSubtitles ? 0 : this.audioPaddingStart;
         const audioPaddingEnd = noSubtitles ? 0 : this.audioPaddingEnd;
-        this.recordingMedia = true;
+        this._recordingMedia = true;
         this.recordingMediaStartedTimestamp = this.video.currentTime * 1000;
         this.seek(Math.max(0, start - audioPaddingStart) / 1000);
         await this.play();

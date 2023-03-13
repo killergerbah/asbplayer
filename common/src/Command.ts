@@ -52,3 +52,11 @@ export interface ExtensionToBackgroundPageCommand<T extends Message> extends Com
 export interface BackgroundPageToExtensionCommand<T extends Message> extends Command<T> {
     readonly sender: 'asbplayer-background-page';
 }
+
+export interface FrameToExtensionCommand<T extends Message> extends Command<T> {
+    readonly sender: 'asbplayer-frame-to-extension';
+}
+
+export interface ExtensionToFrameCommand<T extends Message> extends Command<T> {
+    readonly sender: 'asbplayer-frame-to-extension';
+}

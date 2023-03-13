@@ -2,23 +2,7 @@ import { PostMineAction } from '@project/common';
 import Binding from './Binding';
 import Overlay from './Overlay';
 import FrameBridgeClient from './FrameBridgeClient';
-
-const html = `<!DOCTYPE html>
-                <html lang="en">
-                    <body>
-                        <html lang="en">
-                        <head>
-                            <meta charset="utf-8" />
-                            <meta name="viewport" content="width=device-width, initial-scale=1" />
-                            <title>asbplayer - Video Overlay</title>
-                        </head>
-                        <body>
-                        <div id="root" style="width:100%;height:100vh;"></div>
-                            <script src="${chrome.runtime.getURL('./video-overlay-ui.js')}"></script>
-                        </body>
-                    </body>
-                </html>
-`;
+import { ExtensionMessageProtocol } from './FrameBridgeProtocol';
 
 export default class VideoOverlayContainer {
     private readonly _context: Binding;
@@ -31,7 +15,7 @@ export default class VideoOverlayContainer {
     private _stylesInterval?: NodeJS.Timer;
     private _bound = false;
     private _canShow = false;
-    private _uiLoaded = false;
+    private _hidden = true;
     private _frame?: HTMLIFrameElement;
     private _client?: FrameBridgeClient;
 
@@ -54,7 +38,7 @@ export default class VideoOverlayContainer {
             var x = e.clientX - rect.left;
             var y = e.clientY - rect.top;
 
-            if (x > rect.width * 0.75 && x <= rect.width && y < rect.height * 0.25 && y >= 0) {
+            if (x > Math.max(0, rect.width - 150) && x <= rect.width && y < Math.min(rect.height, 150) && y >= 0) {
                 this._show();
             } else {
                 this._hide();
@@ -89,45 +73,49 @@ export default class VideoOverlayContainer {
     }
 
     private _show() {
-        if (!this._canShow) {
+        if (!this._context.recordingMedia && (!this._canShow || !this._paused())) {
             return;
         }
 
-        if (!this._paused()) {
+        if (!this._hidden) {
             return;
         }
+        
+        // It's difficult to cache the iframe since we would potentially need to change its parent in order to keep it visible.
+        // However, iframes lose their contents when their parent changes.
+        // So while it's extremely inefficient, we recreate it every time we need to show it.
+        this._frame?.remove();
+        this._frame = undefined;
+        this._client?.unbind();
+        this._client = undefined;
+        this._frame = document.createElement('iframe');
+        this._frame.style.width = '48px';
+        this._frame.style.colorScheme = 'normal';
+        this._frame.style.border = '0';
+        this._frame.src = chrome.runtime.getURL('./video-overlay-ui.html');
+        const client = new FrameBridgeClient(
+            new ExtensionMessageProtocol('asbplayer-video-to-frame', 'asbplayer-frame-to-video')
+        );
+        this._client = client;
+        this._overlay.remove();
+        this._overlay.setChild(this._frame);
+        client.onServerMessage((message) => {
+            if (message.command === 'subtitles') {
+                this._context.videoDataSyncContainer.show();
+            } else if (message.command === 'anki') {
+                this._context.copySubtitle(PostMineAction.showAnkiDialog);
+            }
+        });
+        client.bind().then(() => client.updateState({ showAnkiButton: this._context.synced }));
 
-        if (!this._uiLoaded) {
-            this._frame = document.createElement('iframe');
-            this._frame.style.width = '48px';
-            this._frame.style.colorScheme = 'normal';
-            this._client = new FrameBridgeClient(this._frame);
-            this._overlay.setChild(this._frame);
-            const doc = this._frame.contentDocument!;
-            doc.open();
-            doc.write(html);
-            doc.close();
-            this._client.bind();
-            this._client.onServerMessage((message) => {
-                if (message.command === 'subtitles') {
-                    this._context.videoDataSyncContainer.show();
-                } else if (message.command === 'anki') {
-                    this._context.copySubtitle(PostMineAction.showAnkiDialog);
-                }
-            });
-            this._uiLoaded = true;
-        }
-
-        if (this._overlay.nonFullscreenContainerElement) {
-            this._showElement(this._overlay.nonFullscreenContainerElement);
-        }
-
-        if (this._overlay.fullscreenContainerElement) {
-            this._showElement(this._overlay.fullscreenContainerElement);
-        }
+        this._hidden = false;
     }
 
     private _hide() {
+        if (this._hidden) {
+            return;
+        }
+
         if (this._overlay.nonFullscreenContainerElement) {
             this._hideElement(this._overlay.nonFullscreenContainerElement);
         }
@@ -135,16 +123,12 @@ export default class VideoOverlayContainer {
         if (this._overlay.fullscreenContainerElement) {
             this._hideElement(this._overlay.fullscreenContainerElement);
         }
-    }
 
-    private _showElement(element: HTMLElement) {
-        element.classList.remove('asbplayer-hide');
-        element.classList.add('asbplayer-fade-in');
+        this._hidden = true;
     }
 
     private _hideElement(element: HTMLElement) {
         element.classList.add('asbplayer-hide');
-        element.classList.remove('asbplayer-fade-in');
     }
 
     private _paused() {
@@ -188,6 +172,5 @@ export default class VideoOverlayContainer {
         this._client?.unbind();
         this._client = undefined;
         this._bound = false;
-        this._uiLoaded = false;
     }
 }

@@ -1,4 +1,5 @@
 import { HttpPostMessage, VideoToExtensionCommand } from '@project/common';
+import { FrameBridgeProtocol } from './FrameBridgeProtocol';
 
 export interface FetchOptions {
     videoSrc: string;
@@ -6,18 +7,18 @@ export interface FetchOptions {
 }
 
 export default class FrameBridgeClient {
-    private readonly frame: HTMLIFrameElement;
     private readonly fetchOptions?: FetchOptions;
+    private readonly protocol: FrameBridgeProtocol;
 
     private frameId?: string;
     private windowMessageListener?: (event: MessageEvent) => void;
     private bindPromise?: Promise<void>;
     private serverMessageListener?: (message: any) => void;
 
-    constructor(frame: HTMLIFrameElement, fetchOptions?: FetchOptions) {
-        this.frame = frame;
+    constructor(protocol: FrameBridgeProtocol, fetchOptions?: FetchOptions) {
         this.fetchOptions = fetchOptions;
         this.bindPromise = undefined;
+        this.protocol = protocol;
     }
 
     async bind() {
@@ -30,17 +31,11 @@ export default class FrameBridgeClient {
             throw new Error('Attempted to update state when frame is not ready');
         }
 
-        this.frame.contentWindow?.postMessage(
-            {
-                sender: 'asbplayer-video',
-                message: {
-                    command: 'updateState',
-                    state: state,
-                    id: this.frameId,
-                },
-            },
-            '*'
-        );
+        this.protocol.sendMessage({
+            command: 'updateState',
+            state: state,
+            id: this.frameId,
+        });
     }
 
     sendClientMessage(message: any) {
@@ -48,17 +43,22 @@ export default class FrameBridgeClient {
             throw new Error('Attempted to update state when frame is not ready');
         }
 
-        this.frame.contentWindow?.postMessage(
-            {
-                sender: 'asbplayer-video',
-                message: {
-                    command: 'sendClientMessage',
-                    message: message,
-                    id: this.frameId,
-                },
-            },
-            '*'
-        );
+        // this.frame.contentWindow?.postMessage(
+        //     {
+        //         sender: 'asbplayer-video',
+        //         message: {
+        //             command: 'sendClientMessage',
+        //             message: message,
+        //             id: this.frameId,
+        //         },
+        //     },
+        //     '*'
+        // );
+        this.protocol.sendMessage({
+            command: 'sendClientMessage',
+            message: message,
+            id: this.frameId,
+        });
     }
 
     onServerMessage(listener: (message: any) => void) {
@@ -66,11 +66,7 @@ export default class FrameBridgeClient {
     }
 
     unbind() {
-        if (this.windowMessageListener) {
-            window.removeEventListener('message', this.windowMessageListener);
-            this.windowMessageListener = undefined;
-        }
-
+        this.protocol.unbind();
         this.serverMessageListener = undefined;
     }
 
@@ -78,25 +74,19 @@ export default class FrameBridgeClient {
         return new Promise((resolve, reject) => {
             let ready = false;
 
-            this.windowMessageListener = (event) => {
-                if (event.source !== this.frame.contentWindow || event.data.sender !== 'asbplayer-frame') {
-                    return;
-                }
-
-                switch (event.data.message.command) {
+            this.protocol.bind((message: any) => {
+                switch (message.command) {
                     case 'ready':
-                        this.frameId = event.data.message.id;
+                        this.frameId = message.id;
                         ready = true;
                         resolve();
                         break;
                     case 'onServerMessage':
                         if (this.serverMessageListener) {
-                            this.serverMessageListener(event.data.message.message);
+                            this.serverMessageListener(message.message);
                         }
                         break;
                     case 'fetch':
-                        const message = event.data.message;
-
                         if (this.fetchOptions === undefined) {
                             return;
                         }
@@ -119,22 +109,16 @@ export default class FrameBridgeClient {
                         };
                         chrome.runtime.sendMessage(httpPostCommand, (postResponse) => {
                             const response = postResponse ? postResponse : { error: chrome.runtime.lastError?.message };
-                            this.frame.contentWindow?.postMessage(
-                                {
-                                    sender: 'asbplayer-video',
-                                    message: {
-                                        command: 'resolveFetch',
-                                        response: response,
-                                        id: this.frameId,
-                                        fetchId: message.fetchId,
-                                    },
-                                },
-                                '*'
-                            );
+                            this.protocol.sendMessage({
+                                command: 'resolveFetch',
+                                response: response,
+                                id: this.frameId,
+                                fetchId: message.fetchId,
+                            });
                         });
                         break;
                 }
-            };
+            });
 
             setTimeout(() => {
                 if (!ready) {
@@ -146,7 +130,6 @@ export default class FrameBridgeClient {
                     }
                 }
             }, 10000);
-            window.addEventListener('message', this.windowMessageListener);
         });
     }
 }

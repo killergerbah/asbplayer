@@ -35,6 +35,8 @@ import EditKeyboardShortcutsHandler from './handlers/popup/EditKeyboardShortcuts
 import ExtensionCommandsHandler from './handlers/asbplayerv2/ExtensionCommandsHandler';
 import OpenAsbplayerSettingsHandler from './handlers/video/OpenAsbplayerSettingsHandler';
 import CaptureVisibleTabHandler from './handlers/foreground/CaptureVisibleTabHandler';
+import FrameToVideoForwardingHandler from './handlers/frame/FrameToVideoForwardingHandler';
+import VideoToFrameForwardingHandler from './handlers/video/VideoToFrameForwardingHandler';
 
 const settings = new Settings();
 const versionChecker = new VersionChecker(settings);
@@ -75,6 +77,8 @@ const handlers: CommandHandler[] = [
     new AudioBase64Handler(backgroundPageAudioRecorder),
     new EditKeyboardShortcutsHandler(tabRegistry),
     new CaptureVisibleTabHandler(),
+    new FrameToVideoForwardingHandler(),
+    new VideoToFrameForwardingHandler(),
 ];
 
 chrome.runtime.onMessage.addListener((request: Command<Message>, sender, sendResponse) => {

@@ -15,7 +15,6 @@ import {
     PostMineAction,
     CardUpdatedMessage,
     RecordingFinishedMessage,
-    surroundingSubtitles,
 } from '@project/common';
 import updateLastCard from '../../functions/updateLastCard';
 import TabRegistry from '../../services/TabRegistry';

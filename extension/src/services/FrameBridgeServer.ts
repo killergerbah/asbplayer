@@ -1,47 +1,45 @@
 import { v4 as uuidv4 } from 'uuid';
 import Bridge from '../ui/Bridge';
+import { FrameBridgeProtocol } from './FrameBridgeProtocol';
 
 const fetchTimeout = 5000;
 
 export default class FrameBridgeServer {
     private readonly bridge: Bridge;
     private readonly fetches: { [key: string]: (response: any) => void };
+    private readonly protocol;
     private id?: string;
-    private windowMessageListener?: (event: MessageEvent) => void;
 
-    constructor(bridge: Bridge) {
+    constructor(bridge: Bridge, protocol: FrameBridgeProtocol) {
         this.bridge = bridge;
         this.fetches = {};
+        this.protocol = protocol;
     }
 
     bind() {
         this.id = uuidv4();
-        this.windowMessageListener = (event) => {
-            if (event.data.sender !== 'asbplayer-video' || event.data.message.id !== this.id) {
+        this.protocol.bind((message) => {
+            if (message.id !== this.id) {
                 return;
             }
 
-            if (event.source !== window.parent) {
-                return;
-            }
-
-            switch (event.data.message.command) {
+            switch (message.command) {
                 case 'updateState':
-                    this.bridge.updateState(event.data.message.state);
+                    this.bridge.updateState(message.state);
                     break;
                 case 'resolveFetch':
-                    if (event.data.message.fetchId in this.fetches) {
-                        this.fetches[event.data.message.fetchId](event.data.message.response);
-                        delete this.fetches[event.data.message.fetchId];
+                    if (message.fetchId in this.fetches) {
+                        this.fetches[message.fetchId](message.response);
+                        delete this.fetches[message.fetchId];
                     }
                     break;
                 case 'sendClientMessage':
-                    this.bridge.sendClientMessage(event.data.message.message);
+                    this.bridge.sendClientMessage(message.message);
                     break;
             }
-        };
+        });
         this.bridge.onServerMessage((message: any) => {
-            this._postMessage({
+            this.protocol.sendMessage({
                 command: 'onServerMessage',
                 message: message,
             });
@@ -50,7 +48,7 @@ export default class FrameBridgeServer {
             return new Promise((resolve, reject) => {
                 const fetchId = uuidv4();
                 this.fetches[fetchId] = resolve;
-                this._postMessage({
+                this.protocol.sendMessage({
                     command: 'fetch',
                     url: url,
                     body: body,
@@ -64,28 +62,13 @@ export default class FrameBridgeServer {
                 }, fetchTimeout);
             });
         });
-        window.addEventListener('message', this.windowMessageListener);
-        this._postMessage({
+        this.protocol.sendMessage({
             command: 'ready',
             id: this.id,
         });
     }
 
-    _postMessage(message: any) {
-        window.parent.postMessage(
-            {
-                sender: 'asbplayer-frame',
-                message: message,
-            },
-            '*'
-        );
-    }
-
     unbind() {
-        if (this.windowMessageListener) {
-            window.removeEventListener('message', this.windowMessageListener);
-        }
-
-        this.bridge.unbind();
+        this.protocol.unbind();
     }
 }
