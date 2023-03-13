@@ -169,6 +169,10 @@ export interface ToggleRecordingMessage extends Message {
     readonly command: 'toggle-recording';
 }
 
+export interface ToggleVideoSelectMessage extends Message {
+    readonly command: 'toggle-video-select';
+}
+
 export interface ShowAnkiUiAfterRerecordMessage extends Message {
     readonly command: 'show-anki-ui-after-rerecord';
     readonly uiState: AnkiUiSavedState;

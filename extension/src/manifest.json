@@ -8,7 +8,7 @@
         "48": "assets/icon48.png",
         "128": "assets/icon128.png"
     },
-    "permissions": ["tabs", "tabCapture", "activeTab", "storage"],
+    "permissions": ["tabs", "tabCapture", "activeTab", "storage", "contextMenus"],
     "action": {
         "default_title": "asbplayer",
         "default_popup": "popup-ui.html"

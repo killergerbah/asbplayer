@@ -23,6 +23,7 @@ import {
     PostMineAction,
     TakeScreenshotMessage,
     ToggleRecordingMessage,
+    ToggleVideoSelectMessage,
 } from '@project/common';
 import TakeScreenshotHandler from './handlers/video/TakeScreenshotHandler';
 import BackgroundPageAudioRecorder from './services/BackgroundPageAudioRecorder';
@@ -91,6 +92,54 @@ chrome.runtime.onMessage.addListener((request: Command<Message>, sender, sendRes
     }
 });
 
+chrome.contextMenus.create({
+    id: 'load-subtitles',
+    title: 'Load Subtitles',
+    contexts: ['page', 'video'],
+});
+
+chrome.contextMenus.create({
+    id: 'mine-subtitle',
+    title: 'Mine Subtitle',
+    contexts: ['page', 'video'],
+});
+
+chrome.contextMenus.onClicked.addListener((info) => {
+    tabRegistry.publishCommandToVideoElements((videoElement): ExtensionToVideoCommand<Message> | undefined => {
+        if (info.srcUrl !== undefined && videoElement.src !== info.srcUrl) {
+            return undefined;
+        }
+
+        if (info.srcUrl === undefined && info.pageUrl !== videoElement.tab.url) {
+            return undefined;
+        }
+
+        switch (info.menuItemId) {
+            case 'load-subtitles':
+                const toggleVideoSelectCommand: ExtensionToVideoCommand<ToggleVideoSelectMessage> = {
+                    sender: 'asbplayer-extension-to-video',
+                    message: {
+                        command: 'toggle-video-select',
+                    },
+                    src: videoElement.src,
+                };
+                return toggleVideoSelectCommand;
+            case 'mine-subtitle':
+                const copySubtitleCommand: ExtensionToVideoCommand<CopySubtitleMessage> = {
+                    sender: 'asbplayer-extension-to-video',
+                    message: {
+                        command: 'copy-subtitle',
+                        postMineAction: PostMineAction.showAnkiDialog,
+                    },
+                    src: videoElement.src,
+                };
+                return copySubtitleCommand;
+            default:
+                return undefined;
+        }
+    });
+});
+
 chrome.commands.onCommand.addListener((command) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (!tabs || tabs.length === 0) {
@@ -136,12 +185,13 @@ chrome.commands.onCommand.addListener((command) => {
             case 'toggle-video-select':
                 for (const tab of tabs) {
                     if (typeof tab.id !== 'undefined') {
-                        chrome.tabs.sendMessage(tab.id, {
+                        const extensionToVideoCommand: ExtensionToVideoCommand<ToggleVideoSelectMessage> = {
                             sender: 'asbplayer-extension-to-video',
                             message: {
                                 command: 'toggle-video-select',
                             },
-                        });
+                        };
+                        chrome.tabs.sendMessage(tab.id, extensionToVideoCommand);
                     }
                 }
                 break;
