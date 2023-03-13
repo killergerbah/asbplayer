@@ -9,11 +9,11 @@ import {
     VideoToExtensionCommand,
 } from '@project/common';
 import { bufferToBase64 } from '../services/Base64';
-import Binding from './Binding';
-import ImageElement from './ImageElement';
-import { currentPageDelegate } from './pages';
+import Binding from '../services/Binding';
+import ImageElement from '../services/ImageElement';
+import { currentPageDelegate } from '../services/pages';
 import { Parser as m3U8Parser } from 'm3u8-parser';
-import UiFrame from './UiFrame';
+import UiFrame from '../services/UiFrame';
 
 function html() {
     return `<!DOCTYPE html>
@@ -30,7 +30,7 @@ function html() {
               </html>`;
 }
 
-export default class VideoDataSyncContainer {
+export default class VideoDataSyncController {
     private readonly context: Binding;
     private readonly domain: string;
 
@@ -266,7 +266,7 @@ export default class VideoDataSyncContainer {
 
             if (shallUpdate) {
                 this.context.keyBindings.bind(this.context);
-                this.context.subtitleContainer.forceHideSubtitles = false;
+                this.context.subtitleController.forceHideSubtitles = false;
                 this.frame?.hide();
 
                 if (this.fullscreenElement) {
@@ -310,7 +310,7 @@ export default class VideoDataSyncContainer {
         }
 
         this.context.keyBindings.unbind();
-        this.context.subtitleContainer.forceHideSubtitles = true;
+        this.context.subtitleController.forceHideSubtitles = true;
     }
 
     private async _syncData(name: string, extension: string, subtitleUrl: string, m3U8BaseUrl: string | undefined) {

@@ -12,8 +12,8 @@ import {
     OpenAsbplayerSettingsMessage,
     VideoToExtensionCommand,
 } from '@project/common';
-import Binding from './Binding';
-import UiFrame from './UiFrame';
+import Binding from '../services/Binding';
+import UiFrame from '../services/UiFrame';
 
 // We need to write the HTML into the iframe manually so that the iframe keeps it's about:blank URL.
 // Otherwise, Chrome won't insert content scripts into the iframe (e.g. Yomichan won't work).
@@ -34,7 +34,7 @@ async function html() {
               </html>`;
 }
 
-export default class AnkiUiContainer {
+export default class AnkiUiController {
     private frame?: UiFrame;
     private fullscreenElement?: Element;
     private activeElement?: Element;
@@ -143,7 +143,7 @@ export default class AnkiUiContainer {
         }
 
         context.keyBindings.unbind();
-        context.subtitleContainer.forceHideSubtitles = true;
+        context.subtitleController.forceHideSubtitles = true;
     }
 
     private async _client(context: Binding) {
@@ -183,7 +183,7 @@ export default class AnkiUiContainer {
             }
 
             context.keyBindings.bind(context);
-            context.subtitleContainer.forceHideSubtitles = false;
+            context.subtitleController.forceHideSubtitles = false;
             this.frame?.hide();
 
             if (this.fullscreenElement) {

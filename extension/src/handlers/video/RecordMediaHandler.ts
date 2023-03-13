@@ -15,9 +15,8 @@ import {
     PostMineAction,
     CardUpdatedMessage,
     RecordingFinishedMessage,
-    surroundingSubtitles,
+    updateLastCard,
 } from '@project/common';
-import updateLastCard from '../../functions/updateLastCard';
 import TabRegistry from '../../services/TabRegistry';
 import BackgroundPageAudioRecorder from '../../services/BackgroundPageAudioRecorder';
 

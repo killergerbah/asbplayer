@@ -1,6 +1,6 @@
 import Binding from './services/Binding';
 import { currentPageDelegate } from './services/pages';
-import VideoSelectContainer from './services/VideoSelectContainer';
+import VideoSelectController from './controllers/VideoSelectController';
 
 const bind = () => {
     const bindings: Binding[] = [];
@@ -43,8 +43,8 @@ const bind = () => {
         }
     }, 1000);
 
-    const videoSelectModeContainer = new VideoSelectContainer(bindings);
-    videoSelectModeContainer.bind();
+    const videoSelectModeController = new VideoSelectController(bindings);
+    videoSelectModeController.bind();
 
     window.addEventListener('beforeunload', (event) => {
         for (let b of bindings) {
@@ -54,7 +54,7 @@ const bind = () => {
         bindings.length = 0;
 
         clearInterval(interval);
-        videoSelectModeContainer.unbind();
+        videoSelectModeController.unbind();
     });
 };
 

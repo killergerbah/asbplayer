@@ -16,9 +16,9 @@ import {
     ShowAnkiUiMessage,
     StopRecordingMediaMessage,
     SubtitleModel,
+    updateLastCard,
     VideoToExtensionCommand,
 } from '@project/common';
-import updateLastCard from '../../functions/updateLastCard';
 import TabRegistry from '../../services/TabRegistry';
 
 export default class StopRecordingMediaHandler {

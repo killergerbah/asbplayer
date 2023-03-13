@@ -1,8 +1,8 @@
-import ImageElement from './ImageElement';
-import { bufferToBase64 } from './Base64';
+import ImageElement from '../services/ImageElement';
+import { bufferToBase64 } from '../services/Base64';
 import { ExtensionSyncMessage, VideoToExtensionCommand } from '@project/common';
 
-export default class DragContainer {
+export default class DragController {
     private readonly video: HTMLVideoElement;
     private readonly imageElement: ImageElement;
 

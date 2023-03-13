@@ -3,7 +3,7 @@ interface Point {
     y: number;
 }
 
-export default class ControlsContainer {
+export default class ControlsController {
     private readonly video: HTMLVideoElement;
     private elements: Element[];
 

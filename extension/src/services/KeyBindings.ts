@@ -99,7 +99,7 @@ export default class KeyBindings {
 
                     context.playMode = context.playMode === PlayMode.autoPause ? PlayMode.normal : PlayMode.autoPause;
                 },
-                () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
+                () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
                 true
             );
 
@@ -112,7 +112,7 @@ export default class KeyBindings {
 
                     context.playMode = context.playMode === PlayMode.condensed ? PlayMode.normal : PlayMode.condensed;
                 },
-                () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
+                () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
                 true
             );
 
@@ -126,7 +126,7 @@ export default class KeyBindings {
                 },
                 () => false,
                 () => context.video.currentTime * 1000,
-                () => context.subtitleContainer.subtitles,
+                () => context.subtitleController.subtitles,
                 true
             );
 
@@ -157,7 +157,7 @@ export default class KeyBindings {
                 },
                 () => false,
                 () => context.video.currentTime * 1000,
-                () => context.subtitleContainer.subtitles,
+                () => context.subtitleController.subtitles,
                 true
             );
 
@@ -178,7 +178,7 @@ export default class KeyBindings {
 
                     chrome.runtime.sendMessage(toggleSubtitlesCommand);
                 },
-                () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
+                () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
                 true
             );
 
@@ -188,10 +188,10 @@ export default class KeyBindings {
                 (event, track) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
-                    context.subtitleContainer.disabledSubtitleTracks[track] =
-                        !context.subtitleContainer.disabledSubtitleTracks[track];
+                    context.subtitleController.disabledSubtitleTracks[track] =
+                        !context.subtitleController.disabledSubtitleTracks[track];
                 },
-                () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
+                () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
                 true
             );
 
@@ -211,7 +211,7 @@ export default class KeyBindings {
                     };
                     chrome.runtime.sendMessage(command);
                 },
-                () => !context.subtitleContainer.subtitles || context.subtitleContainer.subtitles.length === 0,
+                () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
                 true
             );
 
@@ -221,11 +221,11 @@ export default class KeyBindings {
                 (event, offset) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
-                    context.subtitleContainer.offset(offset);
+                    context.subtitleController.offset(offset);
                 },
                 () => false,
                 () => context.video.currentTime * 1000,
-                () => context.subtitleContainer.subtitles,
+                () => context.subtitleController.subtitles,
                 true
             );
 
@@ -235,10 +235,10 @@ export default class KeyBindings {
                 (event, offset) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
-                    context.subtitleContainer.offset(offset);
+                    context.subtitleController.offset(offset);
                 },
                 () => false,
-                () => context.subtitleContainer.subtitles,
+                () => context.subtitleController.subtitles,
                 true
             );
 

@@ -13,9 +13,9 @@ import {
     ShowAnkiUiMessage,
     StartRecordingMediaMessage,
     SubtitleModel,
+    updateLastCard,
     VideoToExtensionCommand,
 } from '@project/common';
-import updateLastCard from '../../functions/updateLastCard';
 import BackgroundPageAudioRecorder from '../../services/BackgroundPageAudioRecorder';
 
 export default class StartRecordingMediaHandler {

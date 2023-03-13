@@ -8,13 +8,13 @@ import {
     VideoToExtensionCommand,
 } from '@project/common';
 import { AutoPauseContext } from '@project/common';
-import { ElementOverlay, OffsetAnchor } from './ElementOverlay';
+import { ElementOverlay, OffsetAnchor } from '../services/ElementOverlay';
 
 export interface SubtitleModelWithIndex extends SubtitleModel {
     index: number;
 }
 
-export default class SubtitleContainer {
+export default class SubtitleController {
     private readonly video: HTMLVideoElement;
     private readonly subtitlesElementOverlay: ElementOverlay;
     private readonly notificationElementOverlay: ElementOverlay;

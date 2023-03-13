@@ -1,10 +1,10 @@
-import { CaptureVisibleTabMessage, ForegroundToExtensionCommand, VideoToExtensionCommand } from '@project/common';
+import { CaptureVisibleTabMessage, ForegroundToExtensionCommand } from '@project/common';
 import { VideoElement } from '../ui/components/VideoSelectUi';
-import Binding from './Binding';
-import Settings from './Settings';
-import UiFrame from './UiFrame';
+import Binding from '../services/Binding';
+import Settings from '../services/Settings';
+import UiFrame from '../services/UiFrame';
 
-export default class VideoSelectContainer {
+export default class VideoSelectController {
     private readonly _bindings: Binding[];
     private readonly _frame: UiFrame;
     private readonly _settings: Settings = new Settings();
