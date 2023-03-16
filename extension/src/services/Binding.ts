@@ -845,7 +845,7 @@ export default class Binding {
         return new Promise((resolve, reject) => {
             const image = new Image();
             const rect = this.video.getBoundingClientRect();
-            const maxWidth = this.maxImageHeight;
+            const maxWidth = this.maxImageWidth;
             const maxHeight = this.maxImageHeight;
 
             image.onload = async () => {
