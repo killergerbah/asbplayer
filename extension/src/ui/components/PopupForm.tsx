@@ -89,7 +89,7 @@ const extensionKeyboardShortcutLabels: any = {
         'Update last-created Anki card with asbplayer-captured media.\nWhen video is synced without a subtitle file, starts/stops recording audio.',
     'take-screenshot': 'Manually take screenshot, overriding the one that is automatically taken when mining.',
     'toggle-recording': 'Manually start/stop audio recording, even when a subtitle file is loaded.',
-    'toggle-video-select': 'Select subtitle tracks to sync with asbplayer.',
+    'toggle-video-select': 'Select subtitle tracks to load.',
 };
 
 const keyboardShortcutLabels: { [key in keyof ExtensionKeyBindingsSettings]: string } = {
@@ -292,7 +292,7 @@ export default function PopupForm({
                                     onChange={(e) => onSettingsChanged('autoSync', e.target.checked)}
                                 />
                             }
-                            label="Auto-sync detected subtitles"
+                            label="Auto-load detected subtitles"
                             labelPlacement="start"
                         />
                     </FormGroup>

@@ -61,7 +61,7 @@
                 "default": "Ctrl+Shift+F",
                 "mac": "MacCtrl+Shift+F"
             },
-            "description": "Select subtitle tracks to sync with asbplayer."
+            "description": "Select subtitle tracks to load."
         },
         "take-screenshot": {
             "suggested_key": {
