@@ -13,6 +13,10 @@
         "default_title": "asbplayer",
         "default_popup": "popup-ui.html"
     },
+    "options_ui": {
+        "page": "popup-ui.html",
+        "open_in_tab": false
+    },
     "background": {
         "service_worker": "background.js"
     },
