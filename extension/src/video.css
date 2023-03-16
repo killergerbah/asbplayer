@@ -1,7 +1,7 @@
 .asbplayer-subtitles-container {
     position: absolute;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -100%);
     display: inline-block;
     z-index: 2147483647;
 }

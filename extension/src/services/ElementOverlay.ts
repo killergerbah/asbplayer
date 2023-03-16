@@ -17,10 +17,11 @@ export class ElementOverlay {
     private nonFullscreenContainerElement?: HTMLElement;
     private nonFullscreenContentElement?: HTMLElement;
     private nonFullscreenElementFullscreenChangeListener?: (this: any, event: Event) => any;
-    private stylesInterval?: NodeJS.Timer;
+    private nonFullscreenStylesInterval?: NodeJS.Timer;
     private nonFullscreenElementFullscreenPollingInterval?: NodeJS.Timer;
     private fullscreenElementFullscreenChangeListener?: (this: any, event: Event) => any;
     private fullscreenElementFullscreenPollingInterval?: NodeJS.Timer;
+    private fullscreenStylesInterval?: NodeJS.Timer;
 
     contentPositionOffset: number = 75;
 
@@ -54,11 +55,11 @@ export class ElementOverlay {
 
     refresh() {
         if (this.fullscreenContainerElement) {
-            this._applyFullscreenStyles(this.fullscreenContainerElement);
+            this._applyContainerStyles(this.fullscreenContainerElement);
         }
 
         if (this.nonFullscreenContainerElement) {
-            this._applyNonFullscreenStyles(this.nonFullscreenContainerElement);
+            this._applyContainerStyles(this.nonFullscreenContainerElement);
         }
     }
 
@@ -68,8 +69,8 @@ export class ElementOverlay {
                 document.removeEventListener('fullscreenchange', this.nonFullscreenElementFullscreenChangeListener);
             }
 
-            if (this.stylesInterval) {
-                clearInterval(this.stylesInterval);
+            if (this.nonFullscreenStylesInterval) {
+                clearInterval(this.nonFullscreenStylesInterval);
             }
 
             if (this.nonFullscreenElementFullscreenPollingInterval) {
@@ -85,6 +86,10 @@ export class ElementOverlay {
         if (this.fullscreenContentElement) {
             if (this.fullscreenElementFullscreenChangeListener) {
                 document.removeEventListener('fullscreenchange', this.fullscreenElementFullscreenChangeListener);
+            }
+
+            if (this.fullscreenStylesInterval) {
+                clearInterval(this.fullscreenStylesInterval);
             }
 
             if (this.fullscreenElementFullscreenPollingInterval) {
@@ -108,7 +113,7 @@ export class ElementOverlay {
         container.appendChild(div);
         container.className = this.nonFullscreenContainerClassName;
         div.className = this.nonFullscreenContentClassName;
-        this._applyNonFullscreenStyles(container);
+        this._applyContainerStyles(container);
         document.body.appendChild(container);
 
         function toggle() {
@@ -121,7 +126,7 @@ export class ElementOverlay {
 
         toggle();
         this.nonFullscreenElementFullscreenChangeListener = (e) => toggle();
-        this.stylesInterval = setInterval(() => this._applyNonFullscreenStyles(container), 1000);
+        this.nonFullscreenStylesInterval = setInterval(() => this._applyContainerStyles(container), 1000);
         this.nonFullscreenElementFullscreenPollingInterval = setInterval(() => toggle(), 1000);
         document.addEventListener('fullscreenchange', this.nonFullscreenElementFullscreenChangeListener);
         this.nonFullscreenContentElement = div;
@@ -130,7 +135,7 @@ export class ElementOverlay {
         return this.nonFullscreenContentElement;
     }
 
-    private _applyNonFullscreenStyles(container: HTMLElement) {
+    private _applyContainerStyles(container: HTMLElement) {
         const rect = this.targetElement.getBoundingClientRect();
         container.style.left = rect.left + rect.width / 2 + 'px';
         container.style.maxWidth = rect.width + 'px';
@@ -156,7 +161,7 @@ export class ElementOverlay {
         container.appendChild(div);
         container.className = this.fullscreenContainerClassName;
         div.className = this.fullscreenContentClassName;
-        this._applyFullscreenStyles(container);
+        this._applyContainerStyles(container);
         this._findFullscreenParentElement(container).appendChild(container);
         container.style.display = 'none';
         const that = this;
@@ -173,24 +178,13 @@ export class ElementOverlay {
 
         toggle();
         this.fullscreenElementFullscreenChangeListener = (e) => toggle();
+        this.fullscreenStylesInterval = setInterval(() => this._applyContainerStyles(container), 1000);
         this.fullscreenElementFullscreenPollingInterval = setInterval(() => toggle(), 1000);
         document.addEventListener('fullscreenchange', this.fullscreenElementFullscreenChangeListener);
         this.fullscreenContentElement = div;
         this.fullscreenContainerElement = container;
 
         return this.fullscreenContentElement;
-    }
-
-    private _applyFullscreenStyles(container: HTMLElement) {
-        container.style.maxWidth = '100%';
-
-        if (this.offsetAnchor === OffsetAnchor.bottom) {
-            container.style.top = '';
-            container.style.bottom = this.contentPositionOffset + 'px';
-        } else {
-            container.style.top = this.contentPositionOffset + 'px';
-            container.style.bottom = '';
-        }
     }
 
     private _findFullscreenParentElement(container: HTMLElement): HTMLElement {
