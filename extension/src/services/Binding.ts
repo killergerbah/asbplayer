@@ -53,7 +53,7 @@ export default class Binding {
 
     ankiUiSavedState?: AnkiUiSavedState;
 
-    private synced: boolean;
+    private _synced: boolean;
     private recordingMedia: boolean;
     private recordingMediaStartedTimestamp?: number;
     private recordingMediaWithScreenshot: boolean;
@@ -112,9 +112,13 @@ export default class Binding {
         this.maxImageHeight = 0;
         this.autoPausePreference = AutoPausePreference.atEnd;
         this.copyToClipboardOnMine = false;
-        this.synced = false;
+        this._synced = false;
         this.recordingMedia = false;
         this.recordingMediaWithScreenshot = false;
+    }
+
+    get synced() {
+        return this._synced;
     }
 
     get url() {
@@ -321,7 +325,7 @@ export default class Binding {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'heartbeat',
-                    synced: this.synced,
+                    synced: this._synced,
                 },
                 src: this.video.src,
             };
@@ -372,7 +376,7 @@ export default class Binding {
                         this.subtitleController.showLoadedMessage();
                         this.videoDataSyncController.unbindVideoSelect();
                         this.ankiUiSavedState = undefined;
-                        this.synced = true;
+                        this._synced = true;
                         break;
                     case 'offset':
                         const offsetMessage = request.message as OffsetToVideoMessage;
@@ -433,7 +437,7 @@ export default class Binding {
                     case 'copy-subtitle':
                         const copySubtitleMessage = request.message as CopySubtitleMessage;
 
-                        if (this.synced) {
+                        if (this._synced) {
                             if (this.subtitleController.subtitles.length > 0) {
                                 this._copySubtitle(copySubtitleMessage.postMineAction);
                             } else {
@@ -442,7 +446,7 @@ export default class Binding {
                         }
                         break;
                     case 'toggle-recording':
-                        if (this.synced) {
+                        if (this._synced) {
                             this._toggleRecordingMedia(PostMineAction.showAnkiDialog);
                         }
                         break;
@@ -499,7 +503,9 @@ export default class Binding {
                         this.ankiUiController.showAfterRerecord(this, showAnkiUiAfterRerecordMessage.uiState);
                         break;
                     case 'take-screenshot':
-                        this._takeScreenshot();
+                        if (this._synced) {
+                            this._takeScreenshot();
+                        }
                         break;
                     case 'screenshot-taken':
                         const screenshotTakenMessage = request.message as ScreenshotTakenMessage;

@@ -45,17 +45,12 @@ export default class VideoSelectController {
 
             switch (request.message.command) {
                 case 'toggle-video-select':
-                    if (this._bindings.length === 1) {
-                        const binding = this._bindings[0];
-
-                        if (binding.subscribed) {
-                            // Special case - show dialog for the one video element
-                            binding.showVideoDataDialog();
-                        }
-                    } else if (this._bindings.length > 1) {
-                        // Toggle on
-                        this._showUi();
-                    }
+                    this._trigger();
+                    break;
+                case 'copy-subtitle':
+                case 'toggle-recording':
+                case 'take-screenshot':
+                    this._triggerIfNoSyncedVideo();
                     break;
                 case 'subtitles':
                     this._hideUi();
@@ -73,6 +68,26 @@ export default class VideoSelectController {
 
         if (this.messageListener) {
             chrome.runtime.onMessage.removeListener(this.messageListener);
+        }
+    }
+
+    private _triggerIfNoSyncedVideo() {
+        if (this._bindings.find((b) => b.synced) === undefined) {
+            this._trigger();
+        }
+    }
+
+    private async _trigger() {
+        if (this._bindings.length === 1) {
+            const binding = this._bindings[0];
+
+            if (binding.subscribed) {
+                // Special case - show dialog for the one video element
+                binding.showVideoDataDialog();
+            }
+        } else if (this._bindings.length > 1) {
+            // Toggle on
+            this._showUi();
         }
     }
 

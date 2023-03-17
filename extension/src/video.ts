@@ -21,14 +21,12 @@ const bind = () => {
             }
         }
 
-        let i = 0;
-
         for (let i = bindings.length - 1; i >= 0; --i) {
             const b = bindings[i];
             let videoElementExists = false;
 
-            for (let i = 0; i < videoElements.length; ++i) {
-                const videoElement = videoElements[i];
+            for (let j = 0; j < videoElements.length; ++j) {
+                const videoElement = videoElements[j];
 
                 if (videoElement.isSameNode(b.video) && _hasValidSource(videoElement)) {
                     videoElementExists = true;
@@ -43,8 +41,8 @@ const bind = () => {
         }
     }, 1000);
 
-    const videoSelectModeController = new VideoSelectController(bindings);
-    videoSelectModeController.bind();
+    const videoSelectController = new VideoSelectController(bindings);
+    videoSelectController.bind();
 
     window.addEventListener('beforeunload', (event) => {
         for (let b of bindings) {
@@ -54,7 +52,7 @@ const bind = () => {
         bindings.length = 0;
 
         clearInterval(interval);
-        videoSelectModeController.unbind();
+        videoSelectController.unbind();
     });
 };
 
