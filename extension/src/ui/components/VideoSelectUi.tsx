@@ -29,6 +29,8 @@ export default function VideoSelectUi({ bridge }: Props) {
     const [themeType, setThemeType] = useState<string>('dark');
     const [videoElements, setVideoElements] = useState<VideoElement[]>([]);
     const [selectedVideoElementSrc, setSelectedVideoElementSrc] = useState<string>('');
+    const [openedFromMiningCommand, setOpenedFromMiningCommand] = useState<boolean>(false);
+
     const theme = useMemo(() => createTheme(themeType as PaletteType), [themeType]);
 
     useEffect(() => {
@@ -44,6 +46,10 @@ export default function VideoSelectUi({ bridge }: Props) {
             if (state.videoElements !== undefined) {
                 setVideoElements(state.videoElements);
                 setSelectedVideoElementSrc('');
+            }
+
+            if (state.openedFromMiningCommand !== undefined) {
+                setOpenedFromMiningCommand(state.openedFromMiningCommand);
             }
         });
     }, [bridge]);
@@ -71,9 +77,14 @@ export default function VideoSelectUi({ bridge }: Props) {
             <Dialog open={open}>
                 <DialogTitle>Multiple Video Elements Detected</DialogTitle>
                 <DialogContent>
-                    <DialogContentText>
-                        Multiple video elements detected on screen. Select a video element to sync it with asbplayer.
-                    </DialogContentText>
+                    {openedFromMiningCommand ? (
+                        <DialogContentText>
+                            A video element must be synced with asbplayer before it can be mined. Select a video element
+                            to sync it with asbplayer.
+                        </DialogContentText>
+                    ) : (
+                        <DialogContentText>Select a video element to sync it with asbplayer.</DialogContentText>
+                    )}
                     <Grid container direction="column" spacing={2}>
                         <Grid item style={{ maxWidth: '100%' }}>
                             <TextField

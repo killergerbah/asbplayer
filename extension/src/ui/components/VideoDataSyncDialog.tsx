@@ -3,6 +3,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -47,6 +48,7 @@ interface Props {
     subtitles: VideoDataSubtitleTrack[];
     selectedSubtitle: string;
     error: string;
+    openedFromMiningCommand: boolean;
     onCancel: () => void;
     onOpenFile: () => void;
     onConfirm: (track: ConfirmedVideoDataSubtitleTrack) => void;
@@ -61,6 +63,7 @@ export default function VideoDataSyncDialog({
     subtitles,
     selectedSubtitle,
     error,
+    openedFromMiningCommand,
     onCancel,
     onOpenFile,
     onConfirm,
@@ -111,6 +114,9 @@ export default function VideoDataSyncDialog({
         <Dialog disableEnforceFocus fullWidth maxWidth="sm" open={open} onClose={onCancel}>
             <DialogTitle>Select Subtitles</DialogTitle>
             <DialogContent>
+                {openedFromMiningCommand && (
+                    <DialogContentText>Subtitles must be loaded before you can start mining.</DialogContentText>
+                )}
                 <form>
                     <Grid container direction="column" spacing={2}>
                         <Grid item>

@@ -145,6 +145,7 @@ export interface VideoDataUiState {
     themeType?: string;
     selectedSubtitle?: string;
     showSubSelect?: boolean;
+    openedFromMiningCommand?: boolean;
 }
 
 export interface VideoTabModel {

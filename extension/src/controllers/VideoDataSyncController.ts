@@ -30,6 +30,11 @@ function html() {
               </html>`;
 }
 
+interface ShowOptions {
+    userRequested: boolean;
+    openedFromMiningCommand: boolean;
+}
+
 export default class VideoDataSyncController {
     private readonly context: Binding;
     private readonly domain: string;
@@ -79,7 +84,7 @@ export default class VideoDataSyncController {
         image.addEventListener('click', (e) => {
             e.preventDefault();
             this.doneListener = doneListener;
-            this.show();
+            this.show({ userRequested: true, openedFromMiningCommand: false });
         });
 
         this.videoSelectBound = true;
@@ -137,14 +142,14 @@ export default class VideoDataSyncController {
         this.waitingForSubtitles = true;
     }
 
-    async show(userRequested = true) {
+    async show({ userRequested, openedFromMiningCommand }: ShowOptions) {
         if (!userRequested && this.syncedData?.subtitles === undefined) {
             // Not user-requested and subtitles track detection is not finished
             return;
         }
 
         const subtitleTrackChoices = [
-            { language: '', url: '-', label: 'None', extension: 'srt' },
+            { language: '', url: '-', label: 'Empty', extension: 'srt' },
             ...(this.syncedData?.subtitles ?? []),
         ];
         const selectedSub = subtitleTrackChoices.find((subtitle) => subtitle.language === this.lastLanguageSynced);
@@ -181,6 +186,7 @@ export default class VideoDataSyncController {
                       subtitles: subtitleTrackChoices,
                       error: this.syncedData.error,
                       themeType: themeType,
+                      openedFromMiningCommand,
                   }
                 : {
                       open: true,
@@ -191,6 +197,7 @@ export default class VideoDataSyncController {
                       showSubSelect: true,
                       subtitles: subtitleTrackChoices,
                       themeType: themeType,
+                      openedFromMiningCommand,
                   };
             state.selectedSubtitle = selectedSub?.url || '-';
 
@@ -216,7 +223,7 @@ export default class VideoDataSyncController {
         this.syncedData = data;
 
         if (autoSync && this._canAutoSync()) {
-            this.show(false);
+            this.show({ userRequested: false, openedFromMiningCommand: false });
         }
     }
 
@@ -426,7 +433,7 @@ export default class VideoDataSyncController {
             open: true,
             isLoading: false,
             showSubSelect: true,
-            subtitles: [{ language: '', url: '-', label: 'None' }, ...(this.syncedData?.subtitles || [])],
+            subtitles: [{ language: '', url: '-', label: 'Empty' }, ...(this.syncedData?.subtitles || [])],
             selectedSubtitle:
                 this.syncedData?.subtitles?.find((subtitle) => subtitle.language === this.lastLanguageSynced)?.url ||
                 '-',

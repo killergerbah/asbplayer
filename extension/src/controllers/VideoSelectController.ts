@@ -45,12 +45,14 @@ export default class VideoSelectController {
 
             switch (request.message.command) {
                 case 'toggle-video-select':
-                    this._trigger();
+                    this._trigger(false);
                     break;
                 case 'copy-subtitle':
                 case 'toggle-recording':
                 case 'take-screenshot':
-                    this._triggerIfNoSyncedVideo();
+                    if (this._bindings.find((b) => b.synced) === undefined) {
+                        this._trigger(true);
+                    }
                     break;
                 case 'subtitles':
                     this._hideUi();
@@ -71,27 +73,21 @@ export default class VideoSelectController {
         }
     }
 
-    private _triggerIfNoSyncedVideo() {
-        if (this._bindings.find((b) => b.synced) === undefined) {
-            this._trigger();
-        }
-    }
-
-    private async _trigger() {
+    private async _trigger(openedFromMiningCommand: boolean) {
         if (this._bindings.length === 1) {
             const binding = this._bindings[0];
 
             if (binding.subscribed) {
                 // Special case - show dialog for the one video element
-                binding.showVideoDataDialog();
+                binding.showVideoDataDialog(openedFromMiningCommand);
             }
         } else if (this._bindings.length > 1) {
             // Toggle on
-            this._showUi();
+            this._showUi(openedFromMiningCommand);
         }
     }
 
-    private async _showUi() {
+    private async _showUi(openedFromMiningCommand: boolean) {
         await this._frame.bind();
         const captureVisibleTabCommand: ForegroundToExtensionCommand<CaptureVisibleTabMessage> = {
             sender: 'asbplayer-foreground',
@@ -119,7 +115,7 @@ export default class VideoSelectController {
             if (message.command === 'confirm') {
                 client.updateState({ open: false });
                 this._frame.hide();
-                this._bindings.find((b) => b.video.src === message.selectedVideoElementSrc)?.showVideoDataDialog();
+                this._bindings.find((b) => b.video.src === message.selectedVideoElementSrc)?.showVideoDataDialog(false);
             } else if (message.command === 'cancel') {
                 client.updateState({ open: false });
                 this._frame.hide();
@@ -127,7 +123,7 @@ export default class VideoSelectController {
         });
 
         const themeType = (await this._settings.get(['lastThemeType'])).lastThemeType;
-        client.updateState({ open: true, themeType, videoElements });
+        client.updateState({ open: true, themeType, videoElements, openedFromMiningCommand });
     }
 
     private async _hideUi() {

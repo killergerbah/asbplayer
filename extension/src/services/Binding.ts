@@ -843,8 +843,8 @@ export default class Binding {
         this.videoDataSyncController.unbindVideoSelect();
     }
 
-    showVideoDataDialog() {
-        this.videoDataSyncController.show();
+    showVideoDataDialog(openedFromMiningCommand: boolean) {
+        this.videoDataSyncController.show({ userRequested: true, openedFromMiningCommand });
     }
 
     async cropAndResize(tabImageDataUrl: string): Promise<string> {

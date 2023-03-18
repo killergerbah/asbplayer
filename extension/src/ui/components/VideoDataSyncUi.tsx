@@ -26,9 +26,10 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [suggestedName, setSuggestedName] = useState<string>('');
     const [showSubSelect, setShowSubSelect] = useState<boolean>(true);
     const [subtitles, setSubtitles] = useState<VideoDataSubtitleTrack[]>([
-        { language: '', url: '-', label: 'None', extension: 'srt' },
+        { language: '', url: '-', label: 'Empty', extension: 'srt' },
     ]);
     const [selectedSubtitle, setSelectedSubtitle] = useState<string>('-');
+    const [openedFromMiningCommand, setOpenedFromMiningCommand] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
     const [themeType, setThemeType] = useState<string>();
 
@@ -80,6 +81,10 @@ export default function VideoDataSyncUi({ bridge }: Props) {
             if (Object.prototype.hasOwnProperty.call(state, 'themeType')) {
                 setThemeType(state.themeType);
             }
+
+            if (Object.prototype.hasOwnProperty.call(state, 'openedFromMiningCommand')) {
+                setOpenedFromMiningCommand(state.openedFromMiningCommand);
+            }
         });
     }, [bridge]);
 
@@ -125,6 +130,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                 showSubSelect={showSubSelect}
                 subtitles={subtitles}
                 selectedSubtitle={selectedSubtitle}
+                openedFromMiningCommand={openedFromMiningCommand}
                 error={error}
                 onCancel={handleCancel}
                 onOpenFile={handleOpenFile}
