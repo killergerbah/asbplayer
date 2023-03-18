@@ -92,16 +92,18 @@ chrome.runtime.onMessage.addListener((request: Command<Message>, sender, sendRes
     }
 });
 
-chrome.contextMenus.create({
-    id: 'load-subtitles',
-    title: 'Load Subtitles',
-    contexts: ['page', 'video'],
-});
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.contextMenus.create({
+        id: 'load-subtitles',
+        title: 'Load Subtitles',
+        contexts: ['page', 'video'],
+    });
 
-chrome.contextMenus.create({
-    id: 'mine-subtitle',
-    title: 'Mine Subtitle',
-    contexts: ['page', 'video'],
+    chrome.contextMenus.create({
+        id: 'mine-subtitle',
+        title: 'Mine Subtitle',
+        contexts: ['page', 'video'],
+    });
 });
 
 chrome.contextMenus.onClicked.addListener((info) => {
