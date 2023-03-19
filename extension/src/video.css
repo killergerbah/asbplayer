@@ -19,6 +19,27 @@
     white-space: pre-wrap !important;
 }
 
+.asbplayer-notification-container {
+    position: absolute !important;
+    left: 50%;
+    transform: translate(-50%);
+    display: inline-block;
+    z-index: 2147483647 !important;
+}
+
+.asbplayer-notification {
+    text-align: center !important;
+    color: white;
+    text-shadow: 0 0 2px black, 0 0 2px black, 0 0 2px black, 0 0 2px black;
+    font-size: 24px;
+    padding-left: 10px;
+    padding-right: 10px;
+    line-height: normal !important;
+    white-space: pre-wrap !important;
+    user-select: none;
+    pointer-events: none;
+}
+
 .asbplayer-fullscreen-subtitles {
     text-align: center !important;
     color: white;

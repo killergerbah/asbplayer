@@ -54,10 +54,10 @@ export default class SubtitleController {
         );
         this.notificationElementOverlay = new ElementOverlay(
             video,
-            'asbplayer-subtitles-container',
-            'asbplayer-subtitles',
-            'asbplayer-subtitles-container',
-            'asbplayer-fullscreen-subtitles',
+            'asbplayer-notification-container',
+            'asbplayer-notification',
+            'asbplayer-notification-container',
+            'asbplayer-notification',
             OffsetAnchor.top
         );
         this._subtitles = [];
