@@ -620,6 +620,17 @@ export default function VideoPlayer({
     }, [keyBinder, handleOffsetChange, subtitles]);
 
     useEffect(() => {
+        return keyBinder.bindResetOffet(
+            (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                handleOffsetChange(0);
+            },
+            () => false
+        );
+    }, [keyBinder, handleOffsetChange]);
+
+    useEffect(() => {
         return keyBinder.bindAdjustPlaybackRate(
             (event, increase) => {
                 event.preventDefault();

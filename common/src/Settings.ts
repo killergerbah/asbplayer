@@ -66,6 +66,7 @@ export interface KeyBindSet {
     readonly adjustOffsetToNextSubtitle: KeyBind;
     readonly decreaseOffset: KeyBind;
     readonly increaseOffset: KeyBind;
+    readonly resetOffset: KeyBind;
     readonly decreasePlaybackRate: KeyBind;
     readonly increasePlaybackRate: KeyBind;
 

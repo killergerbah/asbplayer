@@ -51,6 +51,11 @@ export interface KeyBinder {
         subtitlesGetter: () => SubtitleModel[] | undefined,
         useCapture?: boolean
     ): () => void;
+    bindResetOffet(
+        onResetOffset: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        useCapture?: boolean
+    ): () => void;
     bindAdjustPlaybackRate(
         onAdjustPlaybackRate: (event: KeyboardEvent, increase: boolean) => void,
         disabledGetter: () => boolean,
@@ -430,6 +435,31 @@ export class DefaultKeyBinder implements KeyBinder {
         return () => {
             hotkeys.unbind(decreaseShortcut, decreaseHandler);
             hotkeys.unbind(increaseShortcut, increaseHandler);
+        };
+    }
+
+    bindResetOffet(
+        onResetOffset: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        useCapture?: boolean | undefined
+    ) {
+        const shortcut = this.keyBindSet.resetOffset.keys;
+
+        if (!shortcut) {
+            return () => {};
+        }
+
+        const handler = (event: KeyboardEvent) => {
+            if (disabledGetter()) {
+                return;
+            }
+
+            onResetOffset(event);
+        };
+
+        hotkeys(shortcut, { capture: useCapture }, handler);
+        return () => {
+            hotkeys.unbind(shortcut, handler);
         };
     }
 

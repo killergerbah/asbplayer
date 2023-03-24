@@ -14,25 +14,26 @@ type Unbinder = (() => void) | false;
 
 export default class KeyBindings {
     private _settings?: ExtensionKeyBindingsSettings;
-    private keyBinder: DefaultKeyBinder | undefined;
+    private _keyBinder: DefaultKeyBinder | undefined;
 
-    private unbindPlay: Unbinder = false;
-    private unbindAutoPause: Unbinder = false;
-    private unbindCondensedPlayback: Unbinder = false;
-    private unbindSeekToSubtitle: Unbinder = false;
-    private unbindSeekToBeginningOfCurrentSubtitle?: Unbinder = false;
-    private unbindSeekBackwardOrForward?: Unbinder = false;
-    private unbindToggleSubtitles: Unbinder = false;
-    private unbindToggleSubtitleTrackInVideo?: Unbinder = false;
-    private unbindToggleSubtitleTrackInList?: Unbinder = false;
-    private unbindOffsetToSubtitle?: Unbinder = false;
-    private unbindAdjustOffset?: Unbinder = false;
-    private unbindAdjustPlaybackRate?: Unbinder = false;
+    private _unbindPlay: Unbinder = false;
+    private _unbindAutoPause: Unbinder = false;
+    private _unbindCondensedPlayback: Unbinder = false;
+    private _unbindSeekToSubtitle: Unbinder = false;
+    private _unbindSeekToBeginningOfCurrentSubtitle?: Unbinder = false;
+    private _unbindSeekBackwardOrForward?: Unbinder = false;
+    private _unbindToggleSubtitles: Unbinder = false;
+    private _unbindToggleSubtitleTrackInVideo?: Unbinder = false;
+    private _unbindToggleSubtitleTrackInList?: Unbinder = false;
+    private _unbindOffsetToSubtitle?: Unbinder = false;
+    private _unbindAdjustOffset?: Unbinder = false;
+    private _unbindResetOffset?: Unbinder = false;
+    private _unbindAdjustPlaybackRate?: Unbinder = false;
 
-    private bound: boolean;
+    private _bound: boolean;
 
     constructor() {
-        this.bound = false;
+        this._bound = false;
     }
 
     setSettings(context: Binding, newSettings: ExtensionKeyBindingsSettings) {
@@ -55,7 +56,7 @@ export default class KeyBindings {
     }
 
     setKeyBindSet(context: Binding, keyBindSet: KeyBindSet) {
-        this.keyBinder = new DefaultKeyBinder(keyBindSet);
+        this._keyBinder = new DefaultKeyBinder(keyBindSet);
         this.unbind();
         this.bind(context);
     }
@@ -65,17 +66,17 @@ export default class KeyBindings {
             return;
         }
 
-        if (!this.keyBinder) {
+        if (!this._keyBinder) {
             return;
         }
 
-        if (this.bound) {
+        if (this._bound) {
             this.unbind();
         }
 
-        this.unbindPlay =
+        this._unbindPlay =
             this._settings.bindPlay &&
-            this.keyBinder.bindPlay(
+            this._keyBinder.bindPlay(
                 (event) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -90,9 +91,9 @@ export default class KeyBindings {
                 true
             );
 
-        this.unbindAutoPause =
+        this._unbindAutoPause =
             this._settings.bindAutoPause &&
-            this.keyBinder.bindAutoPause(
+            this._keyBinder.bindAutoPause(
                 (event) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -103,9 +104,9 @@ export default class KeyBindings {
                 true
             );
 
-        this.unbindCondensedPlayback =
+        this._unbindCondensedPlayback =
             this._settings.bindCondensedPlayback &&
-            this.keyBinder.bindCondensedPlayback(
+            this._keyBinder.bindCondensedPlayback(
                 (event) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -116,9 +117,9 @@ export default class KeyBindings {
                 true
             );
 
-        this.unbindSeekToSubtitle =
+        this._unbindSeekToSubtitle =
             this._settings.bindSeekToSubtitle &&
-            this.keyBinder.bindSeekToSubtitle(
+            this._keyBinder.bindSeekToSubtitle(
                 (event, subtitle) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -130,9 +131,9 @@ export default class KeyBindings {
                 true
             );
 
-        this.unbindSeekBackwardOrForward =
+        this._unbindSeekBackwardOrForward =
             this._settings.bindSeekBackwardOrForward &&
-            this.keyBinder.bindSeekBackwardOrForward(
+            this._keyBinder.bindSeekBackwardOrForward(
                 (event, forward) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -147,9 +148,9 @@ export default class KeyBindings {
                 true
             );
 
-        this.unbindSeekToBeginningOfCurrentSubtitle =
+        this._unbindSeekToBeginningOfCurrentSubtitle =
             this._settings.bindSeekToBeginningOfCurrentSubtitle &&
-            this.keyBinder.bindSeekToBeginningOfCurrentSubtitle(
+            this._keyBinder.bindSeekToBeginningOfCurrentSubtitle(
                 (event, subtitle) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -161,9 +162,9 @@ export default class KeyBindings {
                 true
             );
 
-        this.unbindToggleSubtitles =
+        this._unbindToggleSubtitles =
             this._settings.bindToggleSubtitles &&
-            this.keyBinder.bindToggleSubtitles(
+            this._keyBinder.bindToggleSubtitles(
                 (event) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -182,9 +183,9 @@ export default class KeyBindings {
                 true
             );
 
-        this.unbindToggleSubtitleTrackInVideo =
+        this._unbindToggleSubtitleTrackInVideo =
             this._settings.bindToggleSubtitleTrackInVideo &&
-            this.keyBinder.bindToggleSubtitleTrackInVideo(
+            this._keyBinder.bindToggleSubtitleTrackInVideo(
                 (event, track) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -195,9 +196,9 @@ export default class KeyBindings {
                 true
             );
 
-        this.unbindToggleSubtitleTrackInList =
+        this._unbindToggleSubtitleTrackInList =
             this._settings.bindToggleSubtitleTrackInAsbplayer &&
-            this.keyBinder.bindToggleSubtitleTrackInList(
+            this._keyBinder.bindToggleSubtitleTrackInList(
                 (event, track) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -215,9 +216,9 @@ export default class KeyBindings {
                 true
             );
 
-        this.unbindOffsetToSubtitle =
+        this._unbindOffsetToSubtitle =
             this._settings.bindAdjustOffsetToSubtitle &&
-            this.keyBinder.bindOffsetToSubtitle(
+            this._keyBinder.bindOffsetToSubtitle(
                 (event, offset) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -229,9 +230,9 @@ export default class KeyBindings {
                 true
             );
 
-        this.unbindAdjustOffset =
+        this._unbindAdjustOffset =
             this._settings.bindAdjustOffset &&
-            this.keyBinder.bindAdjustOffset(
+            this._keyBinder.bindAdjustOffset(
                 (event, offset) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -242,9 +243,21 @@ export default class KeyBindings {
                 true
             );
 
-        this.unbindAdjustPlaybackRate =
+        this._unbindResetOffset =
+            this._settings.bindResetOffset &&
+            this._keyBinder.bindResetOffet(
+                (event) => {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    context.subtitleController.offset(0);
+                },
+                () => false,
+                true
+            );
+
+        this._unbindAdjustPlaybackRate =
             this._settings.bindAdjustPlaybackRate &&
-            this.keyBinder.bindAdjustPlaybackRate(
+            this._keyBinder.bindAdjustPlaybackRate(
                 (event, increase) => {
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -262,70 +275,75 @@ export default class KeyBindings {
                 true
             );
 
-        this.bound = true;
+        this._bound = true;
     }
 
     unbind() {
-        if (this.unbindPlay) {
-            this.unbindPlay();
-            this.unbindPlay = false;
+        if (this._unbindPlay) {
+            this._unbindPlay();
+            this._unbindPlay = false;
         }
 
-        if (this.unbindAutoPause) {
-            this.unbindAutoPause();
-            this.unbindAutoPause = false;
+        if (this._unbindAutoPause) {
+            this._unbindAutoPause();
+            this._unbindAutoPause = false;
         }
 
-        if (this.unbindCondensedPlayback) {
-            this.unbindCondensedPlayback();
-            this.unbindCondensedPlayback = false;
+        if (this._unbindCondensedPlayback) {
+            this._unbindCondensedPlayback();
+            this._unbindCondensedPlayback = false;
         }
 
-        if (this.unbindSeekToSubtitle) {
-            this.unbindSeekToSubtitle();
-            this.unbindSeekToSubtitle = false;
+        if (this._unbindSeekToSubtitle) {
+            this._unbindSeekToSubtitle();
+            this._unbindSeekToSubtitle = false;
         }
 
-        if (this.unbindSeekToBeginningOfCurrentSubtitle) {
-            this.unbindSeekToBeginningOfCurrentSubtitle();
-            this.unbindSeekToBeginningOfCurrentSubtitle = false;
+        if (this._unbindSeekToBeginningOfCurrentSubtitle) {
+            this._unbindSeekToBeginningOfCurrentSubtitle();
+            this._unbindSeekToBeginningOfCurrentSubtitle = false;
         }
 
-        if (this.unbindSeekBackwardOrForward) {
-            this.unbindSeekBackwardOrForward();
-            this.unbindSeekBackwardOrForward = false;
+        if (this._unbindSeekBackwardOrForward) {
+            this._unbindSeekBackwardOrForward();
+            this._unbindSeekBackwardOrForward = false;
         }
 
-        if (this.unbindToggleSubtitles) {
-            this.unbindToggleSubtitles();
-            this.unbindToggleSubtitles = false;
+        if (this._unbindToggleSubtitles) {
+            this._unbindToggleSubtitles();
+            this._unbindToggleSubtitles = false;
         }
 
-        if (this.unbindToggleSubtitleTrackInVideo) {
-            this.unbindToggleSubtitleTrackInVideo();
-            this.unbindToggleSubtitleTrackInVideo = false;
+        if (this._unbindToggleSubtitleTrackInVideo) {
+            this._unbindToggleSubtitleTrackInVideo();
+            this._unbindToggleSubtitleTrackInVideo = false;
         }
 
-        if (this.unbindToggleSubtitleTrackInList) {
-            this.unbindToggleSubtitleTrackInList();
-            this.unbindToggleSubtitleTrackInList = false;
+        if (this._unbindToggleSubtitleTrackInList) {
+            this._unbindToggleSubtitleTrackInList();
+            this._unbindToggleSubtitleTrackInList = false;
         }
 
-        if (this.unbindOffsetToSubtitle) {
-            this.unbindOffsetToSubtitle();
-            this.unbindOffsetToSubtitle = false;
+        if (this._unbindOffsetToSubtitle) {
+            this._unbindOffsetToSubtitle();
+            this._unbindOffsetToSubtitle = false;
         }
 
-        if (this.unbindAdjustOffset) {
-            this.unbindAdjustOffset();
-            this.unbindAdjustOffset = false;
+        if (this._unbindAdjustOffset) {
+            this._unbindAdjustOffset();
+            this._unbindAdjustOffset = false;
         }
 
-        if (this.unbindAdjustPlaybackRate) {
-            this.unbindAdjustPlaybackRate();
-            this.unbindAdjustPlaybackRate = false;
+        if (this._unbindResetOffset) {
+            this._unbindResetOffset();
+            this._unbindResetOffset = false;
         }
 
-        this.bound = false;
+        if (this._unbindAdjustPlaybackRate) {
+            this._unbindAdjustPlaybackRate();
+            this._unbindAdjustPlaybackRate = false;
+        }
+
+        this._bound = false;
     }
 }

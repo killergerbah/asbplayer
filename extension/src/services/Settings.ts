@@ -17,6 +17,7 @@ const defaults: ExtensionSettings = {
     bindSeekBackwardOrForward: true,
     bindAdjustOffsetToSubtitle: true,
     bindAdjustOffset: true,
+    bindResetOffset: true,
     bindAdjustPlaybackRate: true,
     subsDragAndDrop: true,
     autoSync: false,
@@ -43,6 +44,7 @@ const keyBindSettingsObject: { [key in keyof ExtensionKeyBindingsSettings]: bool
     bindSeekBackwardOrForward: true,
     bindAdjustOffsetToSubtitle: true,
     bindAdjustOffset: true,
+    bindResetOffset: true,
     bindAdjustPlaybackRate: true,
 };
 

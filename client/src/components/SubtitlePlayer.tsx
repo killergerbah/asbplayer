@@ -394,7 +394,7 @@ export default function SubtitlePlayer({
     }, [lastJumpToTopTimestamp]);
 
     useEffect(() => {
-        const unbind = keyBinder.bindAdjustOffset(
+        return keyBinder.bindAdjustOffset(
             (event, offset) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -403,12 +403,22 @@ export default function SubtitlePlayer({
             () => disableKeyEvents,
             () => subtitles
         );
-
-        return () => unbind();
     }, [keyBinder, onOffsetChange, disableKeyEvents, subtitles]);
 
+
     useEffect(() => {
-        const unbind = keyBinder.bindOffsetToSubtitle(
+        return keyBinder.bindResetOffet(
+            (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onOffsetChange(0);
+            },
+            () => disableKeyEvents,
+        );
+    }, [keyBinder, onOffsetChange, disableKeyEvents]);
+
+    useEffect(() => {
+        return keyBinder.bindOffsetToSubtitle(
             (event, offset) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -418,12 +428,10 @@ export default function SubtitlePlayer({
             () => clock.time(length),
             () => subtitles
         );
-
-        return () => unbind();
     }, [keyBinder, onOffsetChange, disableKeyEvents, clock, subtitles, length]);
 
     useEffect(() => {
-        const unbind = keyBinder.bindSeekToSubtitle(
+        return keyBinder.bindSeekToSubtitle(
             (event, subtitle) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -433,12 +441,10 @@ export default function SubtitlePlayer({
             () => clock.time(length),
             () => subtitles
         );
-
-        return () => unbind();
     }, [keyBinder, onSeek, subtitles, disableKeyEvents, clock, length]);
 
     useEffect(() => {
-        const unbind = keyBinder.bindSeekToBeginningOfCurrentSubtitle(
+        return keyBinder.bindSeekToBeginningOfCurrentSubtitle(
             (event, subtitle) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -448,12 +454,10 @@ export default function SubtitlePlayer({
             () => clock.time(length),
             () => subtitles
         );
-
-        return () => unbind();
     }, [keyBinder, onSeek, subtitles, disableKeyEvents, clock, length]);
 
     useEffect(() => {
-        const unbind = keyBinder.bindSeekBackwardOrForward(
+        return keyBinder.bindSeekBackwardOrForward(
             (event, forward) => {
                 event.stopPropagation();
                 event.preventDefault();
@@ -465,8 +469,6 @@ export default function SubtitlePlayer({
             },
             () => disableKeyEvents
         );
-
-        return () => unbind();
     }, [keyBinder, clock, length, disableKeyEvents, onSeek]);
 
     useEffect(() => {

@@ -163,6 +163,14 @@ export default class AppKeyBinder implements KeyBinder {
         return this.defaultKeyBinder.bindAdjustOffset(onOffsetChange, disabledGetter, subtitlesGetter, useCapture);
     }
 
+    bindResetOffet(
+        onResetOffset: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        useCapture?: boolean | undefined
+    ): () => void {
+        return this.defaultKeyBinder.bindResetOffet(onResetOffset, disabledGetter, useCapture);
+    }
+
     bindAdjustPlaybackRate(
         onAdjustPlaybackRate: (event: KeyboardEvent, increase: boolean) => void,
         disabledGetter: () => boolean,

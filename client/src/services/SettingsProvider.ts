@@ -42,6 +42,7 @@ const defaultKeyBindSet: KeyBindSet = {
     adjustOffsetToNextSubtitle: { keys: isMacOs ? '⇧+right' : 'ctrl+right' },
     decreaseOffset: { keys: isMacOs ? '⇧+⌃+right' : 'ctrl+shift+right' },
     increaseOffset: { keys: isMacOs ? '⇧+⌃+left' : 'ctrl+shift+left' },
+    resetOffset: { keys: isMacOs ? '⇧+⌃+down' : 'ctrl+shift+down' },
     copySubtitle: { keys: isMacOs ? '⇧+⌃+Z' : 'ctrl+shift+Z' },
     ankiExport: { keys: isMacOs ? '⇧+⌃+X' : 'ctrl+shift+X' },
     updateLastCard: { keys: isMacOs ? '⇧+⌃+U' : 'ctrl+shift+U' },
