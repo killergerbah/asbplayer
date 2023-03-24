@@ -520,8 +520,19 @@ export function AnkiDialog({
             return;
         }
 
-        const newMin = Math.max(0, 2 * timestampBoundaryInterval[0] - timestampInterval[0]);
-        const newMax = 2 * timestampBoundaryInterval[1] - timestampInterval[1];
+        const currentLength = timestampBoundaryInterval[1] - timestampBoundaryInterval[0];
+        const minimumChange = currentLength / 4;
+        const newMin = Math.max(
+            0,
+            Math.min(
+                timestampBoundaryInterval[0] - minimumChange,
+                2 * timestampBoundaryInterval[0] - timestampInterval[0]
+            )
+        );
+        const newMax = Math.max(
+            timestampBoundaryInterval[1] + minimumChange,
+            2 * timestampBoundaryInterval[1] - timestampInterval[1]
+        );
         const newTimestampBoundaryInterval = [newMin, newMax];
         setTimestampBoundaryInterval(newTimestampBoundaryInterval);
         setTimestampMarks(sliderContext && sliderMarksFromSliderContext(sliderContext, newTimestampBoundaryInterval));
