@@ -76,6 +76,7 @@ You can also adjust offset manually by clicking on the "Subtitle Offset" text fi
 -   Hulu
 -   TVer
 -   Bandai Channel
+-   Amazon Prime (known issue: subtitles sometimes off by ~30 seconds)
 
 <kbd>Ctrl+Shift+F</kbd> also allows you to choose an empty subtitle track so that you can mine streaming video without subtitles.
 
@@ -103,8 +104,10 @@ Most keyboard shortcuts shared by the extension and the website are customizable
 | Seek backward/forward by 10 seconds                                                  | <kbd>A/D</kbd>                                                           |
 | Seek to previous/next subtitle                                                       | <kbd>Left/Right</kbd>                                                    |
 | Seek to beginning of current subtitle                                                | <kbd>Down</kbd>                                                          |
-| Adjust offset to previous/next subtitle                                              | <kbd>Ctrl+Left/Right</kbd> or <kbd>Shift+Left/Right</kbd>                |
-| Adjust offset by ±100ms                                                              | <kbd>Ctrl+Shift+Left/Right</kbd>                                         |
+| Adjust subtitle offset to previous/next subtitle                                     | <kbd>Ctrl+Left/Right</kbd> or <kbd>Shift+Left/Right</kbd>                |
+| Adjust subtitle offset by ±100ms                                                     | <kbd>Ctrl+Shift+Left/Right</kbd>                                         |
+|                                                                                      |
+| Reset subtitle offset                                                                | <kbd>Ctrl+Shift+Down</kbd>                                               |
 | Adjust playback rate by ±0.1                                                         | <kbd>Ctrl+Shift+[/]</kbd>                                                |
 
 ## Common issues
@@ -134,6 +137,7 @@ Most keyboard shortcuts shared by the extension and the website are customizable
 -   Make sure that asbplayer is allowed by AnkiConnect, as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
 -   Check that your browser or an ad blocker isn't blocking the request. A good place to start is by opening your browser's developer console and looking for errors.
 -   As of this writing enabling experimental web platform features is known to cause this issue. Try disabling this flag from `chrome://flags`.
+-   On later versions of macOS AnkiConnect will not respond sometimes Anki is in the background. See "Notes for MacOS Users" at the AnkiConnect developer's [website](https://foosoft.net/projects/anki-connect/).
 
 ### When loading a local file asbplayer either shows a black screen, or doesn't play audio.
 
