@@ -106,7 +106,6 @@ Most keyboard shortcuts shared by the extension and the website are customizable
 | Seek to beginning of current subtitle                                                | <kbd>Down</kbd>                                                          |
 | Adjust subtitle offset to previous/next subtitle                                     | <kbd>Ctrl+Left/Right</kbd> or <kbd>Shift+Left/Right</kbd>                |
 | Adjust subtitle offset by ±100ms                                                     | <kbd>Ctrl+Shift+Left/Right</kbd>                                         |
-|                                                                                      |
 | Reset subtitle offset                                                                | <kbd>Ctrl+Shift+Down</kbd>                                               |
 | Adjust playback rate by ±0.1                                                         | <kbd>Ctrl+Shift+[/]</kbd>                                                |
 
