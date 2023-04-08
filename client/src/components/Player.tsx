@@ -702,10 +702,6 @@ export default function Player({
                 pause(clock, mediaAdapter, true);
             }
 
-            if (playingRef.current) {
-                clock.stop();
-            }
-
             await seek(time, clock, true);
 
             if (shouldPlay && !playingRef.current) {
