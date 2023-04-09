@@ -24,6 +24,16 @@ interface AudioData {
     isPlayable: () => boolean;
 }
 
+function recorderConfiguration() {
+    const AUDIO_TYPES: { [key: string]: string } = {
+        'audio/ogg;codecs=opus': 'ogg',
+        'audio/webm;codecs=opus': 'webm',
+    };
+    return Object.keys(AUDIO_TYPES)
+        .filter(MediaRecorder.isTypeSupported)
+        .map((t) => [t as string, AUDIO_TYPES[t] as string])[0];
+}
+
 class Base64AudioData implements AudioData {
     private readonly _name: string;
     private readonly _start: number;
@@ -143,7 +153,7 @@ class FileAudioData implements AudioData {
     private _blob?: Blob;
 
     constructor(file: File, start: number, end: number, playbackRate: number, trackId?: string) {
-        const [recorderMimeType, recorderExtension] = FileAudioData._recorderConfiguration();
+        const [recorderMimeType, recorderExtension] = recorderConfiguration();
         this.recorderMimeType = recorderMimeType;
         this.file = file;
         this._name = file.name + '_' + start + '_' + end;
@@ -152,16 +162,6 @@ class FileAudioData implements AudioData {
         this.playbackRate = playbackRate;
         this.trackId = trackId;
         this._extension = recorderExtension;
-    }
-
-    private static _recorderConfiguration() {
-        const AUDIO_TYPES: { [key: string]: string } = {
-            'audio/ogg;codecs=opus': 'ogg',
-            'audio/webm;codecs=opus': 'webm',
-        };
-        return Object.keys(AUDIO_TYPES)
-            .filter(MediaRecorder.isTypeSupported)
-            .map((t) => [t as string, AUDIO_TYPES[t] as string])[0];
     }
 
     get name(): string {
@@ -430,11 +430,13 @@ class MissingFileAudioData implements AudioData {
     private readonly _name: string;
     private readonly _start: number;
     private readonly _end: number;
+    private readonly _extension: string;
 
     constructor(fileName: string, start: number, end: number) {
         this._name = `${fileName}_${start}_${end}`;
         this._start = start;
         this._end = end;
+        [, this._extension] = recorderConfiguration();
     }
 
     get name() {
@@ -442,7 +444,7 @@ class MissingFileAudioData implements AudioData {
     }
 
     get extension() {
-        return '';
+        return this._extension;
     }
 
     get start() {

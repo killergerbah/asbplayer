@@ -736,7 +736,7 @@ export default function Player({
                 undefined
             );
         },
-        [clock, onCopy, audioFile, videoFile, subtitleFiles, selectedAudioTrack, playbackRate]
+        [onCopy, audioFile, videoFile, subtitleFiles, selectedAudioTrack, playbackRate]
     );
 
     const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {

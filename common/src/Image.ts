@@ -141,7 +141,7 @@ class MissingFileImageData implements ImageData {
     private readonly _name: string;
 
     constructor(fileName: string, timestamp: number) {
-        this._name = `${fileName} ${Math.floor(timestamp)}`;
+        this._name = `${fileName}_${Math.floor(timestamp)}`;
     }
 
     get name() {
@@ -149,7 +149,7 @@ class MissingFileImageData implements ImageData {
     }
 
     get extension() {
-        return '';
+        return 'jpeg';
     }
 
     get available() {
