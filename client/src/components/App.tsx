@@ -1407,18 +1407,24 @@ function App() {
                                     hidden
                                 />
                                 <Content drawerWidth={drawerWidth} drawerOpen={effectiveCopyHistoryOpen}>
-                                    {nothingLoaded && (
-                                        <LandingPage
-                                            latestExtensionVersion={latestExtensionVersion}
-                                            extensionUrl={extensionUrl}
-                                            extension={extension}
-                                            loading={loading}
+                                    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                                        {nothingLoaded && (
+                                            <LandingPage
+                                                latestExtensionVersion={latestExtensionVersion}
+                                                extensionUrl={extensionUrl}
+                                                extension={extension}
+                                                loading={loading}
+                                                dragging={dragging}
+                                                appBarHidden={appBarHidden}
+                                                onFileSelector={handleFileSelector}
+                                            />
+                                        )}
+                                        <DragOverlay
                                             dragging={dragging}
                                             appBarHidden={appBarHidden}
-                                            onFileSelector={handleFileSelector}
+                                            loading={loading}
                                         />
-                                    )}
-                                    <DragOverlay dragging={dragging} appBarHidden={appBarHidden} loading={loading} />
+                                    </div>
                                     <Player
                                         subtitleReader={subtitleReader}
                                         settingsProvider={settingsProvider}
