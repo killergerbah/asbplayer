@@ -401,6 +401,10 @@ export function AnkiDialog({
 
     const handlePlayAudio = useCallback(
         (e: React.MouseEvent<HTMLDivElement>) => {
+            if (!audioClip?.isPlayable()) {
+                return;
+            }
+
             e.preventDefault();
             e.stopPropagation();
             audioClip!.play();
@@ -431,6 +435,10 @@ export function AnkiDialog({
 
     const handleViewImage = useCallback(
         (e: React.MouseEvent<HTMLDivElement>) => {
+            if (!image?.available) {
+                return;
+            }
+
             e.preventDefault();
             e.stopPropagation();
             onViewImage(image!);
@@ -577,6 +585,24 @@ export function AnkiDialog({
         );
     }
 
+    let audioHelperText: string | undefined;
+
+    if (audioClip) {
+        if (!audioClip.isPlayable()) {
+            audioHelperText = 'Audio file link lost because of page reload';
+        } else if (onRerecord === undefined && !audioClip.isSliceable()) {
+            audioHelperText = 'Audio clip cannot be updated because it is pre-recorded';
+        }
+    }
+
+    let imageHelperText: string | undefined;
+
+    if (image) {
+        if (!image.available) {
+            imageHelperText = 'Image file link lost because of page reload';
+        }
+    }
+
     return (
         <Dialog open={open} disableEnforceFocus fullWidth maxWidth="sm" onClose={onCancel}>
             <Toolbar>
@@ -693,11 +719,8 @@ export function AnkiDialog({
                                 fullWidth
                                 value={audioClip.name}
                                 label="Audio"
-                                helperText={
-                                    onRerecord === undefined &&
-                                    !audioClip.isSliceable() &&
-                                    'Audio clip cannot be updated because it is pre-recorded'
-                                }
+                                helperText={audioHelperText}
+                                disabled={!audioClip.isPlayable()}
                                 InputProps={{
                                     endAdornment: audioActionElement && timestampInterval && (
                                         <InputAdornment position="end">{audioActionElement}</InputAdornment>
@@ -714,12 +737,18 @@ export function AnkiDialog({
                                 fullWidth
                                 value={image.name}
                                 label="Image"
+                                helperText={imageHelperText}
+                                disabled={!image.available}
                                 InputProps={{
                                     endAdornment: (
                                         <InputAdornment position="end">
                                             <Tooltip title="Copy to Clipboard">
                                                 <span>
-                                                    <IconButton onClick={handleCopyImageToClipboard} edge="end">
+                                                    <IconButton
+                                                        disabled={!image.available}
+                                                        onClick={handleCopyImageToClipboard}
+                                                        edge="end"
+                                                    >
                                                         <FileCopyIcon />
                                                     </IconButton>
                                                 </span>

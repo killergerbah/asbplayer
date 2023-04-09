@@ -21,6 +21,7 @@ interface AudioData {
     base64: () => Promise<string>;
     slice: (start: number, end: number) => AudioData;
     isSliceable: () => boolean;
+    isPlayable: () => boolean;
 }
 
 class Base64AudioData implements AudioData {
@@ -115,6 +116,10 @@ class Base64AudioData implements AudioData {
 
     isSliceable() {
         return false;
+    }
+
+    isPlayable() {
+        return true;
     }
 }
 
@@ -348,6 +353,10 @@ class FileAudioData implements AudioData {
     isSliceable() {
         return true;
     }
+
+    isPlayable() {
+        return true;
+    }
 }
 
 class Mp3AudioData implements AudioData {
@@ -411,6 +420,63 @@ class Mp3AudioData implements AudioData {
     isSliceable() {
         return this.data.isSliceable();
     }
+
+    isPlayable() {
+        return this.data.isPlayable();
+    }
+}
+
+class MissingFileAudioData implements AudioData {
+    private readonly _name: string;
+    private readonly _start: number;
+    private readonly _end: number;
+
+    constructor(fileName: string, start: number, end: number) {
+        this._name = `${fileName}_${start}_${end}`;
+        this._start = start;
+        this._end = end;
+    }
+
+    get name() {
+        return this._name;
+    }
+
+    get extension() {
+        return '';
+    }
+
+    get start() {
+        return this._start;
+    }
+
+    get end() {
+        return this._end;
+    }
+
+    async base64(): Promise<string> {
+        throw new Error('Not supported');
+    }
+
+    async play() {
+        throw new Error('Not supported');
+    }
+
+    async blob(): Promise<Blob> {
+        throw new Error('Not supported');
+    }
+
+    slice(start: number, end: number): AudioData {
+        // Not  supported
+        return this;
+    }
+
+    isSliceable() {
+        return false;
+    }
+
+    isPlayable() {
+        return false;
+    }
 }
 
 export default class AudioClip {
@@ -442,6 +508,10 @@ export default class AudioClip {
 
     static fromFile(file: File, start: number, end: number, playbackRate: number, trackId?: string) {
         return new AudioClip(new FileAudioData(file, start, end, playbackRate, trackId));
+    }
+
+    static fromMissingFile(fileName: string, start: number, end: number) {
+        return new AudioClip(new MissingFileAudioData(fileName, start, end));
     }
 
     get start() {
@@ -487,5 +557,9 @@ export default class AudioClip {
 
     isSliceable() {
         return this.data.isSliceable();
+    }
+
+    isPlayable() {
+        return this.data.isPlayable();
     }
 }

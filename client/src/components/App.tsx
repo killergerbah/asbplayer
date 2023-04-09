@@ -143,7 +143,7 @@ function audioClipFromItem(
         );
     }
 
-    if (item.audioFile || item.videoFile) {
+    const calculateInterval = () => {
         let start;
         let end;
 
@@ -155,6 +155,11 @@ function audioClipFromItem(
             end = item.end;
         }
 
+        return [start, end];
+    };
+
+    if (item.audioFile || item.videoFile) {
+        const [start, end] = calculateInterval();
         return AudioClip.fromFile(
             (item.audioFile || item.videoFile)!,
             Math.max(0, start - paddingStart),
@@ -162,6 +167,11 @@ function audioClipFromItem(
             item.filePlaybackRate ?? 1,
             item.audioTrack
         );
+    }
+
+    if (item.audioFileName || item.videoFileName) {
+        const [start, end] = calculateInterval();
+        return AudioClip.fromMissingFile((item.audioFileName || item.videoFileName)!, start, end);
     }
 
     return undefined;
@@ -174,6 +184,10 @@ function imageFromItem(item: CopyHistoryItem, maxWidth: number, maxHeight: numbe
 
     if (item.videoFile) {
         return Image.fromFile(item.videoFile, item.mediaTimestamp ?? item.start, maxWidth, maxHeight);
+    }
+
+    if (item.videoFileName) {
+        return Image.fromMissingFile(item.videoFileName, item.mediaTimestamp ?? item.start);
     }
 
     return undefined;

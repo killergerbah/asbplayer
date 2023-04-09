@@ -725,7 +725,7 @@ export default function Player({
                 audioFile,
                 videoFile,
                 subtitleFiles[subtitle.track],
-                clock.time(lengthRef.current),
+                subtitle.start,
                 selectedAudioTrack,
                 playbackRate,
                 undefined,

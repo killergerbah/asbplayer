@@ -22,6 +22,10 @@ class Base64ImageData implements ImageData {
         return this._extension;
     }
 
+    get available() {
+        return true;
+    }
+
     async base64() {
         return this._base64;
     }
@@ -68,6 +72,10 @@ class FileImageData implements ImageData {
 
     get extension() {
         return 'jpeg';
+    }
+
+    get available() {
+        return true;
     }
 
     async base64(): Promise<string> {
@@ -129,12 +137,45 @@ class FileImageData implements ImageData {
     }
 }
 
+class MissingFileImageData implements ImageData {
+    private readonly _name: string;
+
+    constructor(fileName: string, timestamp: number) {
+        this._name = `${fileName} ${Math.floor(timestamp)}`;
+    }
+
+    get name() {
+        return this._name;
+    }
+
+    get extension() {
+        return '';
+    }
+
+    get available() {
+        return false;
+    }
+
+    base64(): Promise<string> {
+        throw new Error('Not supported');
+    }
+
+    dataUrl(): Promise<string> {
+        throw new Error('Not supported');
+    }
+
+    blob(): Promise<Blob> {
+        throw new Error('Not supported');
+    }
+}
+
 interface ImageData {
     name: string;
     extension: string;
     base64: () => Promise<string>;
     dataUrl: () => Promise<string>;
     blob: () => Promise<Blob>;
+    available: boolean;
 }
 
 export default class Image {
@@ -158,12 +199,20 @@ export default class Image {
         return new Image(new FileImageData(file, timestamp, maxWidth, maxHeight));
     }
 
+    static fromMissingFile(fileName: string, timestamp: number) {
+        return new Image(new MissingFileImageData(fileName, timestamp));
+    }
+
     get name() {
         return this.data.name;
     }
 
     get extension() {
         return this.data.extension;
+    }
+
+    get available() {
+        return this.data.available;
     }
 
     async base64() {
