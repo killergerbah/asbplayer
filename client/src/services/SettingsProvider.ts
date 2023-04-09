@@ -50,6 +50,7 @@ const defaultKeyBindSet: KeyBindSet = {
     increasePlaybackRate: { keys: isMacOs ? '⇧+⌃+]' : 'ctrl+shift+]' },
 };
 const defaultPreferMp3 = true;
+const defaultMiningHistoryStorageLimit = 25;
 
 const ankiConnectUrlKey = 'ankiConnectUrl';
 const deckKey = 'deck';
@@ -87,6 +88,7 @@ const rememberSubtitleOffsetKey = 'rememberSubtitleOffset';
 const autoCopyCurrentSubtitleKey = 'autoCopyCurrentSubtitle';
 const subtitleRegexFilterKey = 'subtitleRegexFilter';
 const subtitleRegexFilterTextReplacementKey = 'subtitleRegexFilterTextReplacement';
+const miningHistoryStorageLimitKey = 'miningHistoryStorageLimit';
 
 export default class SettingsProvider implements AsbplayerSettingsProvider {
     private _tags?: string[];
@@ -137,6 +139,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             autoCopyCurrentSubtitle: this.autoCopyCurrentSubtitle,
             subtitleRegexFilter: this.subtitleRegexFilter,
             subtitleRegexFilterTextReplacement: this.subtitleRegexFilterTextReplacement,
+            miningHistoryStorageLimit: this.miningHistoryStorageLimit,
         };
     }
 
@@ -175,6 +178,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.keyBindSet = newSettings.keyBindSet;
         this.rememberSubtitleOffset = newSettings.rememberSubtitleOffset;
         this.autoCopyCurrentSubtitle = newSettings.autoCopyCurrentSubtitle;
+        this.miningHistoryStorageLimit = newSettings.miningHistoryStorageLimit;
         this.subtitleRegexFilter = newSettings.subtitleRegexFilter;
         this.subtitleRegexFilterTextReplacement = newSettings.subtitleRegexFilterTextReplacement;
     }
@@ -226,6 +230,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             autoCopyCurrentSubtitle: this.autoCopyCurrentSubtitle,
             subtitleRegexFilter: this.subtitleRegexFilter,
             subtitleRegexFilterTextReplacement: this.subtitleRegexFilterTextReplacement,
+            miningHistoryStorageLimit: this.miningHistoryStorageLimit,
         };
     }
 
@@ -602,5 +607,13 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
 
     set subtitleRegexFilterTextReplacement(subtitleRegexFilterTextReplacement: string) {
         this._storage.set(subtitleRegexFilterTextReplacementKey, subtitleRegexFilterTextReplacement);
+    }
+
+    get miningHistoryStorageLimit() {
+        return this._getNumberItem(miningHistoryStorageLimitKey, defaultMiningHistoryStorageLimit);
+    }
+
+    set miningHistoryStorageLimit(miningHistoryStorageLimit: number) {
+        this._storage.set(miningHistoryStorageLimitKey, String(miningHistoryStorageLimit));
     }
 }

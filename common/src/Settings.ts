@@ -9,6 +9,7 @@ export interface MiscSettings {
     readonly autoCopyCurrentSubtitle: boolean;
     readonly subtitleRegexFilter:  string;
     readonly subtitleRegexFilterTextReplacement: string;
+    readonly miningHistoryStorageLimit: number;
 }
 
 export interface AnkiSettings {

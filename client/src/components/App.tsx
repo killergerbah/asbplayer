@@ -43,6 +43,7 @@ import AppKeyBinder from '../services/AppKeyBinder';
 import VideoChannel from '../services/VideoChannel';
 import { ChromeExtensionProvider } from '../services/ChromeExtensionProvider';
 import PlaybackPreferences from '../services/PlaybackPreferences';
+import CopyHistoryRepository from '../services/CopyHistoryRepository';
 
 const latestExtensionVersion = '0.26.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
@@ -133,7 +134,7 @@ function audioClipFromItem(
         const end = item.audio.end ?? item.end;
 
         return AudioClip.fromBase64(
-            item.subtitleFile!.name,
+            item.subtitleFileName!,
             Math.max(0, start - (item.audio.paddingStart ?? 0)),
             end + (item.audio.paddingEnd ?? 0),
             item.audio.playbackRate ?? 1,
@@ -168,7 +169,7 @@ function audioClipFromItem(
 
 function imageFromItem(item: CopyHistoryItem, maxWidth: number, maxHeight: number) {
     if (item.image) {
-        return Image.fromBase64(item.subtitleFile!.name, item.start, item.image.base64, item.image.extension);
+        return Image.fromBase64(item.subtitleFileName!, item.start, item.image.base64, item.image.extension);
     }
 
     if (item.videoFile) {
@@ -183,7 +184,7 @@ function itemSourceString(item: CopyHistoryItem | undefined) {
         return undefined;
     }
 
-    const source = item.subtitleFile?.name ?? item.audioFile?.name ?? item.videoFile?.name;
+    const source = item.subtitleFileName ?? item.audioFile?.name ?? item.videoFile?.name;
 
     if (!source) {
         return undefined;
@@ -360,6 +361,13 @@ function App() {
     const drawerRatio = videoFrameRef.current ? 0.2 : 0.3;
     const minDrawerSize = videoFrameRef.current ? 150 : 300;
     const drawerWidth = Math.max(minDrawerSize, width * drawerRatio);
+    const copyHistoryRepository = useMemo(
+        () => new CopyHistoryRepository(settingsProvider.miningHistoryStorageLimit),
+        [settingsProvider]
+    );
+    useEffect(() => {
+        copyHistoryRepository.limit = settingsProvider.miningHistoryStorageLimit;
+    }, [copyHistoryRepository, settingsProvider.miningHistoryStorageLimit]);
     const [copiedSubtitles, setCopiedSubtitles] = useState<CopyHistoryItem[]>([]);
     const copiedSubtitlesRef = useRef<CopyHistoryItem[]>([]);
     copiedSubtitlesRef.current = copiedSubtitles;
@@ -561,7 +569,7 @@ function App() {
                 timestamp: Date.now(),
                 id: id || uuidv4(),
                 name: fileName!,
-                subtitleFile: subtitleFile,
+                subtitleFileName: subtitleFile?.name,
                 audioFile: audioFile,
                 videoFile: videoFile,
                 filePlaybackRate: filePlaybackRate,
@@ -580,7 +588,7 @@ function App() {
                         subtitle.start === last.start &&
                         subtitle.end === last.end &&
                         subtitle.text === last.text &&
-                        subtitleFile?.name === last.subtitleFile?.name
+                        subtitleFile?.name === last.subtitleFileName
                     ) {
                         if (mediaTimestamp !== undefined && mediaTimestamp !== last.mediaTimestamp) {
                             const newCopiedSubtitles = [...copiedSubtitles];
@@ -644,9 +652,21 @@ function App() {
                 );
                 setAlertOpen(true);
             }
+
+            copyHistoryRepository.save(newCopiedSubtitle);
         },
-        [fileName, settingsProvider, handleAnkiDialogProceed, handleAnkiDialogRequest]
+        [fileName, settingsProvider, copyHistoryRepository, handleAnkiDialogProceed, handleAnkiDialogRequest]
     );
+
+    useEffect(() => {
+        if (inVideoPlayer) {
+            return;
+        }
+
+        (async () => {
+            setCopiedSubtitles(await copyHistoryRepository.fetch(settingsProvider.miningHistoryStorageLimit));
+        })();
+    }, [inVideoPlayer, copyHistoryRepository, settingsProvider]);
 
     const handleOpenCopyHistory = useCallback(() => {
         setCopyHistoryOpen((copyHistoryOpen) => !copyHistoryOpen);
@@ -720,8 +740,9 @@ function App() {
             }
 
             setCopiedSubtitles(newCopiedSubtitles);
+            copyHistoryRepository.delete(item.id);
         },
-        [copiedSubtitles]
+        [copiedSubtitles, copyHistoryRepository]
     );
 
     const handleUnloadAudio = useCallback(
@@ -837,8 +858,8 @@ function App() {
 
     const handleSelectCopyHistoryItem = useCallback(
         (item: CopyHistoryItem) => {
-            if (!subtitleFiles.find((f) => f.name === item.subtitleFile?.name)) {
-                handleError('Subtitle file ' + item.subtitleFile?.name + ' is not open.');
+            if (!subtitleFiles.find((f) => f.name === item.subtitleFileName)) {
+                handleError('Subtitle file ' + item.subtitleFileName + ' is not open.');
                 return;
             }
 
@@ -877,8 +898,8 @@ function App() {
             return;
         }
 
-        if (!subtitleFiles.find((f) => f.name === ankiDialogItem.subtitleFile?.name)) {
-            handleError('Subtitle file ' + ankiDialogItem.subtitleFile?.name + ' is not open.');
+        if (!subtitleFiles.find((f) => f.name === ankiDialogItem.subtitleFileName)) {
+            handleError('Subtitle file ' + ankiDialogItem.subtitleFileName + ' is not open.');
             return;
         }
 

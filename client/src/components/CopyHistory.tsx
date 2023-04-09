@@ -28,7 +28,7 @@ export interface CopyHistoryItem extends SubtitleModel {
     audioTrack?: string;
     videoFile?: File;
     filePlaybackRate?: number;
-    subtitleFile?: File;
+    subtitleFileName?: string;
     mediaTimestamp?: number;
     audio?: AudioModel;
     image?: ImageModel;
@@ -229,7 +229,6 @@ export default function CopyHistory(props: CopyHistoryProps) {
 
         for (const item of props.items) {
             if (lastSeenItemName === null || lastSeenItemName !== item.name) {
-
                 if (item.name in itemNameCounters) {
                     itemNameCounters[item.name]++;
                 } else {
@@ -307,7 +306,6 @@ export default function CopyHistory(props: CopyHistoryProps) {
         content = (
             <div className={classes.emptyState}>
                 <Typography variant="h6">Mining history is empty.</Typography>
-                <Typography variant="caption">See the help for keyboard shortcuts.</Typography>
             </div>
         );
     }

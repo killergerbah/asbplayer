@@ -404,6 +404,9 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
     const [autoPausePreference, setAutoPausePreference] = useState<AutoPausePreference>(settings.autoPausePreference);
     const [keyBindSet, setKeyBindSet] = useState<KeyBindSet>(settings.keyBindSet);
     const [rememberSubtitleOffset, setRememberSubtitleOffset] = useState<boolean>(settings.rememberSubtitleOffset);
+    const [miningHistoryStorageLimit, setMiningHistoryStorageLimit] = useState<number>(
+        settings.miningHistoryStorageLimit
+    );
     const [autoCopyCurrentSubtitle, setAutoCopyCurrentSubtitle] = useState<boolean>(settings.autoCopyCurrentSubtitle);
     const [subtitleRegexFilter, setSubtitleRegexFilter] = useState<string>(settings.subtitleRegexFilter);
     const [subtitleRegexFilterTextReplacement, setSubtitleRegexFilterTextReplacement] = useState<string>(
@@ -615,6 +618,10 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         (e: ChangeEvent<HTMLInputElement>) => setAutoCopyCurrentSubtitle(e.target.checked),
         []
     );
+    const handleMiningHistoryStorageLimit = useCallback(
+        (e: ChangeEvent<HTMLInputElement>) => setMiningHistoryStorageLimit(Number(e.target.value)),
+        []
+    );
     const handleSubtitleRegexFilter = useCallback(
         (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setSubtitleRegexFilter(e.target.value.trim()),
         []
@@ -761,6 +768,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
             keyBindSet: keyBindSet,
             rememberSubtitleOffset: rememberSubtitleOffset,
             autoCopyCurrentSubtitle: autoCopyCurrentSubtitle,
+            miningHistoryStorageLimit: miningHistoryStorageLimit,
             subtitleRegexFilter: subtitleRegexFilter,
             subtitleRegexFilterTextReplacement: subtitleRegexFilterTextReplacement,
         });
@@ -800,6 +808,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         keyBindSet,
         rememberSubtitleOffset,
         autoCopyCurrentSubtitle,
+        miningHistoryStorageLimit,
         subtitleRegexFilter,
         subtitleRegexFilterTextReplacement,
     ]);
@@ -1081,6 +1090,18 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                     label="Auto-copy current subtitle to clipboard"
                                     labelPlacement="start"
                                     className={classes.switchLabel}
+                                />
+                                <TextField
+                                    type="number"
+                                    label="Mining history storage limit"
+                                    fullWidth
+                                    value={miningHistoryStorageLimit}
+                                    color="secondary"
+                                    onChange={handleMiningHistoryStorageLimit}
+                                    inputProps={{
+                                        min: 0,
+                                        step: 1,
+                                    }}
                                 />
                                 <TextField
                                     label="Subtitle Regex Filter"
