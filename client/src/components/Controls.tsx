@@ -25,8 +25,8 @@ import VideocamIcon from '@material-ui/icons/Videocam';
 import VolumeOffIcon from '@material-ui/icons/VolumeOff';
 import VolumeUpIcon from '@material-ui/icons/VolumeUp';
 import { AudioTrackModel, PlayMode, VideoTabModel } from '@project/common';
-import Clock from '../services/Clock';
-import PlaybackPreferences from '../services/PlaybackPreferences';
+import Clock from '../services/clock';
+import PlaybackPreferences from '../services/playback-preferences';
 import Tooltip from '@material-ui/core/Tooltip';
 
 const useControlStyles = makeStyles((theme) => ({

@@ -1,4 +1,4 @@
-import FrameBridgeServer from './services/FrameBridgeServer';
+import FrameBridgeServer from './services/frame-bridge-server';
 import { renderVideoDataSyncUi } from './ui/video-data-sync';
 
 window.addEventListener('load', () => {

@@ -4,7 +4,7 @@ import gt from 'semver/functions/gt';
 import Fade from '@material-ui/core/Fade';
 import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
-import ChromeExtension from '../services/ChromeExtension';
+import ChromeExtension from '../services/chrome-extension';
 import { Theme } from '@material-ui/core/styles';
 
 interface StylesProps {

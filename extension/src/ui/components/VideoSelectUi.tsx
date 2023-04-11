@@ -12,7 +12,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import { PaletteType } from '@material-ui/core';
-import Bridge from '../Bridge';
+import Bridge from '../bridge';
 import { VideoSelectModeCancelMessage, VideoSelectModeConfirmMessage } from '@project/common';
 
 interface Props {

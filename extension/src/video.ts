@@ -1,6 +1,6 @@
-import Binding from './services/Binding';
+import Binding from './services/binding';
 import { currentPageDelegate } from './services/pages';
-import VideoSelectController from './controllers/VideoSelectController';
+import VideoSelectController from './controllers/video-select-controller';
 
 const bind = () => {
     const bindings: Binding[] = [];

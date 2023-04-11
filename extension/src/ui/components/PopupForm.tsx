@@ -17,7 +17,7 @@ import IconButton from '@material-ui/core/IconButton';
 import Switch from '@material-ui/core/Switch';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import { ExtensionKeyBindingsSettings, ExtensionSettings } from '@project/common';
-import { LatestExtensionInfo } from '../../services/VersionChecker';
+import { LatestExtensionInfo } from '../../services/version-checker';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import EditIcon from '@material-ui/icons/Edit';
 

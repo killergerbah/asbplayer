@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { createTheme } from './theme';
 import VideoDataSyncDialog from './VideoDataSyncDialog';
-import Bridge from '../Bridge';
+import Bridge from '../bridge';
 import {
     ConfirmedVideoDataSubtitleTrack,
     SerializedSubtitleFile,
@@ -13,7 +13,7 @@ import {
     VideoDataUiBridgeOpenFileMessage,
 } from '@project/common';
 import { PaletteType } from '@material-ui/core';
-import { bufferToBase64 } from '../../services/Base64';
+import { bufferToBase64 } from '../../services/base64';
 
 interface Props {
     bridge: Bridge;

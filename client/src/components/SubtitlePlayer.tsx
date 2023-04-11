@@ -21,7 +21,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableRow, { TableRowProps } from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
-import Clock from '../services/Clock';
+import Clock from '../services/clock';
 
 interface StylesProps {
     compressed: boolean;

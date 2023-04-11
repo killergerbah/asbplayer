@@ -6,8 +6,8 @@ import {
     AudioBase64Message,
 } from '@project/common';
 import { Mp3Encoder } from '@project/common';
-import AudioRecorder from './services/AudioRecorder';
-import { bufferToBase64 } from './services/Base64';
+import AudioRecorder from './services/audio-recorder';
+import { bufferToBase64 } from './services/base64';
 
 const audioRecorder = new AudioRecorder();
 
@@ -16,7 +16,7 @@ const _sendAudioBase64 = async (base64: string, preferMp3: boolean) => {
         const blob = await (await fetch('data:audio/webm;base64,' + base64)).blob();
         const mp3Blob = await Mp3Encoder.encode(
             blob,
-            () => new Worker(chrome.runtime.getURL('./mp3-encoder.worker.js'))
+            () => new Worker(chrome.runtime.getURL('./mp3-encoder-worker.worker.js'))
         );
         base64 = bufferToBase64(await mp3Blob.arrayBuffer());
     }

@@ -22,9 +22,9 @@ import Alert, { Color } from '@material-ui/lab/Alert';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { AnkiDialog, ImageDialog } from '@project/common/components';
 import Snackbar from '@material-ui/core/Snackbar';
-import Bridge from '../Bridge';
+import Bridge from '../bridge';
 import { PaletteType } from '@material-ui/core';
-import { AnkiExportMode } from '@project/common/src/Anki';
+import { AnkiExportMode } from '@project/common/src/anki';
 import { AnkiDialogState } from '@project/common/components';
 
 interface Props {

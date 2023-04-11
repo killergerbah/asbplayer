@@ -1,5 +1,5 @@
 import { renderPopupUi, SettingsChangedMessage } from './ui/popup';
-import Settings from './services/Settings';
+import Settings from './services/settings';
 import {
     EditKeyboardShortcutsMessage,
     ExtensionSettings,

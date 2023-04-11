@@ -19,13 +19,13 @@ import {
     AutoPauseContext,
 } from '@project/common';
 import { SubtitleTextImage } from '@project/common/components';
-import Clock from '../services/Clock';
+import Clock from '../services/clock';
 import Controls, { Point } from './Controls';
-import PlayerChannel from '../services/PlayerChannel';
-import SettingsProvider from '../services/SettingsProvider';
-import AppKeyBinder from '../services/AppKeyBinder';
-import ChromeExtension from '../services/ChromeExtension';
-import PlaybackPreferences from '../services/PlaybackPreferences';
+import PlayerChannel from '../services/player-channel';
+import SettingsProvider from '../services/settings-provider';
+import AppKeyBinder from '../services/app-key-binder';
+import ChromeExtension from '../services/chrome-extension';
+import PlaybackPreferences from '../services/playback-preferences';
 import { AnkiDialogFinishedRequest } from './Player';
 import { Color } from '@material-ui/lab/Alert';
 import Alert from './Alert';

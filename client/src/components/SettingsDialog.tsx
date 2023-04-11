@@ -30,7 +30,7 @@ import { Anki, AsbplayerSettings, AutoPausePreference, KeyBindSet, KeyBindName }
 import { TagsTextField } from '@project/common/components';
 import hotkeys from 'hotkeys-js';
 import Typography from '@material-ui/core/Typography';
-import ChromeExtension from '../services/ChromeExtension';
+import ChromeExtension from '../services/chrome-extension';
 import { isMacOs } from 'react-device-detect';
 import Switch from '@material-ui/core/Switch';
 import RadioGroup from '@material-ui/core/RadioGroup';

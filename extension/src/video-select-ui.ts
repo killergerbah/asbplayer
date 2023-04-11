@@ -1,4 +1,4 @@
-import FrameBridgeServer from './services/FrameBridgeServer';
+import FrameBridgeServer from './services/frame-bridge-server';
 import { renderVideoSelectModeUi } from './ui/video-select';
 
 window.addEventListener('load', () => {

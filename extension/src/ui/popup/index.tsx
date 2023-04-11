@@ -1,7 +1,7 @@
 import '@fontsource/roboto';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import Bridge from '../Bridge';
+import Bridge from '../bridge';
 import { PopupUi } from '../components/PopupUi';
 
 export interface PopupUiParameters {

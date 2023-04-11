@@ -3,10 +3,10 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import { createTheme } from './theme';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import PopupForm from './PopupForm';
-import Bridge from '../Bridge';
+import Bridge from '../bridge';
 import { ExtensionSettings } from '@project/common';
-import Settings from '../../services/Settings';
-import VersionChecker, { LatestExtensionInfo } from '../../services/VersionChecker';
+import Settings from '../../services/settings';
+import VersionChecker, { LatestExtensionInfo } from '../../services/version-checker';
 
 interface Props {
     bridge: Bridge;

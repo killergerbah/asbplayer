@@ -1,20 +1,20 @@
-import TabRegistry from './services/TabRegistry';
-import Settings from './services/Settings';
-import ImageCapturer from './services/ImageCapturer';
-import VideoHeartbeatHandler from './handlers/video/VideoHeartbeatHandler';
-import RecordMediaHandler from './handlers/video/RecordMediaHandler';
-import RerecordMediaHandler from './handlers/video/RerecordMediaHandler';
-import StartRecordingMediaHandler from './handlers/video/StartRecordingMediaHandler';
-import StopRecordingMediaHandler from './handlers/video/StopRecordingMediaHandler';
-import ToggleSubtitlesHandler from './handlers/video/ToggleSubtitlesHandler';
-import SyncHandler from './handlers/video/SyncHandler';
-import HttpPostHandler from './handlers/video/HttpPostHandler';
-import VideoToAsbplayerCommandForwardingHandler from './handlers/video/VideoToAsbplayerCommandForwardingHandler';
-import AsbplayerToVideoCommandForwardingHandler from './handlers/asbplayer/AsbplayerToVideoCommandForwardingHandler';
-import AsbplayerV2ToVideoCommandForwardingHandler from './handlers/asbplayerv2/AsbplayerV2ToVideoCommandForwardingHandler';
-import AsbplayerHeartbeatHandler from './handlers/asbplayerv2/AsbplayerHeartbeatHandler';
-import RefreshSettingsHandler from './handlers/popup/RefreshSettingsHandler';
-import { CommandHandler } from './handlers/CommandHandler';
+import TabRegistry from './services/tab-registry';
+import Settings from './services/settings';
+import ImageCapturer from './services/image-capturer';
+import VideoHeartbeatHandler from './handlers/video/video-heartbeat-handler';
+import RecordMediaHandler from './handlers/video/record-media-handler';
+import RerecordMediaHandler from './handlers/video/rerecord-media-handler';
+import StartRecordingMediaHandler from './handlers/video/start-recording-media-handler';
+import StopRecordingMediaHandler from './handlers/video/stop-recording-media-handler';
+import ToggleSubtitlesHandler from './handlers/video/toggle-subtitles-handler';
+import SyncHandler from './handlers/video/sync-handler';
+import HttpPostHandler from './handlers/video/http-post-handler';
+import VideoToAsbplayerCommandForwardingHandler from './handlers/video/video-to-asbplayer-command-forwarding-handler';
+import AsbplayerToVideoCommandForwardingHandler from './handlers/asbplayer/asbplayer-to-video-command-forwarding-handler';
+import AsbplayerV2ToVideoCommandForwardingHandler from './handlers/asbplayerv2/asbplayer-v2-to-video-command-forwarding-handler';
+import AsbplayerHeartbeatHandler from './handlers/asbplayerv2/asbplayer-heartbeat-handler';
+import RefreshSettingsHandler from './handlers/popup/refresh-settings-handler';
+import { CommandHandler } from './handlers/command-handler';
 import {
     Command,
     CopySubtitleMessage,
@@ -25,17 +25,17 @@ import {
     ToggleRecordingMessage,
     ToggleVideoSelectMessage,
 } from '@project/common';
-import TakeScreenshotHandler from './handlers/video/TakeScreenshotHandler';
-import BackgroundPageAudioRecorder from './services/BackgroundPageAudioRecorder';
-import BackgroundPageReadyHandler from './handlers/backgroundpage/BackgroundPageReadyHandler';
-import AudioBase64Handler from './handlers/backgroundpage/AudioBase64Handler';
-import AckTabsHandler from './handlers/asbplayerv2/AckTabsHandler';
-import VersionChecker from './services/VersionChecker';
-import OpenExtensionShortcutsHandler from './handlers/asbplayerv2/OpenExtensionShortcutsHandler';
-import EditKeyboardShortcutsHandler from './handlers/popup/EditKeyboardShortcutsHandler';
-import ExtensionCommandsHandler from './handlers/asbplayerv2/ExtensionCommandsHandler';
-import OpenAsbplayerSettingsHandler from './handlers/video/OpenAsbplayerSettingsHandler';
-import CaptureVisibleTabHandler from './handlers/foreground/CaptureVisibleTabHandler';
+import TakeScreenshotHandler from './handlers/video/take-screenshot-handler';
+import BackgroundPageAudioRecorder from './services/background-page-audio-recorder';
+import BackgroundPageReadyHandler from './handlers/backgroundpage/background-page-ready-handler';
+import AudioBase64Handler from './handlers/backgroundpage/audio-base-64-handler';
+import AckTabsHandler from './handlers/asbplayerv2/ack-tabs-handler';
+import VersionChecker from './services/version-checker';
+import OpenExtensionShortcutsHandler from './handlers/asbplayerv2/open-extension-shortcuts-handler';
+import EditKeyboardShortcutsHandler from './handlers/popup/edit-keyboard-shortcuts-handler';
+import ExtensionCommandsHandler from './handlers/asbplayerv2/extension-commands-handler';
+import OpenAsbplayerSettingsHandler from './handlers/video/open-asbplayer-settings-handler';
+import CaptureVisibleTabHandler from './handlers/foreground/capture-visible-tab-handler';
 
 const settings = new Settings();
 const versionChecker = new VersionChecker(settings);
