@@ -44,6 +44,7 @@ import VideoChannel from '../services/video-channel';
 import { ChromeExtensionProvider } from '../services/chrome-extension-provider';
 import PlaybackPreferences from '../services/playback-preferences';
 import CopyHistoryRepository from '../services/copy-history-repository';
+import './i18n';
 
 const latestExtensionVersion = '0.26.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';

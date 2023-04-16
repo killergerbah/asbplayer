@@ -1,4 +1,5 @@
 import React, { MutableRefObject, useCallback, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import withStyles from '@material-ui/core/styles/withStyles';
 import {
@@ -274,6 +275,7 @@ export function AnkiDialog({
     const dialogRefCallback = useCallback((element: HTMLElement) => {
         setWidth(element?.getBoundingClientRect().width ?? 0);
     }, []);
+    const { t, i18n } = useTranslation();
 
     if (stateRef) {
         stateRef.current = {
@@ -568,7 +570,7 @@ export function AnkiDialog({
 
     if (onRerecord !== undefined) {
         audioActionElement = (
-            <Tooltip title="Apply Selection (rerecord)">
+            <Tooltip title={t('ankiDialog.rerecord')!}>
                 <span>
                     <IconButton
                         disabled={
@@ -591,9 +593,9 @@ export function AnkiDialog({
 
     if (audioClip) {
         if (!audioClip.isPlayable()) {
-            audioHelperText = 'Audio file link lost because of page reload';
+            audioHelperText = t('ankiDialog.audioFileLinkLost') ?? undefined;
         } else if (onRerecord === undefined && !audioClip.isSliceable()) {
-            audioHelperText = 'Audio clip cannot be updated because it is pre-recorded';
+            audioHelperText = t('ankiDialog.cannotUpdateAudio') ?? undefined;
         }
     }
 
@@ -601,7 +603,7 @@ export function AnkiDialog({
 
     if (image) {
         if (!image.available) {
-            imageHelperText = 'Image file link lost because of page reload';
+            imageHelperText = t('ankiDialog.imageFileLinkLost') ?? undefined;
         }
     }
 
@@ -609,7 +611,7 @@ export function AnkiDialog({
         <Dialog open={open} disableEnforceFocus fullWidth maxWidth="sm" onClose={onCancel}>
             <Toolbar>
                 <Typography variant="h6" className={classes.title}>
-                    Anki Export
+                    {t('ankiDialog.title')}
                 </Typography>
                 {onOpenSettings && (
                     <IconButton edge="end" onClick={() => onOpenSettings()}>
@@ -631,13 +633,13 @@ export function AnkiDialog({
                         multiline
                         fullWidth
                         maxRows={8}
-                        label="Sentence"
+                        label={t('ankiDialog.sentence')}
                         value={text}
                         onChange={(e) => setText(e.target.value)}
                         InputProps={{
                             endAdornment: timestampInterval && (
                                 <TextFieldEndAdornment position="end">
-                                    <Tooltip title="Apply Selection">
+                                    <Tooltip title={t('ankiDialog.applySelection')!}>
                                         <span>
                                             <IconButton
                                                 disabled={
@@ -664,8 +666,8 @@ export function AnkiDialog({
                         color="secondary"
                         multiline
                         fullWidth
-                        rows={8}
-                        label="Definition"
+                        minRows={8}
+                        label={t('ankiDialog.definition')!}
                         value={definition}
                         onChange={(e) => setDefinition(e.target.value)}
                     />
@@ -673,14 +675,14 @@ export function AnkiDialog({
                         variant="filled"
                         color="secondary"
                         fullWidth
-                        label="Word"
+                        label={t('ankiDialog.word')}
                         value={word}
                         onChange={(e) => setWord(e.target.value)}
                         helperText={wordHelperText}
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
-                                    <Tooltip title="Search in Anki">
+                                    <Tooltip title={t('ankiDialog.searchInAnki')!}>
                                         <span>
                                             <IconButton
                                                 disabled={
@@ -720,7 +722,7 @@ export function AnkiDialog({
                                 color="secondary"
                                 fullWidth
                                 value={audioClip.name}
-                                label="Audio"
+                                label={t('ankiDialog.audio')}
                                 helperText={audioHelperText}
                                 disabled={!audioClip.isPlayable()}
                                 InputProps={{
@@ -738,13 +740,13 @@ export function AnkiDialog({
                                 color="secondary"
                                 fullWidth
                                 value={image.name}
-                                label="Image"
+                                label={t('ankiDialog.image')}
                                 helperText={imageHelperText}
                                 disabled={!image.available}
                                 InputProps={{
                                     endAdornment: (
                                         <InputAdornment position="end">
-                                            <Tooltip title="Copy to Clipboard">
+                                            <Tooltip title={t('ankiDialog.copyToClipboard')!}>
                                                 <span>
                                                     <IconButton
                                                         disabled={!image.available}
@@ -765,7 +767,7 @@ export function AnkiDialog({
                         variant="filled"
                         color="secondary"
                         fullWidth
-                        label="Source"
+                        label={t('ankiDialog.source')}
                         value={source}
                         onChange={(e) => setSource(e.target.value)}
                     />
@@ -774,7 +776,7 @@ export function AnkiDialog({
                             variant="filled"
                             color="secondary"
                             fullWidth
-                            label="URL"
+                            label={t('ankiDialog.url')}
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
                         />
@@ -783,7 +785,7 @@ export function AnkiDialog({
                         <TagsTextField
                             variant="filled"
                             label="Tags"
-                            helperText="Comma-separated list of strings"
+                            helperText={t('ankiDialog.tagList')}
                             fullWidth
                             color="secondary"
                             tags={tags}
@@ -808,7 +810,7 @@ export function AnkiDialog({
                                 />
                             </Grid>
                             <Grid item>
-                                <Tooltip title="Reset">
+                                <Tooltip title={t('ankiDialog.resetSlider')!}>
                                     <span>
                                         <IconButton
                                             edge="end"
@@ -821,7 +823,7 @@ export function AnkiDialog({
                                 </Tooltip>
                             </Grid>
                             <Grid item>
-                                <Tooltip title="Zoom In">
+                                <Tooltip title={t('ankiDialog.zoomIn')!}>
                                     <span>
                                         <IconButton
                                             edge="end"
@@ -834,7 +836,7 @@ export function AnkiDialog({
                                 </Tooltip>
                             </Grid>
                             <Grid item>
-                                <Tooltip title="Zoom Out">
+                                <Tooltip title={t('ankiDialog.zoomOut')!}>
                                     <span>
                                         <IconButton
                                             edge="end"
@@ -852,11 +854,11 @@ export function AnkiDialog({
             </DialogContent>
             <DialogActions>
                 <Button disabled={disabled} onClick={() => onCancel()}>
-                    Cancel
+                    {t('dialog.cancel')}
                 </Button>
                 {sliderContext && (
                     <Button disabled={disabled} onClick={() => onRewind()}>
-                        Rewind
+                        {t('ankiDialog.rewind')}
                     </Button>
                 )}
                 <Button
@@ -876,7 +878,7 @@ export function AnkiDialog({
                         )
                     }
                 >
-                    Open in Anki
+                    {t('ankiDialog.openInAnki')}
                 </Button>
                 <Button
                     disabled={disabled}
@@ -895,7 +897,7 @@ export function AnkiDialog({
                         )
                     }
                 >
-                    Update Last Card
+                    {t('ankiDialog.updateLastCard')}
                 </Button>
                 <Button
                     disabled={disabled}
@@ -914,7 +916,7 @@ export function AnkiDialog({
                         )
                     }
                 >
-                    Export
+                    {t('ankiDialog.export')}
                 </Button>
             </DialogActions>
         </Dialog>

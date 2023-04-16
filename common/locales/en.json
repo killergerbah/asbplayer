@@ -1,0 +1,30 @@
+{
+    "dialog": {
+        "cancel": "Cancel"
+    },
+    "ankiDialog": {
+        "title": "Anki Export",
+        "sentence": "Sentence",
+        "definition": "Definition",
+        "rerecord": "Rerecord",
+        "audioFileLinkLost": "Audio file link lost because of page reload",
+        "cannotUpdateAudio": "Audio clip cannot be updated because it is pre-recorded",
+        "imageFileLinkLost": "Image file link lost because of page reload",
+        "applySelection": "Apply Selection",
+        "searchInAnki": "Search in Anki",
+        "word": "Word",
+        "audio": "Audio",
+        "image": "Image",
+        "source": "Source",
+        "url": "URL",
+        "copyToClipboard": "Copy to Clipboard",
+        "tagList": "Comma-separated list of strings",
+        "resetSlider": "Reset",
+        "zoomIn": "Zoom In",
+        "zoomOut": "Zoom Out",
+        "rewind": "Rewind",
+        "openInAnki": "Open in Anki",
+        "updateLastCard": "Update Last Card",
+        "export": "Export"
+    }
+}
