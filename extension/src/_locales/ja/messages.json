@@ -1,0 +1,23 @@
+{
+    "extensionDescription": {
+        "message": "ストリーミングビデオをasbplayerに同期する"
+    },
+    "shortcutMineSubtitleDescription": {
+        "message": "字幕をメモする。 字幕トラックが空の場合、音声録音を開始または停止する。"
+    },
+    "shortcutMineSubtitleAndOpenDialogDescription": {
+        "message": "字幕をメモし、Ankiカード作成ダイアログを開く。字幕トラックが空の場合、音声録音を開始または停止する。"
+    },
+    "shortcutUpdateLastCardDescription": {
+        "message": "asbplayerで抽出したメディアで最後に作ったAnkiカードを更新する。字幕トラックが空の場合、音声録音を開始または停止する。"
+    },
+    "shortcutTakeScreenshotDescription": {
+        "message": "スクリーンショットを撮る。最後に撮ったスクリーンショットが上書きされる。"
+    },
+    "shortcutToggleRecordingDescription": {
+        "message": "字幕トラックが空じゃない場合でも、音声録音を開始または停止する。"
+    },
+    "shortcutSelectSubtitleTrackDescription": {
+        "message": "読み込みたい字幕トラックを選択する。"
+    }
+}

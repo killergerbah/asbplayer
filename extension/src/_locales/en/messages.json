@@ -1,0 +1,23 @@
+{
+    "extensionDescription": {
+        "message": "Sync asbplayer with streaming video"
+    },
+    "shortcutMineSubtitleDescription": {
+        "message": "Mine current subtitle. When video is synced without a subtitle file, starts/stops recording audio."
+    },
+    "shortcutMineSubtitleAndOpenDialogDescription": {
+        "message": "Mine current subtitle and open Anki export dialog. When video is synced without a subtitle file, starts/stops recording audio."
+    },
+    "shortcutUpdateLastCardDescription": {
+        "message": "Update last-created Anki card with asbplayer-captured media. When video is synced without a subtitle file, starts/stops recording audio."
+    },
+    "shortcutTakeScreenshotDescription": {
+        "message": "Manually take screenshot, overriding the one that is automatically taken when mining."
+    },
+    "shortcutToggleRecordingDescription": {
+        "message": "Manually start/stop audio recording, even when a subtitle file is loaded."
+    },
+    "shortcutSelectSubtitleTrackDescription": {
+        "message": "Select subtitle tracks to load."
+    }
+}

@@ -1,8 +1,9 @@
 {
     "name": "asbplayer",
-    "description": "Sync asbplayer with streaming video",
+    "description": "__MSG_extensionDescription__",
     "version": "0.26.0",
     "manifest_version": 3,
+    "default_locale": "en",
     "icons": {
         "16": "assets/icon16.png",
         "48": "assets/icon48.png",
@@ -44,38 +45,38 @@
     ],
     "commands": {
         "copy-subtitle": {
-            "description": "Mine current subtitle."
+            "description": "__MSG_shortcutMineSubtitleDescription__"
         },
         "copy-subtitle-with-dialog": {
             "suggested_key": {
                 "default": "Ctrl+Shift+X",
                 "mac": "MacCtrl+Shift+X"
             },
-            "description": "Mine current subtitle and open Anki dialog."
+            "description": "__MSG_shortcutMineSubtitleAndOpenDialogDescription__"
         },
         "update-last-card": {
             "suggested_key": {
                 "default": "Ctrl+Shift+U",
                 "mac": "MacCtrl+Shift+U"
             },
-            "description": "Update last-created Anki card with asbplayer-captured screenshot, audio, etc."
+            "description": "__MSG_shortcutUpdateLastCardDescription__"
         },
         "toggle-video-select": {
             "suggested_key": {
                 "default": "Ctrl+Shift+F",
                 "mac": "MacCtrl+Shift+F"
             },
-            "description": "Select subtitle tracks to load."
+            "description": "__MSG_shortcutSelectSubtitleTrackDescription__"
         },
         "take-screenshot": {
             "suggested_key": {
                 "default": "Ctrl+Shift+V",
                 "mac": "MacCtrl+Shift+V"
             },
-            "description": "Manually take screenshot, overriding the one that is automatically taken when mining."
+            "description": "__MSG_shortcutTakeScreenshotDescription__"
         },
         "toggle-recording": {
-            "description": "Manually start/stop audio recording, even when a subtitle file is loaded."
+            "description": "__MSG_shortcutToggleRecordingDescription__"
         }
     },
     "web_accessible_resources": [
