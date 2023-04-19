@@ -275,7 +275,7 @@ export function AnkiDialog({
     const dialogRefCallback = useCallback((element: HTMLElement) => {
         setWidth(element?.getBoundingClientRect().width ?? 0);
     }, []);
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
 
     if (stateRef) {
         stateRef.current = {
@@ -854,7 +854,7 @@ export function AnkiDialog({
             </DialogContent>
             <DialogActions>
                 <Button disabled={disabled} onClick={() => onCancel()}>
-                    {t('dialog.cancel')}
+                    {t('action.cancel')}
                 </Button>
                 {sliderContext && (
                     <Button disabled={disabled} onClick={() => onRewind()}>

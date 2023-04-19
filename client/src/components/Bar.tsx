@@ -1,4 +1,5 @@
 import { makeStyles, Theme } from '@material-ui/core/styles';
+import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import AppBar from '@material-ui/core/AppBar';
 import BugReportIcon from '@material-ui/icons/BugReport';
@@ -111,7 +112,7 @@ export default function Bar({
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement>();
     const canSaveAsSrt =
         subtitleFiles !== undefined && subtitleFiles.find((f) => !f.name.endsWith('.sup')) !== undefined;
-
+    const { t } = useTranslation();
     const handleFileAction = useCallback(
         (event: React.MouseEvent<HTMLButtonElement>) => {
             if (canSaveAsSrt) {
@@ -173,7 +174,7 @@ export default function Bar({
                         disableFocusListener={canSaveAsSrt}
                         disableHoverListener={canSaveAsSrt}
                         disableTouchListener={canSaveAsSrt}
-                        title="Open Files"
+                        title={t('action.openFiles')!}
                     >
                         <IconButton
                             edge="start"
@@ -187,7 +188,7 @@ export default function Bar({
                     <Typography variant="h6" noWrap className={classes.title}>
                         {title}
                     </Typography>
-                    <Tooltip title="Donate">
+                    <Tooltip title={t('bar.donate')!}>
                         <IconButton
                             edge="end"
                             color="inherit"
@@ -199,7 +200,7 @@ export default function Bar({
                             <FavoriteIcon />
                         </IconButton>
                     </Tooltip>
-                    <Tooltip title="Submit Issue">
+                    <Tooltip title={t('bar.submitIssue')!}>
                         <IconButton
                             edge="end"
                             color="inherit"
@@ -211,7 +212,7 @@ export default function Bar({
                             <BugReportIcon />
                         </IconButton>
                     </Tooltip>
-                    <Tooltip title="Help">
+                    <Tooltip title={t('bar.help')!}>
                         <IconButton
                             edge="end"
                             color="inherit"
@@ -223,12 +224,12 @@ export default function Bar({
                             <HelpIcon />
                         </IconButton>
                     </Tooltip>
-                    <Tooltip title="Settings">
+                    <Tooltip title={t('bar.settings')!}>
                         <IconButton edge="end" color="inherit" onClick={onOpenSettings}>
                             <SettingsIcon />
                         </IconButton>
                     </Tooltip>
-                    <CopyHistoryTooltip title="Mining History" show={!drawerOpen}>
+                    <CopyHistoryTooltip title={t('bar.miningHistory')!} show={!drawerOpen}>
                         <IconButton
                             edge="end"
                             color="inherit"

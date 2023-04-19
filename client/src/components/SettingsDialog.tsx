@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useEffect, useMemo, ChangeEvent, ReactNode, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@material-ui/styles';
 import { computeStyles } from '../services/util';
 import Button from '@material-ui/core/Button';
@@ -156,41 +157,6 @@ interface KeyBindProperties {
     label: string;
     extensionOverridden: boolean;
 }
-
-const keyBindProperties: { [key in KeyBindName]: KeyBindProperties } = {
-    copySubtitle: { label: 'Mine current subtitle', extensionOverridden: true },
-    ankiExport: { label: 'Mine current subtitle and open Anki dialog', extensionOverridden: true },
-    updateLastCard: {
-        label: 'Update last-created Anki card with asbplayer-captured screenshot, audio, etc.',
-        extensionOverridden: true,
-    },
-    togglePlay: { label: 'Play/pause', extensionOverridden: false },
-    toggleAutoPause: { label: 'Toggle auto-pause', extensionOverridden: false },
-    toggleCondensedPlayback: { label: 'Toggle condensed playback', extensionOverridden: false },
-    toggleSubtitles: { label: 'Toggle subtitles', extensionOverridden: false },
-    toggleVideoSubtitleTrack1: { label: 'Toggle subtitle track 1 in video', extensionOverridden: false },
-    toggleVideoSubtitleTrack2: { label: 'Toggle subtitle track 2 in video', extensionOverridden: false },
-    toggleAsbplayerSubtitleTrack1: { label: 'Toggle subtitle track 1 in asbplayer', extensionOverridden: false },
-    toggleAsbplayerSubtitleTrack2: { label: 'Toggle subtitle track 2 in asbplayer', extensionOverridden: false },
-    seekBackward: { label: 'Seek backward 10 seconds', extensionOverridden: false },
-    seekForward: { label: 'Seek forward 10 seconds', extensionOverridden: false },
-    seekToPreviousSubtitle: { label: 'Seek to previous subtitle', extensionOverridden: false },
-    seekToNextSubtitle: { label: 'Seek to next subtitle', extensionOverridden: false },
-    seekToBeginningOfCurrentSubtitle: { label: 'Seek to beginning of current subtitle', extensionOverridden: false },
-    adjustOffsetToPreviousSubtitle: {
-        label: 'Adjust subtitle offset so that previous subtitle is at current timestamp',
-        extensionOverridden: false,
-    },
-    adjustOffsetToNextSubtitle: {
-        label: 'Adjust subtitle offset so that next subtitle is at current timestamp',
-        extensionOverridden: false,
-    },
-    increaseOffset: { label: 'Adjust subtitle offset by +100ms', extensionOverridden: false },
-    decreaseOffset: { label: 'Adjust subtitle offset by -100ms', extensionOverridden: false },
-    resetOffset: { label: 'Reset subtitle offset', extensionOverridden: false },
-    increasePlaybackRate: { label: 'Adjust playback rate by +0.1', extensionOverridden: false },
-    decreasePlaybackRate: { label: 'Adjust playback rate by -0.1', extensionOverridden: false },
-};
 
 // hotkeys only returns strings for a Mac while requiring the OS-specific keys for the actual binds
 const modifierKeyReplacements: { [key: string]: string } = isMacOs
@@ -357,6 +323,53 @@ interface Props {
 
 export default function SettingsDialog({ anki, extension, open, settings, scrollToId, onClose }: Props) {
     const classes = useStyles();
+    const { t } = useTranslation();
+    const keyBindProperties = useMemo<{ [key in KeyBindName]: KeyBindProperties }>(
+        () => ({
+            copySubtitle: { label: t('binds.copySubtitle')!, extensionOverridden: true },
+            ankiExport: { label: t('binds.ankiExport')!, extensionOverridden: true },
+            updateLastCard: {
+                label: t('binds.updateLastCard')!,
+                extensionOverridden: true,
+            },
+            togglePlay: { label: t('binds.togglePlay')!, extensionOverridden: false },
+            toggleAutoPause: { label: t('binds.toggleAutoPause')!, extensionOverridden: false },
+            toggleCondensedPlayback: { label: t('binds.toggleCondensedPlayback')!, extensionOverridden: false },
+            toggleSubtitles: { label: t('binds.toggleSubtitles')!, extensionOverridden: false },
+            toggleVideoSubtitleTrack1: { label: t('binds.toggleVideoSubtitleTrack1')!, extensionOverridden: false },
+            toggleVideoSubtitleTrack2: { label: t('binds.toggleVideoSubtitleTrack2')!, extensionOverridden: false },
+            toggleAsbplayerSubtitleTrack1: {
+                label: t('binds.toggleAsbplayerSubtitleTrack1')!,
+                extensionOverridden: false,
+            },
+            toggleAsbplayerSubtitleTrack2: {
+                label: t('binds.toggleAsbplayerSubtitleTrack2')!,
+                extensionOverridden: false,
+            },
+            seekBackward: { label: t('binds.seekBackward')!, extensionOverridden: false },
+            seekForward: { label: t('binds.seekForward')!, extensionOverridden: false },
+            seekToPreviousSubtitle: { label: t('binds.seekToPreviousSubtitle')!, extensionOverridden: false },
+            seekToNextSubtitle: { label: t('binds.seekToNextSubtitle')!, extensionOverridden: false },
+            seekToBeginningOfCurrentSubtitle: {
+                label: t('binds.seekToBeginningOfCurrentSubtitle')!,
+                extensionOverridden: false,
+            },
+            adjustOffsetToPreviousSubtitle: {
+                label: t('binds.adjustOffsetToPreviousSubtitle')!,
+                extensionOverridden: false,
+            },
+            adjustOffsetToNextSubtitle: {
+                label: t('binds.adjustOffsetToNextSubtitle')!,
+                extensionOverridden: false,
+            },
+            increaseOffset: { label: t('binds.increaseOffset')!, extensionOverridden: false },
+            decreaseOffset: { label: t('binds.decreaseOffset')!, extensionOverridden: false },
+            resetOffset: { label: t('binds.resetOffset')!, extensionOverridden: false },
+            increasePlaybackRate: { label: t('binds.increasePlaybackRate')!, extensionOverridden: false },
+            decreasePlaybackRate: { label: t('binds.decreasePlaybackRate')!, extensionOverridden: false },
+        }),
+        [t]
+    );
     const [ankiConnectUrl, setAnkiConnectUrl] = useState<string>(settings.ankiConnectUrl);
     const [ankiConnectUrlError, setAnkiConnectUrlError] = useState<string>();
     const [ankiConnectUrlChangeTimestamp, setAnkiConnectUrlChangeTimestamp] = useState<number>(0);

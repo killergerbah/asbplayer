@@ -1,6 +1,6 @@
 {
     "extensionDescription": {
-        "message": "ストリーミングビデオをasbplayerに同期する"
+        "message": "ストリーミングビデオをasbplayerに同期する。"
     },
     "shortcutMineSubtitleDescription": {
         "message": "字幕をメモする。 字幕トラックが空の場合、音声録音を開始または停止する。"
@@ -15,9 +15,9 @@
         "message": "スクリーンショットを撮る。最後に撮ったスクリーンショットが上書きされる。"
     },
     "shortcutToggleRecordingDescription": {
-        "message": "字幕トラックが空じゃない場合でも、音声録音を開始または停止する。"
+        "message": "音声録音を開始または停止する。"
     },
     "shortcutSelectSubtitleTrackDescription": {
-        "message": "読み込みたい字幕トラックを選択する。"
+        "message": "字幕トラックを選択する。"
     }
 }

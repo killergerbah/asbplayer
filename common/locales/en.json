@@ -1,6 +1,44 @@
 {
-    "dialog": {
-        "cancel": "Cancel"
+    "action": {
+        "cancel": "Cancel",
+        "openFiles": "Open Files"
+    },
+    "landing": {
+        "cta": "Drag and drop subtitle and media files, or <1>browse</1>.",
+        "extensionNotInstalled": "Install the <1>Chrome extension</1> to sync subtitles with streaming video",
+        "extensionUpdateAvailable": "An extension <1>update</1> is available."
+    },
+    "bar": {
+        "donate": "Donate",
+        "submitIssue": "Submit Issue",
+        "help": "Help",
+        "settings": "Settings",
+        "miningHistory": "Mining History"
+    },
+    "binds": {
+        "copySubtitle": "Mine current subtitle",
+        "ankiExport": "Mine current subtitle and open Anki dialog",
+        "updateLastCard": "Update last-created Anki card with asbplayer-captured screenshot, audio, etc.",
+        "togglePlay": "Play/pause",
+        "toggleAutoPause": "Toggle auto-pause",
+        "toggleCondensedPlayback": "Toggle condensed playback",
+        "toggleSubtitles": "Toggle subtitles",
+        "toggleVideoSubtitleTrack1": "Toggle subtitle track 1 in video",
+        "toggleVideoSubtitleTrack2": "Toggle subtitle track 2 in video",
+        "toggleAsbplayerSubtitleTrack1": "Toggle subtitle track 1 in asbplayer",
+        "toggleAsbplayerSubtitleTrack2": "Toggle subtitle track 2 in asbplayer",
+        "seekBackward": "Seek backward 10 seconds",
+        "seekForward": "Seek forward 10 seconds",
+        "seekToPreviousSubtitle": "Seek to previous subtitle",
+        "seekToNextSubtitle": "Seek to next subtitle",
+        "seekToBeginningOfCurrentSubtitle": "Seek to beginning of current subtitle",
+        "adjustOffsetToPreviousSubtitle": "Adjust subtitle offset so that previous subtitle is at current timestamp",
+        "adjustOffsetToNextSubtitle": "Adjust subtitle offset so that next subtitle is at current timestamp",
+        "increaseOffset": "Adjust subtitle offset by +100ms",
+        "decreaseOffset": "Adjust subtitle offset by -100ms",
+        "resetOffset": "Reset subtitle offset",
+        "increasePlaybackRate": "Adjust playback rate by +0.1",
+        "decreasePlaybackRate": "Adjust playback rate by -0.1"
     },
     "ankiDialog": {
         "title": "Anki Export",

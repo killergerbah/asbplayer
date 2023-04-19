@@ -1,0 +1,68 @@
+{
+    "action": {
+        "cancel": "キャンセル",
+        "openFiles": "ファイルを開く"
+    },
+    "landing": {
+        "cta": "字幕またはメディアファイルをドラッグ＆ドロップするか、あるいは<1>ファイルを開く</1>。",
+        "extensionNotInstalled": "ストリーミングビデオをasbplayerに同期するには<1>Chrome拡張機能をインストールする</1>。",
+        "extensionUpdateAvailable": "Chrome拡張機能を<1>更新する</1>。"
+    },
+    "bar": {
+        "donate": "寄付する",
+        "submitIssue": "問題を報告",
+        "help": "ヘルプ",
+        "settings": "設定",
+        "miningHistory": "メモ帳"
+    },
+    "binds": {
+        "copySubtitle": "字幕をメモする",
+        "ankiExport": "字幕をメモし、Ankiカード作成ダイアログを開く",
+        "updateLastCard": "asbplayerで抽出したメディアで最後に作ったAnkiカードを更新する",
+        "togglePlay": "再生/一時停止",
+        "toggleAutoPause": "オートポーズ機能をオン/オフにする",
+        "toggleCondensedPlayback": "凝縮再生機能をオン/オフにする",
+        "toggleSubtitles": "字幕表示/非表示を切り替える",
+        "toggleVideoSubtitleTrack1": "ビデオでの字幕トラック1の表示/非表示を切り替える",
+        "toggleVideoSubtitleTrack2": "ビデオでの字幕トラック2の表示/非表示を切り替える",
+        "toggleAsbplayerSubtitleTrack1": "asbplayerでの字幕トラック1の表示/非表示を切り替える",
+        "toggleAsbplayerSubtitleTrack2": "asbplayerでの字幕トラック2の表示/非表示を切り替える",
+        "seekBackward": "10秒で巻き戻し",
+        "seekForward": "10秒で早送り",
+        "seekToPreviousSubtitle": "前の字幕にシーク",
+        "seekToNextSubtitle": "次の字幕にシーク",
+        "seekToBeginningOfCurrentSubtitle": "表示中の字幕の頭にシーク",
+        "adjustOffsetToPreviousSubtitle": "前の字幕が現在の再生位置で表示されるように字幕のオフセット時間をずらす",
+        "adjustOffsetToNextSubtitle": "次の字幕が現在の再生位置で表示されるように字幕のオフセット時間をずらす",
+        "increaseOffset": "字幕のオフセット時間を+100msでずらす",
+        "decreaseOffset": "字幕のオフセット時間を-100msでずらす",
+        "resetOffset": "字幕のオフセット時間をリセット",
+        "increasePlaybackRate": "再生速度を+0.1で早くする",
+        "decreasePlaybackRate": "再生速度を-0.1で遅くする"
+    },
+    "ankiDialog": {
+        "title": "Ankiカード作成",
+        "sentence": "文章",
+        "definition": "定義",
+        "rerecord": "再録音",
+        "audioFileLinkLost": "ページ再読み込みにより音声ファイルのリファレンスがなくなった",
+        "cannotUpdateAudio": "すでに録音された音声データは更新することができない",
+        "imageFileLinkLost": "ページ再読み込みにより画像ファイルのリファレンスがなくなった",
+        "applySelection": "選択した時間範囲を適用",
+        "searchInAnki": "Ankiで検索",
+        "word": "言葉",
+        "audio": "音声",
+        "image": "画像",
+        "source": "出どころ",
+        "url": "URL",
+        "copyToClipboard": "コピー",
+        "tagList": "コンマ区切りの文字列",
+        "resetSlider": "リセット",
+        "zoomIn": "拡大",
+        "zoomOut": "縮小",
+        "rewind": "巻き戻し",
+        "openInAnki": "Ankiで開く",
+        "updateLastCard": "最後のAnkiカードを更新",
+        "export": "作成"
+    }
+}

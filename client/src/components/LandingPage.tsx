@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Trans } from 'react-i18next';
 import { makeStyles } from '@material-ui/styles';
 import gt from 'semver/functions/gt';
 import Fade from '@material-ui/core/Fade';
@@ -69,35 +70,37 @@ export default function LandingPage({
             <Fade in={!loading && !dragging} timeout={500}>
                 <div className={classes.background}>
                     <Typography variant="h6">
-                        Drag and drop subtitle and media files, or{' '}
-                        <Link
-                            target="#"
-                            className={classes.browseLink}
-                            onClick={onFileSelector}
-                            color="secondary"
-                            component="label"
-                        >
-                            browse
-                        </Link>
-                        .
+                        <Trans i18nKey={'landing.cta'}>
+                            Drag and drop subtitle and media files, or
+                            <Link
+                                target="#"
+                                className={classes.browseLink}
+                                onClick={onFileSelector}
+                                color="secondary"
+                                component="label"
+                            >
+                                browse
+                            </Link>
+                            .
+                        </Trans>
                         <br />
                         {extensionNotInstalled && (
-                            <span>
-                                Install the{' '}
+                            <Trans i18nKey="landing.extensionNotInstalled">
+                                Install the
                                 <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>
                                     Chrome extension
-                                </Link>{' '}
+                                </Link>
                                 to sync subtitles with streaming video.
-                            </span>
+                            </Trans>
                         )}
                         {extensionUpdateAvailable && (
-                            <span>
-                                An extension{' '}
+                            <Trans i18nKey="landing.extensionUpdateAvailable">
+                                An extension
                                 <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>
                                     update
                                 </Link>{' '}
                                 is available.
-                            </span>
+                            </Trans>
                         )}
                     </Typography>
                 </div>
