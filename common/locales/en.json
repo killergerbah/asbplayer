@@ -2,7 +2,12 @@
     "action": {
         "cancel": "Cancel",
         "openFiles": "Open Files",
-        "ok": "OK"
+        "ok": "OK",
+        "jumpTo": "Jump To",
+        "downloadAudio": "Download Audio",
+        "downloadImage": "Download Image",
+        "delete": "Delete",
+        "downloadSubtitlesAsSrt": "Download Subtitles as SRT"
     },
     "landing": {
         "cta": "Drag and drop subtitle and media files, or <1>browse</1>.",
@@ -116,5 +121,11 @@
         "openInAnki": "Open in Anki",
         "updateLastCard": "Update Last Card",
         "export": "Export"
+    },
+    "copyHistory": {
+        "downloadMinedSubsAsSrt": "Download Mined Subtitles as SRT",
+        "exportToAnki": "Export to Anki",
+        "blank": "Blank",
+        "miningHistoryEmpty": "Mining history is empty."
     }
 }

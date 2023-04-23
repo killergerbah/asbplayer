@@ -1,8 +1,14 @@
 {
     "action": {
+        "copy": "コピー",
         "cancel": "キャンセル",
         "openFiles": "ファイルを開く",
-        "ok": "OK"
+        "ok": "OK",
+        "jumpTo": "字幕にシーク",
+        "downloadAudio": "録音をダンロード",
+        "downloadImage": "画像をダウンロード",
+        "delete": "削除",
+        "downloadSubtitlesAsSrt": "字幕をSRT形式でダウンロード"
     },
     "landing": {
         "cta": "字幕またはメディアファイルをドラッグ＆ドロップするか、あるいは<1>ファイルを開く</1>。",
@@ -50,7 +56,7 @@
         "sentenceField": "文章フィールド",
         "definitionField": "定義フィールド",
         "wordField": "言葉フィールド",
-        "audioField": "オーディオフィールド",
+        "audioField": "音声フィールド",
         "imageField": "画像フィールド",
         "sourceField": "出どころフィールド",
         "urlField": "URLフィールド",
@@ -116,5 +122,11 @@
         "openInAnki": "Ankiで開く",
         "updateLastCard": "最後のAnkiカードを更新",
         "export": "作成"
+    },
+    "copyHistory": {
+        "downloadMinedSubsAsSrt": "メモされた字幕をSRT形式でダウンロード",
+        "exportToAnki": "Ankiカードを作成",
+        "blank": "空白",
+        "miningHistoryEmpty": "メモはありません"
     }
 }

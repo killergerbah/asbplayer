@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@material-ui/core/styles';
 import { timeDurationDisplay } from '../services/util';
 import { ListItemSecondaryAction, Theme } from '@material-ui/core';
@@ -119,6 +120,7 @@ interface MenuProps {
 }
 
 function Menu({ open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage, onDelete, item }: MenuProps) {
+    const { t } = useTranslation();
     const handleCopy = useCallback(() => {
         navigator.clipboard.writeText(item!.text);
         onClose();
@@ -165,23 +167,29 @@ function Menu({ open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage,
         >
             <List>
                 <ListItem button onClick={handleCopy}>
-                    <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary="Copy" />
+                    <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary={t('action.copy')} />
                 </ListItem>
                 <ListItem button onClick={handleJumpTo}>
-                    <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary="Jump To" />
+                    <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary={t('action.jumpTo')} />
                 </ListItem>
                 {(item.videoFile || item.audioFile || item.audio) && (
                     <ListItem button onClick={handleClipAudio}>
-                        <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary="Download Audio" />
+                        <ListItemText
+                            primaryTypographyProps={{ variant: 'body2' }}
+                            primary={t('action.downloadAudio')}
+                        />
                     </ListItem>
                 )}
                 {(item.videoFile || item.image) && (
                     <ListItem button onClick={handleDownloadImage}>
-                        <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary="Download Image" />
+                        <ListItemText
+                            primaryTypographyProps={{ variant: 'body2' }}
+                            primary={t('action.downloadImage')}
+                        />
                     </ListItem>
                 )}
                 <ListItem button onClick={handleDelete}>
-                    <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary="Delete" />
+                    <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary={t('action.delete')} />
                 </ListItem>
             </List>
         </Popover>
@@ -199,6 +207,7 @@ export default function CopyHistory(props: CopyHistoryProps) {
     const [menuItem, setMenuItem] = useState<CopyHistoryItem>();
     const [menuOpen, setMenuOpen] = useState<boolean>(false);
     const [menuAnchorEl, setMenuAnchorEl] = useState<Element>();
+    const { t } = useTranslation();
 
     const handleMenu = useCallback((e: React.MouseEvent, item: CopyHistoryItem) => {
         setMenuItem(item);
@@ -246,7 +255,7 @@ export default function CopyHistory(props: CopyHistoryProps) {
                     <ListItem key={key}>
                         <Typography color="textSecondary">{item.name}</Typography>
                         <ListItemSecondaryAction>
-                            <Tooltip title="Download as SRT">
+                            <Tooltip title={t('copyHistory.downloadMinedSubsAsSrt')!}>
                                 <IconButton
                                     onClick={() => props.onDownloadSectionAsSrt(item.name, itemsBySection[key])}
                                     edge="end"
@@ -270,7 +279,7 @@ export default function CopyHistory(props: CopyHistoryProps) {
                     classes={{ gutters: classes.listItemGutters }}
                 >
                     <ListItemIcon classes={{ root: classes.listItemIconRoot }}>
-                        <Tooltip title="Export to Anki">
+                        <Tooltip title={t('copyHistory.exportToAnki')!}>
                             <IconButton onClick={() => props.onAnki(item)}>
                                 <NoteAddIcon fontSize="small" />
                             </IconButton>
@@ -285,7 +294,7 @@ export default function CopyHistory(props: CopyHistoryProps) {
                         primary={
                             <Grid wrap="nowrap" container>
                                 <Grid item className={item.text === '' ? classes.emptyText : classes.text}>
-                                    {item.text === '' ? 'No text' : item.text}
+                                    {item.text === '' ? t('copyHistory.blank') : item.text}
                                 </Grid>
                                 <Grid item className={classes.timestamp}>
                                     {timeDurationDisplay(item.start, item.start, false)}
@@ -307,7 +316,7 @@ export default function CopyHistory(props: CopyHistoryProps) {
     } else {
         content = (
             <div className={classes.emptyState}>
-                <Typography variant="h6">Mining history is empty.</Typography>
+                <Typography variant="h6">{t('copyHistory.miningHistoryEmpty')}</Typography>
             </div>
         );
     }

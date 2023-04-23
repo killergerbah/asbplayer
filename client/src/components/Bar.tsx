@@ -153,10 +153,10 @@ export default function Bar({
                 >
                     <List>
                         <ListItem button onClick={handleOpenFilesFromMenu}>
-                            Open Files
+                            {t('action.openFiles')}
                         </ListItem>
                         <ListItem button onClick={handleDownloadSubtitleFilesAsSrt}>
-                            Download Subtitles as SRT
+                            {t('action.downloadSubtitlesAsSrt')}
                         </ListItem>
                     </List>
                 </Popover>
