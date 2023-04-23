@@ -7,85 +7,85 @@ export interface KeyBinder {
         onCopy: (event: KeyboardEvent, subtitle: T) => void,
         disabledGetter: () => boolean,
         subtitleGetter: () => T | undefined,
-        useCapture?: boolean
+        capture?: boolean
     ): () => void;
     bindAnkiExport(
         onAnkiExport: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,
-        useCapture?: boolean
+        capture?: boolean
     ): () => void;
     bindUpdateLastCard(
         onUpdateLastCard: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,
-        useCapture?: boolean
+        capture?: boolean
     ): () => void;
     bindSeekToSubtitle(
         onSeekToSubtitle: (event: KeyboardEvent, subtitle: SubtitleModel) => void,
         disabledGetter: () => boolean,
         timeGetter: () => number,
         subtitlesGetter: () => SubtitleModel[] | undefined,
-        useCapture?: boolean
+        capture?: boolean
     ): () => void;
     bindSeekToBeginningOfCurrentSubtitle(
         onSeekToBeginningOfCurrentSubtitle: (event: KeyboardEvent, subtitle: SubtitleModel) => void,
         disabledGetter: () => boolean,
         timeGetter: () => number,
         subtitlesGetter: () => SubtitleModel[] | undefined,
-        useCapture?: boolean
+        capture?: boolean
     ): () => void;
     bindSeekBackwardOrForward(
         onSeekBackwardOrForward: (event: KeyboardEvent, forward: boolean) => void,
         disabledGetter: () => boolean,
-        useCapture?: boolean
+        capture?: boolean
     ): () => void;
     bindOffsetToSubtitle(
         onOffsetChange: (event: KeyboardEvent, newOffset: number) => void,
         disabledGetter: () => boolean,
         timeGetter: () => number,
         subtitlesGetter: () => SubtitleModel[] | undefined,
-        useCapture?: boolean
+        capture?: boolean
     ): () => void;
     bindAdjustOffset(
         onOffsetChange: (event: KeyboardEvent, newOffset: number) => void,
         disabledGetter: () => boolean,
         subtitlesGetter: () => SubtitleModel[] | undefined,
-        useCapture?: boolean
+        capture?: boolean
     ): () => void;
     bindResetOffet(
         onResetOffset: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,
-        useCapture?: boolean
+        capture?: boolean
     ): () => void;
     bindAdjustPlaybackRate(
         onAdjustPlaybackRate: (event: KeyboardEvent, increase: boolean) => void,
         disabledGetter: () => boolean,
-        useCapture?: boolean
+        capture?: boolean
     ): () => void;
     bindToggleSubtitles(
         onToggleSubtitles: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,
-        useCapture?: boolean
+        capture?: boolean
     ): () => void;
     bindToggleSubtitleTrackInVideo(
         onToggleSubtitleTrack: (event: KeyboardEvent, extra: any) => void,
         disabledGetter: () => boolean,
-        useCapture?: boolean
+        capture?: boolean
     ): () => void;
     bindToggleSubtitleTrackInList(
         onToggleSubtitleTrackInList: (event: KeyboardEvent, extra: any) => void,
         disabledGetter: () => boolean,
-        useCapture?: boolean
+        capture?: boolean
     ): () => void;
-    bindPlay(onPlay: (event: KeyboardEvent) => void, disabledGetter: () => boolean, useCapture?: boolean): () => void;
+    bindPlay(onPlay: (event: KeyboardEvent) => void, disabledGetter: () => boolean, capture?: boolean): () => void;
     bindAutoPause(
         onAutoPause: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,
-        useCapture?: boolean
+        capture?: boolean
     ): () => void;
     bindCondensedPlayback(
         onCondensedPlayback: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,
-        useCapture?: boolean
+        capture?: boolean
     ): () => void;
 }
 
@@ -99,7 +99,7 @@ export class DefaultKeyBinder implements KeyBinder {
         onCopy: (event: KeyboardEvent, subtitle: T) => void,
         disabledGetter: () => boolean,
         subtitleGetter: () => T | undefined,
-        useCapture = false
+        capture = false
     ) {
         const shortcut = this.keyBindSet.copySubtitle.keys;
 
@@ -108,8 +108,7 @@ export class DefaultKeyBinder implements KeyBinder {
         }
 
         const handler = this.copyHandler(onCopy, disabledGetter, subtitleGetter);
-        hotkeys(shortcut, { capture: useCapture }, handler);
-        return () => hotkeys.unbind(shortcut, handler);
+        return this._bind(shortcut, capture, handler);
     }
 
     copyHandler<T extends SubtitleModel>(
@@ -132,7 +131,7 @@ export class DefaultKeyBinder implements KeyBinder {
         };
     }
 
-    bindAnkiExport(onAnkiExport: (event: KeyboardEvent) => void, disabledGetter: () => boolean, useCapture = false) {
+    bindAnkiExport(onAnkiExport: (event: KeyboardEvent) => void, disabledGetter: () => boolean, capture = false) {
         const shortcut = this.keyBindSet.ankiExport.keys;
 
         if (!shortcut) {
@@ -140,8 +139,7 @@ export class DefaultKeyBinder implements KeyBinder {
         }
 
         const handler = this.ankiExportHandler(onAnkiExport, disabledGetter);
-        hotkeys(shortcut, { capture: useCapture }, handler);
-        return () => hotkeys.unbind(shortcut, handler);
+        return this._bind(shortcut, capture, handler);
     }
 
     ankiExportHandler(onAnkiExport: (event: KeyboardEvent) => void, disabledGetter: () => boolean) {
@@ -157,7 +155,7 @@ export class DefaultKeyBinder implements KeyBinder {
     bindUpdateLastCard(
         onUpdateLastCard: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,
-        useCapture = false
+        capture = false
     ) {
         const shortcut = this.keyBindSet.updateLastCard.keys;
 
@@ -166,8 +164,7 @@ export class DefaultKeyBinder implements KeyBinder {
         }
 
         const handler = this.updateLastCardHandler(onUpdateLastCard, disabledGetter);
-        hotkeys(shortcut, { capture: useCapture }, handler);
-        return () => hotkeys.unbind(shortcut, handler);
+        return this._bind(shortcut, capture, handler);
     }
 
     updateLastCardHandler(onUpdateLastCard: (event: KeyboardEvent) => void, disabledGetter: () => boolean) {
@@ -185,7 +182,7 @@ export class DefaultKeyBinder implements KeyBinder {
         disabledGetter: () => boolean,
         timeGetter: () => number,
         subtitlesGetter: () => SubtitleModel[] | undefined,
-        useCapture = false
+        capture = false
     ) {
         const delegate = (event: KeyboardEvent, forward: boolean) => {
             if (disabledGetter()) {
@@ -209,22 +206,20 @@ export class DefaultKeyBinder implements KeyBinder {
         const previousHandler = (event: KeyboardEvent) => delegate(event, false);
         const nextHandler = (event: KeyboardEvent) => delegate(event, true);
 
+        let unbindPrevious: (() => void) | undefined;
+        let unbindNext: (() => void) | undefined;
+
         if (previousShortcut) {
-            hotkeys(previousShortcut, { capture: useCapture }, previousHandler);
+            unbindPrevious = this._bind(previousShortcut, capture, previousHandler);
         }
 
         if (nextShortcut) {
-            hotkeys(nextShortcut, { capture: useCapture }, nextHandler);
+            unbindNext = this._bind(nextShortcut, capture, nextHandler);
         }
 
         return () => {
-            if (previousShortcut) {
-                hotkeys.unbind(previousShortcut, previousHandler);
-            }
-
-            if (nextShortcut) {
-                hotkeys.unbind(nextShortcut, nextHandler);
-            }
+            unbindPrevious?.();
+            unbindNext?.();
         };
     }
 
@@ -233,7 +228,7 @@ export class DefaultKeyBinder implements KeyBinder {
         disabledGetter: () => boolean,
         timeGetter: () => number,
         subtitlesGetter: () => SubtitleModel[] | undefined,
-        useCapture = false
+        capture = false
     ) {
         const shortcut = this.keyBindSet.seekToBeginningOfCurrentSubtitle.keys;
 
@@ -258,8 +253,7 @@ export class DefaultKeyBinder implements KeyBinder {
                 onSeekToBeginningOfCurrentSubtitle(event, subtitle);
             }
         };
-        hotkeys(shortcut, { capture: useCapture }, handler);
-        return () => hotkeys.unbind(shortcut, handler);
+        return this._bind(shortcut, capture, handler);
     }
 
     _currentSubtitle(time: number, subtitles: SubtitleModel[]) {
@@ -290,7 +284,7 @@ export class DefaultKeyBinder implements KeyBinder {
     bindSeekBackwardOrForward(
         onSeekBackwardOrForward: (event: KeyboardEvent, forward: boolean) => void,
         disabledGetter: () => boolean,
-        useCapture = false
+        capture = false
     ) {
         const delegate = (event: KeyboardEvent, forward: boolean) => {
             if (disabledGetter()) {
@@ -304,22 +298,20 @@ export class DefaultKeyBinder implements KeyBinder {
         const backHandler = (event: KeyboardEvent) => delegate(event, false);
         const nextHandler = (event: KeyboardEvent) => delegate(event, true);
 
+        let unbindBack: (() => void) | undefined;
+        let unbindNext: (() => void) | undefined;
+
         if (backShortcut) {
-            hotkeys(backShortcut, { capture: useCapture }, backHandler);
+            unbindBack = this._bind(backShortcut, capture, backHandler);
         }
 
         if (nextShortcut) {
-            hotkeys(nextShortcut, { capture: useCapture }, nextHandler);
+            unbindNext = this._bind(nextShortcut, capture, nextHandler);
         }
 
         return () => {
-            if (backShortcut) {
-                hotkeys.unbind(backShortcut, backHandler);
-            }
-
-            if (nextShortcut) {
-                hotkeys.unbind(nextShortcut, nextHandler);
-            }
+            unbindBack?.();
+            unbindNext?.();
         };
     }
 
@@ -328,7 +320,7 @@ export class DefaultKeyBinder implements KeyBinder {
         disabledGetter: () => boolean,
         timeGetter: () => number,
         subtitlesGetter: () => SubtitleModel[] | undefined,
-        useCapture = false
+        capture = false
     ) {
         const delegate = (event: KeyboardEvent, forward: boolean) => {
             if (disabledGetter()) {
@@ -355,22 +347,20 @@ export class DefaultKeyBinder implements KeyBinder {
         const previousHandler = (event: KeyboardEvent) => delegate(event, false);
         const nextHandler = (event: KeyboardEvent) => delegate(event, true);
 
+        let unbindPrevious: (() => void) | undefined;
+        let unbindNext: (() => void) | undefined;
+
         if (previousShortcut) {
-            hotkeys(previousShortcut, { capture: useCapture }, previousHandler);
+            unbindPrevious = this._bind(previousShortcut, capture, previousHandler);
         }
 
         if (nextShortcut) {
-            hotkeys(nextShortcut, { capture: useCapture }, nextHandler);
+            unbindNext = this._bind(nextShortcut, capture, nextHandler);
         }
 
         return () => {
-            if (previousShortcut) {
-                hotkeys.unbind(previousShortcut, previousHandler);
-            }
-
-            if (nextShortcut) {
-                hotkeys.unbind(nextShortcut, nextHandler);
-            }
+            unbindPrevious?.();
+            unbindNext?.();
         };
     }
 
@@ -407,7 +397,7 @@ export class DefaultKeyBinder implements KeyBinder {
         onOffsetChange: (event: KeyboardEvent, newOffset: number) => void,
         disabledGetter: () => boolean,
         subtitlesGetter: () => SubtitleModel[] | undefined,
-        useCapture = false
+        capture = false
     ) {
         const delegate = (event: KeyboardEvent, increase: boolean) => {
             if (disabledGetter()) {
@@ -430,18 +420,18 @@ export class DefaultKeyBinder implements KeyBinder {
         const decreaseHandler = (event: KeyboardEvent) => delegate(event, false);
         const increaseHandler = (event: KeyboardEvent) => delegate(event, true);
 
-        hotkeys(decreaseShortcut, { capture: useCapture }, decreaseHandler);
-        hotkeys(increaseShortcut, { capture: useCapture }, increaseHandler);
+        const unbindDecrease = this._bind(decreaseShortcut, capture, decreaseHandler);
+        const unbindIncrease = this._bind(increaseShortcut, capture, increaseHandler);
         return () => {
-            hotkeys.unbind(decreaseShortcut, decreaseHandler);
-            hotkeys.unbind(increaseShortcut, increaseHandler);
+            unbindDecrease();
+            unbindIncrease();
         };
     }
 
     bindResetOffet(
         onResetOffset: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,
-        useCapture?: boolean | undefined
+        capture?: boolean | undefined
     ) {
         const shortcut = this.keyBindSet.resetOffset.keys;
 
@@ -457,16 +447,13 @@ export class DefaultKeyBinder implements KeyBinder {
             onResetOffset(event);
         };
 
-        hotkeys(shortcut, { capture: useCapture }, handler);
-        return () => {
-            hotkeys.unbind(shortcut, handler);
-        };
+        return this._bind(shortcut, capture ?? false, handler);
     }
 
     bindAdjustPlaybackRate(
         onAdjustPlaybackRate: (event: KeyboardEvent, increase: boolean) => void,
         disabledGetter: () => boolean,
-        useCapture = false
+        capture = false
     ) {
         const delegate = (event: KeyboardEvent, increase: boolean) => {
             if (disabledGetter()) {
@@ -479,30 +466,27 @@ export class DefaultKeyBinder implements KeyBinder {
         const decreaseShortcut = this.keyBindSet.decreasePlaybackRate.keys;
         const decreaseHandler = (event: KeyboardEvent) => delegate(event, false);
         const increaseHandler = (event: KeyboardEvent) => delegate(event, true);
+        let unbindDecrease: (() => void) | undefined;
+        let unbindIncrease: (() => void) | undefined;
 
         if (decreaseShortcut) {
-            hotkeys(decreaseShortcut, { capture: useCapture }, decreaseHandler);
+            unbindDecrease = this._bind(decreaseShortcut, capture, decreaseHandler);
         }
 
         if (increaseShortcut) {
-            hotkeys(increaseShortcut, { capture: useCapture }, increaseHandler);
+            unbindIncrease = this._bind(increaseShortcut, capture, increaseHandler);
         }
 
         return () => {
-            if (decreaseShortcut) {
-                hotkeys.unbind(decreaseShortcut, decreaseHandler);
-            }
-
-            if (increaseShortcut) {
-                hotkeys.unbind(increaseShortcut, increaseHandler);
-            }
+            unbindDecrease?.();
+            unbindIncrease?.();
         };
     }
 
     bindToggleSubtitles(
         onToggleSubtitles: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,
-        useCapture = false
+        capture = false
     ) {
         const shortcut = this.keyBindSet.toggleSubtitles.keys;
 
@@ -517,16 +501,13 @@ export class DefaultKeyBinder implements KeyBinder {
 
             onToggleSubtitles(event);
         };
-        hotkeys(shortcut, { capture: useCapture }, handler);
-        return () => {
-            hotkeys.unbind(shortcut, handler);
-        };
+        return this._bind(shortcut, capture, handler);
     }
 
     bindToggleSubtitleTrackInVideo(
         onToggleSubtitleTrack: (event: KeyboardEvent, extra: any) => void,
         disabledGetter: () => boolean,
-        useCapture = false
+        capture = false
     ) {
         const shortcuts = [
             this.keyBindSet.toggleVideoSubtitleTrack1.keys,
@@ -544,18 +525,17 @@ export class DefaultKeyBinder implements KeyBinder {
 
             onToggleSubtitleTrack(event, track);
         };
-        let handlers: ((event: KeyboardEvent) => void)[] = [];
+        let unbindHandlers: (() => void)[] = [];
 
         for (let i = 0; i < shortcuts.length; ++i) {
             const handler = (event: KeyboardEvent) => delegate(event, i);
-            handlers.push(handler);
-            hotkeys(shortcuts[i], { capture: useCapture }, handler);
+            unbindHandlers.push(this._bind(shortcuts[i], capture, handler));
         }
 
         return () => {
             for (let i = 0; i < shortcuts.length; ++i) {
-                const handler = handlers[i];
-                hotkeys.unbind(shortcuts[i], handler);
+                const unbindHandler = unbindHandlers[i];
+                unbindHandler();
             }
         };
     }
@@ -563,7 +543,7 @@ export class DefaultKeyBinder implements KeyBinder {
     bindToggleSubtitleTrackInList(
         onToggleSubtitleTrackInList: (event: KeyboardEvent, extra: any) => void,
         disabledGetter: () => boolean,
-        useCapture = false
+        capture = false
     ) {
         const shortcuts = [
             this.keyBindSet.toggleAsbplayerSubtitleTrack1.keys,
@@ -582,23 +562,23 @@ export class DefaultKeyBinder implements KeyBinder {
             onToggleSubtitleTrackInList(event, track);
         };
 
-        let handlers: ((event: KeyboardEvent) => void)[] = [];
+        let unbindHandlers: (() => void)[] = [];
 
         for (let i = 0; i < 9; ++i) {
             const handler = (event: KeyboardEvent) => delegate(event, i);
-            handlers.push(handler);
-            hotkeys(shortcuts[i], { capture: useCapture }, handler);
+            const unbindHandler = this._bind(shortcuts[i], capture, handler);
+            unbindHandlers.push(unbindHandler);
         }
 
         return () => {
             for (let i = 0; i < 9; ++i) {
-                const handler = handlers[i];
-                hotkeys.unbind(shortcuts[i], handler);
+                const unbindHandler = unbindHandlers[i];
+                unbindHandler();
             }
         };
     }
 
-    bindPlay(onPlay: (event: KeyboardEvent) => void, disabledGetter: () => boolean, useCapture = false) {
+    bindPlay(onPlay: (event: KeyboardEvent) => void, disabledGetter: () => boolean, capture = false) {
         const shortcut = this.keyBindSet.togglePlay.keys;
 
         if (!shortcut) {
@@ -613,13 +593,10 @@ export class DefaultKeyBinder implements KeyBinder {
             onPlay(event);
         };
 
-        hotkeys(shortcut, { capture: useCapture }, handler);
-        return () => {
-            hotkeys.unbind(shortcut, handler);
-        };
+        return this._bind(shortcut, capture, handler);
     }
 
-    bindAutoPause(onAutoPause: (event: KeyboardEvent) => void, disabledGetter: () => boolean, useCapture = false) {
+    bindAutoPause(onAutoPause: (event: KeyboardEvent) => void, disabledGetter: () => boolean, capture = false) {
         const shortcut = this.keyBindSet.toggleAutoPause.keys;
 
         if (!shortcut) {
@@ -633,17 +610,11 @@ export class DefaultKeyBinder implements KeyBinder {
 
             onAutoPause(event);
         };
-        hotkeys(shortcut, { capture: useCapture }, handler);
-        return () => {
-            hotkeys.unbind(shortcut, handler);
-        };
+
+        return this._bind(shortcut, capture, handler);
     }
 
-    bindCondensedPlayback(
-        onAutoPause: (event: KeyboardEvent) => void,
-        disabledGetter: () => boolean,
-        useCapture = false
-    ) {
+    bindCondensedPlayback(onAutoPause: (event: KeyboardEvent) => void, disabledGetter: () => boolean, capture = false) {
         const shortcut = this.keyBindSet.toggleCondensedPlayback.keys;
 
         if (!shortcut) {
@@ -657,9 +628,20 @@ export class DefaultKeyBinder implements KeyBinder {
 
             onAutoPause(event);
         };
-        hotkeys(shortcut, { capture: useCapture }, handler);
-        return () => {
-            hotkeys.unbind(shortcut, handler);
+
+        return this._bind(shortcut, capture, handler);
+    }
+
+    private _bind(shortcut: string, capture: boolean, handler: (event: KeyboardEvent) => void) {
+        const wrappedHandler = (event: KeyboardEvent) => {
+            if (event.type === 'keydown') {
+                handler(event);
+            } else if (event.type === 'keyup') {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+            }
         };
+        hotkeys(shortcut, { capture, keydown: true, keyup: true }, wrappedHandler);
+        return () => hotkeys.unbind(shortcut, wrappedHandler);
     }
 }
