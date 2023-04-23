@@ -89,6 +89,7 @@ const autoCopyCurrentSubtitleKey = 'autoCopyCurrentSubtitle';
 const subtitleRegexFilterKey = 'subtitleRegexFilter';
 const subtitleRegexFilterTextReplacementKey = 'subtitleRegexFilterTextReplacement';
 const miningHistoryStorageLimitKey = 'miningHistoryStorageLimit';
+const languageKey = 'i18nextLng';
 
 export default class SettingsProvider implements AsbplayerSettingsProvider {
     private _tags?: string[];
@@ -140,6 +141,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             subtitleRegexFilter: this.subtitleRegexFilter,
             subtitleRegexFilterTextReplacement: this.subtitleRegexFilterTextReplacement,
             miningHistoryStorageLimit: this.miningHistoryStorageLimit,
+            language: this.language,
         };
     }
 
@@ -181,6 +183,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.miningHistoryStorageLimit = newSettings.miningHistoryStorageLimit;
         this.subtitleRegexFilter = newSettings.subtitleRegexFilter;
         this.subtitleRegexFilterTextReplacement = newSettings.subtitleRegexFilterTextReplacement;
+        this.language = newSettings.language;
     }
 
     get subtitleSettings() {
@@ -231,6 +234,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             subtitleRegexFilter: this.subtitleRegexFilter,
             subtitleRegexFilterTextReplacement: this.subtitleRegexFilterTextReplacement,
             miningHistoryStorageLimit: this.miningHistoryStorageLimit,
+            language: this.language,
         };
     }
 
@@ -615,5 +619,13 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
 
     set miningHistoryStorageLimit(miningHistoryStorageLimit: number) {
         this._storage.set(miningHistoryStorageLimitKey, String(miningHistoryStorageLimit));
+    }
+
+    get language() {
+        return this._storage.get(languageKey) ?? 'en';
+    }
+
+    set language(language: string) {
+        this._storage.set(languageKey, language);
     }
 }

@@ -37,6 +37,8 @@ import Switch from '@material-ui/core/Switch';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Tooltip from '@material-ui/core/Tooltip';
 
+const supportedLanguages = ['en', 'ja'];
+
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
         '& .MuiTextField-root': {
@@ -425,6 +427,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
     const [subtitleRegexFilterTextReplacement, setSubtitleRegexFilterTextReplacement] = useState<string>(
         settings.subtitleRegexFilterTextReplacement
     );
+    const [language, setLanguage] = useState<string>(settings.language);
 
     const handleAnkiConnectUrlChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         setAnkiConnectUrl(e.target.value);
@@ -644,6 +647,10 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
             setSubtitleRegexFilterTextReplacement(e.target.value),
         []
     );
+    const handleLanguage = useCallback(
+        (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setLanguage(e.target.value as string),
+        []
+    );
 
     const subtitlePreviewStyles = useMemo(
         () =>
@@ -784,6 +791,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
             miningHistoryStorageLimit: miningHistoryStorageLimit,
             subtitleRegexFilter: subtitleRegexFilter,
             subtitleRegexFilterTextReplacement: subtitleRegexFilterTextReplacement,
+            language: language,
         });
     }, [
         onClose,
@@ -824,6 +832,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         miningHistoryStorageLimit,
         subtitleRegexFilter,
         subtitleRegexFilterTextReplacement,
+        language,
     ]);
 
     const customFieldInputs = Object.keys(customFields).map((customFieldName) => {
@@ -867,7 +876,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                             <FormLabel>Anki</FormLabel>
                             <FormGroup className={classes.root}>
                                 <TextField
-                                    label="Anki Connect URL"
+                                    label={t('settings.ankiConnectUrl')}
                                     value={ankiConnectUrl}
                                     error={Boolean(ankiConnectUrlError)}
                                     helperText={ankiConnectUrlError}
@@ -897,63 +906,63 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                     .
                                 </FormHelperText>
                                 <SelectableSetting
-                                    label="Deck"
+                                    label={t('settings.deck')}
                                     value={deck}
                                     selections={deckNames}
                                     onChange={handleDeckChange}
                                     onSelectionChange={handleDeckSelectionChange}
                                 />
                                 <SelectableSetting
-                                    label="Note Type"
+                                    label={t('settings.noteType')}
                                     value={noteType}
                                     selections={modelNames}
                                     onChange={handleNoteTypeChange}
                                     onSelectionChange={handleNoteTypeSelectionChange}
                                 />
                                 <SelectableSetting
-                                    label="Sentence Field"
+                                    label={t('settings.sentenceField')}
                                     value={sentenceField}
                                     selections={fieldNames}
                                     onChange={handleSentenceFieldChange}
                                     onSelectionChange={handleSentenceFieldSelectionChange}
                                 />
                                 <SelectableSetting
-                                    label="Definition Field"
+                                    label={t('settings.definitionField')}
                                     value={definitionField}
                                     selections={fieldNames}
                                     onChange={handleDefinitionFieldChange}
                                     onSelectionChange={handleDefinitionFieldSelectionChange}
                                 />
                                 <SelectableSetting
-                                    label="Word Field"
+                                    label={t('settings.wordField')}
                                     value={wordField}
                                     selections={fieldNames}
                                     onChange={handleWordFieldChange}
                                     onSelectionChange={handleWordFieldSelectionChange}
                                 />
                                 <SelectableSetting
-                                    label="Audio Field"
+                                    label={t('settings.audioField')}
                                     value={audioField}
                                     selections={fieldNames}
                                     onChange={handleAudioFieldChange}
                                     onSelectionChange={handleAudioFieldSelectionChange}
                                 />
                                 <SelectableSetting
-                                    label="Image Field"
+                                    label={t('settings.imageField')}
                                     value={imageField}
                                     selections={fieldNames}
                                     onChange={handleImageFieldChange}
                                     onSelectionChange={handleImageFieldSelectionChange}
                                 />
                                 <SelectableSetting
-                                    label="Source Field"
+                                    label={t('settings.sourceField')}
                                     value={sourceField}
                                     selections={fieldNames}
                                     onChange={handleSourceFieldChange}
                                     onSelectionChange={handleSourceFieldSelectionChange}
                                 />
                                 <SelectableSetting
-                                    label="URL Field"
+                                    label={t('settings.urlField')}
                                     value={urlField}
                                     selections={fieldNames}
                                     onChange={handleUrlFieldChange}
@@ -967,7 +976,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                     Add Custom Field
                                 </Button>
                                 <TagsTextField
-                                    label="Tags"
+                                    label={t('settings.tags')}
                                     helperText="Comma-separated list of strings"
                                     fullWidth
                                     color="secondary"
@@ -1132,6 +1141,19 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                     color="secondary"
                                     onChange={handleSubtitleRegexFilterTextReplacement}
                                 />
+                                <TextField
+                                    select
+                                    label="Language"
+                                    value={language}
+                                    color="secondary"
+                                    onChange={handleLanguage}
+                                >
+                                    {supportedLanguages.map((s) => (
+                                        <MenuItem key={s} value={s}>
+                                            {s}
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
                             </FormGroup>
                         </Grid>
                         <Grid item id="auto-pause-settings">

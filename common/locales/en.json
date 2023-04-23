@@ -40,6 +40,19 @@
         "increasePlaybackRate": "Adjust playback rate by +0.1",
         "decreasePlaybackRate": "Adjust playback rate by -0.1"
     },
+    "settings": {
+        "ankiConnectUrl": "Anki Connect URL",
+        "deck": "Deck",
+        "noteType": "Note Type",
+        "sentenceField": "Sentence Field",
+        "definitionField": "Definition Field",
+        "wordField": "Word Field",
+        "audioField": "Audio Field",
+        "imageField": "Image Field",
+        "sourceField": "Source Field",
+        "urlField": "URL Field",
+        "tags": "Tags"
+    },
     "ankiDialog": {
         "title": "Anki Export",
         "sentence": "Sentence",

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
+import i18n from './i18n';
 import { Route, Navigate, Routes, useLocation, useSearchParams } from 'react-router-dom';
 import { ThemeProvider, createTheme, makeStyles, Theme } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
@@ -730,6 +731,11 @@ function App() {
     const handleCloseSettings = useCallback(
         (newSettings: AsbplayerSettings) => {
             settingsProvider.settings = newSettings;
+
+            if (i18n.language !== settingsProvider.language) {
+                i18n.changeLanguage(settingsProvider.language);
+            }
+            
             setSettingsDialogOpen(false);
             setSettingsDialogScrollToId(undefined);
 

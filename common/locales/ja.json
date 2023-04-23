@@ -40,6 +40,19 @@
         "increasePlaybackRate": "再生速度を+0.1で早くする",
         "decreasePlaybackRate": "再生速度を-0.1で遅くする"
     },
+    "settings": {
+        "ankiConnectUrl": "AnkiコネクトのURL",
+        "deck": "デッキ ",
+        "noteType": "ノートタイプ",
+        "sentenceField": "文章フィールド",
+        "definitionField": "定義フィールド",
+        "wordField": "言葉フィールド",
+        "audioField": "オーディオフィールド",
+        "imageField": "画像フィールド",
+        "sourceField": "出どころフィールド",
+        "urlField": "URLフィールド",
+        "tags": "タッグ"
+    },
     "ankiDialog": {
         "title": "Ankiカード作成",
         "sentence": "文章",
