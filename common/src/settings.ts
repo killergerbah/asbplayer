@@ -7,9 +7,10 @@ export interface MiscSettings {
     readonly keyBindSet: KeyBindSet;
     readonly rememberSubtitleOffset: boolean;
     readonly autoCopyCurrentSubtitle: boolean;
-    readonly subtitleRegexFilter:  string;
+    readonly subtitleRegexFilter: string;
     readonly subtitleRegexFilterTextReplacement: string;
     readonly miningHistoryStorageLimit: number;
+    readonly language: string;
 }
 
 export interface AnkiSettings {
