@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect, useMemo, ChangeEvent, ReactNode, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { makeStyles } from '@material-ui/styles';
 import { computeStyles } from '../services/util';
 import Button from '@material-ui/core/Button';
@@ -859,7 +859,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
     }, [scrollToId]);
 
     const validRegex = regexIsValid(subtitleRegexFilter);
-
+    const origin = `${window.location.protocol}//${window.location.hostname}`;
     return (
         <React.Fragment>
             <CustomFieldDialog
@@ -869,11 +869,11 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                 onCancel={() => setCustomFieldDialogOpen(false)}
             />
             <Dialog open={open} maxWidth="xs" fullWidth onClose={handleClose}>
-                <DialogTitle>Settings</DialogTitle>
+                <DialogTitle>{t('settings.title')}</DialogTitle>
                 <DialogContent>
                     <Grid container direction="column" spacing={3}>
                         <Grid item id="anki-settings">
-                            <FormLabel>Anki</FormLabel>
+                            <FormLabel>{t('settings.anki')}</FormLabel>
                             <FormGroup className={classes.root}>
                                 <TextField
                                     label={t('settings.ankiConnectUrl')}
@@ -893,17 +893,20 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                     }}
                                 />
                                 <FormHelperText>
-                                    Ensure that {window.location.protocol + '//' + window.location.hostname} is in the
-                                    webCorsOriginList in your AnkiConnect settings as in this{' '}
-                                    <Link
-                                        color="secondary"
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        href="https://youtu.be/Mv7fEVb6PHo?t=44"
-                                    >
-                                        video
-                                    </Link>
-                                    .
+                                    <Trans
+                                        i18nKey={'settings.corsHelperText'}
+                                        values={{ origin }}
+                                        components={[
+                                            <Link
+                                                color="secondary"
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                href="https://youtu.be/Mv7fEVb6PHo?t=44"
+                                            >
+                                                video
+                                            </Link>,
+                                        ]}
+                                    ></Trans>
                                 </FormHelperText>
                                 <SelectableSetting
                                     label={t('settings.deck')}
@@ -973,11 +976,11 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                     className={classes.addFieldButton}
                                     onClick={(e) => setCustomFieldDialogOpen(true)}
                                 >
-                                    Add Custom Field
+                                    {t('settings.addCustomField')}
                                 </Button>
                                 <TagsTextField
                                     label={t('settings.tags')}
-                                    helperText="Comma-separated list of strings"
+                                    helperText={t('settings.tagsHelperText')}
                                     fullWidth
                                     color="secondary"
                                     tags={tags}
@@ -986,11 +989,11 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                             </FormGroup>
                         </Grid>
                         <Grid item id="mining-settings">
-                            <FormLabel>Mining</FormLabel>
+                            <FormLabel>{t('settings.mining')}</FormLabel>
                             <FormGroup className={classes.root}>
                                 <FormControlLabel
                                     control={<Switch checked={preferMp3} onChange={handlePreferMp3Change} />}
-                                    label="Re-encode audio as mp3 (slower)"
+                                    label={t('settings.mp3Preference')}
                                     labelPlacement="start"
                                     className={classes.switchLabel}
                                 />
@@ -1001,13 +1004,13 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                             onChange={handleCopyToClipboardOnMine}
                                         />
                                     }
-                                    label="Copy mined subtitles to clipboard"
+                                    label={t('settings.copyOnMine')}
                                     labelPlacement="start"
                                     className={classes.switchLabel}
                                 />
                                 <TextField
                                     type="number"
-                                    label="Audio Padding Start"
+                                    label={t('settings.audioPaddingStart')}
                                     fullWidth
                                     value={audioPaddingStart}
                                     color="secondary"
@@ -1022,7 +1025,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                 />
                                 <TextField
                                     type="number"
-                                    label="Audio Padding End"
+                                    label={t('settings.audioPaddingEnd')}
                                     fullWidth
                                     value={audioPaddingEnd}
                                     color="secondary"
@@ -1037,7 +1040,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                 />
                                 <TextField
                                     type="number"
-                                    label="Max Image Width"
+                                    label={t('settings.maxImageWidth')}
                                     fullWidth
                                     value={maxImageWidth}
                                     color="secondary"
@@ -1049,7 +1052,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                 />
                                 <TextField
                                     type="number"
-                                    label="Max Image Height"
+                                    label={t('settings.maxImageHeight')}
                                     fullWidth
                                     value={maxImageHeight}
                                     color="secondary"
@@ -1061,7 +1064,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                 />
                                 <TextField
                                     type="number"
-                                    label="Surrounding Subtitles Count Radius"
+                                    label={t('settings.surroundingSubtitlesCountRadius')}
                                     fullWidth
                                     value={surroundingSubtitlesCountRadius}
                                     color="secondary"
@@ -1073,7 +1076,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                 />
                                 <TextField
                                     type="number"
-                                    label="Surrounding Subtitles Time Radius"
+                                    label={t('settings.surroundingSubtitlesTimeRadius')}
                                     fullWidth
                                     value={surroundingSubtitlesTimeRadius}
                                     color="secondary"
@@ -1089,7 +1092,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                             </FormGroup>
                         </Grid>
                         <Grid item id="misc-settings">
-                            <FormLabel>Misc</FormLabel>
+                            <FormLabel>{t('settings.misc')}</FormLabel>
                             <FormGroup className={classes.root}>
                                 <FormControlLabel
                                     control={
@@ -1098,7 +1101,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                             onChange={handleRememberSubtitleOffsetChange}
                                         />
                                     }
-                                    label="Remember subtitle offset"
+                                    label={t('settings.rememberSubtitleOffset')}
                                     labelPlacement="start"
                                     className={classes.switchLabel}
                                 />
@@ -1109,13 +1112,13 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                             onChange={handleAutoCopyCurrentSubtitle}
                                         />
                                     }
-                                    label="Auto-copy current subtitle to clipboard"
+                                    label={t('settings.autoCopy')}
                                     labelPlacement="start"
                                     className={classes.switchLabel}
                                 />
                                 <TextField
                                     type="number"
-                                    label="Mining history storage limit"
+                                    label={t('settings.miningHistoryStorageLimit')}
                                     fullWidth
                                     value={miningHistoryStorageLimit}
                                     color="secondary"
@@ -1126,7 +1129,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                     }}
                                 />
                                 <TextField
-                                    label="Subtitle Regex Filter"
+                                    label={t('settings.subtitleRegexFilter')}
                                     fullWidth
                                     value={subtitleRegexFilter}
                                     color="secondary"
@@ -1135,7 +1138,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                     onChange={handleSubtitleRegexFilter}
                                 />
                                 <TextField
-                                    label="Subtitle Regex Filter Text Replacement"
+                                    label={t('settings.subtitleRegexFilterTextReplacement')}
                                     fullWidth
                                     value={subtitleRegexFilterTextReplacement}
                                     color="secondary"
@@ -1143,7 +1146,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                 />
                                 <TextField
                                     select
-                                    label="Language"
+                                    label={t('settings.language')}
                                     value={language}
                                     color="secondary"
                                     onChange={handleLanguage}
@@ -1159,14 +1162,10 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                         <Grid item id="auto-pause-settings">
                             <Grid container direction="row" spacing={1}>
                                 <Grid item>
-                                    <FormLabel>Auto-pause Preference</FormLabel>
+                                    <FormLabel>{t('settings.autoPausePreference')}</FormLabel>
                                 </Grid>
                                 <Grid item>
-                                    <Tooltip
-                                        title="Does not enable auto-pause. Sets the preference for when to pause when auto-pause is
-                                    enabled."
-                                        placement="top"
-                                    >
+                                    <Tooltip title={t('settings.autoPausePreferenceHelperText')!} placement="top">
                                         <InfoIcon fontSize="small" />
                                     </Tooltip>
                                 </Grid>
@@ -1180,7 +1179,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                             onChange={handleAutoPausePreferenceChange}
                                         />
                                     }
-                                    label="At Subtitle Start"
+                                    label={t('settings.autoPauseAtSubtitleStart')}
                                 />
                                 <FormControlLabel
                                     control={
@@ -1190,17 +1189,17 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                             onChange={handleAutoPausePreferenceChange}
                                         />
                                     }
-                                    label="At Subtitle End"
+                                    label={t('settings.autoPauseAtSubtitleEnd')}
                                 />
                             </RadioGroup>
                         </Grid>
                         <Grid item id="video-subtitle-appearance">
-                            <FormLabel>Video Subtitle Appearance</FormLabel>
+                            <FormLabel>{t('settings.subtitleAppearance')}</FormLabel>
                             <FormGroup className={classes.root}>
                                 <div className={classes.subtitleSetting}>
                                     <TextField
                                         type="color"
-                                        label="Subtitle Color"
+                                        label={t('settings.subtitleColor')}
                                         fullWidth
                                         value={subtitleColor}
                                         color="secondary"
@@ -1210,7 +1209,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                 <div className={classes.subtitleSetting}>
                                     <TextField
                                         type="number"
-                                        label="Subtitle Size"
+                                        label={t('settings.subtitleSize')}
                                         fullWidth
                                         value={subtitleSize}
                                         color="secondary"
@@ -1224,7 +1223,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                 <div className={classes.subtitleSetting}>
                                     <TextField
                                         type="color"
-                                        label="Subtitle Outline Color"
+                                        label={t('settings.subtitleOutlineColor')}
                                         fullWidth
                                         value={subtitleOutlineColor}
                                         color="secondary"
@@ -1234,7 +1233,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                 <div className={classes.subtitleSetting}>
                                     <TextField
                                         type="number"
-                                        label="Subtitle Outline Thickness"
+                                        label={t('settings.subtitleOutlineThickness')}
                                         fullWidth
                                         value={subtitleOutlineThickness}
                                         onChange={handleSubtitleOutlineThicknessChange}
@@ -1248,7 +1247,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                 <div className={classes.subtitleSetting}>
                                     <TextField
                                         type="color"
-                                        label="Subtitle Background Color"
+                                        label={t('settings.subtitleBackgroundColor')}
                                         fullWidth
                                         value={subtitleBackgroundColor}
                                         color="secondary"
@@ -1258,7 +1257,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                 <div className={classes.subtitleSetting}>
                                     <TextField
                                         type="number"
-                                        label="Subtitle Background Opacity"
+                                        label={t('settings.subtitleBackgroundOpacity')}
                                         fullWidth
                                         inputProps={{
                                             min: 0,
@@ -1273,7 +1272,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                 <div className={classes.subtitleSetting}>
                                     <TextField
                                         type="text"
-                                        label="Subtitle Font Family"
+                                        label={t('settings.subtitleFontFamily')}
                                         placeholder="Inherited"
                                         fullWidth
                                         value={subtitleFontFamily}
@@ -1284,7 +1283,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                 <div className={classes.subtitleSetting}>
                                     <TextField
                                         type="number"
-                                        label="Image-based Subtitle Scale Factor"
+                                        label={t('settings.imageBasedSubtitleScaleFactor')}
                                         placeholder="Inherited"
                                         fullWidth
                                         inputProps={{
@@ -1308,7 +1307,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                             </FormGroup>
                         </Grid>
                         <Grid item id="theme-settings">
-                            <FormLabel>Theme</FormLabel>
+                            <FormLabel>{t('settings.theme')}</FormLabel>
                             <div>
                                 <FormControlLabel
                                     control={
@@ -1318,7 +1317,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                             onChange={handleThemeTypeChange}
                                         />
                                     }
-                                    label="Light"
+                                    label={t('settings.themeLight')}
                                 />
                                 <FormControlLabel
                                     control={
@@ -1328,12 +1327,12 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                             onChange={handleThemeTypeChange}
                                         />
                                     }
-                                    label="Dark"
+                                    label={t('settings.themeDark')}
                                 />
                             </div>
                         </Grid>
                         <Grid item id="keyboard-shortcuts">
-                            <FormLabel>Keyboard Shortcuts</FormLabel>
+                            <FormLabel>{t('settings.keyboardShortcuts')}</FormLabel>
                             <FormGroup>
                                 {Object.keys(keyBindProperties).map((key) => {
                                     const keyBindName = key as KeyBindName;
@@ -1358,7 +1357,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                     </Grid>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleClose}>OK</Button>
+                    <Button onClick={handleClose}>{t('action.ok')}</Button>
                 </DialogActions>
             </Dialog>
         </React.Fragment>

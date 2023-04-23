@@ -1,7 +1,8 @@
 {
     "action": {
         "cancel": "Cancel",
-        "openFiles": "Open Files"
+        "openFiles": "Open Files",
+        "ok": "OK"
     },
     "landing": {
         "cta": "Drag and drop subtitle and media files, or <1>browse</1>.",
@@ -41,6 +42,8 @@
         "decreasePlaybackRate": "Adjust playback rate by -0.1"
     },
     "settings": {
+        "title": "Settings",
+        "anki": "Anki",
         "ankiConnectUrl": "Anki Connect URL",
         "deck": "Deck",
         "noteType": "Note Type",
@@ -51,7 +54,43 @@
         "imageField": "Image Field",
         "sourceField": "Source Field",
         "urlField": "URL Field",
-        "tags": "Tags"
+        "tags": "Tags",
+        "corsHelperText": "Ensure that {{origin}} is in the  webCorsOriginList in your AnkiConnect settings as in this <0>video</0>.",
+        "addCustomField": "Add Custom Field",
+        "tagsHelperText": "Comma-separated list of strings",
+        "mining": "Mining",
+        "mp3Preference": "Re-encode audio as mp3 (slower)",
+        "copyOnMine": "Copy mined subtitles to clipboard",
+        "audioPaddingStart": "Audio Padding Start",
+        "audioPaddingEnd": "Audio Padding End",
+        "maxImageWidth": "Max Image Width",
+        "maxImageHeight": "Max Image Height",
+        "surroundingSubtitlesCountRadius": "Surrounding Subtitles Count Radius",
+        "surroundingSubtitlesTimeRadius": "Surrounding Subtitles Time Radius",
+        "misc": "Misc",
+        "rememberSubtitleOffset": "Remember subtitle offset",
+        "autoCopy": "Auto-copy current subtitle to clipboard",
+        "miningHistoryStorageLimit": "Mining history storage limit",
+        "subtitleRegexFilter": "Subtitle Regex Filter",
+        "subtitleRegexFilterTextReplacement": "Subtitle Regex Filter Text Replacement",
+        "language": "Language",
+        "autoPausePreference": "Auto-pause Preference",
+        "autoPausePreferenceHelperText": "Does not enable auto-pause. Sets the preference for when to pause when auto-pause is enabled.",
+        "autoPauseAtSubtitleStart": "At Subtitle Start",
+        "autoPauseAtSubtitleEnd": "At Subtitle End",
+        "subtitleAppearance": "Subtitle Appearance",
+        "subtitleColor": "Subtitle Color",
+        "subtitleSize": "Subtitle Size",
+        "subtitleOutlineColor": "Subtitle Outline Color",
+        "subtitleOutlineThickness": "Subtitle Outline Thickness",
+        "subtitleBackgroundColor": "Subtitle Background Color",
+        "subtitleBackgroundOpacity": "Subtitle Background Opacity",
+        "subtitleFontFamily": "Subtitle Font Family",
+        "imageBasedSubtitleScaleFactor": "Image-based Subtitle Scale Factor",
+        "theme": "Theme",
+        "themeLight": "Light",
+        "themeDark": "Dark",
+        "keyboardShortcuts": "Keyboard Shortcuts"
     },
     "ankiDialog": {
         "title": "Anki Export",

@@ -1,7 +1,8 @@
 {
     "action": {
         "cancel": "キャンセル",
-        "openFiles": "ファイルを開く"
+        "openFiles": "ファイルを開く",
+        "ok": "OK"
     },
     "landing": {
         "cta": "字幕またはメディアファイルをドラッグ＆ドロップするか、あるいは<1>ファイルを開く</1>。",
@@ -31,7 +32,7 @@
         "seekForward": "10秒で早送り",
         "seekToPreviousSubtitle": "前の字幕にシーク",
         "seekToNextSubtitle": "次の字幕にシーク",
-        "seekToBeginningOfCurrentSubtitle": "表示中の字幕の頭にシーク",
+        "seekToBeginningOfCurrentSubtitle": "表示中の字幕の先頭にシーク",
         "adjustOffsetToPreviousSubtitle": "前の字幕が現在の再生位置で表示されるように字幕のオフセット時間をずらす",
         "adjustOffsetToNextSubtitle": "次の字幕が現在の再生位置で表示されるように字幕のオフセット時間をずらす",
         "increaseOffset": "字幕のオフセット時間を+100msでずらす",
@@ -41,6 +42,8 @@
         "decreasePlaybackRate": "再生速度を-0.1で遅くする"
     },
     "settings": {
+        "title": "設定",
+        "anki": "Anki",
         "ankiConnectUrl": "AnkiコネクトのURL",
         "deck": "デッキ ",
         "noteType": "ノートタイプ",
@@ -51,7 +54,43 @@
         "imageField": "画像フィールド",
         "sourceField": "出どころフィールド",
         "urlField": "URLフィールド",
-        "tags": "タッグ"
+        "tags": "タッグ",
+        "corsHelperText": "この<0>動画</0>を参考に、Ankiコネクトの設定で{{origin}}がwebCorsOriginListのリストに含まれていることを確認してください。",
+        "addCustomField": "カスタムフィールドを追加",
+        "tagsHelperText": "コンマ区切りの文字配列",
+        "mining": "メモ",
+        "mp3Preference": "mp3に再エンコード(遅い)",
+        "copyOnMine": "メモされた字幕を自動的にコピー",
+        "audioPaddingStart": "録音の先頭パディング",
+        "audioPaddingEnd": "録音の末尾パディング",
+        "maxImageWidth": "画像の最大幅",
+        "maxImageHeight": "画像の最大高",
+        "surroundingSubtitlesCountRadius": "隣接字幕との最大距離",
+        "surroundingSubtitlesTimeRadius": "隣接字幕との最大時間間隔",
+        "misc": "その他", 
+        "rememberSubtitleOffset": "字幕の時間オフセットを保存",
+        "autoCopy": "表示中の字幕を自動的にコピー",
+        "miningHistoryStorageLimit": "メモ帳の最大履歴保存件数",
+        "subtitleRegexFilter": "字幕テキストの置き換えの正規表現",
+        "subtitleRegexFilterTextReplacement": "置き換えテキスト",
+        "language": "言語",
+        "autoPausePreference": "オートポーズ機能の設定",
+        "autoPausePreferenceHelperText": "オートポーズ機能のオン/オフを切り替える設定ではなく、オートポーズ機能をオンにした場合、字幕のどこで一時停止するかの設定です。",
+        "autoPauseAtSubtitleStart": "字幕の先頭",
+        "autoPauseAtSubtitleEnd": "字幕の末尾",
+        "subtitleAppearance": "字幕の外見",
+        "subtitleColor": "字幕の色",
+        "subtitleSize": "字幕の大きさ",
+        "subtitleOutlineColor": "字幕のアウトラインの色",
+        "subtitleOutlineThickness": "字幕のアウトラインの太さ",
+        "subtitleBackgroundColor": "字幕の背景色",
+        "subtitleBackgroundOpacity": "字幕の背景透明度",
+        "subtitleFontFamily": "字幕のフォントファミリー",
+        "imageBasedSubtitleScaleFactor": "画像形式の字幕のスケール値",
+        "theme": "テーマ",
+        "themeLight": "ライト",
+        "themeDark": "ダーク",
+        "keyboardShortcuts": "キーボードショートカット"
     },
     "ankiDialog": {
         "title": "Ankiカード作成",
