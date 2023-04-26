@@ -10,7 +10,7 @@ import VersionChecker, { LatestExtensionInfo } from '../../services/version-chec
 
 interface Props {
     bridge: Bridge;
-    currentSettings: any;
+    currentSettings: ExtensionSettings;
     commands: any;
 }
 

@@ -27,7 +27,6 @@ import Bridge from '../bridge';
 import { PaletteType } from '@material-ui/core';
 import { AnkiExportMode } from '@project/common/src/anki';
 import { AnkiDialogState } from '@project/common/components';
-import './i18n';
 
 interface Props {
     bridge: Bridge;

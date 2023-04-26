@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     const currentSettings = await currentSettingsPromise;
     const commands = await commandsPromise;
     const rootElement = document.getElementById('root')!;
-    const bridge = await renderPopupUi(rootElement, { currentSettings, commands, language: 'ja' });
+    const bridge = await renderPopupUi(rootElement, { currentSettings, commands });
     bridge.onServerMessage(async (message: any) => {
         switch (message.command) {
             case 'settings-changed':

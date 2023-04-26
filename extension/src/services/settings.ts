@@ -26,6 +26,7 @@ const defaults: ExtensionSettings = {
     subtitlePositionOffset: 75,
     asbplayerUrl: 'https://killergerbah.github.io/asbplayer/',
     lastThemeType: 'dark',
+    lastLanguage: 'en',
     imageDelay: 1000,
     subtitleAlignment: 'bottom',
 };

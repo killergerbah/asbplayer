@@ -7,6 +7,7 @@ import {
     cropAndResize,
     CurrentTimeFromVideoMessage,
     CurrentTimeToVideoMessage,
+    ExtensionSettings,
     humanReadableTime,
     ImageCaptureParams,
     MiscSettingsToVideoMessage,
@@ -102,9 +103,9 @@ export default class Binding {
         this.videoDataSyncController = new VideoDataSyncController(this);
         this.controlsController = new ControlsController(video);
         this.dragController = new DragController(video);
-        this.ankiUiController = new AnkiUiController();
         this.keyBindings = new KeyBindings();
         this.settings = new Settings();
+        this.ankiUiController = new AnkiUiController(this.settings);
         this.recordMedia = true;
         this.screenshot = true;
         this.cleanScreenshot = true;
@@ -442,7 +443,15 @@ export default class Binding {
                         break;
                     case 'miscSettings':
                         const miscSettingsMessage = request.message as MiscSettingsToVideoMessage;
-                        this.settings.set({ lastThemeType: miscSettingsMessage.value.themeType });
+                        var newSettings: Partial<ExtensionSettings> = {
+                            lastThemeType: miscSettingsMessage.value.themeType,
+                        };
+
+                        if (miscSettingsMessage.value.language !== undefined) {
+                            newSettings.lastLanguage = miscSettingsMessage.value.language;
+                        }
+
+                        this.settings.set(newSettings);
                         this.copyToClipboardOnMine = miscSettingsMessage.value.copyToClipboardOnMine;
                         this.autoPausePreference =
                             miscSettingsMessage.value.autoPausePreference ?? this.autoPausePreference;

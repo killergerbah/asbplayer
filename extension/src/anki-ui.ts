@@ -6,7 +6,8 @@ window.addEventListener('load', (e) => {
         new Blob([document.querySelector('#mp3-encoder-worker')!.textContent!], { type: 'text/javascript' })
     );
 
-    const bridge = renderAnkiUi(document.getElementById('root')!, mp3WorkerUrl);
+    const root = document.getElementById('root')!;
+    const bridge = renderAnkiUi(root, mp3WorkerUrl, root.dataset.lang!);
     const listener = new FrameBridgeServer(bridge);
     listener.bind();
 

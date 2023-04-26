@@ -15,10 +15,11 @@ import {
 } from '@project/common';
 import Binding from '../services/binding';
 import UiFrame from '../services/ui-frame';
+import Settings from '../services/settings';
 
 // We need to write the HTML into the iframe manually so that the iframe keeps it's about:blank URL.
 // Otherwise, Chrome won't insert content scripts into the iframe (e.g. Yomichan won't work).
-async function html() {
+async function html(language: string) {
     const mp3WorkerSource = await (await fetch(chrome.runtime.getURL('./mp3-encoder-worker.worker.js'))).text();
     return `<!DOCTYPE html>
               <html lang="en">
@@ -28,7 +29,7 @@ async function html() {
                   <title>asbplayer - Anki</title>
               </head>
               <body>
-              <div id="root" style="width:100%;height:100vh;"></div>
+              <div id="root" data-lang="${language}" style="width:100%;height:100vh;"></div>
               <script id="mp3-encoder-worker" type="javascript/worker">${mp3WorkerSource}</script>
               <script src="${chrome.runtime.getURL('./anki-ui.js')}"></script>
               </body>
@@ -36,6 +37,8 @@ async function html() {
 }
 
 export default class AnkiUiController {
+    private readonly settings: Settings;
+
     private frame?: UiFrame;
     private fullscreenElement?: Element;
     private activeElement?: Element;
@@ -54,7 +57,9 @@ export default class AnkiUiController {
         }
     }
 
-    constructor() {}
+    constructor(settings: Settings) {
+        this.settings = settings;
+    }
 
     prime(context: Binding) {
         this._client(context);
@@ -153,7 +158,8 @@ export default class AnkiUiController {
             return await this.frame.client();
         }
 
-        this.frame = new UiFrame(await html(), {
+        const language = (await this.settings.get(['lastLanguage'])).lastLanguage;
+        this.frame = new UiFrame(await html(language), {
             videoSrc: context.video.src,
             allowedFetchUrl: this._ankiSettings!.ankiConnectUrl,
         });
