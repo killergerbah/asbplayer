@@ -1,5 +1,6 @@
 {
     "action": {
+        "copy": "Copy",
         "cancel": "Cancel",
         "openFiles": "Open Files",
         "ok": "OK",
@@ -31,20 +32,33 @@
         "toggleSubtitles": "Toggle subtitles",
         "toggleVideoSubtitleTrack1": "Toggle subtitle track 1 in video",
         "toggleVideoSubtitleTrack2": "Toggle subtitle track 2 in video",
+        "toggleVideoSubtitleTracks": "Toggle subtitle track in video",
         "toggleAsbplayerSubtitleTrack1": "Toggle subtitle track 1 in asbplayer",
         "toggleAsbplayerSubtitleTrack2": "Toggle subtitle track 2 in asbplayer",
+        "toggleAsbplayerSubtitleTracks": "Toggle subtitle track in asbplayer",
         "seekBackward": "Seek backward 10 seconds",
         "seekForward": "Seek forward 10 seconds",
+        "seekBackwardOrForward": "Seek backward/forward 10 seconds",
         "seekToPreviousSubtitle": "Seek to previous subtitle",
         "seekToNextSubtitle": "Seek to next subtitle",
+        "seekToSubtitle": "Seek to previous/next subtitle",
         "seekToBeginningOfCurrentSubtitle": "Seek to beginning of current subtitle",
         "adjustOffsetToPreviousSubtitle": "Adjust subtitle offset so that previous subtitle is at current timestamp",
         "adjustOffsetToNextSubtitle": "Adjust subtitle offset so that next subtitle is at current timestamp",
+        "adjustOffsetToSubtitle": "Adjust subtitle offset so that previous/next subtitle is at current timestamp",
         "increaseOffset": "Adjust subtitle offset by +100ms",
         "decreaseOffset": "Adjust subtitle offset by -100ms",
+        "adjustOffset": "Adjust subtitle offset by ±100 ms",
         "resetOffset": "Reset subtitle offset",
         "increasePlaybackRate": "Adjust playback rate by +0.1",
-        "decreasePlaybackRate": "Adjust playback rate by -0.1"
+        "decreasePlaybackRate": "Adjust playback rate by -0.1",
+        "adjustPlaybackRate": "Adjust playback rate by ±0.1",
+        "extensionCopySubtitle": "Mine current subtitle. When video is synced without a subtitle file, starts/stops recording audio.",
+        "extensionAnkiDialog": "Mine current subtitle and open Anki export dialog. When video is synced without a subtitle file, starts/stops recording audio.",
+        "extensionUpdateLastCard": "Update last-created Anki card with asbplayer-captured media. When video is synced without a subtitle file, starts/stops recording audio.",
+        "extensionTakeScreenshot": "Manually take screenshot, overriding the one that is automatically taken when mining.",
+        "extensionToggleRecording": "Manually start/stop audio recording, even when a subtitle file is loaded.",
+        "extensionSelectSubtitleTrack": "Select subtitle tracks to load."
     },
     "settings": {
         "title": "Settings",
@@ -127,5 +141,31 @@
         "exportToAnki": "Export to Anki",
         "blank": "Blank",
         "miningHistoryEmpty": "Mining history is empty."
+    },
+    "extension": {
+        "settings": {
+            "updateAvailable": "Update Available",
+            "playback": "Playback",
+            "displaySubtitles": "Display subtitles",
+            "subtitlePositionOffset": "Subtitle position offset from bottom",
+            "condensedPlaybackMinSkipInterval": "Condensed playback minimum skip interval",
+            "mining": "Mining",
+            "recordAudio": "Record audio",
+            "takeScreenshot": "Take screenshot",
+            "cleanScreenshot": "Clean screenshot",
+            "cropScreenshot": "Crop screenshot",
+            "screenshotCaptureDelay": "Screenshot capture delay",
+            "syncing": "Syncing",
+            "asbplayerUrl": "asbplayer URL",
+            "dragAndDrop": "Allow subtitle file drag-and-drop",
+            "autoLoadDetectedSubs": "Auto-load detected subtitles",
+            "miningKeyboardShortcuts": "Mining Keyboard Shortcuts",
+            "playbackKeyboardShortcuts": "Playback Keyboard Shortcuts",
+            "subtitles": "Subtitles",
+            "subtitleAlignment": "Subtitle Alignment",
+            "subtitleAlignmentTop": "Top",
+            "subtitleAlignmentBottom": "Bottom",
+            "misc": "Misc"
+        }
     }
 }

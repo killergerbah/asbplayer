@@ -1,4 +1,5 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import Box from '@material-ui/core/Box';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -82,34 +83,6 @@ function SyncedVideoKeyboardShortcutRow({
     );
 }
 
-const extensionKeyboardShortcutLabels: any = {
-    'copy-subtitle':
-        'Mine current subtitle.\nWhen video is synced without a subtitle file, starts/stops recording audio.',
-    'copy-subtitle-with-dialog':
-        'Mine current subtitle and open Anki export dialog.\nWhen video is synced without a subtitle file, starts/stops recording audio.',
-    'update-last-card':
-        'Update last-created Anki card with asbplayer-captured media.\nWhen video is synced without a subtitle file, starts/stops recording audio.',
-    'take-screenshot': 'Manually take screenshot, overriding the one that is automatically taken when mining.',
-    'toggle-recording': 'Manually start/stop audio recording, even when a subtitle file is loaded.',
-    'toggle-video-select': 'Select subtitle tracks to load.',
-};
-
-const keyboardShortcutLabels: { [key in keyof ExtensionKeyBindingsSettings]: string } = {
-    bindPlay: 'Play/pause',
-    bindAutoPause: 'Toggle auto-pause',
-    bindCondensedPlayback: 'Toggle condensed playback',
-    bindToggleSubtitles: 'Toggle subtitles',
-    bindToggleSubtitleTrackInVideo: 'Toggle subtitle track in video',
-    bindToggleSubtitleTrackInAsbplayer: 'Toggle subtitle track in asbplayer',
-    bindSeekBackwardOrForward: 'Seek backward/forward 10 seconds',
-    bindSeekToSubtitle: 'Seek to previous/next subtitle',
-    bindSeekToBeginningOfCurrentSubtitle: 'Seek to beginning of current subtitle',
-    bindAdjustOffsetToSubtitle: 'Adjust subtitle offset so that previous/next subtitle is at current timestamp',
-    bindAdjustOffset: 'Adjust subtitle offset by ±100 ms',
-    bindResetOffset: 'Reset subtitle offset',
-    bindAdjustPlaybackRate: 'Adjust playback rate by ±0.1',
-};
-
 interface PopupFormProps {
     commands: any;
     settings: any;
@@ -130,14 +103,42 @@ export default function PopupForm({
     onVideoKeyboardShortcutClicked,
 }: PopupFormProps) {
     const classes = useStyles();
-
     const handleSubtitleAlignmentChange = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>) => {
             onSettingsChanged('subtitleAlignment', (event.target as HTMLInputElement).value as SubtitleAlignment);
         },
         [onSettingsChanged]
     );
-
+    const { t } = useTranslation();
+    const keyboardShortcutLabels: { [key in keyof ExtensionKeyBindingsSettings]: string } = useMemo(
+        () => ({
+            bindPlay: t('binds.togglePlay'),
+            bindAutoPause: t('binds.toggleAutoPause'),
+            bindCondensedPlayback: t('binds.toggleCondensedPlayback'),
+            bindToggleSubtitles: t('binds.toggleSubtitles'),
+            bindToggleSubtitleTrackInVideo: t('binds.toggleVideoSubtitleTracks'),
+            bindToggleSubtitleTrackInAsbplayer: t('binds.toggleAsbplayerSubtitleTracks'),
+            bindSeekBackwardOrForward: t('binds.seekBackwardOrForward'),
+            bindSeekToSubtitle: t('binds.seekToSubtitle'),
+            bindSeekToBeginningOfCurrentSubtitle: t('binds.seekToBeginningOfCurrentSubtitle'),
+            bindAdjustOffsetToSubtitle: t('binds.adjustOffsetToSubtitle'),
+            bindAdjustOffset: t('binds.adjustOffset'),
+            bindResetOffset: t('binds.resetOffset'),
+            bindAdjustPlaybackRate: t('binds.adjustPlaybackRate'),
+        }),
+        [t]
+    );
+    const extensionKeyboardShortcutLabels: any = useMemo(
+        () => ({
+            'copy-subtitle': t('binds.extensionCopySubtitle'),
+            'copy-subtitle-with-dialog': t('binds.extensionAnkiDialog'),
+            'update-last-card': t('binds.extensionUpdateLastCard'),
+            'take-screenshot': t('binds.extensionTakeScreenshot'),
+            'toggle-recording': t('binds.extensionToggleRecording'),
+            'toggle-video-select': t('binds.extensionSelectSubtitleTrack'),
+        }),
+        [t]
+    );
     return (
         <Box className={classes.root}>
             <Grid container direction="column" spacing={2}>
@@ -152,12 +153,12 @@ export default function PopupForm({
                             variant="contained"
                             color="secondary"
                         >
-                            Update Available
+                            {t('extension.settings.updateAvailable')}
                         </Button>
                     </Grid>
                 )}
                 <Grid item>
-                    <FormLabel component="legend">Subtitles</FormLabel>
+                    <FormLabel component="legend">{t('extension.settings.subtitles')}</FormLabel>
                     <FormGroup>
                         <FormControlLabel
                             className={classes.switchLabel}
@@ -167,7 +168,7 @@ export default function PopupForm({
                                     onChange={(e) => onSettingsChanged('displaySubtitles', e.target.checked)}
                                 />
                             }
-                            label="Display subtitles"
+                            label={t('extension.settings.displaySubtitles')}
                             labelPlacement="start"
                         />
                         <TextField
@@ -175,8 +176,7 @@ export default function PopupForm({
                             variant="filled"
                             type="number"
                             color="secondary"
-                            fullWidth
-                            label="Subtitle position offset"
+                            fullWidth                            label={t('extension.settings.subtitlePositionOffset')}
                             value={settings.subtitlePositionOffset}
                             inputProps={{
                                 min: 0,
@@ -187,7 +187,7 @@ export default function PopupForm({
                     </FormGroup>
                 </Grid>
                 <Grid item>
-                    <FormLabel component="legend">Subtitle Alignment</FormLabel>
+                    <FormLabel component="legend">{t('extension.settings.subtitleAlignment')}</FormLabel>
                     <RadioGroup row>
                         <FormControlLabel
                             control={
@@ -197,7 +197,7 @@ export default function PopupForm({
                                     onChange={handleSubtitleAlignmentChange}
                                 />
                             }
-                            label="Bottom"
+                            label={t('extension.settings.subtitleAlignmentBottom')}
                         />
                         <FormControlLabel
                             control={
@@ -207,12 +207,12 @@ export default function PopupForm({
                                     onChange={handleSubtitleAlignmentChange}
                                 />
                             }
-                            label="Top"
+                            label={t('extension.settings.subtitleAlignmentTop')}
                         />
                     </RadioGroup>
                 </Grid>
                 <Grid item>
-                    <FormLabel component="legend">Mining</FormLabel>
+                    <FormLabel component="legend">{t('extension.settings.mining')}</FormLabel>
                     <FormGroup>
                         <FormControlLabel
                             className={classes.switchLabel}
@@ -222,7 +222,7 @@ export default function PopupForm({
                                     onChange={(e) => onSettingsChanged('recordMedia', e.target.checked)}
                                 />
                             }
-                            label="Record audio"
+                            label={t('extension.settings.recordAudio')}
                             labelPlacement="start"
                         />
                         <FormControlLabel
@@ -233,7 +233,7 @@ export default function PopupForm({
                                     onChange={(e) => onSettingsChanged('screenshot', e.target.checked)}
                                 />
                             }
-                            label="Take screenshot"
+                            label={t('extension.settings.takeScreenshot')}
                             labelPlacement="start"
                         />
                         <FormControlLabel
@@ -244,7 +244,7 @@ export default function PopupForm({
                                     onChange={(e) => onSettingsChanged('cleanScreenshot', e.target.checked)}
                                 />
                             }
-                            label="Clean screenshot"
+                            label={t('extension.settings.cleanScreenshot')}
                             labelPlacement="start"
                         />
                         <FormControlLabel
@@ -255,7 +255,7 @@ export default function PopupForm({
                                     onChange={(e) => onSettingsChanged('cropScreenshot', e.target.checked)}
                                 />
                             }
-                            label="Crop screenshot"
+                            label={t('extension.settings.cropScreenshot')}
                             labelPlacement="start"
                         />
                         <TextField
@@ -264,7 +264,7 @@ export default function PopupForm({
                             type="number"
                             color="secondary"
                             fullWidth
-                            label="Screenshot capture delay"
+                            label={t('extension.settings.screenshotCaptureDelay')}
                             value={settings.imageDelay}
                             onChange={(e) => onSettingsChanged('imageDelay', Number(e.target.value))}
                             inputProps={{
@@ -278,14 +278,14 @@ export default function PopupForm({
                     </FormGroup>
                 </Grid>
                 <Grid item>
-                    <FormLabel component="legend">Syncing</FormLabel>
+                    <FormLabel component="legend">{t('extension.settings.syncing')}</FormLabel>
                     <FormGroup>
                         <TextField
                             className={classes.textField}
                             variant="filled"
                             color="secondary"
                             fullWidth
-                            label="asbplayer URL"
+                            label={t('extension.settings.asbplayerUrl')}
                             value={settings.asbplayerUrl}
                             onChange={(e) => onSettingsChanged('asbplayerUrl', e.target.value)}
                         />
@@ -297,7 +297,7 @@ export default function PopupForm({
                                     onChange={(e) => onSettingsChanged('subsDragAndDrop', e.target.checked)}
                                 />
                             }
-                            label="Allow subtitle file drag-and-drop"
+                            label={t('extension.settings.dragAndDrop')}
                             labelPlacement="start"
                         />
                         <FormControlLabel
@@ -308,20 +308,20 @@ export default function PopupForm({
                                     onChange={(e) => onSettingsChanged('autoSync', e.target.checked)}
                                 />
                             }
-                            label="Auto-load detected subtitles"
+                            label={t('extension.settings.autoLoadDetectedSubs')}
                             labelPlacement="start"
                         />
                     </FormGroup>
                 </Grid>
                 <Grid item>
-                    <FormLabel component="legend">Misc</FormLabel>
+                    <FormLabel component="legend">{t('extension.settings.misc')}</FormLabel>
                     <TextField
                         className={classes.textField}
                         variant="filled"
                         type="number"
                         color="secondary"
                         fullWidth
-                        label="Condensed playback minimum skip interval"
+                        label={t('extension.settings.condensedPlaybackMinSkipInterval')}
                         value={settings.condensedPlaybackMinimumSkipIntervalMs}
                         onChange={(e) =>
                             onSettingsChanged('condensedPlaybackMinimumSkipIntervalMs', Number(e.target.value))
@@ -357,7 +357,9 @@ export default function PopupForm({
                 <Grid item>
                     <Grid container direction="row" spacing={1}>
                         <Grid item style={{ flexGrow: 1 }}>
-                            <FormLabel component="legend">Playback Keyboard Shortcuts</FormLabel>
+                            <FormLabel component="legend">
+                                {t('extension.settings.playbackKeyboardShortcuts')}
+                            </FormLabel>
                         </Grid>
                         <Grid item>
                             <IconButton style={{ padding: 0 }} onClick={onVideoKeyboardShortcutClicked}>
