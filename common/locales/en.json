@@ -166,6 +166,41 @@
             "subtitleAlignmentTop": "Top",
             "subtitleAlignmentBottom": "Bottom",
             "misc": "Misc"
+        },
+        "videoSelect": {
+            "multipleVideoElements": "Multiple Video Elements Detected",
+            "syncBeforeMine": "A video element must be synced with asbplayer before it can be mined. Select a video element to sync it with asbplayer.",
+            "selectVideo": "Select a video element to sync it with asbplayer.",
+            "videoElement": "Video Element"
+        },
+        "videoDataSync": {
+            "selectSubtitles": "Select Subtitles",
+            "loadSubtitlesFirst": "Subtitles must be loaded before you can start mining.",
+            "videoName": "Video Name",
+            "subtitleTrack": "Subtitle Track"
         }
+    },
+    "error": {
+        "unknownExtension": "Unable to determine extension of {{fileName}}",
+        "onlyOneVideoFile": "Cannot open two video files simultaneously",
+        "onlyOneAudioFile": "Cannot open two audio files simultaneously",
+        "unsupportedExtension": "Unsupported extension {{extension}}",
+        "bothAudioAndVideNotAllowed": "Cannot load both an audio and video file simultaneously",
+        "subtitleFileNotOpen": "Subtitle file {{fileName}} is not open.",
+        "lostTabConnection": "Lost connection with tab: {{tabName}}",
+        "onlyOneDirectoryAllowed": "Cannot load more than one directory at a time",
+        "failedToLoadDirectory": "Failed to load directory",
+        "subdirectoriesNotAllowed": "Cannot load a directory with subdirectories",
+        "videoPlayerDragAndDropNotAllowed": "Video player cannot receive dropped files. Drop outside of the video frame instead."
+    },
+    "info": {
+        "exportedCard": "Exported card: {{result}}",
+        "updatedCard": "Updated card: {{result}}",
+        "savedTimestamp": "Saved: {{timestamp}}",
+        "copiedSubtitle": "Copied: {{text}}",
+        "enabledAutoPause": "Auto-pause: On",
+        "enabledCondensedPlayback": "Condensed playback: On",
+        "disabledAutoPause": "Auto-pause: Off",
+        "disabledCondensedPlayback": "Condensed playback: Off"
     }
 }

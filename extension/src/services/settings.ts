@@ -59,6 +59,12 @@ export default class Settings {
         return this.get(Object.keys(defaults) as SettingsKey[]);
     }
 
+    async getSingle<K extends keyof ExtensionSettings>(key: K): Promise<ExtensionSettings[K]> {
+        const vals = (await this.get([key])) as Partial<ExtensionSettings>;
+        const val = vals[key];
+        return val as ExtensionSettings[K];
+    }
+
     async get<K extends keyof ExtensionSettings>(keys: K[]): Promise<Pick<ExtensionSettings, K>> {
         let parameters: Partial<ExtensionSettings> = {};
 

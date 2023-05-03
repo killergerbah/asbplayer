@@ -11,6 +11,7 @@ import TextField from '@material-ui/core/TextField';
 import makeStyles from '@material-ui/styles/makeStyles';
 import { ConfirmedVideoDataSubtitleTrack, VideoDataSubtitleTrack } from '@project/common';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const createClasses = makeStyles((theme) => ({
     relative: {
@@ -68,6 +69,7 @@ export default function VideoDataSyncDialog({
     onOpenFile,
     onConfirm,
 }: Props) {
+    const { t } = useTranslation();
     const [selected, setSelected] = useState('-');
     const [name, setName] = useState('');
     const trimmedName = name.trim();
@@ -112,10 +114,10 @@ export default function VideoDataSyncDialog({
 
     return (
         <Dialog disableEnforceFocus fullWidth maxWidth="sm" open={open} onClose={onCancel}>
-            <DialogTitle>Select Subtitles</DialogTitle>
+            <DialogTitle>{t('extension.videoDataSync.selectSubtitles')}</DialogTitle>
             <DialogContent>
                 {openedFromMiningCommand && (
-                    <DialogContentText>Subtitles must be loaded before you can start mining.</DialogContentText>
+                    <DialogContentText>{t('extension.videoDataSync.loadSubtitlesFirst')}</DialogContentText>
                 )}
                 <form>
                     <Grid container direction="column" spacing={2}>
@@ -125,7 +127,7 @@ export default function VideoDataSyncDialog({
                                 multiline
                                 color="secondary"
                                 variant="filled"
-                                label="Video Name"
+                                label={t('extension.videoDataSync.videoName')}
                                 value={name}
                                 disabled={disabled}
                                 onChange={(e) => setName(e.target.value)}
@@ -139,7 +141,7 @@ export default function VideoDataSyncDialog({
                                     error={!!error}
                                     color="secondary"
                                     variant="filled"
-                                    label="Subtitle Track"
+                                    label={t('extension.videoDataSync.subtitleTrack')}
                                     helperText={error || ''}
                                     value={selected}
                                     disabled={isLoading || disabled}
@@ -163,10 +165,10 @@ export default function VideoDataSyncDialog({
             </DialogContent>
             <DialogActions>
                 <Button disabled={disabled} onClick={() => onCancel()}>
-                    Cancel
+                    {t('action.cancel')}
                 </Button>
                 <Button disabled={disabled} onClick={() => onOpenFile()}>
-                    Open Files
+                    {t('action.openFiles')}
                 </Button>
                 <Button
                     disabled={!trimmedName || disabled}
@@ -183,7 +185,7 @@ export default function VideoDataSyncDialog({
                         });
                     }}
                 >
-                    Confirm
+                    {t('action.ok')}
                 </Button>
             </DialogActions>
         </Dialog>

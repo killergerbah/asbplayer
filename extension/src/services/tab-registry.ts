@@ -335,7 +335,7 @@ export default class TabRegistry {
                 {
                     active: false,
                     selected: false,
-                    url: (await this.settings.get(['asbplayerUrl'])).asbplayerUrl,
+                    url: await this.settings.getSingle('asbplayerUrl'),
                     index: activeTabIndex,
                 },
                 resolve

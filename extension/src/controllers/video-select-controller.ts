@@ -18,7 +18,7 @@ export default class VideoSelectController {
     constructor(bindings: Binding[]) {
         this._bindings = bindings;
         this._frame = new UiFrame(
-            `<!DOCTYPE html>
+            async (lang) => `<!DOCTYPE html>
                 <html lang="en">
                 <head>
                     <meta charset="utf-8" />
@@ -26,7 +26,7 @@ export default class VideoSelectController {
                     <title>asbplayer - Video Select</title>
                 </head>
                 <body>
-                <div id="root" style="width:100%;height:100vh;"></div>
+                <div id="root" data-lang=\"${lang}\" style="width:100%;height:100vh;"></div>
                 <script src="${chrome.runtime.getURL('./video-select-ui.js')}"></script>
                 </body>
             </html>`
@@ -88,7 +88,6 @@ export default class VideoSelectController {
     }
 
     private async _showUi(openedFromMiningCommand: boolean) {
-        await this._frame.bind();
         const captureVisibleTabCommand: ForegroundToExtensionCommand<CaptureVisibleTabMessage> = {
             sender: 'asbplayer-foreground',
             message: { command: 'capture-visible-tab' },
@@ -108,26 +107,32 @@ export default class VideoSelectController {
             videoElements.push(await p);
         }
 
-        this._frame.show();
+        this._frame.language = await this._settings.getSingle('lastLanguage');
+        const isNewClient = await this._frame.bind();
         const client = await this._frame.client();
 
-        client.onServerMessage((message) => {
-            if (message.command === 'confirm') {
-                client.updateState({ open: false });
-                this._frame.hide();
-                this._bindings.find((b) => b.video.src === message.selectedVideoElementSrc)?.showVideoDataDialog(false);
-            } else if (message.command === 'cancel') {
-                client.updateState({ open: false });
-                this._frame.hide();
-            }
-        });
+        if (isNewClient) {
+            client.onServerMessage((message) => {
+                if (message.command === 'confirm') {
+                    client.updateState({ open: false });
+                    this._frame.hide();
+                    this._bindings
+                        .find((b) => b.video.src === message.selectedVideoElementSrc)
+                        ?.showVideoDataDialog(false);
+                } else if (message.command === 'cancel') {
+                    client.updateState({ open: false });
+                    this._frame.hide();
+                }
+            });
+        }
 
-        const themeType = (await this._settings.get(['lastThemeType'])).lastThemeType;
+        this._frame.show();
+        const themeType = await this._settings.getSingle('lastThemeType');
         client.updateState({ open: true, themeType, videoElements, openedFromMiningCommand });
     }
 
     private async _hideUi() {
-        if (!this._frame.bound) {
+        if (this._frame.hidden) {
             return;
         }
 

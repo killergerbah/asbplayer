@@ -78,7 +78,7 @@ export default class ImageCapturer {
         imageCaptureParams: ImageCaptureParams
     ): Promise<string> {
         return new Promise(async (resolve, reject) => {
-            const cropScreenshot = (await this.settings.get(['cropScreenshot'])).cropScreenshot;
+            const cropScreenshot = await this.settings.getSingle('cropScreenshot');
 
             if (!cropScreenshot) {
                 resolve(dataUrl);

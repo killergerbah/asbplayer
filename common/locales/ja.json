@@ -166,6 +166,41 @@
             "subtitleAlignmentTop": "上端",
             "subtitleAlignmentBottom": "下端",
             "misc": "その他"
+        },
+        "videoSelect": {
+            "multipleVideoElements": "複数のビデオ要素を検出した",
+            "syncBeforeMine": "ビデオ要素からメディアを抽出するにはasbplayerに同期する必要がある。まずはビデオ要素を選択してください。",
+            "selectVideo": "asbplayerに同期するビデオ要素を選択してください。",
+            "videoElement": "ビデオ要素"
+        },
+        "videoDataSync": {
+            "selectSubtitles": "字幕を読み込む",
+            "loadSubtitlesFirst": "字幕をメモするには字幕を読み込む必要がある。",
+            "videoName": "ビデオ名",
+            "subtitleTrack": "字幕トラック"
         }
+    },
+    "error": {
+        "unknownExtension": "Unable to determine extension of {{fileName}}",
+        "onlyOneVideoFile": "Cannot open two video files simultaneously",
+        "onlyOneAudioFile": "Cannot open two audio files simultaneously",
+        "unsupportedExtension": "Unsupported extension {{extension}}",
+        "bothAudioAndVideNotAllowed": "Cannot load both an audio and video file simultaneously",
+        "subtitleFileNotOpen": "Subtitle file {{fileName}} is not open.",
+        "lostTabConnection": "Lost connection with tab: {{tabName}}",
+        "onlyOneDirectoryAllowed": "Cannot load more than one directory at a time",
+        "failedToLoadDirectory": "Failed to load directory",
+        "subdirectoriesNotAllowed": "Cannot load a directory with subdirectories",
+        "videoPlayerDragAndDropNotAllowed": "Video player cannot receive dropped files. Drop outside of the video frame instead."
+    },
+    "info": {
+        "exportedCard": "Exported card: {{result}}",
+        "updatedCard": "Updated card: {{result}}",
+        "savedTimestamp": "Saved: {{timestamp}}",
+        "copiedSubtitle": "Copied: {{text}}",
+        "enabledAutoPause": "Auto-pause: On",
+        "enabledCondensedPlayback": "Condensed playback: On",
+        "disabledAutoPause": "Auto-pause: Off",
+        "disabledCondensedPlayback": "Condensed playback: Off"
     }
 }

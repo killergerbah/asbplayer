@@ -38,12 +38,17 @@ async function html(language: string) {
 
 export default class AnkiUiController {
     private readonly settings: Settings;
+    private readonly frame: UiFrame;
 
-    private frame?: UiFrame;
     private fullscreenElement?: Element;
     private activeElement?: Element;
     private focusInListener?: (event: FocusEvent) => void;
     private _ankiSettings?: AnkiSettings;
+
+    constructor(settings: Settings) {
+        this.settings = settings;
+        this.frame = new UiFrame(html);
+    }
 
     get ankiSettings() {
         return this._ankiSettings;
@@ -52,17 +57,9 @@ export default class AnkiUiController {
     set ankiSettings(value) {
         this._ankiSettings = value;
 
-        if (this.frame) {
+        if (this.frame?.bound) {
             this.frame.client().then((client) => client.sendClientMessage({ command: 'ankiSettings', value }));
         }
-    }
-
-    constructor(settings: Settings) {
-        this.settings = settings;
-    }
-
-    prime(context: Binding) {
-        this._client(context);
     }
 
     async show(
@@ -79,7 +76,7 @@ export default class AnkiUiController {
         this._prepareShow(context);
         const client = await this._client(context);
         const url = context.url;
-        const themeType = (await context.settings.get(['lastThemeType'])).lastThemeType;
+        const themeType = await context.settings.getSingle('lastThemeType');
 
         const state: AnkiUiInitialState = {
             type: 'initial',
@@ -105,7 +102,7 @@ export default class AnkiUiController {
         this._prepareShow(context);
         const client = await this._client(context);
 
-        const themeType = (await context.settings.get(['lastThemeType'])).lastThemeType;
+        const themeType = await context.settings.getSingle('lastThemeType');
         const state: AnkiUiResumeState = {
             ...uiState,
             type: 'resume',
@@ -125,7 +122,7 @@ export default class AnkiUiController {
         this._prepareShow(context);
         const client = await this._client(context);
 
-        const themeType = (await context.settings.get(['lastThemeType'])).lastThemeType;
+        const themeType = await context.settings.getSingle('lastThemeType');
         const state: AnkiUiResumeState = {
             ...uiState,
             type: 'resume',
@@ -153,114 +150,116 @@ export default class AnkiUiController {
     }
 
     private async _client(context: Binding) {
-        if (this.frame) {
-            this.frame.show();
-            return await this.frame.client();
-        }
-
-        const language = (await this.settings.get(['lastLanguage'])).lastLanguage;
-        this.frame = new UiFrame(await html(language), {
+        this.frame.fetchOptions = {
             videoSrc: context.video.src,
             allowedFetchUrl: this._ankiSettings!.ankiConnectUrl,
-        });
-        await this.frame.bind();
-        const client = await this.frame.client();
-        this.focusInListener = (event: FocusEvent) => {
-            if (this.frame === undefined || this.frame.hidden) {
-                return;
-            }
-
-            // Refocus Anki UI to workaround sites like Netflix that automatically
-            // take focus away when hiding video controls
-            client.sendClientMessage({ command: 'focus' });
         };
-        window.addEventListener('focusin', this.focusInListener);
+        this.frame.language = await this.settings.getSingle('lastLanguage');
+        const isNewClient = await this.frame.bind();
+        const client = await this.frame.client();
 
-        client.onServerMessage((message) => {
-            switch (message.command) {
-                case 'openSettings':
-                    const openSettingsCommand: VideoToExtensionCommand<OpenAsbplayerSettingsMessage> = {
-                        sender: 'asbplayer-video',
-                        message: {
-                            command: 'open-asbplayer-settings',
-                        },
-                        src: context.video.src,
-                    };
-                    chrome.runtime.sendMessage(openSettingsCommand);
+        if (isNewClient) {
+            this.focusInListener = (event: FocusEvent) => {
+                if (this.frame === undefined || this.frame.hidden) {
                     return;
-                case 'copy-to-clipboard':
-                    const copyToClipboardMessage = message as CopyToClipboardMessage;
-                    const copyToClipboardCommand: VideoToExtensionCommand<CopyToClipboardMessage> = {
-                        sender: 'asbplayer-video',
-                        message: {
-                            command: 'copy-to-clipboard',
-                            dataUrl: copyToClipboardMessage.dataUrl,
-                        },
-                        src: context.video.src,
-                    };
-                    chrome.runtime.sendMessage(copyToClipboardCommand);
-                    return;
-            }
-
-            context.keyBindings.bind(context);
-            context.subtitleController.forceHideSubtitles = false;
-            this.frame?.hide();
-
-            if (this.fullscreenElement) {
-                this.fullscreenElement.requestFullscreen();
-                this.fullscreenElement = undefined;
-            }
-
-            if (this.activeElement) {
-                const activeHtmlElement = this.activeElement as HTMLElement;
-
-                if (typeof activeHtmlElement.focus === 'function') {
-                    activeHtmlElement.focus();
                 }
 
-                this.activeElement = undefined;
-            } else {
-                window.focus();
-            }
+                // Refocus Anki UI to workaround sites like Netflix that automatically
+                // take focus away when hiding video controls
+                client.sendClientMessage({ command: 'focus' });
+            };
+            window.addEventListener('focusin', this.focusInListener);
 
-            switch (message.command) {
-                case 'resume':
-                    const resumeMessage = message as AnkiUiBridgeResumeMessage;
-                    context.ankiUiSavedState = resumeMessage.uiState;
+            client.onServerMessage((message) => {
+                switch (message.command) {
+                    case 'openSettings':
+                        const openSettingsCommand: VideoToExtensionCommand<OpenAsbplayerSettingsMessage> = {
+                            sender: 'asbplayer-video',
+                            message: {
+                                command: 'open-asbplayer-settings',
+                            },
+                            src: context.video.src,
+                        };
+                        chrome.runtime.sendMessage(openSettingsCommand);
+                        return;
+                    case 'copy-to-clipboard':
+                        const copyToClipboardMessage = message as CopyToClipboardMessage;
+                        const copyToClipboardCommand: VideoToExtensionCommand<CopyToClipboardMessage> = {
+                            sender: 'asbplayer-video',
+                            message: {
+                                command: 'copy-to-clipboard',
+                                dataUrl: copyToClipboardMessage.dataUrl,
+                            },
+                            src: context.video.src,
+                        };
+                        chrome.runtime.sendMessage(copyToClipboardCommand);
+                        return;
+                }
 
-                    if (resumeMessage.cardExported && resumeMessage.uiState.dialogRequestedTimestamp !== 0) {
-                        const seekTo = resumeMessage.uiState.dialogRequestedTimestamp / 1000;
+                context.keyBindings.bind(context);
+                context.subtitleController.forceHideSubtitles = false;
+                this.frame?.hide();
 
-                        if (context.video.currentTime !== seekTo) {
-                            context.seek(seekTo);
-                        }
+                if (this.fullscreenElement) {
+                    this.fullscreenElement.requestFullscreen();
+                    this.fullscreenElement = undefined;
+                }
 
-                        context.play();
-                    } else {
-                        context.play();
+                if (this.activeElement) {
+                    const activeHtmlElement = this.activeElement as HTMLElement;
+
+                    if (typeof activeHtmlElement.focus === 'function') {
+                        activeHtmlElement.focus();
                     }
-                    break;
-                case 'rewind':
-                    const rewindMessage = message as AnkiUiBridgeRewindMessage;
-                    context.ankiUiSavedState = rewindMessage.uiState;
-                    context.pause();
-                    context.seek(rewindMessage.uiState.subtitle.start / 1000);
-                    break;
-                case 'rerecord':
-                    const rerecordMessage = message as AnkiUiBridgeRerecordMessage;
-                    context.rerecord(rerecordMessage.recordStart, rerecordMessage.recordEnd, rerecordMessage.uiState);
-                    break;
-                default:
-                    console.error('Unknown message received from bridge: ' + message.command);
-            }
-        });
 
+                    this.activeElement = undefined;
+                } else {
+                    window.focus();
+                }
+
+                switch (message.command) {
+                    case 'resume':
+                        const resumeMessage = message as AnkiUiBridgeResumeMessage;
+                        context.ankiUiSavedState = resumeMessage.uiState;
+
+                        if (resumeMessage.cardExported && resumeMessage.uiState.dialogRequestedTimestamp !== 0) {
+                            const seekTo = resumeMessage.uiState.dialogRequestedTimestamp / 1000;
+
+                            if (context.video.currentTime !== seekTo) {
+                                context.seek(seekTo);
+                            }
+
+                            context.play();
+                        } else {
+                            context.play();
+                        }
+                        break;
+                    case 'rewind':
+                        const rewindMessage = message as AnkiUiBridgeRewindMessage;
+                        context.ankiUiSavedState = rewindMessage.uiState;
+                        context.pause();
+                        context.seek(rewindMessage.uiState.subtitle.start / 1000);
+                        break;
+                    case 'rerecord':
+                        const rerecordMessage = message as AnkiUiBridgeRerecordMessage;
+                        context.rerecord(
+                            rerecordMessage.recordStart,
+                            rerecordMessage.recordEnd,
+                            rerecordMessage.uiState
+                        );
+                        break;
+                    default:
+                        console.error('Unknown message received from bridge: ' + message.command);
+                }
+            });
+        }
+
+        this.frame.show();
         return client;
     }
 
     unbind() {
-        this.frame?.unbind();
-        this.frame = undefined;
+        this.frame.unbind();
 
         if (this.focusInListener) {
             window.removeEventListener('focusin', this.focusInListener);

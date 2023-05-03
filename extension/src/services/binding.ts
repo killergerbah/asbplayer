@@ -100,11 +100,11 @@ export default class Binding {
         this.video = video;
         this.subSyncAvailable = syncAvailable;
         this.subtitleController = new SubtitleController(video);
-        this.videoDataSyncController = new VideoDataSyncController(this);
+        this.settings = new Settings();
+        this.videoDataSyncController = new VideoDataSyncController(this, this.settings);
         this.controlsController = new ControlsController(video);
         this.dragController = new DragController(video);
         this.keyBindings = new KeyBindings();
-        this.settings = new Settings();
         this.ankiUiController = new AnkiUiController(this.settings);
         this.recordMedia = true;
         this.screenshot = true;

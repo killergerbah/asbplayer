@@ -20,7 +20,7 @@ export default class ToggleSubtitlesHandler {
     }
 
     async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
-        const displaySubtitles = (await this.settings.get(['displaySubtitles'])).displaySubtitles as boolean;
+        const displaySubtitles = await this.settings.getSingle('displaySubtitles');
         await this.settings.set({ displaySubtitles: !displaySubtitles });
 
         this.tabRegistry.publishCommandToVideoElements((videoElement) => {

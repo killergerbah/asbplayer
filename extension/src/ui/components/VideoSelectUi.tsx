@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { createTheme } from './theme';
 import Button from '@material-ui/core/Button';
@@ -30,6 +31,7 @@ export default function VideoSelectUi({ bridge }: Props) {
     const [videoElements, setVideoElements] = useState<VideoElement[]>([]);
     const [selectedVideoElementSrc, setSelectedVideoElementSrc] = useState<string>('');
     const [openedFromMiningCommand, setOpenedFromMiningCommand] = useState<boolean>(false);
+    const { t } = useTranslation();
 
     const theme = useMemo(() => createTheme(themeType as PaletteType), [themeType]);
 
@@ -75,15 +77,12 @@ export default function VideoSelectUi({ bridge }: Props) {
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <Dialog open={open}>
-                <DialogTitle>Multiple Video Elements Detected</DialogTitle>
+                <DialogTitle>{t('extension.videoSelect.multipleVideoElements')}</DialogTitle>
                 <DialogContent>
                     {openedFromMiningCommand ? (
-                        <DialogContentText>
-                            A video element must be synced with asbplayer before it can be mined. Select a video element
-                            to sync it with asbplayer.
-                        </DialogContentText>
+                        <DialogContentText>{t('extension.videoSelect.syncBeforeMine')}</DialogContentText>
                     ) : (
-                        <DialogContentText>Select a video element to sync it with asbplayer.</DialogContentText>
+                        <DialogContentText>{t('extension.videoSelect.selectVideo')}</DialogContentText>
                     )}
                     <Grid container direction="column" spacing={2}>
                         <Grid item style={{ maxWidth: '100%' }}>
@@ -92,7 +91,7 @@ export default function VideoSelectUi({ bridge }: Props) {
                                 fullWidth
                                 color="secondary"
                                 variant="filled"
-                                label="Video Element"
+                                label={t('extension.videoSelect.videoElement')}
                                 value={selectedVideoElementSrc}
                                 onChange={(e) => setSelectedVideoElementSrc(e.target.value)}
                             >
@@ -115,8 +114,8 @@ export default function VideoSelectUi({ bridge }: Props) {
                     </Grid>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>Cancel</Button>
-                    <Button onClick={handleConfirm}>OK</Button>
+                    <Button onClick={handleCancel}>{t('action.cancel')}</Button>
+                    <Button onClick={handleConfirm}>{t('action.ok')}</Button>
                 </DialogActions>
             </Dialog>
         </ThemeProvider>

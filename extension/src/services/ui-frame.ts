@@ -1,67 +1,84 @@
 import FrameBridgeClient, { FetchOptions } from './frame-bridge-client';
 
 export default class UiFrame {
-    readonly frame: HTMLIFrameElement;
-    private readonly _client: FrameBridgeClient;
-    private readonly _html: string;
+    private readonly _html: (lang: string) => Promise<string>;
+    private _fetchOptions: FetchOptions | undefined;
+    private _client: FrameBridgeClient | undefined;
+    private _frame: HTMLIFrameElement | undefined;
+    private _language: string = 'en';
+    private _dirty = true;
     private _bound = false;
-    private _unbound = false;
 
-    constructor(html: string, fetchOptions?: FetchOptions) {
-        this.frame = document.createElement('iframe');
-        this.frame.className = 'asbplayer-ui-frame';
-
-        // Prevent iframe from showing up with solid background
-        // https://stackoverflow.com/questions/69591128/chrome-is-forcing-a-white-background-on-frames-only-on-some-websites
-        this.frame.style.colorScheme = 'normal';
-
-        this._client = new FrameBridgeClient(this.frame, fetchOptions);
+    constructor(html: (lang: string) => Promise<string>) {
         this._html = html;
+    }
+
+    set fetchOptions(fetchOptions: FetchOptions) {
+        this._dirty =
+            this._fetchOptions?.allowedFetchUrl !== fetchOptions.allowedFetchUrl ||
+            this._fetchOptions?.videoSrc !== fetchOptions.videoSrc;
+        this._fetchOptions = fetchOptions;
+    }
+
+    set language(language: string) {
+        this._dirty = this._language !== language;
+        this._language = language;
+    }
+
+    get hidden() {
+        return this._frame === undefined || this._frame.classList.contains('asbplayer-hide');
     }
 
     get bound() {
         return this._bound;
     }
 
-    get hidden() {
-        return this.frame.classList.contains('asbplayer-hide');
-    }
-
-    async bind() {
-        if (this._bound) {
-            return;
-        }
-
-        if (this._unbound) {
-            throw new Error('Trying to bind frame that has been unbound');
-        }
-
-        document.body.appendChild(this.frame);
-        const doc = this.frame.contentDocument!;
-        doc.open();
-        doc.write(this._html);
-        doc.close();
-        this._bound = true;
-        await this._client.bind();
+    async bind(): Promise<boolean> {
+        return await this._init();
     }
 
     async client() {
-        await this._client.bind();
-        return this._client;
+        await this._init();
+        return this._client!;
+    }
+
+    private async _init() {
+        if (!this._dirty) {
+            return false;
+        }
+
+        this._dirty = false;
+        this._bound = true;
+        this._client?.unbind();
+        this._frame?.remove();
+
+        this._frame = document.createElement('iframe');
+        this._frame.className = 'asbplayer-ui-frame';
+
+        // Prevent iframe from showing up with solid background
+        // https://stackoverflow.com/questions/69591128/chrome-is-forcing-a-white-background-on-frames-only-on-some-websites
+        this._frame.style.colorScheme = 'normal';
+        this._client = new FrameBridgeClient(this._frame, this._fetchOptions);
+        document.body.appendChild(this._frame);
+        const doc = this._frame.contentDocument!;
+        doc.open();
+        doc.write(await this._html(this._language));
+        doc.close();
+        await this._client!.bind();
+        return true;
     }
 
     show() {
-        this.frame.classList.remove('asbplayer-hide');
+        this._frame?.classList.remove('asbplayer-hide');
     }
 
     hide() {
-        this.frame.classList.add('asbplayer-hide');
-        this.frame.blur();
+        this._frame?.classList.add('asbplayer-hide');
+        this._frame?.blur();
     }
 
     unbind() {
-        this._client.unbind();
-        this.frame.remove();
-        this._unbound = true;
+        this._client?.unbind();
+        this._frame?.remove();
     }
 }

@@ -31,7 +31,7 @@ export default class VersionChecker {
 
     private async _fetchLatestExtension(): Promise<LatestExtensionInfo | undefined> {
         try {
-            const asbplayerUrl = (await this.settings.get(['asbplayerUrl'])).asbplayerUrl.replace(/\/$/, '');
+            const asbplayerUrl = (await this.settings.getSingle('asbplayerUrl')).replace(/\/$/, '');
             const extensionJsonUrl = `${asbplayerUrl}/extension.json`;
             const extensionJson = await (await fetch(extensionJsonUrl)).json();
 

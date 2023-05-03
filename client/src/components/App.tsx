@@ -46,6 +46,8 @@ import { ChromeExtensionProvider } from '../services/chrome-extension-provider';
 import PlaybackPreferences from '../services/playback-preferences';
 import CopyHistoryRepository from '../services/copy-history-repository';
 import './i18n';
+import i18next from 'i18next';
+import LocalizedError from './localized-error';
 
 const latestExtensionVersion = '0.26.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
@@ -78,7 +80,7 @@ function extractSources(files: FileList | File[]): MediaSources {
         const extensionStartIndex = f.name.lastIndexOf('.');
 
         if (extensionStartIndex === -1) {
-            throw new Error('Unable to determine extension of ' + f.name);
+            throw new LocalizedError('error.unknownExtension', { fileName: f.name });
         }
 
         const extension = f.name.substring(extensionStartIndex + 1, f.name.length);
@@ -97,7 +99,7 @@ function extractSources(files: FileList | File[]): MediaSources {
             case 'mp4':
             case 'avi':
                 if (videoFile) {
-                    throw new Error('Cannot open two video files simultaneously');
+                    throw new LocalizedError('error.onlyOneVideoFile');
                 }
                 videoFile = f;
                 break;
@@ -109,17 +111,17 @@ function extractSources(files: FileList | File[]): MediaSources {
             case 'wav':
             case 'opus':
                 if (audioFile) {
-                    throw new Error('Cannot open two audio files simultaneously');
+                    throw new LocalizedError('error.onlyOneAudioFile');
                 }
                 audioFile = f;
                 break;
             default:
-                throw new Error('Unsupported extension ' + extension);
+                throw new LocalizedError('error.unsupportedExtension', { extension });
         }
     }
 
     if (videoFile && audioFile) {
-        throw new Error('Cannot load both an audio and video file simultaneously');
+        throw new LocalizedError('error.bothAudioAndVideNotAllowed');
     }
 
     return { subtitleFiles: subtitleFiles, audioFile: audioFile, videoFile: videoFile };
@@ -447,9 +449,21 @@ function App() {
     ankiDialogRequestedRef.current = ankiDialogRequested;
     const { subtitleFiles } = sources;
 
-    const handleError = useCallback((message: string) => {
+    const handleError = useCallback((message: any) => {
+        console.error(message);
+
         setAlertSeverity('error');
-        setAlert(message);
+
+        if (message instanceof LocalizedError) {
+            setAlert(i18next.t(message.locKey, message.locParams) ?? '<failed to localize error>');
+        } else if (message instanceof Error) {
+            setAlert(message.message);
+        } else if (typeof message === 'string') {
+            setAlert(message);
+        } else {
+            setAlert(String(message));
+        }
+
         setAlertOpen(true);
     }, []);
 
@@ -526,11 +540,11 @@ function App() {
                 if (mode !== 'gui') {
                     if (mode === 'default') {
                         setAlertSeverity('success');
-                        setAlert('Exported card: ' + result);
+                        setAlert(i18next.t('info.exportedCard', { result })!);
                         setAlertOpen(true);
                     } else if (mode === 'updateLast') {
                         setAlertSeverity('success');
-                        setAlert('Updated card: ' + result);
+                        setAlert(i18next.t('info.updatedCard', { result })!);
                         setAlertOpen(true);
                     }
 
@@ -544,12 +558,7 @@ function App() {
                     }
                 }
             } catch (e) {
-                console.error(e);
-                if (e instanceof Error) {
-                    handleError(e.message);
-                } else {
-                    handleError(String(e));
-                }
+                handleError(e);
             } finally {
                 setAnkiDialogDisabled(false);
                 setDisableKeyEvents(false);
@@ -664,7 +673,9 @@ function App() {
             if (subtitle) {
                 setAlertSeverity('success');
                 setAlert(
-                    subtitle.text === '' ? `Saved ${humanReadableTime(subtitle.start)}` : `Copied: "${subtitle.text}"`
+                    subtitle.text === ''
+                        ? i18next.t('info.savedTimestamp', { timestamp: humanReadableTime(subtitle.start) })!
+                        : i18next.t('info.copiedSubtitle', { text: subtitle.text })!
                 );
                 setAlertOpen(true);
             }
@@ -735,7 +746,7 @@ function App() {
             if (i18n.language !== settingsProvider.language) {
                 i18n.changeLanguage(settingsProvider.language);
             }
-            
+
             setSettingsDialogOpen(false);
             setSettingsDialogScrollToId(undefined);
 
@@ -825,12 +836,7 @@ function App() {
                     clip!.download();
                 }
             } catch (e) {
-                console.error(e);
-                if (e instanceof Error) {
-                    handleError(e.message);
-                } else {
-                    handleError(String(e));
-                }
+                handleError(e);
             }
         },
         [handleError, settingsProvider]
@@ -846,11 +852,7 @@ function App() {
                 ))!.download();
             } catch (e) {
                 console.error(e);
-                if (e instanceof Error) {
-                    handleError(e.message);
-                } else {
-                    handleError(String(e));
-                }
+                handleError(e);
             }
         },
         [handleError, settingsProvider]
@@ -880,7 +882,7 @@ function App() {
     const handleSelectCopyHistoryItem = useCallback(
         (item: CopyHistoryItem) => {
             if (!subtitleFiles.find((f) => f.name === item.subtitleFileName)) {
-                handleError('Subtitle file ' + item.subtitleFileName + ' is not open.');
+                handleError(i18next.t('error.subtitleFileNotOpen', { fileName: item.subtitleFileName }));
                 return;
             }
 
@@ -920,7 +922,7 @@ function App() {
         }
 
         if (!subtitleFiles.find((f) => f.name === ankiDialogItem.subtitleFileName)) {
-            handleError('Subtitle file ' + ankiDialogItem.subtitleFileName + ' is not open.');
+            handleError(i18next.t('error.subtitleFileNotOpen', { fileName: ankiDialogItem.subtitleFileName }));
             return;
         }
 
@@ -968,7 +970,7 @@ function App() {
 
             if (selectedTabMissing) {
                 setTab(undefined);
-                handleError('Lost connection with tab ' + tab!.id + ' ' + tab!.title);
+                handleError(i18next.t('error.lostTabConnection', { tabName: tab!.id + ' ' + tab!.title }));
             }
         }
 
@@ -1022,11 +1024,7 @@ function App() {
                 }
             } catch (e) {
                 console.error(e);
-                if (e instanceof Error) {
-                    handleError(e.message);
-                } else {
-                    handleError(String(e));
-                }
+                handleError(e);
             }
         },
         [handleError]
@@ -1035,14 +1033,14 @@ function App() {
     const handleDirectory = useCallback(
         async (items: DataTransferItemList) => {
             if (items.length !== 1) {
-                handleError('Cannot load more than one directory at a time');
+                handleError(i18next.t('error.onlyOneDirectoryAllowed'));
                 return;
             }
 
             const fileSystemEntry = items[0].webkitGetAsEntry();
 
             if (!fileSystemEntry || !fileSystemEntry.isDirectory) {
-                handleError('Failed to load directory');
+                handleError(i18next.t('error.failedToLoadDirectory'));
                 return;
             }
 
@@ -1054,7 +1052,7 @@ function App() {
                 );
 
                 if (entries.find((e) => e.isDirectory)) {
-                    handleError('Cannot load a directory with subdirectories');
+                    handleError(i18next.t('error.subdirectoriesNotAllowed'));
                     return;
                 }
 
@@ -1069,12 +1067,7 @@ function App() {
 
                 handleFiles(files);
             } catch (e) {
-                console.error(e);
-                if (e instanceof Error) {
-                    handleError(e.message);
-                } else {
-                    handleError(String(e));
-                }
+                handleError(e);
             }
         },
         [handleError, handleFiles]
@@ -1167,16 +1160,16 @@ function App() {
     const handleAutoPauseModeChangedViaBind = useCallback((oldPlayMode: PlayMode, newPlayMode: PlayMode) => {
         switch (newPlayMode) {
             case PlayMode.autoPause:
-                setAlert('Auto-pause: On');
+                setAlert(i18next.t('info.enabledAutoPause')!);
                 break;
             case PlayMode.condensed:
-                setAlert('Condensed playback: On');
+                setAlert(i18next.t('info.enabledCondensedPlayback')!);
                 break;
             case PlayMode.normal:
                 if (oldPlayMode === PlayMode.autoPause) {
-                    setAlert('Auto-pause: Off');
+                    setAlert(i18next.t('info.disabledAutoPause')!);
                 } else if (oldPlayMode === PlayMode.condensed) {
-                    setAlert('Condensed playback: Off');
+                    setAlert(i18next.t('info.disabledCondensedPlayback')!);
                 }
                 break;
         }
@@ -1194,7 +1187,7 @@ function App() {
             e.preventDefault();
 
             if (inVideoPlayer) {
-                handleError('Video player cannot receive dropped files. Drop outside of the video frame instead.');
+                handleError(i18next.t('error.videoPlayerDragAndDropNotAllowed'));
                 return;
             }
 
