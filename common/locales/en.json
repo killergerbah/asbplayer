@@ -74,7 +74,7 @@
         "sourceField": "Source Field",
         "urlField": "URL Field",
         "tags": "Tags",
-        "corsHelperText": "Ensure that {{origin}} is in the  webCorsOriginList in your AnkiConnect settings as in this <0>video</0>.",
+        "corsHelperText": "Ensure that {{origin}} is in the webCorsOriginList in your AnkiConnect settings as in this <0>video</0>.",
         "addCustomField": "Add Custom Field",
         "tagsHelperText": "Comma-separated list of strings",
         "mining": "Mining",
@@ -109,7 +109,11 @@
         "theme": "Theme",
         "themeLight": "Light",
         "themeDark": "Dark",
-        "keyboardShortcuts": "Keyboard Shortcuts"
+        "keyboardShortcuts": "Keyboard Shortcuts",
+        "recordingBind": "Recording",
+        "extensionOverriddenBind": "Overridden",
+        "unboundBind": "Unbound",
+        "extensionShortcut": "Extension shortcut"
     },
     "ankiDialog": {
         "title": "Anki Export",
@@ -134,7 +138,9 @@
         "rewind": "Rewind",
         "openInAnki": "Open in Anki",
         "updateLastCard": "Update Last Card",
-        "export": "Export"
+        "export": "Export",
+        "foundDuplicateNotes": "Found {{count}} notes with word \"{{word}}\" in field \"{{field}}\"",
+        "foundNoDuplicateNote": "No notes found with word \"{{word}}\" in field \"{{field}}\""
     },
     "copyHistory": {
         "downloadMinedSubsAsSrt": "Download Mined Subtitles as SRT",
@@ -202,5 +208,12 @@
         "enabledCondensedPlayback": "Condensed playback: On",
         "disabledAutoPause": "Auto-pause: Off",
         "disabledCondensedPlayback": "Condensed playback: Off"
+    },
+    "controls": {
+        "subtitleOffset": "Subtitle Offset",
+        "playbackRate": "Playback Rate",
+        "normalMode": "Normal",
+        "condensedMode": "Condensed",
+        "autoPauseMode": "Auto-pause"
     }
 }

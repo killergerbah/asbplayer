@@ -161,7 +161,7 @@ export class Anki {
         const gui = mode === 'gui';
         const updateLast = mode === 'updateLast';
 
-        if (this.settingsProvider.audioField && audioClip) {
+        if (this.settingsProvider.audioField && audioClip && audioClip.isPlayable()) {
             const sanitizedName = this._sanitizeFileName(audioClip.name);
 
             if (gui || updateLast) {
@@ -177,7 +177,7 @@ export class Anki {
             }
         }
 
-        if (this.settingsProvider.imageField && image) {
+        if (this.settingsProvider.imageField && image && image.available) {
             const sanitizedName = this._sanitizeFileName(image.name);
 
             if (gui || updateLast) {

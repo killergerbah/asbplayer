@@ -109,16 +109,16 @@ function errorMessage(element: HTMLVideoElement) {
     let error;
     switch (element.error?.code) {
         case 1:
-            error = 'Aborted';
+            error = 'MEDIA_ERR_ABORTED';
             break;
         case 2:
-            error = 'Network error';
+            error = 'MEDIA_ERR_ABORTED';
             break;
         case 3:
-            error = 'Decoding error';
+            error = 'MEDIA_ERR_DECODE';
             break;
         case 4:
-            error = 'Source not supported';
+            error = 'MEDIA_ERR_SRC_NOT_SUPPORTED';
             break;
         default:
             error = 'Unknown error';

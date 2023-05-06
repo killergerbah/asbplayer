@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
-import i18n from './i18n';
+import { i18n, useI18nInitialized } from './i18n';
 import { Route, Navigate, Routes, useLocation, useSearchParams } from 'react-router-dom';
 import { ThemeProvider, createTheme, makeStyles, Theme } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/useWindowSize';
@@ -1305,6 +1305,12 @@ function App() {
     const handleCopyToClipboard = useCallback((blob: Blob) => {
         navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]).catch(console.error);
     }, []);
+
+    const i18nInitialized = useI18nInitialized();
+
+    if (!i18nInitialized) {
+        return null;
+    }
 
     if (location.pathname === '/' && searchParams.get('video')) {
         return <NavigateToVideo searchParams={searchParams} />;

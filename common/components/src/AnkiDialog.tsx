@@ -431,8 +431,12 @@ export function AnkiDialog({
     if (word && word.trim() === lastSearchedWord && settingsProvider.wordField) {
         wordHelperText =
             duplicateNotes.length > 0
-                ? `Found ${duplicateNotes.length} notes with word "${word}" in field "${settingsProvider.wordField}"`
-                : `No notes found with word "${word.trim()}" in field "${settingsProvider.wordField}"`;
+                ? t('ankiDialog.foundDuplicateNotes', {
+                      count: duplicateNotes.length,
+                      word: word,
+                      field: settingsProvider.wordField,
+                  })
+                : t('ankiDialog.foundNoDuplicateNote', { word: word, field: settingsProvider.wordField });
     } else {
         wordHelperText = '';
     }

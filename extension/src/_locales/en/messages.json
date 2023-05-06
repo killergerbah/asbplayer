@@ -19,5 +19,11 @@
     },
     "shortcutSelectSubtitleTrackDescription": {
         "message": "Select subtitle tracks to load."
+    },
+    "contextMenuMineSubtitle": {
+        "message": "Mine Subtitle"
+    },
+    "contextMenuLoadSubtitles": {
+        "message": "Load Subtitles"
     }
 }

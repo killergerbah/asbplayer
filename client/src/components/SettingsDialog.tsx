@@ -188,6 +188,7 @@ interface KeyBindFieldProps {
 }
 
 function KeyBindField({ label, keys, extensionOverridden, onKeysChange, onOpenExtensionShortcuts }: KeyBindFieldProps) {
+    const { t } = useTranslation();
     const classes = useKeyBindFieldStyles();
     const [currentKeyString, setCurrentKeyString] = useState<string>(keys);
     const currentKeyStringRef = useRef<string>();
@@ -278,11 +279,11 @@ function KeyBindField({ label, keys, extensionOverridden, onKeysChange, onOpenEx
     let placeholder: string;
 
     if (editing) {
-        placeholder = 'Recording';
+        placeholder = t('settings.recordingBind');
     } else if (extensionOverridden) {
-        placeholder = 'Overridden';
+        placeholder = t('settings.extensionOverriddenBind');
     } else {
-        placeholder = 'Unbound';
+        placeholder = t('settings.unboundBind');
     }
 
     return (
@@ -296,7 +297,7 @@ function KeyBindField({ label, keys, extensionOverridden, onKeysChange, onOpenEx
                     size="small"
                     contentEditable={false}
                     disabled={extensionOverridden}
-                    helperText={extensionOverridden ? 'Extension shortcut' : undefined}
+                    helperText={extensionOverridden ? t('settings.extensionShortcut') : undefined}
                     value={currentKeyString}
                     color="secondary"
                     InputProps={{

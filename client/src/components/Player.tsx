@@ -109,7 +109,7 @@ interface PlayerProps {
     availableTabs: VideoTabModel[];
     ankiDialogRequested: boolean;
     ankiDialogFinishedRequest: AnkiDialogFinishedRequest;
-    onError: (error: string) => void;
+    onError: (error: any) => void;
     onUnloadAudio: (url: string) => void;
     onUnloadVideo: (url: string) => void;
     onCopy: (
@@ -374,12 +374,7 @@ export default function Player({
                     setSubtitles(subtitles);
                     setLastJumpToTopTimestamp(Date.now());
                 } catch (e) {
-                    if (e instanceof Error) {
-                        onError(e.message);
-                    } else {
-                        onError(String(e));
-                    }
-
+                    onError(e);
                     setSubtitles([]);
                 } finally {
                     setLoadingSubtitles(false);

@@ -116,9 +116,9 @@
         "sentence": "文章",
         "definition": "定義",
         "rerecord": "再録音",
-        "audioFileLinkLost": "ページ再読み込みにより音声ファイルのリファレンスがなくなった",
-        "cannotUpdateAudio": "すでに録音された音声データは更新することができない",
-        "imageFileLinkLost": "ページ再読み込みにより画像ファイルのリファレンスがなくなった",
+        "audioFileLinkLost": "ページ再読み込みにより音声ファイルのリファレンスがなくなりました",
+        "cannotUpdateAudio": "すでに録音された音声データは更新することができません",
+        "imageFileLinkLost": "ページ再読み込みにより画像ファイルのリファレンスがなくなりました",
         "applySelection": "選択した時間範囲を適用",
         "searchInAnki": "Ankiで検索",
         "word": "言葉",
@@ -134,7 +134,10 @@
         "rewind": "巻き戻し",
         "openInAnki": "Ankiで開く",
         "updateLastCard": "最後のAnkiカードを更新",
-        "export": "作成"
+        "export": "作成",
+        "foundDuplicateNotes": "Found {{count}} notes with word \"{{word}}\" in field \"{{field}}\"",
+        "foundNoDuplicateNote": "No notes found with word \"{{word}}\" in field \"{{field}}\"",
+        "extensionShortcut": "Extension shortcut"
     },
     "copyHistory": {
         "downloadMinedSubsAsSrt": "メモされた字幕をSRT形式でダウンロード",
@@ -168,39 +171,46 @@
             "misc": "その他"
         },
         "videoSelect": {
-            "multipleVideoElements": "複数のビデオ要素を検出した",
-            "syncBeforeMine": "ビデオ要素からメディアを抽出するにはasbplayerに同期する必要がある。まずはビデオ要素を選択してください。",
+            "multipleVideoElements": "複数のビデオ要素を検出しました",
+            "syncBeforeMine": "ビデオ要素からメディアを抽出するにはasbplayerに同期する必要があります。同期するビデオ要素を選択してください。",
             "selectVideo": "asbplayerに同期するビデオ要素を選択してください。",
             "videoElement": "ビデオ要素"
         },
         "videoDataSync": {
             "selectSubtitles": "字幕を読み込む",
-            "loadSubtitlesFirst": "字幕をメモするには字幕を読み込む必要がある。",
+            "loadSubtitlesFirst": "字幕をメモするには字幕を読み込む必要があります。",
             "videoName": "ビデオ名",
             "subtitleTrack": "字幕トラック"
         }
     },
     "error": {
-        "unknownExtension": "Unable to determine extension of {{fileName}}",
-        "onlyOneVideoFile": "Cannot open two video files simultaneously",
-        "onlyOneAudioFile": "Cannot open two audio files simultaneously",
-        "unsupportedExtension": "Unsupported extension {{extension}}",
-        "bothAudioAndVideNotAllowed": "Cannot load both an audio and video file simultaneously",
-        "subtitleFileNotOpen": "Subtitle file {{fileName}} is not open.",
-        "lostTabConnection": "Lost connection with tab: {{tabName}}",
-        "onlyOneDirectoryAllowed": "Cannot load more than one directory at a time",
-        "failedToLoadDirectory": "Failed to load directory",
-        "subdirectoriesNotAllowed": "Cannot load a directory with subdirectories",
-        "videoPlayerDragAndDropNotAllowed": "Video player cannot receive dropped files. Drop outside of the video frame instead."
+        "unknownExtension": "{{fileName}}の拡張子を特定できませんでした",
+        "onlyOneVideoFile": "一つ以上の動画ファイルを開くことができません",
+        "onlyOneAudioFile": "一つ以上のオーディオファイルを開くことができません",
+        "unsupportedExtension": "{{extension}}の拡張子は対応されていません",
+        "bothAudioAndVideNotAllowed": "動画ファイルとオーディオファイルを同時に開くことができません",
+        "subtitleFileNotOpen": "字幕ファイル「{{fileName}}」は開かれていません",
+        "lostTabConnection": "「{{tabName}}」のタブとの接続が切断されました",
+        "onlyOneDirectoryAllowed": "一つ以上のフォルダーを開くことができません",
+        "failedToLoadDirectory": "フォルダーを開くのに失敗しました",
+        "subdirectoriesNotAllowed": "サブフォルダーを含めたフォルダーを開くことができません",
+        "videoPlayerDragAndDropNotAllowed": "ビデオプレイヤーにはファイルをドラッグ＆ドロップすることができません。ビデオ要素の枠の外にファイルをドラッグ＆ドロップしてください。"
     },
     "info": {
-        "exportedCard": "Exported card: {{result}}",
-        "updatedCard": "Updated card: {{result}}",
-        "savedTimestamp": "Saved: {{timestamp}}",
-        "copiedSubtitle": "Copied: {{text}}",
-        "enabledAutoPause": "Auto-pause: On",
-        "enabledCondensedPlayback": "Condensed playback: On",
-        "disabledAutoPause": "Auto-pause: Off",
-        "disabledCondensedPlayback": "Condensed playback: Off"
+        "exportedCard": "カードを作成した：{{result}}",
+        "updatedCard": "カードを更新した：{{result}}",
+        "savedTimestamp": "保存した：{{timestamp}}",
+        "copiedSubtitle": "メモした：{{text}}",
+        "enabledAutoPause": "オートポーズ：オン",
+        "enabledCondensedPlayback": "凝縮再生：オン",
+        "disabledAutoPause": "オートポーズ：オフ",
+        "disabledCondensedPlayback": "凝縮再生：オフ"
+    },
+    "controls": {
+        "subtitleOffset": "字幕のオフセット時間",
+        "playbackRate": "再生速度",
+        "normalMode": "普通",
+        "condensedMode": "凝縮",
+        "autoPauseMode": "オートポーズ"
     }
 }

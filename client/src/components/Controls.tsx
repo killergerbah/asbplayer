@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState, useRef, MutableRefObject } from 'react';
+import { useTranslation } from 'react-i18next';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
@@ -440,6 +441,8 @@ interface PlayModeSelectorProps {
 }
 
 function PlayModeSelector({ open, anchorEl, selectedPlayMode, onPlayMode, onClose }: PlayModeSelectorProps) {
+    const { t } = useTranslation();
+
     return (
         <div>
             <Popover
@@ -462,21 +465,21 @@ function PlayModeSelector({ open, anchorEl, selectedPlayMode, onPlayMode, onClos
                         button
                         onClick={(e) => onPlayMode(PlayMode.normal)}
                     >
-                        Normal
+                        {t('controls.normalMode')}
                     </ListItem>
                     <ListItem
                         selected={selectedPlayMode === PlayMode.condensed}
                         button
                         onClick={(e) => onPlayMode(PlayMode.condensed)}
                     >
-                        Condensed
+                        {t('controls.condensedMode')}
                     </ListItem>
                     <ListItem
                         selected={selectedPlayMode === PlayMode.autoPause}
                         button
                         onClick={(e) => onPlayMode(PlayMode.autoPause)}
                     >
-                        Auto-pause
+                        {t('controls.autoPauseMode')}
                     </ListItem>
                 </List>
             </Popover>
@@ -601,6 +604,7 @@ export default function Controls({
     onSubtitleAlignment,
 }: ControlsProps) {
     const classes = useControlStyles();
+    const { t } = useTranslation();
     const [show, setShow] = useState<boolean>(true);
     const [audioTrackSelectorOpen, setAudioTrackSelectorOpen] = useState<boolean>(false);
     const [audioTrackSelectorAnchorEl, setAudioTrackSelectorAnchorEl] = useState<Element>();
@@ -1035,7 +1039,7 @@ export default function Controls({
                             </Grid>
                             {offsetEnabled && (
                                 <Grid item>
-                                    <Tooltip title="Subtitle Offset">
+                                    <Tooltip title={t('controls.subtitleOffset')!}>
                                         <Input
                                             style={{
                                                 width: `${offsetInputWidth}ch`,
@@ -1052,7 +1056,7 @@ export default function Controls({
                             )}
                             {playbackRateEnabled && (
                                 <Grid item>
-                                    <Tooltip title="Playback Rate">
+                                    <Tooltip title={t('controls.playbackRate')!}>
                                         <Input
                                             style={{
                                                 width: `${playbackRateInputWidth}ch`,

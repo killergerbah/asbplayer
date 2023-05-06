@@ -19,5 +19,11 @@
     },
     "shortcutSelectSubtitleTrackDescription": {
         "message": "字幕トラックを選択する。"
+    },
+    "contextMenuMineSubtitle": {
+        "message": "字幕をメモする"
+    },
+    "contextMenuLoadSubtitles": {
+        "message": "字幕を読み込む"
     }
 }

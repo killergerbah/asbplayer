@@ -1,15 +1,18 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import en from '@project/common/locales/en.json';
-import ja from '@project/common/locales/ja.json';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import resourcesToBackend from 'i18next-resources-to-backend';
+import { useEffect, useState } from 'react';
 
-i18n.use(LanguageDetector)
+const i18nInit = i18n
+    .use(LanguageDetector)
+    .use(resourcesToBackend((language: string) => import(`@project/common/locales/${language}.json`)))
     .use(initReactI18next)
     .init({
+        partialBundledLanguages: true,
         resources: {},
         fallbackLng: 'en',
-        debug: true,
+        debug: false,
         ns: 'translation',
         defaultNS: 'translation',
         interpolation: {
@@ -22,7 +25,14 @@ i18n.use(LanguageDetector)
         },
     });
 
-i18n.addResourceBundle('en', 'translation', en);
-i18n.addResourceBundle('ja', 'translation', ja);
+const useI18nInitialized = () => {
+    const [i18nInitialized, setI18nInitialized] = useState<boolean>(false);
+    
+    useEffect(() => {
+        i18nInit.then(() => setI18nInitialized(true));
+    }, []);
 
-export default i18n;
+    return i18nInitialized;
+};
+
+export { useI18nInitialized, i18n };
