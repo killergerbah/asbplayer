@@ -1,0 +1,8 @@
+#!/bin/bash
+
+function json_to_csv() {
+    jq -r '[leaf_paths as $path | {"key": $path | join("."), "value": getpath($path)}] | .[] | "\"\(.key)\",\"\(.value)\""' $1
+}
+echo "Key,English,Notes"
+json_to_csv ../common/locales/en.json
+json_to_csv ../extension/src/_locales/en/messages.json
