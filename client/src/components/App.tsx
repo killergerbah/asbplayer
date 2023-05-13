@@ -323,7 +323,7 @@ function App() {
             regex =
                 settingsProvider.subtitleRegexFilter.trim() === ''
                     ? undefined
-                    : new RegExp(settingsProvider.subtitleRegexFilter);
+                    : new RegExp(settingsProvider.subtitleRegexFilter, 'g');
         } catch (e) {
             regex = undefined;
         }
