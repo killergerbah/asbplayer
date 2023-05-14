@@ -79,6 +79,7 @@ export default class UiFrame {
     }
 
     unbind() {
+        this._dirty = true;
         this._client?.unbind();
         this._frame?.remove();
     }
