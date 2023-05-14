@@ -34,6 +34,7 @@ export default class SubtitleReader {
     async subtitles(files: File[], flatten?: boolean) {
         return (await Promise.all(files.map((f, i) => this._subtitles(f, flatten === true ? 0 : i))))
             .flatMap((nodes) => nodes)
+            .filter((node) => node.text !== '')
             .sort((n1, n2) => n1.start - n2.start);
     }
 
@@ -300,7 +301,7 @@ export default class SubtitleReader {
             return text;
         }
 
-        return text.replace(this._textFilter.regex, this._textFilter.replacement);
+        return text.replace(this._textFilter.regex, this._textFilter.replacement).trim();
     }
 
     subtitlesToSrt(subtitles: SubtitleNode[]) {
