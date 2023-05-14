@@ -29,6 +29,7 @@ import PlaybackPreferences, { SubtitleAlignment } from '../services/playback-pre
 import { AnkiDialogFinishedRequest } from './Player';
 import { Color } from '@material-ui/lab/Alert';
 import Alert from './Alert';
+import { i18n } from './i18n';
 
 interface ExperimentalHTMLVideoElement extends HTMLVideoElement {
     readonly audioTracks: any;
@@ -244,6 +245,13 @@ export default function VideoPlayer({
         () => new AppKeyBinder(new DefaultKeyBinder(miscSettings.keyBindSet), extension),
         [miscSettings.keyBindSet, extension]
     );
+
+    useEffect(() => {
+        if (i18n.language !== miscSettings.language) {
+            i18n.changeLanguage(miscSettings.language);
+        }
+    }, [miscSettings]);
+
     const videoRefCallback = useCallback(
         (element: HTMLVideoElement) => {
             if (element) {
