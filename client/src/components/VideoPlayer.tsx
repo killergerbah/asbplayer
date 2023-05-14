@@ -25,7 +25,7 @@ import PlayerChannel from '../services/player-channel';
 import SettingsProvider from '../services/settings-provider';
 import AppKeyBinder from '../services/app-key-binder';
 import ChromeExtension from '../services/chrome-extension';
-import PlaybackPreferences from '../services/playback-preferences';
+import PlaybackPreferences, { SubtitleAlignment } from '../services/playback-preferences';
 import { AnkiDialogFinishedRequest } from './Player';
 import { Color } from '@material-ui/lab/Alert';
 import Alert from './Alert';
@@ -55,10 +55,15 @@ const useStyles = makeStyles({
         position: 'absolute',
         paddingLeft: 20,
         paddingRight: 20,
-        bottom: 100,
         textAlign: 'center',
         whiteSpace: 'pre-wrap',
         lineHeight: 'normal',
+    },
+    subtitleContainerBottomAligned: {
+        bottom: 100,
+    },
+    subtitleContainerTopAligned: {
+        top: 100,
     },
 });
 
@@ -201,6 +206,9 @@ export default function VideoPlayer({
     const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
     const [subtitlePlayerHidden, setSubtitlePlayerHidden] = useState<boolean>(false);
     const [appBarHidden, setAppBarHidden] = useState<boolean>(playbackPreferences.theaterMode);
+    const [subtitleAlignment, setSubtitleAlignment] = useState<SubtitleAlignment>(
+        playbackPreferences.subtitleAlignment
+    );
     const showSubtitlesRef = useRef<IndexedSubtitleModel[]>([]);
     showSubtitlesRef.current = showSubtitles;
     const clock = useMemo<Clock>(() => new Clock(), []);
@@ -904,6 +912,14 @@ export default function VideoPlayer({
         playerChannel.appBarToggle();
     }, [playerChannel]);
 
+    const handleSubtitleAlignment = useCallback(
+        (alignment: SubtitleAlignment) => {
+            setSubtitleAlignment(alignment);
+            playbackPreferences.subtitleAlignment = alignment;
+        },
+        [playbackPreferences]
+    );
+
     const handleClick = useCallback(() => {
         if (playing) {
             playerChannel.pause();
@@ -977,7 +993,13 @@ export default function VideoPlayer({
                 src={videoFile}
             />
             {subtitlesEnabled && (
-                <div className={classes.subtitleContainer}>
+                <div
+                    className={
+                        subtitleAlignment === SubtitleAlignment.bottom
+                            ? `${classes.subtitleContainer} ${classes.subtitleContainerBottomAligned}`
+                            : `${classes.subtitleContainer}  ${classes.subtitleContainerTopAligned}`
+                    }
+                >
                     {showSubtitles.map((subtitle, index) => {
                         let content;
 
@@ -1047,6 +1069,9 @@ export default function VideoPlayer({
                 theaterModeToggleEnabled={!popOut && !fullscreen}
                 theaterModeEnabled={appBarHidden}
                 onTheaterModeToggle={handleTheaterModeToggle}
+                subtitleAlignment={subtitleAlignment}
+                subtitleAlignmentEnabled={true}
+                onSubtitleAlignment={handleSubtitleAlignment}
             />
         </div>
     );

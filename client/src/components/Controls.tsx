@@ -21,12 +21,14 @@ import QueueMusicIcon from '@material-ui/icons/QueueMusic';
 import Slider from '@material-ui/core/Slider';
 import TuneIcon from '@material-ui/icons/Tune';
 import SubtitlesIcon from '@material-ui/icons/Subtitles';
+import VerticalAlignTopIcon from '@material-ui/icons/VerticalAlignTop';
+import VerticalAlignBottomIcon from '@material-ui/icons/VerticalAlignBottom';
 import VideocamIcon from '@material-ui/icons/Videocam';
 import VolumeOffIcon from '@material-ui/icons/VolumeOff';
 import VolumeUpIcon from '@material-ui/icons/VolumeUp';
 import { AudioTrackModel, PlayMode, VideoTabModel } from '@project/common';
 import Clock from '../services/clock';
-import PlaybackPreferences from '../services/playback-preferences';
+import PlaybackPreferences, { SubtitleAlignment } from '../services/playback-preferences';
 import Tooltip from '@material-ui/core/Tooltip';
 
 const useControlStyles = makeStyles((theme) => ({
@@ -538,6 +540,9 @@ interface ControlsProps {
     theaterModeToggleEnabled?: boolean;
     theaterModeEnabled?: boolean;
     onTheaterModeToggle?: () => void;
+    subtitleAlignmentEnabled?: boolean;
+    subtitleAlignment?: SubtitleAlignment;
+    onSubtitleAlignment?: (alignment: SubtitleAlignment) => void;
 }
 
 export default function Controls({
@@ -591,6 +596,9 @@ export default function Controls({
     theaterModeToggleEnabled,
     theaterModeEnabled,
     onTheaterModeToggle,
+    subtitleAlignment,
+    subtitleAlignmentEnabled,
+    onSubtitleAlignment,
 }: ControlsProps) {
     const classes = useControlStyles();
     const [show, setShow] = useState<boolean>(true);
@@ -917,6 +925,16 @@ export default function Controls({
         });
     }, [onVolumeChange, lastCommittedVolume]);
 
+    const handleSubtitleAlignment = useCallback(() => {
+        if (!subtitleAlignmentEnabled || subtitleAlignment === undefined || onSubtitleAlignment === undefined) {
+            return;
+        }
+
+        const newAlignment =
+            subtitleAlignment === SubtitleAlignment.top ? SubtitleAlignment.bottom : SubtitleAlignment.top;
+        onSubtitleAlignment(newAlignment);
+    }, [subtitleAlignment, subtitleAlignmentEnabled, onSubtitleAlignment]);
+
     const progress = clock.progress(length);
 
     return (
@@ -1053,6 +1071,17 @@ export default function Controls({
                                 </Grid>
                             )}
                             <Grid item style={{ flexGrow: 1 }}></Grid>
+                            {subtitleAlignmentEnabled && subtitleAlignment !== undefined && (
+                                <Grid item>
+                                    <IconButton color="inherit" onClick={handleSubtitleAlignment}>
+                                        {subtitleAlignment === SubtitleAlignment.top ? (
+                                            <VerticalAlignTopIcon />
+                                        ) : (
+                                            <VerticalAlignBottomIcon />
+                                        )}
+                                    </IconButton>
+                                </Grid>
+                            )}
                             {subtitlesToggle && (
                                 <Grid item>
                                     <IconButton color="inherit" onClick={onSubtitlesToggle}>

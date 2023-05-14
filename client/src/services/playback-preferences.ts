@@ -3,7 +3,13 @@ import SettingsProvider from './settings-provider';
 const volumeKey = 'volume';
 const theaterModeKey = 'theaterMode';
 const offsetKey = 'offset';
+const subtitleAlignmentKey = 'subtitleAlignment';
 const defaultVolume = 100;
+
+export enum SubtitleAlignment {
+    bottom = 0,
+    top = 1,
+}
 
 export default class PlaybackPreferences {
     private readonly settingsProvider: SettingsProvider;
@@ -50,5 +56,19 @@ export default class PlaybackPreferences {
 
     set offset(offset: number) {
         localStorage.setItem(offsetKey, String(offset));
+    }
+
+    get subtitleAlignment() {
+        const val = localStorage.getItem(subtitleAlignmentKey);
+
+        if (val === undefined) {
+            return SubtitleAlignment.bottom;
+        }
+
+        return Number(val) as SubtitleAlignment;
+    }
+
+    set subtitleAlignment(alignment: SubtitleAlignment) {
+        localStorage.setItem(subtitleAlignmentKey, String(alignment));
     }
 }
