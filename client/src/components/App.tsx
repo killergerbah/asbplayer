@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react'
 import { i18n, useI18nInitialized } from './i18n';
 import { Route, Navigate, Routes, useLocation, useSearchParams } from 'react-router-dom';
 import { ThemeProvider, createTheme, makeStyles, Theme } from '@material-ui/core/styles';
-import { useWindowSize } from '../hooks/useWindowSize';
+import { useWindowSize } from '../hooks/use-window-size';
 import { red } from '@material-ui/core/colors';
 import {
     Anki,
@@ -42,12 +42,12 @@ import { AnkiExportMode } from '@project/common';
 import { DefaultKeyBinder } from '@project/common/src/key-binder';
 import AppKeyBinder from '../services/app-key-binder';
 import VideoChannel from '../services/video-channel';
-import { ChromeExtensionProvider } from '../services/chrome-extension-provider';
 import PlaybackPreferences from '../services/playback-preferences';
 import CopyHistoryRepository from '../services/copy-history-repository';
 import './i18n';
 import i18next from 'i18next';
 import LocalizedError from './localized-error';
+import { useChromeExtension } from '../hooks/use-chrome-extension';
 
 const latestExtensionVersion = '0.26.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
@@ -365,10 +365,8 @@ function App() {
     const [searchParams] = useSearchParams();
 
     const inVideoPlayer = location.pathname === '/video' || searchParams.get('video') !== null;
-    const extensionProvider = useMemo(() => new ChromeExtensionProvider(), []);
-    const [extension, setExtension] = useState<ChromeExtension>(extensionProvider.extension);
+    const extension = useChromeExtension();
     const [videoFullscreen, setVideoFullscreen] = useState<boolean>(false);
-    useEffect(() => extensionProvider.onChromeExtension(setExtension), [extensionProvider]);
     const keyBinder = useMemo<AppKeyBinder>(
         () => new AppKeyBinder(new DefaultKeyBinder(settingsProvider.keyBindSet), extension),
         [settingsProvider.keyBindSet, extension]
