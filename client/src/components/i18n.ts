@@ -12,7 +12,7 @@ const i18nInit = i18n
         partialBundledLanguages: true,
         resources: {},
         fallbackLng: 'en',
-        debug: false,
+        debug: process.env.NODE_ENV === 'development',
         ns: 'translation',
         defaultNS: 'translation',
         interpolation: {
@@ -27,7 +27,7 @@ const i18nInit = i18n
 
 const useI18nInitialized = () => {
     const [i18nInitialized, setI18nInitialized] = useState<boolean>(false);
-    
+
     useEffect(() => {
         i18nInit.then(() => setI18nInitialized(true));
     }, []);

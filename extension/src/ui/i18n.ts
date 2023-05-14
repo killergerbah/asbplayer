@@ -6,7 +6,7 @@ export const i18nInit = async (language: string) => {
         resources: {},
         lng: language,
         fallbackLng: language,
-        debug: true,
+        debug: process.env.NODE_ENV === 'development',
         ns: 'translation',
         defaultNS: 'translation',
         interpolation: {
