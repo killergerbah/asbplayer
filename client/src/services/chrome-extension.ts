@@ -1,8 +1,11 @@
 import {
     AsbPlayerToVideoCommandV2,
+    Command,
     ExtensionToAsbPlayerCommand,
     ExtensionToAsbPlayerCommandTabsCommand,
     Message,
+    SharedGlobalSettings,
+    SharedSettingsUpdatedMessage,
     VideoTabModel,
 } from '@project/common';
 import { gt } from 'semver';
@@ -107,7 +110,7 @@ export default class ChromeExtension {
                     command: 'heartbeat',
                     id: id,
                     receivedTabs: fromVideoPlayer ? [] : this.tabs,
-                    videoPlayer: fromVideoPlayer
+                    videoPlayer: fromVideoPlayer,
                 },
             },
             '*'
@@ -133,16 +136,18 @@ export default class ChromeExtension {
         window.postMessage(command, '*');
     }
 
-    publishMessage(message: Message) {
-        for (const tab of this.tabs) {
-            const command: AsbPlayerToVideoCommandV2<Message> = {
-                sender: 'asbplayerv2',
-                message: message,
-                tabId: tab.id,
-                src: tab.src,
-            };
-            window.postMessage(command, '*');
-        }
+    publishSharedGlobalSettings(settings: SharedGlobalSettings) {
+        const command: Command<SharedSettingsUpdatedMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'shared-settings-updated',
+                settings: {
+                    language: settings.language,
+                    themeType: settings.themeType,
+                },
+            },
+        };
+        window.postMessage(command, '*');
     }
 
     subscribeTabs(callback: (tabs: VideoTabModel[]) => void) {

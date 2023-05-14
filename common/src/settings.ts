@@ -1,6 +1,11 @@
 import { AutoPausePreference } from './model';
 
-export interface MiscSettings {
+export interface SharedGlobalSettings {
+    readonly themeType: 'dark' | 'light';
+    readonly language: string;
+}
+
+export interface MiscSettings extends SharedGlobalSettings {
     readonly themeType: 'dark' | 'light';
     readonly copyToClipboardOnMine: boolean;
     readonly autoPausePreference: AutoPausePreference;

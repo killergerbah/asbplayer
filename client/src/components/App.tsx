@@ -757,8 +757,9 @@ function App() {
             videoChannelRef.current?.subtitleSettings(settingsProvider.subtitleSettings);
             videoChannelRef.current?.ankiSettings(settingsProvider.ankiSettings);
             videoChannelRef.current?.miscSettings(settingsProvider.miscSettings);
+            extension.publishSharedGlobalSettings(settingsProvider.miscSettings);
         },
-        [settingsProvider, ankiDialogOpen]
+        [settingsProvider, ankiDialogOpen, extension]
     );
 
     const handleDeleteCopyHistoryItem = useCallback(

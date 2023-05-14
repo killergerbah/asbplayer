@@ -27,6 +27,7 @@ import ExtensionCommandsHandler from './handlers/asbplayerv2/extension-commands-
 import OpenAsbplayerSettingsHandler from './handlers/video/open-asbplayer-settings-handler';
 import CaptureVisibleTabHandler from './handlers/foreground/capture-visible-tab-handler';
 import CopyToClipboardHandler from './handlers/video/copy-to-clipboard-handler';
+import SharedSettingsUpdatedHandler from './handlers/asbplayerv2/shared-settings-updated-handler';
 import {
     Command,
     CopySubtitleMessage,
@@ -70,6 +71,7 @@ const handlers: CommandHandler[] = [
     new AsbplayerToVideoCommandForwardingHandler(),
     new AsbplayerHeartbeatHandler(tabRegistry),
     new AckTabsHandler(tabRegistry),
+    new SharedSettingsUpdatedHandler(settings),
     new OpenExtensionShortcutsHandler(),
     new ExtensionCommandsHandler(),
     new AsbplayerV2ToVideoCommandForwardingHandler(),

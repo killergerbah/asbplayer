@@ -1,4 +1,4 @@
-import { AnkiSettings, MiscSettings, SubtitleSettings } from './settings';
+import { AnkiSettings, MiscSettings, SharedGlobalSettings, SubtitleSettings } from './settings';
 import {
     RectModel,
     SubtitleModel,
@@ -438,4 +438,9 @@ export interface CaptureVisibleTabMessage extends Message {
 export interface CopyToClipboardMessage extends Message {
     readonly command: 'copy-to-clipboard';
     readonly dataUrl: string;
+}
+
+export interface SharedSettingsUpdatedMessage extends Message {
+    readonly command: 'shared-settings-updated';
+    readonly settings: SharedGlobalSettings;
 }
