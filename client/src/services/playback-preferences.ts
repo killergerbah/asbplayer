@@ -1,9 +1,11 @@
+import CachedLocalStorage from './cached-local-storage';
 import SettingsProvider from './settings-provider';
 
 const volumeKey = 'volume';
 const theaterModeKey = 'theaterMode';
 const offsetKey = 'offset';
 const subtitleAlignmentKey = 'subtitleAlignment';
+const subtitlePositionOffetKey = 'subtitlePositionOffset';
 const defaultVolume = 100;
 
 export enum SubtitleAlignment {
@@ -13,13 +15,14 @@ export enum SubtitleAlignment {
 
 export default class PlaybackPreferences {
     private readonly settingsProvider: SettingsProvider;
+    private readonly storage = new CachedLocalStorage();
 
     constructor(settingsProvider: SettingsProvider) {
         this.settingsProvider = settingsProvider;
     }
 
     get volume() {
-        const value = localStorage.getItem(volumeKey);
+        const value = this.storage.get(volumeKey);
 
         if (value === null) {
             return defaultVolume;
@@ -29,15 +32,15 @@ export default class PlaybackPreferences {
     }
 
     set volume(volume) {
-        localStorage.setItem(volumeKey, String(volume));
+        this.storage.set(volumeKey, String(volume));
     }
 
     get theaterMode() {
-        return localStorage.getItem(theaterModeKey) === 'true' || false;
+        return this.storage.get(theaterModeKey) === 'true' || false;
     }
 
     set theaterMode(theaterMode) {
-        localStorage.setItem(theaterModeKey, String(theaterMode));
+        this.storage.set(theaterModeKey, String(theaterMode));
     }
 
     get offset(): number {
@@ -45,7 +48,7 @@ export default class PlaybackPreferences {
             return 0;
         }
 
-        const value = localStorage.getItem(offsetKey);
+        const value = this.storage.get(offsetKey);
 
         if (value === null) {
             return 0;
@@ -55,11 +58,11 @@ export default class PlaybackPreferences {
     }
 
     set offset(offset: number) {
-        localStorage.setItem(offsetKey, String(offset));
+        this.storage.set(offsetKey, String(offset));
     }
 
     get subtitleAlignment() {
-        const val = localStorage.getItem(subtitleAlignmentKey);
+        const val = this.storage.get(subtitleAlignmentKey);
 
         if (val === undefined) {
             return SubtitleAlignment.bottom;
@@ -69,6 +72,20 @@ export default class PlaybackPreferences {
     }
 
     set subtitleAlignment(alignment: SubtitleAlignment) {
-        localStorage.setItem(subtitleAlignmentKey, String(alignment));
+        this.storage.set(subtitleAlignmentKey, String(alignment));
+    }
+
+    get subtitlePositionOffset() {
+        const val = this.storage.get(subtitlePositionOffetKey);
+
+        if (val === null) {
+            return 100;
+        }
+
+        return Number(val);
+    }
+
+    set subtitlePositionOffset(offset: number) {
+        this.storage.set(subtitlePositionOffetKey, String(offset));
     }
 }

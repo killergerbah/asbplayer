@@ -59,12 +59,6 @@ const useStyles = makeStyles({
         whiteSpace: 'pre-wrap',
         lineHeight: 'normal',
     },
-    subtitleContainerBottomAligned: {
-        bottom: 100,
-    },
-    subtitleContainerTopAligned: {
-        top: 100,
-    },
 });
 
 function notifyReady(
@@ -208,6 +202,9 @@ export default function VideoPlayer({
     const [appBarHidden, setAppBarHidden] = useState<boolean>(playbackPreferences.theaterMode);
     const [subtitleAlignment, setSubtitleAlignment] = useState<SubtitleAlignment>(
         playbackPreferences.subtitleAlignment
+    );
+    const [subtitlePositionOffset, setSubtitlePositionOffset] = useState<number>(
+        playbackPreferences.subtitlePositionOffset
     );
     const showSubtitlesRef = useRef<IndexedSubtitleModel[]>([]);
     showSubtitlesRef.current = showSubtitles;
@@ -920,6 +917,38 @@ export default function VideoPlayer({
         [playbackPreferences]
     );
 
+    useEffect(() => {
+        const onWheel = (event: WheelEvent) => {
+            if (!subtitlesEnabled || !showSubtitlesRef.current?.length) {
+                return;
+            }
+
+            if (Math.abs(event.deltaY) < 10) {
+                return;
+            }
+
+            let shouldIncreaseOffset: boolean;
+
+            switch (subtitleAlignment) {
+                case SubtitleAlignment.bottom:
+                    shouldIncreaseOffset = event.deltaY > 0;
+                    break;
+                case SubtitleAlignment.top:
+                    shouldIncreaseOffset = event.deltaY < 0;
+                    break;
+            }
+
+            setSubtitlePositionOffset((offset) => {
+                const newOffset = shouldIncreaseOffset ? --offset : ++offset;
+                playbackPreferences.subtitlePositionOffset = newOffset;
+                return newOffset;
+            });
+        };
+
+        window.addEventListener('wheel', onWheel);
+        return () => window.removeEventListener('wheel', onWheel);
+    }, [subtitleAlignment, subtitlesEnabled, playbackPreferences]);
+
     const handleClick = useCallback(() => {
         if (playing) {
             playerChannel.pause();
@@ -994,11 +1023,12 @@ export default function VideoPlayer({
             />
             {subtitlesEnabled && (
                 <div
-                    className={
+                    style={
                         subtitleAlignment === SubtitleAlignment.bottom
-                            ? `${classes.subtitleContainer} ${classes.subtitleContainerBottomAligned}`
-                            : `${classes.subtitleContainer}  ${classes.subtitleContainerTopAligned}`
+                            ? { bottom: subtitlePositionOffset }
+                            : { top: subtitlePositionOffset }
                     }
+                    className={classes.subtitleContainer}
                 >
                     {showSubtitles.map((subtitle, index) => {
                         let content;
