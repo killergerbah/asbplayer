@@ -1,6 +1,7 @@
 import {
     OffsetFromVideoMessage,
     Rgb,
+    SubtitleAlignment,
     SubtitleCollection,
     SubtitleModel,
     SubtitleSettings,
@@ -16,8 +17,6 @@ export interface SubtitleModelWithIndex extends SubtitleModel {
 
 export default class SubtitleController {
     private readonly video: HTMLVideoElement;
-    private readonly subtitlesElementOverlay: ElementOverlay;
-    private readonly notificationElementOverlay: ElementOverlay;
 
     private showingSubtitles?: SubtitleModelWithIndex[];
     private lastLoadedMessageTimestamp: number;
@@ -30,6 +29,8 @@ export default class SubtitleController {
     private notificationElementOverlayHideTimeout?: NodeJS.Timer;
     private _subtitles: SubtitleModelWithIndex[];
     private subtitleCollection: SubtitleCollection<SubtitleModelWithIndex>;
+    private subtitlesElementOverlay: ElementOverlay;
+    private notificationElementOverlay: ElementOverlay;
     disabledSubtitleTracks: { [key: number]: boolean | undefined };
     subtitleFileNames?: string[];
     forceHideSubtitles: boolean;
@@ -37,6 +38,7 @@ export default class SubtitleController {
     surroundingSubtitlesCountRadius: number;
     surroundingSubtitlesTimeRadius: number;
     autoCopyCurrentSubtitle: boolean;
+    _subtitleAlignment: SubtitleAlignment;
 
     readonly autoPauseContext: AutoPauseContext = new AutoPauseContext();
 
@@ -44,22 +46,10 @@ export default class SubtitleController {
 
     constructor(video: HTMLVideoElement) {
         this.video = video;
-        this.subtitlesElementOverlay = new ElementOverlay(
-            video,
-            'asbplayer-subtitles-container',
-            'asbplayer-subtitles',
-            'asbplayer-subtitles-container',
-            'asbplayer-fullscreen-subtitles',
-            OffsetAnchor.bottom
-        );
-        this.notificationElementOverlay = new ElementOverlay(
-            video,
-            'asbplayer-notification-container',
-            'asbplayer-notification',
-            'asbplayer-notification-container',
-            'asbplayer-notification',
-            OffsetAnchor.top
-        );
+        this._subtitleAlignment = 'bottom';
+        const { subtitlesElementOverlay, notificationElementOverlay } = this._overlays(this._subtitleAlignment);
+        this.subtitlesElementOverlay = subtitlesElementOverlay;
+        this.notificationElementOverlay = notificationElementOverlay;
         this._subtitles = [];
         this.subtitleCollection = new SubtitleCollection<SubtitleModelWithIndex>([]);
         this.showingSubtitles = [];
@@ -88,13 +78,73 @@ export default class SubtitleController {
         this.autoPauseContext.clear();
     }
 
-    set subtitlePositionOffsetBottom(value: number) {
+    set subtitlePositionOffset(value: number) {
         this.subtitlesElementOverlay.contentPositionOffset = value;
     }
 
     setSubtitleSettings(subtitleSettings: SubtitleSettings) {
         this.subtitleSettings = subtitleSettings;
         this.subtitleStyles = undefined;
+    }
+
+    set subtitleAlignment(value: SubtitleAlignment) {
+        if (this._subtitleAlignment === value) {
+            return;
+        }
+
+        this.subtitlesElementOverlay.hide();
+        this.notificationElementOverlay.hide();
+        const { subtitlesElementOverlay, notificationElementOverlay } = this._overlays(value);
+        subtitlesElementOverlay.contentPositionOffset = this.subtitlesElementOverlay.contentPositionOffset;
+        notificationElementOverlay.contentPositionOffset = this.notificationElementOverlay.contentPositionOffset;
+        this.subtitlesElementOverlay = subtitlesElementOverlay;
+        this.notificationElementOverlay = notificationElementOverlay;
+        this._subtitleAlignment = value;
+    }
+
+    private _overlays(alignment: SubtitleAlignment) {
+        switch (alignment) {
+            case 'bottom': {
+                return {
+                    subtitlesElementOverlay: new ElementOverlay(
+                        this.video,
+                        'asbplayer-subtitles-container-bottom',
+                        'asbplayer-subtitles',
+                        'asbplayer-subtitles-container-bottom',
+                        'asbplayer-fullscreen-subtitles',
+                        OffsetAnchor.bottom
+                    ),
+                    notificationElementOverlay: new ElementOverlay(
+                        this.video,
+                        'asbplayer-notification-container-top',
+                        'asbplayer-notification',
+                        'asbplayer-notification-container-top',
+                        'asbplayer-notification',
+                        OffsetAnchor.top
+                    ),
+                };
+            }
+            case 'top': {
+                return {
+                    subtitlesElementOverlay: new ElementOverlay(
+                        this.video,
+                        'asbplayer-subtitles-container-top',
+                        'asbplayer-subtitles',
+                        'asbplayer-subtitles-container-top',
+                        'asbplayer-fullscreen-subtitles',
+                        OffsetAnchor.top
+                    ),
+                    notificationElementOverlay: new ElementOverlay(
+                        this.video,
+                        'asbplayer-notification-container-bottom',
+                        'asbplayer-notification',
+                        'asbplayer-notification-container-bottom',
+                        'asbplayer-notification',
+                        OffsetAnchor.bottom
+                    ),
+                };
+            }
+        }
     }
 
     bind() {

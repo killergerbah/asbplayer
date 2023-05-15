@@ -23,7 +23,7 @@ export class ElementOverlay {
     private fullscreenElementFullscreenPollingInterval?: NodeJS.Timer;
     private fullscreenStylesInterval?: NodeJS.Timer;
 
-    contentPositionOffset: number = 75;
+    contentPositionOffset: number;
 
     constructor(
         targetElement: HTMLElement,
@@ -31,7 +31,8 @@ export class ElementOverlay {
         nonFullscreenContentClassName: string,
         fullscreenContainerClassName: string,
         fullscreenContentClassName: string,
-        offsetAnchor: OffsetAnchor
+        offsetAnchor: OffsetAnchor,
+        contentPositionOffset?: number
     ) {
         this.targetElement = targetElement;
         this.nonFullscreenContainerClassName = nonFullscreenContainerClassName;
@@ -39,6 +40,7 @@ export class ElementOverlay {
         this.fullscreenContainerClassName = fullscreenContainerClassName;
         this.fullscreenContentClassName = fullscreenContentClassName;
         this.offsetAnchor = offsetAnchor;
+        this.contentPositionOffset = contentPositionOffset ?? 75;
     }
 
     setHtml(html: string) {

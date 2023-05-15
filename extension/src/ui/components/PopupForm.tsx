@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import Box from '@material-ui/core/Box';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -16,10 +16,12 @@ import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import Switch from '@material-ui/core/Switch';
 import makeStyles from '@material-ui/core/styles/makeStyles';
-import { ExtensionKeyBindingsSettings, ExtensionSettings } from '@project/common';
+import { ExtensionKeyBindingsSettings, ExtensionSettings, SubtitleAlignment } from '@project/common';
 import { LatestExtensionInfo } from '../../services/version-checker';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import EditIcon from '@material-ui/icons/Edit';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import Radio from '@material-ui/core/Radio';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -129,6 +131,13 @@ export default function PopupForm({
 }: PopupFormProps) {
     const classes = useStyles();
 
+    const handleSubtitleAlignmentChange = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            onSettingsChanged('subtitleAlignment', (event.target as HTMLInputElement).value as SubtitleAlignment);
+        },
+        [onSettingsChanged]
+    );
+
     return (
         <Box className={classes.root}>
             <Grid container direction="column" spacing={2}>
@@ -148,7 +157,7 @@ export default function PopupForm({
                     </Grid>
                 )}
                 <Grid item>
-                    <FormLabel component="legend">Playback</FormLabel>
+                    <FormLabel component="legend">Subtitles</FormLabel>
                     <FormGroup>
                         <FormControlLabel
                             className={classes.switchLabel}
@@ -167,34 +176,40 @@ export default function PopupForm({
                             type="number"
                             color="secondary"
                             fullWidth
-                            label="Subtitle position offset from bottom"
-                            value={settings.subtitlePositionOffsetBottom}
+                            label="Subtitle position offset"
+                            value={settings.subtitlePositionOffset}
                             inputProps={{
                                 min: 0,
                                 step: 1,
                             }}
-                            onChange={(e) => onSettingsChanged('subtitlePositionOffsetBottom', Number(e.target.value))}
-                        />
-                        <TextField
-                            className={classes.textField}
-                            variant="filled"
-                            type="number"
-                            color="secondary"
-                            fullWidth
-                            label="Condensed playback minimum skip interval"
-                            value={settings.condensedPlaybackMinimumSkipIntervalMs}
-                            onChange={(e) =>
-                                onSettingsChanged('condensedPlaybackMinimumSkipIntervalMs', Number(e.target.value))
-                            }
-                            inputProps={{
-                                min: 0,
-                                step: 1,
-                            }}
-                            InputProps={{
-                                endAdornment: <InputAdornment position="end">ms</InputAdornment>,
-                            }}
+                            onChange={(e) => onSettingsChanged('subtitlePositionOffset', Number(e.target.value))}
                         />
                     </FormGroup>
+                </Grid>
+                <Grid item>
+                    <FormLabel component="legend">Subtitle Alignment</FormLabel>
+                    <RadioGroup row>
+                        <FormControlLabel
+                            control={
+                                <Radio
+                                    checked={settings.subtitleAlignment === 'bottom'}
+                                    value={'bottom'}
+                                    onChange={handleSubtitleAlignmentChange}
+                                />
+                            }
+                            label="Bottom"
+                        />
+                        <FormControlLabel
+                            control={
+                                <Radio
+                                    checked={settings.subtitleAlignment === 'top'}
+                                    value={'top'}
+                                    onChange={handleSubtitleAlignmentChange}
+                                />
+                            }
+                            label="Top"
+                        />
+                    </RadioGroup>
                 </Grid>
                 <Grid item>
                     <FormLabel component="legend">Mining</FormLabel>
@@ -297,6 +312,28 @@ export default function PopupForm({
                             labelPlacement="start"
                         />
                     </FormGroup>
+                </Grid>
+                <Grid item>
+                    <FormLabel component="legend">Misc</FormLabel>
+                    <TextField
+                        className={classes.textField}
+                        variant="filled"
+                        type="number"
+                        color="secondary"
+                        fullWidth
+                        label="Condensed playback minimum skip interval"
+                        value={settings.condensedPlaybackMinimumSkipIntervalMs}
+                        onChange={(e) =>
+                            onSettingsChanged('condensedPlaybackMinimumSkipIntervalMs', Number(e.target.value))
+                        }
+                        inputProps={{
+                            min: 0,
+                            step: 1,
+                        }}
+                        InputProps={{
+                            endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                        }}
+                    />
                 </Grid>
                 <Grid item>
                     <FormLabel component="legend">Mining Keyboard Shortcuts</FormLabel>

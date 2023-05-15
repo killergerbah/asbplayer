@@ -1,3 +1,4 @@
+export type SubtitleAlignment = 'top' | 'bottom';
 export interface ExtensionKeyBindingsSettings {
     bindPlay: boolean;
     bindAutoPause: boolean;
@@ -23,9 +24,10 @@ export interface ExtensionSettings extends ExtensionKeyBindingsSettings {
     subsDragAndDrop: boolean;
     autoSync: boolean;
     lastLanguagesSynced: { [key: string]: string };
-    subtitlePositionOffsetBottom: number;
+    subtitlePositionOffset: number;
     condensedPlaybackMinimumSkipIntervalMs: number;
     asbplayerUrl: string;
     lastThemeType: 'dark' | 'light';
     imageDelay: number;
+    subtitleAlignment: SubtitleAlignment;
 }

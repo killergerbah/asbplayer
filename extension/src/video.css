@@ -1,7 +1,15 @@
-.asbplayer-subtitles-container {
+.asbplayer-subtitles-container-bottom {
     position: absolute;
     left: 50%;
     transform: translate(-50%, -100%);
+    display: inline-block;
+    z-index: 2147483647;
+}
+
+.asbplayer-subtitles-container-top {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
     display: inline-block;
     z-index: 2147483647;
 }
@@ -19,7 +27,15 @@
     white-space: pre-wrap !important;
 }
 
-.asbplayer-notification-container {
+.asbplayer-notification-container-bottom {
+    position: absolute !important;
+    left: 50%;
+    transform: translate(-50%, -100%);
+    display: inline-block;
+    z-index: 2147483647 !important;
+}
+
+.asbplayer-notification-container-top {
     position: absolute !important;
     left: 50%;
     transform: translate(-50%);

@@ -538,7 +538,8 @@ export default class Binding {
         this.screenshot = currentSettings.screenshot;
         this.cleanScreenshot = currentSettings.screenshot && currentSettings.cleanScreenshot;
         this.subtitleController.displaySubtitles = currentSettings.displaySubtitles;
-        this.subtitleController.subtitlePositionOffsetBottom = currentSettings.subtitlePositionOffsetBottom;
+        this.subtitleController.subtitlePositionOffset = currentSettings.subtitlePositionOffset;
+        this.subtitleController.subtitleAlignment = currentSettings.subtitleAlignment;
         this.subtitleController.refresh();
         this.videoDataSyncController.updateSettings(currentSettings);
         this.keyBindings.setSettings(this, currentSettings);
