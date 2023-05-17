@@ -184,7 +184,7 @@ export default function Bar({
                             <FolderIcon />
                         </IconButton>
                     </Tooltip>
-                    <Typography variant="h6" className={classes.title}>
+                    <Typography variant="h6" noWrap className={classes.title}>
                         {title}
                     </Typography>
                     <Tooltip title="Donate">
