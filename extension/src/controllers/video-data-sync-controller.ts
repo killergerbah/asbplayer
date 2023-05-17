@@ -151,10 +151,7 @@ export default class VideoDataSyncController {
             return;
         }
 
-        const subtitleTrackChoices = [
-            { language: '', url: '-', label: 'Empty', extension: 'srt' },
-            ...(this._syncedData?.subtitles ?? []),
-        ];
+        const subtitleTrackChoices = this._syncedData?.subtitles ?? [];
         const selectedSub = subtitleTrackChoices.find((subtitle) => subtitle.language === this.lastLanguageSynced);
 
         if (selectedSub !== undefined && !userRequested && !this._syncedData?.error) {
@@ -437,7 +434,7 @@ export default class VideoDataSyncController {
             open: true,
             isLoading: false,
             showSubSelect: true,
-            subtitles: [{ language: '', url: '-', label: 'Empty' }, ...(this._syncedData?.subtitles || [])],
+            subtitles: this._syncedData?.subtitles || [],
             selectedSubtitle:
                 this._syncedData?.subtitles?.find((subtitle) => subtitle.language === this.lastLanguageSynced)?.url ||
                 '-',

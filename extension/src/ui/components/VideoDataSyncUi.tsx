@@ -14,19 +14,21 @@ import {
 } from '@project/common';
 import { PaletteType } from '@material-ui/core';
 import { bufferToBase64 } from '../../services/base64';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
     bridge: Bridge;
 }
 
 export default function VideoDataSyncUi({ bridge }: Props) {
+    const { t } = useTranslation();
     const [open, setOpen] = useState<boolean>(false);
     const [disabled, setDisabled] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [suggestedName, setSuggestedName] = useState<string>('');
     const [showSubSelect, setShowSubSelect] = useState<boolean>(true);
     const [subtitles, setSubtitles] = useState<VideoDataSubtitleTrack[]>([
-        { language: '', url: '-', label: 'Empty', extension: 'srt' },
+        { language: '', url: '-', label: t('extension.videoDataSync.emptySubtitleTrack'), extension: 'srt' },
     ]);
     const [selectedSubtitle, setSelectedSubtitle] = useState<string>('-');
     const [openedFromMiningCommand, setOpenedFromMiningCommand] = useState<boolean>(false);
@@ -67,7 +69,10 @@ export default function VideoDataSyncUi({ bridge }: Props) {
             }
 
             if (Object.prototype.hasOwnProperty.call(state, 'subtitles')) {
-                setSubtitles(state.subtitles);
+                setSubtitles([
+                    { language: '', url: '-', label: t('extension.videoDataSync.emptySubtitleTrack') },
+                    ...state.subtitles,
+                ]);
             }
 
             if (Object.prototype.hasOwnProperty.call(state, 'selectedSubtitle')) {
@@ -86,7 +91,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                 setOpenedFromMiningCommand(state.openedFromMiningCommand);
             }
         });
-    }, [bridge]);
+    }, [bridge, t]);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 

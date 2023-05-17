@@ -183,7 +183,8 @@
             "selectSubtitles": "Select Subtitles",
             "loadSubtitlesFirst": "Subtitles must be loaded before you can start mining.",
             "videoName": "Video Name",
-            "subtitleTrack": "Subtitle Track"
+            "subtitleTrack": "Subtitle Track",
+            "emptySubtitleTrack": "Empty"
         }
     },
     "error": {

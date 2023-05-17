@@ -180,7 +180,8 @@
             "selectSubtitles": "字幕を読み込む",
             "loadSubtitlesFirst": "字幕をメモするには字幕を読み込む必要があります。",
             "videoName": "ビデオ名",
-            "subtitleTrack": "字幕トラック"
+            "subtitleTrack": "字幕トラック",
+            "emptySubtitleTrack": "空"
         }
     },
     "error": {
