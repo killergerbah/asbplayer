@@ -427,3 +427,8 @@ export interface VideoSelectModeCancelMessage extends Message {
 export interface CaptureVisibleTabMessage extends Message {
     readonly command: 'capture-visible-tab';
 }
+
+export interface CopyToClipboardMessage extends Message {
+    readonly command: 'copy-to-clipboard';
+    readonly dataUrl: string;
+}

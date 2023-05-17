@@ -201,6 +201,7 @@ interface AnkiDialogProps {
     onCancel: () => void;
     onViewImage: (image: Image) => void;
     onOpenSettings?: () => void;
+    onCopyToClipboard: (blob: Blob) => void;
     audioClip?: AudioClip;
     image?: Image;
     source?: string;
@@ -230,6 +231,7 @@ export function AnkiDialog({
     onViewImage,
     onOpenSettings,
     onRerecord,
+    onCopyToClipboard,
     audioClip: initialAudioClip,
     image,
     source: initialSource,
@@ -554,9 +556,9 @@ export function AnkiDialog({
                 return;
             }
 
-            navigator.clipboard.write([new ClipboardItem({ 'image/png': await image.pngBlob() })]);
+            onCopyToClipboard(await image.pngBlob());
         },
-        [image]
+        [image, onCopyToClipboard]
     );
 
     const disableApplyTextSelection =

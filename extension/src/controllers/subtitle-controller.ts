@@ -1,4 +1,5 @@
 import {
+    CopyToClipboardMessage,
     OffsetFromVideoMessage,
     Rgb,
     SubtitleAlignment,
@@ -181,18 +182,24 @@ export default class SubtitleController {
                 this.onNextToShow?.(slice.nextToShow[0]);
             }
 
+            const subtitlesAreNew =
+                this.showingSubtitles === undefined ||
+                !this._arrayEquals(showingSubtitles, this.showingSubtitles, (a, b) => a.index === b.index);
+
+            if (subtitlesAreNew) {
+                this.showingSubtitles = showingSubtitles;
+                this._autoCopyToClipboard(showingSubtitles);
+            }
+
             if ((!showOffset && !this.displaySubtitles) || this.forceHideSubtitles) {
                 this._hideSubtitles();
-                this._autoCopyToClipboard(showingSubtitles);
             } else if (
-                !this.showingSubtitles ||
-                !this._arrayEquals(showingSubtitles, this.showingSubtitles, (a, b) => a.index === b.index) ||
+                subtitlesAreNew ||
                 (showOffset && offset !== this.showingOffset) ||
                 (!showOffset && this.showingOffset !== undefined)
             ) {
                 const html = this._buildSubtitlesHtml(showingSubtitles);
                 this._setSubtitlesHtml(html);
-                this.showingSubtitles = showingSubtitles;
 
                 if (showOffset) {
                     this._appendSubtitlesHtml(this._buildTextHtml(this._formatOffset(offset)));
@@ -200,17 +207,22 @@ export default class SubtitleController {
                 } else {
                     this.showingOffset = undefined;
                 }
-
-                this._autoCopyToClipboard(showingSubtitles);
             }
         }, 100);
     }
 
     private _autoCopyToClipboard(subtitles: SubtitleModel[]) {
         if (this.autoCopyCurrentSubtitle && subtitles.length > 0 && document.hasFocus()) {
-            navigator.clipboard.writeText(subtitles.map((s) => s.text).join('\n')).catch((e) => {
-                // ignore
-            });
+            const command: VideoToExtensionCommand<CopyToClipboardMessage> = {
+                sender: 'asbplayer-video',
+                message: {
+                    command: 'copy-to-clipboard',
+                    dataUrl: `data:,${encodeURIComponent(subtitles.map((s) => s.text).join('\n'))}`,
+                },
+                src: this.video.src,
+            };
+
+            chrome.runtime.sendMessage(command);
         }
     }
 
@@ -453,7 +465,6 @@ export default class SubtitleController {
 
     private _hideSubtitles() {
         this.subtitlesElementOverlay.hide();
-        this.showingSubtitles = [];
     }
 
     // https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb

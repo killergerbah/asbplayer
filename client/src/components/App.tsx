@@ -1302,6 +1302,10 @@ function App() {
         }
     }, [alert, alertSeverity, alertOpen]);
 
+    const handleCopyToClipboard = useCallback((blob: Blob) => {
+        navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]).catch(console.error);
+    }, []);
+
     if (location.pathname === '/' && searchParams.get('video')) {
         return <NavigateToVideo searchParams={searchParams} />;
     }
@@ -1354,6 +1358,7 @@ function App() {
                                     onRewind={handleAnkiDialogRewind}
                                     onProceed={handleAnkiDialogProceed}
                                     onViewImage={handleViewImage}
+                                    onCopyToClipboard={handleCopyToClipboard}
                                 />
                                 <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />
                             </>
@@ -1391,6 +1396,7 @@ function App() {
                                     onProceed={handleAnkiDialogProceed}
                                     onViewImage={handleViewImage}
                                     onOpenSettings={handleOpenSettings}
+                                    onCopyToClipboard={handleCopyToClipboard}
                                 />
                                 <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />
                                 <SettingsDialog

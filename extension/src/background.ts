@@ -15,16 +15,6 @@ import AsbplayerV2ToVideoCommandForwardingHandler from './handlers/asbplayerv2/a
 import AsbplayerHeartbeatHandler from './handlers/asbplayerv2/asbplayer-heartbeat-handler';
 import RefreshSettingsHandler from './handlers/popup/refresh-settings-handler';
 import { CommandHandler } from './handlers/command-handler';
-import {
-    Command,
-    CopySubtitleMessage,
-    ExtensionToVideoCommand,
-    Message,
-    PostMineAction,
-    TakeScreenshotMessage,
-    ToggleRecordingMessage,
-    ToggleVideoSelectMessage,
-} from '@project/common';
 import TakeScreenshotHandler from './handlers/video/take-screenshot-handler';
 import BackgroundPageAudioRecorder from './services/background-page-audio-recorder';
 import BackgroundPageReadyHandler from './handlers/backgroundpage/background-page-ready-handler';
@@ -36,6 +26,17 @@ import EditKeyboardShortcutsHandler from './handlers/popup/edit-keyboard-shortcu
 import ExtensionCommandsHandler from './handlers/asbplayerv2/extension-commands-handler';
 import OpenAsbplayerSettingsHandler from './handlers/video/open-asbplayer-settings-handler';
 import CaptureVisibleTabHandler from './handlers/foreground/capture-visible-tab-handler';
+import CopyToClipboardHandler from './handlers/video/copy-to-clipboard-handler';
+import {
+    Command,
+    CopySubtitleMessage,
+    ExtensionToVideoCommand,
+    Message,
+    PostMineAction,
+    TakeScreenshotMessage,
+    ToggleRecordingMessage,
+    ToggleVideoSelectMessage,
+} from '@project/common';
 
 const settings = new Settings();
 const versionChecker = new VersionChecker(settings);
@@ -64,6 +65,7 @@ const handlers: CommandHandler[] = [
     new SyncHandler(tabRegistry),
     new HttpPostHandler(),
     new OpenAsbplayerSettingsHandler(tabRegistry),
+    new CopyToClipboardHandler(),
     new VideoToAsbplayerCommandForwardingHandler(tabRegistry),
     new AsbplayerToVideoCommandForwardingHandler(),
     new AsbplayerHeartbeatHandler(tabRegistry),

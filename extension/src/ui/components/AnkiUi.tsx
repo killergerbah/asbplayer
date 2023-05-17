@@ -15,6 +15,7 @@ import {
     AnkiUiBridgeRerecordMessage,
     AnkiUiBridgeResumeMessage,
     AnkiUiBridgeRewindMessage,
+    CopyToClipboardMessage,
 } from '@project/common';
 import { createTheme } from './theme';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
@@ -31,6 +32,16 @@ interface Props {
     bridge: Bridge;
     mp3WorkerUrl: string;
 }
+
+const blobToDataUrl = async (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        var reader = new FileReader();
+        reader.onload = () => {
+            resolve(reader.result as string);
+        };
+        reader.readAsDataURL(blob);
+    });
+};
 
 export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
     const [open, setOpen] = useState<boolean>(false);
@@ -287,6 +298,11 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
         }
     }, []);
 
+    const handleCopyToClipboard = useCallback(async (blob: Blob) => {
+        const message: CopyToClipboardMessage = { command: 'copy-to-clipboard', dataUrl: await blobToDataUrl(blob) };
+        bridge.sendServerMessage(message);
+    }, []);
+
     useEffect(() => {
         return bridge.onClientMessage((message) => {
             if (message.command === 'focus') {
@@ -338,6 +354,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                     onCancel={handleCancel}
                     onViewImage={handleViewImage}
                     onOpenSettings={handleOpenSettings}
+                    onCopyToClipboard={handleCopyToClipboard}
                     definition={definition}
                     word={word}
                     customFields={settingsProvider.customAnkiFields}

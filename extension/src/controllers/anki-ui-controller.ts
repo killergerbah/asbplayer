@@ -11,6 +11,7 @@ import {
     AnkiUiBridgeRewindMessage,
     OpenAsbplayerSettingsMessage,
     VideoToExtensionCommand,
+    CopyToClipboardMessage,
 } from '@project/common';
 import Binding from '../services/binding';
 import UiFrame from '../services/ui-frame';
@@ -170,16 +171,29 @@ export default class AnkiUiController {
         window.addEventListener('focusin', this.focusInListener);
 
         client.onServerMessage((message) => {
-            if (message.command === 'openSettings') {
-                const command: VideoToExtensionCommand<OpenAsbplayerSettingsMessage> = {
-                    sender: 'asbplayer-video',
-                    message: {
-                        command: 'open-asbplayer-settings',
-                    },
-                    src: context.video.src,
-                };
-                chrome.runtime.sendMessage(command);
-                return;
+            switch (message.command) {
+                case 'openSettings':
+                    const openSettingsCommand: VideoToExtensionCommand<OpenAsbplayerSettingsMessage> = {
+                        sender: 'asbplayer-video',
+                        message: {
+                            command: 'open-asbplayer-settings',
+                        },
+                        src: context.video.src,
+                    };
+                    chrome.runtime.sendMessage(openSettingsCommand);
+                    return;
+                case 'copy-to-clipboard':
+                    const copyToClipboardMessage = message as CopyToClipboardMessage;
+                    const copyToClipboardCommand: VideoToExtensionCommand<CopyToClipboardMessage> = {
+                        sender: 'asbplayer-video',
+                        message: {
+                            command: 'copy-to-clipboard',
+                            dataUrl: copyToClipboardMessage.dataUrl,
+                        },
+                        src: context.video.src,
+                    };
+                    chrome.runtime.sendMessage(copyToClipboardCommand);
+                    return;
             }
 
             context.keyBindings.bind(context);
