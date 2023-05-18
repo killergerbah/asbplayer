@@ -46,7 +46,13 @@ export default class StartRecordingMediaHandler {
 
         if (startRecordingCommand.message.screenshot) {
             const imageDelay = startRecordingCommand.message.record ? startRecordingCommand.message.imageDelay : 0;
-            imageBase64 = await this.imageCapturer.capture(sender.tab!.id!, startRecordingCommand.src, imageDelay);
+            const { maxWidth, maxHeight, rect, frameId } = startRecordingCommand.message;
+            imageBase64 = await this.imageCapturer.capture(sender.tab!.id!, startRecordingCommand.src, imageDelay, {
+                maxWidth,
+                maxHeight,
+                rect,
+                frameId,
+            });
             const screenshotTakenCommand: ExtensionToVideoCommand<ScreenshotTakenMessage> = {
                 sender: 'asbplayer-extension-to-video',
                 message: {

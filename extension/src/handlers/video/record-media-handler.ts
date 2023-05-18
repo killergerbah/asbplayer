@@ -60,10 +60,12 @@ export default class RecordMediaHandler {
             }
 
             if (recordMediaCommand.message.screenshot) {
+                const { maxWidth, maxHeight, rect, frameId } = recordMediaCommand.message;
                 imagePromise = this.imageCapturer.capture(
                     senderTab.id!,
                     recordMediaCommand.src,
-                    Math.min(subtitle.end - subtitle.start, recordMediaCommand.message.imageDelay)
+                    Math.min(subtitle.end - subtitle.start, recordMediaCommand.message.imageDelay),
+                    { maxWidth, maxHeight, rect, frameId }
                 );
             }
 

@@ -2,13 +2,13 @@ import {
     AnkiSettingsToVideoMessage,
     AnkiUiSavedState,
     AutoPausePreference,
-    CanvasResizer,
     CardUpdatedMessage,
     CopySubtitleMessage,
-    CropAndResizeMessage,
+    cropAndResize,
     CurrentTimeFromVideoMessage,
     CurrentTimeToVideoMessage,
     humanReadableTime,
+    ImageCaptureParams,
     MiscSettingsToVideoMessage,
     OffsetToVideoMessage,
     PauseFromVideoMessage,
@@ -93,7 +93,9 @@ export default class Binding {
     ) => void;
     private heartbeatInterval?: NodeJS.Timeout;
 
-    constructor(video: HTMLVideoElement, syncAvailable: boolean) {
+    private readonly frameId?: string;
+
+    constructor(video: HTMLVideoElement, syncAvailable: boolean, frameId?: string) {
         this.video = video;
         this.subSyncAvailable = syncAvailable;
         this.subtitleController = new SubtitleController(video);
@@ -115,6 +117,7 @@ export default class Binding {
         this._synced = false;
         this.recordingMedia = false;
         this.recordingMediaWithScreenshot = false;
+        this.frameId = frameId;
     }
 
     get synced() {
@@ -193,6 +196,22 @@ export default class Binding {
         const subtitleFileNames = this.subtitleController.subtitleFileNames;
         const subtitleFileNameToUse = (subtitleFileNames && subtitleFileNames[track]) ?? '';
         return subtitleFileNameToUse === '' ? '' : `${subtitleFileNameToUse} (${humanReadableTime(timestamp)})`;
+    }
+
+    private get _imageCaptureParams(): ImageCaptureParams {
+        const rect = this.video.getBoundingClientRect();
+
+        return {
+            maxWidth: this.maxImageWidth,
+            maxHeight: this.maxImageHeight,
+            rect: {
+                left: rect.left,
+                top: rect.top,
+                width: rect.width,
+                height: rect.height,
+            },
+            frameId: this.frameId,
+        };
     }
 
     bind() {
@@ -517,10 +536,6 @@ export default class Binding {
 
                         this.controlsController.show();
                         break;
-                    case 'crop-and-resize':
-                        const cropAndResizeMessage = request.message as CropAndResizeMessage;
-                        this.cropAndResize(cropAndResizeMessage.dataUrl).then((dataUrl) => sendResponse({ dataUrl }));
-                        return true;
                     case 'alert':
                         // ignore
                         break;
@@ -608,6 +623,7 @@ export default class Binding {
             message: {
                 command: 'take-screenshot',
                 ankiUiState: this.ankiUiSavedState,
+                ...this._imageCaptureParams,
             },
             src: this.video.src,
         };
@@ -655,6 +671,7 @@ export default class Binding {
                     imageDelay: this.imageDelay,
                     playbackRate: this.video.playbackRate,
                     ankiSettings: ankiSettings,
+                    ...this._imageCaptureParams,
                 },
                 src: this.video.src,
             };
@@ -681,6 +698,7 @@ export default class Binding {
                     url: this.url,
                     sourceString: this.sourceString(this.recordingMediaStartedTimestamp!),
                     ankiSettings: ankiSettings,
+                    ...this._imageCaptureParams,
                     ...this._surroundingSubtitlesAroundInterval(this.recordingMediaStartedTimestamp!, currentTimestamp),
                 },
                 src: this.video.src,
@@ -714,6 +732,7 @@ export default class Binding {
                     sourceString: this.sourceString(timestamp),
                     imageDelay: this.imageDelay,
                     ankiSettings: ankiSettings,
+                    ...this._imageCaptureParams,
                 },
                 src: this.video.src,
             };
@@ -849,36 +868,9 @@ export default class Binding {
     }
 
     async cropAndResize(tabImageDataUrl: string): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const image = new Image();
-            const rect = this.video.getBoundingClientRect();
-            const maxWidth = this.maxImageWidth;
-            const maxHeight = this.maxImageHeight;
-
-            image.onload = async () => {
-                const canvas = document.createElement('canvas');
-                const r = window.devicePixelRatio;
-                const width = rect.width * r;
-                const height = rect.height * r;
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d')!;
-                ctx.drawImage(image, rect.left * r, rect.top * r, width, height, 0, 0, width, height);
-
-                if (maxWidth > 0 || maxHeight > 0) {
-                    try {
-                        await new CanvasResizer().resize(canvas, ctx, maxWidth, maxHeight);
-                        resolve(canvas.toDataURL('image/jpeg'));
-                    } catch (e) {
-                        console.error('Failed to crop and resize image: ' + e);
-                        reject(e);
-                    }
-                } else {
-                    resolve(canvas.toDataURL('image/jpeg'));
-                }
-            };
-
-            image.src = tabImageDataUrl;
-        });
+        const rect = this.video.getBoundingClientRect();
+        const maxWidth = this.maxImageWidth;
+        const maxHeight = this.maxImageHeight;
+        return await cropAndResize(maxWidth, maxHeight, rect, tabImageDataUrl);
     }
 }

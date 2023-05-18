@@ -1,5 +1,12 @@
-import { CropAndResizeMessage, ExtensionToVideoCommand } from '@project/common';
+import { CropAndResizeMessage, ExtensionToVideoCommand, ImageCaptureParams, RectModel } from '@project/common';
 import Settings from './settings';
+
+export interface CaptureOptions {
+    maxWidth: number;
+    maxHeight: number;
+    rect: RectModel;
+    frameId?: string;
+}
 
 export default class ImageCapturer {
     private readonly settings: Settings;
@@ -17,23 +24,29 @@ export default class ImageCapturer {
         return this._lastImageBase64;
     }
 
-    capture(tabId: number, src: string, delay: number): Promise<string> {
+    capture(tabId: number, src: string, delay: number, captureParams: ImageCaptureParams): Promise<string> {
         this._lastImageBase64 = undefined;
 
         if (this.imageBase64Resolve !== undefined && this.imageBase64Promise !== undefined) {
-            this._captureWithDelay(tabId, src, delay, this.imageBase64Resolve);
+            this._captureWithDelay(tabId, src, delay, captureParams, this.imageBase64Resolve);
             return this.imageBase64Promise;
         }
 
         this.imageBase64Promise = new Promise((resolve, reject) => {
             this.imageBase64Resolve = resolve;
-            this._captureWithDelay(tabId, src, delay, this.imageBase64Resolve);
+            this._captureWithDelay(tabId, src, delay, captureParams, this.imageBase64Resolve);
         });
 
         return this.imageBase64Promise;
     }
 
-    private _captureWithDelay(tabId: number, src: string, delay: number, resolve: (value: string) => void) {
+    private _captureWithDelay(
+        tabId: number,
+        src: string,
+        delay: number,
+        captureParams: ImageCaptureParams,
+        resolve: (value: string) => void
+    ) {
         const timeoutId = setTimeout(() => {
             chrome.tabs.captureVisibleTab({ format: 'jpeg' }, async (dataUrl) => {
                 if (timeoutId !== this.lastCaptureTimeoutId) {
@@ -41,7 +54,7 @@ export default class ImageCapturer {
                     return;
                 }
 
-                const croppedDataUrl = await this._cropAndResize(dataUrl, tabId, src);
+                const croppedDataUrl = await this._cropAndResize(dataUrl, tabId, src, captureParams);
 
                 if (timeoutId !== this.lastCaptureTimeoutId) {
                     // The promise was already resolved by another call to capture with a shorter delay
@@ -58,7 +71,12 @@ export default class ImageCapturer {
         this.lastCaptureTimeoutId = timeoutId;
     }
 
-    private _cropAndResize(dataUrl: string, tabId: number, src: string): Promise<string> {
+    private _cropAndResize(
+        dataUrl: string,
+        tabId: number,
+        src: string,
+        imageCaptureParams: ImageCaptureParams
+    ): Promise<string> {
         return new Promise(async (resolve, reject) => {
             const cropScreenshot = (await this.settings.get(['cropScreenshot'])).cropScreenshot;
 
@@ -69,7 +87,7 @@ export default class ImageCapturer {
 
             const cropAndResizeCommand: ExtensionToVideoCommand<CropAndResizeMessage> = {
                 sender: 'asbplayer-extension-to-video',
-                message: { command: 'crop-and-resize', dataUrl },
+                message: { command: 'crop-and-resize', dataUrl, ...imageCaptureParams },
                 src: src,
             };
 
