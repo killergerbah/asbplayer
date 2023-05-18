@@ -55,7 +55,14 @@ export interface SettingsUpdatedMessage extends Message {
     readonly command: 'settings-updated';
 }
 
-export interface RecordMediaAndForwardSubtitleMessage extends Message {
+export interface ImageCaptureParams {
+    readonly maxWidth: number;
+    readonly maxHeight: number;
+    readonly rect: RectModel;
+    readonly frameId?: string;
+}
+
+export interface RecordMediaAndForwardSubtitleMessage extends Message, ImageCaptureParams {
     readonly command: 'record-media-and-forward-subtitle';
     readonly subtitle: SubtitleModel;
     readonly surroundingSubtitles: SubtitleModel[];
@@ -71,7 +78,7 @@ export interface RecordMediaAndForwardSubtitleMessage extends Message {
     readonly ankiSettings?: AnkiSettings;
 }
 
-export interface StartRecordingMediaMessage extends Message {
+export interface StartRecordingMediaMessage extends Message, ImageCaptureParams {
     readonly command: 'start-recording-media';
     readonly record: boolean;
     readonly timestamp: number;
@@ -83,7 +90,7 @@ export interface StartRecordingMediaMessage extends Message {
     readonly ankiSettings?: AnkiSettings;
 }
 
-export interface StopRecordingMediaMessage extends Message {
+export interface StopRecordingMediaMessage extends Message, ImageCaptureParams {
     readonly command: 'stop-recording-media';
     readonly postMineAction: PostMineAction;
     readonly startTimestamp: number;
@@ -121,7 +128,7 @@ export interface TakeScreenshotMessage extends Message {
     readonly command: 'take-screenshot';
 }
 
-export interface TakeScreenshotFromExtensionMessage extends Message {
+export interface TakeScreenshotFromExtensionMessage extends Message, ImageCaptureParams {
     readonly command: 'take-screenshot';
     readonly ankiUiState?: AnkiUiSavedState;
 }
@@ -366,7 +373,7 @@ export interface VideoDataUiBridgeOpenFileMessage extends Message {
     readonly subtitles: SerializedSubtitleFile[];
 }
 
-export interface CropAndResizeMessage extends Message {
+export interface CropAndResizeMessage extends Message, ImageCaptureParams {
     readonly command: 'crop-and-resize';
     readonly dataUrl: string;
 }

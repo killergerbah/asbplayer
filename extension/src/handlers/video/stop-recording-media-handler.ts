@@ -63,7 +63,13 @@ export default class StopRecordingMediaHandler {
                 let lastImageBase64 = this.imageCapturer.lastImageBase64;
 
                 if (lastImageBase64 === undefined) {
-                    lastImageBase64 = await this.imageCapturer.capture(sender.tab!.id!, stopRecordingCommand.src, 0);
+                    const { maxWidth, maxHeight, rect, frameId } = stopRecordingCommand.message;
+                    lastImageBase64 = await this.imageCapturer.capture(sender.tab!.id!, stopRecordingCommand.src, 0, {
+                        maxWidth,
+                        maxHeight,
+                        rect,
+                        frameId,
+                    });
                 }
 
                 imageModel = {

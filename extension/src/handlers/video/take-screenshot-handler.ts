@@ -33,8 +33,13 @@ export default class TakeScreenshotHandler {
     async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
         const senderTab = sender.tab!;
         const takeScreenshotCommand = command as VideoToExtensionCommand<TakeScreenshotFromExtensionMessage>;
-
-        const imageBase64 = await this.imageCapturer.capture(sender.tab!.id!, takeScreenshotCommand.src, 0);
+        const { maxWidth, maxHeight, rect, frameId } = takeScreenshotCommand.message;
+        const imageBase64 = await this.imageCapturer.capture(sender.tab!.id!, takeScreenshotCommand.src, 0, {
+            maxWidth,
+            maxHeight,
+            rect,
+            frameId,
+        });
 
         let ankiUiState: AnkiUiSavedState | undefined;
 

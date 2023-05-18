@@ -3,7 +3,7 @@ export { default as AudioClip } from './src/audio-clip';
 export { default as Mp3Encoder } from './src/mp3-encoder';
 export { default as Image } from './src/image';
 export * from './src/anki';
-export { default as CanvasResizer } from './src/canvas-resizer';
+export * from './src/image-transformer';
 export * from './src/command';
 export * from './src/util';
 export * from './src/settings';

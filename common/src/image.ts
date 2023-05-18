@@ -1,4 +1,4 @@
-import CanvasResizer from './canvas-resizer';
+import { resizeCanvas } from './image-transformer';
 import { download } from './util';
 
 class Base64ImageData implements ImageData {
@@ -115,8 +115,7 @@ class FileImageData implements ImageData {
                 const ctx = canvas.getContext('2d');
                 ctx!.drawImage(video, 0, 0, canvas.width, canvas.height);
                 if (this.maxWidth > 0 || this.maxHeight > 0) {
-                    const resizer = new CanvasResizer();
-                    await resizer.resize(canvas, ctx!, this.maxWidth, this.maxHeight);
+                    await resizeCanvas(canvas, ctx!, this.maxWidth, this.maxHeight);
                     resolve(canvas);
                 } else {
                     resolve(canvas);
