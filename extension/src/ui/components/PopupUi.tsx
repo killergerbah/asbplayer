@@ -5,8 +5,7 @@ import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import PopupForm from './PopupForm';
 import Bridge from '../bridge';
 import { ExtensionSettings } from '@project/common';
-import Settings from '../../services/settings';
-import VersionChecker, { LatestExtensionInfo } from '../../services/version-checker';
+import { LatestExtensionInfo, newVersionAvailable } from '../../services/version-checker';
 
 interface Props {
     bridge: Bridge;
@@ -37,19 +36,18 @@ export function PopupUi({ bridge, currentSettings, commands }: Props) {
     const [settings, setSettings] = useState(currentSettings);
     const [latestVersionInfo, setLatestVersionInfo] = useState<LatestExtensionInfo>();
     const theme = useMemo(() => createTheme(currentSettings.lastThemeType || 'dark'), [currentSettings.lastThemeType]);
-    const versionChecker = useMemo(() => new VersionChecker(new Settings()), []);
 
     useEffect(() => {
         const checkLatestVersion = async () => {
-            const [newVersionAvailable, latestVersionInfo] = await versionChecker.newVersionAvailable();
+            const [newVersion, latestVersionInfo] = await newVersionAvailable();
 
-            if (newVersionAvailable) {
+            if (newVersion) {
                 setLatestVersionInfo(latestVersionInfo);
             }
         };
 
         checkLatestVersion();
-    }, [versionChecker]);
+    }, []);
 
     function handleSettingsChanged<K extends keyof ExtensionSettings>(key: K, value: ExtensionSettings[K]) {
         setSettings((old: any) => {

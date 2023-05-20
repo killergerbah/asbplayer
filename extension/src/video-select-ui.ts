@@ -3,7 +3,8 @@ import { renderVideoSelectModeUi } from './ui/video-select';
 
 window.addEventListener('load', () => {
     const root = document.getElementById('root')!;
-    const bridge = renderVideoSelectModeUi(root, root.dataset.lang!);
+    const loc = JSON.parse(document.getElementById('loc')!.innerHTML!);
+    const bridge = renderVideoSelectModeUi(root, loc.lang, loc.strings);
     const listener = new FrameBridgeServer(bridge);
     listener.bind();
 

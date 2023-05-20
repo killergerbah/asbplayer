@@ -27,7 +27,7 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import { Theme } from '@material-ui/core/styles';
-import { Anki, AsbplayerSettings, AutoPausePreference, KeyBindSet, KeyBindName } from '@project/common';
+import { Anki, AsbplayerSettings, AutoPausePreference, KeyBindSet, KeyBindName, supportedLanguages } from '@project/common';
 import { TagsTextField } from '@project/common/components';
 import hotkeys from 'hotkeys-js';
 import Typography from '@material-ui/core/Typography';
@@ -36,8 +36,6 @@ import { isMacOs } from 'react-device-detect';
 import Switch from '@material-ui/core/Switch';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Tooltip from '@material-ui/core/Tooltip';
-
-const supportedLanguages = ['en', 'ja'];
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {

@@ -3,6 +3,7 @@ import { VideoElement } from '../ui/components/VideoSelectUi';
 import Binding from '../services/binding';
 import Settings from '../services/settings';
 import UiFrame from '../services/ui-frame';
+import { fetchLocalization } from '../services/localization-fetcher';
 
 export default class VideoSelectController {
     private readonly _bindings: Binding[];
@@ -26,7 +27,8 @@ export default class VideoSelectController {
                     <title>asbplayer - Video Select</title>
                 </head>
                 <body>
-                <div id="root" data-lang=\"${lang}\" style="width:100%;height:100vh;"></div>
+                <div id="root" style="width:100%;height:100vh;"></div>
+                <script type="application/json" id="loc">${JSON.stringify(await fetchLocalization(lang))}</script>
                 <script src="${chrome.runtime.getURL('./video-select-ui.js')}"></script>
                 </body>
             </html>`

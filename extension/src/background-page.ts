@@ -8,7 +8,12 @@ import {
 import { Mp3Encoder } from '@project/common';
 import AudioRecorder from './services/audio-recorder';
 import { bufferToBase64 } from './services/base64';
+import { i18nInit } from './ui/i18n';
+import i18n from 'i18next';
+import Settings from './services/settings';
+import { fetchLocalization } from './services/localization-fetcher';
 
+const settings = new Settings();
 const audioRecorder = new AudioRecorder();
 
 const _sendAudioBase64 = async (base64: string, preferMp3: boolean) => {
@@ -74,4 +79,9 @@ window.onload = async () => {
     if (!acked) {
         window.close();
     }
+
+    const language = await settings.getSingle('lastLanguage');
+    const loc = await fetchLocalization(language);
+    i18nInit(loc.lang, loc.strings);
+    document.getElementById('helper-text')!.innerHTML = i18n.t('extension.backgroundAudioRecordingPage.description');
 };

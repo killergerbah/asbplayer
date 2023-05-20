@@ -70,7 +70,12 @@ export default function VideoDataSyncUi({ bridge }: Props) {
 
             if (Object.prototype.hasOwnProperty.call(state, 'subtitles')) {
                 setSubtitles([
-                    { language: '', url: '-', label: t('extension.videoDataSync.emptySubtitleTrack') },
+                    {
+                        language: '',
+                        url: '-',
+                        label: t('extension.videoDataSync.emptySubtitleTrack'),
+                        extension: 'srt',
+                    },
                     ...state.subtitles,
                 ]);
             }

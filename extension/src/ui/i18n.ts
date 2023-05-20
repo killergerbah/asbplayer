@@ -1,11 +1,11 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-export const i18nInit = async (language: string) => {
+export const i18nInit = (lang: string, locStrings: any) => {
     i18n.use(initReactI18next).init({
-        resources: {},
-        lng: language,
-        fallbackLng: language,
+        resources: { [lang]: { translation: locStrings } },
+        lng: lang,
+        fallbackLng: lang,
         debug: process.env.NODE_ENV === 'development',
         ns: 'translation',
         defaultNS: 'translation',
@@ -13,13 +13,4 @@ export const i18nInit = async (language: string) => {
             escapeValue: false,
         },
     });
-
-    switch (language) {
-        case 'en':
-            i18n.addResourceBundle('en', 'translation', await import('@project/common/locales/en.json'));
-            break;
-        case 'ja':
-            i18n.addResourceBundle('ja', 'translation', await import('@project/common/locales/ja.json'));
-            break;
-    }
 };

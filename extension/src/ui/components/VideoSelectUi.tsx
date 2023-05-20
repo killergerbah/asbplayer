@@ -76,7 +76,7 @@ export default function VideoSelectUi({ bridge }: Props) {
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-            <Dialog open={open}>
+            <Dialog open={open} fullWidth maxWidth="sm">
                 <DialogTitle>{t('extension.videoSelect.multipleVideoElements')}</DialogTitle>
                 <DialogContent>
                     {openedFromMiningCommand ? (

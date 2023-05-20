@@ -5,6 +5,7 @@ import Bridge from '../bridge';
 import { PopupUi } from '../components/PopupUi';
 import { i18nInit } from '../i18n';
 import { ExtensionSettings } from '@project/common';
+import { fetchLocalization } from '../../services/localization-fetcher';
 
 export interface PopupUiParameters {
     currentSettings: ExtensionSettings;
@@ -12,7 +13,8 @@ export interface PopupUiParameters {
 }
 
 export async function renderPopupUi(element: Element, { currentSettings, commands }: PopupUiParameters) {
-    await i18nInit(currentSettings.lastLanguage);
+    const loc = await fetchLocalization(currentSettings.lastLanguage);
+    i18nInit(loc.lang, loc.strings);
     const bridge = new Bridge();
     createRoot(element).render(<PopupUi bridge={bridge} currentSettings={currentSettings} commands={commands} />);
     return bridge;

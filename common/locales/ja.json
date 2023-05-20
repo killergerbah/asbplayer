@@ -145,6 +145,9 @@
             "selectVideo": "asbplayer と同期する動画素材を選択する。",
             "syncBeforeMine": "動画素材のマイニングを開始する前に、動画と asbplayer を同期してください。選択した動画素材を asbplayer と同期します。",
             "videoElement": "動画素材"
+        },
+        "backgroundAudioRecordingPage": {
+            "description": "このページは asbplayer が音声を録音する際に使用します。"
         }
     },
     "info": {
@@ -216,8 +219,5 @@
         "extensionShortcut": "拡張機能ショートカット",
         "recordingBind": "記録中",
         "unboundBind": "キーバインドなし"
-    },
-    "backgroundAudioRecordingPage": {
-        "description": "このページは asbplayer が音声を録音する際に使用します。"
     }
 }

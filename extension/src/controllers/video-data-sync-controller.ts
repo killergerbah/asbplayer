@@ -15,6 +15,7 @@ import { currentPageDelegate } from '../services/pages';
 import { Parser as m3U8Parser } from 'm3u8-parser';
 import UiFrame from '../services/ui-frame';
 import Settings from '../services/settings';
+import { fetchLocalization } from '../services/localization-fetcher';
 
 async function html(lang: string) {
     return `<!DOCTYPE html>
@@ -25,7 +26,8 @@ async function html(lang: string) {
                   <title>asbplayer - Video Data Sync</title>
               </head>
               <body>
-              <div id="root" data-lang="${lang}" style="width:100%;height:100vh;"></div>
+              <div id="root" style="width:100%;height:100vh;"></div>
+              <script type="application/json" id="loc">${JSON.stringify(await fetchLocalization(lang))}</script>
               <script src="${chrome.runtime.getURL('./video-data-sync-ui.js')}"></script>
               </body>
               </html>`;

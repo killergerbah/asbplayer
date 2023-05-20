@@ -176,7 +176,8 @@ export default function PopupForm({
                             variant="filled"
                             type="number"
                             color="secondary"
-                            fullWidth                            label={t('extension.settings.subtitlePositionOffset')}
+                            fullWidth
+                            label={t('extension.settings.subtitlePositionOffset')}
                             value={settings.subtitlePositionOffset}
                             inputProps={{
                                 min: 0,
@@ -336,7 +337,7 @@ export default function PopupForm({
                     />
                 </Grid>
                 <Grid item>
-                    <FormLabel component="legend">Mining Keyboard Shortcuts</FormLabel>
+                    <FormLabel component="legend">{t('extension.settings.miningKeyboardShortcuts')}</FormLabel>
                     <TableContainer>
                         <Table size="small">
                             <TableBody>

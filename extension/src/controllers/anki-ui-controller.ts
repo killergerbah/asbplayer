@@ -16,6 +16,7 @@ import {
 import Binding from '../services/binding';
 import UiFrame from '../services/ui-frame';
 import Settings from '../services/settings';
+import { fetchLocalization } from '../services/localization-fetcher';
 
 // We need to write the HTML into the iframe manually so that the iframe keeps it's about:blank URL.
 // Otherwise, Chrome won't insert content scripts into the iframe (e.g. Yomichan won't work).
@@ -29,7 +30,8 @@ async function html(language: string) {
                   <title>asbplayer - Anki</title>
               </head>
               <body>
-              <div id="root" data-lang="${language}" style="width:100%;height:100vh;"></div>
+              <div id="root" style="width:100%;height:100vh;"></div>
+              <script type="application/json" id="loc">${JSON.stringify(await fetchLocalization(language))}</script>
               <script id="mp3-encoder-worker" type="javascript/worker">${mp3WorkerSource}</script>
               <script src="${chrome.runtime.getURL('./anki-ui.js')}"></script>
               </body>

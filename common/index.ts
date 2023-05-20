@@ -12,3 +12,4 @@ export * from './src/message';
 export * from './src/extension-settings';
 export * from './src/subtitle-collection';
 export { default as AutoPauseContext } from './src/auto-pause-context';
+export const supportedLanguages = ['en', 'ja'];

@@ -20,7 +20,7 @@ import BackgroundPageAudioRecorder from './services/background-page-audio-record
 import BackgroundPageReadyHandler from './handlers/backgroundpage/background-page-ready-handler';
 import AudioBase64Handler from './handlers/backgroundpage/audio-base-64-handler';
 import AckTabsHandler from './handlers/asbplayerv2/ack-tabs-handler';
-import VersionChecker from './services/version-checker';
+import { newVersionAvailable } from './services/version-checker';
 import OpenExtensionShortcutsHandler from './handlers/asbplayerv2/open-extension-shortcuts-handler';
 import EditKeyboardShortcutsHandler from './handlers/popup/edit-keyboard-shortcuts-handler';
 import ExtensionCommandsHandler from './handlers/asbplayerv2/extension-commands-handler';
@@ -38,18 +38,25 @@ import {
     ToggleRecordingMessage,
     ToggleVideoSelectMessage,
 } from '@project/common';
+import { primeLocalization } from './services/localization-fetcher';
+
+chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
 
 const settings = new Settings();
-const versionChecker = new VersionChecker(settings);
 
-chrome.runtime.onStartup.addListener(async () => {
-    const [newVersionAvailable] = await versionChecker.newVersionAvailable();
+const startListener = async () => {
+    const [newVersion] = await newVersionAvailable();
 
-    if (newVersionAvailable === true) {
+    if (newVersion === true) {
         await chrome.action.setBadgeBackgroundColor({ color: 'red' });
         await chrome.action.setBadgeText({ text: '!' });
     }
-});
+
+    primeLocalization(await settings.getSingle('lastLanguage'));
+};
+
+chrome.runtime.onInstalled.addListener(startListener);
+chrome.runtime.onStartup.addListener(startListener);
 
 const tabRegistry = new TabRegistry(settings);
 const backgroundPageAudioRecorder = new BackgroundPageAudioRecorder(tabRegistry);

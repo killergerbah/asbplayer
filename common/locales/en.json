@@ -145,6 +145,9 @@
             "selectVideo": "Select a video element to sync it with asbplayer.",
             "syncBeforeMine": "A video element must be synced with asbplayer before it can be mined. Select a video element to sync it with asbplayer.",
             "videoElement": "Video Element"
+        },
+        "backgroundAudioRecordingPage": {
+            "description": "This page is used by asbplayer to capture audio."
         }
     },
     "info": {
@@ -216,8 +219,5 @@
         "unboundBind": "Unbound",
         "urlField": "URL Field",
         "wordField": "Word Field"
-    },
-    "backgroundAudioRecordingPage": {
-        "description": "This page is used by asbplayer to capture audio."
     }
 }

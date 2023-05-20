@@ -7,7 +7,8 @@ window.addEventListener('load', (e) => {
     );
 
     const root = document.getElementById('root')!;
-    const bridge = renderAnkiUi(root, mp3WorkerUrl, root.dataset.lang!);
+    const loc = JSON.parse(document.getElementById('loc')!.innerHTML!);
+    const bridge = renderAnkiUi(root, mp3WorkerUrl, loc.lang, loc.strings);
     const listener = new FrameBridgeServer(bridge);
     listener.bind();
 
