@@ -1,29 +1,29 @@
 {
     "extensionDescription": {
-        "message": "ストリーミングビデオをasbplayerに同期する。"
-    },
-    "shortcutMineSubtitleDescription": {
-        "message": "字幕をメモする。 字幕トラックが空の場合、音声録音を開始または停止する。"
+        "message": "asbplayer と動画を同期する"
     },
     "shortcutMineSubtitleAndOpenDialogDescription": {
-        "message": "字幕をメモし、Ankiカード作成ダイアログを開く。字幕トラックが空の場合、音声録音を開始または停止する。"
+        "message": "現在の字幕をマイニングして Anki エクスポートウィンドウを開く。動画が字幕ファイルなしで同期されている場合、録音を開始/停止する。"
     },
-    "shortcutUpdateLastCardDescription": {
-        "message": "asbplayerで抽出したメディアで最後に作ったAnkiカードを更新する。字幕トラックが空の場合、音声録音を開始または停止する。"
-    },
-    "shortcutTakeScreenshotDescription": {
-        "message": "スクリーンショットを撮る。最後に撮ったスクリーンショットが上書きされる。"
-    },
-    "shortcutToggleRecordingDescription": {
-        "message": "音声録音を開始または停止する。"
+    "shortcutMineSubtitleDescription": {
+        "message": "現在の字幕をマイニングする。動画が字幕ファイルなしで同期されている場合、録音を開始/停止する。"
     },
     "shortcutSelectSubtitleTrackDescription": {
-        "message": "字幕トラックを選択する。"
+        "message": "ロードする字幕ファイルを選択する。"
+    },
+    "shortcutTakeScreenshotDescription": {
+        "message": "手動でスクリーンショットを撮影しマイニング時に自動的に撮影されたものを上書きする。"
+    },
+    "shortcutToggleRecordingDescription": {
+        "message": "字幕ファイルがロードされていても手動で録音を開始/終了する。"
+    },
+    "shortcutUpdateLastCardDescription": {
+        "message": "最後に作成した Anki カードに asbplayer でキャプチャしたメディアを添付して更新する。動画が字幕ファイルなしで同期されている場合、録音を開始/停止する。"
     },
     "contextMenuMineSubtitle": {
-        "message": "字幕をメモする"
+        "message": "字幕をマイニングする"
     },
     "contextMenuLoadSubtitles": {
-        "message": "字幕を読み込む"
+        "message": "字幕ファイルをロードする"
     }
 }
