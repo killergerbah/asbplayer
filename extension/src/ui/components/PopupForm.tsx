@@ -46,12 +46,14 @@ interface ExtensionKeyboardShortcutRowProps {
 }
 
 function ExtensionKeyboardShortcutRow({ label, command, onClick }: ExtensionKeyboardShortcutRowProps) {
+    const { t } = useTranslation();
+
     return (
         <TableRow>
             <TableCell style={{ paddingLeft: 0 }}>{label}</TableCell>
             <TableCell style={{ paddingRight: 0 }} align="right">
                 <Link variant="subtitle2" underline="always" href="#" color="inherit" onClick={onClick}>
-                    {command ?? 'Unbound'}
+                    {command ?? t('settings.unboundBind')}
                 </Link>
             </TableCell>
         </TableRow>
