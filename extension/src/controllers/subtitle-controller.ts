@@ -34,8 +34,8 @@ export default class SubtitleController {
     private notificationElementOverlay: ElementOverlay;
     disabledSubtitleTracks: { [key: number]: boolean | undefined };
     subtitleFileNames?: string[];
-    forceHideSubtitles: boolean;
-    displaySubtitles: boolean;
+    _forceHideSubtitles: boolean;
+    _displaySubtitles: boolean;
     surroundingSubtitlesCountRadius: number;
     surroundingSubtitlesTimeRadius: number;
     autoCopyCurrentSubtitle: boolean;
@@ -55,8 +55,8 @@ export default class SubtitleController {
         this.subtitleCollection = new SubtitleCollection<SubtitleModelWithIndex>([]);
         this.showingSubtitles = [];
         this.disabledSubtitleTracks = {};
-        this.forceHideSubtitles = false;
-        this.displaySubtitles = true;
+        this._forceHideSubtitles = false;
+        this._displaySubtitles = true;
         this.lastLoadedMessageTimestamp = 0;
         this.lastOffsetChangeTimestamp = 0;
         this.showingOffset = undefined;
@@ -101,6 +101,16 @@ export default class SubtitleController {
         this.subtitlesElementOverlay = subtitlesElementOverlay;
         this.notificationElementOverlay = notificationElementOverlay;
         this._subtitleAlignment = value;
+    }
+
+    set displaySubtitles(displaySubtitles: boolean) {
+        this._displaySubtitles = displaySubtitles;
+        this.showingSubtitles = undefined;
+    }
+
+    set forceHideSubtitles(forceHideSubtitles: boolean) {
+        this._forceHideSubtitles = forceHideSubtitles;
+        this.showingSubtitles = undefined;
     }
 
     private _overlays(alignment: SubtitleAlignment) {
@@ -191,15 +201,13 @@ export default class SubtitleController {
                 this._autoCopyToClipboard(showingSubtitles);
             }
 
-            if ((!showOffset && !this.displaySubtitles) || this.forceHideSubtitles) {
+            const shouldRenderOffset =
+                (showOffset && offset !== this.showingOffset) || (!showOffset && this.showingOffset !== undefined);
+
+            if ((!showOffset && !this._displaySubtitles) || this._forceHideSubtitles) {
                 this._hideSubtitles();
-            } else if (
-                subtitlesAreNew ||
-                (showOffset && offset !== this.showingOffset) ||
-                (!showOffset && this.showingOffset !== undefined)
-            ) {
-                const html = this._buildSubtitlesHtml(showingSubtitles);
-                this._setSubtitlesHtml(html);
+            } else if (subtitlesAreNew || shouldRenderOffset) {
+                this._renderSubtitles(showingSubtitles);
 
                 if (showOffset) {
                     this._appendSubtitlesHtml(this._buildTextHtml(this._formatOffset(offset)));
@@ -209,6 +217,11 @@ export default class SubtitleController {
                 }
             }
         }, 100);
+    }
+
+    private _renderSubtitles(subtitles: SubtitleModel[]) {
+        const html = this._buildSubtitlesHtml(subtitles);
+        this._setSubtitlesHtml(html);
     }
 
     private _autoCopyToClipboard(subtitles: SubtitleModel[]) {
