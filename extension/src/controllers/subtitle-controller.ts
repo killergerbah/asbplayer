@@ -226,16 +226,23 @@ export default class SubtitleController {
 
     private _autoCopyToClipboard(subtitles: SubtitleModel[]) {
         if (this.autoCopyCurrentSubtitle && subtitles.length > 0 && document.hasFocus()) {
-            const command: VideoToExtensionCommand<CopyToClipboardMessage> = {
-                sender: 'asbplayer-video',
-                message: {
-                    command: 'copy-to-clipboard',
-                    dataUrl: `data:,${encodeURIComponent(subtitles.map((s) => s.text).join('\n'))}`,
-                },
-                src: this.video.src,
-            };
+            const text = subtitles
+                .map((s) => s.text)
+                .filter((text) => text !== '')
+                .join('\n');
 
-            chrome.runtime.sendMessage(command);
+            if (text !== '') {
+                const command: VideoToExtensionCommand<CopyToClipboardMessage> = {
+                    sender: 'asbplayer-video',
+                    message: {
+                        command: 'copy-to-clipboard',
+                        dataUrl: `data:,${encodeURIComponent(text)}`,
+                    },
+                    src: this.video.src,
+                };
+
+                chrome.runtime.sendMessage(command);
+            }
         }
     }
 
