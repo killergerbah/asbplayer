@@ -114,9 +114,12 @@ export interface CopyMessage extends Message {
     readonly image?: ImageModel;
     readonly audio?: AudioModel;
 
-    // asbplayer app only
-    readonly preventDuplicate?: boolean;
     readonly postMineAction?: PostMineAction;
+}
+
+export interface CopyToVideoMessage extends Message {
+    readonly command: 'copy';
+    readonly postMineAction: PostMineAction;
 }
 
 export interface CopySubtitleMessage extends Message {
@@ -287,10 +290,6 @@ export interface AudioTrackSelectedFromVideoMessage extends Message {
 export interface AudioTrackSelectedToVideoMessage extends Message {
     readonly command: 'audioTrackSelected';
     readonly id: string;
-}
-
-export interface AnkiDialogRequestFromVideoMessage extends Message {
-    readonly command: 'ankiDialogRequest';
 }
 
 export interface ToggleSubtitleTrackInListFromVideoMessage extends Message {

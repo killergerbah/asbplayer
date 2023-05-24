@@ -579,7 +579,6 @@ function App() {
             image: ImageModel | undefined,
             url: string | undefined,
             postMineAction: PostMineAction | undefined,
-            preventDuplicate: boolean | undefined,
             id: string | undefined
         ) => {
             if (subtitle && settingsProvider.copyToClipboardOnMine) {
@@ -591,7 +590,7 @@ function App() {
                 surroundingSubtitles: surroundingSubtitles,
                 timestamp: Date.now(),
                 id: id || uuidv4(),
-                name: fileName!,
+                name: fileName ?? subtitleFile?.name ?? videoFile?.name ?? audioFile?.name ?? '',
                 subtitleFileName: subtitleFile?.name,
                 audioFile: audioFile,
                 videoFile: videoFile,
@@ -604,25 +603,6 @@ function App() {
             };
 
             setCopiedSubtitles((copiedSubtitles) => {
-                if (preventDuplicate && copiedSubtitles.length > 0) {
-                    const last = copiedSubtitles[copiedSubtitles.length - 1];
-
-                    if (
-                        subtitle.start === last.start &&
-                        subtitle.end === last.end &&
-                        subtitle.text === last.text &&
-                        subtitleFile?.name === last.subtitleFileName
-                    ) {
-                        if (mediaTimestamp !== undefined && mediaTimestamp !== last.mediaTimestamp) {
-                            const newCopiedSubtitles = [...copiedSubtitles];
-                            newCopiedSubtitles[newCopiedSubtitles.length - 1] = newCopiedSubtitle;
-                            return newCopiedSubtitles;
-                        }
-
-                        return copiedSubtitles;
-                    }
-                }
-
                 // Note: we are not dealing with the case where an item with the given ID is already in the list
                 return [...copiedSubtitles, newCopiedSubtitle];
             });

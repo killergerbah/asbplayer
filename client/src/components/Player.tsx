@@ -9,7 +9,6 @@ import {
     AutoPausePreference,
     ImageModel,
     KeyBinder,
-    mockSurroundingSubtitles,
     PlayMode,
     PostMineAction,
     SubtitleCollection,
@@ -125,7 +124,6 @@ interface PlayerProps {
         image: ImageModel | undefined,
         url: string | undefined,
         postMineAction: PostMineAction | undefined,
-        preventDuplicate: boolean | undefined,
         id: string | undefined
     ) => void;
     onLoaded: () => void;
@@ -468,24 +466,22 @@ export default function Player({
                         channel?.onPlaybackRate((playbackRate, forwardToMedia) =>
                             updatePlaybackRate(playbackRate, forwardToMedia)
                         );
-                        channel?.onCopy(
-                            (subtitle, surroundingSubtitles, audio, image, url, postMineAction, preventDuplicate, id) =>
-                                onCopy(
-                                    subtitle,
-                                    surroundingSubtitles,
-                                    audioFile,
-                                    videoFile,
-                                    subtitle ? subtitleFiles[subtitle.track] : undefined,
-                                    clock.time(lengthRef.current),
-                                    channel?.selectedAudioTrack,
-                                    channel?.playbackRate,
-                                    audio,
-                                    image,
-                                    url,
-                                    postMineAction,
-                                    preventDuplicate,
-                                    id
-                                )
+                        channel?.onCopy((subtitle, surroundingSubtitles, audio, image, url, postMineAction, id) =>
+                            onCopy(
+                                subtitle,
+                                surroundingSubtitles,
+                                audioFile,
+                                videoFile,
+                                subtitle ? subtitleFiles[subtitle.track] : undefined,
+                                clock.time(lengthRef.current),
+                                channel?.selectedAudioTrack,
+                                channel?.playbackRate,
+                                audio,
+                                image,
+                                url,
+                                postMineAction,
+                                id
+                            )
                         );
                         channel?.onPlayMode((playMode) => {
                             setPlayMode(playMode);
@@ -708,12 +704,16 @@ export default function Player({
     );
 
     const handleCopyFromSubtitlePlayer = useCallback(
-        (
-            subtitle: SubtitleModel,
-            surroundingSubtitles: SubtitleModel[],
-            postMineAction: PostMineAction,
-            preventDuplicate: boolean
-        ) => {
+        (subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], postMineAction: PostMineAction) => {
+            if (videoFile) {
+                // Let VideoPlayer do the copying to ensure copied subtitle is consistent with the VideoPlayer clock
+                if (videoRef.current instanceof VideoChannel) {
+                    videoRef.current.copy(postMineAction);
+                }
+
+                return;
+            }
+
             onCopy(
                 subtitle,
                 surroundingSubtitles,
@@ -727,7 +727,6 @@ export default function Player({
                 undefined,
                 undefined,
                 postMineAction,
-                preventDuplicate,
                 undefined
             );
         },
@@ -884,103 +883,6 @@ export default function Player({
     }, [togglePlayMode, keyBinder, disableKeyEvents]);
 
     useEffect(() => {
-        if ((audioFile || videoFile) && (!subtitles || subtitles.length === 0)) {
-            const unbindCopy = keyBinder.bindCopy(
-                (event, subtitle) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    const surroundingSubtitles = mockSurroundingSubtitles(subtitle, lengthRef.current, 5000);
-                    onCopy(
-                        subtitle,
-                        surroundingSubtitles,
-                        audioFile,
-                        videoFile,
-                        undefined,
-                        clock.time(lengthRef.current),
-                        selectedAudioTrack,
-                        playbackRate,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined
-                    );
-                },
-                () => disableKeyEvents,
-                () => {
-                    if (!lengthRef.current) {
-                        return undefined;
-                    }
-
-                    const timestamp = clock.time(lengthRef.current);
-                    const end = Math.min(timestamp + 5000, lengthRef.current);
-
-                    return {
-                        text: '',
-                        start: timestamp,
-                        originalStart: timestamp,
-                        end: end,
-                        originalEnd: end,
-                        track: 0,
-                    };
-                }
-            );
-
-            const unbindAnkiExport = keyBinder.bindAnkiExport(
-                (event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    const timestamp = clock.time(lengthRef.current);
-                    const end = Math.min(timestamp + 5000, lengthRef.current);
-                    const subtitle = {
-                        text: '',
-                        start: timestamp,
-                        originalStart: timestamp,
-                        end: end,
-                        originalEnd: end,
-                        track: 0,
-                    };
-                    const surroundingSubtitles = mockSurroundingSubtitles(subtitle, lengthRef.current, 5000);
-                    onCopy(
-                        subtitle,
-                        surroundingSubtitles,
-                        audioFile,
-                        videoFile,
-                        undefined,
-                        timestamp,
-                        selectedAudioTrack,
-                        playbackRate,
-                        undefined,
-                        undefined,
-                        undefined,
-                        PostMineAction.showAnkiDialog,
-                        undefined,
-                        undefined
-                    );
-                },
-                () => false
-            );
-
-            return () => {
-                unbindCopy();
-                unbindAnkiExport();
-            };
-        }
-    }, [
-        keyBinder,
-        audioFile,
-        videoFile,
-        subtitles,
-        clock,
-        playbackRate,
-        selectedAudioTrack,
-        disableKeyEvents,
-        onCopy,
-        onAnkiDialogRequest,
-    ]);
-
-    useEffect(() => {
         if (videoRef.current instanceof VideoChannel) {
             videoRef.current.appBarToggle(appBarHidden);
         }
@@ -1034,78 +936,78 @@ export default function Player({
                         />
                     </Grid>
                 )}
-                {(!videoInWindow || (subtitles && subtitles?.length > 0)) && (
-                    <Grid
-                        item
-                        style={{
-                            flexGrow: videoInWindow ? 0 : 1,
-                            width: videoInWindow && hideSubtitlePlayer ? 0 : 'auto',
-                        }}
-                    >
-                        {loaded && !(videoFileUrl && !videoPopOut) && (
-                            <Controls
-                                mousePositionRef={mousePositionRef}
-                                playing={playing}
-                                clock={clock}
-                                length={length}
-                                displayLength={trackLength(audioRef, videoRef, subtitles, false)}
-                                audioTracks={audioTracks}
-                                selectedAudioTrack={selectedAudioTrack}
-                                tabs={(!videoFileUrl && !audioFileUrl && availableTabs) || undefined}
-                                selectedTab={tab}
-                                audioFile={audioFile?.name}
-                                videoFile={videoFile?.name}
-                                offsetEnabled={true}
-                                offset={offset}
-                                playbackRate={playbackRate}
-                                playbackRateEnabled={!tab || (extension.installed && gte(extension.version, '0.24.0'))}
-                                onPlaybackRateChange={handlePlaybackRateChange}
-                                volumeEnabled={Boolean(audioFileUrl)}
-                                playModeEnabled={playModeEnabled}
-                                playMode={playMode}
-                                onPlay={handlePlay}
-                                onPause={handlePause}
-                                onSeek={handleSeek}
-                                onAudioTrackSelected={handleAudioTrackSelected}
-                                onTabSelected={onTabSelected}
-                                onUnloadAudio={() => audioFileUrl && onUnloadAudio(audioFileUrl)}
-                                onUnloadVideo={() => videoFileUrl && onUnloadVideo(videoFileUrl)}
-                                onOffsetChange={handleOffsetChange}
-                                onVolumeChange={handleVolumeChange}
-                                onPlayMode={handlePlayMode}
-                                disableKeyEvents={disableKeyEvents}
-                                playbackPreferences={playbackPreferences}
-                                showOnMouseMovement={true}
-                            />
-                        )}
-                        <SubtitlePlayer
+
+                <Grid
+                    item
+                    style={{
+                        flexGrow: videoInWindow ? 0 : 1,
+                        width:
+                            videoInWindow && (hideSubtitlePlayer || !subtitles || subtitles?.length === 0) ? 0 : 'auto',
+                    }}
+                >
+                    {loaded && !(videoFileUrl && !videoPopOut) && (
+                        <Controls
+                            mousePositionRef={mousePositionRef}
                             playing={playing}
-                            subtitles={subtitles}
-                            subtitleCollection={subtitleCollection}
                             clock={clock}
                             length={length}
-                            jumpToSubtitle={jumpToSubtitle}
-                            drawerOpen={drawerOpen}
-                            appBarHidden={appBarHidden}
-                            compressed={Boolean(videoFileUrl && !videoPopOut)}
-                            copyButtonEnabled={tab === undefined}
-                            loading={loadingSubtitles}
-                            displayHelp={audioFile?.name || (videoPopOut && videoFile?.name) || undefined}
-                            disableKeyEvents={disableKeyEvents}
-                            lastJumpToTopTimestamp={lastJumpToTopTimestamp}
-                            hidden={videoInWindow && hideSubtitlePlayer}
-                            disabledSubtitleTracks={disabledSubtitleTracks}
-                            onSeek={handleSeekToSubtitle}
-                            onCopy={handleCopyFromSubtitlePlayer}
+                            displayLength={trackLength(audioRef, videoRef, subtitles, false)}
+                            audioTracks={audioTracks}
+                            selectedAudioTrack={selectedAudioTrack}
+                            tabs={(!videoFileUrl && !audioFileUrl && availableTabs) || undefined}
+                            selectedTab={tab}
+                            audioFile={audioFile?.name}
+                            videoFile={videoFile?.name}
+                            offsetEnabled={true}
+                            offset={offset}
+                            playbackRate={playbackRate}
+                            playbackRateEnabled={!tab || (extension.installed && gte(extension.version, '0.24.0'))}
+                            onPlaybackRateChange={handlePlaybackRateChange}
+                            volumeEnabled={Boolean(audioFileUrl)}
+                            playModeEnabled={playModeEnabled}
+                            playMode={playMode}
+                            onPlay={handlePlay}
+                            onPause={handlePause}
+                            onSeek={handleSeek}
+                            onAudioTrackSelected={handleAudioTrackSelected}
+                            onTabSelected={onTabSelected}
+                            onUnloadAudio={() => audioFileUrl && onUnloadAudio(audioFileUrl)}
+                            onUnloadVideo={() => videoFileUrl && onUnloadVideo(videoFileUrl)}
                             onOffsetChange={handleOffsetChange}
-                            onToggleSubtitleTrack={handleToggleSubtitleTrack}
-                            onSubtitlesSelected={handleSubtitlesSelected}
-                            autoPauseContext={autoPauseContext}
-                            settingsProvider={settingsProvider}
-                            keyBinder={keyBinder}
+                            onVolumeChange={handleVolumeChange}
+                            onPlayMode={handlePlayMode}
+                            disableKeyEvents={disableKeyEvents}
+                            playbackPreferences={playbackPreferences}
+                            showOnMouseMovement={true}
                         />
-                    </Grid>
-                )}
+                    )}
+                    <SubtitlePlayer
+                        playing={playing}
+                        subtitles={subtitles}
+                        subtitleCollection={subtitleCollection}
+                        clock={clock}
+                        length={length}
+                        jumpToSubtitle={jumpToSubtitle}
+                        drawerOpen={drawerOpen}
+                        appBarHidden={appBarHidden}
+                        compressed={Boolean(videoFileUrl && !videoPopOut)}
+                        copyButtonEnabled={tab === undefined}
+                        loading={loadingSubtitles}
+                        displayHelp={audioFile?.name || (videoPopOut && videoFile?.name) || undefined}
+                        disableKeyEvents={disableKeyEvents}
+                        lastJumpToTopTimestamp={lastJumpToTopTimestamp}
+                        hidden={videoInWindow && hideSubtitlePlayer}
+                        disabledSubtitleTracks={disabledSubtitleTracks}
+                        onSeek={handleSeekToSubtitle}
+                        onCopy={handleCopyFromSubtitlePlayer}
+                        onOffsetChange={handleOffsetChange}
+                        onToggleSubtitleTrack={handleToggleSubtitleTrack}
+                        onSubtitlesSelected={handleSubtitlesSelected}
+                        autoPauseContext={autoPauseContext}
+                        settingsProvider={settingsProvider}
+                        keyBinder={keyBinder}
+                    />
+                </Grid>
             </Grid>
             <audio ref={audioRef} src={audioFileUrl} />
         </div>

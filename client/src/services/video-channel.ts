@@ -8,6 +8,7 @@ import {
     AudioTrackSelectedFromVideoMessage,
     AudioTrackSelectedToVideoMessage,
     CopyMessage,
+    CopyToVideoMessage,
     CurrentTimeFromVideoMessage,
     CurrentTimeToVideoMessage,
     FullscreenToggleMessageToVideoMessage,
@@ -55,7 +56,6 @@ export default class VideoChannel {
         image: ImageModel | undefined,
         url: string | undefined,
         postMineAction: PostMineAction,
-        preventDuplicate: boolean,
         id: string | undefined
     ) => void)[];
     private playModeCallbacks: ((mode: PlayMode) => void)[];
@@ -188,7 +188,6 @@ export default class VideoChannel {
                             copyMessage.image,
                             copyMessage.url,
                             copyMessage.postMineAction ?? PostMineAction.none,
-                            copyMessage.preventDuplicate ?? false,
                             copyMessage.id
                         );
                     }
@@ -253,7 +252,6 @@ export default class VideoChannel {
         return this._playbackRate;
     }
 
-
     set playbackRate(playbackRate: number) {
         const message: PlaybackRateToVideoMessage = { command: 'playbackRate', value: playbackRate };
         this.protocol.postMessage(message);
@@ -306,7 +304,6 @@ export default class VideoChannel {
             image: ImageModel | undefined,
             url: string | undefined,
             postMineAction: PostMineAction,
-            preventDuplicate: boolean,
             id: string | undefined
         ) => void
     ) {
@@ -425,6 +422,11 @@ export default class VideoChannel {
     alert(message: string, severity: string) {
         const msg: AlertMessage = { command: 'alert', message, severity };
         this.protocol.postMessage(msg);
+    }
+
+    copy(postMineAction: PostMineAction) {
+        const message: CopyToVideoMessage = { command: 'copy', postMineAction };
+        this.protocol.postMessage(message);
     }
 
     close() {

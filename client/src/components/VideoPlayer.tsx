@@ -579,48 +579,6 @@ export default function VideoPlayer({
     );
 
     useEffect(() => {
-        return keyBinder.bindCopy<IndexedSubtitleModel>(
-            (event, subtitle) => {
-                event.stopPropagation();
-                event.preventDefault();
-
-                const noSubtitles = !subtitles || subtitles.length === 0;
-
-                playerChannel.copy(
-                    subtitle,
-                    noSubtitles
-                        ? mockSurroundingSubtitles(subtitle, length, 5000)
-                        : calculateSurroundingSubtitles(subtitle.index),
-                    PostMineAction.none
-                );
-            },
-            () => false,
-            () => {
-                if (!subtitles || subtitles.length === 0) {
-                    const timestamp = clock.time(length);
-                    const end = Math.min(timestamp + 5000, length);
-
-                    return {
-                        text: '',
-                        start: timestamp,
-                        originalStart: timestamp,
-                        end: end,
-                        originalEnd: end,
-                        track: 0,
-                        index: 0,
-                    };
-                }
-
-                if (!showSubtitlesRef.current || showSubtitlesRef.current.length === 0) {
-                    return undefined;
-                }
-
-                return showSubtitlesRef.current[0];
-            }
-        );
-    }, [keyBinder, playerChannel, clock, length, subtitles, calculateSurroundingSubtitles]);
-
-    useEffect(() => {
         return keyBinder.bindAdjustOffset(
             (event, offset) => {
                 event.preventDefault();
@@ -707,95 +665,93 @@ export default function VideoPlayer({
         );
     }, [keyBinder, handleOffsetChange, subtitles, clock, length]);
 
-    const extractSubtitles = useCallback(
-        (
-            noSubtitleCallback: (subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[]) => void,
-            subtitleCallback: (subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[]) => void
-        ) => {
-            if (!subtitles || subtitles.length === 0) {
-                const timestamp = clock.time(length);
-                const end = Math.min(timestamp + 5000, length);
-                const subtitle = {
-                    text: '',
-                    start: timestamp,
-                    originalStart: timestamp,
-                    end: end,
-                    originalEnd: end,
-                    track: 0,
-                };
+    const extractSubtitles = useCallback(() => {
+        if (!subtitles || subtitles.length === 0) {
+            const timestamp = clock.time(length);
+            const end = Math.min(timestamp + 5000, length);
+            const currentSubtitle = {
+                text: '',
+                start: timestamp,
+                originalStart: timestamp,
+                end: end,
+                originalEnd: end,
+                track: 0,
+            };
 
-                noSubtitleCallback(subtitle, mockSurroundingSubtitles(subtitle, length, 5000));
-            } else if (showSubtitlesRef.current && showSubtitlesRef.current.length > 0) {
-                const currentSubtitle = showSubtitlesRef.current[0];
-                subtitleCallback(currentSubtitle, calculateSurroundingSubtitles(currentSubtitle.index));
+            return { currentSubtitle, surroundingSubtitles: mockSurroundingSubtitles(currentSubtitle, length, 5000) };
+        } else if (showSubtitlesRef.current && showSubtitlesRef.current.length > 0) {
+            const currentSubtitle = showSubtitlesRef.current[0];
+            return { currentSubtitle, surroundingSubtitles: calculateSurroundingSubtitles(currentSubtitle.index) };
+        }
+
+        return undefined;
+    }, [subtitles, calculateSurroundingSubtitles, length, clock]);
+
+    const mineSubtitle = useCallback(
+        (postMineAction: PostMineAction) => {
+            const extracted = extractSubtitles();
+
+            if (extracted === undefined) {
+                return;
+            }
+
+            const { currentSubtitle, surroundingSubtitles } = extracted;
+
+            switch (postMineAction) {
+                case PostMineAction.showAnkiDialog:
+                    if (popOut) {
+                        playerChannel.copy(currentSubtitle, surroundingSubtitles, PostMineAction.none);
+                        onAnkiDialogRequest(
+                            videoFile,
+                            videoFileName ?? '',
+                            selectedAudioTrack,
+                            playbackRate,
+                            currentSubtitle,
+                            surroundingSubtitles,
+                            clock.time(length)
+                        );
+
+                        if (playing) {
+                            playerChannel.pause();
+                            setResumeOnFinishedAnkiDialogRequest(true);
+                        }
+                    } else {
+                        playerChannel.copy(currentSubtitle, surroundingSubtitles, PostMineAction.showAnkiDialog);
+                    }
+                    break;
+                default:
+                    playerChannel.copy(currentSubtitle, surroundingSubtitles, postMineAction);
             }
         },
-        [subtitles, calculateSurroundingSubtitles, length, clock]
+        [
+            extractSubtitles,
+            onAnkiDialogRequest,
+            playerChannel,
+            clock,
+            length,
+            playbackRate,
+            playing,
+            popOut,
+            selectedAudioTrack,
+            videoFile,
+            videoFileName,
+        ]
     );
+
+    useEffect(() => {
+        return playerChannel.onCopy(mineSubtitle);
+    }, [playerChannel, mineSubtitle]);
 
     useEffect(() => {
         return keyBinder.bindAnkiExport(
             (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-
-                if (popOut) {
-                    extractSubtitles(
-                        (subtitle, surroundingSubtitles) => {
-                            playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.none, false);
-                            onAnkiDialogRequest(
-                                videoFile,
-                                videoFileName ?? '',
-                                selectedAudioTrack,
-                                playbackRate,
-                                subtitle,
-                                surroundingSubtitles,
-                                clock.time(length)
-                            );
-                        },
-                        (subtitle, surroundingSubtitles) => {
-                            playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.none, true);
-                            onAnkiDialogRequest(
-                                videoFile,
-                                videoFileName ?? '',
-                                selectedAudioTrack,
-                                playbackRate,
-                                subtitle,
-                                surroundingSubtitles,
-                                clock.time(length)
-                            );
-                        }
-                    );
-
-                    if (playing) {
-                        playerChannel.pause();
-                        setResumeOnFinishedAnkiDialogRequest(true);
-                    }
-                } else {
-                    extractSubtitles(
-                        (subtitle, surroundingSubtitles) =>
-                            playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.showAnkiDialog, false),
-                        (subtitle, surroundingSubtitles) =>
-                            playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.showAnkiDialog, true)
-                    );
-                }
+                mineSubtitle(PostMineAction.showAnkiDialog);
             },
             () => false
         );
-    }, [
-        keyBinder,
-        playerChannel,
-        extractSubtitles,
-        clock,
-        length,
-        videoFile,
-        videoFileName,
-        selectedAudioTrack,
-        playbackRate,
-        onAnkiDialogRequest,
-        popOut,
-        playing,
-    ]);
+    }, [mineSubtitle, keyBinder]);
 
     useEffect(() => {
         if (ankiDialogFinishedRequest && ankiDialogFinishedRequest.timestamp > 0) {
@@ -814,17 +770,31 @@ export default function VideoPlayer({
             (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-
-                extractSubtitles(
-                    (subtitle, surroundingSubtitles) =>
-                        playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.updateLastCard, false),
-                    (subtitle, surroundingSubtitles) =>
-                        playerChannel.copy(subtitle, surroundingSubtitles, PostMineAction.updateLastCard, true)
-                );
+                mineSubtitle(PostMineAction.updateLastCard);
             },
             () => false
         );
-    }, [keyBinder, playerChannel, extractSubtitles]);
+    }, [mineSubtitle, keyBinder]);
+
+    useEffect(() => {
+        return keyBinder.bindCopy(
+            (event, subtitle) => {
+                event.stopPropagation();
+                event.preventDefault();
+                mineSubtitle(PostMineAction.none);
+            },
+            () => false,
+            () => {
+                const extracted = extractSubtitles();
+
+                if (extracted === undefined) {
+                    return undefined;
+                }
+
+                return extracted.currentSubtitle;
+            }
+        );
+    }, [extractSubtitles, mineSubtitle, keyBinder]);
 
     useEffect(() => {
         return keyBinder.bindPlay(

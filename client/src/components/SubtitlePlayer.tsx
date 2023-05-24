@@ -10,6 +10,7 @@ import {
     SubtitleCollection,
     KeyBinder,
     AutoPauseContext,
+    mockSurroundingSubtitles,
 } from '@project/common';
 import { SubtitleTextImage } from '@project/common/components';
 import FileCopy from '@material-ui/icons/FileCopy';
@@ -174,12 +175,7 @@ const SubtitleRow = React.memo((props: SubtitleRowProps) => {
 interface SubtitlePlayerProps {
     clock: Clock;
     onSeek: (progress: number, shouldPlay: boolean) => void;
-    onCopy: (
-        subtitle: SubtitleModel,
-        surroundingSubtitles: SubtitleModel[],
-        postMineAction: PostMineAction,
-        preventDuplicate: boolean
-    ) => void;
+    onCopy: (subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], postMineAction: PostMineAction) => void;
     onOffsetChange: (offset: number) => void;
     onToggleSubtitleTrack: (track: number) => void;
     onSubtitlesSelected: (subtitles: SubtitleModel[]) => void;
@@ -250,8 +246,6 @@ export default function SubtitlePlayer({
     subtitleCollectionRef.current = subtitleCollection ?? SubtitleCollection.empty<DisplaySubtitleModel>();
     const subtitleRefsRef = useRef<RefObject<HTMLTableRowElement>[]>([]);
     subtitleRefsRef.current = subtitleRefs;
-    const disableKeyEventsRef = useRef<boolean>();
-    disableKeyEventsRef.current = disableKeyEvents;
     const [selectedSubtitleIndexes, setSelectedSubtitleIndexes] = useState<{ [index: number]: boolean }>({});
     const selectedSubtitleIndexesRef = useRef<{ [index: number]: boolean }>({});
     const lengthRef = useRef<number>(0);
@@ -405,7 +399,6 @@ export default function SubtitlePlayer({
         );
     }, [keyBinder, onOffsetChange, disableKeyEvents, subtitles]);
 
-
     useEffect(() => {
         return keyBinder.bindResetOffet(
             (event) => {
@@ -413,7 +406,7 @@ export default function SubtitlePlayer({
                 event.stopPropagation();
                 onOffsetChange(0);
             },
-            () => disableKeyEvents,
+            () => disableKeyEvents
         );
     }, [keyBinder, onOffsetChange, disableKeyEvents]);
 
@@ -512,9 +505,26 @@ export default function SubtitlePlayer({
         }
     }, [hidden, jumpToSubtitle, subtitles, subtitleRefs]);
 
+    const currentMockSubtitle = useCallback(() => {
+        const timestamp = clock.time(length);
+        const end = Math.min(timestamp + 5000, length);
+        return {
+            text: '',
+            start: timestamp,
+            originalStart: timestamp,
+            end: end,
+            originalEnd: end,
+            track: 0,
+        };
+    }, [clock, length]);
+
     const calculateSurroundingSubtitlesForIndex = useCallback(
         (index: number) => {
-            if (!selectedSubtitleIndexesRef.current || !subtitles) {
+            if (!subtitles || subtitles.length === 0) {
+                return mockSurroundingSubtitles(currentMockSubtitle(), length, 5000);
+            }
+
+            if (!selectedSubtitleIndexesRef.current || Object.keys(selectedSubtitleIndexesRef.current).length === 0) {
                 return [];
             }
 
@@ -525,44 +535,66 @@ export default function SubtitlePlayer({
                 settingsProvider.surroundingSubtitlesTimeRadius
             );
         },
-        [subtitles, settingsProvider.surroundingSubtitlesCountRadius, settingsProvider.surroundingSubtitlesTimeRadius]
+        [
+            length,
+            subtitles,
+            currentMockSubtitle,
+            settingsProvider.surroundingSubtitlesCountRadius,
+            settingsProvider.surroundingSubtitlesTimeRadius,
+        ]
     );
 
     const calculateSurroundingSubtitles = useCallback(() => {
         if (!selectedSubtitleIndexesRef.current) {
             return [];
         }
+
         const index = Math.min(...Object.keys(selectedSubtitleIndexesRef.current).map((i) => Number(i)));
         return calculateSurroundingSubtitlesForIndex(index);
     }, [calculateSurroundingSubtitlesForIndex]);
 
     const calculateCurrentSubtitle = useCallback(() => {
+        if (!subtitles || subtitles.length === 0) {
+            const timestamp = clock.time(length);
+            const end = Math.min(timestamp + 5000, length);
+            return {
+                text: '',
+                start: timestamp,
+                originalStart: timestamp,
+                end: end,
+                originalEnd: end,
+                track: 0,
+            };
+        }
+
+        if (!selectedSubtitleIndexesRef.current) {
+            return undefined;
+        }
+
         const subtitleIndexes = Object.keys(selectedSubtitleIndexesRef.current).map((i) => Number(i));
 
-        if (!subtitles || !subtitleIndexes || subtitleIndexes.length === 0) {
+        if (subtitleIndexes.length === 0) {
             return undefined;
         }
 
         const index = Math.min(...subtitleIndexes);
         return subtitles[index];
-    }, [subtitles]);
+    }, [clock, subtitles, length]);
 
     useEffect(() => {
-        const unbind = keyBinder.bindCopy(
+        return keyBinder.bindCopy(
             (event, subtitle) => {
                 event.preventDefault();
                 event.stopPropagation();
-                onCopy(subtitle, calculateSurroundingSubtitles(), PostMineAction.none, false);
+                onCopy(subtitle, calculateSurroundingSubtitles(), PostMineAction.none);
             },
-            () => disableKeyEventsRef.current ?? false,
+            () => disableKeyEvents,
             () => calculateCurrentSubtitle()
         );
-
-        return () => unbind();
-    }, [keyBinder, calculateCurrentSubtitle, calculateSurroundingSubtitles, onCopy]);
+    }, [keyBinder, disableKeyEvents, calculateCurrentSubtitle, calculateSurroundingSubtitles, onCopy]);
 
     useEffect(() => {
-        const unbind = keyBinder.bindToggleSubtitleTrackInList(
+        return keyBinder.bindToggleSubtitleTrackInList(
             (event, track) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -570,55 +602,38 @@ export default function SubtitlePlayer({
             },
             () => disableKeyEvents
         );
-
-        return () => unbind();
     }, [keyBinder, disableKeyEvents, onToggleSubtitleTrack]);
 
     useEffect(() => {
-        const unbind = keyBinder.bindAnkiExport(
+        return keyBinder.bindAnkiExport(
             (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                const subtitleIndexes = Object.keys(selectedSubtitleIndexesRef.current).map((i) => Number(i));
 
-                if (subtitles && subtitleIndexes && subtitleIndexes.length > 0) {
-                    const index = Math.min(...subtitleIndexes);
-                    onCopy(
-                        subtitles[index],
-                        calculateSurroundingSubtitlesForIndex(index),
-                        PostMineAction.showAnkiDialog,
-                        true
-                    );
+                const currentSubtitle = calculateCurrentSubtitle();
+
+                if (currentSubtitle) {
+                    onCopy(currentSubtitle, calculateSurroundingSubtitles(), PostMineAction.showAnkiDialog);
                 }
             },
-            () => !subtitles || subtitles.length === 0 || disableKeyEvents
+            () => disableKeyEvents
         );
-
-        return () => unbind();
-    }, [keyBinder, onCopy, disableKeyEvents, subtitles, calculateSurroundingSubtitlesForIndex]);
+    }, [keyBinder, onCopy, disableKeyEvents, subtitles, calculateCurrentSubtitle, calculateSurroundingSubtitles]);
 
     useEffect(() => {
-        const unbind = keyBinder.bindUpdateLastCard(
+        return keyBinder.bindUpdateLastCard(
             (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                const subtitleIndexes = Object.keys(selectedSubtitleIndexesRef.current).map((i) => Number(i));
+                const currentSubtitle = calculateCurrentSubtitle();
 
-                if (subtitles && subtitleIndexes && subtitleIndexes.length > 0) {
-                    const index = Math.min(...subtitleIndexes);
-                    onCopy(
-                        subtitles[index],
-                        calculateSurroundingSubtitlesForIndex(index),
-                        PostMineAction.updateLastCard,
-                        true
-                    );
+                if (currentSubtitle) {
+                    onCopy(currentSubtitle, calculateSurroundingSubtitles(), PostMineAction.updateLastCard);
                 }
             },
-            () => !subtitles || subtitles.length === 0 || disableKeyEvents
+            () => disableKeyEvents
         );
-
-        return () => unbind();
-    }, [keyBinder, onCopy, disableKeyEvents, subtitles, calculateSurroundingSubtitlesForIndex]);
+    }, [keyBinder, onCopy, disableKeyEvents, subtitles, calculateCurrentSubtitle, calculateSurroundingSubtitles]);
 
     const handleClick = useCallback(
         (index: number) => {
@@ -641,7 +656,7 @@ export default function SubtitlePlayer({
                 return;
             }
 
-            onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), PostMineAction.none, false);
+            onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), PostMineAction.none);
         },
         [subtitles, calculateSurroundingSubtitlesForIndex, onCopy]
     );

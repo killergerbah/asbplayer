@@ -1,6 +1,5 @@
 import {
     AlertMessage,
-    AnkiDialogRequestFromVideoMessage,
     AnkiSettings,
     AnkiSettingsToVideoMessage,
     AppBarToggleMessageToVideoMessage,
@@ -8,6 +7,7 @@ import {
     AudioTrackSelectedFromVideoMessage,
     AudioTrackSelectedToVideoMessage,
     CopyMessage,
+    CopyToVideoMessage,
     CurrentTimeToVideoMessage,
     FullscreenToggleMessageToVideoMessage,
     HideSubtitlePlayerToggleToVideoMessage,
@@ -51,6 +51,7 @@ export default class PlayerChannel {
     private miscSettingsCallbacks: ((miscSettings: MiscSettings) => void)[];
     private ankiSettingsCallbacks: ((ankiSettings: AnkiSettings) => void)[];
     private alertCallbacks: ((message: string, severity: string) => void)[];
+    private copyCallbacks: ((postMineAction: PostMineAction) => void)[];
 
     constructor(channel: string) {
         this.channel = new BroadcastChannel(channel);
@@ -71,6 +72,7 @@ export default class PlayerChannel {
         this.miscSettingsCallbacks = [];
         this.ankiSettingsCallbacks = [];
         this.alertCallbacks = [];
+        this.copyCallbacks = [];
 
         const that = this;
 
@@ -192,6 +194,13 @@ export default class PlayerChannel {
                         callback(alertMessage.message, alertMessage.severity);
                     }
                     break;
+                case 'copy':
+                    const copyMessage = event.data as CopyToVideoMessage;
+
+                    for (const callback of that.copyCallbacks) {
+                        callback(copyMessage.postMineAction);
+                    }
+                    break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }
@@ -204,70 +213,92 @@ export default class PlayerChannel {
 
     onPlay(callback: () => void) {
         this.playCallbacks.push(callback);
+        return () => this._remove(callback, this.playCallbacks);
     }
 
     onPause(callback: () => void) {
         this.pauseCallbacks.push(callback);
+        return () => this._remove(callback, this.pauseCallbacks);
     }
 
     onCurrentTime(callback: (currentTime: number) => void) {
         this.currentTimeCallbacks.push(callback);
+        return () => this._remove(callback, this.currentTimeCallbacks);
     }
 
     onAudioTrackSelected(callback: (id: string) => void) {
         this.audioTrackSelectedCallbacks.push(callback);
+        return () => this._remove(callback, this.audioTrackSelectedCallbacks);
     }
 
     onClose(callback: () => void) {
         this.closeCallbacks.push(callback);
+        return () => this._remove(callback, this.closeCallbacks);
     }
 
     onReady(callback: (duration: number, videoFileName?: string) => void) {
         this.readyCallbacks.push(callback);
+        return () => this._remove(callback, this.readyCallbacks);
     }
 
     onSubtitles(callback: (subtitles: SubtitleModel[]) => void) {
         this.subtitlesCallbacks.push(callback);
+        return () => this._remove(callback, this.subtitlesCallbacks);
     }
 
     onOffset(callback: (offset: number) => void) {
         this.offsetCallbacks.push(callback);
+        return () => this._remove(callback, this.offsetCallbacks);
     }
 
     onPlaybackRate(callback: (playbackRate: number) => void) {
         this.playbackRateCallbacks.push(callback);
+        return () => this._remove(callback, this.playbackRateCallbacks);
     }
 
     onPlayMode(callback: (playMode: PlayMode) => void) {
         this.playModeCallbacks.push(callback);
+        return () => this._remove(callback, this.playModeCallbacks);
     }
 
     onHideSubtitlePlayerToggle(callback: (hidden: boolean) => void) {
         this.hideSubtitlePlayerToggleCallbacks.push(callback);
+        return () => this._remove(callback, this.hideSubtitlePlayerToggleCallbacks);
     }
 
     onAppBarToggle(callback: (hidden: boolean) => void) {
         this.appBarToggleCallbacks.push(callback);
+        return () => this._remove(callback, this.appBarToggleCallbacks);
     }
 
     onFullscreenToggle(callback: (fullscreen: boolean) => void) {
         this.fullscreenToggleCallbacks.push(callback);
+        return () => this._remove(callback, this.fullscreenToggleCallbacks);
     }
 
     onSubtitleSettings(callback: (subtitleSettings: SubtitleSettings) => void) {
         this.subtitleSettingsCallbacks.push(callback);
+        return () => this._remove(callback, this.subtitleSettingsCallbacks);
     }
 
     onMiscSettings(callback: (miscSettings: MiscSettings) => void) {
         this.miscSettingsCallbacks.push(callback);
+        return () => this._remove(callback, this.miscSettingsCallbacks);
     }
 
     onAnkiSettings(callback: (ankiSettings: AnkiSettings) => void) {
         this.ankiSettingsCallbacks.push(callback);
+        return () => this._remove(callback, this.ankiSettingsCallbacks);
     }
 
     onAlert(callback: (message: string, severity: string) => void) {
         this.alertCallbacks.push(callback);
+        return () => this._remove(callback, this.alertCallbacks);
+    }
+
+    onCopy(callback: (postMineAction: PostMineAction) => void) {
+        this.copyCallbacks.push(callback);
+        return () => this._remove(callback, this.copyCallbacks);
     }
 
     ready(
@@ -324,17 +355,11 @@ export default class PlayerChannel {
         this.channel?.postMessage({ command: 'popOutToggle' });
     }
 
-    copy(
-        subtitle: SubtitleModel,
-        surroundingSubtitles: SubtitleModel[],
-        postMineAction: PostMineAction,
-        preventDuplicate?: boolean
-    ) {
+    copy(subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], postMineAction: PostMineAction) {
         const message: CopyMessage = {
             command: 'copy',
             subtitle: subtitle,
             surroundingSubtitles: surroundingSubtitles,
-            preventDuplicate: preventDuplicate,
             postMineAction: postMineAction,
         };
 
@@ -355,13 +380,6 @@ export default class PlayerChannel {
 
     fullscreenToggle() {
         this.channel?.postMessage({ command: 'fullscreenToggle' });
-    }
-
-    ankiDialogRequest(forwardToVideo: boolean) {
-        const message: AnkiDialogRequestFromVideoMessage = {
-            command: 'ankiDialogRequest',
-        };
-        this.channel?.postMessage(message);
     }
 
     toggleSubtitleTrackInList(track: number) {
@@ -394,6 +412,16 @@ export default class PlayerChannel {
             this.miscSettingsCallbacks = [];
             this.ankiSettingsCallbacks = [];
             this.alertCallbacks = [];
+            this.copyCallbacks = [];
+        }
+    }
+
+    _remove(callback: Function, callbacks: Function[]) {
+        for (let i = callbacks.length - 1; i >= 0; --i) {
+            if (callback === callbacks[i]) {
+                callbacks.splice(i, 1);
+                break;
+            }
         }
     }
 }
