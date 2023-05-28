@@ -11,6 +11,7 @@ import {
 } from '@project/common';
 import { AutoPauseContext } from '@project/common';
 import { ElementOverlay, OffsetAnchor } from '../services/element-overlay';
+import i18n from 'i18next';
 
 export interface SubtitleModelWithIndex extends SubtitleModel {
     index: number;
@@ -383,8 +384,9 @@ export default class SubtitleController {
         return roundedOffset >= 0 ? '+' + roundedOffset + ' ms' : roundedOffset + ' ms';
     }
 
-    notification(notification: string) {
-        this.notificationElementOverlay.setHtml(this._buildTextHtml(notification));
+    notification(locKey: string, replacements?: { [key: string]: string }) {
+        const text = i18n.t(locKey, replacements ?? {});
+        this.notificationElementOverlay.setHtml(this._buildTextHtml(text));
 
         if (this.notificationElementOverlayHideTimeout) {
             clearTimeout(this.notificationElementOverlayHideTimeout);

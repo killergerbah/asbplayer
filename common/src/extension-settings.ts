@@ -23,11 +23,15 @@ export interface ExtensionSettings extends ExtensionKeyBindingsSettings {
     cropScreenshot: boolean;
     subsDragAndDrop: boolean;
     autoSync: boolean;
+    // Last language selected in subtitle track selector, keyed by domain
+    // Used to auto-selecting a language in subtitle track selector, if it's available
     lastLanguagesSynced: { [key: string]: string };
     subtitlePositionOffset: number;
     condensedPlaybackMinimumSkipIntervalMs: number;
     asbplayerUrl: string;
     lastThemeType: 'dark' | 'light';
+    // Last language selected in asbplayer settings
+    // Used for localization of asbplayer
     lastLanguage: string;
     imageDelay: number;
     subtitleAlignment: SubtitleAlignment;

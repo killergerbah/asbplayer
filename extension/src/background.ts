@@ -78,7 +78,7 @@ const handlers: CommandHandler[] = [
     new AsbplayerToVideoCommandForwardingHandler(),
     new AsbplayerHeartbeatHandler(tabRegistry),
     new AckTabsHandler(tabRegistry),
-    new SharedSettingsUpdatedHandler(settings),
+    new SharedSettingsUpdatedHandler(settings, tabRegistry),
     new OpenExtensionShortcutsHandler(),
     new ExtensionCommandsHandler(),
     new AsbplayerV2ToVideoCommandForwardingHandler(),

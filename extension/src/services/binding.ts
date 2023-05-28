@@ -42,6 +42,7 @@ import KeyBindings from './key-bindings';
 import Settings from './settings';
 import SubtitleController from '../controllers/subtitle-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
+import { i18nInit } from './i18n';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -150,7 +151,7 @@ export default class Binding {
 
                     this.pause();
                 };
-                this.subtitleController.notification('Auto-pause: On');
+                this.subtitleController.notification('info.enabledAutoPause');
                 break;
             case PlayMode.condensed:
                 let seeking = false;
@@ -174,16 +175,16 @@ export default class Binding {
                         seeking = false;
                     }
                 };
-                this.subtitleController.notification('Condensed playback: On');
+                this.subtitleController.notification('info.enabledCondensedPlayback');
                 break;
             case PlayMode.normal:
                 if (this._playMode === PlayMode.autoPause) {
                     this.subtitleController.autoPauseContext.onStartedShowing = undefined;
                     this.subtitleController.autoPauseContext.onWillStopShowing = undefined;
-                    this.subtitleController.notification('Auto-pause: Off');
+                    this.subtitleController.notification('info.disabledAutoPause');
                 } else if (this._playMode === PlayMode.condensed) {
                     this.subtitleController.onNextToShow = undefined;
-                    this.subtitleController.notification('Condensed playback: Off');
+                    this.subtitleController.notification('info.disabledCondensedPlayback');
                 }
                 break;
             default:
@@ -325,7 +326,9 @@ export default class Binding {
             };
 
             chrome.runtime.sendMessage(command);
-            this.subtitleController.notification(`Playback rate: ${this.video.playbackRate.toFixed(1)}`);
+            this.subtitleController.notification('info.playbackRate', {
+                rate: this.video.playbackRate.toFixed(1),
+            });
         };
 
         this.video.addEventListener('play', this.playListener);
@@ -480,7 +483,7 @@ export default class Binding {
                         break;
                     case 'card-updated':
                         const cardUpdatedMessage = request.message as CardUpdatedMessage;
-                        this.subtitleController.notification(`Updated card: ${request.message.cardName}`);
+                        this.subtitleController.notification('info.updatedCard', { result: request.message.cardName });
                         this.ankiUiSavedState = {
                             subtitle: cardUpdatedMessage.subtitle,
                             text: '',
@@ -569,6 +572,7 @@ export default class Binding {
         this.keyBindings.setSettings(this, currentSettings);
         this.condensedPlaybackMinimumSkipIntervalMs = currentSettings.condensedPlaybackMinimumSkipIntervalMs;
         this.imageDelay = currentSettings.imageDelay;
+        i18nInit(currentSettings.lastLanguage);
 
         if (currentSettings.subsDragAndDrop) {
             this.dragController.bind();
