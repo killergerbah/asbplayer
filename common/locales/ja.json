@@ -70,6 +70,7 @@
         "seekToNextSubtitle": "次の字幕に早送り",
         "seekToPreviousSubtitle": "前の字幕に巻き戻り",
         "seekToSubtitle": "前/次の字幕に移動",
+        "takeScreenshot": "手動でスクリーンショットを撮影しマイニング時に自動的に撮影されたものを上書きする",
         "toggleAsbplayerSubtitleTrack1": "asbplayer の字幕トラック 1  オン/オフ",
         "toggleAsbplayerSubtitleTrack2": "asbplayer の字幕トラック 2 オン/オフ",
         "toggleAsbplayerSubtitleTracks": "asbplayer の字幕トラック オン/オフ",
@@ -80,7 +81,7 @@
         "toggleVideoSubtitleTrack1": "動画の字幕トラック 1  オン/オフ",
         "toggleVideoSubtitleTrack2": "動画の字幕トラック 2 オン/オフ",
         "toggleVideoSubtitleTracks": "動画の字幕トラック オン/オフ",
-        "updateLastCard": "asbplayer でキャプチャしたスクリーンショットや音声を、最後に作成した Anki カードに添付して更新する。"
+        "updateLastCard": "asbplayer でキャプチャしたスクリーンショットや音声を、最後に作成した Anki カードに添付して更新する"
     },
     "controls": {
         "autoPauseMode": "自動一時停止",

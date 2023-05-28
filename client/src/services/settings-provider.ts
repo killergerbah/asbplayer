@@ -46,6 +46,7 @@ const defaultKeyBindSet: KeyBindSet = {
     copySubtitle: { keys: isMacOs ? '⇧+⌃+Z' : 'ctrl+shift+Z' },
     ankiExport: { keys: isMacOs ? '⇧+⌃+X' : 'ctrl+shift+X' },
     updateLastCard: { keys: isMacOs ? '⇧+⌃+U' : 'ctrl+shift+U' },
+    takeScreenshot: { keys: isMacOs ? '⇧+⌃+V' : 'ctrl+shift+V' },
     decreasePlaybackRate: { keys: isMacOs ? '⇧+⌃+[' : 'ctrl+shift+[' },
     increasePlaybackRate: { keys: isMacOs ? '⇧+⌃+]' : 'ctrl+shift+]' },
 };

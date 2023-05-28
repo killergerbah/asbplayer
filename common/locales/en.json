@@ -70,6 +70,7 @@
         "seekToNextSubtitle": "Seek to next subtitle",
         "seekToPreviousSubtitle": "Seek to previous subtitle",
         "seekToSubtitle": "Seek to previous/next subtitle",
+        "takeScreenshot": "Manually take screenshot, overriding the one that is automatically taken when mining",
         "toggleAsbplayerSubtitleTrack1": "Toggle subtitle track 1 in asbplayer",
         "toggleAsbplayerSubtitleTrack2": "Toggle subtitle track 2 in asbplayer",
         "toggleAsbplayerSubtitleTracks": "Toggle subtitle track in asbplayer",

@@ -154,6 +154,16 @@ interface IndexedSubtitleModel extends SubtitleModel {
     index: number;
 }
 
+interface MinedRecord {
+    videoFileUrl: string;
+    videoFileName: string;
+    selectedAudioTrack: string | undefined;
+    playbackRate: number;
+    subtitle: SubtitleModel;
+    surroundingSubtitles: SubtitleModel[];
+    timestamp: number;
+}
+
 export default function VideoPlayer({
     settingsProvider,
     playbackPreferences,
@@ -220,6 +230,7 @@ export default function VideoPlayer({
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
     const [alertMessage, setAlertMessage] = useState<string>('');
     const [alertSeverity, setAlertSeverity] = useState<Color>('info');
+    const [lastMinedRecord, setLastMinedRecord] = useState<MinedRecord>();
     const autoPauseContext = useMemo(() => {
         const context = new AutoPauseContext();
         context.onStartedShowing = () => {
@@ -688,6 +699,56 @@ export default function VideoPlayer({
     }, [subtitles, calculateSurroundingSubtitles, length, clock]);
 
     const mineSubtitle = useCallback(
+        (
+            postMineAction: PostMineAction,
+            videoFileUrl: string,
+            videoFileName: string,
+            selectedAudioTrack: string | undefined,
+            playbackRate: number,
+            subtitle: SubtitleModel,
+            surroundingSubtitles: SubtitleModel[],
+            timestamp: number
+        ) => {
+            switch (postMineAction) {
+                case PostMineAction.showAnkiDialog:
+                    if (popOut) {
+                        playerChannel.copy(subtitle, surroundingSubtitles, timestamp, PostMineAction.none);
+                        onAnkiDialogRequest(
+                            videoFileUrl,
+                            videoFileName ?? '',
+                            selectedAudioTrack,
+                            playbackRate,
+                            subtitle,
+                            surroundingSubtitles,
+                            timestamp
+                        );
+
+                        if (playing) {
+                            playerChannel.pause();
+                            setResumeOnFinishedAnkiDialogRequest(true);
+                        }
+                    } else {
+                        playerChannel.copy(subtitle, surroundingSubtitles, timestamp, PostMineAction.showAnkiDialog);
+                    }
+                    break;
+                default:
+                    playerChannel.copy(subtitle, surroundingSubtitles, timestamp, postMineAction);
+            }
+
+            setLastMinedRecord({
+                videoFileUrl,
+                videoFileName: videoFileName ?? '',
+                selectedAudioTrack,
+                playbackRate,
+                subtitle,
+                surroundingSubtitles,
+                timestamp,
+            });
+        },
+        [onAnkiDialogRequest, playerChannel, playing, popOut]
+    );
+
+    const mineCurrentSubtitle = useCallback(
         (postMineAction: PostMineAction) => {
             const extracted = extractSubtitles();
 
@@ -696,62 +757,34 @@ export default function VideoPlayer({
             }
 
             const { currentSubtitle, surroundingSubtitles } = extracted;
-
-            switch (postMineAction) {
-                case PostMineAction.showAnkiDialog:
-                    if (popOut) {
-                        playerChannel.copy(currentSubtitle, surroundingSubtitles, PostMineAction.none);
-                        onAnkiDialogRequest(
-                            videoFile,
-                            videoFileName ?? '',
-                            selectedAudioTrack,
-                            playbackRate,
-                            currentSubtitle,
-                            surroundingSubtitles,
-                            clock.time(length)
-                        );
-
-                        if (playing) {
-                            playerChannel.pause();
-                            setResumeOnFinishedAnkiDialogRequest(true);
-                        }
-                    } else {
-                        playerChannel.copy(currentSubtitle, surroundingSubtitles, PostMineAction.showAnkiDialog);
-                    }
-                    break;
-                default:
-                    playerChannel.copy(currentSubtitle, surroundingSubtitles, postMineAction);
-            }
+            mineSubtitle(
+                postMineAction,
+                videoFile,
+                videoFileName ?? '',
+                selectedAudioTrack,
+                playbackRate,
+                currentSubtitle,
+                surroundingSubtitles,
+                clock.time(length)
+            );
         },
-        [
-            extractSubtitles,
-            onAnkiDialogRequest,
-            playerChannel,
-            clock,
-            length,
-            playbackRate,
-            playing,
-            popOut,
-            selectedAudioTrack,
-            videoFile,
-            videoFileName,
-        ]
+        [mineSubtitle, extractSubtitles, clock, length, playbackRate, selectedAudioTrack, videoFile, videoFileName]
     );
 
     useEffect(() => {
-        return playerChannel.onCopy(mineSubtitle);
-    }, [playerChannel, mineSubtitle]);
+        return playerChannel.onCopy(mineCurrentSubtitle);
+    }, [playerChannel, mineCurrentSubtitle]);
 
     useEffect(() => {
         return keyBinder.bindAnkiExport(
             (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                mineSubtitle(PostMineAction.showAnkiDialog);
+                mineCurrentSubtitle(PostMineAction.showAnkiDialog);
             },
             () => false
         );
-    }, [mineSubtitle, keyBinder]);
+    }, [mineCurrentSubtitle, keyBinder]);
 
     useEffect(() => {
         if (ankiDialogFinishedRequest && ankiDialogFinishedRequest.timestamp > 0) {
@@ -770,18 +803,42 @@ export default function VideoPlayer({
             (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                mineSubtitle(PostMineAction.updateLastCard);
+                mineCurrentSubtitle(PostMineAction.updateLastCard);
             },
             () => false
         );
-    }, [mineSubtitle, keyBinder]);
+    }, [mineCurrentSubtitle, keyBinder]);
+
+    useEffect(() => {
+        return keyBinder.bindTakeScreenshot(
+            (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (lastMinedRecord) {
+                    const currentTimestamp = clock.time(length);
+                    mineSubtitle(
+                        PostMineAction.showAnkiDialog,
+                        lastMinedRecord.videoFileUrl,
+                        lastMinedRecord.videoFileName,
+                        lastMinedRecord.selectedAudioTrack,
+                        lastMinedRecord.playbackRate,
+                        lastMinedRecord.subtitle,
+                        lastMinedRecord.surroundingSubtitles,
+                        currentTimestamp
+                    );
+                }
+            },
+            () => false
+        );
+    }, [clock, length, keyBinder, lastMinedRecord, mineSubtitle]);
 
     useEffect(() => {
         return keyBinder.bindCopy(
             (event, subtitle) => {
                 event.stopPropagation();
                 event.preventDefault();
-                mineSubtitle(PostMineAction.none);
+                mineCurrentSubtitle(PostMineAction.none);
             },
             () => false,
             () => {
@@ -794,7 +851,7 @@ export default function VideoPlayer({
                 return extracted.currentSubtitle;
             }
         );
-    }, [extractSubtitles, mineSubtitle, keyBinder]);
+    }, [extractSubtitles, mineCurrentSubtitle, keyBinder]);
 
     useEffect(() => {
         return keyBinder.bindPlay(

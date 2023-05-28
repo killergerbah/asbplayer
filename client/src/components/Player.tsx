@@ -134,6 +134,7 @@ interface PlayerProps {
     onHideSubtitlePlayer: () => void;
     onVideoPopOut: () => void;
     onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
+    onTakeScreenshot: (mediaTimestamp: number) => void;
     disableKeyEvents: boolean;
     jumpToSubtitle?: SubtitleModel;
     rewindSubtitle?: SubtitleModel;
@@ -169,6 +170,7 @@ export default function Player({
     onHideSubtitlePlayer,
     onVideoPopOut,
     onPlayModeChangedViaBind,
+    onTakeScreenshot,
     disableKeyEvents,
     jumpToSubtitle,
     rewindSubtitle,
@@ -466,22 +468,23 @@ export default function Player({
                         channel?.onPlaybackRate((playbackRate, forwardToMedia) =>
                             updatePlaybackRate(playbackRate, forwardToMedia)
                         );
-                        channel?.onCopy((subtitle, surroundingSubtitles, audio, image, url, postMineAction, id) =>
-                            onCopy(
-                                subtitle,
-                                surroundingSubtitles,
-                                audioFile,
-                                videoFile,
-                                subtitle ? subtitleFiles[subtitle.track] : undefined,
-                                clock.time(lengthRef.current),
-                                channel?.selectedAudioTrack,
-                                channel?.playbackRate,
-                                audio,
-                                image,
-                                url,
-                                postMineAction,
-                                id
-                            )
+                        channel?.onCopy(
+                            (subtitle, surroundingSubtitles, audio, image, url, postMineAction, id, mediaTimetamp) =>
+                                onCopy(
+                                    subtitle,
+                                    surroundingSubtitles,
+                                    audioFile,
+                                    videoFile,
+                                    subtitle ? subtitleFiles[subtitle.track] : undefined,
+                                    mediaTimetamp,
+                                    channel?.selectedAudioTrack,
+                                    channel?.playbackRate,
+                                    audio,
+                                    image,
+                                    url,
+                                    postMineAction,
+                                    id
+                                )
                         );
                         channel?.onPlayMode((playMode) => {
                             setPlayMode(playMode);
@@ -881,6 +884,20 @@ export default function Player({
             () => disableKeyEvents
         );
     }, [togglePlayMode, keyBinder, disableKeyEvents]);
+
+    useEffect(() => {
+        if (!videoFile) {
+            return;
+        }
+
+        return keyBinder.bindTakeScreenshot(
+            (event) => {
+                event.preventDefault();
+                onTakeScreenshot(clock.time(lengthRef.current));
+            },
+            () => disableKeyEvents
+        );
+    }, [videoFile, clock, onTakeScreenshot, keyBinder, disableKeyEvents]);
 
     useEffect(() => {
         if (videoRef.current instanceof VideoChannel) {

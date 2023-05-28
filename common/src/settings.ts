@@ -81,6 +81,7 @@ export interface KeyBindSet {
     readonly copySubtitle: KeyBind;
     readonly ankiExport: KeyBind;
     readonly updateLastCard: KeyBind;
+    readonly takeScreenshot: KeyBind;
 }
 
 export type KeyBindName = keyof KeyBindSet;

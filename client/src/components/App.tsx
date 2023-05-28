@@ -565,6 +565,28 @@ function App() {
         [anki, handleError]
     );
 
+    const handleTakeScreenshot = useCallback(
+        (mediaTimestamp: number) => {
+            if (sources.videoFile === undefined || copiedSubtitles.length === 0) {
+                return;
+            }
+
+            const lastCopyHistoryItem = copiedSubtitles[copiedSubtitles.length - 1];
+            const newCopyHistoryItem = {
+                ...lastCopyHistoryItem,
+                id: uuidv4(),
+                image: undefined,
+                videoFile: sources.videoFile,
+                mediaTimestamp,
+            };
+
+            setCopiedSubtitles((copiedSubtitles) => [...copiedSubtitles, newCopyHistoryItem]);
+            copyHistoryRepository.save(newCopyHistoryItem);
+            handleAnkiDialogRequest(newCopyHistoryItem);
+        },
+        [sources.videoFile, copiedSubtitles, handleAnkiDialogRequest, copyHistoryRepository]
+    );
+
     const handleCopy = useCallback(
         (
             subtitle: SubtitleModel,
@@ -1446,6 +1468,7 @@ function App() {
                                         onHideSubtitlePlayer={handleHideSubtitlePlayer}
                                         onVideoPopOut={handleVideoPopOut}
                                         onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
+                                        onTakeScreenshot={handleTakeScreenshot}
                                         tab={tab}
                                         availableTabs={availableTabs}
                                         sources={sources}

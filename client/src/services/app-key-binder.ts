@@ -7,6 +7,7 @@ export default class AppKeyBinder implements KeyBinder {
     private readonly copyHandlers: ((event: KeyboardEvent) => void)[] = [];
     private readonly ankiExportHandlers: ((event: KeyboardEvent) => void)[] = [];
     private readonly updateLastCardHandlers: ((event: KeyboardEvent) => void)[] = [];
+    private readonly takeScreenshotHandlers: ((event: KeyboardEvent) => void)[] = [];
     private readonly onExtensionMessage: (message: ExtensionMessage) => void;
 
     constructor(keyBinder: DefaultKeyBinder, extension: ChromeExtension) {
@@ -14,9 +15,10 @@ export default class AppKeyBinder implements KeyBinder {
         this.extension = extension;
 
         this.onExtensionMessage = (message: ExtensionMessage) => {
+            let handlers: ((event: KeyboardEvent) => void)[] | undefined;
+
             if (message.data.command === 'copy-subtitle') {
                 const command = message.data as CopySubtitleMessage;
-                let handlers: ((event: KeyboardEvent) => void)[] | undefined;
 
                 switch (command.postMineAction) {
                     case PostMineAction.none:
@@ -31,12 +33,17 @@ export default class AppKeyBinder implements KeyBinder {
                     default:
                         console.error('Unknown post mine action ' + command.postMineAction);
                 }
+            } else if (message.data.command === 'take-screenshot') {
+                handlers = this.takeScreenshotHandlers;
+            }
 
-                for (const h of handlers!) {
+            if (handlers !== undefined) {
+                for (const h of handlers) {
                     h(new KeyboardEvent('mock'));
                 }
             }
         };
+
         extension.subscribe(this.onExtensionMessage);
     }
 
@@ -87,6 +94,22 @@ export default class AppKeyBinder implements KeyBinder {
         }
 
         return this.defaultKeyBinder.bindUpdateLastCard(onUpdateLastCard, disabledGetter, useCapture);
+    }
+
+    bindTakeScreenshot(
+        onTakeScreenshot: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        useCapture?: boolean | undefined
+    ): () => void {
+        if (this.extension.installed) {
+            const handler = this.defaultKeyBinder.takeScreenshotHandler(onTakeScreenshot, disabledGetter);
+            this.takeScreenshotHandlers.push(handler);
+            return () => {
+                this._remove(handler, this.takeScreenshotHandlers);
+            };
+        }
+
+        return this.defaultKeyBinder.bindTakeScreenshot(onTakeScreenshot, disabledGetter, useCapture);
     }
 
     private _remove(callback: (event: KeyboardEvent) => void, list: ((event: KeyboardEvent) => void)[]) {

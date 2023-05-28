@@ -27,7 +27,14 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import { Theme } from '@material-ui/core/styles';
-import { Anki, AsbplayerSettings, AutoPausePreference, KeyBindSet, KeyBindName, supportedLanguages } from '@project/common';
+import {
+    Anki,
+    AsbplayerSettings,
+    AutoPausePreference,
+    KeyBindSet,
+    KeyBindName,
+    supportedLanguages,
+} from '@project/common';
 import { TagsTextField } from '@project/common/components';
 import hotkeys from 'hotkeys-js';
 import Typography from '@material-ui/core/Typography';
@@ -331,6 +338,10 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
             ankiExport: { label: t('binds.ankiExport')!, extensionOverridden: true },
             updateLastCard: {
                 label: t('binds.updateLastCard')!,
+                extensionOverridden: true,
+            },
+            takeScreenshot: {
+                label: t('binds.takeScreenshot')!,
                 extensionOverridden: true,
             },
             togglePlay: { label: t('binds.togglePlay')!, extensionOverridden: false },

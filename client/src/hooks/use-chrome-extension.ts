@@ -6,6 +6,7 @@ const keyBindNameMap: any = {
     'copy-subtitle': 'copySubtitle',
     'copy-subtitle-with-dialog': 'ankiExport',
     'update-last-card': 'updateLastCard',
+    'take-screenshot': 'takeScreenshot',
 };
 
 export const useChromeExtension = () => {

@@ -115,6 +115,9 @@ export interface CopyMessage extends Message {
     readonly audio?: AudioModel;
 
     readonly postMineAction?: PostMineAction;
+
+    // asbplayer app only
+    readonly mediaTimestamp?: number;
 }
 
 export interface CopyToVideoMessage extends Message {
@@ -134,6 +137,10 @@ export interface TakeScreenshotMessage extends Message {
 export interface TakeScreenshotFromExtensionMessage extends Message, ImageCaptureParams {
     readonly command: 'take-screenshot';
     readonly ankiUiState?: AnkiUiSavedState;
+}
+
+export interface TakeScreenshotToVideoPlayerMessage extends Message {
+    readonly command: 'takeScreenshot';
 }
 
 export interface CardUpdatedMessage extends Message {

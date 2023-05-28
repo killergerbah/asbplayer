@@ -32,6 +32,7 @@ import {
     SubtitleSettings,
     SubtitleSettingsToVideoMessage,
     SubtitlesToVideoMessage,
+    TakeScreenshotToVideoPlayerMessage,
     ToggleSubtitleTrackInListFromVideoMessage,
 } from '@project/common';
 import { VideoProtocol } from './video-protocol';
@@ -56,7 +57,8 @@ export default class VideoChannel {
         image: ImageModel | undefined,
         url: string | undefined,
         postMineAction: PostMineAction,
-        id: string | undefined
+        id: string | undefined,
+        mediaTimestamp: number | undefined
     ) => void)[];
     private playModeCallbacks: ((mode: PlayMode) => void)[];
     private hideSubtitlePlayerToggleCallbacks: (() => void)[];
@@ -188,7 +190,8 @@ export default class VideoChannel {
                             copyMessage.image,
                             copyMessage.url,
                             copyMessage.postMineAction ?? PostMineAction.none,
-                            copyMessage.id
+                            copyMessage.id,
+                            copyMessage.mediaTimestamp
                         );
                     }
                     break;
@@ -304,7 +307,8 @@ export default class VideoChannel {
             image: ImageModel | undefined,
             url: string | undefined,
             postMineAction: PostMineAction,
-            id: string | undefined
+            id: string | undefined,
+            mediaTimestamp: number | undefined
         ) => void
     ) {
         this.copyCallbacks.push(callback);
@@ -426,6 +430,11 @@ export default class VideoChannel {
 
     copy(postMineAction: PostMineAction) {
         const message: CopyToVideoMessage = { command: 'copy', postMineAction };
+        this.protocol.postMessage(message);
+    }
+
+    takeScreenshot() {
+        const message: TakeScreenshotToVideoPlayerMessage = { command: 'takeScreenshot' };
         this.protocol.postMessage(message);
     }
 

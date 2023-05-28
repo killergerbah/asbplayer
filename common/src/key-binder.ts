@@ -19,6 +19,11 @@ export interface KeyBinder {
         disabledGetter: () => boolean,
         capture?: boolean
     ): () => void;
+    bindTakeScreenshot(
+        onTakeScreenshot: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        capture?: boolean
+    ): () => void;
     bindSeekToSubtitle(
         onSeekToSubtitle: (event: KeyboardEvent, subtitle: SubtitleModel) => void,
         disabledGetter: () => boolean,
@@ -174,6 +179,31 @@ export class DefaultKeyBinder implements KeyBinder {
             }
 
             onUpdateLastCard(event);
+        };
+    }
+
+    bindTakeScreenshot(
+        onTakeScreenshot: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        capture = false
+    ) {
+        const shortcut = this.keyBindSet.takeScreenshot.keys;
+
+        if (!shortcut) {
+            return () => {};
+        }
+
+        const handler = this.updateLastCardHandler(onTakeScreenshot, disabledGetter);
+        return this._bind(shortcut, capture, handler);
+    }
+
+    takeScreenshotHandler(onTakeScreenshot: (event: KeyboardEvent) => void, disabledGetter: () => boolean) {
+        return (event: KeyboardEvent) => {
+            if (disabledGetter()) {
+                return;
+            }
+
+            onTakeScreenshot(event);
         };
     }
 

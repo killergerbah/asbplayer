@@ -223,6 +223,20 @@ chrome.commands.onCommand.addListener((command) => {
                     };
                     return extensionToVideoCommand;
                 });
+
+                tabRegistry.publishCommandToAsbplayers((asbplayer) => {
+                    if (tabs.find((t) => t.id === asbplayer.tab.id) === undefined) {
+                        return undefined;
+                    }
+
+                    const extensionToPlayerCommand: Command<TakeScreenshotMessage> = {
+                        sender: 'asbplayer-extension-to-player',
+                        message: {
+                            command: 'take-screenshot',
+                        },
+                    };
+                    return extensionToPlayerCommand;
+                });
                 break;
             case 'toggle-recording':
                 tabRegistry.publishCommandToVideoElements((videoElement) => {

@@ -355,12 +355,18 @@ export default class PlayerChannel {
         this.channel?.postMessage({ command: 'popOutToggle' });
     }
 
-    copy(subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], postMineAction: PostMineAction) {
+    copy(
+        subtitle: SubtitleModel,
+        surroundingSubtitles: SubtitleModel[],
+        mediaTimestamp: number,
+        postMineAction: PostMineAction
+    ) {
         const message: CopyMessage = {
             command: 'copy',
             subtitle: subtitle,
             surroundingSubtitles: surroundingSubtitles,
             postMineAction: postMineAction,
+            mediaTimestamp,
         };
 
         this.channel?.postMessage(message);
