@@ -143,9 +143,9 @@
         },
         "videoSelect": {
             "multipleVideoElements": "複数の動画を探知しました",
-            "selectVideo": "asbplayer と同期する動画素材を選択する。",
-            "syncBeforeMine": "動画素材のマイニングを開始する前に、動画と asbplayer を同期してください。選択した動画素材を asbplayer と同期します。",
-            "videoElement": "動画素材"
+            "selectVideo": "asbplayer と同期する動画埋め込み要素を選択してください。",
+            "syncBeforeMine": "動画埋め込み要素のマイニングを開始する前に、動画と asbplayer を同期してください。選択した動画埋め込み要素を asbplayer と同期します。",
+            "videoElement": "動画埋め込み要素を選択"
         },
         "backgroundAudioRecordingPage": {
             "description": "このページは asbplayer が音声を録音する際に使用します。"
@@ -163,8 +163,8 @@
         "updatedCard": "カードの更新：{{result}}"
     },
     "landing": {
-        "cta": "字幕やメディアファイルをドラッグ＆ドロップ、または<1>フォルダを参照</1>してください。",
-        "extensionNotInstalled": "動画と字幕を同期するために<1>Chrome 拡張機能</1>をインストールしてください。",
+        "cta": "字幕やメディアファイルをドラッグ＆ドロップ、または<1>ファイルを選択</1>してください。",
+        "extensionNotInstalled": "Web上の動画と字幕を同期するために<1>Chrome 拡張機能</1>をインストールしてください。",
         "extensionUpdateAvailable": "拡張機能の<1>アップデート</1>を公開しました。"
     },
     "settings": {

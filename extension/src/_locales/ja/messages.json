@@ -1,6 +1,6 @@
 {
     "extensionDescription": {
-        "message": "asbplayer と動画を同期する"
+        "message": "asbplayer とWeb上の動画を同期する。"
     },
     "shortcutMineSubtitleAndOpenDialogDescription": {
         "message": "現在の字幕をマイニングして Anki エクスポートウィンドウを開く。動画が字幕ファイルなしで同期されている場合、録音を開始/停止する。"
