@@ -45,7 +45,7 @@ import VideoChannel from '../services/video-channel';
 import PlaybackPreferences from '../services/playback-preferences';
 import CopyHistoryRepository from '../services/copy-history-repository';
 import './i18n';
-import i18next from 'i18next';
+import { useTranslation } from 'react-i18next';
 import LocalizedError from './localized-error';
 import { useChromeExtension } from '../hooks/use-chrome-extension';
 
@@ -319,6 +319,7 @@ function Content(props: ContentProps) {
 }
 
 function App() {
+    const { t } = useTranslation();
     const settingsProvider = useMemo<SettingsProvider>(() => new SettingsProvider(), []);
     const subtitleReader = useMemo<SubtitleReader>(() => {
         let regex: RegExp | undefined;
@@ -453,7 +454,7 @@ function App() {
         setAlertSeverity('error');
 
         if (message instanceof LocalizedError) {
-            setAlert(i18next.t(message.locKey, message.locParams) ?? '<failed to localize error>');
+            setAlert(t(message.locKey, message.locParams) ?? '<failed to localize error>');
         } else if (message instanceof Error) {
             setAlert(message.message);
         } else if (typeof message === 'string') {
@@ -463,7 +464,7 @@ function App() {
         }
 
         setAlertOpen(true);
-    }, []);
+    }, [t]);
 
     const handleAnkiDialogRequest = useCallback((ankiDialogItem?: CopyHistoryItem) => {
         if (!ankiDialogItem && copiedSubtitlesRef.current!.length === 0) {
@@ -538,11 +539,11 @@ function App() {
                 if (mode !== 'gui') {
                     if (mode === 'default') {
                         setAlertSeverity('success');
-                        setAlert(i18next.t('info.exportedCard', { result })!);
+                        setAlert(t('info.exportedCard', { result })!);
                         setAlertOpen(true);
                     } else if (mode === 'updateLast') {
                         setAlertSeverity('success');
-                        setAlert(i18next.t('info.updatedCard', { result })!);
+                        setAlert(t('info.updatedCard', { result })!);
                         setAlertOpen(true);
                     }
 
@@ -562,7 +563,7 @@ function App() {
                 setDisableKeyEvents(false);
             }
         },
-        [anki, handleError]
+        [anki, handleError, t]
     );
 
     const handleTakeScreenshot = useCallback(
@@ -674,15 +675,15 @@ function App() {
                 setAlertSeverity('success');
                 setAlert(
                     subtitle.text === ''
-                        ? i18next.t('info.savedTimestamp', { timestamp: humanReadableTime(subtitle.start) })!
-                        : i18next.t('info.copiedSubtitle', { text: subtitle.text })!
+                        ? t('info.savedTimestamp', { timestamp: humanReadableTime(subtitle.start) })!
+                        : t('info.copiedSubtitle', { text: subtitle.text })!
                 );
                 setAlertOpen(true);
             }
 
             copyHistoryRepository.save(newCopiedSubtitle);
         },
-        [fileName, settingsProvider, copyHistoryRepository, handleAnkiDialogProceed, handleAnkiDialogRequest]
+        [fileName, settingsProvider, copyHistoryRepository, handleAnkiDialogProceed, handleAnkiDialogRequest, t]
     );
 
     useEffect(() => {
@@ -883,7 +884,7 @@ function App() {
     const handleSelectCopyHistoryItem = useCallback(
         (item: CopyHistoryItem) => {
             if (!subtitleFiles.find((f) => f.name === item.subtitleFileName)) {
-                handleError(i18next.t('error.subtitleFileNotOpen', { fileName: item.subtitleFileName }));
+                handleError(t('error.subtitleFileNotOpen', { fileName: item.subtitleFileName }));
                 return;
             }
 
@@ -896,7 +897,7 @@ function App() {
                 track: item.track,
             });
         },
-        [subtitleFiles, handleError]
+        [subtitleFiles, handleError, t]
     );
 
     const handleAnki = useCallback((item: CopyHistoryItem) => {
@@ -923,7 +924,7 @@ function App() {
         }
 
         if (!subtitleFiles.find((f) => f.name === ankiDialogItem.subtitleFileName)) {
-            handleError(i18next.t('error.subtitleFileNotOpen', { fileName: ankiDialogItem.subtitleFileName }));
+            handleError(t('error.subtitleFileNotOpen', { fileName: ankiDialogItem.subtitleFileName }));
             return;
         }
 
@@ -939,7 +940,7 @@ function App() {
         setJumpToSubtitle(subtitle);
 
         handleAnkiDialogCancel();
-    }, [ankiDialogItem, subtitleFiles, handleAnkiDialogCancel, handleError]);
+    }, [ankiDialogItem, subtitleFiles, handleAnkiDialogCancel, handleError, t]);
 
     const handleViewImage = useCallback((image: Image) => {
         setImage(image);
@@ -971,12 +972,12 @@ function App() {
 
             if (selectedTabMissing) {
                 setTab(undefined);
-                handleError(i18next.t('error.lostTabConnection', { tabName: tab!.id + ' ' + tab!.title }));
+                handleError(t('error.lostTabConnection', { tabName: tab!.id + ' ' + tab!.title }));
             }
         }
 
         return extension.subscribeTabs(onTabs);
-    }, [availableTabs, tab, extension, handleError]);
+    }, [availableTabs, tab, extension, handleError, t]);
 
     const handleTabSelected = useCallback((tab: VideoTabModel) => setTab(tab), []);
 
@@ -1034,14 +1035,14 @@ function App() {
     const handleDirectory = useCallback(
         async (items: DataTransferItemList) => {
             if (items.length !== 1) {
-                handleError(i18next.t('error.onlyOneDirectoryAllowed'));
+                handleError(t('error.onlyOneDirectoryAllowed'));
                 return;
             }
 
             const fileSystemEntry = items[0].webkitGetAsEntry();
 
             if (!fileSystemEntry || !fileSystemEntry.isDirectory) {
-                handleError(i18next.t('error.failedToLoadDirectory'));
+                handleError(t('error.failedToLoadDirectory'));
                 return;
             }
 
@@ -1053,7 +1054,7 @@ function App() {
                 );
 
                 if (entries.find((e) => e.isDirectory)) {
-                    handleError(i18next.t('error.subdirectoriesNotAllowed'));
+                    handleError(t('error.subdirectoriesNotAllowed'));
                     return;
                 }
 
@@ -1071,7 +1072,7 @@ function App() {
                 handleError(e);
             }
         },
-        [handleError, handleFiles]
+        [handleError, handleFiles, t]
     );
 
     useEffect(() => {
@@ -1161,23 +1162,23 @@ function App() {
     const handleAutoPauseModeChangedViaBind = useCallback((oldPlayMode: PlayMode, newPlayMode: PlayMode) => {
         switch (newPlayMode) {
             case PlayMode.autoPause:
-                setAlert(i18next.t('info.enabledAutoPause')!);
+                setAlert(t('info.enabledAutoPause')!);
                 break;
             case PlayMode.condensed:
-                setAlert(i18next.t('info.enabledCondensedPlayback')!);
+                setAlert(t('info.enabledCondensedPlayback')!);
                 break;
             case PlayMode.normal:
                 if (oldPlayMode === PlayMode.autoPause) {
-                    setAlert(i18next.t('info.disabledAutoPause')!);
+                    setAlert(t('info.disabledAutoPause')!);
                 } else if (oldPlayMode === PlayMode.condensed) {
-                    setAlert(i18next.t('info.disabledCondensedPlayback')!);
+                    setAlert(t('info.disabledCondensedPlayback')!);
                 }
                 break;
         }
 
         setAlertSeverity('info');
         setAlertOpen(true);
-    }, []);
+    }, [t]);
 
     const handleDrop = useCallback(
         (e: React.DragEvent) => {
@@ -1188,7 +1189,7 @@ function App() {
             e.preventDefault();
 
             if (inVideoPlayer) {
-                handleError(i18next.t('error.videoPlayerDragAndDropNotAllowed'));
+                handleError(t('error.videoPlayerDragAndDropNotAllowed'));
                 return;
             }
 
@@ -1211,7 +1212,7 @@ function App() {
                 handleFiles(e.dataTransfer.files);
             }
         },
-        [inVideoPlayer, handleError, handleFiles, handleDirectory, ankiDialogOpen]
+        [inVideoPlayer, handleError, handleFiles, handleDirectory, ankiDialogOpen, t]
     );
 
     const handleFileInputChange = useCallback(() => {
