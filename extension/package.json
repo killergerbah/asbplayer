@@ -3,8 +3,8 @@
   "name": "@project/extension",
   "version": "0.1.0",
   "scripts": {
-    "buildDev": "NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode development",
-    "buildProd": "NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode production",
+    "buildDev": "../scripts/loc-keys-match && NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode development",
+    "buildProd": "../scripts/loc-keys-match && NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode production",
     "packageDev": "yarn buildDev && cd dist && zip -r ../asbplayer-extension-$(jq -r .version ../src/manifest.json).zip * && cd ..",
     "packageProd": "yarn buildProd && cd dist && zip -r ../asbplayer-extension-$(jq -r .version ../src/manifest.json).zip * && cd .."
   },
