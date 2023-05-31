@@ -1,4 +1,4 @@
-import { ExtensionConfig, LocalizationConfig, fetchExtensionConfig } from './extension-config';
+import { LocalizationConfig, fetchExtensionConfig } from './extension-config';
 import { supportedLanguages as defaultSupportedLanguages } from '@project/common';
 import Settings from './settings';
 
@@ -11,37 +11,7 @@ export interface Localization {
     strings: any;
 }
 
-export const primeLocalization = async (lang: string) => {
-    try {
-        const config = await fetchExtensionConfig();
-
-        if (config === undefined) {
-            return;
-        }
-
-        await fetchLatestAndCache(lang, config);
-    } catch (e) {
-        console.error(e);
-    }
-};
-
 export const fetchLocalization = async (lang: string): Promise<Localization> => {
-    const config = await fetchExtensionConfig();
-
-    if (config === undefined) {
-        return await fallbackStringsForLang(lang);
-    }
-
-    const latest = await fetchLatestAndCache(lang, config);
-
-    if (latest === undefined) {
-        return await fallbackStringsForLang(lang);
-    }
-
-    return { lang, strings: latest };
-};
-
-const fallbackStringsForLang = async (lang: string): Promise<Localization> => {
     return (
         (await cachedStringsForLang(lang)) ??
         (await bundledStringsForLang(lang)) ??
@@ -49,24 +19,32 @@ const fallbackStringsForLang = async (lang: string): Promise<Localization> => {
     );
 };
 
-const fetchLatestAndCache = async (lang: string, config: ExtensionConfig) => {
-    const langConfig = config.languages.find((c) => c.code === lang);
+export const primeLocalization = async (lang: string): Promise<void> => {
+    try {
+        const config = await fetchExtensionConfig();
 
-    if (langConfig === undefined) {
-        return undefined;
+        if (config === undefined) {
+            return;
+        }
+
+        const langConfig = config.languages.find((c) => c.code === lang);
+
+        if (langConfig === undefined) {
+            return;
+        }
+
+        const versionKey = versionKeyForLang(lang);
+        const version = (await chrome.storage.local.get(versionKey))[versionKey] as number | undefined;
+
+        if (version === undefined || version < langConfig.version) {
+            await fetchAndCache(langConfig);
+        }
+    } catch (e) {
+        console.error(e);
     }
-
-    const versionKey = versionKeyForLang(lang);
-    const version = (await chrome.storage.local.get(versionKey))[versionKey] as number | undefined;
-
-    if (version === undefined || version < langConfig.version) {
-        return await fetchAndCache(langConfig);
-    }
-
-    return undefined;
 };
 
-const fetchAndCache = async ({ code, url, version }: LocalizationConfig) => {
+const fetchAndCache = async ({ code, url, version }: LocalizationConfig): Promise<void> => {
     const effectiveUrl =
         url.startsWith('http://') || url.startsWith('https://')
             ? url
@@ -74,17 +52,13 @@ const fetchAndCache = async ({ code, url, version }: LocalizationConfig) => {
     try {
         const strings = await (await fetch(effectiveUrl)).json();
 
-        if (typeof strings !== 'object') {
-            return undefined;
+        if (typeof strings === 'object') {
+            const versionKey = versionKeyForLang(code);
+            const stringsKey = stringsKeyForLang(code);
+            await chrome.storage.local.set({ [stringsKey]: strings, [versionKey]: version });
         }
-
-        const versionKey = versionKeyForLang(code);
-        const stringsKey = stringsKeyForLang(code);
-        await chrome.storage.local.set({ [stringsKey]: strings, [versionKey]: version });
-        return strings;
     } catch (e) {
         console.error(e);
-        return undefined;
     }
 };
 
