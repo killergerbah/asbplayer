@@ -16,6 +16,7 @@ AdamM
 realgoodsmiley
 Alex
 [@m4eko](https://github.com/m4eko)
+Simon
 
 If you've benefited from asbplayer, please consider supporting my work via [Github Sponsors](https://github.com/sponsors/killergerbah?frequency=one-time) or [Ko-fi](https://ko-fi.com/killergerbah).
 
