@@ -90,28 +90,7 @@ An audio track selector will appear for `mkv` files if experimental web platform
 
 ### Keyboard shortcuts
 
-Most keyboard shortcuts shared by the extension and the website are customizable from the [asbplayer website settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts). Extension-only shortcuts and some shared shortcuts that require special access to Chrome extension features are customizable from `chrome://extension/shortcuts`. Below are the default shortcuts.
-
-| Action                                                                               | Keys                                                                     |
-| ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
-| Mine current subtitle                                                                | <kbd>Ctrl+Shift+Z</kbd> (unbound by default when extension is installed) |
-| Mine current subtitle and open Anki export dialog                                    | <kbd>Ctrl+Shift+X</kbd>                                                  |
-| Update last-created Anki card with asbplayer-captured screenshot, audio, etc         | <kbd>Ctrl+Shift+U</kbd>                                                  |
-| Manually take screenshot, overriding the one that is automatically taken when mining | <kbd>Ctrl+Shift+V</kbd> (extension only)                                 |
-| Manually start/stop audio recording, even when a subtitle file is loaded.            | (unbound by default, extension only)                                     |
-| Select subtitle tracks to load                                                       | <kbd>Ctrl+Shift+F</kbd> (extension only)                                 |
-| Play/pause                                                                           | <kbd>Space</kbd>                                                         |
-| Toggle auto-pause                                                                    | <kbd>Shift+P</kbd>                                                       |
-| Toggle subtitles                                                                     | <kbd>S</kbd>                                                             |
-| Toggle subtitle track 1 or 2 in video                                                | <kbd>1, 2...</kbd>                                                       |
-| Toggle subtitle track 1 or 2 in asbplayer                                            | <kbd>W+1, W+2...</kbd>                                                   |
-| Seek backward/forward by 10 seconds                                                  | <kbd>A/D</kbd>                                                           |
-| Seek to previous/next subtitle                                                       | <kbd>Left/Right</kbd>                                                    |
-| Seek to beginning of current subtitle                                                | <kbd>Down</kbd>                                                          |
-| Adjust subtitle offset to previous/next subtitle                                     | <kbd>Ctrl+Left/Right</kbd> or <kbd>Shift+Left/Right</kbd>                |
-| Adjust subtitle offset by ±100ms                                                     | <kbd>Ctrl+Shift+Left/Right</kbd>                                         |
-| Reset subtitle offset                                                                | <kbd>Ctrl+Shift+Down</kbd>                                               |
-| Adjust playback rate by ±0.1                                                         | <kbd>Ctrl+Shift+[/]</kbd>                                                |
+Most keyboard shortcuts shared by the extension and the website are customizable from the [asbplayer website settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts). Extension-only shortcuts and some shared shortcuts that require special access to Chrome extension features are customizable from `chrome://extension/shortcuts`.
 
 ## Common issues
 
