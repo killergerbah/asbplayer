@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Trans } from 'react-i18next';
 import { makeStyles } from '@material-ui/styles';
 import gt from 'semver/functions/gt';
@@ -52,18 +52,7 @@ export default function LandingPage({
     onFileSelector,
 }: Props) {
     const classes = useStyles({ appBarHidden });
-    const [installedExtensionVersion, setInstalledExtensionVersion] = useState<string>();
-
-    useEffect(() => {
-        async function fetchInstalledExtensionVersion() {
-            setInstalledExtensionVersion(extension.version);
-        }
-
-        fetchInstalledExtensionVersion();
-    }, [extension]);
-
-    const extensionUpdateAvailable = installedExtensionVersion && gt(latestExtensionVersion, installedExtensionVersion);
-    const extensionNotInstalled = !installedExtensionVersion;
+    const extensionUpdateAvailable = extension.version && gt(latestExtensionVersion, extension.version);
 
     return (
         <React.Fragment>
@@ -84,7 +73,7 @@ export default function LandingPage({
                             .
                         </Trans>
                         <br />
-                        {extensionNotInstalled && (
+                        {!extension.installed && (
                             <Trans i18nKey="landing.extensionNotInstalled">
                                 Install the
                                 <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>
