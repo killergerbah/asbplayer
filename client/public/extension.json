@@ -13,6 +13,11 @@
             "code": "ja",
             "url": "/locales/ja.json",
             "version": 2
+        },
+        {
+            "code": "de",
+            "url": "/locales/de.json",
+            "version": 2
         }
     ]
 }

@@ -1,0 +1,20 @@
+{
+    "shortcutMineSubtitleAndOpenDialogDescription": {
+        "message": "Aktuellen Untertitel extrahieren und Anki-Dialog öffnen. Audiorecorder starten / stoppen"
+    },
+    "shortcutMineSubtitleDescription": {
+        "message": "Aktuellen Untertitel extrahieren. Audiorecorder starten / stoppen"
+    },
+    "shortcutSelectSubtitleTrackDescription": {
+        "message": "Untertitelspuren auswählen"
+    },
+    "shortcutTakeScreenshotDescription": {
+        "message": "Manuellen Screenshot erstellen - dieser überschreibt den automatisierten Screenshot"
+    },
+    "shortcutToggleRecordingDescription": {
+        "message": "Audiorecorder manuell starten / stoppen"
+    },
+    "shortcutUpdateLastCardDescription": {
+        "message": "Zuletzt erstellte Anki-Karte mit aufgezeichnetem Untertitel"
+    }
+}
