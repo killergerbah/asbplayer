@@ -165,7 +165,8 @@
     "landing": {
         "cta": "Drag and drop subtitle and media files, or <1>browse</1>.",
         "extensionNotInstalled": "Install the <1>Chrome extension</1> to sync subtitles with streaming video",
-        "extensionUpdateAvailable": "An extension <1>update</1> is available."
+        "extensionUpdateAvailable": "An extension <1>update</1> is available.",
+        "noSubtitles": "No subtitles"
     },
     "settings": {
         "addCustomField": "Add Custom Field",

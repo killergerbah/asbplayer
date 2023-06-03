@@ -165,7 +165,8 @@
     "landing": {
         "cta": "字幕やメディアファイルをドラッグ＆ドロップ、または<1>ファイルを選択</1>してください。",
         "extensionNotInstalled": "Web上の動画と字幕を同期するために<1>Chrome 拡張機能</1>をインストールしてください。",
-        "extensionUpdateAvailable": "拡張機能の<1>アップデート</1>を公開しました。"
+        "extensionUpdateAvailable": "拡張機能の<1>アップデート</1>を公開しました。",
+        "noSubtitles": "字幕はありません"
     },
     "settings": {
         "addCustomField": "カスタムフィールドを追加",

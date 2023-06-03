@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState, useMemo, useRef, createRef, Re
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { keysAreEqual } from '../services/util';
 import { useWindowSize } from '../hooks/use-window-size';
+import { useTranslation } from 'react-i18next';
 import {
     AsbplayerSettingsProvider,
     PostMineAction,
@@ -225,6 +226,7 @@ export default function SubtitlePlayer({
     settingsProvider,
     keyBinder,
 }: SubtitlePlayerProps) {
+    const { t } = useTranslation();
     const playingRef = useRef<boolean>();
     playingRef.current = playing;
     const clockRef = useRef<Clock>(clock);
@@ -673,7 +675,7 @@ export default function SubtitlePlayer({
         } else if (subtitles && subtitles.length === 0) {
             subtitleTable = (
                 <div className={classes.noSubtitles}>
-                    <Typography variant="h6">No subtitles</Typography>
+                    <Typography variant="h6">{t('landing.noSubtitles')}</Typography>
                 </div>
             );
         }
