@@ -53,11 +53,11 @@ const useStyles = makeStyles<Theme, StylesProps>({
 });
 
 function trackLength(
-    audioRef: MutableRefObject<HTMLAudioElement | null>,
-    videoRef: MutableRefObject<MediaElement | undefined>,
+    audio: HTMLAudioElement | null,
+    video: MediaElement | undefined,
     subtitles: SubtitleModel[] | undefined,
     useOffset?: boolean
-) {
+): number {
     let subtitlesLength;
     if (subtitles && subtitles.length > 0) {
         if (useOffset) {
@@ -69,10 +69,8 @@ function trackLength(
         subtitlesLength = 0;
     }
 
-    const audioLength = audioRef.current && audioRef.current.duration ? 1000 * audioRef.current.duration : 0;
-
-    const videoLength = videoRef.current && videoRef.current.duration ? 1000 * videoRef.current.duration : 0;
-
+    const audioLength = audio && audio.duration ? 1000 * audio.duration : 0;
+    const videoLength = video && video.duration ? 1000 * video.duration : 0;
     return Math.max(videoLength, Math.max(subtitlesLength, audioLength));
 }
 
@@ -176,8 +174,6 @@ export default function Player({
     rewindSubtitle,
 }: PlayerProps) {
     const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
-    const playModeRef = useRef<PlayMode>();
-    playModeRef.current = playMode;
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>();
     const subtitleCollection = useMemo<SubtitleCollection<DisplaySubtitleModel>>(
         () =>
@@ -188,20 +184,17 @@ export default function Player({
             }),
         [subtitles, playMode]
     );
-    const subtitlesRef = useRef<SubtitleModel[]>();
-    subtitlesRef.current = subtitles;
     const playModeEnabled = subtitles && subtitles.length > 0 && Boolean(videoFileUrl || audioFileUrl);
     const [loadingSubtitles, setLoadingSubtitles] = useState<boolean>(false);
     const [playing, setPlaying] = useState<boolean>(false);
     const [lastJumpToTopTimestamp, setLastJumpToTopTimestamp] = useState<number>(0);
     const [offset, setOffset] = useState<number>(0);
     const [playbackRate, setPlaybackRate] = useState<number>(1);
-    const playingRef = useRef<boolean>();
-    playingRef.current = playing;
     const [, updateState] = useState<any>();
     const [audioTracks, setAudioTracks] = useState<AudioTrackModel[]>();
     const [selectedAudioTrack, setSelectedAudioTrack] = useState<string>();
     const [channelId, setChannelId] = useState<string>();
+    const [channel, setChannel] = useState<VideoChannel>();
     const [, setResumeOnFinishedAnkiDialogRequest] = useState<boolean>(false);
     const hideSubtitlePlayerRef = useRef<boolean>();
     hideSubtitlePlayerRef.current = hideSubtitlePlayer;
@@ -209,20 +202,18 @@ export default function Player({
     const forceUpdate = useCallback(() => updateState({}), []);
     const mousePositionRef = useRef<Point>({ x: 0, y: 0 });
     const audioRef = useRef<HTMLAudioElement>(null);
-    const videoRef = useRef<MediaElement>();
     const mediaAdapter = useMemo(() => {
         if (audioFileUrl) {
             return new MediaAdapter(audioRef);
         } else if (videoFileUrl || tab) {
-            return new MediaAdapter(videoRef);
+            return new MediaAdapter({ current: channel });
         }
 
         return new MediaAdapter({ current: null });
-    }, [audioFileUrl, videoFileUrl, tab]);
+    }, [channel, audioFileUrl, videoFileUrl, tab]);
     const clock = useMemo<Clock>(() => new Clock(), []);
     const classes = useStyles({ appBarHidden });
-    const lengthRef = useRef<number>(0);
-    lengthRef.current = trackLength(audioRef, videoRef, subtitles, true);
+    const [length, setLength] = useState<number>(0);
 
     const handleOnStartedShowingSubtitle = useCallback(() => {
         if (
@@ -306,12 +297,12 @@ export default function Player({
                 }));
 
                 if (forwardToVideo) {
-                    if (videoRef.current instanceof VideoChannel) {
-                        videoRef.current.offset(offset);
+                    if (channel !== undefined) {
+                        channel.offset(offset);
 
                         // Older versions of extension don't support the offset message
                         if (tab !== undefined && extension.installed && lte(extension.version, '0.22.0')) {
-                            videoRef.current.subtitles(
+                            channel.subtitles(
                                 newSubtitles,
                                 subtitleFiles.map((f) => f.name)
                             );
@@ -323,19 +314,11 @@ export default function Player({
             });
             playbackPreferences.offset = offset;
         },
-        [subtitleFiles, extension, playbackPreferences, tab]
+        [subtitleFiles, extension, playbackPreferences, tab, channel]
     );
 
     useEffect(() => {
-        let channel: VideoChannel | undefined = undefined;
-        let channelClosed = false;
-
         async function init() {
-            if (videoRef.current instanceof VideoChannel) {
-                videoRef.current.close();
-            }
-            videoRef.current = undefined;
-            videoChannelRef.current = null;
             clock.setTime(0);
             clock.stop();
             const offset = playbackPreferences.offset;
@@ -385,186 +368,205 @@ export default function Player({
 
             if (audioFileUrl) {
                 await mediaAdapter.onReady();
-                forceUpdate();
-            } else if (videoFileUrl || tab) {
-                if (channelClosed) {
-                    return;
+                if (audioRef.current?.duration) {
+                    setLength(audioRef.current.duration * 1000);
                 }
-
-                if (videoFileUrl) {
-                    const channelId = uuidv4();
-                    channel = new VideoChannel(new BroadcastChannelVideoProtocol(channelId));
-                    setChannelId(channelId);
-                } else if (tab) {
-                    channel = new VideoChannel(new ChromeTabVideoProtocol(tab.id, tab.src, extension));
-                    channel.init();
-                } else {
-                    // Not possible
-                    // But throw error so typescript recognizes channel as defined
-                    throw new Error('Unreachable code');
-                }
-
-                videoRef.current = channel;
-                videoChannelRef.current = channel;
-                let subscribed = false;
-
-                channel.onExit(() => videoFileUrl && onUnloadVideo(videoFileUrl));
-                channel.onPopOutToggle(() => onVideoPopOut());
-                channel.onHideSubtitlePlayerToggle(() => {
-                    onHideSubtitlePlayer();
-                });
-                channel.onAppBarToggle(() => {
-                    onAppBarToggle();
-                });
-                channel.onFullscreenToggle(() => {
-                    onFullscreenToggle();
-                });
-                channel.onReady((paused) => {
-                    lengthRef.current = trackLength(audioRef, videoRef, subtitlesRef.current);
-                    channel?.ready(lengthRef.current, videoFile?.name);
-
-                    if (subtitlesRef.current) {
-                        channel?.subtitleSettings(settingsProvider.subtitleSettings);
-                        channel?.subtitles(
-                            subtitlesRef.current,
-                            flattenSubtitleFiles ? [subtitleFiles[0].name] : subtitleFiles.map((f) => f.name)
-                        );
-                    }
-
-                    channel?.ankiSettings(settingsProvider.ankiSettings);
-                    channel?.miscSettings(settingsProvider.miscSettings);
-                    channel?.playMode(playModeRef.current!);
-                    channel?.hideSubtitlePlayerToggle(hideSubtitlePlayerRef.current ?? false);
-
-                    if (channel?.audioTracks && channel?.audioTracks?.length > 1) {
-                        setAudioTracks(channel?.audioTracks);
-                        setSelectedAudioTrack(channel?.selectedAudioTrack);
-                    } else {
-                        setAudioTracks(undefined);
-                        setSelectedAudioTrack(undefined);
-                    }
-
-                    if (videoRef.current) {
-                        clock.setTime(videoRef.current.currentTime * 1000);
-                    }
-
-                    if (paused) {
-                        clock.stop();
-                    } else {
-                        clock.start();
-                    }
-
-                    setPlaying(!paused);
-
-                    if (channel?.playbackRate) {
-                        clock.rate = channel.playbackRate;
-                        setPlaybackRate(channel.playbackRate);
-                    }
-
-                    if (!subscribed) {
-                        channel?.onPlay((forwardToMedia) => play(clock, mediaAdapter, forwardToMedia));
-                        channel?.onPause((forwardToMedia) => pause(clock, mediaAdapter, forwardToMedia));
-                        channel?.onOffset((offset) => applyOffset(Math.max(-lengthRef.current ?? 0, offset), false));
-                        channel?.onPlaybackRate((playbackRate, forwardToMedia) =>
-                            updatePlaybackRate(playbackRate, forwardToMedia)
-                        );
-                        channel?.onCopy(
-                            (subtitle, surroundingSubtitles, audio, image, url, postMineAction, id, mediaTimetamp) =>
-                                onCopy(
-                                    subtitle,
-                                    surroundingSubtitles,
-                                    audioFile,
-                                    videoFile,
-                                    subtitle ? subtitleFiles[subtitle.track] : undefined,
-                                    mediaTimetamp,
-                                    channel?.selectedAudioTrack,
-                                    channel?.playbackRate,
-                                    audio,
-                                    image,
-                                    url,
-                                    postMineAction,
-                                    id
-                                )
-                        );
-                        channel?.onPlayMode((playMode) => {
-                            setPlayMode(playMode);
-                            channel?.playMode(playMode);
-                        });
-                        channel?.onCurrentTime(async (currentTime, forwardToMedia) => {
-                            if (playingRef.current) {
-                                clock.stop();
-                            }
-
-                            await seek(currentTime * 1000, clock, forwardToMedia);
-
-                            if (playingRef.current) {
-                                clock.start();
-                            }
-                        });
-                        channel?.onAudioTrackSelected(async (id) => {
-                            if (playingRef.current) {
-                                clock.stop();
-                            }
-
-                            await mediaAdapter.onReady();
-                            if (playingRef.current) {
-                                clock.start();
-                            }
-
-                            setSelectedAudioTrack(id);
-                        });
-                        channel?.onAnkiDialogRequest(() => onAnkiDialogRequest());
-                        channel?.onToggleSubtitleTrackInList((track) =>
-                            setDisabledSubtitleTracks((tracks) => {
-                                const newTracks = { ...tracks };
-                                newTracks[track] = !tracks[track];
-                                return newTracks;
-                            })
-                        );
-
-                        subscribed = true;
-                    }
-                });
             }
         }
 
         init().then(() => onLoaded());
-
-        return () => {
-            channel?.close();
-            channelClosed = true;
-        };
     }, [
         subtitleReader,
-        extension,
-        settingsProvider,
         playbackPreferences,
         clock,
         mediaAdapter,
-        seek,
         onLoaded,
         onError,
-        onUnloadVideo,
-        onCopy,
-        onAnkiDialogRequest,
-        onHideSubtitlePlayer,
-        onAppBarToggle,
-        onFullscreenToggle,
-        onVideoPopOut,
         subtitleFiles,
-        audioFile,
         audioFileUrl,
-        videoFile,
-        videoFileUrl,
-        tab,
         forceUpdate,
-        videoFrameRef,
         videoChannelRef,
-        applyOffset,
-        updatePlaybackRate,
         flattenSubtitleFiles,
     ]);
 
+    useEffect(() => {
+        if (!videoFileUrl && !tab) {
+            return;
+        }
+
+        let channel: VideoChannel;
+
+        if (videoFileUrl) {
+            const channelId = uuidv4();
+            channel = new VideoChannel(new BroadcastChannelVideoProtocol(channelId));
+            setChannelId(channelId);
+        } else {
+            channel = new VideoChannel(new ChromeTabVideoProtocol(tab!.id, tab!.src, extension));
+            channel.init();
+        }
+
+        videoChannelRef.current = channel;
+        setChannel(channel);
+        return () => channel.close();
+    }, [videoFileUrl, tab, extension, videoChannelRef]);
+
+    useEffect(
+        () => channel?.onExit(() => videoFileUrl && onUnloadVideo(videoFileUrl)),
+        [channel, onUnloadVideo, videoFileUrl]
+    );
+    useEffect(() => channel?.onPopOutToggle(() => onVideoPopOut()), [channel, onVideoPopOut]);
+    useEffect(() => channel?.onHideSubtitlePlayerToggle(onHideSubtitlePlayer), [channel, onHideSubtitlePlayer]);
+    useEffect(() => channel?.onAppBarToggle(onAppBarToggle), [channel, onAppBarToggle]);
+    useEffect(() => channel?.onFullscreenToggle(onFullscreenToggle), [channel, onFullscreenToggle]);
+    useEffect(
+        () =>
+            channel?.onReady(() => {
+                const length = trackLength(audioRef.current, channel, subtitles);
+                setLength(length);
+                return channel?.ready(length, videoFile?.name);
+            }),
+        [channel, videoFile, subtitles]
+    );
+    useEffect(
+        () => channel?.onReady(() => channel?.subtitleSettings(settingsProvider.subtitleSettings)),
+        [channel, settingsProvider]
+    );
+    useEffect(() => {
+        if (channel === undefined || subtitles === undefined) {
+            return;
+        }
+
+        return channel.onReady(() =>
+            channel.subtitles(
+                subtitles,
+                flattenSubtitleFiles ? [subtitleFiles[0].name] : subtitleFiles.map((f) => f.name)
+            )
+        );
+    }, [subtitles, channel, flattenSubtitleFiles, subtitleFiles]);
+    useEffect(() => channel?.ankiSettings(settingsProvider.ankiSettings), [channel, settingsProvider]);
+    useEffect(() => channel?.miscSettings(settingsProvider.miscSettings), [channel, settingsProvider]);
+    useEffect(() => channel?.playMode(playMode), [channel, playMode]);
+    useEffect(() => channel?.hideSubtitlePlayerToggle(hideSubtitlePlayer), [channel, hideSubtitlePlayer]);
+    useEffect(
+        () =>
+            channel?.onReady(() => {
+                if (channel?.audioTracks && channel?.audioTracks?.length > 1) {
+                    setAudioTracks(channel?.audioTracks);
+                    setSelectedAudioTrack(channel?.selectedAudioTrack);
+                } else {
+                    setAudioTracks(undefined);
+                    setSelectedAudioTrack(undefined);
+                }
+            }),
+        [channel]
+    );
+    useEffect(
+        () =>
+            channel?.onReady((paused) => {
+                if (channel) {
+                    clock.setTime(channel.currentTime * 1000);
+                }
+
+                if (paused) {
+                    clock.stop();
+                } else {
+                    clock.start();
+                }
+
+                setPlaying(!paused);
+
+                if (channel?.playbackRate) {
+                    clock.rate = channel.playbackRate;
+                    setPlaybackRate(channel.playbackRate);
+                }
+            }),
+        [channel, clock]
+    );
+    useEffect(
+        () => channel?.onPlay((forwardToMedia) => play(clock, mediaAdapter, forwardToMedia)),
+        [channel, mediaAdapter, clock]
+    );
+    useEffect(
+        () => channel?.onPause((forwardToMedia) => pause(clock, mediaAdapter, forwardToMedia)),
+        [channel, mediaAdapter, clock]
+    );
+    useEffect(
+        () => channel?.onOffset((offset) => applyOffset(Math.max(-length ?? 0, offset), false)),
+        [channel, applyOffset, length]
+    );
+    useEffect(() => channel?.onPlaybackRate(updatePlaybackRate), [channel, updatePlaybackRate]);
+    useEffect(
+        () =>
+            channel?.onCopy((subtitle, surroundingSubtitles, audio, image, url, postMineAction, id, mediaTimetamp) =>
+                onCopy(
+                    subtitle,
+                    surroundingSubtitles,
+                    audioFile,
+                    videoFile,
+                    subtitle ? subtitleFiles[subtitle.track] : undefined,
+                    mediaTimetamp,
+                    channel?.selectedAudioTrack,
+                    channel?.playbackRate,
+                    audio,
+                    image,
+                    url,
+                    postMineAction,
+                    id
+                )
+            ),
+        [channel, onCopy, audioFile, videoFile, subtitleFiles]
+    );
+    useEffect(
+        () =>
+            channel?.onPlayMode((playMode) => {
+                setPlayMode(playMode);
+                channel?.playMode(playMode);
+            }),
+        [channel, playMode]
+    );
+    useEffect(
+        () =>
+            channel?.onCurrentTime(async (currentTime, forwardToMedia) => {
+                if (playing) {
+                    clock.stop();
+                }
+
+                await seek(currentTime * 1000, clock, forwardToMedia);
+
+                if (playing) {
+                    clock.start();
+                }
+            }),
+        [channel, clock, playing, seek]
+    );
+    useEffect(
+        () =>
+            channel?.onAudioTrackSelected(async (id) => {
+                if (playing) {
+                    clock.stop();
+                }
+
+                await mediaAdapter.onReady();
+                if (playing) {
+                    clock.start();
+                }
+
+                setSelectedAudioTrack(id);
+            }),
+        [channel, clock, mediaAdapter, playing]
+    );
+    useEffect(() => channel?.onAnkiDialogRequest(() => onAnkiDialogRequest()), [channel, onAnkiDialogRequest]);
+    useEffect(
+        () =>
+            channel?.onToggleSubtitleTrackInList((track) =>
+                setDisabledSubtitleTracks((tracks) => {
+                    const newTracks = { ...tracks };
+                    newTracks[track] = !tracks[track];
+                    return newTracks;
+                })
+            ),
+        [channel]
+    );
     function play(clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) {
         setPlaying(true);
         clock.start();
@@ -596,11 +598,11 @@ export default function Player({
     }, [ankiDialogFinishedRequest, clock, mediaAdapter]);
 
     useEffect(() => {
-        if (ankiDialogRequested && playingRef.current) {
+        if (ankiDialogRequested && playing) {
             pause(clock, mediaAdapter, true);
             setResumeOnFinishedAnkiDialogRequest(true);
         }
-    }, [ankiDialogRequested, clock, mediaAdapter]);
+    }, [ankiDialogRequested, clock, mediaAdapter, playing]);
 
     useEffect(() => {
         if (playMode !== PlayMode.condensed) {
@@ -615,12 +617,6 @@ export default function Player({
         let expectedSeekTime = 1000;
 
         const interval = setInterval(async () => {
-            const length = lengthRef.current;
-
-            if (!length) {
-                return;
-            }
-
             const timestamp = clock.time(length);
             const slice = subtitleCollection.subtitlesAt(timestamp);
 
@@ -631,7 +627,7 @@ export default function Player({
                     return;
                 }
 
-                if (playingRef.current) {
+                if (playing) {
                     clock.stop();
                 }
 
@@ -643,14 +639,14 @@ export default function Player({
                     seeking = false;
                 }
 
-                if (playingRef.current) {
+                if (playing) {
                     clock.start();
                 }
             }
         }, 100);
 
         return () => clearInterval(interval);
-    }, [subtitles, subtitleCollection, playMode, clock, seek]);
+    }, [subtitles, subtitleCollection, playMode, clock, seek, length, playing]);
 
     useEffect(() => {
         if (videoPopOut && channelId && videoFileUrl) {
@@ -673,21 +669,17 @@ export default function Player({
     const handlePause = useCallback(() => pause(clock, mediaAdapter, true), [clock, mediaAdapter]);
     const handleSeek = useCallback(
         async (progress: number) => {
-            if (!lengthRef.current) {
-                return;
-            }
-
-            if (playingRef.current) {
+            if (playing) {
                 clock.stop();
             }
 
-            await seek(progress * lengthRef.current, clock, true);
+            await seek(progress * length, clock, true);
 
-            if (playingRef.current) {
+            if (playing) {
                 clock.start();
             }
         },
-        [clock, seek]
+        [clock, seek, length, playing]
     );
 
     const handleSeekToSubtitle = useCallback(
@@ -698,22 +690,19 @@ export default function Player({
 
             await seek(time, clock, true);
 
-            if (shouldPlay && !playingRef.current) {
+            if (shouldPlay && !playing) {
                 // play method will start the clock again
                 play(clock, mediaAdapter, true);
             }
         },
-        [clock, seek, mediaAdapter]
+        [clock, seek, mediaAdapter, playing]
     );
 
     const handleCopyFromSubtitlePlayer = useCallback(
         (subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], postMineAction: PostMineAction) => {
-            if (videoFile) {
+            if (videoFileUrl) {
                 // Let VideoPlayer do the copying to ensure copied subtitle is consistent with the VideoPlayer clock
-                if (videoRef.current instanceof VideoChannel) {
-                    videoRef.current.copy(postMineAction);
-                }
-
+                channel?.copy(postMineAction);
                 return;
             }
 
@@ -723,7 +712,7 @@ export default function Player({
                 audioFile,
                 videoFile,
                 subtitleFiles[subtitle.track],
-                clock.time(lengthRef.current),
+                clock.time(length),
                 selectedAudioTrack,
                 playbackRate,
                 undefined,
@@ -733,7 +722,18 @@ export default function Player({
                 undefined
             );
         },
-        [onCopy, clock, audioFile, videoFile, subtitleFiles, selectedAudioTrack, playbackRate]
+        [
+            channel,
+            onCopy,
+            clock,
+            audioFile,
+            videoFile,
+            videoFileUrl,
+            subtitleFiles,
+            selectedAudioTrack,
+            playbackRate,
+            length,
+        ]
     );
 
     const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -743,26 +743,23 @@ export default function Player({
 
     const handleAudioTrackSelected = useCallback(
         async (id: string) => {
-            if (videoRef.current instanceof VideoChannel) {
-                videoRef.current.audioTrackSelected(id);
-            }
-
+            channel?.audioTrackSelected(id);
             pause(clock, mediaAdapter, true);
 
             await seek(0, clock, true);
 
-            if (playingRef.current) {
+            if (playing) {
                 play(clock, mediaAdapter, true);
             }
         },
-        [clock, mediaAdapter, seek]
+        [channel, clock, mediaAdapter, seek, playing]
     );
 
     const handleOffsetChange = useCallback(
         (offset: number) => {
-            applyOffset(Math.max(-lengthRef.current ?? 0, offset), true);
+            applyOffset(Math.max(-length ?? 0, offset), true);
         },
-        [applyOffset]
+        [applyOffset, length]
     );
 
     const handleVolumeChange = useCallback((volume: number) => {
@@ -809,7 +806,6 @@ export default function Player({
         }
 
         const interval = setInterval(async () => {
-            const length = lengthRef.current;
             const progress = clock.progress(length);
 
             if (progress >= 1) {
@@ -820,7 +816,7 @@ export default function Player({
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [clock, subtitles, mediaAdapter, seek, tab]);
+    }, [clock, subtitles, mediaAdapter, seek, tab, length]);
 
     useEffect(() => {
         const unbind = keyBinder.bindPlay(
@@ -863,12 +859,9 @@ export default function Player({
             const newPlayMode = playMode === togglePlayMode ? PlayMode.normal : togglePlayMode;
             setPlayMode(newPlayMode);
             onPlayModeChangedViaBind(playMode, newPlayMode);
-
-            if (videoRef.current instanceof VideoChannel) {
-                videoRef.current.playMode(newPlayMode);
-            }
+            channel?.playMode(newPlayMode);
         },
-        [playMode, playModeEnabled, onPlayModeChangedViaBind]
+        [channel, playMode, playModeEnabled, onPlayModeChangedViaBind]
     );
 
     useEffect(() => {
@@ -886,50 +879,35 @@ export default function Player({
     }, [togglePlayMode, keyBinder, disableKeyEvents]);
 
     useEffect(() => {
-        if (!videoFile) {
+        if (!videoFileUrl) {
             return;
         }
 
         return keyBinder.bindTakeScreenshot(
             (event) => {
                 event.preventDefault();
-                onTakeScreenshot(clock.time(lengthRef.current));
+                onTakeScreenshot(clock.time(length));
             },
             () => disableKeyEvents
         );
-    }, [videoFile, clock, onTakeScreenshot, keyBinder, disableKeyEvents]);
+    }, [videoFileUrl, clock, onTakeScreenshot, keyBinder, disableKeyEvents, length]);
 
-    useEffect(() => {
-        if (videoRef.current instanceof VideoChannel) {
-            videoRef.current.appBarToggle(appBarHidden);
-        }
-    }, [appBarHidden]);
-
-    useEffect(() => {
-        if (videoRef.current instanceof VideoChannel) {
-            videoRef.current.hideSubtitlePlayerToggle(hideSubtitlePlayer);
-        }
-    }, [hideSubtitlePlayer]);
-
-    useEffect(() => {
-        if (videoRef.current instanceof VideoChannel) {
-            videoRef.current.fullscreenToggle(videoFullscreen);
-        }
-    }, [videoFullscreen]);
+    useEffect(() => channel?.appBarToggle(appBarHidden), [channel, appBarHidden]);
+    useEffect(() => channel?.hideSubtitlePlayerToggle(hideSubtitlePlayer), [channel, hideSubtitlePlayer]);
+    useEffect(() => channel?.fullscreenToggle(videoFullscreen), [channel, videoFullscreen]);
 
     useEffect(() => {
         if (!rewindSubtitle) {
             return;
         }
 
-        if (playingRef.current) {
+        if (playing) {
             clock.stop();
         }
 
         handleSeekToSubtitle(rewindSubtitle.start, false);
-    }, [clock, rewindSubtitle, handleSeekToSubtitle]);
+    }, [clock, rewindSubtitle, handleSeekToSubtitle, playing]);
 
-    const length = lengthRef.current;
     const loaded = audioFileUrl || videoFileUrl || subtitles;
     const videoInWindow = Boolean(loaded && videoFileUrl && !videoPopOut);
 
@@ -968,7 +946,7 @@ export default function Player({
                             playing={playing}
                             clock={clock}
                             length={length}
-                            displayLength={trackLength(audioRef, videoRef, subtitles, false)}
+                            displayLength={trackLength(audioRef.current, channel, subtitles, false)}
                             audioTracks={audioTracks}
                             selectedAudioTrack={selectedAudioTrack}
                             tabs={(!videoFileUrl && !audioFileUrl && availableTabs) || undefined}

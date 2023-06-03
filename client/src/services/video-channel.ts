@@ -265,38 +265,47 @@ export default class VideoChannel {
             callback(false);
         }
         this.readyCallbacks.push(callback);
+        return () => this._remove(callback, this.readyCallbacks);
     }
 
     onPlay(callback: (echo: boolean) => void) {
         this.playCallbacks.push(callback);
+        return () => this._remove(callback, this.playCallbacks);
     }
 
     onPause(callback: (echo: boolean) => void) {
         this.pauseCallbacks.push(callback);
+        return () => this._remove(callback, this.pauseCallbacks);
     }
 
     onCurrentTime(callback: (currentTime: number, echo: boolean) => void) {
         this.currentTimeCallbacks.push(callback);
+        return () => this._remove(callback, this.currentTimeCallbacks);
     }
 
     onAudioTrackSelected(callback: (id: string) => void) {
         this.audioTrackSelectedCallbacks.push(callback);
+        return () => this._remove(callback, this.audioTrackSelectedCallbacks);
     }
 
     onExit(callback: () => void) {
         this.exitCallbacks.push(callback);
+        return () => this._remove(callback, this.exitCallbacks);
     }
 
     onOffset(callback: (offset: number) => void) {
         this.offsetCallbacks.push(callback);
+        return () => this._remove(callback, this.offsetCallbacks);
     }
 
     onPlaybackRate(callback: (playbackRate: number, echo: boolean) => void) {
         this.playbackRateCallbacks.push(callback);
+        return () => this._remove(callback, this.playbackRateCallbacks);
     }
 
     onPopOutToggle(callback: () => void) {
         this.popOutToggleCallbacks.push(callback);
+        return () => this._remove(callback, this.popOutToggleCallbacks);
     }
 
     onCopy(
@@ -312,30 +321,37 @@ export default class VideoChannel {
         ) => void
     ) {
         this.copyCallbacks.push(callback);
+        return () => this._remove(callback, this.copyCallbacks);
     }
 
     onPlayMode(callback: (playMode: PlayMode) => void) {
         this.playModeCallbacks.push(callback);
+        return () => this._remove(callback, this.playModeCallbacks);
     }
 
     onHideSubtitlePlayerToggle(callback: () => void) {
         this.hideSubtitlePlayerToggleCallbacks.push(callback);
+        return () => this._remove(callback, this.hideSubtitlePlayerToggleCallbacks);
     }
 
     onAppBarToggle(callback: () => void) {
         this.appBarToggleCallbacks.push(callback);
+        return () => this._remove(callback, this.appBarToggleCallbacks);
     }
 
     onFullscreenToggle(callback: () => void) {
         this.fullscreenToggleCallbacks.push(callback);
+        return () => this._remove(callback, this.fullscreenToggleCallbacks);
     }
 
     onAnkiDialogRequest(callback: () => void) {
         this.ankiDialogRequestCallbacks.push(callback);
+        return () => this._remove(callback, this.ankiDialogRequestCallbacks);
     }
 
     onToggleSubtitleTrackInList(callback: (track: number) => void) {
         this.toggleSubtitleTrackInListCallbacks.push(callback);
+        return () => this._remove(callback, this.toggleSubtitleTrackInListCallbacks);
     }
 
     ready(duration: number, videoFileName?: string) {
@@ -457,5 +473,14 @@ export default class VideoChannel {
         this.fullscreenToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
+    }
+
+    _remove(callback: Function, callbacks: Function[]) {
+        for (let i = callbacks.length - 1; i >= 0; --i) {
+            if (callback === callbacks[i]) {
+                callbacks.splice(i, 1);
+                break;
+            }
+        }
     }
 }
