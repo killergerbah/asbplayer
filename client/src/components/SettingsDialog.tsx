@@ -2,8 +2,8 @@ import React, { useCallback, useState, useEffect, useMemo, ChangeEvent, ReactNod
 import { useTranslation, Trans } from 'react-i18next';
 import { makeStyles } from '@material-ui/styles';
 import { computeStyles } from '../services/util';
+import AddIcon from '@material-ui/icons/Add';
 import Button from '@material-ui/core/Button';
-import CustomFieldDialog from './CustomFieldDialog';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -75,9 +75,6 @@ const useStyles = makeStyles<Theme>((theme) => ({
             outline: 'none',
         },
     },
-    addFieldButton: {
-        width: '100%',
-    },
     switchLabel: {
         justifyContent: 'space-between',
         marginLeft: 0,
@@ -86,7 +83,8 @@ const useStyles = makeStyles<Theme>((theme) => ({
 
 const useSelectableSettingStyles = makeStyles<Theme>((theme) => ({
     formControl: {
-        margin: theme.spacing(1),
+        marginLeft: theme.spacing(1),
+        marginBottom: theme.spacing(1),
         minWidth: 120,
     },
     root: {
@@ -320,6 +318,40 @@ function KeyBindField({ label, keys, extensionOverridden, onKeysChange, onOpenEx
     );
 }
 
+interface AddCustomFieldProps {
+    onAddCustomField: (fieldName: string) => void;
+}
+
+function AddCustomField({ onAddCustomField }: AddCustomFieldProps) {
+    const { t } = useTranslation();
+    const [fieldName, setFieldName] = useState<string>('');
+
+    return (
+        <TextField
+            label={t('settings.addCustomField')}
+            fullWidth
+            value={fieldName}
+            color="secondary"
+            onChange={(e) => setFieldName(e.target.value)}
+            InputProps={{
+                endAdornment: (
+                    <InputAdornment position="end">
+                        <IconButton
+                            disabled={fieldName.trim() === ''}
+                            onClick={() => {
+                                onAddCustomField(fieldName.trim());
+                                setFieldName('');
+                            }}
+                        >
+                            <AddIcon />
+                        </IconButton>
+                    </InputAdornment>
+                ),
+            }}
+        />
+    );
+}
+
 interface Props {
     anki: Anki;
     extension: ChromeExtension;
@@ -400,7 +432,6 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
     const [tags, setTags] = useState<string[]>(settings.tags);
     const [preferMp3, setPreferMp3] = useState<boolean>(settings.preferMp3);
     const [fieldNames, setFieldNames] = useState<string[]>();
-    const [customFieldDialogOpen, setCustomFieldDialogOpen] = useState<boolean>(false);
     const [audioPaddingStart, setAudioPaddingStart] = useState<number>(settings.audioPaddingStart);
     const [audioPaddingEnd, setAudioPaddingEnd] = useState<number>(settings.audioPaddingEnd);
     const [maxImageWidth, setMaxImageWidth] = useState<number>(settings.maxImageWidth);
@@ -591,7 +622,6 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
             newCustomFields[customFieldName] = '';
             return newCustomFields;
         });
-        setCustomFieldDialogOpen(false);
     }, []);
     const handleCustomFieldChange = useCallback((customFieldName: string, value: string) => {
         setCustomFields((oldCustomFields: { [key: string]: string }) => {
@@ -872,12 +902,6 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
     const origin = `${window.location.protocol}//${window.location.hostname}`;
     return (
         <React.Fragment>
-            <CustomFieldDialog
-                open={customFieldDialogOpen}
-                existingCustomFieldNames={Object.keys(customFields)}
-                onProceed={handleAddCustomField}
-                onCancel={() => setCustomFieldDialogOpen(false)}
-            />
             <Dialog open={open} maxWidth="xs" fullWidth onClose={handleClose}>
                 <DialogTitle>{t('settings.title')}</DialogTitle>
                 <DialogContent>
@@ -982,12 +1006,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                     onSelectionChange={handleUrlFieldSelectionChange}
                                 />
                                 {customFieldInputs}
-                                <Button
-                                    className={classes.addFieldButton}
-                                    onClick={(e) => setCustomFieldDialogOpen(true)}
-                                >
-                                    {t('settings.addCustomField')}
-                                </Button>
+                                <AddCustomField onAddCustomField={handleAddCustomField} />
                                 <TagsTextField
                                     label={t('settings.tags')}
                                     helperText={t('settings.tagsHelperText')}
