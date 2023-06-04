@@ -29,6 +29,7 @@ import Paper from '@material-ui/core/Paper';
 import RestoreIcon from '@material-ui/icons/Restore';
 import SearchIcon from '@material-ui/icons/Search';
 import SettingsIcon from '@material-ui/icons/Settings';
+import CloseIcon from '@material-ui/icons/Close';
 import Slider, { Mark } from '@material-ui/core/Slider';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -618,6 +619,11 @@ export function AnkiDialog({
                 {onOpenSettings && (
                     <IconButton edge="end" onClick={() => onOpenSettings()}>
                         <SettingsIcon />
+                    </IconButton>
+                )}
+                {onCancel && (
+                    <IconButton edge="end" onClick={() => onCancel()}>
+                        <CloseIcon />
                     </IconButton>
                 )}
             </Toolbar>

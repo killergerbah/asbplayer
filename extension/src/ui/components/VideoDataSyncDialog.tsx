@@ -1,13 +1,16 @@
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import CloseIcon from '@material-ui/icons/Close';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
 import Grid from '@material-ui/core/Grid';
+import IconButton from '@material-ui/core/IconButton';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
 import makeStyles from '@material-ui/styles/makeStyles';
 import { ConfirmedVideoDataSubtitleTrack, VideoDataSubtitleTrack } from '@project/common';
 import React, { useEffect, useState } from 'react';
@@ -114,7 +117,16 @@ export default function VideoDataSyncDialog({
 
     return (
         <Dialog disableEnforceFocus fullWidth maxWidth="sm" open={open} onClose={onCancel}>
-            <DialogTitle>{t('extension.videoDataSync.selectSubtitles')}</DialogTitle>
+            <Toolbar>
+                <Typography variant="h6" style={{ flexGrow: 1 }}>
+                    {t('extension.videoDataSync.selectSubtitles')}
+                </Typography>
+                {onCancel && (
+                    <IconButton edge="end" onClick={() => onCancel()}>
+                        <CloseIcon />
+                    </IconButton>
+                )}
+            </Toolbar>
             <DialogContent>
                 {openedFromMiningCommand && (
                     <DialogContentText>{t('extension.videoDataSync.loadSubtitlesFirst')}</DialogContentText>
@@ -164,9 +176,6 @@ export default function VideoDataSyncDialog({
                 </form>
             </DialogContent>
             <DialogActions>
-                <Button disabled={disabled} onClick={() => onCancel()}>
-                    {t('action.cancel')}
-                </Button>
                 <Button disabled={disabled} onClick={() => onOpenFile()}>
                     {t('action.openFiles')}
                 </Button>

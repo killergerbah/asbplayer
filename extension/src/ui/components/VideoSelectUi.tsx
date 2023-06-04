@@ -1,17 +1,20 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import CssBaseline from '@material-ui/core/CssBaseline';
+import CloseIcon from '@material-ui/icons/Close';
 import { createTheme } from './theme';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
 import Grid from '@material-ui/core/Grid';
+import IconButton from '@material-ui/core/IconButton';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
 import { PaletteType } from '@material-ui/core';
 import Bridge from '../bridge';
 import { VideoSelectModeCancelMessage, VideoSelectModeConfirmMessage } from '@project/common';
@@ -77,7 +80,14 @@ export default function VideoSelectUi({ bridge }: Props) {
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <Dialog open={open} fullWidth maxWidth="sm">
-                <DialogTitle>{t('extension.videoSelect.multipleVideoElements')}</DialogTitle>
+                <Toolbar>
+                    <Typography variant="h6" style={{ flexGrow: 1 }}>
+                        {t('extension.videoSelect.multipleVideoElements')}{' '}
+                    </Typography>
+                    <IconButton edge="end" onClick={() => handleCancel()}>
+                        <CloseIcon />
+                    </IconButton>
+                </Toolbar>
                 <DialogContent>
                     {openedFromMiningCommand ? (
                         <DialogContentText>{t('extension.videoSelect.syncBeforeMine')}</DialogContentText>
@@ -114,7 +124,6 @@ export default function VideoSelectUi({ bridge }: Props) {
                     </Grid>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel}>{t('action.cancel')}</Button>
                     <Button onClick={handleConfirm}>{t('action.ok')}</Button>
                 </DialogActions>
             </Dialog>
