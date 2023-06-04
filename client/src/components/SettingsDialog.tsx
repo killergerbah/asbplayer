@@ -43,6 +43,7 @@ import { isMacOs } from 'react-device-detect';
 import Switch from '@material-ui/core/Switch';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Tooltip from '@material-ui/core/Tooltip';
+import { useOutsideClickListener } from '../hooks/use-outside-click-listener';
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
@@ -267,17 +268,16 @@ function KeyBindField({ label, keys, extensionOverridden, onKeysChange, onOpenEx
         return () => hotkeys.unbind('*', handler);
     }, [editing]);
 
-    useEffect(() => {
-        const handler = (event: MouseEvent) => {
-            if (editing && !ref.current?.contains(event.target as Node)) {
+    useOutsideClickListener(
+        ref,
+        useCallback(() => {
+            if (editing) {
                 setEditing(false);
                 setCurrentKeyString('');
                 onKeysChange('');
             }
-        };
-        window.document.addEventListener('click', handler);
-        return () => window.document.removeEventListener('click', handler);
-    }, [editing, onKeysChange]);
+        }, [editing, onKeysChange])
+    );
 
     let placeholder: string;
 

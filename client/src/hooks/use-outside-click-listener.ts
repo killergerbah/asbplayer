@@ -1,0 +1,13 @@
+import { RefObject, useEffect } from 'react';
+
+export const useOutsideClickListener = (ref: RefObject<HTMLElement>, handler: (event: MouseEvent) => void) => {
+    useEffect(() => {
+        const clickHandler = (event: MouseEvent) => {
+            if (!ref.current?.contains(event.target as Node)) {
+                handler(event);
+            }
+        };
+        window.document.addEventListener('click', clickHandler);
+        return () => window.document.removeEventListener('click', clickHandler);
+    }, [ref, handler]);
+};
