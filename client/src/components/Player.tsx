@@ -105,6 +105,7 @@ interface PlayerProps {
     tab?: VideoTabModel;
     availableTabs: VideoTabModel[];
     ankiDialogRequested: boolean;
+    ankiDialogOpen: boolean;
     ankiDialogFinishedRequest: AnkiDialogFinishedRequest;
     onError: (error: any) => void;
     onUnloadAudio: (url: string) => void;
@@ -127,6 +128,7 @@ interface PlayerProps {
     onLoaded: () => void;
     onTabSelected: (tab: VideoTabModel) => void;
     onAnkiDialogRequest: () => void;
+    onAnkiDialogRewind: () => void;
     onAppBarToggle: () => void;
     onFullscreenToggle: () => void;
     onHideSubtitlePlayer: () => void;
@@ -156,6 +158,7 @@ export default function Player({
     availableTabs,
     ankiDialogRequested,
     ankiDialogFinishedRequest,
+    ankiDialogOpen,
     onError,
     onUnloadAudio,
     onUnloadVideo,
@@ -163,6 +166,7 @@ export default function Player({
     onLoaded,
     onTabSelected,
     onAnkiDialogRequest,
+    onAnkiDialogRewind,
     onAppBarToggle,
     onFullscreenToggle,
     onHideSubtitlePlayer,
@@ -682,7 +686,7 @@ export default function Player({
         [clock, seek, length, playing]
     );
 
-    const handleSeekToSubtitle = useCallback(
+    const handleSeekToTimestamp = useCallback(
         async (time: number, shouldPlay: boolean) => {
             if (!shouldPlay) {
                 pause(clock, mediaAdapter, true);
@@ -886,27 +890,38 @@ export default function Player({
         return keyBinder.bindTakeScreenshot(
             (event) => {
                 event.preventDefault();
-                onTakeScreenshot(clock.time(length));
+
+                if (ankiDialogOpen) {
+                    onAnkiDialogRewind();
+                } else {
+                    onTakeScreenshot(clock.time(length));
+                }
             },
-            () => disableKeyEvents
+            () => false
         );
-    }, [videoFileUrl, clock, onTakeScreenshot, keyBinder, disableKeyEvents, length]);
+    }, [
+        videoFileUrl,
+        clock,
+        onTakeScreenshot,
+        onAnkiDialogRewind,
+        keyBinder,
+        disableKeyEvents,
+        length,
+        ankiDialogOpen,
+    ]);
 
     useEffect(() => channel?.appBarToggle(appBarHidden), [channel, appBarHidden]);
     useEffect(() => channel?.hideSubtitlePlayerToggle(hideSubtitlePlayer), [channel, hideSubtitlePlayer]);
     useEffect(() => channel?.fullscreenToggle(videoFullscreen), [channel, videoFullscreen]);
 
     useEffect(() => {
-        if (!rewindSubtitle) {
+        if (rewindSubtitle?.start === undefined) {
             return;
         }
 
-        if (playing) {
-            clock.stop();
-        }
-
-        handleSeekToSubtitle(rewindSubtitle.start, false);
-    }, [clock, rewindSubtitle, handleSeekToSubtitle, playing]);
+        pause(clock, mediaAdapter, true);
+        seek(rewindSubtitle.start, clock, true);
+    }, [clock, rewindSubtitle?.start, mediaAdapter, seek]);
 
     const loaded = audioFileUrl || videoFileUrl || subtitles;
     const videoInWindow = Boolean(loaded && videoFileUrl && !videoPopOut);
@@ -993,7 +1008,7 @@ export default function Player({
                         lastJumpToTopTimestamp={lastJumpToTopTimestamp}
                         hidden={videoInWindow && hideSubtitlePlayer}
                         disabledSubtitleTracks={disabledSubtitleTracks}
-                        onSeek={handleSeekToSubtitle}
+                        onSeek={handleSeekToTimestamp}
                         onCopy={handleCopyFromSubtitlePlayer}
                         onOffsetChange={handleOffsetChange}
                         onToggleSubtitleTrack={handleToggleSubtitleTrack}

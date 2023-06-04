@@ -129,6 +129,10 @@ function errorMessage(element: HTMLVideoElement) {
     return error + ': ' + (element.error?.message || '<details missing>');
 }
 
+export interface SeekRequest {
+    timestamp: number;
+}
+
 interface Props {
     settingsProvider: SettingsProvider;
     playbackPreferences: PlaybackPreferences;
@@ -137,6 +141,8 @@ interface Props {
     channel: string;
     popOut: boolean;
     ankiDialogFinishedRequest: AnkiDialogFinishedRequest;
+    ankiDialogOpen: boolean;
+    seekRequest?: SeekRequest;
     onAnkiDialogRequest: (
         videoFileUrl: string,
         videoFileName: string,
@@ -146,6 +152,7 @@ interface Props {
         surroundingSubtitles: SubtitleModel[],
         timestamp: number
     ) => void;
+    onAnkiDialogRewind: () => void;
     onError: (error: string) => void;
     onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
 }
@@ -172,9 +179,12 @@ export default function VideoPlayer({
     channel,
     popOut,
     ankiDialogFinishedRequest,
+    ankiDialogOpen,
+    seekRequest,
     onAnkiDialogRequest,
     onError,
     onPlayModeChangedViaBind,
+    onAnkiDialogRewind,
 }: Props) {
     const classes = useStyles();
     const poppingInRef = useRef<boolean>();
@@ -444,6 +454,12 @@ export default function VideoPlayer({
         [length, clock, playerChannel]
     );
 
+    useEffect(() => {
+        if (seekRequest !== undefined) {
+            handleSeek(seekRequest.timestamp / length);
+        }
+    }, [handleSeek, seekRequest, length]);
+
     function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
         lastMouseMovementTimestamp.current = Date.now();
 
@@ -537,7 +553,6 @@ export default function VideoPlayer({
     useEffect(() => {
         return keyBinder.bindSeekToSubtitle(
             (event, subtitle) => {
-                event.stopPropagation();
                 event.preventDefault();
                 playerChannel.currentTime = subtitle.start / 1000;
             },
@@ -550,7 +565,6 @@ export default function VideoPlayer({
     useEffect(() => {
         return keyBinder.bindSeekToBeginningOfCurrentSubtitle(
             (event, subtitle) => {
-                event.stopPropagation();
                 event.preventDefault();
                 playerChannel.currentTime = subtitle.start / 1000;
             },
@@ -563,7 +577,6 @@ export default function VideoPlayer({
     useEffect(() => {
         return keyBinder.bindSeekBackwardOrForward(
             (event, forward) => {
-                event.stopPropagation();
                 event.preventDefault();
                 const timestamp = clock.time(length);
 
@@ -593,7 +606,6 @@ export default function VideoPlayer({
         return keyBinder.bindAdjustOffset(
             (event, offset) => {
                 event.preventDefault();
-                event.stopPropagation();
                 handleOffsetChange(offset);
             },
             () => false,
@@ -605,7 +617,6 @@ export default function VideoPlayer({
         return keyBinder.bindResetOffet(
             (event) => {
                 event.preventDefault();
-                event.stopPropagation();
                 handleOffsetChange(0);
             },
             () => false
@@ -630,7 +641,6 @@ export default function VideoPlayer({
         return keyBinder.bindToggleSubtitles(
             (event) => {
                 event.preventDefault();
-                event.stopPropagation();
                 setSubtitlesEnabled((enabled) => !enabled);
             },
             () => false
@@ -641,7 +651,6 @@ export default function VideoPlayer({
         return keyBinder.bindToggleSubtitleTrackInVideo(
             (event, track) => {
                 event.preventDefault();
-                event.stopPropagation();
                 setDisabledSubtitleTracks((tracks) => {
                     const newTracks = { ...tracks };
                     newTracks[track] = !tracks[track];
@@ -656,7 +665,6 @@ export default function VideoPlayer({
         return keyBinder.bindToggleSubtitleTrackInList(
             (event, track) => {
                 event.preventDefault();
-                event.stopPropagation();
                 playerChannel.toggleSubtitleTrackInList(track);
             },
             () => false
@@ -667,7 +675,6 @@ export default function VideoPlayer({
         return keyBinder.bindOffsetToSubtitle(
             (event, offset) => {
                 event.preventDefault();
-                event.stopPropagation();
                 handleOffsetChange(offset);
             },
             () => false,
@@ -813,9 +820,10 @@ export default function VideoPlayer({
         return keyBinder.bindTakeScreenshot(
             (event) => {
                 event.preventDefault();
-                event.stopPropagation();
 
-                if (lastMinedRecord) {
+                if (popOut && ankiDialogOpen) {
+                    onAnkiDialogRewind();
+                } else if (lastMinedRecord) {
                     const currentTimestamp = clock.time(length);
                     mineSubtitle(
                         PostMineAction.showAnkiDialog,
@@ -831,12 +839,11 @@ export default function VideoPlayer({
             },
             () => false
         );
-    }, [clock, length, keyBinder, lastMinedRecord, mineSubtitle]);
+    }, [clock, length, keyBinder, lastMinedRecord, mineSubtitle, popOut, ankiDialogOpen, onAnkiDialogRewind]);
 
     useEffect(() => {
         return keyBinder.bindCopy(
             (event, subtitle) => {
-                event.stopPropagation();
                 event.preventDefault();
                 mineCurrentSubtitle(PostMineAction.none);
             },

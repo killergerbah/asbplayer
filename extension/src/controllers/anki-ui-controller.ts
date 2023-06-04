@@ -64,6 +64,10 @@ export default class AnkiUiController {
         }
     }
 
+    get showing() {
+        return !this.frame.hidden;
+    }
+
     async show(
         context: Binding,
         subtitle: SubtitleModel,
@@ -133,6 +137,11 @@ export default class AnkiUiController {
             themeType: themeType,
         };
         client.updateState(state);
+    }
+
+    async requestRewind(context: Binding) {
+        const client = await this._client(context);
+        client.sendClientMessage({ command: 'rewind' });
     }
 
     private _prepareShow(context: Binding) {

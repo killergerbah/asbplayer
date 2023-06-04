@@ -36,7 +36,7 @@ import LandingPage from './LandingPage';
 import Player, { AnkiDialogFinishedRequest, MediaSources } from './Player';
 import SettingsDialog from './SettingsDialog';
 import SettingsProvider from '../services/settings-provider';
-import VideoPlayer from './VideoPlayer';
+import VideoPlayer, { SeekRequest } from './VideoPlayer';
 import { Color } from '@material-ui/lab';
 import { AnkiExportMode } from '@project/common';
 import { DefaultKeyBinder } from '@project/common/src/key-binder';
@@ -255,6 +255,8 @@ interface RenderVideoProps {
     playbackPreferences: PlaybackPreferences;
     extension: ChromeExtension;
     ankiDialogFinishedRequest: AnkiDialogFinishedRequest;
+    ankiDialogOpen: boolean;
+    seekRequest?: SeekRequest;
     onAnkiDialogRequest: (
         videoFileUrl: string,
         videoFileName: string,
@@ -264,38 +266,17 @@ interface RenderVideoProps {
         surroundingSubtitles: SubtitleModel[],
         timestamp: number
     ) => void;
+    onAnkiDialogRewind: () => void;
     onError: (error: string) => void;
     onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
 }
 
-function RenderVideo({
-    searchParams,
-    settingsProvider,
-    playbackPreferences,
-    extension,
-    ankiDialogFinishedRequest,
-    onAnkiDialogRequest,
-    onError,
-    onPlayModeChangedViaBind,
-}: RenderVideoProps) {
+function RenderVideo({ searchParams, ...props }: RenderVideoProps) {
     const videoFile = searchParams.get('video')!;
     const channel = searchParams.get('channel')!;
     const popOut = searchParams.get('popout')! === 'true';
 
-    return (
-        <VideoPlayer
-            settingsProvider={settingsProvider}
-            playbackPreferences={playbackPreferences}
-            extension={extension}
-            videoFile={videoFile}
-            popOut={popOut}
-            channel={channel}
-            ankiDialogFinishedRequest={ankiDialogFinishedRequest}
-            onAnkiDialogRequest={onAnkiDialogRequest}
-            onError={onError}
-            onPlayModeChangedViaBind={onPlayModeChangedViaBind}
-        />
-    );
+    return <VideoPlayer videoFile={videoFile} channel={channel} popOut={popOut} {...props} />;
 }
 
 interface ContentProps {
@@ -374,6 +355,7 @@ function App() {
     );
     const videoFrameRef = useRef<HTMLIFrameElement>(null);
     const videoChannelRef = useRef<VideoChannel>(null);
+    const [videoPlayerSeekRequest, setVideoPlayerSeekRequest] = useState<SeekRequest>();
     const [width] = useWindowSize(!inVideoPlayer);
     const drawerRatio = videoFrameRef.current ? 0.2 : 0.3;
     const minDrawerSize = videoFrameRef.current ? 150 : 300;
@@ -448,23 +430,26 @@ function App() {
     ankiDialogRequestedRef.current = ankiDialogRequested;
     const { subtitleFiles } = sources;
 
-    const handleError = useCallback((message: any) => {
-        console.error(message);
+    const handleError = useCallback(
+        (message: any) => {
+            console.error(message);
 
-        setAlertSeverity('error');
+            setAlertSeverity('error');
 
-        if (message instanceof LocalizedError) {
-            setAlert(t(message.locKey, message.locParams) ?? '<failed to localize error>');
-        } else if (message instanceof Error) {
-            setAlert(message.message);
-        } else if (typeof message === 'string') {
-            setAlert(message);
-        } else {
-            setAlert(String(message));
-        }
+            if (message instanceof LocalizedError) {
+                setAlert(t(message.locKey, message.locParams) ?? '<failed to localize error>');
+            } else if (message instanceof Error) {
+                setAlert(message.message);
+            } else if (typeof message === 'string') {
+                setAlert(message);
+            } else {
+                setAlert(String(message));
+            }
 
-        setAlertOpen(true);
-    }, [t]);
+            setAlertOpen(true);
+        },
+        [t]
+    );
 
     const handleAnkiDialogRequest = useCallback((ankiDialogItem?: CopyHistoryItem) => {
         if (!ankiDialogItem && copiedSubtitlesRef.current!.length === 0) {
@@ -937,10 +922,25 @@ function App() {
             track: ankiDialogItem.track,
         };
         setRewindSubtitle(subtitle);
-        setJumpToSubtitle(subtitle);
-
         handleAnkiDialogCancel();
     }, [ankiDialogItem, subtitleFiles, handleAnkiDialogCancel, handleError, t]);
+
+    const handleAnkiDialogRewindFromVideoPlayer = useCallback(() => {
+        if (!ankiDialogItem) {
+            return;
+        }
+
+        const subtitle = {
+            text: ankiDialogItem.text,
+            start: ankiDialogItem.start,
+            end: ankiDialogItem.end,
+            originalStart: ankiDialogItem.originalStart,
+            originalEnd: ankiDialogItem.originalEnd,
+            track: ankiDialogItem.track,
+        };
+        setVideoPlayerSeekRequest({ timestamp: subtitle.start });
+        handleAnkiDialogCancel();
+    }, [ankiDialogItem, handleAnkiDialogCancel]);
 
     const handleViewImage = useCallback((image: Image) => {
         setImage(image);
@@ -1159,26 +1159,29 @@ function App() {
         return unsubscribe;
     }, [extension, inVideoPlayer]);
 
-    const handleAutoPauseModeChangedViaBind = useCallback((oldPlayMode: PlayMode, newPlayMode: PlayMode) => {
-        switch (newPlayMode) {
-            case PlayMode.autoPause:
-                setAlert(t('info.enabledAutoPause')!);
-                break;
-            case PlayMode.condensed:
-                setAlert(t('info.enabledCondensedPlayback')!);
-                break;
-            case PlayMode.normal:
-                if (oldPlayMode === PlayMode.autoPause) {
-                    setAlert(t('info.disabledAutoPause')!);
-                } else if (oldPlayMode === PlayMode.condensed) {
-                    setAlert(t('info.disabledCondensedPlayback')!);
-                }
-                break;
-        }
+    const handleAutoPauseModeChangedViaBind = useCallback(
+        (oldPlayMode: PlayMode, newPlayMode: PlayMode) => {
+            switch (newPlayMode) {
+                case PlayMode.autoPause:
+                    setAlert(t('info.enabledAutoPause')!);
+                    break;
+                case PlayMode.condensed:
+                    setAlert(t('info.enabledCondensedPlayback')!);
+                    break;
+                case PlayMode.normal:
+                    if (oldPlayMode === PlayMode.autoPause) {
+                        setAlert(t('info.disabledAutoPause')!);
+                    } else if (oldPlayMode === PlayMode.condensed) {
+                        setAlert(t('info.disabledCondensedPlayback')!);
+                    }
+                    break;
+            }
 
-        setAlertSeverity('info');
-        setAlertOpen(true);
-    }, [t]);
+            setAlertSeverity('info');
+            setAlertOpen(true);
+        },
+        [t]
+    );
 
     const handleDrop = useCallback(
         (e: React.DragEvent) => {
@@ -1347,7 +1350,10 @@ function App() {
                                     playbackPreferences={playbackPreferences}
                                     extension={extension}
                                     ankiDialogFinishedRequest={ankiDialogFinishedRequest}
+                                    ankiDialogOpen={ankiDialogOpen}
+                                    seekRequest={videoPlayerSeekRequest}
                                     onAnkiDialogRequest={handleAnkiDialogRequestFromVideoPlayer}
+                                    onAnkiDialogRewind={handleAnkiDialogRewindFromVideoPlayer}
                                     onError={handleError}
                                     onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
                                 />
@@ -1363,7 +1369,6 @@ function App() {
                                     anki={anki}
                                     settingsProvider={settingsProvider}
                                     onCancel={handleAnkiDialogCancel}
-                                    onRewind={handleAnkiDialogRewind}
                                     onProceed={handleAnkiDialogProceed}
                                     onViewImage={handleViewImage}
                                     onCopyToClipboard={handleCopyToClipboard}
@@ -1400,7 +1405,6 @@ function App() {
                                     anki={anki}
                                     settingsProvider={settingsProvider}
                                     onCancel={handleAnkiDialogCancel}
-                                    onRewind={handleAnkiDialogRewind}
                                     onProceed={handleAnkiDialogProceed}
                                     onViewImage={handleViewImage}
                                     onOpenSettings={handleOpenSettings}
@@ -1464,6 +1468,7 @@ function App() {
                                         onLoaded={handleSourcesLoaded}
                                         onTabSelected={handleTabSelected}
                                         onAnkiDialogRequest={handleAnkiDialogRequest}
+                                        onAnkiDialogRewind={handleAnkiDialogRewind}
                                         onAppBarToggle={handleAppBarToggle}
                                         onFullscreenToggle={handleFullscreenToggle}
                                         onHideSubtitlePlayer={handleHideSubtitlePlayer}
@@ -1487,6 +1492,7 @@ function App() {
                                         ankiDialogRequested={ankiDialogRequested}
                                         ankiDialogFinishedRequest={ankiDialogFinishedRequest}
                                         keyBinder={keyBinder}
+                                        ankiDialogOpen={ankiDialogOpen}
                                     />
                                 </Content>
                             </div>

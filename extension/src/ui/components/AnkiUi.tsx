@@ -309,9 +309,11 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 lastFocusOutRef.current?.focus();
             } else if (message.command === 'ankiSettings') {
                 setSettingsProvider(message.value);
+            } else if (message.command === 'rewind') {
+                handleRewind();
             }
         });
-    }, [bridge]);
+    }, [bridge, handleRewind]);
 
     useEffect(() => {
         if (open) {
@@ -349,7 +351,6 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                     settingsProvider={settingsProvider}
                     anki={anki}
                     onProceed={handleProceed}
-                    onRewind={handleRewind}
                     onRerecord={handleRerecord}
                     onCancel={handleCancel}
                     onViewImage={handleViewImage}

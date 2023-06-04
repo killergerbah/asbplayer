@@ -535,7 +535,11 @@ export default class Binding {
                         break;
                     case 'take-screenshot':
                         if (this._synced) {
-                            this._takeScreenshot();
+                            if (this.ankiUiController.showing) {
+                                this.ankiUiController.requestRewind(this);
+                            } else {
+                                this._takeScreenshot();
+                            }
                         }
                         break;
                     case 'screenshot-taken':

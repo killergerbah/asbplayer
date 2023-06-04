@@ -198,7 +198,6 @@ interface AnkiDialogProps {
         mode: AnkiExportMode
     ) => void;
     onRerecord?: () => void;
-    onRewind: () => void;
     onCancel: () => void;
     onViewImage: (image: Image) => void;
     onOpenSettings?: () => void;
@@ -227,7 +226,6 @@ export function AnkiDialog({
     disabled,
     text: initialText,
     onProceed,
-    onRewind,
     onCancel,
     onViewImage,
     onOpenSettings,
@@ -857,14 +855,6 @@ export function AnkiDialog({
                 </form>
             </DialogContent>
             <DialogActions>
-                <Button disabled={disabled} onClick={() => onCancel()}>
-                    {t('action.cancel')}
-                </Button>
-                {sliderContext && (
-                    <Button disabled={disabled} onClick={() => onRewind()}>
-                        {t('ankiDialog.rewind')}
-                    </Button>
-                )}
                 <Button
                     disabled={disabled}
                     onClick={() =>
