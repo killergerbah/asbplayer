@@ -2,5 +2,22 @@
     "latest": {
         "version": "0.26.0",
         "url": "https://github.com/killergerbah/asbplayer/releases/tag/v0.26.0"
-    }
+    },
+    "languages": [
+        {
+            "code": "en",
+            "url": "/locales/en.json",
+            "version": 1
+        },
+        {
+            "code": "ja",
+            "url": "/locales/ja.json",
+            "version": 2
+        },
+        {
+            "code": "de",
+            "url": "/locales/de.json",
+            "version": 2
+        }
+    ]
 }
