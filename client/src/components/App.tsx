@@ -718,6 +718,7 @@ function App() {
     }, []);
     const handleVideoPopOut = useCallback(() => {
         setVideoPopOut((videoPopOut) => !videoPopOut);
+        setHideSubtitlePlayer(false);
     }, []);
     const handleOpenSettings = useCallback(() => {
         setDisableKeyEvents(true);
