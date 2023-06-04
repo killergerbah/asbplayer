@@ -403,6 +403,7 @@ export default function VideoPlayer({
                 setOffset(offset);
             }
 
+            setShowSubtitles([]);
             autoPauseContextRef.current?.clear();
         });
 
