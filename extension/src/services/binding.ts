@@ -327,9 +327,12 @@ export default class Binding {
             };
 
             chrome.runtime.sendMessage(command);
-            this.subtitleController.notification('info.playbackRate', {
-                rate: this.video.playbackRate.toFixed(1),
-            });
+
+            if (this._synced) {
+                this.subtitleController.notification('info.playbackRate', {
+                    rate: this.video.playbackRate.toFixed(1),
+                });
+            }
         };
 
         this.video.addEventListener('play', this.playListener);
