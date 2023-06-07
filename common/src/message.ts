@@ -45,6 +45,10 @@ export interface VideoHeartbeatMessage extends Message {
     readonly synced: boolean;
 }
 
+export interface VideoDisappearedMessage extends Message {
+    readonly command: 'video-disappeared';
+}
+
 export interface HttpPostMessage extends Message {
     readonly command: 'http-post';
     readonly url: string;

@@ -223,7 +223,7 @@ export default class TabRegistry {
         const tabId = tab.id;
 
         await this._videoElements((videoElements) => {
-            videoElements[tab.id + ':' + src] = {
+            videoElements[`${tab.id}:${src}`] = {
                 tab: {
                     id: tabId,
                     title: tab.title ?? '',
@@ -234,6 +234,19 @@ export default class TabRegistry {
                 synced: synced,
             };
             return true;
+        });
+    }
+
+    async onVideoElementDisappeared(tab: chrome.tabs.Tab, src: string) {
+        await this._videoElements((videoElements) => {
+            const key = `${tab.id}:${src}`;
+
+            if (key in videoElements) {
+                delete videoElements[key];
+                return true;
+            }
+
+            return false;
         });
     }
 

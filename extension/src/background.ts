@@ -39,6 +39,7 @@ import {
     ToggleVideoSelectMessage,
 } from '@project/common';
 import { primeLocalization } from './services/localization-fetcher';
+import VideoDisappearedHandler from './handlers/video/video-disappeared-handler';
 
 chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
 
@@ -74,6 +75,7 @@ const handlers: CommandHandler[] = [
     new HttpPostHandler(),
     new OpenAsbplayerSettingsHandler(tabRegistry),
     new CopyToClipboardHandler(),
+    new VideoDisappearedHandler(tabRegistry),
     new VideoToAsbplayerCommandForwardingHandler(tabRegistry),
     new AsbplayerToVideoCommandForwardingHandler(),
     new AsbplayerHeartbeatHandler(tabRegistry),

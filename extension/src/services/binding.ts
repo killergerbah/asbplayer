@@ -32,6 +32,7 @@ import {
     SubtitlesToVideoMessage,
     surroundingSubtitlesAroundInterval,
     TakeScreenshotFromExtensionMessage,
+    VideoDisappearedMessage,
     VideoHeartbeatMessage,
     VideoToExtensionCommand,
 } from '@project/common';
@@ -626,6 +627,15 @@ export default class Binding {
         this.keyBindings.unbind();
         this.videoDataSyncController.unbind();
         this.subscribed = false;
+
+        const command: VideoToExtensionCommand<VideoDisappearedMessage> = {
+            sender: 'asbplayer-video',
+            message: {
+                command: 'video-disappeared',
+            },
+            src: this.video.src,
+        };
+        chrome.runtime.sendMessage(command);
     }
 
     async _takeScreenshot() {
