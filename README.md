@@ -24,7 +24,7 @@ Thank you to all those who have contributed to asbplayer:
 Thank you to all those who have translated asbplayer:
 
 -   Mana Tsutsumi (Japanese, initial translation)
--   Kagu-chan from the Refold community (German)
+-   Kai Böse (German)
 
 If you are a non-English native, and would like to help translate asbplayer, please contact me on [Discord](https://discord.gg/ad7VAQru7m).
 
