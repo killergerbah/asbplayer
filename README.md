@@ -2,40 +2,46 @@
 
 asbplayer is a browser-based media player and Chrome extension for subtitle sentence mining, hosted at [https://killergerbah.github.io/asbplayer/](https://killergerbah.github.io/asbplayer/). Use asbplayer to combine subtitles and media extracted from streaming or local video sources to create media-rich Anki flashcards.
 
-## Contact
-
-Submit bugs or feature requests from the [issues page](https://github.com/killergerbah/asbplayer/issues). Join the [Discord](https://discord.gg/ad7VAQru7m) server to talk with me and other language learners.
-
-## Supporters
-
 Thank you to all of my sponsors:
-[@vivekchoksi](https://www.github.com/vivekchoksi)
-[@nzarbayezid](https://www.github.com/nzarbayezid)
-[@ManuJapan](https://www.github.com/ManuJapan)
-AdamM
-realgoodsmiley
-Alex
-[@m4eko](https://github.com/m4eko)
-Simon
+
+-   [@vivekchoksi](https://www.github.com/vivekchoksi)
+-   [@nzarbayezid](https://www.github.com/nzarbayezid)
+-   [@ManuJapan](https://www.github.com/ManuJapan)
+-   AdamM
+-   realgoodsmiley
+-   Alex
+-   [@m4eko](https://github.com/m4eko)
+-   Simon
 
 ... and to those who have donated privately.
 
-If you've benefited from asbplayer, please consider supporting my work via [Github Sponsors](https://github.com/sponsors/killergerbah?frequency=one-time) or [Ko-fi](https://ko-fi.com/killergerbah).
+Thank you to all those who have contributed to asbplayer:
+
+-   [@Renji-XD](https://www.github.com/Renji-XD)
+-   [@MatiasIslaA](https://www.github.com/MatiasIslaA)
+-   [@cyphar](https://www.github.com/cyphar)
+
+Thank you to all those who have translated asbplayer:
+
+-   Mana Tsutsumi (Japanese, initial translation)
+-   Kagu-chan from the Refold community (German)
+
+If you are a non-English native, and would like to help translate asbplayer, please contact me on [Discord](https://discord.gg/ad7VAQru7m).
 
 ## Getting Started (streaming video)
 
-If your target language is Japanese, follow one of the [community guides](#community-guides).
+First, see if you can get started with one of the [community guides](#community-guides).
 
 Otherwise, the following steps will work for any language:
 
-1. Install a popup dictionary Chrome extension for your target language.
+1. Install a dictionary for your target language that allows you to do instant lookups. Popular ones are [Yomichan](https://chrome.google.com/webstore/detail/yomichan/ogmnaimimemjmbakcfefmnahgdfhfami) for Japanese and [VocabSieve](https://github.com/FreeLanguageTools/vocabsieve) for European languages.
 2. Install the asbplayer Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest).
 3. Install [Anki](https://apps.ankiweb.net/), and create a deck and note type.
 4. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
 5. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect with your deck and note type.
 6. Drag-and-drop a subtitle file into the streaming video you want to mine. You may have to [adjust the subtitle offset](#adjusting-subtitle-offset) to get the subtitles in sync.
 7. When a subtitle appears that you want to mine, use <kbd>Ctrl+Shift+X</kbd> to open the Anki dialog.
-8. Fill in the definition and word fields and then export the card. To fill in the definition field you may use the popup dictionary you installed in step 1.
+8. Fill in the definition and word fields and then export the card. To fill in the definition field you may use the dictionary you installed in step 1.
 
 ## Usage
 
@@ -76,7 +82,7 @@ You can also adjust offset manually by clicking on the "Subtitle Offset" text fi
 
 -   Netflix
 -   Youtube
--   Disney Plus
+-   Disney Plus (known issue: subtitles sometimes off by ~5 seconds)
 -   Hulu
 -   TVer
 -   Bandai Channel
@@ -90,7 +96,7 @@ An audio track selector will appear for `mkv` files if experimental web platform
 
 ### Keyboard shortcuts
 
-Most keyboard shortcuts shared by the extension and the website are customizable from the [asbplayer website settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts). Extension-only shortcuts and some shared shortcuts that require special access to Chrome extension features are customizable from `chrome://extension/shortcuts`.
+Most keyboard shortcuts shared by the extension and the website are customizable from the [asbplayer website settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts). These shortcuts can be toggled on and off from the extension popup. Extension-only shortcuts and some shared shortcuts that require special access to Chrome extension features are customizable from `chrome://extension/shortcuts`.
 
 ## Common issues
 
@@ -111,7 +117,7 @@ Most keyboard shortcuts shared by the extension and the website are customizable
 
 ### The asbplayer website keyboard shortcuts aren't working.
 
--   Check the keyboard shortcut settings from the asbplayer website.
+-   See the [Keyboard Shortcuts](#keyboard-shortcuts) section.
 
 ### asbplayer can't connect to Anki. It shows an error message e.g. 'Failed to fetch.'
 
@@ -131,9 +137,8 @@ Most keyboard shortcuts shared by the extension and the website are customizable
 
 ### asbplayer isn't properly cropping screenshots from streaming video.
 
--   If the site is using an iframe for the video player then asbplayer won't know how to crop the screenshot properly. You will have to mine subtitles in fullscreen mode.
 -   Make sure the browser zoom setting is at 100%.
--   You can also disable cropping altogether using the extension settings menu.
+-   You can disable cropping altogether using the extension settings menu.
 
 ## Demos
 
@@ -142,8 +147,10 @@ Most keyboard shortcuts shared by the extension and the website are customizable
 
 ## Community guides
 
--   [Shiki's Lazy Sentence Mining Workflow](https://docs.google.com/document/d/e/2PACX-1vQuEAoZFoJbULZzCJ3_tW7ayT_DcQl9eDlrXMnuPGTwDk62r5fQrXak3ayxBsEgkL85_Z-YY5W4yUom/pub)
--   [Sentence mining from Netflix and YouTube with asbplayer](https://soyuz18.notion.site/Sentence-mining-from-Netflix-and-YouTube-with-asbplayer-83a03590cd8349ba81ca10340645b565)
+-   [Shiki's Lazy Sentence Mining Workflow (Japanese)](https://docs.google.com/document/d/e/2PACX-1vQuEAoZFoJbULZzCJ3_tW7ayT_DcQl9eDlrXMnuPGTwDk62r5fQrXak3ayxBsEgkL85_Z-YY5W4yUom/pub)
+-   [Sentence mining from Netflix and YouTube with asbplayer (Japanese)](https://soyuz18.notion.site/Sentence-mining-from-Netflix-and-YouTube-with-asbplayer-83a03590cd8349ba81ca10340645b565)
+-   [Refold's installation guide](https://www.youtube.com/watch?v=Pv4Sp01Uh64)
+-   [Refold's sentence mining guide (Japanese + European languages)](https://www.youtube.com/watch?v=jXO4gmCmcNE)
 
 ## Browser compatibility
 
@@ -154,11 +161,6 @@ Local video file playback is supported only for codecs supported by the browser.
 ## Contributing
 
 Pull requests are welcome! However, to reduce back-and-forth during review ideally consult with me on the corresponding issue or on [Discord](https://discord.gg/ad7VAQru7m) before attempting changes to UI/UX. When making changes, format code according to the Prettier config and attempt to match the style of surrounding code.
-
-Thank you to all those who have contributed to this project:
-[@Renji-XD](https://www.github.com/Renji-XD)
-[@MatiasIslaA](https://www.github.com/MatiasIslaA)
-[@cyphar](https://www.github.com/cyphar)
 
 ## Building and running
 
@@ -180,3 +182,11 @@ yarn workspace @project/extension buildDev
 ```
 
 If you have problems building try deleting `node_modules` and re-running `yarn`.
+
+## Contact
+
+Submit bugs or feature requests from the [issues page](https://github.com/killergerbah/asbplayer/issues). Join the [Discord](https://discord.gg/ad7VAQru7m) server to talk with me and other language learners.
+
+## Donations
+
+If you've benefited from asbplayer, please consider supporting my work via [Github Sponsors](https://github.com/sponsors/killergerbah?frequency=one-time) or [Ko-fi](https://ko-fi.com/killergerbah).
