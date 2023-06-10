@@ -19,7 +19,7 @@
         "definition": "詳細",
         "export": "エクスポート",
         "foundDuplicateNotes": "フィールド「{{field}}」に単語「{{word}}」 が含まれるメモが {{count}} 件見つかりました",
-        "foundNoDuplicateNote": "フィールド「{{field}}」に単語「{{word}}」 が含まれるメはありません",
+        "foundNoDuplicateNote": "フィールド「{{field}}」に単語「{{word}}」 が含まれるメモはありません",
         "image": "画像",
         "imageFileLinkLost": "ブラウザページを更新したため、画像ファイルの参照先が失われました",
         "openInAnki": "Anki で開く",
