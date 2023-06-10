@@ -12,12 +12,12 @@ import {
     PlayMode,
     MiscSettings,
     SubtitleSettings,
-    DefaultKeyBinder,
     AnkiSettings,
-    SubtitleCollection,
     AutoPausePreference,
     AutoPauseContext,
 } from '@project/common';
+import { SubtitleCollection } from '@project/common/subtitle-collection';
+import { DefaultKeyBinder } from '@project/common/key-binder';
 import { SubtitleTextImage } from '@project/common/components';
 import Clock from '../services/clock';
 import Controls, { Point } from './Controls';

@@ -8,13 +8,13 @@ import {
     AutoPauseContext,
     AutoPausePreference,
     ImageModel,
-    KeyBinder,
     PlayMode,
     PostMineAction,
-    SubtitleCollection,
     SubtitleModel,
     VideoTabModel,
 } from '@project/common';
+import { SubtitleCollection } from '@project/common/subtitle-collection';
+import { KeyBinder } from '@project/common/key-binder';
 import { timeDurationDisplay } from '../services/util';
 import BroadcastChannelVideoProtocol from '../services/broadcast-channel-video-protocol';
 import ChromeTabVideoProtocol from '../services/chrome-tab-video-protocol';

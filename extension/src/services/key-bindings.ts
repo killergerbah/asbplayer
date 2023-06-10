@@ -6,7 +6,7 @@ import {
     ToggleSubtitlesMessage,
     VideoToExtensionCommand,
 } from '@project/common';
-import { DefaultKeyBinder } from '@project/common/src/key-binder';
+import { DefaultKeyBinder } from '@project/common/key-binder';
 import Binding from './binding';
 import { keyBindSettingsKeys } from './settings';
 

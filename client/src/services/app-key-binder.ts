@@ -1,4 +1,5 @@
-import { CopySubtitleMessage, DefaultKeyBinder, KeyBinder, PostMineAction, SubtitleModel } from '@project/common';
+import { CopySubtitleMessage, PostMineAction, SubtitleModel } from '@project/common';
+import { DefaultKeyBinder, KeyBinder } from '@project/common/key-binder';
 import ChromeExtension, { ExtensionMessage } from './chrome-extension';
 
 export default class AppKeyBinder implements KeyBinder {

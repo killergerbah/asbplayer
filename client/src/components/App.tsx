@@ -39,7 +39,7 @@ import SettingsProvider from '../services/settings-provider';
 import VideoPlayer, { SeekRequest } from './VideoPlayer';
 import { Color } from '@material-ui/lab';
 import { AnkiExportMode } from '@project/common';
-import { DefaultKeyBinder } from '@project/common/src/key-binder';
+import { DefaultKeyBinder } from '@project/common/key-binder';
 import AppKeyBinder from '../services/app-key-binder';
 import VideoChannel from '../services/video-channel';
 import PlaybackPreferences from '../services/playback-preferences';

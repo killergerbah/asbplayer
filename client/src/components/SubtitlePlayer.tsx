@@ -8,11 +8,11 @@ import {
     PostMineAction,
     surroundingSubtitles,
     SubtitleModel,
-    SubtitleCollection,
-    KeyBinder,
     AutoPauseContext,
     mockSurroundingSubtitles,
 } from '@project/common';
+import { SubtitleCollection } from '@project/common/subtitle-collection';
+import { KeyBinder } from '@project/common/key-binder';
 import { SubtitleTextImage } from '@project/common/components';
 import FileCopy from '@material-ui/icons/FileCopy';
 import IconButton from '@material-ui/core/IconButton';

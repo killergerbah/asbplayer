@@ -3,12 +3,12 @@ import {
     OffsetFromVideoMessage,
     Rgb,
     SubtitleAlignment,
-    SubtitleCollection,
     SubtitleModel,
     SubtitleSettings,
     surroundingSubtitles,
     VideoToExtensionCommand,
 } from '@project/common';
+import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { AutoPauseContext } from '@project/common';
 import { ElementOverlay, OffsetAnchor } from '../services/element-overlay';
 import i18n from 'i18next';

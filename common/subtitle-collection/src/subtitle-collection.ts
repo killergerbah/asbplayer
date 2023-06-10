@@ -1,5 +1,5 @@
 import IntervalTree, { Interval, NumericTuple } from '@flatten-js/interval-tree';
-import { SubtitleModel } from './model';
+import { SubtitleModel } from '../../src/model';
 
 export interface SubtitleSlice<T> {
     showing: T[];
