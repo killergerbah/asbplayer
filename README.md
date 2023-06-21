@@ -12,6 +12,7 @@ Thank you to all of my sponsors:
 -   Alex
 -   [@m4eko](https://github.com/m4eko)
 -   Simon
+-   Attenius
 
 ... and to those who have donated privately.
 
