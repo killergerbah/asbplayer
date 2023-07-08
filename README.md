@@ -97,7 +97,7 @@ An audio track selector will appear for `mkv` files if experimental web platform
 
 ### Keyboard shortcuts
 
-Most keyboard shortcuts shared by the extension and the website are customizable from the [asbplayer website settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts). These shortcuts can be toggled on and off from the extension popup. Extension-only shortcuts and some shared shortcuts that require special access to Chrome extension features are customizable from `chrome://extension/shortcuts`.
+Most keyboard shortcuts shared by the extension and the website are customizable from the [asbplayer website settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts). These shortcuts can be toggled on and off from the extension popup. Extension-only shortcuts and some shared shortcuts that require special access to Chrome extension features are customizable from `chrome://extensions/shortcuts`.
 
 ## Common issues
 
