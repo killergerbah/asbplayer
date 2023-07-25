@@ -16,6 +16,7 @@ import { Parser as m3U8Parser } from 'm3u8-parser';
 import UiFrame from '../services/ui-frame';
 import Settings from '../services/settings';
 import { fetchLocalization } from '../services/localization-fetcher';
+import i18n from 'i18next';
 
 async function html(lang: string) {
     return `<!DOCTYPE html>
@@ -154,7 +155,15 @@ export default class VideoDataSyncController {
         }
 
         const subtitleTrackChoices = this._syncedData?.subtitles ?? [];
-        const selectedSub = subtitleTrackChoices.find((subtitle) => subtitle.language === this.lastLanguageSynced);
+        const selectedSub =
+            this.lastLanguageSynced === ''
+                ? {
+                      language: '',
+                      url: '-',
+                      label: i18n.t('extension.videoDataSync.emptySubtitleTrack'),
+                      extension: 'srt',
+                  }
+                : subtitleTrackChoices.find((subtitle) => subtitle.language === this.lastLanguageSynced);
 
         if (selectedSub !== undefined && !userRequested && !this._syncedData?.error) {
             // Instead of showing, auto-sync
