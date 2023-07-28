@@ -176,7 +176,12 @@ const SubtitleRow = React.memo((props: SubtitleRowProps) => {
 interface SubtitlePlayerProps {
     clock: Clock;
     onSeek: (progress: number, shouldPlay: boolean) => void;
-    onCopy: (subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], postMineAction: PostMineAction) => void;
+    onCopy: (
+        subtitle: SubtitleModel,
+        surroundingSubtitles: SubtitleModel[],
+        postMineAction: PostMineAction,
+        forceUseGivenSubtitle?: boolean
+    ) => void;
     onOffsetChange: (offset: number) => void;
     onToggleSubtitleTrack: (track: number) => void;
     onSubtitlesSelected: (subtitles: SubtitleModel[]) => void;
@@ -658,7 +663,7 @@ export default function SubtitlePlayer({
                 return;
             }
 
-            onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), PostMineAction.none);
+            onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), PostMineAction.none, true);
         },
         [subtitles, calculateSurroundingSubtitlesForIndex, onCopy]
     );

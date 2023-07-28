@@ -708,8 +708,13 @@ export default function Player({
     );
 
     const handleCopyFromSubtitlePlayer = useCallback(
-        (subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], postMineAction: PostMineAction) => {
-            if (videoFileUrl) {
+        (
+            subtitle: SubtitleModel,
+            surroundingSubtitles: SubtitleModel[],
+            postMineAction: PostMineAction,
+            forceUseGivenSubtitle?: boolean
+        ) => {
+            if (videoFileUrl && !forceUseGivenSubtitle) {
                 // Let VideoPlayer do the copying to ensure copied subtitle is consistent with the VideoPlayer clock
                 channel?.copy(postMineAction);
                 return;
