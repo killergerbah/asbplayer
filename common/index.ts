@@ -10,4 +10,4 @@ export * from './src/model';
 export * from './src/message';
 export * from './src/extension-settings';
 export { default as AutoPauseContext } from './src/auto-pause-context';
-export const supportedLanguages = ['en', 'ja', 'de'];
+export const supportedLanguages = ['en', 'ja', 'de', 'pl'];

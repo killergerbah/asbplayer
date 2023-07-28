@@ -1,0 +1,23 @@
+{
+    "extensionDescription": {
+        "message": "Zsynchronizuj asbplayer ze strumieniowanym wideo"
+    },
+    "shortcutMineSubtitleAndOpenDialogDescription": {
+        "message": "Wykop bieżące napisy i otwórz okno eksportu Anki. Jeśli wideo jest zsynchronizowane bez pliku z napisami"
+    },
+    "shortcutMineSubtitleDescription": {
+        "message": "Wykop bieżące napisy. Jeśli wideo jest zsynchronizowane bez pliku z napisami"
+    },
+    "shortcutSelectSubtitleTrackDescription": {
+        "message": "Wybierz ścieżki napisów do załadowania."
+    },
+    "shortcutTakeScreenshotDescription": {
+        "message": "Manualnie wykonaj zrzut ekranu"
+    },
+    "shortcutToggleRecordingDescription": {
+        "message": "Manualnie rozpocznij/zatrzymaj nagrywanie audio"
+    },
+    "shortcutUpdateLastCardDescription": {
+        "message": "Zaktualizuj ostatnio utworzoną kartę Anki o media przechwycone przez asbplayer. Jeśli wideo jest zsynchronizowane bez pliku z napisami"
+    }
+}
