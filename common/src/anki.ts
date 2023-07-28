@@ -233,6 +233,14 @@ export class Anki {
 
                     await this._executeAction('updateNoteFields', params, ankiConnectUrl);
 
+                    if (tags.length > 0) {
+                        await this._executeAction(
+                            'addTags',
+                            { notes: [lastNoteId], tags: tags.join(' ') },
+                            ankiConnectUrl
+                        );
+                    }
+
                     if (!this.settingsProvider.wordField || !info.fields) {
                         return info.noteId;
                     }
