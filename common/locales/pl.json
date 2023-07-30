@@ -163,7 +163,7 @@
         "updatedCard": "Zaktualizowana karta: {{result}}"
     },
     "landing": {
-        "cta": "Przenieś i upuść napisy i pliki medialne",
+        "cta": "Przenieś i upuść napisy i pliki medialne, lub <1>przeglądaj</1>.",
         "extensionNotInstalled": "Zainstaluj <1>rozszerzenie Chrome</1> aby zsynchronizować napisy ze strumieniowanym wideo",
         "extensionUpdateAvailable": "Dostępna jest <1>aktualizacja</1> rozszerzenia.",
         "noSubtitles": "No subtitles"
