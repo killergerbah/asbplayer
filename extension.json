@@ -18,6 +18,11 @@
             "code": "de",
             "url": "/locales/de.json",
             "version": 2
+        },
+        {
+            "code": "pl",
+            "url": "/locales/pl.json",
+            "version": 1
         }
     ]
 }
