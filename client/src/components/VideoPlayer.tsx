@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { isMobile } from 'react-device-detect';
 import { makeStyles } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/use-window-size';
-import { arrayEquals, computeStyles } from '../services/util';
+import { arrayEquals } from '../services/util';
 import {
     surroundingSubtitles,
     mockSurroundingSubtitles,
@@ -15,6 +15,8 @@ import {
     AnkiSettings,
     AutoPausePreference,
     AutoPauseContext,
+    computeStyles,
+    computeStyleString,
 } from '@project/common';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { DefaultKeyBinder } from '@project/common/key-binder';
@@ -30,6 +32,8 @@ import { AnkiDialogFinishedRequest } from './Player';
 import { Color } from '@material-ui/lab/Alert';
 import Alert from './Alert';
 import { i18n } from './i18n';
+import { useSubtitleDomCache } from '../hooks/use-subtitle-dom-cache';
+import './video-player.css';
 
 interface ExperimentalHTMLVideoElement extends HTMLVideoElement {
     readonly audioTracks: any;
@@ -128,6 +132,62 @@ function errorMessage(element: HTMLVideoElement) {
 
     return error + ': ' + (element.error?.message || '<details missing>');
 }
+
+const showingSubtitleHtml = (
+    subtitle: IndexedSubtitleModel,
+    videoRef: MutableRefObject<ExperimentalHTMLVideoElement | undefined>,
+    subtitleStyles: string,
+    imageBasedSubtitleScaleFactor: number
+) => {
+    if (subtitle.textImage) {
+        const imageScale =
+            (imageBasedSubtitleScaleFactor * (videoRef.current?.width ?? window.screen.availWidth)) /
+            subtitle.textImage.screen.width;
+        const width = imageScale * subtitle.textImage.image.width;
+
+        return `
+<div style="max-width:${width}px;">
+<img
+    style="width:100%;"
+    alt="subtitle"
+    src="${subtitle.textImage.dataUrl}"
+/>
+</div>
+`;
+    }
+
+    return `<span style="${subtitleStyles}">${subtitle.text}</span>`;
+};
+
+interface ShowingSubtitleProps {
+    subtitle: IndexedSubtitleModel;
+    videoRef: MutableRefObject<ExperimentalHTMLVideoElement | undefined>;
+    subtitleStyles: any;
+    imageBasedSubtitleScaleFactor: number;
+}
+
+const ShowingSubtitle = ({
+    subtitle,
+    videoRef,
+    subtitleStyles,
+    imageBasedSubtitleScaleFactor,
+}: ShowingSubtitleProps) => {
+    let content;
+
+    if (subtitle.textImage) {
+        content = (
+            <SubtitleTextImage
+                availableWidth={videoRef.current?.width ?? window.screen.availWidth}
+                subtitle={subtitle}
+                scale={imageBasedSubtitleScaleFactor}
+            />
+        );
+    } else {
+        content = <span style={subtitleStyles}>{subtitle.text}</span>;
+    }
+
+    return <div>{content}</div>;
+};
 
 export interface SeekRequest {
     timestamp: number;
@@ -1034,6 +1094,28 @@ export default function VideoPlayer({
         ]
     );
 
+    const subtitleStylesString = useMemo(
+        () =>
+            computeStyleString({
+                subtitleSize,
+                subtitleColor,
+                subtitleOutlineThickness,
+                subtitleOutlineColor,
+                subtitleBackgroundColor,
+                subtitleBackgroundOpacity,
+                subtitleFontFamily,
+            }),
+        [
+            subtitleSize,
+            subtitleColor,
+            subtitleOutlineThickness,
+            subtitleOutlineColor,
+            subtitleBackgroundColor,
+            subtitleBackgroundOpacity,
+            subtitleFontFamily,
+        ]
+    );
+
     useEffect(() => {
         const interval = setInterval(() => {
             if (Date.now() - lastMouseMovementTimestamp.current > 300) {
@@ -1049,6 +1131,13 @@ export default function VideoPlayer({
     }, [showCursor]);
 
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
+    const { getSubtitleDomCache } = useSubtitleDomCache(
+        subtitles,
+        useCallback(
+            (subtitle) => showingSubtitleHtml(subtitle, videoRef, subtitleStylesString, imageBasedSubtitleScaleFactor),
+            [subtitleStylesString, imageBasedSubtitleScaleFactor]
+        )
+    );
 
     return (
         <div ref={containerRef} onMouseMove={handleMouseMove} className={classes.root}>
@@ -1074,30 +1163,35 @@ export default function VideoPlayer({
                     className={classes.subtitleContainer}
                 >
                     {showSubtitles.map((subtitle, index) => {
-                        let content;
+                        if (miscSettings.preCacheSubtitleDom) {
+                            const domCache = getSubtitleDomCache();
+                            return (
+                                <div
+                                    key={index}
+                                    ref={(ref) => {
+                                        if (!ref) {
+                                            return;
+                                        }
 
-                        if (subtitle.textImage) {
-                            content = (
-                                <SubtitleTextImage
-                                    availableWidth={videoRef.current?.width ?? window.screen.availWidth}
-                                    subtitle={subtitle}
-                                    scale={imageBasedSubtitleScaleFactor}
+                                        while (ref.firstChild) {
+                                            domCache.return(ref.lastChild! as HTMLElement);
+                                        }
+
+                                        ref.appendChild(domCache.get(String(subtitle.index)));
+                                    }}
                                 />
                             );
-                        } else {
-                            content = <span style={subtitleStyles}>{subtitle.text}</span>;
                         }
 
-                        if (index < showSubtitles.length - 1) {
-                            return (
-                                <React.Fragment key={subtitle.index}>
-                                    {content}
-                                    <br />
-                                </React.Fragment>
-                            );
-                        }
-
-                        return <React.Fragment key={subtitle.index}>{content}</React.Fragment>;
+                        return (
+                            <ShowingSubtitle
+                                key={index}
+                                subtitle={subtitle}
+                                subtitleStyles={subtitleStyles}
+                                videoRef={videoRef}
+                                imageBasedSubtitleScaleFactor={imageBasedSubtitleScaleFactor}
+                            />
+                        );
                     })}
                 </div>
             )}

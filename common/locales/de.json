@@ -197,6 +197,8 @@
         "misc": "Sonstige",
         "mp3Preference": "Audio in MP3 neu encoden (langsamer)",
         "noteType": "Notiztyp",
+        "preCacheSubtitleDom": "Pre-cache Subtitle DOM",
+        "preCacheSubtitleDomHelperText": "If enabled, asbplayer will pre-render subtitle text elements in an offscreen document, and re-use those elements for subtitle display. This allows external code to persistently modify subtitle text before it is displayed.",
         "recordingBind": "Aufnahme...",
         "rememberSubtitleOffset": "Untertiteloffset merken",
         "sentenceField": "Satz-Feld",

@@ -1,7 +1,6 @@
 import React, { useCallback, useState, useEffect, useMemo, ChangeEvent, ReactNode, useRef } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import { makeStyles } from '@material-ui/styles';
-import { computeStyles } from '../services/util';
 import AddIcon from '@material-ui/icons/Add';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -34,6 +33,7 @@ import {
     KeyBindSet,
     KeyBindName,
     supportedLanguages,
+    computeStyles,
 } from '@project/common';
 import { TagsTextField } from '@project/common/components';
 import hotkeys from 'hotkeys-js';
@@ -79,6 +79,11 @@ const useStyles = makeStyles<Theme>((theme) => ({
     switchLabel: {
         justifyContent: 'space-between',
         marginLeft: 0,
+    },
+    verticallyCentered: {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
     },
 }));
 
@@ -451,6 +456,8 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         settings.subtitleBackgroundOpacity
     );
     const [subtitleFontFamily, setSubtitleFontFamily] = useState<string>(settings.subtitleFontFamily);
+    const [preCacheSubtitleDom, setPreCacheSubtitleDom] = useState<boolean>(settings.preCacheSubtitleDom);
+
     const [imageBasedSubtitleScaleFactor, setImageBasedSubtitleScaleFactor] = useState<number>(
         settings.imageBasedSubtitleScaleFactor
     );
@@ -610,6 +617,10 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setSubtitlePreview(e.target.value),
         []
     );
+    const handlePreCacheSubtitleDomChange = useCallback(
+        (e: ChangeEvent<HTMLInputElement>) => setPreCacheSubtitleDom(e.target.checked),
+        []
+    );
     const handleImageBasedSubtitleScaleFactorChange = useCallback(
         (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) =>
             setImageBasedSubtitleScaleFactor(Number(e.target.value)),
@@ -695,13 +706,13 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
     const subtitlePreviewStyles = useMemo(
         () =>
             computeStyles({
-                subtitleColor: subtitleColor,
-                subtitleSize: subtitleSize,
-                subtitleOutlineThickness: subtitleOutlineThickness,
-                subtitleOutlineColor: subtitleOutlineColor,
-                subtitleBackgroundOpacity: subtitleBackgroundOpacity,
-                subtitleBackgroundColor: subtitleBackgroundColor,
-                subtitleFontFamily: subtitleFontFamily,
+                subtitleColor,
+                subtitleSize,
+                subtitleOutlineThickness,
+                subtitleOutlineColor,
+                subtitleBackgroundOpacity,
+                subtitleBackgroundColor,
+                subtitleFontFamily,
             }),
         [
             subtitleColor,
@@ -813,6 +824,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
             subtitleBackgroundOpacity: Number(subtitleBackgroundOpacity),
             subtitleFontFamily: subtitleFontFamily,
             subtitlePreview: subtitlePreview,
+            preCacheSubtitleDom: preCacheSubtitleDom,
             imageBasedSubtitleScaleFactor: imageBasedSubtitleScaleFactor,
             customAnkiFields: customFields,
             preferMp3: preferMp3,
@@ -856,6 +868,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         subtitleBackgroundOpacity,
         subtitleFontFamily,
         subtitlePreview,
+        preCacheSubtitleDom,
         imageBasedSubtitleScaleFactor,
         themeType,
         audioPaddingStart,
@@ -1117,6 +1130,31 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                     InputProps={{
                                         endAdornment: <InputAdornment position="end">ms</InputAdornment>,
                                     }}
+                                />
+                                <FormControlLabel
+                                    control={
+                                        <Switch
+                                            checked={preCacheSubtitleDom}
+                                            onChange={handlePreCacheSubtitleDomChange}
+                                        />
+                                    }
+                                    label={
+                                        <Grid container direction="row" spacing={1}>
+                                            <Grid item className={classes.verticallyCentered}>
+                                                {t('settings.preCacheSubtitleDom')}
+                                            </Grid>
+                                            <Grid item className={classes.verticallyCentered}>
+                                                <Tooltip
+                                                    title={t('settings.preCacheSubtitleDomHelperText')!}
+                                                    placement="top"
+                                                >
+                                                    <InfoIcon />
+                                                </Tooltip>
+                                            </Grid>
+                                        </Grid>
+                                    }
+                                    labelPlacement="start"
+                                    className={classes.switchLabel}
                                 />
                             </FormGroup>
                         </Grid>

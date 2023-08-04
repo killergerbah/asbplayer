@@ -52,6 +52,7 @@ const defaultKeyBindSet: KeyBindSet = {
 };
 const defaultPreferMp3 = true;
 const defaultMiningHistoryStorageLimit = 25;
+const defaultPreCacheSubtitleDom = false;
 
 const ankiConnectUrlKey = 'ankiConnectUrl';
 const deckKey = 'deck';
@@ -73,6 +74,7 @@ const subtitleBackgroundColorKey = 'subtitleBackgroundColor';
 const subtitleBackgroundOpacityKey = 'subtitleBackgroundOpacity';
 const subtitleFontFamilyKey = 'subtitleFontFamily';
 const subtitlePreviewKey = 'subtitlePreview';
+const preCacheSubtitleDomKey = 'preCacheSubtitleDom';
 const imageBasedSubtitleScaleFactorKey = 'imageBasedSubtitleScaleFactor';
 const audioPaddingStartKey = 'audioPaddingStart';
 const audioPaddingEndKey = 'audioPaddingEnd';
@@ -125,6 +127,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             subtitleBackgroundOpacity: this.subtitleBackgroundOpacity,
             subtitleFontFamily: this.subtitleFontFamily,
             subtitlePreview: this.subtitlePreview,
+            preCacheSubtitleDom: this.preCacheSubtitleDom,
             imageBasedSubtitleScaleFactor: this.imageBasedSubtitleScaleFactor,
             preferMp3: this.preferMp3,
             themeType: this.themeType,
@@ -166,6 +169,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.subtitleBackgroundOpacity = newSettings.subtitleBackgroundOpacity;
         this.subtitleFontFamily = newSettings.subtitleFontFamily;
         this.subtitlePreview = newSettings.subtitlePreview;
+        this.preCacheSubtitleDom = newSettings.preCacheSubtitleDom;
         this.imageBasedSubtitleScaleFactor = newSettings.imageBasedSubtitleScaleFactor;
         this.customAnkiFields = newSettings.customAnkiFields;
         this.preferMp3 = newSettings.preferMp3;
@@ -236,6 +240,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             subtitleRegexFilterTextReplacement: this.subtitleRegexFilterTextReplacement,
             miningHistoryStorageLimit: this.miningHistoryStorageLimit,
             language: this.language,
+            preCacheSubtitleDom: this.preCacheSubtitleDom,
         };
     }
 
@@ -433,6 +438,14 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
 
     set subtitlePreview(subtitlePreview) {
         this._storage.set(subtitlePreviewKey, subtitlePreview);
+    }
+
+    get preCacheSubtitleDom() {
+        return this._storage.get(preCacheSubtitleDomKey) === 'true' || defaultPreCacheSubtitleDom;
+    }
+
+    set preCacheSubtitleDom(preCacheSubtitleDom) {
+        this._storage.set(preCacheSubtitleDomKey, String(preCacheSubtitleDom));
     }
 
     get imageBasedSubtitleScaleFactor() {

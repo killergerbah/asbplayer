@@ -138,3 +138,9 @@
 .asbplayer-mouse-over-image:hover {
     opacity: 1;
 }
+
+.asbplayer-offscreen {
+    position: fixed !important;
+    left: 100% !important;
+    top: 100% !important;
+}

@@ -15,7 +15,7 @@ export interface MiscSettings extends SharedGlobalSettings {
     readonly subtitleRegexFilter: string;
     readonly subtitleRegexFilterTextReplacement: string;
     readonly miningHistoryStorageLimit: number;
-    readonly language: string;
+    readonly preCacheSubtitleDom: boolean;
 }
 
 export interface AnkiSettings {

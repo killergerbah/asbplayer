@@ -1,5 +1,3 @@
-import { Rgb } from '@project/common';
-
 export function arrayEquals(a: any[], b: any[], equals = (a: any, b: any) => a === b) {
     if (a.length !== b.length) {
         return false;
@@ -28,62 +26,6 @@ export function keysAreEqual(a: any, b: any) {
     }
 
     return true;
-}
-
-// https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
-function hexToRgb(hex: string): Rgb {
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)!;
-    return {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16),
-    };
-}
-
-interface SubtitleStyle {
-    subtitleColor: string;
-    subtitleSize: number;
-    subtitleOutlineThickness: number;
-    subtitleOutlineColor: string;
-    subtitleBackgroundOpacity: number;
-    subtitleBackgroundColor: string;
-    subtitleFontFamily: string;
-}
-
-export function computeStyles({
-    subtitleColor,
-    subtitleSize,
-    subtitleOutlineThickness,
-    subtitleOutlineColor,
-    subtitleBackgroundOpacity,
-    subtitleBackgroundColor,
-    subtitleFontFamily,
-}: SubtitleStyle) {
-    const styles: any = {
-        color: subtitleColor,
-        fontSize: Number(subtitleSize),
-    };
-
-    if (subtitleOutlineThickness > 0) {
-        const thickness = subtitleOutlineThickness;
-        const color = subtitleOutlineColor;
-        styles[
-            'textShadow'
-        ] = `0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}`;
-    }
-
-    if (subtitleBackgroundOpacity > 0) {
-        const opacity = subtitleBackgroundOpacity;
-        const color = subtitleBackgroundColor;
-        const { r, g, b } = hexToRgb(color);
-        styles['backgroundColor'] = `rgba(${r}, ${g}, ${b}, ${opacity})`;
-    }
-
-    if (subtitleFontFamily && subtitleFontFamily.length > 0) {
-        styles['fontFamily'] = subtitleFontFamily;
-    }
-
-    return styles;
 }
 
 export function timeDurationDisplay(

@@ -395,6 +395,7 @@ export default class Binding {
                         const subtitles: SubtitleModel[] = subtitlesMessage.value;
                         this.subtitleController.subtitles = subtitles.map((s, index) => ({ ...s, index }));
                         this.subtitleController.subtitleFileNames = subtitlesMessage.names || [subtitlesMessage.name];
+                        this.subtitleController.cacheHtml();
 
                         if (this._playMode !== PlayMode.normal && (!subtitles || subtitles.length === 0)) {
                             this.playMode = PlayMode.normal;
@@ -465,6 +466,7 @@ export default class Binding {
                         this.keyBindings.setKeyBindSet(this, miscSettingsMessage.value.keyBindSet);
                         this.subtitleController.autoCopyCurrentSubtitle =
                             miscSettingsMessage.value.autoCopyCurrentSubtitle ?? false;
+                        this.subtitleController.preCacheDom = miscSettingsMessage.value.preCacheSubtitleDom;
                         break;
                     case 'settings-updated':
                         this._refreshSettings();

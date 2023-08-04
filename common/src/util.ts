@@ -1,5 +1,5 @@
 import sanitize from 'sanitize-filename';
-import { SubtitleModel } from './model';
+import { Rgb, SubtitleModel } from './model';
 
 export function humanReadableTime(timestamp: number, nearestTenth = false): string {
     const totalSeconds = Math.floor(timestamp / 1000);
@@ -245,4 +245,100 @@ export function download(blob: Blob, name: string) {
     a.click();
     URL.revokeObjectURL(url);
     a.remove();
+}
+
+export interface SubtitleStyle {
+    subtitleColor: string;
+    subtitleSize: number;
+    subtitleOutlineThickness: number;
+    subtitleOutlineColor: string;
+    subtitleBackgroundOpacity: number;
+    subtitleBackgroundColor: string;
+    subtitleFontFamily: string;
+}
+
+export function computeStyles({
+    subtitleColor,
+    subtitleSize,
+    subtitleOutlineThickness,
+    subtitleOutlineColor,
+    subtitleBackgroundOpacity,
+    subtitleBackgroundColor,
+    subtitleFontFamily,
+}: SubtitleStyle) {
+    const styles: any = {
+        color: subtitleColor,
+        fontSize: Number(subtitleSize),
+    };
+
+    if (subtitleOutlineThickness > 0) {
+        const thickness = subtitleOutlineThickness;
+        const color = subtitleOutlineColor;
+        styles[
+            'textShadow'
+        ] = `0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}`;
+    }
+
+    if (subtitleBackgroundOpacity > 0) {
+        const opacity = subtitleBackgroundOpacity;
+        const color = subtitleBackgroundColor;
+        const { r, g, b } = hexToRgb(color);
+        styles['backgroundColor'] = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    }
+
+    if (subtitleFontFamily && subtitleFontFamily.length > 0) {
+        styles['fontFamily'] = subtitleFontFamily;
+    }
+
+    return styles;
+}
+
+export function computeStyleString(subtitleSettings: SubtitleStyle) {
+    const color = subtitleSettings.subtitleColor;
+    const fontSize = subtitleSettings.subtitleSize + 'px';
+    let textShadow: string;
+
+    if (subtitleSettings.subtitleOutlineThickness > 0) {
+        const thickness = subtitleSettings.subtitleOutlineThickness;
+        const color = subtitleSettings.subtitleOutlineColor;
+        textShadow = `0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}`;
+    } else {
+        textShadow = '';
+    }
+
+    let backgroundColor: string;
+
+    if (subtitleSettings.subtitleBackgroundOpacity > 0) {
+        const opacity = subtitleSettings.subtitleBackgroundOpacity;
+        const color = subtitleSettings.subtitleBackgroundColor;
+        const { r, g, b } = hexToRgb(color);
+        backgroundColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    } else {
+        backgroundColor = '';
+    }
+
+    let fontFamily: string;
+
+    if (subtitleSettings.subtitleFontFamily && subtitleSettings.subtitleFontFamily.length > 0) {
+        fontFamily = `${subtitleSettings.subtitleFontFamily}`;
+    } else {
+        fontFamily = '';
+    }
+
+    return `color:${color} !important;font-size:${fontSize} !important;text-shadow:${textShadow} !important;background-color:${backgroundColor} !important;font-family:${fontFamily} !important`;
+}
+
+// https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+export function hexToRgb(hex: string): Rgb {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+
+    if (!result) {
+        return { r: 255, g: 255, b: 255 };
+    }
+
+    return {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+    };
 }
