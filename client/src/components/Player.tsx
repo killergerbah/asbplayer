@@ -397,6 +397,10 @@ export default function Player({
     }, [subtitleReader, playbackPreferences, onLoaded, onError, subtitleFiles, audioFileUrl, flattenSubtitleFiles]);
 
     useEffect(() => {
+        setSubtitlesSentThroughChannel(false);
+    }, [channel]);
+
+    useEffect(() => {
         setPlaying(false);
         clock.setTime(0);
         clock.stop();
