@@ -197,6 +197,8 @@
         "misc": "Różne",
         "mp3Preference": "Ponowne kodowanie dźwięku do formatu mp3 (wolniejsze)",
         "noteType": "Typ notatek",
+        "preCacheSubtitleDom": "Pre-cache Subtitle DOM",
+        "preCacheSubtitleDomHelperText": "If enabled, asbplayer will pre-render subtitle text elements in an offscreen document, and re-use those elements for subtitle display. This allows external code to persistently modify subtitle text before it is displayed.",
         "recordingBind": "Nagrywanie",
         "rememberSubtitleOffset": "Zapamiętaj przesunięcie napisów",
         "sentenceField": "Pole na zdanie",

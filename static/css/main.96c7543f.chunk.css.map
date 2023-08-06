@@ -1,0 +1,1 @@
+{"version":3,"sources":["webpack://src/components/video-player.css"],"names":[],"mappings":"AACA,qBACI,wBAA0B,CAC1B,mBAAqB,CACrB,kBACJ","file":"main.96c7543f.chunk.css","sourcesContent":["\n.asbplayer-offscreen {\n    position: fixed !important;\n    left: 100% !important;\n    top: 100% !important;\n}"]}
