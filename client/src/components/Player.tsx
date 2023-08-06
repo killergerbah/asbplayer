@@ -357,8 +357,6 @@ export default function Player({
         async function init() {
             const offset = playbackPreferences.offset;
             setOffset(offset);
-            setSubtitlesSentThroughChannel(false);
-
             let subtitles: DisplaySubtitleModel[] | undefined;
 
             if (subtitleFiles.length > 0) {
@@ -380,6 +378,7 @@ export default function Player({
                         index: i,
                     }));
 
+                    setSubtitlesSentThroughChannel(false);
                     setSubtitles(subtitles);
                     setPlayMode((playMode) => (!subtitles || subtitles.length === 0 ? PlayMode.normal : playMode));
                 } catch (e) {
@@ -392,23 +391,10 @@ export default function Player({
                 subtitles = undefined;
                 setPlayMode(PlayMode.normal);
             }
-
-            if (audioFileUrl) {
-                await mediaAdapter.onReady();
-            }
         }
 
         init().then(() => onLoaded());
-    }, [
-        subtitleReader,
-        playbackPreferences,
-        mediaAdapter,
-        onLoaded,
-        onError,
-        subtitleFiles,
-        audioFileUrl,
-        flattenSubtitleFiles,
-    ]);
+    }, [subtitleReader, playbackPreferences, onLoaded, onError, subtitleFiles, audioFileUrl, flattenSubtitleFiles]);
 
     useEffect(() => {
         setPlaying(false);
@@ -443,6 +429,7 @@ export default function Player({
 
         return channel.onReady(() => {
             setSubtitlesSentThroughChannel(true);
+
             channel.subtitles(
                 subtitles,
                 flattenSubtitleFiles ? [subtitleFiles[0].name] : subtitleFiles.map((f) => f.name)
