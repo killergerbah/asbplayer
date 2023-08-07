@@ -125,7 +125,7 @@ interface PlayerProps {
         postMineAction: PostMineAction | undefined,
         id: string | undefined
     ) => void;
-    onLoaded: () => void;
+    onLoaded: (file: File[]) => void;
     onTabSelected: (tab: VideoTabModel) => void;
     onAnkiDialogRequest: () => void;
     onAnkiDialogRewind: () => void;
@@ -327,16 +327,17 @@ export default function Player({
     );
 
     useEffect(() => {
-        if (!videoFileUrl && !tab) {
+        if (!videoFile && !tab) {
             return;
         }
 
         let channel: VideoChannel;
 
-        if (videoFileUrl) {
+        if (videoFile) {
             const channelId = uuidv4();
             channel = new VideoChannel(new BroadcastChannelVideoProtocol(channelId));
             setChannelId(channelId);
+            onLoaded([videoFile]);
         } else {
             channel = new VideoChannel(new ChromeTabVideoProtocol(tab!.id, tab!.src, extension));
             channel.init();
@@ -351,7 +352,7 @@ export default function Player({
             setPlaying(false);
             channel.close();
         };
-    }, [clock, videoFileUrl, tab, extension, videoChannelRef]);
+    }, [clock, videoPopOut, videoFile, tab, extension, videoChannelRef, onLoaded]);
 
     useEffect(() => {
         async function init() {
@@ -393,8 +394,8 @@ export default function Player({
             }
         }
 
-        init().then(() => onLoaded());
-    }, [subtitleReader, playbackPreferences, onLoaded, onError, subtitleFiles, audioFileUrl, flattenSubtitleFiles]);
+        init().then(() => onLoaded(subtitleFiles));
+    }, [subtitleReader, playbackPreferences, onLoaded, onError, subtitleFiles, flattenSubtitleFiles]);
 
     useEffect(() => {
         setSubtitlesSentThroughChannel(false);
@@ -409,7 +410,11 @@ export default function Player({
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
         }
-    }, [clock, audioFileUrl]);
+
+        if (audioFile) {
+            onLoaded([audioFile]);
+        }
+    }, [clock, onLoaded, audioFile]);
 
     useEffect(
         () => channel?.onExit(() => videoFileUrl && onUnloadVideo(videoFileUrl)),
@@ -649,7 +654,7 @@ export default function Player({
     }, [subtitles, subtitleCollection, playMode, clock, seek, playing]);
 
     useEffect(() => {
-        if (videoPopOut && channelId && videoFileUrl) {
+        if (videoPopOut && videoFileUrl && channelId) {
             window.open(
                 process.env.PUBLIC_URL +
                     '/?video=' +
@@ -663,7 +668,7 @@ export default function Player({
         }
 
         setLastJumpToTopTimestamp(Date.now());
-    }, [videoPopOut, channelId, videoFileUrl, videoFrameRef]);
+    }, [videoPopOut, channelId, videoFileUrl, videoFrameRef, videoChannelRef]);
 
     const handlePlay = useCallback(() => play(clock, mediaAdapter, true), [clock, mediaAdapter]);
     const handlePause = useCallback(() => pause(clock, mediaAdapter, true), [clock, mediaAdapter]);

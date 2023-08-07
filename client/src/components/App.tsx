@@ -380,7 +380,7 @@ function App() {
     const [jumpToSubtitle, setJumpToSubtitle] = useState<SubtitleModel>();
     const [rewindSubtitle, setRewindSubtitle] = useState<SubtitleModel>();
     const [sources, setSources] = useState<MediaSources>({ subtitleFiles: [] });
-    const [loading, setLoading] = useState<boolean>(false);
+    const [loadingSources, setLoadingSources] = useState<File[]>([]);
     const [dragging, setDragging] = useState<boolean>(false);
     const dragEnterRef = useRef<Element | null>(null);
     const [fileName, setFileName] = useState<string>();
@@ -988,8 +988,6 @@ function App() {
                 let { subtitleFiles, audioFile, videoFile } = extractSources(files);
 
                 setSources((previous) => {
-                    setLoading(true);
-
                     let videoFileUrl = undefined;
                     let audioFileUrl = undefined;
 
@@ -1018,6 +1016,20 @@ function App() {
                         videoFileUrl: videoFileUrl,
                     };
 
+                    const sourcesToList = (s: MediaSources) =>
+                        [...s.subtitleFiles, s.videoFile, s.audioFile].filter((f) => f !== undefined) as File[];
+
+                    const previousLoadingSources = sourcesToList(previous);
+                    const loadingSources = sourcesToList(sources).filter((f) => {
+                        for (const previousLoadingSource of previousLoadingSources) {
+                            if (f === previousLoadingSource) {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    });
+                    setLoadingSources(loadingSources);
                     return sources;
                 });
 
@@ -1288,7 +1300,19 @@ function App() {
         [inVideoPlayer]
     );
 
-    const handleSourcesLoaded = useCallback(() => setLoading(false), []);
+    const handleFilesLoaded = useCallback((loadedFiles: File[]) => {
+        setLoadingSources((loadingFiles) =>
+            loadingFiles?.filter((loadingFile) => {
+                for (const loadedFile of loadedFiles) {
+                    if (loadedFile === loadingFile) {
+                        return false;
+                    }
+                }
+
+                return true;
+            })
+        );
+    }, []);
 
     useEffect(() => {
         var view = searchParams.get('view');
@@ -1322,6 +1346,7 @@ function App() {
         return <NavigateToVideo searchParams={searchParams} />;
     }
 
+    const loading = loadingSources.length !== 0;
     const nothingLoaded =
         (loading && !videoFrameRef.current) ||
         (sources.subtitleFiles.length === 0 && !sources.audioFile && !sources.videoFile);
@@ -1466,7 +1491,7 @@ function App() {
                                         onError={handleError}
                                         onUnloadAudio={handleUnloadAudio}
                                         onUnloadVideo={handleUnloadVideo}
-                                        onLoaded={handleSourcesLoaded}
+                                        onLoaded={handleFilesLoaded}
                                         onTabSelected={handleTabSelected}
                                         onAnkiDialogRequest={handleAnkiDialogRequest}
                                         onAnkiDialogRewind={handleAnkiDialogRewind}

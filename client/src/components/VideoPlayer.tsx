@@ -255,6 +255,7 @@ export default function VideoPlayer({
         videoRef.current.height = windowHeight;
     }
     const playerChannel = useMemo(() => new PlayerChannel(channel), [channel]);
+    const [playerChannelSubscribed, setPlayerChannelSubscribed] = useState<boolean>(false);
     const [playing, setPlaying] = useState<boolean>(false);
     const [fullscreen, setFullscreen] = useState<boolean>(false);
     const playingRef = useRef<boolean>();
@@ -492,6 +493,7 @@ export default function VideoPlayer({
             }
         };
 
+        setPlayerChannelSubscribed(true);
         return () => playerChannel.close();
     }, [clock, playerChannel, updateSubtitlesWithOffset, updatePlaybackRate, popOut]);
 
@@ -1138,6 +1140,10 @@ export default function VideoPlayer({
             [subtitleStylesString, imageBasedSubtitleScaleFactor]
         )
     );
+
+    if (!playerChannelSubscribed) {
+        return null;
+    }
 
     return (
         <div ref={containerRef} onMouseMove={handleMouseMove} className={classes.root}>
