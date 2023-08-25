@@ -18,7 +18,11 @@ export const i18nInit = async (lang: string) => {
 
         // If a localization doesn't exist for lang then actualLanguage will be a fallback language
         const actualLanguage = langsInitialized[lang];
-        i18n.changeLanguage(actualLanguage);
+
+        if (i18n.language !== actualLanguage) {
+            i18n.changeLanguage(actualLanguage);
+        }
+
         return;
     }
 
