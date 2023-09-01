@@ -40,14 +40,23 @@ export interface AnkiSettings {
     readonly surroundingSubtitlesTimeRadius: number;
 }
 
-export interface SubtitleSettings {
-    readonly subtitleSize: number;
+export interface CustomStyle {
+    readonly key: string;
+    readonly value: string;
+}
+
+export interface TextSubtitleSettings {
     readonly subtitleColor: string;
+    readonly subtitleSize: number;
     readonly subtitleOutlineThickness: number;
     readonly subtitleOutlineColor: string;
-    readonly subtitleBackgroundColor: string;
     readonly subtitleBackgroundOpacity: number;
+    readonly subtitleBackgroundColor: string;
     readonly subtitleFontFamily: string;
+    readonly subtitleCustomStyles: CustomStyle[];
+}
+
+export interface SubtitleSettings extends TextSubtitleSettings {
     readonly imageBasedSubtitleScaleFactor: number;
 }
 

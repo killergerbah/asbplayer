@@ -1072,6 +1072,7 @@ export default function VideoPlayer({
         subtitleBackgroundColor,
         subtitleBackgroundOpacity,
         subtitleFontFamily,
+        subtitleCustomStyles,
         imageBasedSubtitleScaleFactor,
     } = subtitleSettings;
     const subtitleStyles = useMemo(
@@ -1084,6 +1085,7 @@ export default function VideoPlayer({
                 subtitleBackgroundColor,
                 subtitleBackgroundOpacity,
                 subtitleFontFamily,
+                subtitleCustomStyles,
             }),
         [
             subtitleSize,
@@ -1093,6 +1095,7 @@ export default function VideoPlayer({
             subtitleBackgroundColor,
             subtitleBackgroundOpacity,
             subtitleFontFamily,
+            subtitleCustomStyles,
         ]
     );
 
@@ -1106,6 +1109,7 @@ export default function VideoPlayer({
                 subtitleBackgroundColor,
                 subtitleBackgroundOpacity,
                 subtitleFontFamily,
+                subtitleCustomStyles,
             }),
         [
             subtitleSize,
@@ -1115,6 +1119,7 @@ export default function VideoPlayer({
             subtitleBackgroundColor,
             subtitleBackgroundOpacity,
             subtitleFontFamily,
+            subtitleCustomStyles,
         ]
     );
 

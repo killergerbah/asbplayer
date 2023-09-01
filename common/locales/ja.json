@@ -169,6 +169,7 @@
         "noSubtitles": "字幕はありません"
     },
     "settings": {
+        "addCustomCss": "カスタムCSSを追加",
         "addCustomField": "カスタムフィールドを追加",
         "anki": "Anki",
         "ankiConnectUrl": "AnkiConnect の URL",
@@ -182,6 +183,7 @@
         "autoPausePreferenceHelperText": "自動一時停止を有効化する項目ではなく、自動一時停止がオンになっている時に一時停止するタイミングを設定する。",
         "copyOnMine": "マイニングした字幕をクリップボードにコピー",
         "corsHelperText": "<0>この動画</0>を参考に、{{origin}} が AnkiConnect 設定の webCorsOriginList に入っていることを確認してください。",
+        "customCssField": "CSS: {{styleKey}}",
         "deck": "デッキ",
         "definitionField": "詳細フィールド",
         "imageBasedSubtitleScaleFactor": "画像ベースの字幕の表示サイズ倍数",
@@ -199,6 +201,8 @@
         "preCacheSubtitleDomHelperText": "If enabled, asbplayer will pre-render subtitle text elements in an offscreen document, and re-use those elements for subtitle display. This allows external code to persistently modify subtitle text before it is displayed.",
         "rememberSubtitleOffset": "字幕の表示タイミングを記憶する",
         "sentenceField": "文フィールド",
+        "styleKey": "スタイルのキー",
+        "styleValue": "スタイルの値",
         "sourceField": "ソースフィールド",
         "subtitleAppearance": "字幕の表示設定",
         "subtitleBackgroundColor": "字幕の背景色",

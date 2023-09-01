@@ -169,6 +169,7 @@
         "noSubtitles": "No subtitles"
     },
     "settings": {
+        "addCustomCss": "Add Custom CSS",
         "addCustomField": "Add Custom Field",
         "anki": "Anki",
         "ankiConnectUrl": "Anki Connect URL",
@@ -182,6 +183,7 @@
         "autoPausePreferenceHelperText": "Does not enable auto-pause. Sets the preference for when to pause when auto-pause is enabled.",
         "copyOnMine": "Copy mined subtitles to clipboard",
         "corsHelperText": "Ensure that {{origin}} is in the webCorsOriginList in your AnkiConnect settings as in this <0>video</0>.",
+        "customCssField": "CSS: {{styleKey}}",
         "deck": "Deck",
         "definitionField": "Definition Field",
         "extensionOverriddenBind": "Overridden",
@@ -202,6 +204,8 @@
         "recordingBind": "Recording",
         "rememberSubtitleOffset": "Remember subtitle offset",
         "sentenceField": "Sentence Field",
+        "styleKey": "Style Key",
+        "styleValue": "Style Value",
         "sourceField": "Source Field",
         "subtitleAppearance": "Subtitle Appearance",
         "subtitleBackgroundColor": "Subtitle Background Color",

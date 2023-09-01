@@ -74,6 +74,7 @@ const subtitleBackgroundColorKey = 'subtitleBackgroundColor';
 const subtitleBackgroundOpacityKey = 'subtitleBackgroundOpacity';
 const subtitleFontFamilyKey = 'subtitleFontFamily';
 const subtitlePreviewKey = 'subtitlePreview';
+const subtitleCustomStylesKey = 'subtitleCustomStyles';
 const preCacheSubtitleDomKey = 'preCacheSubtitleDom';
 const imageBasedSubtitleScaleFactorKey = 'imageBasedSubtitleScaleFactor';
 const audioPaddingStartKey = 'audioPaddingStart';
@@ -127,6 +128,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             subtitleBackgroundOpacity: this.subtitleBackgroundOpacity,
             subtitleFontFamily: this.subtitleFontFamily,
             subtitlePreview: this.subtitlePreview,
+            subtitleCustomStyles: this.subtitleCustomStyles,
             preCacheSubtitleDom: this.preCacheSubtitleDom,
             imageBasedSubtitleScaleFactor: this.imageBasedSubtitleScaleFactor,
             preferMp3: this.preferMp3,
@@ -169,6 +171,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.subtitleBackgroundOpacity = newSettings.subtitleBackgroundOpacity;
         this.subtitleFontFamily = newSettings.subtitleFontFamily;
         this.subtitlePreview = newSettings.subtitlePreview;
+        this.subtitleCustomStyles = newSettings.subtitleCustomStyles;
         this.preCacheSubtitleDom = newSettings.preCacheSubtitleDom;
         this.imageBasedSubtitleScaleFactor = newSettings.imageBasedSubtitleScaleFactor;
         this.customAnkiFields = newSettings.customAnkiFields;
@@ -201,6 +204,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             subtitleBackgroundOpacity: this.subtitleBackgroundOpacity,
             subtitleFontFamily: this.subtitleFontFamily,
             imageBasedSubtitleScaleFactor: this.imageBasedSubtitleScaleFactor,
+            subtitleCustomStyles: this.subtitleCustomStyles,
         };
     }
 
@@ -438,6 +442,20 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
 
     set subtitlePreview(subtitlePreview) {
         this._storage.set(subtitlePreviewKey, subtitlePreview);
+    }
+
+    get subtitleCustomStyles() {
+        const stylesString = this._storage.get(subtitleCustomStylesKey);
+
+        if (stylesString === null) {
+            return [];
+        }
+
+        return JSON.parse(stylesString);
+    }
+
+    set subtitleCustomStyles(value) {
+        this._storage.set(subtitleCustomStylesKey, JSON.stringify(value));
     }
 
     get preCacheSubtitleDom() {

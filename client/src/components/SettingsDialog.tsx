@@ -34,6 +34,7 @@ import {
     KeyBindName,
     supportedLanguages,
     computeStyles,
+    CustomStyle,
 } from '@project/common';
 import { TagsTextField } from '@project/common/components';
 import hotkeys from 'hotkeys-js';
@@ -44,6 +45,7 @@ import Switch from '@material-ui/core/Switch';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Tooltip from '@material-ui/core/Tooltip';
 import { useOutsideClickListener } from '../hooks/use-outside-click-listener';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
@@ -143,7 +145,7 @@ function SelectableSetting({
                     endAdornment: removable && (
                         <InputAdornment position="end">
                             <IconButton onClick={(e) => onRemoval?.()}>
-                                <DeleteIcon />
+                                <DeleteIcon fontSize="small" />
                             </IconButton>
                         </InputAdornment>
                     ),
@@ -312,7 +314,7 @@ function KeyBindField({ label, keys, extensionOverridden, onKeysChange, onOpenEx
                         endAdornment: (
                             <InputAdornment position="end">
                                 <IconButton ref={ref} onClick={handleEditKeyBinding}>
-                                    <EditIcon />
+                                    <EditIcon fontSize="small" />
                                 </IconButton>
                             </InputAdornment>
                         ),
@@ -348,7 +350,83 @@ function AddCustomField({ onAddCustomField }: AddCustomFieldProps) {
                                 setFieldName('');
                             }}
                         >
-                            <AddIcon />
+                            <AddIcon fontSize="small" />
+                        </IconButton>
+                    </InputAdornment>
+                ),
+            }}
+        />
+    );
+}
+
+interface AddCustomStyleProps {
+    styleKey: string;
+    onStyleKey: (styleKey: string) => void;
+    onAddCustomStyle: (styleKey: string) => void;
+}
+
+function AddCustomStyle({ styleKey, onStyleKey, onAddCustomStyle }: AddCustomStyleProps) {
+    const { t } = useTranslation();
+    return (
+        <Autocomplete
+            options={cssStyles}
+            value={styleKey}
+            fullWidth
+            disableClearable
+            clearOnEscape
+            clearOnBlur
+            forcePopupIcon={false}
+            onReset={() => onStyleKey('')}
+            onChange={(event, newValue) => {
+                onStyleKey(newValue ?? '');
+            }}
+            renderInput={(params) => (
+                <TextField
+                    placeholder={t('settings.styleKey')!}
+                    label={t('settings.addCustomCss')}
+                    {...params}
+                    InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <IconButton
+                                    disabled={cssStyles.find((s) => s === styleKey) === undefined}
+                                    onClick={() => {
+                                        onAddCustomStyle(styleKey);
+                                        onStyleKey(cssStyles[0]);
+                                    }}
+                                >
+                                    <AddIcon fontSize="small" />
+                                </IconButton>
+                            </InputAdornment>
+                        ),
+                    }}
+                />
+            )}
+        />
+    );
+}
+
+interface CustomStyleSettingProps {
+    customStyle: CustomStyle;
+    onCustomStyle: (style: CustomStyle) => void;
+    onDelete: () => void;
+}
+
+function CustomStyleSetting({ customStyle, onCustomStyle, onDelete }: CustomStyleSettingProps) {
+    const { t } = useTranslation();
+
+    return (
+        <TextField
+            label={t('settings.customCssField', { styleKey: customStyle.key })}
+            placeholder={t('settings.styleValue')!}
+            value={customStyle.value}
+            onChange={(e) => onCustomStyle({ key: customStyle.key, value: e.target.value })}
+            InputProps={{
+                endAdornment: (
+                    <InputAdornment position="end">
+                        <IconButton onClick={onDelete}>
+                            <DeleteIcon fontSize="small" />
                         </IconButton>
                     </InputAdornment>
                 ),
@@ -365,6 +443,8 @@ interface Props {
     scrollToId?: string;
     onClose: (settings: AsbplayerSettings) => void;
 }
+
+const cssStyles = Object.keys(document.body.style);
 
 export default function SettingsDialog({ anki, extension, open, settings, scrollToId, onClose }: Props) {
     const classes = useStyles();
@@ -456,6 +536,8 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         settings.subtitleBackgroundOpacity
     );
     const [subtitleFontFamily, setSubtitleFontFamily] = useState<string>(settings.subtitleFontFamily);
+    const [subtitleCustomStyles, setSubtitleCustomStyles] = useState<CustomStyle[]>(settings.subtitleCustomStyles);
+    const [currentStyleKey, setCurrentStyleKey] = useState<string>(cssStyles[0]);
     const [preCacheSubtitleDom, setPreCacheSubtitleDom] = useState<boolean>(settings.preCacheSubtitleDom);
 
     const [imageBasedSubtitleScaleFactor, setImageBasedSubtitleScaleFactor] = useState<number>(
@@ -617,6 +699,9 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setSubtitlePreview(e.target.value),
         []
     );
+    const handleAddCustomStyle = useCallback((styleKey: string) => {
+        setSubtitleCustomStyles((styles) => [...styles, { key: styleKey, value: '' }]);
+    }, []);
     const handlePreCacheSubtitleDomChange = useCallback(
         (e: ChangeEvent<HTMLInputElement>) => setPreCacheSubtitleDom(e.target.checked),
         []
@@ -713,6 +798,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                 subtitleBackgroundOpacity,
                 subtitleBackgroundColor,
                 subtitleFontFamily,
+                subtitleCustomStyles,
             }),
         [
             subtitleColor,
@@ -722,6 +808,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
             subtitleBackgroundOpacity,
             subtitleBackgroundColor,
             subtitleFontFamily,
+            subtitleCustomStyles,
         ]
     );
 
@@ -824,6 +911,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
             subtitleBackgroundOpacity: Number(subtitleBackgroundOpacity),
             subtitleFontFamily: subtitleFontFamily,
             subtitlePreview: subtitlePreview,
+            subtitleCustomStyles: subtitleCustomStyles,
             preCacheSubtitleDom: preCacheSubtitleDom,
             imageBasedSubtitleScaleFactor: imageBasedSubtitleScaleFactor,
             customAnkiFields: customFields,
@@ -868,6 +956,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         subtitleBackgroundOpacity,
         subtitleFontFamily,
         subtitlePreview,
+        subtitleCustomStyles,
         preCacheSubtitleDom,
         imageBasedSubtitleScaleFactor,
         themeType,
@@ -1363,6 +1452,37 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                         onChange={handleImageBasedSubtitleScaleFactorChange}
                                     />
                                 </div>
+                                {subtitleCustomStyles.map((customStyle, index) => {
+                                    return (
+                                        <CustomStyleSetting
+                                            key={index}
+                                            customStyle={customStyle}
+                                            onCustomStyle={(newCustomStyle: CustomStyle) => {
+                                                setSubtitleCustomStyles((existingValue) => {
+                                                    const newValue = [...existingValue];
+                                                    newValue[index] = { ...newCustomStyle };
+                                                    return newValue;
+                                                });
+                                            }}
+                                            onDelete={() => {
+                                                setSubtitleCustomStyles((existingValue) => {
+                                                    const newValue = [];
+                                                    for (let j = 0; j < existingValue.length; ++j) {
+                                                        if (j !== index) {
+                                                            newValue.push(existingValue[j]);
+                                                        }
+                                                    }
+                                                    return newValue;
+                                                });
+                                            }}
+                                        />
+                                    );
+                                })}
+                                <AddCustomStyle
+                                    styleKey={currentStyleKey}
+                                    onStyleKey={setCurrentStyleKey}
+                                    onAddCustomStyle={handleAddCustomStyle}
+                                />
                                 <div className={classes.subtitlePreview}>
                                     <input
                                         value={subtitlePreview}
@@ -1415,7 +1535,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                             }
                                             extensionOverridden={extension.installed && properties.extensionOverridden}
                                             onKeysChange={(keys) => handleKeysChange(keys, keyBindName)}
-                                            onOpenExtensionShortcuts={() => extension.openShortcuts()}
+                                            onOpenExtensionShortcuts={extension.openShortcuts}
                                         />
                                     );
                                 })}

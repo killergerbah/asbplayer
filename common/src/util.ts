@@ -1,5 +1,6 @@
 import sanitize from 'sanitize-filename';
 import { Rgb, SubtitleModel } from './model';
+import { TextSubtitleSettings } from './settings';
 
 export function humanReadableTime(timestamp: number, nearestTenth = false): string {
     const totalSeconds = Math.floor(timestamp / 1000);
@@ -247,16 +248,6 @@ export function download(blob: Blob, name: string) {
     a.remove();
 }
 
-export interface SubtitleStyle {
-    subtitleColor: string;
-    subtitleSize: number;
-    subtitleOutlineThickness: number;
-    subtitleOutlineColor: string;
-    subtitleBackgroundOpacity: number;
-    subtitleBackgroundColor: string;
-    subtitleFontFamily: string;
-}
-
 export function computeStyles({
     subtitleColor,
     subtitleSize,
@@ -265,10 +256,11 @@ export function computeStyles({
     subtitleBackgroundOpacity,
     subtitleBackgroundColor,
     subtitleFontFamily,
-}: SubtitleStyle) {
-    const styles: any = {
+    subtitleCustomStyles,
+}: TextSubtitleSettings) {
+    const styles: { [key: string]: any } = {
         color: subtitleColor,
-        fontSize: Number(subtitleSize),
+        fontSize: `${subtitleSize}px`,
     };
 
     if (subtitleOutlineThickness > 0) {
@@ -290,42 +282,38 @@ export function computeStyles({
         styles['fontFamily'] = subtitleFontFamily;
     }
 
+    for (const customStyle of subtitleCustomStyles) {
+        styles[customStyle.key] = customStyle.value;
+    }
+
     return styles;
 }
 
-export function computeStyleString(subtitleSettings: SubtitleStyle) {
-    const color = subtitleSettings.subtitleColor;
-    const fontSize = subtitleSettings.subtitleSize + 'px';
-    let textShadow: string;
+// https://stackoverflow.com/questions/63116039/camelcase-to-kebab-case
+function kebabize(str: string) {
+    const kebabized = str.replace(/[A-Z]+(?![a-z])|[A-Z]/g, ($, ofs) => (ofs ? '-' : '') + $.toLowerCase());
 
-    if (subtitleSettings.subtitleOutlineThickness > 0) {
-        const thickness = subtitleSettings.subtitleOutlineThickness;
-        const color = subtitleSettings.subtitleOutlineColor;
-        textShadow = `0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}`;
-    } else {
-        textShadow = '';
+    if (
+        kebabized.startsWith('webkit-') ||
+        kebabized.startsWith('moz-') ||
+        kebabized.startsWith('ms-') ||
+        kebabized.startsWith('o-')
+    ) {
+        return `-${kebabized}`;
     }
 
-    let backgroundColor: string;
+    return kebabized;
+}
 
-    if (subtitleSettings.subtitleBackgroundOpacity > 0) {
-        const opacity = subtitleSettings.subtitleBackgroundOpacity;
-        const color = subtitleSettings.subtitleBackgroundColor;
-        const { r, g, b } = hexToRgb(color);
-        backgroundColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
-    } else {
-        backgroundColor = '';
+export function computeStyleString(styleSettings: TextSubtitleSettings) {
+    const stylesMap = computeStyles(styleSettings);
+    const styleList = [];
+
+    for (const [key, value] of Object.entries(stylesMap)) {
+        styleList.push(`${kebabize(key)}: ${value} !important`);
     }
 
-    let fontFamily: string;
-
-    if (subtitleSettings.subtitleFontFamily && subtitleSettings.subtitleFontFamily.length > 0) {
-        fontFamily = `${subtitleSettings.subtitleFontFamily}`;
-    } else {
-        fontFamily = '';
-    }
-
-    return `color:${color} !important;font-size:${fontSize} !important;text-shadow:${textShadow} !important;background-color:${backgroundColor} !important;font-family:${fontFamily} !important`;
+    return styleList.join(';');
 }
 
 // https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
