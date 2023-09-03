@@ -266,9 +266,7 @@ export function computeStyles({
     if (subtitleOutlineThickness > 0) {
         const thickness = subtitleOutlineThickness;
         const color = subtitleOutlineColor;
-        styles[
-            'textShadow'
-        ] = `0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}, 0 0 ${thickness}px ${color}`;
+        styles['webkitTextStroke'] = `${color} ${thickness}px`;
     }
 
     if (subtitleBackgroundOpacity > 0) {
