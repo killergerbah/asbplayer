@@ -384,6 +384,7 @@ function AddCustomStyle({ styleKey, onStyleKey, onAddCustomStyle }: AddCustomSty
                 <TextField
                     placeholder={t('settings.styleKey')!}
                     label={t('settings.addCustomCss')}
+                    color="secondary"
                     {...params}
                     InputProps={{
                         ...params.InputProps,
@@ -418,6 +419,7 @@ function CustomStyleSetting({ customStyle, onCustomStyle, onDelete }: CustomStyl
 
     return (
         <TextField
+            color="secondary"
             label={t('settings.customCssField', { styleKey: customStyle.key })}
             placeholder={t('settings.styleValue')!}
             value={customStyle.value}
