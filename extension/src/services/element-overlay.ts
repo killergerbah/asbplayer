@@ -26,17 +26,17 @@ export interface ElementOverlay {
     refresh(): void;
     hide(): void;
     dispose(): void;
+    nonFullscreenContainerClassName: string;
+    nonFullscreenContentClassName: string;
+    fullscreenContainerClassName: string;
+    fullscreenContentClassName: string;
+    offsetAnchor: OffsetAnchor;
     contentPositionOffset: number;
 }
 
 export class CachingElementOverlay implements ElementOverlay {
     private readonly targetElement: HTMLElement;
 
-    private readonly nonFullscreenContainerClassName: string;
-    private readonly nonFullscreenContentClassName: string;
-    private readonly fullscreenContainerClassName: string;
-    private readonly fullscreenContentClassName: string;
-    private readonly offsetAnchor: OffsetAnchor = OffsetAnchor.bottom;
     private readonly domCache: OffscreenDomCache = new OffscreenDomCache();
 
     private fullscreenContainerElement?: HTMLElement;
@@ -49,6 +49,11 @@ export class CachingElementOverlay implements ElementOverlay {
     private fullscreenElementFullscreenPollingInterval?: NodeJS.Timer;
     private fullscreenStylesInterval?: NodeJS.Timer;
 
+    nonFullscreenContainerClassName: string;
+    nonFullscreenContentClassName: string;
+    fullscreenContainerClassName: string;
+    fullscreenContentClassName: string;
+    offsetAnchor: OffsetAnchor = OffsetAnchor.bottom;
     contentPositionOffset: number;
 
     constructor({
@@ -337,12 +342,6 @@ export class CachingElementOverlay implements ElementOverlay {
 export class DefaultElementOverlay implements ElementOverlay {
     private readonly targetElement: HTMLElement;
 
-    private readonly nonFullscreenContainerClassName: string;
-    private readonly nonFullscreenContentClassName: string;
-    private readonly fullscreenContainerClassName: string;
-    private readonly fullscreenContentClassName: string;
-    private readonly offsetAnchor: OffsetAnchor = OffsetAnchor.bottom;
-
     private fullscreenContainerElement?: HTMLElement;
     private fullscreenContentElement?: HTMLElement;
     private nonFullscreenContainerElement?: HTMLElement;
@@ -354,7 +353,12 @@ export class DefaultElementOverlay implements ElementOverlay {
     private fullscreenElementFullscreenPollingInterval?: NodeJS.Timer;
     private fullscreenStylesInterval?: NodeJS.Timer;
 
+    nonFullscreenContainerClassName: string;
+    nonFullscreenContentClassName: string;
+    fullscreenContainerClassName: string;
+    fullscreenContentClassName: string;
     contentPositionOffset: number;
+    offsetAnchor: OffsetAnchor = OffsetAnchor.bottom;
 
     constructor({
         targetElement,

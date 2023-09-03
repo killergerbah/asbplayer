@@ -139,8 +139,20 @@ export default class SubtitleController {
             return;
         }
 
-        this._resetOverlays(value, this.preCacheDom, true);
+        const { subtitleOverlayParams, notificationOverlayParams } = this._elementOverlayParams(value);
+        this._applyElementOverlayParams(this.subtitlesElementOverlay, subtitleOverlayParams);
+        this._applyElementOverlayParams(this.notificationElementOverlay, notificationOverlayParams);
+        this.subtitlesElementOverlay.hide();
+        this.notificationElementOverlay.hide();
         this._subtitleAlignment = value;
+    }
+
+    private _applyElementOverlayParams(overlay: ElementOverlay, params: ElementOverlayParams) {
+        overlay.offsetAnchor = params.offsetAnchor;
+        overlay.fullscreenContainerClassName = params.fullscreenContainerClassName;
+        overlay.fullscreenContentClassName = params.fullscreenContentClassName;
+        overlay.nonFullscreenContainerClassName = params.nonFullscreenContainerClassName;
+        overlay.nonFullscreenContentClassName = params.nonFullscreenContentClassName;
     }
 
     set displaySubtitles(displaySubtitles: boolean) {
@@ -168,6 +180,22 @@ export default class SubtitleController {
     }
 
     private _overlays(alignment: SubtitleAlignment, preCacheDom: boolean) {
+        const { subtitleOverlayParams, notificationOverlayParams } = this._elementOverlayParams(alignment);
+
+        if (preCacheDom) {
+            return {
+                subtitlesElementOverlay: new CachingElementOverlay(subtitleOverlayParams),
+                notificationElementOverlay: new CachingElementOverlay(notificationOverlayParams),
+            };
+        }
+
+        return {
+            subtitlesElementOverlay: new DefaultElementOverlay(subtitleOverlayParams),
+            notificationElementOverlay: new DefaultElementOverlay(notificationOverlayParams),
+        };
+    }
+
+    private _elementOverlayParams(alignment: SubtitleAlignment) {
         let subtitleOverlayParams: ElementOverlayParams;
         let notificationOverlayParams: ElementOverlayParams;
 
@@ -212,17 +240,7 @@ export default class SubtitleController {
             }
         }
 
-        if (preCacheDom) {
-            return {
-                subtitlesElementOverlay: new CachingElementOverlay(subtitleOverlayParams),
-                notificationElementOverlay: new CachingElementOverlay(notificationOverlayParams),
-            };
-        }
-
-        return {
-            subtitlesElementOverlay: new DefaultElementOverlay(subtitleOverlayParams),
-            notificationElementOverlay: new DefaultElementOverlay(notificationOverlayParams),
-        };
+        return { subtitleOverlayParams, notificationOverlayParams };
     }
 
     bind() {
