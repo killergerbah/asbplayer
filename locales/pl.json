@@ -169,6 +169,7 @@
         "noSubtitles": "No subtitles"
     },
     "settings": {
+        "addCustomCss": "Add Custom CSS",
         "addCustomField": "Dodaj niestandardowe pole",
         "anki": "Anki",
         "ankiConnectUrl": "URL Anki Connect",
@@ -182,6 +183,7 @@
         "autoPausePreferenceHelperText": "Nie włącza automatycznej pauzy. Ustawia preferencję kiedy się zatrzymać gdy automatyczna pauza jest włączona. ",
         "copyOnMine": "Skopiuj wykopane napisy do schowka",
         "corsHelperText": "Upewnij się że {{origin}} jest w liście webCorsOriginList w twoich ustawieniach AnkiConnect tak",
+        "customCssField": "CSS: {{styleKey}}",
         "deck": "Talia",
         "definitionField": "Pole na definicję ",
         "extensionOverriddenBind": "Nadpisane",
@@ -202,6 +204,8 @@
         "recordingBind": "Nagrywanie",
         "rememberSubtitleOffset": "Zapamiętaj przesunięcie napisów",
         "sentenceField": "Pole na zdanie",
+        "styleKey": "Style Key",
+        "styleValue": "Style Value",
         "sourceField": "Pole na źródło",
         "subtitleAppearance": "Wygląd napisów",
         "subtitleBackgroundColor": "Kolor tła napisów",
@@ -213,6 +217,7 @@
         "subtitleRegexFilter": "Filtr Regex napisów",
         "subtitleRegexFilterTextReplacement": "Zamiana tekstu z filtru Regex napisów",
         "subtitleSize": "Wielkość napisów",
+        "subtitleThickness": "Subtitle Font Thickness",
         "surroundingSubtitlesCountRadius": "Limit liczby napisów otaczających",
         "surroundingSubtitlesTimeRadius": "Limit czasu napisów otaczających",
         "tags": "Tagi",
