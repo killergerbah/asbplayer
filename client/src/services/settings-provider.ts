@@ -11,6 +11,7 @@ import CachedLocalStorage from './cached-local-storage';
 const defaultAnkiConnectUrl = 'http://127.0.0.1:8765';
 const defaultSubtitleSize = 36;
 const defaultSubtitleColor = '#ffffff';
+const defaultSubtitleThickness = 700;
 const defaultSubtitleOutlineThickness = 0;
 const defaultSubtitleOutlineColor = '#000000';
 const defaultSubtitleBackgroundColor = '#000000';
@@ -68,6 +69,7 @@ const customAnkiFieldsKey = 'customAnkiFields';
 const tagsKey = 'tags';
 const subtitleSizeKey = 'subtitleSize';
 const subtitleColorKey = 'subtitleColor';
+const subtitleThicknessKey = 'subtitleThickness';
 const subtitleOutlineThicknessKey = 'subtitleOutlineThickness';
 const subtitleOutlineColorKey = 'subtitleOutlineColor';
 const subtitleBackgroundColorKey = 'subtitleBackgroundColor';
@@ -121,6 +123,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
             tags: this.tags,
             sourceField: this.sourceField,
             subtitleSize: this.subtitleSize,
+            subtitleThickness: this.subtitleThickness,
             subtitleColor: this.subtitleColor,
             subtitleOutlineThickness: this.subtitleOutlineThickness,
             subtitleOutlineColor: this.subtitleOutlineColor,
@@ -164,6 +167,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this.urlField = newSettings.urlField;
         this.tags = newSettings.tags;
         this.subtitleSize = newSettings.subtitleSize;
+        this.subtitleThickness = newSettings.subtitleThickness;
         this.subtitleColor = newSettings.subtitleColor;
         this.subtitleOutlineThickness = newSettings.subtitleOutlineThickness;
         this.subtitleOutlineColor = newSettings.subtitleOutlineColor;
@@ -198,6 +202,7 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         return {
             subtitleSize: this.subtitleSize,
             subtitleColor: this.subtitleColor,
+            subtitleThickness: this.subtitleThickness,
             subtitleOutlineThickness: this.subtitleOutlineThickness,
             subtitleOutlineColor: this.subtitleOutlineColor,
             subtitleBackgroundColor: this.subtitleBackgroundColor,
@@ -394,6 +399,14 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
 
     set subtitleSize(subtitleSize) {
         this._storage.set(subtitleSizeKey, String(subtitleSize));
+    }
+
+    get subtitleThickness() {
+        return this._getNumberItem(subtitleThicknessKey, defaultSubtitleThickness);
+    }
+
+    set subtitleThickness(subtitleThickness) {
+        this._storage.set(subtitleThicknessKey, String(subtitleThickness));
     }
 
     get subtitleOutlineColor() {

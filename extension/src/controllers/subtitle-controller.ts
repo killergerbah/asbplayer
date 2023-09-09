@@ -2,7 +2,6 @@ import {
     computeStyleString,
     CopyToClipboardMessage,
     OffsetFromVideoMessage,
-    Rgb,
     SubtitleAlignment,
     SubtitleModel,
     SubtitleSettings,

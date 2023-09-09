@@ -48,6 +48,7 @@ export interface CustomStyle {
 export interface TextSubtitleSettings {
     readonly subtitleColor: string;
     readonly subtitleSize: number;
+    readonly subtitleThickness: number;
     readonly subtitleOutlineThickness: number;
     readonly subtitleOutlineColor: string;
     readonly subtitleBackgroundOpacity: number;

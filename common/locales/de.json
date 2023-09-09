@@ -217,6 +217,7 @@
         "subtitleRegexFilter": "Untertitelfilter (Regulärer Ausdruck)",
         "subtitleRegexFilterTextReplacement": "Untertitelfilter Ersetzung",
         "subtitleSize": "Untertitelgröße",
+        "subtitleThickness": "Subtitle Font Thickness",
         "surroundingSubtitlesCountRadius": "Surrounding Subtitles Count Radius",
         "surroundingSubtitlesTimeRadius": "Surrounding Subtitles Time Radius",
         "tags": "Schlagwörter",

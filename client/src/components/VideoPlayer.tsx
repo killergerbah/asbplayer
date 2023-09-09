@@ -1067,6 +1067,7 @@ export default function VideoPlayer({
     const {
         subtitleSize,
         subtitleColor,
+        subtitleThickness,
         subtitleOutlineThickness,
         subtitleOutlineColor,
         subtitleBackgroundColor,
@@ -1080,6 +1081,7 @@ export default function VideoPlayer({
             computeStyles({
                 subtitleSize,
                 subtitleColor,
+                subtitleThickness,
                 subtitleOutlineThickness,
                 subtitleOutlineColor,
                 subtitleBackgroundColor,
@@ -1090,6 +1092,7 @@ export default function VideoPlayer({
         [
             subtitleSize,
             subtitleColor,
+            subtitleThickness,
             subtitleOutlineThickness,
             subtitleOutlineColor,
             subtitleBackgroundColor,
@@ -1104,6 +1107,7 @@ export default function VideoPlayer({
             computeStyleString({
                 subtitleSize,
                 subtitleColor,
+                subtitleThickness,
                 subtitleOutlineThickness,
                 subtitleOutlineColor,
                 subtitleBackgroundColor,
@@ -1114,6 +1118,7 @@ export default function VideoPlayer({
         [
             subtitleSize,
             subtitleColor,
+            subtitleThickness,
             subtitleOutlineThickness,
             subtitleOutlineColor,
             subtitleBackgroundColor,

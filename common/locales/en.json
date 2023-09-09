@@ -217,6 +217,7 @@
         "subtitleRegexFilter": "Subtitle Regex Filter",
         "subtitleRegexFilterTextReplacement": "Subtitle Regex Filter Text Replacement",
         "subtitleSize": "Subtitle Size",
+        "subtitleThickness": "Subtitle Font Thickness",
         "surroundingSubtitlesCountRadius": "Surrounding Subtitles Count Radius",
         "surroundingSubtitlesTimeRadius": "Surrounding Subtitles Time Radius",
         "tags": "Tags",

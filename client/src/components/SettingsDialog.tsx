@@ -46,6 +46,7 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import Tooltip from '@material-ui/core/Tooltip';
 import { useOutsideClickListener } from '../hooks/use-outside-click-listener';
 import Autocomplete from '@material-ui/lab/Autocomplete';
+import Slider from '@material-ui/core/Slider';
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
@@ -531,6 +532,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
     );
     const [subtitleColor, setSubtitleColor] = useState<string>(settings.subtitleColor);
     const [subtitleSize, setSubtitleSize] = useState<number>(settings.subtitleSize);
+    const [subtitleThickness, setSubtitleThickness] = useState<number>(settings.subtitleThickness);
     const [subtitleOutlineColor, setSubtitleOutlineColor] = useState<string>(settings.subtitleOutlineColor);
     const [subtitleOutlineThickness, setSubtitleOutlineThickness] = useState<number>(settings.subtitleOutlineThickness);
     const [subtitleBackgroundColor, setSubtitleBackgroundColor] = useState<string>(settings.subtitleBackgroundColor);
@@ -701,6 +703,10 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => setSubtitlePreview(e.target.value),
         []
     );
+    const handleSubtitleThicknessChange = useCallback(
+        (event: React.ChangeEvent<{}>, value: number | number[]) => setSubtitleThickness(value as number),
+        []
+    );
     const handleAddCustomStyle = useCallback((styleKey: string) => {
         setSubtitleCustomStyles((styles) => [...styles, { key: styleKey, value: '' }]);
     }, []);
@@ -795,6 +801,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
             computeStyles({
                 subtitleColor,
                 subtitleSize,
+                subtitleThickness,
                 subtitleOutlineThickness,
                 subtitleOutlineColor,
                 subtitleBackgroundOpacity,
@@ -805,6 +812,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         [
             subtitleColor,
             subtitleSize,
+            subtitleThickness,
             subtitleOutlineThickness,
             subtitleOutlineColor,
             subtitleBackgroundOpacity,
@@ -907,6 +915,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
             tags: tags.filter((t) => t !== ''),
             subtitleSize: Number(subtitleSize),
             subtitleColor: subtitleColor,
+            subtitleThickness: subtitleThickness,
             subtitleOutlineThickness: Number(subtitleOutlineThickness),
             subtitleOutlineColor: subtitleOutlineColor,
             subtitleBackgroundColor: subtitleBackgroundColor,
@@ -952,6 +961,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
         preferMp3,
         subtitleSize,
         subtitleColor,
+        subtitleThickness,
         subtitleOutlineThickness,
         subtitleOutlineColor,
         subtitleBackgroundColor,
@@ -1376,6 +1386,21 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                             min: 1,
                                             step: 1,
                                         }}
+                                    />
+                                </div>
+                                <div>
+                                    <Typography variant="subtitle2" color="textSecondary">
+                                        {t('settings.subtitleThickness')}
+                                    </Typography>
+                                    <Slider
+                                        color="secondary"
+                                        value={subtitleThickness}
+                                        onChange={handleSubtitleThicknessChange}
+                                        min={100}
+                                        max={900}
+                                        step={100}
+                                        marks
+                                        valueLabelDisplay="auto"
                                     />
                                 </div>
                                 <div className={classes.subtitleSetting}>

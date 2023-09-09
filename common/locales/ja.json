@@ -214,6 +214,7 @@
         "subtitleRegexFilter": "字幕の正規表現フィルタ",
         "subtitleRegexFilterTextReplacement": "字幕の正規表現フィルタの置き換えテキスト",
         "subtitleSize": "字幕のサイズ",
+        "subtitleThickness": "字幕のフォントの太さ",
         "surroundingSubtitlesCountRadius": "前後に表示される字幕の最大数",
         "surroundingSubtitlesTimeRadius": "前後の字幕が表示される範囲（時間）",
         "tags": "タグ",

@@ -251,6 +251,7 @@ export function download(blob: Blob, name: string) {
 export function computeStyles({
     subtitleColor,
     subtitleSize,
+    subtitleThickness,
     subtitleOutlineThickness,
     subtitleOutlineColor,
     subtitleBackgroundOpacity,
@@ -261,6 +262,7 @@ export function computeStyles({
     const styles: { [key: string]: any } = {
         color: subtitleColor,
         fontSize: `${subtitleSize}px`,
+        fontWeight: String(subtitleThickness),
     };
 
     if (subtitleOutlineThickness > 0) {
