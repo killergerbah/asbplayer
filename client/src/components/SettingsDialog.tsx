@@ -1422,7 +1422,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                         onChange={handleSubtitleOutlineThicknessChange}
                                         inputProps={{
                                             min: 0,
-                                            step: 1,
+                                            step: 0.1,
                                         }}
                                         color="secondary"
                                     />
