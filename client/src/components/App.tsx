@@ -49,7 +49,7 @@ import { useTranslation } from 'react-i18next';
 import LocalizedError from './localized-error';
 import { useChromeExtension } from '../hooks/use-chrome-extension';
 
-const latestExtensionVersion = '0.27.0';
+const latestExtensionVersion = '0.28.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
 
 const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
