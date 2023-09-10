@@ -214,6 +214,7 @@
         "subtitleFontFamily": "Rodzina czcionek napisów",
         "subtitleOutlineColor": "Kolor konturu napisów",
         "subtitleOutlineThickness": "Grubość konturu napisów",
+        "subtitleOutlineThicknessHelperText": "Adds an outline around subtitle text. If this causes overlapping lines, try using a different font.",
         "subtitleRegexFilter": "Filtr Regex napisów",
         "subtitleRegexFilterTextReplacement": "Zamiana tekstu z filtru Regex napisów",
         "subtitleSize": "Wielkość napisów",

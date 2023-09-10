@@ -211,6 +211,7 @@
         "subtitleFontFamily": "字幕のフォントファミリー",
         "subtitleOutlineColor": "字幕の縁取りの色",
         "subtitleOutlineThickness": "字幕の縁取りの太さ",
+        "subtitleOutlineThicknessHelperText": "字幕に縁取りが追加される。縁取りの線が重なっているように見える場合、別のフォントを試してみてください。",
         "subtitleRegexFilter": "字幕の正規表現フィルタ",
         "subtitleRegexFilterTextReplacement": "字幕の正規表現フィルタの置き換えテキスト",
         "subtitleSize": "字幕のサイズ",

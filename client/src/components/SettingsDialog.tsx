@@ -1417,6 +1417,7 @@ export default function SettingsDialog({ anki, extension, open, settings, scroll
                                     <TextField
                                         type="number"
                                         label={t('settings.subtitleOutlineThickness')}
+                                        helperText={t('settings.subtitleOutlineThicknessHelperText')}
                                         fullWidth
                                         value={subtitleOutlineThickness}
                                         onChange={handleSubtitleOutlineThicknessChange}
