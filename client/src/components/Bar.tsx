@@ -8,14 +8,12 @@ import HelpIcon from '@material-ui/icons/Help';
 import FolderIcon from '@material-ui/icons/Folder';
 import IconButton from '@material-ui/core/IconButton';
 import ListIcon from '@material-ui/icons/List';
+import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import SettingsIcon from '@material-ui/icons/Settings';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import Popover from '@material-ui/core/Popover';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 
 interface BarProps {
     drawerWidth: number;
@@ -108,59 +106,22 @@ export default function Bar({
     onDownloadSubtitleFilesAsSrt,
 }: BarProps) {
     const classes = useStyles({ drawerWidth });
-    const [menuOpen, setMenuOpen] = useState<boolean>(false);
-    const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement>();
     const canSaveAsSrt =
         subtitleFiles !== undefined && subtitleFiles.find((f) => !f.name.endsWith('.sup')) !== undefined;
     const { t } = useTranslation();
     const handleFileAction = useCallback(
         (event: React.MouseEvent<HTMLButtonElement>) => {
-            if (canSaveAsSrt) {
-                setMenuAnchorEl(event.currentTarget);
-                setMenuOpen(true);
-            } else {
-                onFileSelector();
-            }
+            onFileSelector();
         },
-        [onFileSelector, canSaveAsSrt]
+        [onFileSelector]
     );
 
-    const handleMenuClose = useCallback(() => {
-        setMenuOpen(false);
-    }, []);
-
-    const handleOpenFilesFromMenu = useCallback(() => {
-        setMenuOpen(false);
-        onFileSelector();
-    }, [onFileSelector]);
-
     const handleDownloadSubtitleFilesAsSrt = useCallback(() => {
-        setMenuOpen(false);
         onDownloadSubtitleFilesAsSrt();
     }, [onDownloadSubtitleFilesAsSrt]);
 
     return (
         <>
-            {canSaveAsSrt && (
-                <Popover
-                    open={menuOpen}
-                    anchorEl={menuAnchorEl}
-                    onClose={handleMenuClose}
-                    anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'center',
-                    }}
-                >
-                    <List>
-                        <ListItem button onClick={handleOpenFilesFromMenu}>
-                            {t('action.openFiles')}
-                        </ListItem>
-                        <ListItem button onClick={handleDownloadSubtitleFilesAsSrt}>
-                            {t('action.downloadSubtitlesAsSrt')}
-                        </ListItem>
-                    </List>
-                </Popover>
-            )}
             <AppBar
                 position="static"
                 elevation={0}
@@ -170,12 +131,7 @@ export default function Bar({
                 })}
             >
                 <Toolbar>
-                    <Tooltip
-                        disableFocusListener={canSaveAsSrt}
-                        disableHoverListener={canSaveAsSrt}
-                        disableTouchListener={canSaveAsSrt}
-                        title={t('action.openFiles')!}
-                    >
+                    <Tooltip title={t('action.openFiles')!}>
                         <IconButton
                             edge="start"
                             color="inherit"
@@ -185,6 +141,18 @@ export default function Bar({
                             <FolderIcon />
                         </IconButton>
                     </Tooltip>
+                    {canSaveAsSrt && (
+                        <Tooltip title={t('action.downloadSubtitlesAsSrt')!}>
+                            <IconButton
+                                edge="start"
+                                color="inherit"
+                                className={classes.leftButton}
+                                onClick={handleDownloadSubtitleFilesAsSrt}
+                            >
+                                <SaveAltIcon />
+                            </IconButton>
+                        </Tooltip>
+                    )}
                     <Typography variant="h6" noWrap className={classes.title}>
                         {title}
                     </Typography>
