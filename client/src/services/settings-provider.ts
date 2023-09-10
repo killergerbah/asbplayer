@@ -53,7 +53,7 @@ const defaultKeyBindSet: KeyBindSet = {
 };
 const defaultPreferMp3 = true;
 const defaultMiningHistoryStorageLimit = 25;
-const defaultPreCacheSubtitleDom = false;
+const defaultPreCacheSubtitleDom = true;
 
 const ankiConnectUrlKey = 'ankiConnectUrl';
 const deckKey = 'deck';
@@ -77,7 +77,7 @@ const subtitleBackgroundOpacityKey = 'subtitleBackgroundOpacity';
 const subtitleFontFamilyKey = 'subtitleFontFamily';
 const subtitlePreviewKey = 'subtitlePreview';
 const subtitleCustomStylesKey = 'subtitleCustomStyles';
-const preCacheSubtitleDomKey = 'preCacheSubtitleDom';
+const preCacheSubtitleDomKey = 'preCacheSubtitleDom2';
 const imageBasedSubtitleScaleFactorKey = 'imageBasedSubtitleScaleFactor';
 const audioPaddingStartKey = 'audioPaddingStart';
 const audioPaddingEndKey = 'audioPaddingEnd';
@@ -471,11 +471,11 @@ export default class SettingsProvider implements AsbplayerSettingsProvider {
         this._storage.set(subtitleCustomStylesKey, JSON.stringify(value));
     }
 
-    get preCacheSubtitleDom() {
+    get preCacheSubtitleDom(): boolean {
         return this._storage.get(preCacheSubtitleDomKey) === 'true' || defaultPreCacheSubtitleDom;
     }
 
-    set preCacheSubtitleDom(preCacheSubtitleDom) {
+    set preCacheSubtitleDom(preCacheSubtitleDom: boolean) {
         this._storage.set(preCacheSubtitleDomKey, String(preCacheSubtitleDom));
     }
 
