@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { i18n, useI18nInitialized } from './i18n';
-import { Route, Navigate, Routes, useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { ThemeProvider, createTheme, makeStyles, Theme } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/use-window-size';
 import { red } from '@material-ui/core/colors';
@@ -235,20 +235,6 @@ function revokeUrls(sources: MediaSources) {
     }
 }
 
-interface NavigateToVideoProps {
-    searchParams: URLSearchParams;
-}
-
-function NavigateToVideo({ searchParams }: NavigateToVideoProps) {
-    const videoFile = searchParams.get('video')!;
-    const channel = searchParams.get('channel')!;
-    const popOut = searchParams.get('popout')!;
-
-    return (
-        <Navigate to={'/video?video=' + encodeURIComponent(videoFile) + '&channel=' + channel + '&popout=' + popOut} />
-    );
-}
-
 interface RenderVideoProps {
     searchParams: URLSearchParams;
     settingsProvider: SettingsProvider;
@@ -299,7 +285,7 @@ function Content(props: ContentProps) {
     );
 }
 
-function App() {
+function App({ sidePanel }: { sidePanel: boolean }) {
     const { t } = useTranslation();
     const settingsProvider = useMemo<SettingsProvider>(() => new SettingsProvider(), []);
     const subtitleReader = useMemo<SubtitleReader>(() => {
@@ -346,8 +332,8 @@ function App() {
     const location = useLocation();
     const [searchParams] = useSearchParams();
 
-    const inVideoPlayer = location.pathname === '/video' || searchParams.get('video') !== null;
-    const extension = useChromeExtension();
+    const inVideoPlayer = searchParams.get('video') !== null;
+    const extension = useChromeExtension(sidePanel);
     const [videoFullscreen, setVideoFullscreen] = useState<boolean>(false);
     const keyBinder = useMemo<AppKeyBinder>(
         () => new AppKeyBinder(new DefaultKeyBinder(settingsProvider.keyBindSet), extension),
@@ -1342,10 +1328,6 @@ function App() {
         return null;
     }
 
-    if (location.pathname === '/' && searchParams.get('video')) {
-        return <NavigateToVideo searchParams={searchParams} />;
-    }
-
     const loading = loadingSources.length !== 0;
     const nothingLoaded =
         (loading && !videoFrameRef.current) ||
@@ -1365,166 +1347,153 @@ function App() {
                 <Alert open={alertOpen} onClose={handleAlertClosed} autoHideDuration={3000} severity={alertSeverity}>
                     {alert}
                 </Alert>
-                <Routes>
-                    <Route
-                        path="/video"
-                        element={
-                            <>
-                                <RenderVideo
-                                    searchParams={searchParams}
-                                    settingsProvider={settingsProvider}
-                                    playbackPreferences={playbackPreferences}
-                                    extension={extension}
-                                    ankiDialogFinishedRequest={ankiDialogFinishedRequest}
-                                    ankiDialogOpen={ankiDialogOpen}
-                                    seekRequest={videoPlayerSeekRequest}
-                                    onAnkiDialogRequest={handleAnkiDialogRequestFromVideoPlayer}
-                                    onAnkiDialogRewind={handleAnkiDialogRewindFromVideoPlayer}
-                                    onError={handleError}
-                                    onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
-                                />
-                                <AnkiDialog
-                                    open={ankiDialogOpen}
-                                    disabled={ankiDialogDisabled}
-                                    audioClip={ankiDialogAudioClip}
-                                    image={ankiDialogImage}
-                                    source={itemSourceString(ankiDialogItem)}
-                                    url={ankiDialogItem?.url}
-                                    sliderContext={ankiDialogItemSliderContext}
-                                    customFields={settingsProvider.customAnkiFields}
-                                    anki={anki}
-                                    settingsProvider={settingsProvider}
-                                    onCancel={handleAnkiDialogCancel}
-                                    onProceed={handleAnkiDialogProceed}
-                                    onViewImage={handleViewImage}
-                                    onCopyToClipboard={handleCopyToClipboard}
-                                />
-                                <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />
-                            </>
-                        }
-                    />
-                    <Route
-                        path="/"
-                        element={
-                            <div>
-                                <CopyHistory
-                                    items={copiedSubtitles}
-                                    open={effectiveCopyHistoryOpen}
-                                    drawerWidth={drawerWidth}
-                                    onClose={handleCloseCopyHistory}
-                                    onDelete={handleDeleteCopyHistoryItem}
-                                    onClipAudio={handleClipAudio}
-                                    onDownloadImage={handleDownloadImage}
-                                    onDownloadSectionAsSrt={handleDownloadCopyHistorySectionAsSrt}
-                                    onSelect={handleSelectCopyHistoryItem}
-                                    onAnki={handleAnki}
-                                />
-                                <AnkiDialog
-                                    open={ankiDialogOpen}
-                                    disabled={ankiDialogDisabled}
-                                    audioClip={ankiDialogAudioClip}
-                                    image={ankiDialogImage}
-                                    source={itemSourceString(ankiDialogItem)}
-                                    url={ankiDialogItem?.url}
-                                    sliderContext={ankiDialogItemSliderContext}
-                                    customFields={settingsProvider.customAnkiFields}
-                                    anki={anki}
-                                    settingsProvider={settingsProvider}
-                                    onCancel={handleAnkiDialogCancel}
-                                    onProceed={handleAnkiDialogProceed}
-                                    onViewImage={handleViewImage}
-                                    onOpenSettings={handleOpenSettings}
-                                    onCopyToClipboard={handleCopyToClipboard}
-                                />
-                                <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />
-                                <SettingsDialog
-                                    anki={anki}
-                                    extension={extension}
-                                    open={settingsDialogOpen}
-                                    onClose={handleCloseSettings}
-                                    settings={settingsProvider.settings}
-                                    scrollToId={settingsDialogScrollToId}
-                                />
-                                <Bar
-                                    title={fileName || 'asbplayer'}
-                                    drawerWidth={drawerWidth}
-                                    drawerOpen={effectiveCopyHistoryOpen}
-                                    hidden={appBarHidden}
-                                    subtitleFiles={sources.subtitleFiles}
-                                    onOpenCopyHistory={handleOpenCopyHistory}
-                                    onDownloadSubtitleFilesAsSrt={handleDownloadSubtitleFilesAsSrt}
-                                    onOpenSettings={handleOpenSettings}
-                                    onFileSelector={handleFileSelector}
-                                />
-                                <input
-                                    ref={fileInputRef}
-                                    onChange={handleFileInputChange}
-                                    type="file"
-                                    accept=".srt,.ass,.vtt,.sup,.mp3,.m4a,.aac,.flac,.ogg,.wav,.opus,.mkv,.mp4,.avi"
-                                    multiple
-                                    hidden
-                                />
-                                <Content drawerWidth={drawerWidth} drawerOpen={effectiveCopyHistoryOpen}>
-                                    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-                                        {nothingLoaded && (
-                                            <LandingPage
-                                                latestExtensionVersion={latestExtensionVersion}
-                                                extensionUrl={extensionUrl}
-                                                extension={extension}
-                                                loading={loading}
-                                                dragging={dragging}
-                                                appBarHidden={appBarHidden}
-                                                onFileSelector={handleFileSelector}
-                                            />
-                                        )}
-                                        <DragOverlay
-                                            dragging={dragging}
-                                            appBarHidden={appBarHidden}
-                                            loading={loading}
-                                        />
-                                    </div>
-                                    <Player
-                                        subtitleReader={subtitleReader}
-                                        settingsProvider={settingsProvider}
-                                        playbackPreferences={playbackPreferences}
-                                        onCopy={handleCopy}
-                                        onError={handleError}
-                                        onUnloadAudio={handleUnloadAudio}
-                                        onUnloadVideo={handleUnloadVideo}
-                                        onLoaded={handleFilesLoaded}
-                                        onTabSelected={handleTabSelected}
-                                        onAnkiDialogRequest={handleAnkiDialogRequest}
-                                        onAnkiDialogRewind={handleAnkiDialogRewind}
-                                        onAppBarToggle={handleAppBarToggle}
-                                        onFullscreenToggle={handleFullscreenToggle}
-                                        onHideSubtitlePlayer={handleHideSubtitlePlayer}
-                                        onVideoPopOut={handleVideoPopOut}
-                                        onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
-                                        onTakeScreenshot={handleTakeScreenshot}
-                                        tab={tab}
-                                        availableTabs={availableTabs}
-                                        sources={sources}
-                                        jumpToSubtitle={jumpToSubtitle}
-                                        rewindSubtitle={rewindSubtitle}
-                                        videoFrameRef={videoFrameRef}
-                                        videoChannelRef={videoChannelRef}
+                {inVideoPlayer ? (
+                    <>
+                        <RenderVideo
+                            searchParams={searchParams}
+                            settingsProvider={settingsProvider}
+                            playbackPreferences={playbackPreferences}
+                            extension={extension}
+                            ankiDialogFinishedRequest={ankiDialogFinishedRequest}
+                            ankiDialogOpen={ankiDialogOpen}
+                            seekRequest={videoPlayerSeekRequest}
+                            onAnkiDialogRequest={handleAnkiDialogRequestFromVideoPlayer}
+                            onAnkiDialogRewind={handleAnkiDialogRewindFromVideoPlayer}
+                            onError={handleError}
+                            onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
+                        />
+                        <AnkiDialog
+                            open={ankiDialogOpen}
+                            disabled={ankiDialogDisabled}
+                            audioClip={ankiDialogAudioClip}
+                            image={ankiDialogImage}
+                            source={itemSourceString(ankiDialogItem)}
+                            url={ankiDialogItem?.url}
+                            sliderContext={ankiDialogItemSliderContext}
+                            customFields={settingsProvider.customAnkiFields}
+                            anki={anki}
+                            settingsProvider={settingsProvider}
+                            onCancel={handleAnkiDialogCancel}
+                            onProceed={handleAnkiDialogProceed}
+                            onViewImage={handleViewImage}
+                            onCopyToClipboard={handleCopyToClipboard}
+                        />
+                        <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />
+                    </>
+                ) : (
+                    <div>
+                        <CopyHistory
+                            items={copiedSubtitles}
+                            open={effectiveCopyHistoryOpen}
+                            drawerWidth={drawerWidth}
+                            onClose={handleCloseCopyHistory}
+                            onDelete={handleDeleteCopyHistoryItem}
+                            onClipAudio={handleClipAudio}
+                            onDownloadImage={handleDownloadImage}
+                            onDownloadSectionAsSrt={handleDownloadCopyHistorySectionAsSrt}
+                            onSelect={handleSelectCopyHistoryItem}
+                            onAnki={handleAnki}
+                        />
+                        <AnkiDialog
+                            open={ankiDialogOpen}
+                            disabled={ankiDialogDisabled}
+                            audioClip={ankiDialogAudioClip}
+                            image={ankiDialogImage}
+                            source={itemSourceString(ankiDialogItem)}
+                            url={ankiDialogItem?.url}
+                            sliderContext={ankiDialogItemSliderContext}
+                            customFields={settingsProvider.customAnkiFields}
+                            anki={anki}
+                            settingsProvider={settingsProvider}
+                            onCancel={handleAnkiDialogCancel}
+                            onProceed={handleAnkiDialogProceed}
+                            onViewImage={handleViewImage}
+                            onOpenSettings={handleOpenSettings}
+                            onCopyToClipboard={handleCopyToClipboard}
+                        />
+                        <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />
+                        <SettingsDialog
+                            anki={anki}
+                            extension={extension}
+                            open={settingsDialogOpen}
+                            onClose={handleCloseSettings}
+                            settings={settingsProvider.settings}
+                            scrollToId={settingsDialogScrollToId}
+                        />
+                        <Bar
+                            title={fileName || 'asbplayer'}
+                            drawerWidth={drawerWidth}
+                            drawerOpen={effectiveCopyHistoryOpen}
+                            hidden={appBarHidden}
+                            subtitleFiles={sources.subtitleFiles}
+                            onOpenCopyHistory={handleOpenCopyHistory}
+                            onDownloadSubtitleFilesAsSrt={handleDownloadSubtitleFilesAsSrt}
+                            onOpenSettings={handleOpenSettings}
+                            onFileSelector={handleFileSelector}
+                        />
+                        <input
+                            ref={fileInputRef}
+                            onChange={handleFileInputChange}
+                            type="file"
+                            accept=".srt,.ass,.vtt,.sup,.mp3,.m4a,.aac,.flac,.ogg,.wav,.opus,.mkv,.mp4,.avi"
+                            multiple
+                            hidden
+                        />
+                        <Content drawerWidth={drawerWidth} drawerOpen={effectiveCopyHistoryOpen}>
+                            <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                                {nothingLoaded && (
+                                    <LandingPage
+                                        latestExtensionVersion={latestExtensionVersion}
+                                        extensionUrl={extensionUrl}
                                         extension={extension}
-                                        drawerOpen={effectiveCopyHistoryOpen}
+                                        loading={loading}
+                                        dragging={dragging}
                                         appBarHidden={appBarHidden}
-                                        videoFullscreen={videoFullscreen}
-                                        hideSubtitlePlayer={hideSubtitlePlayer || videoFullscreen}
-                                        videoPopOut={videoPopOut}
-                                        disableKeyEvents={disableKeyEvents}
-                                        ankiDialogRequested={ankiDialogRequested}
-                                        ankiDialogFinishedRequest={ankiDialogFinishedRequest}
-                                        keyBinder={keyBinder}
-                                        ankiDialogOpen={ankiDialogOpen}
+                                        onFileSelector={handleFileSelector}
                                     />
-                                </Content>
+                                )}
+                                <DragOverlay dragging={dragging} appBarHidden={appBarHidden} loading={loading} />
                             </div>
-                        }
-                    />
-                </Routes>
+                            <Player
+                                subtitleReader={subtitleReader}
+                                settingsProvider={settingsProvider}
+                                playbackPreferences={playbackPreferences}
+                                onCopy={handleCopy}
+                                onError={handleError}
+                                onUnloadAudio={handleUnloadAudio}
+                                onUnloadVideo={handleUnloadVideo}
+                                onLoaded={handleFilesLoaded}
+                                onTabSelected={handleTabSelected}
+                                onAnkiDialogRequest={handleAnkiDialogRequest}
+                                onAnkiDialogRewind={handleAnkiDialogRewind}
+                                onAppBarToggle={handleAppBarToggle}
+                                onFullscreenToggle={handleFullscreenToggle}
+                                onHideSubtitlePlayer={handleHideSubtitlePlayer}
+                                onVideoPopOut={handleVideoPopOut}
+                                onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
+                                onTakeScreenshot={handleTakeScreenshot}
+                                tab={tab}
+                                availableTabs={availableTabs}
+                                sources={sources}
+                                jumpToSubtitle={jumpToSubtitle}
+                                rewindSubtitle={rewindSubtitle}
+                                videoFrameRef={videoFrameRef}
+                                videoChannelRef={videoChannelRef}
+                                extension={extension}
+                                drawerOpen={effectiveCopyHistoryOpen}
+                                appBarHidden={appBarHidden}
+                                videoFullscreen={videoFullscreen}
+                                hideSubtitlePlayer={hideSubtitlePlayer || videoFullscreen}
+                                videoPopOut={videoPopOut}
+                                disableKeyEvents={disableKeyEvents}
+                                ankiDialogRequested={ankiDialogRequested}
+                                ankiDialogFinishedRequest={ankiDialogFinishedRequest}
+                                keyBinder={keyBinder}
+                                ankiDialogOpen={ankiDialogOpen}
+                            />
+                        </Content>
+                    </div>
+                )}
             </div>
         </ThemeProvider>
     );

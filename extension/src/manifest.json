@@ -9,7 +9,7 @@
         "48": "assets/icon48.png",
         "128": "assets/icon128.png"
     },
-    "permissions": ["tabs", "tabCapture", "activeTab", "storage", "contextMenus"],
+    "permissions": ["tabs", "tabCapture", "activeTab", "storage", "contextMenus", "sidePanel"],
     "action": {
         "default_title": "asbplayer",
         "default_popup": "popup-ui.html"
@@ -20,6 +20,9 @@
     },
     "background": {
         "service_worker": "background.js"
+    },
+    "side_panel": {
+        "default_path": "app-ui-side-panel.html"
     },
     "content_scripts": [
         {

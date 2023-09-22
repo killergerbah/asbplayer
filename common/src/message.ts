@@ -26,6 +26,7 @@ export interface AsbplayerHeartbeatMessage extends Message {
     readonly id: string;
     readonly receivedTabs?: ActiveVideoElement[];
     readonly videoPlayer: boolean;
+    readonly sidePanel?: boolean;
 }
 
 export interface TabsMessage extends Message {
@@ -38,6 +39,7 @@ export interface AckTabsMessage extends Message {
     readonly command: 'ackTabs';
     readonly id: string;
     readonly receivedTabs: ActiveVideoElement[];
+    readonly sidePanel?: boolean;
 }
 
 export interface VideoHeartbeatMessage extends Message {

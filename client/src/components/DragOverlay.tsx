@@ -1,6 +1,6 @@
 import { makeStyles } from '@material-ui/styles';
 import Fade from '@material-ui/core/Fade';
-import coloredBackground from './background-colored.png';
+// import coloredBackground from './background-colored.png';
 import { Theme } from '@material-ui/core';
 
 interface StylesProps {
@@ -36,7 +36,7 @@ const useStyles = makeStyles<Theme, StylesProps>((theme) => ({
             backgroundSize: '300px 300px',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
-            backgroundImage: `url(${coloredBackground})`,
+            // backgroundImage: `url(${coloredBackground})`,
             backgroundBlendMode: 'overlay',
             background: 'rgba(0, 0, 0, .3)',
             filter: 'drop-shadow(10px 10px 10px rgb(0, 0, 0, .4))',

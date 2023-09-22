@@ -1,4 +1,4 @@
-import TabRegistry from './services/tab-registry';
+import TabRegistry, { Asbplayer } from './services/tab-registry';
 import Settings from './services/settings';
 import ImageCapturer from './services/image-capturer';
 import VideoHeartbeatHandler from './handlers/video/video-heartbeat-handler';
@@ -22,7 +22,6 @@ import AudioBase64Handler from './handlers/backgroundpage/audio-base-64-handler'
 import AckTabsHandler from './handlers/asbplayerv2/ack-tabs-handler';
 import { newVersionAvailable } from './services/version-checker';
 import OpenExtensionShortcutsHandler from './handlers/asbplayerv2/open-extension-shortcuts-handler';
-import EditKeyboardShortcutsHandler from './handlers/popup/edit-keyboard-shortcuts-handler';
 import ExtensionCommandsHandler from './handlers/asbplayerv2/extension-commands-handler';
 import OpenAsbplayerSettingsHandler from './handlers/video/open-asbplayer-settings-handler';
 import CaptureVisibleTabHandler from './handlers/foreground/capture-visible-tab-handler';
@@ -67,13 +66,13 @@ const handlers: CommandHandler[] = [
     new VideoHeartbeatHandler(tabRegistry),
     new RecordMediaHandler(backgroundPageAudioRecorder, imageCapturer, tabRegistry),
     new RerecordMediaHandler(backgroundPageAudioRecorder, tabRegistry),
-    new StartRecordingMediaHandler(backgroundPageAudioRecorder, imageCapturer),
+    new StartRecordingMediaHandler(backgroundPageAudioRecorder, imageCapturer, tabRegistry),
     new StopRecordingMediaHandler(backgroundPageAudioRecorder, imageCapturer, tabRegistry),
     new TakeScreenshotHandler(imageCapturer, tabRegistry),
     new ToggleSubtitlesHandler(settings, tabRegistry),
     new SyncHandler(tabRegistry),
     new HttpPostHandler(),
-    new OpenAsbplayerSettingsHandler(tabRegistry),
+    new OpenAsbplayerSettingsHandler(),
     new CopyToClipboardHandler(),
     new VideoDisappearedHandler(tabRegistry),
     new VideoToAsbplayerCommandForwardingHandler(tabRegistry),
@@ -87,7 +86,6 @@ const handlers: CommandHandler[] = [
     new RefreshSettingsHandler(tabRegistry),
     new BackgroundPageReadyHandler(backgroundPageAudioRecorder),
     new AudioBase64Handler(backgroundPageAudioRecorder),
-    new EditKeyboardShortcutsHandler(tabRegistry),
     new CaptureVisibleTabHandler(),
 ];
 
@@ -157,9 +155,19 @@ chrome.contextMenus.onClicked.addListener((info) => {
 
 chrome.commands.onCommand.addListener((command) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (!tabs || tabs.length === 0) {
-            return;
-        }
+        const validAsbplayer = (asbplayer: Asbplayer) => {
+            if (asbplayer.sidePanel) {
+                return false;
+            }
+
+            const tab = asbplayer.tab;
+
+            if (tab && tabs.find((t) => t.id === tab.id) === undefined) {
+                return false;
+            }
+
+            return true;
+        };
 
         switch (command) {
             case 'copy-subtitle':
@@ -182,19 +190,21 @@ chrome.commands.onCommand.addListener((command) => {
                     return extensionToVideoCommand;
                 });
 
-                tabRegistry.publishCommandToAsbplayers((asbplayer) => {
-                    if (tabs.find((t) => t.id === asbplayer.tab.id) === undefined) {
-                        return undefined;
-                    }
+                tabRegistry.publishCommandToAsbplayers({
+                    commandFactory: (asbplayer) => {
+                        if (!validAsbplayer(asbplayer)) {
+                            return undefined;
+                        }
 
-                    const extensionToPlayerCommand: Command<CopySubtitleMessage> = {
-                        sender: 'asbplayer-extension-to-player',
-                        message: {
-                            command: 'copy-subtitle',
-                            postMineAction: postMineAction,
-                        },
-                    };
-                    return extensionToPlayerCommand;
+                        const extensionToPlayerCommand: Command<CopySubtitleMessage> = {
+                            sender: 'asbplayer-extension-to-player',
+                            message: {
+                                command: 'copy-subtitle',
+                                postMineAction: postMineAction,
+                            },
+                        };
+                        return extensionToPlayerCommand;
+                    },
                 });
                 break;
             case 'toggle-video-select':
@@ -226,18 +236,20 @@ chrome.commands.onCommand.addListener((command) => {
                     return extensionToVideoCommand;
                 });
 
-                tabRegistry.publishCommandToAsbplayers((asbplayer) => {
-                    if (tabs.find((t) => t.id === asbplayer.tab.id) === undefined) {
-                        return undefined;
-                    }
+                tabRegistry.publishCommandToAsbplayers({
+                    commandFactory: (asbplayer) => {
+                        if (!validAsbplayer(asbplayer)) {
+                            return undefined;
+                        }
 
-                    const extensionToPlayerCommand: Command<TakeScreenshotMessage> = {
-                        sender: 'asbplayer-extension-to-player',
-                        message: {
-                            command: 'take-screenshot',
-                        },
-                    };
-                    return extensionToPlayerCommand;
+                        const extensionToPlayerCommand: Command<TakeScreenshotMessage> = {
+                            sender: 'asbplayer-extension-to-player',
+                            message: {
+                                command: 'take-screenshot',
+                            },
+                        };
+                        return extensionToPlayerCommand;
+                    },
                 });
                 break;
             case 'toggle-recording':

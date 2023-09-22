@@ -104,7 +104,7 @@ export default class StopRecordingMediaHandler {
                 tabId: sender.tab!.id!,
                 src: stopRecordingCommand.src,
             };
-            this.tabRegistry.publishCommandToAsbplayers(() => copyCommand);
+            this.tabRegistry.publishCommandToAsbplayers({ commandFactory: () => copyCommand });
 
             if (stopRecordingCommand.message.postMineAction === PostMineAction.showAnkiDialog) {
                 const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {

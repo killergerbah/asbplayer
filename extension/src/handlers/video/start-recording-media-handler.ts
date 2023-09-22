@@ -17,14 +17,17 @@ import {
     VideoToExtensionCommand,
 } from '@project/common';
 import BackgroundPageAudioRecorder from '../../services/background-page-audio-recorder';
+import TabRegistry from '../../services/tab-registry';
 
 export default class StartRecordingMediaHandler {
     private readonly audioRecorder: BackgroundPageAudioRecorder;
     private readonly imageCapturer: ImageCapturer;
+    private readonly tabRegistry: TabRegistry;
 
-    constructor(audioRecorder: BackgroundPageAudioRecorder, imageCapturer: ImageCapturer) {
+    constructor(audioRecorder: BackgroundPageAudioRecorder, imageCapturer: ImageCapturer, tabRegistry: TabRegistry) {
         this.audioRecorder = audioRecorder;
         this.imageCapturer = imageCapturer;
+        this.tabRegistry = tabRegistry;
     }
 
     get sender() {
@@ -85,25 +88,21 @@ export default class StartRecordingMediaHandler {
                 };
             }
 
-            chrome.tabs.query({}, (allTabs) => {
-                const copyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {
-                    sender: 'asbplayer-extension-to-player',
-                    message: {
-                        command: 'copy',
-                        id: id,
-                        subtitle: subtitle,
-                        surroundingSubtitles: [],
-                        image: imageModel,
-                        url: startRecordingCommand.message.url,
-                    },
-                    tabId: sender.tab!.id!,
-                    src: startRecordingCommand.src,
-                };
+            const copyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {
+                sender: 'asbplayer-extension-to-player',
+                message: {
+                    command: 'copy',
+                    id: id,
+                    subtitle: subtitle,
+                    surroundingSubtitles: [],
+                    image: imageModel,
+                    url: startRecordingCommand.message.url,
+                },
+                tabId: sender.tab!.id!,
+                src: startRecordingCommand.src,
+            };
 
-                for (let t of allTabs) {
-                    chrome.tabs.sendMessage(t.id!, copyCommand);
-                }
-            });
+            this.tabRegistry.publishCommandToAsbplayers({ commandFactory: () => copyCommand });
 
             if (startRecordingCommand.message.postMineAction === PostMineAction.showAnkiDialog) {
                 const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {

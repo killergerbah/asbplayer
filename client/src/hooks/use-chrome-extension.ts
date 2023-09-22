@@ -42,8 +42,9 @@ const listenForVersion = (callback: (extension: ChromeExtension) => void) => {
 
 const unbindInitialListener = listenForVersion((extension) => (realExtension = extension));
 
-export const useChromeExtension = () => {
+export const useChromeExtension = (sidePanel: boolean) => {
     const [extension, setExtension] = useState<ChromeExtension>(initialExtension);
+    extension.sidePanel = sidePanel;
 
     useEffect(() => {
         if (realExtension) {

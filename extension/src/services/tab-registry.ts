@@ -14,15 +14,16 @@ interface SlimTab {
     url: string;
 }
 
-interface Asbplayer {
+export interface Asbplayer {
     id: string;
-    tab: SlimTab;
+    tab?: SlimTab;
+    sidePanel?: boolean;
     timestamp: number;
     receivedTabs?: ActiveVideoElement[];
     videoPlayer: boolean;
 }
 
-interface VideoElement {
+export interface VideoElement {
     src: string;
     tab: SlimTab;
     timestamp: number;
@@ -112,16 +113,19 @@ export default class TabRegistry {
     private async _asbplayers(mutator?: (asbplayers: { [key: string]: Asbplayer }) => boolean) {
         const tabs = await chrome.tabs.query({});
         const asbplayers = await this._fetchAsbplayerState();
+        const now = Date.now();
         let changed = false;
 
-        for (const tabId in asbplayers) {
-            const asbplayer = asbplayers[tabId];
+        for (const id in asbplayers) {
+            const asbplayer = asbplayers[id];
             const disappeared =
-                tabs.find((t) => t.id === asbplayer.tab.id && t.url === asbplayer.tab.url) === undefined;
+                (asbplayer.sidePanel && now - asbplayer.timestamp >= 5000) ||
+                (asbplayer.tab !== undefined &&
+                    tabs.find((t) => t.id === asbplayer.tab?.id && t.url === asbplayer.tab?.url) === undefined);
 
             if (disappeared) {
                 changed = true;
-                delete asbplayers[tabId];
+                delete asbplayers[id];
             }
         }
 
@@ -137,16 +141,13 @@ export default class TabRegistry {
     }
 
     async onAsbplayerHeartbeat(
-        tab: chrome.tabs.Tab,
+        tab: chrome.tabs.Tab | undefined,
         asbplayerId: string,
         videoPlayer: boolean,
+        sidePanel: boolean,
         receivedTabs?: ActiveVideoElement[]
     ) {
-        if (tab.id === undefined) {
-            return;
-        }
-
-        this._updateAsbplayers(tab, asbplayerId, videoPlayer, receivedTabs);
+        this._updateAsbplayers(tab, asbplayerId, videoPlayer, sidePanel, receivedTabs);
 
         try {
             const command: ExtensionToAsbPlayerCommandTabsCommand = {
@@ -157,38 +158,48 @@ export default class TabRegistry {
                     ackRequested: false,
                 },
             };
-            await chrome.tabs.sendMessage(tab.id, command);
+
+            if (tab?.id) {
+                await chrome.tabs.sendMessage(tab.id, command);
+            } else {
+                await chrome.runtime.sendMessage(command);
+            }
         } catch (e) {
             // Swallow
         }
     }
 
-    async onAsbplayerAckTabs(tab: chrome.tabs.Tab, asbplayerId: string, receivedTabs?: ActiveVideoElement[]) {
-        this._updateAsbplayers(tab, asbplayerId, false, receivedTabs);
+    async onAsbplayerAckTabs(
+        tab: chrome.tabs.Tab | undefined,
+        asbplayerId: string,
+        sidePanel: boolean,
+        receivedTabs?: ActiveVideoElement[]
+    ) {
+        this._updateAsbplayers(tab, asbplayerId, false, sidePanel, receivedTabs);
     }
 
     private async _updateAsbplayers(
-        tab: chrome.tabs.Tab,
+        tab: chrome.tabs.Tab | undefined,
         asbplayerId: string,
         videoPlayer: boolean,
+        sidePanel: boolean,
         receivedTabs?: ActiveVideoElement[]
     ) {
-        if (tab.id === undefined) {
-            return;
-        }
-
-        const tabId = tab.id;
-
+        const slimTab =
+            tab === undefined || tab.id === undefined
+                ? undefined
+                : {
+                      id: tab.id,
+                      title: tab.title ?? '',
+                      url: tab.url ?? '',
+                  };
         await this._asbplayers((asbplayers) => {
-            asbplayers[tabId] = {
-                tab: {
-                    id: tabId,
-                    title: tab.title ?? '',
-                    url: tab.url ?? '',
-                },
+            asbplayers[asbplayerId] = {
+                tab: slimTab,
                 id: asbplayerId,
                 timestamp: Date.now(),
                 receivedTabs: receivedTabs,
+                sidePanel: sidePanel,
                 videoPlayer: videoPlayer,
             };
             return true;
@@ -268,24 +279,50 @@ export default class TabRegistry {
             },
         };
 
-        await this.publishCommandToAsbplayers((asbplayer) => (asbplayer.videoPlayer ? undefined : tabsCommand));
+        await this.publishCommandToAsbplayers({
+            commandFactory: (asbplayer) => (asbplayer.videoPlayer ? undefined : tabsCommand),
+        });
     }
 
-    async publishCommandToAsbplayers<T extends Message>(
-        commandFactory: (asbplayer: Asbplayer) => Command<T> | undefined
-    ) {
+    async publishCommandToAsbplayers<T extends Message>({
+        asbplayerId,
+        commandFactory,
+    }: {
+        commandFactory: (asbplayer: Asbplayer) => Command<T> | undefined;
+        asbplayerId?: string;
+    }) {
         const asbplayers = await this._asbplayers();
 
-        for (const tabId in asbplayers) {
-            try {
-                const command = commandFactory(asbplayers[tabId]);
+        if (asbplayerId !== undefined) {
+            if (asbplayerId in asbplayers) {
+                const asbplayer = asbplayers[asbplayerId];
+                const command = commandFactory(asbplayer);
 
                 if (command !== undefined) {
-                    await chrome.tabs.sendMessage(Number(tabId), command);
+                    await this._sendCommand(asbplayers[asbplayerId], command);
                 }
-            } catch (e) {
-                // Swallow as this usually only indicates that the tab is not an asbplayer tab
             }
+        } else {
+            for (const id in asbplayers) {
+                const asbplayer = asbplayers[id];
+                const command = commandFactory(asbplayer);
+
+                if (command !== undefined) {
+                    await this._sendCommand(asbplayer, command);
+                }
+            }
+        }
+    }
+
+    private async _sendCommand<T extends Message>(asbplayer: Asbplayer, command: Command<T>) {
+        try {
+            if (asbplayer.tab?.id !== undefined) {
+                await chrome.tabs.sendMessage(asbplayer.tab.id, command);
+            } else if (asbplayer.sidePanel) {
+                await chrome.runtime.sendMessage(command);
+            }
+        } catch (e) {
+            // Swallow as this usually only indicates that the tab is not an asbplayer tab
         }
     }
 
@@ -308,34 +345,40 @@ export default class TabRegistry {
         }
     }
 
-    async findAsbplayerTab(filter?: (asbplayer: Asbplayer) => boolean): Promise<number> {
-        let chosenTabId = null;
+    async findAsbplayer(filter?: (asbplayer: Asbplayer) => boolean): Promise<string> {
+        let chosenAsbplayerId = null;
         const now = Date.now();
         let min = null;
 
         const asbplayers = await this._asbplayers();
+        let asbplayerTabCount = 0;
 
-        for (const tabId in asbplayers) {
-            const asbplayer = asbplayers[tabId];
+        for (const id in asbplayers) {
+            const asbplayer = asbplayers[id];
+
+            if (!asbplayer.sidePanel) {
+                ++asbplayerTabCount;
+            }
 
             if (filter === undefined || filter(asbplayer)) {
                 const elapsed = now - asbplayer.timestamp;
 
                 if (min === null || elapsed < min) {
                     min = elapsed;
-                    chosenTabId = tabId;
+                    chosenAsbplayerId = asbplayer.id;
                 }
             }
         }
 
-        if (chosenTabId) {
-            return Number(chosenTabId);
+        if (chosenAsbplayerId) {
+            return chosenAsbplayerId;
         }
 
         return new Promise(async (resolve, reject) => {
-            if (!Object.keys(asbplayers).length) {
+            if (asbplayerTabCount === 0) {
                 await this._createNewTab();
             }
+
             this._anyAsbplayerTab(resolve, reject, 0, 10, filter);
         });
     }
@@ -357,7 +400,7 @@ export default class TabRegistry {
     }
 
     async _anyAsbplayerTab(
-        resolve: (value: number | PromiseLike<number>) => void,
+        resolve: (value: string | PromiseLike<string>) => void,
         reject: (reason?: any) => void,
         attempt: number,
         maxAttempts: number,
@@ -370,9 +413,9 @@ export default class TabRegistry {
 
         const asbplayers = await this._asbplayers();
 
-        for (const tabId in asbplayers) {
-            if (filter === undefined || filter(asbplayers[tabId])) {
-                resolve(Number(tabId));
+        for (const id in asbplayers) {
+            if (filter === undefined || filter(asbplayers[id])) {
+                resolve(id);
                 return;
             }
         }

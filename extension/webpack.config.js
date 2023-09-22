@@ -8,6 +8,8 @@ module.exports = (env, options) => ({
         video: './src/video.ts',
         page: './src/page.ts',
         background: './src/background.ts',
+        'app-ui': './src/app-ui.ts',
+        'app-ui-side-panel': './src/app-ui-side-panel.ts',
         'popup-ui': './src/popup-ui.ts',
         'anki-ui': './src/anki-ui.ts',
         'video-data-sync-ui': './src/video-data-sync-ui.ts',

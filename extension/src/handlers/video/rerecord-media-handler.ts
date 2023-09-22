@@ -68,7 +68,7 @@ export default class RerecordMediaHandler {
                 tabId: sender.tab!.id!,
                 src: rerecordCommand.src,
             };
-            this.tabRegistry.publishCommandToAsbplayers(() => copyCommand);
+            this.tabRegistry.publishCommandToAsbplayers({ commandFactory: () => copyCommand });
 
             const newUiState = {
                 ...rerecordCommand.message.uiState,

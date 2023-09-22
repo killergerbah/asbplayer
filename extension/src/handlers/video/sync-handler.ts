@@ -27,7 +27,7 @@ export default class SyncHandler {
         try {
             const extensionSyncCommand = command as VideoToExtensionCommand<ExtensionSyncMessage>;
             await this.tabRegistry.publishTabsToAsbplayers();
-            const chosenTabId = await this.tabRegistry.findAsbplayerTab((asbplayer) => {
+            const asbplayerId = await this.tabRegistry.findAsbplayer((asbplayer) => {
                 if (asbplayer.receivedTabs === undefined || sender.tab === undefined) {
                     return false;
                 }
@@ -50,7 +50,7 @@ export default class SyncHandler {
                 tabId: sender.tab!.id!,
             };
 
-            chrome.tabs.sendMessage(Number(chosenTabId), playerSyncCommand);
+            this.tabRegistry.publishCommandToAsbplayers({ asbplayerId, commandFactory: () => playerSyncCommand });
         } catch (error) {
             console.error(error);
         }

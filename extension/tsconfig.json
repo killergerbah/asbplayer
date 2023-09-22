@@ -3,7 +3,7 @@
         "outDir": "./dist",
         "allowJs": true,
         "target": "es5",
-        "jsx": "react",
+        "jsx": "react-jsx",
         "esModuleInterop": true,
         "strict": true,
         "downlevelIteration": true,

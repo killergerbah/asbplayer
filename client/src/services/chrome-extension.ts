@@ -25,6 +25,7 @@ export default class ChromeExtension {
 
     tabs: VideoTabModel[];
     installed: boolean;
+    sidePanel: boolean;
 
     private readonly windowEventListener: (event: MessageEvent) => void;
     private onMessageCallbacks: Array<(message: ExtensionMessage) => void>;
@@ -38,6 +39,7 @@ export default class ChromeExtension {
         this.installed = version !== undefined;
         this.version = version ?? '';
         this.extensionCommands = extensionCommands ?? {};
+        this.sidePanel = false;
         this.windowEventListener = (event: MessageEvent) => {
             if (event.source !== window) {
                 return;
@@ -63,6 +65,7 @@ export default class ChromeExtension {
                                 command: 'ackTabs',
                                 id: id,
                                 receivedTabs: this.tabs,
+                                sidePanel: this.sidePanel,
                             },
                         },
                         '*'
@@ -111,6 +114,7 @@ export default class ChromeExtension {
                     id: id,
                     receivedTabs: fromVideoPlayer ? [] : this.tabs,
                     videoPlayer: fromVideoPlayer,
+                    sidePanel: this.sidePanel,
                 },
             },
             '*'

@@ -2271,7 +2271,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@project/client@workspace:client":
+"@project/client@0.1.0, @project/client@workspace:client":
   version: 0.0.0-use.local
   resolution: "@project/client@workspace:client"
   dependencies:
@@ -2342,6 +2342,7 @@ __metadata:
     "@material-ui/core": ^4.11.3
     "@material-ui/icons": ^4.11.2
     "@material-ui/lab": ^4.0.0-alpha.57
+    "@project/client": 0.1.0
     "@project/common": 0.1.0
     "@types/chrome": ^0.0.211
     "@types/dom-mediacapture-record": ^1.0.11

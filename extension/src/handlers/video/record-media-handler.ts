@@ -118,7 +118,7 @@ export default class RecordMediaHandler {
                 tabId: senderTab.id!,
                 src: recordMediaCommand.src,
             };
-            this.tabRegistry.publishCommandToAsbplayers(() => copyCommand);
+            this.tabRegistry.publishCommandToAsbplayers({ commandFactory: () => copyCommand });
 
             if (recordMediaCommand.message.postMineAction == PostMineAction.showAnkiDialog) {
                 const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {

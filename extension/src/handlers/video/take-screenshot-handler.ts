@@ -67,7 +67,7 @@ export default class TakeScreenshotHandler {
                 src: takeScreenshotCommand.src,
             };
 
-            this.tabRegistry.publishCommandToAsbplayers(() => copyCommand);
+            this.tabRegistry.publishCommandToAsbplayers({ commandFactory: () => copyCommand });
         }
 
         const screenshotTakenCommand: ExtensionToVideoCommand<ScreenshotTakenMessage> = {

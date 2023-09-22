@@ -18,11 +18,13 @@ export default class AsbplayerHeartbeatHandler {
 
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
         const message = command.message as AsbplayerHeartbeatMessage;
-
-        if (typeof sender.tab?.id !== 'undefined') {
-            this.tabRegistry.onAsbplayerHeartbeat(sender.tab, message.id, message.videoPlayer, message.receivedTabs);
-        }
-
+        this.tabRegistry.onAsbplayerHeartbeat(
+            sender.tab,
+            message.id,
+            message.videoPlayer,
+            message.sidePanel ?? false,
+            message.receivedTabs
+        );
         return false;
     }
 }
