@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import CloseIcon from '@material-ui/icons/Close';
-import { createTheme } from './theme';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -17,7 +16,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import { PaletteType } from '@material-ui/core';
 import Bridge from '../bridge';
-import { VideoSelectModeCancelMessage, VideoSelectModeConfirmMessage } from '@project/common';
+import { VideoSelectModeCancelMessage, VideoSelectModeConfirmMessage, createTheme } from '@project/common';
 
 interface Props {
     bridge: Bridge;

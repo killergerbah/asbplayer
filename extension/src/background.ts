@@ -1,5 +1,5 @@
 import TabRegistry, { Asbplayer } from './services/tab-registry';
-import Settings from './services/settings';
+import ExtensionSettingsProvider from './services/extension-settings';
 import ImageCapturer from './services/image-capturer';
 import VideoHeartbeatHandler from './handlers/video/video-heartbeat-handler';
 import RecordMediaHandler from './handlers/video/record-media-handler';
@@ -42,7 +42,7 @@ import VideoDisappearedHandler from './handlers/video/video-disappeared-handler'
 
 chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
 
-const settings = new Settings();
+const settings = new ExtensionSettingsProvider();
 
 const startListener = async () => {
     const [newVersion] = await newVersionAvailable();

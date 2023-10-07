@@ -1,5 +1,5 @@
 import { renderPopupUi, SettingsChangedMessage } from './ui/popup';
-import Settings from './services/settings';
+import ExtensionSettingsProvider from './services/extension-settings';
 import {
     EditKeyboardShortcutsMessage,
     ExtensionSettings,
@@ -24,7 +24,7 @@ const fetchShortcuts = () => {
 };
 
 document.addEventListener('DOMContentLoaded', async (e) => {
-    const settings = new Settings();
+    const settings = new ExtensionSettingsProvider();
     const currentSettingsPromise = settings.getAll();
     const commandsPromise = fetchShortcuts();
     const currentSettings = await currentSettingsPromise;

@@ -2,7 +2,6 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { createTheme } from './theme';
 import VideoDataSyncDialog from './VideoDataSyncDialog';
 import Bridge from '../bridge';
 import {
@@ -11,6 +10,7 @@ import {
     VideoDataSubtitleTrack,
     VideoDataUiBridgeConfirmMessage,
     VideoDataUiBridgeOpenFileMessage,
+    createTheme,
 } from '@project/common';
 import { PaletteType } from '@material-ui/core';
 import { bufferToBase64 } from '../../services/base64';

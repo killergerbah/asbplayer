@@ -1,10 +1,10 @@
 import { LocalizationConfig, fetchExtensionConfig } from './extension-config';
 import { supportedLanguages as defaultSupportedLanguages } from '@project/common';
-import Settings from './settings';
+import ExtensionSettingsProvider from './extension-settings';
 
 const stringsKeyForLang = (lang: string) => `locStrings-${lang}`;
 const versionKeyForLang = (lang: string) => `locVersion-${lang}`;
-const settings = new Settings();
+const settings = new ExtensionSettingsProvider();
 
 export interface Localization {
     lang: string;

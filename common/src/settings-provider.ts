@@ -4,9 +4,9 @@ import {
     AutoPausePreference,
     KeyBindName,
     KeyBindSet,
+    KeyValueStorage,
 } from '@project/common';
 import { isMacOs } from 'react-device-detect';
-import CachedLocalStorage from './cached-local-storage';
 
 const defaultAnkiConnectUrl = 'http://127.0.0.1:8765';
 const defaultSubtitleSize = 36;
@@ -100,9 +100,11 @@ const languageKey = 'i18nextLng';
 export default class SettingsProvider implements AsbplayerSettingsProvider {
     private _tags?: string[];
     private _keyBindSet?: KeyBindSet;
-    private _storage = new CachedLocalStorage();
+    private _storage;
 
-    constructor() {
+    constructor(storage: KeyValueStorage) {
+        this._storage = storage;
+
         // Cache for use in useEffect dependencies
         this._tags = this.tags;
         this._keyBindSet = this.keyBindSet;

@@ -64,7 +64,7 @@ export default class SubtitleReader {
 
                     if (isFromNetflix) {
                         const lines = c.text.split('\n');
-                        const newLines = [];
+                        const newLines: string[] = [];
 
                         for (const line of lines) {
                             newLines.push(this._fixRTL(line));
@@ -111,7 +111,7 @@ export default class SubtitleReader {
             }
 
             const textNodes = xml['transcript']['text'];
-            const subtitles = [];
+            const subtitles: SubtitleNode[] = [];
 
             for (let index = 0, length = textNodes.length; index < length; index++) {
                 const elm = textNodes[index];

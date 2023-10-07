@@ -8,7 +8,7 @@ import {
 } from '@project/common';
 import { DefaultKeyBinder } from '@project/common/key-binder';
 import Binding from './binding';
-import { keyBindSettingsKeys } from './settings';
+import { keyBindSettingsKeys } from './extension-settings';
 
 type Unbinder = (() => void) | false;
 

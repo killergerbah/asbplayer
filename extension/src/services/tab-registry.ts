@@ -6,7 +6,7 @@ import {
     Message,
     VideoTabModel,
 } from '@project/common';
-import Settings from './settings';
+import ExtensionSettingsProvider from './extension-settings';
 
 interface SlimTab {
     id: number;
@@ -31,11 +31,11 @@ export interface VideoElement {
 }
 
 export default class TabRegistry {
-    private readonly settings: Settings;
+    private readonly settings: ExtensionSettingsProvider;
     private onNoSyncedElementsCallback?: () => void;
     private onSyncedElementCallback?: () => void;
 
-    constructor(settings: Settings) {
+    constructor(settings: ExtensionSettingsProvider) {
         this.settings = settings;
 
         // Update video element state on tab changes

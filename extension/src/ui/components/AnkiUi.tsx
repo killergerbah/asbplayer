@@ -16,8 +16,8 @@ import {
     AnkiUiBridgeResumeMessage,
     AnkiUiBridgeRewindMessage,
     CopyToClipboardMessage,
+    createTheme,
 } from '@project/common';
-import { createTheme } from './theme';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import Alert, { Color } from '@material-ui/lab/Alert';
 import CssBaseline from '@material-ui/core/CssBaseline';

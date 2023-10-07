@@ -40,7 +40,7 @@ import AnkiUiController from '../controllers/anki-ui-controller';
 import ControlsController from '../controllers/controls-controller';
 import DragController from '../controllers/drag-controller';
 import KeyBindings from './key-bindings';
-import Settings from './settings';
+import ExtensionSettingsProvider from './extension-settings';
 import SubtitleController from '../controllers/subtitle-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
 import { i18nInit } from './i18n';
@@ -70,7 +70,7 @@ export default class Binding {
     readonly dragController: DragController;
     readonly ankiUiController: AnkiUiController;
     readonly keyBindings: KeyBindings;
-    readonly settings: Settings;
+    readonly settings: ExtensionSettingsProvider;
 
     private copyToClipboardOnMine: boolean;
     private recordMedia: boolean;
@@ -102,7 +102,7 @@ export default class Binding {
         this.video = video;
         this.subSyncAvailable = syncAvailable;
         this.subtitleController = new SubtitleController(video);
-        this.settings = new Settings();
+        this.settings = new ExtensionSettingsProvider();
         this.videoDataSyncController = new VideoDataSyncController(this, this.settings);
         this.controlsController = new ControlsController(video);
         this.dragController = new DragController(video);

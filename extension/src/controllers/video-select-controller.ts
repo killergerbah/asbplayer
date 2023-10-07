@@ -1,14 +1,14 @@
 import { CaptureVisibleTabMessage, ForegroundToExtensionCommand } from '@project/common';
 import { VideoElement } from '../ui/components/VideoSelectUi';
 import Binding from '../services/binding';
-import Settings from '../services/settings';
+import ExtensionSettingsProvider from '../services/extension-settings';
 import UiFrame from '../services/ui-frame';
 import { fetchLocalization } from '../services/localization-fetcher';
 
 export default class VideoSelectController {
     private readonly _bindings: Binding[];
     private readonly _frame: UiFrame;
-    private readonly _settings: Settings = new Settings();
+    private readonly _settings: ExtensionSettingsProvider = new ExtensionSettingsProvider();
 
     private messageListener?: (
         request: any,

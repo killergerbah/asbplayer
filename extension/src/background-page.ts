@@ -10,10 +10,10 @@ import AudioRecorder from './services/audio-recorder';
 import { bufferToBase64 } from './services/base64';
 import { i18nInit } from './ui/i18n';
 import i18n from 'i18next';
-import Settings from './services/settings';
+import ExtensionSettingsProvider from './services/extension-settings';
 import { fetchLocalization } from './services/localization-fetcher';
 
-const settings = new Settings();
+const settings = new ExtensionSettingsProvider();
 const audioRecorder = new AudioRecorder();
 
 const _sendAudioBase64 = async (base64: string, preferMp3: boolean) => {

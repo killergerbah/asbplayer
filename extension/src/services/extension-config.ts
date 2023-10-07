@@ -1,6 +1,6 @@
-import Settings from './settings';
+import ExtensionSettingsProvider from './extension-settings';
 
-const settings = new Settings();
+const settings = new ExtensionSettingsProvider();
 
 export interface ExtensionConfig {
     latest: {

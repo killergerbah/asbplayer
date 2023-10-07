@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { i18n, useI18nInitialized } from './i18n';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { ThemeProvider, createTheme, makeStyles, Theme } from '@material-ui/core/styles';
+import { ThemeProvider, makeStyles, Theme } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/use-window-size';
-import { red } from '@material-ui/core/colors';
 import {
     Anki,
     AudioClip,
@@ -21,6 +20,7 @@ import {
     PlayMode,
     download,
     extractText,
+    createTheme,
 } from '@project/common';
 import { v4 as uuidv4 } from 'uuid';
 import clsx from 'clsx';
@@ -35,7 +35,7 @@ import CopyHistory, { CopyHistoryItem } from './CopyHistory';
 import LandingPage from './LandingPage';
 import Player, { AnkiDialogFinishedRequest, MediaSources } from './Player';
 import SettingsDialog from './SettingsDialog';
-import SettingsProvider from '../services/settings-provider';
+import SettingsProvider from '@project/common/src/settings-provider';
 import VideoPlayer, { SeekRequest } from './VideoPlayer';
 import { Color } from '@material-ui/lab';
 import { AnkiExportMode } from '@project/common';
@@ -48,9 +48,12 @@ import './i18n';
 import { useTranslation } from 'react-i18next';
 import LocalizedError from './localized-error';
 import { useChromeExtension } from '../hooks/use-chrome-extension';
+import FileRepository from '../services/file-repository';
+import CachedLocalStorage from '../services/cached-local-storage';
 
 const latestExtensionVersion = '0.28.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
+const lastSubtitleFileId = 'last-subtitle-file';
 
 const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
     content: {
@@ -287,7 +290,7 @@ function Content(props: ContentProps) {
 
 function App({ sidePanel }: { sidePanel: boolean }) {
     const { t } = useTranslation();
-    const settingsProvider = useMemo<SettingsProvider>(() => new SettingsProvider(), []);
+    const settingsProvider = useMemo<SettingsProvider>(() => new SettingsProvider(new CachedLocalStorage()), []);
     const subtitleReader = useMemo<SubtitleReader>(() => {
         let regex: RegExp | undefined;
 
@@ -310,24 +313,7 @@ function App({ sidePanel }: { sidePanel: boolean }) {
         () => new PlaybackPreferences(settingsProvider),
         [settingsProvider]
     );
-    const theme = useMemo<Theme>(
-        () =>
-            createTheme({
-                palette: {
-                    primary: {
-                        main: '#49007a',
-                    },
-                    secondary: {
-                        main: '#ff1f62',
-                    },
-                    error: {
-                        main: red.A400,
-                    },
-                    type: settingsProvider.themeType,
-                },
-            }),
-        [settingsProvider.themeType]
-    );
+    const theme = useMemo<Theme>(() => createTheme(settingsProvider.themeType), [settingsProvider.themeType]);
     const anki = useMemo<Anki>(() => new Anki(settingsProvider), [settingsProvider]);
     const location = useLocation();
     const [searchParams] = useSearchParams();
@@ -350,6 +336,7 @@ function App({ sidePanel }: { sidePanel: boolean }) {
         () => new CopyHistoryRepository(settingsProvider.miningHistoryStorageLimit),
         [settingsProvider]
     );
+    const fileRepository = useMemo(() => new FileRepository(), []);
     useEffect(() => {
         copyHistoryRepository.limit = settingsProvider.miningHistoryStorageLimit;
     }, [copyHistoryRepository, settingsProvider.miningHistoryStorageLimit]);
@@ -410,7 +397,7 @@ function App({ sidePanel }: { sidePanel: boolean }) {
     const [disableKeyEvents, setDisableKeyEvents] = useState<boolean>(false);
     const [image, setImage] = useState<Image>();
     const [tab, setTab] = useState<VideoTabModel>();
-    const [availableTabs, setAvailableTabs] = useState<VideoTabModel[]>([]);
+    const [availableTabs, setAvailableTabs] = useState<VideoTabModel[]>();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const ankiDialogRequestedRef = useRef<boolean>(false);
     ankiDialogRequestedRef.current = ankiDialogRequested;
@@ -936,7 +923,7 @@ function App({ sidePanel }: { sidePanel: boolean }) {
 
     useEffect(() => {
         function onTabs(tabs: VideoTabModel[]) {
-            if (tabs.length !== availableTabs.length) {
+            if (availableTabs === undefined || tabs.length !== availableTabs.length) {
                 setAvailableTabs(tabs);
             } else {
                 let update = false;
@@ -959,17 +946,32 @@ function App({ sidePanel }: { sidePanel: boolean }) {
 
             if (selectedTabMissing) {
                 setTab(undefined);
+                playbackPreferences.lastSyncedTab = undefined;
                 handleError(t('error.lostTabConnection', { tabName: tab!.id + ' ' + tab!.title }));
             }
         }
 
         return extension.subscribeTabs(onTabs);
-    }, [availableTabs, tab, extension, handleError, t]);
+    }, [availableTabs, tab, extension, handleError, playbackPreferences, t]);
 
-    const handleTabSelected = useCallback((tab: VideoTabModel) => setTab(tab), []);
+    const handleTabSelected = useCallback(
+        (tab: VideoTabModel) => {
+            setTab(tab);
+            playbackPreferences.lastSyncedTab = tab;
+        },
+        [playbackPreferences]
+    );
 
     const handleFiles = useCallback(
-        (files: FileList | File[]) => {
+        ({
+            files,
+            flattenSubtitleFiles,
+            skipPersistingSubtitleFiles,
+        }: {
+            files: FileList | File[];
+            flattenSubtitleFiles?: boolean;
+            skipPersistingSubtitleFiles?: boolean;
+        }) => {
             try {
                 let { subtitleFiles, audioFile, videoFile } = extractSources(files);
 
@@ -987,6 +989,7 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                         }
 
                         setTab(undefined);
+                        playbackPreferences.lastSyncedTab = undefined;
                     } else {
                         videoFile = previous.videoFile;
                         videoFileUrl = previous.videoFileUrl;
@@ -1022,13 +1025,17 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                 if (subtitleFiles.length > 0) {
                     const subtitleFileName = subtitleFiles[0].name;
                     setFileName(subtitleFileName.substring(0, subtitleFileName.lastIndexOf('.')));
+
+                    if (!skipPersistingSubtitleFiles) {
+                        fileRepository.save(lastSubtitleFileId, subtitleFiles, { flattenSubtitleFiles });
+                    }
                 }
             } catch (e) {
                 console.error(e);
                 handleError(e);
             }
         },
-        [handleError]
+        [handleError, fileRepository, playbackPreferences]
     );
 
     const handleDirectory = useCallback(
@@ -1066,7 +1073,7 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                     files.push(await f);
                 }
 
-                handleFiles(files);
+                handleFiles({ files });
             } catch (e) {
                 handleError(e);
             }
@@ -1134,17 +1141,9 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                     return;
                 }
 
-                const subtitleFileName = subtitleFiles[0].name;
-                setFileName(subtitleFileName.substring(0, subtitleFileName.lastIndexOf('.')));
-                setSources({
-                    subtitleFiles: subtitleFiles,
-                    flattenSubtitleFiles: flatten,
-                    audioFile: undefined,
-                    audioFileUrl: undefined,
-                    videoFile: undefined,
-                    videoFileUrl: undefined,
-                });
+                handleFiles({ files: subtitleFiles, flattenSubtitleFiles: flatten });
                 setTab(tab);
+                playbackPreferences.lastSyncedTab = tab;
             } else if (message.data.command === 'edit-keyboard-shortcuts') {
                 setSettingsDialogOpen(true);
                 setSettingsDialogScrollToId('keyboard-shortcuts');
@@ -1156,7 +1155,7 @@ function App({ sidePanel }: { sidePanel: boolean }) {
         const unsubscribe = extension.subscribe(onMessage);
         extension.startHeartbeat(false);
         return unsubscribe;
-    }, [extension, inVideoPlayer]);
+    }, [extension, playbackPreferences, inVideoPlayer, handleFiles]);
 
     const handleAutoPauseModeChangedViaBind = useCallback(
         (oldPlayMode: PlayMode, newPlayMode: PlayMode) => {
@@ -1211,7 +1210,7 @@ function App({ sidePanel }: { sidePanel: boolean }) {
             if (e.dataTransfer.items && e.dataTransfer.items.length > 0 && allDirectories(e.dataTransfer.items)) {
                 handleDirectory(e.dataTransfer.items);
             } else if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                handleFiles(e.dataTransfer.files);
+                handleFiles({ files: e.dataTransfer.files });
             }
         },
         [inVideoPlayer, handleError, handleFiles, handleDirectory, ankiDialogOpen, t]
@@ -1221,7 +1220,7 @@ function App({ sidePanel }: { sidePanel: boolean }) {
         const files = fileInputRef.current?.files;
 
         if (files && files.length > 0) {
-            handleFiles(files);
+            handleFiles({ files });
         }
     }, [handleFiles]);
 
@@ -1317,6 +1316,50 @@ function App({ sidePanel }: { sidePanel: boolean }) {
             videoChannelRef.current?.alert(alert, alertSeverity);
         }
     }, [alert, alertSeverity, alertOpen]);
+
+    const [autoSyncEffectRan, setAutoSyncEffectRan] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (autoSyncEffectRan) {
+            return;
+        }
+
+        try {
+            const lastSyncedTab = playbackPreferences.lastSyncedTab;
+
+            if (lastSyncedTab === undefined || availableTabs === undefined) {
+                return;
+            }
+
+            const canAutoSync =
+                availableTabs.find((t) => t.id === lastSyncedTab.id && t.src === lastSyncedTab.src) !== undefined;
+
+            if (!canAutoSync) {
+                return;
+            }
+
+            const loadLastSubtitleFiles = async () => {
+                if (!inVideoPlayer) {
+                    const lastSubtitleFiles = await fileRepository.fetch(lastSubtitleFileId);
+
+                    if (loadLastSubtitleFiles !== undefined) {
+                        handleFiles({
+                            files: lastSubtitleFiles.files,
+                            flattenSubtitleFiles: lastSubtitleFiles.metadata?.flattenSubtitleFiles ?? false,
+                            skipPersistingSubtitleFiles: true,
+                        });
+                        setTab(lastSyncedTab);
+                    }
+                }
+            };
+
+            loadLastSubtitleFiles();
+        } finally {
+            if (availableTabs !== undefined) {
+                setAutoSyncEffectRan(true);
+            }
+        }
+    }, [fileRepository, inVideoPlayer, handleFiles, tab, playbackPreferences, availableTabs, autoSyncEffectRan]);
 
     const handleCopyToClipboard = useCallback((blob: Blob) => {
         navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]).catch(console.error);
@@ -1473,7 +1516,7 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                                 onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
                                 onTakeScreenshot={handleTakeScreenshot}
                                 tab={tab}
-                                availableTabs={availableTabs}
+                                availableTabs={availableTabs ?? []}
                                 sources={sources}
                                 jumpToSubtitle={jumpToSubtitle}
                                 rewindSubtitle={rewindSubtitle}

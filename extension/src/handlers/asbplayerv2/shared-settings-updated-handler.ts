@@ -5,15 +5,15 @@ import {
     SettingsUpdatedMessage,
     SharedSettingsUpdatedMessage,
 } from '@project/common';
-import Settings from '../../services/settings';
+import ExtensionSettingsProvider from '../../services/extension-settings';
 import { primeLocalization } from '../../services/localization-fetcher';
 import TabRegistry from '../../services/tab-registry';
 
 export default class SharedSettingsUpdatedHandler {
-    private readonly _settings: Settings;
+    private readonly _settings: ExtensionSettingsProvider;
     private readonly _tabRegistry: TabRegistry;
 
-    constructor(settings: Settings, tabRegistry: TabRegistry) {
+    constructor(settings: ExtensionSettingsProvider, tabRegistry: TabRegistry) {
         this._settings = settings;
         this._tabRegistry = tabRegistry;
     }

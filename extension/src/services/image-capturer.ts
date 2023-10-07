@@ -1,5 +1,5 @@
 import { CropAndResizeMessage, ExtensionToVideoCommand, ImageCaptureParams, RectModel } from '@project/common';
-import Settings from './settings';
+import ExtensionSettingsProvider from './extension-settings';
 
 export interface CaptureOptions {
     maxWidth: number;
@@ -9,14 +9,14 @@ export interface CaptureOptions {
 }
 
 export default class ImageCapturer {
-    private readonly settings: Settings;
+    private readonly settings: ExtensionSettingsProvider;
     private imageBase64Promise: Promise<string> | undefined;
     private imageBase64Resolve: ((value: string) => void) | undefined;
     private lastCaptureTimeoutId?: NodeJS.Timeout;
 
     private _lastImageBase64?: string;
 
-    constructor(settings: Settings) {
+    constructor(settings: ExtensionSettingsProvider) {
         this.settings = settings;
     }
 

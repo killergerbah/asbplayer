@@ -1,8 +1,8 @@
-import { renderAppUi } from './ui/app';
+import { renderSidePanelUi } from './ui/side-panel';
 
 window.addEventListener('load', () => {
     const root = document.getElementById('root')!;
-    renderAppUi(root, false);
+    renderSidePanelUi(root, false);
     // const loc = JSON.parse(document.getElementById('loc')!.innerHTML!);
     // const bridge = renderVideoSelectModeUi(root, loc.lang, loc.strings);
     // const listener = new FrameBridgeServer(bridge);

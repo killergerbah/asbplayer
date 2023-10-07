@@ -1,6 +1,6 @@
 import '@fontsource/roboto';
 import { createRoot } from 'react-dom/client';
-import App from './components/App';
+import { App } from '@project/common/app';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 

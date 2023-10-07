@@ -14,7 +14,7 @@ import ImageElement from '../services/image-element';
 import { currentPageDelegate } from '../services/pages';
 import { Parser as m3U8Parser } from 'm3u8-parser';
 import UiFrame from '../services/ui-frame';
-import Settings from '../services/settings';
+import ExtensionSettingsProvider from '../services/extension-settings';
 import { fetchLocalization } from '../services/localization-fetcher';
 import i18n from 'i18next';
 
@@ -43,7 +43,7 @@ export default class VideoDataSyncController {
     private readonly _context: Binding;
     private readonly _domain: string;
     private readonly _frame: UiFrame;
-    private readonly _settings: Settings;
+    private readonly _settings: ExtensionSettingsProvider;
 
     private _videoSelectBound?: boolean;
     private _imageElement: ImageElement;
@@ -58,7 +58,7 @@ export default class VideoDataSyncController {
     private _autoSyncing: boolean = false;
     private _waitingForSubtitles: boolean = false;
 
-    constructor(context: Binding, settings: Settings) {
+    constructor(context: Binding, settings: ExtensionSettingsProvider) {
         this._context = context;
         this._settings = settings;
         this._videoSelectBound = false;

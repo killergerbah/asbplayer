@@ -54,7 +54,7 @@ export const keyBindSettingsKeys = Object.keys(keyBindSettingsObject) as (keyof 
 
 type SettingsKey = keyof ExtensionSettings;
 
-export default class Settings {
+export default class ExtensionSettingsProvider {
     async getAll(): Promise<ExtensionSettings> {
         return this.get(Object.keys(defaults) as SettingsKey[]);
     }

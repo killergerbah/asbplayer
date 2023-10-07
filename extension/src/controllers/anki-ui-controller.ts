@@ -15,7 +15,7 @@ import {
 } from '@project/common';
 import Binding from '../services/binding';
 import UiFrame from '../services/ui-frame';
-import Settings from '../services/settings';
+import ExtensionSettingsProvider from '../services/extension-settings';
 import { fetchLocalization } from '../services/localization-fetcher';
 
 // We need to write the HTML into the iframe manually so that the iframe keeps it's about:blank URL.
@@ -39,7 +39,7 @@ async function html(language: string) {
 }
 
 export default class AnkiUiController {
-    private readonly settings: Settings;
+    private readonly settings: ExtensionSettingsProvider;
     private readonly frame: UiFrame;
 
     private fullscreenElement?: Element;
@@ -47,7 +47,7 @@ export default class AnkiUiController {
     private focusInListener?: (event: FocusEvent) => void;
     private _ankiSettings?: AnkiSettings;
 
-    constructor(settings: Settings) {
+    constructor(settings: ExtensionSettingsProvider) {
         this.settings = settings;
         this.frame = new UiFrame(html);
     }

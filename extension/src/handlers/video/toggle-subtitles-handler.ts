@@ -1,12 +1,12 @@
 import { Command, ExtensionToVideoCommand, Message, SettingsUpdatedMessage } from '@project/common';
-import Settings from '../../services/settings';
+import ExtensionSettingsProvider from '../../services/extension-settings';
 import TabRegistry from '../../services/tab-registry';
 
 export default class ToggleSubtitlesHandler {
-    private readonly settings: Settings;
+    private readonly settings: ExtensionSettingsProvider;
     private readonly tabRegistry: TabRegistry;
 
-    constructor(settings: Settings, tabRegistry: TabRegistry) {
+    constructor(settings: ExtensionSettingsProvider, tabRegistry: TabRegistry) {
         this.settings = settings;
         this.tabRegistry = tabRegistry;
     }

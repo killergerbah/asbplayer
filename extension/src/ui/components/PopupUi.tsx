@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { createTheme } from './theme';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import PopupForm from './PopupForm';
 import Bridge from '../bridge';
-import { ExtensionSettings } from '@project/common';
+import { ExtensionSettings, createTheme } from '@project/common';
 import { LatestExtensionInfo, newVersionAvailable } from '../../services/version-checker';
 
 interface Props {
