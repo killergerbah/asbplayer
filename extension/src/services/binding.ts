@@ -7,7 +7,6 @@ import {
     cropAndResize,
     CurrentTimeFromVideoMessage,
     CurrentTimeToVideoMessage,
-    ExtensionSettings,
     humanReadableTime,
     ImageCaptureParams,
     MiscSettingsToVideoMessage,
@@ -23,6 +22,7 @@ import {
     RecordMediaAndForwardSubtitleMessage,
     RerecordMediaMessage,
     ScreenshotTakenMessage,
+    SettingsProvider,
     ShowAnkiUiAfterRerecordMessage,
     ShowAnkiUiMessage,
     StartRecordingMediaMessage,
@@ -40,10 +40,10 @@ import AnkiUiController from '../controllers/anki-ui-controller';
 import ControlsController from '../controllers/controls-controller';
 import DragController from '../controllers/drag-controller';
 import KeyBindings from './key-bindings';
-import ExtensionSettingsProvider from './extension-settings';
 import SubtitleController from '../controllers/subtitle-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
 import { i18nInit } from './i18n';
+import { ExtensionSettingsStorage } from './extension-settings-storage';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -70,7 +70,7 @@ export default class Binding {
     readonly dragController: DragController;
     readonly ankiUiController: AnkiUiController;
     readonly keyBindings: KeyBindings;
-    readonly settings: ExtensionSettingsProvider;
+    readonly settings: SettingsProvider;
 
     private copyToClipboardOnMine: boolean;
     private recordMedia: boolean;
@@ -102,12 +102,12 @@ export default class Binding {
         this.video = video;
         this.subSyncAvailable = syncAvailable;
         this.subtitleController = new SubtitleController(video);
-        this.settings = new ExtensionSettingsProvider();
+        this.settings = new SettingsProvider(new ExtensionSettingsStorage());
         this.videoDataSyncController = new VideoDataSyncController(this, this.settings);
         this.controlsController = new ControlsController(video);
         this.dragController = new DragController(video);
         this.keyBindings = new KeyBindings();
-        this.ankiUiController = new AnkiUiController(this.settings);
+        this.ankiUiController = new AnkiUiController();
         this.recordMedia = true;
         this.screenshot = true;
         this.cleanScreenshot = true;
@@ -451,15 +451,15 @@ export default class Binding {
                         break;
                     case 'miscSettings':
                         const miscSettingsMessage = request.message as MiscSettingsToVideoMessage;
-                        var newSettings: Partial<ExtensionSettings> = {
-                            lastThemeType: miscSettingsMessage.value.themeType,
-                        };
+                        // var newSettings: Partial<ExtensionSettings> = {
+                        //     lastThemeType: miscSettingsMessage.value.themeType,
+                        // };
 
-                        if (miscSettingsMessage.value.language !== undefined) {
-                            newSettings.lastLanguage = miscSettingsMessage.value.language;
-                        }
+                        // if (miscSettingsMessage.value.language !== undefined) {
+                        //     newSettings.lastLanguage = miscSettingsMessage.value.language;
+                        // }
 
-                        this.settings.set(newSettings);
+                        // this.settings.set(newSettings);
                         this.copyToClipboardOnMine = miscSettingsMessage.value.copyToClipboardOnMine;
                         this.autoPausePreference =
                             miscSettingsMessage.value.autoPausePreference ?? this.autoPausePreference;
@@ -571,20 +571,20 @@ export default class Binding {
 
     async _refreshSettings() {
         const currentSettings = await this.settings.getAll();
-        this.recordMedia = currentSettings.recordMedia;
-        this.screenshot = currentSettings.screenshot;
-        this.cleanScreenshot = currentSettings.screenshot && currentSettings.cleanScreenshot;
-        this.subtitleController.displaySubtitles = currentSettings.displaySubtitles;
-        this.subtitleController.subtitlePositionOffset = currentSettings.subtitlePositionOffset;
-        this.subtitleController.subtitleAlignment = currentSettings.subtitleAlignment;
+        this.recordMedia = currentSettings.streamingRecordMedia;
+        this.screenshot = currentSettings.streamingTakeScreenshot;
+        this.cleanScreenshot = currentSettings.streamingTakeScreenshot && currentSettings.streamingCleanScreenshot;
+        this.subtitleController.displaySubtitles = currentSettings.streamingDisplaySubtitles;
+        this.subtitleController.subtitlePositionOffset = currentSettings.streamingSubtitlePositionOffset;
+        this.subtitleController.subtitleAlignment = currentSettings.streamingSubtitleAlignment;
         this.subtitleController.refresh();
         this.videoDataSyncController.updateSettings(currentSettings);
-        this.keyBindings.setSettings(this, currentSettings);
-        this.condensedPlaybackMinimumSkipIntervalMs = currentSettings.condensedPlaybackMinimumSkipIntervalMs;
-        this.imageDelay = currentSettings.imageDelay;
-        i18nInit(currentSettings.lastLanguage);
+        this.keyBindings.setKeyBindSet(this, currentSettings.keyBindSet);
+        this.condensedPlaybackMinimumSkipIntervalMs = currentSettings.streamingCondensedPlaybackMinimumSkipIntervalMs;
+        this.imageDelay = currentSettings.streamingScreenshotDelay;
+        i18nInit(currentSettings.language);
 
-        if (currentSettings.subsDragAndDrop) {
+        if (currentSettings.streamingSubsDragAndDrop) {
             this.dragController.bind();
         } else {
             this.dragController.unbind();

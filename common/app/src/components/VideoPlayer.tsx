@@ -17,6 +17,7 @@ import {
     AutoPauseContext,
     computeStyles,
     computeStyleString,
+    AsbplayerSettings,
 } from '@project/common';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { DefaultKeyBinder } from '@project/common/key-binder';
@@ -194,7 +195,7 @@ export interface SeekRequest {
 }
 
 interface Props {
-    settingsProvider: SettingsProvider;
+    settings: AsbplayerSettings;
     playbackPreferences: PlaybackPreferences;
     extension: ChromeExtension;
     videoFile: string;
@@ -232,7 +233,7 @@ interface MinedRecord {
 }
 
 export default function VideoPlayer({
-    settingsProvider,
+    settings,
     playbackPreferences,
     extension,
     videoFile,
@@ -295,9 +296,9 @@ export default function VideoPlayer({
     const [showCursor, setShowCursor] = useState<boolean>(false);
     const lastMouseMovementTimestamp = useRef<number>(0);
     const containerRef = useRef<HTMLDivElement>(null);
-    const [miscSettings, setMiscSettings] = useState<MiscSettings>(settingsProvider.miscSettings);
-    const [subtitleSettings, setSubtitleSettings] = useState<SubtitleSettings>(settingsProvider.subtitleSettings);
-    const [ankiSettings, setAnkiSettings] = useState<AnkiSettings>(settingsProvider.ankiSettings);
+    const [miscSettings, setMiscSettings] = useState<MiscSettings>(settings);
+    const [subtitleSettings, setSubtitleSettings] = useState<SubtitleSettings>(settings);
+    const [ankiSettings, setAnkiSettings] = useState<AnkiSettings>(settings);
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
     const [alertMessage, setAlertMessage] = useState<string>('');
     const [alertSeverity, setAlertSeverity] = useState<Color>('info');
@@ -557,7 +558,7 @@ export default function VideoPlayer({
 
         const interval = setInterval(() => {
             const now = clock.time(length);
-            let showSubtitles = [];
+            let showSubtitles: IndexedSubtitleModel[] = [];
             const slice = subtitleCollection.subtitlesAt(now);
 
             for (const s of slice.showing) {

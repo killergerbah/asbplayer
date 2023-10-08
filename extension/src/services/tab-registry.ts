@@ -4,9 +4,9 @@ import {
     ExtensionToAsbPlayerCommandTabsCommand,
     ExtensionToVideoCommand,
     Message,
+    SettingsProvider,
     VideoTabModel,
 } from '@project/common';
-import ExtensionSettingsProvider from './extension-settings';
 
 interface SlimTab {
     id: number;
@@ -31,11 +31,11 @@ export interface VideoElement {
 }
 
 export default class TabRegistry {
-    private readonly settings: ExtensionSettingsProvider;
+    private readonly settings: SettingsProvider;
     private onNoSyncedElementsCallback?: () => void;
     private onSyncedElementCallback?: () => void;
 
-    constructor(settings: ExtensionSettingsProvider) {
+    constructor(settings: SettingsProvider) {
         this.settings = settings;
 
         // Update video element state on tab changes
@@ -391,7 +391,7 @@ export default class TabRegistry {
                 {
                     active: false,
                     selected: false,
-                    url: await this.settings.getSingle('asbplayerUrl'),
+                    url: `chrome-extension://${chrome.runtime.id}/app-ui.html`,
                     index: activeTabIndex,
                 },
                 resolve

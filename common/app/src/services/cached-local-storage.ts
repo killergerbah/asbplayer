@@ -1,6 +1,4 @@
-import { KeyValueStorage } from '@project/common';
-
-export default class CachedLocalStorage implements KeyValueStorage {
+export default class CachedLocalStorage {
     private readonly _cache: { [key: string]: string | null } = {};
 
     get(key: string): string | null {

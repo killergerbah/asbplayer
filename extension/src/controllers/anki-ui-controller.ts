@@ -15,7 +15,6 @@ import {
 } from '@project/common';
 import Binding from '../services/binding';
 import UiFrame from '../services/ui-frame';
-import ExtensionSettingsProvider from '../services/extension-settings';
 import { fetchLocalization } from '../services/localization-fetcher';
 
 // We need to write the HTML into the iframe manually so that the iframe keeps it's about:blank URL.
@@ -39,7 +38,6 @@ async function html(language: string) {
 }
 
 export default class AnkiUiController {
-    private readonly settings: ExtensionSettingsProvider;
     private readonly frame: UiFrame;
 
     private fullscreenElement?: Element;
@@ -47,8 +45,7 @@ export default class AnkiUiController {
     private focusInListener?: (event: FocusEvent) => void;
     private _ankiSettings?: AnkiSettings;
 
-    constructor(settings: ExtensionSettingsProvider) {
-        this.settings = settings;
+    constructor() {
         this.frame = new UiFrame(html);
     }
 
@@ -82,7 +79,7 @@ export default class AnkiUiController {
         this._prepareShow(context);
         const client = await this._client(context);
         const url = context.url;
-        const themeType = await context.settings.getSingle('lastThemeType');
+        const themeType = await context.settings.getSingle('themeType');
 
         const state: AnkiUiInitialState = {
             type: 'initial',
@@ -108,7 +105,7 @@ export default class AnkiUiController {
         this._prepareShow(context);
         const client = await this._client(context);
 
-        const themeType = await context.settings.getSingle('lastThemeType');
+        const themeType = await context.settings.getSingle('themeType');
         const state: AnkiUiResumeState = {
             ...uiState,
             type: 'resume',
@@ -128,7 +125,7 @@ export default class AnkiUiController {
         this._prepareShow(context);
         const client = await this._client(context);
 
-        const themeType = await context.settings.getSingle('lastThemeType');
+        const themeType = await context.settings.getSingle('themeType');
         const state: AnkiUiResumeState = {
             ...uiState,
             type: 'resume',
@@ -165,7 +162,7 @@ export default class AnkiUiController {
             videoSrc: context.video.src,
             allowedFetchUrl: this._ankiSettings!.ankiConnectUrl,
         };
-        this.frame.language = await this.settings.getSingle('lastLanguage');
+        this.frame.language = await context.settings.getSingle('language');
         const isNewClient = await this.frame.bind();
         const client = await this.frame.client();
 

@@ -1,6 +1,5 @@
-import { VideoTabModel } from '@project/common';
+import { AsbplayerSettings, VideoTabModel } from '@project/common';
 import CachedLocalStorage from './cached-local-storage';
-import SettingsProvider from '@project/common/src/settings-provider';
 
 const volumeKey = 'volume';
 const theaterModeKey = 'theaterMode';
@@ -16,11 +15,11 @@ export enum SubtitleAlignment {
 }
 
 export default class PlaybackPreferences {
-    private readonly settingsProvider: SettingsProvider;
+    private readonly settings: AsbplayerSettings;
     private readonly storage = new CachedLocalStorage();
 
-    constructor(settingsProvider: SettingsProvider) {
-        this.settingsProvider = settingsProvider;
+    constructor(settings: AsbplayerSettings) {
+        this.settings = settings;
     }
 
     get volume() {
@@ -46,7 +45,7 @@ export default class PlaybackPreferences {
     }
 
     get offset(): number {
-        if (!this.settingsProvider.rememberSubtitleOffset) {
+        if (!this.settings.rememberSubtitleOffset) {
             return 0;
         }
 

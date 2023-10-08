@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo, useCallback, useRef, MutableRefObj
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { v4 as uuidv4 } from 'uuid';
 import {
-    AsbplayerSettingsProvider,
+    AsbplayerSettings,
     AudioModel,
     AudioTrackModel,
     AutoPauseContext,
@@ -91,7 +91,7 @@ export interface AnkiDialogFinishedRequest {
 interface PlayerProps {
     sources: MediaSources;
     subtitleReader: SubtitleReader;
-    settingsProvider: AsbplayerSettingsProvider;
+    settings: AsbplayerSettings;
     playbackPreferences: PlaybackPreferences;
     keyBinder: KeyBinder;
     extension: ChromeExtension;
@@ -143,7 +143,7 @@ interface PlayerProps {
 export default function Player({
     sources: { subtitleFiles, flattenSubtitleFiles, audioFile, audioFileUrl, videoFile, videoFileUrl },
     subtitleReader,
-    settingsProvider,
+    settings,
     playbackPreferences,
     keyBinder,
     extension,
@@ -227,26 +227,26 @@ export default function Player({
     const handleOnStartedShowingSubtitle = useCallback(() => {
         if (
             playMode !== PlayMode.autoPause ||
-            settingsProvider.autoPausePreference !== AutoPausePreference.atStart ||
+            settings.autoPausePreference !== AutoPausePreference.atStart ||
             videoFileUrl // Let VideoPlayer do the auto-pausing
         ) {
             return;
         }
 
         pause(clock, mediaAdapter, true);
-    }, [playMode, clock, mediaAdapter, videoFileUrl, settingsProvider]);
+    }, [playMode, clock, mediaAdapter, videoFileUrl, settings]);
 
     const handleOnWillStopShowingSubtitle = useCallback(() => {
         if (
             playMode !== PlayMode.autoPause ||
-            settingsProvider.autoPausePreference !== AutoPausePreference.atEnd ||
+            settings.autoPausePreference !== AutoPausePreference.atEnd ||
             videoFileUrl // Let VideoPlayer do the auto-pausing
         ) {
             return;
         }
 
         pause(clock, mediaAdapter, true);
-    }, [playMode, clock, mediaAdapter, videoFileUrl, settingsProvider]);
+    }, [playMode, clock, mediaAdapter, videoFileUrl, settings]);
 
     const autoPauseContext = useMemo(() => {
         const context = new AutoPauseContext();
@@ -446,11 +446,14 @@ export default function Player({
         });
     }, [subtitles, channel, flattenSubtitleFiles, subtitleFiles, subtitlesSentThroughChannel]);
     useEffect(
-        () => channel?.onReady(() => channel?.subtitleSettings(settingsProvider.subtitleSettings)),
-        [channel, settingsProvider]
+        // TODO don't send whole settings blobb
+        () => channel?.onReady(() => channel?.subtitleSettings(settings)),
+        [channel, settings]
     );
-    useEffect(() => channel?.ankiSettings(settingsProvider.ankiSettings), [channel, settingsProvider]);
-    useEffect(() => channel?.miscSettings(settingsProvider.miscSettings), [channel, settingsProvider]);
+    // TODO don't send whole settings blobb
+    useEffect(() => channel?.ankiSettings(settings), [channel, settings]);
+    // TODO don't send whole settings blobb
+    useEffect(() => channel?.miscSettings(settings), [channel, settings]);
     useEffect(() => channel?.playMode(playMode), [channel, playMode]);
     useEffect(() => channel?.hideSubtitlePlayerToggle(hideSubtitlePlayer), [channel, hideSubtitlePlayer]);
     useEffect(
@@ -789,7 +792,7 @@ export default function Player({
 
     const handleSubtitlesSelected = useCallback(
         (subtitles: SubtitleModel[]) => {
-            if (subtitles.length === 0 || !settingsProvider.autoCopyCurrentSubtitle || !document.hasFocus()) {
+            if (subtitles.length === 0 || !settings.autoCopyCurrentSubtitle || !document.hasFocus()) {
                 return;
             }
 
@@ -797,7 +800,7 @@ export default function Player({
                 // ignore
             });
         },
-        [settingsProvider.autoCopyCurrentSubtitle]
+        [settings.autoCopyCurrentSubtitle]
     );
 
     useEffect(() => {
@@ -1001,7 +1004,7 @@ export default function Player({
                         onToggleSubtitleTrack={handleToggleSubtitleTrack}
                         onSubtitlesSelected={handleSubtitlesSelected}
                         autoPauseContext={autoPauseContext}
-                        settingsProvider={settingsProvider}
+                        settings={settings}
                         keyBinder={keyBinder}
                     />
                 </Grid>

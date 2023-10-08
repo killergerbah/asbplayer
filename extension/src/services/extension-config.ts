@@ -1,7 +1,3 @@
-import ExtensionSettingsProvider from './extension-settings';
-
-const settings = new ExtensionSettingsProvider();
-
 export interface ExtensionConfig {
     latest: {
         version: string;
@@ -28,7 +24,8 @@ export const fetchExtensionConfig = async (): Promise<ExtensionConfig | undefine
     }
 
     try {
-        const asbplayerUrl = (await settings.getSingle('asbplayerUrl')).replace(/\/$/, '');
+        // TODO Deal with this URL
+        const asbplayerUrl = 'https://killergerbah.github.io/asbplayer';
         const extensionJsonUrl = `${asbplayerUrl}/extension.json`;
         const extensionJson = await (await fetch(extensionJsonUrl)).json();
 

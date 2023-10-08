@@ -20,17 +20,17 @@ export interface MiscSettings extends SharedGlobalSettings {
 
 export interface AnkiSettings {
     readonly ankiConnectUrl: string;
-    readonly deck?: string;
-    readonly noteType?: string;
-    readonly sentenceField?: string;
-    readonly definitionField?: string;
-    readonly audioField?: string;
-    readonly imageField?: string;
-    readonly wordField?: string;
-    readonly urlField?: string;
+    readonly deck: string;
+    readonly noteType: string;
+    readonly sentenceField: string;
+    readonly definitionField: string;
+    readonly audioField: string;
+    readonly imageField: string;
+    readonly wordField: string;
+    readonly sourceField: string;
+    readonly urlField: string;
     readonly customAnkiFields: { [key: string]: string };
     readonly tags: string[];
-    readonly sourceField?: string;
     readonly preferMp3: boolean;
     readonly audioPaddingStart: number;
     readonly audioPaddingEnd: number;
@@ -87,22 +87,60 @@ export interface KeyBindSet {
     readonly decreasePlaybackRate: KeyBind;
     readonly increasePlaybackRate: KeyBind;
 
-    // Overridable by extension
+    // Bound from Chrome if extension is installed
     readonly copySubtitle: KeyBind;
     readonly ankiExport: KeyBind;
     readonly updateLastCard: KeyBind;
     readonly takeScreenshot: KeyBind;
 }
 
+export type ChromeBoundKeyBindName = 'copySubtitle' | 'ankiExport' | 'updateLastCard' | 'takeScreenshot';
+
+export type SubtitleAlignment = 'top' | 'bottom';
+
+export interface StreamingVideoSettings {
+    readonly streamingDisplaySubtitles: boolean;
+    readonly streamingRecordMedia: boolean;
+    readonly streamingTakeScreenshot: boolean;
+    readonly streamingCleanScreenshot: boolean;
+    readonly streamingCropScreenshot: boolean;
+    readonly streamingSubsDragAndDrop: boolean;
+    readonly streamingAutoSync: boolean;
+    // Last language selected in subtitle track selector, keyed by domain
+    // Used to auto-selecting a language in subtitle track selector, if it's available
+    readonly streamingLastLanguagesSynced: { [key: string]: string };
+    readonly streamingSubtitlePositionOffset: number;
+    readonly streamingCondensedPlaybackMinimumSkipIntervalMs: number;
+    readonly streamingScreenshotDelay: number;
+    readonly streamingSubtitleAlignment: SubtitleAlignment;
+}
+
 export type KeyBindName = keyof KeyBindSet;
 
-export interface AsbplayerSettings extends MiscSettings, AnkiSettings, SubtitleSettings {
-    subtitlePreview: string;
+export interface AsbplayerSettings extends MiscSettings, AnkiSettings, SubtitleSettings, StreamingVideoSettings {
+    readonly subtitlePreview: string;
 }
 
-export interface AsbplayerSettingsProvider extends AsbplayerSettings {
-    readonly settings: AsbplayerSettings;
-    readonly subtitleSettings: SubtitleSettings;
-    readonly ankiSettings: AnkiSettings;
-    readonly miscSettings: MiscSettings;
+const keyBindNameMap: any = {
+    'copy-subtitle': 'copySubtitle',
+    'copy-subtitle-with-dialog': 'ankiExport',
+    'update-last-card': 'updateLastCard',
+    'take-screenshot': 'takeScreenshot',
+};
+
+export function chromeCommandBindsToKeyBinds(chromeCommands: { [key: string]: string | undefined }) {
+    const keyBinds: { [key: string]: string | undefined } = {};
+
+    for (const commandName of Object.keys(chromeCommands)) {
+        keyBinds[keyBindNameMap[commandName]] = chromeCommands[commandName];
+    }
+
+    return keyBinds;
 }
+
+// export interface AsbplayerSettingsProvider extends AsbplayerSettings {
+//     readonly settings: AsbplayerSettings;
+//     readonly subtitleSettings: SubtitleSettings;
+//     readonly ankiSettings: AnkiSettings;
+//     readonly miscSettings: MiscSettings;
+// }

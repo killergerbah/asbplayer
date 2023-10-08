@@ -1,9 +1,10 @@
+import { ExtensionSettingsStorage } from './services/extension-settings-storage';
 import { renderPopupUi, SettingsChangedMessage } from './ui/popup';
-import ExtensionSettingsProvider from './services/extension-settings';
 import {
+    AsbplayerSettings,
     EditKeyboardShortcutsMessage,
-    ExtensionSettings,
     PopupToExtensionCommand,
+    SettingsProvider,
     SettingsUpdatedMessage,
 } from '@project/common';
 
@@ -24,7 +25,7 @@ const fetchShortcuts = () => {
 };
 
 document.addEventListener('DOMContentLoaded', async (e) => {
-    const settings = new ExtensionSettingsProvider();
+    const settings = new SettingsProvider(new ExtensionSettingsStorage());
     const currentSettingsPromise = settings.getAll();
     const commandsPromise = fetchShortcuts();
     const currentSettings = await currentSettingsPromise;
@@ -34,7 +35,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     bridge.onServerMessage(async (message: any) => {
         switch (message.command) {
             case 'settings-changed':
-                const key = message.key as keyof ExtensionSettings;
+                const key = message.key as keyof AsbplayerSettings;
                 const settingsChangedMessage = message as SettingsChangedMessage<typeof key>;
                 const newSetting: any = {};
                 newSetting[settingsChangedMessage.key] = settingsChangedMessage.value;

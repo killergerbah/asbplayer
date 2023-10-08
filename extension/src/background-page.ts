@@ -4,16 +4,17 @@ import {
     BackgroundPageToExtensionCommand,
     BackgroundPageReadyMessage,
     AudioBase64Message,
+    SettingsProvider,
 } from '@project/common';
 import { Mp3Encoder } from '@project/common';
 import AudioRecorder from './services/audio-recorder';
 import { bufferToBase64 } from './services/base64';
 import { i18nInit } from './ui/i18n';
 import i18n from 'i18next';
-import ExtensionSettingsProvider from './services/extension-settings';
 import { fetchLocalization } from './services/localization-fetcher';
+import { ExtensionSettingsStorage } from './services/extension-settings-storage';
 
-const settings = new ExtensionSettingsProvider();
+const settings = new SettingsProvider(new ExtensionSettingsStorage());
 const audioRecorder = new AudioRecorder();
 
 const _sendAudioBase64 = async (base64: string, preferMp3: boolean) => {
@@ -80,7 +81,7 @@ window.onload = async () => {
         window.close();
     }
 
-    const language = await settings.getSingle('lastLanguage');
+    const language = await settings.getSingle('language');
     const loc = await fetchLocalization(language);
     i18nInit(loc.lang, loc.strings);
     document.getElementById('helper-text')!.innerHTML = i18n.t('extension.backgroundAudioRecordingPage.description');

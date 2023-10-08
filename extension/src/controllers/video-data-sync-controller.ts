@@ -1,8 +1,9 @@
 import {
+    AsbplayerSettings,
     ConfirmedVideoDataSubtitleTrack,
-    ExtensionSettings,
     ExtensionSyncMessage,
     SerializedSubtitleFile,
+    SettingsProvider,
     VideoData,
     VideoDataSubtitleTrack,
     VideoDataUiState,
@@ -14,7 +15,6 @@ import ImageElement from '../services/image-element';
 import { currentPageDelegate } from '../services/pages';
 import { Parser as m3U8Parser } from 'm3u8-parser';
 import UiFrame from '../services/ui-frame';
-import ExtensionSettingsProvider from '../services/extension-settings';
 import { fetchLocalization } from '../services/localization-fetcher';
 import i18n from 'i18next';
 
@@ -43,7 +43,7 @@ export default class VideoDataSyncController {
     private readonly _context: Binding;
     private readonly _domain: string;
     private readonly _frame: UiFrame;
-    private readonly _settings: ExtensionSettingsProvider;
+    private readonly _settings: SettingsProvider;
 
     private _videoSelectBound?: boolean;
     private _imageElement: ImageElement;
@@ -58,7 +58,7 @@ export default class VideoDataSyncController {
     private _autoSyncing: boolean = false;
     private _waitingForSubtitles: boolean = false;
 
-    constructor(context: Binding, settings: ExtensionSettingsProvider) {
+    constructor(context: Binding, settings: SettingsProvider) {
         this._context = context;
         this._settings = settings;
         this._videoSelectBound = false;
@@ -115,9 +115,9 @@ export default class VideoDataSyncController {
         this._doneListener = undefined;
     }
 
-    updateSettings({ autoSync, lastLanguagesSynced }: ExtensionSettings) {
-        this._autoSync = autoSync;
-        this._lastLanguagesSynced = lastLanguagesSynced;
+    updateSettings({ streamingAutoSync, streamingLastLanguagesSynced }: AsbplayerSettings) {
+        this._autoSync = streamingAutoSync;
+        this._lastLanguagesSynced = streamingLastLanguagesSynced;
     }
 
     requestSubtitles() {
@@ -187,7 +187,7 @@ export default class VideoDataSyncController {
             }
         } else {
             // Either user-requested or we couldn't auto-sync subtitles with the preferred language
-            const themeType = await this._context.settings.getSingle('lastThemeType');
+            const themeType = await this._context.settings.getSingle('themeType');
             let state: VideoDataUiState = this._syncedData
                 ? {
                       open: true,
@@ -249,7 +249,7 @@ export default class VideoDataSyncController {
     }
 
     private async _client() {
-        this._frame.language = await this._settings.getSingle('lastLanguage');
+        this._frame.language = await this._settings.getSingle('language');
         const isNewClient = await this._frame.bind();
         const client = await this._frame.client();
 
@@ -261,7 +261,7 @@ export default class VideoDataSyncController {
                     if (this.lastLanguageSynced !== message.data.language && this._syncedData) {
                         this.lastLanguageSynced = message.data.language;
                         await this._context.settings
-                            .set({ lastLanguagesSynced: this._lastLanguagesSynced })
+                            .set({ streamingLastLanguagesSynced: this._lastLanguagesSynced })
                             .catch(() => {});
                     }
 
@@ -437,7 +437,7 @@ export default class VideoDataSyncController {
 
     private async _reportError(error: string) {
         const client = await this._client();
-        const themeType = await this._context.settings.getSingle('lastThemeType');
+        const themeType = await this._context.settings.getSingle('themeType');
 
         this._prepareShow();
 

@@ -201,6 +201,7 @@
         "preCacheSubtitleDomHelperText": "If enabled, asbplayer will pre-render subtitle text elements in an offscreen document, and re-use those elements for subtitle display. This allows external code to persistently modify subtitle text before it is displayed.",
         "rememberSubtitleOffset": "字幕の表示タイミングを記憶する",
         "sentenceField": "文フィールド",
+        "streamingVideo": "ストリーミングビデオ",
         "styleKey": "スタイルのキー",
         "styleValue": "スタイルの値",
         "sourceField": "ソースフィールド",

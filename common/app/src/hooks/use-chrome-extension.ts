@@ -1,13 +1,6 @@
-import { ExtensionVersionMessage } from '@project/common';
+import { ExtensionVersionMessage, chromeCommandBindsToKeyBinds } from '@project/common';
 import ChromeExtension from '../services/chrome-extension';
 import { useEffect, useState } from 'react';
-
-const keyBindNameMap: any = {
-    'copy-subtitle': 'copySubtitle',
-    'copy-subtitle-with-dialog': 'ankiExport',
-    'update-last-card': 'updateLastCard',
-    'take-screenshot': 'takeScreenshot',
-};
 
 const initialExtension = new ChromeExtension();
 let realExtension: ChromeExtension | undefined;
@@ -21,14 +14,9 @@ const listenForVersion = (callback: (extension: ChromeExtension) => void) => {
         if (event.data.sender === 'asbplayer-extension-to-player') {
             if (event.data.message.command === 'version') {
                 const message = event.data.message as ExtensionVersionMessage;
-                const translatedCommands: { [key: string]: string | undefined } = {};
                 const extensionCommands = message.extensionCommands ?? {};
 
-                for (const extensionCommandName of Object.keys(extensionCommands)) {
-                    translatedCommands[keyBindNameMap[extensionCommandName]] = extensionCommands[extensionCommandName];
-                }
-
-                callback(new ChromeExtension(message.version, translatedCommands));
+                callback(new ChromeExtension(message.version, chromeCommandBindsToKeyBinds(extensionCommands)));
             }
         }
     };

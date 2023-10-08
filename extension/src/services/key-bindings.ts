@@ -1,19 +1,18 @@
 import {
-    ExtensionKeyBindingsSettings,
     KeyBindSet,
     PlayMode,
+    SettingsProvider,
     ToggleSubtitlesInListFromVideoMessage,
     ToggleSubtitlesMessage,
     VideoToExtensionCommand,
 } from '@project/common';
 import { DefaultKeyBinder } from '@project/common/key-binder';
 import Binding from './binding';
-import { keyBindSettingsKeys } from './extension-settings';
 
 type Unbinder = (() => void) | false;
 
 export default class KeyBindings {
-    private _settings?: ExtensionKeyBindingsSettings;
+    private _settings?: SettingsProvider;
     private _keyBinder: DefaultKeyBinder | undefined;
 
     private _unbindPlay: Unbinder = false;
@@ -36,25 +35,6 @@ export default class KeyBindings {
         this._bound = false;
     }
 
-    setSettings(context: Binding, newSettings: ExtensionKeyBindingsSettings) {
-        const oldSettings = this._settings;
-        this._settings = newSettings;
-        if (!oldSettings || this._hasDiff(oldSettings, newSettings)) {
-            this.unbind();
-            this.bind(context);
-        }
-    }
-
-    private _hasDiff(a: ExtensionKeyBindingsSettings, b: ExtensionKeyBindingsSettings) {
-        for (const key of keyBindSettingsKeys) {
-            if (a[key] !== b[key]) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     setKeyBindSet(context: Binding, keyBindSet: KeyBindSet) {
         this._keyBinder = new DefaultKeyBinder(keyBindSet);
         this.unbind();
@@ -74,206 +54,177 @@ export default class KeyBindings {
             this.unbind();
         }
 
-        this._unbindPlay =
-            this._settings.bindPlay &&
-            this._keyBinder.bindPlay(
-                (event) => {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
+        this._unbindPlay = this._keyBinder.bindPlay(
+            (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
 
-                    if (context.video.paused) {
-                        context.play();
-                    } else {
-                        context.pause();
-                    }
-                },
-                () => false,
-                true
-            );
+                if (context.video.paused) {
+                    context.play();
+                } else {
+                    context.pause();
+                }
+            },
+            () => false,
+            true
+        );
 
-        this._unbindAutoPause =
-            this._settings.bindAutoPause &&
-            this._keyBinder.bindAutoPause(
-                (event) => {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
+        this._unbindAutoPause = this._keyBinder.bindAutoPause(
+            (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
 
-                    context.playMode = context.playMode === PlayMode.autoPause ? PlayMode.normal : PlayMode.autoPause;
-                },
-                () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
-                true
-            );
+                context.playMode = context.playMode === PlayMode.autoPause ? PlayMode.normal : PlayMode.autoPause;
+            },
+            () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
+            true
+        );
 
-        this._unbindCondensedPlayback =
-            this._settings.bindCondensedPlayback &&
-            this._keyBinder.bindCondensedPlayback(
-                (event) => {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
+        this._unbindCondensedPlayback = this._keyBinder.bindCondensedPlayback(
+            (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
 
-                    context.playMode = context.playMode === PlayMode.condensed ? PlayMode.normal : PlayMode.condensed;
-                },
-                () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
-                true
-            );
+                context.playMode = context.playMode === PlayMode.condensed ? PlayMode.normal : PlayMode.condensed;
+            },
+            () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
+            true
+        );
 
-        this._unbindSeekToSubtitle =
-            this._settings.bindSeekToSubtitle &&
-            this._keyBinder.bindSeekToSubtitle(
-                (event, subtitle) => {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                    context.seek(subtitle.start / 1000);
-                },
-                () => false,
-                () => context.video.currentTime * 1000,
-                () => context.subtitleController.subtitles,
-                true
-            );
+        this._unbindSeekToSubtitle = this._keyBinder.bindSeekToSubtitle(
+            (event, subtitle) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                context.seek(subtitle.start / 1000);
+            },
+            () => false,
+            () => context.video.currentTime * 1000,
+            () => context.subtitleController.subtitles,
+            true
+        );
 
-        this._unbindSeekBackwardOrForward =
-            this._settings.bindSeekBackwardOrForward &&
-            this._keyBinder.bindSeekBackwardOrForward(
-                (event, forward) => {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
+        this._unbindSeekBackwardOrForward = this._keyBinder.bindSeekBackwardOrForward(
+            (event, forward) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
 
-                    if (forward) {
-                        context.seek(Math.min(context.video.duration, context.video.currentTime + 10));
-                    } else {
-                        context.seek(Math.max(0, context.video.currentTime - 10));
-                    }
-                },
-                () => false,
-                true
-            );
+                if (forward) {
+                    context.seek(Math.min(context.video.duration, context.video.currentTime + 10));
+                } else {
+                    context.seek(Math.max(0, context.video.currentTime - 10));
+                }
+            },
+            () => false,
+            true
+        );
 
-        this._unbindSeekToBeginningOfCurrentSubtitle =
-            this._settings.bindSeekToBeginningOfCurrentSubtitle &&
-            this._keyBinder.bindSeekToBeginningOfCurrentSubtitle(
-                (event, subtitle) => {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                    context.seek(subtitle.start / 1000);
-                },
-                () => false,
-                () => context.video.currentTime * 1000,
-                () => context.subtitleController.subtitles,
-                true
-            );
+        this._unbindSeekToBeginningOfCurrentSubtitle = this._keyBinder.bindSeekToBeginningOfCurrentSubtitle(
+            (event, subtitle) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                context.seek(subtitle.start / 1000);
+            },
+            () => false,
+            () => context.video.currentTime * 1000,
+            () => context.subtitleController.subtitles,
+            true
+        );
 
-        this._unbindToggleSubtitles =
-            this._settings.bindToggleSubtitles &&
-            this._keyBinder.bindToggleSubtitles(
-                (event) => {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
+        this._unbindToggleSubtitles = this._keyBinder.bindToggleSubtitles(
+            (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
 
-                    const toggleSubtitlesCommand: VideoToExtensionCommand<ToggleSubtitlesMessage> = {
-                        sender: 'asbplayer-video',
-                        message: {
-                            command: 'toggle-subtitles',
-                        },
-                        src: context.video.src,
-                    };
+                const toggleSubtitlesCommand: VideoToExtensionCommand<ToggleSubtitlesMessage> = {
+                    sender: 'asbplayer-video',
+                    message: {
+                        command: 'toggle-subtitles',
+                    },
+                    src: context.video.src,
+                };
 
-                    chrome.runtime.sendMessage(toggleSubtitlesCommand);
-                },
-                () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
-                true
-            );
+                chrome.runtime.sendMessage(toggleSubtitlesCommand);
+            },
+            () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
+            true
+        );
 
-        this._unbindToggleSubtitleTrackInVideo =
-            this._settings.bindToggleSubtitleTrackInVideo &&
-            this._keyBinder.bindToggleSubtitleTrackInVideo(
-                (event, track) => {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                    context.subtitleController.disabledSubtitleTracks[track] =
-                        !context.subtitleController.disabledSubtitleTracks[track];
-                },
-                () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
-                true
-            );
+        this._unbindToggleSubtitleTrackInVideo = this._keyBinder.bindToggleSubtitleTrackInVideo(
+            (event, track) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                context.subtitleController.disabledSubtitleTracks[track] =
+                    !context.subtitleController.disabledSubtitleTracks[track];
+            },
+            () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
+            true
+        );
 
-        this._unbindToggleSubtitleTrackInList =
-            this._settings.bindToggleSubtitleTrackInAsbplayer &&
-            this._keyBinder.bindToggleSubtitleTrackInList(
-                (event, track) => {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                    const command: VideoToExtensionCommand<ToggleSubtitlesInListFromVideoMessage> = {
-                        sender: 'asbplayer-video',
-                        message: {
-                            command: 'toggleSubtitleTrackInList',
-                            track: track,
-                        },
-                        src: context.video.src,
-                    };
-                    chrome.runtime.sendMessage(command);
-                },
-                () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
-                true
-            );
+        this._unbindToggleSubtitleTrackInList = this._keyBinder.bindToggleSubtitleTrackInList(
+            (event, track) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                const command: VideoToExtensionCommand<ToggleSubtitlesInListFromVideoMessage> = {
+                    sender: 'asbplayer-video',
+                    message: {
+                        command: 'toggleSubtitleTrackInList',
+                        track: track,
+                    },
+                    src: context.video.src,
+                };
+                chrome.runtime.sendMessage(command);
+            },
+            () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
+            true
+        );
 
-        this._unbindOffsetToSubtitle =
-            this._settings.bindAdjustOffsetToSubtitle &&
-            this._keyBinder.bindOffsetToSubtitle(
-                (event, offset) => {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                    context.subtitleController.offset(offset);
-                },
-                () => false,
-                () => context.video.currentTime * 1000,
-                () => context.subtitleController.subtitles,
-                true
-            );
+        this._unbindOffsetToSubtitle = this._keyBinder.bindOffsetToSubtitle(
+            (event, offset) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                context.subtitleController.offset(offset);
+            },
+            () => false,
+            () => context.video.currentTime * 1000,
+            () => context.subtitleController.subtitles,
+            true
+        );
 
-        this._unbindAdjustOffset =
-            this._settings.bindAdjustOffset &&
-            this._keyBinder.bindAdjustOffset(
-                (event, offset) => {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                    context.subtitleController.offset(offset);
-                },
-                () => false,
-                () => context.subtitleController.subtitles,
-                true
-            );
+        this._unbindAdjustOffset = this._keyBinder.bindAdjustOffset(
+            (event, offset) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                context.subtitleController.offset(offset);
+            },
+            () => false,
+            () => context.subtitleController.subtitles,
+            true
+        );
 
-        this._unbindResetOffset =
-            this._settings.bindResetOffset &&
-            this._keyBinder.bindResetOffet(
-                (event) => {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                    context.subtitleController.offset(0);
-                },
-                () => false,
-                true
-            );
+        this._unbindResetOffset = this._keyBinder.bindResetOffet(
+            (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                context.subtitleController.offset(0);
+            },
+            () => false,
+            true
+        );
 
-        this._unbindAdjustPlaybackRate =
-            this._settings.bindAdjustPlaybackRate &&
-            this._keyBinder.bindAdjustPlaybackRate(
-                (event, increase) => {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
+        this._unbindAdjustPlaybackRate = this._keyBinder.bindAdjustPlaybackRate(
+            (event, increase) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
 
-                    if (increase) {
-                        context.video.playbackRate = Math.min(5, Math.round(context.video.playbackRate * 10 + 1) / 10);
-                    } else {
-                        context.video.playbackRate = Math.max(
-                            0.1,
-                            Math.round(context.video.playbackRate * 10 - 1) / 10
-                        );
-                    }
-                },
-                () => false,
-                true
-            );
+                if (increase) {
+                    context.video.playbackRate = Math.min(5, Math.round(context.video.playbackRate * 10 + 1) / 10);
+                } else {
+                    context.video.playbackRate = Math.max(0.1, Math.round(context.video.playbackRate * 10 - 1) / 10);
+                }
+            },
+            () => false,
+            true
+        );
 
         this._bound = true;
     }

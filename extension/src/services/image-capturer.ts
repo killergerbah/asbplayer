@@ -1,5 +1,10 @@
-import { CropAndResizeMessage, ExtensionToVideoCommand, ImageCaptureParams, RectModel } from '@project/common';
-import ExtensionSettingsProvider from './extension-settings';
+import {
+    CropAndResizeMessage,
+    ExtensionToVideoCommand,
+    ImageCaptureParams,
+    RectModel,
+    SettingsProvider,
+} from '@project/common';
 
 export interface CaptureOptions {
     maxWidth: number;
@@ -9,14 +14,14 @@ export interface CaptureOptions {
 }
 
 export default class ImageCapturer {
-    private readonly settings: ExtensionSettingsProvider;
+    private readonly settings: SettingsProvider;
     private imageBase64Promise: Promise<string> | undefined;
     private imageBase64Resolve: ((value: string) => void) | undefined;
     private lastCaptureTimeoutId?: NodeJS.Timeout;
 
     private _lastImageBase64?: string;
 
-    constructor(settings: ExtensionSettingsProvider) {
+    constructor(settings: SettingsProvider) {
         this.settings = settings;
     }
 
@@ -78,7 +83,7 @@ export default class ImageCapturer {
         imageCaptureParams: ImageCaptureParams
     ): Promise<string> {
         return new Promise(async (resolve, reject) => {
-            const cropScreenshot = await this.settings.getSingle('cropScreenshot');
+            const cropScreenshot = await this.settings.getSingle('streamingCropScreenshot');
 
             if (!cropScreenshot) {
                 resolve(dataUrl);

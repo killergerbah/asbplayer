@@ -3,6 +3,7 @@ import { Trans } from 'react-i18next';
 import { makeStyles } from '@material-ui/styles';
 import gt from 'semver/functions/gt';
 import Fade from '@material-ui/core/Fade';
+import Paper from '@material-ui/core/Paper';
 import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
 import ChromeExtension from '../services/chrome-extension';
@@ -57,7 +58,7 @@ export default function LandingPage({
     return (
         <React.Fragment>
             <Fade in={!loading && !dragging} timeout={500}>
-                <div className={classes.background}>
+                <Paper square variant="elevation" elevation={0} className={classes.background}>
                     <Typography variant="h6">
                         <Trans i18nKey={'landing.cta'}>
                             Drag and drop subtitle and media files, or
@@ -92,7 +93,7 @@ export default function LandingPage({
                             </Trans>
                         )}
                     </Typography>
-                </div>
+                </Paper>
             </Fade>
         </React.Fragment>
     );

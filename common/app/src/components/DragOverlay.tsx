@@ -1,3 +1,4 @@
+import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 import Fade from '@material-ui/core/Fade';
 // import coloredBackground from './background-colored.png';

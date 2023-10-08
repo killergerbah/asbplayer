@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import MuiAlert, { Color } from '@material-ui/lab/Alert';
 import Grow from '@material-ui/core/Grow';
@@ -20,7 +20,7 @@ interface Props {
     autoHideDuration: number;
     onClose: () => void;
     severity: Color | undefined;
-    children: React.ReactNode
+    children: React.ReactNode;
 }
 
 export default function Alert(props: Props) {

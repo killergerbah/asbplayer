@@ -1,5 +1,4 @@
 import TabRegistry, { Asbplayer } from './services/tab-registry';
-import ExtensionSettingsProvider from './services/extension-settings';
 import ImageCapturer from './services/image-capturer';
 import VideoHeartbeatHandler from './handlers/video/video-heartbeat-handler';
 import RecordMediaHandler from './handlers/video/record-media-handler';
@@ -33,16 +32,18 @@ import {
     ExtensionToVideoCommand,
     Message,
     PostMineAction,
+    SettingsProvider,
     TakeScreenshotMessage,
     ToggleRecordingMessage,
     ToggleVideoSelectMessage,
 } from '@project/common';
 import { primeLocalization } from './services/localization-fetcher';
 import VideoDisappearedHandler from './handlers/video/video-disappeared-handler';
+import { ExtensionSettingsStorage } from './services/extension-settings-storage';
 
 chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
 
-const settings = new ExtensionSettingsProvider();
+const settings = new SettingsProvider(new ExtensionSettingsStorage());
 
 const startListener = async () => {
     const [newVersion] = await newVersionAvailable();
@@ -52,7 +53,7 @@ const startListener = async () => {
         await chrome.action.setBadgeText({ text: '!' });
     }
 
-    primeLocalization(await settings.getSingle('lastLanguage'));
+    primeLocalization(await settings.getSingle('language'));
 };
 
 chrome.runtime.onInstalled.addListener(startListener);

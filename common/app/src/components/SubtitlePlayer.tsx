@@ -1,15 +1,15 @@
-import React, { useCallback, useEffect, useState, useMemo, useRef, createRef, RefObject } from 'react';
+import React, { useCallback, useEffect, useState, useMemo, useRef, createRef, RefObject, ReactNode } from 'react';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { keysAreEqual } from '../services/util';
 import { useWindowSize } from '../hooks/use-window-size';
 import { useTranslation } from 'react-i18next';
 import {
-    AsbplayerSettingsProvider,
     PostMineAction,
     surroundingSubtitles,
     SubtitleModel,
     AutoPauseContext,
     mockSurroundingSubtitles,
+    AsbplayerSettings,
 } from '@project/common';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { KeyBinder } from '@project/common/key-binder';
@@ -201,7 +201,7 @@ interface SubtitlePlayerProps {
     lastJumpToTopTimestamp: number;
     hidden: boolean;
     disabledSubtitleTracks: { [track: number]: boolean };
-    settingsProvider: AsbplayerSettingsProvider;
+    settings: AsbplayerSettings;
     keyBinder: KeyBinder;
 }
 
@@ -228,7 +228,7 @@ export default function SubtitlePlayer({
     lastJumpToTopTimestamp,
     hidden,
     disabledSubtitleTracks,
-    settingsProvider,
+    settings,
     keyBinder,
 }: SubtitlePlayerProps) {
     const { t } = useTranslation();
@@ -538,16 +538,16 @@ export default function SubtitlePlayer({
             return surroundingSubtitles(
                 subtitles,
                 index,
-                settingsProvider.surroundingSubtitlesCountRadius,
-                settingsProvider.surroundingSubtitlesTimeRadius
+                settings.surroundingSubtitlesCountRadius,
+                settings.surroundingSubtitlesTimeRadius
             );
         },
         [
             length,
             subtitles,
             currentMockSubtitle,
-            settingsProvider.surroundingSubtitlesCountRadius,
-            settingsProvider.surroundingSubtitlesTimeRadius,
+            settings.surroundingSubtitlesCountRadius,
+            settings.surroundingSubtitlesTimeRadius,
         ]
     );
 
@@ -668,7 +668,7 @@ export default function SubtitlePlayer({
         [subtitles, calculateSurroundingSubtitlesForIndex, onCopy]
     );
 
-    let subtitleTable = null;
+    let subtitleTable: ReactNode | null = null;
 
     if (!subtitles || subtitles.length === 0) {
         if (!loading && displayHelp) {

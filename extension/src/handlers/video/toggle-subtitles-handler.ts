@@ -1,12 +1,11 @@
-import { Command, ExtensionToVideoCommand, Message, SettingsUpdatedMessage } from '@project/common';
-import ExtensionSettingsProvider from '../../services/extension-settings';
+import { Command, ExtensionToVideoCommand, Message, SettingsProvider, SettingsUpdatedMessage } from '@project/common';
 import TabRegistry from '../../services/tab-registry';
 
 export default class ToggleSubtitlesHandler {
-    private readonly settings: ExtensionSettingsProvider;
+    private readonly settings: SettingsProvider;
     private readonly tabRegistry: TabRegistry;
 
-    constructor(settings: ExtensionSettingsProvider, tabRegistry: TabRegistry) {
+    constructor(settings: SettingsProvider, tabRegistry: TabRegistry) {
         this.settings = settings;
         this.tabRegistry = tabRegistry;
     }
@@ -20,8 +19,8 @@ export default class ToggleSubtitlesHandler {
     }
 
     async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
-        const displaySubtitles = await this.settings.getSingle('displaySubtitles');
-        await this.settings.set({ displaySubtitles: !displaySubtitles });
+        const displaySubtitles = await this.settings.getSingle('streamingDisplaySubtitles');
+        await this.settings.set({ streamingDisplaySubtitles: !displaySubtitles });
 
         this.tabRegistry.publishCommandToVideoElements((videoElement) => {
             const settingsUpdatedCommand: ExtensionToVideoCommand<SettingsUpdatedMessage> = {
@@ -29,7 +28,7 @@ export default class ToggleSubtitlesHandler {
                 message: {
                     command: 'settings-updated',
                 },
-                src: videoElement.src
+                src: videoElement.src,
             };
             return settingsUpdatedCommand;
         });

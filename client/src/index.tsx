@@ -1,12 +1,13 @@
 import '@fontsource/roboto';
 import { createRoot } from 'react-dom/client';
-import { App } from '@project/common/app';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
+import { LocalSettingsStorage } from './local-settings-storage';
+import { RootApp } from '@project/common/app';
 
 createRoot(document.querySelector('#root')!).render(
     <BrowserRouter basename={process.env.PUBLIC_URL}>
-        <App sidePanel={false} />
+        <RootApp settingsStorage={new LocalSettingsStorage()} />
     </BrowserRouter>
 );
 

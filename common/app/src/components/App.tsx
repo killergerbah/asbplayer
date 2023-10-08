@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
-import { i18n, useI18nInitialized } from './i18n';
+import { useI18nInitialized } from './i18n';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { ThemeProvider, makeStyles, Theme } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/use-window-size';
@@ -27,6 +27,7 @@ import clsx from 'clsx';
 import Alert from './Alert';
 import { AnkiDialog, ImageDialog } from '@project/common/components';
 import CssBaseline from '@material-ui/core/CssBaseline';
+import Paper from '@material-ui/core/Paper';
 import DragOverlay from './DragOverlay';
 import SubtitleReader from '../services/subtitle-reader';
 import Bar from './Bar';
@@ -35,7 +36,6 @@ import CopyHistory, { CopyHistoryItem } from './CopyHistory';
 import LandingPage from './LandingPage';
 import Player, { AnkiDialogFinishedRequest, MediaSources } from './Player';
 import SettingsDialog from './SettingsDialog';
-import SettingsProvider from '@project/common/src/settings-provider';
 import VideoPlayer, { SeekRequest } from './VideoPlayer';
 import { Color } from '@material-ui/lab';
 import { AnkiExportMode } from '@project/common';
@@ -49,7 +49,6 @@ import { useTranslation } from 'react-i18next';
 import LocalizedError from './localized-error';
 import { useChromeExtension } from '../hooks/use-chrome-extension';
 import FileRepository from '../services/file-repository';
-import CachedLocalStorage from '../services/cached-local-storage';
 
 const latestExtensionVersion = '0.28.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
@@ -74,9 +73,9 @@ const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
 }));
 
 function extractSources(files: FileList | File[]): MediaSources {
-    let subtitleFiles = [];
-    let audioFile = undefined;
-    let videoFile = undefined;
+    let subtitleFiles: File[] = [];
+    let audioFile: File | undefined = undefined;
+    let videoFile: File | undefined = undefined;
 
     for (let i = 0; i < files.length; ++i) {
         const f = files[i];
@@ -240,7 +239,7 @@ function revokeUrls(sources: MediaSources) {
 
 interface RenderVideoProps {
     searchParams: URLSearchParams;
-    settingsProvider: SettingsProvider;
+    settings: AsbplayerSettings;
     playbackPreferences: PlaybackPreferences;
     extension: ChromeExtension;
     ankiDialogFinishedRequest: AnkiDialogFinishedRequest;
@@ -288,42 +287,44 @@ function Content(props: ContentProps) {
     );
 }
 
-function App({ sidePanel }: { sidePanel: boolean }) {
+interface AppProps {
+    settings: AsbplayerSettings;
+    onSettingsChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => void;
+}
+
+function App({ settings, onSettingsChanged }: AppProps) {
     const { t } = useTranslation();
-    const settingsProvider = useMemo<SettingsProvider>(() => new SettingsProvider(new CachedLocalStorage()), []);
+    // const settings = useSettings(settingsProvider);
+    // const settingsProvider = useMemo<SettingsProvider>(() => new SettingsProvider(new CachedLocalStorage()), []);
     const subtitleReader = useMemo<SubtitleReader>(() => {
         let regex: RegExp | undefined;
 
         try {
             regex =
-                settingsProvider.subtitleRegexFilter.trim() === ''
-                    ? undefined
-                    : new RegExp(settingsProvider.subtitleRegexFilter, 'g');
+                settings.subtitleRegexFilter.trim() === '' ? undefined : new RegExp(settings.subtitleRegexFilter, 'g');
         } catch (e) {
             regex = undefined;
         }
 
         if (regex !== undefined) {
-            return new SubtitleReader({ regex, replacement: settingsProvider.subtitleRegexFilterTextReplacement });
+            return new SubtitleReader({ regex, replacement: settings.subtitleRegexFilterTextReplacement });
         }
 
         return new SubtitleReader();
-    }, [settingsProvider.subtitleRegexFilter, settingsProvider.subtitleRegexFilterTextReplacement]);
-    const playbackPreferences = useMemo<PlaybackPreferences>(
-        () => new PlaybackPreferences(settingsProvider),
-        [settingsProvider]
-    );
-    const theme = useMemo<Theme>(() => createTheme(settingsProvider.themeType), [settingsProvider.themeType]);
-    const anki = useMemo<Anki>(() => new Anki(settingsProvider), [settingsProvider]);
+    }, [settings.subtitleRegexFilter, settings.subtitleRegexFilterTextReplacement]);
+    const playbackPreferences = useMemo<PlaybackPreferences>(() => new PlaybackPreferences(settings), [settings]);
+    const theme = useMemo<Theme>(() => createTheme(settings.themeType), [settings.themeType]);
+    const anki = useMemo<Anki>(() => new Anki(settings), [settings]);
     const location = useLocation();
     const [searchParams] = useSearchParams();
 
     const inVideoPlayer = searchParams.get('video') !== null;
-    const extension = useChromeExtension(sidePanel);
+    // TODO: Figure out what to do with side panel boolean
+    const extension = useChromeExtension(false);
     const [videoFullscreen, setVideoFullscreen] = useState<boolean>(false);
     const keyBinder = useMemo<AppKeyBinder>(
-        () => new AppKeyBinder(new DefaultKeyBinder(settingsProvider.keyBindSet), extension),
-        [settingsProvider.keyBindSet, extension]
+        () => new AppKeyBinder(new DefaultKeyBinder(settings.keyBindSet), extension),
+        [settings.keyBindSet, extension]
     );
     const videoFrameRef = useRef<HTMLIFrameElement>(null);
     const videoChannelRef = useRef<VideoChannel>(null);
@@ -333,13 +334,13 @@ function App({ sidePanel }: { sidePanel: boolean }) {
     const minDrawerSize = videoFrameRef.current ? 150 : 300;
     const drawerWidth = Math.max(minDrawerSize, width * drawerRatio);
     const copyHistoryRepository = useMemo(
-        () => new CopyHistoryRepository(settingsProvider.miningHistoryStorageLimit),
-        [settingsProvider]
+        () => new CopyHistoryRepository(settings.miningHistoryStorageLimit),
+        [settings]
     );
     const fileRepository = useMemo(() => new FileRepository(), []);
     useEffect(() => {
-        copyHistoryRepository.limit = settingsProvider.miningHistoryStorageLimit;
-    }, [copyHistoryRepository, settingsProvider.miningHistoryStorageLimit]);
+        copyHistoryRepository.limit = settings.miningHistoryStorageLimit;
+    }, [copyHistoryRepository, settings.miningHistoryStorageLimit]);
     const [copiedSubtitles, setCopiedSubtitles] = useState<CopyHistoryItem[]>([]);
     const copiedSubtitlesRef = useRef<CopyHistoryItem[]>([]);
     copiedSubtitlesRef.current = copiedSubtitles;
@@ -370,21 +371,14 @@ function App({ sidePanel }: { sidePanel: boolean }) {
             audioClipFromItem(
                 ankiDialogItem,
                 ankiDialogItemSliderContext,
-                settingsProvider.audioPaddingStart,
-                settingsProvider.audioPaddingEnd
+                settings.audioPaddingStart,
+                settings.audioPaddingEnd
             ),
-        [
-            ankiDialogItem,
-            ankiDialogItemSliderContext,
-            settingsProvider.audioPaddingStart,
-            settingsProvider.audioPaddingEnd,
-        ]
+        [ankiDialogItem, ankiDialogItemSliderContext, settings.audioPaddingStart, settings.audioPaddingEnd]
     );
     const ankiDialogImage = useMemo<Image | undefined>(
-        () =>
-            ankiDialogItem &&
-            imageFromItem(ankiDialogItem, settingsProvider.maxImageWidth, settingsProvider.maxImageHeight),
-        [ankiDialogItem, settingsProvider.maxImageWidth, settingsProvider.maxImageHeight]
+        () => ankiDialogItem && imageFromItem(ankiDialogItem, settings.maxImageWidth, settings.maxImageHeight),
+        [ankiDialogItem, settings.maxImageWidth, settings.maxImageHeight]
     );
     const [ankiDialogRequested, setAnkiDialogRequested] = useState<boolean>(false);
     const [ankiDialogFinishedRequest, setAnkiDialogFinishedRequest] = useState<AnkiDialogFinishedRequest>({
@@ -562,7 +556,7 @@ function App({ sidePanel }: { sidePanel: boolean }) {
             postMineAction: PostMineAction | undefined,
             id: string | undefined
         ) => {
-            if (subtitle && settingsProvider.copyToClipboardOnMine) {
+            if (subtitle && settings.copyToClipboardOnMine) {
                 navigator.clipboard.writeText(subtitle.text);
             }
 
@@ -600,11 +594,11 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                     let audioClip = audioClipFromItem(
                         newCopiedSubtitle,
                         undefined,
-                        settingsProvider.audioPaddingStart,
-                        settingsProvider.audioPaddingEnd
+                        settings.audioPaddingStart,
+                        settings.audioPaddingEnd
                     );
 
-                    if (audioClip && settingsProvider.preferMp3) {
+                    if (audioClip && settings.preferMp3) {
                         audioClip = audioClip.toMp3();
                     }
 
@@ -612,16 +606,12 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                         extractText(subtitle, surroundingSubtitles),
                         '',
                         audioClip,
-                        imageFromItem(
-                            newCopiedSubtitle,
-                            settingsProvider.maxImageWidth,
-                            settingsProvider.maxImageHeight
-                        ),
+                        imageFromItem(newCopiedSubtitle, settings.maxImageWidth, settings.maxImageHeight),
                         '',
                         itemSourceString(newCopiedSubtitle) ?? '',
                         '',
                         {},
-                        settingsProvider.tags,
+                        settings.tags,
                         'updateLast'
                     );
                     break;
@@ -641,7 +631,7 @@ function App({ sidePanel }: { sidePanel: boolean }) {
 
             copyHistoryRepository.save(newCopiedSubtitle);
         },
-        [fileName, settingsProvider, copyHistoryRepository, handleAnkiDialogProceed, handleAnkiDialogRequest, t]
+        [fileName, settings, copyHistoryRepository, handleAnkiDialogProceed, handleAnkiDialogRequest, t]
     );
 
     useEffect(() => {
@@ -650,9 +640,9 @@ function App({ sidePanel }: { sidePanel: boolean }) {
         }
 
         (async () => {
-            setCopiedSubtitles(await copyHistoryRepository.fetch(settingsProvider.miningHistoryStorageLimit));
+            setCopiedSubtitles(await copyHistoryRepository.fetch(settings.miningHistoryStorageLimit));
         })();
-    }, [inVideoPlayer, copyHistoryRepository, settingsProvider]);
+    }, [inVideoPlayer, copyHistoryRepository, settings]);
 
     const handleOpenCopyHistory = useCallback(() => {
         setCopyHistoryOpen((copyHistoryOpen) => !copyHistoryOpen);
@@ -699,32 +689,30 @@ function App({ sidePanel }: { sidePanel: boolean }) {
     }, []);
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
     const handleImageDialogClosed = useCallback(() => setImageDialogOpen(false), []);
-    const handleCloseSettings = useCallback(
-        (newSettings: AsbplayerSettings) => {
-            settingsProvider.settings = newSettings;
+    const handleCloseSettings = useCallback(() => {
+        // settings.settings = newSettings;
 
-            if (i18n.language !== settingsProvider.language) {
-                i18n.changeLanguage(settingsProvider.language);
-            }
+        // if (i18n.language !== settings.language) {
+        //     i18n.changeLanguage(settings.language);
+        // }
 
-            setSettingsDialogOpen(false);
-            setSettingsDialogScrollToId(undefined);
+        setSettingsDialogOpen(false);
+        setSettingsDialogScrollToId(undefined);
 
-            // ATM only the Anki dialog may appear under the settings dialog,
-            // so it's the only one we need to check to re-enable key events
-            setDisableKeyEvents(ankiDialogOpen);
+        // ATM only the Anki dialog may appear under the settings dialog,
+        // so it's the only one we need to check to re-enable key events
+        setDisableKeyEvents(ankiDialogOpen);
 
-            videoChannelRef.current?.subtitleSettings(settingsProvider.subtitleSettings);
-            videoChannelRef.current?.ankiSettings(settingsProvider.ankiSettings);
-            videoChannelRef.current?.miscSettings(settingsProvider.miscSettings);
-            extension.publishSharedGlobalSettings(settingsProvider.miscSettings);
-        },
-        [settingsProvider, ankiDialogOpen, extension]
-    );
+        // TODO: Avoid sending the entire settings blob in each of these calls
+        videoChannelRef.current?.subtitleSettings(settings);
+        videoChannelRef.current?.ankiSettings(settings);
+        videoChannelRef.current?.miscSettings(settings);
+        extension.publishSharedGlobalSettings(settings);
+    }, [settings, ankiDialogOpen, extension]);
 
     const handleDeleteCopyHistoryItem = useCallback(
         (item: CopyHistoryItem) => {
-            const newCopiedSubtitles = [];
+            const newCopiedSubtitles: CopyHistoryItem[] = [];
 
             for (let subtitle of copiedSubtitles) {
                 if (item.id !== subtitle.id) {
@@ -787,11 +775,11 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                 const clip = await audioClipFromItem(
                     item,
                     undefined,
-                    settingsProvider.audioPaddingStart,
-                    settingsProvider.audioPaddingEnd
+                    settings.audioPaddingStart,
+                    settings.audioPaddingEnd
                 );
 
-                if (settingsProvider.preferMp3) {
+                if (settings.preferMp3) {
                     clip!.toMp3().download();
                 } else {
                     clip!.download();
@@ -800,23 +788,19 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                 handleError(e);
             }
         },
-        [handleError, settingsProvider]
+        [handleError, settings]
     );
 
     const handleDownloadImage = useCallback(
         async (item: CopyHistoryItem) => {
             try {
-                (await imageFromItem(
-                    item,
-                    settingsProvider.maxImageWidth,
-                    settingsProvider.maxImageHeight
-                ))!.download();
+                (await imageFromItem(item, settings.maxImageWidth, settings.maxImageHeight))!.download();
             } catch (e) {
                 console.error(e);
                 handleError(e);
             }
         },
-        [handleError, settingsProvider]
+        [handleError, settings]
     );
 
     const handleDownloadCopyHistorySectionAsSrt = useCallback(
@@ -976,8 +960,8 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                 let { subtitleFiles, audioFile, videoFile } = extractSources(files);
 
                 setSources((previous) => {
-                    let videoFileUrl = undefined;
-                    let audioFileUrl = undefined;
+                    let videoFileUrl: string | undefined = undefined;
+                    let audioFileUrl: string | undefined = undefined;
 
                     if (videoFile || audioFile) {
                         revokeUrls(previous);
@@ -1394,7 +1378,7 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                     <>
                         <RenderVideo
                             searchParams={searchParams}
-                            settingsProvider={settingsProvider}
+                            settings={settings}
                             playbackPreferences={playbackPreferences}
                             extension={extension}
                             ankiDialogFinishedRequest={ankiDialogFinishedRequest}
@@ -1413,9 +1397,9 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                             source={itemSourceString(ankiDialogItem)}
                             url={ankiDialogItem?.url}
                             sliderContext={ankiDialogItemSliderContext}
-                            customFields={settingsProvider.customAnkiFields}
+                            customFields={settings.customAnkiFields}
                             anki={anki}
-                            settingsProvider={settingsProvider}
+                            settingsProvider={settings}
                             onCancel={handleAnkiDialogCancel}
                             onProceed={handleAnkiDialogProceed}
                             onViewImage={handleViewImage}
@@ -1424,7 +1408,7 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                         <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />
                     </>
                 ) : (
-                    <div>
+                    <Paper>
                         <CopyHistory
                             items={copiedSubtitles}
                             open={effectiveCopyHistoryOpen}
@@ -1445,9 +1429,9 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                             source={itemSourceString(ankiDialogItem)}
                             url={ankiDialogItem?.url}
                             sliderContext={ankiDialogItemSliderContext}
-                            customFields={settingsProvider.customAnkiFields}
+                            customFields={settings.customAnkiFields}
                             anki={anki}
-                            settingsProvider={settingsProvider}
+                            settingsProvider={settings}
                             onCancel={handleAnkiDialogCancel}
                             onProceed={handleAnkiDialogProceed}
                             onViewImage={handleViewImage}
@@ -1459,8 +1443,9 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                             anki={anki}
                             extension={extension}
                             open={settingsDialogOpen}
+                            onSettingsChanged={onSettingsChanged}
                             onClose={handleCloseSettings}
-                            settings={settingsProvider.settings}
+                            settings={settings}
                             scrollToId={settingsDialogScrollToId}
                         />
                         <Bar
@@ -1483,7 +1468,7 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                             hidden
                         />
                         <Content drawerWidth={drawerWidth} drawerOpen={effectiveCopyHistoryOpen}>
-                            <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                            <Paper style={{ width: '100%', height: '100%', position: 'relative' }}>
                                 {nothingLoaded && (
                                     <LandingPage
                                         latestExtensionVersion={latestExtensionVersion}
@@ -1496,10 +1481,10 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                                     />
                                 )}
                                 <DragOverlay dragging={dragging} appBarHidden={appBarHidden} loading={loading} />
-                            </div>
+                            </Paper>
                             <Player
                                 subtitleReader={subtitleReader}
-                                settingsProvider={settingsProvider}
+                                settings={settings}
                                 playbackPreferences={playbackPreferences}
                                 onCopy={handleCopy}
                                 onError={handleError}
@@ -1535,7 +1520,7 @@ function App({ sidePanel }: { sidePanel: boolean }) {
                                 ankiDialogOpen={ankiDialogOpen}
                             />
                         </Content>
-                    </div>
+                    </Paper>
                 )}
             </div>
         </ThemeProvider>

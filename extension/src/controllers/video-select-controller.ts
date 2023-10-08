@@ -1,14 +1,14 @@
-import { CaptureVisibleTabMessage, ForegroundToExtensionCommand } from '@project/common';
+import { CaptureVisibleTabMessage, ForegroundToExtensionCommand, SettingsProvider } from '@project/common';
 import { VideoElement } from '../ui/components/VideoSelectUi';
 import Binding from '../services/binding';
-import ExtensionSettingsProvider from '../services/extension-settings';
 import UiFrame from '../services/ui-frame';
 import { fetchLocalization } from '../services/localization-fetcher';
+import { ExtensionSettingsStorage } from '../services/extension-settings-storage';
 
 export default class VideoSelectController {
     private readonly _bindings: Binding[];
     private readonly _frame: UiFrame;
-    private readonly _settings: ExtensionSettingsProvider = new ExtensionSettingsProvider();
+    private readonly _settings: SettingsProvider = new SettingsProvider(new ExtensionSettingsStorage());
 
     private messageListener?: (
         request: any,
@@ -109,7 +109,7 @@ export default class VideoSelectController {
             videoElements.push(await p);
         }
 
-        this._frame.language = await this._settings.getSingle('lastLanguage');
+        this._frame.language = await this._settings.getSingle('language');
         const isNewClient = await this._frame.bind();
         const client = await this._frame.client();
 
@@ -129,7 +129,7 @@ export default class VideoSelectController {
         }
 
         this._frame.show();
-        const themeType = await this._settings.getSingle('lastThemeType');
+        const themeType = await this._settings.getSingle('themeType');
         client.updateState({ open: true, themeType, videoElements, openedFromMiningCommand });
     }
 

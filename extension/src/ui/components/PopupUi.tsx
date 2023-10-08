@@ -1,21 +1,21 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
-import PopupForm from './PopupForm';
 import Bridge from '../bridge';
-import { ExtensionSettings, createTheme } from '@project/common';
+import { Anki, AsbplayerSettings, chromeCommandBindsToKeyBinds, createTheme } from '@project/common';
 import { LatestExtensionInfo, newVersionAvailable } from '../../services/version-checker';
+import { SettingsForm } from '@project/common/components';
 
 interface Props {
     bridge: Bridge;
-    currentSettings: ExtensionSettings;
+    currentSettings: AsbplayerSettings;
     commands: any;
 }
 
-export interface SettingsChangedMessage<K extends keyof ExtensionSettings> {
+export interface SettingsChangedMessage<K extends keyof AsbplayerSettings> {
     command: 'settings-changed';
     key: K;
-    value: ExtensionSettings[K];
+    value: AsbplayerSettings[K];
 }
 
 export interface OpenExtensionShortcutsMessage {
@@ -34,7 +34,7 @@ export interface EditVideoKeyboardShorcutsMessage {
 export function PopupUi({ bridge, currentSettings, commands }: Props) {
     const [settings, setSettings] = useState(currentSettings);
     const [latestVersionInfo, setLatestVersionInfo] = useState<LatestExtensionInfo>();
-    const theme = useMemo(() => createTheme(currentSettings.lastThemeType || 'dark'), [currentSettings.lastThemeType]);
+    const theme = useMemo(() => createTheme(currentSettings.themeType), [currentSettings.themeType]);
 
     useEffect(() => {
         const checkLatestVersion = async () => {
@@ -48,12 +48,8 @@ export function PopupUi({ bridge, currentSettings, commands }: Props) {
         checkLatestVersion();
     }, []);
 
-    function handleSettingsChanged<K extends keyof ExtensionSettings>(key: K, value: ExtensionSettings[K]) {
-        setSettings((old: any) => {
-            const settings = Object.assign({}, old);
-            settings[key] = value;
-            return settings;
-        });
+    function handleSettingsChanged<K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) {
+        setSettings((old: any) => ({ ...old, [key]: value }));
         const message: SettingsChangedMessage<K> = { command: 'settings-changed', key, value };
         bridge.sendServerMessage(message);
     }
@@ -78,17 +74,23 @@ export function PopupUi({ bridge, currentSettings, commands }: Props) {
         bridge.sendServerMessage(message);
     }, [bridge]);
 
+    const anki = useMemo(() => new Anki(currentSettings, bridge), [currentSettings, bridge]);
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-            <PopupForm
-                commands={commands}
+            <SettingsForm
+                open
+                insideExtension
+                anki={anki}
+                chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}
                 settings={settings}
-                latestVersionInfo={latestVersionInfo}
+                onClose={() => {}}
                 onSettingsChanged={handleSettingsChangedCallback}
-                onOpenExtensionShortcuts={handleOpenExtensionShortcuts}
-                onOpenUpdateUrl={handleOpenUpdateUrl}
-                onVideoKeyboardShortcutClicked={handleVideoKeyboardShortcutClicked}
+                onOpenChromeExtensionShortcuts={handleOpenExtensionShortcuts}
+                // latestVersionInfo={latestVersionInfo}
+                // onOpenUpdateUrl={handleOpenUpdateUrl}
+                // onVideoKeyboardShortcutClicked={handleVideoKeyboardShortcutClicked}
             />
         </ThemeProvider>
     );
