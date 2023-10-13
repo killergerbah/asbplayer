@@ -13,6 +13,8 @@ Thank you to all of my sponsors:
 -   [@m4eko](https://github.com/m4eko)
 -   Simon
 -   Attenius
+-   medyas
+-   [@zaerald](https://github.com/zaerald)
 
 ... and to those who have donated privately.
 
