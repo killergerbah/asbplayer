@@ -32,7 +32,7 @@ const defaults: AsbplayerSettings = {
         togglePlay: { keys: 'space' },
         toggleAutoPause: { keys: isMacOs ? '⇧+P' : 'shift+P' },
         toggleCondensedPlayback: { keys: isMacOs ? '⇧+O' : 'shift+O' },
-        toggleSubtitles: { keys: 'S' },
+        toggleSubtitles: { keys: 'down' },
         toggleVideoSubtitleTrack1: { keys: '1' },
         toggleVideoSubtitleTrack2: { keys: '2' },
         toggleAsbplayerSubtitleTrack1: { keys: 'W+1' },
@@ -41,7 +41,7 @@ const defaults: AsbplayerSettings = {
         seekForward: { keys: 'D' },
         seekToPreviousSubtitle: { keys: 'left' },
         seekToNextSubtitle: { keys: 'right' },
-        seekToBeginningOfCurrentSubtitle: { keys: 'down' },
+        seekToBeginningOfCurrentSubtitle: { keys: 'up' },
         adjustOffsetToPreviousSubtitle: { keys: isMacOs ? '⇧+left' : 'ctrl+left' },
         adjustOffsetToNextSubtitle: { keys: isMacOs ? '⇧+right' : 'ctrl+right' },
         decreaseOffset: { keys: isMacOs ? '⇧+⌃+right' : 'ctrl+shift+right' },
@@ -134,16 +134,10 @@ export const settingsDeserializers: SettingsDeserializers = Object.fromEntries(
 type SettingsKey = keyof AsbplayerSettings;
 
 export class SettingsProvider {
-    // private _tags?: string[];
-    // private _keyBindSet?: KeyBindSet;
     private _storage;
 
     constructor(storage: SettingsStorage) {
         this._storage = storage;
-
-        // Cache for use in useEffect dependencies
-        // this._tags = this.tags;
-        // this._keyBindSet = this.keyBindSet;
     }
 
     async getAll(): Promise<AsbplayerSettings> {

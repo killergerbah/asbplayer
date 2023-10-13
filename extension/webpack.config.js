@@ -9,7 +9,7 @@ module.exports = (env, options) => ({
         page: './src/page.ts',
         background: './src/background.ts',
         'app-ui': './src/app-ui.ts',
-        'app-ui-side-panel': './src/app-ui-side-panel.ts',
+        'side-panel': './src/side-panel.ts',
         'popup-ui': './src/popup-ui.ts',
         'anki-ui': './src/anki-ui.ts',
         'video-data-sync-ui': './src/video-data-sync-ui.ts',
@@ -32,10 +32,7 @@ module.exports = (env, options) => ({
             {
                 test: /\.(js|jsx)$/,
                 exclude: /node_modules/,
-                include: [
-                    path.resolve(__dirname, './src/ui'),
-                    path.resolve(__dirname, './src/services/VideoDataSyncContainer'),
-                ],
+                include: [path.resolve(__dirname, './src/ui')],
                 use: {
                     loader: 'babel-loader',
                 },

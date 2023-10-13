@@ -138,9 +138,3 @@ export function chromeCommandBindsToKeyBinds(chromeCommands: { [key: string]: st
     return keyBinds;
 }
 
-// export interface AsbplayerSettingsProvider extends AsbplayerSettings {
-//     readonly settings: AsbplayerSettings;
-//     readonly subtitleSettings: SubtitleSettings;
-//     readonly ankiSettings: AnkiSettings;
-//     readonly miscSettings: MiscSettings;
-// }

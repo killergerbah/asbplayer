@@ -4,8 +4,7 @@ import {
     ExtensionToAsbPlayerCommand,
     ExtensionToAsbPlayerCommandTabsCommand,
     Message,
-    SharedGlobalSettings,
-    SharedSettingsUpdatedMessage,
+    SettingsUpdatedMessage,
     VideoTabModel,
 } from '@project/common';
 import { gt } from 'semver';
@@ -23,7 +22,7 @@ export default class ChromeExtension {
     readonly version: string;
     readonly extensionCommands: { [key: string]: string | undefined };
 
-    tabs: VideoTabModel[];
+    tabs: VideoTabModel[] | undefined;
     installed: boolean;
     sidePanel: boolean;
 
@@ -35,7 +34,6 @@ export default class ChromeExtension {
     constructor(version?: string, extensionCommands?: { [key: string]: string | undefined }) {
         this.onMessageCallbacks = [];
         this.onTabsCallbacks = [];
-        this.tabs = [];
         this.installed = version !== undefined;
         this.version = version ?? '';
         this.extensionCommands = extensionCommands ?? {};
@@ -87,7 +85,7 @@ export default class ChromeExtension {
         window.addEventListener('message', this.windowEventListener);
     }
 
-    startHeartbeat(fromVideoPlayer: boolean) {
+    startHeartbeat({ fromVideoPlayer }: { fromVideoPlayer: boolean }) {
         if (!this.installed) {
             return;
         }
@@ -140,15 +138,11 @@ export default class ChromeExtension {
         window.postMessage(command, '*');
     }
 
-    publishSharedGlobalSettings(settings: SharedGlobalSettings) {
-        const command: Command<SharedSettingsUpdatedMessage> = {
+    notifySettingsUpdated() {
+        const command: Command<SettingsUpdatedMessage> = {
             sender: 'asbplayerv2',
             message: {
-                command: 'shared-settings-updated',
-                settings: {
-                    language: settings.language,
-                    themeType: settings.themeType,
-                },
+                command: 'settings-updated',
             },
         };
         window.postMessage(command, '*');

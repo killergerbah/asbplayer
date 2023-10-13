@@ -15,14 +15,14 @@
         "default_popup": "popup-ui.html"
     },
     "options_ui": {
-        "page": "popup-ui.html",
+        "page": "app-ui.html?view=settings",
         "open_in_tab": true
     },
     "background": {
         "service_worker": "background.js"
     },
     "side_panel": {
-        "default_path": "app-ui-side-panel.html"
+        "default_path": "side-panel.html"
     },
     "content_scripts": [
         {

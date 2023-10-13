@@ -26,7 +26,7 @@ import Typography from '@material-ui/core/Typography';
 import Clock from '../services/clock';
 
 interface StylesProps {
-    compressed: boolean;
+    limitWidth: boolean;
     appBarHidden: boolean;
     windowWidth: number;
 }
@@ -37,7 +37,7 @@ const useSubtitlePlayerStyles = makeStyles<Theme, StylesProps, string>((theme) =
         position: 'relative',
         overflowX: 'hidden',
         backgroundColor: theme.palette.background.default,
-        width: ({ compressed, windowWidth }) => (compressed ? Math.max(350, 0.25 * windowWidth) : '100%'),
+        width: ({ limitWidth, windowWidth }) => (limitWidth ? Math.max(350, 0.25 * windowWidth) : '100%'),
     },
     table: {
         backgroundColor: theme.palette.background.default,
@@ -192,6 +192,7 @@ interface SubtitlePlayerProps {
     length: number;
     jumpToSubtitle?: SubtitleModel;
     compressed: boolean;
+    limitWidth: boolean;
     copyButtonEnabled: boolean;
     loading: boolean;
     drawerOpen: boolean;
@@ -219,6 +220,7 @@ export default function SubtitlePlayer({
     length,
     jumpToSubtitle,
     compressed,
+    limitWidth,
     copyButtonEnabled,
     loading,
     drawerOpen,
@@ -265,7 +267,7 @@ export default function SubtitlePlayer({
     const drawerOpenRef = useRef<boolean>();
     drawerOpenRef.current = drawerOpen;
     const [windowWidth] = useWindowSize(true);
-    const classes = useSubtitlePlayerStyles({ compressed, windowWidth, appBarHidden });
+    const classes = useSubtitlePlayerStyles({ windowWidth, limitWidth, appBarHidden });
     const autoPauseContextRef = useRef<AutoPauseContext>();
     autoPauseContextRef.current = autoPauseContext;
     const onSubtitlesSelectedRef = useRef<(subtitles: SubtitleModel[]) => void>();

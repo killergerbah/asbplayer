@@ -452,7 +452,3 @@ export interface CopyToClipboardMessage extends Message {
     readonly dataUrl: string;
 }
 
-export interface SharedSettingsUpdatedMessage extends Message {
-    readonly command: 'shared-settings-updated';
-    readonly settings: SharedGlobalSettings;
-}

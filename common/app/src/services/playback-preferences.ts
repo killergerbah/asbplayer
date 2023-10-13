@@ -6,7 +6,6 @@ const theaterModeKey = 'theaterMode';
 const offsetKey = 'offset';
 const subtitleAlignmentKey = 'subtitleAlignment';
 const subtitlePositionOffetKey = 'subtitlePositionOffset';
-const lastSyncedTabKey = 'lastSyncedTab';
 const defaultVolume = 100;
 
 export enum SubtitleAlignment {
@@ -88,23 +87,5 @@ export default class PlaybackPreferences {
 
     set subtitlePositionOffset(offset: number) {
         this.storage.set(subtitlePositionOffetKey, String(offset));
-    }
-
-    get lastSyncedTab(): VideoTabModel | undefined {
-        const val = this.storage.get(lastSyncedTabKey);
-
-        if (val === null) {
-            return undefined;
-        }
-
-        return JSON.parse(val) as VideoTabModel;
-    }
-
-    set lastSyncedTab(lastSyncedTab: VideoTabModel | undefined) {
-        if (lastSyncedTab === undefined) {
-            this.storage.delete(lastSyncedTabKey);
-        } else {
-            this.storage.set(lastSyncedTabKey, JSON.stringify(lastSyncedTab));
-        }
     }
 }

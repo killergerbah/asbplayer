@@ -287,15 +287,14 @@ function Content(props: ContentProps) {
     );
 }
 
-interface AppProps {
+interface Props {
     settings: AsbplayerSettings;
+    extension: ChromeExtension;
     onSettingsChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => void;
 }
 
-function App({ settings, onSettingsChanged }: AppProps) {
+function App({ settings, extension, onSettingsChanged }: Props) {
     const { t } = useTranslation();
-    // const settings = useSettings(settingsProvider);
-    // const settingsProvider = useMemo<SettingsProvider>(() => new SettingsProvider(new CachedLocalStorage()), []);
     const subtitleReader = useMemo<SubtitleReader>(() => {
         let regex: RegExp | undefined;
 
@@ -319,8 +318,6 @@ function App({ settings, onSettingsChanged }: AppProps) {
     const [searchParams] = useSearchParams();
 
     const inVideoPlayer = searchParams.get('video') !== null;
-    // TODO: Figure out what to do with side panel boolean
-    const extension = useChromeExtension(false);
     const [videoFullscreen, setVideoFullscreen] = useState<boolean>(false);
     const keyBinder = useMemo<AppKeyBinder>(
         () => new AppKeyBinder(new DefaultKeyBinder(settings.keyBindSet), extension),
@@ -337,7 +334,6 @@ function App({ settings, onSettingsChanged }: AppProps) {
         () => new CopyHistoryRepository(settings.miningHistoryStorageLimit),
         [settings]
     );
-    const fileRepository = useMemo(() => new FileRepository(), []);
     useEffect(() => {
         copyHistoryRepository.limit = settings.miningHistoryStorageLimit;
     }, [copyHistoryRepository, settings.miningHistoryStorageLimit]);
@@ -690,24 +686,15 @@ function App({ settings, onSettingsChanged }: AppProps) {
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
     const handleImageDialogClosed = useCallback(() => setImageDialogOpen(false), []);
     const handleCloseSettings = useCallback(() => {
-        // settings.settings = newSettings;
-
-        // if (i18n.language !== settings.language) {
-        //     i18n.changeLanguage(settings.language);
-        // }
-
         setSettingsDialogOpen(false);
         setSettingsDialogScrollToId(undefined);
 
         // ATM only the Anki dialog may appear under the settings dialog,
         // so it's the only one we need to check to re-enable key events
         setDisableKeyEvents(ankiDialogOpen);
-
-        // TODO: Avoid sending the entire settings blob in each of these calls
         videoChannelRef.current?.subtitleSettings(settings);
         videoChannelRef.current?.ankiSettings(settings);
         videoChannelRef.current?.miscSettings(settings);
-        extension.publishSharedGlobalSettings(settings);
     }, [settings, ankiDialogOpen, extension]);
 
     const handleDeleteCopyHistoryItem = useCallback(
@@ -930,32 +917,19 @@ function App({ settings, onSettingsChanged }: AppProps) {
 
             if (selectedTabMissing) {
                 setTab(undefined);
-                playbackPreferences.lastSyncedTab = undefined;
                 handleError(t('error.lostTabConnection', { tabName: tab!.id + ' ' + tab!.title }));
             }
         }
 
         return extension.subscribeTabs(onTabs);
-    }, [availableTabs, tab, extension, handleError, playbackPreferences, t]);
+    }, [availableTabs, tab, extension, handleError, t]);
 
-    const handleTabSelected = useCallback(
-        (tab: VideoTabModel) => {
-            setTab(tab);
-            playbackPreferences.lastSyncedTab = tab;
-        },
-        [playbackPreferences]
-    );
+    const handleTabSelected = useCallback((tab: VideoTabModel) => {
+        setTab(tab);
+    }, []);
 
     const handleFiles = useCallback(
-        ({
-            files,
-            flattenSubtitleFiles,
-            skipPersistingSubtitleFiles,
-        }: {
-            files: FileList | File[];
-            flattenSubtitleFiles?: boolean;
-            skipPersistingSubtitleFiles?: boolean;
-        }) => {
+        ({ files, flattenSubtitleFiles }: { files: FileList | File[]; flattenSubtitleFiles?: boolean }) => {
             try {
                 let { subtitleFiles, audioFile, videoFile } = extractSources(files);
 
@@ -973,7 +947,6 @@ function App({ settings, onSettingsChanged }: AppProps) {
                         }
 
                         setTab(undefined);
-                        playbackPreferences.lastSyncedTab = undefined;
                     } else {
                         videoFile = previous.videoFile;
                         videoFileUrl = previous.videoFileUrl;
@@ -987,6 +960,7 @@ function App({ settings, onSettingsChanged }: AppProps) {
                         audioFileUrl: audioFileUrl,
                         videoFile: videoFile,
                         videoFileUrl: videoFileUrl,
+                        flattenSubtitleFiles,
                     };
 
                     const sourcesToList = (s: MediaSources) =>
@@ -1009,17 +983,13 @@ function App({ settings, onSettingsChanged }: AppProps) {
                 if (subtitleFiles.length > 0) {
                     const subtitleFileName = subtitleFiles[0].name;
                     setFileName(subtitleFileName.substring(0, subtitleFileName.lastIndexOf('.')));
-
-                    if (!skipPersistingSubtitleFiles) {
-                        fileRepository.save(lastSubtitleFileId, subtitleFiles, { flattenSubtitleFiles });
-                    }
                 }
             } catch (e) {
                 console.error(e);
                 handleError(e);
             }
         },
-        [handleError, fileRepository, playbackPreferences]
+        [handleError, playbackPreferences]
     );
 
     const handleDirectory = useCallback(
@@ -1067,13 +1037,13 @@ function App({ settings, onSettingsChanged }: AppProps) {
 
     useEffect(() => {
         if (inVideoPlayer) {
-            extension.startHeartbeat(true);
+            extension.startHeartbeat({ fromVideoPlayer: true });
             return undefined;
         }
 
         async function onMessage(message: ExtensionMessage) {
             if (message.data.command === 'sync' || message.data.command === 'syncv2') {
-                const tabs = extension.tabs.filter((t) => {
+                const tabs = (extension.tabs ?? []).filter((t) => {
                     if (t.id !== message.tabId) {
                         return false;
                     }
@@ -1127,7 +1097,6 @@ function App({ settings, onSettingsChanged }: AppProps) {
 
                 handleFiles({ files: subtitleFiles, flattenSubtitleFiles: flatten });
                 setTab(tab);
-                playbackPreferences.lastSyncedTab = tab;
             } else if (message.data.command === 'edit-keyboard-shortcuts') {
                 setSettingsDialogOpen(true);
                 setSettingsDialogScrollToId('keyboard-shortcuts');
@@ -1137,7 +1106,7 @@ function App({ settings, onSettingsChanged }: AppProps) {
         }
 
         const unsubscribe = extension.subscribe(onMessage);
-        extension.startHeartbeat(false);
+        extension.startHeartbeat({ fromVideoPlayer: false });
         return unsubscribe;
     }, [extension, playbackPreferences, inVideoPlayer, handleFiles]);
 
@@ -1300,50 +1269,6 @@ function App({ settings, onSettingsChanged }: AppProps) {
             videoChannelRef.current?.alert(alert, alertSeverity);
         }
     }, [alert, alertSeverity, alertOpen]);
-
-    const [autoSyncEffectRan, setAutoSyncEffectRan] = useState<boolean>(false);
-
-    useEffect(() => {
-        if (autoSyncEffectRan) {
-            return;
-        }
-
-        try {
-            const lastSyncedTab = playbackPreferences.lastSyncedTab;
-
-            if (lastSyncedTab === undefined || availableTabs === undefined) {
-                return;
-            }
-
-            const canAutoSync =
-                availableTabs.find((t) => t.id === lastSyncedTab.id && t.src === lastSyncedTab.src) !== undefined;
-
-            if (!canAutoSync) {
-                return;
-            }
-
-            const loadLastSubtitleFiles = async () => {
-                if (!inVideoPlayer) {
-                    const lastSubtitleFiles = await fileRepository.fetch(lastSubtitleFileId);
-
-                    if (loadLastSubtitleFiles !== undefined) {
-                        handleFiles({
-                            files: lastSubtitleFiles.files,
-                            flattenSubtitleFiles: lastSubtitleFiles.metadata?.flattenSubtitleFiles ?? false,
-                            skipPersistingSubtitleFiles: true,
-                        });
-                        setTab(lastSyncedTab);
-                    }
-                }
-            };
-
-            loadLastSubtitleFiles();
-        } finally {
-            if (availableTabs !== undefined) {
-                setAutoSyncEffectRan(true);
-            }
-        }
-    }, [fileRepository, inVideoPlayer, handleFiles, tab, playbackPreferences, availableTabs, autoSyncEffectRan]);
 
     const handleCopyToClipboard = useCallback((blob: Blob) => {
         navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]).catch(console.error);

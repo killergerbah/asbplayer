@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect, useMemo, ChangeEvent, ReactNode, useRef } from 'react';
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@material-ui/styles';
 import AddIcon from '@material-ui/icons/Add';
 import Box from '@material-ui/core/Box';
@@ -8,13 +8,11 @@ import InfoIcon from '@material-ui/icons/Info';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
-import FormHelperText from '@material-ui/core/FormHelperText';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
-import Link from '@material-ui/core/Link';
 import MenuItem from '@material-ui/core/MenuItem';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Radio from '@material-ui/core/Radio';
@@ -30,12 +28,10 @@ import {
     supportedLanguages,
     computeStyles,
     CustomStyle,
-    ChromeBoundKeyBindName,
 } from '@project/common';
 import { TagsTextField } from '@project/common/components';
 import hotkeys from 'hotkeys-js';
 import Typography from '@material-ui/core/Typography';
-import ChromeExtension from '../../app/src/services/chrome-extension';
 import { isMacOs } from 'react-device-detect';
 import Switch from '@material-ui/core/Switch';
 import RadioGroup from '@material-ui/core/RadioGroup';
@@ -55,8 +51,15 @@ const useStyles = makeStyles<Theme>((theme) => ({
         height: '100%',
     },
     tabs: {
-        minWidth: 160,
-        width: 160,
+        minWidth: 120,
+        width: 120,
+        '& .MuiButtonBase-root': {
+            paddingLeft: 0,
+            paddingRight: theme.spacing(1),
+        },
+        '& .MuiTab-root': {
+            minWidth: 120,
+        },
     },
     formGroup: {
         '& .MuiTextField-root': {
@@ -487,12 +490,6 @@ type TabName =
     | 'streaming-video'
     | 'misc-settings';
 const tabIndicesById = {
-    // <Tab tabIndex={0} label={t('settings.anki')} id="anki-settings" />
-    // <Tab tabIndex={1} label={t('settings.mining')} id="mining-settings" />
-    // <Tab tabIndex={2} label={t('settings.subtitleAppearance')} id="subtitle-appearance" />
-    // <Tab tabIndex={3} label={t('settings.keyboardShortcuts')} id="keyboard-shortcuts" />
-    // {insideExtension && <Tab tabIndex={4} label={t('settings.streamingVideo')} id="streaming-video" />}
-    // <Tab tabIndex={5} label={t('settings.misc')} id="misc-settings" />
     'anki-settings': 0,
     'mining-settings': 1,
     'subtitle-appearance': 2,
@@ -796,7 +793,7 @@ export default function SettingsForm({
     const [tabIndex, setTabIndex] = useState<number>(0);
 
     const validRegex = regexIsValid(subtitleRegexFilter);
-    const origin = `${window.location.protocol}//${window.location.hostname}`;
+
     return (
         <div className={classes.root}>
             <Tabs
@@ -832,22 +829,6 @@ export default function SettingsForm({
                             ),
                         }}
                     />
-                    <FormHelperText>
-                        <Trans
-                            i18nKey={'settings.corsHelperText'}
-                            values={{ origin }}
-                            components={[
-                                <Link
-                                    color="secondary"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    href="https://youtu.be/Mv7fEVb6PHo?t=44"
-                                >
-                                    video
-                                </Link>,
-                            ]}
-                        ></Trans>
-                    </FormHelperText>
                     <SelectableSetting
                         label={t('settings.deck')}
                         value={deck}

@@ -1,7 +1,6 @@
 import {
     KeyBindSet,
     PlayMode,
-    SettingsProvider,
     ToggleSubtitlesInListFromVideoMessage,
     ToggleSubtitlesMessage,
     VideoToExtensionCommand,
@@ -12,7 +11,6 @@ import Binding from './binding';
 type Unbinder = (() => void) | false;
 
 export default class KeyBindings {
-    private _settings?: SettingsProvider;
     private _keyBinder: DefaultKeyBinder | undefined;
 
     private _unbindPlay: Unbinder = false;
@@ -42,10 +40,6 @@ export default class KeyBindings {
     }
 
     bind(context: Binding) {
-        if (!this._settings) {
-            return;
-        }
-
         if (!this._keyBinder) {
             return;
         }

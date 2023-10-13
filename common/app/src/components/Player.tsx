@@ -95,8 +95,8 @@ interface PlayerProps {
     playbackPreferences: PlaybackPreferences;
     keyBinder: KeyBinder;
     extension: ChromeExtension;
-    videoFrameRef: MutableRefObject<HTMLIFrameElement | null>;
-    videoChannelRef: MutableRefObject<VideoChannel | null>;
+    videoFrameRef?: MutableRefObject<HTMLIFrameElement | null>;
+    videoChannelRef?: MutableRefObject<VideoChannel | null>;
     drawerOpen: boolean;
     appBarHidden: boolean;
     videoFullscreen: boolean;
@@ -106,7 +106,7 @@ interface PlayerProps {
     availableTabs: VideoTabModel[];
     ankiDialogRequested: boolean;
     ankiDialogOpen: boolean;
-    ankiDialogFinishedRequest: AnkiDialogFinishedRequest;
+    ankiDialogFinishedRequest?: AnkiDialogFinishedRequest;
     onError: (error: any) => void;
     onUnloadAudio: (url: string) => void;
     onUnloadVideo: (url: string) => void;
@@ -138,6 +138,8 @@ interface PlayerProps {
     disableKeyEvents: boolean;
     jumpToSubtitle?: SubtitleModel;
     rewindSubtitle?: SubtitleModel;
+    hideControls?: boolean;
+    forceCompressedMode?: boolean;
 }
 
 export default function Player({
@@ -176,6 +178,8 @@ export default function Player({
     disableKeyEvents,
     jumpToSubtitle,
     rewindSubtitle,
+    hideControls,
+    forceCompressedMode,
 }: PlayerProps) {
     const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>();
@@ -343,7 +347,10 @@ export default function Player({
             channel.init();
         }
 
-        videoChannelRef.current = channel;
+        if (videoChannelRef) {
+            videoChannelRef.current = channel;
+        }
+
         setChannel(channel);
 
         return () => {
@@ -445,14 +452,8 @@ export default function Player({
             );
         });
     }, [subtitles, channel, flattenSubtitleFiles, subtitleFiles, subtitlesSentThroughChannel]);
-    useEffect(
-        // TODO don't send whole settings blobb
-        () => channel?.onReady(() => channel?.subtitleSettings(settings)),
-        [channel, settings]
-    );
-    // TODO don't send whole settings blobb
+    useEffect(() => channel?.onReady(() => channel?.subtitleSettings(settings)), [channel, settings]);
     useEffect(() => channel?.ankiSettings(settings), [channel, settings]);
-    // TODO don't send whole settings blobb
     useEffect(() => channel?.miscSettings(settings), [channel, settings]);
     useEffect(() => channel?.playMode(playMode), [channel, playMode]);
     useEffect(() => channel?.hideSubtitlePlayerToggle(hideSubtitlePlayer), [channel, hideSubtitlePlayer]);
@@ -945,7 +946,7 @@ export default function Player({
                             videoInWindow && (hideSubtitlePlayer || !subtitles || subtitles?.length === 0) ? 0 : 'auto',
                     }}
                 >
-                    {loaded && !(videoFileUrl && !videoPopOut) && (
+                    {loaded && !(videoFileUrl && !videoPopOut) && !hideControls && (
                         <Controls
                             mousePositionRef={mousePositionRef}
                             playing={playing}
@@ -990,7 +991,8 @@ export default function Player({
                         jumpToSubtitle={jumpToSubtitle}
                         drawerOpen={drawerOpen}
                         appBarHidden={appBarHidden}
-                        compressed={Boolean(videoFileUrl && !videoPopOut)}
+                        compressed={videoInWindow || (forceCompressedMode ?? false)}
+                        limitWidth={videoInWindow}
                         copyButtonEnabled={tab === undefined}
                         loading={loadingSubtitles}
                         displayHelp={audioFile?.name || (videoPopOut && videoFile?.name) || undefined}

@@ -393,7 +393,33 @@ export default class VideoChannel {
     }
 
     subtitleSettings(settings: SubtitleSettings) {
-        const message: SubtitleSettingsToVideoMessage = { command: 'subtitleSettings', value: settings };
+        const {
+            subtitleColor,
+            subtitleSize,
+            subtitleThickness,
+            subtitleOutlineThickness,
+            subtitleOutlineColor,
+            subtitleBackgroundOpacity,
+            subtitleBackgroundColor,
+            subtitleFontFamily,
+            subtitleCustomStyles,
+            imageBasedSubtitleScaleFactor,
+        } = settings;
+        const message: SubtitleSettingsToVideoMessage = {
+            command: 'subtitleSettings',
+            value: {
+                subtitleColor,
+                subtitleSize,
+                subtitleThickness,
+                subtitleOutlineThickness,
+                subtitleOutlineColor,
+                subtitleBackgroundOpacity,
+                subtitleBackgroundColor,
+                subtitleFontFamily,
+                subtitleCustomStyles,
+                imageBasedSubtitleScaleFactor,
+            },
+        };
         this.protocol.postMessage(message);
     }
 
@@ -430,12 +456,84 @@ export default class VideoChannel {
     }
 
     ankiSettings(settings: AnkiSettings) {
-        const message: AnkiSettingsToVideoMessage = { command: 'ankiSettings', value: settings };
+        const {
+            ankiConnectUrl,
+            deck,
+            noteType,
+            sentenceField,
+            definitionField,
+            audioField,
+            imageField,
+            wordField,
+            sourceField,
+            urlField,
+            customAnkiFields,
+            tags,
+            preferMp3,
+            audioPaddingStart,
+            audioPaddingEnd,
+            maxImageWidth,
+            maxImageHeight,
+            surroundingSubtitlesCountRadius,
+            surroundingSubtitlesTimeRadius,
+        } = settings;
+        const message: AnkiSettingsToVideoMessage = {
+            command: 'ankiSettings',
+            value: {
+                ankiConnectUrl,
+                deck,
+                noteType,
+                sentenceField,
+                definitionField,
+                audioField,
+                imageField,
+                wordField,
+                sourceField,
+                urlField,
+                customAnkiFields,
+                tags,
+                preferMp3,
+                audioPaddingStart,
+                audioPaddingEnd,
+                maxImageWidth,
+                maxImageHeight,
+                surroundingSubtitlesCountRadius,
+                surroundingSubtitlesTimeRadius,
+            },
+        };
         this.protocol.postMessage(message);
     }
 
     miscSettings(settings: MiscSettings) {
-        const message: MiscSettingsToVideoMessage = { command: 'miscSettings', value: settings };
+        const {
+            themeType,
+            copyToClipboardOnMine,
+            autoPausePreference,
+            keyBindSet,
+            rememberSubtitleOffset,
+            autoCopyCurrentSubtitle,
+            subtitleRegexFilter,
+            subtitleRegexFilterTextReplacement,
+            miningHistoryStorageLimit,
+            preCacheSubtitleDom,
+            language,
+        } = settings;
+        const message: MiscSettingsToVideoMessage = {
+            command: 'miscSettings',
+            value: {
+                themeType,
+                copyToClipboardOnMine,
+                autoPausePreference,
+                keyBindSet,
+                rememberSubtitleOffset,
+                autoCopyCurrentSubtitle,
+                subtitleRegexFilter,
+                subtitleRegexFilterTextReplacement,
+                miningHistoryStorageLimit,
+                preCacheSubtitleDom,
+                language,
+            },
+        };
         this.protocol.postMessage(message);
     }
 
