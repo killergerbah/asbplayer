@@ -1,7 +1,7 @@
 import { Command, Message } from '@project/common';
 
 export interface CommandHandler {
-    sender: string;
+    sender: string | string[];
     command: string | null;
     handle: (
         command: Command<Message>,

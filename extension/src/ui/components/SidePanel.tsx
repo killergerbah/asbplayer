@@ -9,7 +9,7 @@ import {
     VideoTabModel,
     createTheme,
 } from '@project/common';
-import { AppKeyBinder, ChromeExtension, MediaSources } from '@project/common/app';
+import { AppKeyBinder, ChromeExtension, MediaSources, useI18n } from '@project/common/app';
 import { useCallback, useMemo, useState } from 'react';
 import { Player } from '@project/common/app';
 import { SubtitleReader } from '@project/common/app';
@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import Alert from '@project/common/app/src/components/Alert';
 import { DefaultKeyBinder } from '@project/common/key-binder';
 import Paper from '@material-ui/core/Paper';
+import SidePanelHome from './SidePanelHome';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -121,47 +122,57 @@ export default function SidePanel({ settings, extension, syncedTab, sources }: P
 
     const noOp = useCallback(() => {}, []);
 
+    const { initialized: i18nInitialized } = useI18n({ language: settings.language });
+
+    if (!i18nInitialized) {
+        return null;
+    }
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <Alert open={alertOpen} onClose={handleAlertClosed} autoHideDuration={3000} severity={alertSeverity}>
                 {alert}
             </Alert>
-            <Paper square>
-                <Player
-                    hideControls={true}
-                    forceCompressedMode={true}
-                    subtitleReader={subtitleReader}
-                    settings={settings}
-                    playbackPreferences={playbackPreferences}
-                    onCopy={handleCopy}
-                    onError={handleError}
-                    onUnloadAudio={noOp}
-                    onUnloadVideo={noOp}
-                    onLoaded={noOp}
-                    onTabSelected={noOp}
-                    onAnkiDialogRequest={noOp}
-                    onAnkiDialogRewind={noOp}
-                    onAppBarToggle={noOp}
-                    onFullscreenToggle={noOp}
-                    onHideSubtitlePlayer={noOp}
-                    onVideoPopOut={noOp}
-                    onPlayModeChangedViaBind={noOp}
-                    onTakeScreenshot={noOp}
-                    tab={syncedTab}
-                    availableTabs={extension.tabs ?? []}
-                    sources={sources}
-                    extension={extension}
-                    drawerOpen={false}
-                    appBarHidden={true}
-                    videoFullscreen={false}
-                    hideSubtitlePlayer={false}
-                    videoPopOut={false}
-                    disableKeyEvents={false}
-                    ankiDialogRequested={false}
-                    keyBinder={keyBinder}
-                    ankiDialogOpen={false}
-                />
+            <Paper square style={{ width: '100%', height: '100%' }}>
+                {sources.subtitleFiles.length === 0 ? (
+                    <SidePanelHome extension={extension} />
+                ) : (
+                    <Player
+                        hideControls={true}
+                        forceCompressedMode={true}
+                        subtitleReader={subtitleReader}
+                        settings={settings}
+                        playbackPreferences={playbackPreferences}
+                        onCopy={handleCopy}
+                        onError={handleError}
+                        onUnloadAudio={noOp}
+                        onUnloadVideo={noOp}
+                        onLoaded={noOp}
+                        onTabSelected={noOp}
+                        onAnkiDialogRequest={noOp}
+                        onAnkiDialogRewind={noOp}
+                        onAppBarToggle={noOp}
+                        onFullscreenToggle={noOp}
+                        onHideSubtitlePlayer={noOp}
+                        onVideoPopOut={noOp}
+                        onPlayModeChangedViaBind={noOp}
+                        onTakeScreenshot={noOp}
+                        tab={syncedTab}
+                        availableTabs={extension.tabs ?? []}
+                        sources={sources}
+                        extension={extension}
+                        drawerOpen={false}
+                        appBarHidden={true}
+                        videoFullscreen={false}
+                        hideSubtitlePlayer={false}
+                        videoPopOut={false}
+                        disableKeyEvents={false}
+                        ankiDialogRequested={false}
+                        keyBinder={keyBinder}
+                        ankiDialogOpen={false}
+                    />
+                )}
             </Paper>
         </ThemeProvider>
     );

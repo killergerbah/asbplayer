@@ -1,4 +1,10 @@
-import { Command, ExtensionToVideoCommand, Message, SettingsUpdatedMessage } from '@project/common';
+import {
+    Command,
+    ExtensionToAsbPlayerCommand,
+    ExtensionToVideoCommand,
+    Message,
+    SettingsUpdatedMessage,
+} from '@project/common';
 import TabRegistry from '../../services/tab-registry';
 
 export default class RefreshSettingsHandler {
@@ -27,7 +33,17 @@ export default class RefreshSettingsHandler {
             };
             return settingsUpdatedCommand;
         });
-
+        this.tabRegistry.publishCommandToAsbplayers({
+            commandFactory: () => {
+                const settingsUpdatedCommand: ExtensionToAsbPlayerCommand<SettingsUpdatedMessage> = {
+                    sender: 'asbplayer-extension-to-player',
+                    message: {
+                        command: 'settings-updated',
+                    },
+                };
+                return settingsUpdatedCommand;
+            },
+        });
         return false;
     }
 }

@@ -3,8 +3,6 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import Bridge from '../bridge';
 import { PopupUi } from '../components/PopupUi';
-import { i18nInit } from '../i18n';
-import { fetchLocalization } from '../../services/localization-fetcher';
 import { AsbplayerSettings } from '@project/common';
 
 export interface PopupUiParameters {
@@ -12,11 +10,9 @@ export interface PopupUiParameters {
     commands: any;
 }
 
-export async function renderPopupUi(element: Element, { currentSettings, commands }: PopupUiParameters) {
-    const loc = await fetchLocalization(currentSettings.language);
-    i18nInit(loc.lang, loc.strings);
+export async function renderPopupUi(element: Element, { commands }: PopupUiParameters) {
     const bridge = new Bridge();
-    createRoot(element).render(<PopupUi bridge={bridge} currentSettings={currentSettings} commands={commands} />);
+    createRoot(element).render(<PopupUi bridge={bridge} commands={commands} />);
     return bridge;
 }
 

@@ -507,7 +507,6 @@ interface Props {
     chromeKeyBinds: { [key: string]: string | undefined };
     onSettingsChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => void;
     onOpenChromeExtensionShortcuts: () => void;
-    onClose: () => void;
 }
 
 const cssStyles = Object.keys(document.body.style);

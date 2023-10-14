@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
-import { useI18nInitialized } from './i18n';
+import { useI18n } from './i18n';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { ThemeProvider, makeStyles, Theme } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/use-window-size';
@@ -1274,7 +1274,7 @@ function App({ settings, extension, onSettingsChanged }: Props) {
         navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]).catch(console.error);
     }, []);
 
-    const { i18nInitialized } = useI18nInitialized();
+    const { initialized: i18nInitialized } = useI18n({ language: settings.language });
 
     if (!i18nInitialized) {
         return null;

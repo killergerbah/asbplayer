@@ -2,13 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import SidePanel from './SidePanel';
 import { AsbplayerSettings, PlayerSyncMessage, SettingsProvider, VideoTabModel } from '@project/common';
 import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
-import {
-    ExtensionMessage,
-    FileRepository,
-    MediaSources,
-    useChromeExtension,
-    useI18nInitialized,
-} from '@project/common/app';
+import { ExtensionMessage, FileRepository, MediaSources, useChromeExtension } from '@project/common/app';
 import { SidePanelStorage } from '../../services/side-panel-storage';
 
 const settingsProvider = new SettingsProvider(new ExtensionSettingsStorage());
@@ -51,6 +45,8 @@ const SidePanelUi = () => {
             const flatten = syncMessage.flatten ?? false;
             setSyncedTab(tabModel);
             handleFiles({ subtitleFiles, flatten });
+            // TODO persist files
+            // TODO when new chrome session is detected, prune files
         }
 
         const unsubscribe = extension.subscribe(onMessage);
@@ -120,9 +116,7 @@ const SidePanelUi = () => {
         autoSyncEffect();
     }, [fileRepository, handleFiles, extension, sidePanelStorage, autoSyncEffectRan]);
 
-    const { i18nInitialized } = useI18nInitialized();
-
-    if (!i18nInitialized || !settings) {
+    if (!settings) {
         return null;
     }
 

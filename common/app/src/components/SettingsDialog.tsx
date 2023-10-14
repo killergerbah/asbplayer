@@ -54,7 +54,6 @@ export default function SettingsDialog({
                     onOpenChromeExtensionShortcuts={extension.openShortcuts}
                     open={open}
                     onSettingsChanged={onSettingsChanged}
-                    onClose={onClose}
                     settings={settings}
                     scrollToId={scrollToId}
                 />

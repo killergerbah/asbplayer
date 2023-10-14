@@ -8,7 +8,10 @@
         "downloadSubtitlesAsSrt": "Download Subtitles as SRT",
         "jumpTo": "Jump To",
         "ok": "OK",
-        "openFiles": "Open Files"
+        "openFiles": "Open Files",
+        "loadSubtitles": "Load Subtitles",
+        "openApp": "Open App",
+        "openSidePanel": "Open Side Panel"
     },
     "ankiDialog": {
         "applySelection": "Apply Selection",
@@ -166,7 +169,9 @@
         "cta": "Drag and drop subtitle and media files, or <1>browse</1>.",
         "extensionNotInstalled": "Install the <1>Chrome extension</1> to sync subtitles with streaming video",
         "extensionUpdateAvailable": "An extension <1>update</1> is available.",
-        "noSubtitles": "No subtitles"
+        "noSubtitles": "No subtitles",
+        "videoElementsDetected": "Load subtitles onto a video element to start using asbplayer.",
+        "noVideoElementsDetected": "No video elements detected."
     },
     "settings": {
         "addCustomCss": "Add Custom CSS",

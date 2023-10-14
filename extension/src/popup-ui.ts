@@ -2,7 +2,7 @@ import { ExtensionSettingsStorage } from './services/extension-settings-storage'
 import { renderPopupUi, SettingsChangedMessage } from './ui/popup';
 import {
     AsbplayerSettings,
-    EditKeyboardShortcutsMessage,
+    HttpPostMessage,
     PopupToExtensionCommand,
     SettingsProvider,
     SettingsUpdatedMessage,
@@ -51,20 +51,26 @@ document.addEventListener('DOMContentLoaded', async (e) => {
             case 'open-extension-shortcuts':
                 chrome.tabs.create({ active: true, url: 'chrome://extensions/shortcuts' });
                 break;
-            case 'open-update-url':
-                chrome.tabs.create({ active: true, url: message.url });
+            case 'open-app':
+                chrome.tabs.create({ active: true, url: `chrome-extension://${chrome.runtime.id}/app-ui.html` });
                 break;
-            case 'edit-video-keyboard-shortcuts':
-                const editKeyboardShortcutsMessage: PopupToExtensionCommand<EditKeyboardShortcutsMessage> = {
-                    sender: 'asbplayer-popup',
-                    message: {
-                        command: 'edit-keyboard-shortcuts',
-                    },
-                };
-                chrome.runtime.sendMessage(editKeyboardShortcutsMessage);
+            case 'open-side-panel':
+                // @ts-ignore
+                chrome.sidePanel.open({ windowId: (await chrome.windows.getLastFocused()).id });
                 break;
             default:
                 console.error('Unknown command ' + message.command);
         }
+    });
+    bridge.onFetch(async (url: string, body: any) => {
+        const httpPostCommand: PopupToExtensionCommand<HttpPostMessage> = {
+            sender: 'asbplayer-popup',
+            message: {
+                command: 'http-post',
+                url,
+                body,
+            },
+        };
+        return await chrome.runtime.sendMessage(httpPostCommand);
     });
 });

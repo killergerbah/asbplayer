@@ -1,11 +1,9 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
 import resourcesToBackend from 'i18next-resources-to-backend';
 import { useEffect, useState } from 'react';
 
-const i18nInit = i18n
-    .use(LanguageDetector)
+const init = i18n
     .use(resourcesToBackend((language: string) => import(`@project/common/locales/${language}.json`)))
     .use(initReactI18next)
     .init({
@@ -18,27 +16,22 @@ const i18nInit = i18n
         interpolation: {
             escapeValue: false,
         },
-        detection: {
-            order: ['localStorage'],
-            lookupLocalStorage: 'i18nextLng',
-            caches: ['localStorage'],
-        },
     });
 
-const useI18nInitialized = () => {
-    const [i18nInitialized, setI18nInitialized] = useState<boolean>(false);
-    const [language, setLanguage] = useState<string>(i18n.language);
+const useI18n = ({ language }: { language: string }) => {
+    const [initialized, setInitialized] = useState<boolean>(false);
 
     useEffect(() => {
-        i18nInit.then(() => setI18nInitialized(true));
-    }, []);
+        init.then(() => setInitialized(true));
+    }, [initialized]);
 
     useEffect(() => {
-        i18n.on('languageChanged', setLanguage);
-        return () => i18n.off('languageChanged', setLanguage);
-    }, []);
+        if (language !== i18n.language) {
+            i18n.changeLanguage(language);
+        }
+    }, [language]);
 
-    return { i18nInitialized, language };
+    return { initialized };
 };
 
-export { useI18nInitialized, i18n };
+export { useI18n, i18n };

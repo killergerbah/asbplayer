@@ -345,6 +345,29 @@ export default class TabRegistry {
         }
     }
 
+    async publishCommandToVideoElementTabs<T extends Message>(
+        commandFactory: (tab: SlimTab) => ExtensionToVideoCommand<T> | undefined
+    ) {
+        const videoElements = await this._videoElements();
+        const tabs: SlimTab[] = [];
+
+        for (const v of Object.values(videoElements)) {
+            if (tabs.find((t) => t.id === v.tab.id) === undefined) {
+                tabs.push(v.tab);
+            }
+        }
+
+        if (tabs.length > 0) {
+            for (const tab of tabs) {
+                const command = commandFactory(tab);
+
+                if (command !== undefined) {
+                    chrome.tabs.sendMessage(tab.id, command);
+                }
+            }
+        }
+    }
+
     async findAsbplayer(filter?: (asbplayer: Asbplayer) => boolean): Promise<string> {
         let chosenAsbplayerId = null;
         const now = Date.now();

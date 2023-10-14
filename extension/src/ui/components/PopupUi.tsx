@@ -2,13 +2,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import Bridge from '../bridge';
-import { Anki, AsbplayerSettings, chromeCommandBindsToKeyBinds, createTheme } from '@project/common';
-import { LatestExtensionInfo, newVersionAvailable } from '../../services/version-checker';
-import { SettingsForm } from '@project/common/components';
+import { AsbplayerSettings, SettingsProvider, createTheme } from '@project/common';
+import { Box, Paper, Typography } from '@material-ui/core';
+import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
+import Popup from './Popup';
 
 interface Props {
     bridge: Bridge;
-    currentSettings: AsbplayerSettings;
     commands: any;
 }
 
@@ -22,76 +22,72 @@ export interface OpenExtensionShortcutsMessage {
     command: 'open-extension-shortcuts';
 }
 
-export interface OpenUpdateUrlMessage {
-    command: 'open-update-url';
-    url: string;
+export interface OpenAppMessage {
+    command: 'open-app';
 }
 
-export interface EditVideoKeyboardShorcutsMessage {
-    command: 'edit-video-keyboard-shortcuts';
+export interface OpenSidePanelMessage {
+    command: 'open-side-panel';
 }
 
-export function PopupUi({ bridge, currentSettings, commands }: Props) {
-    const [settings, setSettings] = useState(currentSettings);
-    const [latestVersionInfo, setLatestVersionInfo] = useState<LatestExtensionInfo>();
-    const theme = useMemo(() => createTheme(currentSettings.themeType), [currentSettings.themeType]);
+export function PopupUi({ bridge, commands }: Props) {
+    const settingsProvider = useMemo(() => new SettingsProvider(new ExtensionSettingsStorage()), []);
+    const [settings, setSettings] = useState<AsbplayerSettings>();
+    const theme = useMemo(() => settings && createTheme(settings.themeType), [settings?.themeType]);
 
     useEffect(() => {
-        const checkLatestVersion = async () => {
-            const [newVersion, latestVersionInfo] = await newVersionAvailable();
-
-            if (newVersion) {
-                setLatestVersionInfo(latestVersionInfo);
-            }
-        };
-
-        checkLatestVersion();
+        settingsProvider.getAll().then(setSettings);
     }, []);
 
-    function handleSettingsChanged<K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) {
-        setSettings((old: any) => ({ ...old, [key]: value }));
-        const message: SettingsChangedMessage<K> = { command: 'settings-changed', key, value };
-        bridge.sendServerMessage(message);
-    }
-
-    const handleSettingsChangedCallback = useCallback(handleSettingsChanged, []);
+    const handleSettingsChanged = useCallback(
+        <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => {
+            setSettings((old: any) => ({ ...old, [key]: value }));
+            const message: SettingsChangedMessage<K> = { command: 'settings-changed', key, value };
+            bridge.sendServerMessage(message);
+        },
+        []
+    );
 
     const handleOpenExtensionShortcuts = useCallback(() => {
         const message: OpenExtensionShortcutsMessage = { command: 'open-extension-shortcuts' };
         bridge.sendServerMessage(message);
     }, [bridge]);
 
-    const handleOpenUpdateUrl = useCallback(
-        (url: string) => {
-            const message: OpenUpdateUrlMessage = { command: 'open-update-url', url };
-            bridge.sendServerMessage(message);
-        },
-        [bridge]
-    );
-
-    const handleVideoKeyboardShortcutClicked = useCallback(() => {
-        const message: EditVideoKeyboardShorcutsMessage = { command: 'edit-video-keyboard-shortcuts' };
+    const handleOpenApp = useCallback(() => {
+        const message: OpenAppMessage = { command: 'open-app' };
         bridge.sendServerMessage(message);
-    }, [bridge]);
+    }, []);
 
-    const anki = useMemo(() => new Anki(currentSettings, bridge), [currentSettings, bridge]);
+    const handleOpenSidePanel = useCallback(() => {
+        const message: OpenSidePanelMessage = { command: 'open-side-panel' };
+        bridge.sendServerMessage(message);
+    }, []);
+
+    if (!settings || !theme) {
+        return null;
+    }
 
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-            <SettingsForm
-                open
-                insideExtension
-                anki={anki}
-                chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}
-                settings={settings}
-                onClose={() => {}}
-                onSettingsChanged={handleSettingsChangedCallback}
-                onOpenChromeExtensionShortcuts={handleOpenExtensionShortcuts}
-                // latestVersionInfo={latestVersionInfo}
-                // onOpenUpdateUrl={handleOpenUpdateUrl}
-                // onVideoKeyboardShortcutClicked={handleVideoKeyboardShortcutClicked}
-            />
+            <Paper square>
+                <Box p={2}>
+                    <Popup
+                        bridge={bridge}
+                        commands={commands}
+                        settings={settings}
+                        onSettingsChanged={handleSettingsChanged}
+                        onOpenApp={handleOpenApp}
+                        onOpenSidePanel={handleOpenSidePanel}
+                        onOpenExtensionShortcuts={handleOpenExtensionShortcuts}
+                    />
+                </Box>
+                <Box p={0.5} textAlign="right">
+                    <Typography variant="caption" align="right" color="textSecondary">
+                        {`v${chrome.runtime.getManifest().version}`}
+                    </Typography>
+                </Box>
+            </Paper>
         </ThemeProvider>
     );
 }

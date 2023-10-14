@@ -40,6 +40,7 @@ import {
 import { primeLocalization } from './services/localization-fetcher';
 import VideoDisappearedHandler from './handlers/video/video-disappeared-handler';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
+import LoadSubtitlesHandler from './handlers/asbplayerv2/load-subtitles-handler';
 
 chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
 
@@ -76,6 +77,7 @@ const handlers: CommandHandler[] = [
     new OpenAsbplayerSettingsHandler(),
     new CopyToClipboardHandler(),
     new VideoDisappearedHandler(tabRegistry),
+    new LoadSubtitlesHandler(tabRegistry),
     new VideoToAsbplayerCommandForwardingHandler(tabRegistry),
     new AsbplayerToVideoCommandForwardingHandler(),
     new AsbplayerHeartbeatHandler(tabRegistry),
@@ -92,7 +94,10 @@ const handlers: CommandHandler[] = [
 
 chrome.runtime.onMessage.addListener((request: Command<Message>, sender, sendResponse) => {
     for (const handler of handlers) {
-        if (handler.sender === request.sender) {
+        if (
+            (typeof handler.sender === 'string' && handler.sender === request.sender) ||
+            (typeof handler.sender === 'object' && handler.sender.includes(request.sender))
+        ) {
             if (handler.command === null || handler.command === request.message.command) {
                 if (handler.handle(request, sender, sendResponse) === true) {
                     return true;
@@ -119,39 +124,41 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.contextMenus.onClicked.addListener((info) => {
-    tabRegistry.publishCommandToVideoElements((videoElement): ExtensionToVideoCommand<Message> | undefined => {
-        if (info.srcUrl !== undefined && videoElement.src !== info.srcUrl) {
-            return undefined;
-        }
-
-        if (info.srcUrl === undefined && info.pageUrl !== videoElement.tab.url) {
-            return undefined;
-        }
-
-        switch (info.menuItemId) {
-            case 'load-subtitles':
-                const toggleVideoSelectCommand: ExtensionToVideoCommand<ToggleVideoSelectMessage> = {
-                    sender: 'asbplayer-extension-to-video',
-                    message: {
-                        command: 'toggle-video-select',
-                    },
-                    src: videoElement.src,
-                };
-                return toggleVideoSelectCommand;
-            case 'mine-subtitle':
-                const copySubtitleCommand: ExtensionToVideoCommand<CopySubtitleMessage> = {
-                    sender: 'asbplayer-extension-to-video',
-                    message: {
-                        command: 'copy-subtitle',
-                        postMineAction: PostMineAction.showAnkiDialog,
-                    },
-                    src: videoElement.src,
-                };
-                return copySubtitleCommand;
-            default:
+    if (info.menuItemId === 'load-subtitles') {
+        const toggleVideoSelectCommand: ExtensionToVideoCommand<ToggleVideoSelectMessage> = {
+            sender: 'asbplayer-extension-to-video',
+            message: {
+                command: 'toggle-video-select',
+            },
+        };
+        tabRegistry.publishCommandToVideoElementTabs((tab): ExtensionToVideoCommand<Message> | undefined => {
+            if (info.pageUrl !== tab.url) {
                 return undefined;
-        }
-    });
+            }
+
+            return toggleVideoSelectCommand;
+        });
+    } else if (info.menuItemId === 'mine-subtitle') {
+        tabRegistry.publishCommandToVideoElements((videoElement): ExtensionToVideoCommand<Message> | undefined => {
+            if (info.srcUrl !== undefined && videoElement.src !== info.srcUrl) {
+                return undefined;
+            }
+
+            if (info.srcUrl === undefined && info.pageUrl !== videoElement.tab.url) {
+                return undefined;
+            }
+
+            const copySubtitleCommand: ExtensionToVideoCommand<CopySubtitleMessage> = {
+                sender: 'asbplayer-extension-to-video',
+                message: {
+                    command: 'copy-subtitle',
+                    postMineAction: PostMineAction.showAnkiDialog,
+                },
+                src: videoElement.src,
+            };
+            return copySubtitleCommand;
+        });
+    }
 });
 
 chrome.commands.onCommand.addListener((command) => {

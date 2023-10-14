@@ -452,3 +452,6 @@ export interface CopyToClipboardMessage extends Message {
     readonly dataUrl: string;
 }
 
+export interface LoadSubtitlesMessage extends Message {
+    readonly command: 'load-subtitles';
+}
