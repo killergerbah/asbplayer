@@ -167,7 +167,12 @@ function SelectableSetting({
             />
             <FormControl className={classes.formControl}>
                 <InputLabel></InputLabel>
-                <Select value={value} disabled={!selections} color="secondary" onChange={onSelectionChange}>
+                <Select
+                    value={selections?.find((v) => v === value) === undefined ? '' : value}
+                    disabled={!selections}
+                    color="secondary"
+                    onChange={onSelectionChange}
+                >
                     {selections &&
                         selections.map((s) => (
                             <MenuItem key={s} value={s}>
