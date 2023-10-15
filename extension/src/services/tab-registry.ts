@@ -54,8 +54,8 @@ export default class TabRegistry {
         );
     }
 
-    private _saveVideoElementState(state: { [key: string]: VideoElement }) {
-        chrome.storage.session.set({ tabRegistryVideoElements: state });
+    private async _saveVideoElementState(state: { [key: string]: VideoElement }) {
+        await chrome.storage.session.set({ tabRegistryVideoElements: state });
     }
 
     private async _videoElements(mutator?: (videoElements: { [key: string]: VideoElement }) => boolean) {
@@ -81,7 +81,7 @@ export default class TabRegistry {
         }
 
         if (changed) {
-            this._saveVideoElementState(videoElements);
+            await this._saveVideoElementState(videoElements);
         }
 
         const oldSyncedElementExists = Object.values(oldVideoElements).find((v) => v.synced) !== undefined;
@@ -105,7 +105,7 @@ export default class TabRegistry {
     }
 
     private async _saveAsbplayerState(state: { [key: string]: Asbplayer }) {
-        chrome.storage.session.set({ tabRegistryAsbplayers: state });
+        await chrome.storage.session.set({ tabRegistryAsbplayers: state });
     }
 
     private async _asbplayers(mutator?: (asbplayers: { [key: string]: Asbplayer }) => boolean) {
@@ -132,7 +132,7 @@ export default class TabRegistry {
         }
 
         if (changed) {
-            this._saveAsbplayerState(asbplayers);
+            await this._saveAsbplayerState(asbplayers);
         }
 
         return asbplayers;
