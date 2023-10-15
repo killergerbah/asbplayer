@@ -1,8 +1,10 @@
 import {
+    AsbPlayerToVideoCommandV2,
     AsbplayerSettings,
     AudioModel,
     ExtensionToVideoCommand,
     ImageModel,
+    MineSubtitleMessage,
     PostMineAction,
     RequestSubtitlesMessage,
     SubtitleModel,
@@ -26,6 +28,7 @@ import { useVideoElementCount } from '../hooks/use-video-element-count';
 import CenteredGridContainer from './CenteredGridContainer';
 import CenteredGridItem from './CenteredGridItem';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import SidePanelControls from './SidePanelControls';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -48,7 +51,7 @@ export default function SidePanel({ settings, extension }: Props) {
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
     const [alertSeverity, setAlertSeverity] = useState<Color>();
     const [initializing, setInitializing] = useState<boolean>(true);
-    const [syncedVideoElement, setSyncedVideoElement] = useState<VideoTabModel>();
+    const [syncedVideoTab, setSyncedVideoElement] = useState<VideoTabModel>();
     const keyBinder = useMemo(
         () => new AppKeyBinder(new DefaultKeyBinder(settings.keyBindSet), extension),
         [settings.keyBindSet, extension]
@@ -112,20 +115,20 @@ export default function SidePanel({ settings, extension }: Props) {
     }, [extension, subtitles, initializing, currentTabId]);
 
     useEffect(() => {
-        if (currentTabId === undefined || syncedVideoElement === undefined) {
+        if (currentTabId === undefined || syncedVideoTab === undefined) {
             return;
         }
 
         return extension.subscribeTabs((tabs) => {
             const tabStillExists =
-                tabs.find((t) => t.id === syncedVideoElement.id && t.src === syncedVideoElement.src) !== undefined;
+                tabs.find((t) => t.id === syncedVideoTab.id && t.src === syncedVideoTab.src) !== undefined;
 
             if (!tabStillExists) {
                 setSubtitles(undefined);
                 setSyncedVideoElement(undefined);
             }
         });
-    }, [extension, currentTabId, syncedVideoElement]);
+    }, [extension, currentTabId, syncedVideoTab]);
 
     const handleError = useCallback(
         (message: any) => {
@@ -149,6 +152,20 @@ export default function SidePanel({ settings, extension }: Props) {
     );
 
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
+
+    const handleMineSubtitle = useCallback(() => {
+        if (syncedVideoTab === undefined) {
+            return;
+        }
+
+        const message: AsbPlayerToVideoCommandV2<MineSubtitleMessage> = {
+            sender: 'asbplayerv2',
+            message: { command: 'mine-subtitle' },
+            tabId: syncedVideoTab.id,
+            src: syncedVideoTab.src,
+        };
+        chrome.runtime.sendMessage(message);
+    }, [syncedVideoTab]);
 
     const handleCopy = useCallback(
         (
@@ -233,41 +250,48 @@ export default function SidePanel({ settings, extension }: Props) {
                     videoElementCount={videoElementCount}
                 />
             ) : (
-                <Player
-                    subtitles={subtitles}
-                    hideControls={true}
-                    forceCompressedMode={true}
-                    subtitleReader={subtitleReader}
-                    settings={settings}
-                    playbackPreferences={playbackPreferences}
-                    onCopy={handleCopy}
-                    onError={handleError}
-                    onUnloadAudio={noOp}
-                    onUnloadVideo={noOp}
-                    onLoaded={noOp}
-                    onTabSelected={noOp}
-                    onAnkiDialogRequest={noOp}
-                    onAnkiDialogRewind={noOp}
-                    onAppBarToggle={noOp}
-                    onFullscreenToggle={noOp}
-                    onHideSubtitlePlayer={noOp}
-                    onVideoPopOut={noOp}
-                    onPlayModeChangedViaBind={noOp}
-                    onSubtitles={setSubtitles}
-                    onTakeScreenshot={noOp}
-                    tab={syncedVideoElement}
-                    availableTabs={extension.tabs ?? []}
-                    extension={extension}
-                    drawerOpen={false}
-                    appBarHidden={true}
-                    videoFullscreen={false}
-                    hideSubtitlePlayer={false}
-                    videoPopOut={false}
-                    disableKeyEvents={false}
-                    ankiDialogRequested={false}
-                    keyBinder={keyBinder}
-                    ankiDialogOpen={false}
-                />
+                <>
+                    <Player
+                        origin={`chrome-extension://${chrome.runtime.id}/side-panel.html`}
+                        subtitles={subtitles}
+                        hideControls={true}
+                        forceCompressedMode={true}
+                        subtitleReader={subtitleReader}
+                        settings={settings}
+                        playbackPreferences={playbackPreferences}
+                        onCopy={handleCopy}
+                        onError={handleError}
+                        onUnloadAudio={noOp}
+                        onUnloadVideo={noOp}
+                        onLoaded={noOp}
+                        onTabSelected={noOp}
+                        onAnkiDialogRequest={noOp}
+                        onAnkiDialogRewind={noOp}
+                        onAppBarToggle={noOp}
+                        onFullscreenToggle={noOp}
+                        onHideSubtitlePlayer={noOp}
+                        onVideoPopOut={noOp}
+                        onPlayModeChangedViaBind={noOp}
+                        onSubtitles={setSubtitles}
+                        onTakeScreenshot={noOp}
+                        tab={syncedVideoTab}
+                        availableTabs={extension.tabs ?? []}
+                        extension={extension}
+                        drawerOpen={false}
+                        appBarHidden={true}
+                        videoFullscreen={false}
+                        hideSubtitlePlayer={false}
+                        videoPopOut={false}
+                        disableKeyEvents={false}
+                        ankiDialogRequested={false}
+                        keyBinder={keyBinder}
+                        ankiDialogOpen={false}
+                    />
+                    <SidePanelControls
+                        disabled={currentTabId !== syncedVideoTab?.id}
+                        onMineSubtitle={handleMineSubtitle}
+                    />
+                </>
             )}
         </>
     );

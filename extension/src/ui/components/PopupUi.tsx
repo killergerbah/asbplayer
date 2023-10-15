@@ -6,6 +6,8 @@ import { AsbplayerSettings, SettingsProvider, createTheme } from '@project/commo
 import { Box, Paper, Typography } from '@material-ui/core';
 import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
 import Popup from './Popup';
+import { useRequestingActiveTabPermission } from '../hooks/use-requesting-active-tab-permission';
+import ActiveTabPermissionObtainedNotification from './ActiveTabPermissionObainedNotification';
 
 interface Props {
     bridge: Bridge;
@@ -63,31 +65,42 @@ export function PopupUi({ bridge, commands }: Props) {
         bridge.sendServerMessage(message);
     }, []);
 
-    if (!settings || !theme) {
+    const requestingActiveTabPermission = useRequestingActiveTabPermission();
+
+    if (!settings || !theme || requestingActiveTabPermission === undefined) {
         return null;
     }
 
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-            <Paper square>
-                <Box p={2}>
-                    <Popup
-                        bridge={bridge}
-                        commands={commands}
-                        settings={settings}
-                        onSettingsChanged={handleSettingsChanged}
-                        onOpenApp={handleOpenApp}
-                        onOpenSidePanel={handleOpenSidePanel}
-                        onOpenExtensionShortcuts={handleOpenExtensionShortcuts}
-                    />
-                </Box>
-                <Box p={0.5} textAlign="right">
-                    <Typography variant="caption" align="right" color="textSecondary">
-                        {`v${chrome.runtime.getManifest().version}`}
-                    </Typography>
-                </Box>
-            </Paper>
+
+            {requestingActiveTabPermission ? (
+                <Paper square>
+                    <Box p={2}>
+                        <ActiveTabPermissionObtainedNotification />
+                    </Box>
+                </Paper>
+            ) : (
+                <Paper square>
+                    <Box p={2}>
+                        <Popup
+                            bridge={bridge}
+                            commands={commands}
+                            settings={settings}
+                            onSettingsChanged={handleSettingsChanged}
+                            onOpenApp={handleOpenApp}
+                            onOpenSidePanel={handleOpenSidePanel}
+                            onOpenExtensionShortcuts={handleOpenExtensionShortcuts}
+                        />
+                    </Box>
+                    <Box p={0.5} textAlign="right">
+                        <Typography variant="caption" align="right" color="textSecondary">
+                            {`v${chrome.runtime.getManifest().version}`}
+                        </Typography>
+                    </Box>
+                </Paper>
+            )}
         </ThemeProvider>
     );
 }

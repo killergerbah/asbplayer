@@ -462,3 +462,16 @@ export interface CopyToClipboardMessage extends Message {
 export interface LoadSubtitlesMessage extends Message {
     readonly command: 'load-subtitles';
 }
+
+export interface MineSubtitleMessage extends Message {
+    readonly command: 'mine-subtitle';
+}
+
+export interface RequestActiveTabPermissionMessage extends Message {
+    readonly command: 'request-active-tab-permission';
+}
+
+export interface RequestingActiveTabPermsisionMessage extends Message {
+    readonly command: 'requesting-active-tab-permission';
+    readonly requesting: boolean;
+}

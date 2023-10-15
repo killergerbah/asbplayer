@@ -7,7 +7,7 @@ const settingsStorage = new ExtensionSettingsStorage();
 export const AppUi = () => {
     return (
         <BrowserRouter>
-            <RootApp settingsStorage={settingsStorage} />
+            <RootApp origin={`chrome-extension://${chrome.runtime.id}/app-ui.html`} settingsStorage={settingsStorage} />
         </BrowserRouter>
     );
 };

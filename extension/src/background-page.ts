@@ -39,27 +39,37 @@ const _sendAudioBase64 = async (base64: string, preferMp3: boolean) => {
 };
 
 window.onload = async () => {
-    const listener = async (
-        request: any,
-        sender: chrome.runtime.MessageSender,
-        sendResponse: (response?: any) => void
-    ) => {
+    const listener = (request: any, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
         if (request.sender === 'asbplayer-extension-to-background-page') {
             switch (request.message.command) {
                 case 'start-recording-audio-with-timeout':
                     const startRecordingAudioWithTimeoutMessage =
                         request.message as StartRecordingAudioWithTimeoutMessage;
-                    _sendAudioBase64(
-                        await audioRecorder.startWithTimeout(startRecordingAudioWithTimeoutMessage.timeout),
-                        startRecordingAudioWithTimeoutMessage.preferMp3
-                    );
-                    break;
+                    audioRecorder
+                        .startWithTimeout(startRecordingAudioWithTimeoutMessage.timeout, () => sendResponse(true))
+                        .then((audioBase64) =>
+                            _sendAudioBase64(audioBase64, startRecordingAudioWithTimeoutMessage.preferMp3)
+                        )
+                        .catch((e) => {
+                            console.error(e);
+                            sendResponse(false);
+                        });
+                    return true;
                 case 'start-recording-audio':
-                    audioRecorder.start();
-                    break;
+                    audioRecorder
+                        .start()
+                        .then(() => sendResponse(true))
+                        .catch((e) => {
+                            console.error(e);
+                            sendResponse(false);
+                        });
+                    return true;
                 case 'stop-recording-audio':
                     const stopRecordingAudioMessage = request.message as StopRecordingAudioMessage;
-                    _sendAudioBase64(await audioRecorder.stop(), stopRecordingAudioMessage.preferMp3);
+                    audioRecorder
+                        .stop()
+                        .then((audioBase64) => _sendAudioBase64(audioBase64, stopRecordingAudioMessage.preferMp3));
+                    break;
             }
         }
     };

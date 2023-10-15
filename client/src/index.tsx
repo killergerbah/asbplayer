@@ -7,7 +7,7 @@ import { RootApp } from '@project/common/app';
 
 createRoot(document.querySelector('#root')!).render(
     <BrowserRouter basename={process.env.PUBLIC_URL}>
-        <RootApp settingsStorage={new LocalSettingsStorage()} />
+        <RootApp origin={process.env.PUBLIC_URL} settingsStorage={new LocalSettingsStorage()} />
     </BrowserRouter>
 );
 

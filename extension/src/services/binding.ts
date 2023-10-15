@@ -45,7 +45,7 @@ import { i18nInit } from './i18n';
 import { ExtensionSettingsStorage } from './extension-settings-storage';
 import { SubtitleReader } from '@project/common/app';
 import { bufferToBase64 } from './base64';
-import { OpenSidePanelMessage } from '../ui/components/PopupUi';
+import ActiveTabPermissionRequestController from '../controllers/active-tab-permission-controller-request';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -72,6 +72,7 @@ export default class Binding {
     readonly controlsController: ControlsController;
     readonly dragController: DragController;
     readonly ankiUiController: AnkiUiController;
+    readonly requestActiveTabPermissionController: ActiveTabPermissionRequestController;
     readonly keyBindings: KeyBindings;
     readonly settings: SettingsProvider;
 
@@ -111,6 +112,7 @@ export default class Binding {
         this.dragController = new DragController(video);
         this.keyBindings = new KeyBindings();
         this.ankiUiController = new AnkiUiController();
+        this.requestActiveTabPermissionController = new ActiveTabPermissionRequestController(this);
         this.recordMedia = true;
         this.screenshot = true;
         this.cleanScreenshot = true;
@@ -514,6 +516,9 @@ export default class Binding {
                         break;
                     case 'alert':
                         // ignore
+                        break;
+                    case 'request-active-tab-permission':
+                        this.requestActiveTabPermissionController.show();
                         break;
                 }
             }

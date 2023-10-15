@@ -42,6 +42,8 @@ import VideoDisappearedHandler from './handlers/video/video-disappeared-handler'
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
 import LoadSubtitlesHandler from './handlers/asbplayerv2/load-subtitles-handler';
 import OpenSidePanelHandler from './handlers/video/open-side-panel';
+import MineSubtitleHandler from './handlers/asbplayerv2/mine-subtitle-handler';
+import { RequestingActiveTabPermissionHandler } from './handlers/video/requesting-active-tab-permission';
 
 chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
 
@@ -79,6 +81,8 @@ const handlers: CommandHandler[] = [
     new OpenAsbplayerSettingsHandler(),
     new CopyToClipboardHandler(),
     new VideoDisappearedHandler(tabRegistry),
+    new RequestingActiveTabPermissionHandler(),
+    new MineSubtitleHandler(tabRegistry),
     new LoadSubtitlesHandler(tabRegistry),
     new VideoToAsbplayerCommandForwardingHandler(tabRegistry),
     new AsbplayerToVideoCommandForwardingHandler(),

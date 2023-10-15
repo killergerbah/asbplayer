@@ -28,14 +28,14 @@ window.addEventListener('DOMContentLoaded', async (e) => {
             command: 'extension-commands',
         },
     });
-    
+
     window.postMessage(
         {
             sender: 'asbplayer-extension-to-player',
             message: {
                 command: 'version',
                 version: manifest.version,
-                extensionCommands
+                extensionCommands,
             },
         },
         '*'

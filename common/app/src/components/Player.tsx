@@ -108,6 +108,7 @@ interface PlayerProps {
     ankiDialogRequested: boolean;
     ankiDialogOpen: boolean;
     ankiDialogFinishedRequest?: AnkiDialogFinishedRequest;
+    origin: string;
     onError: (error: any) => void;
     onUnloadAudio: (url: string) => void;
     onUnloadVideo: (url: string) => void;
@@ -164,6 +165,7 @@ export default function Player({
     ankiDialogRequested,
     ankiDialogFinishedRequest,
     ankiDialogOpen,
+    origin,
     onError,
     onUnloadAudio,
     onUnloadVideo,
@@ -670,12 +672,7 @@ export default function Player({
     useEffect(() => {
         if (videoPopOut && videoFileUrl && channelId) {
             window.open(
-                process.env.PUBLIC_URL +
-                    '/?video=' +
-                    encodeURIComponent(videoFileUrl) +
-                    '&channel=' +
-                    channelId +
-                    '&popout=true',
+                origin + '/?video=' + encodeURIComponent(videoFileUrl) + '&channel=' + channelId + '&popout=true',
                 'asbplayer-video-' + videoFileUrl,
                 'resizable,width=800,height=450'
             );
@@ -936,8 +933,8 @@ export default function Player({
                             ref={videoFrameRef}
                             className={classes.videoFrame}
                             src={
-                                process.env.PUBLIC_URL +
-                                '/?video=' +
+                                origin +
+                                '?video=' +
                                 encodeURIComponent(videoFileUrl!) +
                                 '&channel=' +
                                 channelId +

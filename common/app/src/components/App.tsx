@@ -289,12 +289,13 @@ function Content(props: ContentProps) {
 }
 
 interface Props {
+    origin: string;
     settings: AsbplayerSettings;
     extension: ChromeExtension;
     onSettingsChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => void;
 }
 
-function App({ settings, extension, onSettingsChanged }: Props) {
+function App({ origin, settings, extension, onSettingsChanged }: Props) {
     const { t } = useTranslation();
     const subtitleReader = useMemo<SubtitleReader>(() => {
         return new SubtitleReader({
@@ -1400,6 +1401,7 @@ function App({ settings, extension, onSettingsChanged }: Props) {
                                 <DragOverlay dragging={dragging} appBarHidden={appBarHidden} loading={loading} />
                             </Paper>
                             <Player
+                                origin={origin}
                                 subtitleReader={subtitleReader}
                                 subtitles={subtitles}
                                 settings={settings}

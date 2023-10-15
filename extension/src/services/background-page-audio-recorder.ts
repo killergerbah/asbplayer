@@ -1,5 +1,7 @@
 import {
     ExtensionToBackgroundPageCommand,
+    ExtensionToVideoCommand,
+    RequestActiveTabPermissionMessage,
     StartRecordingAudio,
     StartRecordingAudioWithTimeoutMessage,
     StopRecordingAudioMessage,
@@ -7,6 +9,11 @@ import {
 import TabRegistry from './tab-registry';
 
 const backgroundPageUrl = `chrome-extension://${chrome.runtime.id}/background-page.html`;
+
+interface Requester {
+    tabId?: number;
+    src: string;
+}
 
 export default class BackgroundPageAudioRecorder {
     private backgroundPageResolve?: (value: chrome.tabs.Tab) => void;
@@ -58,8 +65,8 @@ export default class BackgroundPageAudioRecorder {
         this.audioBase64Resolve = undefined;
     }
 
-    async startWithTimeout(time: number, preferMp3: boolean): Promise<string> {
-        const tabId = await this._backgroundPageTabId();
+    async startWithTimeout(time: number, preferMp3: boolean, { tabId, src }: Requester): Promise<string> {
+        const backgroundPageTabId = await this._backgroundPageTabId();
 
         if (this.audioBase64Resolve !== undefined) {
             throw new Error('Already recording');
@@ -73,12 +80,21 @@ export default class BackgroundPageAudioRecorder {
                 preferMp3,
             },
         };
-        chrome.tabs.sendMessage(tabId, command);
+        const started = (await chrome.tabs.sendMessage(backgroundPageTabId, command)) as boolean;
+
+        if (!started) {
+            if (tabId !== undefined) {
+                this._requestActiveTab(tabId, src);
+            }
+
+            throw new Error('Failed to start recording');
+        }
+
         return await this._audioBase64();
     }
 
-    async start() {
-        const tabId = await this._backgroundPageTabId();
+    async start({ tabId, src }: Requester) {
+        const backgroundPageTabId = await this._backgroundPageTabId();
 
         if (this.audioBase64Resolve !== undefined) {
             throw new Error('Already recording');
@@ -89,6 +105,25 @@ export default class BackgroundPageAudioRecorder {
             message: {
                 command: 'start-recording-audio',
             },
+        };
+        const started = (await chrome.tabs.sendMessage(backgroundPageTabId, command)) as boolean;
+
+        if (!started) {
+            if (tabId !== undefined) {
+                this._requestActiveTab(tabId, src);
+            }
+
+            throw new Error('Failed to start recording');
+        }
+    }
+
+    private _requestActiveTab(tabId: number, src: string) {
+        const command: ExtensionToVideoCommand<RequestActiveTabPermissionMessage> = {
+            sender: 'asbplayer-extension-to-video',
+            message: {
+                command: 'request-active-tab-permission',
+            },
+            src,
         };
         chrome.tabs.sendMessage(tabId, command);
     }

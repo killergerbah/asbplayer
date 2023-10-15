@@ -39,7 +39,8 @@ export default class RerecordMediaHandler {
                 base64: await this.audioRecorder.startWithTimeout(
                     rerecordCommand.message.duration / rerecordCommand.message.playbackRate +
                         rerecordCommand.message.audioPaddingEnd,
-                    false
+                    false,
+                    { src: rerecordCommand.src, tabId: sender.tab?.id }
                 ),
                 extension: 'webm',
                 paddingStart: rerecordCommand.message.audioPaddingStart,

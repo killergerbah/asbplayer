@@ -15,51 +15,60 @@ export default class AudioRecorder {
         this.blobPromise = null;
     }
 
-    startWithTimeout(time: number): Promise<string> {
-        return new Promise((resolve, reject) => {
-            if (this.recording) {
-                console.error('Already recording, cannot start with timeout.');
-                reject('Already recording');
-                return;
-            }
+    startWithTimeout(time: number, onStartedCallback: () => void): Promise<string> {
+        return new Promise(async (resolve, reject) => {
+            try {
+                if (this.recording) {
+                    console.error('Already recording, cannot start with timeout.');
+                    reject('Already recording');
+                    return;
+                }
 
-            this.start();
-            setTimeout(async () => {
-                resolve(await this.stop());
-            }, time);
+                await this.start();
+                onStartedCallback();
+                setTimeout(async () => {
+                    resolve(await this.stop());
+                }, time);
+            } catch (e) {
+                reject(e);
+            }
         });
     }
 
-    start() {
+    async start(): Promise<void> {
         if (this.recording) {
             console.error('Already recording, cannot start');
             return;
         }
 
-        return chrome.tabCapture.capture({ audio: true }, (stream) => {
-            if (!stream) {
-                return;
-            }
+        return new Promise((resolve, reject) => {
+            chrome.tabCapture.capture({ audio: true }, (stream) => {
+                if (!stream) {
+                    reject(new Error(chrome.runtime.lastError?.message ?? 'Missing stream'));
+                    return;
+                }
 
-            const recorder = new MediaRecorder(stream);
-            const chunks: BlobPart[] = [];
-            recorder.ondataavailable = (e) => {
-                chunks.push(e.data);
-            };
-            this.blobPromise = new Promise((resolve, reject) => {
-                recorder.onstop = (e) => {
-                    resolve(new Blob(chunks));
+                const recorder = new MediaRecorder(stream);
+                const chunks: BlobPart[] = [];
+                recorder.ondataavailable = (e) => {
+                    chunks.push(e.data);
                 };
-            });
-            recorder.start();
-            const audio = new Audio();
-            audio.srcObject = stream;
-            audio.play();
+                this.blobPromise = new Promise((resolve, reject) => {
+                    recorder.onstop = (e) => {
+                        resolve(new Blob(chunks));
+                    };
+                });
+                recorder.start();
+                const audio = new Audio();
+                audio.srcObject = stream;
+                audio.play();
 
-            this.recorder = recorder;
-            this.recording = true;
-            this.stream = stream;
-            this.audio = audio;
+                this.recorder = recorder;
+                this.recording = true;
+                this.stream = stream;
+                this.audio = audio;
+                resolve(undefined);
+            });
         });
     }
 
