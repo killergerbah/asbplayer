@@ -1,11 +1,8 @@
 import {
     AsbPlayerToVideoCommandV2,
     AsbplayerSettings,
-    AudioModel,
     ExtensionToVideoCommand,
-    ImageModel,
     MineSubtitleMessage,
-    PostMineAction,
     RequestSubtitlesMessage,
     SubtitleModel,
     VideoTabModel,
@@ -167,59 +164,6 @@ export default function SidePanel({ settings, extension }: Props) {
         chrome.runtime.sendMessage(message);
     }, [syncedVideoTab]);
 
-    const handleCopy = useCallback(
-        (
-            subtitle: SubtitleModel,
-            surroundingSubtitles: SubtitleModel[],
-            audioFile: File | undefined,
-            videoFile: File | undefined,
-            subtitleFile: File | undefined,
-            mediaTimestamp: number | undefined,
-            audioTrack: string | undefined,
-            filePlaybackRate: number | undefined,
-            audio: AudioModel | undefined,
-            image: ImageModel | undefined,
-            url: string | undefined,
-            postMineAction: PostMineAction | undefined,
-            id: string | undefined
-        ) => {
-            if (subtitle && settings.copyToClipboardOnMine) {
-                navigator.clipboard.writeText(subtitle.text);
-            }
-
-            // const newCopiedSubtitle = {
-            //     ...subtitle,
-            //     surroundingSubtitles: surroundingSubtitles,
-            //     timestamp: Date.now(),
-            //     id: id || uuidv4(),
-            //     name: subtitleFile?.name ?? videoFile?.name ?? audioFile?.name ?? '',
-            //     subtitleFileName: subtitleFile?.name,
-            //     audioFile: audioFile,
-            //     videoFile: videoFile,
-            //     filePlaybackRate: filePlaybackRate,
-            //     mediaTimestamp: mediaTimestamp,
-            //     audioTrack: audioTrack,
-            //     audio: audio,
-            //     image: image,
-            //     url: url,
-            // };
-
-            // if (subtitle) {
-            //     setAlertSeverity('success');
-            //     setAlert(
-            //         subtitle.text === ''
-            //             ? t('info.savedTimestamp', { timestamp: humanReadableTime(subtitle.start) })!
-            //             : t('info.copiedSubtitle', { text: subtitle.text })!
-            //     );
-            //     setAlertOpen(true);
-            // }
-
-            // TODO: Figure out how to implement copy history that deals with ccase when neither app nor side panel is open
-            // copyHistoryRepository.save(newCopiedSubtitle);
-        },
-        [settings]
-    );
-
     const noOp = useCallback(() => {}, []);
 
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
@@ -259,7 +203,7 @@ export default function SidePanel({ settings, extension }: Props) {
                         subtitleReader={subtitleReader}
                         settings={settings}
                         playbackPreferences={playbackPreferences}
-                        onCopy={handleCopy}
+                        onCopy={noOp}
                         onError={handleError}
                         onUnloadAudio={noOp}
                         onUnloadVideo={noOp}

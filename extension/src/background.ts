@@ -43,6 +43,7 @@ import LoadSubtitlesHandler from './handlers/asbplayerv2/load-subtitles-handler'
 import OpenSidePanelHandler from './handlers/video/open-side-panel';
 import MineSubtitleHandler from './handlers/asbplayerv2/mine-subtitle-handler';
 import { RequestingActiveTabPermissionHandler } from './handlers/video/requesting-active-tab-permission';
+import { CardPublisher } from './services/card-publisher';
 
 chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
 
@@ -58,14 +59,15 @@ chrome.runtime.onStartup.addListener(startListener);
 const tabRegistry = new TabRegistry();
 const backgroundPageAudioRecorder = new BackgroundPageAudioRecorder(tabRegistry);
 const imageCapturer = new ImageCapturer(settings);
+const cardPublisher = new CardPublisher(tabRegistry);
 
 const handlers: CommandHandler[] = [
     new VideoHeartbeatHandler(tabRegistry),
-    new RecordMediaHandler(backgroundPageAudioRecorder, imageCapturer, tabRegistry),
-    new RerecordMediaHandler(backgroundPageAudioRecorder, tabRegistry),
-    new StartRecordingMediaHandler(backgroundPageAudioRecorder, imageCapturer, tabRegistry),
-    new StopRecordingMediaHandler(backgroundPageAudioRecorder, imageCapturer, tabRegistry),
-    new TakeScreenshotHandler(imageCapturer, tabRegistry),
+    new RecordMediaHandler(backgroundPageAudioRecorder, imageCapturer, cardPublisher),
+    new RerecordMediaHandler(backgroundPageAudioRecorder, cardPublisher),
+    new StartRecordingMediaHandler(backgroundPageAudioRecorder, imageCapturer, cardPublisher),
+    new StopRecordingMediaHandler(backgroundPageAudioRecorder, imageCapturer, cardPublisher),
+    new TakeScreenshotHandler(imageCapturer, cardPublisher),
     new ToggleSubtitlesHandler(settings, tabRegistry),
     new SyncHandler(tabRegistry),
     new HttpPostHandler(),

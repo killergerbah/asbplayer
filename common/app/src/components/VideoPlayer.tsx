@@ -25,7 +25,6 @@ import { SubtitleTextImage } from '@project/common/components';
 import Clock from '../services/clock';
 import Controls, { Point } from './Controls';
 import PlayerChannel from '../services/player-channel';
-import { SettingsProvider } from '@project/common';
 import AppKeyBinder from '../services/app-key-binder';
 import ChromeExtension from '../services/chrome-extension';
 import PlaybackPreferences, { SubtitleAlignment } from '../services/playback-preferences';

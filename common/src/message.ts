@@ -77,6 +77,7 @@ export interface RecordMediaAndForwardSubtitleMessage extends Message, ImageCapt
     readonly surroundingSubtitles: SubtitleModel[];
     readonly url?: string;
     readonly sourceString: string;
+    readonly subtitleFileName: string;
     readonly record: boolean;
     readonly screenshot: boolean;
     readonly postMineAction: PostMineAction;
@@ -96,6 +97,7 @@ export interface StartRecordingMediaMessage extends Message, ImageCaptureParams 
     readonly imageDelay: number;
     readonly url?: string;
     readonly sourceString: string;
+    readonly subtitleFileName: string;
     readonly ankiSettings?: AnkiSettings;
 }
 
@@ -109,6 +111,7 @@ export interface StopRecordingMediaMessage extends Message, ImageCaptureParams {
     readonly videoDuration: number;
     readonly url?: string;
     readonly sourceString: string;
+    readonly subtitleFileName: string;
     readonly ankiSettings?: AnkiSettings;
     readonly subtitle?: SubtitleModel;
     readonly surroundingSubtitles?: SubtitleModel[];
@@ -119,6 +122,7 @@ export interface CopyMessage extends Message {
     readonly id?: string;
     readonly subtitle: SubtitleModel;
     readonly surroundingSubtitles: SubtitleModel[];
+    readonly subtitleFileName?: string;
     readonly url?: string;
     readonly image?: ImageModel;
     readonly audio?: AudioModel;
@@ -146,6 +150,7 @@ export interface TakeScreenshotMessage extends Message {
 export interface TakeScreenshotFromExtensionMessage extends Message, ImageCaptureParams {
     readonly command: 'take-screenshot';
     readonly ankiUiState?: AnkiUiSavedState;
+    readonly subtitleFileName?: string;
 }
 
 export interface TakeScreenshotToVideoPlayerMessage extends Message {
@@ -189,6 +194,8 @@ export interface RerecordMediaMessage extends Message {
     readonly audioPaddingEnd: number;
     readonly playbackRate: number;
     readonly timestamp: number;
+    readonly sourceString: string;
+    readonly subtitleFileName: string;
 }
 
 export interface ToggleRecordingMessage extends Message {

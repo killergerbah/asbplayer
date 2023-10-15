@@ -2,8 +2,6 @@ import { v4 as uuidv4 } from 'uuid';
 import {
     AudioModel,
     Command,
-    CopyMessage,
-    ExtensionToAsbPlayerCommand,
     ExtensionToVideoCommand,
     Message,
     RecordingFinishedMessage,
@@ -11,16 +9,16 @@ import {
     ShowAnkiUiAfterRerecordMessage,
     VideoToExtensionCommand,
 } from '@project/common';
-import TabRegistry from '../../services/tab-registry';
 import BackgroundPageAudioRecorder from '../../services/background-page-audio-recorder';
+import { CardPublisher } from '../../services/card-publisher';
 
 export default class RerecordMediaHandler {
-    private readonly audioRecorder: BackgroundPageAudioRecorder;
-    private readonly tabRegistry: TabRegistry;
+    private readonly _audioRecorder: BackgroundPageAudioRecorder;
+    private readonly _cardPublisher: CardPublisher;
 
-    constructor(audioRecorder: BackgroundPageAudioRecorder, tabRegistry: TabRegistry) {
-        this.audioRecorder = audioRecorder;
-        this.tabRegistry = tabRegistry;
+    constructor(audioRecorder: BackgroundPageAudioRecorder, cardPublisher: CardPublisher) {
+        this._audioRecorder = audioRecorder;
+        this._cardPublisher = cardPublisher;
     }
 
     get sender() {
@@ -36,7 +34,7 @@ export default class RerecordMediaHandler {
 
         try {
             const audio: AudioModel = {
-                base64: await this.audioRecorder.startWithTimeout(
+                base64: await this._audioRecorder.startWithTimeout(
                     rerecordCommand.message.duration / rerecordCommand.message.playbackRate +
                         rerecordCommand.message.audioPaddingEnd,
                     false,
@@ -52,9 +50,8 @@ export default class RerecordMediaHandler {
                 playbackRate: rerecordCommand.message.playbackRate,
             };
 
-            const copyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {
-                sender: 'asbplayer-extension-to-player',
-                message: {
+            this._cardPublisher.publish(
+                {
                     command: 'copy',
                     // Ideally we send the same ID so that asbplayer can update the existing item.
                     // There's a bug where asbplayer isn't properly updating the item right now, so
@@ -65,11 +62,11 @@ export default class RerecordMediaHandler {
                     url: rerecordCommand.message.uiState.url,
                     subtitle: rerecordCommand.message.uiState.subtitle,
                     surroundingSubtitles: rerecordCommand.message.uiState.sliderContext.subtitles,
+                    subtitleFileName: rerecordCommand.message.subtitleFileName,
                 },
-                tabId: sender.tab!.id!,
-                src: rerecordCommand.src,
-            };
-            this.tabRegistry.publishCommandToAsbplayers({ commandFactory: () => copyCommand });
+                sender.tab!.id!,
+                rerecordCommand.src
+            );
 
             const newUiState = {
                 ...rerecordCommand.message.uiState,

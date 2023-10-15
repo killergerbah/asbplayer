@@ -3,8 +3,6 @@ import { v4 as uuidv4 } from 'uuid';
 import {
     CardUpdatedMessage,
     Command,
-    CopyMessage,
-    ExtensionToAsbPlayerCommand,
     ExtensionToVideoCommand,
     ImageModel,
     Message,
@@ -17,17 +15,21 @@ import {
     VideoToExtensionCommand,
 } from '@project/common';
 import BackgroundPageAudioRecorder from '../../services/background-page-audio-recorder';
-import TabRegistry from '../../services/tab-registry';
+import { CardPublisher } from '../../services/card-publisher';
 
 export default class StartRecordingMediaHandler {
-    private readonly audioRecorder: BackgroundPageAudioRecorder;
-    private readonly imageCapturer: ImageCapturer;
-    private readonly tabRegistry: TabRegistry;
+    private readonly _audioRecorder: BackgroundPageAudioRecorder;
+    private readonly _imageCapturer: ImageCapturer;
+    private readonly _cardPublisher: CardPublisher;
 
-    constructor(audioRecorder: BackgroundPageAudioRecorder, imageCapturer: ImageCapturer, tabRegistry: TabRegistry) {
-        this.audioRecorder = audioRecorder;
-        this.imageCapturer = imageCapturer;
-        this.tabRegistry = tabRegistry;
+    constructor(
+        audioRecorder: BackgroundPageAudioRecorder,
+        imageCapturer: ImageCapturer,
+        cardPublisher: CardPublisher
+    ) {
+        this._audioRecorder = audioRecorder;
+        this._imageCapturer = imageCapturer;
+        this._cardPublisher = cardPublisher;
     }
 
     get sender() {
@@ -42,7 +44,7 @@ export default class StartRecordingMediaHandler {
         const startRecordingCommand = command as VideoToExtensionCommand<StartRecordingMediaMessage>;
 
         if (startRecordingCommand.message.record) {
-            this.audioRecorder.start({ src: startRecordingCommand.src, tabId: sender.tab?.id });
+            this._audioRecorder.start({ src: startRecordingCommand.src, tabId: sender.tab?.id });
         }
 
         let imageBase64: string | undefined;
@@ -50,7 +52,7 @@ export default class StartRecordingMediaHandler {
         if (startRecordingCommand.message.screenshot) {
             const imageDelay = startRecordingCommand.message.record ? startRecordingCommand.message.imageDelay : 0;
             const { maxWidth, maxHeight, rect, frameId } = startRecordingCommand.message;
-            imageBase64 = await this.imageCapturer.capture(sender.tab!.id!, startRecordingCommand.src, imageDelay, {
+            imageBase64 = await this._imageCapturer.capture(sender.tab!.id!, startRecordingCommand.src, imageDelay, {
                 maxWidth,
                 maxHeight,
                 rect,
@@ -88,21 +90,19 @@ export default class StartRecordingMediaHandler {
                 };
             }
 
-            const copyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {
-                sender: 'asbplayer-extension-to-player',
-                message: {
+            this._cardPublisher.publish(
+                {
                     command: 'copy',
                     id: id,
                     subtitle: subtitle,
                     surroundingSubtitles: [],
                     image: imageModel,
                     url: startRecordingCommand.message.url,
+                    subtitleFileName: startRecordingCommand.message.subtitleFileName,
                 },
-                tabId: sender.tab!.id!,
-                src: startRecordingCommand.src,
-            };
-
-            this.tabRegistry.publishCommandToAsbplayers({ commandFactory: () => copyCommand });
+                sender.tab!.id!,
+                startRecordingCommand.src
+            );
 
             if (startRecordingCommand.message.postMineAction === PostMineAction.showAnkiDialog) {
                 const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {

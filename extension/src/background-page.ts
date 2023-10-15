@@ -5,6 +5,7 @@ import {
     BackgroundPageReadyMessage,
     AudioBase64Message,
     SettingsProvider,
+    CopyMessage,
 } from '@project/common';
 import { Mp3Encoder } from '@project/common';
 import AudioRecorder from './services/audio-recorder';
@@ -13,6 +14,8 @@ import { i18nInit } from './ui/i18n';
 import i18n from 'i18next';
 import { fetchLocalization } from './services/localization-fetcher';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
+import { CopyHistoryRepository } from '@project/common/app';
+import { v4 as uuidv4 } from 'uuid';
 
 const settings = new SettingsProvider(new ExtensionSettingsStorage());
 const audioRecorder = new AudioRecorder();
@@ -69,6 +72,27 @@ window.onload = async () => {
                     audioRecorder
                         .stop()
                         .then((audioBase64) => _sendAudioBase64(audioBase64, stopRecordingAudioMessage.preferMp3));
+                    break;
+                case 'copy':
+                    const copyMessage = request.message as CopyMessage;
+                    settings.getSingle('miningHistoryStorageLimit').then((storageLimit) => {
+                        return new CopyHistoryRepository(storageLimit).save({
+                            ...copyMessage.subtitle,
+                            id: copyMessage.id ?? uuidv4(),
+                            timestamp: Date.now(),
+                            name:
+                                copyMessage.subtitleFileName?.substring(
+                                    0,
+                                    copyMessage.subtitleFileName.lastIndexOf('.')
+                                ) ?? '',
+                            subtitleFileName: copyMessage.subtitleFileName ?? '',
+                            mediaTimestamp: copyMessage.mediaTimestamp,
+                            surroundingSubtitles: copyMessage.surroundingSubtitles,
+                            url: copyMessage.url,
+                            audio: copyMessage.audio,
+                            image: copyMessage.image,
+                        });
+                    });
                     break;
             }
         }

@@ -206,6 +206,10 @@ export default class Binding {
         return subtitleFileNameToUse === '' ? '' : `${subtitleFileNameToUse} (${humanReadableTime(timestamp)})`;
     }
 
+    private _subtitleFileName(track: number = 0) {
+        return this.subtitleController.subtitleFileNames?.[track] ?? '';
+    }
+
     private get _imageCaptureParams(): ImageCaptureParams {
         const rect = this.video.getBoundingClientRect();
 
@@ -629,6 +633,7 @@ export default class Binding {
                 command: 'take-screenshot',
                 ankiUiState: this.ankiUiSavedState,
                 ...this._imageCaptureParams,
+                subtitleFileName: this._subtitleFileName(),
             },
             src: this.video.src,
         };
@@ -670,6 +675,7 @@ export default class Binding {
                     screenshot: this.screenshot,
                     url: this.url,
                     sourceString: this.sourceString(subtitle.start, subtitle.track),
+                    subtitleFileName: this._subtitleFileName(subtitle.track),
                     postMineAction: postMineAction,
                     audioPaddingStart: this.audioPaddingStart,
                     audioPaddingEnd: this.audioPaddingEnd,
@@ -702,6 +708,7 @@ export default class Binding {
                     videoDuration: this.video.duration * 1000,
                     url: this.url,
                     sourceString: this.sourceString(this.recordingMediaStartedTimestamp!),
+                    subtitleFileName: this._subtitleFileName(),
                     ankiSettings: ankiSettings,
                     ...this._imageCaptureParams,
                     ...this._surroundingSubtitlesAroundInterval(this.recordingMediaStartedTimestamp!, currentTimestamp),
@@ -735,6 +742,7 @@ export default class Binding {
                     screenshot: this.screenshot,
                     url: this.url,
                     sourceString: this.sourceString(timestamp),
+                    subtitleFileName: this._subtitleFileName(),
                     imageDelay: this.imageDelay,
                     ankiSettings: ankiSettings,
                     ...this._imageCaptureParams,
@@ -782,6 +790,8 @@ export default class Binding {
                 audioPaddingEnd: audioPaddingEnd,
                 playbackRate: this.video.playbackRate,
                 timestamp: start,
+                sourceString: this.sourceString(start),
+                subtitleFileName: this._subtitleFileName(),
             },
             src: this.video.src,
         };

@@ -7,7 +7,6 @@ import {
     ImageModel,
     Message,
     RecordMediaAndForwardSubtitleMessage,
-    ExtensionToAsbPlayerCommand,
     VideoToExtensionCommand,
     ExtensionToVideoCommand,
     ShowAnkiUiMessage,
@@ -17,18 +16,22 @@ import {
     RecordingFinishedMessage,
     updateLastCard,
 } from '@project/common';
-import TabRegistry from '../../services/tab-registry';
 import BackgroundPageAudioRecorder from '../../services/background-page-audio-recorder';
+import { CardPublisher } from '../../services/card-publisher';
 
 export default class RecordMediaHandler {
-    private readonly audioRecorder: BackgroundPageAudioRecorder;
-    private readonly imageCapturer: ImageCapturer;
-    private readonly tabRegistry: TabRegistry;
+    private readonly _audioRecorder: BackgroundPageAudioRecorder;
+    private readonly _imageCapturer: ImageCapturer;
+    private readonly _cardPublisher: CardPublisher;
 
-    constructor(audioRecorder: BackgroundPageAudioRecorder, imageCapturer: ImageCapturer, tabRegistry: TabRegistry) {
-        this.audioRecorder = audioRecorder;
-        this.imageCapturer = imageCapturer;
-        this.tabRegistry = tabRegistry;
+    constructor(
+        audioRecorder: BackgroundPageAudioRecorder,
+        imageCapturer: ImageCapturer,
+        cardPublisher: CardPublisher
+    ) {
+        this._audioRecorder = audioRecorder;
+        this._imageCapturer = imageCapturer;
+        this._cardPublisher = cardPublisher;
     }
 
     get sender() {
@@ -56,7 +59,7 @@ export default class RecordMediaHandler {
                 const time =
                     (subtitle.end - subtitle.start) / recordMediaCommand.message.playbackRate +
                     recordMediaCommand.message.audioPaddingEnd;
-                audioPromise = this.audioRecorder.startWithTimeout(time, mp3, {
+                audioPromise = this._audioRecorder.startWithTimeout(time, mp3, {
                     src: recordMediaCommand.src,
                     tabId: sender.tab?.id,
                 });
@@ -64,7 +67,7 @@ export default class RecordMediaHandler {
 
             if (recordMediaCommand.message.screenshot) {
                 const { maxWidth, maxHeight, rect, frameId } = recordMediaCommand.message;
-                imagePromise = this.imageCapturer.capture(
+                imagePromise = this._imageCapturer.capture(
                     senderTab.id!,
                     recordMediaCommand.src,
                     Math.min(subtitle.end - subtitle.start, recordMediaCommand.message.imageDelay),
@@ -113,15 +116,9 @@ export default class RecordMediaHandler {
                 surroundingSubtitles: recordMediaCommand.message.surroundingSubtitles,
                 image: imageModel,
                 audio: audioModel,
+                subtitleFileName: recordMediaCommand.message.subtitleFileName,
             };
-
-            const copyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {
-                sender: 'asbplayer-extension-to-player',
-                message: message,
-                tabId: senderTab.id!,
-                src: recordMediaCommand.src,
-            };
-            this.tabRegistry.publishCommandToAsbplayers({ commandFactory: () => copyCommand });
+            this._cardPublisher.publish(message, senderTab.id!, recordMediaCommand.src);
 
             if (recordMediaCommand.message.postMineAction == PostMineAction.showAnkiDialog) {
                 const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {

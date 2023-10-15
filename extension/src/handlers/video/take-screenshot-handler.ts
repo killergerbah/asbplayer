@@ -8,18 +8,17 @@ import {
     ScreenshotTakenMessage,
     TakeScreenshotFromExtensionMessage,
     AnkiUiSavedState,
-    ExtensionToAsbPlayerCommand,
-    CopyMessage,
 } from '@project/common';
 import TabRegistry from '../../services/tab-registry';
+import { CardPublisher } from '../../services/card-publisher';
 
 export default class TakeScreenshotHandler {
-    private readonly imageCapturer: ImageCapturer;
-    private readonly tabRegistry: TabRegistry;
+    private readonly _imageCapturer: ImageCapturer;
+    private readonly _cardPublisher: CardPublisher;
 
-    constructor(imageCapturer: ImageCapturer, tabRegistry: TabRegistry) {
-        this.imageCapturer = imageCapturer;
-        this.tabRegistry = tabRegistry;
+    constructor(imageCapturer: ImageCapturer, cardPublisher: CardPublisher) {
+        this._imageCapturer = imageCapturer;
+        this._cardPublisher = cardPublisher;
     }
 
     get sender() {
@@ -34,7 +33,7 @@ export default class TakeScreenshotHandler {
         const senderTab = sender.tab!;
         const takeScreenshotCommand = command as VideoToExtensionCommand<TakeScreenshotFromExtensionMessage>;
         const { maxWidth, maxHeight, rect, frameId } = takeScreenshotCommand.message;
-        const imageBase64 = await this.imageCapturer.capture(sender.tab!.id!, takeScreenshotCommand.src, 0, {
+        const imageBase64 = await this._imageCapturer.capture(sender.tab!.id!, takeScreenshotCommand.src, 0, {
             maxWidth,
             maxHeight,
             rect,
@@ -49,9 +48,8 @@ export default class TakeScreenshotHandler {
                 base64: imageBase64,
                 extension: 'jpeg',
             };
-            const copyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {
-                sender: 'asbplayer-extension-to-player',
-                message: {
+            this._cardPublisher.publish(
+                {
                     command: 'copy',
                     // Ideally we send the same ID so that asbplayer can update the existing item.
                     // There's a bug where asbplayer isn't properly updating the item right now, so
@@ -62,12 +60,11 @@ export default class TakeScreenshotHandler {
                     url: ankiUiState!.url,
                     subtitle: ankiUiState!.subtitle,
                     surroundingSubtitles: ankiUiState!.sliderContext.subtitles,
+                    subtitleFileName: takeScreenshotCommand.message.subtitleFileName,
                 },
-                tabId: sender.tab!.id!,
-                src: takeScreenshotCommand.src,
-            };
-
-            this.tabRegistry.publishCommandToAsbplayers({ commandFactory: () => copyCommand });
+                sender.tab!.id!,
+                takeScreenshotCommand.src
+            );
         }
 
         const screenshotTakenCommand: ExtensionToVideoCommand<ScreenshotTakenMessage> = {
