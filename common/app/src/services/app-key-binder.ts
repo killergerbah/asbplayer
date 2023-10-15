@@ -254,4 +254,12 @@ export default class AppKeyBinder implements KeyBinder {
     ): () => void {
         return this.defaultKeyBinder.bindCondensedPlayback(onCondensedPlayback, disabledGetter, useCapture);
     }
+
+    bindOpenSidePanel(
+        onOpenSidePanel: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        useCapture?: boolean | undefined
+    ): () => void {
+        return this.defaultKeyBinder.bindOpenSidePanel(onOpenSidePanel, disabledGetter, useCapture);
+    }
 }

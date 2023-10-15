@@ -41,6 +41,7 @@ import { primeLocalization } from './services/localization-fetcher';
 import VideoDisappearedHandler from './handlers/video/video-disappeared-handler';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
 import LoadSubtitlesHandler from './handlers/asbplayerv2/load-subtitles-handler';
+import OpenSidePanelHandler from './handlers/video/open-side-panel';
 
 chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
 
@@ -74,6 +75,7 @@ const handlers: CommandHandler[] = [
     new ToggleSubtitlesHandler(settings, tabRegistry),
     new SyncHandler(tabRegistry),
     new HttpPostHandler(),
+    new OpenSidePanelHandler(),
     new OpenAsbplayerSettingsHandler(),
     new CopyToClipboardHandler(),
     new VideoDisappearedHandler(tabRegistry),

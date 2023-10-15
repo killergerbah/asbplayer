@@ -53,6 +53,7 @@ const defaults: AsbplayerSettings = {
         takeScreenshot: { keys: isMacOs ? '⇧+⌃+V' : 'ctrl+shift+V' },
         decreasePlaybackRate: { keys: isMacOs ? '⇧+⌃+[' : 'ctrl+shift+[' },
         increasePlaybackRate: { keys: isMacOs ? '⇧+⌃+]' : 'ctrl+shift+]' },
+        openSidePanel: { keys: '`' },
     },
     preferMp3: true,
     miningHistoryStorageLimit: 25,

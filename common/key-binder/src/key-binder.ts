@@ -92,6 +92,11 @@ export interface KeyBinder {
         disabledGetter: () => boolean,
         capture?: boolean
     ): () => void;
+    bindOpenSidePanel(
+        onOpenSidePanel: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        capture?: boolean
+    ): () => void;
 }
 
 export class DefaultKeyBinder implements KeyBinder {
@@ -657,6 +662,24 @@ export class DefaultKeyBinder implements KeyBinder {
             }
 
             onAutoPause(event);
+        };
+
+        return this._bind(shortcut, capture, handler);
+    }
+
+    bindOpenSidePanel(onOpenSidePanel: (event: KeyboardEvent) => void, disabledGetter: () => boolean, capture = false) {
+        const shortcut = this.keyBindSet.openSidePanel.keys;
+
+        if (!shortcut) {
+            return () => {};
+        }
+
+        const handler = (event: KeyboardEvent) => {
+            if (disabledGetter()) {
+                return;
+            }
+
+            onOpenSidePanel(event);
         };
 
         return this._bind(shortcut, capture, handler);

@@ -7,6 +7,7 @@ import {
 } from '@project/common';
 import { DefaultKeyBinder } from '@project/common/key-binder';
 import Binding from './binding';
+import { OpenSidePanelMessage } from '../ui/components/PopupUi';
 
 type Unbinder = (() => void) | false;
 
@@ -26,6 +27,7 @@ export default class KeyBindings {
     private _unbindAdjustOffset?: Unbinder = false;
     private _unbindResetOffset?: Unbinder = false;
     private _unbindAdjustPlaybackRate?: Unbinder = false;
+    private _unbindOpenSidePanel?: Unbinder = false;
 
     private _bound: boolean;
 
@@ -219,6 +221,24 @@ export default class KeyBindings {
             () => false,
             true
         );
+
+        this._unbindOpenSidePanel = this._keyBinder.bindOpenSidePanel(
+            (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                const command: VideoToExtensionCommand<OpenSidePanelMessage> = {
+                    sender: 'asbplayer-video',
+                    message: {
+                        command: 'open-side-panel',
+                    },
+                    src: context.video.src,
+                };
+                chrome.runtime.sendMessage(command);
+            },
+            () => false,
+            true
+        )
 
         this._bound = true;
     }
