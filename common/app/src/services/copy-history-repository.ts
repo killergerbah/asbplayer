@@ -42,6 +42,10 @@ export default class CopyHistoryRepository {
         this._limit = limit;
     }
 
+    async clear() {
+        await this._db.delete();
+    }
+
     async fetch(count: number): Promise<CopyHistoryItem[]> {
         if (count <= 0) {
             return [];
@@ -79,7 +83,7 @@ export default class CopyHistoryRepository {
             image,
             url,
         } = item;
-        const record = {
+        const record: CopyHistoryRecord = {
             text,
             textImage,
             start,
@@ -101,6 +105,12 @@ export default class CopyHistoryRepository {
             image,
             url,
         };
+        const existingPrimaryKeys = await this._db.copyHistoryItems.where('id').equals(item.id).primaryKeys();
+
+        if (existingPrimaryKeys.length > 0) {
+            record.index = existingPrimaryKeys[0];
+        }
+
         const index = await this._db.copyHistoryItems.put(record);
         await this._prune(index);
     }
