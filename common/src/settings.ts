@@ -95,8 +95,11 @@ export interface KeyBindSet {
 }
 
 export type ChromeBoundKeyBindName = 'copySubtitle' | 'ankiExport' | 'updateLastCard' | 'takeScreenshot';
-
 export type SubtitleAlignment = 'top' | 'bottom';
+export enum SubtitleListPreference {
+    noSubtitleList = 'noSubtitleList',
+    app = 'app',
+}
 
 export interface StreamingVideoSettings {
     readonly streamingDisplaySubtitles: boolean;
@@ -113,6 +116,7 @@ export interface StreamingVideoSettings {
     readonly streamingCondensedPlaybackMinimumSkipIntervalMs: number;
     readonly streamingScreenshotDelay: number;
     readonly streamingSubtitleAlignment: SubtitleAlignment;
+    readonly streamingSubtitleListPreference: SubtitleListPreference;
 }
 
 export type KeyBindName = keyof KeyBindSet;
@@ -137,4 +141,3 @@ export function chromeCommandBindsToKeyBinds(chromeCommands: { [key: string]: st
 
     return keyBinds;
 }
-

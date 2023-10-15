@@ -152,6 +152,8 @@ export interface VideoTabModel {
     id: number; // Actually the tab ID
     title?: string;
     src: string; // Video src
+    synced: boolean;
+    syncedTimestamp?: number;
 }
 
 export interface Rgb {

@@ -1,126 +1,47 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import SidePanel from './SidePanel';
-import { AsbplayerSettings, PlayerSyncMessage, SettingsProvider, VideoTabModel } from '@project/common';
+import { AsbplayerSettings, SettingsProvider, createTheme } from '@project/common';
 import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
-import { ExtensionMessage, FileRepository, MediaSources, useChromeExtension } from '@project/common/app';
-import { SidePanelStorage } from '../../services/side-panel-storage';
+import { ExtensionMessage, useChromeExtension } from '@project/common/app';
+import { ThemeProvider } from '@material-ui/core/styles';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import Paper from '@material-ui/core/Paper';
 
 const settingsProvider = new SettingsProvider(new ExtensionSettingsStorage());
 
 const SidePanelUi = () => {
     const [settings, setSettings] = useState<AsbplayerSettings>();
-    const [syncedTab, setSyncedTab] = useState<VideoTabModel>();
-    const [sources, setSources] = useState<MediaSources>({ subtitleFiles: [] });
     const extension = useChromeExtension({ sidePanel: true });
-    const [autoSyncEffectRan, setAutoSyncEffectRan] = useState<boolean>(false);
-    const sidePanelStorage = useMemo(() => new SidePanelStorage(), []);
-    const fileRepository = useMemo(() => new FileRepository(), []);
-
-    const handleFiles = useCallback(({ subtitleFiles, flatten }: { subtitleFiles: File[]; flatten: boolean }) => {
-        setSources({ subtitleFiles, flattenSubtitleFiles: flatten });
-    }, []);
+    const theme = useMemo(() => settings && createTheme(settings.themeType), [settings?.themeType]);
 
     useEffect(() => {
         settingsProvider.getAll().then(setSettings);
     }, []);
 
     useEffect(() => {
-        async function onMessage(message: ExtensionMessage) {
-            if (message.data.command !== 'syncv2' || message.tabId === undefined || message.src === undefined) {
-                return;
-            }
-
-            const tabModel = extension.tabs?.find((t) => t.id === message.tabId);
-
-            if (tabModel === undefined) {
-                return;
-            }
-
-            const syncMessage = message.data as PlayerSyncMessage;
-            const subtitleFiles: File[] = await Promise.all(
-                syncMessage.subtitles.map(
-                    async (s) => new File([await (await fetch('data:text/plain;base64,' + s.base64)).blob()], s.name)
-                )
-            );
-            const flatten = syncMessage.flatten ?? false;
-            setSyncedTab(tabModel);
-            handleFiles({ subtitleFiles, flatten });
-            // TODO persist files
-            // TODO when new chrome session is detected, prune files
-        }
-
-        const unsubscribe = extension.subscribe(onMessage);
         extension.startHeartbeat({ fromVideoPlayer: false });
-        return unsubscribe;
-    }, [extension, handleFiles]);
+    }, [extension]);
 
     useEffect(() => {
-        if (!syncedTab) {
-            return;
-        }
-
-        const listener = (tabs: VideoTabModel[]) => {
-            const srcIsDead = tabs.find((t) => t.id === syncedTab.id && t.src === syncedTab.src) === undefined;
-
-            if (srcIsDead) {
-                setSyncedTab(undefined);
+        return extension.subscribe((message: ExtensionMessage) => {
+            if (message.data.command === 'settings-updated') {
+                settingsProvider.getAll().then(setSettings);
             }
-        };
-        return extension.subscribeTabs(listener);
-    }, [extension, syncedTab]);
+        });
+    }, [extension, settingsProvider]);
 
-    useEffect(() => {
-        const autoSyncEffect = async () => {
-            if (autoSyncEffectRan) {
-                return;
-            }
-
-            try {
-                if (extension.tabs === undefined || syncedTab) {
-                    return;
-                }
-
-                const lastSyncedTab = await sidePanelStorage.getLastSyncedTab();
-
-                const canAutoSync =
-                    lastSyncedTab &&
-                    extension.tabs.find((t) => t.id === lastSyncedTab.id && t.src === lastSyncedTab.src) !== undefined;
-
-                if (!canAutoSync) {
-                    return;
-                }
-
-                const loadLastSubtitleFiles = async () => {
-                    const fileId = await sidePanelStorage.getFileIdForTabAndSrc(lastSyncedTab.id, lastSyncedTab.src);
-
-                    if (fileId !== undefined) {
-                        const lastSubtitleFiles = await fileRepository.fetch(fileId);
-
-                        if (lastSubtitleFiles !== undefined) {
-                            handleFiles({
-                                subtitleFiles: lastSubtitleFiles.files,
-                                flatten: lastSubtitleFiles.metadata.flatten,
-                            });
-                        }
-                    }
-                };
-
-                loadLastSubtitleFiles();
-            } finally {
-                if (extension.tabs !== undefined) {
-                    setAutoSyncEffectRan(true);
-                }
-            }
-        };
-
-        autoSyncEffect();
-    }, [fileRepository, handleFiles, extension, sidePanelStorage, autoSyncEffectRan]);
-
-    if (!settings) {
+    if (!settings || theme === undefined) {
         return null;
     }
 
-    return <SidePanel settings={settings} extension={extension} sources={sources} syncedTab={syncedTab} />;
+    return (
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <Paper square style={{ width: '100%', height: '100%' }}>
+                <SidePanel settings={settings} extension={extension} />
+            </Paper>
+        </ThemeProvider>
+    );
 };
 
 export default SidePanelUi;

@@ -5,12 +5,15 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import { AsbPlayerToTabCommand, LoadSubtitlesMessage, VideoTabModel } from '@project/common';
 import { ChromeExtension } from '@project/common/app';
-import { t } from 'i18next';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import CenteredGridItem from './CenteredGridItem';
+import CenteredGridContainer from './CenteredGridContainer';
 
 interface Props {
     extension: ChromeExtension;
+    currentTabId: number;
+    videoElementCount: number;
 }
 
 const VideoElementInfoText = ({ videoElementCount }: { videoElementCount: number }) => {
@@ -24,57 +27,8 @@ const VideoElementInfoText = ({ videoElementCount }: { videoElementCount: number
     );
 };
 
-const CenteredGridItem = ({ children, ...props }: { children: React.ReactNode }) => {
-    return (
-        <Grid item alignContent="center" justifyContent="center" style={{ textAlign: 'center' }} {...props}>
-            {children}
-        </Grid>
-    );
-};
-
-const CenteredGridContainer = ({ children, ...props }: { children: React.ReactNode }) => {
-    return (
-        <Grid
-            container
-            style={{ width: '100%', height: '100%' }}
-            alignContent="center"
-            justifyContent="center"
-            {...props}
-        >
-            {children}
-        </Grid>
-    );
-};
-
-const SidePanelHome = ({ extension }: Props) => {
-    const [videoElementCount, setVideoElementCount] = useState<number>();
-    const [currentTabId, setCurrentTabId] = useState<number>();
-
-    useEffect(() => {
-        const countInCurrentTab = (tabs: VideoTabModel[]) => tabs.filter((t) => t.id === currentTabId).length;
-
-        if (extension.tabs !== undefined) {
-            setVideoElementCount(countInCurrentTab(extension.tabs));
-        }
-
-        return extension.subscribeTabs((tabs) => {
-            setVideoElementCount(countInCurrentTab(tabs));
-        });
-    }, [extension, currentTabId]);
-
-    useEffect(() => {
-        chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-            if (tabs.length > 0) {
-                setCurrentTabId(tabs[0].id);
-            }
-        });
-    }, []);
-
-    useEffect(() => {
-        const listener = (info: chrome.tabs.TabActiveInfo) => setCurrentTabId(info.tabId);
-        chrome.tabs.onActivated.addListener(listener);
-        return () => chrome.tabs.onActivated.removeListener(listener);
-    });
+const SidePanelHome = ({ currentTabId, videoElementCount }: Props) => {
+    const { t } = useTranslation();
 
     const handleLoadSubtitles = useCallback(() => {
         if (currentTabId === undefined) {
@@ -88,16 +42,6 @@ const SidePanelHome = ({ extension }: Props) => {
         };
         chrome.runtime.sendMessage(message);
     }, [currentTabId]);
-
-    if (videoElementCount === undefined) {
-        return (
-            <CenteredGridContainer>
-                <CenteredGridItem>
-                    <CircularProgress color="secondary" />
-                </CenteredGridItem>
-            </CenteredGridContainer>
-        );
-    }
 
     return (
         <CenteredGridContainer>

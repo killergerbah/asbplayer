@@ -1,4 +1,4 @@
-import { AsbplayerSettings, AutoPausePreference, KeyBindName } from '@project/common';
+import { AsbplayerSettings, AutoPausePreference, KeyBindName, SubtitleListPreference } from '@project/common';
 import { isMacOs } from 'react-device-detect';
 
 const defaults: AsbplayerSettings = {
@@ -80,14 +80,8 @@ const defaults: AsbplayerSettings = {
     streamingSubtitlePositionOffset: 75,
     streamingScreenshotDelay: 1000,
     streamingSubtitleAlignment: 'bottom',
+    streamingSubtitleListPreference: SubtitleListPreference.noSubtitleList,
 };
-
-type SettingsKeyMap = { -readonly [key in keyof AsbplayerSettings]: string };
-const keys: SettingsKeyMap = Object.keys(defaults).reduce(
-    (prev, cur) => ({ ...prev, [cur]: cur }),
-    {}
-) as SettingsKeyMap;
-keys['language'] = 'i18nextLng';
 
 type SettingsDeserializers = { [key in keyof AsbplayerSettings]: (serialized: string) => any };
 export const settingsDeserializers: SettingsDeserializers = Object.fromEntries(

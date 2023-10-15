@@ -60,7 +60,7 @@ const startListener = async () => {
 chrome.runtime.onInstalled.addListener(startListener);
 chrome.runtime.onStartup.addListener(startListener);
 
-const tabRegistry = new TabRegistry(settings);
+const tabRegistry = new TabRegistry();
 const backgroundPageAudioRecorder = new BackgroundPageAudioRecorder(tabRegistry);
 const imageCapturer = new ImageCapturer(settings);
 

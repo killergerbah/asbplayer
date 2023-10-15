@@ -27,8 +27,26 @@ export default class SubtitleReader {
     private readonly _textFilter?: TextFilter;
     private xmlParser?: XMLParser;
 
-    constructor(textFilter?: TextFilter) {
-        this._textFilter = textFilter;
+    constructor({
+        regexFilter,
+        regexFilterTextReplacement,
+    }: {
+        regexFilter: string;
+        regexFilterTextReplacement: string;
+    }) {
+        let regex: RegExp | undefined;
+
+        try {
+            regex = regexFilter.trim() === '' ? undefined : new RegExp(regexFilter, 'g');
+        } catch (e) {
+            regex = undefined;
+        }
+
+        if (regex === undefined) {
+            this._textFilter = undefined;
+        } else {
+            this._textFilter = { regex, replacement: regexFilterTextReplacement };
+        }
     }
 
     async subtitles(files: File[], flatten?: boolean) {

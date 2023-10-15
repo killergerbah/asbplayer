@@ -1,5 +1,4 @@
 import {
-    AnkiSettingsToVideoMessage,
     AnkiUiSavedState,
     AutoPausePreference,
     CardUpdatedMessage,
@@ -7,9 +6,9 @@ import {
     cropAndResize,
     CurrentTimeFromVideoMessage,
     CurrentTimeToVideoMessage,
+    ExtensionSyncMessage,
     humanReadableTime,
     ImageCaptureParams,
-    MiscSettingsToVideoMessage,
     OffsetToVideoMessage,
     PauseFromVideoMessage,
     PlaybackRateFromVideoMessage,
@@ -27,8 +26,8 @@ import {
     ShowAnkiUiMessage,
     StartRecordingMediaMessage,
     StopRecordingMediaMessage,
+    SubtitleListPreference,
     SubtitleModel,
-    SubtitleSettingsToVideoMessage,
     SubtitlesToVideoMessage,
     surroundingSubtitlesAroundInterval,
     TakeScreenshotFromExtensionMessage,
@@ -40,10 +39,13 @@ import AnkiUiController from '../controllers/anki-ui-controller';
 import ControlsController from '../controllers/controls-controller';
 import DragController from '../controllers/drag-controller';
 import KeyBindings from './key-bindings';
-import SubtitleController from '../controllers/subtitle-controller';
+import SubtitleController, { SubtitleModelWithIndex } from '../controllers/subtitle-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
 import { i18nInit } from './i18n';
 import { ExtensionSettingsStorage } from './extension-settings-storage';
+import { SubtitleReader } from '@project/common/app';
+import { bufferToBase64 } from './base64';
+import { OpenSidePanelMessage } from '../ui/components/PopupUi';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -57,6 +59,7 @@ export default class Binding {
     ankiUiSavedState?: AnkiUiSavedState;
 
     private _synced: boolean;
+    private _syncedTimestamp?: number;
     private recordingMedia: boolean;
     private recordingMediaStartedTimestamp?: number;
     private recordingMediaWithScreenshot: boolean;
@@ -251,7 +254,7 @@ export default class Binding {
             this.videoDataSyncController.requestSubtitles();
         });
         this.subtitleController.bind();
-        this.dragController.bind();
+        this.dragController.bind(this);
     }
 
     _notifyReady() {
@@ -353,6 +356,7 @@ export default class Binding {
                 message: {
                     command: 'heartbeat',
                     synced: this._synced,
+                    syncedTimestamp: this._syncedTimestamp,
                 },
                 src: this.video.src,
             };
@@ -393,18 +397,13 @@ export default class Binding {
                     case 'subtitles':
                         const subtitlesMessage = request.message as SubtitlesToVideoMessage;
                         const subtitles: SubtitleModel[] = subtitlesMessage.value;
-                        this.subtitleController.subtitles = subtitles.map((s, index) => ({ ...s, index }));
-                        this.subtitleController.subtitleFileNames = subtitlesMessage.names || [subtitlesMessage.name];
-                        this.subtitleController.cacheHtml();
-
-                        if (this._playMode !== PlayMode.normal && (!subtitles || subtitles.length === 0)) {
-                            this.playMode = PlayMode.normal;
-                        }
-
-                        this.subtitleController.showLoadedMessage();
-                        this.videoDataSyncController.unbindVideoSelect();
-                        this.ankiUiSavedState = undefined;
-                        this._synced = true;
+                        this._updateSubtitles(
+                            subtitles.map((s, index) => ({ ...s, index })),
+                            subtitlesMessage.names || [subtitlesMessage.name]
+                        );
+                        break;
+                    case 'request-subtitles':
+                        sendResponse(this.subtitleController.subtitles);
                         break;
                     case 'offset':
                         const offsetMessage = request.message as OffsetToVideoMessage;
@@ -415,58 +414,13 @@ export default class Binding {
                         this.video.playbackRate = playbackRateMessage.value;
                         break;
                     case 'subtitleSettings':
-                        const subtitleSettingsMessage = request.message as SubtitleSettingsToVideoMessage;
-                        this.subtitleController.setSubtitleSettings(subtitleSettingsMessage.value);
-                        this.subtitleController.refresh();
+                        // ignore
                         break;
                     case 'ankiSettings':
-                        const ankiSettingsMessage = request.message as AnkiSettingsToVideoMessage;
-                        const ankiSettings = { ...ankiSettingsMessage.value };
-                        ankiSettings.tags = typeof ankiSettings.tags === 'undefined' ? [] : ankiSettings.tags;
-                        this.ankiUiController.ankiSettings = ankiSettings;
-                        this.audioPaddingStart =
-                            typeof ankiSettingsMessage.value.audioPaddingStart === 'undefined'
-                                ? this.audioPaddingStart
-                                : ankiSettingsMessage.value.audioPaddingStart;
-                        this.audioPaddingEnd =
-                            typeof ankiSettingsMessage.value.audioPaddingEnd === 'undefined'
-                                ? this.audioPaddingEnd
-                                : ankiSettingsMessage.value.audioPaddingEnd;
-                        this.maxImageWidth =
-                            typeof ankiSettingsMessage.value.maxImageWidth === 'undefined'
-                                ? this.maxImageWidth
-                                : ankiSettingsMessage.value.maxImageWidth;
-                        this.maxImageHeight =
-                            typeof ankiSettingsMessage.value.maxImageHeight === 'undefined'
-                                ? this.maxImageHeight
-                                : ankiSettingsMessage.value.maxImageHeight;
-                        this.subtitleController.surroundingSubtitlesCountRadius =
-                            typeof ankiSettingsMessage.value.surroundingSubtitlesCountRadius === 'undefined'
-                                ? this.subtitleController.surroundingSubtitlesCountRadius
-                                : ankiSettingsMessage.value.surroundingSubtitlesCountRadius;
-                        this.subtitleController.surroundingSubtitlesTimeRadius =
-                            typeof ankiSettingsMessage.value.surroundingSubtitlesTimeRadius === 'undefined'
-                                ? this.subtitleController.surroundingSubtitlesTimeRadius
-                                : ankiSettingsMessage.value.surroundingSubtitlesTimeRadius;
+                        // ignore
                         break;
                     case 'miscSettings':
-                        const miscSettingsMessage = request.message as MiscSettingsToVideoMessage;
-                        // var newSettings: Partial<ExtensionSettings> = {
-                        //     lastThemeType: miscSettingsMessage.value.themeType,
-                        // };
-
-                        // if (miscSettingsMessage.value.language !== undefined) {
-                        //     newSettings.lastLanguage = miscSettingsMessage.value.language;
-                        // }
-
-                        // this.settings.set(newSettings);
-                        this.copyToClipboardOnMine = miscSettingsMessage.value.copyToClipboardOnMine;
-                        this.autoPausePreference =
-                            miscSettingsMessage.value.autoPausePreference ?? this.autoPausePreference;
-                        this.keyBindings.setKeyBindSet(this, miscSettingsMessage.value.keyBindSet);
-                        this.subtitleController.autoCopyCurrentSubtitle =
-                            miscSettingsMessage.value.autoCopyCurrentSubtitle ?? false;
-                        this.subtitleController.preCacheDom = miscSettingsMessage.value.preCacheSubtitleDom;
+                        // ignore
                         break;
                     case 'settings-updated':
                         this._refreshSettings();
@@ -582,10 +536,24 @@ export default class Binding {
         this.keyBindings.setKeyBindSet(this, currentSettings.keyBindSet);
         this.condensedPlaybackMinimumSkipIntervalMs = currentSettings.streamingCondensedPlaybackMinimumSkipIntervalMs;
         this.imageDelay = currentSettings.streamingScreenshotDelay;
+        this.subtitleController.setSubtitleSettings(currentSettings);
+        this.subtitleController.refresh();
+        this.ankiUiController.ankiSettings = currentSettings;
+        this.audioPaddingStart = currentSettings.audioPaddingStart;
+        this.audioPaddingEnd = currentSettings.audioPaddingEnd;
+        this.maxImageWidth = currentSettings.maxImageWidth;
+        this.maxImageHeight = currentSettings.maxImageHeight;
+        this.subtitleController.surroundingSubtitlesCountRadius = currentSettings.surroundingSubtitlesCountRadius;
+        this.subtitleController.surroundingSubtitlesTimeRadius = currentSettings.surroundingSubtitlesTimeRadius;
+        this.copyToClipboardOnMine = currentSettings.copyToClipboardOnMine;
+        this.autoPausePreference = currentSettings.autoPausePreference;
+        this.keyBindings.setKeyBindSet(this, currentSettings.keyBindSet);
+        this.subtitleController.autoCopyCurrentSubtitle = currentSettings.autoCopyCurrentSubtitle;
+        this.subtitleController.preCacheDom = currentSettings.preCacheSubtitleDom;
         i18nInit(currentSettings.language);
 
         if (currentSettings.streamingSubsDragAndDrop) {
-            this.dragController.bind();
+            this.dragController.bind(this);
         } else {
             this.dragController.unbind();
         }
@@ -904,5 +872,63 @@ export default class Binding {
         const maxWidth = this.maxImageWidth;
         const maxHeight = this.maxImageHeight;
         return await cropAndResize(maxWidth, maxHeight, rect, tabImageDataUrl);
+    }
+
+    async loadSubtitles(files: File[], flatten: boolean) {
+        const { streamingSubtitleListPreference, subtitleRegexFilter, subtitleRegexFilterTextReplacement } =
+            await this.settings.get([
+                'streamingSubtitleListPreference',
+                'subtitleRegexFilter',
+                'subtitleRegexFilterTextReplacement',
+            ]);
+        switch (streamingSubtitleListPreference) {
+            case SubtitleListPreference.noSubtitleList:
+                const reader = new SubtitleReader({
+                    regexFilter: subtitleRegexFilter,
+                    regexFilterTextReplacement: subtitleRegexFilterTextReplacement,
+                });
+                const subtitles = await reader.subtitles(files, flatten);
+                this._updateSubtitles(
+                    subtitles.map((s, index) => ({ ...s, index, originalStart: s.start, originalEnd: s.end })),
+                    files.map((f) => f.name)
+                );
+                break;
+            case SubtitleListPreference.app:
+                const syncMessage: VideoToExtensionCommand<ExtensionSyncMessage> = {
+                    sender: 'asbplayer-video',
+                    message: {
+                        command: 'sync',
+                        subtitles: await Promise.all(
+                            files.map(async (f) => {
+                                const base64 = await bufferToBase64(await f.arrayBuffer());
+
+                                return {
+                                    name: f.name,
+                                    base64: base64,
+                                };
+                            })
+                        ),
+                    },
+                    src: this.video.src,
+                };
+                chrome.runtime.sendMessage(syncMessage);
+                break;
+        }
+    }
+
+    private _updateSubtitles(subtitles: SubtitleModelWithIndex[], subtitleFileNames: string[]) {
+        this.subtitleController.subtitles = subtitles;
+        this.subtitleController.subtitleFileNames = subtitleFileNames;
+        this.subtitleController.cacheHtml();
+
+        if (this._playMode !== PlayMode.normal && (!subtitles || subtitles.length === 0)) {
+            this.playMode = PlayMode.normal;
+        }
+
+        this.subtitleController.showLoadedMessage();
+        this.videoDataSyncController.unbindVideoSelect();
+        this.ankiUiSavedState = undefined;
+        this._synced = true;
+        this._syncedTimestamp = Date.now();
     }
 }

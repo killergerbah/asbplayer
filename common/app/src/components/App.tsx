@@ -49,6 +49,7 @@ import { useTranslation } from 'react-i18next';
 import LocalizedError from './localized-error';
 import { useChromeExtension } from '../hooks/use-chrome-extension';
 import FileRepository from '../services/file-repository';
+import { DisplaySubtitleModel } from './SubtitlePlayer';
 
 const latestExtensionVersion = '0.28.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
@@ -296,21 +297,12 @@ interface Props {
 function App({ settings, extension, onSettingsChanged }: Props) {
     const { t } = useTranslation();
     const subtitleReader = useMemo<SubtitleReader>(() => {
-        let regex: RegExp | undefined;
-
-        try {
-            regex =
-                settings.subtitleRegexFilter.trim() === '' ? undefined : new RegExp(settings.subtitleRegexFilter, 'g');
-        } catch (e) {
-            regex = undefined;
-        }
-
-        if (regex !== undefined) {
-            return new SubtitleReader({ regex, replacement: settings.subtitleRegexFilterTextReplacement });
-        }
-
-        return new SubtitleReader();
+        return new SubtitleReader({
+            regexFilter: settings.subtitleRegexFilter,
+            regexFilterTextReplacement: settings.subtitleRegexFilterTextReplacement,
+        });
     }, [settings.subtitleRegexFilter, settings.subtitleRegexFilterTextReplacement]);
+    const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>([]);
     const playbackPreferences = useMemo<PlaybackPreferences>(() => new PlaybackPreferences(settings), [settings]);
     const theme = useMemo<Theme>(() => createTheme(settings.themeType), [settings.themeType]);
     const anki = useMemo<Anki>(() => new Anki(settings), [settings]);
@@ -1409,6 +1401,7 @@ function App({ settings, extension, onSettingsChanged }: Props) {
                             </Paper>
                             <Player
                                 subtitleReader={subtitleReader}
+                                subtitles={subtitles}
                                 settings={settings}
                                 playbackPreferences={playbackPreferences}
                                 onCopy={handleCopy}
@@ -1424,6 +1417,7 @@ function App({ settings, extension, onSettingsChanged }: Props) {
                                 onHideSubtitlePlayer={handleHideSubtitlePlayer}
                                 onVideoPopOut={handleVideoPopOut}
                                 onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
+                                onSubtitles={setSubtitles}
                                 onTakeScreenshot={handleTakeScreenshot}
                                 tab={tab}
                                 availableTabs={availableTabs ?? []}

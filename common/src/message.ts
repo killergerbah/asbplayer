@@ -19,6 +19,8 @@ export interface ActiveVideoElement {
     id: number;
     title?: string;
     src: string;
+    synced: boolean;
+    syncedTimestamp?: number;
 }
 
 export interface AsbplayerHeartbeatMessage extends Message {
@@ -45,6 +47,7 @@ export interface AckTabsMessage extends Message {
 export interface VideoHeartbeatMessage extends Message {
     readonly command: 'heartbeat';
     readonly synced: boolean;
+    readonly syncedTimestamp?: number;
 }
 
 export interface VideoDisappearedMessage extends Message {
@@ -315,6 +318,10 @@ export interface SubtitlesToVideoMessage extends Message {
     readonly value: SubtitleModel[];
     readonly name?: string;
     readonly names: string[];
+}
+
+export interface RequestSubtitlesMessage extends Message {
+    readonly command: 'request-subtitles';
 }
 
 export interface SubtitleSettingsToVideoMessage extends Message {

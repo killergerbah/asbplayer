@@ -1,6 +1,5 @@
 import ImageElement from '../services/image-element';
-import { bufferToBase64 } from '../services/base64';
-import { ExtensionSyncMessage, VideoToExtensionCommand } from '@project/common';
+import Binding from '../services/binding';
 
 export default class DragController {
     private readonly video: HTMLVideoElement;
@@ -28,7 +27,7 @@ export default class DragController {
         this.bound = false;
     }
 
-    bind() {
+    bind(context: Binding) {
         if (this.bound) {
             return;
         }
@@ -70,25 +69,7 @@ export default class DragController {
                 }
             }
 
-            const syncMessage: VideoToExtensionCommand<ExtensionSyncMessage> = {
-                sender: 'asbplayer-video',
-                message: {
-                    command: 'sync',
-                    subtitles: await Promise.all(
-                        files.map(async (f) => {
-                            const base64 = await bufferToBase64(await f.arrayBuffer());
-
-                            return {
-                                name: f.name,
-                                base64: base64,
-                            };
-                        })
-                    ),
-                },
-                src: this.video.src,
-            };
-
-            chrome.runtime.sendMessage(syncMessage);
+            context.loadSubtitles(files, false);
         };
 
         this.dragOverListener = (e) => e.preventDefault();

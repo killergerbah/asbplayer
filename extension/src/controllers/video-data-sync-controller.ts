@@ -4,6 +4,7 @@ import {
     ExtensionSyncMessage,
     SerializedSubtitleFile,
     SettingsProvider,
+    SubtitleListPreference,
     VideoData,
     VideoDataSubtitleTrack,
     VideoDataUiState,
@@ -352,17 +353,26 @@ export default class VideoDataSyncController {
         }
     }
 
-    private _syncSubtitles(subtitles: SerializedSubtitleFile[], flatten: boolean) {
-        const command: VideoToExtensionCommand<ExtensionSyncMessage> = {
-            sender: 'asbplayer-video',
-            message: {
-                command: 'sync',
-                subtitles: subtitles,
-                flatten: flatten,
-            },
-            src: this._context.video.src,
-        };
-        chrome.runtime.sendMessage(command);
+    private async _syncSubtitles(serializedFiles: SerializedSubtitleFile[], flatten: boolean) {
+        if ((await this._settings.getSingle('streamingSubtitleListPreference')) === SubtitleListPreference.app) {
+            const command: VideoToExtensionCommand<ExtensionSyncMessage> = {
+                sender: 'asbplayer-video',
+                message: {
+                    command: 'sync',
+                    subtitles: serializedFiles,
+                    flatten: flatten,
+                },
+                src: this._context.video.src,
+            };
+            chrome.runtime.sendMessage(command);
+        } else {
+            const files: File[] = await Promise.all(
+                serializedFiles.map(
+                    async (f) => new File([await (await fetch('data:text/plain;base64,' + f.base64)).blob()], f.name)
+                )
+            );
+            this._context.loadSubtitles(files, flatten);
+        }
     }
 
     private async _subtitlesForUrl(

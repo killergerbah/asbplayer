@@ -121,6 +121,8 @@
             "cropScreenshot": "Crop screenshot",
             "displaySubtitles": "Display subtitles",
             "dragAndDrop": "Allow subtitle file drag-and-drop",
+            "subtitleListPreference": "Subtitle list preference",
+            "openSubtitleList": "Open subtitle list when loading subtitles",
             "mining": "Mining",
             "miningKeyboardShortcuts": "Mining Keyboard Shortcuts",
             "misc": "Misc",

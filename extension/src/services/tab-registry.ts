@@ -28,16 +28,14 @@ export interface VideoElement {
     tab: SlimTab;
     timestamp: number;
     synced: boolean;
+    syncedTimestamp?: number;
 }
 
 export default class TabRegistry {
-    private readonly settings: SettingsProvider;
     private onNoSyncedElementsCallback?: () => void;
     private onSyncedElementCallback?: () => void;
 
-    constructor(settings: SettingsProvider) {
-        this.settings = settings;
-
+    constructor() {
         // Update video element state on tab changes
         // Triggers events for when synced video elements appear/disappear
         chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
@@ -218,6 +216,8 @@ export default class TabRegistry {
                     id: videoElement.tab.id,
                     title: videoElement.tab.title,
                     src: videoElement.src,
+                    synced: videoElement.synced,
+                    syncedTimestamp: videoElement.syncedTimestamp,
                 };
                 activeVideoElements.push(element);
             }
@@ -226,7 +226,7 @@ export default class TabRegistry {
         return activeVideoElements;
     }
 
-    async onVideoElementHeartbeat(tab: chrome.tabs.Tab, src: string, synced: boolean) {
+    async onVideoElementHeartbeat(tab: chrome.tabs.Tab, src: string, synced: boolean, syncedTimestamp?: number) {
         if (tab.id === undefined) {
             return;
         }
@@ -240,9 +240,10 @@ export default class TabRegistry {
                     title: tab.title ?? '',
                     url: tab.url ?? '',
                 },
-                src: src,
+                src,
                 timestamp: Date.now(),
-                synced: synced,
+                synced,
+                syncedTimestamp,
             };
             return true;
         });

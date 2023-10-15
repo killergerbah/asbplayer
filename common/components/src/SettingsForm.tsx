@@ -28,6 +28,7 @@ import {
     supportedLanguages,
     computeStyles,
     CustomStyle,
+    SubtitleListPreference,
 } from '@project/common';
 import { TagsTextField } from '@project/common/components';
 import hotkeys from 'hotkeys-js';
@@ -626,6 +627,7 @@ export default function SettingsForm({
         streamingSubtitlePositionOffset,
         streamingScreenshotDelay,
         streamingSubtitleAlignment,
+        streamingSubtitleListPreference,
     } = settings;
     const handleAddCustomField = useCallback(
         (customFieldName: string) => {
@@ -1230,6 +1232,31 @@ export default function SettingsForm({
             </TabPanel>
             <TabPanel value={tabIndex} index={tabIndicesById['streaming-video']}>
                 <Grid container direction="column" spacing={1}>
+                    <Grid item>
+                        <FormGroup className={classes.formGroup}>
+                            <FormControlLabel
+                                className={classes.switchLabel}
+                                control={
+                                    <Switch
+                                        checked={
+                                            streamingSubtitleListPreference !== SubtitleListPreference.noSubtitleList
+                                        }
+                                        onChange={(e) =>
+                                            onSettingsChanged(
+                                                'streamingSubtitleListPreference',
+                                                streamingSubtitleListPreference ===
+                                                    SubtitleListPreference.noSubtitleList
+                                                    ? SubtitleListPreference.app
+                                                    : SubtitleListPreference.noSubtitleList
+                                            )
+                                        }
+                                    />
+                                }
+                                label={t('extension.settings.openSubtitleList')}
+                                labelPlacement="start"
+                            />
+                        </FormGroup>
+                    </Grid>
                     <Grid item>
                         <FormGroup className={classes.formGroup}>
                             <FormControlLabel

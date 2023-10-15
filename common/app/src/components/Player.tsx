@@ -89,7 +89,8 @@ export interface AnkiDialogFinishedRequest {
 }
 
 interface PlayerProps {
-    sources: MediaSources;
+    sources?: MediaSources;
+    subtitles: DisplaySubtitleModel[];
     subtitleReader: SubtitleReader;
     settings: AsbplayerSettings;
     playbackPreferences: PlaybackPreferences;
@@ -134,6 +135,7 @@ interface PlayerProps {
     onHideSubtitlePlayer: () => void;
     onVideoPopOut: () => void;
     onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
+    onSubtitles: (subtitles: DisplaySubtitleModel[]) => void;
     onTakeScreenshot: (mediaTimestamp: number) => void;
     disableKeyEvents: boolean;
     jumpToSubtitle?: SubtitleModel;
@@ -143,7 +145,8 @@ interface PlayerProps {
 }
 
 export default function Player({
-    sources: { subtitleFiles, flattenSubtitleFiles, audioFile, audioFileUrl, videoFile, videoFileUrl },
+    sources,
+    subtitles,
     subtitleReader,
     settings,
     playbackPreferences,
@@ -174,6 +177,7 @@ export default function Player({
     onHideSubtitlePlayer,
     onVideoPopOut,
     onPlayModeChangedViaBind,
+    onSubtitles,
     onTakeScreenshot,
     disableKeyEvents,
     jumpToSubtitle,
@@ -182,7 +186,6 @@ export default function Player({
     forceCompressedMode,
 }: PlayerProps) {
     const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
-    const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>();
     const [subtitlesSentThroughChannel, setSubtitlesSentThroughChannel] = useState<boolean>();
     const subtitlesRef = useRef<DisplaySubtitleModel[]>();
     subtitlesRef.current = subtitles;
@@ -195,6 +198,12 @@ export default function Player({
             }),
         [subtitles, playMode]
     );
+    const subtitleFiles = sources?.subtitleFiles;
+    const flattenSubtitleFiles = sources?.flattenSubtitleFiles;
+    const audioFile = sources?.audioFile;
+    const audioFileUrl = sources?.audioFileUrl;
+    const videoFile = sources?.videoFile;
+    const videoFileUrl = sources?.videoFileUrl;
     const playModeEnabled = subtitles && subtitles.length > 0 && Boolean(videoFileUrl || audioFileUrl);
     const [loadingSubtitles, setLoadingSubtitles] = useState<boolean>(false);
     const [playing, setPlaying] = useState<boolean>(false);
@@ -290,44 +299,40 @@ export default function Player({
     const applyOffset = useCallback(
         (offset: number, forwardToVideo: boolean) => {
             setOffset(offset);
-            setSubtitles((subtitles) => {
-                if (!subtitles) {
-                    return;
-                }
 
-                const length = subtitles.length > 0 ? subtitles[subtitles.length - 1].end + offset : 0;
+            if (!subtitles) {
+                return;
+            }
 
-                const newSubtitles = subtitles.map((s, i) => ({
-                    text: s.text,
-                    textImage: s.textImage,
-                    start: s.originalStart + offset,
-                    originalStart: s.originalStart,
-                    end: s.originalEnd + offset,
-                    originalEnd: s.originalEnd,
-                    displayTime: timeDurationDisplay(s.originalStart + offset, length),
-                    track: s.track,
-                    index: i,
-                }));
+            const length = subtitles.length > 0 ? subtitles[subtitles.length - 1].end + offset : 0;
 
-                if (forwardToVideo) {
-                    if (channel !== undefined) {
-                        channel.offset(offset);
+            const newSubtitles = subtitles.map((s, i) => ({
+                text: s.text,
+                textImage: s.textImage,
+                start: s.originalStart + offset,
+                originalStart: s.originalStart,
+                end: s.originalEnd + offset,
+                originalEnd: s.originalEnd,
+                displayTime: timeDurationDisplay(s.originalStart + offset, length),
+                track: s.track,
+                index: i,
+            }));
 
-                        // Older versions of extension don't support the offset message
-                        if (tab !== undefined && extension.installed && lte(extension.version, '0.22.0')) {
-                            channel.subtitles(
-                                newSubtitles,
-                                subtitleFiles.map((f) => f.name)
-                            );
-                        }
+            if (forwardToVideo) {
+                if (channel !== undefined) {
+                    channel.offset(offset);
+
+                    // Older versions of extension don't support the offset message
+                    if (tab !== undefined && extension.installed && lte(extension.version, '0.22.0')) {
+                        channel.subtitles(newSubtitles, subtitleFiles?.map((f) => f.name) ?? ['']);
                     }
                 }
+            }
 
-                return newSubtitles;
-            });
+            onSubtitles(newSubtitles);
             playbackPreferences.offset = offset;
         },
-        [subtitleFiles, extension, playbackPreferences, tab, channel]
+        [subtitleFiles, subtitles, extension, playbackPreferences, tab, channel]
     );
 
     useEffect(() => {
@@ -367,7 +372,7 @@ export default function Player({
             setOffset(offset);
             let subtitles: DisplaySubtitleModel[] | undefined;
 
-            if (subtitleFiles.length > 0) {
+            if (subtitleFiles !== undefined && subtitleFiles.length > 0) {
                 setLoadingSubtitles(true);
 
                 try {
@@ -387,11 +392,11 @@ export default function Player({
                     }));
 
                     setSubtitlesSentThroughChannel(false);
-                    setSubtitles(subtitles);
+                    onSubtitles(subtitles);
                     setPlayMode((playMode) => (!subtitles || subtitles.length === 0 ? PlayMode.normal : playMode));
                 } catch (e) {
                     onError(e);
-                    setSubtitles([]);
+                    onSubtitles([]);
                 } finally {
                     setLoadingSubtitles(false);
                 }
@@ -401,7 +406,7 @@ export default function Player({
             }
         }
 
-        init().then(() => onLoaded(subtitleFiles));
+        init().then(() => onLoaded(subtitleFiles ?? []));
     }, [subtitleReader, playbackPreferences, onLoaded, onError, subtitleFiles, flattenSubtitleFiles]);
 
     useEffect(() => {
@@ -439,7 +444,12 @@ export default function Player({
         [channel, subtitles]
     );
     useEffect(() => {
-        if (channel === undefined || subtitles === undefined || subtitlesSentThroughChannel) {
+        if (
+            channel === undefined ||
+            subtitles === undefined ||
+            subtitlesSentThroughChannel ||
+            subtitleFiles === undefined
+        ) {
             return;
         }
 
@@ -512,7 +522,7 @@ export default function Player({
                     surroundingSubtitles,
                     audioFile,
                     videoFile,
-                    subtitle ? subtitleFiles[subtitle.track] : undefined,
+                    subtitle ? subtitleFiles?.[subtitle.track] : undefined,
                     mediaTimetamp,
                     channel?.selectedAudioTrack,
                     channel?.playbackRate,
@@ -725,7 +735,7 @@ export default function Player({
                 surroundingSubtitles,
                 audioFile,
                 videoFile,
-                subtitleFiles[subtitle.track],
+                subtitleFiles?.[subtitle.track],
                 clock.time(calculateLength()),
                 selectedAudioTrack,
                 playbackRate,
