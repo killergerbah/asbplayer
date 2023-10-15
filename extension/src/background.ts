@@ -19,7 +19,6 @@ import BackgroundPageAudioRecorder from './services/background-page-audio-record
 import BackgroundPageReadyHandler from './handlers/backgroundpage/background-page-ready-handler';
 import AudioBase64Handler from './handlers/backgroundpage/audio-base-64-handler';
 import AckTabsHandler from './handlers/asbplayerv2/ack-tabs-handler';
-import { newVersionAvailable } from './services/version-checker';
 import OpenExtensionShortcutsHandler from './handlers/asbplayerv2/open-extension-shortcuts-handler';
 import ExtensionCommandsHandler from './handlers/asbplayerv2/extension-commands-handler';
 import OpenAsbplayerSettingsHandler from './handlers/video/open-asbplayer-settings-handler';
@@ -50,13 +49,6 @@ chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONT
 const settings = new SettingsProvider(new ExtensionSettingsStorage());
 
 const startListener = async () => {
-    const [newVersion] = await newVersionAvailable();
-
-    if (newVersion === true) {
-        await chrome.action.setBadgeBackgroundColor({ color: 'red' });
-        await chrome.action.setBadgeText({ text: '!' });
-    }
-
     primeLocalization(await settings.getSingle('language'));
 };
 
