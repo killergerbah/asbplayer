@@ -12,7 +12,14 @@
         "openFiles": "Open Files",
         "loadSubtitles": "Load Subtitles",
         "openApp": "Open App",
-        "openSidePanel": "Open Side Panel"
+        "openSidePanel": "Open Side Panel",
+        "mine": "Mine",
+        "updateLastCard": "Update Last Card"
+    },
+    "postMineAction": {
+        "none": "None",
+        "showAnkiDialog": "Show Anki dialog",
+        "updateLastCard": "Update last card"
     },
     "ankiDialog": {
         "applySelection": "Apply Selection",
@@ -139,7 +146,8 @@
             "subtitles": "Subtitles",
             "syncing": "Syncing",
             "takeScreenshot": "Take screenshot",
-            "updateAvailable": "Update Available"
+            "updateAvailable": "Update Available",
+            "sidePanelDefaultPostMiningAction": "Side panel post-mine action"
         },
         "videoDataSync": {
             "emptySubtitleTrack": "Empty",

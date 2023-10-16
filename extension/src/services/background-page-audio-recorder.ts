@@ -1,6 +1,9 @@
 import {
+    ExtensionToAsbPlayerCommand,
     ExtensionToBackgroundPageCommand,
     ExtensionToVideoCommand,
+    RecordingFinishedMessage,
+    RecordingStartedMessage,
     RequestActiveTabPermissionMessage,
     StartRecordingAudio,
     StartRecordingAudioWithTimeoutMessage,
@@ -16,10 +19,12 @@ interface Requester {
 }
 
 export default class BackgroundPageAudioRecorder {
+    private readonly _tabRegistry: TabRegistry;
     private backgroundPageResolve?: (value: chrome.tabs.Tab) => void;
     private audioBase64Resolve?: (value: string) => void;
 
     constructor(tabRegistry: TabRegistry) {
+        this._tabRegistry = tabRegistry;
         tabRegistry.onNoSyncedElements(async () => {
             this._removeBackgroundPage();
         });
@@ -90,7 +95,13 @@ export default class BackgroundPageAudioRecorder {
             throw new Error('Failed to start recording');
         }
 
-        return await this._audioBase64();
+        this._notifyRecordingStarted();
+
+        try {
+            return await this._audioBase64();
+        } finally {
+            this._notifyRecordingFinished();
+        }
     }
 
     async start({ tabId, src }: Requester) {
@@ -115,6 +126,8 @@ export default class BackgroundPageAudioRecorder {
 
             throw new Error('Failed to start recording');
         }
+
+        this._notifyRecordingStarted();
     }
 
     private _requestActiveTab(tabId: number, src: string) {
@@ -139,6 +152,7 @@ export default class BackgroundPageAudioRecorder {
             },
         };
         chrome.tabs.sendMessage(tabId, command);
+        this._notifyRecordingFinished();
         return await this._audioBase64();
     }
 
@@ -191,5 +205,29 @@ export default class BackgroundPageAudioRecorder {
 
     private async _setBackgroundPageTabId(tabId: number) {
         await chrome.storage.session.set({ backgroundPageTabId: tabId });
+    }
+
+    private _notifyRecordingStarted() {
+        const command: ExtensionToAsbPlayerCommand<RecordingStartedMessage> = {
+            sender: 'asbplayer-extension-to-player',
+            message: {
+                command: 'recording-started',
+            },
+        };
+        this._tabRegistry.publishCommandToAsbplayers({
+            commandFactory: (asbplayer) => (asbplayer.sidePanel ? command : undefined),
+        });
+    }
+
+    private _notifyRecordingFinished() {
+        const command: ExtensionToAsbPlayerCommand<RecordingFinishedMessage> = {
+            sender: 'asbplayer-extension-to-player',
+            message: {
+                command: 'recording-finished',
+            },
+        };
+        this._tabRegistry.publishCommandToAsbplayers({
+            commandFactory: (asbplayer) => (asbplayer.sidePanel ? command : undefined),
+        });
     }
 }

@@ -29,6 +29,7 @@ import {
     computeStyles,
     CustomStyle,
     SubtitleListPreference,
+    PostMineAction,
 } from '@project/common';
 import { TagsTextField } from '@project/common/components';
 import hotkeys from 'hotkeys-js';
@@ -95,6 +96,7 @@ const useStyles = makeStyles<Theme>((theme) => ({
     switchLabel: {
         justifyContent: 'space-between',
         marginLeft: 0,
+        marginRight: -8,
     },
     verticallyCentered: {
         display: 'flex',
@@ -634,6 +636,7 @@ export default function SettingsForm({
         streamingScreenshotDelay,
         streamingSubtitleAlignment,
         streamingSubtitleListPreference,
+        streamingSidePanelDefaultPostMineAction,
     } = settings;
     const handleAddCustomField = useCallback(
         (customFieldName: string) => {
@@ -1444,6 +1447,65 @@ export default function SettingsForm({
                                 }}
                             />
                         </FormGroup>
+                    </Grid>
+                    <Grid item>
+                        <FormLabel component="legend">
+                            {t('extension.settings.sidePanelDefaultPostMiningAction')}
+                        </FormLabel>
+                        <RadioGroup row={false}>
+                            <FormControlLabel
+                                control={
+                                    <Radio
+                                        checked={
+                                            streamingSidePanelDefaultPostMineAction === PostMineAction.showAnkiDialog
+                                        }
+                                        value={PostMineAction.showAnkiDialog}
+                                        onChange={(event) =>
+                                            event.target.checked &&
+                                            onSettingsChanged(
+                                                'streamingSidePanelDefaultPostMineAction',
+                                                PostMineAction.showAnkiDialog
+                                            )
+                                        }
+                                    />
+                                }
+                                label={t('postMineAction.showAnkiDialog')}
+                            />
+                            <FormControlLabel
+                                control={
+                                    <Radio
+                                        checked={
+                                            streamingSidePanelDefaultPostMineAction === PostMineAction.updateLastCard
+                                        }
+                                        value={PostMineAction.updateLastCard}
+                                        onChange={(event) =>
+                                            event.target.checked &&
+                                            onSettingsChanged(
+                                                'streamingSidePanelDefaultPostMineAction',
+                                                PostMineAction.updateLastCard
+                                            )
+                                        }
+                                    />
+                                }
+                                label={t('postMineAction.updateLastCard')}
+                            />
+                            <FormControlLabel
+                                control={
+                                    <Radio
+                                        checked={streamingSidePanelDefaultPostMineAction === PostMineAction.none}
+                                        value={PostMineAction.none}
+                                        onChange={(event) =>
+                                            event.target.checked &&
+                                            onSettingsChanged(
+                                                'streamingSidePanelDefaultPostMineAction',
+                                                PostMineAction.none
+                                            )
+                                        }
+                                    />
+                                }
+                                label={t('postMineAction.none')}
+                            />
+                        </RadioGroup>
                     </Grid>
                 </Grid>
             </TabPanel>

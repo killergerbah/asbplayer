@@ -182,6 +182,10 @@ export interface ShowAnkiUiMessage extends Message {
     readonly audio?: AudioModel;
 }
 
+export interface RecordingStartedMessage extends Message {
+    readonly command: 'recording-started';
+}
+
 export interface RecordingFinishedMessage extends Message {
     readonly command: 'recording-finished';
 }

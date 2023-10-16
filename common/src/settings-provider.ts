@@ -1,4 +1,10 @@
-import { AsbplayerSettings, AutoPausePreference, KeyBindName, SubtitleListPreference } from '@project/common';
+import {
+    AsbplayerSettings,
+    AutoPausePreference,
+    KeyBindName,
+    PostMineAction,
+    SubtitleListPreference,
+} from '@project/common';
 import { isMacOs } from 'react-device-detect';
 
 const defaults: AsbplayerSettings = {
@@ -82,6 +88,7 @@ const defaults: AsbplayerSettings = {
     streamingScreenshotDelay: 1000,
     streamingSubtitleAlignment: 'bottom',
     streamingSubtitleListPreference: SubtitleListPreference.noSubtitleList,
+    streamingSidePanelDefaultPostMineAction: PostMineAction.showAnkiDialog,
 };
 
 type SettingsDeserializers = { [key in keyof AsbplayerSettings]: (serialized: string) => any };

@@ -26,6 +26,7 @@ import CenteredGridContainer from './CenteredGridContainer';
 import CenteredGridItem from './CenteredGridItem';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import SidePanelControls from './SidePanelControls';
+import SidePanelRecordingOverlay from './SidePanelRecordingOverlay';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -49,6 +50,8 @@ export default function SidePanel({ settings, extension }: Props) {
     const [alertSeverity, setAlertSeverity] = useState<Color>();
     const [initializing, setInitializing] = useState<boolean>(true);
     const [syncedVideoTab, setSyncedVideoElement] = useState<VideoTabModel>();
+    const [recordingAudio, setRecordingAudio] = useState<boolean>(false);
+
     const keyBinder = useMemo(
         () => new AppKeyBinder(new DefaultKeyBinder(settings.keyBindSet), extension),
         [settings.keyBindSet, extension]
@@ -127,6 +130,16 @@ export default function SidePanel({ settings, extension }: Props) {
         });
     }, [extension, currentTabId, syncedVideoTab]);
 
+    useEffect(() => {
+        return extension.subscribe((message) => {
+            if (message.data.command === 'recording-started') {
+                setRecordingAudio(true);
+            } else if (message.data.command === 'recording-finished') {
+                setRecordingAudio(false);
+            }
+        });
+    }, [extension]);
+
     const handleError = useCallback(
         (message: any) => {
             console.error(message);
@@ -195,6 +208,7 @@ export default function SidePanel({ settings, extension }: Props) {
                 />
             ) : (
                 <>
+                    <SidePanelRecordingOverlay show={recordingAudio} />
                     <Player
                         origin={`chrome-extension://${chrome.runtime.id}/side-panel.html`}
                         subtitles={subtitles}
@@ -234,6 +248,10 @@ export default function SidePanel({ settings, extension }: Props) {
                     <SidePanelControls
                         disabled={currentTabId !== syncedVideoTab?.id}
                         onMineSubtitle={handleMineSubtitle}
+                        postMineAction={settings.streamingSidePanelDefaultPostMineAction}
+                        emptySubtitleTrack={subtitles.length === 0}
+                        audioRecordingEnabled={settings.streamingRecordMedia}
+                        recordingAudio={recordingAudio}
                     />
                 </>
             )}

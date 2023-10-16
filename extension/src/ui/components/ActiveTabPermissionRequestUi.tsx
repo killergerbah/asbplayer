@@ -29,7 +29,6 @@ const ActiveTabPermissionRequestUi = ({ bridge }: Props) => {
     }, [bridge]);
     const [themeType, setThemeType] = useState<PaletteType>('dark');
     const theme = useMemo(() => createTheme(themeType), [themeType]);
-
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />

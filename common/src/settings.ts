@@ -1,4 +1,4 @@
-import { AutoPausePreference } from './model';
+import { AutoPausePreference, PostMineAction } from './model';
 
 export interface SharedGlobalSettings {
     readonly themeType: 'dark' | 'light';
@@ -118,6 +118,7 @@ export interface StreamingVideoSettings {
     readonly streamingScreenshotDelay: number;
     readonly streamingSubtitleAlignment: SubtitleAlignment;
     readonly streamingSubtitleListPreference: SubtitleListPreference;
+    readonly streamingSidePanelDefaultPostMineAction: PostMineAction;
 }
 
 export type KeyBindName = keyof KeyBindSet;

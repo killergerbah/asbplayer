@@ -18,6 +18,7 @@ import {
 } from '@project/common';
 import BackgroundPageAudioRecorder from '../../services/background-page-audio-recorder';
 import { CardPublisher } from '../../services/card-publisher';
+import TabRegistry from '../../services/tab-registry';
 
 export default class RecordMediaHandler {
     private readonly _audioRecorder: BackgroundPageAudioRecorder;
