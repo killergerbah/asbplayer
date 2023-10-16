@@ -33,6 +33,10 @@ interface Props {
     extension: ChromeExtension;
 }
 
+const sameVideoTab = (a: VideoTabModel, b: VideoTabModel) => {
+    return a.id === b.id && a.src === b.src && a.synced === b.synced && a.syncedTimestamp === b.syncedTimestamp;
+};
+
 export default function SidePanel({ settings, extension }: Props) {
     const { t } = useTranslation();
     const playbackPreferences = useMemo(() => new PlaybackPreferences(settings), [settings]);
@@ -65,14 +69,6 @@ export default function SidePanel({ settings, extension }: Props) {
         }
 
         return extension.subscribeTabs(async (tabs) => {
-            if (subtitles !== undefined) {
-                if (initializing) {
-                    setInitializing(false);
-                }
-
-                return;
-            }
-
             const currentVideoTabs = tabs.filter((t) => t.id === currentTabId);
 
             if (currentVideoTabs.length > 0) {
@@ -88,7 +84,10 @@ export default function SidePanel({ settings, extension }: Props) {
                     }
                 }
 
-                if (lastSyncedVideoTab !== undefined) {
+                if (
+                    lastSyncedVideoTab !== undefined &&
+                    (syncedVideoTab === undefined || !sameVideoTab(lastSyncedVideoTab, syncedVideoTab))
+                ) {
                     const message: ExtensionToVideoCommand<RequestSubtitlesMessage> = {
                         sender: 'asbplayer-extension-to-video',
                         message: {
@@ -112,7 +111,7 @@ export default function SidePanel({ settings, extension }: Props) {
 
             setInitializing(false);
         });
-    }, [extension, subtitles, initializing, currentTabId]);
+    }, [extension, subtitles, initializing, currentTabId, syncedVideoTab]);
 
     useEffect(() => {
         if (currentTabId === undefined || syncedVideoTab === undefined) {
