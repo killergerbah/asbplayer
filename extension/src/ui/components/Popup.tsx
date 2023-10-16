@@ -1,6 +1,7 @@
 import Grid from '@material-ui/core/Grid';
 import { Anki, AsbplayerSettings, chromeCommandBindsToKeyBinds } from '@project/common';
-import { SettingsForm } from '@project/common/components';
+import { PanelIcon, SettingsForm } from '@project/common/components';
+import LaunchIcon from '@material-ui/icons/Launch';
 import { useMemo } from 'react';
 import Bridge from '../bridge';
 import { useI18n } from '@project/common/app';
@@ -37,12 +38,24 @@ const Popup = ({
     return (
         <Grid container direction="column" spacing={1} style={{ width: 500 }}>
             <Grid item>
-                <Button variant="contained" color="secondary" onClick={onOpenApp} style={{ width: '100%' }}>
+                <Button
+                    variant="contained"
+                    color="secondary"
+                    startIcon={<LaunchIcon />}
+                    onClick={onOpenApp}
+                    style={{ width: '100%' }}
+                >
                     {t('action.openApp')}
                 </Button>
             </Grid>
             <Grid item>
-                <Button variant="contained" color="secondary" onClick={onOpenSidePanel} style={{ width: '100%' }}>
+                <Button
+                    variant="contained"
+                    color="secondary"
+                    startIcon={<PanelIcon />}
+                    onClick={onOpenSidePanel}
+                    style={{ width: '100%' }}
+                >
                     {t('action.openSidePanel')}
                 </Button>
             </Grid>

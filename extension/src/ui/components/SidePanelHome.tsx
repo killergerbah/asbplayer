@@ -1,7 +1,5 @@
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import { AsbPlayerToTabCommand, LoadSubtitlesMessage, VideoTabModel } from '@project/common';
 import { ChromeExtension } from '@project/common/app';
@@ -9,6 +7,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import CenteredGridItem from './CenteredGridItem';
 import CenteredGridContainer from './CenteredGridContainer';
+import SubtitlesIcon from '@material-ui/icons/Subtitles';
 
 interface Props {
     extension: ChromeExtension;
@@ -52,6 +51,7 @@ const SidePanelHome = ({ currentTabId, videoElementCount }: Props) => {
                 <Button
                     variant="contained"
                     color="secondary"
+                    startIcon={<SubtitlesIcon />}
                     disabled={videoElementCount === 0}
                     onClick={handleLoadSubtitles}
                 >
