@@ -523,6 +523,8 @@ export default class Binding {
                         break;
                     case 'request-active-tab-permission':
                         this.requestActiveTabPermissionController.show();
+                        // Recording must have failed, reset flag
+                        this.recordingMedia = false;
                         break;
                 }
             }
