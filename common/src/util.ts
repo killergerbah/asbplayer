@@ -268,7 +268,7 @@ export function computeStyles({
     if (subtitleOutlineThickness > 0) {
         const thickness = subtitleOutlineThickness;
         const color = subtitleOutlineColor;
-        styles['webkitTextStroke'] = `${color} ${thickness}px`;
+        styles['WebkitTextStroke'] = `${color} ${thickness}px`;
     }
 
     if (subtitleBackgroundOpacity > 0) {
@@ -283,7 +283,20 @@ export function computeStyles({
     }
 
     for (const customStyle of subtitleCustomStyles) {
-        styles[customStyle.key] = customStyle.value;
+        let key;
+
+        if (
+            customStyle.key.startsWith('webkit') ||
+            customStyle.key.startsWith('moz') ||
+            customStyle.key.startsWith('ms') ||
+            /^o[A-Z].*/.test(customStyle.key)
+        ) {
+            key = customStyle.key.charAt(0).toUpperCase() + customStyle.key.slice(1);
+        } else {
+            key = customStyle.key;
+        }
+
+        styles[key] = customStyle.value;
     }
 
     return styles;

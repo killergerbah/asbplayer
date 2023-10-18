@@ -22,12 +22,16 @@ const useI18n = ({ language }: { language: string }) => {
     const [initialized, setInitialized] = useState<boolean>(false);
 
     useEffect(() => {
+        if (initialized) {
+            return;
+        }
+
         init.then(() => setInitialized(true));
     }, [initialized]);
 
     useEffect(() => {
         if (language !== i18n.language) {
-            i18n.changeLanguage(language);
+            init.then(() => i18n.changeLanguage(language));
         }
     }, [language]);
 

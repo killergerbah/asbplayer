@@ -1176,7 +1176,11 @@ export default function SettingsForm({
                                 }}
                             >
                                 {localFontFamilies.length > 0
-                                    ? localFontFamilies.map((f) => <MenuItem value={f}>{f}</MenuItem>)
+                                    ? localFontFamilies.map((f) => (
+                                          <MenuItem key={f} value={f}>
+                                              {f}
+                                          </MenuItem>
+                                      ))
                                     : null}
                             </TextField>
                         </div>
