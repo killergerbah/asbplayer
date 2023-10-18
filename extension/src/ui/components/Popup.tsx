@@ -1,8 +1,8 @@
 import Grid from '@material-ui/core/Grid';
 import { Anki, AsbplayerSettings, chromeCommandBindsToKeyBinds } from '@project/common';
-import { PanelIcon, SettingsForm } from '@project/common/components';
+import { PanelIcon, SettingsForm, useLocalFontFamilies } from '@project/common/components';
 import LaunchIcon from '@material-ui/icons/Launch';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import Bridge from '../bridge';
 import { useI18n } from '@project/common/app';
 import { Button } from '@material-ui/core';
@@ -30,6 +30,13 @@ const Popup = ({
     const { t } = useTranslation();
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
     const anki = useMemo(() => new Anki(settings, bridge), [settings, bridge]);
+    const handleUnlockLocalFonts = useCallback(() => {
+        chrome.tabs.create({
+            url: `chrome-extension://${chrome.runtime.id}/app-ui.html?view=settings#subtitle-appearance`,
+            active: true,
+        });
+    }, []);
+    const { localFontsAvailable, localFontsPermission, localFontFamilies } = useLocalFontFamilies();
 
     if (!i18nInitialized) {
         return null;
@@ -66,8 +73,12 @@ const Popup = ({
                     anki={anki}
                     chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}
                     settings={settings}
+                    localFontsAvailable={localFontsAvailable}
+                    localFontsPermission={localFontsPermission}
+                    localFontFamilies={localFontFamilies}
                     onSettingsChanged={onSettingsChanged}
                     onOpenChromeExtensionShortcuts={onOpenExtensionShortcuts}
+                    onUnlockLocalFonts={handleUnlockLocalFonts}
                 />
             </Grid>
         </Grid>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { useTranslation } from 'react-i18next';
 import Button from '@material-ui/core/Button';
@@ -8,7 +8,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import { Anki, AsbplayerSettings } from '@project/common';
 import ChromeExtension from '../services/chrome-extension';
-import { SettingsForm } from '../../../components';
+import { SettingsForm, useLocalFontFamilies } from '../../../components';
 
 const useStyles = makeStyles({
     root: {
@@ -43,6 +43,18 @@ export default function SettingsDialog({
     const { t } = useTranslation();
     const classes = useStyles();
 
+    const {
+        updateLocalFontsPermission,
+        updateLocalFonts,
+        localFontsAvailable,
+        localFontsPermission,
+        localFontFamilies,
+    } = useLocalFontFamilies();
+    const handleUnlockLocalFonts = useCallback(() => {
+        updateLocalFontsPermission();
+        updateLocalFonts();
+    }, [updateLocalFontsPermission, updateLocalFonts]);
+
     return (
         <Dialog open={open} maxWidth="sm" fullWidth className={classes.root} onClose={onClose}>
             <DialogTitle>{t('settings.title')}</DialogTitle>
@@ -56,6 +68,10 @@ export default function SettingsDialog({
                     onSettingsChanged={onSettingsChanged}
                     settings={settings}
                     scrollToId={scrollToId}
+                    localFontsAvailable={localFontsAvailable}
+                    localFontsPermission={localFontsPermission}
+                    localFontFamilies={localFontFamilies}
+                    onUnlockLocalFonts={handleUnlockLocalFonts}
                 />
             </DialogContent>
             <DialogActions>

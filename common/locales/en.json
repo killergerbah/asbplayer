@@ -183,8 +183,8 @@
         "extensionNotInstalled": "Install the <1>Chrome extension</1> to sync subtitles with streaming video",
         "extensionUpdateAvailable": "An extension <1>update</1> is available.",
         "noSubtitles": "No subtitles",
-        "videoElementsDetected": "Load subtitles onto a video element to start using asbplayer.",
-        "noVideoElementsDetected": "No video elements detected."
+        "videoElementsDetected": "Load subtitles onto a video to start using asbplayer.",
+        "noVideoElementsDetected": "No videos detected."
     },
     "activeTabPermissionRequest": {
         "title": "Enable audio recording",
@@ -250,6 +250,7 @@
         "themeDark": "Dark",
         "themeLight": "Light",
         "title": "Settings",
+        "unlockLocalFonts": "Click to unlock font menu",
         "unboundBind": "Unbound",
         "urlField": "URL Field",
         "wordField": "Word Field"

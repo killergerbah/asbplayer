@@ -4,3 +4,4 @@ export * from './src/AnkiDialog';
 export { default as SubtitleTextImage } from './src/SubtitleTextImage';
 export { default as SettingsForm } from './src/SettingsForm';
 export { default as PanelIcon } from './src/PanelIcon';
+export * from './src/use-local-font-families';

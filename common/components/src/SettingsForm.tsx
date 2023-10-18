@@ -2,6 +2,7 @@ import React, { useCallback, useState, useEffect, useMemo, ChangeEvent, ReactNod
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@material-ui/styles';
 import AddIcon from '@material-ui/icons/Add';
+import LockIcon from '@material-ui/icons/Lock';
 import Box from '@material-ui/core/Box';
 import EditIcon from '@material-ui/icons/Edit';
 import InfoIcon from '@material-ui/icons/Info';
@@ -38,7 +39,7 @@ import { isMacOs } from 'react-device-detect';
 import Switch from '@material-ui/core/Switch';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Tooltip from '@material-ui/core/Tooltip';
-import { useOutsideClickListener } from '../../app/src/hooks/use-outside-click-listener';
+import { useOutsideClickListener } from './use-outside-click-listener';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import Slider from '@material-ui/core/Slider';
 import Tab from '@material-ui/core/Tab';
@@ -513,8 +514,12 @@ interface Props {
     settings: AsbplayerSettings;
     scrollToId?: string;
     chromeKeyBinds: { [key: string]: string | undefined };
+    localFontsAvailable: boolean;
+    localFontsPermission?: PermissionState;
+    localFontFamilies: string[];
     onSettingsChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => void;
     onOpenChromeExtensionShortcuts: () => void;
+    onUnlockLocalFonts: () => void;
 }
 
 const cssStyles = Object.keys(document.body.style);
@@ -525,8 +530,12 @@ export default function SettingsForm({
     insideExtension,
     scrollToId,
     chromeKeyBinds,
+    localFontsAvailable,
+    localFontsPermission,
+    localFontFamilies,
     onSettingsChanged,
     onOpenChromeExtensionShortcuts,
+    onUnlockLocalFonts,
 }: Props) {
     const classes = useStyles();
     const { t } = useTranslation();
@@ -801,7 +810,6 @@ export default function SettingsForm({
     }, [scrollToId]);
 
     const [tabIndex, setTabIndex] = useState<number>(0);
-
     const validRegex = regexIsValid(subtitleRegexFilter);
 
     return (
@@ -1148,13 +1156,29 @@ export default function SettingsForm({
                         <div className={classes.subtitleSetting}>
                             <TextField
                                 type="text"
+                                select={localFontFamilies.length > 0}
                                 label={t('settings.subtitleFontFamily')}
-                                placeholder="Inherited"
                                 fullWidth
                                 value={subtitleFontFamily}
                                 color="secondary"
                                 onChange={(event) => onSettingsChanged('subtitleFontFamily', event.target.value)}
-                            />
+                                InputProps={{
+                                    endAdornment:
+                                        localFontFamilies.length === 0 &&
+                                        localFontsAvailable &&
+                                        localFontsPermission === 'prompt' ? (
+                                            <Tooltip title={t('settings.unlockLocalFonts')!}>
+                                                <IconButton onClick={onUnlockLocalFonts}>
+                                                    <LockIcon fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                        ) : null,
+                                }}
+                            >
+                                {localFontFamilies.length > 0
+                                    ? localFontFamilies.map((f) => <MenuItem value={f}>{f}</MenuItem>)
+                                    : null}
+                            </TextField>
                         </div>
                         <div className={classes.subtitleSetting}>
                             <TextField
