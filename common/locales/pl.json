@@ -8,7 +8,20 @@
         "downloadSubtitlesAsSrt": "Pobierz napisy w formacie SRT",
         "jumpTo": "Przeskocz do ",
         "ok": "OK",
-        "openFiles": "Otwórz pliki"
+        "mineSubtitle": "Mine Subtitle",
+        "openFiles": "Otwórz pliki",
+        "loadSubtitles": "Load Subtitles",
+        "openApp": "Open App",
+        "openSidePanel": "Open Side Panel",
+        "mine": "Mine",
+        "updateLastCard": "Update Last Card",
+        "startRecording": "Start Recording",
+        "stopRecording": "Stop Recording"
+    },
+    "postMineAction": {
+        "none": "None",
+        "showAnkiDialog": "Show Anki dialog",
+        "updateLastCard": "Update last card"
     },
     "ankiDialog": {
         "applySelection": "Zastosuj wybór",
@@ -81,7 +94,8 @@
         "toggleVideoSubtitleTrack1": "Przełącz ścieżkę napisów 1 w wideo",
         "toggleVideoSubtitleTrack2": "Przełącz ścieżkę napisów 2 w wideo",
         "toggleVideoSubtitleTracks": "Przełącz ścieżki napisów w wideo",
-        "updateLastCard": "Zaktualizuj ostatnio zapisaną kartę Anki o zrzuty ekranu"
+        "updateLastCard": "Zaktualizuj ostatnio zapisaną kartę Anki o zrzuty ekranu",
+        "openSidePanel": "Open side panel"
     },
     "controls": {
         "autoPauseMode": "Automatyczna pauza",
@@ -110,9 +124,6 @@
         "videoPlayerDragAndDropNotAllowed": "Odtwarzacz wideo nie może przyjąć upuszczonych plików. Zamiast tego upuść poza ramką wideo."
     },
     "extension": {
-        "backgroundAudioRecordingPage": {
-            "description": "Ta strona jest używana przez asbplayer do przechwytywania audio."
-        },
         "settings": {
             "asbplayerUrl": "URL asbplayer",
             "autoLoadDetectedSubs": "Automatyczne ładowanie wykrytych napisów",
@@ -121,6 +132,8 @@
             "cropScreenshot": "Przycinaj zrzut ekranu",
             "displaySubtitles": "Wyświetl napisy",
             "dragAndDrop": "Pozwól na przeciąganie i upuszczanie plików z napisami",
+            "subtitleListPreference": "Subtitle list preference",
+            "openSubtitleList": "Open subtitle list when loading subtitles",
             "mining": "Kopanie",
             "miningKeyboardShortcuts": "Skróty klawiszowe kopania",
             "misc": "Różne",
@@ -128,14 +141,15 @@
             "playbackKeyboardShortcuts": "Skróty klawiszowe odtwarzania",
             "recordAudio": "Nagrywaj audio",
             "screenshotCaptureDelay": "Opóźnienie przechwycenia zrzutu ekranu",
-            "subtitlePositionOffset": "Przesunięcie pozycji napisów",
-            "subtitles": "Napisy",
             "subtitleAlignment": "Wyrównanie napisów",
             "subtitleAlignmentBottom": "Dół",
             "subtitleAlignmentTop": "Góra",
+            "subtitlePositionOffset": "Przesunięcie pozycji napisów",
+            "subtitles": "Napisy",
             "syncing": "Synchronizacja",
             "takeScreenshot": "Rób zrzut ekranu",
-            "updateAvailable": "Dostępna aktualizacja"
+            "updateAvailable": "Dostępna aktualizacja",
+            "sidePanelDefaultPostMiningAction": "Side panel post-mine action"
         },
         "videoDataSync": {
             "emptySubtitleTrack": "Empty",
@@ -149,6 +163,9 @@
             "selectVideo": "Wybierz element wideo do synchronizacji z asbplayer.",
             "syncBeforeMine": "Element wideo musi być najpierw zsynchronizowany z asbplayer aby mógł być wykopany. Wybierz element wideo do synchronizacji z asbplayer.",
             "videoElement": "Element wideo"
+        },
+        "backgroundAudioRecordingPage": {
+            "description": "Ta strona jest używana przez asbplayer do przechwytywania audio."
         }
     },
     "info": {
@@ -160,13 +177,22 @@
         "exportedCard": "Wyeksportowana karta: {{result}}",
         "playbackRate": "Playback Rate: {{rate}}",
         "savedTimestamp": "Zapisano: {{timestamp}}",
-        "updatedCard": "Zaktualizowana karta: {{result}}"
+        "updatedCard": "Zaktualizowana karta: {{result}}",
+        "activeTabPermissionObtained": "Audio recording is now enabled for this tab."
     },
     "landing": {
         "cta": "Przenieś i upuść napisy i pliki medialne, lub <1>przeglądaj</1>.",
         "extensionNotInstalled": "Zainstaluj <1>rozszerzenie Chrome</1> aby zsynchronizować napisy ze strumieniowanym wideo",
         "extensionUpdateAvailable": "Dostępna jest <1>aktualizacja</1> rozszerzenia.",
-        "noSubtitles": "No subtitles"
+        "noSubtitles": "No subtitles",
+        "videoElementsDetected": "Load subtitles onto a video to start using asbplayer.",
+        "noVideoElementsDetected": "No videos detected."
+    },
+    "activeTabPermissionRequest": {
+        "title": "Enable audio recording",
+        "grantedTitle": "Audio recording enabled",
+        "prompt": "Click on the asbplayer action button in the top-right of the browser window to enable audio recording for this tab.",
+        "grantedPrompt": "Audio recording has been enabled for this tab. You can now begin mining."
     },
     "settings": {
         "addCustomCss": "Add Custom CSS",
@@ -204,10 +230,10 @@
         "recordingBind": "Nagrywanie",
         "rememberSubtitleOffset": "Zapamiętaj przesunięcie napisów",
         "sentenceField": "Pole na zdanie",
+        "streamingVideo": "Streaming Video",
         "styleKey": "Style Key",
         "styleValue": "Style Value",
         "sourceField": "Pole na źródło",
-        "streamingVideo": "Streaming Video",
         "subtitleAppearance": "Wygląd napisów",
         "subtitleBackgroundColor": "Kolor tła napisów",
         "subtitleBackgroundOpacity": "Krycie tła napisów",
@@ -228,6 +254,7 @@
         "themeDark": "Ciemny ",
         "themeLight": "Jasny",
         "title": "Ustawienia",
+        "unlockLocalFonts": "Click to unlock font menu",
         "unboundBind": "Nieprzypisane",
         "urlField": "Pole na URL",
         "wordField": "Pole na słowo "

@@ -8,7 +8,20 @@
         "downloadSubtitlesAsSrt": "Untertitel als SRT herunterladen",
         "jumpTo": "Springe zu",
         "ok": "OK",
-        "openFiles": "Öffnen"
+        "mineSubtitle": "Mine Subtitle",
+        "openFiles": "Öffnen",
+        "loadSubtitles": "Load Subtitles",
+        "openApp": "Open App",
+        "openSidePanel": "Open Side Panel",
+        "mine": "Mine",
+        "updateLastCard": "Update Last Card",
+        "startRecording": "Start Recording",
+        "stopRecording": "Stop Recording"
+    },
+    "postMineAction": {
+        "none": "None",
+        "showAnkiDialog": "Show Anki dialog",
+        "updateLastCard": "Update last card"
     },
     "ankiDialog": {
         "applySelection": "Auswahl anwenden",
@@ -38,11 +51,11 @@
         "zoomOut": "Herauszoomen"
     },
     "bar": {
+        "donate": "Spenden",
         "help": "Hilfe",
         "miningHistory": "Extraktions-Historie",
         "settings": "Einstellungen",
-        "submitIssue": "Fehler melden",
-        "donate": "Spenden"
+        "submitIssue": "Fehler melden"
     },
     "binds": {
         "adjustOffset": "Untertiteloffset ±100ms",
@@ -81,7 +94,8 @@
         "toggleVideoSubtitleTrack1": "Untertitel 1 in Video umschalten",
         "toggleVideoSubtitleTrack2": "Untertitel 2 in Video umschalten",
         "toggleVideoSubtitleTracks": "Untertitel in Video umschalten",
-        "updateLastCard": "Zuletzt erstellte Anki-Karte mit aufgezeichnetem Untertitel"
+        "updateLastCard": "Zuletzt erstellte Anki-Karte mit aufgezeichnetem Untertitel",
+        "openSidePanel": "Open side panel"
     },
     "controls": {
         "autoPauseMode": "Auto-pause",
@@ -110,9 +124,6 @@
         "videoPlayerDragAndDropNotAllowed": "Video player cannot receive dropped files. Drop outside of the video frame instead."
     },
     "extension": {
-        "backgroundAudioRecordingPage": {
-            "description": "This page is used by asbplayer to capture audio."
-        },
         "settings": {
             "asbplayerUrl": "absplayer-URL",
             "autoLoadDetectedSubs": "Untertitel automatisch laden",
@@ -121,6 +132,8 @@
             "cropScreenshot": "Screenshot zuschneiden",
             "displaySubtitles": "Untertitel anzeigen",
             "dragAndDrop": "Erlaube Untertitel Drag & Drop",
+            "subtitleListPreference": "Subtitle list preference",
+            "openSubtitleList": "Open subtitle list when loading subtitles",
             "mining": "Extraktion",
             "miningKeyboardShortcuts": "Tastaturkürzel für Extraktion",
             "misc": "Sonstige",
@@ -128,27 +141,31 @@
             "playbackKeyboardShortcuts": "Videosteuerung",
             "recordAudio": "Audio aufnehmen",
             "screenshotCaptureDelay": "Screenshot-Aufnahme-Delay",
+            "subtitleAlignment": "Untertitel-Position",
+            "subtitleAlignmentBottom": "Unten",
+            "subtitleAlignmentTop": "Oben",
             "subtitlePositionOffset": "Untertitelabstand vom unteren Bildschirmrand",
             "subtitles": "Untertitel",
             "syncing": "Syncronisation",
             "takeScreenshot": "Screenshot erstellen",
             "updateAvailable": "Aktualisierung verfügbar",
-            "subtitleAlignment": "Untertitel-Position",
-            "subtitleAlignmentBottom": "Unten",
-            "subtitleAlignmentTop": "Oben"
+            "sidePanelDefaultPostMiningAction": "Side panel post-mine action"
         },
         "videoDataSync": {
+            "emptySubtitleTrack": "Empty",
             "loadSubtitlesFirst": "Untertitel müssen ausgewählt werden",
             "selectSubtitles": "Untertitel auswählen",
             "subtitleTrack": "Untertitelspur",
-            "videoName": "Videotitel",
-            "emptySubtitleTrack": "Empty"
+            "videoName": "Videotitel"
         },
         "videoSelect": {
             "multipleVideoElements": "Mehrere Video-Elemente gefunden",
             "selectVideo": "Wähle ein Video-Element zum synchronisieren aus",
             "syncBeforeMine": "Ein Video muss mit absplayer synchronisiert werden",
             "videoElement": "Video-Element"
+        },
+        "backgroundAudioRecordingPage": {
+            "description": "This page is used by asbplayer to capture audio."
         }
     },
     "info": {
@@ -160,13 +177,22 @@
         "exportedCard": "Exported card: {{result}}",
         "playbackRate": "Playback Rate: {{rate}}",
         "savedTimestamp": "Saved: {{timestamp}}",
-        "updatedCard": "Updated card: {{result}}"
+        "updatedCard": "Updated card: {{result}}",
+        "activeTabPermissionObtained": "Audio recording is now enabled for this tab."
     },
     "landing": {
         "cta": "Untertitel und Medien hierher ziehen oder <1>suchen</1>",
         "extensionNotInstalled": "Installiere die <1>Chrome-Erweiterung</1>",
         "extensionUpdateAvailable": "Ein <1>Update</1> ist verfügbar",
-        "noSubtitles": "No subtitles"
+        "noSubtitles": "No subtitles",
+        "videoElementsDetected": "Load subtitles onto a video to start using asbplayer.",
+        "noVideoElementsDetected": "No videos detected."
+    },
+    "activeTabPermissionRequest": {
+        "title": "Enable audio recording",
+        "grantedTitle": "Audio recording enabled",
+        "prompt": "Click on the asbplayer action button in the top-right of the browser window to enable audio recording for this tab.",
+        "grantedPrompt": "Audio recording has been enabled for this tab. You can now begin mining."
     },
     "settings": {
         "addCustomCss": "Add Custom CSS",
@@ -204,10 +230,10 @@
         "recordingBind": "Aufnahme...",
         "rememberSubtitleOffset": "Untertiteloffset merken",
         "sentenceField": "Satz-Feld",
+        "streamingVideo": "Streaming Video",
         "styleKey": "Style Key",
         "styleValue": "Style Value",
         "sourceField": "Quelle-Feld",
-        "streamingVideo": "Streaming Video",
         "subtitleAppearance": "Untertiteldarstellung",
         "subtitleBackgroundColor": "Untertitelhintergrundfarbe",
         "subtitleBackgroundOpacity": "Untertitelhintergrunddeckung",
@@ -228,6 +254,7 @@
         "themeDark": "Dunkel",
         "themeLight": "Hell",
         "title": "Einstellungen",
+        "unlockLocalFonts": "Click to unlock font menu",
         "unboundBind": "Nicht gesetzt",
         "urlField": "URL-Feld",
         "wordField": "Wort-Feld"

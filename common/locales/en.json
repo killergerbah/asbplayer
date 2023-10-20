@@ -14,7 +14,9 @@
         "openApp": "Open App",
         "openSidePanel": "Open Side Panel",
         "mine": "Mine",
-        "updateLastCard": "Update Last Card"
+        "updateLastCard": "Update Last Card",
+        "startRecording": "Start Recording",
+        "stopRecording": "Stop Recording"
     },
     "postMineAction": {
         "none": "None",
@@ -188,7 +190,9 @@
     },
     "activeTabPermissionRequest": {
         "title": "Enable audio recording",
-        "prompt": "Click on the asbplayer action button in the top-right of the browser window to enable audio recording for this tab."
+        "grantedTitle": "Audio recording enabled",
+        "prompt": "Click on the asbplayer action button in the top-right of the browser window to enable audio recording for this tab.",
+        "grantedPrompt": "Audio recording has been enabled for this tab. You can now begin mining."
     },
     "settings": {
         "addCustomCss": "Add Custom CSS",

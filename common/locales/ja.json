@@ -8,7 +8,20 @@
         "downloadSubtitlesAsSrt": "SRT 形式字幕をダウンロード",
         "jumpTo": "ジャンプ",
         "ok": "OK",
-        "openFiles": "開く"
+        "mineSubtitle": "Mine Subtitle",
+        "openFiles": "開く",
+        "loadSubtitles": "Load Subtitles",
+        "openApp": "Open App",
+        "openSidePanel": "Open Side Panel",
+        "mine": "Mine",
+        "updateLastCard": "Update Last Card",
+        "startRecording": "Start Recording",
+        "stopRecording": "Stop Recording"
+    },
+    "postMineAction": {
+        "none": "None",
+        "showAnkiDialog": "Show Anki dialog",
+        "updateLastCard": "Update last card"
     },
     "ankiDialog": {
         "applySelection": "選択範囲を適用する",
@@ -71,17 +84,18 @@
         "seekToPreviousSubtitle": "前の字幕に巻き戻り",
         "seekToSubtitle": "前/次の字幕に移動",
         "takeScreenshot": "手動でスクリーンショットを撮影しマイニング時に自動的に撮影されたものを上書きする",
-        "toggleAsbplayerSubtitleTrack1": "asbplayer の字幕トラック 1  オン/オフ",
+        "toggleAsbplayerSubtitleTrack1": "asbplayer の字幕トラック 1 オン/オフ",
         "toggleAsbplayerSubtitleTrack2": "asbplayer の字幕トラック 2 オン/オフ",
         "toggleAsbplayerSubtitleTracks": "asbplayer の字幕トラック オン/オフ",
         "toggleAutoPause": "自動一時停止オン/オフ",
         "toggleCondensedPlayback": "短縮プレイバック",
         "togglePlay": "再生/一時停止",
         "toggleSubtitles": "字幕オン/オフ",
-        "toggleVideoSubtitleTrack1": "動画の字幕トラック 1  オン/オフ",
+        "toggleVideoSubtitleTrack1": "動画の字幕トラック 1 オン/オフ",
         "toggleVideoSubtitleTrack2": "動画の字幕トラック 2 オン/オフ",
         "toggleVideoSubtitleTracks": "動画の字幕トラック オン/オフ",
-        "updateLastCard": "asbplayer でキャプチャしたスクリーンショットや音声を、最後に作成した Anki カードに添付して更新する"
+        "updateLastCard": "asbplayer でキャプチャしたスクリーンショットや音声を、最後に作成した Anki カードに添付して更新する",
+        "openSidePanel": "Open side panel"
     },
     "controls": {
         "autoPauseMode": "自動一時停止",
@@ -118,6 +132,8 @@
             "cropScreenshot": "スクリーンショットのクロッピング",
             "displaySubtitles": "字幕表示オン/オフ",
             "dragAndDrop": "字幕ファイルのドラッグ＆ドロップを許可",
+            "subtitleListPreference": "Subtitle list preference",
+            "openSubtitleList": "Open subtitle list when loading subtitles",
             "mining": "マイニング",
             "miningKeyboardShortcuts": "マイニング関連のキーボードショートカット",
             "misc": "その他",
@@ -132,7 +148,8 @@
             "subtitles": "字幕",
             "syncing": "同期",
             "takeScreenshot": "スクリーンショットを撮る",
-            "updateAvailable": "アップデートがあります"
+            "updateAvailable": "アップデートがあります",
+            "sidePanelDefaultPostMiningAction": "Side panel post-mine action"
         },
         "videoDataSync": {
             "emptySubtitleTrack": "空",
@@ -160,13 +177,22 @@
         "exportedCard": "カードのエクスポート：{{result}}",
         "playbackRate": "再生速度：{{rate}}",
         "savedTimestamp": "保存しました：{{timestamp}}",
-        "updatedCard": "カードの更新：{{result}}"
+        "updatedCard": "カードの更新：{{result}}",
+        "activeTabPermissionObtained": "Audio recording is now enabled for this tab."
     },
     "landing": {
         "cta": "字幕やメディアファイルをドラッグ＆ドロップ、または<1>ファイルを選択</1>してください。",
         "extensionNotInstalled": "Web上の動画と字幕を同期するために<1>Chrome 拡張機能</1>をインストールしてください。",
         "extensionUpdateAvailable": "拡張機能の<1>アップデート</1>を公開しました。",
-        "noSubtitles": "字幕はありません"
+        "noSubtitles": "字幕はありません",
+        "videoElementsDetected": "Load subtitles onto a video to start using asbplayer.",
+        "noVideoElementsDetected": "No videos detected."
+    },
+    "activeTabPermissionRequest": {
+        "title": "Enable audio recording",
+        "grantedTitle": "Audio recording enabled",
+        "prompt": "Click on the asbplayer action button in the top-right of the browser window to enable audio recording for this tab.",
+        "grantedPrompt": "Audio recording has been enabled for this tab. You can now begin mining."
     },
     "settings": {
         "addCustomCss": "カスタムCSSを追加",
@@ -186,6 +212,8 @@
         "customCssField": "CSS: {{styleKey}}",
         "deck": "デッキ",
         "definitionField": "詳細フィールド",
+        "extensionOverriddenBind": "拡張機能を優先",
+        "extensionShortcut": "拡張機能ショートカット",
         "imageBasedSubtitleScaleFactor": "画像ベースの字幕の表示サイズ倍数",
         "imageField": "画像フィールド",
         "keyboardShortcuts": "キーボードショートカット",
@@ -199,6 +227,7 @@
         "noteType": "メモタイプ",
         "preCacheSubtitleDom": "Pre-cache Subtitle DOM",
         "preCacheSubtitleDomHelperText": "If enabled, asbplayer will pre-render subtitle text elements in an offscreen document, and re-use those elements for subtitle display. This allows external code to persistently modify subtitle text before it is displayed.",
+        "recordingBind": "記録中",
         "rememberSubtitleOffset": "字幕の表示タイミングを記憶する",
         "sentenceField": "文フィールド",
         "streamingVideo": "ストリーミングビデオ",
@@ -225,11 +254,9 @@
         "themeDark": "ダーク",
         "themeLight": "ライト",
         "title": "設定",
+        "unlockLocalFonts": "Click to unlock font menu",
+        "unboundBind": "キーバインドなし",
         "urlField": "URL フィールド",
-        "wordField": "単語フィールド",
-        "extensionOverriddenBind": "拡張機能を優先",
-        "extensionShortcut": "拡張機能ショートカット",
-        "recordingBind": "記録中",
-        "unboundBind": "キーバインドなし"
+        "wordField": "単語フィールド"
     }
 }
