@@ -10,12 +10,12 @@ import {
 import { Mp3Encoder } from '@project/common';
 import AudioRecorder from './services/audio-recorder';
 import { bufferToBase64 } from './services/base64';
-import { i18nInit } from './ui/i18n';
 import i18n from 'i18next';
 import { fetchLocalization } from './services/localization-fetcher';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
 import { CopyHistoryRepository } from '@project/common/app';
 import { v4 as uuidv4 } from 'uuid';
+import { i18nInit } from './services/i18n';
 
 const settings = new SettingsProvider(new ExtensionSettingsStorage());
 const audioRecorder = new AudioRecorder();
@@ -116,7 +116,6 @@ window.onload = async () => {
     }
 
     const language = await settings.getSingle('language');
-    const loc = await fetchLocalization(language);
-    i18nInit(loc.lang, loc.strings);
+    await i18nInit(language);
     document.getElementById('helper-text')!.innerHTML = i18n.t('extension.backgroundAudioRecordingPage.description');
 };
