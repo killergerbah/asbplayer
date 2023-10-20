@@ -21,20 +21,36 @@ const ActiveTabPermissionRequestUi = ({ bridge }: Props) => {
         bridge.sendServerMessage({
             command: 'close',
         });
+        setPermissionGranted(false);
     }, [bridge]);
     useEffect(() => {
         bridge.onStateUpdated((state) => {
-            setThemeType(state.themeType);
+            if (state.themeType !== undefined) {
+                setThemeType(state.themeType);
+            }
+
+            if (state.permissionGranted !== undefined) {
+                setPermissionGranted(state.permissionGranted);
+            }
         });
     }, [bridge]);
     const [themeType, setThemeType] = useState<PaletteType>('dark');
+    const [permissionGranted, setPermissionGranted] = useState<boolean>(false);
     const theme = useMemo(() => createTheme(themeType), [themeType]);
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <Dialog open={true} disableEnforceFocus fullWidth maxWidth="sm" onClose={handleClose}>
-                <DialogTitle>{t('activeTabPermissionRequest.title')}</DialogTitle>
-                <DialogContent>{t('activeTabPermissionRequest.prompt')}</DialogContent>
+                <DialogTitle>
+                    {permissionGranted
+                        ? t('activeTabPermissionRequest.grantedTitle')
+                        : t('activeTabPermissionRequest.title')}
+                </DialogTitle>
+                <DialogContent>
+                    {permissionGranted
+                        ? t('activeTabPermissionRequest.grantedPrompt')
+                        : t('activeTabPermissionRequest.prompt')}
+                </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose}>{t('action.ok')}</Button>
                 </DialogActions>

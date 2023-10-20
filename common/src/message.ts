@@ -486,3 +486,7 @@ export interface RequestingActiveTabPermsisionMessage extends Message {
     readonly command: 'requesting-active-tab-permission';
     readonly requesting: boolean;
 }
+
+export interface GrantedActiveTabPermissionMessage extends Message {
+    readonly command: 'granted-active-tab-permission';
+}

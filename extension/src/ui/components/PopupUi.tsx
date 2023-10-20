@@ -2,7 +2,14 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import Bridge from '../bridge';
-import { AsbplayerSettings, SettingsProvider, createTheme } from '@project/common';
+import {
+    AsbplayerSettings,
+    ExtensionToAsbPlayerCommand,
+    ExtensionToVideoCommand,
+    GrantedActiveTabPermissionMessage,
+    SettingsProvider,
+    createTheme,
+} from '@project/common';
 import { Box, Paper, Typography } from '@material-ui/core';
 import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
 import Popup from './Popup';
@@ -65,7 +72,23 @@ export function PopupUi({ bridge, commands }: Props) {
         bridge.sendServerMessage(message);
     }, []);
 
-    const requestingActiveTabPermission = useRequestingActiveTabPermission();
+    const { requestingActiveTabPermission, tabRequestingActiveTabPermission } = useRequestingActiveTabPermission();
+
+    useEffect(() => {
+        if (!requestingActiveTabPermission || tabRequestingActiveTabPermission === undefined) {
+            return;
+        }
+
+        const command: ExtensionToVideoCommand<GrantedActiveTabPermissionMessage> = {
+            sender: 'asbplayer-extension-to-video',
+            message: {
+                command: 'granted-active-tab-permission',
+            },
+            src: tabRequestingActiveTabPermission.src,
+        };
+        chrome.tabs.sendMessage(tabRequestingActiveTabPermission.tabId, command);
+        window.close();
+    }, [requestingActiveTabPermission, tabRequestingActiveTabPermission]);
 
     if (!settings || !theme || requestingActiveTabPermission === undefined) {
         return null;
@@ -74,33 +97,24 @@ export function PopupUi({ bridge, commands }: Props) {
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-
-            {requestingActiveTabPermission ? (
-                <Paper square>
-                    <Box p={2}>
-                        <ActiveTabPermissionObtainedNotification />
-                    </Box>
-                </Paper>
-            ) : (
-                <Paper square>
-                    <Box p={2}>
-                        <Popup
-                            bridge={bridge}
-                            commands={commands}
-                            settings={settings}
-                            onSettingsChanged={handleSettingsChanged}
-                            onOpenApp={handleOpenApp}
-                            onOpenSidePanel={handleOpenSidePanel}
-                            onOpenExtensionShortcuts={handleOpenExtensionShortcuts}
-                        />
-                    </Box>
-                    <Box p={0.5} textAlign="right">
-                        <Typography variant="caption" align="right" color="textSecondary">
-                            {`v${chrome.runtime.getManifest().version}`}
-                        </Typography>
-                    </Box>
-                </Paper>
-            )}
+            <Paper square>
+                <Box p={2}>
+                    <Popup
+                        bridge={bridge}
+                        commands={commands}
+                        settings={settings}
+                        onSettingsChanged={handleSettingsChanged}
+                        onOpenApp={handleOpenApp}
+                        onOpenSidePanel={handleOpenSidePanel}
+                        onOpenExtensionShortcuts={handleOpenExtensionShortcuts}
+                    />
+                </Box>
+                <Box p={0.5} textAlign="right">
+                    <Typography variant="caption" align="right" color="textSecondary">
+                        {`v${chrome.runtime.getManifest().version}`}
+                    </Typography>
+                </Box>
+            </Paper>
         </ThemeProvider>
     );
 }

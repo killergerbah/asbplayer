@@ -2,10 +2,12 @@ import { RequestingActiveTabPermsisionMessage, VideoToExtensionCommand } from '@
 import Binding from '../services/binding';
 import { fetchLocalization } from '../services/localization-fetcher';
 import UiFrame from '../services/ui-frame';
+import FrameBridgeClient from '../services/frame-bridge-client';
 
 export default class ActiveTabPermissionRequestController {
     private readonly _context: Binding;
     private readonly _frame: UiFrame;
+    private _client?: FrameBridgeClient;
 
     constructor(context: Binding) {
         this._context = context;
@@ -26,12 +28,17 @@ export default class ActiveTabPermissionRequestController {
         );
     }
 
+    onPermissionGranted() {
+        this._client?.updateState({ permissionGranted: true });
+    }
+
     async show() {
         const isNewClient = await this._frame.bind();
-        const client = await this._frame.client();
+        this._client?.unbind();
+        this._client = await this._frame.client();
 
         if (isNewClient) {
-            client.onServerMessage((message) => {
+            this._client.onServerMessage((message) => {
                 if (message.command === 'close') {
                     this._frame.hide();
                     this._notifyRequesting(false);
@@ -40,7 +47,7 @@ export default class ActiveTabPermissionRequestController {
         }
 
         this._frame.show();
-        client.updateState({ themeType: await this._context.settings.getSingle('themeType') });
+        this._client.updateState({ themeType: await this._context.settings.getSingle('themeType') });
         this._context.pause();
         this._notifyRequesting(true);
     }
@@ -56,5 +63,9 @@ export default class ActiveTabPermissionRequestController {
         };
 
         chrome.runtime.sendMessage(command);
+    }
+
+    unbind() {
+        this._client?.unbind();
     }
 }

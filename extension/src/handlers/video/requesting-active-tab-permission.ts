@@ -15,7 +15,11 @@ export class RequestingActiveTabPermissionHandler {
             command as VideoToExtensionCommand<RequestingActiveTabPermsisionMessage>;
 
         if (sender.tab?.id !== undefined) {
-            setRequestingActiveTabPermission(sender.tab.id, requestingActiveTabPermissionCommand.message.requesting);
+            setRequestingActiveTabPermission(
+                sender.tab.id,
+                requestingActiveTabPermissionCommand.src,
+                requestingActiveTabPermissionCommand.message.requesting
+            );
         }
 
         return false;

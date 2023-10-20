@@ -45,7 +45,7 @@ import { i18nInit } from './i18n';
 import { ExtensionSettingsStorage } from './extension-settings-storage';
 import { SubtitleReader } from '@project/common/app';
 import { bufferToBase64 } from './base64';
-import ActiveTabPermissionRequestController from '../controllers/active-tab-permission-controller-request';
+import ActiveTabPermissionRequestController from '../controllers/active-tab-permission-request-controller';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -525,6 +525,9 @@ export default class Binding {
                         this.requestActiveTabPermissionController.show();
                         // Recording must have failed, reset flag
                         this.recordingMedia = false;
+                        break;
+                    case 'granted-active-tab-permission':
+                        this.requestActiveTabPermissionController.onPermissionGranted();
                         break;
                 }
             }

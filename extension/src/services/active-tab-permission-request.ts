@@ -7,24 +7,24 @@ export const getTabRequestingActiveTabPermission = async () => {
         return undefined;
     }
 
-    const currentTabInfo = await tabInfo(savedTab.id);
+    const currentTabInfo = await tabInfo(savedTab.tabId);
 
     if (currentTabInfo === undefined || currentTabInfo.url !== savedTab.url) {
         await chrome.storage.session.remove(key);
         return undefined;
     }
 
-    return savedTab.id;
+    return { tabId: savedTab.tabId, src: savedTab.src };
 };
 
-export const setRequestingActiveTabPermission = async (tabId: number, requesting: boolean) => {
+export const setRequestingActiveTabPermission = async (tabId: number, src: string, requesting: boolean) => {
     if (requesting) {
         const tab = await tabInfo(tabId);
 
         if (tab === undefined) {
             await chrome.storage.session.remove(key);
         } else {
-            await chrome.storage.session.set({ [key]: { id: tabId, url: tab.url } });
+            await chrome.storage.session.set({ [key]: { tabId, src, url: tab.url } });
         }
     } else {
         await chrome.storage.session.remove(key);
