@@ -1,6 +1,5 @@
-import { AudioModel, ImageModel, SubtitleModel } from '@project/common';
+import { AudioModel, CopyHistoryItem, ImageModel, SubtitleModel } from '@project/common';
 import Dexie from 'dexie';
-import { CopyHistoryItem } from '../components/CopyHistory';
 
 class CopyHistoryDatabase extends Dexie {
     copyHistoryItems!: Dexie.Table<CopyHistoryRecord, number>;

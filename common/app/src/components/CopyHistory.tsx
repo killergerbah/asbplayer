@@ -19,25 +19,7 @@ import NoteAddIcon from '@material-ui/icons/NoteAdd';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
-import { AudioModel, ImageModel, SubtitleModel } from '@project/common';
-
-export interface CopyHistoryItem extends SubtitleModel {
-    name: string;
-    id: string;
-    timestamp: number;
-    surroundingSubtitles: SubtitleModel[];
-    audioFile?: File;
-    audioFileName?: string;
-    audioTrack?: string;
-    videoFile?: File;
-    videoFileName?: string;
-    filePlaybackRate?: number;
-    subtitleFileName?: string;
-    mediaTimestamp?: number;
-    audio?: AudioModel;
-    image?: ImageModel;
-    url?: string;
-}
+import { CopyHistoryItem } from '@project/common';
 
 interface CopyHistoryProps {
     open: boolean;

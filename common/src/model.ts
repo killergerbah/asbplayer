@@ -41,6 +41,24 @@ export interface CopiedSubtitleModel extends SubtitleModel {
     image?: ImageModel;
 }
 
+export interface CopyHistoryItem extends SubtitleModel {
+    name: string;
+    id: string;
+    timestamp: number;
+    surroundingSubtitles: SubtitleModel[];
+    audioFile?: File;
+    audioFileName?: string;
+    audioTrack?: string;
+    videoFile?: File;
+    videoFileName?: string;
+    filePlaybackRate?: number;
+    subtitleFileName?: string;
+    mediaTimestamp?: number;
+    audio?: AudioModel;
+    image?: ImageModel;
+    url?: string;
+}
+
 export interface ImageModel {
     readonly base64: string;
     readonly extension: 'jpeg';

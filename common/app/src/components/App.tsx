@@ -21,7 +21,9 @@ import {
     download,
     extractText,
     createTheme,
+    CopyHistoryItem,
 } from '@project/common';
+import { SubtitleReader } from '@project/common/subtitle-reader';
 import { v4 as uuidv4 } from 'uuid';
 import clsx from 'clsx';
 import Alert from './Alert';
@@ -29,10 +31,9 @@ import { AnkiDialog, ImageDialog } from '@project/common/components';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Paper from '@material-ui/core/Paper';
 import DragOverlay from './DragOverlay';
-import SubtitleReader from '../services/subtitle-reader';
 import Bar from './Bar';
 import ChromeExtension, { ExtensionMessage } from '../services/chrome-extension';
-import CopyHistory, { CopyHistoryItem } from './CopyHistory';
+import CopyHistory from './CopyHistory';
 import LandingPage from './LandingPage';
 import Player, { AnkiDialogFinishedRequest, MediaSources } from './Player';
 import SettingsDialog from './SettingsDialog';
@@ -43,17 +44,14 @@ import { DefaultKeyBinder } from '@project/common/key-binder';
 import AppKeyBinder from '../services/app-key-binder';
 import VideoChannel from '../services/video-channel';
 import PlaybackPreferences from '../services/playback-preferences';
-import CopyHistoryRepository from '../services/copy-history-repository';
+import CopyHistoryRepository from '../../../src/copy-history-repository';
 import './i18n';
 import { useTranslation } from 'react-i18next';
 import LocalizedError from './localized-error';
-import { useChromeExtension } from '../hooks/use-chrome-extension';
-import FileRepository from '../services/file-repository';
 import { DisplaySubtitleModel } from './SubtitlePlayer';
 
 const latestExtensionVersion = '0.28.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
-const lastSubtitleFileId = 'last-subtitle-file';
 
 const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
     content: {

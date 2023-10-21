@@ -35,6 +35,7 @@ import {
     VideoHeartbeatMessage,
     VideoToExtensionCommand,
 } from '@project/common';
+import { SubtitleReader } from '@project/common/subtitle-reader';
 import AnkiUiController from '../controllers/anki-ui-controller';
 import ControlsController from '../controllers/controls-controller';
 import DragController from '../controllers/drag-controller';
@@ -43,7 +44,6 @@ import SubtitleController, { SubtitleModelWithIndex } from '../controllers/subti
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
 import { i18nInit } from './i18n';
 import { ExtensionSettingsStorage } from './extension-settings-storage';
-import { SubtitleReader } from '@project/common/app';
 import { bufferToBase64 } from './base64';
 import ActiveTabPermissionRequestController from '../controllers/active-tab-permission-request-controller';
 
@@ -564,13 +564,14 @@ export default class Binding {
         this.keyBindings.setKeyBindSet(this, currentSettings.keyBindSet);
         this.subtitleController.autoCopyCurrentSubtitle = currentSettings.autoCopyCurrentSubtitle;
         this.subtitleController.preCacheDom = currentSettings.preCacheSubtitleDom;
-        i18nInit(currentSettings.language);
 
         if (currentSettings.streamingSubsDragAndDrop) {
             this.dragController.bind(this);
         } else {
             this.dragController.unbind();
         }
+
+        await i18nInit(currentSettings.language);
     }
 
     unbind() {

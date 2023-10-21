@@ -6,14 +6,13 @@ import {
     AudioBase64Message,
     SettingsProvider,
     CopyMessage,
+    CopyHistoryRepository,
 } from '@project/common';
 import { Mp3Encoder } from '@project/common';
 import AudioRecorder from './services/audio-recorder';
 import { bufferToBase64 } from './services/base64';
 import i18n from 'i18next';
-import { fetchLocalization } from './services/localization-fetcher';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
-import { CopyHistoryRepository } from '@project/common/app';
 import { v4 as uuidv4 } from 'uuid';
 import { i18nInit } from './services/i18n';
 

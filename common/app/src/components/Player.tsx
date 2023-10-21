@@ -14,6 +14,7 @@ import {
     VideoTabModel,
 } from '@project/common';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
+import { SubtitleReader } from '@project/common/subtitle-reader';
 import { KeyBinder } from '@project/common/key-binder';
 import { timeDurationDisplay } from '../services/util';
 import BroadcastChannelVideoProtocol from '../services/broadcast-channel-video-protocol';
@@ -25,7 +26,6 @@ import MediaAdapter, { MediaElement } from '../services/media-adapter';
 import SubtitlePlayer, { DisplaySubtitleModel } from './SubtitlePlayer';
 import VideoChannel from '../services/video-channel';
 import ChromeExtension from '../services/chrome-extension';
-import SubtitleReader from '../services/subtitle-reader';
 import PlaybackPreferences from '../services/playback-preferences';
 import lte from 'semver/functions/lte';
 import gte from 'semver/functions/gte';

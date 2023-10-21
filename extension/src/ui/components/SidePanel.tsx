@@ -8,9 +8,9 @@ import {
     VideoTabModel,
 } from '@project/common';
 import { AppKeyBinder, ChromeExtension, useI18n } from '@project/common/app';
+import { SubtitleReader } from '@project/common/subtitle-reader';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Player } from '@project/common/app';
-import { SubtitleReader } from '@project/common/app';
 import { PlaybackPreferences } from '@project/common/app';
 import { Color } from '@material-ui/lab';
 import { LocalizedError } from '@project/common/app';
