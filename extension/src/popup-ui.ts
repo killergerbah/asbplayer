@@ -31,46 +31,5 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     const currentSettings = await currentSettingsPromise;
     const commands = await commandsPromise;
     const rootElement = document.getElementById('root')!;
-    const bridge = await renderPopupUi(rootElement, { currentSettings, commands });
-    bridge.onServerMessage(async (message: any) => {
-        switch (message.command) {
-            case 'settings-changed':
-                const key = message.key as keyof AsbplayerSettings;
-                const settingsChangedMessage = message as SettingsChangedMessage<typeof key>;
-                const newSetting: any = {};
-                newSetting[settingsChangedMessage.key] = settingsChangedMessage.value;
-                await settings.set(newSetting);
-                const settingsUpdatedCommand: PopupToExtensionCommand<SettingsUpdatedMessage> = {
-                    sender: 'asbplayer-popup',
-                    message: {
-                        command: 'settings-updated',
-                    },
-                };
-                chrome.runtime.sendMessage(settingsUpdatedCommand);
-                break;
-            case 'open-extension-shortcuts':
-                chrome.tabs.create({ active: true, url: 'chrome://extensions/shortcuts' });
-                break;
-            case 'open-app':
-                chrome.tabs.create({ active: true, url: `chrome-extension://${chrome.runtime.id}/app-ui.html` });
-                break;
-            case 'open-side-panel':
-                // @ts-ignore
-                chrome.sidePanel.open({ windowId: (await chrome.windows.getLastFocused()).id });
-                break;
-            default:
-                console.error('Unknown command ' + message.command);
-        }
-    });
-    bridge.onFetch(async (url: string, body: any) => {
-        const httpPostCommand: PopupToExtensionCommand<HttpPostMessage> = {
-            sender: 'asbplayer-popup',
-            message: {
-                command: 'http-post',
-                url,
-                body,
-            },
-        };
-        return await chrome.runtime.sendMessage(httpPostCommand);
-    });
+    await renderPopupUi(rootElement, { currentSettings, commands });
 });

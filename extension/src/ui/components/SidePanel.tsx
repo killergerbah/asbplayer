@@ -120,7 +120,7 @@ export default function SidePanel({ settings, extension }: Props) {
 
         return extension.subscribeTabs((tabs) => {
             const tabStillExists =
-                tabs.find((t) => t.id === syncedVideoTab.id && t.src === syncedVideoTab.src) !== undefined;
+                tabs.find((t) => t.id === syncedVideoTab.id && t.src === syncedVideoTab.src && t.synced) !== undefined;
 
             if (!tabStillExists) {
                 setSubtitles(undefined);

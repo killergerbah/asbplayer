@@ -1,26 +1,44 @@
 import Grid from '@material-ui/core/Grid';
-import { Anki, AsbplayerSettings, chromeCommandBindsToKeyBinds } from '@project/common';
+import {
+    Anki,
+    AsbplayerSettings,
+    HttpPostMessage,
+    PopupToExtensionCommand,
+    chromeCommandBindsToKeyBinds,
+} from '@project/common';
 import { PanelIcon, SettingsForm, useLocalFontFamilies } from '@project/common/components';
 import LaunchIcon from '@material-ui/icons/Launch';
 import { useCallback, useMemo } from 'react';
-import Bridge from '../bridge';
 import { useI18n } from '@project/common/app';
 import { Button } from '@material-ui/core';
 import { useTranslation } from 'react-i18next';
+import { Fetcher } from '@project/common/src/fetcher';
 
 interface Props {
     settings: AsbplayerSettings;
     commands: any;
-    bridge: Bridge;
     onSettingsChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => void;
     onOpenApp: () => void;
     onOpenSidePanel: () => void;
     onOpenExtensionShortcuts: () => void;
 }
 
+class ExtensionFetcher implements Fetcher {
+    fetch(url: string, body: any) {
+        const httpPostCommand: PopupToExtensionCommand<HttpPostMessage> = {
+            sender: 'asbplayer-popup',
+            message: {
+                command: 'http-post',
+                url,
+                body,
+            },
+        };
+        return chrome.runtime.sendMessage(httpPostCommand);
+    }
+}
+
 const Popup = ({
     settings,
-    bridge,
     commands,
     onOpenApp,
     onOpenSidePanel,
@@ -29,7 +47,7 @@ const Popup = ({
 }: Props) => {
     const { t } = useTranslation();
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
-    const anki = useMemo(() => new Anki(settings, bridge), [settings, bridge]);
+    const anki = useMemo(() => new Anki(settings, new ExtensionFetcher()), [settings]);
     const handleUnlockLocalFonts = useCallback(() => {
         chrome.tabs.create({
             url: `chrome-extension://${chrome.runtime.id}/app-ui.html?view=settings#subtitle-appearance`,
