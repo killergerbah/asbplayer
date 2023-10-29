@@ -672,7 +672,7 @@ export default function Player({
     useEffect(() => {
         if (videoPopOut && videoFileUrl && channelId) {
             window.open(
-                origin + '/?video=' + encodeURIComponent(videoFileUrl) + '&channel=' + channelId + '&popout=true',
+                origin + '?video=' + encodeURIComponent(videoFileUrl) + '&channel=' + channelId + '&popout=true',
                 'asbplayer-video-' + videoFileUrl,
                 'resizable,width=800,height=450'
             );
