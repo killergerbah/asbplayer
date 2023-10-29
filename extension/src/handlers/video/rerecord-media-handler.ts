@@ -63,6 +63,7 @@ export default class RerecordMediaHandler {
                     subtitle: rerecordCommand.message.uiState.subtitle,
                     surroundingSubtitles: rerecordCommand.message.uiState.sliderContext.subtitles,
                     subtitleFileName: rerecordCommand.message.subtitleFileName,
+                    mediaTimestamp: rerecordCommand.message.timestamp,
                 },
                 sender.tab!.id!,
                 rerecordCommand.src

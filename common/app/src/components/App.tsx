@@ -49,6 +49,7 @@ import './i18n';
 import { useTranslation } from 'react-i18next';
 import LocalizedError from './localized-error';
 import { DisplaySubtitleModel } from './SubtitlePlayer';
+import { useCopyHistory } from '../hooks/use-copy-history';
 
 const latestExtensionVersion = '0.28.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
@@ -321,16 +322,11 @@ function App({ origin, settings, extension, onSettingsChanged }: Props) {
     const drawerRatio = videoFrameRef.current ? 0.2 : 0.3;
     const minDrawerSize = videoFrameRef.current ? 150 : 300;
     const drawerWidth = Math.max(minDrawerSize, width * drawerRatio);
-    const copyHistoryRepository = useMemo(
-        () => new CopyHistoryRepository(settings.miningHistoryStorageLimit),
-        [settings]
+    const { copyHistoryItems, refreshCopyHistory, deleteCopyHistoryItem, saveCopyHistoryItem } = useCopyHistory(
+        settings.miningHistoryStorageLimit
     );
-    useEffect(() => {
-        copyHistoryRepository.limit = settings.miningHistoryStorageLimit;
-    }, [copyHistoryRepository, settings.miningHistoryStorageLimit]);
-    const [copiedSubtitles, setCopiedSubtitles] = useState<CopyHistoryItem[]>([]);
-    const copiedSubtitlesRef = useRef<CopyHistoryItem[]>([]);
-    copiedSubtitlesRef.current = copiedSubtitles;
+    const copyHistoryItemsRef = useRef<CopyHistoryItem[]>([]);
+    copyHistoryItemsRef.current = copyHistoryItems;
     const [copyHistoryOpen, setCopyHistoryOpen] = useState<boolean>(false);
     const [theaterMode, setTheaterMode] = useState<boolean>(playbackPreferences.theaterMode);
     const [hideSubtitlePlayer, setHideSubtitlePlayer] = useState<boolean>(false);
@@ -406,11 +402,11 @@ function App({ origin, settings, extension, onSettingsChanged }: Props) {
     );
 
     const handleAnkiDialogRequest = useCallback((ankiDialogItem?: CopyHistoryItem) => {
-        if (!ankiDialogItem && copiedSubtitlesRef.current!.length === 0) {
+        if (!ankiDialogItem && copyHistoryItemsRef.current!.length === 0) {
             return;
         }
 
-        const item = ankiDialogItem ?? copiedSubtitlesRef.current[copiedSubtitlesRef.current.length - 1];
+        const item = ankiDialogItem ?? copyHistoryItemsRef.current[copyHistoryItemsRef.current.length - 1];
         setAnkiDialogItem(item);
         setAnkiDialogOpen(true);
         setAnkiDialogDisabled(false);
@@ -507,11 +503,11 @@ function App({ origin, settings, extension, onSettingsChanged }: Props) {
 
     const handleTakeScreenshot = useCallback(
         (mediaTimestamp: number) => {
-            if (sources.videoFile === undefined || copiedSubtitles.length === 0) {
+            if (sources.videoFile === undefined || copyHistoryItems.length === 0) {
                 return;
             }
 
-            const lastCopyHistoryItem = copiedSubtitles[copiedSubtitles.length - 1];
+            const lastCopyHistoryItem = copyHistoryItems[copyHistoryItems.length - 1];
             const newCopyHistoryItem = {
                 ...lastCopyHistoryItem,
                 id: uuidv4(),
@@ -520,11 +516,10 @@ function App({ origin, settings, extension, onSettingsChanged }: Props) {
                 mediaTimestamp,
             };
 
-            setCopiedSubtitles((copiedSubtitles) => [...copiedSubtitles, newCopyHistoryItem]);
-            copyHistoryRepository.save(newCopyHistoryItem);
+            saveCopyHistoryItem(newCopyHistoryItem);
             handleAnkiDialogRequest(newCopyHistoryItem);
         },
-        [sources.videoFile, copiedSubtitles, handleAnkiDialogRequest, copyHistoryRepository]
+        [sources.videoFile, copyHistoryItems, handleAnkiDialogRequest, saveCopyHistoryItem]
     );
 
     const handleCopy = useCallback(
@@ -564,10 +559,7 @@ function App({ origin, settings, extension, onSettingsChanged }: Props) {
                 url: url,
             };
 
-            setCopiedSubtitles((copiedSubtitles) => {
-                // Note: we are not dealing with the case where an item with the given ID is already in the list
-                return [...copiedSubtitles, newCopiedSubtitle];
-            });
+            saveCopyHistoryItem(newCopiedSubtitle);
 
             switch (postMineAction ?? PostMineAction.none) {
                 case PostMineAction.none:
@@ -615,10 +607,8 @@ function App({ origin, settings, extension, onSettingsChanged }: Props) {
                 );
                 setAlertOpen(true);
             }
-
-            copyHistoryRepository.save(newCopiedSubtitle);
         },
-        [fileName, settings, copyHistoryRepository, handleAnkiDialogProceed, handleAnkiDialogRequest, t]
+        [fileName, settings, saveCopyHistoryItem, handleAnkiDialogProceed, handleAnkiDialogRequest, t]
     );
 
     useEffect(() => {
@@ -626,10 +616,8 @@ function App({ origin, settings, extension, onSettingsChanged }: Props) {
             return;
         }
 
-        (async () => {
-            setCopiedSubtitles(await copyHistoryRepository.fetch(settings.miningHistoryStorageLimit));
-        })();
-    }, [inVideoPlayer, copyHistoryRepository, settings]);
+        refreshCopyHistory();
+    }, [inVideoPlayer, refreshCopyHistory]);
 
     const handleOpenCopyHistory = useCallback(() => {
         setCopyHistoryOpen((copyHistoryOpen) => !copyHistoryOpen);
@@ -690,18 +678,9 @@ function App({ origin, settings, extension, onSettingsChanged }: Props) {
 
     const handleDeleteCopyHistoryItem = useCallback(
         (item: CopyHistoryItem) => {
-            const newCopiedSubtitles: CopyHistoryItem[] = [];
-
-            for (let subtitle of copiedSubtitles) {
-                if (item.id !== subtitle.id) {
-                    newCopiedSubtitles.push(subtitle);
-                }
-            }
-
-            setCopiedSubtitles(newCopiedSubtitles);
-            copyHistoryRepository.delete(item.id);
+            deleteCopyHistoryItem(item);
         },
-        [copiedSubtitles, copyHistoryRepository]
+        [deleteCopyHistoryItem]
     );
 
     const handleUnloadAudio = useCallback(
@@ -1326,7 +1305,7 @@ function App({ origin, settings, extension, onSettingsChanged }: Props) {
                 ) : (
                     <Paper>
                         <CopyHistory
-                            items={copiedSubtitles}
+                            items={copyHistoryItems}
                             open={effectiveCopyHistoryOpen}
                             drawerWidth={drawerWidth}
                             onClose={handleCloseCopyHistory}

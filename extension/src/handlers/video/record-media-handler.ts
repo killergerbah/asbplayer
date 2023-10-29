@@ -15,6 +15,7 @@ import {
     CardUpdatedMessage,
     RecordingFinishedMessage,
     updateLastCard,
+    sourceString,
 } from '@project/common';
 import BackgroundPageAudioRecorder from '../../services/background-page-audio-recorder';
 import { CardPublisher } from '../../services/card-publisher';
@@ -118,6 +119,7 @@ export default class RecordMediaHandler {
                 image: imageModel,
                 audio: audioModel,
                 subtitleFileName: recordMediaCommand.message.subtitleFileName,
+                mediaTimestamp: recordMediaCommand.message.mediaTimestamp,
             };
             this._cardPublisher.publish(message, senderTab.id!, recordMediaCommand.src);
 
@@ -132,6 +134,8 @@ export default class RecordMediaHandler {
                         image: message.image,
                         audio: message.audio,
                         url: message.url,
+                        subtitleFileName: recordMediaCommand.message.subtitleFileName,
+                        mediaTimestamp: recordMediaCommand.message.mediaTimestamp,
                     },
                     src: recordMediaCommand.src,
                 };
@@ -148,7 +152,10 @@ export default class RecordMediaHandler {
                     recordMediaCommand.message.surroundingSubtitles,
                     audioModel,
                     imageModel,
-                    recordMediaCommand.message.sourceString,
+                    sourceString(
+                        recordMediaCommand.message.subtitleFileName,
+                        recordMediaCommand.message.mediaTimestamp
+                    ),
                     recordMediaCommand.message.url
                 );
 

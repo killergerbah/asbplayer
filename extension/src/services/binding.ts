@@ -7,7 +7,7 @@ import {
     CurrentTimeFromVideoMessage,
     CurrentTimeToVideoMessage,
     ExtensionSyncMessage,
-    humanReadableTime,
+    extractAnkiSettings,
     ImageCaptureParams,
     OffsetToVideoMessage,
     PauseFromVideoMessage,
@@ -24,6 +24,7 @@ import {
     SettingsProvider,
     ShowAnkiUiAfterRerecordMessage,
     ShowAnkiUiMessage,
+    sourceString,
     StartRecordingMediaMessage,
     StopRecordingMediaMessage,
     SubtitleListPreference,
@@ -200,13 +201,7 @@ export default class Binding {
         this._playMode = newPlayMode;
     }
 
-    sourceString(timestamp: number, track: number = 0) {
-        const subtitleFileNames = this.subtitleController.subtitleFileNames;
-        const subtitleFileNameToUse = (subtitleFileNames && subtitleFileNames[track]) ?? '';
-        return subtitleFileNameToUse === '' ? '' : `${subtitleFileNameToUse} (${humanReadableTime(timestamp)})`;
-    }
-
-    private _subtitleFileName(track: number = 0) {
+    subtitleFileName(track: number = 0) {
         return this.subtitleController.subtitleFileNames?.[track] ?? '';
     }
 
@@ -462,7 +457,7 @@ export default class Binding {
                             image: cardUpdatedMessage.image,
                             audio: cardUpdatedMessage.audio,
                             word: cardUpdatedMessage.cardName,
-                            source: this.sourceString(cardUpdatedMessage.subtitle.start),
+                            source: sourceString(this.subtitleFileName(), cardUpdatedMessage.subtitle.start),
                             url: cardUpdatedMessage.url ?? '',
                             customFieldValues: {},
                             timestampInterval: [cardUpdatedMessage.subtitle.start, cardUpdatedMessage.subtitle.end],
@@ -552,7 +547,7 @@ export default class Binding {
         this.imageDelay = currentSettings.streamingScreenshotDelay;
         this.subtitleController.setSubtitleSettings(currentSettings);
         this.subtitleController.refresh();
-        this.ankiUiController.ankiSettings = currentSettings;
+        this.ankiUiController.ankiSettings = extractAnkiSettings(currentSettings);
         this.audioPaddingStart = currentSettings.audioPaddingStart;
         this.audioPaddingEnd = currentSettings.audioPaddingEnd;
         this.maxImageWidth = currentSettings.maxImageWidth;
@@ -639,7 +634,8 @@ export default class Binding {
                 command: 'take-screenshot',
                 ankiUiState: this.ankiUiSavedState,
                 ...this._imageCaptureParams,
-                subtitleFileName: this._subtitleFileName(),
+                subtitleFileName: this.subtitleFileName(),
+                mediaTimestamp: this.video.currentTime * 1000,
             },
             src: this.video.src,
         };
@@ -680,8 +676,8 @@ export default class Binding {
                     record: this.recordMedia,
                     screenshot: this.screenshot,
                     url: this.url,
-                    sourceString: this.sourceString(subtitle.start, subtitle.track),
-                    subtitleFileName: this._subtitleFileName(subtitle.track),
+                    mediaTimestamp: this.video.currentTime * 1000,
+                    subtitleFileName: this.subtitleFileName(subtitle.track),
                     postMineAction: postMineAction,
                     audioPaddingStart: this.audioPaddingStart,
                     audioPaddingEnd: this.audioPaddingEnd,
@@ -713,8 +709,7 @@ export default class Binding {
                     screenshot: this.recordingMediaWithScreenshot,
                     videoDuration: this.video.duration * 1000,
                     url: this.url,
-                    sourceString: this.sourceString(this.recordingMediaStartedTimestamp!),
-                    subtitleFileName: this._subtitleFileName(),
+                    subtitleFileName: this.subtitleFileName(),
                     ankiSettings: ankiSettings,
                     ...this._imageCaptureParams,
                     ...this._surroundingSubtitlesAroundInterval(this.recordingMediaStartedTimestamp!, currentTimestamp),
@@ -742,13 +737,12 @@ export default class Binding {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'start-recording-media',
-                    timestamp: timestamp,
+                    mediaTimestamp: timestamp,
                     record: this.recordMedia,
                     postMineAction: postMineAction,
                     screenshot: this.screenshot,
                     url: this.url,
-                    sourceString: this.sourceString(timestamp),
-                    subtitleFileName: this._subtitleFileName(),
+                    subtitleFileName: this.subtitleFileName(),
                     imageDelay: this.imageDelay,
                     ankiSettings: ankiSettings,
                     ...this._imageCaptureParams,
@@ -796,8 +790,7 @@ export default class Binding {
                 audioPaddingEnd: audioPaddingEnd,
                 playbackRate: this.video.playbackRate,
                 timestamp: start,
-                sourceString: this.sourceString(start),
-                subtitleFileName: this._subtitleFileName(),
+                subtitleFileName: this.subtitleFileName(),
             },
             src: this.video.src,
         };

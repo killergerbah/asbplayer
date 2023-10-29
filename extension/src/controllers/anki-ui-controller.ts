@@ -12,6 +12,7 @@ import {
     OpenAsbplayerSettingsMessage,
     VideoToExtensionCommand,
     CopyToClipboardMessage,
+    sourceString,
 } from '@project/common';
 import Binding from '../services/binding';
 import UiFrame from '../services/ui-frame';
@@ -85,7 +86,7 @@ export default class AnkiUiController {
             type: 'initial',
             open: true,
             settingsProvider: this._ankiSettings,
-            source: context.sourceString(subtitle.start, subtitle.track),
+            source: sourceString(context.subtitleFileName(), subtitle.start),
             url: url,
             subtitle: subtitle,
             surroundingSubtitles: surroundingSubtitles,

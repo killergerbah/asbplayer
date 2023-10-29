@@ -343,3 +343,7 @@ export function hexToRgb(hex: string): Rgb {
         b: parseInt(result[3], 16),
     };
 }
+
+export function sourceString(subtitleFileName: string, timestamp: number) {
+    return timestamp === 0 ? subtitleFileName : `${subtitleFileName} (${humanReadableTime(timestamp)})`;
+}

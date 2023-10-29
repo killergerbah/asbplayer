@@ -40,6 +40,34 @@ export interface AnkiSettings {
     readonly surroundingSubtitlesTimeRadius: number;
 }
 
+const ankiSettingsKeysObject: { [key in keyof AnkiSettings]: boolean } = {
+    ankiConnectUrl: true,
+    deck: true,
+    noteType: true,
+    sentenceField: true,
+    definitionField: true,
+    audioField: true,
+    imageField: true,
+    wordField: true,
+    sourceField: true,
+    urlField: true,
+    customAnkiFields: true,
+    tags: true,
+    preferMp3: true,
+    audioPaddingStart: true,
+    audioPaddingEnd: true,
+    maxImageWidth: true,
+    maxImageHeight: true,
+    surroundingSubtitlesCountRadius: true,
+    surroundingSubtitlesTimeRadius: true,
+};
+
+export const ankiSettingsKeys: (keyof AnkiSettings)[] = Object.keys(ankiSettingsKeysObject) as (keyof AnkiSettings)[];
+
+export const extractAnkiSettings = <T extends AnkiSettings>(settings: T): AnkiSettings => {
+    return Object.fromEntries(ankiSettingsKeys.map((k) => [k, settings[k]])) as unknown as AnkiSettings;
+};
+
 export interface CustomStyle {
     readonly key: string;
     readonly value: string;

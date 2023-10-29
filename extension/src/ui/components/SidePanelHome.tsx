@@ -1,9 +1,7 @@
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
-import { AsbPlayerToTabCommand, LoadSubtitlesMessage, VideoTabModel } from '@project/common';
 import { ChromeExtension } from '@project/common/app';
-import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import CenteredGridItem from './CenteredGridItem';
 import CenteredGridContainer from './CenteredGridContainer';
@@ -11,8 +9,8 @@ import SubtitlesIcon from '@material-ui/icons/Subtitles';
 
 interface Props {
     extension: ChromeExtension;
-    currentTabId: number;
     videoElementCount: number;
+    onLoadSubtitles: () => void;
 }
 
 const VideoElementInfoText = ({ videoElementCount }: { videoElementCount: number }) => {
@@ -26,24 +24,11 @@ const VideoElementInfoText = ({ videoElementCount }: { videoElementCount: number
     );
 };
 
-const SidePanelHome = ({ currentTabId, videoElementCount }: Props) => {
+const SidePanelHome = ({ videoElementCount, onLoadSubtitles }: Props) => {
     const { t } = useTranslation();
 
-    const handleLoadSubtitles = useCallback(() => {
-        if (currentTabId === undefined) {
-            return;
-        }
-
-        const message: AsbPlayerToTabCommand<LoadSubtitlesMessage> = {
-            sender: 'asbplayerv2',
-            message: { command: 'load-subtitles' },
-            tabId: currentTabId,
-        };
-        chrome.runtime.sendMessage(message);
-    }, [currentTabId]);
-
     return (
-        <CenteredGridContainer>
+        <CenteredGridContainer direction="column">
             <CenteredGridItem>
                 <VideoElementInfoText videoElementCount={videoElementCount} />
             </CenteredGridItem>
@@ -53,7 +38,7 @@ const SidePanelHome = ({ currentTabId, videoElementCount }: Props) => {
                     color="secondary"
                     startIcon={<SubtitlesIcon />}
                     disabled={videoElementCount === 0}
-                    onClick={handleLoadSubtitles}
+                    onClick={onLoadSubtitles}
                 >
                     {t('action.loadSubtitles')}
                 </Button>

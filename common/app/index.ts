@@ -12,3 +12,4 @@ export { default as FileRepository } from './src/services/file-repository';
 export { default as PlaybackPreferences } from './src/services/playback-preferences';
 
 export * from './src/hooks/use-chrome-extension';
+export * from './src/hooks/use-copy-history';

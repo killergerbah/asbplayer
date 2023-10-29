@@ -9,7 +9,6 @@ import {
     TakeScreenshotFromExtensionMessage,
     AnkiUiSavedState,
 } from '@project/common';
-import TabRegistry from '../../services/tab-registry';
 import { CardPublisher } from '../../services/card-publisher';
 
 export default class TakeScreenshotHandler {
@@ -61,6 +60,7 @@ export default class TakeScreenshotHandler {
                     subtitle: ankiUiState!.subtitle,
                     surroundingSubtitles: ankiUiState!.sliderContext.subtitles,
                     subtitleFileName: takeScreenshotCommand.message.subtitleFileName,
+                    mediaTimestamp: takeScreenshotCommand.message.mediaTimestamp,
                 },
                 sender.tab!.id!,
                 takeScreenshotCommand.src

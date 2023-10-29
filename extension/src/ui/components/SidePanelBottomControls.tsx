@@ -13,7 +13,7 @@ interface Props {
     onMineSubtitle: () => void;
 }
 
-const SidePanelControls = ({
+const SidePanelBottomControls = ({
     disabled,
     postMineAction,
     emptySubtitleTrack,
@@ -57,4 +57,4 @@ const SidePanelControls = ({
     );
 };
 
-export default SidePanelControls;
+export default SidePanelBottomControls;

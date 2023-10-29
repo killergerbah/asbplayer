@@ -9,6 +9,7 @@ import {
     PostMineAction,
     ScreenshotTakenMessage,
     ShowAnkiUiMessage,
+    sourceString,
     StartRecordingMediaMessage,
     SubtitleModel,
     updateLastCard,
@@ -72,10 +73,10 @@ export default class StartRecordingMediaHandler {
         if (!startRecordingCommand.message.record) {
             const subtitle: SubtitleModel = {
                 text: '',
-                start: startRecordingCommand.message.timestamp,
-                originalStart: startRecordingCommand.message.timestamp,
-                end: startRecordingCommand.message.timestamp,
-                originalEnd: startRecordingCommand.message.timestamp,
+                start: startRecordingCommand.message.mediaTimestamp,
+                originalStart: startRecordingCommand.message.mediaTimestamp,
+                end: startRecordingCommand.message.mediaTimestamp,
+                originalEnd: startRecordingCommand.message.mediaTimestamp,
                 track: 0,
             };
 
@@ -99,6 +100,7 @@ export default class StartRecordingMediaHandler {
                     image: imageModel,
                     url: startRecordingCommand.message.url,
                     subtitleFileName: startRecordingCommand.message.subtitleFileName,
+                    mediaTimestamp: startRecordingCommand.message.mediaTimestamp,
                 },
                 sender.tab!.id!,
                 startRecordingCommand.src
@@ -114,6 +116,8 @@ export default class StartRecordingMediaHandler {
                         surroundingSubtitles: [],
                         image: imageModel,
                         url: startRecordingCommand.message.url,
+                        subtitleFileName: startRecordingCommand.message.subtitleFileName,
+                        mediaTimestamp: startRecordingCommand.message.mediaTimestamp,
                     },
                     src: startRecordingCommand.src,
                 };
@@ -130,7 +134,10 @@ export default class StartRecordingMediaHandler {
                     [],
                     undefined,
                     imageModel,
-                    startRecordingCommand.message.sourceString,
+                    sourceString(
+                        startRecordingCommand.message.subtitleFileName,
+                        startRecordingCommand.message.mediaTimestamp
+                    ),
                     startRecordingCommand.message.url
                 );
 

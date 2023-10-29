@@ -23,24 +23,24 @@ import { CopyHistoryItem } from '@project/common';
 
 interface CopyHistoryProps {
     open: boolean;
-    drawerWidth: number;
+    drawerWidth?: number;
     items: CopyHistoryItem[];
     onClose: () => void;
     onDelete: (item: CopyHistoryItem) => void;
     onAnki: (item: CopyHistoryItem) => void;
-    onSelect: (item: CopyHistoryItem) => void;
+    onSelect?: (item: CopyHistoryItem) => void;
     onClipAudio: (item: CopyHistoryItem) => void;
     onDownloadImage: (item: CopyHistoryItem) => void;
-    onDownloadSectionAsSrt: (name: string, items: CopyHistoryItem[]) => void;
+    onDownloadSectionAsSrt?: (name: string, items: CopyHistoryItem[]) => void;
 }
 
 const useStyles = makeStyles<Theme, CopyHistoryProps, string>((theme) => ({
     drawer: {
-        width: ({ drawerWidth }) => drawerWidth,
+        width: ({ drawerWidth }) => drawerWidth ?? '100%',
         flexShrink: 0,
     },
     drawerPaper: {
-        width: ({ drawerWidth }) => drawerWidth,
+        width: ({ drawerWidth }) => drawerWidth ?? '100%',
     },
     drawerHeader: {
         display: 'flex',
@@ -96,7 +96,7 @@ interface MenuProps {
     item?: CopyHistoryItem;
     anchorEl?: Element;
     onClose: () => void;
-    onSelect: (item: CopyHistoryItem) => void;
+    onSelect?: (item: CopyHistoryItem) => void;
     onClipAudio: (item: CopyHistoryItem) => void;
     onDownloadImage: (item: CopyHistoryItem) => void;
     onDelete: (item: CopyHistoryItem) => void;
@@ -110,6 +110,10 @@ function Menu({ open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage,
     }, [item, onClose]);
 
     const handleJumpTo = useCallback(() => {
+        if (onSelect === undefined) {
+            return;
+        }
+
         onSelect(item!);
         onClose();
     }, [item, onSelect, onClose]);
@@ -152,9 +156,11 @@ function Menu({ open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage,
                 <ListItem button onClick={handleCopy}>
                     <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary={t('action.copy')} />
                 </ListItem>
-                <ListItem button onClick={handleJumpTo}>
-                    <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary={t('action.jumpTo')} />
-                </ListItem>
+                {onSelect && (
+                    <ListItem button onClick={handleJumpTo}>
+                        <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary={t('action.jumpTo')} />
+                    </ListItem>
+                )}
                 {(item.videoFile || item.audioFile || item.audio) && (
                     <ListItem button onClick={handleClipAudio}>
                         <ListItemText
@@ -237,16 +243,18 @@ export default function CopyHistory(props: CopyHistoryProps) {
                 items.push(
                     <ListItem key={key}>
                         <Typography color="textSecondary">{item.name}</Typography>
-                        <ListItemSecondaryAction>
-                            <Tooltip title={t('copyHistory.downloadMinedSubsAsSrt')!}>
-                                <IconButton
-                                    onClick={() => props.onDownloadSectionAsSrt(item.name, itemsBySection[key])}
-                                    edge="end"
-                                >
-                                    <SaveAltIcon />
-                                </IconButton>
-                            </Tooltip>
-                        </ListItemSecondaryAction>
+                        {props.onDownloadSectionAsSrt && (
+                            <ListItemSecondaryAction>
+                                <Tooltip title={t('copyHistory.downloadMinedSubsAsSrt')!}>
+                                    <IconButton
+                                        onClick={() => props.onDownloadSectionAsSrt?.(item.name, itemsBySection[key])}
+                                        edge="end"
+                                    >
+                                        <SaveAltIcon />
+                                    </IconButton>
+                                </Tooltip>
+                            </ListItemSecondaryAction>
+                        )}
                     </ListItem>
                 );
             }

@@ -20,7 +20,7 @@ export default class HttpPostHandler {
     constructor() {}
 
     get sender() {
-        return ['asbplayer-video', 'asbplayer-popup'];
+        return ['asbplayer-video', 'asbplayer-video-tab', 'asbplayer-popup'];
     }
 
     get command() {

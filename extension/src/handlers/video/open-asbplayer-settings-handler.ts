@@ -1,8 +1,8 @@
-import { Command, OpenAsbplayerSettingsMessage, ExtensionToAsbPlayerCommand, Message } from '@project/common';
+import { Command, Message } from '@project/common';
 
 export default class OpenAsbplayerSettingsHandler {
     get sender() {
-        return 'asbplayer-video';
+        return ['asbplayer-video', 'asbplayer-video-tab'];
     }
 
     get command() {

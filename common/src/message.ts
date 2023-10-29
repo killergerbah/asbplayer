@@ -76,7 +76,6 @@ export interface RecordMediaAndForwardSubtitleMessage extends Message, ImageCapt
     readonly subtitle: SubtitleModel;
     readonly surroundingSubtitles: SubtitleModel[];
     readonly url?: string;
-    readonly sourceString: string;
     readonly subtitleFileName: string;
     readonly record: boolean;
     readonly screenshot: boolean;
@@ -86,17 +85,17 @@ export interface RecordMediaAndForwardSubtitleMessage extends Message, ImageCapt
     readonly imageDelay: number;
     readonly playbackRate: number;
     readonly ankiSettings?: AnkiSettings;
+    readonly mediaTimestamp: number;
 }
 
 export interface StartRecordingMediaMessage extends Message, ImageCaptureParams {
     readonly command: 'start-recording-media';
     readonly record: boolean;
-    readonly timestamp: number;
+    readonly mediaTimestamp: number;
     readonly screenshot: boolean;
     readonly postMineAction: PostMineAction;
     readonly imageDelay: number;
     readonly url?: string;
-    readonly sourceString: string;
     readonly subtitleFileName: string;
     readonly ankiSettings?: AnkiSettings;
 }
@@ -110,7 +109,6 @@ export interface StopRecordingMediaMessage extends Message, ImageCaptureParams {
     readonly screenshot: boolean;
     readonly videoDuration: number;
     readonly url?: string;
-    readonly sourceString: string;
     readonly subtitleFileName: string;
     readonly ankiSettings?: AnkiSettings;
     readonly subtitle?: SubtitleModel;
@@ -128,9 +126,7 @@ export interface CopyMessage extends Message {
     readonly audio?: AudioModel;
 
     readonly postMineAction?: PostMineAction;
-
-    // asbplayer app only
-    readonly mediaTimestamp?: number;
+    readonly mediaTimestamp: number;
 }
 
 export interface CopyToVideoMessage extends Message {
@@ -151,6 +147,7 @@ export interface TakeScreenshotFromExtensionMessage extends Message, ImageCaptur
     readonly command: 'take-screenshot';
     readonly ankiUiState?: AnkiUiSavedState;
     readonly subtitleFileName?: string;
+    readonly mediaTimestamp: number;
 }
 
 export interface TakeScreenshotToVideoPlayerMessage extends Message {
@@ -180,6 +177,8 @@ export interface ShowAnkiUiMessage extends Message {
     readonly url?: string;
     readonly image?: ImageModel;
     readonly audio?: AudioModel;
+    readonly subtitleFileName: string;
+    readonly mediaTimestamp: number;
 }
 
 export interface RecordingStartedMessage extends Message {
@@ -198,7 +197,6 @@ export interface RerecordMediaMessage extends Message {
     readonly audioPaddingEnd: number;
     readonly playbackRate: number;
     readonly timestamp: number;
-    readonly sourceString: string;
     readonly subtitleFileName: string;
 }
 

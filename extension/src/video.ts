@@ -1,9 +1,11 @@
 import Binding from './services/binding';
 import { currentPageDelegate } from './services/pages';
 import VideoSelectController from './controllers/video-select-controller';
-import { CopyToClipboardMessage, CropAndResizeMessage } from '@project/common';
+import { CopyToClipboardMessage, CropAndResizeMessage, SettingsProvider, ShowAnkiUiMessage } from '@project/common';
 import { FrameInfoListener, fetchFrameId } from './services/frame-info';
 import { cropAndResize } from '@project/common/src/image-transformer';
+import { TabAnkiUiController } from './controllers/tab-anki-ui-controller';
+import { ExtensionSettingsStorage } from './services/extension-settings-storage';
 
 const iframesByFrameId: { [frameId: string]: HTMLIFrameElement } = {};
 
@@ -89,6 +91,7 @@ const bind = () => {
 
     const videoSelectController = new VideoSelectController(bindings);
     videoSelectController.bind();
+    const ankiUiController = new TabAnkiUiController(new SettingsProvider(new ExtensionSettingsStorage()));
 
     const messageListener = (
         request: any,
@@ -138,6 +141,22 @@ const bind = () => {
                     cropAndResizeMessage.dataUrl
                 ).then((dataUrl) => sendResponse({ dataUrl }));
                 return true;
+            case 'show-anki-ui':
+                if (request.src === undefined) {
+                    const { subtitle, surroundingSubtitles, url, image, audio, mediaTimestamp, subtitleFileName } =
+                        request.message as ShowAnkiUiMessage;
+                    // Message intended for the tab, and not a specific video binding
+                    ankiUiController.show({
+                        subtitle,
+                        surroundingSubtitles,
+                        url: url ?? '',
+                        image,
+                        audio,
+                        mediaTimestamp,
+                        subtitleFileName,
+                    });
+                }
+                break;
             default:
             // ignore
         }

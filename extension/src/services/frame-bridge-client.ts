@@ -1,7 +1,7 @@
-import { HttpPostMessage, VideoToExtensionCommand } from '@project/common';
+import { HttpPostMessage, TabToExtensionCommand, VideoToExtensionCommand } from '@project/common';
 
 export interface FetchOptions {
-    videoSrc: string;
+    videoSrc?: string;
     allowedFetchUrl?: string;
 }
 
@@ -109,15 +109,28 @@ export default class FrameBridgeClient {
                             return;
                         }
 
-                        const httpPostCommand: VideoToExtensionCommand<HttpPostMessage> = {
-                            sender: 'asbplayer-video',
-                            message: {
-                                command: 'http-post',
-                                url: message.url as string,
-                                body: message.body as any,
-                            },
-                            src: this.fetchOptions.videoSrc,
+                        let httpPostCommand:
+                            | VideoToExtensionCommand<HttpPostMessage>
+                            | TabToExtensionCommand<HttpPostMessage>;
+                        const httpPostMessage: HttpPostMessage = {
+                            command: 'http-post',
+                            url: message.url as string,
+                            body: message.body as any,
                         };
+
+                        if (this.fetchOptions.videoSrc === undefined) {
+                            httpPostCommand = {
+                                sender: 'asbplayer-video-tab',
+                                message: httpPostMessage,
+                            };
+                        } else {
+                            httpPostCommand = {
+                                sender: 'asbplayer-video',
+                                message: httpPostMessage,
+                                src: this.fetchOptions.videoSrc,
+                            };
+                        }
+
                         chrome.runtime.sendMessage(httpPostCommand, (postResponse) => {
                             const response = postResponse ? postResponse : { error: chrome.runtime.lastError?.message };
                             this.frame.contentWindow?.postMessage(

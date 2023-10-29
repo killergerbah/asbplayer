@@ -12,6 +12,7 @@ import {
     PostMineAction,
     RecordingFinishedMessage,
     ShowAnkiUiMessage,
+    sourceString,
     StopRecordingMediaMessage,
     SubtitleModel,
     updateLastCard,
@@ -102,6 +103,7 @@ export default class StopRecordingMediaHandler {
                     audio: audioModel,
                     url: stopRecordingCommand.message.url,
                     subtitleFileName: stopRecordingCommand.message.subtitleFileName,
+                    mediaTimestamp: stopRecordingCommand.message.startTimestamp,
                 },
                 sender.tab!.id!,
                 stopRecordingCommand.src
@@ -118,6 +120,8 @@ export default class StopRecordingMediaHandler {
                         image: imageModel,
                         audio: audioModel,
                         url: stopRecordingCommand.message.url,
+                        subtitleFileName: stopRecordingCommand.message.subtitleFileName,
+                        mediaTimestamp: stopRecordingCommand.message.startTimestamp,
                     },
                     src: stopRecordingCommand.src,
                 };
@@ -134,7 +138,10 @@ export default class StopRecordingMediaHandler {
                     surroundingSubtitles,
                     audioModel,
                     imageModel,
-                    stopRecordingCommand.message.sourceString,
+                    sourceString(
+                        stopRecordingCommand.message.subtitleFileName,
+                        stopRecordingCommand.message.startTimestamp
+                    ),
                     stopRecordingCommand.message.url
                 );
 

@@ -1,10 +1,10 @@
-import { Command, CopyToClipboardMessage, Message, VideoToExtensionCommand } from '@project/common';
+import { Command, Message } from '@project/common';
 
 export default class CopyToClipboardHandler {
     constructor() {}
 
     get sender() {
-        return 'asbplayer-video';
+        return ['asbplayer-video', 'asbplayer-video-tab'];
     }
 
     get command() {
@@ -18,13 +18,10 @@ export default class CopyToClipboardHandler {
             return;
         }
 
-        const videoToExtensionCommand = command as VideoToExtensionCommand<CopyToClipboardMessage>;
-
         // Publish this command back to the tab so that the topmost window (i.e. non-iframe) can write the data to clipboard
         const extensionToVideoCommand = {
             sender: 'asbplayer-extension-to-video',
-            message: videoToExtensionCommand.message,
-            src: videoToExtensionCommand.src,
+            message: command.message,
         };
         chrome.tabs.sendMessage(tabId, extensionToVideoCommand);
         return false;

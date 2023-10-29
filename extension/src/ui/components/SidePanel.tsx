@@ -1,15 +1,21 @@
 import {
+    AsbPlayerToTabCommand,
     AsbPlayerToVideoCommandV2,
     AsbplayerSettings,
+    AudioClip,
+    Image,
+    CopyHistoryItem,
     ExtensionToVideoCommand,
+    LoadSubtitlesMessage,
     MineSubtitleMessage,
     RequestSubtitlesMessage,
+    ShowAnkiUiMessage,
     SubtitleModel,
     VideoTabModel,
 } from '@project/common';
-import { AppKeyBinder, ChromeExtension, useI18n } from '@project/common/app';
+import { AppKeyBinder, ChromeExtension, useCopyHistory, useI18n } from '@project/common/app';
 import { SubtitleReader } from '@project/common/subtitle-reader';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Player } from '@project/common/app';
 import { PlaybackPreferences } from '@project/common/app';
 import { Color } from '@material-ui/lab';
@@ -25,8 +31,10 @@ import { useVideoElementCount } from '../hooks/use-video-element-count';
 import CenteredGridContainer from './CenteredGridContainer';
 import CenteredGridItem from './CenteredGridItem';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import SidePanelControls from './SidePanelControls';
+import SidePanelBottomControls from './SidePanelBottomControls';
 import SidePanelRecordingOverlay from './SidePanelRecordingOverlay';
+import SidePanelTopControls from './SidePanelTopControls';
+import CopyHistory from '@project/common/app/src/components/CopyHistory';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -176,6 +184,133 @@ export default function SidePanel({ settings, extension }: Props) {
         chrome.runtime.sendMessage(message);
     }, [syncedVideoTab]);
 
+    const handleLoadSubtitles = useCallback(() => {
+        if (currentTabId === undefined) {
+            return;
+        }
+
+        const message: AsbPlayerToTabCommand<LoadSubtitlesMessage> = {
+            sender: 'asbplayerv2',
+            message: { command: 'load-subtitles' },
+            tabId: currentTabId,
+        };
+        chrome.runtime.sendMessage(message);
+    }, [currentTabId]);
+
+    const topControlsRef = useRef<HTMLDivElement>(null);
+    const [showTopControls, setShowTopControls] = useState<boolean>(false);
+
+    const handleMouseMove = useCallback(
+        (e: React.MouseEvent<HTMLDivElement>) => {
+            const bounds = topControlsRef.current?.getBoundingClientRect();
+
+            if (!bounds) {
+                return;
+            }
+            const xDistance = Math.min(
+                Math.abs(e.clientX - bounds.left),
+                Math.abs(e.clientX - bounds.left - bounds.width)
+            );
+            const yDistance = Math.min(
+                Math.abs(e.clientY - bounds.top),
+                Math.abs(e.clientY - bounds.top - bounds.height)
+            );
+
+            if (!showTopControls && xDistance < 100 && yDistance < 100) {
+                setShowTopControls(true);
+            } else if (showTopControls && (xDistance >= 100 || yDistance >= 100)) {
+                setShowTopControls(false);
+            }
+        },
+        [showTopControls]
+    );
+
+    const { copyHistoryItems, refreshCopyHistory, deleteCopyHistoryItem } = useCopyHistory(
+        settings.miningHistoryStorageLimit
+    );
+    const [showCopyHistory, setShowCopyHistory] = useState<boolean>(false);
+    const handleShowCopyHistory = useCallback(async () => {
+        await refreshCopyHistory();
+        setShowCopyHistory(true);
+    }, [refreshCopyHistory]);
+    const handleCloseCopyHistory = useCallback(() => setShowCopyHistory(false), []);
+    const handleClipAudio = useCallback((item: CopyHistoryItem) => {
+        if (!item.audio) {
+            return;
+        }
+
+        const start = item.audio.start ?? item.start;
+        const end = item.audio.end ?? item.end;
+
+        const clip = AudioClip.fromBase64(
+            item.subtitleFileName!,
+            Math.max(0, start - (item.audio.paddingStart ?? 0)),
+            end + (item.audio.paddingEnd ?? 0),
+            item.audio.playbackRate ?? 1,
+            item.audio.base64,
+            item.audio.extension
+        );
+
+        if (settings.preferMp3) {
+            clip.toMp3().download();
+        } else {
+            clip.download();
+        }
+    }, []);
+    const handleDownloadImage = useCallback((item: CopyHistoryItem) => {
+        if (!item.image) {
+            return;
+        }
+
+        Image.fromBase64(item.subtitleFileName!, item.start, item.image.base64, item.image.extension).download();
+    }, []);
+    const handleAnki = useCallback(
+        ({
+            id,
+            surroundingSubtitles,
+            url,
+            image,
+            audio,
+            text,
+            textImage,
+            start,
+            end,
+            originalStart,
+            originalEnd,
+            track,
+            subtitleFileName,
+            mediaTimestamp,
+        }: CopyHistoryItem) => {
+            if (currentTabId === undefined) {
+                return;
+            }
+
+            const command: ExtensionToVideoCommand<ShowAnkiUiMessage> = {
+                sender: 'asbplayer-extension-to-video',
+                message: {
+                    command: 'show-anki-ui',
+                    id,
+                    image,
+                    audio,
+                    surroundingSubtitles,
+                    url,
+                    subtitle: {
+                        text,
+                        textImage,
+                        start,
+                        end,
+                        originalStart,
+                        originalEnd,
+                        track,
+                    },
+                    subtitleFileName: subtitleFileName ?? '',
+                    mediaTimestamp: mediaTimestamp ?? 0,
+                },
+            };
+            chrome.tabs.sendMessage(currentTabId, command);
+        },
+        [currentTabId]
+    );
     const noOp = useCallback(() => {}, []);
 
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
@@ -195,18 +330,27 @@ export default function SidePanel({ settings, extension }: Props) {
     }
 
     return (
-        <>
+        <div style={{ width: '100%', height: '100%' }} onMouseMove={handleMouseMove}>
             <Alert open={alertOpen} onClose={handleAlertClosed} autoHideDuration={3000} severity={alertSeverity}>
                 {alert}
             </Alert>
             {subtitles === undefined ? (
                 <SidePanelHome
-                    currentTabId={currentTabId}
                     extension={extension}
                     videoElementCount={videoElementCount}
+                    onLoadSubtitles={handleLoadSubtitles}
                 />
             ) : (
                 <>
+                    <CopyHistory
+                        open={showCopyHistory}
+                        items={copyHistoryItems}
+                        onClose={handleCloseCopyHistory}
+                        onDelete={deleteCopyHistoryItem}
+                        onAnki={handleAnki}
+                        onClipAudio={handleClipAudio}
+                        onDownloadImage={handleDownloadImage}
+                    />
                     <SidePanelRecordingOverlay show={recordingAudio} />
                     <Player
                         origin={`chrome-extension://${chrome.runtime.id}/side-panel.html`}
@@ -244,7 +388,13 @@ export default function SidePanel({ settings, extension }: Props) {
                         keyBinder={keyBinder}
                         ankiDialogOpen={false}
                     />
-                    <SidePanelControls
+                    <SidePanelTopControls
+                        ref={topControlsRef}
+                        show={showTopControls}
+                        onLoadSubtitles={handleLoadSubtitles}
+                        onShowMiningHistory={handleShowCopyHistory}
+                    />
+                    <SidePanelBottomControls
                         disabled={currentTabId !== syncedVideoTab?.id}
                         onMineSubtitle={handleMineSubtitle}
                         postMineAction={settings.streamingSidePanelDefaultPostMineAction}
@@ -254,6 +404,6 @@ export default function SidePanel({ settings, extension }: Props) {
                     />
                 </>
             )}
-        </>
+        </div>
     );
 }
