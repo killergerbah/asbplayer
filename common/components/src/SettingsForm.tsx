@@ -1263,6 +1263,11 @@ export default function SettingsForm({
                     {Object.keys(keyBindProperties).map((key) => {
                         const keyBindName = key as KeyBindName;
                         const properties = keyBindProperties[keyBindName];
+
+                        if (properties.hide) {
+                            return null;
+                        }
+
                         return (
                             <KeyBindField
                                 key={key}
