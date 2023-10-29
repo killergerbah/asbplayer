@@ -74,7 +74,7 @@ const defaults: AsbplayerSettings = {
     customAnkiFields: {},
     tags: [],
     imageBasedSubtitleScaleFactor: 1,
-    subtitleCustomStyles: [],
+    subtitleCustomStyles: [{ key: 'webkitFontSmoothing', value: 'antialiased' }],
     streamingDisplaySubtitles: true,
     streamingRecordMedia: true,
     streamingTakeScreenshot: true,
