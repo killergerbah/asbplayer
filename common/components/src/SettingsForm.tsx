@@ -188,9 +188,12 @@ function SelectableSetting({
     );
 }
 
+type AllKeyNames = KeyBindName | 'toggleRecording' | 'selectSubtitleTrack';
+
 interface KeyBindProperties {
     label: string;
     boundViaChrome: boolean;
+    hide?: boolean;
 }
 
 // hotkeys only returns strings for a Mac while requiring the OS-specific keys for the actual binds
@@ -539,7 +542,7 @@ export default function SettingsForm({
 }: Props) {
     const classes = useStyles();
     const { t } = useTranslation();
-    const keyBindProperties = useMemo<{ [key in KeyBindName]: KeyBindProperties }>(
+    const keyBindProperties = useMemo<{ [key in AllKeyNames]: KeyBindProperties }>(
         () => ({
             copySubtitle: { label: t('binds.copySubtitle')!, boundViaChrome: true },
             ankiExport: { label: t('binds.ankiExport')!, boundViaChrome: true },
@@ -550,6 +553,16 @@ export default function SettingsForm({
             takeScreenshot: {
                 label: t('binds.takeScreenshot')!,
                 boundViaChrome: true,
+            },
+            toggleRecording: {
+                label: t('binds.extensionToggleRecording')!,
+                boundViaChrome: true,
+                hide: !insideExtension,
+            },
+            selectSubtitleTrack: {
+                label: t('binds.extensionSelectSubtitleTrack')!,
+                boundViaChrome: true,
+                hide: !insideExtension,
             },
             togglePlay: { label: t('binds.togglePlay')!, boundViaChrome: false },
             toggleAutoPause: { label: t('binds.toggleAutoPause')!, boundViaChrome: false },
@@ -588,7 +601,7 @@ export default function SettingsForm({
             decreasePlaybackRate: { label: t('binds.decreasePlaybackRate')!, boundViaChrome: false },
             openSidePanel: { label: t('binds.openSidePanel')!, boundViaChrome: false },
         }),
-        [t]
+        [t, insideExtension]
     );
 
     const {

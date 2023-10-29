@@ -160,6 +160,8 @@ const keyBindNameMap: any = {
     'copy-subtitle-with-dialog': 'ankiExport',
     'update-last-card': 'updateLastCard',
     'take-screenshot': 'takeScreenshot',
+    'toggle-recording': 'toggleRecording',
+    'toggle-video-select': 'selectSubtitleTrack',
 };
 
 export function chromeCommandBindsToKeyBinds(chromeCommands: { [key: string]: string | undefined }) {
