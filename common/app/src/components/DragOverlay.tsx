@@ -1,18 +1,19 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 import Fade from '@material-ui/core/Fade';
-// import coloredBackground from './background-colored.png';
 import { Theme } from '@material-ui/core';
 
 interface StylesProps {
     dragging: boolean;
     appBarHidden: boolean;
+    logoUrl: string;
 }
 
 interface Props {
     dragging: boolean;
     appBarHidden: boolean;
     loading: boolean;
+    logoUrl: string;
 }
 
 const useStyles = makeStyles<Theme, StylesProps>((theme) => ({
@@ -23,7 +24,7 @@ const useStyles = makeStyles<Theme, StylesProps>((theme) => ({
         zIndex: 101,
         pointerEvents: dragging ? 'auto' : 'none',
     }),
-    transparentBackground: ({ appBarHidden }) => ({
+    transparentBackground: ({ appBarHidden, logoUrl }) => ({
         '&::before': {
             content: "' '",
             position: 'absolute',
@@ -37,7 +38,7 @@ const useStyles = makeStyles<Theme, StylesProps>((theme) => ({
             backgroundSize: '300px 300px',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
-            // backgroundImage: `url(${coloredBackground})`,
+            backgroundImage: `url(${logoUrl})`,
             backgroundBlendMode: 'overlay',
             background: 'rgba(0, 0, 0, .3)',
             filter: 'drop-shadow(10px 10px 10px rgb(0, 0, 0, .4))',
@@ -47,8 +48,8 @@ const useStyles = makeStyles<Theme, StylesProps>((theme) => ({
     }),
 }));
 
-export default function DragOverlay({ dragging, appBarHidden, loading }: Props) {
-    const classes = useStyles({ dragging, appBarHidden });
+export default function DragOverlay({ dragging, appBarHidden, loading, logoUrl }: Props) {
+    const classes = useStyles({ dragging, appBarHidden, logoUrl });
 
     return (
         <div className={classes.root}>

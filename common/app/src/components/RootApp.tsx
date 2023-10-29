@@ -1,14 +1,14 @@
 import { AsbplayerSettings, SettingsProvider, SettingsStorage } from '@project/common';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { App, ExtensionMessage, useChromeExtension } from '@project/common/app';
-import { i18n } from '@project/common/app/src/components/i18n';
 
 interface Props {
     origin: string;
+    logoUrl: string;
     settingsStorage: SettingsStorage;
 }
 
-const RootApp = ({ origin, settingsStorage }: Props) => {
+const RootApp = ({ origin, logoUrl, settingsStorage }: Props) => {
     const settingsProvider = useMemo(() => new SettingsProvider(settingsStorage), []);
     const [settings, setSettings] = useState<AsbplayerSettings>();
     const extension = useChromeExtension({ sidePanel: false });
@@ -42,7 +42,15 @@ const RootApp = ({ origin, settingsStorage }: Props) => {
         return null;
     }
 
-    return <App origin={origin} settings={settings} extension={extension} onSettingsChanged={handleSettingsChanged} />;
+    return (
+        <App
+            origin={origin}
+            logoUrl={logoUrl}
+            settings={settings}
+            extension={extension}
+            onSettingsChanged={handleSettingsChanged}
+        />
+    );
 };
 
 export default RootApp;

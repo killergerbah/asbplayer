@@ -289,12 +289,13 @@ function Content(props: ContentProps) {
 
 interface Props {
     origin: string;
+    logoUrl: string;
     settings: AsbplayerSettings;
     extension: ChromeExtension;
     onSettingsChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => void;
 }
 
-function App({ origin, settings, extension, onSettingsChanged }: Props) {
+function App({ origin, logoUrl, settings, extension, onSettingsChanged }: Props) {
     const { t } = useTranslation();
     const subtitleReader = useMemo<SubtitleReader>(() => {
         return new SubtitleReader({
@@ -1375,7 +1376,12 @@ function App({ origin, settings, extension, onSettingsChanged }: Props) {
                                         onFileSelector={handleFileSelector}
                                     />
                                 )}
-                                <DragOverlay dragging={dragging} appBarHidden={appBarHidden} loading={loading} />
+                                <DragOverlay
+                                    dragging={dragging}
+                                    appBarHidden={appBarHidden}
+                                    logoUrl={logoUrl}
+                                    loading={loading}
+                                />
                             </Paper>
                             <Player
                                 origin={origin}
