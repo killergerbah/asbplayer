@@ -501,14 +501,6 @@ type TabName =
     | 'keyboard-shortcuts'
     | 'streaming-video'
     | 'misc-settings';
-const tabIndicesById = {
-    'anki-settings': 0,
-    'mining-settings': 1,
-    'subtitle-appearance': 2,
-    'keyboard-shortcuts': 3,
-    'streaming-video': 4,
-    'misc-settings': 5,
-};
 
 interface Props {
     anki: Anki;
@@ -811,6 +803,23 @@ export default function SettingsForm({
             />
         );
     });
+
+    const tabIndicesById = useMemo(() => {
+        const tabs = [
+            'anki-settings',
+            'mining-settings',
+            'subtitle-appearance',
+            'keyboard-shortcuts',
+            'streaming-video',
+            'misc-settings',
+        ];
+
+        if (!insideExtension) {
+            tabs.splice(tabs.indexOf('streaming-video'), 1);
+        }
+
+        return Object.fromEntries(tabs.map((tab, i) => [tab, i]));
+    }, [insideExtension]);
 
     useEffect(() => {
         if (!scrollToId) {
