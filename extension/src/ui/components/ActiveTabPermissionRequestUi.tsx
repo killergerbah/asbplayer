@@ -6,7 +6,7 @@ import Bridge from '../bridge';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Button from '@material-ui/core/Button';
-import { ThemeProvider } from '@material-ui/core/styles';
+import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { PaletteType } from '@material-ui/core';
 import { createTheme } from '@project/common';

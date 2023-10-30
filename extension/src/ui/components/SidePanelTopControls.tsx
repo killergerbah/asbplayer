@@ -3,7 +3,7 @@ import ListIcon from '@material-ui/icons/List';
 import SubtitlesIcon from '@material-ui/icons/Subtitles';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
-import { Fade } from '@material-ui/core';
+import Fade from '@material-ui/core/Fade';
 import { ForwardedRef, useEffect, useState } from 'react';
 import React from 'react';
 

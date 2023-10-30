@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { useI18n } from './i18n';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { ThemeProvider, makeStyles, Theme } from '@material-ui/core/styles';
+import { makeStyles, Theme } from '@material-ui/core/styles';
+import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import { useWindowSize } from '../hooks/use-window-size';
 import {
     Anki,

@@ -10,7 +10,7 @@ import { PanelIcon, SettingsForm, useLocalFontFamilies } from '@project/common/c
 import LaunchIcon from '@material-ui/icons/Launch';
 import { useCallback, useMemo } from 'react';
 import { useI18n } from '@project/common/app';
-import { Button } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
 import { useTranslation } from 'react-i18next';
 import { Fetcher } from '@project/common/src/fetcher';
 

@@ -3,7 +3,7 @@ import SidePanel from './SidePanel';
 import { AsbplayerSettings, SettingsProvider, createTheme } from '@project/common';
 import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
 import { ExtensionMessage, useChromeExtension } from '@project/common/app';
-import { ThemeProvider } from '@material-ui/core/styles';
+import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Paper from '@material-ui/core/Paper';
 
