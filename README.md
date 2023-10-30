@@ -30,6 +30,7 @@ Thank you to all those who have translated asbplayer:
 -   Mana Tsutsumi (Japanese, initial translation)
 -   Kai Böse (German)
 -   Triline (Polish)
+-   NeverWinterSwor (Simplified Chinese)
 
 If you are a non-English native, and would like to help translate asbplayer, please contact me on [Discord](https://discord.gg/ad7VAQru7m).
 

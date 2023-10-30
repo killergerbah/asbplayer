@@ -13,4 +13,4 @@ export * from './src/theme';
 export { default as CopyHistoryRepository } from './src/copy-history-repository';
 export { default as AutoPauseContext } from './src/auto-pause-context';
 export { default as OffscreenDomCache } from './src/offscreen-dom-cache';
-export const supportedLanguages = ['en', 'ja', 'de', 'pl'];
+export const supportedLanguages = ['en', 'ja', 'de', 'pl', 'zh_CN'];

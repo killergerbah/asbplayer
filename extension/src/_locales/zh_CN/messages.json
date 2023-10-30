@@ -1,0 +1,29 @@
+{
+    "extensionDescription": {
+        "message": "将asbplayer与流媒体视频同步。"
+    },
+    "shortcutMineSubtitleAndOpenDialogDescription": {
+        "message": "挖掘当前字幕并打开Anki导出对话框。当视频在没有字幕文件的情况下同步时，开始/停止录制音频。"
+    },
+    "shortcutMineSubtitleDescription": {
+        "message": "挖掘当前字幕。当视频在没有字幕文件的情况下同步时，开始/停止录制音频。"
+    },
+    "shortcutSelectSubtitleTrackDescription": {
+        "message": "选择要加载的字幕轨道。"
+    },
+    "shortcutTakeScreenshotDescription": {
+        "message": "手动拍摄屏幕截图，覆盖挖掘时自动拍摄的屏幕截图。"
+    },
+    "shortcutToggleRecordingDescription": {
+        "message": "手动启动/停止音频录制，即使加载了字幕文件。"
+    },
+    "shortcutUpdateLastCardDescription": {
+        "message": "使用asbplayer捕获的媒体更新上次创建的Anki卡。当视频在没有字幕文件的情况下同步时，开始/停止录制音频。"
+    },
+    "contextMenuLoadSubtitles": {
+        "message": "加载字幕"
+    },
+    "contextMenuMineSubtitle": {
+        "message": "加载字幕"
+    }
+}
