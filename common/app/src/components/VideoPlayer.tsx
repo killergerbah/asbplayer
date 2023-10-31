@@ -18,6 +18,7 @@ import {
     computeStyles,
     computeStyleString,
     AsbplayerSettings,
+    OffscreenDomCache,
 } from '@project/common';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { DefaultKeyBinder } from '@project/common/key-binder';
@@ -188,6 +189,29 @@ const ShowingSubtitle = ({
 
     return <div>{content}</div>;
 };
+
+interface CachedShowingSubtitleProps {
+    index: number;
+    domCache: OffscreenDomCache;
+}
+
+const CachedShowingSubtitle = React.memo(({ index, domCache }: CachedShowingSubtitleProps) => {
+    return (
+        <div
+            ref={(ref) => {
+                if (!ref) {
+                    return;
+                }
+
+                while (ref.firstChild) {
+                    domCache.return(ref.lastChild! as HTMLElement);
+                }
+
+                ref.appendChild(domCache.get(String(index)));
+            }}
+        />
+    );
+});
 
 export interface SeekRequest {
     timestamp: number;
@@ -1181,22 +1205,7 @@ export default function VideoPlayer({
                     {showSubtitles.map((subtitle, index) => {
                         if (miscSettings.preCacheSubtitleDom) {
                             const domCache = getSubtitleDomCache();
-                            return (
-                                <div
-                                    key={index}
-                                    ref={(ref) => {
-                                        if (!ref) {
-                                            return;
-                                        }
-
-                                        while (ref.firstChild) {
-                                            domCache.return(ref.lastChild! as HTMLElement);
-                                        }
-
-                                        ref.appendChild(domCache.get(String(subtitle.index)));
-                                    }}
-                                />
-                            );
+                            return <CachedShowingSubtitle key={index} index={subtitle.index} domCache={domCache} />;
                         }
 
                         return (
