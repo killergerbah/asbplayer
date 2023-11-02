@@ -309,6 +309,11 @@ export default class KeyBindings {
             this._unbindAdjustPlaybackRate = false;
         }
 
+        if (this._unbindOpenSidePanel) {
+            this._unbindOpenSidePanel();
+            this._unbindOpenSidePanel = false;
+        }
+
         this._bound = false;
     }
 }
