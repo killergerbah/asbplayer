@@ -1,12 +1,6 @@
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
-import { renderPopupUi, SettingsChangedMessage } from './ui/popup';
-import {
-    AsbplayerSettings,
-    HttpPostMessage,
-    PopupToExtensionCommand,
-    SettingsProvider,
-    SettingsUpdatedMessage,
-} from '@project/common';
+import { renderPopupUi } from './ui/popup';
+import { SettingsProvider } from '@project/common';
 
 const fetchShortcuts = () => {
     return new Promise((resolve, reject) => {

@@ -21,24 +21,6 @@ interface Props {
     commands: any;
 }
 
-export interface SettingsChangedMessage<K extends keyof AsbplayerSettings> {
-    command: 'settings-changed';
-    key: K;
-    value: AsbplayerSettings[K];
-}
-
-export interface OpenExtensionShortcutsMessage {
-    command: 'open-extension-shortcuts';
-}
-
-export interface OpenAppMessage {
-    command: 'open-app';
-}
-
-export interface OpenSidePanelMessage {
-    command: 'open-side-panel';
-}
-
 export function PopupUi({ commands }: Props) {
     const settingsProvider = useMemo(() => new SettingsProvider(new ExtensionSettingsStorage()), []);
     const [settings, setSettings] = useState<AsbplayerSettings>();

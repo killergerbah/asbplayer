@@ -488,3 +488,7 @@ export interface RequestingActiveTabPermsisionMessage extends Message {
 export interface GrantedActiveTabPermissionMessage extends Message {
     readonly command: 'granted-active-tab-permission';
 }
+
+export interface OpenSidePanelMessage extends Message {
+    readonly command: 'open-side-panel';
+}
