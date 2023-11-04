@@ -170,7 +170,8 @@ export interface VideoTabModel {
     id: number; // Actually the tab ID
     title?: string;
     src: string; // Video src
-    synced: boolean;
+    subscribed: boolean; // Whether the video element is subscribed to extension messages
+    synced: boolean; // Whether the video element has received subtitles
     syncedTimestamp?: number;
 }
 

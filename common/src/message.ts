@@ -19,6 +19,7 @@ export interface ActiveVideoElement {
     id: number;
     title?: string;
     src: string;
+    subscribed: boolean;
     synced: boolean;
     syncedTimestamp?: number;
 }
@@ -46,6 +47,7 @@ export interface AckTabsMessage extends Message {
 
 export interface VideoHeartbeatMessage extends Message {
     readonly command: 'heartbeat';
+    readonly subscribed: boolean;
     readonly synced: boolean;
     readonly syncedTimestamp?: number;
 }

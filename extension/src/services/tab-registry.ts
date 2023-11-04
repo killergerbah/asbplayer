@@ -4,7 +4,6 @@ import {
     ExtensionToAsbPlayerCommandTabsCommand,
     ExtensionToVideoCommand,
     Message,
-    SettingsProvider,
     VideoTabModel,
 } from '@project/common';
 
@@ -27,6 +26,7 @@ export interface VideoElement {
     src: string;
     tab: SlimTab;
     timestamp: number;
+    subscribed: boolean;
     synced: boolean;
     syncedTimestamp?: number;
 }
@@ -216,6 +216,7 @@ export default class TabRegistry {
                     id: videoElement.tab.id,
                     title: videoElement.tab.title,
                     src: videoElement.src,
+                    subscribed: videoElement.subscribed,
                     synced: videoElement.synced,
                     syncedTimestamp: videoElement.syncedTimestamp,
                 };
@@ -226,7 +227,13 @@ export default class TabRegistry {
         return activeVideoElements;
     }
 
-    async onVideoElementHeartbeat(tab: chrome.tabs.Tab, src: string, synced: boolean, syncedTimestamp?: number) {
+    async onVideoElementHeartbeat(
+        tab: chrome.tabs.Tab,
+        src: string,
+        subscribed: boolean,
+        synced: boolean,
+        syncedTimestamp?: number
+    ) {
         if (tab.id === undefined) {
             return;
         }
@@ -241,6 +248,7 @@ export default class TabRegistry {
                     url: tab.url ?? '',
                 },
                 src,
+                subscribed,
                 timestamp: Date.now(),
                 synced,
                 syncedTimestamp,
