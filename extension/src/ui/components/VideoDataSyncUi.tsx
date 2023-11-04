@@ -6,7 +6,9 @@ import VideoDataSyncDialog from './VideoDataSyncDialog';
 import Bridge from '../bridge';
 import {
     ConfirmedVideoDataSubtitleTrack,
+    Message,
     SerializedSubtitleFile,
+    UpdateStateMessage,
     VideoDataSubtitleTrack,
     VideoDataUiBridgeConfirmMessage,
     VideoDataUiBridgeOpenFileMessage,
@@ -39,19 +41,25 @@ export default function VideoDataSyncUi({ bridge }: Props) {
 
     const handleCancel = useCallback(() => {
         setOpen(false);
-        bridge.sendServerMessage({ command: 'cancel' });
+        bridge.sendMessageFromServer({ command: 'cancel' });
     }, [bridge]);
     const handleConfirm = useCallback(
         (data: ConfirmedVideoDataSubtitleTrack) => {
             setOpen(false);
             const message: VideoDataUiBridgeConfirmMessage = { command: 'confirm', data };
-            bridge.sendServerMessage(message);
+            bridge.sendMessageFromServer(message);
         },
         [bridge]
     );
 
     useEffect(() => {
-        bridge.onStateUpdated((state) => {
+        bridge.addClientMessageListener((message: Message) => {
+            if (message.command !== 'updateState') {
+                return;
+            }
+
+            const state = (message as UpdateStateMessage).state;
+
             if (Object.prototype.hasOwnProperty.call(state, 'open')) {
                 setOpen(state.open);
             }
@@ -120,7 +128,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
 
                 setOpen(false);
                 const message: VideoDataUiBridgeOpenFileMessage = { command: 'openFile', subtitles };
-                bridge.sendServerMessage(message);
+                bridge.sendMessageFromServer(message);
             } finally {
                 setDisabled(false);
             }

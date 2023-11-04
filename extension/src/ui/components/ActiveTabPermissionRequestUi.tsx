@@ -9,7 +9,7 @@ import Button from '@material-ui/core/Button';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { PaletteType } from '@material-ui/core';
-import { createTheme } from '@project/common';
+import { Message, UpdateStateMessage, createTheme } from '@project/common';
 
 interface Props {
     bridge: Bridge;
@@ -18,13 +18,19 @@ interface Props {
 const ActiveTabPermissionRequestUi = ({ bridge }: Props) => {
     const { t } = useTranslation();
     const handleClose = useCallback(() => {
-        bridge.sendServerMessage({
+        bridge.sendMessageFromServer({
             command: 'close',
         });
         setPermissionGranted(false);
     }, [bridge]);
     useEffect(() => {
-        bridge.onStateUpdated((state) => {
+        bridge.addClientMessageListener((message: Message) => {
+            if (message.command !== 'updateState') {
+                return;
+            }
+
+            const state = (message as UpdateStateMessage).state;
+
             if (state.themeType !== undefined) {
                 setThemeType(state.themeType);
             }

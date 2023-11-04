@@ -1,4 +1,4 @@
-import { AnkiSettings, MiscSettings, SharedGlobalSettings, SubtitleSettings } from './settings';
+import { AnkiSettings, AsbplayerSettings, MiscSettings, SharedGlobalSettings, SubtitleSettings } from './settings';
 import {
     RectModel,
     SubtitleModel,
@@ -13,6 +13,10 @@ import {
 
 export interface Message {
     readonly command: string;
+}
+
+export interface MessageWithId extends Message {
+    readonly messageId: string;
 }
 
 export interface ActiveVideoElement {
@@ -56,8 +60,9 @@ export interface VideoDisappearedMessage extends Message {
     readonly command: 'video-disappeared';
 }
 
-export interface HttpPostMessage extends Message {
+export interface HttpPostMessage extends MessageWithId {
     readonly command: 'http-post';
+    readonly messageId: string;
     readonly url: string;
     readonly body: any;
 }
@@ -493,4 +498,9 @@ export interface GrantedActiveTabPermissionMessage extends Message {
 
 export interface OpenSidePanelMessage extends Message {
     readonly command: 'open-side-panel';
+}
+
+export interface UpdateStateMessage extends Message {
+    readonly command: 'updateState';
+    readonly state: any;
 }

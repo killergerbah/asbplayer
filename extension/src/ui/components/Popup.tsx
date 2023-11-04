@@ -31,6 +31,7 @@ class ExtensionFetcher implements Fetcher {
                 command: 'http-post',
                 url,
                 body,
+                messageId: '',
             },
         };
         return chrome.runtime.sendMessage(httpPostCommand);

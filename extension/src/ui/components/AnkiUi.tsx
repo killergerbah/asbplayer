@@ -17,6 +17,10 @@ import {
     AnkiUiBridgeRewindMessage,
     CopyToClipboardMessage,
     createTheme,
+    HttpPostMessage,
+    AnkiSettingsToVideoMessage,
+    Message,
+    UpdateStateMessage,
 } from '@project/common';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import Alert, { Color } from '@material-ui/lab/Alert';
@@ -27,6 +31,7 @@ import Bridge from '../bridge';
 import { PaletteType } from '@material-ui/core';
 import { AnkiExportMode } from '@project/common/src/anki';
 import { AnkiDialogState } from '@project/common/components';
+import { v4 as uuidv4 } from 'uuid';
 
 interface Props {
     bridge: Bridge;
@@ -42,6 +47,23 @@ const blobToDataUrl = async (blob: Blob): Promise<string> => {
         reader.readAsDataURL(blob);
     });
 };
+
+class BridgeFetcher {
+    private readonly _bridge: Bridge;
+    constructor(bridge: Bridge) {
+        this._bridge = bridge;
+    }
+
+    async fetch(url: string, body: any) {
+        const httpPostMessage: HttpPostMessage = {
+            command: 'http-post',
+            url,
+            body,
+            messageId: uuidv4(),
+        };
+        return await this._bridge.sendMessageFromServerAndExpectResponse(httpPostMessage);
+    }
+}
 
 export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
     const [open, setOpen] = useState<boolean>(false);
@@ -73,7 +95,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
 
     const theme = useMemo(() => createTheme(themeType as PaletteType), [themeType]);
     const anki = useMemo(
-        () => (settingsProvider ? new Anki(settingsProvider, bridge) : undefined),
+        () => (settingsProvider ? new Anki(settingsProvider, new BridgeFetcher(bridge)) : undefined),
         [settingsProvider, bridge]
     );
     const dialogStateRef = useRef<AnkiDialogState>();
@@ -102,7 +124,12 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
     }, [subtitle, serializedImage, serializedAudio, dialogRequestedTimestamp]);
 
     useEffect(() => {
-        return bridge.onStateUpdated((s: AnkiUiState) => {
+        return bridge.addClientMessageListener((message: Message) => {
+            if (message.command !== 'updateState') {
+                return;
+            }
+
+            const s = (message as UpdateStateMessage).state as AnkiUiState;
             let audioClip;
 
             if (s.audio) {
@@ -232,7 +259,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                         uiState: savedState(),
                         cardExported: true,
                     };
-                    bridge.sendServerMessage(message);
+                    bridge.sendMessageFromServer(message);
                 }
             } catch (e) {
                 console.error(e);
@@ -256,14 +283,14 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
         setOpen(false);
         setImageDialogOpen(false);
         const message: AnkiUiBridgeResumeMessage = { command: 'resume', uiState: savedState(), cardExported: false };
-        bridge.sendServerMessage(message);
+        bridge.sendMessageFromServer(message);
     }, [bridge, savedState]);
 
     const handleRewind = useCallback(() => {
         setOpen(false);
         setImageDialogOpen(false);
         const message: AnkiUiBridgeRewindMessage = { command: 'rewind', uiState: savedState() };
-        bridge.sendServerMessage(message);
+        bridge.sendMessageFromServer(message);
     }, [bridge, savedState]);
 
     const handleViewImage = useCallback((image: Image) => {
@@ -283,11 +310,11 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             recordEnd: state.timestampInterval![1],
         };
 
-        bridge.sendServerMessage(message);
+        bridge.sendMessageFromServer(message);
     }, [bridge, savedState]);
 
     const handleOpenSettings = useCallback(() => {
-        bridge.sendServerMessage({ command: 'openSettings' });
+        bridge.sendMessageFromServer({ command: 'openSettings' });
     }, [bridge]);
 
     const lastFocusOutRef = useRef<HTMLElement>();
@@ -300,15 +327,15 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
 
     const handleCopyToClipboard = useCallback(async (blob: Blob) => {
         const message: CopyToClipboardMessage = { command: 'copy-to-clipboard', dataUrl: await blobToDataUrl(blob) };
-        bridge.sendServerMessage(message);
+        bridge.sendMessageFromServer(message);
     }, []);
 
     useEffect(() => {
-        return bridge.onClientMessage((message) => {
+        return bridge.addClientMessageListener((message) => {
             if (message.command === 'focus') {
                 lastFocusOutRef.current?.focus();
             } else if (message.command === 'ankiSettings') {
-                setSettingsProvider(message.value);
+                setSettingsProvider((message as AnkiSettingsToVideoMessage).value);
             } else if (message.command === 'rewind') {
                 handleRewind();
             }
