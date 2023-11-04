@@ -1,4 +1,4 @@
-import { HttpPostMessage, TabToExtensionCommand, VideoToExtensionCommand } from '@project/common';
+import { HttpPostMessage, Message, TabToExtensionCommand, VideoToExtensionCommand } from '@project/common';
 
 export interface FetchOptions {
     videoSrc?: string;
@@ -47,9 +47,9 @@ export default class FrameBridgeClient {
         );
     }
 
-    sendClientMessage(message: any) {
+    sendMessage(message: any) {
         if (!this.frameId) {
-            throw new Error('Attempted to update state when frame is not ready');
+            throw new Error('Attempted to send message when frame is not ready');
         }
 
         this.frame.contentWindow?.postMessage(
@@ -65,7 +65,7 @@ export default class FrameBridgeClient {
         );
     }
 
-    onServerMessage(listener: (message: any) => void) {
+    onMessage(listener: (message: Message) => void) {
         this.serverMessageListener = listener;
     }
 

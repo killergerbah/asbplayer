@@ -3,20 +3,20 @@ import Bridge from '../ui/bridge';
 import { Message } from '@project/common';
 
 export default class FrameBridgeServer {
-    private readonly bridge: Bridge;
-    private readonly fetches: { [key: string]: (response: any) => void };
-    private frameId?: string;
-    private windowMessageListener?: (event: MessageEvent) => void;
+    private readonly _bridge: Bridge;
+    private _frameId?: string;
+    private _windowMessageListener?: (event: MessageEvent) => void;
+    private _unbindServerListener?: () => void;
 
     constructor(bridge: Bridge) {
-        this.bridge = bridge;
-        this.fetches = {};
+        this._bridge = bridge;
     }
 
     bind() {
-        this.frameId = uuidv4();
-        this.windowMessageListener = (event) => {
-            if (event.data.sender !== 'asbplayer-video' || event.data.message.frameId !== this.frameId) {
+        this.unbind();
+        this._frameId = uuidv4();
+        this._windowMessageListener = (event) => {
+            if (event.data.sender !== 'asbplayer-video' || event.data.message.frameId !== this._frameId) {
                 return;
             }
 
@@ -26,20 +26,20 @@ export default class FrameBridgeServer {
 
             switch (event.data.message.command) {
                 case 'sendClientMessage':
-                    this.bridge.sendMessageFromClient(event.data.message.message);
+                    this._bridge.sendMessageFromClient(event.data.message.message);
                     break;
             }
         };
-        this.bridge.addServerMessageListener((message: Message) => {
+        this._unbindServerListener = this._bridge.addServerMessageListener((message: Message) => {
             this._postMessage({
                 command: 'onServerMessage',
                 message: message,
             });
         });
-        window.addEventListener('message', this.windowMessageListener);
+        window.addEventListener('message', this._windowMessageListener);
         this._postMessage({
             command: 'ready',
-            frameId: this.frameId,
+            frameId: this._frameId,
         });
     }
 
@@ -54,10 +54,10 @@ export default class FrameBridgeServer {
     }
 
     unbind() {
-        if (this.windowMessageListener) {
-            window.removeEventListener('message', this.windowMessageListener);
+        if (this._windowMessageListener) {
+            window.removeEventListener('message', this._windowMessageListener);
         }
 
-        this.bridge.unbind();
+        this._unbindServerListener?.();
     }
 }

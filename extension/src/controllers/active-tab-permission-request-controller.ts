@@ -38,7 +38,7 @@ export default class ActiveTabPermissionRequestController {
         this._client = await this._frame.client();
 
         if (isNewClient) {
-            this._client.onServerMessage((message) => {
+            this._client.onMessage((message) => {
                 if (message.command === 'close') {
                     this._frame.hide();
                     this._notifyRequesting(false);

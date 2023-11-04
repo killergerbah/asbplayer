@@ -4,6 +4,9 @@ import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 import { LocalSettingsStorage } from './local-settings-storage';
 import { RootApp } from '@project/common/app';
+import { HttpFetcher } from '@project/common';
+
+const fetcher = new HttpFetcher();
 
 createRoot(document.querySelector('#root')!).render(
     <BrowserRouter basename={process.env.PUBLIC_URL}>
@@ -11,6 +14,7 @@ createRoot(document.querySelector('#root')!).render(
             origin={process.env.PUBLIC_URL}
             logoUrl={`${process.env.PUBLIC_URL}/background-colored.png`}
             settingsStorage={new LocalSettingsStorage()}
+            fetcher={fetcher}
         />
     </BrowserRouter>
 );

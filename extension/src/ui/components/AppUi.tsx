@@ -1,17 +1,32 @@
 import { BrowserRouter } from 'react-router-dom';
-import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
 import { RootApp } from '@project/common/app';
+import Bridge from '../bridge';
+import { useMemo } from 'react';
+import { BridgeSettingsStorage } from '../bridge-settings-storage';
+import { BridgeFetcher } from '../bridge-fetcher';
+import { Rnd } from 'react-rnd';
 
-const settingsStorage = new ExtensionSettingsStorage();
-
-export const AppUi = () => {
+interface Props {
+    bridge: Bridge;
+    logoUrl: string;
+}
+export const AppUi = ({ bridge, logoUrl }: Props) => {
+    const settingsStorage = useMemo(() => new BridgeSettingsStorage(bridge), [bridge]);
+    const fetcher = useMemo(() => new BridgeFetcher(bridge), [bridge]);
+    // TODO: Adjust dimensions, clean up dragging/resizing UX
+    // TODO: Deal with 'origin' property and video file loading
     return (
-        <BrowserRouter>
-            <RootApp
-                origin={chrome.runtime.getURL('app-ui.html')}
-                logoUrl={chrome.runtime.getURL('assets/image.png')}
-                settingsStorage={settingsStorage}
-            />
-        </BrowserRouter>
+        <Rnd
+            default={{
+                x: 0,
+                y: 0,
+                width: 320,
+                height: 200,
+            }}
+        >
+            <BrowserRouter>
+                <RootApp origin={'about:blank'} logoUrl={logoUrl} settingsStorage={settingsStorage} fetcher={fetcher} />
+            </BrowserRouter>
+        </Rnd>
     );
 };

@@ -17,7 +17,6 @@ import {
     AnkiUiBridgeRewindMessage,
     CopyToClipboardMessage,
     createTheme,
-    HttpPostMessage,
     AnkiSettingsToVideoMessage,
     Message,
     UpdateStateMessage,
@@ -31,7 +30,7 @@ import Bridge from '../bridge';
 import { PaletteType } from '@material-ui/core';
 import { AnkiExportMode } from '@project/common/src/anki';
 import { AnkiDialogState } from '@project/common/components';
-import { v4 as uuidv4 } from 'uuid';
+import { BridgeFetcher } from '../bridge-fetcher';
 
 interface Props {
     bridge: Bridge;
@@ -47,23 +46,6 @@ const blobToDataUrl = async (blob: Blob): Promise<string> => {
         reader.readAsDataURL(blob);
     });
 };
-
-class BridgeFetcher {
-    private readonly _bridge: Bridge;
-    constructor(bridge: Bridge) {
-        this._bridge = bridge;
-    }
-
-    async fetch(url: string, body: any) {
-        const httpPostMessage: HttpPostMessage = {
-            command: 'http-post',
-            url,
-            body,
-            messageId: uuidv4(),
-        };
-        return await this._bridge.sendMessageFromServerAndExpectResponse(httpPostMessage);
-    }
-}
 
 export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
     const [open, setOpen] = useState<boolean>(false);

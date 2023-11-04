@@ -98,7 +98,8 @@
                 "mp3-encoder-worker.worker.js",
                 "video-data-sync-ui.js",
                 "video-select-ui.js",
-                "active-tab-permission-request.js"
+                "active-tab-permission-request.js",
+                "app-ui.js"
             ],
             "matches": ["<all_urls>"]
         }

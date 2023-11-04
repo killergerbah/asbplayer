@@ -10,6 +10,7 @@ import {
     PostMineAction,
     PlayMode,
 } from './model';
+import { AsbPlayerToVideoCommandV2 } from './command';
 
 export interface Message {
     readonly command: string;
@@ -500,7 +501,26 @@ export interface OpenSidePanelMessage extends Message {
     readonly command: 'open-side-panel';
 }
 
+export interface GetSettingsMessage extends MessageWithId {
+    readonly command: 'get-settings';
+    readonly keysAndDefaults: Partial<AsbplayerSettings>;
+}
+
+export interface SetSettingsMessage extends MessageWithId {
+    readonly command: 'set-settings';
+    readonly settings: Partial<AsbplayerSettings>;
+}
+
+export interface ForwardCommandMessage extends Message {
+    readonly command: 'forward-command';
+    readonly commandToForward: AsbPlayerToVideoCommandV2<Message>;
+}
+
 export interface UpdateStateMessage extends Message {
     readonly command: 'updateState';
     readonly state: any;
+}
+
+export interface ShowAppUiMessage extends Message {
+    readonly command: 'show-app-ui';
 }

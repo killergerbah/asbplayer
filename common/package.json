@@ -5,6 +5,7 @@
   "dependencies": {
     "@flatten-js/interval-tree": "^1.0.19",
     "hotkeys-js": "^3.10.0",
+    "react-rnd": "^10.4.1",
     "sanitize-filename": "^1.6.3"
   },
   "devDependencies": {

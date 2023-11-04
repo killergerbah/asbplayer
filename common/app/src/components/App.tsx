@@ -23,6 +23,7 @@ import {
     extractText,
     createTheme,
     CopyHistoryItem,
+    Fetcher,
 } from '@project/common';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { v4 as uuidv4 } from 'uuid';
@@ -293,10 +294,11 @@ interface Props {
     logoUrl: string;
     settings: AsbplayerSettings;
     extension: ChromeExtension;
+    fetcher: Fetcher;
     onSettingsChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => void;
 }
 
-function App({ origin, logoUrl, settings, extension, onSettingsChanged }: Props) {
+function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged }: Props) {
     const { t } = useTranslation();
     const subtitleReader = useMemo<SubtitleReader>(() => {
         return new SubtitleReader({
@@ -307,7 +309,7 @@ function App({ origin, logoUrl, settings, extension, onSettingsChanged }: Props)
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>([]);
     const playbackPreferences = useMemo<PlaybackPreferences>(() => new PlaybackPreferences(settings), [settings]);
     const theme = useMemo<Theme>(() => createTheme(settings.themeType), [settings.themeType]);
-    const anki = useMemo<Anki>(() => new Anki(settings), [settings]);
+    const anki = useMemo<Anki>(() => new Anki(settings, fetcher), [settings, fetcher]);
     const location = useLocation();
     const [searchParams] = useSearchParams();
 
