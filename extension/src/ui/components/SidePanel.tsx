@@ -334,23 +334,24 @@ export default function SidePanel({ settings, extension }: Props) {
             <Alert open={alertOpen} onClose={handleAlertClosed} autoHideDuration={3000} severity={alertSeverity}>
                 {alert}
             </Alert>
+            <CopyHistory
+                open={showCopyHistory}
+                items={copyHistoryItems}
+                onClose={handleCloseCopyHistory}
+                onDelete={deleteCopyHistoryItem}
+                onAnki={handleAnki}
+                onClipAudio={handleClipAudio}
+                onDownloadImage={handleDownloadImage}
+            />
             {subtitles === undefined ? (
                 <SidePanelHome
                     extension={extension}
                     videoElementCount={videoElementCount}
                     onLoadSubtitles={handleLoadSubtitles}
+                    onShowMiningHistory={handleShowCopyHistory}
                 />
             ) : (
                 <>
-                    <CopyHistory
-                        open={showCopyHistory}
-                        items={copyHistoryItems}
-                        onClose={handleCloseCopyHistory}
-                        onDelete={deleteCopyHistoryItem}
-                        onAnki={handleAnki}
-                        onClipAudio={handleClipAudio}
-                        onDownloadImage={handleDownloadImage}
-                    />
                     <SidePanelRecordingOverlay show={recordingAudio} />
                     <Player
                         origin={`chrome-extension://${chrome.runtime.id}/side-panel.html`}
