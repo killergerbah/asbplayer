@@ -512,7 +512,7 @@ interface ControlsProps {
     onUnloadVideo?: () => void;
     onOffsetChange: (offset: number) => void;
     onPlaybackRateChange: (playbackRate: number) => void;
-    onVolumeChange: (volume: number) => void;
+    onVolumeChange?: (volume: number) => void;
     disableKeyEvents?: boolean;
     playbackPreferences: PlaybackPreferences;
     closeEnabled?: boolean;
@@ -652,7 +652,7 @@ export default function Controls({
     useEffect(() => {
         const savedVolume = Number(playbackPreferences.volume);
         setVolume(savedVolume);
-        onVolumeChange(savedVolume / 100);
+        onVolumeChange?.(savedVolume / 100);
 
         if (savedVolume > 0) {
             setLastCommittedVolume(savedVolume);
@@ -901,7 +901,7 @@ export default function Controls({
             }
 
             setVolume(value);
-            onVolumeChange(value / 100);
+            onVolumeChange?.(value / 100);
         },
         [onVolumeChange]
     );
@@ -924,7 +924,7 @@ export default function Controls({
     const handleVolumeToggle = useCallback(() => {
         setVolume((volume) => {
             const newVolume = volume > 0 ? 0 : lastCommittedVolume;
-            onVolumeChange(newVolume / 100);
+            onVolumeChange?.(newVolume / 100);
             return newVolume;
         });
     }, [onVolumeChange, lastCommittedVolume]);

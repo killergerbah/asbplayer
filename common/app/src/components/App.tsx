@@ -23,7 +23,6 @@ import {
     createTheme,
     CopyHistoryItem,
     Fetcher,
-    ShowAnkiUiMessage,
 } from '@project/common';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { v4 as uuidv4 } from 'uuid';
@@ -113,10 +112,10 @@ function extractSources(files: FileList | File[]): MediaSources {
             case 'ogg':
             case 'wav':
             case 'opus':
-                if (audioFile) {
+                if (videoFile) {
                     throw new LocalizedError('error.onlyOneAudioFile');
                 }
-                audioFile = f;
+                videoFile = f;
                 break;
             default:
                 throw new LocalizedError('error.unsupportedExtension', { extension });
@@ -127,7 +126,7 @@ function extractSources(files: FileList | File[]): MediaSources {
         throw new LocalizedError('error.bothAudioAndVideNotAllowed');
     }
 
-    return { subtitleFiles: subtitleFiles, audioFile: audioFile, videoFile: videoFile };
+    return { subtitleFiles: subtitleFiles, videoFile: videoFile };
 }
 
 function audioClipFromItem(
@@ -229,10 +228,6 @@ function itemSliderContext(item: CopyHistoryItem) {
 }
 
 function revokeUrls(sources: MediaSources) {
-    if (sources.audioFileUrl) {
-        URL.revokeObjectURL(sources.audioFileUrl);
-    }
-
     if (sources.videoFileUrl) {
         URL.revokeObjectURL(sources.videoFileUrl);
     }
@@ -530,7 +525,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         async (
             subtitle: SubtitleModel,
             surroundingSubtitles: SubtitleModel[],
-            audioFile: File | undefined,
             videoFile: File | undefined,
             subtitleFile: File | undefined,
             mediaTimestamp: number | undefined,
@@ -547,29 +541,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
             }
 
             if (extension.installed) {
-                if (audio === undefined && audioFile !== undefined) {
-                    let audioClip = await AudioClip.fromFile(
-                        audioFile,
-                        Math.max(0, subtitle.start - settings.audioPaddingStart),
-                        Math.min(subtitle.end + settings.audioPaddingEnd),
-                        filePlaybackRate ?? 1,
-                        audioTrack
-                    );
-
-                    if (settings.preferMp3) {
-                        audioClip = audioClip.toMp3();
-                    }
-                    const base64 = await audioClip.base64();
-                    audio = {
-                        base64,
-                        extension: audioClip.extension as 'mp3' | 'webm',
-                        start: subtitle.start,
-                        end: subtitle.end,
-                        paddingStart: 0,
-                        paddingEnd: 0,
-                        playbackRate: filePlaybackRate,
-                    };
-                }
                 extension.publishCard({
                     id,
                     subtitle,
@@ -587,9 +558,8 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     surroundingSubtitles: surroundingSubtitles,
                     timestamp: Date.now(),
                     id: id || uuidv4(),
-                    name: fileName ?? subtitleFile?.name ?? videoFile?.name ?? audioFile?.name ?? '',
+                    name: fileName ?? subtitleFile?.name ?? videoFile?.name ?? '',
                     subtitleFileName: subtitleFile?.name,
-                    audioFile: audioFile,
                     videoFile: videoFile,
                     filePlaybackRate: filePlaybackRate,
                     mediaTimestamp: mediaTimestamp,
@@ -721,26 +691,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         [deleteCopyHistoryItem]
     );
 
-    const handleUnloadAudio = useCallback(
-        (audioFileUrl: string) => {
-            if (audioFileUrl !== sources.audioFileUrl) {
-                return;
-            }
-
-            setSources((previous) => {
-                URL.revokeObjectURL(audioFileUrl);
-
-                return {
-                    subtitleFiles: previous.subtitleFiles,
-                    audioFile: undefined,
-                    audioFileUrl: undefined,
-                    videoFile: previous.videoFile,
-                    videoFileUrl: previous.videoFileUrl,
-                };
-            });
-        },
-        [sources]
-    );
+    const handleUnloadAudio = useCallback((audioFileUrl: string) => {}, [sources]);
 
     const handleUnloadVideo = useCallback(
         (videoFileUrl: string) => {
@@ -753,8 +704,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
 
                 return {
                     subtitleFiles: previous.subtitleFiles,
-                    audioFile: previous.audioFile,
-                    audioFileUrl: previous.audioFileUrl,
                     videoFile: undefined,
                     videoFileUrl: undefined,
                 };
@@ -939,40 +888,34 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
     const handleFiles = useCallback(
         ({ files, flattenSubtitleFiles }: { files: FileList | File[]; flattenSubtitleFiles?: boolean }) => {
             try {
-                let { subtitleFiles, audioFile, videoFile } = extractSources(files);
+                let { subtitleFiles, videoFile } = extractSources(files);
 
                 setSources((previous) => {
                     let videoFileUrl: string | undefined = undefined;
                     let audioFileUrl: string | undefined = undefined;
 
-                    if (videoFile || audioFile) {
+                    if (videoFile) {
                         revokeUrls(previous);
 
                         if (videoFile) {
                             videoFileUrl = URL.createObjectURL(videoFile);
-                        } else if (audioFile) {
-                            audioFileUrl = URL.createObjectURL(audioFile);
                         }
 
                         setTab(undefined);
                     } else {
                         videoFile = previous.videoFile;
                         videoFileUrl = previous.videoFileUrl;
-                        audioFile = previous.audioFile;
-                        audioFileUrl = previous.audioFileUrl;
                     }
 
                     const sources = {
                         subtitleFiles: subtitleFiles.length === 0 ? previous.subtitleFiles : subtitleFiles,
-                        audioFile: audioFile,
-                        audioFileUrl: audioFileUrl,
                         videoFile: videoFile,
                         videoFileUrl: videoFileUrl,
                         flattenSubtitleFiles,
                     };
 
                     const sourcesToList = (s: MediaSources) =>
-                        [...s.subtitleFiles, s.videoFile, s.audioFile].filter((f) => f !== undefined) as File[];
+                        [...s.subtitleFiles, s.videoFile].filter((f) => f !== undefined) as File[];
 
                     const previousLoadingSources = sourcesToList(previous);
                     const loadingSources = sourcesToList(sources).filter((f) => {
@@ -1290,8 +1233,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
 
     const loading = loadingSources.length !== 0;
     const nothingLoaded =
-        (loading && !videoFrameRef.current) ||
-        (sources.subtitleFiles.length === 0 && !sources.audioFile && !sources.videoFile);
+        (loading && !videoFrameRef.current) || (sources.subtitleFiles.length === 0 && !sources.videoFile);
     const appBarHidden = sources.videoFile !== undefined && ((theaterMode && !videoPopOut) || videoFullscreen);
     const effectiveCopyHistoryOpen = copyHistoryOpen && !videoFullscreen;
 
@@ -1428,7 +1370,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                                 playbackPreferences={playbackPreferences}
                                 onCopy={handleCopy}
                                 onError={handleError}
-                                onUnloadAudio={handleUnloadAudio}
                                 onUnloadVideo={handleUnloadVideo}
                                 onLoaded={handleFilesLoaded}
                                 onTabSelected={handleTabSelected}

@@ -80,7 +80,7 @@ export default class Binding {
 
     private copyToClipboardOnMine: boolean;
     private recordMedia: boolean;
-    private screenshot: boolean;
+    private takeScreenshot: boolean;
     private cleanScreenshot: boolean;
     private audioPaddingStart: number;
     private audioPaddingEnd: number;
@@ -116,7 +116,7 @@ export default class Binding {
         this.ankiUiController = new AnkiUiController();
         this.requestActiveTabPermissionController = new ActiveTabPermissionRequestController(this);
         this.recordMedia = true;
-        this.screenshot = true;
+        this.takeScreenshot = true;
         this.cleanScreenshot = true;
         this.audioPaddingStart = 0;
         this.audioPaddingEnd = 500;
@@ -549,7 +549,10 @@ export default class Binding {
     async _refreshSettings() {
         const currentSettings = await this.settings.getAll();
         this.recordMedia = currentSettings.streamingRecordMedia;
-        this.screenshot = currentSettings.streamingTakeScreenshot;
+        this.takeScreenshot =
+            currentSettings.streamingTakeScreenshot &&
+            // @ts-ignore
+            (typeof this.video.webkitVideoDecodedByteCount !== 'number' || this.video.webkitVideoDecodedByteCount > 0);
         this.cleanScreenshot = currentSettings.streamingTakeScreenshot && currentSettings.streamingCleanScreenshot;
         this.subtitleController.displaySubtitles = currentSettings.streamingDisplaySubtitles;
         this.subtitleController.subtitlePositionOffset = currentSettings.streamingSubtitlePositionOffset;
@@ -636,7 +639,7 @@ export default class Binding {
     }
 
     async _takeScreenshot() {
-        if (!this.screenshot) {
+        if (!this.takeScreenshot) {
             return;
         }
 
@@ -666,7 +669,7 @@ export default class Binding {
                 navigator.clipboard.writeText(subtitle.text);
             }
 
-            if (this.screenshot) {
+            if (this.takeScreenshot) {
                 await this._prepareScreenshot();
             }
 
@@ -688,7 +691,7 @@ export default class Binding {
                     subtitle: subtitle,
                     surroundingSubtitles: surroundingSubtitles,
                     record: this.recordMedia,
-                    screenshot: this.screenshot,
+                    screenshot: this.takeScreenshot,
                     url: this.url,
                     mediaTimestamp: this.video.currentTime * 1000,
                     subtitleFileName: this.subtitleFileName(subtitle.track),
@@ -735,7 +738,7 @@ export default class Binding {
         } else {
             this.ankiUiSavedState = undefined;
 
-            if (this.screenshot) {
+            if (this.takeScreenshot) {
                 await this._prepareScreenshot();
             }
 
@@ -744,7 +747,7 @@ export default class Binding {
             if (this.recordMedia) {
                 this.recordingMedia = true;
                 this.recordingMediaStartedTimestamp = timestamp;
-                this.recordingMediaWithScreenshot = this.screenshot;
+                this.recordingMediaWithScreenshot = this.takeScreenshot;
             }
 
             const command: VideoToExtensionCommand<StartRecordingMediaMessage> = {
@@ -754,7 +757,7 @@ export default class Binding {
                     mediaTimestamp: timestamp,
                     record: this.recordMedia,
                     postMineAction: postMineAction,
-                    screenshot: this.screenshot,
+                    screenshot: this.takeScreenshot,
                     url: this.url,
                     subtitleFileName: this.subtitleFileName(),
                     imageDelay: this.imageDelay,

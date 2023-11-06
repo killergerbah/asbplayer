@@ -401,7 +401,6 @@ export default function SidePanel({ settings, extension }: Props) {
                                 playbackPreferences={playbackPreferences}
                                 onCopy={noOp}
                                 onError={handleError}
-                                onUnloadAudio={noOp}
                                 onUnloadVideo={noOp}
                                 onLoaded={noOp}
                                 onTabSelected={noOp}

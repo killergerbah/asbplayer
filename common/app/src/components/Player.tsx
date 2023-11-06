@@ -53,7 +53,6 @@ const useStyles = makeStyles<Theme, StylesProps>({
 });
 
 function trackLength(
-    audio: HTMLAudioElement | null,
     video: MediaElement | undefined,
     subtitles: SubtitleModel[] | undefined,
     useOffset?: boolean
@@ -69,16 +68,13 @@ function trackLength(
         subtitlesLength = 0;
     }
 
-    const audioLength = audio && audio.duration ? 1000 * audio.duration : 0;
     const videoLength = video && video.duration ? 1000 * video.duration : 0;
-    return Math.max(videoLength, Math.max(subtitlesLength, audioLength));
+    return Math.max(videoLength, subtitlesLength);
 }
 
 export interface MediaSources {
     subtitleFiles: File[];
     flattenSubtitleFiles?: boolean;
-    audioFile?: File;
-    audioFileUrl?: string;
     videoFile?: File;
     videoFileUrl?: string;
 }
@@ -110,12 +106,10 @@ interface PlayerProps {
     ankiDialogFinishedRequest?: AnkiDialogFinishedRequest;
     origin: string;
     onError: (error: any) => void;
-    onUnloadAudio: (url: string) => void;
     onUnloadVideo: (url: string) => void;
     onCopy: (
         subtitle: SubtitleModel,
         surroundingSubtitles: SubtitleModel[],
-        audioFile: File | undefined,
         videoFile: File | undefined,
         subtitleFile: File | undefined,
         mediaTimestamp: number | undefined,
@@ -167,7 +161,6 @@ export default function Player({
     ankiDialogOpen,
     origin,
     onError,
-    onUnloadAudio,
     onUnloadVideo,
     onCopy,
     onLoaded,
@@ -202,11 +195,9 @@ export default function Player({
     );
     const subtitleFiles = sources?.subtitleFiles;
     const flattenSubtitleFiles = sources?.flattenSubtitleFiles;
-    const audioFile = sources?.audioFile;
-    const audioFileUrl = sources?.audioFileUrl;
     const videoFile = sources?.videoFile;
     const videoFileUrl = sources?.videoFileUrl;
-    const playModeEnabled = subtitles && subtitles.length > 0 && Boolean(videoFileUrl || audioFileUrl);
+    const playModeEnabled = !extension.installed && subtitles && subtitles.length > 0 && Boolean(videoFileUrl);
     const [loadingSubtitles, setLoadingSubtitles] = useState<boolean>(false);
     const [playing, setPlaying] = useState<boolean>(false);
     const [lastJumpToTopTimestamp, setLastJumpToTopTimestamp] = useState<number>(0);
@@ -225,19 +216,16 @@ export default function Player({
     const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState<{ [track: number]: boolean }>({});
     const forceUpdate = useCallback(() => updateState({}), []);
     const mousePositionRef = useRef<Point>({ x: 0, y: 0 });
-    const audioRef = useRef<HTMLAudioElement>(null);
     const mediaAdapter = useMemo(() => {
-        if (audioFileUrl) {
-            return new MediaAdapter(audioRef);
-        } else if (videoFileUrl || tab) {
+        if (videoFileUrl || tab) {
             return new MediaAdapter({ current: channel });
         }
 
         return new MediaAdapter({ current: null });
-    }, [channel, audioFileUrl, videoFileUrl, tab]);
+    }, [channel, videoFileUrl, tab]);
     const clock = useMemo<Clock>(() => new Clock(), []);
     const classes = useStyles({ appBarHidden });
-    const calculateLength = () => trackLength(audioRef.current, channelRef.current, subtitlesRef.current);
+    const calculateLength = () => trackLength(channelRef.current, subtitlesRef.current);
 
     const handleOnStartedShowingSubtitle = useCallback(() => {
         if (
@@ -415,21 +403,6 @@ export default function Player({
         setSubtitlesSentThroughChannel(false);
     }, [channel]);
 
-    useEffect(() => {
-        setPlaying(false);
-        clock.setTime(0);
-        clock.stop();
-
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
-        }
-
-        if (audioFile) {
-            onLoaded([audioFile]);
-        }
-    }, [clock, onLoaded, audioFile]);
-
     useEffect(
         () => channel?.onExit(() => videoFileUrl && onUnloadVideo(videoFileUrl)),
         [channel, onUnloadVideo, videoFileUrl]
@@ -441,7 +414,7 @@ export default function Player({
     useEffect(
         () =>
             channel?.onReady(() => {
-                return channel?.ready(trackLength(audioRef.current, channel, subtitles), videoFile?.name);
+                return channel?.ready(trackLength(channel, subtitles), videoFile?.name);
             }),
         [channel, subtitles, videoFile]
     );
@@ -522,7 +495,6 @@ export default function Player({
                 onCopy(
                     subtitle,
                     surroundingSubtitles,
-                    audioFile,
                     videoFile,
                     subtitle ? subtitleFiles?.[subtitle.track] : undefined,
                     mediaTimetamp,
@@ -535,7 +507,7 @@ export default function Player({
                     id
                 )
             ),
-        [channel, onCopy, audioFile, videoFile, subtitleFiles]
+        [channel, onCopy, videoFile, subtitleFiles]
     );
     useEffect(
         () =>
@@ -723,42 +695,48 @@ export default function Player({
             postMineAction: PostMineAction,
             forceUseGivenSubtitle?: boolean
         ) => {
+            const defaultCopy = () =>
+                onCopy(
+                    subtitle,
+                    surroundingSubtitles,
+                    videoFile,
+                    subtitleFiles?.[subtitle.track],
+                    clock.time(calculateLength()),
+                    selectedAudioTrack,
+                    playbackRate,
+                    undefined,
+                    undefined,
+                    undefined,
+                    postMineAction,
+                    undefined
+                );
+
             if (videoFileUrl) {
                 if (forceUseGivenSubtitle) {
-                    await seek(subtitle.start, clock, true);
+                    if (extension.installed) {
+                        await seek(subtitle.start, clock, true);
+                        channel?.copy(postMineAction);
+                    } else {
+                        defaultCopy();
+                    }
+                } else {
+                    // Let VideoPlayer do the copying to ensure copied subtitle is consistent with the VideoPlayer clock
+                    channel?.copy(postMineAction);
                 }
-
-                // Let VideoPlayer do the copying to ensure copied subtitle is consistent with the VideoPlayer clock
-                channel?.copy(postMineAction);
-                return;
+            } else {
+                defaultCopy();
             }
-
-            onCopy(
-                subtitle,
-                surroundingSubtitles,
-                audioFile,
-                videoFile,
-                subtitleFiles?.[subtitle.track],
-                clock.time(calculateLength()),
-                selectedAudioTrack,
-                playbackRate,
-                undefined,
-                undefined,
-                undefined,
-                postMineAction,
-                undefined
-            );
         },
         [
             channel,
             onCopy,
             clock,
-            audioFile,
             videoFile,
             videoFileUrl,
             subtitleFiles,
             selectedAudioTrack,
             playbackRate,
+            extension,
             seek,
         ]
     );
@@ -789,12 +767,6 @@ export default function Player({
         },
         [applyOffset]
     );
-
-    const handleVolumeChange = useCallback((volume: number) => {
-        if (audioRef.current instanceof HTMLMediaElement) {
-            audioRef.current.volume = volume;
-        }
-    }, []);
 
     const handlePlaybackRateChange = useCallback(
         (playbackRate: number) => {
@@ -938,7 +910,7 @@ export default function Player({
         seek(rewindSubtitle.start, clock, true);
     }, [clock, rewindSubtitle?.start, mediaAdapter, seek]);
 
-    const loaded = audioFileUrl || videoFileUrl || subtitles;
+    const loaded = videoFileUrl || subtitles;
     const videoInWindow = Boolean(loaded && videoFileUrl && !videoPopOut);
 
     return (
@@ -976,19 +948,17 @@ export default function Player({
                             playing={playing}
                             clock={clock}
                             length={calculateLength()}
-                            displayLength={trackLength(audioRef.current, channel, subtitles, false)}
+                            displayLength={trackLength(channel, subtitles, false)}
                             audioTracks={audioTracks}
                             selectedAudioTrack={selectedAudioTrack}
-                            tabs={(!videoFileUrl && !audioFileUrl && availableTabs) || undefined}
+                            tabs={(!videoFileUrl && availableTabs) || undefined}
                             selectedTab={tab}
-                            audioFile={audioFile?.name}
                             videoFile={videoFile?.name}
                             offsetEnabled={true}
                             offset={offset}
                             playbackRate={playbackRate}
                             playbackRateEnabled={!tab || (extension.installed && gte(extension.version, '0.24.0'))}
                             onPlaybackRateChange={handlePlaybackRateChange}
-                            volumeEnabled={Boolean(audioFileUrl)}
                             playModeEnabled={playModeEnabled}
                             playMode={playMode}
                             onPlay={handlePlay}
@@ -996,10 +966,8 @@ export default function Player({
                             onSeek={handleSeek}
                             onAudioTrackSelected={handleAudioTrackSelected}
                             onTabSelected={onTabSelected}
-                            onUnloadAudio={() => audioFileUrl && onUnloadAudio(audioFileUrl)}
                             onUnloadVideo={() => videoFileUrl && onUnloadVideo(videoFileUrl)}
                             onOffsetChange={handleOffsetChange}
-                            onVolumeChange={handleVolumeChange}
                             onPlayMode={handlePlayMode}
                             disableKeyEvents={disableKeyEvents}
                             playbackPreferences={playbackPreferences}
@@ -1019,7 +987,7 @@ export default function Player({
                         limitWidth={videoInWindow}
                         copyButtonEnabled={tab === undefined}
                         loading={loadingSubtitles}
-                        displayHelp={audioFile?.name || (videoPopOut && videoFile?.name) || undefined}
+                        displayHelp={(videoPopOut && videoFile?.name) || undefined}
                         disableKeyEvents={disableKeyEvents}
                         lastJumpToTopTimestamp={lastJumpToTopTimestamp}
                         hidden={videoInWindow && hideSubtitlePlayer}
@@ -1035,7 +1003,6 @@ export default function Player({
                     />
                 </Grid>
             </Grid>
-            <audio ref={audioRef} src={audioFileUrl} />
         </div>
     );
 }
