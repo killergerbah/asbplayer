@@ -641,6 +641,7 @@ export default function SettingsForm({
         customAnkiFields,
         tags,
         imageBasedSubtitleScaleFactor,
+        streamingAppUrl,
         subtitleCustomStyles,
         streamingDisplaySubtitles,
         streamingRecordMedia,
@@ -1583,6 +1584,20 @@ export default function SettingsForm({
                                 label={t('postMineAction.none')}
                             />
                         </RadioGroup>
+                    </Grid>
+                    <Grid item>
+                        <FormGroup className={classes.formGroup}>
+                            {!insideApp && (
+                                <TextField
+                                    className={classes.textField}
+                                    color="secondary"
+                                    fullWidth
+                                    label={t('extension.settings.asbplayerUrl')}
+                                    value={streamingAppUrl}
+                                    onChange={(e) => onSettingsChanged('streamingAppUrl', e.target.value)}
+                                />
+                            )}
+                        </FormGroup>
                     </Grid>
                 </Grid>
             </TabPanel>

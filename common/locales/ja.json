@@ -125,7 +125,7 @@
     },
     "extension": {
         "settings": {
-            "asbplayerUrl": "asbplayer の URL",
+            "asbplayerUrl": "アプリのURL",
             "autoLoadDetectedSubs": "字幕を探知したら自動的にロードする",
             "cleanScreenshot": "オーバーレイ非表示スクリーンショット",
             "condensedPlaybackMinSkipInterval": "短縮プレイバックでスキップする時間の最小値",

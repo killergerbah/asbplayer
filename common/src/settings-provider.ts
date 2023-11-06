@@ -75,6 +75,7 @@ const defaults: AsbplayerSettings = {
     tags: [],
     imageBasedSubtitleScaleFactor: 1,
     subtitleCustomStyles: [{ key: 'webkitFontSmoothing', value: 'antialiased' }],
+    streamingAppUrl: 'https://killergerbah.github.io/asbplayer',
     streamingDisplaySubtitles: true,
     streamingRecordMedia: true,
     streamingTakeScreenshot: true,

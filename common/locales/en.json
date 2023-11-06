@@ -125,7 +125,7 @@
     },
     "extension": {
         "settings": {
-            "asbplayerUrl": "asbplayer URL",
+            "asbplayerUrl": "App URL",
             "autoLoadDetectedSubs": "Auto-load detected subtitles",
             "cleanScreenshot": "Clean screenshot",
             "condensedPlaybackMinSkipInterval": "Condensed playback minimum skip interval",

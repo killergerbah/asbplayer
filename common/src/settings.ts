@@ -131,6 +131,7 @@ export enum SubtitleListPreference {
 }
 
 export interface StreamingVideoSettings {
+    readonly streamingAppUrl: string;
     readonly streamingDisplaySubtitles: boolean;
     readonly streamingRecordMedia: boolean;
     readonly streamingTakeScreenshot: boolean;

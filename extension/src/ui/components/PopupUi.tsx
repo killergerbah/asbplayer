@@ -8,7 +8,6 @@ import {
     PopupToExtensionCommand,
     SettingsProvider,
     SettingsUpdatedMessage,
-    ShowAppUiMessage,
     createTheme,
 } from '@project/common';
 import Box from '@material-ui/core/Box';
@@ -51,16 +50,10 @@ export function PopupUi({ commands }: Props) {
     }, []);
 
     const handleOpenApp = useCallback(async () => {
-        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-        if (tabs.length > 0 && tabs[0].id !== undefined) {
-            const command: ExtensionToVideoCommand<ShowAppUiMessage> = {
-                sender: 'asbplayer-extension-to-video',
-                message: { command: 'show-app-ui' },
-            };
-            chrome.tabs.sendMessage(tabs[0].id, command);
+        if (settings?.streamingAppUrl) {
+            chrome.tabs.create({ active: true, url: settings.streamingAppUrl });
         }
-        // chrome.tabs.create({ active: true, url: `chrome-extension://${chrome.runtime.id}/app-ui.html` });
-    }, []);
+    }, [settings]);
 
     const handleOpenSidePanel = useCallback(async () => {
         // @ts-ignore

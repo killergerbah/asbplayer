@@ -58,7 +58,7 @@ const startListener = async () => {
 chrome.runtime.onInstalled.addListener(startListener);
 chrome.runtime.onStartup.addListener(startListener);
 
-const tabRegistry = new TabRegistry();
+const tabRegistry = new TabRegistry(settings);
 const backgroundPageManager = new BackgroundPageManager(tabRegistry);
 const imageCapturer = new ImageCapturer(settings);
 const cardPublisher = new CardPublisher(backgroundPageManager);
