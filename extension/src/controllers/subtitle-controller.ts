@@ -25,7 +25,7 @@ export interface SubtitleModelWithIndex extends SubtitleModel {
 }
 
 export default class SubtitleController {
-    private readonly video: HTMLVideoElement;
+    private readonly video: HTMLMediaElement;
 
     private showingSubtitles?: SubtitleModelWithIndex[];
     private lastLoadedMessageTimestamp: number;
@@ -54,7 +54,7 @@ export default class SubtitleController {
 
     onNextToShow?: (subtitle: SubtitleModel) => void;
 
-    constructor(video: HTMLVideoElement) {
+    constructor(video: HTMLMediaElement) {
         this.video = video;
         this._subtitleAlignment = 'bottom';
         this._preCacheDom = false;

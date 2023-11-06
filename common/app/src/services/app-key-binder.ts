@@ -1,10 +1,12 @@
 import { CopySubtitleMessage, PostMineAction, SubtitleModel } from '@project/common';
 import { DefaultKeyBinder, KeyBinder } from '@project/common/key-binder';
 import ChromeExtension, { ExtensionMessage } from './chrome-extension';
+import { lt } from 'semver';
 
 export default class AppKeyBinder implements KeyBinder {
     private readonly defaultKeyBinder: DefaultKeyBinder;
     private readonly extension: ChromeExtension;
+    private readonly interceptExtension: boolean;
     private readonly copyHandlers: ((event: KeyboardEvent) => void)[] = [];
     private readonly ankiExportHandlers: ((event: KeyboardEvent) => void)[] = [];
     private readonly updateLastCardHandlers: ((event: KeyboardEvent) => void)[] = [];
@@ -14,7 +16,10 @@ export default class AppKeyBinder implements KeyBinder {
     constructor(keyBinder: DefaultKeyBinder, extension: ChromeExtension) {
         this.defaultKeyBinder = keyBinder;
         this.extension = extension;
-
+        this.interceptExtension =
+            this.extension.version !== undefined &&
+            this.extension.version !== '' &&
+            lt(this.extension.version, '1.0.0');
         this.onExtensionMessage = (message: ExtensionMessage) => {
             let handlers: ((event: KeyboardEvent) => void)[] | undefined;
 
@@ -55,11 +60,15 @@ export default class AppKeyBinder implements KeyBinder {
         useCapture?: boolean | undefined
     ): () => void {
         if (this.extension.installed) {
-            const handler = this.defaultKeyBinder.copyHandler(onCopy, disabledGetter, subtitleGetter);
-            this.copyHandlers.push(handler);
-            return () => {
-                this._remove(handler, this.copyHandlers);
-            };
+            if (this.interceptExtension) {
+                const handler = this.defaultKeyBinder.copyHandler(onCopy, disabledGetter, subtitleGetter);
+                this.copyHandlers.push(handler);
+                return () => {
+                    this._remove(handler, this.copyHandlers);
+                };
+            }
+
+            return () => {};
         }
 
         return this.defaultKeyBinder.bindCopy(onCopy, disabledGetter, subtitleGetter, useCapture);
@@ -71,11 +80,15 @@ export default class AppKeyBinder implements KeyBinder {
         useCapture?: boolean | undefined
     ): () => void {
         if (this.extension.installed) {
-            const handler = this.defaultKeyBinder.ankiExportHandler(onAnkiExport, disabledGetter);
-            this.ankiExportHandlers.push(handler);
-            return () => {
-                this._remove(handler, this.ankiExportHandlers);
-            };
+            if (this.interceptExtension) {
+                const handler = this.defaultKeyBinder.ankiExportHandler(onAnkiExport, disabledGetter);
+                this.ankiExportHandlers.push(handler);
+                return () => {
+                    this._remove(handler, this.ankiExportHandlers);
+                };
+            }
+
+            return () => {};
         }
 
         return this.defaultKeyBinder.bindAnkiExport(onAnkiExport, disabledGetter, useCapture);
@@ -87,11 +100,15 @@ export default class AppKeyBinder implements KeyBinder {
         useCapture?: boolean | undefined
     ): () => void {
         if (this.extension.installed) {
-            const handler = this.defaultKeyBinder.updateLastCardHandler(onUpdateLastCard, disabledGetter);
-            this.updateLastCardHandlers.push(handler);
-            return () => {
-                this._remove(handler, this.updateLastCardHandlers);
-            };
+            if (this.interceptExtension) {
+                const handler = this.defaultKeyBinder.updateLastCardHandler(onUpdateLastCard, disabledGetter);
+                this.updateLastCardHandlers.push(handler);
+                return () => {
+                    this._remove(handler, this.updateLastCardHandlers);
+                };
+            }
+
+            return () => {};
         }
 
         return this.defaultKeyBinder.bindUpdateLastCard(onUpdateLastCard, disabledGetter, useCapture);
@@ -103,11 +120,15 @@ export default class AppKeyBinder implements KeyBinder {
         useCapture?: boolean | undefined
     ): () => void {
         if (this.extension.installed) {
-            const handler = this.defaultKeyBinder.takeScreenshotHandler(onTakeScreenshot, disabledGetter);
-            this.takeScreenshotHandlers.push(handler);
-            return () => {
-                this._remove(handler, this.takeScreenshotHandlers);
-            };
+            if (this.interceptExtension) {
+                const handler = this.defaultKeyBinder.takeScreenshotHandler(onTakeScreenshot, disabledGetter);
+                this.takeScreenshotHandlers.push(handler);
+                return () => {
+                    this._remove(handler, this.takeScreenshotHandlers);
+                };
+            }
+
+            return () => {};
         }
 
         return this.defaultKeyBinder.bindTakeScreenshot(onTakeScreenshot, disabledGetter, useCapture);

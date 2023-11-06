@@ -1,14 +1,10 @@
 import {
-    AsbPlayerToTabCommand,
     AsbPlayerToVideoCommand,
     Command,
     CopySubtitleMessage,
     ExtensionToVideoCommand,
-    LoadSubtitlesMessage,
     Message,
     MineSubtitleMessage,
-    PostMineAction,
-    ToggleVideoSelectMessage,
 } from '@project/common';
 import TabRegistry from '../../services/tab-registry';
 
@@ -39,7 +35,7 @@ export default class MineSubtitleHandler {
                     sender: 'asbplayer-extension-to-video',
                     message: {
                         command: 'copy-subtitle',
-                        postMineAction: PostMineAction.showAnkiDialog,
+                        postMineAction: mineSubtitleCommand.message.postMineAction,
                     },
                     src: videoElement.src,
                 };

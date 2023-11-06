@@ -1,4 +1,4 @@
-import BackgroundPageAudioRecorder from '../../services/background-page-audio-recorder';
+import BackgroundPageManager from '../../services/background-page-manager';
 import ImageCapturer from '../../services/image-capturer';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -21,12 +21,12 @@ import {
 import { CardPublisher } from '../../services/card-publisher';
 
 export default class StopRecordingMediaHandler {
-    private readonly _audioRecorder: BackgroundPageAudioRecorder;
+    private readonly _audioRecorder: BackgroundPageManager;
     private readonly _imageCapturer: ImageCapturer;
     private readonly _cardPublisher: CardPublisher;
 
     constructor(
-        audioRecorder: BackgroundPageAudioRecorder,
+        audioRecorder: BackgroundPageManager,
         imageCapturer: ImageCapturer,
         cardPublisher: CardPublisher
     ) {
@@ -93,21 +93,16 @@ export default class StopRecordingMediaHandler {
                 playbackRate: stopRecordingCommand.message.playbackRate,
             };
 
-            this._cardPublisher.publish(
-                {
-                    command: 'copy',
-                    id: itemId,
-                    subtitle: subtitle,
-                    surroundingSubtitles: surroundingSubtitles,
-                    image: imageModel,
-                    audio: audioModel,
-                    url: stopRecordingCommand.message.url,
-                    subtitleFileName: stopRecordingCommand.message.subtitleFileName,
-                    mediaTimestamp: stopRecordingCommand.message.startTimestamp,
-                },
-                sender.tab!.id!,
-                stopRecordingCommand.src
-            );
+            this._cardPublisher.publish({
+                id: itemId,
+                subtitle: subtitle,
+                surroundingSubtitles: surroundingSubtitles,
+                image: imageModel,
+                audio: audioModel,
+                url: stopRecordingCommand.message.url,
+                subtitleFileName: stopRecordingCommand.message.subtitleFileName,
+                mediaTimestamp: stopRecordingCommand.message.startTimestamp,
+            });
 
             if (stopRecordingCommand.message.postMineAction === PostMineAction.showAnkiDialog) {
                 const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {

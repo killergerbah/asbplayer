@@ -1,4 +1,5 @@
 import {
+    AckMessage,
     AnkiUiSavedState,
     AutoPausePreference,
     CardUpdatedMessage,
@@ -66,7 +67,7 @@ export default class Binding {
     private recordingMediaWithScreenshot: boolean;
     private _playMode: PlayMode = PlayMode.normal;
 
-    readonly video: HTMLVideoElement;
+    readonly video: HTMLMediaElement;
     readonly subSyncAvailable: boolean;
     readonly subtitleController: SubtitleController;
     readonly videoDataSyncController: VideoDataSyncController;
@@ -103,7 +104,7 @@ export default class Binding {
 
     private readonly frameId?: string;
 
-    constructor(video: HTMLVideoElement, syncAvailable: boolean, frameId?: string) {
+    constructor(video: HTMLMediaElement, syncAvailable: boolean, frameId?: string) {
         this.video = video;
         this.subSyncAvailable = syncAvailable;
         this.subtitleController = new SubtitleController(video);
@@ -525,6 +526,18 @@ export default class Binding {
                     case 'granted-active-tab-permission':
                         this.requestActiveTabPermissionController.onPermissionGranted();
                         break;
+                }
+
+                if ('messageId' in request.message) {
+                    const ackCommand: VideoToExtensionCommand<AckMessage> = {
+                        sender: 'asbplayer-video',
+                        message: {
+                            command: 'ack-message',
+                            messageId: request.message['messageId'],
+                        },
+                        src: this.video.src,
+                    };
+                    chrome.runtime.sendMessage(ackCommand);
                 }
             }
         };

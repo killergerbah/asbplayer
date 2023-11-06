@@ -12,6 +12,7 @@ import {
     ShowAnkiUiMessage,
     SubtitleModel,
     VideoTabModel,
+    ExtensionToAsbPlayerCommand,
 } from '@project/common';
 import { AppKeyBinder, ChromeExtension, useCopyHistory, useI18n } from '@project/common/app';
 import { SubtitleReader } from '@project/common/subtitle-reader';
@@ -35,6 +36,7 @@ import SidePanelBottomControls from './SidePanelBottomControls';
 import SidePanelRecordingOverlay from './SidePanelRecordingOverlay';
 import SidePanelTopControls from './SidePanelTopControls';
 import CopyHistory from '@project/common/app/src/components/CopyHistory';
+import CopyHistoryList from '@project/common/app/src/components/CopyHistoryList';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -47,7 +49,7 @@ const sameVideoTab = (a: VideoTabModel, b: VideoTabModel) => {
 
 export default function SidePanel({ settings, extension }: Props) {
     const { t } = useTranslation();
-    const playbackPreferences = useMemo(() => new PlaybackPreferences(settings), [settings]);
+    const playbackPreferences = useMemo(() => new PlaybackPreferences(settings, extension), [settings, extension]);
     const subtitleReader = useMemo(
         () =>
             new SubtitleReader({
@@ -63,6 +65,7 @@ export default function SidePanel({ settings, extension }: Props) {
     const [initializing, setInitializing] = useState<boolean>(true);
     const [syncedVideoTab, setSyncedVideoElement] = useState<VideoTabModel>();
     const [recordingAudio, setRecordingAudio] = useState<boolean>(false);
+    const [viewingAsbplayer, setViewingAsbplayer] = useState<boolean>(false);
 
     const keyBinder = useMemo(
         () => new AppKeyBinder(new DefaultKeyBinder(settings.keyBindSet), extension),
@@ -138,6 +141,18 @@ export default function SidePanel({ settings, extension }: Props) {
     }, [extension, currentTabId, syncedVideoTab]);
 
     useEffect(() => {
+        if (currentTabId === undefined) {
+            setViewingAsbplayer(false);
+            return;
+        }
+
+        return extension.subscribeTabs(() => {
+            const asbplayer = extension.asbplayers?.find((a) => a.tabId === currentTabId);
+            setViewingAsbplayer(asbplayer !== undefined);
+        });
+    }, [currentTabId, extension]);
+
+    useEffect(() => {
         return extension.subscribe((message) => {
             if (message.data.command === 'recording-started') {
                 setRecordingAudio(true);
@@ -177,12 +192,12 @@ export default function SidePanel({ settings, extension }: Props) {
 
         const message: AsbPlayerToVideoCommandV2<MineSubtitleMessage> = {
             sender: 'asbplayerv2',
-            message: { command: 'mine-subtitle' },
+            message: { command: 'mine-subtitle', postMineAction: settings.streamingSidePanelDefaultPostMineAction },
             tabId: syncedVideoTab.id,
             src: syncedVideoTab.src,
         };
         chrome.runtime.sendMessage(message);
-    }, [syncedVideoTab]);
+    }, [syncedVideoTab, settings.streamingSidePanelDefaultPostMineAction]);
 
     const handleLoadSubtitles = useCallback(() => {
         if (currentTabId === undefined) {
@@ -228,6 +243,11 @@ export default function SidePanel({ settings, extension }: Props) {
     const { copyHistoryItems, refreshCopyHistory, deleteCopyHistoryItem } = useCopyHistory(
         settings.miningHistoryStorageLimit
     );
+    useEffect(() => {
+        if (viewingAsbplayer) {
+            refreshCopyHistory();
+        }
+    }, [refreshCopyHistory, viewingAsbplayer]);
     const [showCopyHistory, setShowCopyHistory] = useState<boolean>(false);
     const handleShowCopyHistory = useCallback(async () => {
         await refreshCopyHistory();
@@ -285,31 +305,37 @@ export default function SidePanel({ settings, extension }: Props) {
                 return;
             }
 
-            const command: ExtensionToVideoCommand<ShowAnkiUiMessage> = {
-                sender: 'asbplayer-extension-to-video',
-                message: {
-                    command: 'show-anki-ui',
-                    id,
-                    image,
-                    audio,
-                    surroundingSubtitles,
-                    url,
-                    subtitle: {
-                        text,
-                        textImage,
-                        start,
-                        end,
-                        originalStart,
-                        originalEnd,
-                        track,
-                    },
-                    subtitleFileName: subtitleFileName ?? '',
-                    mediaTimestamp: mediaTimestamp ?? 0,
+            const message: ShowAnkiUiMessage = {
+                command: 'show-anki-ui',
+                id,
+                image,
+                audio,
+                surroundingSubtitles,
+                url,
+                subtitle: {
+                    text,
+                    textImage,
+                    start,
+                    end,
+                    originalStart,
+                    originalEnd,
+                    track,
                 },
+                subtitleFileName: subtitleFileName ?? '',
+                mediaTimestamp: mediaTimestamp ?? 0,
             };
-            chrome.tabs.sendMessage(currentTabId, command);
+            const videoCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {
+                sender: 'asbplayer-extension-to-video',
+                message,
+            };
+            const asbplayerCommand: ExtensionToAsbPlayerCommand<ShowAnkiUiMessage> = {
+                sender: 'asbplayer-extension-to-player',
+                message,
+            };
+            chrome.tabs.sendMessage(currentTabId, videoCommand);
+            chrome.tabs.sendMessage(currentTabId, asbplayerCommand);
         },
-        [currentTabId]
+        [extension, currentTabId]
     );
     const noOp = useCallback(() => {}, []);
 
@@ -334,75 +360,89 @@ export default function SidePanel({ settings, extension }: Props) {
             <Alert open={alertOpen} onClose={handleAlertClosed} autoHideDuration={3000} severity={alertSeverity}>
                 {alert}
             </Alert>
-            <CopyHistory
-                open={showCopyHistory}
-                items={copyHistoryItems}
-                onClose={handleCloseCopyHistory}
-                onDelete={deleteCopyHistoryItem}
-                onAnki={handleAnki}
-                onClipAudio={handleClipAudio}
-                onDownloadImage={handleDownloadImage}
-            />
-            {subtitles === undefined ? (
-                <SidePanelHome
-                    extension={extension}
-                    videoElementCount={videoElementCount}
-                    onLoadSubtitles={handleLoadSubtitles}
-                    onShowMiningHistory={handleShowCopyHistory}
+            {viewingAsbplayer ? (
+                <CopyHistoryList
+                    open={true}
+                    items={copyHistoryItems}
+                    onClose={handleCloseCopyHistory}
+                    onDelete={deleteCopyHistoryItem}
+                    onAnki={handleAnki}
+                    onClipAudio={handleClipAudio}
+                    onDownloadImage={handleDownloadImage}
                 />
             ) : (
                 <>
-                    <SidePanelRecordingOverlay show={recordingAudio} />
-                    <Player
-                        origin={`chrome-extension://${chrome.runtime.id}/side-panel.html`}
-                        subtitles={subtitles}
-                        hideControls={true}
-                        forceCompressedMode={true}
-                        subtitleReader={subtitleReader}
-                        settings={settings}
-                        playbackPreferences={playbackPreferences}
-                        onCopy={noOp}
-                        onError={handleError}
-                        onUnloadAudio={noOp}
-                        onUnloadVideo={noOp}
-                        onLoaded={noOp}
-                        onTabSelected={noOp}
-                        onAnkiDialogRequest={noOp}
-                        onAnkiDialogRewind={noOp}
-                        onAppBarToggle={noOp}
-                        onFullscreenToggle={noOp}
-                        onHideSubtitlePlayer={noOp}
-                        onVideoPopOut={noOp}
-                        onPlayModeChangedViaBind={noOp}
-                        onSubtitles={setSubtitles}
-                        onTakeScreenshot={noOp}
-                        tab={syncedVideoTab}
-                        availableTabs={extension.tabs ?? []}
-                        extension={extension}
-                        drawerOpen={false}
-                        appBarHidden={true}
-                        videoFullscreen={false}
-                        hideSubtitlePlayer={false}
-                        videoPopOut={false}
-                        disableKeyEvents={false}
-                        ankiDialogRequested={false}
-                        keyBinder={keyBinder}
-                        ankiDialogOpen={false}
+                    <CopyHistory
+                        open={showCopyHistory}
+                        items={copyHistoryItems}
+                        onClose={handleCloseCopyHistory}
+                        onDelete={deleteCopyHistoryItem}
+                        onAnki={handleAnki}
+                        onClipAudio={handleClipAudio}
+                        onDownloadImage={handleDownloadImage}
                     />
-                    <SidePanelTopControls
-                        ref={topControlsRef}
-                        show={showTopControls}
-                        onLoadSubtitles={handleLoadSubtitles}
-                        onShowMiningHistory={handleShowCopyHistory}
-                    />
-                    <SidePanelBottomControls
-                        disabled={currentTabId !== syncedVideoTab?.id}
-                        onMineSubtitle={handleMineSubtitle}
-                        postMineAction={settings.streamingSidePanelDefaultPostMineAction}
-                        emptySubtitleTrack={subtitles.length === 0}
-                        audioRecordingEnabled={settings.streamingRecordMedia}
-                        recordingAudio={recordingAudio}
-                    />
+                    {subtitles === undefined ? (
+                        <SidePanelHome
+                            extension={extension}
+                            videoElementCount={videoElementCount}
+                            onLoadSubtitles={handleLoadSubtitles}
+                            onShowMiningHistory={handleShowCopyHistory}
+                        />
+                    ) : (
+                        <>
+                            <SidePanelRecordingOverlay show={recordingAudio} />
+                            <Player
+                                origin={`chrome-extension://${chrome.runtime.id}/side-panel.html`}
+                                subtitles={subtitles}
+                                hideControls={true}
+                                forceCompressedMode={true}
+                                subtitleReader={subtitleReader}
+                                settings={settings}
+                                playbackPreferences={playbackPreferences}
+                                onCopy={noOp}
+                                onError={handleError}
+                                onUnloadAudio={noOp}
+                                onUnloadVideo={noOp}
+                                onLoaded={noOp}
+                                onTabSelected={noOp}
+                                onAnkiDialogRequest={noOp}
+                                onAnkiDialogRewind={noOp}
+                                onAppBarToggle={noOp}
+                                onFullscreenToggle={noOp}
+                                onHideSubtitlePlayer={noOp}
+                                onVideoPopOut={noOp}
+                                onPlayModeChangedViaBind={noOp}
+                                onSubtitles={setSubtitles}
+                                onTakeScreenshot={noOp}
+                                tab={syncedVideoTab}
+                                availableTabs={extension.tabs ?? []}
+                                extension={extension}
+                                drawerOpen={false}
+                                appBarHidden={true}
+                                videoFullscreen={false}
+                                hideSubtitlePlayer={false}
+                                videoPopOut={false}
+                                disableKeyEvents={false}
+                                ankiDialogRequested={false}
+                                keyBinder={keyBinder}
+                                ankiDialogOpen={false}
+                            />
+                            <SidePanelTopControls
+                                ref={topControlsRef}
+                                show={showTopControls}
+                                onLoadSubtitles={handleLoadSubtitles}
+                                onShowMiningHistory={handleShowCopyHistory}
+                            />
+                            <SidePanelBottomControls
+                                disabled={currentTabId !== syncedVideoTab?.id}
+                                onMineSubtitle={handleMineSubtitle}
+                                postMineAction={settings.streamingSidePanelDefaultPostMineAction}
+                                emptySubtitleTrack={subtitles.length === 0}
+                                audioRecordingEnabled={settings.streamingRecordMedia}
+                                recordingAudio={recordingAudio}
+                            />
+                        </>
+                    )}
                 </>
             )}
         </div>

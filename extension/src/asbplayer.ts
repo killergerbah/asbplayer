@@ -1,21 +1,48 @@
-window.addEventListener('message', (event) => {
+import { GetSettingsMessage, SetSettingsMessage } from '@project/common';
+import { ExtensionSettingsStorage } from './services/extension-settings-storage';
+
+const sendMessageToPlayer = (message: any) => {
+    window.postMessage({
+        sender: 'asbplayer-extension-to-player',
+        message,
+    });
+};
+
+const settingsStorage = new ExtensionSettingsStorage();
+
+window.addEventListener('message', async (event) => {
     if (event.source !== window) {
         return;
     }
 
-    if (event.data.sender === 'asbplayer' || event.data.sender === 'asbplayerv2') {
-        chrome.runtime.sendMessage({
-            sender: event.data.sender,
-            message: event.data.message,
-            tabId: event.data.tabId,
-            src: event.data.src,
-        });
+    const command = event.data;
+
+    if (command.sender === 'asbplayer' || command.sender === 'asbplayerv2') {
+        switch (command.message.command) {
+            case 'get-settings':
+                const getSettingsMessage = command.message as GetSettingsMessage;
+                sendMessageToPlayer({
+                    response: await settingsStorage.get(getSettingsMessage.keysAndDefaults),
+                    messageId: command.message.messageId,
+                });
+                break;
+            case 'set-settings':
+                const setSettingsMessage = command.message as SetSettingsMessage;
+                await settingsStorage.set(setSettingsMessage.settings);
+                sendMessageToPlayer({
+                    messageId: command.message.messageId,
+                });
+                break;
+            default:
+                chrome.runtime.sendMessage(command);
+                break;
+        }
     }
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.sender === 'asbplayer-extension-to-player') {
-        window.postMessage(request, '*');
+        window.postMessage(request);
     }
 });
 
@@ -29,15 +56,9 @@ window.addEventListener('DOMContentLoaded', async (e) => {
         },
     });
 
-    window.postMessage(
-        {
-            sender: 'asbplayer-extension-to-player',
-            message: {
-                command: 'version',
-                version: manifest.version,
-                extensionCommands,
-            },
-        },
-        '*'
-    );
+    sendMessageToPlayer({
+        command: 'version',
+        version: manifest.version,
+        extensionCommands,
+    });
 });

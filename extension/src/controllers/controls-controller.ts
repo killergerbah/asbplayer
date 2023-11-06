@@ -4,10 +4,10 @@ interface Point {
 }
 
 export default class ControlsController {
-    private readonly video: HTMLVideoElement;
+    private readonly video: HTMLMediaElement;
     private elements: Element[];
 
-    constructor(video: HTMLVideoElement) {
+    constructor(video: HTMLMediaElement) {
         this.video = video;
         this.elements = [];
     }

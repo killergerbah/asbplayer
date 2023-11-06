@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { useI18n } from './i18n';
-import { useLocation, useSearchParams } from 'react-router-dom';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import { useWindowSize } from '../hooks/use-window-size';
@@ -24,6 +23,7 @@ import {
     createTheme,
     CopyHistoryItem,
     Fetcher,
+    ShowAnkiUiMessage,
 } from '@project/common';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { v4 as uuidv4 } from 'uuid';
@@ -46,7 +46,6 @@ import { DefaultKeyBinder } from '@project/common/key-binder';
 import AppKeyBinder from '../services/app-key-binder';
 import VideoChannel from '../services/video-channel';
 import PlaybackPreferences from '../services/playback-preferences';
-import CopyHistoryRepository from '../../../src/copy-history-repository';
 import './i18n';
 import { useTranslation } from 'react-i18next';
 import LocalizedError from './localized-error';
@@ -307,13 +306,14 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         });
     }, [settings.subtitleRegexFilter, settings.subtitleRegexFilterTextReplacement]);
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>([]);
-    const playbackPreferences = useMemo<PlaybackPreferences>(() => new PlaybackPreferences(settings), [settings]);
+    const playbackPreferences = useMemo<PlaybackPreferences>(
+        () => new PlaybackPreferences(settings, extension),
+        [settings, extension]
+    );
     const theme = useMemo<Theme>(() => createTheme(settings.themeType), [settings.themeType]);
     const anki = useMemo<Anki>(() => new Anki(settings, fetcher), [settings, fetcher]);
-    const location = useLocation();
-    const [searchParams] = useSearchParams();
-
-    const inVideoPlayer = searchParams.get('video') !== null;
+    const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+    const inVideoPlayer = useMemo(() => searchParams.get('video') !== null, [searchParams]);
     const [videoFullscreen, setVideoFullscreen] = useState<boolean>(false);
     const keyBinder = useMemo<AppKeyBinder>(
         () => new AppKeyBinder(new DefaultKeyBinder(settings.keyBindSet), extension),
@@ -527,7 +527,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
     );
 
     const handleCopy = useCallback(
-        (
+        async (
             subtitle: SubtitleModel,
             surroundingSubtitles: SubtitleModel[],
             audioFile: File | undefined,
@@ -546,60 +546,97 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                 navigator.clipboard.writeText(subtitle.text);
             }
 
-            const newCopiedSubtitle = {
-                ...subtitle,
-                surroundingSubtitles: surroundingSubtitles,
-                timestamp: Date.now(),
-                id: id || uuidv4(),
-                name: fileName ?? subtitleFile?.name ?? videoFile?.name ?? audioFile?.name ?? '',
-                subtitleFileName: subtitleFile?.name,
-                audioFile: audioFile,
-                videoFile: videoFile,
-                filePlaybackRate: filePlaybackRate,
-                mediaTimestamp: mediaTimestamp,
-                audioTrack: audioTrack,
-                audio: audio,
-                image: image,
-                url: url,
-            };
-
-            saveCopyHistoryItem(newCopiedSubtitle);
-
-            switch (postMineAction ?? PostMineAction.none) {
-                case PostMineAction.none:
-                    break;
-                case PostMineAction.showAnkiDialog:
-                    handleAnkiDialogRequest(newCopiedSubtitle);
-                    break;
-                case PostMineAction.updateLastCard:
-                    // FIXME: We should really rename the functions below because we're actually skipping the Anki dialog in this case
-                    setAnkiDialogRequested(true);
-                    let audioClip = audioClipFromItem(
-                        newCopiedSubtitle,
-                        undefined,
-                        settings.audioPaddingStart,
-                        settings.audioPaddingEnd
+            if (extension.installed) {
+                if (audio === undefined && audioFile !== undefined) {
+                    let audioClip = await AudioClip.fromFile(
+                        audioFile,
+                        Math.max(0, subtitle.start - settings.audioPaddingStart),
+                        Math.min(subtitle.end + settings.audioPaddingEnd),
+                        filePlaybackRate ?? 1,
+                        audioTrack
                     );
 
-                    if (audioClip && settings.preferMp3) {
+                    if (settings.preferMp3) {
                         audioClip = audioClip.toMp3();
                     }
+                    const base64 = await audioClip.base64();
+                    audio = {
+                        base64,
+                        extension: audioClip.extension as 'mp3' | 'webm',
+                        start: subtitle.start,
+                        end: subtitle.end,
+                        paddingStart: 0,
+                        paddingEnd: 0,
+                        playbackRate: filePlaybackRate,
+                    };
+                }
+                extension.publishCard({
+                    id,
+                    subtitle,
+                    surroundingSubtitles,
+                    subtitleFileName: subtitleFile?.name,
+                    url,
+                    image,
+                    audio,
+                    postMineAction,
+                    mediaTimestamp: mediaTimestamp ?? 0,
+                });
+            } else {
+                const newCopiedSubtitle = {
+                    ...subtitle,
+                    surroundingSubtitles: surroundingSubtitles,
+                    timestamp: Date.now(),
+                    id: id || uuidv4(),
+                    name: fileName ?? subtitleFile?.name ?? videoFile?.name ?? audioFile?.name ?? '',
+                    subtitleFileName: subtitleFile?.name,
+                    audioFile: audioFile,
+                    videoFile: videoFile,
+                    filePlaybackRate: filePlaybackRate,
+                    mediaTimestamp: mediaTimestamp,
+                    audioTrack: audioTrack,
+                    audio: audio,
+                    image: image,
+                    url: url,
+                };
 
-                    handleAnkiDialogProceed(
-                        extractText(subtitle, surroundingSubtitles),
-                        '',
-                        audioClip,
-                        imageFromItem(newCopiedSubtitle, settings.maxImageWidth, settings.maxImageHeight),
-                        '',
-                        itemSourceString(newCopiedSubtitle) ?? '',
-                        '',
-                        {},
-                        settings.tags,
-                        'updateLast'
-                    );
-                    break;
-                default:
-                    throw new Error('Unknown post mine action: ' + postMineAction);
+                saveCopyHistoryItem(newCopiedSubtitle);
+
+                switch (postMineAction ?? PostMineAction.none) {
+                    case PostMineAction.none:
+                        break;
+                    case PostMineAction.showAnkiDialog:
+                        handleAnkiDialogRequest(newCopiedSubtitle);
+                        break;
+                    case PostMineAction.updateLastCard:
+                        // FIXME: We should really rename the functions below because we're actually skipping the Anki dialog in this case
+                        setAnkiDialogRequested(true);
+                        let audioClip = audioClipFromItem(
+                            newCopiedSubtitle,
+                            undefined,
+                            settings.audioPaddingStart,
+                            settings.audioPaddingEnd
+                        );
+
+                        if (audioClip && settings.preferMp3) {
+                            audioClip = audioClip.toMp3();
+                        }
+
+                        handleAnkiDialogProceed(
+                            extractText(subtitle, surroundingSubtitles),
+                            '',
+                            audioClip,
+                            imageFromItem(newCopiedSubtitle, settings.maxImageWidth, settings.maxImageHeight),
+                            '',
+                            itemSourceString(newCopiedSubtitle) ?? '',
+                            '',
+                            {},
+                            settings.tags,
+                            'updateLast'
+                        );
+                        break;
+                    default:
+                        throw new Error('Unknown post mine action: ' + postMineAction);
+                }
             }
 
             if (subtitle) {
@@ -612,21 +649,18 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                 setAlertOpen(true);
             }
         },
-        [fileName, settings, saveCopyHistoryItem, handleAnkiDialogProceed, handleAnkiDialogRequest, t]
+        [fileName, settings, extension, saveCopyHistoryItem, handleAnkiDialogProceed, handleAnkiDialogRequest, t]
     );
 
-    useEffect(() => {
-        if (inVideoPlayer) {
-            return;
+    const handleOpenCopyHistory = useCallback(async () => {
+        if (extension.installed) {
+            extension.openSidePanel();
+        } else {
+            await refreshCopyHistory();
+            setCopyHistoryOpen((copyHistoryOpen) => !copyHistoryOpen);
+            setVideoFullscreen(false);
         }
-
-        refreshCopyHistory();
-    }, [inVideoPlayer, refreshCopyHistory]);
-
-    const handleOpenCopyHistory = useCallback(() => {
-        setCopyHistoryOpen((copyHistoryOpen) => !copyHistoryOpen);
-        setVideoFullscreen(false);
-    }, []);
+    }, [extension, refreshCopyHistory]);
     const handleCloseCopyHistory = useCallback(() => setCopyHistoryOpen(false), []);
     const handleAppBarToggle = useCallback(() => {
         const newValue = !playbackPreferences.theaterMode;

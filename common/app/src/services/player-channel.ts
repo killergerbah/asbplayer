@@ -207,8 +207,8 @@ export default class PlayerChannel {
         };
     }
 
-    set currentTime(value: number) {
-        this.channel?.postMessage({ command: 'currentTime', value: value, echo: true });
+    currentTime(value: number, echo = true) {
+        this.channel?.postMessage({ command: 'currentTime', value: value, echo });
     }
 
     onPlay(callback: () => void) {
@@ -326,13 +326,13 @@ export default class PlayerChannel {
         this.channel?.postMessage(message);
     }
 
-    play() {
-        const message: PlayFromVideoMessage = { command: 'play', echo: true };
+    play(echo = true) {
+        const message: PlayFromVideoMessage = { command: 'play', echo };
         this.channel?.postMessage(message);
     }
 
-    pause() {
-        const message: PauseFromVideoMessage = { command: 'pause', echo: true };
+    pause(echo = true) {
+        const message: PauseFromVideoMessage = { command: 'pause', echo };
         this.channel?.postMessage(message);
     }
 
@@ -346,8 +346,8 @@ export default class PlayerChannel {
         this.channel?.postMessage(message);
     }
 
-    playbackRate(playbackRate: number) {
-        const message: PlaybackRateFromVideoMessage = { command: 'playbackRate', value: playbackRate, echo: true };
+    playbackRate(playbackRate: number, echo = true) {
+        const message: PlaybackRateFromVideoMessage = { command: 'playbackRate', value: playbackRate, echo };
         this.channel?.postMessage(message);
     }
 

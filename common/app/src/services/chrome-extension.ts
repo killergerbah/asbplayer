@@ -1,9 +1,21 @@
 import {
+    AsbPlayerCommand,
     AsbPlayerToVideoCommandV2,
+    AsbplayerInstance,
+    AsbplayerSettings,
+    Card,
     Command,
+    CopyMessage,
     ExtensionToAsbPlayerCommand,
     ExtensionToAsbPlayerCommandTabsCommand,
+    GetSettingsMessage,
     Message,
+    MessageWithId,
+    MineSubtitleMessage,
+    OpenSidePanelMessage,
+    PostMineAction,
+    PublishCardMessage,
+    SetSettingsMessage,
     SettingsUpdatedMessage,
     VideoTabModel,
 } from '@project/common';
@@ -23,10 +35,12 @@ export default class ChromeExtension {
     readonly extensionCommands: { [key: string]: string | undefined };
 
     tabs: VideoTabModel[] | undefined;
+    asbplayers: AsbplayerInstance[] | undefined;
     installed: boolean;
     sidePanel: boolean;
 
     private readonly windowEventListener: (event: MessageEvent) => void;
+    private readonly _responseResolves: { [key: string]: (value: any) => void } = {};
     private onMessageCallbacks: Array<(message: ExtensionMessage) => void>;
     private onTabsCallbacks: Array<(tabs: VideoTabModel[]) => void>;
     private heartbeatStarted = false;
@@ -47,27 +61,34 @@ export default class ChromeExtension {
                 return;
             }
 
+            if (typeof event.data.message.messageId === 'string') {
+                const messageId = event.data.message.messageId;
+
+                if (messageId in this._responseResolves) {
+                    this._responseResolves[messageId]?.(event.data.message.response);
+                    delete this._responseResolves[messageId];
+                }
+            }
+
             if (event.data.message.command === 'tabs') {
                 const tabsCommand = event.data as ExtensionToAsbPlayerCommandTabsCommand;
                 this.tabs = tabsCommand.message.tabs;
+                this.asbplayers = tabsCommand.message.asbplayers;
 
                 for (let c of this.onTabsCallbacks) {
                     c(this.tabs);
                 }
 
                 if (tabsCommand.message.ackRequested) {
-                    window.postMessage(
-                        {
-                            sender: 'asbplayerv2',
-                            message: {
-                                command: 'ackTabs',
-                                id: id,
-                                receivedTabs: this.tabs,
-                                sidePanel: this.sidePanel,
-                            },
+                    window.postMessage({
+                        sender: 'asbplayerv2',
+                        message: {
+                            command: 'ackTabs',
+                            id: id,
+                            receivedTabs: this.tabs,
+                            sidePanel: this.sidePanel,
                         },
-                        '*'
-                    );
+                    });
                 }
             } else {
                 const command = event.data as ExtensionToAsbPlayerCommand<Message>;
@@ -93,9 +114,11 @@ export default class ChromeExtension {
         if (!this.heartbeatStarted) {
             if (fromVideoPlayer) {
                 if (gt(this.version, '0.23.0')) {
+                    this._sendHeartbeat(true);
                     setInterval(() => this._sendHeartbeat(true), 1000);
                 }
             } else {
+                this._sendHeartbeat(false);
                 setInterval(() => this._sendHeartbeat(false), 1000);
             }
 
@@ -104,19 +127,16 @@ export default class ChromeExtension {
     }
 
     private _sendHeartbeat(fromVideoPlayer: boolean) {
-        window.postMessage(
-            {
-                sender: 'asbplayerv2',
-                message: {
-                    command: 'heartbeat',
-                    id: id,
-                    receivedTabs: fromVideoPlayer ? [] : this.tabs,
-                    videoPlayer: fromVideoPlayer,
-                    sidePanel: this.sidePanel,
-                },
+        window.postMessage({
+            sender: 'asbplayerv2',
+            message: {
+                command: 'heartbeat',
+                id: id,
+                receivedTabs: fromVideoPlayer ? [] : this.tabs,
+                videoPlayer: fromVideoPlayer,
+                sidePanel: this.sidePanel,
             },
-            '*'
-        );
+        });
     }
 
     openShortcuts() {
@@ -128,14 +148,28 @@ export default class ChromeExtension {
         });
     }
 
-    sendMessage(message: Message, tabId: number, src: string) {
-        const command: AsbPlayerToVideoCommandV2<Message> = {
-            sender: 'asbplayerv2',
-            message: message,
-            tabId: tabId,
-            src: src,
-        };
-        window.postMessage(command, '*');
+    sendMessageToVideoElement(message: Message, tabId: number, src: string, callback?: (response: any) => void) {
+        let command: AsbPlayerToVideoCommandV2<Message> | AsbPlayerToVideoCommandV2<MessageWithId>;
+
+        if (callback === undefined) {
+            command = {
+                sender: 'asbplayerv2',
+                message,
+                tabId: tabId,
+                src: src,
+            };
+            window.postMessage(command);
+        } else {
+            const messageId = uuidv4();
+            command = {
+                sender: 'asbplayerv2',
+                message: { ...message, messageId },
+                tabId: tabId,
+                src: src,
+            };
+            window.postMessage(command);
+            this._createResponsePromise(messageId).then(callback);
+        }
     }
 
     notifySettingsUpdated() {
@@ -145,10 +179,75 @@ export default class ChromeExtension {
                 command: 'settings-updated',
             },
         };
-        window.postMessage(command, '*');
+        window.postMessage(command);
+    }
+
+    openSidePanel() {
+        const command: Command<OpenSidePanelMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'open-side-panel',
+            },
+        };
+        window.postMessage(command);
+    }
+
+    publishCard(card: Card) {
+        const command: Command<PublishCardMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'publish-card',
+                ...card,
+            },
+        };
+        window.postMessage(command);
+    }
+
+    getSettings(keysAndDefaults: Partial<AsbplayerSettings>): Promise<Partial<AsbplayerSettings>> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<GetSettingsMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'get-settings',
+                keysAndDefaults,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId);
+    }
+
+    setSettings(settings: Partial<AsbplayerSettings>): Promise<void> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<SetSettingsMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'set-settings',
+                settings,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId).then(() => this.notifySettingsUpdated());
+    }
+
+    private _createResponsePromise<T>(messageId: string) {
+        return new Promise<T>((resolve, reject) => {
+            this._responseResolves[messageId] = resolve;
+            setTimeout(() => {
+                if (messageId in this._responseResolves) {
+                    delete this._responseResolves[messageId];
+                    reject('Request timed out');
+                }
+            }, 5000);
+        });
     }
 
     subscribeTabs(callback: (tabs: VideoTabModel[]) => void) {
+        if (this.tabs !== undefined) {
+            callback(this.tabs);
+        }
+
         this.onTabsCallbacks.push(callback);
         return () => this._remove(callback, this.onTabsCallbacks);
     }

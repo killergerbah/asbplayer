@@ -61,7 +61,8 @@ export default function SettingsDialog({
             <DialogContent className={classes.content}>
                 <SettingsForm
                     anki={anki}
-                    insideExtension={extension.installed}
+                    extensionInstalled={extension.installed}
+                    insideApp
                     chromeKeyBinds={extension.extensionCommands}
                     onOpenChromeExtensionShortcuts={extension.openShortcuts}
                     open={open}

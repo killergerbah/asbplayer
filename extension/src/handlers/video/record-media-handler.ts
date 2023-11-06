@@ -17,17 +17,16 @@ import {
     updateLastCard,
     sourceString,
 } from '@project/common';
-import BackgroundPageAudioRecorder from '../../services/background-page-audio-recorder';
+import BackgroundPageManager from '../../services/background-page-manager';
 import { CardPublisher } from '../../services/card-publisher';
-import TabRegistry from '../../services/tab-registry';
 
 export default class RecordMediaHandler {
-    private readonly _audioRecorder: BackgroundPageAudioRecorder;
+    private readonly _audioRecorder: BackgroundPageManager;
     private readonly _imageCapturer: ImageCapturer;
     private readonly _cardPublisher: CardPublisher;
 
     constructor(
-        audioRecorder: BackgroundPageAudioRecorder,
+        audioRecorder: BackgroundPageManager,
         imageCapturer: ImageCapturer,
         cardPublisher: CardPublisher
     ) {
@@ -121,7 +120,7 @@ export default class RecordMediaHandler {
                 subtitleFileName: recordMediaCommand.message.subtitleFileName,
                 mediaTimestamp: recordMediaCommand.message.mediaTimestamp,
             };
-            this._cardPublisher.publish(message, senderTab.id!, recordMediaCommand.src);
+            this._cardPublisher.publish(message);
 
             if (recordMediaCommand.message.postMineAction == PostMineAction.showAnkiDialog) {
                 const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {

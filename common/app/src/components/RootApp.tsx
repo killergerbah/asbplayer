@@ -10,7 +10,7 @@ interface Props {
 }
 
 const RootApp = ({ origin, logoUrl, settingsStorage, fetcher }: Props) => {
-    const settingsProvider = useMemo(() => new SettingsProvider(settingsStorage), []);
+    const settingsProvider = useMemo(() => new SettingsProvider(settingsStorage), [settingsStorage]);
     const [settings, setSettings] = useState<AsbplayerSettings>();
     const extension = useChromeExtension({ sidePanel: false });
 

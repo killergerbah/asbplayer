@@ -29,6 +29,14 @@ export interface ActiveVideoElement {
     syncedTimestamp?: number;
 }
 
+export interface AsbplayerInstance {
+    id: string;
+    tabId?: number;
+    sidePanel: boolean;
+    timestamp: number;
+    videoPlayer: boolean;
+}
+
 export interface AsbplayerHeartbeatMessage extends Message {
     readonly command: 'heartbeat';
     readonly id: string;
@@ -40,6 +48,7 @@ export interface AsbplayerHeartbeatMessage extends Message {
 export interface TabsMessage extends Message {
     readonly command: 'tabs';
     readonly tabs: ActiveVideoElement[];
+    readonly asbplayers: AsbplayerInstance[];
     readonly ackRequested: boolean;
 }
 
@@ -123,8 +132,7 @@ export interface StopRecordingMediaMessage extends Message, ImageCaptureParams {
     readonly surroundingSubtitles?: SubtitleModel[];
 }
 
-export interface CopyMessage extends Message {
-    readonly command: 'copy';
+export interface Card {
     readonly id?: string;
     readonly subtitle: SubtitleModel;
     readonly surroundingSubtitles: SubtitleModel[];
@@ -135,6 +143,14 @@ export interface CopyMessage extends Message {
 
     readonly postMineAction?: PostMineAction;
     readonly mediaTimestamp: number;
+}
+
+export interface CopyMessage extends Message, Card {
+    readonly command: 'copy';
+}
+
+export interface PublishCardMessage extends Message, Card {
+    readonly command: 'publish-card';
 }
 
 export interface CopyToVideoMessage extends Message {
@@ -482,6 +498,7 @@ export interface LoadSubtitlesMessage extends Message {
 
 export interface MineSubtitleMessage extends Message {
     readonly command: 'mine-subtitle';
+    readonly postMineAction: PostMineAction;
 }
 
 export interface RequestActiveTabPermissionMessage extends Message {
@@ -523,4 +540,8 @@ export interface UpdateStateMessage extends Message {
 
 export interface ShowAppUiMessage extends Message {
     readonly command: 'show-app-ui';
+}
+
+export interface AckMessage extends MessageWithId {
+    readonly command: 'ack-message';
 }

@@ -1,10 +1,10 @@
 import { Command, Message } from '@project/common';
-import BackgroundPageAudioRecorder from '../../services/background-page-audio-recorder';
+import BackgroundPageManager from '../../services/background-page-manager';
 
 export default class BackgroundPageReadyHandler {
-    private readonly backgroundPageAudioRecorder: BackgroundPageAudioRecorder;
+    private readonly backgroundPageAudioRecorder: BackgroundPageManager;
 
-    constructor(backgroundPageAudioRecorder: BackgroundPageAudioRecorder) {
+    constructor(backgroundPageAudioRecorder: BackgroundPageManager) {
         this.backgroundPageAudioRecorder = backgroundPageAudioRecorder;
     }
 

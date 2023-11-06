@@ -55,7 +55,7 @@ const bind = () => {
         frameInfoListener.bind();
     }
 
-    const interval = setInterval(() => {
+    const bindToVideoElements = () => {
         const videoElements = document.getElementsByTagName('video');
 
         for (let i = 0; i < videoElements.length; ++i) {
@@ -87,12 +87,16 @@ const bind = () => {
                 b.unbind();
             }
         }
-    }, 1000);
+    };
 
-    let iframeInterval = setInterval(() => cacheIframesByFrameId(), 10000);
+    bindToVideoElements();
+    cacheIframesByFrameId();
+    const videoInterval = setInterval(bindToVideoElements, 1000);
+    const iframeInterval = setInterval(cacheIframesByFrameId, 10000);
 
     const videoSelectController = new VideoSelectController(bindings);
     videoSelectController.bind();
+
     const ankiUiController = new TabAnkiUiController(new SettingsProvider(extensionSettingsStorage));
     const appUiController = new AppUiController();
 
@@ -177,7 +181,7 @@ const bind = () => {
 
         bindings.length = 0;
 
-        clearInterval(interval);
+        clearInterval(videoInterval);
         clearInterval(iframeInterval);
         videoSelectController.unbind();
         frameInfoListener?.unbind();

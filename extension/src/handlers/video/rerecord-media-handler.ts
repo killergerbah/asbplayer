@@ -9,14 +9,14 @@ import {
     ShowAnkiUiAfterRerecordMessage,
     VideoToExtensionCommand,
 } from '@project/common';
-import BackgroundPageAudioRecorder from '../../services/background-page-audio-recorder';
+import BackgroundPageManager from '../../services/background-page-manager';
 import { CardPublisher } from '../../services/card-publisher';
 
 export default class RerecordMediaHandler {
-    private readonly _audioRecorder: BackgroundPageAudioRecorder;
+    private readonly _audioRecorder: BackgroundPageManager;
     private readonly _cardPublisher: CardPublisher;
 
-    constructor(audioRecorder: BackgroundPageAudioRecorder, cardPublisher: CardPublisher) {
+    constructor(audioRecorder: BackgroundPageManager, cardPublisher: CardPublisher) {
         this._audioRecorder = audioRecorder;
         this._cardPublisher = cardPublisher;
     }
@@ -50,24 +50,19 @@ export default class RerecordMediaHandler {
                 playbackRate: rerecordCommand.message.playbackRate,
             };
 
-            this._cardPublisher.publish(
-                {
-                    command: 'copy',
-                    // Ideally we send the same ID so that asbplayer can update the existing item.
-                    // There's a bug where asbplayer isn't properly updating the item right now, so
-                    // let's just create a new item for now by using a new ID.
-                    id: uuidv4(),
-                    audio: audio,
-                    image: rerecordCommand.message.uiState.image,
-                    url: rerecordCommand.message.uiState.url,
-                    subtitle: rerecordCommand.message.uiState.subtitle,
-                    surroundingSubtitles: rerecordCommand.message.uiState.sliderContext.subtitles,
-                    subtitleFileName: rerecordCommand.message.subtitleFileName,
-                    mediaTimestamp: rerecordCommand.message.timestamp,
-                },
-                sender.tab!.id!,
-                rerecordCommand.src
-            );
+            this._cardPublisher.publish({
+                // Ideally we send the same ID so that asbplayer can update the existing item.
+                // There's a bug where asbplayer isn't properly updating the item right now, so
+                // let's just create a new item for now by using a new ID.
+                id: uuidv4(),
+                audio: audio,
+                image: rerecordCommand.message.uiState.image,
+                url: rerecordCommand.message.uiState.url,
+                subtitle: rerecordCommand.message.uiState.subtitle,
+                surroundingSubtitles: rerecordCommand.message.uiState.sliderContext.subtitles,
+                subtitleFileName: rerecordCommand.message.subtitleFileName,
+                mediaTimestamp: rerecordCommand.message.timestamp,
+            });
 
             const newUiState = {
                 ...rerecordCommand.message.uiState,

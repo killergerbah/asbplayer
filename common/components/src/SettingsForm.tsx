@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect, useMemo, ChangeEvent, ReactNode, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { makeStyles } from '@material-ui/styles';
 import AddIcon from '@material-ui/icons/Add';
 import LockIcon from '@material-ui/icons/Lock';
@@ -44,6 +44,8 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import Slider from '@material-ui/core/Slider';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import Link from '@material-ui/core/Link';
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
@@ -505,7 +507,8 @@ type TabName =
 interface Props {
     anki: Anki;
     open: boolean;
-    insideExtension: boolean;
+    extensionInstalled: boolean;
+    insideApp?: boolean;
     settings: AsbplayerSettings;
     scrollToId?: string;
     chromeKeyBinds: { [key: string]: string | undefined };
@@ -522,7 +525,8 @@ const cssStyles = Object.keys(document.body.style);
 export default function SettingsForm({
     anki,
     settings,
-    insideExtension,
+    extensionInstalled,
+    insideApp,
     scrollToId,
     chromeKeyBinds,
     localFontsAvailable,
@@ -549,12 +553,12 @@ export default function SettingsForm({
             toggleRecording: {
                 label: t('binds.extensionToggleRecording')!,
                 boundViaChrome: true,
-                hide: !insideExtension,
+                hide: !extensionInstalled,
             },
             selectSubtitleTrack: {
                 label: t('binds.extensionSelectSubtitleTrack')!,
                 boundViaChrome: true,
-                hide: !insideExtension,
+                hide: !extensionInstalled,
             },
             togglePlay: { label: t('binds.togglePlay')!, boundViaChrome: false },
             toggleAutoPause: { label: t('binds.toggleAutoPause')!, boundViaChrome: false },
@@ -593,7 +597,7 @@ export default function SettingsForm({
             decreasePlaybackRate: { label: t('binds.decreasePlaybackRate')!, boundViaChrome: false },
             openSidePanel: { label: t('binds.openSidePanel')!, boundViaChrome: false },
         }),
-        [t, insideExtension]
+        [t, extensionInstalled]
     );
 
     const {
@@ -814,12 +818,12 @@ export default function SettingsForm({
             'misc-settings',
         ];
 
-        if (!insideExtension) {
+        if (!extensionInstalled) {
             tabs.splice(tabs.indexOf('streaming-video'), 1);
         }
 
         return Object.fromEntries(tabs.map((tab, i) => [tab, i]));
-    }, [insideExtension]);
+    }, [extensionInstalled]);
 
     useEffect(() => {
         if (!scrollToId) {
@@ -847,7 +851,7 @@ export default function SettingsForm({
                 <Tab tabIndex={1} label={t('settings.mining')} id="mining-settings" />
                 <Tab tabIndex={2} label={t('settings.subtitleAppearance')} id="subtitle-appearance" />
                 <Tab tabIndex={3} label={t('settings.keyboardShortcuts')} id="keyboard-shortcuts" />
-                {insideExtension && <Tab tabIndex={4} label={t('settings.streamingVideo')} id="streaming-video" />}
+                {extensionInstalled && <Tab tabIndex={4} label={t('settings.streamingVideo')} id="streaming-video" />}
                 <Tab tabIndex={5} label={t('settings.misc')} id="misc-settings" />
             </Tabs>
             <TabPanel value={tabIndex} index={tabIndicesById['anki-settings']}>
@@ -869,6 +873,24 @@ export default function SettingsForm({
                             ),
                         }}
                     />
+                    {insideApp && (
+                        <FormHelperText>
+                            <Trans
+                                i18nKey={'settings.corsHelperText'}
+                                values={{ origin }}
+                                components={[
+                                    <Link
+                                        color="secondary"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        href="https://youtu.be/Mv7fEVb6PHo?t=44"
+                                    >
+                                        video
+                                    </Link>,
+                                ]}
+                            />
+                        </FormHelperText>
+                    )}
                     <SelectableSetting
                         label={t('settings.deck')}
                         value={deck}
@@ -1282,11 +1304,11 @@ export default function SettingsForm({
                                 key={key}
                                 label={properties.label}
                                 keys={
-                                    insideExtension && properties.boundViaChrome
+                                    extensionInstalled && properties.boundViaChrome
                                         ? chromeKeyBinds[keyBindName] ?? ''
                                         : keyBindSet[keyBindName].keys
                                 }
-                                boundViaChrome={insideExtension && properties.boundViaChrome}
+                                boundViaChrome={extensionInstalled && properties.boundViaChrome}
                                 onKeysChange={(keys) => handleKeysChange(keys, keyBindName)}
                                 onOpenExtensionShortcuts={onOpenChromeExtensionShortcuts}
                             />

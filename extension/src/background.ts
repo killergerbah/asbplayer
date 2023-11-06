@@ -15,7 +15,7 @@ import AsbplayerHeartbeatHandler from './handlers/asbplayerv2/asbplayer-heartbea
 import RefreshSettingsHandler from './handlers/popup/refresh-settings-handler';
 import { CommandHandler } from './handlers/command-handler';
 import TakeScreenshotHandler from './handlers/video/take-screenshot-handler';
-import BackgroundPageAudioRecorder from './services/background-page-audio-recorder';
+import BackgroundPageManager from './services/background-page-manager';
 import BackgroundPageReadyHandler from './handlers/backgroundpage/background-page-ready-handler';
 import AudioBase64Handler from './handlers/backgroundpage/audio-base-64-handler';
 import AckTabsHandler from './handlers/asbplayerv2/ack-tabs-handler';
@@ -40,10 +40,12 @@ import { primeLocalization } from './services/localization-fetcher';
 import VideoDisappearedHandler from './handlers/video/video-disappeared-handler';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
 import LoadSubtitlesHandler from './handlers/asbplayerv2/load-subtitles-handler';
-import OpenSidePanelHandler from './handlers/video/open-side-panel';
+import OpenSidePanelHandler from './handlers/video/open-side-panel-handler';
 import MineSubtitleHandler from './handlers/asbplayerv2/mine-subtitle-handler';
 import { RequestingActiveTabPermissionHandler } from './handlers/video/requesting-active-tab-permission';
 import { CardPublisher } from './services/card-publisher';
+import AckMessageHandler from './handlers/video/ack-message-handler';
+import PublishCardHandler from './handlers/asbplayerv2/publish-card-handler';
 
 chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
 
@@ -57,16 +59,16 @@ chrome.runtime.onInstalled.addListener(startListener);
 chrome.runtime.onStartup.addListener(startListener);
 
 const tabRegistry = new TabRegistry();
-const backgroundPageAudioRecorder = new BackgroundPageAudioRecorder(tabRegistry);
+const backgroundPageManager = new BackgroundPageManager(tabRegistry);
 const imageCapturer = new ImageCapturer(settings);
-const cardPublisher = new CardPublisher(tabRegistry);
+const cardPublisher = new CardPublisher(backgroundPageManager);
 
 const handlers: CommandHandler[] = [
     new VideoHeartbeatHandler(tabRegistry),
-    new RecordMediaHandler(backgroundPageAudioRecorder, imageCapturer, cardPublisher),
-    new RerecordMediaHandler(backgroundPageAudioRecorder, cardPublisher),
-    new StartRecordingMediaHandler(backgroundPageAudioRecorder, imageCapturer, cardPublisher),
-    new StopRecordingMediaHandler(backgroundPageAudioRecorder, imageCapturer, cardPublisher),
+    new RecordMediaHandler(backgroundPageManager, imageCapturer, cardPublisher),
+    new RerecordMediaHandler(backgroundPageManager, cardPublisher),
+    new StartRecordingMediaHandler(backgroundPageManager, imageCapturer, cardPublisher),
+    new StopRecordingMediaHandler(backgroundPageManager, imageCapturer, cardPublisher),
     new TakeScreenshotHandler(imageCapturer, cardPublisher),
     new ToggleSubtitlesHandler(settings, tabRegistry),
     new SyncHandler(tabRegistry),
@@ -78,6 +80,8 @@ const handlers: CommandHandler[] = [
     new RequestingActiveTabPermissionHandler(),
     new MineSubtitleHandler(tabRegistry),
     new LoadSubtitlesHandler(tabRegistry),
+    new PublishCardHandler(cardPublisher),
+    new AckMessageHandler(tabRegistry),
     new VideoToAsbplayerCommandForwardingHandler(tabRegistry),
     new AsbplayerToVideoCommandForwardingHandler(),
     new AsbplayerHeartbeatHandler(tabRegistry),
@@ -87,8 +91,8 @@ const handlers: CommandHandler[] = [
     new ExtensionCommandsHandler(),
     new AsbplayerV2ToVideoCommandForwardingHandler(),
     new RefreshSettingsHandler(tabRegistry),
-    new BackgroundPageReadyHandler(backgroundPageAudioRecorder),
-    new AudioBase64Handler(backgroundPageAudioRecorder),
+    new BackgroundPageReadyHandler(backgroundPageManager),
+    new AudioBase64Handler(backgroundPageManager),
     new CaptureVisibleTabHandler(),
 ];
 

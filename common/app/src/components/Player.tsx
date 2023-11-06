@@ -409,7 +409,7 @@ export default function Player({
         }
 
         init().then(() => onLoaded(subtitleFiles ?? []));
-    }, [subtitleReader, playbackPreferences, onLoaded, onError, subtitleFiles, flattenSubtitleFiles]);
+    }, [subtitleReader, playbackPreferences.offset, onLoaded, onError, subtitleFiles, flattenSubtitleFiles]);
 
     useEffect(() => {
         setSubtitlesSentThroughChannel(false);
@@ -441,9 +441,9 @@ export default function Player({
     useEffect(
         () =>
             channel?.onReady(() => {
-                return channel?.ready(trackLength(audioRef.current, channel, subtitles));
+                return channel?.ready(trackLength(audioRef.current, channel, subtitles), videoFile?.name);
             }),
-        [channel, subtitles]
+        [channel, subtitles, videoFile]
     );
     useEffect(() => {
         if (
@@ -548,6 +548,8 @@ export default function Player({
     useEffect(
         () =>
             channel?.onCurrentTime(async (currentTime, forwardToMedia) => {
+                const playing = clock.running;
+
                 if (playing) {
                     clock.stop();
                 }
@@ -558,7 +560,7 @@ export default function Player({
                     clock.start();
                 }
             }),
-        [channel, clock, playing, seek]
+        [channel, clock, seek]
     );
     useEffect(
         () =>
@@ -715,13 +717,17 @@ export default function Player({
     );
 
     const handleCopyFromSubtitlePlayer = useCallback(
-        (
+        async (
             subtitle: SubtitleModel,
             surroundingSubtitles: SubtitleModel[],
             postMineAction: PostMineAction,
             forceUseGivenSubtitle?: boolean
         ) => {
-            if (videoFileUrl && !forceUseGivenSubtitle) {
+            if (videoFileUrl) {
+                if (forceUseGivenSubtitle) {
+                    await seek(subtitle.start, clock, true);
+                }
+
                 // Let VideoPlayer do the copying to ensure copied subtitle is consistent with the VideoPlayer clock
                 channel?.copy(postMineAction);
                 return;
@@ -743,7 +749,18 @@ export default function Player({
                 undefined
             );
         },
-        [channel, onCopy, clock, audioFile, videoFile, videoFileUrl, subtitleFiles, selectedAudioTrack, playbackRate]
+        [
+            channel,
+            onCopy,
+            clock,
+            audioFile,
+            videoFile,
+            videoFileUrl,
+            subtitleFiles,
+            selectedAudioTrack,
+            playbackRate,
+            seek,
+        ]
     );
 
     const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {

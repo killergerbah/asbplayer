@@ -1,35 +1,21 @@
-import { CopyMessage, ExtensionToAsbPlayerCommand, ExtensionToBackgroundPageCommand } from '@project/common';
-import TabRegistry from './tab-registry';
+import { Card, CopyMessage, ExtensionToBackgroundPageCommand } from '@project/common';
+import BackgroundPageManager from './background-page-manager';
 
 export class CardPublisher {
-    private readonly _tabRegistry: TabRegistry;
-
-    constructor(tabRegistry: TabRegistry) {
-        this._tabRegistry = tabRegistry;
+    private readonly _backgroundPageManager: BackgroundPageManager;
+    constructor(backgroundPageManager: BackgroundPageManager) {
+        this._backgroundPageManager = backgroundPageManager;
     }
 
-    publish(message: CopyMessage, fromTabId: number, fromSrc: string) {
-        const asbplayerCopyCommand: ExtensionToAsbPlayerCommand<CopyMessage> = {
-            sender: 'asbplayer-extension-to-player',
-            message,
-            tabId: fromTabId,
-            src: fromSrc,
+    async publish(card: Card) {
+        const backgroundPageCopyCommand: ExtensionToBackgroundPageCommand<CopyMessage> = {
+            sender: 'asbplayer-extension-to-background-page',
+            message: { ...card, command: 'copy' },
         };
-        let published = 0;
+        const tabId = await this._backgroundPageManager.tabId();
 
-        this._tabRegistry.publishCommandToAsbplayers({
-            commandFactory: (asbplayer) => {
-                ++published;
-                return !asbplayer.sidePanel && !asbplayer.videoPlayer ? asbplayerCopyCommand : undefined;
-            },
-        });
-
-        if (published === 0) {
-            const backgroundPageCopyCommand: ExtensionToBackgroundPageCommand<CopyMessage> = {
-                sender: 'asbplayer-extension-to-background-page',
-                message,
-            };
-            chrome.runtime.sendMessage(backgroundPageCopyCommand);
+        if (tabId !== undefined) {
+            chrome.tabs.sendMessage(tabId, backgroundPageCopyCommand);
         }
     }
 }

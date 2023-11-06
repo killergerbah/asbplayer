@@ -2,7 +2,7 @@ import ImageElement from '../services/image-element';
 import Binding from '../services/binding';
 
 export default class DragController {
-    private readonly video: HTMLVideoElement;
+    private readonly video: HTMLMediaElement;
     private readonly imageElement: ImageElement;
 
     private bound: boolean;
@@ -21,7 +21,7 @@ export default class DragController {
 
     private dragElementStylesInterval?: NodeJS.Timeout;
 
-    constructor(video: HTMLVideoElement) {
+    constructor(video: HTMLMediaElement) {
         this.video = video;
         this.imageElement = new ImageElement(video);
         this.bound = false;

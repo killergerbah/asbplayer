@@ -1,5 +1,6 @@
 import {
     ActiveVideoElement,
+    AsbplayerInstance,
     Command,
     ExtensionToAsbPlayerCommandTabsCommand,
     ExtensionToVideoCommand,
@@ -34,6 +35,7 @@ export interface VideoElement {
 export default class TabRegistry {
     private onNoSyncedElementsCallback?: () => void;
     private onSyncedElementCallback?: () => void;
+    private onAsbplayerInstanceCallback?: () => void;
 
     constructor() {
         // Update video element state on tab changes
@@ -111,6 +113,7 @@ export default class TabRegistry {
     private async _asbplayers(mutator?: (asbplayers: { [key: string]: Asbplayer }) => boolean) {
         const tabs = await chrome.tabs.query({});
         const asbplayers = await this._fetchAsbplayerState();
+        const oldAsbplayers = { ...asbplayers };
         const now = Date.now();
         let changed = false;
 
@@ -135,6 +138,10 @@ export default class TabRegistry {
             await this._saveAsbplayerState(asbplayers);
         }
 
+        if (Object.keys(oldAsbplayers).length === 0 && Object.keys(asbplayers).length > 0) {
+            this.onAsbplayerInstanceCallback?.();
+        }
+
         return asbplayers;
     }
 
@@ -153,6 +160,7 @@ export default class TabRegistry {
                 message: {
                     command: 'tabs',
                     tabs: await this._activeVideoElements(),
+                    asbplayers: await this._asbplayerInstances(),
                     ackRequested: false,
                 },
             };
@@ -227,6 +235,23 @@ export default class TabRegistry {
         return activeVideoElements;
     }
 
+    private async _asbplayerInstances() {
+        const asbplayers = await this._asbplayers();
+        const asbplayerInstances: AsbplayerInstance[] = [];
+
+        for (const asbplayer of Object.values(asbplayers)) {
+            asbplayerInstances.push({
+                id: asbplayer.id,
+                tabId: asbplayer.tab?.id,
+                sidePanel: asbplayer.sidePanel ?? false,
+                timestamp: asbplayer.timestamp,
+                videoPlayer: asbplayer.videoPlayer,
+            });
+        }
+
+        return asbplayerInstances;
+    }
+
     async onVideoElementHeartbeat(
         tab: chrome.tabs.Tab,
         src: string,
@@ -278,12 +303,17 @@ export default class TabRegistry {
         this.onSyncedElementCallback = callback;
     }
 
+    onAsbplayerInstance(callback: () => void) {
+        this.onAsbplayerInstanceCallback = callback;
+    }
+
     async publishTabsToAsbplayers() {
         const tabsCommand: ExtensionToAsbPlayerCommandTabsCommand = {
             sender: 'asbplayer-extension-to-player',
             message: {
                 command: 'tabs',
                 tabs: await this._activeVideoElements(),
+                asbplayers: await this._asbplayerInstances(),
                 ackRequested: true,
             },
         };
