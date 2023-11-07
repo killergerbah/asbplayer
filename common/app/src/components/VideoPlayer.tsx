@@ -35,9 +35,9 @@ import PlaybackPreferences from '../services/playback-preferences';
 import { AnkiDialogFinishedRequest } from './Player';
 import { Color } from '@material-ui/lab/Alert';
 import Alert from './Alert';
-import { i18n } from './i18n';
 import { useSubtitleDomCache } from '../hooks/use-subtitle-dom-cache';
 import './video-player.css';
+import i18n from 'i18next';
 
 interface ExperimentalHTMLVideoElement extends HTMLVideoElement {
     readonly audioTracks: any;

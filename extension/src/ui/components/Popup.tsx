@@ -6,13 +6,14 @@ import {
     PopupToExtensionCommand,
     chromeCommandBindsToKeyBinds,
 } from '@project/common';
-import { PanelIcon, SettingsForm, useLocalFontFamilies } from '@project/common/components';
+import { PanelIcon, SettingsForm } from '@project/common/components';
 import LaunchIcon from '@material-ui/icons/Launch';
 import { useCallback, useMemo } from 'react';
 import { useI18n } from '@project/common/app';
 import Button from '@material-ui/core/Button';
 import { useTranslation } from 'react-i18next';
 import { Fetcher } from '@project/common/src/fetcher';
+import { useLocalFontFamilies } from '@project/common/hooks';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -51,7 +52,7 @@ const Popup = ({
     const anki = useMemo(() => new Anki(settings, new ExtensionFetcher()), [settings]);
     const handleUnlockLocalFonts = useCallback(() => {
         chrome.tabs.create({
-            url: `chrome-extension://${chrome.runtime.id}/app-ui.html?view=settings#subtitle-appearance`,
+            url: `${chrome.runtime.getURL('settings-ui.html')}#subtitle-appearance`,
             active: true,
         });
     }, []);

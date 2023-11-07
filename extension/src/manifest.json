@@ -15,7 +15,7 @@
         "default_popup": "popup-ui.html"
     },
     "options_ui": {
-        "page": "app-ui.html?view=settings",
+        "page": "settings-ui.html",
         "open_in_tab": true
     },
     "background": {

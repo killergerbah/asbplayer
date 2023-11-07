@@ -8,7 +8,8 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import { Anki, AsbplayerSettings } from '@project/common';
 import ChromeExtension from '../services/chrome-extension';
-import { SettingsForm, useLocalFontFamilies } from '../../../components';
+import { SettingsForm } from '../../../components';
+import { useLocalFontFamilies } from '../../../hooks';
 
 const useStyles = makeStyles({
     root: {

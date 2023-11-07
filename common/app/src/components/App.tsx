@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
-import { useI18n } from './i18n';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import { useWindowSize } from '../hooks/use-window-size';
@@ -45,11 +44,11 @@ import { DefaultKeyBinder } from '@project/common/key-binder';
 import AppKeyBinder from '../services/app-key-binder';
 import VideoChannel from '../services/video-channel';
 import PlaybackPreferences from '../services/playback-preferences';
-import './i18n';
 import { useTranslation } from 'react-i18next';
 import LocalizedError from './localized-error';
 import { DisplaySubtitleModel } from './SubtitlePlayer';
 import { useCopyHistory } from '../hooks/use-copy-history';
+import { useI18n } from '../../../hooks';
 
 const latestExtensionVersion = '0.28.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';

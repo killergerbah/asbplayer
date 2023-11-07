@@ -1,7 +1,8 @@
 export { default as App } from './src/components/App';
 export { default as RootApp } from './src/components/RootApp';
 export { default as Player } from './src/components/Player';
-export * from './src/components/i18n';
+export { default as SettingsDialog } from './src/components/SettingsDialog';
+export * from '../hooks/src/use-i18n';
 export * from './src/components/Player';
 export { default as Alert } from './src/components/Alert';
 export { default as LocalizedError } from './src/components/localized-error';

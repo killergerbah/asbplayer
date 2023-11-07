@@ -6,7 +6,6 @@ import { FrameInfoListener, fetchFrameId } from './services/frame-info';
 import { cropAndResize } from '@project/common/src/image-transformer';
 import { TabAnkiUiController } from './controllers/tab-anki-ui-controller';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
-import { AppUiController } from './controllers/app-ui-controller';
 
 const extensionSettingsStorage = new ExtensionSettingsStorage();
 const iframesByFrameId: { [frameId: string]: HTMLIFrameElement } = {};
@@ -98,7 +97,6 @@ const bind = () => {
     videoSelectController.bind();
 
     const ankiUiController = new TabAnkiUiController(new SettingsProvider(extensionSettingsStorage));
-    const appUiController = new AppUiController();
 
     const messageListener = (
         request: any,
@@ -163,9 +161,6 @@ const bind = () => {
                         subtitleFileName,
                     });
                 }
-                break;
-            case 'show-app-ui':
-                appUiController.show();
                 break;
             default:
             // ignore

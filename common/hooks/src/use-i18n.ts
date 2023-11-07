@@ -18,7 +18,7 @@ const init = i18n
         },
     });
 
-const useI18n = ({ language }: { language: string }) => {
+export const useI18n = ({ language }: { language: string }) => {
     const [initialized, setInitialized] = useState<boolean>(false);
 
     useEffect(() => {
@@ -37,5 +37,3 @@ const useI18n = ({ language }: { language: string }) => {
 
     return { initialized };
 };
-
-export { useI18n, i18n };

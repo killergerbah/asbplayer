@@ -538,10 +538,6 @@ export interface UpdateStateMessage extends Message {
     readonly state: any;
 }
 
-export interface ShowAppUiMessage extends Message {
-    readonly command: 'show-app-ui';
-}
-
 export interface AckMessage extends MessageWithId {
     readonly command: 'ack-message';
 }

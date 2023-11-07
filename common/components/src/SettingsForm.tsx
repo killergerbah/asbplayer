@@ -32,6 +32,7 @@ import {
     SubtitleListPreference,
     PostMineAction,
 } from '@project/common';
+import { useOutsideClickListener } from '@project/common/hooks';
 import { TagsTextField } from '@project/common/components';
 import hotkeys from 'hotkeys-js';
 import Typography from '@material-ui/core/Typography';
@@ -39,7 +40,6 @@ import { isMacOs } from 'react-device-detect';
 import Switch from '@material-ui/core/Switch';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Tooltip from '@material-ui/core/Tooltip';
-import { useOutsideClickListener } from './use-outside-click-listener';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import Slider from '@material-ui/core/Slider';
 import Tab from '@material-ui/core/Tab';
