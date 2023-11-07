@@ -33,6 +33,7 @@ export default class ActiveTabPermissionRequestController {
     }
 
     async show() {
+        this._frame.language = await this._context.settings.getSingle('language');
         const isNewClient = await this._frame.bind();
         this._client?.unbind();
         this._client = await this._frame.client();
