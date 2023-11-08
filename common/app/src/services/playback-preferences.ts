@@ -1,4 +1,4 @@
-import { AsbplayerSettings, SubtitleAlignment, VideoTabModel } from '@project/common';
+import { AsbplayerSettings, SubtitleAlignment } from '@project/common';
 import CachedLocalStorage from './cached-local-storage';
 import ChromeExtension from './chrome-extension';
 
@@ -61,7 +61,7 @@ export default class PlaybackPreferences {
     }
 
     get subtitleAlignment() {
-        if (this._extension.installed) {
+        if (this._extension.supportsAppIntegration) {
             return this._settings.streamingSubtitleAlignment;
         }
 
@@ -75,7 +75,7 @@ export default class PlaybackPreferences {
     }
 
     set subtitleAlignment(alignment: SubtitleAlignment) {
-        if (this._extension.installed) {
+        if (this._extension.supportsAppIntegration) {
             this._extension.setSettings({ streamingSubtitleAlignment: alignment });
         } else {
             this._storage.set(subtitleAlignmentKey, String(alignment));
@@ -83,7 +83,7 @@ export default class PlaybackPreferences {
     }
 
     get subtitlePositionOffset() {
-        if (this._extension.installed) {
+        if (this._extension.supportsAppIntegration) {
             return this._settings.streamingSubtitlePositionOffset;
         }
 
@@ -97,7 +97,7 @@ export default class PlaybackPreferences {
     }
 
     set subtitlePositionOffset(offset: number) {
-        if (this._extension.installed) {
+        if (this._extension.supportsAppIntegration) {
             this._extension.setSettings({ streamingSubtitlePositionOffset: offset });
         } else {
             this._storage.set(subtitlePositionOffetKey, String(offset));
@@ -105,7 +105,7 @@ export default class PlaybackPreferences {
     }
 
     get displaySubtitles() {
-        if (this._extension.installed) {
+        if (this._extension.supportsAppIntegration) {
             return this._settings.streamingDisplaySubtitles;
         }
 
@@ -113,7 +113,7 @@ export default class PlaybackPreferences {
     }
 
     set displaySubtitles(displaySubtitles: boolean) {
-        if (this._extension.installed) {
+        if (this._extension.supportsAppIntegration) {
             this._extension.setSettings({ streamingDisplaySubtitles: displaySubtitles });
         } else {
             this._storage.set(displaySubtitlesKey, String(displaySubtitles));

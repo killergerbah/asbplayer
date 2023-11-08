@@ -539,7 +539,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                 navigator.clipboard.writeText(subtitle.text);
             }
 
-            if (extension.installed) {
+            if (extension.supportsAppIntegration) {
                 extension.publishCard({
                     id,
                     subtitle,
@@ -622,7 +622,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
     );
 
     const handleOpenCopyHistory = useCallback(async () => {
-        if (extension.installed) {
+        if (extension.supportsAppIntegration) {
             extension.openSidePanel();
         } else {
             await refreshCopyHistory();

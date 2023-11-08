@@ -11,46 +11,46 @@ export default class AppKeyBinder implements KeyBinder {
     private readonly ankiExportHandlers: ((event: KeyboardEvent) => void)[] = [];
     private readonly updateLastCardHandlers: ((event: KeyboardEvent) => void)[] = [];
     private readonly takeScreenshotHandlers: ((event: KeyboardEvent) => void)[] = [];
-    private readonly onExtensionMessage: (message: ExtensionMessage) => void;
+    private onExtensionMessage?: (message: ExtensionMessage) => void;
 
     constructor(keyBinder: DefaultKeyBinder, extension: ChromeExtension) {
         this.defaultKeyBinder = keyBinder;
         this.extension = extension;
-        this.interceptExtension =
-            this.extension.version !== undefined &&
-            this.extension.version !== '' &&
-            lt(this.extension.version, '1.0.0');
-        this.onExtensionMessage = (message: ExtensionMessage) => {
-            let handlers: ((event: KeyboardEvent) => void)[] | undefined;
+        this.interceptExtension = this.extension.installed && !this.extension.supportsAppIntegration;
 
-            if (message.data.command === 'copy-subtitle') {
-                const command = message.data as CopySubtitleMessage;
+        if (this.interceptExtension) {
+            this.onExtensionMessage = (message: ExtensionMessage) => {
+                let handlers: ((event: KeyboardEvent) => void)[] | undefined;
 
-                switch (command.postMineAction) {
-                    case PostMineAction.none:
-                        handlers = this.copyHandlers;
-                        break;
-                    case PostMineAction.showAnkiDialog:
-                        handlers = this.ankiExportHandlers;
-                        break;
-                    case PostMineAction.updateLastCard:
-                        handlers = this.updateLastCardHandlers;
-                        break;
-                    default:
-                        console.error('Unknown post mine action ' + command.postMineAction);
+                if (message.data.command === 'copy-subtitle') {
+                    const command = message.data as CopySubtitleMessage;
+
+                    switch (command.postMineAction) {
+                        case PostMineAction.none:
+                            handlers = this.copyHandlers;
+                            break;
+                        case PostMineAction.showAnkiDialog:
+                            handlers = this.ankiExportHandlers;
+                            break;
+                        case PostMineAction.updateLastCard:
+                            handlers = this.updateLastCardHandlers;
+                            break;
+                        default:
+                            console.error('Unknown post mine action ' + command.postMineAction);
+                    }
+                } else if (message.data.command === 'take-screenshot') {
+                    handlers = this.takeScreenshotHandlers;
                 }
-            } else if (message.data.command === 'take-screenshot') {
-                handlers = this.takeScreenshotHandlers;
-            }
 
-            if (handlers !== undefined) {
-                for (const h of handlers) {
-                    h(new KeyboardEvent('mock'));
+                if (handlers !== undefined) {
+                    for (const h of handlers) {
+                        h(new KeyboardEvent('mock'));
+                    }
                 }
-            }
-        };
+            };
 
-        extension.subscribe(this.onExtensionMessage);
+            extension.subscribe(this.onExtensionMessage);
+        }
     }
 
     bindCopy<T extends SubtitleModel = SubtitleModel>(

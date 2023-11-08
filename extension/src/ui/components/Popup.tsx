@@ -88,8 +88,8 @@ const Popup = ({
             </Grid>
             <Grid item style={{ height: 450 }}>
                 <SettingsForm
-                    open
                     extensionInstalled
+                    extensionSupportsAppIntegration
                     anki={anki}
                     chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}
                     settings={settings}

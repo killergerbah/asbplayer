@@ -63,10 +63,10 @@ export default function SettingsDialog({
                 <SettingsForm
                     anki={anki}
                     extensionInstalled={extension.installed}
+                    extensionSupportsAppIntegration={extension.supportsAppIntegration}
                     insideApp
                     chromeKeyBinds={extension.extensionCommands}
                     onOpenChromeExtensionShortcuts={extension.openShortcuts}
-                    open={open}
                     onSettingsChanged={onSettingsChanged}
                     settings={settings}
                     scrollToId={scrollToId}

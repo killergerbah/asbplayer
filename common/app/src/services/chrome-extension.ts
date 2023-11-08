@@ -5,22 +5,20 @@ import {
     AsbplayerSettings,
     Card,
     Command,
-    CopyMessage,
     ExtensionToAsbPlayerCommand,
     ExtensionToAsbPlayerCommandTabsCommand,
     GetSettingsMessage,
     Message,
     MessageWithId,
-    MineSubtitleMessage,
     OpenSidePanelMessage,
-    PostMineAction,
     PublishCardMessage,
     SetSettingsMessage,
     SettingsUpdatedMessage,
     VideoTabModel,
 } from '@project/common';
-import { gt } from 'semver';
 import { v4 as uuidv4 } from 'uuid';
+import gte from 'semver/functions/gte';
+import gt from 'semver/functions/gt';
 
 export interface ExtensionMessage {
     data: Message;
@@ -104,6 +102,18 @@ export default class ChromeExtension {
         };
 
         window.addEventListener('message', this.windowEventListener);
+    }
+
+    get supportsAppIntegration() {
+        return this.installed && gte(this.version, '1.0.0');
+    }
+
+    get supportsPlaybackRateMessage() {
+        return this.installed && gte(this.version, '0.24.0');
+    }
+
+    get supportsOffsetMessage() {
+        return this.installed && gte(this.version, '0.23.0');
     }
 
     startHeartbeat({ fromVideoPlayer }: { fromVideoPlayer: boolean }) {

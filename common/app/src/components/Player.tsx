@@ -27,8 +27,6 @@ import SubtitlePlayer, { DisplaySubtitleModel } from './SubtitlePlayer';
 import VideoChannel from '../services/video-channel';
 import ChromeExtension from '../services/chrome-extension';
 import PlaybackPreferences from '../services/playback-preferences';
-import lte from 'semver/functions/lte';
-import gte from 'semver/functions/gte';
 
 interface StylesProps {
     appBarHidden: boolean;
@@ -197,7 +195,8 @@ export default function Player({
     const flattenSubtitleFiles = sources?.flattenSubtitleFiles;
     const videoFile = sources?.videoFile;
     const videoFileUrl = sources?.videoFileUrl;
-    const playModeEnabled = !extension.installed && subtitles && subtitles.length > 0 && Boolean(videoFileUrl);
+    const playModeEnabled =
+        !extension.supportsAppIntegration && subtitles && subtitles.length > 0 && Boolean(videoFileUrl);
     const [loadingSubtitles, setLoadingSubtitles] = useState<boolean>(false);
     const [playing, setPlaying] = useState<boolean>(false);
     const [lastJumpToTopTimestamp, setLastJumpToTopTimestamp] = useState<number>(0);
@@ -313,7 +312,7 @@ export default function Player({
                     channel.offset(offset);
 
                     // Older versions of extension don't support the offset message
-                    if (tab !== undefined && extension.installed && lte(extension.version, '0.22.0')) {
+                    if (tab !== undefined && extension.installed && !extension.supportsOffsetMessage) {
                         channel.subtitles(newSubtitles, subtitleFiles?.map((f) => f.name) ?? ['']);
                     }
                 }
@@ -713,7 +712,7 @@ export default function Player({
 
             if (videoFileUrl) {
                 if (forceUseGivenSubtitle) {
-                    if (extension.installed) {
+                    if (extension.supportsAppIntegration) {
                         await seek(subtitle.start, clock, true);
                         channel?.copy(postMineAction);
                     } else {
@@ -957,7 +956,7 @@ export default function Player({
                             offsetEnabled={true}
                             offset={offset}
                             playbackRate={playbackRate}
-                            playbackRateEnabled={!tab || (extension.installed && gte(extension.version, '0.24.0'))}
+                            playbackRateEnabled={!tab || extension.supportsPlaybackRateMessage}
                             onPlaybackRateChange={handlePlaybackRateChange}
                             playModeEnabled={playModeEnabled}
                             playMode={playMode}

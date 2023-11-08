@@ -597,7 +597,7 @@ export default function VideoPlayer({
     );
 
     useEffect(() => {
-        if (extension.installed || !subtitles || subtitles.length === 0) {
+        if (extension.supportsAppIntegration || !subtitles || subtitles.length === 0) {
             return;
         }
 
@@ -880,7 +880,7 @@ export default function VideoPlayer({
                 return;
             }
 
-            if (extension.installed) {
+            if (extension.supportsAppIntegration) {
                 const tabsWithSource = extension.tabs?.filter((t) => t.src === videoRef.current?.src) ?? [];
 
                 for (const tab of tabsWithSource) {
@@ -1228,7 +1228,7 @@ export default function VideoPlayer({
     );
 
     useEffect(() => {
-        if (!extension.installed) {
+        if (!extension.supportsAppIntegration) {
             return;
         }
 
@@ -1316,7 +1316,7 @@ export default function VideoPlayer({
                 popOut={popOut}
                 volumeEnabled={true}
                 popOutEnabled={!isMobile}
-                playModeEnabled={!extension.installed && subtitles && subtitles.length > 0}
+                playModeEnabled={!extension.supportsAppIntegration && subtitles && subtitles.length > 0}
                 playMode={playMode}
                 hideSubtitlePlayerToggleEnabled={subtitles?.length > 0 && !popOut && !fullscreen}
                 subtitlePlayerHidden={subtitlePlayerHidden}

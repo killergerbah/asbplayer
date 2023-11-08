@@ -506,8 +506,8 @@ type TabName =
 
 interface Props {
     anki: Anki;
-    open: boolean;
     extensionInstalled: boolean;
+    extensionSupportsAppIntegration: boolean;
     insideApp?: boolean;
     settings: AsbplayerSettings;
     scrollToId?: string;
@@ -526,6 +526,7 @@ export default function SettingsForm({
     anki,
     settings,
     extensionInstalled,
+    extensionSupportsAppIntegration,
     insideApp,
     scrollToId,
     chromeKeyBinds,
@@ -819,12 +820,12 @@ export default function SettingsForm({
             'misc-settings',
         ];
 
-        if (!extensionInstalled) {
+        if (!extensionSupportsAppIntegration) {
             tabs.splice(tabs.indexOf('streaming-video'), 1);
         }
 
         return Object.fromEntries(tabs.map((tab, i) => [tab, i]));
-    }, [extensionInstalled]);
+    }, [extensionSupportsAppIntegration]);
 
     useEffect(() => {
         if (!scrollToId) {
@@ -852,7 +853,7 @@ export default function SettingsForm({
                 <Tab tabIndex={1} label={t('settings.mining')} id="mining-settings" />
                 <Tab tabIndex={2} label={t('settings.subtitleAppearance')} id="subtitle-appearance" />
                 <Tab tabIndex={3} label={t('settings.keyboardShortcuts')} id="keyboard-shortcuts" />
-                {extensionInstalled && <Tab tabIndex={4} label={t('settings.streamingVideo')} id="streaming-video" />}
+                {extensionSupportsAppIntegration && <Tab tabIndex={4} label={t('settings.streamingVideo')} id="streaming-video" />}
                 <Tab tabIndex={5} label={t('settings.misc')} id="misc-settings" />
             </Tabs>
             <TabPanel value={tabIndex} index={tabIndicesById['anki-settings']}>

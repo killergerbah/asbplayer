@@ -74,10 +74,10 @@ const SettingsUi = () => {
                     <DialogContent className={classes.content}>
                         <SettingsForm
                             anki={anki}
-                            extensionInstalled={true}
+                            extensionInstalled
+                            extensionSupportsAppIntegration
                             chromeKeyBinds={commands}
                             onOpenChromeExtensionShortcuts={handleOpenExtensionShortcuts}
-                            open={true}
                             onSettingsChanged={onSettingsChanged}
                             settings={settings}
                             localFontsAvailable={localFontsAvailable}
