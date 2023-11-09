@@ -1,4 +1,4 @@
-import { AnkiSettings, AsbplayerSettings, MiscSettings, SharedGlobalSettings, SubtitleSettings } from './settings';
+import { AnkiSettings, AsbplayerSettings, MiscSettings, SubtitleSettings } from './settings';
 import {
     RectModel,
     SubtitleModel,

@@ -1,11 +1,6 @@
 import { AutoPausePreference, PostMineAction } from './model';
 
-export interface SharedGlobalSettings {
-    readonly themeType: 'dark' | 'light';
-    readonly language: string;
-}
-
-export interface MiscSettings extends SharedGlobalSettings {
+export interface MiscSettings {
     readonly themeType: 'dark' | 'light';
     readonly copyToClipboardOnMine: boolean;
     readonly autoPausePreference: AutoPausePreference;
@@ -16,6 +11,8 @@ export interface MiscSettings extends SharedGlobalSettings {
     readonly subtitleRegexFilterTextReplacement: string;
     readonly miningHistoryStorageLimit: number;
     readonly preCacheSubtitleDom: boolean;
+    readonly language: string;
+    readonly clickToMineDefaultAction: PostMineAction;
 }
 
 export interface AnkiSettings {
@@ -147,7 +144,6 @@ export interface StreamingVideoSettings {
     readonly streamingScreenshotDelay: number;
     readonly streamingSubtitleAlignment: SubtitleAlignment;
     readonly streamingSubtitleListPreference: SubtitleListPreference;
-    readonly streamingSidePanelDefaultPostMineAction: PostMineAction;
 }
 
 export type KeyBindName = keyof KeyBindSet;

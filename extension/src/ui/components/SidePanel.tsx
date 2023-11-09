@@ -192,12 +192,12 @@ export default function SidePanel({ settings, extension }: Props) {
 
         const message: AsbPlayerToVideoCommandV2<CopySubtitleMessage> = {
             sender: 'asbplayerv2',
-            message: { command: 'copy-subtitle', postMineAction: settings.streamingSidePanelDefaultPostMineAction },
+            message: { command: 'copy-subtitle', postMineAction: settings.clickToMineDefaultAction },
             tabId: syncedVideoTab.id,
             src: syncedVideoTab.src,
         };
         chrome.runtime.sendMessage(message);
-    }, [syncedVideoTab, settings.streamingSidePanelDefaultPostMineAction]);
+    }, [syncedVideoTab, settings.clickToMineDefaultAction]);
 
     const handleLoadSubtitles = useCallback(() => {
         if (currentTabId === undefined) {
@@ -337,6 +337,28 @@ export default function SidePanel({ settings, extension }: Props) {
         },
         [extension, currentTabId]
     );
+
+    const handleMineFromSubtitlePlayer = useCallback(
+        (subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[]) => {
+            if (syncedVideoTab === undefined) {
+                return;
+            }
+
+            const message: AsbPlayerToVideoCommandV2<CopySubtitleMessage> = {
+                sender: 'asbplayerv2',
+                message: {
+                    command: 'copy-subtitle',
+                    subtitle,
+                    surroundingSubtitles,
+                    postMineAction: settings.clickToMineDefaultAction,
+                },
+                tabId: syncedVideoTab.id,
+                src: syncedVideoTab.src,
+            };
+            chrome.runtime.sendMessage(message);
+        },
+        [syncedVideoTab, settings.clickToMineDefaultAction]
+    );
     const noOp = useCallback(() => {}, []);
 
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
@@ -395,11 +417,12 @@ export default function SidePanel({ settings, extension }: Props) {
                                 origin={`chrome-extension://${chrome.runtime.id}/side-panel.html`}
                                 subtitles={subtitles}
                                 hideControls={true}
+                                copyButtonEnabled={true}
                                 forceCompressedMode={true}
                                 subtitleReader={subtitleReader}
                                 settings={settings}
                                 playbackPreferences={playbackPreferences}
-                                onCopy={noOp}
+                                onCopy={handleMineFromSubtitlePlayer}
                                 onError={handleError}
                                 onUnloadVideo={noOp}
                                 onLoaded={noOp}
@@ -435,7 +458,7 @@ export default function SidePanel({ settings, extension }: Props) {
                             <SidePanelBottomControls
                                 disabled={currentTabId !== syncedVideoTab?.id}
                                 onMineSubtitle={handleMineSubtitle}
-                                postMineAction={settings.streamingSidePanelDefaultPostMineAction}
+                                postMineAction={settings.clickToMineDefaultAction}
                                 emptySubtitleTrack={subtitles.length === 0}
                                 audioRecordingEnabled={settings.streamingRecordMedia}
                                 recordingAudio={recordingAudio}

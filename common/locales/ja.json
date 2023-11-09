@@ -148,8 +148,7 @@
             "subtitles": "字幕",
             "syncing": "同期",
             "takeScreenshot": "スクリーンショットを撮る",
-            "updateAvailable": "アップデートがあります",
-            "sidePanelDefaultPostMiningAction": "サイドパネルでマイニング後のアクション"
+            "updateAvailable": "アップデートがあります"
         },
         "videoDataSync": {
             "emptySubtitleTrack": "空",
@@ -222,6 +221,7 @@
         "maxImageWidth": "画像の幅の最大値",
         "mining": "マイニング",
         "miningHistoryStorageLimit": "マイニング履歴の保存数上限",
+        "clickToMineDefaultAction": "ボタンでマイニングした際のデフォルト動作",
         "misc": "その他",
         "mp3Preference": "音声を mp3 形式で再録音（低速）",
         "noteType": "メモタイプ",

@@ -94,6 +94,7 @@ interface PlayerProps {
     videoChannelRef?: MutableRefObject<VideoChannel | null>;
     drawerOpen: boolean;
     appBarHidden: boolean;
+    copyButtonEnabled: boolean;
     videoFullscreen: boolean;
     hideSubtitlePlayer: boolean;
     videoPopOut: boolean;
@@ -149,6 +150,7 @@ export default function Player({
     videoChannelRef,
     drawerOpen,
     appBarHidden,
+    copyButtonEnabled,
     videoFullscreen,
     hideSubtitlePlayer,
     videoPopOut,
@@ -984,7 +986,7 @@ export default function Player({
                         appBarHidden={appBarHidden}
                         compressed={videoInWindow || (forceCompressedMode ?? false)}
                         limitWidth={videoInWindow}
-                        copyButtonEnabled={tab === undefined}
+                        copyButtonEnabled={copyButtonEnabled}
                         loading={loadingSubtitles}
                         displayHelp={(videoPopOut && videoFile?.name) || undefined}
                         disableKeyEvents={disableKeyEvents}

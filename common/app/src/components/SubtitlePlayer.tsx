@@ -661,9 +661,9 @@ export default function SubtitlePlayer({
                 return;
             }
 
-            onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), PostMineAction.showAnkiDialog, true);
+            onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), settings.clickToMineDefaultAction, true);
         },
-        [subtitles, calculateSurroundingSubtitlesForIndex, onCopy]
+        [subtitles, calculateSurroundingSubtitlesForIndex, settings, onCopy]
     );
 
     let subtitleTable: ReactNode | null = null;

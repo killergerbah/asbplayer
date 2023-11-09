@@ -101,6 +101,9 @@ const useStyles = makeStyles<Theme>((theme) => ({
         marginLeft: 0,
         marginRight: -8,
     },
+    top: {
+        marginTop: theme.spacing(1),
+    },
     verticallyCentered: {
         display: 'flex',
         flexDirection: 'column',
@@ -629,6 +632,7 @@ export default function SettingsForm({
         surroundingSubtitlesTimeRadius,
         autoPausePreference,
         keyBindSet,
+        clickToMineDefaultAction,
         preferMp3,
         miningHistoryStorageLimit,
         preCacheSubtitleDom,
@@ -656,7 +660,6 @@ export default function SettingsForm({
         streamingScreenshotDelay,
         streamingSubtitleAlignment,
         streamingSubtitleListPreference,
-        streamingSidePanelDefaultPostMineAction,
     } = settings;
     const handleAddCustomField = useCallback(
         (customFieldName: string) => {
@@ -853,7 +856,9 @@ export default function SettingsForm({
                 <Tab tabIndex={1} label={t('settings.mining')} id="mining-settings" />
                 <Tab tabIndex={2} label={t('settings.subtitleAppearance')} id="subtitle-appearance" />
                 <Tab tabIndex={3} label={t('settings.keyboardShortcuts')} id="keyboard-shortcuts" />
-                {extensionSupportsAppIntegration && <Tab tabIndex={4} label={t('settings.streamingVideo')} id="streaming-video" />}
+                {extensionSupportsAppIntegration && (
+                    <Tab tabIndex={4} label={t('settings.streamingVideo')} id="streaming-video" />
+                )}
                 <Tab tabIndex={5} label={t('settings.misc')} id="misc-settings" />
             </Tabs>
             <TabPanel value={tabIndex} index={tabIndicesById['anki-settings']}>
@@ -971,6 +976,50 @@ export default function SettingsForm({
                 </FormGroup>
             </TabPanel>
             <TabPanel value={tabIndex} index={tabIndicesById['mining-settings']}>
+                <FormLabel className={classes.top} component="legend">
+                    {t('settings.clickToMineDefaultAction')}
+                </FormLabel>
+                <RadioGroup row={false}>
+                    <FormControlLabel
+                        control={
+                            <Radio
+                                checked={clickToMineDefaultAction === PostMineAction.showAnkiDialog}
+                                value={PostMineAction.showAnkiDialog}
+                                onChange={(event) =>
+                                    event.target.checked &&
+                                    onSettingsChanged('clickToMineDefaultAction', PostMineAction.showAnkiDialog)
+                                }
+                            />
+                        }
+                        label={t('postMineAction.showAnkiDialog')}
+                    />
+                    <FormControlLabel
+                        control={
+                            <Radio
+                                checked={clickToMineDefaultAction === PostMineAction.updateLastCard}
+                                value={PostMineAction.updateLastCard}
+                                onChange={(event) =>
+                                    event.target.checked &&
+                                    onSettingsChanged('clickToMineDefaultAction', PostMineAction.updateLastCard)
+                                }
+                            />
+                        }
+                        label={t('postMineAction.updateLastCard')}
+                    />
+                    <FormControlLabel
+                        control={
+                            <Radio
+                                checked={clickToMineDefaultAction === PostMineAction.none}
+                                value={PostMineAction.none}
+                                onChange={(event) =>
+                                    event.target.checked &&
+                                    onSettingsChanged('clickToMineDefaultAction', PostMineAction.none)
+                                }
+                            />
+                        }
+                        label={t('postMineAction.none')}
+                    />
+                </RadioGroup>
                 <FormGroup className={classes.formGroup}>
                     <FormControlLabel
                         control={
@@ -1078,28 +1127,6 @@ export default function SettingsForm({
                         InputProps={{
                             endAdornment: <InputAdornment position="end">ms</InputAdornment>,
                         }}
-                    />
-                    <FormControlLabel
-                        control={
-                            <Switch
-                                checked={preCacheSubtitleDom}
-                                onChange={(event) => onSettingsChanged('preCacheSubtitleDom', event.target.checked)}
-                            />
-                        }
-                        label={
-                            <Grid container direction="row" spacing={1}>
-                                <Grid item className={classes.verticallyCentered}>
-                                    {t('settings.preCacheSubtitleDom')}
-                                </Grid>
-                                <Grid item className={classes.verticallyCentered}>
-                                    <Tooltip title={t('settings.preCacheSubtitleDomHelperText')!} placement="top">
-                                        <InfoIcon />
-                                    </Tooltip>
-                                </Grid>
-                            </Grid>
-                        }
-                        labelPlacement="start"
-                        className={classes.switchLabel}
                     />
                 </FormGroup>
             </TabPanel>
@@ -1528,65 +1555,6 @@ export default function SettingsForm({
                         </FormGroup>
                     </Grid>
                     <Grid item>
-                        <FormLabel component="legend">
-                            {t('extension.settings.sidePanelDefaultPostMiningAction')}
-                        </FormLabel>
-                        <RadioGroup row={false}>
-                            <FormControlLabel
-                                control={
-                                    <Radio
-                                        checked={
-                                            streamingSidePanelDefaultPostMineAction === PostMineAction.showAnkiDialog
-                                        }
-                                        value={PostMineAction.showAnkiDialog}
-                                        onChange={(event) =>
-                                            event.target.checked &&
-                                            onSettingsChanged(
-                                                'streamingSidePanelDefaultPostMineAction',
-                                                PostMineAction.showAnkiDialog
-                                            )
-                                        }
-                                    />
-                                }
-                                label={t('postMineAction.showAnkiDialog')}
-                            />
-                            <FormControlLabel
-                                control={
-                                    <Radio
-                                        checked={
-                                            streamingSidePanelDefaultPostMineAction === PostMineAction.updateLastCard
-                                        }
-                                        value={PostMineAction.updateLastCard}
-                                        onChange={(event) =>
-                                            event.target.checked &&
-                                            onSettingsChanged(
-                                                'streamingSidePanelDefaultPostMineAction',
-                                                PostMineAction.updateLastCard
-                                            )
-                                        }
-                                    />
-                                }
-                                label={t('postMineAction.updateLastCard')}
-                            />
-                            <FormControlLabel
-                                control={
-                                    <Radio
-                                        checked={streamingSidePanelDefaultPostMineAction === PostMineAction.none}
-                                        value={PostMineAction.none}
-                                        onChange={(event) =>
-                                            event.target.checked &&
-                                            onSettingsChanged(
-                                                'streamingSidePanelDefaultPostMineAction',
-                                                PostMineAction.none
-                                            )
-                                        }
-                                    />
-                                }
-                                label={t('postMineAction.none')}
-                            />
-                        </RadioGroup>
-                    </Grid>
-                    <Grid item>
                         <FormGroup className={classes.formGroup}>
                             {!insideApp && (
                                 <TextField
@@ -1605,6 +1573,35 @@ export default function SettingsForm({
             <TabPanel value={tabIndex} index={tabIndicesById['misc-settings']}>
                 <Grid container spacing={1} direction="column">
                     <Grid item>
+                        <FormControl>
+                            <FormLabel className={classes.top}>{t('settings.theme')}</FormLabel>
+                            <RadioGroup row>
+                                <FormControlLabel
+                                    control={
+                                        <Radio
+                                            checked={themeType === 'light'}
+                                            value="light"
+                                            onChange={(event) =>
+                                                event.target.checked && onSettingsChanged('themeType', 'light')
+                                            }
+                                        />
+                                    }
+                                    label={t('settings.themeLight')}
+                                />
+                                <FormControlLabel
+                                    control={
+                                        <Radio
+                                            checked={themeType === 'dark'}
+                                            value="dark"
+                                            onChange={(event) =>
+                                                event.target.checked && onSettingsChanged('themeType', 'dark')
+                                            }
+                                        />
+                                    }
+                                    label={t('settings.themeDark')}
+                                />
+                            </RadioGroup>
+                        </FormControl>
                         <FormGroup className={classes.formGroup}>
                             <FormControlLabel
                                 control={
@@ -1720,33 +1717,28 @@ export default function SettingsForm({
                         </RadioGroup>
                     </Grid>
                     <Grid item>
-                        <FormLabel>{t('settings.theme')}</FormLabel>
-                        <div>
-                            <FormControlLabel
-                                control={
-                                    <Radio
-                                        checked={themeType === 'light'}
-                                        value="light"
-                                        onChange={(event) =>
-                                            event.target.checked && onSettingsChanged('themeType', 'light')
-                                        }
-                                    />
-                                }
-                                label={t('settings.themeLight')}
-                            />
-                            <FormControlLabel
-                                control={
-                                    <Radio
-                                        checked={themeType === 'dark'}
-                                        value="dark"
-                                        onChange={(event) =>
-                                            event.target.checked && onSettingsChanged('themeType', 'dark')
-                                        }
-                                    />
-                                }
-                                label={t('settings.themeDark')}
-                            />
-                        </div>
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={preCacheSubtitleDom}
+                                    onChange={(event) => onSettingsChanged('preCacheSubtitleDom', event.target.checked)}
+                                />
+                            }
+                            label={
+                                <Grid container direction="row" spacing={1}>
+                                    <Grid item className={classes.verticallyCentered}>
+                                        {t('settings.preCacheSubtitleDom')}
+                                    </Grid>
+                                    <Grid item className={classes.verticallyCentered}>
+                                        <Tooltip title={t('settings.preCacheSubtitleDomHelperText')!} placement="top">
+                                            <InfoIcon />
+                                        </Tooltip>
+                                    </Grid>
+                                </Grid>
+                            }
+                            labelPlacement="start"
+                            className={classes.switchLabel}
+                        />
                     </Grid>
                 </Grid>
             </TabPanel>

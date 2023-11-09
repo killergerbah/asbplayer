@@ -148,8 +148,7 @@
             "subtitles": "Subtitles",
             "syncing": "Syncing",
             "takeScreenshot": "Take screenshot",
-            "updateAvailable": "Update Available",
-            "sidePanelDefaultPostMiningAction": "Side panel post-mine action"
+            "updateAvailable": "Update Available"
         },
         "videoDataSync": {
             "emptySubtitleTrack": "Empty",
@@ -182,7 +181,7 @@
     },
     "landing": {
         "cta": "Drag and drop subtitle and media files, or <1>browse</1>.",
-        "extensionNotInstalled": "Install the <1>Chrome extension</1> to sync subtitles with streaming video",
+        "extensionNotInstalled": "Install the <1>Chrome extension</1> to sync subtitles with streaming video.",
         "extensionUpdateAvailable": "An extension <1>update</1> is available.",
         "noSubtitles": "No subtitles",
         "videoElementsDetected": "Load subtitles onto a video to start using asbplayer.",
@@ -222,6 +221,7 @@
         "maxImageWidth": "Max Image Width",
         "mining": "Mining",
         "miningHistoryStorageLimit": "Mining history storage limit",
+        "clickToMineDefaultAction": "Mining button default action",
         "misc": "Misc",
         "mp3Preference": "Re-encode audio as mp3 (slower)",
         "noteType": "Note Type",

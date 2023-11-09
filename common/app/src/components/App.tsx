@@ -1391,6 +1391,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                                 extension={extension}
                                 drawerOpen={effectiveCopyHistoryOpen}
                                 appBarHidden={appBarHidden}
+                                copyButtonEnabled={tab === undefined}
                                 videoFullscreen={videoFullscreen}
                                 hideSubtitlePlayer={hideSubtitlePlayer || videoFullscreen}
                                 videoPopOut={videoPopOut}

@@ -516,6 +516,7 @@ export default class VideoChannel {
             subtitleRegexFilterTextReplacement,
             miningHistoryStorageLimit,
             preCacheSubtitleDom,
+            clickToMineDefaultAction,
             language,
         } = settings;
         const message: MiscSettingsToVideoMessage = {
@@ -531,6 +532,7 @@ export default class VideoChannel {
                 subtitleRegexFilterTextReplacement,
                 miningHistoryStorageLimit,
                 preCacheSubtitleDom,
+                clickToMineDefaultAction,
                 language,
             },
         };

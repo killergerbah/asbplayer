@@ -41,6 +41,11 @@ const SidePanelBottomControls = ({
         }
     }
 
+    if (!emptySubtitleTrack) {
+        // Mining buttons will be available on each subtitle row
+        return null;
+    }
+
     return (
         <Box p={2} style={{ position: 'absolute', bottom: 0, width: '100%' }}>
             <Button
