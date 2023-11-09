@@ -266,9 +266,9 @@ export default class VideoDataSyncController {
                             .catch(() => {});
                     }
 
-                    const data = message.data as ConfirmedVideoDataSubtitleTrack;
-
-                    shallUpdate = await this._syncData(data.name, data.extension, data.subtitleUrl, data.m3U8BaseUrl);
+                    const data = message.data as ConfirmedVideoDataSubtitleTrack[];
+                    
+                    shallUpdate = await this._syncDataArray(data);
                 } else if ('openFile' === message.command) {
                     const subtitles = message.subtitles as SerializedSubtitleFile[];
 
@@ -343,6 +343,33 @@ export default class VideoDataSyncController {
             }
 
             this._syncSubtitles(subtitles, m3U8BaseUrl !== undefined);
+            return true;
+        } catch (error) {
+            if (typeof (error as Error).message !== 'undefined') {
+                this._reportError(`Data Sync failed: ${(error as Error).message}`);
+            }
+
+            return false;
+        }
+    }
+
+    private async _syncDataArray(data: ConfirmedVideoDataSubtitleTrack[]) {
+        try {
+            let subtitles: SerializedSubtitleFile[] = [];
+            
+            for (let i = 0; i < data.length; i++) {
+                const { name, extension, subtitleUrl, m3U8BaseUrl } = data[i];
+                const subtitleFiles = await this._subtitlesForUrl(name, extension, subtitleUrl, m3U8BaseUrl);
+                if (subtitleFiles !== undefined) {
+                    subtitles.push(...subtitleFiles);
+                }
+            }
+
+            if (subtitles === undefined) {
+                return false;
+            }
+
+            this._syncSubtitles(subtitles, data.some((track) => track.m3U8BaseUrl !== undefined));
             return true;
         } catch (error) {
             if (typeof (error as Error).message !== 'undefined') {

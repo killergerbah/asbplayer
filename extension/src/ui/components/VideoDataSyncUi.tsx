@@ -42,7 +42,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
         bridge.sendServerMessage({ command: 'cancel' });
     }, [bridge]);
     const handleConfirm = useCallback(
-        (data: ConfirmedVideoDataSubtitleTrack) => {
+        (data: ConfirmedVideoDataSubtitleTrack[]) => {
             setOpen(false);
             const message: VideoDataUiBridgeConfirmMessage = { command: 'confirm', data };
             bridge.sendServerMessage(message);
