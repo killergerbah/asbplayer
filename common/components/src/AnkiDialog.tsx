@@ -789,17 +789,15 @@ export function AnkiDialog({
                             onChange={(e) => setUrl(e.target.value)}
                         />
                     )}
-                    {settingsProvider.tags.length > 0 && (
-                        <TagsTextField
-                            variant="filled"
-                            label="Tags"
-                            helperText={t('ankiDialog.tagList')}
-                            fullWidth
-                            color="secondary"
-                            tags={tags}
-                            onTagsChange={(newTags) => setTags(newTags)}
-                        />
-                    )}
+                    <TagsTextField
+                        variant="filled"
+                        label="Tags"
+                        helperText={t('ankiDialog.tagList')}
+                        fullWidth
+                        color="secondary"
+                        tags={tags}
+                        onTagsChange={(newTags) => setTags(newTags)}
+                    />
                     {timestampInterval && timestampBoundaryInterval && timestampMarks && (
                         <Grid container direction="row">
                             <Grid item style={{ flexGrow: 1 }}>
