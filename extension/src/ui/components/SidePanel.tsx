@@ -7,12 +7,12 @@ import {
     CopyHistoryItem,
     ExtensionToVideoCommand,
     LoadSubtitlesMessage,
-    MineSubtitleMessage,
     RequestSubtitlesMessage,
     ShowAnkiUiMessage,
     SubtitleModel,
     VideoTabModel,
     ExtensionToAsbPlayerCommand,
+    CopySubtitleMessage,
 } from '@project/common';
 import { AppKeyBinder, ChromeExtension, useCopyHistory, useI18n } from '@project/common/app';
 import { SubtitleReader } from '@project/common/subtitle-reader';
@@ -190,9 +190,9 @@ export default function SidePanel({ settings, extension }: Props) {
             return;
         }
 
-        const message: AsbPlayerToVideoCommandV2<MineSubtitleMessage> = {
+        const message: AsbPlayerToVideoCommandV2<CopySubtitleMessage> = {
             sender: 'asbplayerv2',
-            message: { command: 'mine-subtitle', postMineAction: settings.streamingSidePanelDefaultPostMineAction },
+            message: { command: 'copy-subtitle', postMineAction: settings.streamingSidePanelDefaultPostMineAction },
             tabId: syncedVideoTab.id,
             src: syncedVideoTab.src,
         };

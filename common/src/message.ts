@@ -156,11 +156,15 @@ export interface PublishCardMessage extends Message, Card {
 export interface CopyToVideoMessage extends Message {
     readonly command: 'copy';
     readonly postMineAction: PostMineAction;
+    readonly subtitle?: SubtitleModel;
+    readonly surroundingSubtitles?: SubtitleModel[];
 }
 
 export interface CopySubtitleMessage extends Message {
     readonly command: 'copy-subtitle';
     readonly postMineAction: PostMineAction;
+    readonly subtitle?: SubtitleModel;
+    readonly surroundingSubtitles?: SubtitleModel[];
 }
 
 export interface TakeScreenshotMessage extends Message {
@@ -494,11 +498,6 @@ export interface CopyToClipboardMessage extends Message {
 
 export interface LoadSubtitlesMessage extends Message {
     readonly command: 'load-subtitles';
-}
-
-export interface MineSubtitleMessage extends Message {
-    readonly command: 'mine-subtitle';
-    readonly postMineAction: PostMineAction;
 }
 
 export interface RequestActiveTabPermissionMessage extends Message {

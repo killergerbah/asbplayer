@@ -714,7 +714,7 @@ export default function Player({
                 if (forceUseGivenSubtitle) {
                     if (extension.supportsAppIntegration) {
                         await seek(subtitle.start, clock, true);
-                        channel?.copy(postMineAction);
+                        channel?.copy(postMineAction, subtitle, surroundingSubtitles);
                     } else {
                         defaultCopy();
                     }

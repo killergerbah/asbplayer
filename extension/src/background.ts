@@ -41,7 +41,7 @@ import VideoDisappearedHandler from './handlers/video/video-disappeared-handler'
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
 import LoadSubtitlesHandler from './handlers/asbplayerv2/load-subtitles-handler';
 import OpenSidePanelHandler from './handlers/video/open-side-panel-handler';
-import MineSubtitleHandler from './handlers/asbplayerv2/mine-subtitle-handler';
+import CopySubtitleHandler from './handlers/asbplayerv2/copy-subtitle-handler';
 import { RequestingActiveTabPermissionHandler } from './handlers/video/requesting-active-tab-permission';
 import { CardPublisher } from './services/card-publisher';
 import AckMessageHandler from './handlers/video/ack-message-handler';
@@ -78,7 +78,7 @@ const handlers: CommandHandler[] = [
     new CopyToClipboardHandler(),
     new VideoDisappearedHandler(tabRegistry),
     new RequestingActiveTabPermissionHandler(),
-    new MineSubtitleHandler(tabRegistry),
+    new CopySubtitleHandler(tabRegistry),
     new LoadSubtitlesHandler(tabRegistry),
     new PublishCardHandler(cardPublisher),
     new AckMessageHandler(tabRegistry),

@@ -51,7 +51,11 @@ export default class PlayerChannel {
     private miscSettingsCallbacks: ((miscSettings: MiscSettings) => void)[];
     private ankiSettingsCallbacks: ((ankiSettings: AnkiSettings) => void)[];
     private alertCallbacks: ((message: string, severity: string) => void)[];
-    private copyCallbacks: ((postMineAction: PostMineAction) => void)[];
+    private copyCallbacks: ((
+        postMineAction: PostMineAction,
+        subtitle?: SubtitleModel,
+        surroundingSubtitles?: SubtitleModel[]
+    ) => void)[];
 
     constructor(channel: string) {
         this.channel = new BroadcastChannel(channel);
@@ -198,7 +202,7 @@ export default class PlayerChannel {
                     const copyMessage = event.data as CopyToVideoMessage;
 
                     for (const callback of that.copyCallbacks) {
-                        callback(copyMessage.postMineAction);
+                        callback(copyMessage.postMineAction, copyMessage.subtitle, copyMessage.surroundingSubtitles);
                     }
                     break;
                 default:
@@ -296,7 +300,13 @@ export default class PlayerChannel {
         return () => this._remove(callback, this.alertCallbacks);
     }
 
-    onCopy(callback: (postMineAction: PostMineAction) => void) {
+    onCopy(
+        callback: (
+            postMineAction: PostMineAction,
+            subtitle?: SubtitleModel,
+            surroundingSubtitles?: SubtitleModel[]
+        ) => void
+    ) {
         this.copyCallbacks.push(callback);
         return () => this._remove(callback, this.copyCallbacks);
     }

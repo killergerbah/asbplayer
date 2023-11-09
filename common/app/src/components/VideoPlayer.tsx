@@ -21,7 +21,7 @@ import {
     OffscreenDomCache,
     SubtitlesToVideoMessage,
     SubtitleAlignment,
-    MineSubtitleMessage,
+    CopySubtitleMessage,
 } from '@project/common';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { DefaultKeyBinder } from '@project/common/key-binder';
@@ -873,7 +873,7 @@ export default function VideoPlayer({
     );
 
     const mineCurrentSubtitle = useCallback(
-        (postMineAction: PostMineAction) => {
+        (postMineAction: PostMineAction, subtitle?: SubtitleModel, surroundingSubtitles?: SubtitleModel[]) => {
             const video = videoRef.current;
 
             if (!video) {
@@ -884,9 +884,11 @@ export default function VideoPlayer({
                 const tabsWithSource = extension.tabs?.filter((t) => t.src === videoRef.current?.src) ?? [];
 
                 for (const tab of tabsWithSource) {
-                    const message: MineSubtitleMessage = {
-                        command: 'mine-subtitle',
+                    const message: CopySubtitleMessage = {
+                        command: 'copy-subtitle',
                         postMineAction,
+                        subtitle,
+                        surroundingSubtitles,
                     };
                     extension.sendMessageToVideoElement(message, tab.id, tab.src);
                 }

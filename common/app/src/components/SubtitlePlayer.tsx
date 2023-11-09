@@ -14,7 +14,7 @@ import {
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { KeyBinder } from '@project/common/key-binder';
 import { SubtitleTextImage } from '@project/common/components';
-import FileCopy from '@material-ui/icons/FileCopy';
+import NoteAddIcon from '@material-ui/icons/NoteAdd';
 import IconButton from '@material-ui/core/IconButton';
 import Paper from '@material-ui/core/Paper';
 import Table from '@material-ui/core/Table';
@@ -162,7 +162,7 @@ const SubtitleRow = React.memo((props: SubtitleRowProps) => {
             {copyButtonEnabled && (
                 <TableCell className={classes.copyButton}>
                     <IconButton onClick={(e) => onCopySubtitle(e, index)}>
-                        <FileCopy fontSize={compressed ? 'small' : 'medium'} />
+                        <NoteAddIcon fontSize={compressed ? 'small' : 'medium'} />
                     </IconButton>
                 </TableCell>
             )}
@@ -533,10 +533,6 @@ export default function SubtitlePlayer({
                 return mockSurroundingSubtitles(currentMockSubtitle(), length, 5000);
             }
 
-            if (!selectedSubtitleIndexesRef.current || Object.keys(selectedSubtitleIndexesRef.current).length === 0) {
-                return [];
-            }
-
             return surroundingSubtitles(
                 subtitles,
                 index,
@@ -665,7 +661,7 @@ export default function SubtitlePlayer({
                 return;
             }
 
-            onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), PostMineAction.none, true);
+            onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), PostMineAction.showAnkiDialog, true);
         },
         [subtitles, calculateSurroundingSubtitlesForIndex, onCopy]
     );

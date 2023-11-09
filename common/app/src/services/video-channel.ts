@@ -542,8 +542,8 @@ export default class VideoChannel {
         this.protocol.postMessage(msg);
     }
 
-    copy(postMineAction: PostMineAction) {
-        const message: CopyToVideoMessage = { command: 'copy', postMineAction };
+    copy(postMineAction: PostMineAction, subtitle?: SubtitleModel, surroundingSubtitles?: SubtitleModel[]) {
+        const message: CopyToVideoMessage = { command: 'copy', postMineAction, subtitle, surroundingSubtitles };
         this.protocol.postMessage(message);
     }
 
