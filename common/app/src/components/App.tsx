@@ -548,7 +548,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     url,
                     image,
                     audio,
-                    postMineAction,
                     mediaTimestamp: mediaTimestamp ?? 0,
                 });
             } else {

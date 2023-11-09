@@ -140,13 +140,12 @@ export interface Card {
     readonly url?: string;
     readonly image?: ImageModel;
     readonly audio?: AudioModel;
-
-    readonly postMineAction?: PostMineAction;
     readonly mediaTimestamp: number;
 }
 
 export interface CopyMessage extends Message, Card {
     readonly command: 'copy';
+    readonly postMineAction?: PostMineAction;
 }
 
 export interface PublishCardMessage extends Message, Card {
