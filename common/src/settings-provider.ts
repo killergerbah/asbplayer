@@ -64,6 +64,7 @@ const defaults: AsbplayerSettings = {
     preferMp3: true,
     miningHistoryStorageLimit: 25,
     preCacheSubtitleDom: true,
+    clickToMineDefaultAction: PostMineAction.showAnkiDialog,
     themeType: 'dark',
     copyToClipboardOnMine: false,
     rememberSubtitleOffset: true,
@@ -75,6 +76,7 @@ const defaults: AsbplayerSettings = {
     tags: [],
     imageBasedSubtitleScaleFactor: 1,
     subtitleCustomStyles: [{ key: 'webkitFontSmoothing', value: 'antialiased' }],
+    streamingAppUrl: 'https://killergerbah.github.io/asbplayer',
     streamingDisplaySubtitles: true,
     streamingRecordMedia: true,
     streamingTakeScreenshot: true,
@@ -88,7 +90,6 @@ const defaults: AsbplayerSettings = {
     streamingScreenshotDelay: 1000,
     streamingSubtitleAlignment: 'bottom',
     streamingSubtitleListPreference: SubtitleListPreference.noSubtitleList,
-    streamingSidePanelDefaultPostMineAction: PostMineAction.showAnkiDialog,
 };
 
 type SettingsDeserializers = { [key in keyof AsbplayerSettings]: (serialized: string) => any };

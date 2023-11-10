@@ -1,4 +1,11 @@
-import { Command, ExtensionToVideoCommand, Message, SettingsProvider, SettingsUpdatedMessage } from '@project/common';
+import {
+    Command,
+    ExtensionToAsbPlayerCommand,
+    ExtensionToVideoCommand,
+    Message,
+    SettingsProvider,
+    SettingsUpdatedMessage,
+} from '@project/common';
 import { primeLocalization } from '../../services/localization-fetcher';
 import TabRegistry from '../../services/tab-registry';
 
@@ -31,7 +38,17 @@ export default class SettingsUpdatedHandler {
             };
             return settingsUpdatedCommand;
         });
-
+        this._tabRegistry.publishCommandToAsbplayers({
+            commandFactory: () => {
+                const settingsUpdatedCommand: ExtensionToAsbPlayerCommand<SettingsUpdatedMessage> = {
+                    sender: 'asbplayer-extension-to-player',
+                    message: {
+                        command: 'settings-updated',
+                    },
+                };
+                return settingsUpdatedCommand;
+            },
+        });
         return false;
     }
 }

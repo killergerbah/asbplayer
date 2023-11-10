@@ -1,5 +1,6 @@
 import {
     KeyBindSet,
+    OpenSidePanelMessage,
     PlayMode,
     ToggleSubtitlesInListFromVideoMessage,
     ToggleSubtitlesMessage,
@@ -7,7 +8,6 @@ import {
 } from '@project/common';
 import { DefaultKeyBinder } from '@project/common/key-binder';
 import Binding from './binding';
-import { OpenSidePanelMessage } from '../ui/components/PopupUi';
 
 type Unbinder = (() => void) | false;
 
@@ -238,7 +238,7 @@ export default class KeyBindings {
             },
             () => false,
             true
-        )
+        );
 
         this._bound = true;
     }
@@ -307,6 +307,11 @@ export default class KeyBindings {
         if (this._unbindAdjustPlaybackRate) {
             this._unbindAdjustPlaybackRate();
             this._unbindAdjustPlaybackRate = false;
+        }
+
+        if (this._unbindOpenSidePanel) {
+            this._unbindOpenSidePanel();
+            this._unbindOpenSidePanel = false;
         }
 
         this._bound = false;

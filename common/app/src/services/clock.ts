@@ -1,12 +1,16 @@
 export default class Clock {
-    private accumulated: number;
-    private started: boolean;
-    private startTime?: number;
+    private _accumulated: number;
+    private _started: boolean;
+    private _startTime?: number;
     private _rate = 1;
 
     constructor() {
-        this.accumulated = 0;
-        this.started = false;
+        this._accumulated = 0;
+        this._started = false;
+    }
+
+    get running() {
+        return this._started;
     }
 
     get rate() {
@@ -14,46 +18,46 @@ export default class Clock {
     }
 
     set rate(rate: number) {
-        if (this.started) {
-            this.accumulated += this._elapsed();
-            this.startTime = Date.now();
+        if (this._started) {
+            this._accumulated += this._elapsed();
+            this._startTime = Date.now();
         }
     
         this._rate = rate;
     }
 
     time(max: number) {
-        if (this.started) {
-            return Math.min(max, this.accumulated + this._elapsed());
+        if (this._started) {
+            return Math.min(max, this._accumulated + this._elapsed());
         }
 
-        return Math.min(max, this.accumulated);
+        return Math.min(max, this._accumulated);
     }
 
     stop() {
-        if (!this.started) {
+        if (!this._started) {
             return;
         }
 
-        this.started = false;
-        this.accumulated += this._elapsed();
+        this._started = false;
+        this._accumulated += this._elapsed();
     }
 
     private _elapsed() {
-        return (Date.now() - this.startTime!) * this._rate;
+        return (Date.now() - this._startTime!) * this._rate;
     }
 
     start() {
-        this.startTime = Date.now();
-        this.started = true;
+        this._startTime = Date.now();
+        this._started = true;
     }
 
     setTime(time: number) {
-        if (this.started) {
-            this.startTime = Date.now();
-            this.accumulated = time;
+        if (this._started) {
+            this._startTime = Date.now();
+            this._accumulated = time;
         } else {
-            this.accumulated = time;
+            this._accumulated = time;
         }
     }
 

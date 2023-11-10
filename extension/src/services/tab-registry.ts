@@ -1,5 +1,6 @@
 import {
     ActiveVideoElement,
+    AsbplayerInstance,
     Command,
     ExtensionToAsbPlayerCommandTabsCommand,
     ExtensionToVideoCommand,
@@ -27,15 +28,20 @@ export interface VideoElement {
     src: string;
     tab: SlimTab;
     timestamp: number;
+    subscribed: boolean;
     synced: boolean;
     syncedTimestamp?: number;
 }
 
 export default class TabRegistry {
-    private onNoSyncedElementsCallback?: () => void;
-    private onSyncedElementCallback?: () => void;
+    private readonly _settings: SettingsProvider;
+    private _onNoSyncedElementsCallback?: () => void;
+    private _onSyncedElementCallback?: () => void;
+    private _onAsbplayerInstanceCallback?: () => void;
 
-    constructor() {
+    constructor(settings: SettingsProvider) {
+        this._settings = settings;
+
         // Update video element state on tab changes
         // Triggers events for when synced video elements appear/disappear
         chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
@@ -87,10 +93,10 @@ export default class TabRegistry {
         const oldSyncedElementExists = Object.values(oldVideoElements).find((v) => v.synced) !== undefined;
         const syncedElementExists = Object.values(videoElements).find((v) => v.synced) !== undefined;
 
-        if (this.onNoSyncedElementsCallback !== undefined && oldSyncedElementExists && !syncedElementExists) {
-            this.onNoSyncedElementsCallback();
-        } else if (this.onSyncedElementCallback !== undefined && !oldSyncedElementExists && syncedElementExists) {
-            this.onSyncedElementCallback();
+        if (this._onNoSyncedElementsCallback !== undefined && oldSyncedElementExists && !syncedElementExists) {
+            this._onNoSyncedElementsCallback();
+        } else if (this._onSyncedElementCallback !== undefined && !oldSyncedElementExists && syncedElementExists) {
+            this._onSyncedElementCallback();
         }
 
         return videoElements;
@@ -111,6 +117,7 @@ export default class TabRegistry {
     private async _asbplayers(mutator?: (asbplayers: { [key: string]: Asbplayer }) => boolean) {
         const tabs = await chrome.tabs.query({});
         const asbplayers = await this._fetchAsbplayerState();
+        const oldAsbplayers = { ...asbplayers };
         const now = Date.now();
         let changed = false;
 
@@ -135,6 +142,10 @@ export default class TabRegistry {
             await this._saveAsbplayerState(asbplayers);
         }
 
+        if (Object.keys(oldAsbplayers).length === 0 && Object.keys(asbplayers).length > 0) {
+            this._onAsbplayerInstanceCallback?.();
+        }
+
         return asbplayers;
     }
 
@@ -153,6 +164,7 @@ export default class TabRegistry {
                 message: {
                     command: 'tabs',
                     tabs: await this._activeVideoElements(),
+                    asbplayers: await this._asbplayerInstances(),
                     ackRequested: false,
                 },
             };
@@ -216,6 +228,7 @@ export default class TabRegistry {
                     id: videoElement.tab.id,
                     title: videoElement.tab.title,
                     src: videoElement.src,
+                    subscribed: videoElement.subscribed,
                     synced: videoElement.synced,
                     syncedTimestamp: videoElement.syncedTimestamp,
                 };
@@ -226,7 +239,30 @@ export default class TabRegistry {
         return activeVideoElements;
     }
 
-    async onVideoElementHeartbeat(tab: chrome.tabs.Tab, src: string, synced: boolean, syncedTimestamp?: number) {
+    private async _asbplayerInstances() {
+        const asbplayers = await this._asbplayers();
+        const asbplayerInstances: AsbplayerInstance[] = [];
+
+        for (const asbplayer of Object.values(asbplayers)) {
+            asbplayerInstances.push({
+                id: asbplayer.id,
+                tabId: asbplayer.tab?.id,
+                sidePanel: asbplayer.sidePanel ?? false,
+                timestamp: asbplayer.timestamp,
+                videoPlayer: asbplayer.videoPlayer,
+            });
+        }
+
+        return asbplayerInstances;
+    }
+
+    async onVideoElementHeartbeat(
+        tab: chrome.tabs.Tab,
+        src: string,
+        subscribed: boolean,
+        synced: boolean,
+        syncedTimestamp?: number
+    ) {
         if (tab.id === undefined) {
             return;
         }
@@ -241,6 +277,7 @@ export default class TabRegistry {
                     url: tab.url ?? '',
                 },
                 src,
+                subscribed,
                 timestamp: Date.now(),
                 synced,
                 syncedTimestamp,
@@ -263,11 +300,15 @@ export default class TabRegistry {
     }
 
     onNoSyncedElements(callback: () => void) {
-        this.onNoSyncedElementsCallback = callback;
+        this._onNoSyncedElementsCallback = callback;
     }
 
     onSyncedElement(callback: () => void) {
-        this.onSyncedElementCallback = callback;
+        this._onSyncedElementCallback = callback;
+    }
+
+    onAsbplayerInstance(callback: () => void) {
+        this._onAsbplayerInstanceCallback = callback;
     }
 
     async publishTabsToAsbplayers() {
@@ -276,6 +317,7 @@ export default class TabRegistry {
             message: {
                 command: 'tabs',
                 tabs: await this._activeVideoElements(),
+                asbplayers: await this._asbplayerInstances(),
                 ackRequested: true,
             },
         };
@@ -415,7 +457,7 @@ export default class TabRegistry {
                 {
                     active: false,
                     selected: false,
-                    url: `chrome-extension://${chrome.runtime.id}/app-ui.html`,
+                    url: await this._settings.getSingle('streamingAppUrl'),
                     index: activeTabIndex,
                 },
                 resolve

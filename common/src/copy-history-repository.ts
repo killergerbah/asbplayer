@@ -1,5 +1,5 @@
 import { AudioModel, CopyHistoryItem, ImageModel, SubtitleModel } from '@project/common';
-import Dexie from 'dexie';
+import Dexie, { liveQuery, Observable } from 'dexie';
 
 class CopyHistoryDatabase extends Dexie {
     copyHistoryItems!: Dexie.Table<CopyHistoryRecord, number>;
@@ -53,6 +53,12 @@ export default class CopyHistoryRepository {
         const result = await await this._db.copyHistoryItems.reverse().limit(count).toArray();
         result.reverse();
         return result;
+    }
+
+    liveFetch(count: number): Observable<CopyHistoryItem[]> {
+        return liveQuery(() => {
+            return this.fetch(count);
+        });
     }
 
     async save(item: CopyHistoryItem) {

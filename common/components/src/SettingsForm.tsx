@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect, useMemo, ChangeEvent, ReactNode, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { makeStyles } from '@material-ui/styles';
 import AddIcon from '@material-ui/icons/Add';
 import LockIcon from '@material-ui/icons/Lock';
@@ -32,6 +32,7 @@ import {
     SubtitleListPreference,
     PostMineAction,
 } from '@project/common';
+import { useOutsideClickListener } from '@project/common/hooks';
 import { TagsTextField } from '@project/common/components';
 import hotkeys from 'hotkeys-js';
 import Typography from '@material-ui/core/Typography';
@@ -39,11 +40,12 @@ import { isMacOs } from 'react-device-detect';
 import Switch from '@material-ui/core/Switch';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Tooltip from '@material-ui/core/Tooltip';
-import { useOutsideClickListener } from './use-outside-click-listener';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import Slider from '@material-ui/core/Slider';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import Link from '@material-ui/core/Link';
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
@@ -98,6 +100,9 @@ const useStyles = makeStyles<Theme>((theme) => ({
         justifyContent: 'space-between',
         marginLeft: 0,
         marginRight: -8,
+    },
+    top: {
+        marginTop: theme.spacing(1),
     },
     verticallyCentered: {
         display: 'flex',
@@ -504,8 +509,9 @@ type TabName =
 
 interface Props {
     anki: Anki;
-    open: boolean;
-    insideExtension: boolean;
+    extensionInstalled: boolean;
+    extensionSupportsAppIntegration: boolean;
+    insideApp?: boolean;
     settings: AsbplayerSettings;
     scrollToId?: string;
     chromeKeyBinds: { [key: string]: string | undefined };
@@ -522,7 +528,9 @@ const cssStyles = Object.keys(document.body.style);
 export default function SettingsForm({
     anki,
     settings,
-    insideExtension,
+    extensionInstalled,
+    extensionSupportsAppIntegration,
+    insideApp,
     scrollToId,
     chromeKeyBinds,
     localFontsAvailable,
@@ -549,12 +557,12 @@ export default function SettingsForm({
             toggleRecording: {
                 label: t('binds.extensionToggleRecording')!,
                 boundViaChrome: true,
-                hide: !insideExtension,
+                hide: !extensionInstalled,
             },
             selectSubtitleTrack: {
                 label: t('binds.extensionSelectSubtitleTrack')!,
                 boundViaChrome: true,
-                hide: !insideExtension,
+                hide: !extensionInstalled,
             },
             togglePlay: { label: t('binds.togglePlay')!, boundViaChrome: false },
             toggleAutoPause: { label: t('binds.toggleAutoPause')!, boundViaChrome: false },
@@ -593,7 +601,7 @@ export default function SettingsForm({
             decreasePlaybackRate: { label: t('binds.decreasePlaybackRate')!, boundViaChrome: false },
             openSidePanel: { label: t('binds.openSidePanel')!, boundViaChrome: false },
         }),
-        [t, insideExtension]
+        [t, extensionInstalled]
     );
 
     const {
@@ -624,6 +632,7 @@ export default function SettingsForm({
         surroundingSubtitlesTimeRadius,
         autoPausePreference,
         keyBindSet,
+        clickToMineDefaultAction,
         preferMp3,
         miningHistoryStorageLimit,
         preCacheSubtitleDom,
@@ -637,6 +646,7 @@ export default function SettingsForm({
         customAnkiFields,
         tags,
         imageBasedSubtitleScaleFactor,
+        streamingAppUrl,
         subtitleCustomStyles,
         streamingDisplaySubtitles,
         streamingRecordMedia,
@@ -650,7 +660,6 @@ export default function SettingsForm({
         streamingScreenshotDelay,
         streamingSubtitleAlignment,
         streamingSubtitleListPreference,
-        streamingSidePanelDefaultPostMineAction,
     } = settings;
     const handleAddCustomField = useCallback(
         (customFieldName: string) => {
@@ -814,12 +823,12 @@ export default function SettingsForm({
             'misc-settings',
         ];
 
-        if (!insideExtension) {
+        if (!extensionSupportsAppIntegration) {
             tabs.splice(tabs.indexOf('streaming-video'), 1);
         }
 
         return Object.fromEntries(tabs.map((tab, i) => [tab, i]));
-    }, [insideExtension]);
+    }, [extensionSupportsAppIntegration]);
 
     useEffect(() => {
         if (!scrollToId) {
@@ -847,7 +856,9 @@ export default function SettingsForm({
                 <Tab tabIndex={1} label={t('settings.mining')} id="mining-settings" />
                 <Tab tabIndex={2} label={t('settings.subtitleAppearance')} id="subtitle-appearance" />
                 <Tab tabIndex={3} label={t('settings.keyboardShortcuts')} id="keyboard-shortcuts" />
-                {insideExtension && <Tab tabIndex={4} label={t('settings.streamingVideo')} id="streaming-video" />}
+                {extensionSupportsAppIntegration && (
+                    <Tab tabIndex={4} label={t('settings.streamingVideo')} id="streaming-video" />
+                )}
                 <Tab tabIndex={5} label={t('settings.misc')} id="misc-settings" />
             </Tabs>
             <TabPanel value={tabIndex} index={tabIndicesById['anki-settings']}>
@@ -869,6 +880,24 @@ export default function SettingsForm({
                             ),
                         }}
                     />
+                    {insideApp && (
+                        <FormHelperText>
+                            <Trans
+                                i18nKey={'settings.corsHelperText'}
+                                values={{ origin }}
+                                components={[
+                                    <Link
+                                        color="secondary"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        href="https://youtu.be/Mv7fEVb6PHo?t=44"
+                                    >
+                                        video
+                                    </Link>,
+                                ]}
+                            />
+                        </FormHelperText>
+                    )}
                     <SelectableSetting
                         label={t('settings.deck')}
                         value={deck}
@@ -947,6 +976,50 @@ export default function SettingsForm({
                 </FormGroup>
             </TabPanel>
             <TabPanel value={tabIndex} index={tabIndicesById['mining-settings']}>
+                <FormLabel className={classes.top} component="legend">
+                    {t('settings.clickToMineDefaultAction')}
+                </FormLabel>
+                <RadioGroup row={false}>
+                    <FormControlLabel
+                        control={
+                            <Radio
+                                checked={clickToMineDefaultAction === PostMineAction.showAnkiDialog}
+                                value={PostMineAction.showAnkiDialog}
+                                onChange={(event) =>
+                                    event.target.checked &&
+                                    onSettingsChanged('clickToMineDefaultAction', PostMineAction.showAnkiDialog)
+                                }
+                            />
+                        }
+                        label={t('postMineAction.showAnkiDialog')}
+                    />
+                    <FormControlLabel
+                        control={
+                            <Radio
+                                checked={clickToMineDefaultAction === PostMineAction.updateLastCard}
+                                value={PostMineAction.updateLastCard}
+                                onChange={(event) =>
+                                    event.target.checked &&
+                                    onSettingsChanged('clickToMineDefaultAction', PostMineAction.updateLastCard)
+                                }
+                            />
+                        }
+                        label={t('postMineAction.updateLastCard')}
+                    />
+                    <FormControlLabel
+                        control={
+                            <Radio
+                                checked={clickToMineDefaultAction === PostMineAction.none}
+                                value={PostMineAction.none}
+                                onChange={(event) =>
+                                    event.target.checked &&
+                                    onSettingsChanged('clickToMineDefaultAction', PostMineAction.none)
+                                }
+                            />
+                        }
+                        label={t('postMineAction.none')}
+                    />
+                </RadioGroup>
                 <FormGroup className={classes.formGroup}>
                     <FormControlLabel
                         control={
@@ -1054,28 +1127,6 @@ export default function SettingsForm({
                         InputProps={{
                             endAdornment: <InputAdornment position="end">ms</InputAdornment>,
                         }}
-                    />
-                    <FormControlLabel
-                        control={
-                            <Switch
-                                checked={preCacheSubtitleDom}
-                                onChange={(event) => onSettingsChanged('preCacheSubtitleDom', event.target.checked)}
-                            />
-                        }
-                        label={
-                            <Grid container direction="row" spacing={1}>
-                                <Grid item className={classes.verticallyCentered}>
-                                    {t('settings.preCacheSubtitleDom')}
-                                </Grid>
-                                <Grid item className={classes.verticallyCentered}>
-                                    <Tooltip title={t('settings.preCacheSubtitleDomHelperText')!} placement="top">
-                                        <InfoIcon />
-                                    </Tooltip>
-                                </Grid>
-                            </Grid>
-                        }
-                        labelPlacement="start"
-                        className={classes.switchLabel}
                     />
                 </FormGroup>
             </TabPanel>
@@ -1282,11 +1333,11 @@ export default function SettingsForm({
                                 key={key}
                                 label={properties.label}
                                 keys={
-                                    insideExtension && properties.boundViaChrome
+                                    extensionInstalled && properties.boundViaChrome
                                         ? chromeKeyBinds[keyBindName] ?? ''
                                         : keyBindSet[keyBindName].keys
                                 }
-                                boundViaChrome={insideExtension && properties.boundViaChrome}
+                                boundViaChrome={extensionInstalled && properties.boundViaChrome}
                                 onKeysChange={(keys) => handleKeysChange(keys, keyBindName)}
                                 onOpenExtensionShortcuts={onOpenChromeExtensionShortcuts}
                             />
@@ -1504,69 +1555,53 @@ export default function SettingsForm({
                         </FormGroup>
                     </Grid>
                     <Grid item>
-                        <FormLabel component="legend">
-                            {t('extension.settings.sidePanelDefaultPostMiningAction')}
-                        </FormLabel>
-                        <RadioGroup row={false}>
-                            <FormControlLabel
-                                control={
-                                    <Radio
-                                        checked={
-                                            streamingSidePanelDefaultPostMineAction === PostMineAction.showAnkiDialog
-                                        }
-                                        value={PostMineAction.showAnkiDialog}
-                                        onChange={(event) =>
-                                            event.target.checked &&
-                                            onSettingsChanged(
-                                                'streamingSidePanelDefaultPostMineAction',
-                                                PostMineAction.showAnkiDialog
-                                            )
-                                        }
-                                    />
-                                }
-                                label={t('postMineAction.showAnkiDialog')}
-                            />
-                            <FormControlLabel
-                                control={
-                                    <Radio
-                                        checked={
-                                            streamingSidePanelDefaultPostMineAction === PostMineAction.updateLastCard
-                                        }
-                                        value={PostMineAction.updateLastCard}
-                                        onChange={(event) =>
-                                            event.target.checked &&
-                                            onSettingsChanged(
-                                                'streamingSidePanelDefaultPostMineAction',
-                                                PostMineAction.updateLastCard
-                                            )
-                                        }
-                                    />
-                                }
-                                label={t('postMineAction.updateLastCard')}
-                            />
-                            <FormControlLabel
-                                control={
-                                    <Radio
-                                        checked={streamingSidePanelDefaultPostMineAction === PostMineAction.none}
-                                        value={PostMineAction.none}
-                                        onChange={(event) =>
-                                            event.target.checked &&
-                                            onSettingsChanged(
-                                                'streamingSidePanelDefaultPostMineAction',
-                                                PostMineAction.none
-                                            )
-                                        }
-                                    />
-                                }
-                                label={t('postMineAction.none')}
-                            />
-                        </RadioGroup>
+                        <FormGroup className={classes.formGroup}>
+                            {!insideApp && (
+                                <TextField
+                                    className={classes.textField}
+                                    color="secondary"
+                                    fullWidth
+                                    label={t('extension.settings.asbplayerUrl')}
+                                    value={streamingAppUrl}
+                                    onChange={(e) => onSettingsChanged('streamingAppUrl', e.target.value)}
+                                />
+                            )}
+                        </FormGroup>
                     </Grid>
                 </Grid>
             </TabPanel>
             <TabPanel value={tabIndex} index={tabIndicesById['misc-settings']}>
                 <Grid container spacing={1} direction="column">
                     <Grid item>
+                        <FormControl>
+                            <FormLabel className={classes.top}>{t('settings.theme')}</FormLabel>
+                            <RadioGroup row>
+                                <FormControlLabel
+                                    control={
+                                        <Radio
+                                            checked={themeType === 'light'}
+                                            value="light"
+                                            onChange={(event) =>
+                                                event.target.checked && onSettingsChanged('themeType', 'light')
+                                            }
+                                        />
+                                    }
+                                    label={t('settings.themeLight')}
+                                />
+                                <FormControlLabel
+                                    control={
+                                        <Radio
+                                            checked={themeType === 'dark'}
+                                            value="dark"
+                                            onChange={(event) =>
+                                                event.target.checked && onSettingsChanged('themeType', 'dark')
+                                            }
+                                        />
+                                    }
+                                    label={t('settings.themeDark')}
+                                />
+                            </RadioGroup>
+                        </FormControl>
                         <FormGroup className={classes.formGroup}>
                             <FormControlLabel
                                 control={
@@ -1682,33 +1717,28 @@ export default function SettingsForm({
                         </RadioGroup>
                     </Grid>
                     <Grid item>
-                        <FormLabel>{t('settings.theme')}</FormLabel>
-                        <div>
-                            <FormControlLabel
-                                control={
-                                    <Radio
-                                        checked={themeType === 'light'}
-                                        value="light"
-                                        onChange={(event) =>
-                                            event.target.checked && onSettingsChanged('themeType', 'light')
-                                        }
-                                    />
-                                }
-                                label={t('settings.themeLight')}
-                            />
-                            <FormControlLabel
-                                control={
-                                    <Radio
-                                        checked={themeType === 'dark'}
-                                        value="dark"
-                                        onChange={(event) =>
-                                            event.target.checked && onSettingsChanged('themeType', 'dark')
-                                        }
-                                    />
-                                }
-                                label={t('settings.themeDark')}
-                            />
-                        </div>
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={preCacheSubtitleDom}
+                                    onChange={(event) => onSettingsChanged('preCacheSubtitleDom', event.target.checked)}
+                                />
+                            }
+                            label={
+                                <Grid container direction="row" spacing={1}>
+                                    <Grid item className={classes.verticallyCentered}>
+                                        {t('settings.preCacheSubtitleDom')}
+                                    </Grid>
+                                    <Grid item className={classes.verticallyCentered}>
+                                        <Tooltip title={t('settings.preCacheSubtitleDomHelperText')!} placement="top">
+                                            <InfoIcon />
+                                        </Tooltip>
+                                    </Grid>
+                                </Grid>
+                            }
+                            labelPlacement="start"
+                            className={classes.switchLabel}
+                        />
                     </Grid>
                 </Grid>
             </TabPanel>

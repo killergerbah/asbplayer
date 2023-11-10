@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useState } from 'react';
+import { useEffect, useMemo, useCallback, useState } from 'react';
 import { CopyHistoryItem, CopyHistoryRepository } from '@project/common';
 
 export const useCopyHistory = (miningHistoryStorageLimit: number) => {
@@ -7,10 +7,29 @@ export const useCopyHistory = (miningHistoryStorageLimit: number) => {
         [miningHistoryStorageLimit]
     );
     const [copyHistoryItems, setCopyHistoryItems] = useState<CopyHistoryItem[]>([]);
+    const updateCopyHistoryItems = useCallback((items: CopyHistoryItem[]) => {
+        setCopyHistoryItems((existing: CopyHistoryItem[]) => {
+            const newItems = [...existing];
+
+            for (const item of items) {
+                if (existing.find((i) => i.id === item.id) === undefined) {
+                    newItems.push(item);
+                }
+            }
+
+            return newItems;
+        });
+    }, []);
 
     const refreshCopyHistory = useCallback(async () => {
-        setCopyHistoryItems(await copyHistoryRepository.fetch(miningHistoryStorageLimit));
+        updateCopyHistoryItems(await copyHistoryRepository.fetch(miningHistoryStorageLimit));
     }, [miningHistoryStorageLimit]);
+
+    useEffect(() => {
+        const observable = copyHistoryRepository.liveFetch(miningHistoryStorageLimit);
+        const subscription = observable.subscribe(updateCopyHistoryItems);
+        return () => subscription.unsubscribe();
+    }, []);
 
     const deleteCopyHistoryItem = useCallback(
         async (item: CopyHistoryItem) => {

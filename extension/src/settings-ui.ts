@@ -1,6 +1,6 @@
-import { renderAppUi } from './ui/app';
+import { renderSettingsUi } from './ui/settings';
 
 window.addEventListener('load', () => {
     const root = document.getElementById('root')!;
-    renderAppUi(root);
+    renderSettingsUi(root);
 });

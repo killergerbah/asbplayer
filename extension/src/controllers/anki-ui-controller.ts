@@ -58,7 +58,7 @@ export default class AnkiUiController {
         this._ankiSettings = value;
 
         if (this.frame?.bound) {
-            this.frame.client().then((client) => client.sendClientMessage({ command: 'ankiSettings', value }));
+            this.frame.client().then((client) => client.sendMessage({ command: 'ankiSettings', value }));
         }
     }
 
@@ -139,7 +139,7 @@ export default class AnkiUiController {
 
     async requestRewind(context: Binding) {
         const client = await this._client(context);
-        client.sendClientMessage({ command: 'rewind' });
+        client.sendMessage({ command: 'rewind' });
     }
 
     private _prepareShow(context: Binding) {
@@ -175,11 +175,11 @@ export default class AnkiUiController {
 
                 // Refocus Anki UI to workaround sites like Netflix that automatically
                 // take focus away when hiding video controls
-                client.sendClientMessage({ command: 'focus' });
+                client.sendMessage({ command: 'focus' });
             };
             window.addEventListener('focusin', this.focusInListener);
 
-            client.onServerMessage((message) => {
+            client.onMessage((message) => {
                 switch (message.command) {
                     case 'openSettings':
                         const openSettingsCommand: VideoToExtensionCommand<OpenAsbplayerSettingsMessage> = {

@@ -125,7 +125,7 @@
     },
     "extension": {
         "settings": {
-            "asbplayerUrl": "asbplayer URL",
+            "asbplayerUrl": "App URL",
             "autoLoadDetectedSubs": "Auto-load detected subtitles",
             "cleanScreenshot": "Clean screenshot",
             "condensedPlaybackMinSkipInterval": "Condensed playback minimum skip interval",
@@ -148,8 +148,7 @@
             "subtitles": "Subtitles",
             "syncing": "Syncing",
             "takeScreenshot": "Take screenshot",
-            "updateAvailable": "Update Available",
-            "sidePanelDefaultPostMiningAction": "Side panel post-mine action"
+            "updateAvailable": "Update Available"
         },
         "videoDataSync": {
             "emptySubtitleTrack": "Empty",
@@ -182,7 +181,7 @@
     },
     "landing": {
         "cta": "Drag and drop subtitle and media files, or <1>browse</1>.",
-        "extensionNotInstalled": "Install the <1>Chrome extension</1> to sync subtitles with streaming video",
+        "extensionNotInstalled": "Install the <1>Chrome extension</1> to sync subtitles with streaming video.",
         "extensionUpdateAvailable": "An extension <1>update</1> is available.",
         "noSubtitles": "No subtitles",
         "videoElementsDetected": "Load subtitles onto a video to start using asbplayer.",
@@ -222,11 +221,12 @@
         "maxImageWidth": "Max Image Width",
         "mining": "Mining",
         "miningHistoryStorageLimit": "Mining history storage limit",
+        "clickToMineDefaultAction": "Mining button default action",
         "misc": "Misc",
         "mp3Preference": "Re-encode audio as mp3 (slower)",
         "noteType": "Note Type",
         "preCacheSubtitleDom": "Pre-cache Subtitle DOM",
-        "preCacheSubtitleDomHelperText": "If enabled, asbplayer will pre-render subtitle text elements in an offscreen document, and re-use those elements for subtitle display. This allows external code to persistently modify subtitle text before it is displayed.",
+        "preCacheSubtitleDomHelperText": "If enabled, asbplayer will pre-render subtitle text elements in an offscreen element, and re-use those elements for subtitle display. This allows external code to persistently modify subtitle text before it is displayed.",
         "recordingBind": "Recording",
         "rememberSubtitleOffset": "Remember subtitle offset",
         "sentenceField": "Sentence Field",

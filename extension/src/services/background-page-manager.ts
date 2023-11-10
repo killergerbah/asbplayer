@@ -18,7 +18,7 @@ interface Requester {
     src: string;
 }
 
-export default class BackgroundPageAudioRecorder {
+export default class BackgroundPageManager {
     private readonly _tabRegistry: TabRegistry;
     private backgroundPageResolve?: (value: chrome.tabs.Tab) => void;
     private audioBase64Resolve?: (value: string) => void;
@@ -31,7 +31,14 @@ export default class BackgroundPageAudioRecorder {
         tabRegistry.onSyncedElement(async () => {
             this._backgroundPageTabId();
         });
+        tabRegistry.onAsbplayerInstance(async () => {
+            this._backgroundPageTabId();
+        });
         this._removeOrphanedBackgroundPage();
+    }
+
+    async tabId(): Promise<number | undefined> {
+        return await this._fetchBackgroundPageTabId();
     }
 
     private async _removeBackgroundPage() {

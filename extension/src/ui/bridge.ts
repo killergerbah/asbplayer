@@ -1,57 +1,64 @@
-import { Message } from '@project/common';
+import { Message, MessageWithId } from '@project/common';
 
 export default class Bridge {
-    private uiListener?: (state: any) => void;
-    private messageListener?: (message: any) => void;
-    private clientListener?: (message: any) => void;
-    private fetchDelegate?: (url: string, body: any) => Promise<void>;
+    private readonly _resolves: { [key: string]: (response: any) => void } = {};
+    private _clientMessageListeners: ((message: any) => void)[] = [];
+    private _serverMessageListeners: ((message: any) => void)[] = [];
 
-    onStateUpdated(uiListener: (state: any) => void) {
-        this.uiListener = uiListener;
+    sendMessageFromClient(message: Message) {
+        if ('messageId' in message) {
+            const messageWithId = message as MessageWithId;
+            const messageId = messageWithId.messageId;
+
+            if (messageId in this._resolves) {
+                this._resolves[messageId]?.(message);
+                delete this._resolves[messageId];
+            }
+        }
+
+        for (const l of this._clientMessageListeners) {
+            l(message);
+        }
+    }
+
+    addClientMessageListener(listener: (message: Message) => void) {
+        this._clientMessageListeners.push(listener);
         return () => {
-            this.uiListener = undefined;
+            this._clientMessageListeners = this._clientMessageListeners.filter((l) => l !== listener);
         };
     }
 
-    updateState(state: any) {
-        setTimeout(() => this.uiListener?.(state), 0);
-    }
-
-    sendClientMessage(message: any) {
-        setTimeout(() => this.messageListener?.(message), 0);
-    }
-
-    onClientMessage(messageListener: (message: any) => void) {
-        this.messageListener = messageListener;
+    addServerMessageListener(listener: (message: Message) => void) {
+        this._serverMessageListeners.push(listener);
         return () => {
-            this.messageListener = undefined;
+            this._serverMessageListeners = this._serverMessageListeners.filter((l) => l !== listener);
+        };
+    }
+
+    sendMessageFromServer(message: Message) {
+        for (const l of this._serverMessageListeners) {
+            l(message);
         }
     }
 
-    onFetch(fetchDelegate: (url: string, body: any) => Promise<void>) {
-        this.fetchDelegate = fetchDelegate;
-    }
-
-    async fetch(url: string, body: any) {
-        if (!this.fetchDelegate) {
-            throw new Error('Unable to fetch because no delegate is set');
+    sendMessageFromServerAndExpectResponse(message: MessageWithId): Promise<any> {
+        for (const l of this._serverMessageListeners) {
+            l(message);
         }
 
-        return await this.fetchDelegate(url, body);
-    }
-
-    onServerMessage(clientListener: (message: Message) => void) {
-        this.clientListener = clientListener;
-    }
-
-    sendServerMessage(message: Message) {
-        this.clientListener?.(message);
+        return new Promise((resolve, reject) => {
+            this._resolves[message.messageId] = resolve;
+            setTimeout(() => {
+                if (message.messageId in this._resolves) {
+                    reject('Request timed out');
+                    delete this._resolves[message.messageId];
+                }
+            }, 5000);
+        });
     }
 
     unbind() {
-        this.uiListener = undefined;
-        this.messageListener = undefined;
-        this.clientListener = undefined;
-        this.fetchDelegate = undefined;
+        this._clientMessageListeners = [];
+        this._serverMessageListeners = [];
     }
 }

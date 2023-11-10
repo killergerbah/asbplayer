@@ -1,5 +1,4 @@
 import ImageCapturer from '../../services/image-capturer';
-import { v4 as uuidv4 } from 'uuid';
 import {
     Command,
     Message,
@@ -49,20 +48,16 @@ export default class TakeScreenshotHandler {
             };
             this._cardPublisher.publish(
                 {
-                    command: 'copy',
-                    // Ideally we send the same ID so that asbplayer can update the existing item.
-                    // There's a bug where asbplayer isn't properly updating the item right now, so
-                    // let's just create a new item for now by using a new ID.
-                    id: uuidv4(),
-                    audio: ankiUiState!.audio,
-                    image: ankiUiState!.image,
+                    audio: ankiUiState.audio,
+                    image: ankiUiState.image,
                     url: ankiUiState!.url,
                     subtitle: ankiUiState!.subtitle,
                     surroundingSubtitles: ankiUiState!.sliderContext.subtitles,
                     subtitleFileName: takeScreenshotCommand.message.subtitleFileName,
                     mediaTimestamp: takeScreenshotCommand.message.mediaTimestamp,
                 },
-                sender.tab!.id!,
+                undefined,
+                senderTab.id!,
                 takeScreenshotCommand.src
             );
         }

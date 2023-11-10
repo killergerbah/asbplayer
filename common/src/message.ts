@@ -1,4 +1,4 @@
-import { AnkiSettings, MiscSettings, SharedGlobalSettings, SubtitleSettings } from './settings';
+import { AnkiSettings, AsbplayerSettings, MiscSettings, SubtitleSettings } from './settings';
 import {
     RectModel,
     SubtitleModel,
@@ -10,17 +10,31 @@ import {
     PostMineAction,
     PlayMode,
 } from './model';
+import { AsbPlayerToVideoCommandV2 } from './command';
 
 export interface Message {
     readonly command: string;
+}
+
+export interface MessageWithId extends Message {
+    readonly messageId: string;
 }
 
 export interface ActiveVideoElement {
     id: number;
     title?: string;
     src: string;
+    subscribed: boolean;
     synced: boolean;
     syncedTimestamp?: number;
+}
+
+export interface AsbplayerInstance {
+    id: string;
+    tabId?: number;
+    sidePanel: boolean;
+    timestamp: number;
+    videoPlayer: boolean;
 }
 
 export interface AsbplayerHeartbeatMessage extends Message {
@@ -34,6 +48,7 @@ export interface AsbplayerHeartbeatMessage extends Message {
 export interface TabsMessage extends Message {
     readonly command: 'tabs';
     readonly tabs: ActiveVideoElement[];
+    readonly asbplayers: AsbplayerInstance[];
     readonly ackRequested: boolean;
 }
 
@@ -46,6 +61,7 @@ export interface AckTabsMessage extends Message {
 
 export interface VideoHeartbeatMessage extends Message {
     readonly command: 'heartbeat';
+    readonly subscribed: boolean;
     readonly synced: boolean;
     readonly syncedTimestamp?: number;
 }
@@ -54,8 +70,9 @@ export interface VideoDisappearedMessage extends Message {
     readonly command: 'video-disappeared';
 }
 
-export interface HttpPostMessage extends Message {
+export interface HttpPostMessage extends MessageWithId {
     readonly command: 'http-post';
+    readonly messageId: string;
     readonly url: string;
     readonly body: any;
 }
@@ -84,7 +101,6 @@ export interface RecordMediaAndForwardSubtitleMessage extends Message, ImageCapt
     readonly audioPaddingEnd: number;
     readonly imageDelay: number;
     readonly playbackRate: number;
-    readonly ankiSettings?: AnkiSettings;
     readonly mediaTimestamp: number;
 }
 
@@ -97,7 +113,6 @@ export interface StartRecordingMediaMessage extends Message, ImageCaptureParams 
     readonly imageDelay: number;
     readonly url?: string;
     readonly subtitleFileName: string;
-    readonly ankiSettings?: AnkiSettings;
 }
 
 export interface StopRecordingMediaMessage extends Message, ImageCaptureParams {
@@ -110,33 +125,42 @@ export interface StopRecordingMediaMessage extends Message, ImageCaptureParams {
     readonly videoDuration: number;
     readonly url?: string;
     readonly subtitleFileName: string;
-    readonly ankiSettings?: AnkiSettings;
     readonly subtitle?: SubtitleModel;
     readonly surroundingSubtitles?: SubtitleModel[];
 }
 
-export interface CopyMessage extends Message {
-    readonly command: 'copy';
+export interface Card {
     readonly id?: string;
     readonly subtitle: SubtitleModel;
     readonly surroundingSubtitles: SubtitleModel[];
-    readonly subtitleFileName?: string;
+    readonly subtitleFileName: string;
     readonly url?: string;
     readonly image?: ImageModel;
     readonly audio?: AudioModel;
-
-    readonly postMineAction?: PostMineAction;
     readonly mediaTimestamp: number;
+}
+
+export interface CopyMessage extends Message, Card {
+    readonly command: 'copy';
+    readonly postMineAction?: PostMineAction;
+}
+
+export interface PublishCardMessage extends Message, Card {
+    readonly command: 'publish-card';
 }
 
 export interface CopyToVideoMessage extends Message {
     readonly command: 'copy';
     readonly postMineAction: PostMineAction;
+    readonly subtitle?: SubtitleModel;
+    readonly surroundingSubtitles?: SubtitleModel[];
 }
 
 export interface CopySubtitleMessage extends Message {
     readonly command: 'copy-subtitle';
     readonly postMineAction: PostMineAction;
+    readonly subtitle?: SubtitleModel;
+    readonly surroundingSubtitles?: SubtitleModel[];
 }
 
 export interface TakeScreenshotMessage extends Message {
@@ -146,7 +170,7 @@ export interface TakeScreenshotMessage extends Message {
 export interface TakeScreenshotFromExtensionMessage extends Message, ImageCaptureParams {
     readonly command: 'take-screenshot';
     readonly ankiUiState?: AnkiUiSavedState;
-    readonly subtitleFileName?: string;
+    readonly subtitleFileName: string;
     readonly mediaTimestamp: number;
 }
 
@@ -162,6 +186,11 @@ export interface CardUpdatedMessage extends Message {
     readonly image?: ImageModel;
     readonly audio?: AudioModel;
     readonly url?: string;
+}
+
+export interface CardSavedMessage extends Message {
+    readonly command: 'card-saved';
+    readonly text: string;
 }
 
 export interface ScreenshotTakenMessage extends Message {
@@ -472,10 +501,6 @@ export interface LoadSubtitlesMessage extends Message {
     readonly command: 'load-subtitles';
 }
 
-export interface MineSubtitleMessage extends Message {
-    readonly command: 'mine-subtitle';
-}
-
 export interface RequestActiveTabPermissionMessage extends Message {
     readonly command: 'request-active-tab-permission';
 }
@@ -487,4 +512,32 @@ export interface RequestingActiveTabPermsisionMessage extends Message {
 
 export interface GrantedActiveTabPermissionMessage extends Message {
     readonly command: 'granted-active-tab-permission';
+}
+
+export interface OpenSidePanelMessage extends Message {
+    readonly command: 'open-side-panel';
+}
+
+export interface GetSettingsMessage extends MessageWithId {
+    readonly command: 'get-settings';
+    readonly keysAndDefaults: Partial<AsbplayerSettings>;
+}
+
+export interface SetSettingsMessage extends MessageWithId {
+    readonly command: 'set-settings';
+    readonly settings: Partial<AsbplayerSettings>;
+}
+
+export interface ForwardCommandMessage extends Message {
+    readonly command: 'forward-command';
+    readonly commandToForward: AsbPlayerToVideoCommandV2<Message>;
+}
+
+export interface UpdateStateMessage extends Message {
+    readonly command: 'updateState';
+    readonly state: any;
+}
+
+export interface AckMessage extends MessageWithId {
+    readonly command: 'ack-message';
 }

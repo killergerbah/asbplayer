@@ -1,6 +1,8 @@
 import {
+    AckMessage,
     AnkiUiSavedState,
     AutoPausePreference,
+    CardSavedMessage,
     CardUpdatedMessage,
     CopySubtitleMessage,
     cropAndResize,
@@ -66,7 +68,7 @@ export default class Binding {
     private recordingMediaWithScreenshot: boolean;
     private _playMode: PlayMode = PlayMode.normal;
 
-    readonly video: HTMLVideoElement;
+    readonly video: HTMLMediaElement;
     readonly subSyncAvailable: boolean;
     readonly subtitleController: SubtitleController;
     readonly videoDataSyncController: VideoDataSyncController;
@@ -79,7 +81,7 @@ export default class Binding {
 
     private copyToClipboardOnMine: boolean;
     private recordMedia: boolean;
-    private screenshot: boolean;
+    private takeScreenshot: boolean;
     private cleanScreenshot: boolean;
     private audioPaddingStart: number;
     private audioPaddingEnd: number;
@@ -103,7 +105,7 @@ export default class Binding {
 
     private readonly frameId?: string;
 
-    constructor(video: HTMLVideoElement, syncAvailable: boolean, frameId?: string) {
+    constructor(video: HTMLMediaElement, syncAvailable: boolean, frameId?: string) {
         this.video = video;
         this.subSyncAvailable = syncAvailable;
         this.subtitleController = new SubtitleController(video);
@@ -115,7 +117,7 @@ export default class Binding {
         this.ankiUiController = new AnkiUiController();
         this.requestActiveTabPermissionController = new ActiveTabPermissionRequestController(this);
         this.recordMedia = true;
-        this.screenshot = true;
+        this.takeScreenshot = true;
         this.cleanScreenshot = true;
         this.audioPaddingStart = 0;
         this.audioPaddingEnd = 500;
@@ -356,6 +358,7 @@ export default class Binding {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'heartbeat',
+                    subscribed: this.subscribed,
                     synced: this._synced,
                     syncedTimestamp: this._syncedTimestamp,
                 },
@@ -430,8 +433,24 @@ export default class Binding {
                         const copySubtitleMessage = request.message as CopySubtitleMessage;
 
                         if (this._synced) {
-                            if (this.subtitleController.subtitles.length > 0) {
-                                this._copySubtitle(copySubtitleMessage.postMineAction);
+                            if (
+                                copySubtitleMessage.subtitle !== undefined &&
+                                copySubtitleMessage.surroundingSubtitles !== undefined
+                            ) {
+                                this._copySubtitle(
+                                    copySubtitleMessage.postMineAction,
+                                    copySubtitleMessage.subtitle,
+                                    copySubtitleMessage.surroundingSubtitles
+                                );
+                            } else if (this.subtitleController.subtitles.length > 0) {
+                                const [subtitle, surroundingSubtitles] = this.subtitleController.currentSubtitle();
+                                if (subtitle !== null && surroundingSubtitles !== null) {
+                                    this._copySubtitle(
+                                        copySubtitleMessage.postMineAction,
+                                        subtitle,
+                                        surroundingSubtitles
+                                    );
+                                }
                             } else {
                                 this._toggleRecordingMedia(copySubtitleMessage.postMineAction);
                             }
@@ -476,6 +495,9 @@ export default class Binding {
                             dialogRequestedTimestamp: this.video.currentTime * 1000,
                         };
                         break;
+                    case 'card-saved':
+                        const cardSavedMessage = request.message as CardSavedMessage;
+                        this.subtitleController.notification('info.copiedSubtitle', { text: cardSavedMessage.text });
                     case 'recording-finished':
                         this.recordingMedia = false;
                         this.recordingMediaStartedTimestamp = undefined;
@@ -525,6 +547,18 @@ export default class Binding {
                         this.requestActiveTabPermissionController.onPermissionGranted();
                         break;
                 }
+
+                if ('messageId' in request.message) {
+                    const ackCommand: VideoToExtensionCommand<AckMessage> = {
+                        sender: 'asbplayer-video',
+                        message: {
+                            command: 'ack-message',
+                            messageId: request.message['messageId'],
+                        },
+                        src: this.video.src,
+                    };
+                    chrome.runtime.sendMessage(ackCommand);
+                }
             }
         };
 
@@ -535,7 +569,10 @@ export default class Binding {
     async _refreshSettings() {
         const currentSettings = await this.settings.getAll();
         this.recordMedia = currentSettings.streamingRecordMedia;
-        this.screenshot = currentSettings.streamingTakeScreenshot;
+        this.takeScreenshot =
+            currentSettings.streamingTakeScreenshot &&
+            // @ts-ignore
+            (typeof this.video.webkitVideoDecodedByteCount !== 'number' || this.video.webkitVideoDecodedByteCount > 0);
         this.cleanScreenshot = currentSettings.streamingTakeScreenshot && currentSettings.streamingCleanScreenshot;
         this.subtitleController.displaySubtitles = currentSettings.streamingDisplaySubtitles;
         this.subtitleController.subtitlePositionOffset = currentSettings.streamingSubtitlePositionOffset;
@@ -622,7 +659,7 @@ export default class Binding {
     }
 
     async _takeScreenshot() {
-        if (!this.screenshot) {
+        if (!this.takeScreenshot) {
             return;
         }
 
@@ -644,58 +681,52 @@ export default class Binding {
         this.ankiUiSavedState = undefined;
     }
 
-    async _copySubtitle(postMineAction: PostMineAction) {
-        const [subtitle, surroundingSubtitles] = this.subtitleController.currentSubtitle();
-
-        if (subtitle && surroundingSubtitles) {
-            if (this.copyToClipboardOnMine) {
-                navigator.clipboard.writeText(subtitle.text);
-            }
-
-            if (this.screenshot) {
-                await this._prepareScreenshot();
-            }
-
-            if (this.recordMedia) {
-                this.recordingMedia = true;
-                this.recordingMediaStartedTimestamp = this.video.currentTime * 1000;
-                const start = Math.max(0, subtitle.start - this.audioPaddingStart);
-                this.seek(start / 1000);
-                await this.play();
-            }
-
-            const ankiSettings =
-                postMineAction === PostMineAction.updateLastCard ? this.ankiUiController.ankiSettings : undefined;
-
-            const command: VideoToExtensionCommand<RecordMediaAndForwardSubtitleMessage> = {
-                sender: 'asbplayer-video',
-                message: {
-                    command: 'record-media-and-forward-subtitle',
-                    subtitle: subtitle,
-                    surroundingSubtitles: surroundingSubtitles,
-                    record: this.recordMedia,
-                    screenshot: this.screenshot,
-                    url: this.url,
-                    mediaTimestamp: this.video.currentTime * 1000,
-                    subtitleFileName: this.subtitleFileName(subtitle.track),
-                    postMineAction: postMineAction,
-                    audioPaddingStart: this.audioPaddingStart,
-                    audioPaddingEnd: this.audioPaddingEnd,
-                    imageDelay: this.imageDelay,
-                    playbackRate: this.video.playbackRate,
-                    ankiSettings: ankiSettings,
-                    ...this._imageCaptureParams,
-                },
-                src: this.video.src,
-            };
-
-            chrome.runtime.sendMessage(command);
+    async _copySubtitle(
+        postMineAction: PostMineAction,
+        subtitle: SubtitleModel,
+        surroundingSubtitles: SubtitleModel[]
+    ) {
+        if (this.copyToClipboardOnMine) {
+            navigator.clipboard.writeText(subtitle.text);
         }
+
+        if (this.takeScreenshot) {
+            await this._prepareScreenshot();
+        }
+
+        if (this.recordMedia) {
+            this.recordingMedia = true;
+            this.recordingMediaStartedTimestamp = this.video.currentTime * 1000;
+            const start = Math.max(0, subtitle.start - this.audioPaddingStart);
+            this.seek(start / 1000);
+            await this.play();
+        }
+
+        const command: VideoToExtensionCommand<RecordMediaAndForwardSubtitleMessage> = {
+            sender: 'asbplayer-video',
+            message: {
+                command: 'record-media-and-forward-subtitle',
+                subtitle: subtitle,
+                surroundingSubtitles: surroundingSubtitles,
+                record: this.recordMedia,
+                screenshot: this.takeScreenshot,
+                url: this.url,
+                mediaTimestamp: this.video.currentTime * 1000,
+                subtitleFileName: this.subtitleFileName(subtitle.track),
+                postMineAction: postMineAction,
+                audioPaddingStart: this.audioPaddingStart,
+                audioPaddingEnd: this.audioPaddingEnd,
+                imageDelay: this.imageDelay,
+                playbackRate: this.video.playbackRate,
+                ...this._imageCaptureParams,
+            },
+            src: this.video.src,
+        };
+
+        chrome.runtime.sendMessage(command);
     }
 
     async _toggleRecordingMedia(postMineAction: PostMineAction) {
-        const ankiSettings =
-            postMineAction === PostMineAction.updateLastCard ? this.ankiUiController.ankiSettings : undefined;
         if (this.recordingMedia) {
             const currentTimestamp = this.video.currentTime * 1000;
             const command: VideoToExtensionCommand<StopRecordingMediaMessage> = {
@@ -710,7 +741,6 @@ export default class Binding {
                     videoDuration: this.video.duration * 1000,
                     url: this.url,
                     subtitleFileName: this.subtitleFileName(),
-                    ankiSettings: ankiSettings,
                     ...this._imageCaptureParams,
                     ...this._surroundingSubtitlesAroundInterval(this.recordingMediaStartedTimestamp!, currentTimestamp),
                 },
@@ -721,7 +751,7 @@ export default class Binding {
         } else {
             this.ankiUiSavedState = undefined;
 
-            if (this.screenshot) {
+            if (this.takeScreenshot) {
                 await this._prepareScreenshot();
             }
 
@@ -730,7 +760,7 @@ export default class Binding {
             if (this.recordMedia) {
                 this.recordingMedia = true;
                 this.recordingMediaStartedTimestamp = timestamp;
-                this.recordingMediaWithScreenshot = this.screenshot;
+                this.recordingMediaWithScreenshot = this.takeScreenshot;
             }
 
             const command: VideoToExtensionCommand<StartRecordingMediaMessage> = {
@@ -740,11 +770,10 @@ export default class Binding {
                     mediaTimestamp: timestamp,
                     record: this.recordMedia,
                     postMineAction: postMineAction,
-                    screenshot: this.screenshot,
+                    screenshot: this.takeScreenshot,
                     url: this.url,
                     subtitleFileName: this.subtitleFileName(),
                     imageDelay: this.imageDelay,
-                    ankiSettings: ankiSettings,
                     ...this._imageCaptureParams,
                 },
                 src: this.video.src,

@@ -1,4 +1,9 @@
-import { CaptureVisibleTabMessage, ForegroundToExtensionCommand, SettingsProvider } from '@project/common';
+import {
+    CaptureVisibleTabMessage,
+    ForegroundToExtensionCommand,
+    SettingsProvider,
+    VideoSelectModeConfirmMessage,
+} from '@project/common';
 import { VideoElement } from '../ui/components/VideoSelectUi';
 import Binding from '../services/binding';
 import UiFrame from '../services/ui-frame';
@@ -114,12 +119,12 @@ export default class VideoSelectController {
         const client = await this._frame.client();
 
         if (isNewClient) {
-            client.onServerMessage((message) => {
+            client.onMessage((message) => {
                 if (message.command === 'confirm') {
                     client.updateState({ open: false });
                     this._frame.hide();
                     this._bindings
-                        .find((b) => b.video.src === message.selectedVideoElementSrc)
+                        .find((b) => b.video.src === (message as VideoSelectModeConfirmMessage).selectedVideoElementSrc)
                         ?.showVideoDataDialog(false);
                 } else if (message.command === 'cancel') {
                     client.updateState({ open: false });

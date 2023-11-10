@@ -2,7 +2,7 @@ import { Command, Message } from '@project/common';
 
 export default class OpenSidePanelHandler {
     get sender() {
-        return 'asbplayer-video';
+        return ['asbplayer-video', 'asbplayerv2'];
     }
 
     get command() {

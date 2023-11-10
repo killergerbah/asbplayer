@@ -148,8 +148,7 @@
             "subtitles": "Napisy",
             "syncing": "Synchronizacja",
             "takeScreenshot": "Rób zrzut ekranu",
-            "updateAvailable": "Dostępna aktualizacja",
-            "sidePanelDefaultPostMiningAction": "Side panel post-mine action"
+            "updateAvailable": "Dostępna aktualizacja"
         },
         "videoDataSync": {
             "emptySubtitleTrack": "Empty",
@@ -222,6 +221,7 @@
         "maxImageWidth": "Maksymalna szerokość obrazu ",
         "mining": "Kopanie",
         "miningHistoryStorageLimit": "Limit przechowywania historii kopania",
+        "clickToMineDefaultAction": "Mining button default action",
         "misc": "Różne",
         "mp3Preference": "Ponowne kodowanie dźwięku do formatu mp3 (wolniejsze)",
         "noteType": "Typ notatek",

@@ -27,7 +27,7 @@ export default class ChromeTabVideoProtocol implements VideoProtocol {
     }
 
     postMessage(message: Message) {
-        this.extension.sendMessage(message, this.tabId, this.src);
+        this.extension.sendMessageToVideoElement(message, this.tabId, this.src);
     }
 
     close() {

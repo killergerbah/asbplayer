@@ -148,8 +148,7 @@
             "subtitles": "字幕",
             "syncing": "正在同步",
             "takeScreenshot": "截屏",
-            "updateAvailable": "可用更新",
-            "sidePanelDefaultPostMiningAction": "Side panel post-mine action"
+            "updateAvailable": "可用更新"
         },
         "videoDataSync": {
             "emptySubtitleTrack": "空的",
@@ -222,6 +221,7 @@
         "maxImageWidth": "最大图像宽度",
         "mining": "挖掘",
         "miningHistoryStorageLimit": "挖掘历史存储限制",
+        "clickToMineDefaultAction": "Mining button default action",
         "misc": "杂项",
         "mp3Preference": "将音频重新编码为mp3（较慢）",
         "noteType": "Anki卡牌类型",

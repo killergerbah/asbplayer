@@ -10,31 +10,15 @@ import {
     SettingsUpdatedMessage,
     createTheme,
 } from '@project/common';
-import { Box, Paper, Typography } from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+import Paper from '@material-ui/core/Paper';
+import Typography from '@material-ui/core/Typography';
 import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
 import Popup from './Popup';
 import { useRequestingActiveTabPermission } from '../hooks/use-requesting-active-tab-permission';
 
 interface Props {
     commands: any;
-}
-
-export interface SettingsChangedMessage<K extends keyof AsbplayerSettings> {
-    command: 'settings-changed';
-    key: K;
-    value: AsbplayerSettings[K];
-}
-
-export interface OpenExtensionShortcutsMessage {
-    command: 'open-extension-shortcuts';
-}
-
-export interface OpenAppMessage {
-    command: 'open-app';
-}
-
-export interface OpenSidePanelMessage {
-    command: 'open-side-panel';
 }
 
 export function PopupUi({ commands }: Props) {
@@ -65,9 +49,11 @@ export function PopupUi({ commands }: Props) {
         chrome.tabs.create({ active: true, url: 'chrome://extensions/shortcuts' });
     }, []);
 
-    const handleOpenApp = useCallback(() => {
-        chrome.tabs.create({ active: true, url: `chrome-extension://${chrome.runtime.id}/app-ui.html` });
-    }, []);
+    const handleOpenApp = useCallback(async () => {
+        if (settings?.streamingAppUrl) {
+            chrome.tabs.create({ active: true, url: settings.streamingAppUrl });
+        }
+    }, [settings]);
 
     const handleOpenSidePanel = useCallback(async () => {
         // @ts-ignore

@@ -1,8 +1,10 @@
 import { LocalizationConfig, fetchExtensionConfig } from './extension-config';
-import { supportedLanguages as defaultSupportedLanguages } from '@project/common';
+import { SettingsProvider, supportedLanguages as defaultSupportedLanguages } from '@project/common';
+import { ExtensionSettingsStorage } from './extension-settings-storage';
 
 const stringsKeyForLang = (lang: string) => `locStrings-${lang}`;
 const versionKeyForLang = (lang: string) => `locVersion-${lang}`;
+const settings = new SettingsProvider(new ExtensionSettingsStorage());
 
 export interface Localization {
     lang: string;
@@ -43,8 +45,7 @@ export const primeLocalization = async (lang: string): Promise<void> => {
 };
 
 const fetchAndCache = async ({ code, url, version }: LocalizationConfig): Promise<void> => {
-    // TODO deal with this URL
-    const asbplayerUrl = 'https://killergerbah.github.io/asbplayer';
+    const asbplayerUrl = await settings.getSingle('streamingAppUrl');
     const effectiveUrl = url.startsWith('http://') || url.startsWith('https://') ? url : `${asbplayerUrl}/${url}`;
     try {
         const strings = await (await fetch(effectiveUrl)).json();

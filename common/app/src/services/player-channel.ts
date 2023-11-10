@@ -40,7 +40,7 @@ export default class PlayerChannel {
     private currentTimeCallbacks: ((currentTime: number) => void)[];
     private audioTrackSelectedCallbacks: ((id: string) => void)[];
     private closeCallbacks: (() => void)[];
-    private subtitlesCallbacks: ((subtitles: SubtitleModel[]) => void)[];
+    private subtitlesCallbacks: ((subtitles: SubtitleModel[], subtitleFileName: string) => void)[];
     private offsetCallbacks: ((offset: number) => void)[];
     private playbackRateCallbacks: ((playbackRate: number) => void)[];
     private playModeCallbacks: ((playMode: PlayMode) => void)[];
@@ -51,7 +51,11 @@ export default class PlayerChannel {
     private miscSettingsCallbacks: ((miscSettings: MiscSettings) => void)[];
     private ankiSettingsCallbacks: ((ankiSettings: AnkiSettings) => void)[];
     private alertCallbacks: ((message: string, severity: string) => void)[];
-    private copyCallbacks: ((postMineAction: PostMineAction) => void)[];
+    private copyCallbacks: ((
+        postMineAction: PostMineAction,
+        subtitle?: SubtitleModel,
+        surroundingSubtitles?: SubtitleModel[]
+    ) => void)[];
 
     constructor(channel: string) {
         this.channel = new BroadcastChannel(channel);
@@ -121,7 +125,10 @@ export default class PlayerChannel {
                     const subtitlesMessage = event.data as SubtitlesToVideoMessage;
 
                     for (let callback of that.subtitlesCallbacks) {
-                        callback(subtitlesMessage.value);
+                        callback(
+                            subtitlesMessage.value,
+                            subtitlesMessage.names.length > 0 ? subtitlesMessage.names[0] : ''
+                        );
                     }
                     break;
                 case 'offset':
@@ -198,7 +205,7 @@ export default class PlayerChannel {
                     const copyMessage = event.data as CopyToVideoMessage;
 
                     for (const callback of that.copyCallbacks) {
-                        callback(copyMessage.postMineAction);
+                        callback(copyMessage.postMineAction, copyMessage.subtitle, copyMessage.surroundingSubtitles);
                     }
                     break;
                 default:
@@ -207,8 +214,8 @@ export default class PlayerChannel {
         };
     }
 
-    set currentTime(value: number) {
-        this.channel?.postMessage({ command: 'currentTime', value: value, echo: true });
+    currentTime(value: number, echo = true) {
+        this.channel?.postMessage({ command: 'currentTime', value: value, echo });
     }
 
     onPlay(callback: () => void) {
@@ -241,7 +248,7 @@ export default class PlayerChannel {
         return () => this._remove(callback, this.readyCallbacks);
     }
 
-    onSubtitles(callback: (subtitles: SubtitleModel[]) => void) {
+    onSubtitles(callback: (subtitles: SubtitleModel[], subtitleFileName: string) => void) {
         this.subtitlesCallbacks.push(callback);
         return () => this._remove(callback, this.subtitlesCallbacks);
     }
@@ -296,7 +303,13 @@ export default class PlayerChannel {
         return () => this._remove(callback, this.alertCallbacks);
     }
 
-    onCopy(callback: (postMineAction: PostMineAction) => void) {
+    onCopy(
+        callback: (
+            postMineAction: PostMineAction,
+            subtitle?: SubtitleModel,
+            surroundingSubtitles?: SubtitleModel[]
+        ) => void
+    ) {
         this.copyCallbacks.push(callback);
         return () => this._remove(callback, this.copyCallbacks);
     }
@@ -326,13 +339,13 @@ export default class PlayerChannel {
         this.channel?.postMessage(message);
     }
 
-    play() {
-        const message: PlayFromVideoMessage = { command: 'play', echo: true };
+    play(echo = true) {
+        const message: PlayFromVideoMessage = { command: 'play', echo };
         this.channel?.postMessage(message);
     }
 
-    pause() {
-        const message: PauseFromVideoMessage = { command: 'pause', echo: true };
+    pause(echo = true) {
+        const message: PauseFromVideoMessage = { command: 'pause', echo };
         this.channel?.postMessage(message);
     }
 
@@ -346,8 +359,8 @@ export default class PlayerChannel {
         this.channel?.postMessage(message);
     }
 
-    playbackRate(playbackRate: number) {
-        const message: PlaybackRateFromVideoMessage = { command: 'playbackRate', value: playbackRate, echo: true };
+    playbackRate(playbackRate: number, echo = true) {
+        const message: PlaybackRateFromVideoMessage = { command: 'playbackRate', value: playbackRate, echo };
         this.channel?.postMessage(message);
     }
 
@@ -358,14 +371,16 @@ export default class PlayerChannel {
     copy(
         subtitle: SubtitleModel,
         surroundingSubtitles: SubtitleModel[],
+        subtitleFileName: string,
         mediaTimestamp: number,
         postMineAction: PostMineAction
     ) {
         const message: CopyMessage = {
             command: 'copy',
-            subtitle: subtitle,
-            surroundingSubtitles: surroundingSubtitles,
-            postMineAction: postMineAction,
+            subtitle,
+            surroundingSubtitles,
+            subtitleFileName,
+            postMineAction,
             mediaTimestamp,
         };
 

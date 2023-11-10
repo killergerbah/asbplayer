@@ -528,6 +528,10 @@ export default class AudioClip {
         return this.data.name + '.' + this.data.extension;
     }
 
+    get extension() {
+        return this.data.extension;
+    }
+
     async play() {
         await this.data.play();
     }

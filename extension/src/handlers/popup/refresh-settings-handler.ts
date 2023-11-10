@@ -15,7 +15,7 @@ export default class RefreshSettingsHandler {
     }
 
     get sender() {
-        return 'asbplayer-popup';
+        return ['asbplayer-popup', 'asbplayer-settings'];
     }
 
     get command() {

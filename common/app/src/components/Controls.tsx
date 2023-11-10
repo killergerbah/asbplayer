@@ -27,9 +27,9 @@ import VerticalAlignBottomIcon from '@material-ui/icons/VerticalAlignBottom';
 import VideocamIcon from '@material-ui/icons/Videocam';
 import VolumeOffIcon from '@material-ui/icons/VolumeOff';
 import VolumeUpIcon from '@material-ui/icons/VolumeUp';
-import { AudioTrackModel, PlayMode, VideoTabModel } from '@project/common';
+import { AudioTrackModel, PlayMode, SubtitleAlignment, VideoTabModel } from '@project/common';
 import Clock from '../services/clock';
-import PlaybackPreferences, { SubtitleAlignment } from '../services/playback-preferences';
+import PlaybackPreferences from '../services/playback-preferences';
 import Tooltip from '@material-ui/core/Tooltip';
 
 const useControlStyles = makeStyles((theme) => ({
@@ -512,7 +512,7 @@ interface ControlsProps {
     onUnloadVideo?: () => void;
     onOffsetChange: (offset: number) => void;
     onPlaybackRateChange: (playbackRate: number) => void;
-    onVolumeChange: (volume: number) => void;
+    onVolumeChange?: (volume: number) => void;
     disableKeyEvents?: boolean;
     playbackPreferences: PlaybackPreferences;
     closeEnabled?: boolean;
@@ -652,7 +652,7 @@ export default function Controls({
     useEffect(() => {
         const savedVolume = Number(playbackPreferences.volume);
         setVolume(savedVolume);
-        onVolumeChange(savedVolume / 100);
+        onVolumeChange?.(savedVolume / 100);
 
         if (savedVolume > 0) {
             setLastCommittedVolume(savedVolume);
@@ -901,7 +901,7 @@ export default function Controls({
             }
 
             setVolume(value);
-            onVolumeChange(value / 100);
+            onVolumeChange?.(value / 100);
         },
         [onVolumeChange]
     );
@@ -924,7 +924,7 @@ export default function Controls({
     const handleVolumeToggle = useCallback(() => {
         setVolume((volume) => {
             const newVolume = volume > 0 ? 0 : lastCommittedVolume;
-            onVolumeChange(newVolume / 100);
+            onVolumeChange?.(newVolume / 100);
             return newVolume;
         });
     }, [onVolumeChange, lastCommittedVolume]);
@@ -934,8 +934,7 @@ export default function Controls({
             return;
         }
 
-        const newAlignment =
-            subtitleAlignment === SubtitleAlignment.top ? SubtitleAlignment.bottom : SubtitleAlignment.top;
+        const newAlignment = subtitleAlignment === 'top' ? 'bottom' : 'top';
         onSubtitleAlignment(newAlignment);
     }, [subtitleAlignment, subtitleAlignmentEnabled, onSubtitleAlignment]);
 
@@ -1078,7 +1077,7 @@ export default function Controls({
                             {subtitleAlignmentEnabled && subtitleAlignment !== undefined && (
                                 <Grid item>
                                     <IconButton color="inherit" onClick={handleSubtitleAlignment}>
-                                        {subtitleAlignment === SubtitleAlignment.top ? (
+                                        {subtitleAlignment === 'top' ? (
                                             <VerticalAlignTopIcon />
                                         ) : (
                                             <VerticalAlignBottomIcon />

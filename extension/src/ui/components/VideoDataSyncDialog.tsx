@@ -216,8 +216,7 @@ export default function VideoDataSyncDialog({
                                 };
                             }
                         })
-                        .filter((track): track is ConfirmedVideoDataSubtitleTrack => track !== undefined);   
-
+                        .filter((track): track is ConfirmedVideoDataSubtitleTrack => track !== undefined && track.subtitleUrl !== '-');
                         onConfirm(
                             selectedSubtitleTracks
                         );

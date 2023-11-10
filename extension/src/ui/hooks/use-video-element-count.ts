@@ -16,7 +16,8 @@ export const useVideoElementCount = ({
             return;
         }
 
-        const countInCurrentTab = (tabs: VideoTabModel[]) => tabs.filter((t) => t.id === currentTabId).length;
+        const countInCurrentTab = (tabs: VideoTabModel[]) =>
+            tabs.filter((t) => t.id === currentTabId && t.subscribed).length;
 
         if (extension.tabs !== undefined) {
             setVideoElementCount(countInCurrentTab(extension.tabs));

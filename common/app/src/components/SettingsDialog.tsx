@@ -8,7 +8,8 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import { Anki, AsbplayerSettings } from '@project/common';
 import ChromeExtension from '../services/chrome-extension';
-import { SettingsForm, useLocalFontFamilies } from '../../../components';
+import { SettingsForm } from '../../../components';
+import { useLocalFontFamilies } from '../../../hooks';
 
 const useStyles = makeStyles({
     root: {
@@ -61,10 +62,11 @@ export default function SettingsDialog({
             <DialogContent className={classes.content}>
                 <SettingsForm
                     anki={anki}
-                    insideExtension={extension.installed}
+                    extensionInstalled={extension.installed}
+                    extensionSupportsAppIntegration={extension.supportsAppIntegration}
+                    insideApp
                     chromeKeyBinds={extension.extensionCommands}
                     onOpenChromeExtensionShortcuts={extension.openShortcuts}
-                    open={open}
                     onSettingsChanged={onSettingsChanged}
                     settings={settings}
                     scrollToId={scrollToId}

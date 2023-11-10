@@ -12,5 +12,3 @@ export interface PopupUiParameters {
 export async function renderPopupUi(element: Element, { commands }: PopupUiParameters) {
     createRoot(element).render(<PopupUi commands={commands} />);
 }
-
-export { SettingsChangedMessage, OpenExtensionShortcutsMessage } from '../components/PopupUi';

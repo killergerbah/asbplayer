@@ -16,7 +16,13 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import { PaletteType } from '@material-ui/core';
 import Bridge from '../bridge';
-import { VideoSelectModeCancelMessage, VideoSelectModeConfirmMessage, createTheme } from '@project/common';
+import {
+    Message,
+    UpdateStateMessage,
+    VideoSelectModeCancelMessage,
+    VideoSelectModeConfirmMessage,
+    createTheme,
+} from '@project/common';
 
 interface Props {
     bridge: Bridge;
@@ -38,7 +44,13 @@ export default function VideoSelectUi({ bridge }: Props) {
     const theme = useMemo(() => createTheme(themeType as PaletteType), [themeType]);
 
     useEffect(() => {
-        return bridge.onStateUpdated((state) => {
+        return bridge.addClientMessageListener((message: Message) => {
+            if (message.command !== 'updateState') {
+                return;
+            }
+
+            const state = (message as UpdateStateMessage).state;
+
             if (state.open !== undefined) {
                 setOpen(state.open);
             }
@@ -64,7 +76,7 @@ export default function VideoSelectUi({ bridge }: Props) {
             selectedVideoElementSrc,
         };
 
-        bridge.sendServerMessage(message);
+        bridge.sendMessageFromServer(message);
         setOpen(false);
     }, [bridge, selectedVideoElementSrc]);
 
@@ -72,7 +84,7 @@ export default function VideoSelectUi({ bridge }: Props) {
         const message: VideoSelectModeCancelMessage = {
             command: 'cancel',
         };
-        bridge.sendServerMessage(message);
+        bridge.sendMessageFromServer(message);
     }, [bridge]);
 
     return (

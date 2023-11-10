@@ -45,7 +45,7 @@ export class PageDelegate {
         (document.head || document.documentElement).appendChild(s);
     }
 
-    shouldIgnore(element: HTMLVideoElement) {
+    shouldIgnore(element: HTMLMediaElement) {
         if (this.config.ignore === undefined) {
             return false;
         }
@@ -65,7 +65,7 @@ export class PageDelegate {
         return false;
     }
 
-    canAutoSync(element: HTMLVideoElement) {
+    canAutoSync(element: HTMLMediaElement) {
         return (
             this.config.autoSync.enabled &&
             (this.config.autoSync.elementId === undefined || element.id === this.config.autoSync.elementId) &&

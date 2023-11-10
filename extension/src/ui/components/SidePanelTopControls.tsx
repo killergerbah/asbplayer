@@ -3,9 +3,11 @@ import ListIcon from '@material-ui/icons/List';
 import SubtitlesIcon from '@material-ui/icons/Subtitles';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
-import { Fade } from '@material-ui/core';
+import Fade from '@material-ui/core/Fade';
 import { ForwardedRef, useEffect, useState } from 'react';
 import React from 'react';
+import { Tooltip } from '@material-ui/core';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
     show: boolean;
@@ -15,6 +17,7 @@ interface Props {
 
 const SidePanelTopControls = React.forwardRef(
     ({ show, onLoadSubtitles, onShowMiningHistory }: Props, ref: ForwardedRef<HTMLDivElement>) => {
+        const { t } = useTranslation();
         const [forceShow, setForceShow] = useState<boolean>(true);
 
         useEffect(() => {
@@ -29,13 +32,17 @@ const SidePanelTopControls = React.forwardRef(
                 <Box ref={ref} style={{ position: 'absolute', top: 0, right: 0 }}>
                     <Grid container direction="column">
                         <Grid item>
-                            <IconButton onClick={onLoadSubtitles}>
-                                <SubtitlesIcon />
-                            </IconButton>
+                            <Tooltip title={t('action.loadSubtitles')!}>
+                                <IconButton onClick={onLoadSubtitles}>
+                                    <SubtitlesIcon />
+                                </IconButton>
+                            </Tooltip>
                         </Grid>
                         <Grid item>
                             <IconButton onClick={onShowMiningHistory}>
-                                <ListIcon />
+                                <Tooltip title={t('bar.miningHistory')!}>
+                                    <ListIcon />
+                                </Tooltip>
                             </IconButton>
                         </Grid>
                     </Grid>

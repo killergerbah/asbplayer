@@ -15,7 +15,7 @@
         "default_popup": "popup-ui.html"
     },
     "options_ui": {
-        "page": "app-ui.html?view=settings",
+        "page": "settings-ui.html",
         "open_in_tab": true
     },
     "background": {
@@ -27,7 +27,6 @@
     "content_scripts": [
         {
             "matches": ["<all_urls>"],
-            "exclude_globs": ["*://killergerbah.github.io/asbplayer*", "*://localhost:*/*"],
             "js": ["video.js"],
             "css": ["video.css"],
             "all_frames": true,
@@ -43,6 +42,7 @@
         {
             "matches": ["*://killergerbah.github.io/asbplayer*", "*://localhost:*/*"],
             "js": ["asbplayer.js"],
+            "all_frames": true,
             "run_at": "document_start"
         }
     ],
@@ -98,7 +98,8 @@
                 "mp3-encoder-worker.worker.js",
                 "video-data-sync-ui.js",
                 "video-select-ui.js",
-                "active-tab-permission-request.js"
+                "active-tab-permission-request.js",
+                "app-ui.js"
             ],
             "matches": ["<all_urls>"]
         }

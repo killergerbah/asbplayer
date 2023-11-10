@@ -7,6 +7,8 @@ import {
     SubtitleListPreference,
     VideoData,
     VideoDataSubtitleTrack,
+    VideoDataUiBridgeConfirmMessage,
+    VideoDataUiBridgeOpenFileMessage,
     VideoDataUiState,
     VideoToExtensionCommand,
 } from '@project/common';
@@ -255,22 +257,24 @@ export default class VideoDataSyncController {
         const client = await this._frame.client();
 
         if (isNewClient) {
-            client.onServerMessage(async (message) => {
+            client.onMessage(async (message) => {
                 let shallUpdate = true;
 
                 if ('confirm' === message.command) {
-                    if (this.lastLanguageSynced !== message.data.language && this._syncedData) {
-                        this.lastLanguageSynced = message.data.language;
+                    const confirmMessage = message as VideoDataUiBridgeConfirmMessage;
+                    if (this.lastLanguageSynced !== confirmMessage.data[confirmMessage.data.length - 1].language && this._syncedData) {
+                        this.lastLanguageSynced = confirmMessage.data[confirmMessage.data.length - 1].language;
                         await this._context.settings
                             .set({ streamingLastLanguagesSynced: this._lastLanguagesSynced })
                             .catch(() => {});
                     }
 
-                    const data = message.data as ConfirmedVideoDataSubtitleTrack[];
+                    const data = confirmMessage.data as ConfirmedVideoDataSubtitleTrack[];
                     
                     shallUpdate = await this._syncDataArray(data);
                 } else if ('openFile' === message.command) {
-                    const subtitles = message.subtitles as SerializedSubtitleFile[];
+                    const openFileMessage = message as VideoDataUiBridgeOpenFileMessage;
+                    const subtitles = openFileMessage.subtitles as SerializedSubtitleFile[];
 
                     try {
                         this._syncSubtitles(subtitles, false);

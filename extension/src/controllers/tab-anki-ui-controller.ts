@@ -92,7 +92,7 @@ export class TabAnkiUiController {
         const client = await this._frame.client();
 
         if (isNewClient) {
-            client.onServerMessage((message) => {
+            client.onMessage((message) => {
                 switch (message.command) {
                     case 'openSettings':
                         const openSettingsCommand: TabToExtensionCommand<OpenAsbplayerSettingsMessage> = {

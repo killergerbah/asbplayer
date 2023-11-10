@@ -1,18 +1,13 @@
 import {
-    AsbPlayerToTabCommand,
     AsbPlayerToVideoCommand,
     Command,
     CopySubtitleMessage,
     ExtensionToVideoCommand,
-    LoadSubtitlesMessage,
     Message,
-    MineSubtitleMessage,
-    PostMineAction,
-    ToggleVideoSelectMessage,
 } from '@project/common';
 import TabRegistry from '../../services/tab-registry';
 
-export default class MineSubtitleHandler {
+export default class CopySubtitleHandler {
     private readonly _tabRegistry: TabRegistry;
 
     constructor(tabRegistry: TabRegistry) {
@@ -24,26 +19,28 @@ export default class MineSubtitleHandler {
     }
 
     get command() {
-        return 'mine-subtitle';
+        return 'copy-subtitle';
     }
 
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
-        const mineSubtitleCommand = command as AsbPlayerToVideoCommand<MineSubtitleMessage>;
+        const copySubtitleCommand = command as AsbPlayerToVideoCommand<CopySubtitleMessage>;
         this._tabRegistry.publishCommandToVideoElements(
             (videoElement): ExtensionToVideoCommand<Message> | undefined => {
-                if (videoElement.src !== mineSubtitleCommand.src || videoElement.tab.id !== mineSubtitleCommand.tabId) {
+                if (videoElement.src !== copySubtitleCommand.src || videoElement.tab.id !== copySubtitleCommand.tabId) {
                     return undefined;
                 }
 
-                const copySubtitleCommand: ExtensionToVideoCommand<CopySubtitleMessage> = {
+                const copySubtitleCommandToVideo: ExtensionToVideoCommand<CopySubtitleMessage> = {
                     sender: 'asbplayer-extension-to-video',
                     message: {
                         command: 'copy-subtitle',
-                        postMineAction: PostMineAction.showAnkiDialog,
+                        postMineAction: copySubtitleCommand.message.postMineAction,
+                        subtitle: copySubtitleCommand.message.subtitle,
+                        surroundingSubtitles: copySubtitleCommand.message.surroundingSubtitles,
                     },
                     src: videoElement.src,
                 };
-                return copySubtitleCommand;
+                return copySubtitleCommandToVideo;
             }
         );
         return false;

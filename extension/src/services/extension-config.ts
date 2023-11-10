@@ -1,3 +1,6 @@
+import { SettingsProvider } from '@project/common';
+import { ExtensionSettingsStorage } from './extension-settings-storage';
+
 export interface ExtensionConfig {
     latest: {
         version: string;
@@ -12,6 +15,8 @@ export interface LocalizationConfig {
     version: number;
 }
 
+const settings = new SettingsProvider(new ExtensionSettingsStorage());
+
 export const fetchExtensionConfig = async (): Promise<ExtensionConfig | undefined> => {
     const cachedConfig = (await chrome.storage.session.get(['config'])).config;
 
@@ -24,8 +29,7 @@ export const fetchExtensionConfig = async (): Promise<ExtensionConfig | undefine
     }
 
     try {
-        // TODO Deal with this URL
-        const asbplayerUrl = 'https://killergerbah.github.io/asbplayer';
+        const asbplayerUrl = await settings.getSingle('streamingAppUrl');
         const extensionJsonUrl = `${asbplayerUrl}/extension.json`;
         const extensionJson = await (await fetch(extensionJsonUrl)).json();
 
