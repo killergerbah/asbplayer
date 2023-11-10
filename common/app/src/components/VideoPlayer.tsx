@@ -905,13 +905,16 @@ export default function VideoPlayer({
                     extension.sendMessageToVideoElement(message, tab.id, tab.src);
                 }
             } else {
-                const extracted = extractSubtitles();
+                if (subtitle === undefined || surroundingSubtitles === undefined) {
+                    const extracted = extractSubtitles();
 
-                if (extracted === undefined) {
-                    return;
+                    if (extracted === undefined) {
+                        return;
+                    }
+
+                    subtitle = extracted.currentSubtitle;
+                    surroundingSubtitles = extracted.surroundingSubtitles;
                 }
-
-                const { currentSubtitle, surroundingSubtitles } = extracted;
 
                 mineSubtitle(
                     postMineAction,
@@ -919,7 +922,7 @@ export default function VideoPlayer({
                     videoFileName ?? '',
                     selectedAudioTrack,
                     video.playbackRate,
-                    currentSubtitle,
+                    subtitle,
                     surroundingSubtitles,
                     clock.time(length)
                 );

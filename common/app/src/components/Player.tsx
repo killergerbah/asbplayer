@@ -696,7 +696,18 @@ export default function Player({
             postMineAction: PostMineAction,
             forceUseGivenSubtitle?: boolean
         ) => {
-            const defaultCopy = () =>
+            if (videoFileUrl) {
+                if (forceUseGivenSubtitle) {
+                    if (extension.supportsAppIntegration) {
+                        await seek(subtitle.start, clock, true);
+                    }
+
+                    channel?.copy(postMineAction, subtitle, surroundingSubtitles);
+                } else {
+                    // Let VideoPlayer do the copying to ensure copied subtitle is consistent with the VideoPlayer clock
+                    channel?.copy(postMineAction);
+                }
+            } else {
                 onCopy(
                     subtitle,
                     surroundingSubtitles,
@@ -711,21 +722,6 @@ export default function Player({
                     postMineAction,
                     undefined
                 );
-
-            if (videoFileUrl) {
-                if (forceUseGivenSubtitle) {
-                    if (extension.supportsAppIntegration) {
-                        await seek(subtitle.start, clock, true);
-                        channel?.copy(postMineAction, subtitle, surroundingSubtitles);
-                    } else {
-                        defaultCopy();
-                    }
-                } else {
-                    // Let VideoPlayer do the copying to ensure copied subtitle is consistent with the VideoPlayer clock
-                    channel?.copy(postMineAction);
-                }
-            } else {
-                defaultCopy();
             }
         },
         [
