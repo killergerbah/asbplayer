@@ -262,8 +262,8 @@ export default class VideoDataSyncController {
 
                 if ('confirm' === message.command) {
                     const confirmMessage = message as VideoDataUiBridgeConfirmMessage;
-                    if (this.lastLanguageSynced !== confirmMessage.data[confirmMessage.data.length - 1].language && this._syncedData) {
-                        this.lastLanguageSynced = confirmMessage.data[confirmMessage.data.length - 1].language;
+                    if (this.lastLanguageSynced !== confirmMessage.data[0].language && this._syncedData) {
+                        this.lastLanguageSynced = confirmMessage.data[0].language;
                         await this._context.settings
                             .set({ streamingLastLanguagesSynced: this._lastLanguagesSynced })
                             .catch(() => {});
