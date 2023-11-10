@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
 import {
     AudioModel,
     Command,
@@ -50,19 +49,20 @@ export default class RerecordMediaHandler {
                 playbackRate: rerecordCommand.message.playbackRate,
             };
 
-            this._cardPublisher.publish({
-                // Ideally we send the same ID so that asbplayer can update the existing item.
-                // There's a bug where asbplayer isn't properly updating the item right now, so
-                // let's just create a new item for now by using a new ID.
-                id: uuidv4(),
-                audio: audio,
-                image: rerecordCommand.message.uiState.image,
-                url: rerecordCommand.message.uiState.url,
-                subtitle: rerecordCommand.message.uiState.subtitle,
-                surroundingSubtitles: rerecordCommand.message.uiState.sliderContext.subtitles,
-                subtitleFileName: rerecordCommand.message.subtitleFileName,
-                mediaTimestamp: rerecordCommand.message.timestamp,
-            });
+            this._cardPublisher.publish(
+                {
+                    audio: audio,
+                    image: rerecordCommand.message.uiState.image,
+                    url: rerecordCommand.message.uiState.url,
+                    subtitle: rerecordCommand.message.uiState.subtitle,
+                    surroundingSubtitles: rerecordCommand.message.uiState.sliderContext.subtitles,
+                    subtitleFileName: rerecordCommand.message.subtitleFileName,
+                    mediaTimestamp: rerecordCommand.message.timestamp,
+                },
+                undefined,
+                sender.tab!.id!,
+                rerecordCommand.src
+            );
 
             const newUiState = {
                 ...rerecordCommand.message.uiState,

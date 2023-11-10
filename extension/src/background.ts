@@ -61,14 +61,14 @@ chrome.runtime.onStartup.addListener(startListener);
 const tabRegistry = new TabRegistry(settings);
 const backgroundPageManager = new BackgroundPageManager(tabRegistry);
 const imageCapturer = new ImageCapturer(settings);
-const cardPublisher = new CardPublisher(backgroundPageManager);
+const cardPublisher = new CardPublisher(backgroundPageManager, settings);
 
 const handlers: CommandHandler[] = [
     new VideoHeartbeatHandler(tabRegistry),
-    new RecordMediaHandler(backgroundPageManager, imageCapturer, cardPublisher),
+    new RecordMediaHandler(backgroundPageManager, imageCapturer, cardPublisher, settings),
     new RerecordMediaHandler(backgroundPageManager, cardPublisher),
     new StartRecordingMediaHandler(backgroundPageManager, imageCapturer, cardPublisher),
-    new StopRecordingMediaHandler(backgroundPageManager, imageCapturer, cardPublisher),
+    new StopRecordingMediaHandler(backgroundPageManager, imageCapturer, cardPublisher, settings),
     new TakeScreenshotHandler(imageCapturer, cardPublisher),
     new ToggleSubtitlesHandler(settings, tabRegistry),
     new SyncHandler(tabRegistry),

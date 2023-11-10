@@ -1,21 +1,16 @@
 import BackgroundPageManager from '../../services/background-page-manager';
 import ImageCapturer from '../../services/image-capturer';
-import { v4 as uuidv4 } from 'uuid';
 import {
     AudioModel,
-    CardUpdatedMessage,
     Command,
     ExtensionToVideoCommand,
     ImageModel,
     Message,
     mockSurroundingSubtitles,
-    PostMineAction,
     RecordingFinishedMessage,
-    ShowAnkiUiMessage,
-    sourceString,
+    SettingsProvider,
     StopRecordingMediaMessage,
     SubtitleModel,
-    updateLastCard,
     VideoToExtensionCommand,
 } from '@project/common';
 import { CardPublisher } from '../../services/card-publisher';
@@ -24,15 +19,18 @@ export default class StopRecordingMediaHandler {
     private readonly _audioRecorder: BackgroundPageManager;
     private readonly _imageCapturer: ImageCapturer;
     private readonly _cardPublisher: CardPublisher;
+    private readonly _settingsProvider: SettingsProvider;
 
     constructor(
         audioRecorder: BackgroundPageManager,
         imageCapturer: ImageCapturer,
-        cardPublisher: CardPublisher
+        cardPublisher: CardPublisher,
+        settingsProvider: SettingsProvider
     ) {
         this._audioRecorder = audioRecorder;
         this._imageCapturer = imageCapturer;
         this._cardPublisher = cardPublisher;
+        this._settingsProvider = settingsProvider;
     }
 
     get sender() {
@@ -47,7 +45,6 @@ export default class StopRecordingMediaHandler {
         const stopRecordingCommand = command as VideoToExtensionCommand<StopRecordingMediaMessage>;
 
         try {
-            const itemId = uuidv4();
             const subtitle: SubtitleModel = stopRecordingCommand.message.subtitle ?? {
                 text: '',
                 start: stopRecordingCommand.message.startTimestamp,
@@ -81,11 +78,11 @@ export default class StopRecordingMediaHandler {
                 };
             }
 
-            const mp3 = stopRecordingCommand.message.ankiSettings?.preferMp3 ?? false;
-            const audioBase64 = await this._audioRecorder.stop(mp3);
+            const preferMp3 = await this._settingsProvider.getSingle('preferMp3');
+            const audioBase64 = await this._audioRecorder.stop(preferMp3);
             const audioModel: AudioModel = {
                 base64: audioBase64,
-                extension: mp3 ? 'mp3' : 'webm',
+                extension: preferMp3 ? 'mp3' : 'webm',
                 paddingStart: 0,
                 paddingEnd: 0,
                 start: stopRecordingCommand.message.startTimestamp,
@@ -93,69 +90,20 @@ export default class StopRecordingMediaHandler {
                 playbackRate: stopRecordingCommand.message.playbackRate,
             };
 
-            this._cardPublisher.publish({
-                id: itemId,
-                subtitle: subtitle,
-                surroundingSubtitles: surroundingSubtitles,
-                image: imageModel,
-                audio: audioModel,
-                url: stopRecordingCommand.message.url,
-                subtitleFileName: stopRecordingCommand.message.subtitleFileName,
-                mediaTimestamp: stopRecordingCommand.message.startTimestamp,
-            });
-
-            if (stopRecordingCommand.message.postMineAction === PostMineAction.showAnkiDialog) {
-                const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {
-                    sender: 'asbplayer-extension-to-video',
-                    message: {
-                        command: 'show-anki-ui',
-                        id: itemId,
-                        subtitle: subtitle,
-                        surroundingSubtitles: surroundingSubtitles,
-                        image: imageModel,
-                        audio: audioModel,
-                        url: stopRecordingCommand.message.url,
-                        subtitleFileName: stopRecordingCommand.message.subtitleFileName,
-                        mediaTimestamp: stopRecordingCommand.message.startTimestamp,
-                    },
-                    src: stopRecordingCommand.src,
-                };
-
-                chrome.tabs.sendMessage(sender.tab!.id!, showAnkiUiCommand);
-            } else if (stopRecordingCommand.message.postMineAction === PostMineAction.updateLastCard) {
-                if (!stopRecordingCommand.message.ankiSettings) {
-                    throw new Error('Unable to update last card because anki settings is undefined');
-                }
-
-                const cardName = await updateLastCard(
-                    stopRecordingCommand.message.ankiSettings,
-                    subtitle,
-                    surroundingSubtitles,
-                    audioModel,
-                    imageModel,
-                    sourceString(
-                        stopRecordingCommand.message.subtitleFileName,
-                        stopRecordingCommand.message.startTimestamp
-                    ),
-                    stopRecordingCommand.message.url
-                );
-
-                const cardUpdatedCommand: ExtensionToVideoCommand<CardUpdatedMessage> = {
-                    sender: 'asbplayer-extension-to-video',
-                    message: {
-                        command: 'card-updated',
-                        cardName: `${cardName}`,
-                        subtitle,
-                        surroundingSubtitles: surroundingSubtitles,
-                        image: imageModel,
-                        audio: audioModel,
-                        url: stopRecordingCommand.message.url,
-                    },
-                    src: stopRecordingCommand.src,
-                };
-
-                chrome.tabs.sendMessage(sender.tab!.id!, cardUpdatedCommand);
-            }
+            this._cardPublisher.publish(
+                {
+                    subtitle: subtitle,
+                    surroundingSubtitles: surroundingSubtitles,
+                    image: imageModel,
+                    audio: audioModel,
+                    url: stopRecordingCommand.message.url,
+                    subtitleFileName: stopRecordingCommand.message.subtitleFileName,
+                    mediaTimestamp: stopRecordingCommand.message.startTimestamp,
+                },
+                stopRecordingCommand.message.postMineAction,
+                sender.tab!.id!,
+                stopRecordingCommand.src
+            );
         } finally {
             const recordingFinishedCommand: ExtensionToVideoCommand<RecordingFinishedMessage> = {
                 sender: 'asbplayer-extension-to-video',

@@ -836,7 +836,13 @@ export default function VideoPlayer({
             switch (postMineAction) {
                 case PostMineAction.showAnkiDialog:
                     if (popOut) {
-                        playerChannel.copy(subtitle, surroundingSubtitles, timestamp, PostMineAction.none);
+                        playerChannel.copy(
+                            subtitle,
+                            surroundingSubtitles,
+                            videoFileName ?? '',
+                            timestamp,
+                            PostMineAction.none
+                        );
                         onAnkiDialogRequest(
                             videoFileUrl,
                             videoFileName ?? '',
@@ -852,11 +858,17 @@ export default function VideoPlayer({
                             setResumeOnFinishedAnkiDialogRequest(true);
                         }
                     } else {
-                        playerChannel.copy(subtitle, surroundingSubtitles, timestamp, PostMineAction.showAnkiDialog);
+                        playerChannel.copy(
+                            subtitle,
+                            surroundingSubtitles,
+                            videoFileName ?? '',
+                            timestamp,
+                            PostMineAction.showAnkiDialog
+                        );
                     }
                     break;
                 default:
-                    playerChannel.copy(subtitle, surroundingSubtitles, timestamp, postMineAction);
+                    playerChannel.copy(subtitle, surroundingSubtitles, videoFileName ?? '', timestamp, postMineAction);
             }
 
             setLastMinedRecord({

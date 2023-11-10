@@ -1,21 +1,16 @@
 import ImageCapturer from '../../services/image-capturer';
-import { v4 as uuidv4 } from 'uuid';
 import {
     AudioModel,
     Command,
-    CopyMessage,
     ImageModel,
     Message,
     RecordMediaAndForwardSubtitleMessage,
     VideoToExtensionCommand,
     ExtensionToVideoCommand,
-    ShowAnkiUiMessage,
     ScreenshotTakenMessage,
-    PostMineAction,
-    CardUpdatedMessage,
     RecordingFinishedMessage,
-    updateLastCard,
-    sourceString,
+    Card,
+    SettingsProvider,
 } from '@project/common';
 import BackgroundPageManager from '../../services/background-page-manager';
 import { CardPublisher } from '../../services/card-publisher';
@@ -24,15 +19,18 @@ export default class RecordMediaHandler {
     private readonly _audioRecorder: BackgroundPageManager;
     private readonly _imageCapturer: ImageCapturer;
     private readonly _cardPublisher: CardPublisher;
+    private readonly _settingsProvider: SettingsProvider;
 
     constructor(
         audioRecorder: BackgroundPageManager,
         imageCapturer: ImageCapturer,
-        cardPublisher: CardPublisher
+        cardPublisher: CardPublisher,
+        settingsProvider: SettingsProvider
     ) {
         this._audioRecorder = audioRecorder;
         this._imageCapturer = imageCapturer;
         this._cardPublisher = cardPublisher;
+        this._settingsProvider = settingsProvider;
     }
 
     get sender() {
@@ -48,19 +46,18 @@ export default class RecordMediaHandler {
         const recordMediaCommand = command as VideoToExtensionCommand<RecordMediaAndForwardSubtitleMessage>;
 
         try {
-            const itemId = uuidv4();
             const subtitle = recordMediaCommand.message.subtitle;
             let audioPromise = undefined;
             let imagePromise = undefined;
             let imageModel: ImageModel | undefined = undefined;
             let audioModel: AudioModel | undefined = undefined;
-            const mp3 = recordMediaCommand.message.ankiSettings?.preferMp3 ?? false;
+            const preferMp3 = await this._settingsProvider.getSingle('preferMp3');
 
             if (recordMediaCommand.message.record) {
                 const time =
                     (subtitle.end - subtitle.start) / recordMediaCommand.message.playbackRate +
                     recordMediaCommand.message.audioPaddingEnd;
-                audioPromise = this._audioRecorder.startWithTimeout(time, mp3, {
+                audioPromise = this._audioRecorder.startWithTimeout(time, preferMp3, {
                     src: recordMediaCommand.src,
                     tabId: sender.tab?.id,
                 });
@@ -94,7 +91,7 @@ export default class RecordMediaHandler {
                 const audioBase64 = await audioPromise;
                 audioModel = {
                     base64: audioBase64,
-                    extension: mp3 ? 'mp3' : 'webm',
+                    extension: preferMp3 ? 'mp3' : 'webm',
                     paddingStart: recordMediaCommand.message.audioPaddingStart,
                     paddingEnd: recordMediaCommand.message.audioPaddingEnd,
                     playbackRate: recordMediaCommand.message.playbackRate,
@@ -109,71 +106,17 @@ export default class RecordMediaHandler {
                 };
             }
 
-            const message: CopyMessage = {
-                command: 'copy',
-                id: itemId,
-                url: recordMediaCommand.message.url,
-                subtitle: subtitle,
-                surroundingSubtitles: recordMediaCommand.message.surroundingSubtitles,
+            const card: Card = {
                 image: imageModel,
                 audio: audioModel,
-                subtitleFileName: recordMediaCommand.message.subtitleFileName,
-                mediaTimestamp: recordMediaCommand.message.mediaTimestamp,
+                ...recordMediaCommand.message,
             };
-            this._cardPublisher.publish(message);
-
-            if (recordMediaCommand.message.postMineAction == PostMineAction.showAnkiDialog) {
-                const showAnkiUiCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {
-                    sender: 'asbplayer-extension-to-video',
-                    message: {
-                        command: 'show-anki-ui',
-                        id: itemId,
-                        subtitle: message.subtitle,
-                        surroundingSubtitles: message.surroundingSubtitles,
-                        image: message.image,
-                        audio: message.audio,
-                        url: message.url,
-                        subtitleFileName: recordMediaCommand.message.subtitleFileName,
-                        mediaTimestamp: recordMediaCommand.message.mediaTimestamp,
-                    },
-                    src: recordMediaCommand.src,
-                };
-
-                chrome.tabs.sendMessage(senderTab.id!, showAnkiUiCommand);
-            } else if (recordMediaCommand.message.postMineAction == PostMineAction.updateLastCard) {
-                if (!recordMediaCommand.message.ankiSettings) {
-                    throw new Error('Cannot update last card because anki settings is undefined');
-                }
-
-                const cardName = await updateLastCard(
-                    recordMediaCommand.message.ankiSettings,
-                    subtitle,
-                    recordMediaCommand.message.surroundingSubtitles,
-                    audioModel,
-                    imageModel,
-                    sourceString(
-                        recordMediaCommand.message.subtitleFileName,
-                        recordMediaCommand.message.mediaTimestamp
-                    ),
-                    recordMediaCommand.message.url
-                );
-
-                const cardUpdatedCommand: ExtensionToVideoCommand<CardUpdatedMessage> = {
-                    sender: 'asbplayer-extension-to-video',
-                    message: {
-                        command: 'card-updated',
-                        cardName: `${cardName}`,
-                        subtitle,
-                        surroundingSubtitles: recordMediaCommand.message.surroundingSubtitles,
-                        audio: audioModel,
-                        image: imageModel,
-                        url: recordMediaCommand.message.url,
-                    },
-                    src: recordMediaCommand.src,
-                };
-
-                chrome.tabs.sendMessage(senderTab.id!, cardUpdatedCommand);
-            }
+            this._cardPublisher.publish(
+                card,
+                recordMediaCommand.message.postMineAction,
+                senderTab.id!,
+                recordMediaCommand.src
+            );
         } finally {
             if (recordMediaCommand.message.record) {
                 const recordingFinishedCommand: ExtensionToVideoCommand<RecordingFinishedMessage> = {

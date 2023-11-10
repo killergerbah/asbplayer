@@ -40,7 +40,7 @@ export default class PlayerChannel {
     private currentTimeCallbacks: ((currentTime: number) => void)[];
     private audioTrackSelectedCallbacks: ((id: string) => void)[];
     private closeCallbacks: (() => void)[];
-    private subtitlesCallbacks: ((subtitles: SubtitleModel[]) => void)[];
+    private subtitlesCallbacks: ((subtitles: SubtitleModel[], subtitleFileName: string) => void)[];
     private offsetCallbacks: ((offset: number) => void)[];
     private playbackRateCallbacks: ((playbackRate: number) => void)[];
     private playModeCallbacks: ((playMode: PlayMode) => void)[];
@@ -125,7 +125,10 @@ export default class PlayerChannel {
                     const subtitlesMessage = event.data as SubtitlesToVideoMessage;
 
                     for (let callback of that.subtitlesCallbacks) {
-                        callback(subtitlesMessage.value);
+                        callback(
+                            subtitlesMessage.value,
+                            subtitlesMessage.names.length > 0 ? subtitlesMessage.names[0] : ''
+                        );
                     }
                     break;
                 case 'offset':
@@ -245,7 +248,7 @@ export default class PlayerChannel {
         return () => this._remove(callback, this.readyCallbacks);
     }
 
-    onSubtitles(callback: (subtitles: SubtitleModel[]) => void) {
+    onSubtitles(callback: (subtitles: SubtitleModel[], subtitleFileName: string) => void) {
         this.subtitlesCallbacks.push(callback);
         return () => this._remove(callback, this.subtitlesCallbacks);
     }
@@ -368,14 +371,16 @@ export default class PlayerChannel {
     copy(
         subtitle: SubtitleModel,
         surroundingSubtitles: SubtitleModel[],
+        subtitleFileName: string,
         mediaTimestamp: number,
         postMineAction: PostMineAction
     ) {
         const message: CopyMessage = {
             command: 'copy',
-            subtitle: subtitle,
-            surroundingSubtitles: surroundingSubtitles,
-            postMineAction: postMineAction,
+            subtitle,
+            surroundingSubtitles,
+            subtitleFileName,
+            postMineAction,
             mediaTimestamp,
         };
 

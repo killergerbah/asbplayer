@@ -2,6 +2,7 @@ import {
     AckMessage,
     AnkiUiSavedState,
     AutoPausePreference,
+    CardSavedMessage,
     CardUpdatedMessage,
     CopySubtitleMessage,
     cropAndResize,
@@ -494,6 +495,9 @@ export default class Binding {
                             dialogRequestedTimestamp: this.video.currentTime * 1000,
                         };
                         break;
+                    case 'card-saved':
+                        const cardSavedMessage = request.message as CardSavedMessage;
+                        this.subtitleController.notification('info.copiedSubtitle', { text: cardSavedMessage.text });
                     case 'recording-finished':
                         this.recordingMedia = false;
                         this.recordingMediaStartedTimestamp = undefined;
@@ -698,9 +702,6 @@ export default class Binding {
             await this.play();
         }
 
-        const ankiSettings =
-            postMineAction === PostMineAction.updateLastCard ? this.ankiUiController.ankiSettings : undefined;
-
         const command: VideoToExtensionCommand<RecordMediaAndForwardSubtitleMessage> = {
             sender: 'asbplayer-video',
             message: {
@@ -717,7 +718,6 @@ export default class Binding {
                 audioPaddingEnd: this.audioPaddingEnd,
                 imageDelay: this.imageDelay,
                 playbackRate: this.video.playbackRate,
-                ankiSettings: ankiSettings,
                 ...this._imageCaptureParams,
             },
             src: this.video.src,
@@ -727,8 +727,6 @@ export default class Binding {
     }
 
     async _toggleRecordingMedia(postMineAction: PostMineAction) {
-        const ankiSettings =
-            postMineAction === PostMineAction.updateLastCard ? this.ankiUiController.ankiSettings : undefined;
         if (this.recordingMedia) {
             const currentTimestamp = this.video.currentTime * 1000;
             const command: VideoToExtensionCommand<StopRecordingMediaMessage> = {
@@ -743,7 +741,6 @@ export default class Binding {
                     videoDuration: this.video.duration * 1000,
                     url: this.url,
                     subtitleFileName: this.subtitleFileName(),
-                    ankiSettings: ankiSettings,
                     ...this._imageCaptureParams,
                     ...this._surroundingSubtitlesAroundInterval(this.recordingMediaStartedTimestamp!, currentTimestamp),
                 },
@@ -777,7 +774,6 @@ export default class Binding {
                     url: this.url,
                     subtitleFileName: this.subtitleFileName(),
                     imageDelay: this.imageDelay,
-                    ankiSettings: ankiSettings,
                     ...this._imageCaptureParams,
                 },
                 src: this.video.src,

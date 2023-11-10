@@ -101,7 +101,6 @@ export interface RecordMediaAndForwardSubtitleMessage extends Message, ImageCapt
     readonly audioPaddingEnd: number;
     readonly imageDelay: number;
     readonly playbackRate: number;
-    readonly ankiSettings?: AnkiSettings;
     readonly mediaTimestamp: number;
 }
 
@@ -114,7 +113,6 @@ export interface StartRecordingMediaMessage extends Message, ImageCaptureParams 
     readonly imageDelay: number;
     readonly url?: string;
     readonly subtitleFileName: string;
-    readonly ankiSettings?: AnkiSettings;
 }
 
 export interface StopRecordingMediaMessage extends Message, ImageCaptureParams {
@@ -127,7 +125,6 @@ export interface StopRecordingMediaMessage extends Message, ImageCaptureParams {
     readonly videoDuration: number;
     readonly url?: string;
     readonly subtitleFileName: string;
-    readonly ankiSettings?: AnkiSettings;
     readonly subtitle?: SubtitleModel;
     readonly surroundingSubtitles?: SubtitleModel[];
 }
@@ -136,7 +133,7 @@ export interface Card {
     readonly id?: string;
     readonly subtitle: SubtitleModel;
     readonly surroundingSubtitles: SubtitleModel[];
-    readonly subtitleFileName?: string;
+    readonly subtitleFileName: string;
     readonly url?: string;
     readonly image?: ImageModel;
     readonly audio?: AudioModel;
@@ -173,7 +170,7 @@ export interface TakeScreenshotMessage extends Message {
 export interface TakeScreenshotFromExtensionMessage extends Message, ImageCaptureParams {
     readonly command: 'take-screenshot';
     readonly ankiUiState?: AnkiUiSavedState;
-    readonly subtitleFileName?: string;
+    readonly subtitleFileName: string;
     readonly mediaTimestamp: number;
 }
 
@@ -189,6 +186,11 @@ export interface CardUpdatedMessage extends Message {
     readonly image?: ImageModel;
     readonly audio?: AudioModel;
     readonly url?: string;
+}
+
+export interface CardSavedMessage extends Message {
+    readonly command: 'card-saved';
+    readonly text: string;
 }
 
 export interface ScreenshotTakenMessage extends Message {

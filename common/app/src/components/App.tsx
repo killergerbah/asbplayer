@@ -544,7 +544,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     id,
                     subtitle,
                     surroundingSubtitles,
-                    subtitleFileName: subtitleFile?.name,
+                    subtitleFileName: subtitleFile?.name ?? videoFile?.name ?? '',
                     url,
                     image,
                     audio,
