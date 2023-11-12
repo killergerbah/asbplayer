@@ -264,9 +264,14 @@ export default class VideoDataSyncController {
                     const confirmMessage = message as VideoDataUiBridgeConfirmMessage;
 
                     // Prevent auto-selection of empty on videos where the previously selected language is available.
-                    const selectedTrackIsNotEmpty: boolean = confirmMessage.data.filter((track) => track.subtitleUrl !== '-').length > 0;
+                    const selectedTrackIsNotEmpty: boolean =
+                        confirmMessage.data.filter((track) => track.subtitleUrl !== '-').length > 0;
 
-                    if (selectedTrackIsNotEmpty && this.lastLanguageSynced !== confirmMessage.data[0].language && this._syncedData) {
+                    if (
+                        selectedTrackIsNotEmpty &&
+                        this.lastLanguageSynced !== confirmMessage.data[0].language &&
+                        this._syncedData
+                    ) {
                         this.lastLanguageSynced = confirmMessage.data[0].language;
                         await this._context.settings
                             .set({ streamingLastLanguagesSynced: this._lastLanguagesSynced })
@@ -274,7 +279,7 @@ export default class VideoDataSyncController {
                     }
 
                     const data = confirmMessage.data as ConfirmedVideoDataSubtitleTrack[];
-                    
+
                     shallUpdate = await this._syncDataArray(data);
                 } else if ('openFile' === message.command) {
                     const openFileMessage = message as VideoDataUiBridgeOpenFileMessage;
@@ -364,7 +369,7 @@ export default class VideoDataSyncController {
     private async _syncDataArray(data: ConfirmedVideoDataSubtitleTrack[]) {
         try {
             let subtitles: SerializedSubtitleFile[] = [];
-            
+
             for (let i = 0; i < data.length; i++) {
                 const { name, extension, subtitleUrl, m3U8BaseUrl } = data[i];
                 const subtitleFiles = await this._subtitlesForUrl(name, extension, subtitleUrl, m3U8BaseUrl);
@@ -377,7 +382,10 @@ export default class VideoDataSyncController {
                 return false;
             }
 
-            this._syncSubtitles(subtitles, data.some((track) => track.m3U8BaseUrl !== undefined));
+            this._syncSubtitles(
+                subtitles,
+                data.some((track) => track.m3U8BaseUrl !== undefined)
+            );
             return true;
         } catch (error) {
             if (typeof (error as Error).message !== 'undefined') {

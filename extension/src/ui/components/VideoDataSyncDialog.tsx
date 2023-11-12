@@ -80,7 +80,7 @@ export default function VideoDataSyncDialog({
 
     useEffect(() => {
         if (open) {
-            setSelectedSubtitles(prevSelectedSubtitles => {
+            setSelectedSubtitles((prevSelectedSubtitles) => {
                 const newSelectedSubtitles = [...prevSelectedSubtitles];
                 newSelectedSubtitles[0] = selectedSubtitle;
                 return newSelectedSubtitles;
@@ -130,25 +130,26 @@ export default function VideoDataSyncDialog({
     }
 
     function allSelectedSubtitleTracks() {
-        const selectedSubtitleTracks: ConfirmedVideoDataSubtitleTrack[] = selectedSubtitles.map((selected): ConfirmedVideoDataSubtitleTrack | undefined=> {
-            const subtitle = subtitles.find((subtitle) => subtitle.url === selected);
-            if (subtitle) {
-                const { language, extension, m3U8BaseUrl } = subtitle;
-                return {
-                    name: suggestedName.trim() + language.trim(),
-                    extension: extension,
-                    subtitleUrl: selected,
-                    language: language,
-                    m3U8BaseUrl: m3U8BaseUrl,
-                };
-            }
-        })
-        .filter((track): track is ConfirmedVideoDataSubtitleTrack => track !== undefined);
+        const selectedSubtitleTracks: ConfirmedVideoDataSubtitleTrack[] = selectedSubtitles
+            .map((selected): ConfirmedVideoDataSubtitleTrack | undefined => {
+                const subtitle = subtitles.find((subtitle) => subtitle.url === selected);
+                if (subtitle) {
+                    const { language, extension, m3U8BaseUrl } = subtitle;
+                    return {
+                        name: suggestedName.trim() + language.trim(),
+                        extension: extension,
+                        subtitleUrl: selected,
+                        language: language,
+                        m3U8BaseUrl: m3U8BaseUrl,
+                    };
+                }
+            })
+            .filter((track): track is ConfirmedVideoDataSubtitleTrack => track !== undefined);
 
-        // Give the first track the trimmed name from the name field in case it has been changed by the user 
+        // Give the first track the trimmed name from the name field in case it has been changed by the user
         selectedSubtitleTracks[0].name = trimmedName;
 
-        return selectedSubtitleTracks
+        return selectedSubtitleTracks;
     }
 
     function filterByUniqueUrl(track: ConfirmedVideoDataSubtitleTrack[]) {
@@ -165,46 +166,48 @@ export default function VideoDataSyncDialog({
     }
 
     function removeEmptyTracks(track: ConfirmedVideoDataSubtitleTrack[]) {
-        return track.filter((track) => track.subtitleUrl !== '-')
+        return track.filter((track) => track.subtitleUrl !== '-');
     }
 
-    function generateSubtitleTrackSelectors(numberOfSubtitleTrackSelectors : number) {
+    function generateSubtitleTrackSelectors(numberOfSubtitleTrackSelectors: number) {
         const subtitleTrackSelectors = [];
         for (let i = 0; i < numberOfSubtitleTrackSelectors; i++) {
-          subtitleTrackSelectors.push(
-            <Grid item key={i}>
-                <div className={`${classes.relative}${!showSubSelect ? ` ${classes.hide}` : ''}`}>
-                    <TextField
-                        select
-                        fullWidth
-                        key={i}
-                        error={!!error}
-                        color="secondary"
-                        variant="filled"
-                        label={`${t('extension.videoDataSync.subtitleTrack')} ${i + 1}`}
-                        helperText={error || ''}
-                        value={selectedSubtitles[i]}
-                        disabled={isLoading || disabled}
-                        onChange={(e) => setSelectedSubtitles((prevSelectedSubtitles) => {
-                            const newSelectedSubtitles = [...prevSelectedSubtitles];
-                            newSelectedSubtitles[i] = e.target.value;
-                            return newSelectedSubtitles;
-                        })}
-                    >
-                        {subtitles.map((subtitle) => (
-                            <MenuItem value={subtitle.url} key={subtitle.url}>
-                                {subtitle.label}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                    {isLoading && (
-                        <span className={classes.spinner}>
-                            <CircularProgress size={20} color="secondary" />               
-                        </span>
-                    )}
-                </div>
-            </Grid>
-          );
+            subtitleTrackSelectors.push(
+                <Grid item key={i}>
+                    <div className={`${classes.relative}${!showSubSelect ? ` ${classes.hide}` : ''}`}>
+                        <TextField
+                            select
+                            fullWidth
+                            key={i}
+                            error={!!error}
+                            color="secondary"
+                            variant="filled"
+                            label={`${t('extension.videoDataSync.subtitleTrack')} ${i + 1}`}
+                            helperText={error || ''}
+                            value={selectedSubtitles[i]}
+                            disabled={isLoading || disabled}
+                            onChange={(e) =>
+                                setSelectedSubtitles((prevSelectedSubtitles) => {
+                                    const newSelectedSubtitles = [...prevSelectedSubtitles];
+                                    newSelectedSubtitles[i] = e.target.value;
+                                    return newSelectedSubtitles;
+                                })
+                            }
+                        >
+                            {subtitles.map((subtitle) => (
+                                <MenuItem value={subtitle.url} key={subtitle.url}>
+                                    {subtitle.label}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+                        {isLoading && (
+                            <span className={classes.spinner}>
+                                <CircularProgress size={20} color="secondary" />
+                            </span>
+                        )}
+                    </div>
+                </Grid>
+            );
         }
         return subtitleTrackSelectors;
     }
@@ -249,10 +252,7 @@ export default function VideoDataSyncDialog({
                 <Button disabled={disabled} onClick={() => onOpenFile()}>
                     {t('action.openFiles')}
                 </Button>
-                <Button
-                    disabled={!trimmedName || disabled}
-                    onClick={handleOkButtonClick}
-                >
+                <Button disabled={!trimmedName || disabled} onClick={handleOkButtonClick}>
                     {t('action.ok')}
                 </Button>
             </DialogActions>
