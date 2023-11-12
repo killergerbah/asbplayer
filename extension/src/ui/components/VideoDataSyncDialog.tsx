@@ -119,6 +119,55 @@ export default function VideoDataSyncDialog({
         });
     }, [suggestedName, selectedSubtitles[0], subtitles]);
 
+    function handleOkButtonClick() {
+        const selectedSubtitleTracks: ConfirmedVideoDataSubtitleTrack[] = allSelectedSubtitleTracks();
+
+        // Remove all but one empty track in order to intentionally send one empty track if no tracks are selected
+        const uniqueTracks: ConfirmedVideoDataSubtitleTrack[] = filterByUniqueUrl(selectedSubtitleTracks);
+
+        // If track length > 1 and we have unique tracks, then at least one language must have been selected and it is safe to remove the remaining empty track
+        uniqueTracks.length > 1 ? onConfirm(removeEmptyTracks(uniqueTracks)) : onConfirm(uniqueTracks);
+    }
+
+    function allSelectedSubtitleTracks() {
+        const selectedSubtitleTracks: ConfirmedVideoDataSubtitleTrack[] = selectedSubtitles.map((selected): ConfirmedVideoDataSubtitleTrack | undefined=> {
+            const subtitle = subtitles.find((subtitle) => subtitle.url === selected);
+            if (subtitle) {
+                const { language, extension, m3U8BaseUrl } = subtitle;
+                return {
+                    name: suggestedName.trim() + language.trim(),
+                    extension: extension,
+                    subtitleUrl: selected,
+                    language: language,
+                    m3U8BaseUrl: m3U8BaseUrl,
+                };
+            }
+        })
+        .filter((track): track is ConfirmedVideoDataSubtitleTrack => track !== undefined);
+
+        // Give the first track the trimmed name from the name field in case it has been changed by the user 
+        selectedSubtitleTracks[0].name = trimmedName;
+
+        return selectedSubtitleTracks
+    }
+
+    function filterByUniqueUrl(track: ConfirmedVideoDataSubtitleTrack[]) {
+        const uniqueTracks: ConfirmedVideoDataSubtitleTrack[] = [];
+        const urls: string[] = [];
+        for (let i = 0; i < track.length; i++) {
+            if (!urls.includes(track[i].subtitleUrl)) {
+                uniqueTracks.push(track[i]);
+                urls.push(track[i].subtitleUrl);
+            }
+        }
+
+        return uniqueTracks;
+    }
+
+    function removeEmptyTracks(track: ConfirmedVideoDataSubtitleTrack[]) {
+        return track.filter((track) => track.subtitleUrl !== '-')
+    }
+
     function generateSubtitleTrackSelectors(numberOfSubtitleTrackSelectors : number) {
         const subtitleTrackSelectors = [];
         for (let i = 0; i < numberOfSubtitleTrackSelectors; i++) {
@@ -202,25 +251,7 @@ export default function VideoDataSyncDialog({
                 </Button>
                 <Button
                     disabled={!trimmedName || disabled}
-                    onClick={() => {
-                        const selectedSubtitleTracks: ConfirmedVideoDataSubtitleTrack[] = selectedSubtitles.map((selected): ConfirmedVideoDataSubtitleTrack | undefined=> {
-                            const subtitle = subtitles.find((subtitle) => subtitle.url === selected);
-                            if (subtitle) {
-                                const { language, extension, m3U8BaseUrl } = subtitle;
-                                return {
-                                    name: suggestedName.trim() + language.trim(),
-                                    extension: extension,
-                                    subtitleUrl: selected,
-                                    language: language,
-                                    m3U8BaseUrl: m3U8BaseUrl,
-                                };
-                            }
-                        })
-                        .filter((track): track is ConfirmedVideoDataSubtitleTrack => track !== undefined && track.subtitleUrl !== '-');
-                        onConfirm(
-                            selectedSubtitleTracks
-                        );
-                    }}
+                    onClick={handleOkButtonClick}
                 >
                     {t('action.ok')}
                 </Button>
