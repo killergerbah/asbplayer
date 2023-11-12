@@ -126,7 +126,11 @@ export default function VideoDataSyncDialog({
         const uniqueTracks: ConfirmedVideoDataSubtitleTrack[] = filterByUniqueUrl(selectedSubtitleTracks);
 
         // If track length > 1 and we have unique tracks, then at least one language must have been selected and it is safe to remove the remaining empty track
-        uniqueTracks.length > 1 ? onConfirm(removeEmptyTracks(uniqueTracks)) : onConfirm(uniqueTracks);
+        if (uniqueTracks.length > 1) {
+            onConfirm(removeEmptyTracks(uniqueTracks));
+        } else {
+            onConfirm(uniqueTracks);
+        }
     }
 
     function allSelectedSubtitleTracks() {
