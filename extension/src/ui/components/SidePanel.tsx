@@ -125,6 +125,14 @@ export default function SidePanel({ settings, extension }: Props) {
     }, [extension, subtitles, initializing, currentTabId, syncedVideoTab]);
 
     useEffect(() => {
+        return extension.subscribe((message) => {
+            if (message.data.command === 'close-side-panel') {
+                window.close();
+            }
+        });
+    }, [extension]);
+
+    useEffect(() => {
         if (currentTabId === undefined || syncedVideoTab === undefined) {
             return;
         }

@@ -40,7 +40,7 @@ import { primeLocalization } from './services/localization-fetcher';
 import VideoDisappearedHandler from './handlers/video/video-disappeared-handler';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
 import LoadSubtitlesHandler from './handlers/asbplayerv2/load-subtitles-handler';
-import OpenSidePanelHandler from './handlers/video/open-side-panel-handler';
+import ToggleSidePanelHandler from './handlers/video/toggle-side-panel-handler';
 import CopySubtitleHandler from './handlers/asbplayerv2/copy-subtitle-handler';
 import { RequestingActiveTabPermissionHandler } from './handlers/video/requesting-active-tab-permission';
 import { CardPublisher } from './services/card-publisher';
@@ -73,7 +73,7 @@ const handlers: CommandHandler[] = [
     new ToggleSubtitlesHandler(settings, tabRegistry),
     new SyncHandler(tabRegistry),
     new HttpPostHandler(),
-    new OpenSidePanelHandler(),
+    new ToggleSidePanelHandler(tabRegistry),
     new OpenAsbplayerSettingsHandler(),
     new CopyToClipboardHandler(),
     new VideoDisappearedHandler(tabRegistry),

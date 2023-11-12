@@ -12,7 +12,7 @@
         "openFiles": "Otwórz pliki",
         "loadSubtitles": "Load Subtitles",
         "openApp": "Open App",
-        "openSidePanel": "Open Side Panel",
+        "toggleSidePanel": "Toggle Side Panel",
         "mine": "Mine",
         "updateLastCard": "Update Last Card",
         "startRecording": "Start Recording",
@@ -95,7 +95,7 @@
         "toggleVideoSubtitleTrack2": "Przełącz ścieżkę napisów 2 w wideo",
         "toggleVideoSubtitleTracks": "Przełącz ścieżki napisów w wideo",
         "updateLastCard": "Zaktualizuj ostatnio zapisaną kartę Anki o zrzuty ekranu",
-        "openSidePanel": "Open side panel"
+        "toggleSidePanel": "Toggle side panel"
     },
     "controls": {
         "autoPauseMode": "Automatyczna pauza",

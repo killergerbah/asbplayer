@@ -92,8 +92,8 @@ export interface KeyBinder {
         disabledGetter: () => boolean,
         capture?: boolean
     ): () => void;
-    bindOpenSidePanel(
-        onOpenSidePanel: (event: KeyboardEvent) => void,
+    bindToggleSidePanel(
+        onToggleSidePanel: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,
         capture?: boolean
     ): () => void;
@@ -667,8 +667,8 @@ export class DefaultKeyBinder implements KeyBinder {
         return this._bind(shortcut, capture, handler);
     }
 
-    bindOpenSidePanel(onOpenSidePanel: (event: KeyboardEvent) => void, disabledGetter: () => boolean, capture = false) {
-        const shortcut = this.keyBindSet.openSidePanel.keys;
+    bindToggleSidePanel(onToggleSidePanel: (event: KeyboardEvent) => void, disabledGetter: () => boolean, capture = false) {
+        const shortcut = this.keyBindSet.toggleSidePanel.keys;
 
         if (!shortcut) {
             return () => {};
@@ -679,7 +679,7 @@ export class DefaultKeyBinder implements KeyBinder {
                 return;
             }
 
-            onOpenSidePanel(event);
+            onToggleSidePanel(event);
         };
 
         return this._bind(shortcut, capture, handler);

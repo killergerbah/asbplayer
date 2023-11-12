@@ -12,7 +12,7 @@
         "openFiles": "打开文件",
         "loadSubtitles": "Load Subtitles",
         "openApp": "Open App",
-        "openSidePanel": "Open Side Panel",
+        "toggleSidePanel": "Toggle Side Panel",
         "mine": "Mine",
         "updateLastCard": "Update Last Card",
         "startRecording": "Start Recording",
@@ -95,7 +95,7 @@
         "toggleVideoSubtitleTrack2": "切换视频中的字幕音轨2",
         "toggleVideoSubtitleTracks": "切换视频中的字幕音轨",
         "updateLastCard": "使用asbplayer捕获的屏幕截图、音频等更新上次创建的Anki卡。",
-        "openSidePanel": "Open side panel"
+        "toggleSidePanel": "Toggle side panel"
     },
     "controls": {
         "autoPauseMode": "自动暂停",

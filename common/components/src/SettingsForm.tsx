@@ -599,7 +599,7 @@ export default function SettingsForm({
             resetOffset: { label: t('binds.resetOffset')!, boundViaChrome: false },
             increasePlaybackRate: { label: t('binds.increasePlaybackRate')!, boundViaChrome: false },
             decreasePlaybackRate: { label: t('binds.decreasePlaybackRate')!, boundViaChrome: false },
-            openSidePanel: { label: t('binds.openSidePanel')!, boundViaChrome: false },
+            toggleSidePanel: { label: t('binds.toggleSidePanel')!, boundViaChrome: false, hide: !extensionInstalled },
         }),
         [t, extensionInstalled]
     );
