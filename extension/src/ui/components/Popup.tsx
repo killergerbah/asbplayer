@@ -83,7 +83,7 @@ const Popup = ({
                     onClick={onOpenSidePanel}
                     style={{ width: '100%' }}
                 >
-                    {t('action.openSidePanel')}
+                    {t('action.toggleSidePanel')}
                 </Button>
             </Grid>
             <Grid item style={{ height: 450 }}>

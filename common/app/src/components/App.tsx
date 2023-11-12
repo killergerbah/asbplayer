@@ -622,7 +622,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
 
     const handleOpenCopyHistory = useCallback(async () => {
         if (extension.supportsAppIntegration) {
-            extension.openSidePanel();
+            extension.toggleSidePanel();
         } else {
             await refreshCopyHistory();
             setCopyHistoryOpen((copyHistoryOpen) => !copyHistoryOpen);
@@ -688,8 +688,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         },
         [deleteCopyHistoryItem]
     );
-
-    const handleUnloadAudio = useCallback((audioFileUrl: string) => {}, [sources]);
 
     const handleUnloadVideo = useCallback(
         (videoFileUrl: string) => {
@@ -890,7 +888,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
 
                 setSources((previous) => {
                     let videoFileUrl: string | undefined = undefined;
-                    let audioFileUrl: string | undefined = undefined;
 
                     if (videoFile) {
                         revokeUrls(previous);
@@ -1222,6 +1219,16 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
     const handleCopyToClipboard = useCallback((blob: Blob) => {
         navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]).catch(console.error);
     }, []);
+
+    useEffect(() => {
+        return keyBinder.bindToggleSidePanel(
+            () => {
+                handleOpenCopyHistory();
+            },
+            () => ankiDialogOpen,
+            false
+        );
+    }, [handleOpenCopyHistory, ankiDialogOpen]);
 
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
 

@@ -10,7 +10,7 @@ import {
     GetSettingsMessage,
     Message,
     MessageWithId,
-    OpenSidePanelMessage,
+    ToggleSidePanelMessage,
     PublishCardMessage,
     SetSettingsMessage,
     SettingsUpdatedMessage,
@@ -192,11 +192,11 @@ export default class ChromeExtension {
         window.postMessage(command);
     }
 
-    openSidePanel() {
-        const command: Command<OpenSidePanelMessage> = {
+    toggleSidePanel() {
+        const command: Command<ToggleSidePanelMessage> = {
             sender: 'asbplayerv2',
             message: {
-                command: 'open-side-panel',
+                command: 'toggle-side-panel',
             },
         };
         window.postMessage(command);

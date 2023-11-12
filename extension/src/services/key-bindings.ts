@@ -1,6 +1,6 @@
 import {
     KeyBindSet,
-    OpenSidePanelMessage,
+    ToggleSidePanelMessage,
     PlayMode,
     ToggleSubtitlesInListFromVideoMessage,
     ToggleSubtitlesMessage,
@@ -27,7 +27,7 @@ export default class KeyBindings {
     private _unbindAdjustOffset?: Unbinder = false;
     private _unbindResetOffset?: Unbinder = false;
     private _unbindAdjustPlaybackRate?: Unbinder = false;
-    private _unbindOpenSidePanel?: Unbinder = false;
+    private _unbindToggleSidePanel?: Unbinder = false;
 
     private _bound: boolean;
 
@@ -222,15 +222,15 @@ export default class KeyBindings {
             true
         );
 
-        this._unbindOpenSidePanel = this._keyBinder.bindOpenSidePanel(
+        this._unbindToggleSidePanel = this._keyBinder.bindToggleSidePanel(
             (event) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
 
-                const command: VideoToExtensionCommand<OpenSidePanelMessage> = {
+                const command: VideoToExtensionCommand<ToggleSidePanelMessage> = {
                     sender: 'asbplayer-video',
                     message: {
-                        command: 'open-side-panel',
+                        command: 'toggle-side-panel',
                     },
                     src: context.video.src,
                 };
@@ -309,9 +309,9 @@ export default class KeyBindings {
             this._unbindAdjustPlaybackRate = false;
         }
 
-        if (this._unbindOpenSidePanel) {
-            this._unbindOpenSidePanel();
-            this._unbindOpenSidePanel = false;
+        if (this._unbindToggleSidePanel) {
+            this._unbindToggleSidePanel();
+            this._unbindToggleSidePanel = false;
         }
 
         this._bound = false;

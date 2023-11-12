@@ -12,7 +12,7 @@
         "openFiles": "開く",
         "loadSubtitles": "字幕をロードする",
         "openApp": "アプリを開く",
-        "openSidePanel": "サイドパネルを開く",
+        "toggleSidePanel": "サイドパネルを開く/閉じる",
         "mine": "マイニングする",
         "updateLastCard": "最後のカードを更新する",
         "startRecording": "録音開始",
@@ -95,7 +95,7 @@
         "toggleVideoSubtitleTrack2": "動画の字幕トラック 2 オン/オフ",
         "toggleVideoSubtitleTracks": "動画の字幕トラック オン/オフ",
         "updateLastCard": "asbplayer でキャプチャしたスクリーンショットや音声を、最後に作成した Anki カードに添付して更新する",
-        "openSidePanel": "サイドパネルを開く"
+        "toggleSidePanel": "サイドパネルを開く/閉じる"
     },
     "controls": {
         "autoPauseMode": "自動一時停止",

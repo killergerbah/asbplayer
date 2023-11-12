@@ -12,7 +12,7 @@
         "openFiles": "Öffnen",
         "loadSubtitles": "Load Subtitles",
         "openApp": "Open App",
-        "openSidePanel": "Open Side Panel",
+        "toggleSidePanel": "Toggle Side Panel",
         "mine": "Mine",
         "updateLastCard": "Update Last Card",
         "startRecording": "Start Recording",
@@ -95,7 +95,7 @@
         "toggleVideoSubtitleTrack2": "Untertitel 2 in Video umschalten",
         "toggleVideoSubtitleTracks": "Untertitel in Video umschalten",
         "updateLastCard": "Zuletzt erstellte Anki-Karte mit aufgezeichnetem Untertitel",
-        "openSidePanel": "Open side panel"
+        "toggleSidePanel": "Toggle side panel"
     },
     "controls": {
         "autoPauseMode": "Auto-pause",
