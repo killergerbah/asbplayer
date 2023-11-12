@@ -378,10 +378,6 @@ export default class VideoDataSyncController {
                 }
             }
 
-            if (subtitles === undefined) {
-                return false;
-            }
-
             this._syncSubtitles(
                 subtitles,
                 data.some((track) => track.m3U8BaseUrl !== undefined)
