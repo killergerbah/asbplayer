@@ -262,7 +262,11 @@ export default class VideoDataSyncController {
 
                 if ('confirm' === message.command) {
                     const confirmMessage = message as VideoDataUiBridgeConfirmMessage;
-                    if (confirmMessage.data.length && this.lastLanguageSynced !== confirmMessage.data[0].language && this._syncedData) {
+
+                    // Prevent auto-selection of empty on videos where the previously selected language is available.
+                    const selectedTrackIsNotEmpty: boolean = confirmMessage.data.filter((track) => track.subtitleUrl !== '-').length > 0;
+
+                    if (selectedTrackIsNotEmpty && this.lastLanguageSynced !== confirmMessage.data[0].language && this._syncedData) {
                         this.lastLanguageSynced = confirmMessage.data[0].language;
                         await this._context.settings
                             .set({ streamingLastLanguagesSynced: this._lastLanguagesSynced })
