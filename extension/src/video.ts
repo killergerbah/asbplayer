@@ -1,13 +1,22 @@
 import Binding from './services/binding';
 import { currentPageDelegate } from './services/pages';
 import VideoSelectController from './controllers/video-select-controller';
-import { CopyToClipboardMessage, CropAndResizeMessage, SettingsProvider, ShowAnkiUiMessage } from '@project/common';
+import {
+    CopyToClipboardMessage,
+    CropAndResizeMessage,
+    SettingsProvider,
+    ShowAnkiUiMessage,
+    TabToExtensionCommand,
+    ToggleSidePanelMessage,
+} from '@project/common';
 import { FrameInfoListener, fetchFrameId } from './services/frame-info';
 import { cropAndResize } from '@project/common/src/image-transformer';
 import { TabAnkiUiController } from './controllers/tab-anki-ui-controller';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
+import { DefaultKeyBinder, KeyBinder } from '@project/common/key-binder';
 
 const extensionSettingsStorage = new ExtensionSettingsStorage();
+const settingsProvider = new SettingsProvider(extensionSettingsStorage);
 const iframesByFrameId: { [frameId: string]: HTMLIFrameElement } = {};
 
 const cacheIframesByFrameId = () => {
@@ -42,6 +51,46 @@ const cacheIframesByFrameId = () => {
     }
 };
 
+let unbindToggleSidePanel: (() => void) | undefined;
+
+const bindToggleSidePanel = () => {
+    settingsProvider.getSingle('keyBindSet').then((keyBindSet) => {
+        unbindToggleSidePanel?.();
+        unbindToggleSidePanel = new DefaultKeyBinder(keyBindSet).bindToggleSidePanel(
+            (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                const command: TabToExtensionCommand<ToggleSidePanelMessage> = {
+                    sender: 'asbplayer-video-tab',
+                    message: {
+                        command: 'toggle-side-panel',
+                    },
+                };
+                chrome.runtime.sendMessage(command);
+            },
+            () => false,
+            true
+        );
+    });
+};
+
+const hasValidVideoSource = (videoElement: HTMLVideoElement) => {
+    if (videoElement.src) {
+        return true;
+    }
+
+    for (let index = 0, length = videoElement.children.length; index < length; index++) {
+        const elm = videoElement.children[index];
+
+        if ('SOURCE' === elm.tagName && (elm as HTMLSourceElement).src) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
 const bind = () => {
     const bindings: Binding[] = [];
     const page = currentPageDelegate();
@@ -61,7 +110,7 @@ const bind = () => {
             const videoElement = videoElements[i];
             const bindingExists = bindings.filter((b) => b.video.isSameNode(videoElement)).length > 0;
 
-            if (!bindingExists && _hasValidSource(videoElement) && !page?.shouldIgnore(videoElement)) {
+            if (!bindingExists && hasValidVideoSource(videoElement) && !page?.shouldIgnore(videoElement)) {
                 const b = new Binding(videoElement, subSyncAvailable, frameInfoListener?.frameId);
                 b.bind();
                 bindings.push(b);
@@ -75,7 +124,7 @@ const bind = () => {
             for (let j = 0; j < videoElements.length; ++j) {
                 const videoElement = videoElements[j];
 
-                if (videoElement.isSameNode(b.video) && _hasValidSource(videoElement)) {
+                if (videoElement.isSameNode(b.video) && hasValidVideoSource(videoElement)) {
                     videoElementExists = true;
                     break;
                 }
@@ -96,14 +145,19 @@ const bind = () => {
     const videoSelectController = new VideoSelectController(bindings);
     videoSelectController.bind();
 
-    const ankiUiController = new TabAnkiUiController(new SettingsProvider(extensionSettingsStorage));
+    const ankiUiController = new TabAnkiUiController(settingsProvider);
+    const isParentDocument = window.self === window.top;
+
+    if (isParentDocument) {
+        bindToggleSidePanel();
+    }
 
     const messageListener = (
         request: any,
         sender: chrome.runtime.MessageSender,
         sendResponse: (response?: any) => void
     ) => {
-        if (window.self !== window.top) {
+        if (!isParentDocument) {
             // Inside iframe - only root window is allowed to handle messages here
             return;
         }
@@ -162,6 +216,9 @@ const bind = () => {
                     });
                 }
                 break;
+            case 'settings-updated':
+                bindToggleSidePanel();
+                break;
             default:
             // ignore
         }
@@ -180,6 +237,7 @@ const bind = () => {
         clearInterval(iframeInterval);
         videoSelectController.unbind();
         frameInfoListener?.unbind();
+        unbindToggleSidePanel?.();
         chrome.runtime.onMessage.removeListener(messageListener);
     });
 };
@@ -192,20 +250,4 @@ if (document.readyState === 'complete') {
             bind();
         }
     });
-}
-
-function _hasValidSource(videoElement: HTMLVideoElement) {
-    if (videoElement.src) {
-        return true;
-    }
-
-    for (let index = 0, length = videoElement.children.length; index < length; index++) {
-        const elm = videoElement.children[index];
-
-        if ('SOURCE' === elm.tagName && (elm as HTMLSourceElement).src) {
-            return true;
-        }
-    }
-
-    return false;
 }

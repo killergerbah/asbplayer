@@ -8,7 +8,7 @@ export default class ToggleSidePanelHandler {
     }
 
     get sender() {
-        return ['asbplayer-video', 'asbplayerv2'];
+        return ['asbplayer-video-tab', 'asbplayerv2'];
     }
 
     get command() {

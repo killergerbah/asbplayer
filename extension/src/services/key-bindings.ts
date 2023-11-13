@@ -1,6 +1,5 @@
 import {
     KeyBindSet,
-    ToggleSidePanelMessage,
     PlayMode,
     ToggleSubtitlesInListFromVideoMessage,
     ToggleSubtitlesMessage,
@@ -27,7 +26,6 @@ export default class KeyBindings {
     private _unbindAdjustOffset?: Unbinder = false;
     private _unbindResetOffset?: Unbinder = false;
     private _unbindAdjustPlaybackRate?: Unbinder = false;
-    private _unbindToggleSidePanel?: Unbinder = false;
 
     private _bound: boolean;
 
@@ -222,24 +220,6 @@ export default class KeyBindings {
             true
         );
 
-        this._unbindToggleSidePanel = this._keyBinder.bindToggleSidePanel(
-            (event) => {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-
-                const command: VideoToExtensionCommand<ToggleSidePanelMessage> = {
-                    sender: 'asbplayer-video',
-                    message: {
-                        command: 'toggle-side-panel',
-                    },
-                    src: context.video.src,
-                };
-                chrome.runtime.sendMessage(command);
-            },
-            () => false,
-            true
-        );
-
         this._bound = true;
     }
 
@@ -307,11 +287,6 @@ export default class KeyBindings {
         if (this._unbindAdjustPlaybackRate) {
             this._unbindAdjustPlaybackRate();
             this._unbindAdjustPlaybackRate = false;
-        }
-
-        if (this._unbindToggleSidePanel) {
-            this._unbindToggleSidePanel();
-            this._unbindToggleSidePanel = false;
         }
 
         this._bound = false;
