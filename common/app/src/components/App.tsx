@@ -538,6 +538,22 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                 navigator.clipboard.writeText(subtitle.text);
             }
 
+            const newCopiedSubtitle = {
+                ...subtitle,
+                surroundingSubtitles: surroundingSubtitles,
+                timestamp: Date.now(),
+                id: id || uuidv4(),
+                name: fileName ?? subtitleFile?.name ?? videoFile?.name ?? '',
+                subtitleFileName: subtitleFile?.name,
+                videoFile: videoFile,
+                filePlaybackRate: filePlaybackRate,
+                mediaTimestamp: mediaTimestamp,
+                audioTrack: audioTrack,
+                audio: audio,
+                image: image,
+                url: url,
+            };
+
             if (extension.supportsAppIntegration) {
                 extension.publishCard({
                     id,
@@ -550,60 +566,44 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     mediaTimestamp: mediaTimestamp ?? 0,
                 });
             } else {
-                const newCopiedSubtitle = {
-                    ...subtitle,
-                    surroundingSubtitles: surroundingSubtitles,
-                    timestamp: Date.now(),
-                    id: id || uuidv4(),
-                    name: fileName ?? subtitleFile?.name ?? videoFile?.name ?? '',
-                    subtitleFileName: subtitleFile?.name,
-                    videoFile: videoFile,
-                    filePlaybackRate: filePlaybackRate,
-                    mediaTimestamp: mediaTimestamp,
-                    audioTrack: audioTrack,
-                    audio: audio,
-                    image: image,
-                    url: url,
-                };
-
                 saveCopyHistoryItem(newCopiedSubtitle);
+            }
 
-                switch (postMineAction ?? PostMineAction.none) {
-                    case PostMineAction.none:
-                        break;
-                    case PostMineAction.showAnkiDialog:
-                        handleAnkiDialogRequest(newCopiedSubtitle);
-                        break;
-                    case PostMineAction.updateLastCard:
-                        // FIXME: We should really rename the functions below because we're actually skipping the Anki dialog in this case
-                        setAnkiDialogRequested(true);
-                        let audioClip = audioClipFromItem(
-                            newCopiedSubtitle,
-                            undefined,
-                            settings.audioPaddingStart,
-                            settings.audioPaddingEnd
-                        );
+            switch (postMineAction ?? PostMineAction.none) {
+                case PostMineAction.none:
+                    break;
+                case PostMineAction.showAnkiDialog:
+                    handleAnkiDialogRequest(newCopiedSubtitle);
+                    break;
+                case PostMineAction.updateLastCard:
+                    // FIXME: We should really rename the functions below because we're actually skipping the Anki dialog in this case
+                    setAnkiDialogRequested(true);
+                    let audioClip = audioClipFromItem(
+                        newCopiedSubtitle,
+                        undefined,
+                        settings.audioPaddingStart,
+                        settings.audioPaddingEnd
+                    );
 
-                        if (audioClip && settings.preferMp3) {
-                            audioClip = audioClip.toMp3();
-                        }
+                    if (audioClip && settings.preferMp3) {
+                        audioClip = audioClip.toMp3();
+                    }
 
-                        handleAnkiDialogProceed(
-                            extractText(subtitle, surroundingSubtitles),
-                            '',
-                            audioClip,
-                            imageFromItem(newCopiedSubtitle, settings.maxImageWidth, settings.maxImageHeight),
-                            '',
-                            itemSourceString(newCopiedSubtitle) ?? '',
-                            '',
-                            {},
-                            settings.tags,
-                            'updateLast'
-                        );
-                        break;
-                    default:
-                        throw new Error('Unknown post mine action: ' + postMineAction);
-                }
+                    handleAnkiDialogProceed(
+                        extractText(subtitle, surroundingSubtitles),
+                        '',
+                        audioClip,
+                        imageFromItem(newCopiedSubtitle, settings.maxImageWidth, settings.maxImageHeight),
+                        '',
+                        itemSourceString(newCopiedSubtitle) ?? '',
+                        '',
+                        {},
+                        settings.tags,
+                        'updateLast'
+                    );
+                    break;
+                default:
+                    throw new Error('Unknown post mine action: ' + postMineAction);
             }
 
             if (subtitle) {
