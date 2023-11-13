@@ -28,7 +28,7 @@ export default class SyncHandler {
             const extensionSyncCommand = command as VideoToExtensionCommand<ExtensionSyncMessage>;
             await this.tabRegistry.publishTabsToAsbplayers();
             const asbplayerId = await this.tabRegistry.findAsbplayer((asbplayer) => {
-                if (asbplayer.receivedTabs === undefined || sender.tab === undefined) {
+                if (asbplayer.receivedTabs === undefined || sender.tab === undefined || asbplayer.sidePanel) {
                     return false;
                 }
 
