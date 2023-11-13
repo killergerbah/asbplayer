@@ -105,14 +105,15 @@ interface SubtitleRowProps extends TableRowProps {
     selected: boolean;
     disabled: boolean;
     subtitle: DisplaySubtitleModel;
+    showCopyButton: boolean;
     copyButtonEnabled: boolean;
     subtitleRef: RefObject<HTMLTableRowElement>;
     onClickSubtitle: (index: number) => void;
     onCopySubtitle: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => void;
 }
 
-const SubtitleRow = React.memo((props: SubtitleRowProps) => {
-    const {
+const SubtitleRow = React.memo(
+    ({
         index,
         selected,
         subtitleRef,
@@ -122,56 +123,58 @@ const SubtitleRow = React.memo((props: SubtitleRowProps) => {
         disabled,
         subtitle,
         copyButtonEnabled,
+        showCopyButton,
         ...tableRowProps
-    } = props;
-    const classes = useSubtitleRowStyles();
-    const textRef = useRef<HTMLSpanElement>(null);
-    const [textSelected, setTextSelected] = useState<boolean>(false);
-    let className = compressed ? classes.compressedSubtitle : classes.subtitle;
-    let disabledClassName = disabled ? classes.disabledSubtitle : '';
+    }: SubtitleRowProps) => {
+        const classes = useSubtitleRowStyles();
+        const textRef = useRef<HTMLSpanElement>(null);
+        const [textSelected, setTextSelected] = useState<boolean>(false);
+        let className = compressed ? classes.compressedSubtitle : classes.subtitle;
+        let disabledClassName = disabled ? classes.disabledSubtitle : '';
 
-    if (subtitle.start < 0 || subtitle.end < 0) {
-        return null;
-    }
+        if (subtitle.start < 0 || subtitle.end < 0) {
+            return null;
+        }
 
-    function handleMouseUp() {
-        const selection = document.getSelection();
-        const selected =
-            selection?.type === 'Range' && textRef.current?.isSameNode(selection.anchorNode?.parentNode ?? null);
-        setTextSelected(selected ?? false);
-    }
+        function handleMouseUp() {
+            const selection = document.getSelection();
+            const selected =
+                selection?.type === 'Range' && textRef.current?.isSameNode(selection.anchorNode?.parentNode ?? null);
+            setTextSelected(selected ?? false);
+        }
 
-    const content = subtitle.textImage ? (
-        <SubtitleTextImage availableWidth={window.screen.availWidth / 2} subtitle={subtitle} scale={1} />
-    ) : (
-        <span ref={textRef} className={disabledClassName}>
-            {subtitle.text}
-        </span>
-    );
+        const content = subtitle.textImage ? (
+            <SubtitleTextImage availableWidth={window.screen.availWidth / 2} subtitle={subtitle} scale={1} />
+        ) : (
+            <span ref={textRef} className={disabledClassName}>
+                {subtitle.text}
+            </span>
+        );
 
-    return (
-        <TableRow
-            onClick={() => !textSelected && onClickSubtitle(index)}
-            onMouseUp={handleMouseUp}
-            ref={subtitleRef}
-            className={classes.subtitleRow}
-            selected={selected}
-            {...tableRowProps}
-        >
-            <TableCell className={className}>{content}</TableCell>
-            {copyButtonEnabled && (
-                <TableCell className={classes.copyButton}>
-                    <IconButton onClick={(e) => onCopySubtitle(e, index)}>
-                        <NoteAddIcon fontSize={compressed ? 'small' : 'medium'} />
-                    </IconButton>
+        return (
+            <TableRow
+                onClick={() => !textSelected && onClickSubtitle(index)}
+                onMouseUp={handleMouseUp}
+                ref={subtitleRef}
+                className={classes.subtitleRow}
+                selected={selected}
+                {...tableRowProps}
+            >
+                <TableCell className={className}>{content}</TableCell>
+                {showCopyButton && (
+                    <TableCell className={classes.copyButton}>
+                        <IconButton disabled={!copyButtonEnabled} onClick={(e) => onCopySubtitle(e, index)}>
+                            <NoteAddIcon fontSize={compressed ? 'small' : 'medium'} />
+                        </IconButton>
+                    </TableCell>
+                )}
+                <TableCell className={classes.timestamp}>
+                    <div>{`\n${subtitle.displayTime}\n`}</div>
                 </TableCell>
-            )}
-            <TableCell className={classes.timestamp}>
-                <div>{`\n${subtitle.displayTime}\n`}</div>
-            </TableCell>
-        </TableRow>
-    );
-});
+            </TableRow>
+        );
+    }
+);
 
 interface SubtitlePlayerProps {
     clock: Clock;
@@ -193,6 +196,7 @@ interface SubtitlePlayerProps {
     jumpToSubtitle?: SubtitleModel;
     compressed: boolean;
     limitWidth: boolean;
+    showCopyButton: boolean;
     copyButtonEnabled: boolean;
     loading: boolean;
     drawerOpen: boolean;
@@ -221,6 +225,7 @@ export default function SubtitlePlayer({
     jumpToSubtitle,
     compressed,
     limitWidth,
+    showCopyButton,
     copyButtonEnabled,
     loading,
     drawerOpen,
@@ -661,7 +666,12 @@ export default function SubtitlePlayer({
                 return;
             }
 
-            onCopy(subtitles[index], calculateSurroundingSubtitlesForIndex(index), settings.clickToMineDefaultAction, true);
+            onCopy(
+                subtitles[index],
+                calculateSurroundingSubtitlesForIndex(index),
+                settings.clickToMineDefaultAction,
+                true
+            );
         },
         [subtitles, calculateSurroundingSubtitlesForIndex, settings, onCopy]
     );
@@ -696,6 +706,7 @@ export default function SubtitlePlayer({
                                     index={index}
                                     compressed={compressed}
                                     selected={selected}
+                                    showCopyButton={showCopyButton}
                                     copyButtonEnabled={copyButtonEnabled}
                                     disabled={disabledSubtitleTracks[s.track]}
                                     subtitle={subtitles[index]}
