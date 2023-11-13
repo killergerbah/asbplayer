@@ -138,11 +138,14 @@ export default class TabRegistry {
             changed = changed || mutator(asbplayers);
         }
 
+        let newAsplayerAppeared = false;
+
         if (changed) {
             await this._saveAsbplayerState(asbplayers);
+            newAsplayerAppeared = Object.keys(asbplayers).some((asbplayerId) => !(asbplayerId in oldAsbplayers));
         }
 
-        if (Object.keys(oldAsbplayers).length === 0 && Object.keys(asbplayers).length > 0) {
+        if (newAsplayerAppeared) {
             this._onAsbplayerInstanceCallback?.();
         }
 
