@@ -66,7 +66,7 @@
         },
         {
             "host": "video.unext.jp",
-            "script": "unext.js",
+            "script": "unext-page.js",
             "path": "play",
             "autoSync": {
                 "enabled": false

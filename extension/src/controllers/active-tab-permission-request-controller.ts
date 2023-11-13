@@ -22,7 +22,7 @@ export default class ActiveTabPermissionRequestController {
         <body>
         <div id="root" style="width:100%;height:100vh;"></div>
         <script type="application/json" id="loc">${JSON.stringify(await fetchLocalization(lang))}</script>
-        <script src="${chrome.runtime.getURL('./active-tab-permission-request.js')}"></script>
+        <script src="${chrome.runtime.getURL('./active-tab-permission-request-ui.js')}"></script>
         </body>
     </html>`
         );
