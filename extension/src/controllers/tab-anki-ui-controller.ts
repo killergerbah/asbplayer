@@ -5,7 +5,6 @@ import {
     ImageModel,
     SubtitleModel,
     OpenAsbplayerSettingsMessage,
-    VideoToExtensionCommand,
     CopyToClipboardMessage,
     SettingsProvider,
     ankiSettingsKeys,

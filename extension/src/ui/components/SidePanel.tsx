@@ -14,7 +14,8 @@ import {
     CopySubtitleMessage,
 } from '@project/common';
 import { AudioClip } from '@project/common/audio-clip';
-import { AppKeyBinder, ChromeExtension, useCopyHistory, useI18n } from '@project/common/app';
+import { AppKeyBinder, ChromeExtension, useCopyHistory } from '@project/common/app';
+import { useI18n } from '@project/common/hooks';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Player } from '@project/common/app';
