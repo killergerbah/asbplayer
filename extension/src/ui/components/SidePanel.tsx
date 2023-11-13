@@ -425,7 +425,7 @@ export default function SidePanel({ settings, extension }: Props) {
                                 origin={chrome.runtime.getURL('side-panel.html')}
                                 subtitles={subtitles}
                                 hideControls={true}
-                                copyButtonEnabled={true}
+                                copyButtonEnabled={currentTabId === syncedVideoTab?.id}
                                 forceCompressedMode={true}
                                 subtitleReader={subtitleReader}
                                 settings={settings}
