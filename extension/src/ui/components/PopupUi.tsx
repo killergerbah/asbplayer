@@ -30,20 +30,17 @@ export function PopupUi({ commands }: Props) {
         settingsProvider.getAll().then(setSettings);
     }, []);
 
-    const handleSettingsChanged = useCallback(
-        async <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => {
-            setSettings((old: any) => ({ ...old, [key]: value }));
-            await settingsProvider.set({ [key]: value });
-            const settingsUpdatedCommand: PopupToExtensionCommand<SettingsUpdatedMessage> = {
-                sender: 'asbplayer-popup',
-                message: {
-                    command: 'settings-updated',
-                },
-            };
-            chrome.runtime.sendMessage(settingsUpdatedCommand);
-        },
-        []
-    );
+    const handleSettingsChanged = useCallback(async (changed: Partial<AsbplayerSettings>) => {
+        setSettings((old: any) => ({ ...old, ...changed }));
+        await settingsProvider.set(changed);
+        const settingsUpdatedCommand: PopupToExtensionCommand<SettingsUpdatedMessage> = {
+            sender: 'asbplayer-popup',
+            message: {
+                command: 'settings-updated',
+            },
+        };
+        chrome.runtime.sendMessage(settingsUpdatedCommand);
+    }, []);
 
     const handleOpenExtensionShortcuts = useCallback(() => {
         chrome.tabs.create({ active: true, url: 'chrome://extensions/shortcuts' });

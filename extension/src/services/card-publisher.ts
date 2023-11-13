@@ -12,10 +12,10 @@ import {
     ankiSettingsKeys,
     humanReadableTime,
     sourceString,
-    updateLastCard,
 } from '@project/common';
 import BackgroundPageManager from './background-page-manager';
 import { v4 as uuidv4 } from 'uuid';
+import { updateLastCard } from '@project/common/anki';
 
 export class CardPublisher {
     private readonly _backgroundPageManager: BackgroundPageManager;

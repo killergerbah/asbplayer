@@ -8,5 +8,5 @@
         "strict": true,
         "downlevelIteration": true
     },
-    "include": ["./src/**/*", "decs.d.ts", "key-binder/src/key-binder.ts", "subtitle-collection/src/subtitle-collection.ts", "subtitle-reader/src/subtitle-reader.ts"]
+    "include": ["./src/**/*", "decs.d.ts"]
 }

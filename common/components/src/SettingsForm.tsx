@@ -22,7 +22,6 @@ import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import { Theme } from '@material-ui/core/styles';
 import {
-    Anki,
     AsbplayerSettings,
     AutoPausePreference,
     KeyBindName,
@@ -31,6 +30,8 @@ import {
     CustomStyle,
     SubtitleListPreference,
     PostMineAction,
+    validateSettings,
+    exportSettings,
 } from '@project/common';
 import { useOutsideClickListener } from '@project/common/hooks';
 import { TagsTextField } from '@project/common/components';
@@ -46,6 +47,8 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import Link from '@material-ui/core/Link';
+import Button from '@material-ui/core/Button';
+import { Anki } from '../../anki';
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
@@ -518,7 +521,7 @@ interface Props {
     localFontsAvailable: boolean;
     localFontsPermission?: PermissionState;
     localFontFamilies: string[];
-    onSettingsChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => void;
+    onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     onOpenChromeExtensionShortcuts: () => void;
     onUnlockLocalFonts: () => void;
 }
@@ -541,6 +544,12 @@ export default function SettingsForm({
     onUnlockLocalFonts,
 }: Props) {
     const classes = useStyles();
+    const handleSettingChanged = useCallback(
+        async <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => {
+            onSettingsChanged({ [key]: value });
+        },
+        [onSettingsChanged]
+    );
     const { t } = useTranslation();
     const keyBindProperties = useMemo<{ [key in AllKeyNames]: KeyBindProperties }>(
         () => ({
@@ -663,29 +672,29 @@ export default function SettingsForm({
     } = settings;
     const handleAddCustomField = useCallback(
         (customFieldName: string) => {
-            onSettingsChanged('customAnkiFields', { ...settings.customAnkiFields, [customFieldName]: '' });
+            handleSettingChanged('customAnkiFields', { ...settings.customAnkiFields, [customFieldName]: '' });
         },
-        [settings.customAnkiFields, onSettingsChanged]
+        [settings.customAnkiFields, handleSettingChanged]
     );
     const handleCustomFieldChange = useCallback(
         (customFieldName: string, value: string) => {
-            onSettingsChanged('customAnkiFields', { ...settings.customAnkiFields, [customFieldName]: value });
+            handleSettingChanged('customAnkiFields', { ...settings.customAnkiFields, [customFieldName]: value });
         },
-        [settings.customAnkiFields, onSettingsChanged]
+        [settings.customAnkiFields, handleSettingChanged]
     );
     const handleCustomFieldRemoval = useCallback(
         (customFieldName: string) => {
             const newCustomFields = { ...settings.customAnkiFields };
             delete newCustomFields[customFieldName];
-            onSettingsChanged('customAnkiFields', newCustomFields);
+            handleSettingChanged('customAnkiFields', newCustomFields);
         },
-        [onSettingsChanged]
+        [handleSettingChanged]
     );
     const handleKeysChange = useCallback(
         (keys: string, keyBindName: KeyBindName) => {
-            onSettingsChanged('keyBindSet', { ...settings.keyBindSet, [keyBindName]: { keys } });
+            handleSettingChanged('keyBindSet', { ...settings.keyBindSet, [keyBindName]: { keys } });
         },
-        [settings.keyBindSet, onSettingsChanged]
+        [settings.keyBindSet, handleSettingChanged]
     );
 
     const subtitlePreviewStyles = useMemo(
@@ -841,7 +850,29 @@ export default function SettingsForm({
     }, [scrollToId]);
 
     const [tabIndex, setTabIndex] = useState<number>(0);
-    const validRegex = regexIsValid(subtitleRegexFilter);
+    const validRegex = useMemo(() => regexIsValid(subtitleRegexFilter), [subtitleRegexFilter]);
+    const settingsFileInputRef = useRef<HTMLInputElement>(null);
+    const handleSettingsFileInputChange = useCallback(async () => {
+        try {
+            const file = settingsFileInputRef.current?.files?.[0];
+
+            if (file === undefined) {
+                return;
+            }
+
+            const importedSettings = JSON.parse(await file.text());
+            validateSettings(importedSettings);
+            onSettingsChanged(importedSettings as AsbplayerSettings);
+        } catch (e) {
+            console.error(e);
+        }
+    }, [onSettingsChanged]);
+    const handleImportSettings = useCallback(() => {
+        settingsFileInputRef.current?.click();
+    }, []);
+    const handleExportSettings = useCallback(() => {
+        exportSettings(settings);
+    }, [settings]);
 
     return (
         <div className={classes.root}>
@@ -869,7 +900,7 @@ export default function SettingsForm({
                         error={Boolean(ankiConnectUrlError)}
                         helperText={ankiConnectUrlError}
                         color="secondary"
-                        onChange={(event) => onSettingsChanged('ankiConnectUrl', event.target.value)}
+                        onChange={(event) => handleSettingChanged('ankiConnectUrl', event.target.value)}
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
@@ -902,66 +933,68 @@ export default function SettingsForm({
                         label={t('settings.deck')}
                         value={deck}
                         selections={deckNames}
-                        onChange={(event) => onSettingsChanged('deck', event.target.value)}
-                        onSelectionChange={(event) => onSettingsChanged('deck', event.target.value as string)}
+                        onChange={(event) => handleSettingChanged('deck', event.target.value)}
+                        onSelectionChange={(event) => handleSettingChanged('deck', event.target.value as string)}
                     />
                     <SelectableSetting
                         label={t('settings.noteType')}
                         value={noteType}
                         selections={modelNames}
-                        onChange={(event) => onSettingsChanged('noteType', event.target.value)}
-                        onSelectionChange={(event) => onSettingsChanged('noteType', event.target.value as string)}
+                        onChange={(event) => handleSettingChanged('noteType', event.target.value)}
+                        onSelectionChange={(event) => handleSettingChanged('noteType', event.target.value as string)}
                     />
                     <SelectableSetting
                         label={t('settings.sentenceField')}
                         value={sentenceField}
                         selections={fieldNames}
-                        onChange={(event) => onSettingsChanged('sentenceField', event.target.value)}
-                        onSelectionChange={(event) => onSettingsChanged('sentenceField', event.target.value as string)}
+                        onChange={(event) => handleSettingChanged('sentenceField', event.target.value)}
+                        onSelectionChange={(event) =>
+                            handleSettingChanged('sentenceField', event.target.value as string)
+                        }
                     />
                     <SelectableSetting
                         label={t('settings.definitionField')}
                         value={definitionField}
                         selections={fieldNames}
-                        onChange={(event) => onSettingsChanged('definitionField', event.target.value)}
+                        onChange={(event) => handleSettingChanged('definitionField', event.target.value)}
                         onSelectionChange={(event) =>
-                            onSettingsChanged('definitionField', event.target.value as string)
+                            handleSettingChanged('definitionField', event.target.value as string)
                         }
                     />
                     <SelectableSetting
                         label={t('settings.wordField')}
                         value={wordField}
                         selections={fieldNames}
-                        onChange={(event) => onSettingsChanged('wordField', event.target.value)}
-                        onSelectionChange={(event) => onSettingsChanged('wordField', event.target.value as string)}
+                        onChange={(event) => handleSettingChanged('wordField', event.target.value)}
+                        onSelectionChange={(event) => handleSettingChanged('wordField', event.target.value as string)}
                     />
                     <SelectableSetting
                         label={t('settings.audioField')}
                         value={audioField}
                         selections={fieldNames}
-                        onChange={(event) => onSettingsChanged('audioField', event.target.value)}
-                        onSelectionChange={(event) => onSettingsChanged('audioField', event.target.value as string)}
+                        onChange={(event) => handleSettingChanged('audioField', event.target.value)}
+                        onSelectionChange={(event) => handleSettingChanged('audioField', event.target.value as string)}
                     />
                     <SelectableSetting
                         label={t('settings.imageField')}
                         value={imageField}
                         selections={fieldNames}
-                        onChange={(event) => onSettingsChanged('imageField', event.target.value)}
-                        onSelectionChange={(event) => onSettingsChanged('imageField', event.target.value as string)}
+                        onChange={(event) => handleSettingChanged('imageField', event.target.value)}
+                        onSelectionChange={(event) => handleSettingChanged('imageField', event.target.value as string)}
                     />
                     <SelectableSetting
                         label={t('settings.sourceField')}
                         value={sourceField}
                         selections={fieldNames}
-                        onChange={(event) => onSettingsChanged('sourceField', event.target.value)}
-                        onSelectionChange={(event) => onSettingsChanged('sourceField', event.target.value as string)}
+                        onChange={(event) => handleSettingChanged('sourceField', event.target.value)}
+                        onSelectionChange={(event) => handleSettingChanged('sourceField', event.target.value as string)}
                     />
                     <SelectableSetting
                         label={t('settings.urlField')}
                         value={urlField}
                         selections={fieldNames}
-                        onChange={(event) => onSettingsChanged('urlField', event.target.value)}
-                        onSelectionChange={(event) => onSettingsChanged('urlField', event.target.value as string)}
+                        onChange={(event) => handleSettingChanged('urlField', event.target.value)}
+                        onSelectionChange={(event) => handleSettingChanged('urlField', event.target.value as string)}
                     />
                     {customFieldInputs}
                     <AddCustomField onAddCustomField={handleAddCustomField} />
@@ -971,7 +1004,7 @@ export default function SettingsForm({
                         fullWidth
                         color="secondary"
                         tags={tags}
-                        onTagsChange={(tags) => onSettingsChanged('tags', tags)}
+                        onTagsChange={(tags) => handleSettingChanged('tags', tags)}
                     />
                 </FormGroup>
             </TabPanel>
@@ -987,7 +1020,7 @@ export default function SettingsForm({
                                 value={PostMineAction.showAnkiDialog}
                                 onChange={(event) =>
                                     event.target.checked &&
-                                    onSettingsChanged('clickToMineDefaultAction', PostMineAction.showAnkiDialog)
+                                    handleSettingChanged('clickToMineDefaultAction', PostMineAction.showAnkiDialog)
                                 }
                             />
                         }
@@ -1000,7 +1033,7 @@ export default function SettingsForm({
                                 value={PostMineAction.updateLastCard}
                                 onChange={(event) =>
                                     event.target.checked &&
-                                    onSettingsChanged('clickToMineDefaultAction', PostMineAction.updateLastCard)
+                                    handleSettingChanged('clickToMineDefaultAction', PostMineAction.updateLastCard)
                                 }
                             />
                         }
@@ -1013,7 +1046,7 @@ export default function SettingsForm({
                                 value={PostMineAction.none}
                                 onChange={(event) =>
                                     event.target.checked &&
-                                    onSettingsChanged('clickToMineDefaultAction', PostMineAction.none)
+                                    handleSettingChanged('clickToMineDefaultAction', PostMineAction.none)
                                 }
                             />
                         }
@@ -1025,7 +1058,7 @@ export default function SettingsForm({
                         control={
                             <Switch
                                 checked={preferMp3}
-                                onChange={(event) => onSettingsChanged('preferMp3', event.target.checked)}
+                                onChange={(event) => handleSettingChanged('preferMp3', event.target.checked)}
                             />
                         }
                         label={t('settings.mp3Preference')}
@@ -1036,7 +1069,9 @@ export default function SettingsForm({
                         control={
                             <Switch
                                 checked={copyToClipboardOnMine}
-                                onChange={(event) => onSettingsChanged('copyToClipboardOnMine', event.target.checked)}
+                                onChange={(event) =>
+                                    handleSettingChanged('copyToClipboardOnMine', event.target.checked)
+                                }
                             />
                         }
                         label={t('settings.copyOnMine')}
@@ -1049,7 +1084,7 @@ export default function SettingsForm({
                         fullWidth
                         value={audioPaddingStart}
                         color="secondary"
-                        onChange={(event) => onSettingsChanged('audioPaddingStart', Number(event.target.value))}
+                        onChange={(event) => handleSettingChanged('audioPaddingStart', Number(event.target.value))}
                         inputProps={{
                             min: 0,
                             step: 1,
@@ -1064,7 +1099,7 @@ export default function SettingsForm({
                         fullWidth
                         value={audioPaddingEnd}
                         color="secondary"
-                        onChange={(event) => onSettingsChanged('audioPaddingEnd', Number(event.target.value))}
+                        onChange={(event) => handleSettingChanged('audioPaddingEnd', Number(event.target.value))}
                         inputProps={{
                             min: 0,
                             step: 1,
@@ -1079,7 +1114,7 @@ export default function SettingsForm({
                         fullWidth
                         value={maxImageWidth}
                         color="secondary"
-                        onChange={(event) => onSettingsChanged('maxImageWidth', Number(event.target.value))}
+                        onChange={(event) => handleSettingChanged('maxImageWidth', Number(event.target.value))}
                         inputProps={{
                             min: 0,
                             step: 1,
@@ -1091,7 +1126,7 @@ export default function SettingsForm({
                         fullWidth
                         value={maxImageHeight}
                         color="secondary"
-                        onChange={(event) => onSettingsChanged('maxImageHeight', Number(event.target.value))}
+                        onChange={(event) => handleSettingChanged('maxImageHeight', Number(event.target.value))}
                         inputProps={{
                             min: 0,
                             step: 1,
@@ -1104,7 +1139,7 @@ export default function SettingsForm({
                         value={surroundingSubtitlesCountRadius}
                         color="secondary"
                         onChange={(event) =>
-                            onSettingsChanged('surroundingSubtitlesCountRadius', Number(event.target.value))
+                            handleSettingChanged('surroundingSubtitlesCountRadius', Number(event.target.value))
                         }
                         inputProps={{
                             min: 1,
@@ -1118,7 +1153,7 @@ export default function SettingsForm({
                         value={surroundingSubtitlesTimeRadius}
                         color="secondary"
                         onChange={(event) =>
-                            onSettingsChanged('surroundingSubtitlesTimeRadius', Number(event.target.value))
+                            handleSettingChanged('surroundingSubtitlesTimeRadius', Number(event.target.value))
                         }
                         inputProps={{
                             min: 0,
@@ -1140,7 +1175,7 @@ export default function SettingsForm({
                                 fullWidth
                                 value={subtitleColor}
                                 color="secondary"
-                                onChange={(event) => onSettingsChanged('subtitleColor', event.target.value)}
+                                onChange={(event) => handleSettingChanged('subtitleColor', event.target.value)}
                             />
                         </div>
                         <div className={classes.subtitleSetting}>
@@ -1150,7 +1185,7 @@ export default function SettingsForm({
                                 fullWidth
                                 value={subtitleSize}
                                 color="secondary"
-                                onChange={(event) => onSettingsChanged('subtitleSize', Number(event.target.value))}
+                                onChange={(event) => handleSettingChanged('subtitleSize', Number(event.target.value))}
                                 inputProps={{
                                     min: 1,
                                     step: 1,
@@ -1164,7 +1199,7 @@ export default function SettingsForm({
                             <Slider
                                 color="secondary"
                                 value={subtitleThickness}
-                                onChange={(event, value) => onSettingsChanged('subtitleThickness', value as number)}
+                                onChange={(event, value) => handleSettingChanged('subtitleThickness', value as number)}
                                 min={100}
                                 max={900}
                                 step={100}
@@ -1179,7 +1214,7 @@ export default function SettingsForm({
                                 fullWidth
                                 value={subtitleOutlineColor}
                                 color="secondary"
-                                onChange={(event) => onSettingsChanged('subtitleOutlineColor', event.target.value)}
+                                onChange={(event) => handleSettingChanged('subtitleOutlineColor', event.target.value)}
                             />
                         </div>
                         <div className={classes.subtitleSetting}>
@@ -1190,7 +1225,7 @@ export default function SettingsForm({
                                 fullWidth
                                 value={subtitleOutlineThickness}
                                 onChange={(event) =>
-                                    onSettingsChanged('subtitleOutlineThickness', Number(event.target.value))
+                                    handleSettingChanged('subtitleOutlineThickness', Number(event.target.value))
                                 }
                                 inputProps={{
                                     min: 0,
@@ -1206,7 +1241,9 @@ export default function SettingsForm({
                                 fullWidth
                                 value={subtitleBackgroundColor}
                                 color="secondary"
-                                onChange={(event) => onSettingsChanged('subtitleBackgroundColor', event.target.value)}
+                                onChange={(event) =>
+                                    handleSettingChanged('subtitleBackgroundColor', event.target.value)
+                                }
                             />
                         </div>
                         <div className={classes.subtitleSetting}>
@@ -1222,7 +1259,7 @@ export default function SettingsForm({
                                 value={subtitleBackgroundOpacity}
                                 color="secondary"
                                 onChange={(event) =>
-                                    onSettingsChanged('subtitleBackgroundOpacity', Number(event.target.value))
+                                    handleSettingChanged('subtitleBackgroundOpacity', Number(event.target.value))
                                 }
                             />
                         </div>
@@ -1234,7 +1271,7 @@ export default function SettingsForm({
                                 fullWidth
                                 value={subtitleFontFamily}
                                 color="secondary"
-                                onChange={(event) => onSettingsChanged('subtitleFontFamily', event.target.value)}
+                                onChange={(event) => handleSettingChanged('subtitleFontFamily', event.target.value)}
                                 InputProps={{
                                     endAdornment:
                                         localFontFamilies.length === 0 &&
@@ -1271,7 +1308,7 @@ export default function SettingsForm({
                                 value={imageBasedSubtitleScaleFactor}
                                 color="secondary"
                                 onChange={(event) =>
-                                    onSettingsChanged('imageBasedSubtitleScaleFactor', Number(event.target.value))
+                                    handleSettingChanged('imageBasedSubtitleScaleFactor', Number(event.target.value))
                                 }
                             />
                         </div>
@@ -1283,7 +1320,7 @@ export default function SettingsForm({
                                     onCustomStyle={(newCustomStyle: CustomStyle) => {
                                         const newValue = [...settings.subtitleCustomStyles];
                                         newValue[index] = { ...newCustomStyle };
-                                        onSettingsChanged('subtitleCustomStyles', newValue);
+                                        handleSettingChanged('subtitleCustomStyles', newValue);
                                     }}
                                     onDelete={() => {
                                         const newValue: CustomStyle[] = [];
@@ -1292,7 +1329,7 @@ export default function SettingsForm({
                                                 newValue.push(settings.subtitleCustomStyles[j]);
                                             }
                                         }
-                                        onSettingsChanged('subtitleCustomStyles', newValue);
+                                        handleSettingChanged('subtitleCustomStyles', newValue);
                                     }}
                                 />
                             );
@@ -1301,7 +1338,7 @@ export default function SettingsForm({
                             styleKey={currentStyleKey}
                             onStyleKey={setCurrentStyleKey}
                             onAddCustomStyle={(styleKey) =>
-                                onSettingsChanged('subtitleCustomStyles', [
+                                handleSettingChanged('subtitleCustomStyles', [
                                     ...settings.subtitleCustomStyles,
                                     { key: styleKey, value: '' },
                                 ])
@@ -1311,7 +1348,7 @@ export default function SettingsForm({
                             <input
                                 value={subtitlePreview}
                                 className={classes.subtitlePreviewInput}
-                                onChange={(event) => onSettingsChanged('subtitlePreview', event.target.value)}
+                                onChange={(event) => handleSettingChanged('subtitlePreview', event.target.value)}
                                 style={subtitlePreviewStyles}
                             />
                         </div>
@@ -1357,7 +1394,7 @@ export default function SettingsForm({
                                             streamingSubtitleListPreference !== SubtitleListPreference.noSubtitleList
                                         }
                                         onChange={(e) =>
-                                            onSettingsChanged(
+                                            handleSettingChanged(
                                                 'streamingSubtitleListPreference',
                                                 streamingSubtitleListPreference ===
                                                     SubtitleListPreference.noSubtitleList
@@ -1380,7 +1417,7 @@ export default function SettingsForm({
                                     <Switch
                                         checked={streamingDisplaySubtitles}
                                         onChange={(e) =>
-                                            onSettingsChanged('streamingDisplaySubtitles', e.target.checked)
+                                            handleSettingChanged('streamingDisplaySubtitles', e.target.checked)
                                         }
                                     />
                                 }
@@ -1399,7 +1436,7 @@ export default function SettingsForm({
                                     step: 1,
                                 }}
                                 onChange={(e) =>
-                                    onSettingsChanged('streamingSubtitlePositionOffset', Number(e.target.value))
+                                    handleSettingChanged('streamingSubtitlePositionOffset', Number(e.target.value))
                                 }
                             />
                         </FormGroup>
@@ -1414,7 +1451,7 @@ export default function SettingsForm({
                                         value={'bottom'}
                                         onChange={(event) =>
                                             event.target.checked &&
-                                            onSettingsChanged('streamingSubtitleAlignment', 'bottom')
+                                            handleSettingChanged('streamingSubtitleAlignment', 'bottom')
                                         }
                                     />
                                 }
@@ -1427,7 +1464,7 @@ export default function SettingsForm({
                                         value={'top'}
                                         onChange={(event) =>
                                             event.target.checked &&
-                                            onSettingsChanged('streamingSubtitleAlignment', 'top')
+                                            handleSettingChanged('streamingSubtitleAlignment', 'top')
                                         }
                                     />
                                 }
@@ -1442,7 +1479,7 @@ export default function SettingsForm({
                                 control={
                                     <Switch
                                         checked={streamingRecordMedia}
-                                        onChange={(e) => onSettingsChanged('streamingRecordMedia', e.target.checked)}
+                                        onChange={(e) => handleSettingChanged('streamingRecordMedia', e.target.checked)}
                                     />
                                 }
                                 label={t('extension.settings.recordAudio')}
@@ -1453,7 +1490,9 @@ export default function SettingsForm({
                                 control={
                                     <Switch
                                         checked={streamingTakeScreenshot}
-                                        onChange={(e) => onSettingsChanged('streamingTakeScreenshot', e.target.checked)}
+                                        onChange={(e) =>
+                                            handleSettingChanged('streamingTakeScreenshot', e.target.checked)
+                                        }
                                     />
                                 }
                                 label={t('extension.settings.takeScreenshot')}
@@ -1465,7 +1504,7 @@ export default function SettingsForm({
                                     <Switch
                                         checked={streamingCleanScreenshot}
                                         onChange={(e) =>
-                                            onSettingsChanged('streamingCleanScreenshot', e.target.checked)
+                                            handleSettingChanged('streamingCleanScreenshot', e.target.checked)
                                         }
                                     />
                                 }
@@ -1477,7 +1516,9 @@ export default function SettingsForm({
                                 control={
                                     <Switch
                                         checked={streamingCropScreenshot}
-                                        onChange={(e) => onSettingsChanged('streamingCropScreenshot', e.target.checked)}
+                                        onChange={(e) =>
+                                            handleSettingChanged('streamingCropScreenshot', e.target.checked)
+                                        }
                                     />
                                 }
                                 label={t('extension.settings.cropScreenshot')}
@@ -1490,7 +1531,9 @@ export default function SettingsForm({
                                 fullWidth
                                 label={t('extension.settings.screenshotCaptureDelay')}
                                 value={streamingScreenshotDelay}
-                                onChange={(e) => onSettingsChanged('streamingScreenshotDelay', Number(e.target.value))}
+                                onChange={(e) =>
+                                    handleSettingChanged('streamingScreenshotDelay', Number(e.target.value))
+                                }
                                 inputProps={{
                                     min: 0,
                                     step: 1,
@@ -1509,7 +1552,7 @@ export default function SettingsForm({
                                     <Switch
                                         checked={streamingSubsDragAndDrop}
                                         onChange={(e) =>
-                                            onSettingsChanged('streamingSubsDragAndDrop', e.target.checked)
+                                            handleSettingChanged('streamingSubsDragAndDrop', e.target.checked)
                                         }
                                     />
                                 }
@@ -1521,7 +1564,7 @@ export default function SettingsForm({
                                 control={
                                     <Switch
                                         checked={streamingAutoSync}
-                                        onChange={(e) => onSettingsChanged('streamingAutoSync', e.target.checked)}
+                                        onChange={(e) => handleSettingChanged('streamingAutoSync', e.target.checked)}
                                     />
                                 }
                                 label={t('extension.settings.autoLoadDetectedSubs')}
@@ -1539,7 +1582,7 @@ export default function SettingsForm({
                                 label={t('extension.settings.condensedPlaybackMinSkipInterval')}
                                 value={streamingCondensedPlaybackMinimumSkipIntervalMs}
                                 onChange={(e) =>
-                                    onSettingsChanged(
+                                    handleSettingChanged(
                                         'streamingCondensedPlaybackMinimumSkipIntervalMs',
                                         Number(e.target.value)
                                     )
@@ -1563,7 +1606,7 @@ export default function SettingsForm({
                                     fullWidth
                                     label={t('extension.settings.asbplayerUrl')}
                                     value={streamingAppUrl}
-                                    onChange={(e) => onSettingsChanged('streamingAppUrl', e.target.value)}
+                                    onChange={(e) => handleSettingChanged('streamingAppUrl', e.target.value)}
                                 />
                             )}
                         </FormGroup>
@@ -1582,7 +1625,7 @@ export default function SettingsForm({
                                             checked={themeType === 'light'}
                                             value="light"
                                             onChange={(event) =>
-                                                event.target.checked && onSettingsChanged('themeType', 'light')
+                                                event.target.checked && handleSettingChanged('themeType', 'light')
                                             }
                                         />
                                     }
@@ -1594,7 +1637,7 @@ export default function SettingsForm({
                                             checked={themeType === 'dark'}
                                             value="dark"
                                             onChange={(event) =>
-                                                event.target.checked && onSettingsChanged('themeType', 'dark')
+                                                event.target.checked && handleSettingChanged('themeType', 'dark')
                                             }
                                         />
                                     }
@@ -1608,7 +1651,7 @@ export default function SettingsForm({
                                     <Switch
                                         checked={rememberSubtitleOffset}
                                         onChange={(event) =>
-                                            onSettingsChanged('rememberSubtitleOffset', event.target.checked)
+                                            handleSettingChanged('rememberSubtitleOffset', event.target.checked)
                                         }
                                     />
                                 }
@@ -1621,7 +1664,7 @@ export default function SettingsForm({
                                     <Switch
                                         checked={autoCopyCurrentSubtitle}
                                         onChange={(event) =>
-                                            onSettingsChanged('autoCopyCurrentSubtitle', event.target.checked)
+                                            handleSettingChanged('autoCopyCurrentSubtitle', event.target.checked)
                                         }
                                     />
                                 }
@@ -1636,7 +1679,7 @@ export default function SettingsForm({
                                 value={miningHistoryStorageLimit}
                                 color="secondary"
                                 onChange={(event) =>
-                                    onSettingsChanged('miningHistoryStorageLimit', Number(event.target.value))
+                                    handleSettingChanged('miningHistoryStorageLimit', Number(event.target.value))
                                 }
                                 inputProps={{
                                     min: 0,
@@ -1650,7 +1693,7 @@ export default function SettingsForm({
                                 color="secondary"
                                 error={!validRegex}
                                 helperText={validRegex ? undefined : 'Invalid regular expression'}
-                                onChange={(event) => onSettingsChanged('subtitleRegexFilter', event.target.value)}
+                                onChange={(event) => handleSettingChanged('subtitleRegexFilter', event.target.value)}
                             />
                             <TextField
                                 label={t('settings.subtitleRegexFilterTextReplacement')}
@@ -1658,7 +1701,7 @@ export default function SettingsForm({
                                 value={subtitleRegexFilterTextReplacement}
                                 color="secondary"
                                 onChange={(event) =>
-                                    onSettingsChanged('subtitleRegexFilterTextReplacement', event.target.value)
+                                    handleSettingChanged('subtitleRegexFilterTextReplacement', event.target.value)
                                 }
                             />
                             <TextField
@@ -1666,7 +1709,7 @@ export default function SettingsForm({
                                 label={t('settings.language')}
                                 value={language}
                                 color="secondary"
-                                onChange={(event) => onSettingsChanged('language', event.target.value)}
+                                onChange={(event) => handleSettingChanged('language', event.target.value)}
                             >
                                 {supportedLanguages.map((s) => (
                                     <MenuItem key={s} value={s}>
@@ -1695,7 +1738,7 @@ export default function SettingsForm({
                                         value={AutoPausePreference.atStart}
                                         onChange={(event) =>
                                             event.target.checked &&
-                                            onSettingsChanged('autoPausePreference', AutoPausePreference.atStart)
+                                            handleSettingChanged('autoPausePreference', AutoPausePreference.atStart)
                                         }
                                     />
                                 }
@@ -1708,7 +1751,7 @@ export default function SettingsForm({
                                         value={AutoPausePreference.atEnd}
                                         onChange={(event) =>
                                             event.target.checked &&
-                                            onSettingsChanged('autoPausePreference', AutoPausePreference.atEnd)
+                                            handleSettingChanged('autoPausePreference', AutoPausePreference.atEnd)
                                         }
                                     />
                                 }
@@ -1721,7 +1764,9 @@ export default function SettingsForm({
                             control={
                                 <Switch
                                     checked={preCacheSubtitleDom}
-                                    onChange={(event) => onSettingsChanged('preCacheSubtitleDom', event.target.checked)}
+                                    onChange={(event) =>
+                                        handleSettingChanged('preCacheSubtitleDom', event.target.checked)
+                                    }
                                 />
                             }
                             label={
@@ -1740,8 +1785,36 @@ export default function SettingsForm({
                             className={classes.switchLabel}
                         />
                     </Grid>
+                    <Grid item>
+                        <Button
+                            variant="contained"
+                            color="secondary"
+                            style={{ width: '100%' }}
+                            onClick={handleImportSettings}
+                        >
+                            {t('action.importSettings')}
+                        </Button>
+                    </Grid>
+                    <Grid item>
+                        <Button
+                            variant="contained"
+                            color="secondary"
+                            style={{ width: '100%' }}
+                            onClick={handleExportSettings}
+                        >
+                            {t('action.exportSettings')}
+                        </Button>
+                    </Grid>
                 </Grid>
             </TabPanel>
+            <input
+                ref={settingsFileInputRef}
+                onChange={handleSettingsFileInputChange}
+                type="file"
+                accept=".json"
+                multiple
+                hidden
+            />
         </div>
     );
 }

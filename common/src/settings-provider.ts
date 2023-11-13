@@ -7,7 +7,7 @@ import {
 } from '@project/common';
 import { isMacOs } from 'react-device-detect';
 
-const defaults: AsbplayerSettings = {
+export const defaultSettings: AsbplayerSettings = {
     ankiConnectUrl: 'http://127.0.0.1:8765',
     deck: '',
     noteType: '',
@@ -94,7 +94,7 @@ const defaults: AsbplayerSettings = {
 
 type SettingsDeserializers = { [key in keyof AsbplayerSettings]: (serialized: string) => any };
 export const settingsDeserializers: SettingsDeserializers = Object.fromEntries(
-    Object.entries(defaults).map(([key, value]) => {
+    Object.entries(defaultSettings).map(([key, value]) => {
         if (typeof value === 'string') {
             return [key, (s: string) => s];
         }
@@ -113,11 +113,11 @@ export const settingsDeserializers: SettingsDeserializers = Object.fromEntries(
                 (s: string) => {
                     const keyBindSet = JSON.parse(s);
 
-                    for (const key of Object.keys(defaults.keyBindSet)) {
+                    for (const key of Object.keys(defaultSettings.keyBindSet)) {
                         const keyBindName = key as KeyBindName;
 
                         if (keyBindSet[keyBindName] === undefined) {
-                            keyBindSet[keyBindName] = defaults.keyBindSet[keyBindName];
+                            keyBindSet[keyBindName] = defaultSettings.keyBindSet[keyBindName];
                         }
                     }
 
@@ -144,7 +144,7 @@ export class SettingsProvider {
     }
 
     async getAll(): Promise<AsbplayerSettings> {
-        return this.get(Object.keys(defaults) as SettingsKey[]);
+        return this.get(Object.keys(defaultSettings) as SettingsKey[]);
     }
 
     async getSingle<K extends keyof AsbplayerSettings>(key: K): Promise<AsbplayerSettings[K]> {
@@ -157,14 +157,14 @@ export class SettingsProvider {
         let parameters: Partial<AsbplayerSettings> = {};
 
         for (const key of keys) {
-            parameters[key] = defaults[key];
+            parameters[key] = defaultSettings[key];
         }
 
         const data = await this._storage.get(parameters);
         const result: any = {};
 
         for (const key in parameters) {
-            result[key] = data[key as SettingsKey] ?? defaults[key as SettingsKey];
+            result[key] = data[key as SettingsKey] ?? defaultSettings[key as SettingsKey];
         }
 
         return result;

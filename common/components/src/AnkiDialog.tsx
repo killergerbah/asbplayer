@@ -3,9 +3,7 @@ import { useTranslation } from 'react-i18next';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import withStyles from '@material-ui/core/styles/withStyles';
 import {
-    Anki,
     AnkiDialogSliderContext,
-    AudioClip,
     Image,
     humanReadableTime,
     AnkiSettings,
@@ -14,6 +12,7 @@ import {
     subtitleIntersectsTimeInterval,
     joinSubtitles,
 } from '@project/common';
+import { AudioClip } from '@project/common/audio-clip';
 import Button from '@material-ui/core/Button';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import TextField from '@material-ui/core/TextField';
@@ -38,7 +37,7 @@ import ZoomInIcon from '@material-ui/icons/ZoomIn';
 import ZoomOutIcon from '@material-ui/icons/ZoomOut';
 import SubtitleTextImage from './SubtitleTextImage';
 import TagsTextField from './TagsTextField';
-import { AnkiExportMode } from '@project/common';
+import { Anki, AnkiExportMode } from '../../anki';
 
 const useStyles = makeStyles((theme) => ({
     root: {

@@ -19,18 +19,18 @@ export const useSettings = () => {
     }, [settingsProvider]);
 
     const onSettingsChanged = useCallback(
-        async <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => {
-            setSettings((s) => ({ ...s!, [key]: value }));
+        (settings: Partial<AsbplayerSettings>) => {
+            setSettings((s) => ({ ...s!, ...settings }));
 
-            await settingsProvider.set({ [key]: value });
-
-            const command: Command<SettingsUpdatedMessage> = {
-                sender: 'asbplayer-settings',
-                message: {
-                    command: 'settings-updated',
-                },
-            };
-            chrome.runtime.sendMessage(command);
+            settingsProvider.set(settings).then(() => {
+                const command: Command<SettingsUpdatedMessage> = {
+                    sender: 'asbplayer-settings',
+                    message: {
+                        command: 'settings-updated',
+                    },
+                };
+                chrome.runtime.sendMessage(command);
+            });
         },
         [settingsProvider]
     );

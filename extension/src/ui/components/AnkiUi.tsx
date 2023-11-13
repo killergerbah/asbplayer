@@ -1,9 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    Anki,
     Image,
     ImageModel,
-    AudioClip,
     AudioModel,
     SubtitleModel,
     AnkiDialogSliderContext,
@@ -21,6 +19,7 @@ import {
     Message,
     UpdateStateMessage,
 } from '@project/common';
+import { AudioClip } from '@project/common/audio-clip';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import Alert, { Color } from '@material-ui/lab/Alert';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -28,9 +27,9 @@ import { AnkiDialog, ImageDialog } from '@project/common/components';
 import Snackbar from '@material-ui/core/Snackbar';
 import Bridge from '../bridge';
 import { PaletteType } from '@material-ui/core';
-import { AnkiExportMode } from '@project/common/src/anki';
 import { AnkiDialogState } from '@project/common/components';
 import { BridgeFetcher } from '../bridge-fetcher';
+import { Anki, AnkiExportMode } from '@project/common/anki';
 
 interface Props {
     bridge: Bridge;

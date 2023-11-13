@@ -6,10 +6,11 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import { Anki, AsbplayerSettings } from '@project/common';
 import ChromeExtension from '../services/chrome-extension';
 import { SettingsForm } from '../../../components';
 import { useLocalFontFamilies } from '../../../hooks';
+import { Anki } from '../../../anki';
+import { AsbplayerSettings } from '../../..';
 
 const useStyles = makeStyles({
     root: {
@@ -28,7 +29,7 @@ interface Props {
     open: boolean;
     settings: AsbplayerSettings;
     scrollToId?: string;
-    onSettingsChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => void;
+    onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     onClose: () => void;
 }
 

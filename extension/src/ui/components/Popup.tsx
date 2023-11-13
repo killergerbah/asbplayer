@@ -1,6 +1,5 @@
 import Grid from '@material-ui/core/Grid';
 import {
-    Anki,
     AsbplayerSettings,
     HttpPostMessage,
     PopupToExtensionCommand,
@@ -14,11 +13,12 @@ import Button from '@material-ui/core/Button';
 import { useTranslation } from 'react-i18next';
 import { Fetcher } from '@project/common/src/fetcher';
 import { useLocalFontFamilies } from '@project/common/hooks';
+import { Anki } from '@project/common/anki';
 
 interface Props {
     settings: AsbplayerSettings;
     commands: any;
-    onSettingsChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => void;
+    onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     onOpenApp: () => void;
     onOpenSidePanel: () => void;
     onOpenExtensionShortcuts: () => void;
@@ -83,7 +83,7 @@ const Popup = ({
                     onClick={onOpenSidePanel}
                     style={{ width: '100%' }}
                 >
-                    {t('action.toggleSidePanel')}
+                    {t('action.openSidePanel')}
                 </Button>
             </Grid>
             <Grid item style={{ height: 450 }}>

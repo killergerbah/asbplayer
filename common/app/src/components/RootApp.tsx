@@ -19,10 +19,10 @@ const RootApp = ({ origin, logoUrl, settingsStorage, fetcher }: Props) => {
     }, [settingsProvider]);
 
     const handleSettingsChanged = useCallback(
-        async <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => {
-            setSettings((s) => ({ ...s!, [key]: value }));
+        async (settings: Partial<AsbplayerSettings>) => {
+            setSettings((s) => ({ ...s!, ...settings }));
 
-            await settingsProvider.set({ [key]: value });
+            await settingsProvider.set(settings);
 
             if (extension.installed) {
                 extension.notifySettingsUpdated();

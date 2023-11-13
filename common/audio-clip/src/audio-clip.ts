@@ -2,7 +2,7 @@ import Mp3Encoder from './mp3-encoder';
 // eslint-disable-next-line
 // @ts-ignore
 import Worker from 'worker-loader!./mp3-encoder-worker.js';
-import { download } from './util';
+import { download } from '@project/common';
 const defaultMp3WorkerFactory = () => new Worker();
 
 interface ExperimentalAudioElement extends HTMLAudioElement {

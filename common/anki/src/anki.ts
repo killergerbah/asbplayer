@@ -1,10 +1,10 @@
-import AudioClip from './audio-clip';
-import Image from './image';
-import { HttpFetcher, Fetcher } from './fetcher';
-import { AnkiSettings } from './settings';
+import { AudioClip } from '@project/common/audio-clip';
+import { Image } from '@project/common';
+import { HttpFetcher, Fetcher } from '@project/common';
+import { AnkiSettings } from '@project/common';
 import sanitize from 'sanitize-filename';
-import { AudioModel, ImageModel, SubtitleModel } from './model';
-import { extractText } from './util';
+import { AudioModel, ImageModel, SubtitleModel } from '@project/common';
+import { extractText } from '@project/common';
 
 const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
 

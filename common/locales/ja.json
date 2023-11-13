@@ -12,11 +12,13 @@
         "openFiles": "開く",
         "loadSubtitles": "字幕をロードする",
         "openApp": "アプリを開く",
-        "toggleSidePanel": "サイドパネルを開く/閉じる",
+        "openSidePanel": "サイドパネルを開く",
         "mine": "マイニングする",
         "updateLastCard": "最後のカードを更新する",
         "startRecording": "録音開始",
-        "stopRecording": "録音停止"
+        "stopRecording": "録音停止",
+        "importSettings": "設定をインポートする",
+        "exportSettings": "設定をエクスポートする"
     },
     "postMineAction": {
         "none": "何もしない",

@@ -3,8 +3,6 @@ import { makeStyles, Theme } from '@material-ui/core/styles';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import { useWindowSize } from '../hooks/use-window-size';
 import {
-    Anki,
-    AudioClip,
     Image,
     humanReadableTime,
     AnkiDialogSliderContext,
@@ -23,6 +21,8 @@ import {
     CopyHistoryItem,
     Fetcher,
 } from '@project/common';
+import { AudioClip } from '@project/common/audio-clip';
+import { Anki, AnkiExportMode } from '@project/common/anki';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { v4 as uuidv4 } from 'uuid';
 import clsx from 'clsx';
@@ -39,7 +39,6 @@ import Player, { AnkiDialogFinishedRequest, MediaSources } from './Player';
 import SettingsDialog from './SettingsDialog';
 import VideoPlayer, { SeekRequest } from './VideoPlayer';
 import { Color } from '@material-ui/lab';
-import { AnkiExportMode } from '@project/common';
 import { DefaultKeyBinder } from '@project/common/key-binder';
 import AppKeyBinder from '../services/app-key-binder';
 import VideoChannel from '../services/video-channel';
@@ -288,7 +287,7 @@ interface Props {
     settings: AsbplayerSettings;
     extension: ChromeExtension;
     fetcher: Fetcher;
-    onSettingsChanged: <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => void;
+    onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
 }
 
 function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged }: Props) {

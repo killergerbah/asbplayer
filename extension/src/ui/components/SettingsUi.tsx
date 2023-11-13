@@ -1,4 +1,4 @@
-import { Anki, HttpFetcher, createTheme } from '@project/common';
+import { HttpFetcher, createTheme } from '@project/common';
 import { useCallback, useMemo } from 'react';
 import { useSettings } from '../hooks/use-settings';
 import { ThemeProvider, makeStyles } from '@material-ui/core/styles';
@@ -11,6 +11,7 @@ import { useCommandKeyBinds } from '../hooks/use-command-key-binds';
 import { useI18n, useLocalFontFamilies } from '@project/common/hooks';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Paper from '@material-ui/core/Paper';
+import { Anki } from '@project/common/anki';
 
 const useStyles = makeStyles({
     root: {

@@ -12,11 +12,13 @@
         "openFiles": "Otwórz pliki",
         "loadSubtitles": "Load Subtitles",
         "openApp": "Open App",
-        "toggleSidePanel": "Toggle Side Panel",
+        "openSidePanel": "Open Side Panel",
         "mine": "Mine",
         "updateLastCard": "Update Last Card",
         "startRecording": "Start Recording",
-        "stopRecording": "Stop Recording"
+        "stopRecording": "Stop Recording",
+        "importSettings": "Import Settings",
+        "exportSettings": "Export Settings"
     },
     "postMineAction": {
         "none": "None",
