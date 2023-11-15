@@ -23,11 +23,12 @@ import { AudioClip } from '@project/common/audio-clip';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import Alert, { Color } from '@material-ui/lab/Alert';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { AnkiDialog, ImageDialog } from '@project/common/components';
+import AnkiDialog from '@project/common/components/AnkiDialog';
+import ImageDialog from '@project/common/components/ImageDialog';
 import Snackbar from '@material-ui/core/Snackbar';
 import Bridge from '../bridge';
 import { PaletteType } from '@material-ui/core';
-import { AnkiDialogState } from '@project/common/components';
+import { AnkiDialogState } from '@project/common/components/AnkiDialog';
 import { BridgeFetcher } from '../bridge-fetcher';
 import { Anki, AnkiExportMode } from '@project/common/anki';
 

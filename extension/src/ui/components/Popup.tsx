@@ -5,7 +5,8 @@ import {
     PopupToExtensionCommand,
     chromeCommandBindsToKeyBinds,
 } from '@project/common';
-import { PanelIcon, SettingsForm } from '@project/common/components';
+import SettingsForm from '@project/common/components/SettingsForm';
+import PanelIcon from '@project/common/components/PanelIcon';
 import LaunchIcon from '@material-ui/icons/Launch';
 import { useCallback, useMemo } from 'react';
 import { useI18n } from '@project/common/hooks';

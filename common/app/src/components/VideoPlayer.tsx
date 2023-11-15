@@ -25,7 +25,7 @@ import {
 } from '@project/common';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { DefaultKeyBinder } from '@project/common/key-binder';
-import { SubtitleTextImage } from '@project/common/components';
+import SubtitleTextImage from '@project/common/components/SubtitleTextImage';
 import Clock from '../services/clock';
 import Controls, { Point } from './Controls';
 import PlayerChannel from '../services/player-channel';

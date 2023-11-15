@@ -37,7 +37,7 @@ import ZoomInIcon from '@material-ui/icons/ZoomIn';
 import ZoomOutIcon from '@material-ui/icons/ZoomOut';
 import SubtitleTextImage from './SubtitleTextImage';
 import TagsTextField from './TagsTextField';
-import { Anki, AnkiExportMode } from '../../anki';
+import { Anki, AnkiExportMode } from '../anki';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -221,7 +221,7 @@ interface AnkiDialogProps {
     stateRef?: MutableRefObject<AnkiDialogState | undefined>;
 }
 
-export function AnkiDialog({
+export default function AnkiDialog({
     open,
     disabled,
     text: initialText,

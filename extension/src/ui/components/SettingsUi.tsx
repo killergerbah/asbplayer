@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { useSettings } from '../hooks/use-settings';
 import { ThemeProvider, makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
-import { SettingsForm } from '@project/common/components';
+import SettingsForm from '@project/common/components/SettingsForm';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';

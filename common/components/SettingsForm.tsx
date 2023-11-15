@@ -34,7 +34,7 @@ import {
     exportSettings,
 } from '@project/common';
 import { useOutsideClickListener } from '@project/common/hooks';
-import { TagsTextField } from '@project/common/components';
+import TagsTextField from '@project/common/components/TagsTextField';
 import hotkeys from 'hotkeys-js';
 import Typography from '@material-ui/core/Typography';
 import { isMacOs } from 'react-device-detect';
@@ -48,7 +48,7 @@ import Tabs from '@material-ui/core/Tabs';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import Link from '@material-ui/core/Link';
 import Button from '@material-ui/core/Button';
-import { Anki } from '../../anki';
+import { Anki } from '../anki';
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
