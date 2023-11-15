@@ -455,8 +455,8 @@ export class DefaultKeyBinder implements KeyBinder {
         const decreaseHandler = (event: KeyboardEvent) => delegate(event, false);
         const increaseHandler = (event: KeyboardEvent) => delegate(event, true);
 
-        const unbindDecrease = this._bind(decreaseShortcut, capture, decreaseHandler);
-        const unbindIncrease = this._bind(increaseShortcut, capture, increaseHandler);
+        const unbindDecrease = decreaseShortcut ? this._bind(decreaseShortcut, capture, decreaseHandler) : () => {};
+        const unbindIncrease = increaseShortcut ? this._bind(increaseShortcut, capture, increaseHandler) : () => {};
         return () => {
             unbindDecrease();
             unbindIncrease();
@@ -564,7 +564,8 @@ export class DefaultKeyBinder implements KeyBinder {
 
         for (let i = 0; i < shortcuts.length; ++i) {
             const handler = (event: KeyboardEvent) => delegate(event, i);
-            unbindHandlers.push(this._bind(shortcuts[i], capture, handler));
+            const unbindHandler = shortcuts[i] ? this._bind(shortcuts[i], capture, handler) : () => {};
+            unbindHandlers.push(unbindHandler);
         }
 
         return () => {
@@ -601,7 +602,7 @@ export class DefaultKeyBinder implements KeyBinder {
 
         for (let i = 0; i < 9; ++i) {
             const handler = (event: KeyboardEvent) => delegate(event, i);
-            const unbindHandler = this._bind(shortcuts[i], capture, handler);
+            const unbindHandler = shortcuts[i] ? this._bind(shortcuts[i], capture, handler) : () => {};
             unbindHandlers.push(unbindHandler);
         }
 
@@ -667,7 +668,11 @@ export class DefaultKeyBinder implements KeyBinder {
         return this._bind(shortcut, capture, handler);
     }
 
-    bindToggleSidePanel(onToggleSidePanel: (event: KeyboardEvent) => void, disabledGetter: () => boolean, capture = false) {
+    bindToggleSidePanel(
+        onToggleSidePanel: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        capture = false
+    ) {
         const shortcut = this.keyBindSet.toggleSidePanel.keys;
 
         if (!shortcut) {
