@@ -2,6 +2,7 @@ import {
     computeStyleString,
     CopyToClipboardMessage,
     OffsetFromVideoMessage,
+    SettingsProvider,
     SubtitleAlignment,
     SubtitleModel,
     SubtitleSettings,
@@ -26,6 +27,7 @@ export interface SubtitleModelWithIndex extends SubtitleModel {
 
 export default class SubtitleController {
     private readonly video: HTMLMediaElement;
+    private readonly settings: SettingsProvider;
 
     private showingSubtitles?: SubtitleModelWithIndex[];
     private lastLoadedMessageTimestamp: number;
@@ -54,8 +56,9 @@ export default class SubtitleController {
 
     onNextToShow?: (subtitle: SubtitleModel) => void;
 
-    constructor(video: HTMLMediaElement) {
+    constructor(video: HTMLMediaElement, settings: SettingsProvider) {
         this.video = video;
+        this.settings = settings;
         this._subtitleAlignment = 'bottom';
         this._preCacheDom = false;
         const { subtitlesElementOverlay, notificationElementOverlay } = this._overlays(
@@ -450,6 +453,12 @@ export default class SubtitleController {
 
             chrome.runtime.sendMessage(command);
         }
+
+        this.settings.getSingle('rememberSubtitleOffset').then((rememberSubtitleOffset) => {
+            if (rememberSubtitleOffset) {
+                this.settings.set({ lastSubtitleOffset: offset });
+            }
+        });
     }
 
     private _computeOffset(): number {

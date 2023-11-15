@@ -108,8 +108,8 @@ export default class Binding {
     constructor(video: HTMLMediaElement, syncAvailable: boolean, frameId?: string) {
         this.video = video;
         this.subSyncAvailable = syncAvailable;
-        this.subtitleController = new SubtitleController(video);
         this.settings = new SettingsProvider(new ExtensionSettingsStorage());
+        this.subtitleController = new SubtitleController(video, this.settings);
         this.videoDataSyncController = new VideoDataSyncController(this, this.settings);
         this.controlsController = new ControlsController(video);
         this.dragController = new DragController(video);
@@ -918,21 +918,38 @@ export default class Binding {
     }
 
     async loadSubtitles(files: File[], flatten: boolean) {
-        const { streamingSubtitleListPreference, subtitleRegexFilter, subtitleRegexFilterTextReplacement } =
-            await this.settings.get([
-                'streamingSubtitleListPreference',
-                'subtitleRegexFilter',
-                'subtitleRegexFilterTextReplacement',
-            ]);
+        const {
+            streamingSubtitleListPreference,
+            subtitleRegexFilter,
+            subtitleRegexFilterTextReplacement,
+            rememberSubtitleOffset,
+            lastSubtitleOffset,
+        } = await this.settings.get([
+            'streamingSubtitleListPreference',
+            'subtitleRegexFilter',
+            'subtitleRegexFilterTextReplacement',
+            'rememberSubtitleOffset',
+            'lastSubtitleOffset',
+        ]);
         switch (streamingSubtitleListPreference) {
             case SubtitleListPreference.noSubtitleList:
                 const reader = new SubtitleReader({
                     regexFilter: subtitleRegexFilter,
                     regexFilterTextReplacement: subtitleRegexFilterTextReplacement,
                 });
+                const offset = rememberSubtitleOffset ? lastSubtitleOffset : 0;
                 const subtitles = await reader.subtitles(files, flatten);
                 this._updateSubtitles(
-                    subtitles.map((s, index) => ({ ...s, index, originalStart: s.start, originalEnd: s.end })),
+                    subtitles.map((s, index) => ({
+                        start: s.start + offset,
+                        end: s.end + offset,
+                        text: s.text,
+                        textImage: s.textImage,
+                        track: s.track,
+                        index,
+                        originalStart: s.start,
+                        originalEnd: s.end,
+                    })),
                     files.map((f) => f.name)
                 );
                 break;

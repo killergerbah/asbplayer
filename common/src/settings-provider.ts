@@ -68,6 +68,7 @@ export const defaultSettings: AsbplayerSettings = {
     themeType: 'dark',
     copyToClipboardOnMine: false,
     rememberSubtitleOffset: true,
+    lastSubtitleOffset: 0,
     autoCopyCurrentSubtitle: false,
     subtitleRegexFilter: '',
     subtitleRegexFilterTextReplacement: '',

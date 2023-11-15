@@ -47,6 +47,10 @@ export default class PlaybackPreferences {
             return 0;
         }
 
+        if (this._extension.supportsAppIntegration) {
+            return this._settings.lastSubtitleOffset;
+        }
+
         const value = this._storage.get(offsetKey);
 
         if (value === null) {
@@ -57,7 +61,11 @@ export default class PlaybackPreferences {
     }
 
     set offset(offset: number) {
-        this._storage.set(offsetKey, String(offset));
+        if (this._extension.supportsAppIntegration) {
+            this._extension.setSettings({ lastSubtitleOffset: offset });
+        } else {
+            this._storage.set(offsetKey, String(offset));
+        }
     }
 
     get subtitleAlignment() {

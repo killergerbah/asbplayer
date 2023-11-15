@@ -13,7 +13,7 @@ import { FrameInfoListener, fetchFrameId } from './services/frame-info';
 import { cropAndResize } from '@project/common/src/image-transformer';
 import { TabAnkiUiController } from './controllers/tab-anki-ui-controller';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
-import { DefaultKeyBinder, KeyBinder } from '@project/common/key-binder';
+import { DefaultKeyBinder } from '@project/common/key-binder';
 
 const extensionSettingsStorage = new ExtensionSettingsStorage();
 const settingsProvider = new SettingsProvider(extensionSettingsStorage);

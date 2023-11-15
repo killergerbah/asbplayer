@@ -13,6 +13,7 @@ export interface MiscSettings {
     readonly preCacheSubtitleDom: boolean;
     readonly language: string;
     readonly clickToMineDefaultAction: PostMineAction;
+    readonly lastSubtitleOffset: number;
 }
 
 export interface AnkiSettings {
