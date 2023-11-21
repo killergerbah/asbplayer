@@ -50,7 +50,7 @@ interface Props {
     suggestedName: string;
     showSubSelect: boolean;
     subtitles: VideoDataSubtitleTrack[];
-    selectedSubtitle: string;
+    selectedSubtitle: string[];
     error: string;
     openedFromMiningCommand: boolean;
     onCancel: () => void;
@@ -80,11 +80,11 @@ export default function VideoDataSyncDialog({
 
     useEffect(() => {
         if (open) {
-            setSelectedSubtitles((prevSelectedSubtitles) => {
-                const newSelectedSubtitles = [...prevSelectedSubtitles];
-                newSelectedSubtitles[0] = selectedSubtitle;
-                return newSelectedSubtitles;
-            });
+            setSelectedSubtitles(
+                selectedSubtitle.map((url) => {
+                    return url !== undefined ? url : '-';
+                })
+            );
         } else if (!open) {
             setName('');
         }
@@ -121,16 +121,7 @@ export default function VideoDataSyncDialog({
 
     function handleOkButtonClick() {
         const selectedSubtitleTracks: ConfirmedVideoDataSubtitleTrack[] = allSelectedSubtitleTracks();
-
-        // Remove all but one empty track in order to intentionally send one empty track if no tracks are selected
-        const uniqueTracks: ConfirmedVideoDataSubtitleTrack[] = filterByUniqueUrl(selectedSubtitleTracks);
-
-        // If track length > 1 and we have unique tracks, then at least one language must have been selected and it is safe to remove the remaining empty track
-        if (uniqueTracks.length > 1) {
-            onConfirm(removeEmptyTracks(uniqueTracks));
-        } else {
-            onConfirm(uniqueTracks);
-        }
+        onConfirm(selectedSubtitleTracks);
     }
 
     function allSelectedSubtitleTracks() {
@@ -154,23 +145,6 @@ export default function VideoDataSyncDialog({
         selectedSubtitleTracks[0].name = trimmedName;
 
         return selectedSubtitleTracks;
-    }
-
-    function filterByUniqueUrl(track: ConfirmedVideoDataSubtitleTrack[]) {
-        const uniqueTracks: ConfirmedVideoDataSubtitleTrack[] = [];
-        const urls: string[] = [];
-        for (let i = 0; i < track.length; i++) {
-            if (!urls.includes(track[i].subtitleUrl)) {
-                uniqueTracks.push(track[i]);
-                urls.push(track[i].subtitleUrl);
-            }
-        }
-
-        return uniqueTracks;
-    }
-
-    function removeEmptyTracks(track: ConfirmedVideoDataSubtitleTrack[]) {
-        return track.filter((track) => track.subtitleUrl !== '-');
     }
 
     function generateSubtitleTrackSelectors(numberOfSubtitleTrackSelectors: number) {

@@ -32,7 +32,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [subtitles, setSubtitles] = useState<VideoDataSubtitleTrack[]>([
         { language: '', url: '-', label: t('extension.videoDataSync.emptySubtitleTrack'), extension: 'srt' },
     ]);
-    const [selectedSubtitle, setSelectedSubtitle] = useState<string>('-');
+    const [selectedSubtitle, setSelectedSubtitle] = useState<string[]>(['-', '-', '-']);
     const [openedFromMiningCommand, setOpenedFromMiningCommand] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
     const [themeType, setThemeType] = useState<string>();
