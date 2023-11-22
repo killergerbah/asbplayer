@@ -29,7 +29,7 @@ const SidePanelTopControls = React.forwardRef(
             <Fade in={show || forceShow}>
                 {/* Box type is missing ref support */}
                 {/* @ts-ignore */}
-                <Box ref={ref} style={{ position: 'absolute', top: 0, right: 0 }}>
+                <Box ref={ref} style={{ position: 'absolute', top: 12, right: 12 }}>
                     <Grid container direction="column">
                         <Grid item>
                             <Tooltip title={t('action.loadSubtitles')!}>
