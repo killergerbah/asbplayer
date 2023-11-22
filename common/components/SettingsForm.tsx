@@ -629,6 +629,8 @@ export default function SettingsForm({
         subtitleThickness,
         subtitleOutlineThickness,
         subtitleOutlineColor,
+        subtitleShadowThickness,
+        subtitleShadowColor,
         subtitleBackgroundColor,
         subtitleBackgroundOpacity,
         subtitleFontFamily,
@@ -705,6 +707,8 @@ export default function SettingsForm({
                 subtitleThickness,
                 subtitleOutlineThickness,
                 subtitleOutlineColor,
+                subtitleShadowThickness,
+                subtitleShadowColor,
                 subtitleBackgroundOpacity,
                 subtitleBackgroundColor,
                 subtitleFontFamily,
@@ -716,6 +720,8 @@ export default function SettingsForm({
             subtitleThickness,
             subtitleOutlineThickness,
             subtitleOutlineColor,
+            subtitleShadowThickness,
+            subtitleShadowColor,
             subtitleBackgroundOpacity,
             subtitleBackgroundColor,
             subtitleFontFamily,
@@ -1226,6 +1232,32 @@ export default function SettingsForm({
                                 value={subtitleOutlineThickness}
                                 onChange={(event) =>
                                     handleSettingChanged('subtitleOutlineThickness', Number(event.target.value))
+                                }
+                                inputProps={{
+                                    min: 0,
+                                    step: 0.1,
+                                }}
+                                color="secondary"
+                            />
+                        </div>
+                        <div className={classes.subtitleSetting}>
+                            <TextField
+                                type="color"
+                                label={t('settings.subtitleShadowColor')}
+                                fullWidth
+                                value={subtitleShadowColor}
+                                color="secondary"
+                                onChange={(event) => handleSettingChanged('subtitleShadowColor', event.target.value)}
+                            />
+                        </div>
+                        <div className={classes.subtitleSetting}>
+                            <TextField
+                                type="number"
+                                label={t('settings.subtitleShadowThickness')}
+                                fullWidth
+                                value={subtitleShadowThickness}
+                                onChange={(event) =>
+                                    handleSettingChanged('subtitleShadowThickness', Number(event.target.value))
                                 }
                                 inputProps={{
                                     min: 0,

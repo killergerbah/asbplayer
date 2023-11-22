@@ -243,6 +243,8 @@
         "subtitleFontFamily": "字幕字体系列",
         "subtitleOutlineColor": "字幕轮廓线颜色",
         "subtitleOutlineThickness": "字幕轮廓线厚度",
+        "subtitleShadowColor": "Subtitle Shadow Color",
+        "subtitleShadowThickness": "Subtitle Shadow Thickness",
         "subtitleOutlineThicknessHelperText": "在字幕文本周围添加轮廓线。如果这会导致线条重叠，请尝试使用其他字体。",
         "subtitleRegexFilter": "字幕正则筛选器",
         "subtitleRegexFilterTextReplacement": "字幕正则筛选器文本替换",
