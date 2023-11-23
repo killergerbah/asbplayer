@@ -489,14 +489,27 @@ export default class SubtitleController {
         }, 3000);
     }
 
-    showLoadedMessage() {
+    showLoadedMessage(isEmptySubtitle?: boolean[]) {
         if (!this.subtitleFileNames) {
             return;
         }
 
         let loadedMessage: string;
 
-        loadedMessage = this.subtitleFileNames.join('<br>');
+        let nonEmptySubtitleFileNames: string[];
+
+        if (isEmptySubtitle?.length) {
+            nonEmptySubtitleFileNames = this._nonEmptySubtitleNames(isEmptySubtitle);
+
+            if (nonEmptySubtitleFileNames.length === 0) {
+                loadedMessage = this.subtitleFileNames[0];
+            } else {
+                loadedMessage = nonEmptySubtitleFileNames.join('<br>');
+            }
+        } else {
+            loadedMessage = this.subtitleFileNames.join('<br>');
+        }
+
         if (this.subtitles.length > 0) {
             const offset = this.subtitles[0].start - this.subtitles[0].originalStart;
 
@@ -514,6 +527,18 @@ export default class SubtitleController {
         ]);
         this.showingLoadedMessage = true;
         this.lastLoadedMessageTimestamp = Date.now();
+    }
+
+    private _nonEmptySubtitleNames(isEmptySubtitle: boolean[]) {
+        const nonEmptySubtitleFileNames = [];
+
+        for (let i = 0; i < isEmptySubtitle.length; i++) {
+            if (!isEmptySubtitle[i]) {
+                nonEmptySubtitleFileNames.push(this.subtitleFileNames![i]);
+            }
+        }
+
+        return nonEmptySubtitleFileNames;
     }
 
     private _setSubtitlesHtml(htmls: KeyedHtml[]) {
