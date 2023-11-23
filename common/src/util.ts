@@ -254,6 +254,8 @@ export function computeStyles({
     subtitleThickness,
     subtitleOutlineThickness,
     subtitleOutlineColor,
+    subtitleShadowThickness,
+    subtitleShadowColor,
     subtitleBackgroundOpacity,
     subtitleBackgroundColor,
     subtitleFontFamily,
@@ -269,6 +271,12 @@ export function computeStyles({
         const thickness = subtitleOutlineThickness;
         const color = subtitleOutlineColor;
         styles['WebkitTextStroke'] = `${color} ${thickness}px`;
+    }
+
+    if (subtitleShadowThickness > 0) {
+        styles[
+            'textShadow'
+        ] = `0 0 ${subtitleShadowThickness}px ${subtitleShadowColor}, 0 0 ${subtitleShadowThickness}px ${subtitleShadowColor}, 0 0 ${subtitleShadowThickness}px ${subtitleShadowColor}, 0 0 ${subtitleShadowThickness}px ${subtitleShadowColor}`;
     }
 
     if (subtitleBackgroundOpacity > 0) {

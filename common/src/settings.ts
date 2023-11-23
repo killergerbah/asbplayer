@@ -77,6 +77,8 @@ export interface TextSubtitleSettings {
     readonly subtitleThickness: number;
     readonly subtitleOutlineThickness: number;
     readonly subtitleOutlineColor: string;
+    readonly subtitleShadowThickness: number;
+    readonly subtitleShadowColor: string;
     readonly subtitleBackgroundOpacity: number;
     readonly subtitleBackgroundColor: string;
     readonly subtitleFontFamily: string;

@@ -1,5 +1,5 @@
 import { AsbplayerSettings, Fetcher, SettingsProvider, SettingsStorage } from '@project/common';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { App, ExtensionMessage, useChromeExtension } from '@project/common/app';
 
 interface Props {
@@ -23,10 +23,6 @@ const RootApp = ({ origin, logoUrl, settingsStorage, fetcher }: Props) => {
             setSettings((s) => ({ ...s!, ...settings }));
 
             await settingsProvider.set(settings);
-
-            if (extension.installed) {
-                extension.notifySettingsUpdated();
-            }
         },
         [settingsProvider, extension]
     );

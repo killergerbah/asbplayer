@@ -243,6 +243,8 @@
         "subtitleFontFamily": "Untertitelschriftart",
         "subtitleOutlineColor": "Untertitelrandfarbe",
         "subtitleOutlineThickness": "Untertitelrandbreite",
+        "subtitleShadowColor": "Subtitle Shadow Color",
+        "subtitleShadowThickness": "Subtitle Shadow Thickness",
         "subtitleOutlineThicknessHelperText": "Adds an outline around subtitle text. If this causes overlapping lines, try using a different font.",
         "subtitleRegexFilter": "Untertitelfilter (Regulärer Ausdruck)",
         "subtitleRegexFilterTextReplacement": "Untertitelfilter Ersetzung",
