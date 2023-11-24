@@ -1,6 +1,6 @@
 import {
     AnkiSettings,
-    Card,
+    CardModel,
     CardSavedMessage,
     CardUpdatedMessage,
     CopyMessage,
@@ -25,7 +25,7 @@ export class CardPublisher {
         this._settingsProvider = settingsProvider;
     }
 
-    async publish(card: Card, postMineAction?: PostMineAction, tabId?: number, src?: string) {
+    async publish(card: CardModel, postMineAction?: PostMineAction, tabId?: number, src?: string) {
         const id = uuidv4();
         const savePromise = this._saveCardToRepository(id, card);
 
@@ -89,7 +89,7 @@ export class CardPublisher {
         }
     }
 
-    private async _saveCardToRepository(id: string, card: Card) {
+    private async _saveCardToRepository(id: string, card: CardModel) {
         try {
             const backgroundPageCopyCommand: ExtensionToBackgroundPageCommand<CopyMessage> = {
                 sender: 'asbplayer-extension-to-background-page',

@@ -28,35 +28,28 @@ export interface SubtitleModel {
     readonly track: number;
 }
 
-export interface CopiedSubtitleModel extends SubtitleModel {
-    surroundingSubtitles: SubtitleModel[];
-    timestamp: number;
-    id: string;
-    name: string;
-    subtitleFile?: File;
-    audioFile?: File;
-    videoFile?: File;
-    audioTrack?: number;
-    audio?: AudioModel;
-    image?: ImageModel;
+export interface CardModel {
+    readonly id?: string;
+    readonly subtitle: SubtitleModel;
+    readonly surroundingSubtitles: SubtitleModel[];
+    readonly subtitleFileName: string;
+    readonly url?: string;
+    readonly image?: ImageModel;
+    readonly audio?: AudioModel;
+    readonly file?: FileModel;
+    readonly mediaTimestamp: number;
 }
 
-export interface CopyHistoryItem extends SubtitleModel {
-    name: string;
-    id: string;
-    timestamp: number;
-    surroundingSubtitles: SubtitleModel[];
-    audioFile?: File;
-    audioFileName?: string;
-    audioTrack?: string;
-    videoFile?: File;
-    videoFileName?: string;
-    filePlaybackRate?: number;
-    subtitleFileName?: string;
-    mediaTimestamp?: number;
-    audio?: AudioModel;
-    image?: ImageModel;
-    url?: string;
+export interface FileModel {
+    readonly name: string;
+    readonly blobUrl: string;
+    readonly playbackRate?: number;
+    readonly audioTrack?: string;
+}
+
+export interface CopyHistoryItem extends CardModel {
+    readonly id: string;
+    readonly timestamp: number;
 }
 
 export interface ImageModel {
@@ -74,17 +67,13 @@ export interface AudioModel {
     readonly playbackRate?: number;
 }
 
-export interface AnkiDialogSliderContext {
-    subtitleStart: number;
-    subtitleEnd: number;
-    subtitles: SubtitleModel[];
-}
-
 export interface AnkiUiState {
     readonly type: 'initial' | 'resume';
     readonly open: boolean;
+    readonly canRerecord: boolean;
     readonly settingsProvider: AnkiSettings;
     readonly subtitle: SubtitleModel;
+    readonly surroundingSubtitles: SubtitleModel[];
     readonly url: string;
     readonly source: string;
     readonly image?: ImageModel;
@@ -95,17 +84,14 @@ export interface AnkiUiState {
 
 export interface AnkiUiInitialState extends AnkiUiState {
     readonly type: 'initial';
-    readonly surroundingSubtitles: SubtitleModel[];
 }
 
 export interface AnkiUiResumeState extends AnkiUiState {
     readonly type: 'resume';
-
     readonly text: string;
     readonly initialTimestampInterval: number[];
     readonly timestampInterval: number[];
     readonly timestampBoundaryInterval?: number[];
-    readonly sliderContext: AnkiDialogSliderContext;
     readonly definition: string;
     readonly word: string;
     readonly customFieldValues: { [key: string]: string };
@@ -115,8 +101,8 @@ export interface AnkiUiResumeState extends AnkiUiState {
 
 export interface AnkiUiSavedState {
     subtitle: SubtitleModel;
+    surroundingSubtitles: SubtitleModel[];
     text: string;
-    sliderContext: AnkiDialogSliderContext;
     definition: string;
     image?: ImageModel;
     audio?: AudioModel;

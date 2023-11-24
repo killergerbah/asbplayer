@@ -9,6 +9,7 @@ import {
     ConfirmedVideoDataSubtitleTrack,
     PostMineAction,
     PlayMode,
+    CardModel,
 } from './model';
 import { AsbPlayerToVideoCommandV2 } from './command';
 
@@ -129,23 +130,12 @@ export interface StopRecordingMediaMessage extends Message, ImageCaptureParams {
     readonly surroundingSubtitles?: SubtitleModel[];
 }
 
-export interface Card {
-    readonly id?: string;
-    readonly subtitle: SubtitleModel;
-    readonly surroundingSubtitles: SubtitleModel[];
-    readonly subtitleFileName: string;
-    readonly url?: string;
-    readonly image?: ImageModel;
-    readonly audio?: AudioModel;
-    readonly mediaTimestamp: number;
-}
-
-export interface CopyMessage extends Message, Card {
+export interface CopyMessage extends Message, CardModel {
     readonly command: 'copy';
     readonly postMineAction?: PostMineAction;
 }
 
-export interface PublishCardMessage extends Message, Card {
+export interface PublishCardMessage extends Message, CardModel {
     readonly command: 'publish-card';
 }
 

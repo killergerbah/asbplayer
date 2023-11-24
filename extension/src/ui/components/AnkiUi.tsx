@@ -4,10 +4,8 @@ import {
     ImageModel,
     AudioModel,
     SubtitleModel,
-    AnkiDialogSliderContext,
     AnkiSettings,
     AnkiUiState,
-    AnkiUiInitialState,
     AnkiUiResumeState,
     AnkiUiSavedState,
     AnkiUiBridgeRerecordMessage,
@@ -50,16 +48,16 @@ const blobToDataUrl = async (blob: Blob): Promise<string> => {
 export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
     const [open, setOpen] = useState<boolean>(false);
     const [disabled, setDisabled] = useState<boolean>(false);
+    const [canRerecord, setCanRerecord] = useState<boolean>(false);
     const [subtitle, setSubtitle] = useState<SubtitleModel>();
+    const [surroundingSubtitles, setSurroundingSubtitles] = useState<SubtitleModel[]>();
     const [text, setText] = useState<string>();
-    const [audioClip, setAudioClip] = useState<AudioClip>();
     const [serializedAudio, setSerializedAudio] = useState<AudioModel>();
     const [image, setImage] = useState<Image>();
     const [serializedImage, setSerializedImage] = useState<ImageModel>();
     const [imageDialogOpen, setImageDialogOpen] = useState<boolean>(false);
     const [source, setSource] = useState<string>('');
     const [url, setUrl] = useState<string>('');
-    const [sliderContext, setSliderContext] = useState<AnkiDialogSliderContext>();
     const [definition, setDefinition] = useState('');
     const [word, setWord] = useState('');
     const [customFieldValues, setCustomFieldValues] = useState<{ [key: string]: string }>({});
@@ -87,7 +85,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
         const savedState: AnkiUiSavedState = {
             subtitle: subtitle!,
             text: dialogState.text,
-            sliderContext: dialogState.sliderContext!,
+            surroundingSubtitles: dialogState.surroundingSubtitles,
             definition: dialogState.definition,
             image: serializedImage,
             audio: serializedAudio,
@@ -147,28 +145,10 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             }
 
             if (s.type === 'initial') {
-                const state = s as AnkiUiInitialState;
-                const sliderContext = {
-                    subtitleStart: state.subtitle.start,
-                    subtitleEnd: state.subtitle.end,
-                    subtitles: state.surroundingSubtitles || [
-                        {
-                            start: state.subtitle.start,
-                            end: state.subtitle.end,
-                            text: state.subtitle.text,
-                            track: state.subtitle.track,
-                        },
-                    ],
-                };
                 setText(undefined);
-                setTimestampInterval(
-                    (s.audio?.start && s.audio?.end && [s.audio.start, s.audio.end]) ||
-                        (sliderContext && [sliderContext.subtitleStart, sliderContext.subtitleEnd]) ||
-                        undefined
-                );
+                setTimestampInterval((s.audio?.start && s.audio?.end && [s.audio.start, s.audio.end]) || undefined);
                 setTimestampBoundaryInterval(undefined);
                 setInitialTimestampInterval(undefined);
-                setSliderContext(sliderContext);
                 setDefinition('');
                 setWord('');
                 setCustomFieldValues({});
@@ -180,7 +160,6 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 setInitialTimestampInterval(state.initialTimestampInterval);
                 setTimestampInterval(state.timestampInterval);
                 setTimestampBoundaryInterval(state.timestampBoundaryInterval);
-                setSliderContext(state.sliderContext);
                 setDefinition(state.definition);
                 setWord(state.word);
                 setCustomFieldValues(state.customFieldValues);
@@ -188,7 +167,9 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 setLastAppliedTimestampIntervalToAudio(state.lastAppliedTimestampIntervalToAudio);
             }
 
+            setCanRerecord(s.canRerecord);
             setSubtitle(s.subtitle);
+            setSurroundingSubtitles(s.surroundingSubtitles);
             setSource(s.source);
             setUrl(s.url);
             setDialogRequestedTimestamp(s.dialogRequestedTimestamp);
@@ -197,7 +178,6 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             setImageDialogOpen(false);
             setDisabled(false);
             setSettingsProvider(s.settingsProvider);
-            setAudioClip(audioClip);
             setImage(image);
             setThemeType(s.themeType || 'dark');
             setOpen(s.open);
@@ -347,27 +327,31 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 </Alert>
             </Snackbar>
             <ImageDialog open={imageDialogOpen} image={image} onClose={() => setImageDialogOpen(false)} />
-            {sliderContext && settingsProvider && anki && (
+            {settingsProvider && subtitle && surroundingSubtitles && anki && (
                 <AnkiDialog
                     open={open}
                     disabled={disabled}
-                    text={text}
-                    sliderContext={sliderContext}
-                    audioClip={audioClip}
-                    image={image}
-                    source={source}
-                    url={url}
-                    settingsProvider={settingsProvider}
+                    card={{
+                        subtitle,
+                        surroundingSubtitles,
+                        url,
+                        audio: serializedAudio,
+                        image: serializedImage,
+                        subtitleFileName: source,
+                        mediaTimestamp: serializedAudio?.start ?? subtitle.start,
+                    }}
+                    settings={settingsProvider}
                     anki={anki}
                     onProceed={handleProceed}
-                    onRerecord={handleRerecord}
+                    onRerecord={canRerecord ? handleRerecord : undefined}
                     onCancel={handleCancel}
                     onViewImage={handleViewImage}
                     onOpenSettings={handleOpenSettings}
                     onCopyToClipboard={handleCopyToClipboard}
+                    text={text}
                     definition={definition}
                     word={word}
-                    customFields={settingsProvider.customAnkiFields}
+                    source={source}
                     customFieldValues={customFieldValues}
                     initialTimestampInterval={initialTimestampInterval}
                     timestampBoundaryInterval={timestampBoundaryInterval}

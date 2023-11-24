@@ -55,7 +55,7 @@ export default class RerecordMediaHandler {
                     image: rerecordCommand.message.uiState.image,
                     url: rerecordCommand.message.uiState.url,
                     subtitle: rerecordCommand.message.uiState.subtitle,
-                    surroundingSubtitles: rerecordCommand.message.uiState.sliderContext.subtitles,
+                    surroundingSubtitles: rerecordCommand.message.uiState.surroundingSubtitles,
                     subtitleFileName: rerecordCommand.message.subtitleFileName,
                     mediaTimestamp: rerecordCommand.message.timestamp,
                 },

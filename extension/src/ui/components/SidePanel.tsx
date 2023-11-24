@@ -12,6 +12,7 @@ import {
     VideoTabModel,
     ExtensionToAsbPlayerCommand,
     CopySubtitleMessage,
+    CardModel,
 } from '@project/common';
 import { AudioClip } from '@project/common/audio-clip';
 import { AppKeyBinder, ChromeExtension, useCopyHistory } from '@project/common/app';
@@ -268,8 +269,8 @@ export default function SidePanel({ settings, extension }: Props) {
             return;
         }
 
-        const start = item.audio.start ?? item.start;
-        const end = item.audio.end ?? item.end;
+        const start = item.audio.start ?? item.subtitle.start;
+        const end = item.audio.end ?? item.subtitle.end;
 
         const clip = AudioClip.fromBase64(
             item.subtitleFileName!,
@@ -291,7 +292,12 @@ export default function SidePanel({ settings, extension }: Props) {
             return;
         }
 
-        Image.fromBase64(item.subtitleFileName!, item.start, item.image.base64, item.image.extension).download();
+        Image.fromBase64(
+            item.subtitleFileName!,
+            item.subtitle.start,
+            item.image.base64,
+            item.image.extension
+        ).download();
     }, []);
     const handleAnki = useCallback(
         ({
@@ -300,13 +306,7 @@ export default function SidePanel({ settings, extension }: Props) {
             url,
             image,
             audio,
-            text,
-            textImage,
-            start,
-            end,
-            originalStart,
-            originalEnd,
-            track,
+            subtitle,
             subtitleFileName,
             mediaTimestamp,
         }: CopyHistoryItem) => {
@@ -321,15 +321,7 @@ export default function SidePanel({ settings, extension }: Props) {
                 audio,
                 surroundingSubtitles,
                 url,
-                subtitle: {
-                    text,
-                    textImage,
-                    start,
-                    end,
-                    originalStart,
-                    originalEnd,
-                    track,
-                },
+                subtitle,
                 subtitleFileName: subtitleFileName ?? '',
                 mediaTimestamp: mediaTimestamp ?? 0,
             };
@@ -348,7 +340,7 @@ export default function SidePanel({ settings, extension }: Props) {
     );
 
     const handleMineFromSubtitlePlayer = useCallback(
-        (subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[]) => {
+        (card: CardModel) => {
             if (syncedVideoTab === undefined) {
                 return;
             }
@@ -357,8 +349,8 @@ export default function SidePanel({ settings, extension }: Props) {
                 sender: 'asbplayerv2',
                 message: {
                     command: 'copy-subtitle',
-                    subtitle,
-                    surroundingSubtitles,
+                    subtitle: card.subtitle,
+                    surroundingSubtitles: card.surroundingSubtitles,
                     postMineAction: settings.clickToMineDefaultAction,
                 },
                 tabId: syncedVideoTab.id,

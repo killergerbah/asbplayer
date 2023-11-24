@@ -78,19 +78,9 @@ window.onload = async () => {
                         .getSingle('miningHistoryStorageLimit')
                         .then((storageLimit) => {
                             return new CopyHistoryRepository(storageLimit).save({
-                                ...copyMessage.subtitle,
+                                ...copyMessage,
                                 id: copyMessage.id ?? uuidv4(),
                                 timestamp: Date.now(),
-                                name: copyMessage.subtitleFileName.substring(
-                                    0,
-                                    copyMessage.subtitleFileName.lastIndexOf('.')
-                                ),
-                                subtitleFileName: copyMessage.subtitleFileName,
-                                mediaTimestamp: copyMessage.mediaTimestamp,
-                                surroundingSubtitles: copyMessage.surroundingSubtitles,
-                                url: copyMessage.url,
-                                audio: copyMessage.audio,
-                                image: copyMessage.image,
                             });
                         })
                         .then(() => sendResponse(true));

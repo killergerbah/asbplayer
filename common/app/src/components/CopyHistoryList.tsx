@@ -84,7 +84,7 @@ interface MenuProps {
 function Menu({ open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage, onDelete, item }: MenuProps) {
     const { t } = useTranslation();
     const handleCopy = useCallback(() => {
-        navigator.clipboard.writeText(item!.text);
+        navigator.clipboard.writeText(item!.subtitle.text);
         onClose();
     }, [item, onClose]);
 
@@ -140,7 +140,7 @@ function Menu({ open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage,
                         <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary={t('action.jumpTo')} />
                     </ListItem>
                 )}
-                {(item.videoFile || item.audioFile || item.audio) && (
+                {(item.file || item.audio) && (
                     <ListItem button onClick={handleClipAudio}>
                         <ListItemText
                             primaryTypographyProps={{ variant: 'body2' }}
@@ -148,7 +148,7 @@ function Menu({ open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage,
                         />
                     </ListItem>
                 )}
-                {(item.videoFile || item.image) && (
+                {(item.file || item.image) && (
                     <ListItem button onClick={handleDownloadImage}>
                         <ListItemText
                             primaryTypographyProps={{ variant: 'body2' }}
@@ -215,26 +215,28 @@ export default function CopyHistoryList({
         let currentKey: string | undefined;
 
         for (const item of items) {
-            if (lastSeenItemName === null || lastSeenItemName !== item.name) {
-                if (item.name in itemNameCounters) {
-                    itemNameCounters[item.name]++;
+            if (lastSeenItemName === null || lastSeenItemName !== item.subtitleFileName) {
+                if (item.subtitleFileName in itemNameCounters) {
+                    itemNameCounters[item.subtitleFileName]++;
                 } else {
-                    itemNameCounters[item.name] = 0;
+                    itemNameCounters[item.subtitleFileName] = 0;
                 }
 
-                const key = item.name + '-' + itemNameCounters[item.name];
+                const key = item.subtitleFileName + '-' + itemNameCounters[item.subtitleFileName];
                 itemsBySection[key] = [];
-                lastSeenItemName = item.name;
+                lastSeenItemName = item.subtitleFileName;
                 currentKey = key;
 
                 elements.push(
                     <ListItem key={key}>
-                        <Typography color="textSecondary">{item.name}</Typography>
+                        <Typography color="textSecondary">{item.subtitleFileName}</Typography>
                         {onDownloadSectionAsSrt && (
                             <ListItemSecondaryAction>
                                 <Tooltip title={t('copyHistory.downloadMinedSubsAsSrt')!}>
                                     <IconButton
-                                        onClick={() => onDownloadSectionAsSrt?.(item.name, itemsBySection[key])}
+                                        onClick={() =>
+                                            onDownloadSectionAsSrt?.(item.subtitleFileName, itemsBySection[key])
+                                        }
                                         edge="end"
                                     >
                                         <SaveAltIcon />
@@ -271,11 +273,11 @@ export default function CopyHistoryList({
                     <ListItemText
                         primary={
                             <Grid wrap="nowrap" container>
-                                <Grid item className={item.text === '' ? classes.emptyText : classes.text}>
-                                    {item.text === '' ? t('copyHistory.blank') : item.text}
+                                <Grid item className={item.subtitle.text === '' ? classes.emptyText : classes.text}>
+                                    {item.subtitle.text === '' ? t('copyHistory.blank') : item.subtitle.text}
                                 </Grid>
                                 <Grid item className={classes.timestamp}>
-                                    {timeDurationDisplay(item.start, item.start, false)}
+                                    {timeDurationDisplay(item.subtitle.start, item.subtitle.start, false)}
                                 </Grid>
                             </Grid>
                         }

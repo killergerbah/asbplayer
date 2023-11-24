@@ -2,7 +2,7 @@ import Mp3Encoder from './mp3-encoder';
 // eslint-disable-next-line
 // @ts-ignore
 import Worker from 'worker-loader!./mp3-encoder-worker.js';
-import { download } from '@project/common';
+import { CardModel, FileModel, download } from '@project/common';
 const defaultMp3WorkerFactory = () => new Worker();
 
 interface ExperimentalAudioElement extends HTMLAudioElement {
@@ -21,7 +21,7 @@ interface AudioData {
     base64: () => Promise<string>;
     slice: (start: number, end: number) => AudioData;
     isSliceable: () => boolean;
-    isPlayable: () => boolean;
+    isPlayable: () => Promise<boolean>;
 }
 
 function recorderConfiguration() {
@@ -128,13 +128,13 @@ class Base64AudioData implements AudioData {
         return false;
     }
 
-    isPlayable() {
+    async isPlayable() {
         return true;
     }
 }
 
 class FileAudioData implements AudioData {
-    private readonly file: File;
+    private readonly file: FileModel;
     private readonly _name: string;
     private readonly _start: number;
     private readonly _end: number;
@@ -151,8 +151,9 @@ class FileAudioData implements AudioData {
     private stopAudioTimeout?: NodeJS.Timeout;
 
     private _blob?: Blob;
+    private _playablePromise?: Promise<boolean>;
 
-    constructor(file: File, start: number, end: number, playbackRate: number, trackId?: string) {
+    constructor(file: FileModel, start: number, end: number, playbackRate: number, trackId?: string) {
         const [recorderMimeType, recorderExtension] = recorderConfiguration();
         this.recorderMimeType = recorderMimeType;
         this.file = file;
@@ -212,7 +213,7 @@ class FileAudioData implements AudioData {
             return;
         }
 
-        const audio = await this._audioElement(this._blob, false);
+        const audio = await this._audioElement(URL.createObjectURL(this._blob), false);
         audio.currentTime = 0;
         await audio.play();
         this.playingAudio = audio;
@@ -248,7 +249,7 @@ class FileAudioData implements AudioData {
 
         return new Promise(async (resolve, reject) => {
             try {
-                const audio = await this._audioElement(this.file, true);
+                const audio = await this._audioElement(this.file.blobUrl, true);
                 audio.oncanplay = async (e) => {
                     audio.play();
                     const stream = this._captureStream(audio);
@@ -289,9 +290,9 @@ class FileAudioData implements AudioData {
         });
     }
 
-    private _audioElement(source: Blob, selectTrack: boolean): Promise<ExperimentalAudioElement> {
+    private _audioElement(blobUrl: string, selectTrack: boolean): Promise<ExperimentalAudioElement> {
         const audio = new Audio() as ExperimentalAudioElement;
-        audio.src = URL.createObjectURL(source);
+        audio.src = blobUrl;
 
         return new Promise((resolve, reject) => {
             audio.onloadedmetadata = (e) => {
@@ -311,9 +312,8 @@ class FileAudioData implements AudioData {
 
     private stopAudio(audio: HTMLAudioElement) {
         audio.pause();
-        const src = audio.src;
-        audio.src = '';
-        URL.revokeObjectURL(src);
+        audio.removeAttribute('src');
+        audio.load();
     }
 
     private _captureStream(audio: ExperimentalAudioElement) {
@@ -354,8 +354,19 @@ class FileAudioData implements AudioData {
         return true;
     }
 
-    isPlayable() {
-        return true;
+    async isPlayable() {
+        if (this._playablePromise) {
+            return this._playablePromise;
+        }
+
+        this._playablePromise = new Promise((resolve, reject) => {
+            fetch(this.file.blobUrl, { method: 'GET' })
+                .then((response) => resolve(response.status === 200))
+                .catch((e) => {
+                    resolve(false);
+                });
+        });
+        return this._playablePromise;
     }
 }
 
@@ -476,7 +487,7 @@ class MissingFileAudioData implements AudioData {
         return false;
     }
 
-    isPlayable() {
+    async isPlayable() {
         return false;
     }
 }
@@ -486,6 +497,39 @@ export default class AudioClip {
 
     constructor(data: AudioData) {
         this.data = data;
+    }
+
+    static fromCard(card: CardModel, paddingStart: number, paddingEnd: number) {
+        if (card.audio) {
+            const start = card.audio.start ?? card.subtitle.start;
+            const end = card.audio.end ?? card.subtitle.end;
+
+            return AudioClip.fromBase64(
+                card.subtitleFileName!,
+                Math.max(0, start - (card.audio.paddingStart ?? 0)),
+                end + (card.audio.paddingEnd ?? 0),
+                card.audio.playbackRate ?? 1,
+                card.audio.base64,
+                card.audio.extension
+            );
+        }
+
+        if (card.file) {
+            return AudioClip.fromFile(
+                card.file,
+                Math.max(0, card.subtitle.start - paddingStart),
+                card.subtitle.end + paddingEnd,
+                card.file?.playbackRate ?? 1,
+                card.file?.audioTrack
+            );
+        }
+
+        // if (card.audioFileName || card.videoFileName) {
+        //     const [start, end] = calculateInterval();
+        //     return AudioClip.fromMissingFile((card.audioFileName || card.videoFileName)!, start, end);
+        // }
+
+        return undefined;
     }
 
     static fromBase64(
@@ -508,7 +552,7 @@ export default class AudioClip {
         );
     }
 
-    static fromFile(file: File, start: number, end: number, playbackRate: number, trackId?: string) {
+    static fromFile(file: FileModel, start: number, end: number, playbackRate: number, trackId?: string) {
         return new AudioClip(new FileAudioData(file, start, end, playbackRate, trackId));
     }
 

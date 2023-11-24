@@ -3,7 +3,7 @@ import {
     AsbPlayerToVideoCommandV2,
     AsbplayerInstance,
     AsbplayerSettings,
-    Card,
+    CardModel,
     Command,
     ExtensionToAsbPlayerCommand,
     ExtensionToAsbPlayerCommandTabsCommand,
@@ -202,7 +202,7 @@ export default class ChromeExtension {
         window.postMessage(command);
     }
 
-    publishCard(card: Card) {
+    publishCard(card: CardModel) {
         const command: Command<PublishCardMessage> = {
             sender: 'asbplayerv2',
             message: {

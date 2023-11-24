@@ -85,6 +85,7 @@ export default class AnkiUiController {
         const state: AnkiUiInitialState = {
             type: 'initial',
             open: true,
+            canRerecord: true,
             settingsProvider: this._ankiSettings,
             source: sourceString(context.subtitleFileName(), subtitle.start),
             url: url,
@@ -111,6 +112,7 @@ export default class AnkiUiController {
             ...uiState,
             type: 'resume',
             open: true,
+            canRerecord: true,
             settingsProvider: this._ankiSettings,
             themeType: themeType,
             dialogRequestedTimestamp: context.video.currentTime * 1000,
@@ -131,6 +133,7 @@ export default class AnkiUiController {
             ...uiState,
             type: 'resume',
             open: true,
+            canRerecord: true,
             settingsProvider: this._ankiSettings,
             themeType: themeType,
         };

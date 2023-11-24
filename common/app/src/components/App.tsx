@@ -5,7 +5,6 @@ import { useWindowSize } from '../hooks/use-window-size';
 import {
     Image,
     humanReadableTime,
-    AnkiDialogSliderContext,
     SubtitleModel,
     VideoTabModel,
     LegacyPlayerSyncMessage,
@@ -20,6 +19,7 @@ import {
     createTheme,
     CopyHistoryItem,
     Fetcher,
+    CardModel,
 } from '@project/common';
 import { AudioClip } from '@project/common/audio-clip';
 import { Anki, AnkiExportMode } from '@project/common/anki';
@@ -126,110 +126,6 @@ function extractSources(files: FileList | File[]): MediaSources {
     }
 
     return { subtitleFiles: subtitleFiles, videoFile: videoFile };
-}
-
-function audioClipFromItem(
-    item: CopyHistoryItem,
-    sliderContext: AnkiDialogSliderContext | undefined,
-    paddingStart: number,
-    paddingEnd: number
-) {
-    if (item.audio) {
-        const start = item.audio.start ?? item.start;
-        const end = item.audio.end ?? item.end;
-
-        return AudioClip.fromBase64(
-            item.subtitleFileName!,
-            Math.max(0, start - (item.audio.paddingStart ?? 0)),
-            end + (item.audio.paddingEnd ?? 0),
-            item.audio.playbackRate ?? 1,
-            item.audio.base64,
-            item.audio.extension
-        );
-    }
-
-    const calculateInterval = () => {
-        let start;
-        let end;
-
-        if (sliderContext) {
-            start = sliderContext.subtitleStart;
-            end = sliderContext.subtitleEnd;
-        } else {
-            start = item.start;
-            end = item.end;
-        }
-
-        return [start, end];
-    };
-
-    if (item.audioFile || item.videoFile) {
-        const [start, end] = calculateInterval();
-        return AudioClip.fromFile(
-            (item.audioFile || item.videoFile)!,
-            Math.max(0, start - paddingStart),
-            end + paddingEnd,
-            item.filePlaybackRate ?? 1,
-            item.audioTrack
-        );
-    }
-
-    if (item.audioFileName || item.videoFileName) {
-        const [start, end] = calculateInterval();
-        return AudioClip.fromMissingFile((item.audioFileName || item.videoFileName)!, start, end);
-    }
-
-    return undefined;
-}
-
-function imageFromItem(item: CopyHistoryItem, maxWidth: number, maxHeight: number) {
-    if (item.image) {
-        return Image.fromBase64(item.subtitleFileName!, item.start, item.image.base64, item.image.extension);
-    }
-
-    if (item.videoFile) {
-        return Image.fromFile(item.videoFile, item.mediaTimestamp ?? item.start, maxWidth, maxHeight);
-    }
-
-    if (item.videoFileName) {
-        return Image.fromMissingFile(item.videoFileName, item.mediaTimestamp ?? item.start);
-    }
-
-    return undefined;
-}
-
-function itemSourceString(item: CopyHistoryItem | undefined) {
-    if (!item) {
-        return undefined;
-    }
-
-    const source = item.subtitleFileName ?? item.audioFile?.name ?? item.videoFile?.name;
-
-    if (!source) {
-        return undefined;
-    }
-
-    return `${source} (${humanReadableTime(item.start)})`;
-}
-
-function itemSliderContext(item: CopyHistoryItem) {
-    if (!item) {
-        return undefined;
-    }
-
-    return {
-        subtitleStart: item.start,
-        subtitleEnd: item.end,
-        subtitles: item.surroundingSubtitles || [
-            { start: item.start, end: item.end, text: item.text, track: item.track },
-        ],
-    };
-}
-
-function revokeUrls(sources: MediaSources) {
-    if (sources.videoFileUrl) {
-        URL.revokeObjectURL(sources.videoFileUrl);
-    }
 }
 
 interface RenderVideoProps {
@@ -341,26 +237,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
     const [fileName, setFileName] = useState<string>();
     const [ankiDialogOpen, setAnkiDialogOpen] = useState<boolean>(false);
     const [ankiDialogDisabled, setAnkiDialogDisabled] = useState<boolean>(false);
-    const [ankiDialogItem, setAnkiDialogItem] = useState<CopyHistoryItem>();
-    const ankiDialogItemSliderContext = useMemo<AnkiDialogSliderContext | undefined>(
-        () => ankiDialogItem && itemSliderContext(ankiDialogItem),
-        [ankiDialogItem]
-    );
-    const ankiDialogAudioClip = useMemo<AudioClip | undefined>(
-        () =>
-            ankiDialogItem &&
-            audioClipFromItem(
-                ankiDialogItem,
-                ankiDialogItemSliderContext,
-                settings.audioPaddingStart,
-                settings.audioPaddingEnd
-            ),
-        [ankiDialogItem, ankiDialogItemSliderContext, settings.audioPaddingStart, settings.audioPaddingEnd]
-    );
-    const ankiDialogImage = useMemo<Image | undefined>(
-        () => ankiDialogItem && imageFromItem(ankiDialogItem, settings.maxImageWidth, settings.maxImageHeight),
-        [ankiDialogItem, settings.maxImageWidth, settings.maxImageHeight]
-    );
+    const [ankiDialogCard, setAnkiDialogCard] = useState<CardModel>();
     const [ankiDialogRequested, setAnkiDialogRequested] = useState<boolean>(false);
     const [ankiDialogFinishedRequest, setAnkiDialogFinishedRequest] = useState<AnkiDialogFinishedRequest>({
         timestamp: 0,
@@ -405,7 +282,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         }
 
         const item = ankiDialogItem ?? copyHistoryItemsRef.current[copyHistoryItemsRef.current.length - 1];
-        setAnkiDialogItem(item);
+        setAnkiDialogCard(item);
         setAnkiDialogOpen(true);
         setAnkiDialogDisabled(false);
         setDisableKeyEvents(true);
@@ -416,24 +293,25 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         async (
             videoFileUrl: string,
             videoFileName: string,
-            selectedAudioTrack: string | undefined,
+            audioTrack: string | undefined,
             playbackRate: number,
             subtitle: SubtitleModel,
             surroundingSubtitles: SubtitleModel[],
             timestamp: number
         ) => {
             const item = {
-                ...subtitle,
-                surroundingSubtitles: surroundingSubtitles,
+                subtitle,
+                surroundingSubtitles,
                 timestamp: Date.now(),
                 id: uuidv4(),
-                name: videoFileName,
+                subtitleFileName: videoFileName,
                 mediaTimestamp: timestamp,
-                videoFile: await fetch(videoFileUrl)
-                    .then((r) => r.blob())
-                    .then((blobFile) => new File([blobFile], videoFileName)),
-                selectedAudioTrack: selectedAudioTrack,
-                filePlaybackRate: playbackRate,
+                file: {
+                    name: videoFileName,
+                    blobUrl: videoFileUrl,
+                    audioTrack,
+                    playbackRate,
+                },
             };
             handleAnkiDialogRequest(item);
         },
@@ -521,51 +399,19 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
     );
 
     const handleCopy = useCallback(
-        async (
-            subtitle: SubtitleModel,
-            surroundingSubtitles: SubtitleModel[],
-            videoFile: File | undefined,
-            subtitleFile: File | undefined,
-            mediaTimestamp: number | undefined,
-            audioTrack: string | undefined,
-            filePlaybackRate: number | undefined,
-            audio: AudioModel | undefined,
-            image: ImageModel | undefined,
-            url: string | undefined,
-            postMineAction: PostMineAction | undefined,
-            id: string | undefined
-        ) => {
-            if (subtitle && settings.copyToClipboardOnMine) {
-                navigator.clipboard.writeText(subtitle.text);
+        async (card: CardModel, postMineAction?: PostMineAction, id?: string) => {
+            if (card.subtitle && settings.copyToClipboardOnMine) {
+                navigator.clipboard.writeText(card.subtitle.text);
             }
 
             const newCopiedSubtitle = {
-                ...subtitle,
-                surroundingSubtitles: surroundingSubtitles,
+                ...card,
                 timestamp: Date.now(),
                 id: id || uuidv4(),
-                name: fileName ?? subtitleFile?.name ?? videoFile?.name ?? '',
-                subtitleFileName: subtitleFile?.name,
-                videoFile: videoFile,
-                filePlaybackRate: filePlaybackRate,
-                mediaTimestamp: mediaTimestamp,
-                audioTrack: audioTrack,
-                audio: audio,
-                image: image,
-                url: url,
             };
 
             if (extension.supportsAppIntegration) {
-                extension.publishCard({
-                    id,
-                    subtitle,
-                    surroundingSubtitles,
-                    subtitleFileName: subtitleFile?.name ?? videoFile?.name ?? '',
-                    url,
-                    image,
-                    audio,
-                    mediaTimestamp: mediaTimestamp ?? 0,
-                });
+                extension.publishCard(newCopiedSubtitle);
             } else {
                 saveCopyHistoryItem(newCopiedSubtitle);
             }
@@ -579,9 +425,8 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                 case PostMineAction.updateLastCard:
                     // FIXME: We should really rename the functions below because we're actually skipping the Anki dialog in this case
                     setAnkiDialogRequested(true);
-                    let audioClip = audioClipFromItem(
+                    let audioClip = AudioClip.fromCard(
                         newCopiedSubtitle,
-                        undefined,
                         settings.audioPaddingStart,
                         settings.audioPaddingEnd
                     );
@@ -591,12 +436,12 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     }
 
                     handleAnkiDialogProceed(
-                        extractText(subtitle, surroundingSubtitles),
+                        extractText(card.subtitle, card.surroundingSubtitles),
                         '',
                         audioClip,
-                        imageFromItem(newCopiedSubtitle, settings.maxImageWidth, settings.maxImageHeight),
+                        Image.fromCard(newCopiedSubtitle, settings.maxImageWidth, settings.maxImageHeight),
                         '',
-                        itemSourceString(newCopiedSubtitle) ?? '',
+                        `${newCopiedSubtitle} (${humanReadableTime(card.mediaTimestamp)})`,
                         '',
                         {},
                         settings.tags,
@@ -607,12 +452,12 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     throw new Error('Unknown post mine action: ' + postMineAction);
             }
 
-            if (subtitle) {
+            if (card.subtitle) {
                 setAlertSeverity('success');
                 setAlert(
-                    subtitle.text === ''
-                        ? t('info.savedTimestamp', { timestamp: humanReadableTime(subtitle.start) })!
-                        : t('info.copiedSubtitle', { text: subtitle.text })!
+                    card.subtitle.text === ''
+                        ? t('info.savedTimestamp', { timestamp: humanReadableTime(card.subtitle.start) })!
+                        : t('info.copiedSubtitle', { text: card.subtitle.text })!
                 );
                 setAlertOpen(true);
             }
@@ -712,12 +557,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
     const handleClipAudio = useCallback(
         async (item: CopyHistoryItem) => {
             try {
-                const clip = await audioClipFromItem(
-                    item,
-                    undefined,
-                    settings.audioPaddingStart,
-                    settings.audioPaddingEnd
-                );
+                const clip = AudioClip.fromCard(item, settings.audioPaddingStart, settings.audioPaddingEnd);
 
                 if (settings.preferMp3) {
                     clip!.toMp3().download();
@@ -734,7 +574,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
     const handleDownloadImage = useCallback(
         async (item: CopyHistoryItem) => {
             try {
-                (await imageFromItem(item, settings.maxImageWidth, settings.maxImageHeight))!.download();
+                Image.fromCard(item, settings.maxImageWidth, settings.maxImageHeight)!.download();
             } catch (e) {
                 console.error(e);
                 handleError(e);
@@ -749,10 +589,14 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
 
             for (const item of items) {
                 if (
-                    deduplicated.find((i) => i.start === item.start && i.end === item.end && i.text === item.text) ===
-                    undefined
+                    deduplicated.find(
+                        (i) =>
+                            i.start === item.subtitle.start &&
+                            i.end === item.subtitle.end &&
+                            i.text === item.subtitle.text
+                    ) === undefined
                 ) {
-                    deduplicated.push(item);
+                    deduplicated.push(item.subtitle);
                 }
             }
 
@@ -771,20 +615,13 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                 return;
             }
 
-            setJumpToSubtitle({
-                text: item.text,
-                start: item.start,
-                end: item.end,
-                originalStart: item.originalStart,
-                originalEnd: item.originalEnd,
-                track: item.track,
-            });
+            setJumpToSubtitle(item.subtitle);
         },
         [subtitleFiles, handleError, t]
     );
 
     const handleAnki = useCallback((item: CopyHistoryItem) => {
-        setAnkiDialogItem(item);
+        setAnkiDialogCard(item);
         setAnkiDialogOpen(true);
         setAnkiDialogDisabled(false);
         setDisableKeyEvents(true);
@@ -802,43 +639,27 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
     }, [ankiDialogRequested]);
 
     const handleAnkiDialogRewind = useCallback(() => {
-        if (!ankiDialogItem) {
+        if (!ankiDialogCard) {
             return;
         }
 
-        if (!subtitleFiles.find((f) => f.name === ankiDialogItem.subtitleFileName)) {
-            handleError(t('error.subtitleFileNotOpen', { fileName: ankiDialogItem.subtitleFileName }));
+        if (!subtitleFiles.find((f) => f.name === ankiDialogCard.subtitleFileName)) {
+            handleError(t('error.subtitleFileNotOpen', { fileName: ankiDialogCard.subtitleFileName }));
             return;
         }
 
-        const subtitle = {
-            text: ankiDialogItem.text,
-            start: ankiDialogItem.start,
-            end: ankiDialogItem.end,
-            originalStart: ankiDialogItem.originalStart,
-            originalEnd: ankiDialogItem.originalEnd,
-            track: ankiDialogItem.track,
-        };
-        setRewindSubtitle(subtitle);
+        setRewindSubtitle(ankiDialogCard.subtitle);
         handleAnkiDialogCancel();
-    }, [ankiDialogItem, subtitleFiles, handleAnkiDialogCancel, handleError, t]);
+    }, [ankiDialogCard, subtitleFiles, handleAnkiDialogCancel, handleError, t]);
 
     const handleAnkiDialogRewindFromVideoPlayer = useCallback(() => {
-        if (!ankiDialogItem) {
+        if (!ankiDialogCard) {
             return;
         }
 
-        const subtitle = {
-            text: ankiDialogItem.text,
-            start: ankiDialogItem.start,
-            end: ankiDialogItem.end,
-            originalStart: ankiDialogItem.originalStart,
-            originalEnd: ankiDialogItem.originalEnd,
-            track: ankiDialogItem.track,
-        };
-        setVideoPlayerSeekRequest({ timestamp: subtitle.start });
+        setVideoPlayerSeekRequest({ timestamp: ankiDialogCard.subtitle.start });
         handleAnkiDialogCancel();
-    }, [ankiDialogItem, handleAnkiDialogCancel]);
+    }, [ankiDialogCard, handleAnkiDialogCancel]);
 
     const handleViewImage = useCallback((image: Image) => {
         setImage(image);
@@ -890,7 +711,9 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     let videoFileUrl: string | undefined = undefined;
 
                     if (videoFile) {
-                        revokeUrls(previous);
+                        if (previous.videoFileUrl) {
+                            URL.revokeObjectURL(previous.videoFileUrl);
+                        }
 
                         if (videoFile) {
                             videoFileUrl = URL.createObjectURL(videoFile);
@@ -1269,22 +1092,19 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                             onError={handleError}
                             onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
                         />
-                        <AnkiDialog
-                            open={ankiDialogOpen}
-                            disabled={ankiDialogDisabled}
-                            audioClip={ankiDialogAudioClip}
-                            image={ankiDialogImage}
-                            source={itemSourceString(ankiDialogItem)}
-                            url={ankiDialogItem?.url}
-                            sliderContext={ankiDialogItemSliderContext}
-                            customFields={settings.customAnkiFields}
-                            anki={anki}
-                            settingsProvider={settings}
-                            onCancel={handleAnkiDialogCancel}
-                            onProceed={handleAnkiDialogProceed}
-                            onViewImage={handleViewImage}
-                            onCopyToClipboard={handleCopyToClipboard}
-                        />
+                        {ankiDialogCard && (
+                            <AnkiDialog
+                                open={ankiDialogOpen}
+                                disabled={ankiDialogDisabled}
+                                card={ankiDialogCard}
+                                anki={anki}
+                                settings={settings}
+                                onCancel={handleAnkiDialogCancel}
+                                onProceed={handleAnkiDialogProceed}
+                                onViewImage={handleViewImage}
+                                onCopyToClipboard={handleCopyToClipboard}
+                            />
+                        )}
                         <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />
                     </>
                 ) : (
@@ -1301,23 +1121,20 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                             onSelect={handleSelectCopyHistoryItem}
                             onAnki={handleAnki}
                         />
-                        <AnkiDialog
-                            open={ankiDialogOpen}
-                            disabled={ankiDialogDisabled}
-                            audioClip={ankiDialogAudioClip}
-                            image={ankiDialogImage}
-                            source={itemSourceString(ankiDialogItem)}
-                            url={ankiDialogItem?.url}
-                            sliderContext={ankiDialogItemSliderContext}
-                            customFields={settings.customAnkiFields}
-                            anki={anki}
-                            settingsProvider={settings}
-                            onCancel={handleAnkiDialogCancel}
-                            onProceed={handleAnkiDialogProceed}
-                            onViewImage={handleViewImage}
-                            onOpenSettings={handleOpenSettings}
-                            onCopyToClipboard={handleCopyToClipboard}
-                        />
+                        {ankiDialogCard && (
+                            <AnkiDialog
+                                open={ankiDialogOpen}
+                                disabled={ankiDialogDisabled}
+                                card={ankiDialogCard}
+                                anki={anki}
+                                settings={settings}
+                                onCancel={handleAnkiDialogCancel}
+                                onProceed={handleAnkiDialogProceed}
+                                onViewImage={handleViewImage}
+                                onOpenSettings={handleOpenSettings}
+                                onCopyToClipboard={handleCopyToClipboard}
+                            />
+                        )}
                         <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />
                         <SettingsDialog
                             anki={anki}

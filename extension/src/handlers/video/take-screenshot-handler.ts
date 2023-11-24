@@ -52,7 +52,7 @@ export default class TakeScreenshotHandler {
                     image: ankiUiState.image,
                     url: ankiUiState!.url,
                     subtitle: ankiUiState!.subtitle,
-                    surroundingSubtitles: ankiUiState!.sliderContext.subtitles,
+                    surroundingSubtitles: ankiUiState!.surroundingSubtitles,
                     subtitleFileName: takeScreenshotCommand.message.subtitleFileName,
                     mediaTimestamp: takeScreenshotCommand.message.mediaTimestamp,
                 },

@@ -1,4 +1,4 @@
-import { AudioModel, CopyHistoryItem, ImageModel, SubtitleModel } from '@project/common';
+import { CopyHistoryItem, FileModel, SubtitleModel } from '@project/common';
 import Dexie, { liveQuery, Observable } from 'dexie';
 
 class CopyHistoryDatabase extends Dexie {
@@ -9,24 +9,54 @@ class CopyHistoryDatabase extends Dexie {
         this.version(1).stores({
             copyHistoryItems: '++index,id,timestamp',
         });
+        this.version(2)
+            .stores({
+                copyHistoryItems: '++index,id,timestamp',
+            })
+            .upgrade((trans) => {
+                return trans
+                    .table('copyHistoryItems')
+                    .toCollection()
+                    .modify((item) => {
+                        const subtitle: SubtitleModel = {
+                            text: item.text,
+                            textImage: item.textImage,
+                            start: item.start,
+                            end: item.end,
+                            originalStart: item.originalStart,
+                            originalEnd: item.originalEnd,
+                            track: item.track,
+                        };
+                        item.subtitle = subtitle;
+                        delete item.text;
+                        delete item.textImage;
+                        delete item.start;
+                        delete item.end;
+                        delete item.originalStart;
+                        delete item.originalEnd;
+                        delete item.track;
+
+                        if (item.videoFileName || item.audioFileName) {
+                            const file: FileModel = {
+                                name: item.videoFileName || item.audioFileName,
+                                blobUrl: '',
+                                playbackRate: item.filePlaybackRate,
+                                audioTrack: item.audioTrack,
+                            };
+                            item.file = file;
+
+                            delete item.videoFileName;
+                            delete item.audioFileName;
+                            delete item.filePlaybackRate;
+                            delete item.audioTrack;
+                        }
+                    });
+            });
     }
 }
 
-interface CopyHistoryRecord extends SubtitleModel {
+interface CopyHistoryRecord extends CopyHistoryItem {
     index?: number;
-    name: string;
-    id: string;
-    timestamp: number;
-    surroundingSubtitles: SubtitleModel[];
-    audioTrack?: string;
-    filePlaybackRate?: number;
-    subtitleFileName?: string;
-    videoFileName?: string;
-    audioFileName?: string;
-    mediaTimestamp?: number;
-    audio?: AudioModel;
-    image?: ImageModel;
-    url?: string;
 }
 
 export default class CopyHistoryRepository {
@@ -66,50 +96,7 @@ export default class CopyHistoryRepository {
             return;
         }
 
-        const {
-            text,
-            textImage,
-            start,
-            end,
-            originalStart,
-            originalEnd,
-            track,
-            name,
-            id,
-            timestamp,
-            surroundingSubtitles,
-            audioTrack,
-            filePlaybackRate,
-            videoFile,
-            audioFile,
-            subtitleFileName,
-            mediaTimestamp,
-            audio,
-            image,
-            url,
-        } = item;
-        const record: CopyHistoryRecord = {
-            text,
-            textImage,
-            start,
-            end,
-            originalStart,
-            originalEnd,
-            track,
-            name,
-            id,
-            timestamp,
-            surroundingSubtitles,
-            audioTrack,
-            filePlaybackRate,
-            videoFileName: videoFile?.name,
-            audioFileName: audioFile?.name,
-            subtitleFileName,
-            mediaTimestamp,
-            audio,
-            image,
-            url,
-        };
+        const record: CopyHistoryRecord = { ...item };
         const existingPrimaryKeys = await this._db.copyHistoryItems.where('id').equals(item.id).primaryKeys();
 
         if (existingPrimaryKeys.length > 0) {

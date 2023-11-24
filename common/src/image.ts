@@ -1,4 +1,5 @@
 import { resizeCanvas } from './image-transformer';
+import { CardModel, FileModel } from './model';
 import { download } from './util';
 
 class Base64ImageData implements ImageData {
@@ -22,7 +23,7 @@ class Base64ImageData implements ImageData {
         return this._extension;
     }
 
-    get available() {
+    async isAvailable(): Promise<boolean> {
         return true;
     }
 
@@ -52,18 +53,19 @@ class Base64ImageData implements ImageData {
 }
 
 class FileImageData implements ImageData {
-    private readonly file: File;
-    private readonly timestamp: number;
-    private readonly maxWidth: number;
-    private readonly maxHeight: number;
+    private readonly _file: FileModel;
+    private readonly _timestamp: number;
+    private readonly _maxWidth: number;
+    private readonly _maxHeight: number;
     private readonly _name: string;
+    private _availablePromise?: Promise<boolean>;
 
-    constructor(file: File, timestamp: number, maxWidth: number, maxHeight: number) {
-        this.file = file;
+    constructor(file: FileModel, timestamp: number, maxWidth: number, maxHeight: number) {
+        this._file = file;
         this._name = file.name + '_' + Math.floor(timestamp) + '.jpeg';
-        this.timestamp = timestamp;
-        this.maxWidth = maxWidth;
-        this.maxHeight = maxHeight;
+        this._timestamp = timestamp;
+        this._maxWidth = maxWidth;
+        this._maxHeight = maxHeight;
     }
 
     get name() {
@@ -74,8 +76,19 @@ class FileImageData implements ImageData {
         return 'jpeg';
     }
 
-    get available() {
-        return true;
+    async isAvailable(): Promise<boolean> {
+        if (this._availablePromise) {
+            return this._availablePromise;
+        }
+
+        this._availablePromise = new Promise((resolve, reject) => {
+            fetch(this._file.blobUrl, { method: 'GET' })
+                .then((response) => resolve(response.status === 200))
+                .catch((e) => {
+                    resolve(false);
+                });
+        });
+        return this._availablePromise;
     }
 
     async base64(): Promise<string> {
@@ -106,7 +119,7 @@ class FileImageData implements ImageData {
 
     async _canvas(): Promise<HTMLCanvasElement> {
         return new Promise(async (resolve, reject) => {
-            const video = this._videoElement(this.file);
+            const video = this._videoElement(this._file);
 
             video.oncanplay = async (e) => {
                 const canvas = document.createElement('canvas');
@@ -114,22 +127,21 @@ class FileImageData implements ImageData {
                 canvas.height = video.videoHeight;
                 const ctx = canvas.getContext('2d');
                 ctx!.drawImage(video, 0, 0, canvas.width, canvas.height);
-                if (this.maxWidth > 0 || this.maxHeight > 0) {
-                    await resizeCanvas(canvas, ctx!, this.maxWidth, this.maxHeight);
+                if (this._maxWidth > 0 || this._maxHeight > 0) {
+                    await resizeCanvas(canvas, ctx!, this._maxWidth, this._maxHeight);
                     resolve(canvas);
                 } else {
                     resolve(canvas);
                 }
-                URL.revokeObjectURL(video.src);
             };
         });
     }
 
-    _videoElement(source: File) {
+    _videoElement(file: FileModel) {
         const video = document.createElement('video');
-        video.src = URL.createObjectURL(source);
+        video.src = file.blobUrl;
         video.preload = 'none';
-        video.currentTime = this.timestamp / 1000;
+        video.currentTime = this._timestamp / 1000;
         video.load();
 
         return video;
@@ -151,7 +163,7 @@ class MissingFileImageData implements ImageData {
         return 'jpeg';
     }
 
-    get available() {
+    async isAvailable() {
         return false;
     }
 
@@ -174,7 +186,7 @@ interface ImageData {
     base64: () => Promise<string>;
     dataUrl: () => Promise<string>;
     blob: () => Promise<Blob>;
-    available: boolean;
+    isAvailable: () => Promise<boolean>;
 }
 
 export default class Image {
@@ -182,6 +194,23 @@ export default class Image {
 
     constructor(data: ImageData) {
         this.data = data;
+    }
+
+    static fromCard(card: CardModel, maxWidth: number, maxHeight: number) {
+        if (card.image) {
+            return Image.fromBase64(
+                card.subtitleFileName,
+                card.subtitle.start,
+                card.image.base64,
+                card.image.extension
+            );
+        }
+
+        if (card.file) {
+            return Image.fromFile(card.file, card.mediaTimestamp ?? card.subtitle.start, maxWidth, maxHeight);
+        }
+
+        return undefined;
     }
 
     static fromBase64(subtitleFileName: string, timestamp: number, base64: string, extension: string) {
@@ -194,7 +223,7 @@ export default class Image {
         return new Image(new Base64ImageData(imageName, base64, extension));
     }
 
-    static fromFile(file: File, timestamp: number, maxWidth: number, maxHeight: number) {
+    static fromFile(file: FileModel, timestamp: number, maxWidth: number, maxHeight: number) {
         return new Image(new FileImageData(file, timestamp, maxWidth, maxHeight));
     }
 
@@ -210,8 +239,8 @@ export default class Image {
         return this.data.extension;
     }
 
-    get available() {
-        return this.data.available;
+    isAvailable() {
+        return this.data.isAvailable();
     }
 
     async base64() {

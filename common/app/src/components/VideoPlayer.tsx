@@ -905,6 +905,8 @@ export default function VideoPlayer({
                     extension.sendMessageToVideoElement(message, tab.id, tab.src);
                 }
             } else {
+                let mediaTimestamp: number;
+
                 if (subtitle === undefined || surroundingSubtitles === undefined) {
                     const extracted = extractSubtitles();
 
@@ -914,6 +916,9 @@ export default function VideoPlayer({
 
                     subtitle = extracted.currentSubtitle;
                     surroundingSubtitles = extracted.surroundingSubtitles;
+                    mediaTimestamp = clock.time(length);
+                } else {
+                    mediaTimestamp = subtitle.start;
                 }
 
                 mineSubtitle(
@@ -924,7 +929,7 @@ export default function VideoPlayer({
                     video.playbackRate,
                     subtitle,
                     surroundingSubtitles,
-                    clock.time(length)
+                    mediaTimestamp
                 );
             }
         },

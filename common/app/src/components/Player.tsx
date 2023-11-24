@@ -7,6 +7,7 @@ import {
     AudioTrackModel,
     AutoPauseContext,
     AutoPausePreference,
+    CardModel,
     ImageModel,
     PlayMode,
     PostMineAction,
@@ -107,20 +108,7 @@ interface PlayerProps {
     origin: string;
     onError: (error: any) => void;
     onUnloadVideo: (url: string) => void;
-    onCopy: (
-        subtitle: SubtitleModel,
-        surroundingSubtitles: SubtitleModel[],
-        videoFile: File | undefined,
-        subtitleFile: File | undefined,
-        mediaTimestamp: number | undefined,
-        audioTrack: string | undefined,
-        filePlaybackRate: number | undefined,
-        audio: AudioModel | undefined,
-        image: ImageModel | undefined,
-        url: string | undefined,
-        postMineAction: PostMineAction | undefined,
-        id: string | undefined
-    ) => void;
+    onCopy: (card: CardModel, postMineAction: PostMineAction | undefined, id: string | undefined) => void;
     onLoaded: (file: File[]) => void;
     onTabSelected: (tab: VideoTabModel) => void;
     onAnkiDialogRequest: () => void;
@@ -494,18 +482,25 @@ export default function Player({
     useEffect(() => channel?.onPlaybackRate(updatePlaybackRate), [channel, updatePlaybackRate]);
     useEffect(
         () =>
-            channel?.onCopy((subtitle, surroundingSubtitles, audio, image, url, postMineAction, id, mediaTimetamp) =>
+            channel?.onCopy((subtitle, surroundingSubtitles, audio, image, url, postMineAction, id, mediaTimestamp) =>
                 onCopy(
-                    subtitle,
-                    surroundingSubtitles,
-                    videoFile,
-                    subtitle ? subtitleFiles?.[subtitle.track] : undefined,
-                    mediaTimetamp,
-                    channel?.selectedAudioTrack,
-                    channel?.playbackRate,
-                    audio,
-                    image,
-                    url,
+                    {
+                        subtitle,
+                        surroundingSubtitles,
+                        subtitleFileName: subtitle ? subtitleFiles?.[subtitle.track]?.name ?? '' : '',
+                        mediaTimestamp: mediaTimestamp ?? 0,
+                        file: videoFile
+                            ? {
+                                  name: videoFile.name,
+                                  blobUrl: URL.createObjectURL(videoFile),
+                                  audioTrack: channel?.selectedAudioTrack,
+                                  playbackRate: channel?.playbackRate,
+                              }
+                            : undefined,
+                        audio,
+                        image,
+                        url,
+                    },
                     postMineAction,
                     id
                 )
@@ -711,16 +706,21 @@ export default function Player({
                 }
             } else {
                 onCopy(
-                    subtitle,
-                    surroundingSubtitles,
-                    videoFile,
-                    subtitleFiles?.[subtitle.track],
-                    clock.time(calculateLength()),
-                    selectedAudioTrack,
-                    playbackRate,
-                    undefined,
-                    undefined,
-                    undefined,
+                    {
+                        subtitle,
+                        surroundingSubtitles,
+                        subtitleFileName: subtitleFiles?.[subtitle.track]?.name ?? '',
+                        mediaTimestamp: clock.time(calculateLength()),
+                        file:
+                            videoFile === undefined
+                                ? undefined
+                                : {
+                                      name: videoFile.name,
+                                      audioTrack: selectedAudioTrack,
+                                      playbackRate,
+                                      blobUrl: URL.createObjectURL(videoFile),
+                                  },
+                    },
                     postMineAction,
                     undefined
                 );

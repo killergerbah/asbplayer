@@ -69,6 +69,7 @@ export class TabAnkiUiController {
         const state: AnkiUiInitialState = {
             type: 'initial',
             open: true,
+            canRerecord: false,
             settingsProvider: ankiSettings,
             source: sourceString(subtitleFileName, mediaTimestamp),
             url,

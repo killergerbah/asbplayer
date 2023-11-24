@@ -466,12 +466,8 @@ export default class Binding {
                         this.subtitleController.notification('info.updatedCard', { result: request.message.cardName });
                         this.ankiUiSavedState = {
                             subtitle: cardUpdatedMessage.subtitle,
+                            surroundingSubtitles: cardUpdatedMessage.surroundingSubtitles,
                             text: '',
-                            sliderContext: {
-                                subtitleStart: cardUpdatedMessage.subtitle.start,
-                                subtitleEnd: cardUpdatedMessage.subtitle.end,
-                                subtitles: cardUpdatedMessage.surroundingSubtitles,
-                            },
                             definition: '',
                             image: cardUpdatedMessage.image,
                             audio: cardUpdatedMessage.audio,

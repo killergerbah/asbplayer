@@ -9,7 +9,7 @@ import {
     ExtensionToVideoCommand,
     ScreenshotTakenMessage,
     RecordingFinishedMessage,
-    Card,
+    CardModel,
     SettingsProvider,
 } from '@project/common';
 import BackgroundPageManager from '../../services/background-page-manager';
@@ -106,7 +106,7 @@ export default class RecordMediaHandler {
                 };
             }
 
-            const card: Card = {
+            const card: CardModel = {
                 image: imageModel,
                 audio: audioModel,
                 ...recordMediaCommand.message,
