@@ -1,15 +1,13 @@
 import {
     AnkiSettings,
     AnkiUiInitialState,
-    AudioModel,
-    ImageModel,
-    SubtitleModel,
     OpenAsbplayerSettingsMessage,
     CopyToClipboardMessage,
     SettingsProvider,
     ankiSettingsKeys,
     TabToExtensionCommand,
     sourceString,
+    CardModel,
 } from '@project/common';
 import UiFrame from '../services/ui-frame';
 import { fetchLocalization } from '../services/localization-fetcher';
@@ -43,23 +41,7 @@ export class TabAnkiUiController {
         this._settings = settings;
     }
 
-    async show({
-        subtitle,
-        surroundingSubtitles,
-        image,
-        audio,
-        subtitleFileName,
-        mediaTimestamp,
-        url,
-    }: {
-        subtitle: SubtitleModel;
-        surroundingSubtitles: SubtitleModel[];
-        image: ImageModel | undefined;
-        audio: AudioModel | undefined;
-        subtitleFileName: string;
-        mediaTimestamp: number;
-        url: string;
-    }) {
+    async show(card: CardModel) {
         const { themeType, language, ...ankiSettings } = await this._settings.get([
             'themeType',
             'language',
@@ -71,14 +53,10 @@ export class TabAnkiUiController {
             open: true,
             canRerecord: false,
             settingsProvider: ankiSettings,
-            source: sourceString(subtitleFileName, mediaTimestamp),
-            url,
-            subtitle: subtitle,
-            surroundingSubtitles,
-            image,
-            audio,
+            source: sourceString(card.subtitleFileName, card.mediaTimestamp ?? 0),
             themeType,
             dialogRequestedTimestamp: 0,
+            ...card,
         };
         client.updateState(state);
     }

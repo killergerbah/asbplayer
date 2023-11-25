@@ -74,10 +74,11 @@ export interface AnkiUiState {
     readonly settingsProvider: AnkiSettings;
     readonly subtitle: SubtitleModel;
     readonly surroundingSubtitles: SubtitleModel[];
-    readonly url: string;
+    readonly url?: string;
     readonly source: string;
     readonly image?: ImageModel;
     readonly audio?: AudioModel;
+    readonly file?: FileModel;
     readonly themeType: string;
     readonly dialogRequestedTimestamp: number;
 }
@@ -106,6 +107,7 @@ export interface AnkiUiSavedState {
     definition: string;
     image?: ImageModel;
     audio?: AudioModel;
+    file?: FileModel;
     word: string;
     source: string;
     url: string;

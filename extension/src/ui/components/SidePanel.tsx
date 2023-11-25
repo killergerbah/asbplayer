@@ -300,30 +300,14 @@ export default function SidePanel({ settings, extension }: Props) {
         ).download();
     }, []);
     const handleAnki = useCallback(
-        ({
-            id,
-            surroundingSubtitles,
-            url,
-            image,
-            audio,
-            subtitle,
-            subtitleFileName,
-            mediaTimestamp,
-        }: CopyHistoryItem) => {
+        (copyHistoryItem: CopyHistoryItem) => {
             if (currentTabId === undefined) {
                 return;
             }
 
             const message: ShowAnkiUiMessage = {
+                ...copyHistoryItem,
                 command: 'show-anki-ui',
-                id,
-                image,
-                audio,
-                surroundingSubtitles,
-                url,
-                subtitle,
-                subtitleFileName: subtitleFileName ?? '',
-                mediaTimestamp: mediaTimestamp ?? 0,
             };
             const videoCommand: ExtensionToVideoCommand<ShowAnkiUiMessage> = {
                 sender: 'asbplayer-extension-to-video',

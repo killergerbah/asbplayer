@@ -5,7 +5,6 @@ import {
     CopyToClipboardMessage,
     CropAndResizeMessage,
     SettingsProvider,
-    ShowAnkiUiMessage,
     TabToExtensionCommand,
     ToggleSidePanelMessage,
 } from '@project/common';
@@ -202,18 +201,8 @@ const bind = () => {
                 return true;
             case 'show-anki-ui':
                 if (request.src === undefined) {
-                    const { subtitle, surroundingSubtitles, url, image, audio, mediaTimestamp, subtitleFileName } =
-                        request.message as ShowAnkiUiMessage;
                     // Message intended for the tab, and not a specific video binding
-                    ankiUiController.show({
-                        subtitle,
-                        surroundingSubtitles,
-                        url: url ?? '',
-                        image,
-                        audio,
-                        mediaTimestamp,
-                        subtitleFileName,
-                    });
+                    ankiUiController.show(request.message);
                 }
                 break;
             case 'settings-updated':

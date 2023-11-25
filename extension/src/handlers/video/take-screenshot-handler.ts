@@ -50,9 +50,10 @@ export default class TakeScreenshotHandler {
                 {
                     audio: ankiUiState.audio,
                     image: ankiUiState.image,
-                    url: ankiUiState!.url,
-                    subtitle: ankiUiState!.subtitle,
-                    surroundingSubtitles: ankiUiState!.surroundingSubtitles,
+                    file: ankiUiState.file,
+                    url: ankiUiState.url,
+                    subtitle: ankiUiState.subtitle,
+                    surroundingSubtitles: ankiUiState.surroundingSubtitles,
                     subtitleFileName: takeScreenshotCommand.message.subtitleFileName,
                     mediaTimestamp: takeScreenshotCommand.message.mediaTimestamp,
                 },

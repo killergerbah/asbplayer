@@ -188,16 +188,9 @@ export interface ScreenshotTakenMessage extends Message {
     readonly ankiUiState?: AnkiUiSavedState;
 }
 
-export interface ShowAnkiUiMessage extends Message {
+export interface ShowAnkiUiMessage extends Message, CardModel {
     readonly command: 'show-anki-ui';
     readonly id: string;
-    readonly subtitle: SubtitleModel;
-    readonly surroundingSubtitles: SubtitleModel[];
-    readonly url?: string;
-    readonly image?: ImageModel;
-    readonly audio?: AudioModel;
-    readonly subtitleFileName: string;
-    readonly mediaTimestamp: number;
 }
 
 export interface RecordingStartedMessage extends Message {

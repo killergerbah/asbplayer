@@ -597,7 +597,7 @@ export default function VideoPlayer({
     );
 
     useEffect(() => {
-        if (extension.supportsAppIntegration || !subtitles || subtitles.length === 0) {
+        if (!subtitles || subtitles.length === 0) {
             return;
         }
 
@@ -892,46 +892,32 @@ export default function VideoPlayer({
                 return;
             }
 
-            if (extension.supportsAppIntegration) {
-                const tabsWithSource = extension.tabs?.filter((t) => t.src === videoRef.current?.src) ?? [];
+            let mediaTimestamp: number;
 
-                for (const tab of tabsWithSource) {
-                    const message: CopySubtitleMessage = {
-                        command: 'copy-subtitle',
-                        postMineAction,
-                        subtitle,
-                        surroundingSubtitles,
-                    };
-                    extension.sendMessageToVideoElement(message, tab.id, tab.src);
+            if (subtitle === undefined || surroundingSubtitles === undefined) {
+                const extracted = extractSubtitles();
+
+                if (extracted === undefined) {
+                    return;
                 }
+
+                subtitle = extracted.currentSubtitle;
+                surroundingSubtitles = extracted.surroundingSubtitles;
+                mediaTimestamp = clock.time(length);
             } else {
-                let mediaTimestamp: number;
-
-                if (subtitle === undefined || surroundingSubtitles === undefined) {
-                    const extracted = extractSubtitles();
-
-                    if (extracted === undefined) {
-                        return;
-                    }
-
-                    subtitle = extracted.currentSubtitle;
-                    surroundingSubtitles = extracted.surroundingSubtitles;
-                    mediaTimestamp = clock.time(length);
-                } else {
-                    mediaTimestamp = subtitle.start;
-                }
-
-                mineSubtitle(
-                    postMineAction,
-                    videoFile,
-                    videoFileName ?? '',
-                    selectedAudioTrack,
-                    video.playbackRate,
-                    subtitle,
-                    surroundingSubtitles,
-                    mediaTimestamp
-                );
+                mediaTimestamp = subtitle.start;
             }
+
+            mineSubtitle(
+                postMineAction,
+                videoFile,
+                videoFileName ?? '',
+                selectedAudioTrack,
+                video.playbackRate,
+                subtitle,
+                surroundingSubtitles,
+                mediaTimestamp
+            );
         },
         [mineSubtitle, extractSubtitles, clock, length, selectedAudioTrack, videoFile, videoFileName, extension]
     );
@@ -1259,31 +1245,6 @@ export default function VideoPlayer({
         )
     );
 
-    useEffect(() => {
-        if (!extension.supportsAppIntegration) {
-            return;
-        }
-
-        return extension.subscribeTabs((tabs) => {
-            if (subtitlesSentToExtension || videoRef.current?.src === undefined) {
-                return;
-            }
-
-            const tabsWithSource = tabs.filter((t) => t.src === videoRef.current?.src);
-
-            for (const tab of tabsWithSource) {
-                const message: SubtitlesToVideoMessage = {
-                    command: 'subtitles',
-                    value: subtitles,
-                    names: [videoFileName ?? ''],
-                };
-                extension.sendMessageToVideoElement(message, tab.id, videoRef.current.src, () =>
-                    setSubtitlesSentToExtension(true)
-                );
-            }
-        });
-    }, [extension, subtitles, videoFileName, subtitlesSentToExtension]);
-
     if (!playerChannelSubscribed) {
         return null;
     }
@@ -1348,7 +1309,7 @@ export default function VideoPlayer({
                 popOut={popOut}
                 volumeEnabled={true}
                 popOutEnabled={!isMobile}
-                playModeEnabled={!extension.supportsAppIntegration && subtitles && subtitles.length > 0}
+                playModeEnabled={subtitles && subtitles.length > 0}
                 playMode={playMode}
                 hideSubtitlePlayerToggleEnabled={subtitles?.length > 0 && !popOut && !fullscreen}
                 subtitlePlayerHidden={subtitlePlayerHidden}

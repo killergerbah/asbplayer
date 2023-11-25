@@ -187,8 +187,7 @@ export default function Player({
     const flattenSubtitleFiles = sources?.flattenSubtitleFiles;
     const videoFile = sources?.videoFile;
     const videoFileUrl = sources?.videoFileUrl;
-    const playModeEnabled =
-        !extension.supportsAppIntegration && subtitles && subtitles.length > 0 && Boolean(videoFileUrl);
+    const playModeEnabled = subtitles && subtitles.length > 0 && Boolean(videoFileUrl);
     const [loadingSubtitles, setLoadingSubtitles] = useState<boolean>(false);
     const [playing, setPlaying] = useState<boolean>(false);
     const [lastJumpToTopTimestamp, setLastJumpToTopTimestamp] = useState<number>(0);
@@ -695,10 +694,6 @@ export default function Player({
         ) => {
             if (videoFileUrl) {
                 if (forceUseGivenSubtitle) {
-                    if (extension.supportsAppIntegration) {
-                        await seek(subtitle.start, clock, true);
-                    }
-
                     channel?.copy(postMineAction, subtitle, surroundingSubtitles);
                 } else {
                     // Let VideoPlayer do the copying to ensure copied subtitle is consistent with the VideoPlayer clock

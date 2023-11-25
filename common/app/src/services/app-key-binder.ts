@@ -15,7 +15,7 @@ export default class AppKeyBinder implements KeyBinder {
     constructor(keyBinder: DefaultKeyBinder, extension: ChromeExtension) {
         this.defaultKeyBinder = keyBinder;
         this.extension = extension;
-        this.interceptExtension = this.extension.installed && !this.extension.supportsAppIntegration;
+        this.interceptExtension = this.extension.installed;
 
         if (this.interceptExtension) {
             this.onExtensionMessage = (message: ExtensionMessage) => {

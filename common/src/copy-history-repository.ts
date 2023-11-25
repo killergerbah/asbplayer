@@ -96,7 +96,18 @@ export default class CopyHistoryRepository {
             return;
         }
 
-        const record: CopyHistoryRecord = { ...item };
+        const record: CopyHistoryRecord = {
+            id: item.id,
+            timestamp: item.timestamp,
+            subtitle: item.subtitle,
+            surroundingSubtitles: item.surroundingSubtitles,
+            subtitleFileName: item.subtitleFileName,
+            url: item.url,
+            image: item.image,
+            audio: item.audio,
+            file: item.file,
+            mediaTimestamp: item.mediaTimestamp,
+        };
         const existingPrimaryKeys = await this._db.copyHistoryItems.where('id').equals(item.id).primaryKeys();
 
         if (existingPrimaryKeys.length > 0) {

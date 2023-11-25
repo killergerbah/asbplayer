@@ -16,6 +16,7 @@ import {
     AnkiSettingsToVideoMessage,
     Message,
     UpdateStateMessage,
+    FileModel,
 } from '@project/common';
 import { AudioClip } from '@project/common/audio-clip';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
@@ -55,6 +56,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
     const [serializedAudio, setSerializedAudio] = useState<AudioModel>();
     const [image, setImage] = useState<Image>();
     const [serializedImage, setSerializedImage] = useState<ImageModel>();
+    const [file, setFile] = useState<FileModel>();
     const [imageDialogOpen, setImageDialogOpen] = useState<boolean>(false);
     const [source, setSource] = useState<string>('');
     const [url, setUrl] = useState<string>('');
@@ -89,6 +91,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             definition: dialogState.definition,
             image: serializedImage,
             audio: serializedAudio,
+            file,
             word: dialogState.word,
             source: dialogState.source,
             url: dialogState.url,
@@ -101,7 +104,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             dialogRequestedTimestamp: dialogRequestedTimestamp,
         };
         return savedState;
-    }, [subtitle, serializedImage, serializedAudio, dialogRequestedTimestamp]);
+    }, [subtitle, serializedImage, serializedAudio, file, dialogRequestedTimestamp]);
 
     useEffect(() => {
         return bridge.addClientMessageListener((message: Message) => {
@@ -110,39 +113,6 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             }
 
             const s = (message as UpdateStateMessage).state as AnkiUiState;
-            let audioClip;
-
-            if (s.audio) {
-                let start: number;
-                let end: number;
-
-                if (s.audio.start !== undefined && s.audio.end !== undefined) {
-                    start = Math.max(0, s.audio.start! - s.audio.paddingStart);
-                    end = s.audio.end! + s.audio.paddingEnd;
-                } else {
-                    start = Math.max(0, s.subtitle.start - s.audio.paddingStart);
-                    end = s.subtitle.end + s.audio.paddingEnd;
-                }
-
-                audioClip = AudioClip.fromBase64(
-                    s.source,
-                    start,
-                    end,
-                    s.audio.playbackRate ?? 1,
-                    s.audio.base64,
-                    s.audio.extension
-                );
-            }
-
-            if (audioClip && s.settingsProvider.preferMp3) {
-                audioClip = audioClip.toMp3(() => new Worker(mp3WorkerUrl));
-            }
-
-            let image;
-
-            if (s.image) {
-                image = Image.fromBase64(s.source, s.subtitle.start, s.image.base64, s.image.extension);
-            }
 
             if (s.type === 'initial') {
                 setText(undefined);
@@ -171,10 +141,11 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             setSubtitle(s.subtitle);
             setSurroundingSubtitles(s.surroundingSubtitles);
             setSource(s.source);
-            setUrl(s.url);
+            setUrl(s.url ?? '');
             setDialogRequestedTimestamp(s.dialogRequestedTimestamp);
             setSerializedAudio(s.audio);
             setSerializedImage(s.image);
+            setFile(s.file);
             setImageDialogOpen(false);
             setDisabled(false);
             setSettingsProvider(s.settingsProvider);
@@ -313,6 +284,23 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
         }
     }, [open, handleFocusOut]);
 
+    const card = useMemo(() => {
+        if (!subtitle || !surroundingSubtitles) {
+            return undefined;
+        }
+
+        return {
+            subtitle,
+            surroundingSubtitles,
+            url,
+            audio: serializedAudio,
+            image: serializedImage,
+            file,
+            subtitleFileName: source,
+            mediaTimestamp: serializedAudio?.start ?? subtitle.start,
+        };
+    }, [subtitle, surroundingSubtitles, url, serializedAudio]);
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
@@ -327,19 +315,11 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 </Alert>
             </Snackbar>
             <ImageDialog open={imageDialogOpen} image={image} onClose={() => setImageDialogOpen(false)} />
-            {settingsProvider && subtitle && surroundingSubtitles && anki && (
+            {settingsProvider && card && anki && (
                 <AnkiDialog
                     open={open}
                     disabled={disabled}
-                    card={{
-                        subtitle,
-                        surroundingSubtitles,
-                        url,
-                        audio: serializedAudio,
-                        image: serializedImage,
-                        subtitleFileName: source,
-                        mediaTimestamp: serializedAudio?.start ?? subtitle.start,
-                    }}
+                    card={card}
                     settings={settingsProvider}
                     anki={anki}
                     onProceed={handleProceed}
