@@ -59,6 +59,10 @@ export default class ChromeExtension {
                 return;
             }
 
+            if (event.data.asbplayerId && event.data.asbplayerId !== id) {
+                return;
+            }
+
             if (typeof event.data.message.messageId === 'string') {
                 const messageId = event.data.message.messageId;
 
@@ -90,7 +94,6 @@ export default class ChromeExtension {
                 }
             } else {
                 const command = event.data as ExtensionToAsbPlayerCommand<Message>;
-
                 for (let c of this.onMessageCallbacks) {
                     c({
                         data: command.message,

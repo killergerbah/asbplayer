@@ -203,6 +203,7 @@ interface SubtitlePlayerProps {
     appBarHidden: boolean;
     displayHelp?: string;
     disableKeyEvents: boolean;
+    disableMiningBinds: boolean;
     lastJumpToTopTimestamp: number;
     hidden: boolean;
     disabledSubtitleTracks: { [track: number]: boolean };
@@ -232,6 +233,7 @@ export default function SubtitlePlayer({
     appBarHidden,
     displayHelp,
     disableKeyEvents,
+    disableMiningBinds,
     lastJumpToTopTimestamp,
     hidden,
     disabledSubtitleTracks,
@@ -598,10 +600,17 @@ export default function SubtitlePlayer({
                 event.stopPropagation();
                 onCopy(subtitle, calculateSurroundingSubtitles(), PostMineAction.none);
             },
-            () => disableKeyEvents,
+            () => disableKeyEvents || disableMiningBinds,
             () => calculateCurrentSubtitle()
         );
-    }, [keyBinder, disableKeyEvents, calculateCurrentSubtitle, calculateSurroundingSubtitles, onCopy]);
+    }, [
+        keyBinder,
+        disableKeyEvents,
+        disableMiningBinds,
+        calculateCurrentSubtitle,
+        calculateSurroundingSubtitles,
+        onCopy,
+    ]);
 
     useEffect(() => {
         return keyBinder.bindToggleSubtitleTrackInList(
@@ -626,9 +635,17 @@ export default function SubtitlePlayer({
                     onCopy(currentSubtitle, calculateSurroundingSubtitles(), PostMineAction.showAnkiDialog);
                 }
             },
-            () => disableKeyEvents
+            () => disableKeyEvents || disableMiningBinds
         );
-    }, [keyBinder, onCopy, disableKeyEvents, subtitles, calculateCurrentSubtitle, calculateSurroundingSubtitles]);
+    }, [
+        keyBinder,
+        onCopy,
+        disableKeyEvents,
+        disableMiningBinds,
+        subtitles,
+        calculateCurrentSubtitle,
+        calculateSurroundingSubtitles,
+    ]);
 
     useEffect(() => {
         return keyBinder.bindUpdateLastCard(
@@ -641,9 +658,17 @@ export default function SubtitlePlayer({
                     onCopy(currentSubtitle, calculateSurroundingSubtitles(), PostMineAction.updateLastCard);
                 }
             },
-            () => disableKeyEvents
+            () => disableKeyEvents || disableMiningBinds
         );
-    }, [keyBinder, onCopy, disableKeyEvents, subtitles, calculateCurrentSubtitle, calculateSurroundingSubtitles]);
+    }, [
+        keyBinder,
+        onCopy,
+        disableKeyEvents,
+        disableMiningBinds,
+        subtitles,
+        calculateCurrentSubtitle,
+        calculateSurroundingSubtitles,
+    ]);
 
     const handleClick = useCallback(
         (index: number) => {

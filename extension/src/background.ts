@@ -28,6 +28,7 @@ import SettingsUpdatedHandler from './handlers/asbplayerv2/settings-updated-hand
 import {
     Command,
     CopySubtitleMessage,
+    ExtensionToAsbPlayerCommand,
     ExtensionToVideoCommand,
     Message,
     PostMineAction,
@@ -208,12 +209,13 @@ chrome.commands.onCommand.addListener((command) => {
                             return undefined;
                         }
 
-                        const extensionToPlayerCommand: Command<CopySubtitleMessage> = {
+                        const extensionToPlayerCommand: ExtensionToAsbPlayerCommand<CopySubtitleMessage> = {
                             sender: 'asbplayer-extension-to-player',
                             message: {
                                 command: 'copy-subtitle',
                                 postMineAction: postMineAction,
                             },
+                            asbplayerId: asbplayer.id,
                         };
                         return extensionToPlayerCommand;
                     },

@@ -39,11 +39,17 @@ export const useChromeExtension = ({ sidePanel }: ChromeExtensionOptions) => {
     extension.sidePanel = sidePanel;
 
     useEffect(() => {
+        unbindInitialListener();
+
         if (realExtension) {
+            initialExtension.unbind();
             setExtension(realExtension);
         } else {
-            unbindInitialListener();
-            return listenForVersion(setExtension);
+            const unbindNextListener = listenForVersion((extension) => {
+                initialExtension.unbind();
+                setExtension(extension);
+                unbindNextListener();
+            });
         }
     }, []);
 

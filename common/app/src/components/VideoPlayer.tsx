@@ -19,23 +19,20 @@ import {
     computeStyleString,
     AsbplayerSettings,
     OffscreenDomCache,
-    SubtitlesToVideoMessage,
     SubtitleAlignment,
-    CopySubtitleMessage,
 } from '@project/common';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
-import { DefaultKeyBinder } from '@project/common/key-binder';
 import SubtitleTextImage from '@project/common/components/SubtitleTextImage';
 import Clock from '../services/clock';
 import Controls, { Point } from './Controls';
 import PlayerChannel from '../services/player-channel';
-import AppKeyBinder from '../services/app-key-binder';
 import ChromeExtension from '../services/chrome-extension';
 import PlaybackPreferences from '../services/playback-preferences';
 import { AnkiDialogFinishedRequest } from './Player';
 import { Color } from '@material-ui/lab/Alert';
 import Alert from './Alert';
 import { useSubtitleDomCache } from '../hooks/use-subtitle-dom-cache';
+import { useAppKeyBinder } from '../hooks/use-app-key-binder';
 import './video-player.css';
 import i18n from 'i18next';
 
@@ -326,7 +323,6 @@ export default function VideoPlayer({
     const [alertMessage, setAlertMessage] = useState<string>('');
     const [alertSeverity, setAlertSeverity] = useState<Color>('info');
     const [lastMinedRecord, setLastMinedRecord] = useState<MinedRecord>();
-    const [subtitlesSentToExtension, setSubtitlesSentToExtension] = useState<boolean>(false);
     const [, forceRender] = useState<any>();
 
     const autoPauseContext = useMemo(() => {
@@ -350,10 +346,7 @@ export default function VideoPlayer({
     const autoPauseContextRef = useRef<AutoPauseContext>();
     autoPauseContextRef.current = autoPauseContext;
 
-    const keyBinder = useMemo<AppKeyBinder>(
-        () => new AppKeyBinder(new DefaultKeyBinder(miscSettings.keyBindSet), extension),
-        [miscSettings.keyBindSet, extension]
-    );
+    const keyBinder = useAppKeyBinder(miscSettings.keyBindSet, extension);
 
     useEffect(() => {
         if (i18n.language !== miscSettings.language) {
@@ -510,7 +503,6 @@ export default function VideoPlayer({
             }
 
             setShowSubtitles([]);
-            setSubtitlesSentToExtension(false);
             autoPauseContextRef.current?.clear();
         });
 

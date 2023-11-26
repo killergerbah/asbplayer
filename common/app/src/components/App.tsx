@@ -40,8 +40,6 @@ import Player, { AnkiDialogFinishedRequest, MediaSources } from './Player';
 import SettingsDialog from './SettingsDialog';
 import VideoPlayer, { SeekRequest } from './VideoPlayer';
 import { Color } from '@material-ui/lab';
-import { DefaultKeyBinder } from '@project/common/key-binder';
-import AppKeyBinder from '../services/app-key-binder';
 import VideoChannel from '../services/video-channel';
 import PlaybackPreferences from '../services/playback-preferences';
 import { useTranslation } from 'react-i18next';
@@ -49,6 +47,7 @@ import LocalizedError from './localized-error';
 import { DisplaySubtitleModel } from './SubtitlePlayer';
 import { useCopyHistory } from '../hooks/use-copy-history';
 import { useI18n } from '../../../hooks';
+import { useAppKeyBinder } from '../hooks/use-app-key-binder';
 
 const latestExtensionVersion = '0.28.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
@@ -205,10 +204,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
     const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
     const inVideoPlayer = useMemo(() => searchParams.get('video') !== null, [searchParams]);
     const [videoFullscreen, setVideoFullscreen] = useState<boolean>(false);
-    const keyBinder = useMemo<AppKeyBinder>(
-        () => new AppKeyBinder(new DefaultKeyBinder(settings.keyBindSet), extension),
-        [settings.keyBindSet, extension]
-    );
+    const keyBinder = useAppKeyBinder(settings.keyBindSet, extension);
     const videoFrameRef = useRef<HTMLIFrameElement>(null);
     const videoChannelRef = useRef<VideoChannel>(null);
     const [videoPlayerSeekRequest, setVideoPlayerSeekRequest] = useState<SeekRequest>();
@@ -1044,14 +1040,14 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
     }, []);
 
     useEffect(() => {
-        return keyBinder.bindToggleSidePanel(
+        return keyBinder?.bindToggleSidePanel(
             () => {
                 handleOpenCopyHistory();
             },
             () => ankiDialogOpen,
             false
         );
-    }, [handleOpenCopyHistory, ankiDialogOpen]);
+    }, [keyBinder, handleOpenCopyHistory, ankiDialogOpen]);
 
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
 

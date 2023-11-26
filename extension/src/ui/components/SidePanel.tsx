@@ -39,6 +39,7 @@ import SidePanelRecordingOverlay from './SidePanelRecordingOverlay';
 import SidePanelTopControls from './SidePanelTopControls';
 import CopyHistory from '@project/common/app/src/components/CopyHistory';
 import CopyHistoryList from '@project/common/app/src/components/CopyHistoryList';
+import { useAppKeyBinder } from '@project/common/app/src/hooks/use-app-key-binder';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -69,10 +70,7 @@ export default function SidePanel({ settings, extension }: Props) {
     const [recordingAudio, setRecordingAudio] = useState<boolean>(false);
     const [viewingAsbplayer, setViewingAsbplayer] = useState<boolean>(false);
 
-    const keyBinder = useMemo(
-        () => new AppKeyBinder(new DefaultKeyBinder(settings.keyBindSet), extension),
-        [settings.keyBindSet, extension]
-    );
+    const keyBinder = useAppKeyBinder(settings.keyBindSet, extension);
     const currentTabId = useCurrentTabId();
     const videoElementCount = useVideoElementCount({ extension, currentTabId });
 

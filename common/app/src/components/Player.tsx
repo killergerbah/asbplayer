@@ -984,6 +984,8 @@ export default function Player({
                         loading={loadingSubtitles}
                         displayHelp={(videoPopOut && videoFile?.name) || undefined}
                         disableKeyEvents={disableKeyEvents}
+                        // The VideoPlayer will receive the mining commands instead
+                        disableMiningBinds={extension.installed && videoFile !== undefined}
                         lastJumpToTopTimestamp={lastJumpToTopTimestamp}
                         hidden={videoInWindow && hideSubtitlePlayer}
                         disabledSubtitleTracks={disabledSubtitleTracks}

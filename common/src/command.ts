@@ -48,6 +48,7 @@ export interface ExtensionToAsbPlayerCommand<T extends Message> extends Command<
     readonly sender: 'asbplayer-extension-to-player';
     readonly tabId?: number;
     readonly src?: string;
+    readonly asbplayerId?: string;
 }
 
 export interface PopupToExtensionCommand<T extends Message> extends Command<T> {

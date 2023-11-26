@@ -48,7 +48,36 @@ export default class TabRegistry {
             this._videoElements();
         });
         chrome.tabs.onUpdated.addListener((tabId, removeInfo) => {
-            this._videoElements();
+            if (removeInfo.url === undefined) {
+                // New tab, or tab was refreshed
+
+                this._videoElements((videoElements) => {
+                    let changed = false;
+
+                    for (const [k, v] of Object.entries(videoElements)) {
+                        if (v.tab.id === tabId) {
+                            delete videoElements[k];
+                            changed = true;
+                        }
+                    }
+
+                    return changed;
+                });
+                this._asbplayers((asbplayers) => {
+                    let changed = false;
+
+                    for (const [k, v] of Object.entries(asbplayers)) {
+                        if (v.tab?.id === tabId) {
+                            delete asbplayers[k];
+                            changed = true;
+                        }
+                    }
+
+                    return changed;
+                });
+            } else {
+                this._videoElements();
+            }
         });
     }
 
@@ -83,7 +112,7 @@ export default class TabRegistry {
         }
 
         if (mutator !== undefined) {
-            changed = changed || mutator(videoElements);
+            changed = mutator(videoElements) || changed;
         }
 
         if (changed) {
@@ -135,7 +164,7 @@ export default class TabRegistry {
         }
 
         if (mutator !== undefined) {
-            changed = changed || mutator(asbplayers);
+            changed = mutator(asbplayers) || changed;
         }
 
         let newAsplayerAppeared = false;
