@@ -262,41 +262,33 @@ export default function SidePanel({ settings, extension }: Props) {
         setShowCopyHistory(true);
     }, [refreshCopyHistory]);
     const handleCloseCopyHistory = useCallback(() => setShowCopyHistory(false), []);
-    const handleClipAudio = useCallback((item: CopyHistoryItem) => {
-        if (!item.audio) {
-            return;
-        }
+    const handleClipAudio = useCallback(
+        (item: CopyHistoryItem) => {
+            const clip = AudioClip.fromCard(item, settings.audioPaddingStart, settings.audioPaddingEnd);
 
-        const start = item.audio.start ?? item.subtitle.start;
-        const end = item.audio.end ?? item.subtitle.end;
+            if (!clip) {
+                return;
+            }
+            if (settings.preferMp3) {
+                clip.toMp3().download();
+            } else {
+                clip.download();
+            }
+        },
+        [settings]
+    );
+    const handleDownloadImage = useCallback(
+        (item: CopyHistoryItem) => {
+            const image = Image.fromCard(item, settings.maxImageWidth, settings.maxImageHeight);
 
-        const clip = AudioClip.fromBase64(
-            item.subtitleFileName!,
-            Math.max(0, start - (item.audio.paddingStart ?? 0)),
-            end + (item.audio.paddingEnd ?? 0),
-            item.audio.playbackRate ?? 1,
-            item.audio.base64,
-            item.audio.extension
-        );
+            if (!image) {
+                return;
+            }
 
-        if (settings.preferMp3) {
-            clip.toMp3().download();
-        } else {
-            clip.download();
-        }
-    }, []);
-    const handleDownloadImage = useCallback((item: CopyHistoryItem) => {
-        if (!item.image) {
-            return;
-        }
-
-        Image.fromBase64(
-            item.subtitleFileName!,
-            item.subtitle.start,
-            item.image.base64,
-            item.image.extension
-        ).download();
-    }, []);
+            image.download();
+        },
+        [settings]
+    );
     const handleAnki = useCallback(
         (copyHistoryItem: CopyHistoryItem) => {
             if (currentTabId === undefined) {

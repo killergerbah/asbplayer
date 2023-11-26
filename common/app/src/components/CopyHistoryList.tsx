@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@material-ui/core/styles';
 import { timeDurationDisplay } from '../services/util';
@@ -15,7 +15,9 @@ import NoteAddIcon from '@material-ui/icons/NoteAdd';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
-import { CopyHistoryItem } from '@project/common';
+import { CopyHistoryItem } from '../../..';
+import { AudioClip } from '../../../audio-clip';
+import { Image } from '../../..';
 
 interface CopyHistoryListProps {
     open: boolean;
@@ -70,9 +72,45 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+const useAudioAvailability = (item: CopyHistoryItem) => {
+    const [isAudioAvailable, setIsAudioAvailable] = useState<boolean>();
+
+    useEffect(() => {
+        const clip = AudioClip.fromCard(item, 0, 0);
+
+        if (clip) {
+            clip.isPlayable().then((playable) => {
+                setIsAudioAvailable(playable);
+            });
+        } else {
+            setIsAudioAvailable(false);
+        }
+    }, [item]);
+
+    return { isAudioAvailable };
+};
+
+const useImageAvailability = (item: CopyHistoryItem) => {
+    const [isImageAvailable, setIsImageAvailable] = useState<boolean>();
+
+    useEffect(() => {
+        const image = Image.fromCard(item, 0, 0);
+
+        if (image) {
+            image.isAvailable().then((available) => {
+                setIsImageAvailable(available);
+            });
+        } else {
+            setIsImageAvailable(false);
+        }
+    }, [item]);
+
+    return { isImageAvailable };
+};
+
 interface MenuProps {
     open: boolean;
-    item?: CopyHistoryItem;
+    item: CopyHistoryItem;
     anchorEl?: Element;
     onClose: () => void;
     onSelect?: (item: CopyHistoryItem) => void;
@@ -112,9 +150,8 @@ function Menu({ open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage,
         onClose();
     }, [item, onDelete, onClose]);
 
-    if (!item) {
-        return null;
-    }
+    const { isImageAvailable } = useImageAvailability(item);
+    const { isAudioAvailable } = useAudioAvailability(item);
 
     return (
         <Popover
@@ -140,7 +177,7 @@ function Menu({ open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage,
                         <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary={t('action.jumpTo')} />
                     </ListItem>
                 )}
-                {(item.file || item.audio) && (
+                {isAudioAvailable && (
                     <ListItem button onClick={handleClipAudio}>
                         <ListItemText
                             primaryTypographyProps={{ variant: 'body2' }}
@@ -148,7 +185,7 @@ function Menu({ open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage,
                         />
                     </ListItem>
                 )}
-                {(item.file || item.image) && (
+                {isImageAvailable && (
                     <ListItem button onClick={handleDownloadImage}>
                         <ListItemText
                             primaryTypographyProps={{ variant: 'body2' }}
@@ -304,16 +341,18 @@ export default function CopyHistoryList({
     return (
         <>
             {content}
-            <Menu
-                open={open && menuOpen}
-                anchorEl={menuAnchorEl}
-                item={menuItem}
-                onClose={handleMenuClosed}
-                onSelect={onSelect}
-                onClipAudio={onClipAudio}
-                onDownloadImage={onDownloadImage}
-                onDelete={handleDelete}
-            />
+            {menuItem && (
+                <Menu
+                    open={open && menuOpen}
+                    anchorEl={menuAnchorEl}
+                    item={menuItem}
+                    onClose={handleMenuClosed}
+                    onSelect={onSelect}
+                    onClipAudio={onClipAudio}
+                    onDownloadImage={onDownloadImage}
+                    onDelete={handleDelete}
+                />
+            )}
         </>
     );
 }
