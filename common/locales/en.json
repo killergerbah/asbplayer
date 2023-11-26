@@ -155,6 +155,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "Empty",
             "loadSubtitlesFirst": "Subtitles must be loaded before you can start mining.",
+            "rememberTrackPreference": "Remember these track choices for this site",
             "selectSubtitles": "Select Subtitles",
             "subtitleTrack": "Subtitle Track",
             "videoName": "Video Name"

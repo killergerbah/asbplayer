@@ -155,6 +155,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "Empty",
             "loadSubtitlesFirst": "Napisy muszą być załadowane zanim zaczniesz kopać.",
+            "rememberTrackPreference": "Remember these track choices for this site",
             "selectSubtitles": "Wybierz napisy",
             "subtitleTrack": "Ścieżka napisów",
             "videoName": "Nazwa wideo"

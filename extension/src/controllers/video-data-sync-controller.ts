@@ -165,16 +165,9 @@ export default class VideoDataSyncController {
         }
 
         const subtitleTrackChoices = this._syncedData?.subtitles ?? [];
-        let selectedSub: VideoDataSubtitleTrack[] = [this._emptySubtitle, this._emptySubtitle, this._emptySubtitle];
-        for (let i = 0; i < this.lastLanguageSynced.length; i++) {
-            const language = this.lastLanguageSynced[i];
-            for (let j = 0; j < subtitleTrackChoices.length; j++) {
-                if (language === subtitleTrackChoices[j].language) {
-                    selectedSub[i] = subtitleTrackChoices[j];
-                    break;
-                }
-            }
-        }
+        const subs = this._matchLastSyncedWithAvailableTracks();
+        const selectedSub: VideoDataSubtitleTrack[] = subs.autoSelectedTracks;
+        const defaultCheckboxState: boolean = subs.completeMatch;
 
         if (selectedSub !== undefined && !userRequested && !this._syncedData?.error) {
             // Instead of showing, auto-sync
@@ -201,6 +194,7 @@ export default class VideoDataSyncController {
                       error: this._syncedData.error,
                       themeType: themeType,
                       openedFromMiningCommand,
+                      defaultCheckboxState: defaultCheckboxState,
                   }
                 : {
                       open: true,
@@ -212,12 +206,45 @@ export default class VideoDataSyncController {
                       subtitles: subtitleTrackChoices,
                       themeType: themeType,
                       openedFromMiningCommand,
+                      defaultCheckboxState: defaultCheckboxState,
                   };
             state.selectedSubtitle = selectedSub.map((subtitle) => subtitle.url || '-');
             const client = await this._client();
             this._prepareShow();
             client.updateState(state);
         }
+    }
+
+    private _matchLastSyncedWithAvailableTracks() {
+        const subtitleTrackChoices = this._syncedData?.subtitles ?? [];
+        let tracks = {
+            autoSelectedTracks: [this._emptySubtitle, this._emptySubtitle, this._emptySubtitle],
+            completeMatch: false,
+        };
+
+        if (!subtitleTrackChoices.length && this.lastLanguageSynced.join('') === '') {
+            tracks.completeMatch = true;
+        } else {
+            let matches: number = 0;
+            for (let i = 0; i < this.lastLanguageSynced.length; i++) {
+                const language = this.lastLanguageSynced[i];
+                for (let j = 0; j < subtitleTrackChoices.length; j++) {
+                    if (language === '') {
+                        matches++;
+                        break;
+                    } else if (language === subtitleTrackChoices[j].language) {
+                        tracks.autoSelectedTracks[i] = subtitleTrackChoices[j];
+                        matches++;
+                        break;
+                    }
+                }
+            }
+            if (matches === this.lastLanguageSynced.length) {
+                tracks.completeMatch = true;
+            }
+        }
+
+        return tracks;
     }
 
     private _defaultVideoName(basename: string | undefined, subtitleTrack: VideoDataSubtitleTrack) {
@@ -262,10 +289,12 @@ export default class VideoDataSyncController {
                 if ('confirm' === message.command) {
                     const confirmMessage = message as VideoDataUiBridgeConfirmMessage;
 
-                    this.lastLanguageSynced = confirmMessage.data.map((track) => track.language);
-                    await this._context.settings
-                        .set({ streamingLastLanguagesSynced: this._lastLanguagesSynced })
-                        .catch(() => {});
+                    if (confirmMessage.shouldRememberTrackChoices) {
+                        this.lastLanguageSynced = confirmMessage.data.map((track) => track.language);
+                        await this._context.settings
+                            .set({ streamingLastLanguagesSynced: this._lastLanguagesSynced })
+                            .catch(() => {});
+                    }
 
                     const data = confirmMessage.data as ConfirmedVideoDataSubtitleTrack[];
 

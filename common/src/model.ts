@@ -164,6 +164,7 @@ export interface VideoDataUiState {
     selectedSubtitle?: string[];
     showSubSelect?: boolean;
     openedFromMiningCommand?: boolean;
+    defaultCheckboxState?: boolean;
 }
 
 export interface VideoTabModel {

@@ -5,6 +5,7 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -12,6 +13,7 @@ import TextField from '@material-ui/core/TextField';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import makeStyles from '@material-ui/styles/makeStyles';
+import Switch from '@material-ui/core/Switch';
 import { ConfirmedVideoDataSubtitleTrack, VideoDataSubtitleTrack } from '@project/common';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -51,11 +53,12 @@ interface Props {
     showSubSelect: boolean;
     subtitles: VideoDataSubtitleTrack[];
     selectedSubtitle: string[];
+    defaultCheckboxState: boolean;
     error: string;
     openedFromMiningCommand: boolean;
     onCancel: () => void;
     onOpenFile: () => void;
-    onConfirm: (track: ConfirmedVideoDataSubtitleTrack[]) => void;
+    onConfirm: (track: ConfirmedVideoDataSubtitleTrack[], shouldRememberTrackChoices: boolean) => void;
 }
 
 export default function VideoDataSyncDialog({
@@ -66,6 +69,7 @@ export default function VideoDataSyncDialog({
     showSubSelect,
     subtitles,
     selectedSubtitle,
+    defaultCheckboxState,
     error,
     openedFromMiningCommand,
     onCancel,
@@ -75,6 +79,7 @@ export default function VideoDataSyncDialog({
     const { t } = useTranslation();
     const [selectedSubtitles, setSelectedSubtitles] = useState(['-', '-', '-']);
     const [name, setName] = useState('');
+    const [shouldRememberTrackChoices, setShouldRememberTrackChoices] = React.useState(false);
     const trimmedName = name.trim();
     const classes = createClasses();
 
@@ -89,6 +94,12 @@ export default function VideoDataSyncDialog({
             setName('');
         }
     }, [open, selectedSubtitle]);
+
+    useEffect(() => {
+        if (open) {
+            setShouldRememberTrackChoices(defaultCheckboxState);
+        }
+    }, [open]);
 
     useEffect(() => {
         setName((name) => {
@@ -121,7 +132,11 @@ export default function VideoDataSyncDialog({
 
     function handleOkButtonClick() {
         const selectedSubtitleTracks: ConfirmedVideoDataSubtitleTrack[] = allSelectedSubtitleTracks();
-        onConfirm(selectedSubtitleTracks);
+        onConfirm(selectedSubtitleTracks, shouldRememberTrackChoices);
+    }
+
+    function handleRememberTrackChoices() {
+        setShouldRememberTrackChoices(!shouldRememberTrackChoices);
     }
 
     function allSelectedSubtitleTracks() {
@@ -223,6 +238,25 @@ export default function VideoDataSyncDialog({
                             />
                         </Grid>
                         {threeSubtitleTrackSelectors}
+                        <Grid item>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={shouldRememberTrackChoices}
+                                        onChange={handleRememberTrackChoices}
+                                        color="secondary"
+                                    />
+                                }
+                                label={t('extension.videoDataSync.rememberTrackPreference')}
+                                labelPlacement="start"
+                                style={{
+                                    justifyContent: 'end',
+                                    width: '100%',
+                                    flexDirection: 'row-reverse',
+                                    marginLeft: '13px',
+                                }}
+                            />
+                        </Grid>
                     </Grid>
                 </form>
             </DialogContent>
