@@ -415,6 +415,13 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
 
             switch (postMineAction ?? PostMineAction.none) {
                 case PostMineAction.none:
+                    setAlertSeverity('success');
+                    setAlert(
+                        card.subtitle.text === ''
+                            ? t('info.savedTimestamp', { timestamp: humanReadableTime(card.subtitle.start) })!
+                            : t('info.copiedSubtitle', { text: card.subtitle.text })!
+                    );
+                    setAlertOpen(true);
                     break;
                 case PostMineAction.showAnkiDialog:
                     handleAnkiDialogRequest(newCopiedSubtitle);
@@ -447,16 +454,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     break;
                 default:
                     throw new Error('Unknown post mine action: ' + postMineAction);
-            }
-
-            if (card.subtitle) {
-                setAlertSeverity('success');
-                setAlert(
-                    card.subtitle.text === ''
-                        ? t('info.savedTimestamp', { timestamp: humanReadableTime(card.subtitle.start) })!
-                        : t('info.copiedSubtitle', { text: card.subtitle.text })!
-                );
-                setAlertOpen(true);
             }
         },
         [fileName, settings, extension, saveCopyHistoryItem, handleAnkiDialogProceed, handleAnkiDialogRequest, t]
