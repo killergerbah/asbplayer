@@ -20,6 +20,7 @@ import {
     CopyHistoryItem,
     Fetcher,
     CardModel,
+    ShowAnkiUiMessage,
 } from '@project/common';
 import { AudioClip } from '@project/common/audio-clip';
 import { Anki, AnkiExportMode } from '@project/common/anki';
@@ -616,8 +617,8 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         [subtitleFiles, handleError, t]
     );
 
-    const handleAnki = useCallback((item: CopyHistoryItem) => {
-        setAnkiDialogCard(item);
+    const handleAnki = useCallback((card: CardModel) => {
+        setAnkiDialogCard(card);
         setAnkiDialogOpen(true);
         setAnkiDialogDisabled(false);
         setDisableKeyEvents(true);
@@ -867,13 +868,15 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                 setSettingsDialogScrollToId('keyboard-shortcuts');
             } else if (message.data.command === 'open-asbplayer-settings') {
                 setSettingsDialogOpen(true);
+            } else if (message.data.command === 'show-anki-ui') {
+                handleAnki(message.data as ShowAnkiUiMessage);
             }
         }
 
         const unsubscribe = extension.subscribe(onMessage);
         extension.startHeartbeat({ fromVideoPlayer: false });
         return unsubscribe;
-    }, [extension, playbackPreferences, inVideoPlayer, handleFiles]);
+    }, [extension, playbackPreferences, inVideoPlayer, handleFiles, handleAnki]);
 
     const handleAutoPauseModeChangedViaBind = useCallback(
         (oldPlayMode: PlayMode, newPlayMode: PlayMode) => {
