@@ -24,7 +24,7 @@ const RootApp = ({ origin, logoUrl, settingsStorage, fetcher }: Props) => {
 
             await settingsProvider.set(settings);
         },
-        [settingsProvider, extension]
+        [settingsProvider]
     );
 
     useEffect(() => {

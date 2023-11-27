@@ -1,5 +1,5 @@
 import { HttpFetcher, createTheme } from '@project/common';
-import { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useSettings } from '../hooks/use-settings';
 import { ThemeProvider, makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
@@ -53,14 +53,14 @@ const SettingsUi = () => {
     }, []);
 
     const { initialized: i18nInitialized } = useI18n({ language: settings?.language ?? 'en' });
-    const theme = useMemo(() => settings && createTheme(settings.themeType), [settings?.themeType]);
+    const theme = useMemo(() => settings && createTheme(settings.themeType), [settings]);
     const section = useMemo(() => {
         if (location.hash && location.hash.startsWith('#')) {
             return location.hash.substring(1, location.hash.length);
         }
 
         return undefined;
-    }, [location.hash]);
+    }, []);
 
     if (!settings || !anki || !commands || !i18nInitialized || !theme) {
         return null;

@@ -18,7 +18,7 @@ import { AudioClip } from '@project/common/audio-clip';
 import { AppKeyBinder, ChromeExtension, useCopyHistory } from '@project/common/app';
 import { useI18n } from '@project/common/hooks';
 import { SubtitleReader } from '@project/common/subtitle-reader';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Player } from '@project/common/app';
 import { PlaybackPreferences } from '@project/common/app';
 import { Color } from '@material-ui/lab';
@@ -310,7 +310,7 @@ export default function SidePanel({ settings, extension }: Props) {
             chrome.tabs.sendMessage(currentTabId, videoCommand);
             chrome.tabs.sendMessage(currentTabId, asbplayerCommand);
         },
-        [extension, currentTabId]
+        [currentTabId]
     );
 
     const handleMineFromSubtitlePlayer = useCallback(

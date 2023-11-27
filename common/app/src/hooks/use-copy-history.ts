@@ -23,13 +23,13 @@ export const useCopyHistory = (miningHistoryStorageLimit: number) => {
 
     const refreshCopyHistory = useCallback(async () => {
         updateCopyHistoryItems(await copyHistoryRepository.fetch(miningHistoryStorageLimit));
-    }, [miningHistoryStorageLimit]);
+    }, [miningHistoryStorageLimit, updateCopyHistoryItems, copyHistoryRepository]);
 
     useEffect(() => {
         const observable = copyHistoryRepository.liveFetch(miningHistoryStorageLimit);
         const subscription = observable.subscribe(updateCopyHistoryItems);
         return () => subscription.unsubscribe();
-    }, []);
+    }, [copyHistoryRepository, miningHistoryStorageLimit, updateCopyHistoryItems]);
 
     const deleteCopyHistoryItem = useCallback(
         async (item: CopyHistoryItem) => {
@@ -44,13 +44,16 @@ export const useCopyHistory = (miningHistoryStorageLimit: number) => {
             setCopyHistoryItems(newCopyHistoryItems);
             await copyHistoryRepository.delete(item.id);
         },
-        [copyHistoryItems]
+        [copyHistoryItems, copyHistoryRepository]
     );
 
-    const saveCopyHistoryItem = useCallback(async (item: CopyHistoryItem) => {
-        setCopyHistoryItems((items) => [...items, item]);
-        await copyHistoryRepository.save(item);
-    }, []);
+    const saveCopyHistoryItem = useCallback(
+        async (item: CopyHistoryItem) => {
+            setCopyHistoryItems((items) => [...items, item]);
+            await copyHistoryRepository.save(item);
+        },
+        [copyHistoryRepository]
+    );
 
     return { copyHistoryItems, refreshCopyHistory, deleteCopyHistoryItem, saveCopyHistoryItem };
 };

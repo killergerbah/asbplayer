@@ -15,41 +15,42 @@ interface Props {
     onShowMiningHistory: () => void;
 }
 
-const SidePanelTopControls = React.forwardRef(
-    ({ show, onLoadSubtitles, onShowMiningHistory }: Props, ref: ForwardedRef<HTMLDivElement>) => {
-        const { t } = useTranslation();
-        const [forceShow, setForceShow] = useState<boolean>(true);
+const SidePanelTopControls = React.forwardRef(function SidePanelTopControls(
+    { show, onLoadSubtitles, onShowMiningHistory }: Props,
+    ref: ForwardedRef<HTMLDivElement>
+) {
+    const { t } = useTranslation();
+    const [forceShow, setForceShow] = useState<boolean>(true);
 
-        useEffect(() => {
-            const timeoutId = setTimeout(() => setForceShow(false), 1000);
-            return () => clearTimeout(timeoutId);
-        }, []);
+    useEffect(() => {
+        const timeoutId = setTimeout(() => setForceShow(false), 1000);
+        return () => clearTimeout(timeoutId);
+    }, []);
 
-        return (
-            <Fade in={show || forceShow}>
-                {/* Box type is missing ref support */}
-                {/* @ts-ignore */}
-                <Box ref={ref} style={{ position: 'absolute', top: 12, right: 12 }}>
-                    <Grid container direction="column">
-                        <Grid item>
-                            <Tooltip title={t('action.loadSubtitles')!}>
-                                <IconButton onClick={onLoadSubtitles}>
-                                    <SubtitlesIcon />
-                                </IconButton>
-                            </Tooltip>
-                        </Grid>
-                        <Grid item>
-                            <IconButton onClick={onShowMiningHistory}>
-                                <Tooltip title={t('bar.miningHistory')!}>
-                                    <ListIcon />
-                                </Tooltip>
+    return (
+        <Fade in={show || forceShow}>
+            {/* Box type is missing ref support */}
+            {/* @ts-ignore */}
+            <Box ref={ref} style={{ position: 'absolute', top: 12, right: 12 }}>
+                <Grid container direction="column">
+                    <Grid item>
+                        <Tooltip title={t('action.loadSubtitles')!}>
+                            <IconButton onClick={onLoadSubtitles}>
+                                <SubtitlesIcon />
                             </IconButton>
-                        </Grid>
+                        </Tooltip>
                     </Grid>
-                </Box>
-            </Fade>
-        );
-    }
-);
+                    <Grid item>
+                        <IconButton onClick={onShowMiningHistory}>
+                            <Tooltip title={t('bar.miningHistory')!}>
+                                <ListIcon />
+                            </Tooltip>
+                        </IconButton>
+                    </Grid>
+                </Grid>
+            </Box>
+        </Fade>
+    );
+});
 
 export default SidePanelTopControls;

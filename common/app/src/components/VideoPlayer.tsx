@@ -195,7 +195,10 @@ interface CachedShowingSubtitleProps {
     domCache: OffscreenDomCache;
 }
 
-const CachedShowingSubtitle = React.memo(({ index, domCache }: CachedShowingSubtitleProps) => {
+const CachedShowingSubtitle = React.memo(function CachedShowingSubtitle({
+    index,
+    domCache,
+}: CachedShowingSubtitleProps) {
     return (
         <div
             ref={(ref) => {
@@ -873,7 +876,7 @@ export default function VideoPlayer({
                 timestamp,
             });
         },
-        [onAnkiDialogRequest, playerChannel, playing, popOut]
+        [onAnkiDialogRequest, playerChannel, popOut]
     );
 
     const mineCurrentSubtitle = useCallback(
@@ -911,7 +914,7 @@ export default function VideoPlayer({
                 mediaTimestamp
             );
         },
-        [mineSubtitle, extractSubtitles, clock, length, selectedAudioTrack, videoFile, videoFileName, extension]
+        [mineSubtitle, extractSubtitles, clock, length, selectedAudioTrack, videoFile, videoFileName]
     );
 
     useEffect(() => {

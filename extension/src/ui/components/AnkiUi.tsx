@@ -153,7 +153,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             setThemeType(s.themeType || 'dark');
             setOpen(s.open);
         });
-    }, [bridge, mp3WorkerUrl]);
+    }, [bridge, mp3WorkerUrl, image]);
 
     const handleProceed = useCallback(
         async (
@@ -258,10 +258,16 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
         }
     }, []);
 
-    const handleCopyToClipboard = useCallback(async (blob: Blob) => {
-        const message: CopyToClipboardMessage = { command: 'copy-to-clipboard', dataUrl: await blobToDataUrl(blob) };
-        bridge.sendMessageFromServer(message);
-    }, []);
+    const handleCopyToClipboard = useCallback(
+        async (blob: Blob) => {
+            const message: CopyToClipboardMessage = {
+                command: 'copy-to-clipboard',
+                dataUrl: await blobToDataUrl(blob),
+            };
+            bridge.sendMessageFromServer(message);
+        },
+        [bridge]
+    );
 
     useEffect(() => {
         return bridge.addClientMessageListener((message) => {
@@ -299,7 +305,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             subtitleFileName: source,
             mediaTimestamp: serializedAudio?.start ?? subtitle.start,
         };
-    }, [subtitle, surroundingSubtitles, url, serializedAudio]);
+    }, [file, source, subtitle, surroundingSubtitles, url, serializedImage, serializedAudio]);
 
     return (
         <ThemeProvider theme={theme}>

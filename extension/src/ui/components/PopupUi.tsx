@@ -24,23 +24,26 @@ interface Props {
 export function PopupUi({ commands }: Props) {
     const settingsProvider = useMemo(() => new SettingsProvider(new ExtensionSettingsStorage()), []);
     const [settings, setSettings] = useState<AsbplayerSettings>();
-    const theme = useMemo(() => settings && createTheme(settings.themeType), [settings?.themeType]);
+    const theme = useMemo(() => settings && createTheme(settings.themeType), [settings]);
 
     useEffect(() => {
         settingsProvider.getAll().then(setSettings);
-    }, []);
+    }, [settingsProvider]);
 
-    const handleSettingsChanged = useCallback(async (changed: Partial<AsbplayerSettings>) => {
-        setSettings((old: any) => ({ ...old, ...changed }));
-        await settingsProvider.set(changed);
-        const settingsUpdatedCommand: PopupToExtensionCommand<SettingsUpdatedMessage> = {
-            sender: 'asbplayer-popup',
-            message: {
-                command: 'settings-updated',
-            },
-        };
-        chrome.runtime.sendMessage(settingsUpdatedCommand);
-    }, []);
+    const handleSettingsChanged = useCallback(
+        async (changed: Partial<AsbplayerSettings>) => {
+            setSettings((old: any) => ({ ...old, ...changed }));
+            await settingsProvider.set(changed);
+            const settingsUpdatedCommand: PopupToExtensionCommand<SettingsUpdatedMessage> = {
+                sender: 'asbplayer-popup',
+                message: {
+                    command: 'settings-updated',
+                },
+            };
+            chrome.runtime.sendMessage(settingsUpdatedCommand);
+        },
+        [settingsProvider]
+    );
 
     const handleOpenExtensionShortcuts = useCallback(() => {
         chrome.tabs.create({ active: true, url: 'chrome://extensions/shortcuts' });

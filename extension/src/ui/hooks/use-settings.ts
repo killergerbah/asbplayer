@@ -8,7 +8,7 @@ export const useSettings = () => {
 
     useEffect(() => {
         settingsProvider.getAll().then(setSettings);
-    }, []);
+    }, [settingsProvider]);
 
     useEffect(() => {
         chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

@@ -312,7 +312,7 @@ export default function Player({
             onSubtitles(newSubtitles);
             playbackPreferences.offset = offset;
         },
-        [subtitleFiles, subtitles, extension, playbackPreferences, tab, channel]
+        [subtitleFiles, subtitles, extension, playbackPreferences, tab, channel, onSubtitles]
     );
 
     useEffect(() => {
@@ -387,7 +387,15 @@ export default function Player({
         }
 
         init().then(() => onLoaded(subtitleFiles ?? []));
-    }, [subtitleReader, playbackPreferences.offset, onLoaded, onError, subtitleFiles, flattenSubtitleFiles]);
+    }, [
+        subtitleReader,
+        playbackPreferences.offset,
+        onLoaded,
+        onError,
+        subtitleFiles,
+        flattenSubtitleFiles,
+        onSubtitles,
+    ]);
 
     useEffect(() => {
         setSubtitlesSentThroughChannel(false);
@@ -650,7 +658,7 @@ export default function Player({
         }
 
         setLastJumpToTopTimestamp(Date.now());
-    }, [videoPopOut, channelId, videoFileUrl, videoFrameRef, videoChannelRef]);
+    }, [videoPopOut, channelId, videoFileUrl, videoFrameRef, videoChannelRef, origin]);
 
     const handlePlay = useCallback(() => play(clock, mediaAdapter, true), [clock, mediaAdapter]);
     const handlePause = useCallback(() => pause(clock, mediaAdapter, true), [clock, mediaAdapter]);
@@ -721,18 +729,7 @@ export default function Player({
                 );
             }
         },
-        [
-            channel,
-            onCopy,
-            clock,
-            videoFile,
-            videoFileUrl,
-            subtitleFiles,
-            selectedAudioTrack,
-            playbackRate,
-            extension,
-            seek,
-        ]
+        [channel, onCopy, clock, videoFile, videoFileUrl, subtitleFiles, selectedAudioTrack, playbackRate]
     );
 
     const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {

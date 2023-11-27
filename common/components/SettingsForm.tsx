@@ -690,7 +690,7 @@ export default function SettingsForm({
             delete newCustomFields[customFieldName];
             handleSettingChanged('customAnkiFields', newCustomFields);
         },
-        [handleSettingChanged]
+        [handleSettingChanged, settings.customAnkiFields]
     );
     const handleKeysChange = useCallback(
         (keys: string, keyBindName: KeyBindName) => {
@@ -853,7 +853,7 @@ export default function SettingsForm({
         if (scrollToId in tabIndicesById) {
             setTabIndex(tabIndicesById[scrollToId as TabName]);
         }
-    }, [scrollToId]);
+    }, [scrollToId, tabIndicesById]);
 
     const [tabIndex, setTabIndex] = useState<number>(0);
     const validRegex = useMemo(() => regexIsValid(subtitleRegexFilter), [subtitleRegexFilter]);
@@ -924,6 +924,7 @@ export default function SettingsForm({
                                 values={{ origin }}
                                 components={[
                                     <Link
+                                        key={0}
                                         color="secondary"
                                         target="_blank"
                                         rel="noreferrer"

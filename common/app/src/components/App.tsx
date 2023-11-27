@@ -202,7 +202,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
     );
     const theme = useMemo<Theme>(() => createTheme(settings.themeType), [settings.themeType]);
     const anki = useMemo<Anki>(() => new Anki(settings, fetcher), [settings, fetcher]);
-    const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+    const searchParams = useMemo(() => new URLSearchParams(location.search), []);
     const inVideoPlayer = useMemo(() => searchParams.get('video') !== null, [searchParams]);
     const [videoFullscreen, setVideoFullscreen] = useState<boolean>(false);
     const keyBinder = useAppKeyBinder(settings.keyBindSet, extension);
@@ -456,7 +456,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     throw new Error('Unknown post mine action: ' + postMineAction);
             }
         },
-        [fileName, settings, extension, saveCopyHistoryItem, handleAnkiDialogProceed, handleAnkiDialogRequest, t]
+        [settings, extension, saveCopyHistoryItem, handleAnkiDialogProceed, handleAnkiDialogRequest, t]
     );
 
     const handleOpenCopyHistory = useCallback(async () => {
@@ -519,7 +519,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         videoChannelRef.current?.subtitleSettings(settings);
         videoChannelRef.current?.ankiSettings(settings);
         videoChannelRef.current?.miscSettings(settings);
-    }, [settings, ankiDialogOpen, extension]);
+    }, [settings, ankiDialogOpen]);
 
     const handleDeleteCopyHistoryItem = useCallback(
         (item: CopyHistoryItem) => {
@@ -752,7 +752,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                 handleError(e);
             }
         },
-        [handleError, playbackPreferences]
+        [handleError]
     );
 
     const handleDirectory = useCallback(
@@ -1027,7 +1027,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                 setSettingsDialogScrollToId(id);
             }
         }
-    }, [searchParams, location]);
+    }, [searchParams]);
 
     useEffect(() => {
         if (alertOpen && alert && alertSeverity) {

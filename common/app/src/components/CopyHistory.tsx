@@ -6,6 +6,7 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import IconButton from '@material-ui/core/IconButton';
 import { CopyHistoryItem } from '@project/common';
 import CopyHistoryList from './CopyHistoryList';
+import React from 'react';
 
 interface CopyHistoryProps {
     open: boolean;

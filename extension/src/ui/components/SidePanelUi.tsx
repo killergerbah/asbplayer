@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import SidePanel from './SidePanel';
 import { AsbplayerSettings, SettingsProvider, createTheme } from '@project/common';
 import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
@@ -12,7 +12,7 @@ const settingsProvider = new SettingsProvider(new ExtensionSettingsStorage());
 const SidePanelUi = () => {
     const [settings, setSettings] = useState<AsbplayerSettings>();
     const extension = useChromeExtension({ sidePanel: true });
-    const theme = useMemo(() => settings && createTheme(settings.themeType), [settings?.themeType]);
+    const theme = useMemo(() => settings && createTheme(settings.themeType), [settings]);
 
     useEffect(() => {
         settingsProvider.getAll().then(setSettings);
@@ -28,7 +28,7 @@ const SidePanelUi = () => {
                 settingsProvider.getAll().then(setSettings);
             }
         });
-    }, [extension, settingsProvider]);
+    }, [extension]);
 
     if (!settings || theme === undefined) {
         return null;

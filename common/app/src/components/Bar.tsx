@@ -13,7 +13,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
-import { useCallback } from 'react';
+import React, { useCallback } from 'react';
 
 interface BarProps {
     drawerWidth: number;

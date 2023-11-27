@@ -112,69 +112,67 @@ interface SubtitleRowProps extends TableRowProps {
     onCopySubtitle: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => void;
 }
 
-const SubtitleRow = React.memo(
-    ({
-        index,
-        selected,
-        subtitleRef,
-        onClickSubtitle,
-        onCopySubtitle,
-        compressed,
-        disabled,
-        subtitle,
-        copyButtonEnabled,
-        showCopyButton,
-        ...tableRowProps
-    }: SubtitleRowProps) => {
-        const classes = useSubtitleRowStyles();
-        const textRef = useRef<HTMLSpanElement>(null);
-        const [textSelected, setTextSelected] = useState<boolean>(false);
-        let className = compressed ? classes.compressedSubtitle : classes.subtitle;
-        let disabledClassName = disabled ? classes.disabledSubtitle : '';
+const SubtitleRow = React.memo(function SubtitleRow({
+    index,
+    selected,
+    subtitleRef,
+    onClickSubtitle,
+    onCopySubtitle,
+    compressed,
+    disabled,
+    subtitle,
+    copyButtonEnabled,
+    showCopyButton,
+    ...tableRowProps
+}: SubtitleRowProps) {
+    const classes = useSubtitleRowStyles();
+    const textRef = useRef<HTMLSpanElement>(null);
+    const [textSelected, setTextSelected] = useState<boolean>(false);
+    let className = compressed ? classes.compressedSubtitle : classes.subtitle;
+    let disabledClassName = disabled ? classes.disabledSubtitle : '';
 
-        if (subtitle.start < 0 || subtitle.end < 0) {
-            return null;
-        }
-
-        function handleMouseUp() {
-            const selection = document.getSelection();
-            const selected =
-                selection?.type === 'Range' && textRef.current?.isSameNode(selection.anchorNode?.parentNode ?? null);
-            setTextSelected(selected ?? false);
-        }
-
-        const content = subtitle.textImage ? (
-            <SubtitleTextImage availableWidth={window.screen.availWidth / 2} subtitle={subtitle} scale={1} />
-        ) : (
-            <span ref={textRef} className={disabledClassName}>
-                {subtitle.text}
-            </span>
-        );
-
-        return (
-            <TableRow
-                onClick={() => !textSelected && onClickSubtitle(index)}
-                onMouseUp={handleMouseUp}
-                ref={subtitleRef}
-                className={classes.subtitleRow}
-                selected={selected}
-                {...tableRowProps}
-            >
-                <TableCell className={className}>{content}</TableCell>
-                {showCopyButton && (
-                    <TableCell className={classes.copyButton}>
-                        <IconButton disabled={!copyButtonEnabled} onClick={(e) => onCopySubtitle(e, index)}>
-                            <NoteAddIcon fontSize={compressed ? 'small' : 'medium'} />
-                        </IconButton>
-                    </TableCell>
-                )}
-                <TableCell className={classes.timestamp}>
-                    <div>{`\n${subtitle.displayTime}\n`}</div>
-                </TableCell>
-            </TableRow>
-        );
+    if (subtitle.start < 0 || subtitle.end < 0) {
+        return null;
     }
-);
+
+    function handleMouseUp() {
+        const selection = document.getSelection();
+        const selected =
+            selection?.type === 'Range' && textRef.current?.isSameNode(selection.anchorNode?.parentNode ?? null);
+        setTextSelected(selected ?? false);
+    }
+
+    const content = subtitle.textImage ? (
+        <SubtitleTextImage availableWidth={window.screen.availWidth / 2} subtitle={subtitle} scale={1} />
+    ) : (
+        <span ref={textRef} className={disabledClassName}>
+            {subtitle.text}
+        </span>
+    );
+
+    return (
+        <TableRow
+            onClick={() => !textSelected && onClickSubtitle(index)}
+            onMouseUp={handleMouseUp}
+            ref={subtitleRef}
+            className={classes.subtitleRow}
+            selected={selected}
+            {...tableRowProps}
+        >
+            <TableCell className={className}>{content}</TableCell>
+            {showCopyButton && (
+                <TableCell className={classes.copyButton}>
+                    <IconButton disabled={!copyButtonEnabled} onClick={(e) => onCopySubtitle(e, index)}>
+                        <NoteAddIcon fontSize={compressed ? 'small' : 'medium'} />
+                    </IconButton>
+                </TableCell>
+            )}
+            <TableCell className={classes.timestamp}>
+                <div>{`\n${subtitle.displayTime}\n`}</div>
+            </TableCell>
+        </TableRow>
+    );
+});
 
 interface SubtitlePlayerProps {
     clock: Clock;

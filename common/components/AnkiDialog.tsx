@@ -187,7 +187,7 @@ const useAudioHelperText = (audioClip?: AudioClip, onRerecord?: () => void) => {
                 }
             });
         }
-    }, [audioClip, onRerecord]);
+    }, [audioClip, onRerecord, t]);
 
     return { audioHelperText, audioClipPlayable };
 };
@@ -209,7 +209,7 @@ const useImageHelperText = (image?: Image) => {
                 }
             });
         }
-    }, [image]);
+    }, [image, t]);
 
     return { imageHelperText, imageAvailable };
 };
@@ -388,6 +388,7 @@ const AnkiDialog = ({
     }, [
         card.subtitle,
         card.surroundingSubtitles,
+        initialText,
         forceInitialTimestampInterval,
         initialSelectedTimestampInterval,
         forceTimestampBoundaryInterval,
@@ -544,7 +545,14 @@ const AnkiDialog = ({
                 setLastAppliedTimestampIntervalToAudio(newTimestampInterval);
             }
         },
-        [card, text, lastAppliedTimestampIntervalToText, textForTimestampInterval]
+        [
+            card.surroundingSubtitles,
+            audioClip,
+            onRerecord,
+            text,
+            lastAppliedTimestampIntervalToText,
+            textForTimestampInterval,
+        ]
     );
 
     const handleApplyTimestampIntervalToAudio = useCallback(
