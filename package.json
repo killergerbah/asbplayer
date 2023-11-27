@@ -1,19 +1,23 @@
 {
-  "name": "root",
-  "private": true,
-  "workspaces": {
-    "packages": [
-      "client",
-      "extension",
-      "common"
-    ]
-  },
-  "devDependencies": {
-    "prettier": "2.4.1"
-  },
-  "scripts": {
-    "pretty": "yarn prettier --write './(client|common|extension)/src/**/*.(js|ts|css)'",
-    "pretty:check": "yarn prettier --check './(client|common|extension)/src/**/*.(js|ts|css)'"
-  },
-  "packageManager": "yarn@3.2.0"
+    "name": "root",
+    "private": true,
+    "workspaces": {
+        "packages": [
+            "client",
+            "extension",
+            "common"
+        ]
+    },
+    "devDependencies": {
+        "@typescript-eslint/parser": "^6.12.0",
+        "eslint": "^8.54.0",
+        "eslint-plugin-react": "^7.33.2",
+        "eslint-plugin-react-hooks": "^4.6.0",
+        "prettier": "2.4.1"
+    },
+    "scripts": {
+        "pretty": "yarn prettier --write './(client|common|extension)/src/**/*.(js|ts|css)'",
+        "pretty:check": "yarn prettier --check './(client|common|extension)/src/**/*.(js|ts|css)'"
+    },
+    "packageManager": "yarn@3.2.0"
 }
