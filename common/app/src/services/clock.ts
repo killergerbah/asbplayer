@@ -22,7 +22,7 @@ export default class Clock {
             this._accumulated += this._elapsed();
             this._startTime = Date.now();
         }
-    
+
         this._rate = rate;
     }
 

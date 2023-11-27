@@ -1,7 +1,6 @@
 import { Command, Message } from '@project/common';
 
 export default class ExtensionCommandsHandler {
-
     get sender() {
         return 'asbplayerv2';
     }
@@ -11,7 +10,7 @@ export default class ExtensionCommandsHandler {
     }
 
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) {
-        chrome.commands.getAll(commands => {
+        chrome.commands.getAll((commands) => {
             const commandsObj: any = {};
 
             for (const c of commands) {
@@ -22,7 +21,7 @@ export default class ExtensionCommandsHandler {
 
             sendResponse(commandsObj);
         });
-      
+
         return true;
     }
 }

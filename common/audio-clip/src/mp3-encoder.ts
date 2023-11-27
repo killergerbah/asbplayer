@@ -7,7 +7,7 @@ export default class Mp3Encoder {
                     const audioContext = new AudioContext();
 
                     if (e.target === null) {
-                        reject(new Error("Could not obtain buffer to encode"));
+                        reject(new Error('Could not obtain buffer to encode'));
                         return;
                     }
 

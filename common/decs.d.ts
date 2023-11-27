@@ -1,1 +1,1 @@
-declare module "vtt.js";
+declare module 'vtt.js';

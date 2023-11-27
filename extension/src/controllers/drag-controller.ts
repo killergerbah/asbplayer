@@ -63,7 +63,7 @@ export default class DragController {
                     extension === 'vtt' ||
                     extension === 'sup' ||
                     extension === 'dfxp' ||
-                    extension ===  'ttml2'
+                    extension === 'ttml2'
                 ) {
                     files.push(f);
                 }

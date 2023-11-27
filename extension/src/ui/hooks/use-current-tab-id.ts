@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 export const useCurrentTabId = () => {
     const [currentTabId, setCurrentTabId] = useState<number>();
-   
+
     useEffect(() => {
         chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
             if (tabs.length > 0) {
@@ -18,4 +18,4 @@ export const useCurrentTabId = () => {
     });
 
     return currentTabId;
-}
+};

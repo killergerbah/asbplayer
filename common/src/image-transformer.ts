@@ -1,4 +1,4 @@
-import { RectModel } from "./model";
+import { RectModel } from './model';
 
 export const resizeCanvas = (
     canvas: HTMLCanvasElement,

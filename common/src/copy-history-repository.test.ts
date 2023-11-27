@@ -9,17 +9,12 @@ beforeEach(async () => {
 it('saves and fetches', async () => {
     const repository = new CopyHistoryRepository(1);
     const item = {
-        text: 'text',
-        start: 0,
-        end: 1,
-        originalStart: 0,
-        originalEnd: 1,
-        track: 0,
-        name: 'name',
+        subtitle: { text: 'text', start: 0, end: 1, originalStart: 0, originalEnd: 1, track: 0 },
         id: 'id',
         timestamp: 1234,
         surroundingSubtitles: [],
         subtitleFileName: 'subtitle-file',
+        mediaTimestamp: 5678,
     };
     await repository.save(item);
     const records = await repository.fetch(1);
@@ -30,38 +25,28 @@ it('saves and fetches', async () => {
 it('attempts to update existing record same ID', async () => {
     const repository = new CopyHistoryRepository(1);
     const item = {
-        text: 'text1',
-        start: 0,
-        end: 1,
-        originalStart: 0,
-        originalEnd: 1,
-        track: 0,
-        name: 'name',
+        subtitle: { text: 'text1', start: 0, end: 1, originalStart: 0, originalEnd: 1, track: 0 },
         id: 'id',
         timestamp: 1234,
         surroundingSubtitles: [],
         subtitleFileName: 'subtitle-file',
+        mediaTimestamp: 5678,
     };
     await repository.save(item);
-    await repository.save({ ...item, text: 'text2' });
+    await repository.save({ ...item, subtitle: { ...item.subtitle, text: 'text2' } });
 
     const records = await repository.fetch(2);
     expect(records.length).toEqual(1);
-    expect(records[0]).toMatchObject({ ...item, text: 'text2' });
+    expect(records[0]).toMatchObject({ ...item, subtitle: { ...item.subtitle, text: 'text2' } });
 });
 
 it('respects table size limit', async () => {
     const repository = new CopyHistoryRepository(1);
     const item = {
-        text: 'text',
-        start: 0,
-        end: 1,
-        originalStart: 0,
-        originalEnd: 1,
-        track: 0,
-        name: 'name',
+        subtitle: { text: 'text', start: 0, end: 1, originalStart: 0, originalEnd: 1, track: 0 },
         id: 'id',
         timestamp: 1234,
+        mediaTimestamp: 56789,
         surroundingSubtitles: [],
         subtitleFileName: 'subtitle-file',
     };
@@ -75,15 +60,10 @@ it('respects table size limit', async () => {
 it('respects fetch limit', async () => {
     const repository = new CopyHistoryRepository(3);
     const item = {
-        text: 'text',
-        start: 0,
-        end: 1,
-        originalStart: 0,
-        originalEnd: 1,
-        track: 0,
-        name: 'name',
+        subtitle: { text: 'text', start: 0, end: 1, originalStart: 0, originalEnd: 1, track: 0 },
         id: 'id',
         timestamp: 1234,
+        mediaTimestamp: 5678,
         surroundingSubtitles: [],
         subtitleFileName: 'subtitle-file',
     };

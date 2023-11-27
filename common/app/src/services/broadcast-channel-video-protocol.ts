@@ -1,11 +1,11 @@
-import { Message } from "@project/common";
-import { VideoProtocol, VideoProtocolMessage } from "./video-protocol";
+import { Message } from '@project/common';
+import { VideoProtocol, VideoProtocolMessage } from './video-protocol';
 
 export default class BroadcastChannelVideoProtocol implements VideoProtocol {
     private channel?: BroadcastChannel;
 
     onMessage?: (message: VideoProtocolMessage) => void;
-    
+
     constructor(channelId: string) {
         this.channel = new BroadcastChannel(channelId);
         const that = this;

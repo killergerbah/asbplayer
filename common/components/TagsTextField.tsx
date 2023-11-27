@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { TextFieldProps } from "@material-ui/core";
-import TextField from "@material-ui/core/TextField";
+import React, { useCallback, useEffect, useState } from 'react';
+import { TextFieldProps } from '@material-ui/core';
+import TextField from '@material-ui/core/TextField';
 
 function extractTagsFromString(value: string) {
     const splitTags = value.split(' ').join('').split(',');
@@ -18,7 +18,7 @@ export interface Props {
     onTagsChange: (tags: string[]) => void;
 }
 
-export default function TagsTextField({tags, onTagsChange, ...props}: Props & TextFieldProps) {
+export default function TagsTextField({ tags, onTagsChange, ...props }: Props & TextFieldProps) {
     const [value, setValue] = useState('');
 
     useEffect(() => {
@@ -29,29 +29,22 @@ export default function TagsTextField({tags, onTagsChange, ...props}: Props & Te
         }
     }, [value, tags]);
 
-    const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        let currentValue = e.target.value;
+    const handleChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+            let currentValue = e.target.value;
 
-        if (
-            value.length > currentValue.length &&
-            value.includes(currentValue) &&
-            currentValue.endsWith(',')
-        ) {
-            // Detected a backspace at the last comma, move cursor back enough to remove the comma
-            currentValue = currentValue.substring(0, currentValue.length - 1);
-        }
+            if (value.length > currentValue.length && value.includes(currentValue) && currentValue.endsWith(',')) {
+                // Detected a backspace at the last comma, move cursor back enough to remove the comma
+                currentValue = currentValue.substring(0, currentValue.length - 1);
+            }
 
-        // Decompose string into individual tags by removing all spaces and splitting on ","
-        const newTags = extractTagsFromString(currentValue);
-        setValue(newTags.join(', '));
-        onTagsChange(newTags);
-    }, [value, onTagsChange]);
-
-    return (
-        <TextField
-            {...props}
-            value={value}
-            onChange={handleChange}
-        />
+            // Decompose string into individual tags by removing all spaces and splitting on ","
+            const newTags = extractTagsFromString(currentValue);
+            setValue(newTags.join(', '));
+            onTagsChange(newTags);
+        },
+        [value, onTagsChange]
     );
+
+    return <TextField {...props} value={value} onChange={handleChange} />;
 }
