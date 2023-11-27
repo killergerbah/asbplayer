@@ -48,7 +48,7 @@ export default class TabRegistry {
             this._videoElements();
         });
         chrome.tabs.onUpdated.addListener((tabId, removeInfo) => {
-            if (removeInfo.url === undefined) {
+            if (removeInfo.status === 'loading' && removeInfo.url === undefined) {
                 // New tab, or tab was refreshed
 
                 this._videoElements((videoElements) => {
