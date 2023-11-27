@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef, createRef, RefObject, ReactNode } from 'react';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { keysAreEqual } from '../services/util';
-import { useWindowSize } from '../hooks/use-window-size';
+import { useResize } from '../hooks/use-resize';
 import { useTranslation } from 'react-i18next';
 import {
     PostMineAction,
@@ -26,9 +26,8 @@ import Typography from '@material-ui/core/Typography';
 import Clock from '../services/clock';
 
 interface StylesProps {
-    limitWidth: boolean;
+    resizable: boolean;
     appBarHidden: boolean;
-    windowWidth: number;
 }
 
 const useSubtitlePlayerStyles = makeStyles<Theme, StylesProps, string>((theme) => ({
@@ -37,11 +36,14 @@ const useSubtitlePlayerStyles = makeStyles<Theme, StylesProps, string>((theme) =
         position: 'relative',
         overflowX: 'hidden',
         backgroundColor: theme.palette.background.default,
-        width: ({ limitWidth, windowWidth }) => (limitWidth ? Math.max(350, 0.25 * windowWidth) : '100%'),
+        width: ({ resizable }) => (resizable ? 'auto' : '100%'),
     },
     table: {
         backgroundColor: theme.palette.background.default,
         marginBottom: 75, // so the last row doesn't collide with controls
+    },
+    unselectableTable: {
+        userSelect: 'none',
     },
     noSubtitles: {
         height: '100%',
@@ -59,11 +61,11 @@ const useSubtitleRowStyles = makeStyles((theme) => ({
         '&:hover': {
             backgroundColor: theme.palette.action.hover,
         },
+        minWidth: 250,
     },
     subtitle: {
         fontSize: 20,
         paddingRight: 0,
-        minWidth: 200,
         width: '100%',
         overflowWrap: 'anywhere',
         whiteSpace: 'pre-wrap',
@@ -71,7 +73,6 @@ const useSubtitleRowStyles = makeStyles((theme) => ({
     compressedSubtitle: {
         fontSize: 16,
         paddingRight: 0,
-        minWidth: 200,
         width: '100%',
         overflowWrap: 'anywhere',
         whiteSpace: 'pre-wrap',
@@ -80,6 +81,9 @@ const useSubtitleRowStyles = makeStyles((theme) => ({
         color: 'transparent',
         backgroundColor: theme.palette.action.disabledBackground,
         borderRadius: 5,
+    },
+    unselectableSubtitle: {
+        userSelect: 'none',
     },
     timestamp: {
         fontSize: 14,
@@ -128,8 +132,8 @@ const SubtitleRow = React.memo(function SubtitleRow({
     const classes = useSubtitleRowStyles();
     const textRef = useRef<HTMLSpanElement>(null);
     const [textSelected, setTextSelected] = useState<boolean>(false);
-    let className = compressed ? classes.compressedSubtitle : classes.subtitle;
-    let disabledClassName = disabled ? classes.disabledSubtitle : '';
+    const className = compressed ? classes.compressedSubtitle : classes.subtitle;
+    const disabledClassName = disabled ? classes.disabledSubtitle : '';
 
     if (subtitle.start < 0 || subtitle.end < 0) {
         return null;
@@ -174,6 +178,26 @@ const SubtitleRow = React.memo(function SubtitleRow({
     );
 });
 
+interface ResizeHandleProps extends React.HTMLAttributes<HTMLDivElement> {
+    isResizing: boolean;
+}
+
+const ResizeHandle = ({ isResizing, ...rest }: ResizeHandleProps) => {
+    return (
+        <div
+            style={{
+                position: 'absolute',
+                width: isResizing ? 30 : 5,
+                top: 0,
+                left: 0,
+                bottom: 0,
+                cursor: 'col-resize',
+            }}
+            {...rest}
+        />
+    );
+};
+
 interface SubtitlePlayerProps {
     clock: Clock;
     onSeek: (progress: number, shouldPlay: boolean) => void;
@@ -193,7 +217,7 @@ interface SubtitlePlayerProps {
     length: number;
     jumpToSubtitle?: SubtitleModel;
     compressed: boolean;
-    limitWidth: boolean;
+    resizable: boolean;
     showCopyButton: boolean;
     copyButtonEnabled: boolean;
     loading: boolean;
@@ -223,7 +247,7 @@ export default function SubtitlePlayer({
     length,
     jumpToSubtitle,
     compressed,
-    limitWidth,
+    resizable,
     showCopyButton,
     copyButtonEnabled,
     loading,
@@ -271,8 +295,7 @@ export default function SubtitlePlayer({
     const containerRef = useRef<HTMLElement>();
     const drawerOpenRef = useRef<boolean>();
     drawerOpenRef.current = drawerOpen;
-    const [windowWidth] = useWindowSize(true);
-    const classes = useSubtitlePlayerStyles({ windowWidth, limitWidth, appBarHidden });
+    const classes = useSubtitlePlayerStyles({ resizable, appBarHidden });
     const autoPauseContextRef = useRef<AutoPauseContext>();
     autoPauseContextRef.current = autoPauseContext;
     const onSubtitlesSelectedRef = useRef<(subtitles: SubtitleModel[]) => void>();
@@ -699,6 +722,12 @@ export default function SubtitlePlayer({
         [subtitles, calculateSurroundingSubtitlesForIndex, settings, onCopy]
     );
 
+    const { width, enableResize, isResizing } = useResize({
+        initialWidth: Math.max(350, 0.25 * window.innerWidth),
+        minWidth: 200,
+        maxWidth: window.innerWidth,
+    });
+
     let subtitleTable: ReactNode | null = null;
 
     if (!subtitles || subtitles.length === 0) {
@@ -716,8 +745,10 @@ export default function SubtitlePlayer({
             );
         }
     } else {
+        const selectableTableClassName = isResizing ? classes.unselectableTable : '';
+
         subtitleTable = (
-            <TableContainer className={classes.table}>
+            <TableContainer className={`${classes.table} ${selectableTableClassName}`}>
                 <Table>
                     <TableBody>
                         {subtitles.map((s: SubtitleModel, index: number) => {
@@ -746,8 +777,15 @@ export default function SubtitlePlayer({
     }
 
     return (
-        <Paper square elevation={0} ref={containerRef} className={classes.container}>
+        <Paper
+            square
+            elevation={0}
+            ref={containerRef}
+            className={classes.container}
+            style={{ width: resizable ? width : 'auto' }}
+        >
             {subtitleTable}
+            {resizable && <ResizeHandle isResizing={isResizing} onMouseDown={enableResize} />}
         </Paper>
     );
 }

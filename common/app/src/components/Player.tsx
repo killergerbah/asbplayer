@@ -975,7 +975,7 @@ export default function Player({
                         drawerOpen={drawerOpen}
                         appBarHidden={appBarHidden}
                         compressed={videoInWindow || (forceCompressedMode ?? false)}
-                        limitWidth={videoInWindow}
+                        resizable={videoInWindow}
                         showCopyButton={showCopyButton}
                         copyButtonEnabled={copyButtonEnabled}
                         loading={loadingSubtitles}
