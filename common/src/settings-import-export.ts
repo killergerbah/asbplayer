@@ -1,4 +1,3 @@
-import { SettingsProvider } from './settings-provider';
 import { Validator } from 'jsonschema';
 import { download } from './util';
 import { AsbplayerSettings } from './settings';
@@ -57,6 +56,12 @@ const settingsSchema = {
         },
         subtitleOutlineThickness: {
             type: 'number',
+        },
+        subtitleShadowThickness: {
+            type: 'number',
+        },
+        subtitleShadowColor: {
+            type: 'string',
         },
         subtitleOutlineColor: {
             type: 'string',
@@ -144,6 +149,9 @@ const settingsSchema = {
         },
         rememberSubtitleOffset: {
             type: 'boolean',
+        },
+        lastSubtitleOffset: {
+            type: 'number',
         },
         autoCopyCurrentSubtitle: {
             type: 'boolean',
@@ -241,10 +249,49 @@ export const validateSettings = (settings: any) => {
     const validator = new Validator();
     validator.addSchema(keyBindSchema);
     const result = validator.validate(settings, settingsSchema);
+    validateAllKnownKeys(settings, []);
 
     if (!result.valid) {
         throw new Error('Settings validation failed');
     }
+};
+
+const validateAllKnownKeys = (object: any, path: string[]) => {
+    for (const key of Object.keys(object)) {
+        const schema = schemaAtPath(settingsSchema, path);
+
+        if (schema === undefined || !(key in schema)) {
+            throw new Error(`Unknown key '${[...path, key].join('.')}'`);
+        }
+
+        const value = object[key];
+
+        if (typeof value === 'object' && !Array.isArray(value)) {
+            validateAllKnownKeys(value, [...path, key]);
+        }
+    }
+};
+
+const schemaAtPath = (schema: any, path: string[]) => {
+    let value = schema['properties'];
+
+    for (const key of path) {
+        value = value[key]?.['properties'] ?? schemaForRef(value[key]?.['$ref'])?.['properties'];
+
+        if (value === undefined) {
+            return undefined;
+        }
+    }
+
+    return value;
+};
+
+const schemaForRef = (ref: string) => {
+    if (ref === '/KeyBind') {
+        return keyBindSchema;
+    }
+
+    return undefined;
 };
 
 export const exportSettings = async (settings: AsbplayerSettings) => {
