@@ -167,9 +167,8 @@ export default class VideoDataSyncController {
         const subtitleTrackChoices = this._syncedData?.subtitles ?? [];
         const subs = this._matchLastSyncedWithAvailableTracks();
         const selectedSub: VideoDataSubtitleTrack[] = subs.autoSelectedTracks;
-        const defaultCheckboxState: boolean = subs.completeMatch;
 
-        if (selectedSub !== undefined && !userRequested && !this._syncedData?.error) {
+        if (subs.completeMatch && !userRequested && !this._syncedData?.error) {
             // Instead of showing, auto-sync
             if (!this._autoSyncing) {
                 this._autoSyncing = true;
@@ -183,6 +182,7 @@ export default class VideoDataSyncController {
             }
         } else {
             // Either user-requested or we couldn't auto-sync subtitles with the preferred language
+            const defaultCheckboxState: boolean = subs.completeMatch;
             const themeType = await this._context.settings.getSingle('themeType');
             let state: VideoDataUiState = this._syncedData
                 ? {
