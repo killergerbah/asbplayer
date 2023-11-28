@@ -16,6 +16,7 @@
         "prettier": "2.4.1"
     },
     "scripts": {
+        "verify": "scripts/loc-keys-match && yarn workspace @project/common run test && yarn run eslint common extension/src && yarn run pretty:check",
         "pretty": "yarn prettier --write './(client|common|extension)/**/*.(js|ts|tsx|css)'",
         "pretty:check": "yarn prettier --check './(client|common|extension)/**/*.(js|ts|tsx|css)'"
     },

@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "scripts": {
     "buildDev": "NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode development",
-    "buildProd": "../scripts/loc-keys-match && yarn workspace @project/common run test && yarn workspace root run eslint common extension/src && yarn workspace root run pretty:check && NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode production",
+    "buildProd": "yarn workspace root run verify && NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode production",
     "packageDev": "yarn buildDev && cd dist && zip -r ../asbplayer-extension-$(jq -r .version ../src/manifest.json).zip * && cd ..",
     "packageProd": "yarn buildProd && cd dist && zip -r ../asbplayer-extension-$(jq -r .version ../src/manifest.json).zip * && cd .."
   },
