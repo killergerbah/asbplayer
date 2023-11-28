@@ -3,12 +3,10 @@ import { makeStyles, Theme } from '@material-ui/core/styles';
 import { v4 as uuidv4 } from 'uuid';
 import {
     AsbplayerSettings,
-    AudioModel,
     AudioTrackModel,
     AutoPauseContext,
     AutoPausePreference,
     CardModel,
-    ImageModel,
     PlayMode,
     PostMineAction,
     SubtitleModel,
@@ -200,6 +198,8 @@ export default function Player({
     const [channel, setChannel] = useState<VideoChannel>();
     const channelRef = useRef<VideoChannel>();
     channelRef.current = channel;
+    const playbackPreferencesRef = useRef<PlaybackPreferences>();
+    playbackPreferencesRef.current = playbackPreferences;
     const [, setResumeOnFinishedAnkiDialogRequest] = useState<boolean>(false);
     const hideSubtitlePlayerRef = useRef<boolean>();
     hideSubtitlePlayerRef.current = hideSubtitlePlayer;
@@ -348,7 +348,7 @@ export default function Player({
 
     useEffect(() => {
         async function init() {
-            const offset = playbackPreferences.offset;
+            const offset = playbackPreferencesRef.current?.offset ?? 0;
             setOffset(offset);
             let subtitles: DisplaySubtitleModel[] | undefined;
 
@@ -387,15 +387,7 @@ export default function Player({
         }
 
         init().then(() => onLoaded(subtitleFiles ?? []));
-    }, [
-        subtitleReader,
-        playbackPreferences.offset,
-        onLoaded,
-        onError,
-        subtitleFiles,
-        flattenSubtitleFiles,
-        onSubtitles,
-    ]);
+    }, [subtitleReader, onLoaded, onError, subtitleFiles, flattenSubtitleFiles, onSubtitles]);
 
     useEffect(() => {
         setSubtitlesSentThroughChannel(false);
@@ -428,7 +420,6 @@ export default function Player({
 
         return channel.onReady(() => {
             setSubtitlesSentThroughChannel(true);
-
             channel.subtitles(
                 subtitles,
                 flattenSubtitleFiles ? [subtitleFiles[0].name] : subtitleFiles.map((f) => f.name)
