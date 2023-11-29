@@ -32,11 +32,11 @@ import {
     ExtensionToVideoCommand,
     Message,
     PostMineAction,
-    SettingsProvider,
     TakeScreenshotMessage,
     ToggleRecordingMessage,
     ToggleVideoSelectMessage,
 } from '@project/common';
+import { SettingsProvider } from '@project/common/settings';
 import { primeLocalization } from './services/localization-fetcher';
 import VideoDisappearedHandler from './handlers/video/video-disappeared-handler';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';

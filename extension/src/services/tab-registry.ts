@@ -5,9 +5,9 @@ import {
     ExtensionToAsbPlayerCommandTabsCommand,
     ExtensionToVideoCommand,
     Message,
-    SettingsProvider,
     VideoTabModel,
 } from '@project/common';
+import { SettingsProvider } from '@project/common/settings';
 
 interface SlimTab {
     id: number;

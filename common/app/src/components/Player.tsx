@@ -2,7 +2,6 @@ import React, { useEffect, useState, useMemo, useCallback, useRef, MutableRefObj
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { v4 as uuidv4 } from 'uuid';
 import {
-    AsbplayerSettings,
     AudioTrackModel,
     AutoPauseContext,
     AutoPausePreference,
@@ -12,6 +11,7 @@ import {
     SubtitleModel,
     VideoTabModel,
 } from '@project/common';
+import { AsbplayerSettings } from '@project/common/settings';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { KeyBinder } from '@project/common/key-binder';

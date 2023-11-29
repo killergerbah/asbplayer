@@ -1,4 +1,4 @@
-import { SettingsProvider } from '@project/common';
+import { SettingsProvider } from '@project/common/settings';
 import { ExtensionSettingsStorage } from './extension-settings-storage';
 
 export interface ExtensionConfig {

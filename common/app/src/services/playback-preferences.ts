@@ -1,4 +1,4 @@
-import { AsbplayerSettings, SubtitleAlignment } from '@project/common';
+import { AsbplayerSettings, SubtitleAlignment } from '@project/common/settings';
 import CachedLocalStorage from './cached-local-storage';
 import ChromeExtension from './chrome-extension';
 

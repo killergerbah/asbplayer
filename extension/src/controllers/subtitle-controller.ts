@@ -1,16 +1,13 @@
 import {
-    computeStyleString,
     CopyToClipboardMessage,
     OffsetFromVideoMessage,
-    SettingsProvider,
-    SubtitleAlignment,
     SubtitleModel,
-    SubtitleSettings,
-    surroundingSubtitles,
     VideoToExtensionCommand,
+    AutoPauseContext,
 } from '@project/common';
+import { SettingsProvider, SubtitleAlignment, SubtitleSettings } from '@project/common/settings';
+import { computeStyleString, surroundingSubtitles } from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
-import { AutoPauseContext } from '@project/common';
 import {
     CachingElementOverlay,
     DefaultElementOverlay,

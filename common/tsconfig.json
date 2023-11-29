@@ -2,7 +2,8 @@
     "compilerOptions": {
         "outDir": "./dist",
         "allowJs": true,
-        "target": "es5",
+        "target": "ES2020",
+        "module": "ES2020",
         "jsx": "react",
         "esModuleInterop": true,
         "strict": true,

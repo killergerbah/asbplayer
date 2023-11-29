@@ -1,10 +1,7 @@
 import {
-    AsbplayerSettings,
     ConfirmedVideoDataSubtitleTrack,
     ExtensionSyncMessage,
     SerializedSubtitleFile,
-    SettingsProvider,
-    SubtitleListPreference,
     VideoData,
     VideoDataSubtitleTrack,
     VideoDataUiBridgeConfirmMessage,
@@ -12,6 +9,7 @@ import {
     VideoDataUiState,
     VideoToExtensionCommand,
 } from '@project/common';
+import { AsbplayerSettings, SettingsProvider, SubtitleListPreference } from '@project/common/settings';
 import { bufferToBase64 } from '../services/base64';
 import Binding from '../services/binding';
 import ImageElement from '../services/image-element';

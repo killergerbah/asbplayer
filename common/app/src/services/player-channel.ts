@@ -1,6 +1,5 @@
 import {
     AlertMessage,
-    AnkiSettings,
     AnkiSettingsToVideoMessage,
     AppBarToggleMessageToVideoMessage,
     AudioTrackModel,
@@ -11,7 +10,6 @@ import {
     CurrentTimeToVideoMessage,
     FullscreenToggleMessageToVideoMessage,
     HideSubtitlePlayerToggleToVideoMessage,
-    MiscSettings,
     MiscSettingsToVideoMessage,
     OffsetFromVideoMessage,
     OffsetToVideoMessage,
@@ -26,12 +24,11 @@ import {
     ReadyStateFromVideoMessage,
     ReadyToVideoMessage,
     SubtitleModel,
-    SubtitleSettings,
     SubtitleSettingsToVideoMessage,
     SubtitlesToVideoMessage,
     ToggleSubtitleTrackInListFromVideoMessage,
 } from '@project/common';
-
+import { AnkiSettings, MiscSettings, SubtitleSettings } from '@project/common/settings';
 export default class PlayerChannel {
     private channel?: BroadcastChannel;
     private readyCallbacks: ((duration: number, videoFileName?: string) => void)[];

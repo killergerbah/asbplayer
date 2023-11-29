@@ -1,6 +1,6 @@
 import { resizeCanvas } from './image-transformer';
 import { CardModel, FileModel } from './model';
-import { download } from './util';
+import { download } from '../util/util';
 
 class Base64ImageData implements ImageData {
     private readonly _name: string;

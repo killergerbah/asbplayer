@@ -4,10 +4,10 @@ import {
     BackgroundPageToExtensionCommand,
     BackgroundPageReadyMessage,
     AudioBase64Message,
-    SettingsProvider,
     CopyMessage,
     CopyHistoryRepository,
 } from '@project/common';
+import { SettingsProvider } from '@project/common/settings';
 import AudioRecorder from './services/audio-recorder';
 import { bufferToBase64 } from './services/base64';
 import i18n from 'i18next';
@@ -24,7 +24,7 @@ const _sendAudioBase64 = async (base64: string, preferMp3: boolean) => {
         const blob = await (await fetch('data:audio/webm;base64,' + base64)).blob();
         const mp3Blob = await Mp3Encoder.encode(
             blob,
-            () => new Worker(chrome.runtime.getURL('./mp3-encoder-worker.worker.js'))
+            () => new Worker(new URL('../../common/audio-clip/src/mp3-encoder-worker.ts', import.meta.url))
         );
         base64 = bufferToBase64(await mp3Blob.arrayBuffer());
     }

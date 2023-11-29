@@ -2,7 +2,7 @@ import '@fontsource/roboto';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { PopupUi } from '../components/PopupUi';
-import { AsbplayerSettings } from '@project/common';
+import { AsbplayerSettings } from '@project/common/settings';
 
 export interface PopupUiParameters {
     currentSettings: AsbplayerSettings;

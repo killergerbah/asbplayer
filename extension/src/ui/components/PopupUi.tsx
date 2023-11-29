@@ -2,14 +2,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import {
-    AsbplayerSettings,
     ExtensionToVideoCommand,
     GrantedActiveTabPermissionMessage,
     PopupToExtensionCommand,
-    SettingsProvider,
     SettingsUpdatedMessage,
-    createTheme,
 } from '@project/common';
+import { createTheme } from '@project/common/theme';
+import { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
 import Box from '@material-ui/core/Box';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';

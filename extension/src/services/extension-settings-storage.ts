@@ -1,4 +1,4 @@
-import { AsbplayerSettings, SettingsStorage } from '@project/common';
+import { AsbplayerSettings, SettingsStorage } from '@project/common/settings';
 
 export class ExtensionSettingsStorage implements SettingsStorage {
     async get(keysAndDefaults: Partial<AsbplayerSettings>) {

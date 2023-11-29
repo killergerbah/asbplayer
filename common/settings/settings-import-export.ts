@@ -1,6 +1,4 @@
 import { Validator } from 'jsonschema';
-import { download } from './util';
-import { AsbplayerSettings } from './settings';
 
 const keyBindSchema = {
     id: '/KeyBind',
@@ -292,8 +290,4 @@ const schemaForRef = (ref: string) => {
     }
 
     return undefined;
-};
-
-export const exportSettings = async (settings: AsbplayerSettings) => {
-    download(new Blob([JSON.stringify(settings)], { type: 'appliction/json' }), 'asbplayer-settings.json');
 };

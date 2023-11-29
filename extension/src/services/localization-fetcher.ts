@@ -1,5 +1,5 @@
 import { LocalizationConfig, fetchExtensionConfig } from './extension-config';
-import { SettingsProvider, supportedLanguages as defaultSupportedLanguages } from '@project/common';
+import { SettingsProvider, supportedLanguages as defaultSupportedLanguages } from '@project/common/settings';
 import { ExtensionSettingsStorage } from './extension-settings-storage';
 
 const stringsKeyForLang = (lang: string) => `locStrings-${lang}`;

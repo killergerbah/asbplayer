@@ -1,5 +1,5 @@
 import { compile as parseAss } from 'ass-compiler';
-import { Cue, parseSync as parseSrt, Node as SrtNode, stringifySync as writeSrt } from 'subtitle';
+import SrtParser from '@qgustavor/srt-parser';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
 import { DisplaySet, parseDisplaySets } from 'pgs-parser';
@@ -58,18 +58,16 @@ export default class SubtitleReader {
 
     async _subtitles(file: File, track: number): Promise<SubtitleNode[]> {
         if (file.name.endsWith('.srt')) {
-            const nodes = parseSrt(await file.text());
-            return nodes
-                .filter((node) => node.type === 'cue')
-                .map((node) => {
-                    const cue = node.data as Cue;
-                    return {
-                        start: cue.start,
-                        end: cue.end,
-                        text: this._filterText(cue.text).replace(tagRegex, ''),
-                        track: track,
-                    };
-                });
+            const parser = new SrtParser({ numericTimestamps: true });
+            const nodes = parser.fromSrt(await file.text());
+            return nodes.map((node) => {
+                return {
+                    start: Math.floor((node.startTime as number) * 1000),
+                    end: Math.floor((node.endTime as number) * 1000),
+                    text: this._filterText(node.text).replace(tagRegex, ''),
+                    track: track,
+                };
+            });
         }
 
         if (file.name.endsWith('.vtt') || file.name.endsWith('.nfvtt')) {
@@ -323,17 +321,16 @@ export default class SubtitleReader {
     }
 
     subtitlesToSrt(subtitles: SubtitleNode[]) {
-        const nodes: SrtNode[] = subtitles.map((subtitleNode) => {
+        const parser = new SrtParser({ numericTimestamps: true });
+        const nodes = subtitles.map((subtitleNode, i) => {
             return {
-                type: 'cue',
-                data: {
-                    start: subtitleNode.start,
-                    end: subtitleNode.end,
-                    text: subtitleNode.text,
-                },
+                id: String(i),
+                startTime: subtitleNode.start,
+                endTime: subtitleNode.end,
+                text: subtitleNode.text,
             };
         });
-        return writeSrt(nodes, { format: 'SRT' });
+        return parser.toSrt(nodes);
     }
 
     async filesToSrt(files: File[]) {

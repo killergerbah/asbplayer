@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { KeyBindSet } from '@project/common';
+import { KeyBindSet } from '@project/common/settings';
 import AppKeyBinder from '../services/app-key-binder';
 import ChromeExtension from '../services/chrome-extension';
 import { DefaultKeyBinder } from '../../../key-binder';

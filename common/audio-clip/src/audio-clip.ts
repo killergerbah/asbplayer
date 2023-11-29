@@ -1,9 +1,7 @@
 import Mp3Encoder from './mp3-encoder';
-// eslint-disable-next-line
-// @ts-ignore
-import Worker from 'worker-loader!./mp3-encoder-worker.js';
-import { CardModel, FileModel, download } from '@project/common';
-const defaultMp3WorkerFactory = () => new Worker();
+
+import { CardModel, FileModel } from '@project/common';
+import { download } from '@project/common/util';
 
 interface ExperimentalAudioElement extends HTMLAudioElement {
     audioTracks: any;
@@ -589,7 +587,7 @@ export default class AudioClip {
         download(blob, this.name);
     }
 
-    toMp3(mp3WorkerFactory = defaultMp3WorkerFactory) {
+    toMp3(mp3WorkerFactory: () => Worker) {
         if (this.data instanceof Mp3AudioData) {
             return this;
         }

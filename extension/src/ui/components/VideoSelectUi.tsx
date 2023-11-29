@@ -21,8 +21,8 @@ import {
     UpdateStateMessage,
     VideoSelectModeCancelMessage,
     VideoSelectModeConfirmMessage,
-    createTheme,
 } from '@project/common';
+import { createTheme } from '@project/common/theme';
 
 interface Props {
     bridge: Bridge;

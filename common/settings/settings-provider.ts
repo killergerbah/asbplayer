@@ -1,10 +1,5 @@
-import {
-    AsbplayerSettings,
-    AutoPausePreference,
-    KeyBindName,
-    PostMineAction,
-    SubtitleListPreference,
-} from '@project/common';
+import { AsbplayerSettings, KeyBindName, SubtitleListPreference } from '.';
+import { AutoPausePreference, PostMineAction } from '..';
 import { isMacOs } from 'react-device-detect';
 
 export const defaultSettings: AsbplayerSettings = {

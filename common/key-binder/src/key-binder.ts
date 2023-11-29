@@ -1,6 +1,6 @@
 import { SubtitleModel } from '../../src/model';
 import hotkeys from 'hotkeys-js';
-import { KeyBindSet } from '../../src/settings';
+import { KeyBindSet } from '../../settings/settings';
 
 export interface KeyBinder {
     bindCopy<T extends SubtitleModel = SubtitleModel>(

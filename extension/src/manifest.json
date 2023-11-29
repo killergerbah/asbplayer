@@ -96,7 +96,7 @@
                 "pages/disney-plus-page.js",
                 "pages/unext-page.js",
                 "anki-ui.js",
-                "mp3-encoder-worker.worker.js",
+                "mp3-encoder-worker.js",
                 "video-data-sync-ui.js",
                 "video-select-ui.js",
                 "active-tab-permission-request-ui.js",

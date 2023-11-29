@@ -1,4 +1,5 @@
-import { AsbplayerSettings, GetSettingsMessage, SetSettingsMessage, SettingsStorage } from '@project/common';
+import { GetSettingsMessage, SetSettingsMessage } from '@project/common';
+import { AsbplayerSettings, SettingsStorage } from '@project/common/settings';
 import Bridge from './bridge';
 import { v4 as uuidv4 } from 'uuid';
 

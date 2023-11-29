@@ -10,7 +10,8 @@ import Button from '@material-ui/core/Button';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { PaletteType } from '@material-ui/core';
-import { Message, UpdateStateMessage, createTheme } from '@project/common';
+import { Message, UpdateStateMessage } from '@project/common';
+import { createTheme } from '@project/common/theme';
 
 interface Props {
     bridge: Bridge;

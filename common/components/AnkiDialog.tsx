@@ -2,16 +2,14 @@ import React, { MutableRefObject, useCallback, useState, useEffect, useMemo } fr
 import { useTranslation } from 'react-i18next';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import withStyles from '@material-ui/core/styles/withStyles';
+import { Image, SubtitleModel, CardModel } from '@project/common';
+import { AnkiSettings } from '@project/common/settings';
 import {
-    Image,
     humanReadableTime,
-    AnkiSettings,
-    SubtitleModel,
     surroundingSubtitles,
     subtitleIntersectsTimeInterval,
     joinSubtitles,
-    CardModel,
-} from '@project/common';
+} from '@project/common/util';
 import { AudioClip } from '@project/common/audio-clip';
 import Button from '@material-ui/core/Button';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
@@ -75,8 +73,8 @@ const boundaryIntervalFromCard = (subtitle: SubtitleModel, theSurroundingSubtitl
         boundaryIntervalSubtitleTimeRadius
     );
 
-    let min = null;
-    let max = null;
+    let min: number | null = null;
+    let max: number | null = null;
 
     for (const s of subtitlesToDisplay) {
         if (min === null || s.start < min) {
@@ -264,6 +262,7 @@ interface AnkiDialogProps {
     lastAppliedTimestampIntervalToText?: number[];
     lastAppliedTimestampIntervalToAudio?: number[];
     stateRef?: MutableRefObject<AnkiDialogState | undefined>;
+    mp3WorkerFactory: () => Worker;
 }
 
 const AnkiDialog = ({
@@ -289,6 +288,7 @@ const AnkiDialog = ({
     lastAppliedTimestampIntervalToText: initialLastAppliedTimestampIntervalToText,
     lastAppliedTimestampIntervalToAudio: initialLastAppliedTimestampIntervalToAudio,
     stateRef,
+    mp3WorkerFactory,
 }: AnkiDialogProps) => {
     const classes = useStyles();
     const [definition, setDefinition] = useState<string>('');
@@ -410,7 +410,7 @@ const AnkiDialog = ({
         let newAudioClip = initialAudioClip;
 
         if (settings.preferMp3) {
-            newAudioClip = newAudioClip.toMp3();
+            newAudioClip = newAudioClip.toMp3(mp3WorkerFactory);
         }
 
         if (lastAppliedTimestampIntervalToAudio) {
@@ -422,6 +422,7 @@ const AnkiDialog = ({
 
         setAudioClip(newAudioClip);
     }, [
+        mp3WorkerFactory,
         initialAudioClip,
         settings.preferMp3,
         lastAppliedTimestampIntervalToAudio,

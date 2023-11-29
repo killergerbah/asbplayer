@@ -21,18 +21,10 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import { Theme } from '@material-ui/core/styles';
-import {
-    AsbplayerSettings,
-    AutoPausePreference,
-    KeyBindName,
-    supportedLanguages,
-    computeStyles,
-    CustomStyle,
-    SubtitleListPreference,
-    PostMineAction,
-    validateSettings,
-    exportSettings,
-} from '@project/common';
+import { AutoPausePreference, PostMineAction } from '@project/common';
+import { AsbplayerSettings, KeyBindName, SubtitleListPreference } from '@project/common/settings';
+import { computeStyles, download } from '@project/common/util';
+import { CustomStyle, supportedLanguages, validateSettings } from '@project/common/settings';
 import { useOutsideClickListener } from '@project/common/hooks';
 import TagsTextField from '@project/common/components/TagsTextField';
 import hotkeys from 'hotkeys-js';
@@ -877,7 +869,7 @@ export default function SettingsForm({
         settingsFileInputRef.current?.click();
     }, []);
     const handleExportSettings = useCallback(() => {
-        exportSettings(settings);
+        download(new Blob([JSON.stringify(settings)], { type: 'appliction/json' }), 'asbplayer-settings.json');
     }, [settings]);
 
     return (

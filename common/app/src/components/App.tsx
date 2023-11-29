@@ -4,24 +4,20 @@ import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import { useWindowSize } from '../hooks/use-window-size';
 import {
     Image,
-    humanReadableTime,
     SubtitleModel,
     VideoTabModel,
     LegacyPlayerSyncMessage,
     PlayerSyncMessage,
-    AudioModel,
-    ImageModel,
-    AsbplayerSettings,
     PostMineAction,
     PlayMode,
-    download,
-    extractText,
-    createTheme,
     CopyHistoryItem,
     Fetcher,
     CardModel,
     ShowAnkiUiMessage,
 } from '@project/common';
+import { createTheme } from '@project/common/theme';
+import { AsbplayerSettings } from '@project/common/settings';
+import { humanReadableTime, download, extractText } from '@project/common/util';
 import { AudioClip } from '@project/common/audio-clip';
 import { Anki, AnkiExportMode } from '@project/common/anki';
 import { SubtitleReader } from '@project/common/subtitle-reader';
@@ -52,6 +48,7 @@ import { useAppKeyBinder } from '../hooks/use-app-key-binder';
 
 const latestExtensionVersion = '0.28.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
+const mp3WorkerFactory = () => new Worker(new URL('../../../audio-clip/src/mp3-encoder-worker.ts', import.meta.url));
 
 const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
     content: {
@@ -436,7 +433,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     );
 
                     if (audioClip && settings.preferMp3) {
-                        audioClip = audioClip.toMp3();
+                        audioClip = audioClip.toMp3(mp3WorkerFactory);
                     }
 
                     handleAnkiDialogProceed(
@@ -554,7 +551,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                 const clip = AudioClip.fromCard(item, settings.audioPaddingStart, settings.audioPaddingEnd);
 
                 if (settings.preferMp3) {
-                    clip!.toMp3().download();
+                    clip!.toMp3(mp3WorkerFactory).download();
                 } else {
                     clip!.download();
                 }
@@ -1099,6 +1096,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                                 onProceed={handleAnkiDialogProceed}
                                 onViewImage={handleViewImage}
                                 onCopyToClipboard={handleCopyToClipboard}
+                                mp3WorkerFactory={mp3WorkerFactory}
                             />
                         )}
                         <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />
@@ -1129,6 +1127,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                                 onViewImage={handleViewImage}
                                 onOpenSettings={handleOpenSettings}
                                 onCopyToClipboard={handleCopyToClipboard}
+                                mp3WorkerFactory={mp3WorkerFactory}
                             />
                         )}
                         <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />

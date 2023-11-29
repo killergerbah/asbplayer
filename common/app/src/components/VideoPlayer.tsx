@@ -4,23 +4,27 @@ import { makeStyles } from '@material-ui/core/styles';
 import { useWindowSize } from '../hooks/use-window-size';
 import { arrayEquals } from '../services/util';
 import {
-    surroundingSubtitles,
-    mockSurroundingSubtitles,
     SubtitleModel,
     AudioTrackModel,
     PostMineAction,
     PlayMode,
+    AutoPausePreference,
+    AutoPauseContext,
+    OffscreenDomCache,
+} from '@project/common';
+import {
     MiscSettings,
     SubtitleSettings,
     AnkiSettings,
-    AutoPausePreference,
-    AutoPauseContext,
+    AsbplayerSettings,
+    SubtitleAlignment,
+} from '@project/common/settings';
+import {
+    surroundingSubtitles,
+    mockSurroundingSubtitles,
     computeStyles,
     computeStyleString,
-    AsbplayerSettings,
-    OffscreenDomCache,
-    SubtitleAlignment,
-} from '@project/common';
+} from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import SubtitleTextImage from '@project/common/components/SubtitleTextImage';
 import Clock from '../services/clock';

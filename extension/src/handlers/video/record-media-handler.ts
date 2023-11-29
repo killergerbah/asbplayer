@@ -10,8 +10,8 @@ import {
     ScreenshotTakenMessage,
     RecordingFinishedMessage,
     CardModel,
-    SettingsProvider,
 } from '@project/common';
+import { SettingsProvider } from '@project/common/settings';
 import BackgroundPageManager from '../../services/background-page-manager';
 import { CardPublisher } from '../../services/card-publisher';
 

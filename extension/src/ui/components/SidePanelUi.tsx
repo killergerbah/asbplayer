@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import SidePanel from './SidePanel';
-import { AsbplayerSettings, SettingsProvider, createTheme } from '@project/common';
+import { createTheme } from '@project/common/theme';
+import { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
 import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
 import { ExtensionMessage, useChromeExtension } from '@project/common/app';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';

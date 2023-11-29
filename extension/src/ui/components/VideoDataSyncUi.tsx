@@ -12,8 +12,8 @@ import {
     VideoDataSubtitleTrack,
     VideoDataUiBridgeConfirmMessage,
     VideoDataUiBridgeOpenFileMessage,
-    createTheme,
 } from '@project/common';
+import { createTheme } from '@project/common/theme';
 import { PaletteType } from '@material-ui/core';
 import { bufferToBase64 } from '../../services/base64';
 import { useTranslation } from 'react-i18next';

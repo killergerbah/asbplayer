@@ -3,9 +3,9 @@ import {
     ExtensionToAsbPlayerCommand,
     ExtensionToVideoCommand,
     Message,
-    SettingsProvider,
     SettingsUpdatedMessage,
 } from '@project/common';
+import { SettingsProvider } from '@project/common/settings';
 import { primeLocalization } from '../../services/localization-fetcher';
 import TabRegistry from '../../services/tab-registry';
 

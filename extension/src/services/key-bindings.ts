@@ -1,10 +1,10 @@
 import {
-    KeyBindSet,
     PlayMode,
     ToggleSubtitlesInListFromVideoMessage,
     ToggleSubtitlesMessage,
     VideoToExtensionCommand,
 } from '@project/common';
+import { KeyBindSet } from '@project/common/settings';
 import { DefaultKeyBinder } from '@project/common/key-binder';
 import Binding from './binding';
 

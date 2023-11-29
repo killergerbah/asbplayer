@@ -1,3 +1,10 @@
+export interface SerializableAudioBuffer {
+    channels: Float32Array[];
+    numberOfChannels: number;
+    length: number;
+    sampleRate: number;
+}
+
 export default class Mp3Encoder {
     static async encode(blob: Blob, workerFactory: () => Worker): Promise<Blob> {
         return new Promise(async (resolve, reject) => {

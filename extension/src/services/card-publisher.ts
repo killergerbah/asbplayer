@@ -1,5 +1,4 @@
 import {
-    AnkiSettings,
     CardModel,
     CardSavedMessage,
     CardUpdatedMessage,
@@ -7,12 +6,10 @@ import {
     ExtensionToBackgroundPageCommand,
     ExtensionToVideoCommand,
     PostMineAction,
-    SettingsProvider,
     ShowAnkiUiMessage,
-    ankiSettingsKeys,
-    humanReadableTime,
-    sourceString,
 } from '@project/common';
+import { humanReadableTime, sourceString } from '@project/common/util';
+import { AnkiSettings, ankiSettingsKeys, SettingsProvider } from '@project/common/settings';
 import BackgroundPageManager from './background-page-manager';
 import { v4 as uuidv4 } from 'uuid';
 import { updateLastCard } from '@project/common/anki';

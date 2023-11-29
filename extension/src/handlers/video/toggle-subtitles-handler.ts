@@ -1,4 +1,5 @@
-import { Command, ExtensionToVideoCommand, Message, SettingsProvider, SettingsUpdatedMessage } from '@project/common';
+import { Command, ExtensionToVideoCommand, Message, SettingsUpdatedMessage } from '@project/common';
+import { SettingsProvider } from '@project/common/settings';
 import TabRegistry from '../../services/tab-registry';
 
 export default class ToggleSubtitlesHandler {

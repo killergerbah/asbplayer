@@ -4,7 +4,6 @@ import {
     ImageModel,
     AudioModel,
     SubtitleModel,
-    AnkiSettings,
     AnkiUiState,
     AnkiUiResumeState,
     AnkiUiSavedState,
@@ -12,12 +11,13 @@ import {
     AnkiUiBridgeResumeMessage,
     AnkiUiBridgeRewindMessage,
     CopyToClipboardMessage,
-    createTheme,
     AnkiSettingsToVideoMessage,
     Message,
     UpdateStateMessage,
     FileModel,
 } from '@project/common';
+import { createTheme } from '@project/common/theme';
+import { AnkiSettings } from '@project/common/settings';
 import { AudioClip } from '@project/common/audio-clip';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import Alert, { Color } from '@material-ui/lab/Alert';
@@ -153,8 +153,9 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             setThemeType(s.themeType || 'dark');
             setOpen(s.open);
         });
-    }, [bridge, mp3WorkerUrl, image]);
+    }, [bridge, image]);
 
+    const mp3WorkerFactory = useMemo(() => () => new Worker(mp3WorkerUrl), [mp3WorkerUrl]);
     const handleProceed = useCallback(
         async (
             text: string,
@@ -321,7 +322,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 </Alert>
             </Snackbar>
             <ImageDialog open={imageDialogOpen} image={image} onClose={() => setImageDialogOpen(false)} />
-            {settingsProvider && card && anki && (
+            {settingsProvider && card && anki && mp3WorkerFactory && (
                 <AnkiDialog
                     open={open}
                     disabled={disabled}
@@ -345,6 +346,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                     lastAppliedTimestampIntervalToText={lastAppliedTimestampIntervalToText}
                     lastAppliedTimestampIntervalToAudio={lastAppliedTimestampIntervalToAudio}
                     stateRef={dialogStateRef}
+                    mp3WorkerFactory={mp3WorkerFactory}
                 />
             )}
         </ThemeProvider>

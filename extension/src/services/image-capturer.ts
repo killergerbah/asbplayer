@@ -1,10 +1,5 @@
-import {
-    CropAndResizeMessage,
-    ExtensionToVideoCommand,
-    ImageCaptureParams,
-    RectModel,
-    SettingsProvider,
-} from '@project/common';
+import { CropAndResizeMessage, ExtensionToVideoCommand, ImageCaptureParams, RectModel } from '@project/common';
+import { SettingsProvider } from '@project/common/settings';
 
 export interface CaptureOptions {
     maxWidth: number;

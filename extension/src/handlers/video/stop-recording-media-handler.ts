@@ -6,13 +6,13 @@ import {
     ExtensionToVideoCommand,
     ImageModel,
     Message,
-    mockSurroundingSubtitles,
     RecordingFinishedMessage,
-    SettingsProvider,
     StopRecordingMediaMessage,
     SubtitleModel,
     VideoToExtensionCommand,
 } from '@project/common';
+import { SettingsProvider } from '@project/common/settings';
+import { mockSurroundingSubtitles } from '@project/common/util';
 import { CardPublisher } from '../../services/card-publisher';
 
 export default class StopRecordingMediaHandler {

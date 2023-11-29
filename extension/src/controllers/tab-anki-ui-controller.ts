@@ -1,21 +1,19 @@
 import {
-    AnkiSettings,
     AnkiUiInitialState,
     OpenAsbplayerSettingsMessage,
     CopyToClipboardMessage,
-    SettingsProvider,
-    ankiSettingsKeys,
     TabToExtensionCommand,
-    sourceString,
     CardModel,
 } from '@project/common';
+import { AnkiSettings, SettingsProvider, ankiSettingsKeys } from '@project/common/settings';
+import { sourceString } from '@project/common/util';
 import UiFrame from '../services/ui-frame';
 import { fetchLocalization } from '../services/localization-fetcher';
 
 // We need to write the HTML into the iframe manually so that the iframe keeps it's about:blank URL.
 // Otherwise, Chrome won't insert content scripts into the iframe (e.g. Yomichan won't work).
 async function html(language: string) {
-    const mp3WorkerSource = await (await fetch(chrome.runtime.getURL('./mp3-encoder-worker.worker.js'))).text();
+    const mp3WorkerSource = await (await fetch(chrome.runtime.getURL('./mp3-encoder-worker.js'))).text();
     return `<!DOCTYPE html>
               <html lang="en">
               <head>

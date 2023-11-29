@@ -1,6 +1,5 @@
 import {
     AlertMessage,
-    AnkiSettings,
     AnkiSettingsToVideoMessage,
     AppBarToggleMessageToVideoMessage,
     AudioModel,
@@ -14,7 +13,6 @@ import {
     FullscreenToggleMessageToVideoMessage,
     HideSubtitlePlayerToggleToVideoMessage,
     ImageModel,
-    MiscSettings,
     MiscSettingsToVideoMessage,
     OffsetFromVideoMessage,
     OffsetToVideoMessage,
@@ -29,12 +27,12 @@ import {
     ReadyStateFromVideoMessage,
     ReadyToVideoMessage,
     SubtitleModel,
-    SubtitleSettings,
     SubtitleSettingsToVideoMessage,
     SubtitlesToVideoMessage,
     TakeScreenshotToVideoPlayerMessage,
     ToggleSubtitleTrackInListFromVideoMessage,
 } from '@project/common';
+import { AnkiSettings, MiscSettings, SubtitleSettings } from '@project/common/settings';
 import { VideoProtocol } from './video-protocol';
 
 export default class VideoChannel {

@@ -1,15 +1,9 @@
 export { default as Image } from './src/image';
 export * from './src/image-transformer';
 export * from './src/command';
-export * from './src/util';
-export * from './src/settings';
 export * from './src/model';
 export * from './src/message';
-export * from './src/settings-provider';
-export * from './src/theme';
 export * from './src/fetcher';
-export * from './src/settings-import-export';
 export { default as CopyHistoryRepository } from './src/copy-history-repository';
 export { default as AutoPauseContext } from './src/auto-pause-context';
 export { default as OffscreenDomCache } from './src/offscreen-dom-cache';
-export const supportedLanguages = ['en', 'ja', 'de', 'pl', 'zh_CN'];

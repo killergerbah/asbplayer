@@ -17,6 +17,7 @@ module.exports = (env, options) => ({
         'active-tab-permission-request-ui': './src/active-tab-permission-request-ui.ts',
         asbplayer: './src/asbplayer.ts',
         'background-page': './src/background-page.ts',
+        'mp3-encoder-worker': '../common/audio-clip/src/mp3-encoder-worker.ts',
         ...Object.fromEntries(
             glob
                 .sync('./src/pages/*.ts')
@@ -45,13 +46,16 @@ module.exports = (env, options) => ({
             },
             {
                 test: /\.(woff|woff2)$/,
-                loader: 'url-loader?limit=100000',
+                type: 'asset/inline',
             },
         ],
     },
     devtool: options.mode === 'development' ? 'source-map' : false,
     resolve: {
         extensions: ['.webpack.js', '.web.js', '.ts', '.tsx', '.js'],
+        fallback: {
+            url: require.resolve('url/'),
+        },
     },
     plugins: [
         new CleanWebpackPlugin(),

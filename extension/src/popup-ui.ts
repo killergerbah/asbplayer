@@ -1,6 +1,6 @@
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
 import { renderPopupUi } from './ui/popup';
-import { SettingsProvider } from '@project/common';
+import { SettingsProvider } from '@project/common/settings';
 
 const fetchShortcuts = () => {
     return new Promise((resolve, reject) => {

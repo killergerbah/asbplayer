@@ -1,9 +1,5 @@
-import {
-    CaptureVisibleTabMessage,
-    ForegroundToExtensionCommand,
-    SettingsProvider,
-    VideoSelectModeConfirmMessage,
-} from '@project/common';
+import { CaptureVisibleTabMessage, ForegroundToExtensionCommand, VideoSelectModeConfirmMessage } from '@project/common';
+import { SettingsProvider } from '@project/common/settings';
 import { VideoElement } from '../ui/components/VideoSelectUi';
 import Binding from '../services/binding';
 import UiFrame from '../services/ui-frame';

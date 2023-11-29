@@ -3,14 +3,9 @@ import { makeStyles, Theme } from '@material-ui/core/styles';
 import { keysAreEqual } from '../services/util';
 import { useResize } from '../hooks/use-resize';
 import { useTranslation } from 'react-i18next';
-import {
-    PostMineAction,
-    surroundingSubtitles,
-    SubtitleModel,
-    AutoPauseContext,
-    mockSurroundingSubtitles,
-    AsbplayerSettings,
-} from '@project/common';
+import { PostMineAction, SubtitleModel, AutoPauseContext } from '@project/common';
+import { AsbplayerSettings } from '@project/common/settings';
+import { surroundingSubtitles, mockSurroundingSubtitles } from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { KeyBinder } from '@project/common/key-binder';
 import SubtitleTextImage from '@project/common/components/SubtitleTextImage';

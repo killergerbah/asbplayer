@@ -1,7 +1,6 @@
 import {
     AsbPlayerToTabCommand,
     AsbPlayerToVideoCommandV2,
-    AsbplayerSettings,
     Image,
     CopyHistoryItem,
     ExtensionToVideoCommand,
@@ -14,8 +13,9 @@ import {
     CopySubtitleMessage,
     CardModel,
 } from '@project/common';
+import { AsbplayerSettings } from '@project/common/settings';
 import { AudioClip } from '@project/common/audio-clip';
-import { AppKeyBinder, ChromeExtension, useCopyHistory } from '@project/common/app';
+import { ChromeExtension, useCopyHistory } from '@project/common/app';
 import { useI18n } from '@project/common/hooks';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -25,7 +25,6 @@ import { Color } from '@material-ui/lab';
 import { LocalizedError } from '@project/common/app';
 import { useTranslation } from 'react-i18next';
 import Alert from '@project/common/app/src/components/Alert';
-import { DefaultKeyBinder } from '@project/common/key-binder';
 import SidePanelHome from './SidePanelHome';
 import { DisplaySubtitleModel } from '@project/common/app/src/components/SubtitlePlayer';
 import { useCurrentTabId } from '../hooks/use-current-tab-id';
@@ -40,6 +39,9 @@ import SidePanelTopControls from './SidePanelTopControls';
 import CopyHistory from '@project/common/app/src/components/CopyHistory';
 import CopyHistoryList from '@project/common/app/src/components/CopyHistoryList';
 import { useAppKeyBinder } from '@project/common/app/src/hooks/use-app-key-binder';
+
+const mp3WorkerFactory = () =>
+    new Worker(new URL('../../../../common/audio-clip/src/mp3-encoder-worker.ts', import.meta.url));
 
 interface Props {
     settings: AsbplayerSettings;
@@ -270,7 +272,7 @@ export default function SidePanel({ settings, extension }: Props) {
                 return;
             }
             if (settings.preferMp3) {
-                clip.toMp3().download();
+                clip.toMp3(mp3WorkerFactory).download();
             } else {
                 clip.download();
             }

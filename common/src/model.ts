@@ -1,4 +1,4 @@
-import { AnkiSettings } from './settings';
+import { AnkiSettings } from '../settings/settings';
 
 export interface RectModel {
     readonly left: number;

@@ -10,7 +10,7 @@ import ChromeExtension from '../services/chrome-extension';
 import SettingsForm from '../../../components/SettingsForm';
 import { useLocalFontFamilies } from '../../../hooks';
 import { Anki } from '../../../anki';
-import { AsbplayerSettings } from '../../..';
+import { AsbplayerSettings } from '../../../settings';
 
 const useStyles = makeStyles({
     root: {

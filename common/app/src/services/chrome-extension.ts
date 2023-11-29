@@ -2,7 +2,6 @@ import {
     AsbPlayerCommand,
     AsbPlayerToVideoCommandV2,
     AsbplayerInstance,
-    AsbplayerSettings,
     CardModel,
     Command,
     ExtensionToAsbPlayerCommand,
@@ -16,6 +15,7 @@ import {
     SettingsUpdatedMessage,
     VideoTabModel,
 } from '@project/common';
+import { AsbplayerSettings } from '@project/common/settings';
 import { v4 as uuidv4 } from 'uuid';
 import gte from 'semver/functions/gte';
 import gt from 'semver/functions/gt';

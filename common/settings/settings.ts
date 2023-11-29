@@ -1,4 +1,4 @@
-import { AutoPausePreference, PostMineAction } from './model';
+import { AutoPausePreference, PostMineAction } from '../src/model';
 
 export interface MiscSettings {
     readonly themeType: 'dark' | 'light';

@@ -1,6 +1,6 @@
 import sanitize from 'sanitize-filename';
-import { Rgb, SubtitleModel } from './model';
-import { TextSubtitleSettings } from './settings';
+import { Rgb, SubtitleModel } from '../src/model';
+import { TextSubtitleSettings } from '../settings/settings';
 
 export function humanReadableTime(timestamp: number, nearestTenth = false): string {
     const totalSeconds = Math.floor(timestamp / 1000);

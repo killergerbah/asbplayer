@@ -4,10 +4,10 @@ import VideoSelectController from './controllers/video-select-controller';
 import {
     CopyToClipboardMessage,
     CropAndResizeMessage,
-    SettingsProvider,
     TabToExtensionCommand,
     ToggleSidePanelMessage,
 } from '@project/common';
+import { SettingsProvider } from '@project/common/settings';
 import { FrameInfoListener, fetchFrameId } from './services/frame-info';
 import { cropAndResize } from '@project/common/src/image-transformer';
 import { TabAnkiUiController } from './controllers/tab-anki-ui-controller';

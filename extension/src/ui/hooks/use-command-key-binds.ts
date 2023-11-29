@@ -1,4 +1,4 @@
-import { chromeCommandBindsToKeyBinds } from '@project/common';
+import { chromeCommandBindsToKeyBinds } from '@project/common/settings';
 import { useEffect, useState } from 'react';
 
 export const useCommandKeyBinds = () => {

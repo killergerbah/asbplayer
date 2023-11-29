@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "dependencies": {
     "@flatten-js/interval-tree": "^1.0.19",
+    "@qgustavor/srt-parser": "^2.0.0",
     "hotkeys-js": "^3.10.0",
     "jsonschema": "^1.4.1",
     "sanitize-filename": "^1.6.3"

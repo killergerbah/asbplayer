@@ -1,4 +1,5 @@
-import { HttpFetcher, createTheme } from '@project/common';
+import { HttpFetcher } from '@project/common';
+import { createTheme } from '@project/common/theme';
 import React, { useCallback, useMemo } from 'react';
 import { useSettings } from '../hooks/use-settings';
 import { ThemeProvider, makeStyles } from '@material-ui/core/styles';

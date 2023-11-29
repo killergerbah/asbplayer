@@ -1,4 +1,4 @@
-import { AsbplayerSettings, SettingsStorage } from '@project/common';
+import { AsbplayerSettings, SettingsStorage } from '@project/common/settings';
 import { ChromeExtension } from '@project/common/app';
 
 export class AppExtensionSettingsStorage implements SettingsStorage {

@@ -1,11 +1,7 @@
 import React from 'react';
 import Grid from '@material-ui/core/Grid';
-import {
-    AsbplayerSettings,
-    HttpPostMessage,
-    PopupToExtensionCommand,
-    chromeCommandBindsToKeyBinds,
-} from '@project/common';
+import { HttpPostMessage, PopupToExtensionCommand } from '@project/common';
+import { AsbplayerSettings, chromeCommandBindsToKeyBinds } from '@project/common/settings';
 import SettingsForm from '@project/common/components/SettingsForm';
 import PanelIcon from '@project/common/components/PanelIcon';
 import LaunchIcon from '@material-ui/icons/Launch';

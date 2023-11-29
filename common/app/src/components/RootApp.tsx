@@ -1,4 +1,5 @@
-import { AsbplayerSettings, Fetcher, SettingsProvider, SettingsStorage } from '@project/common';
+import { Fetcher } from '@project/common';
+import { AsbplayerSettings, SettingsProvider, SettingsStorage } from '@project/common/settings';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { App, ExtensionMessage, useChromeExtension } from '@project/common/app';
 
