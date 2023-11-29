@@ -406,6 +406,7 @@ export interface AnkiUiBridgeRerecordMessage extends Message {
 export interface VideoDataUiBridgeConfirmMessage extends Message {
     readonly command: 'confirm';
     readonly data: ConfirmedVideoDataSubtitleTrack[];
+    readonly shouldRememberTrackChoices: boolean;
 }
 
 export interface VideoDataUiBridgeOpenFileMessage extends Message {

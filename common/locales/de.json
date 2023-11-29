@@ -155,6 +155,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "Empty",
             "loadSubtitlesFirst": "Untertitel müssen ausgewählt werden",
+            "rememberTrackPreference": "Remember these track choices for this site",
             "selectSubtitles": "Untertitel auswählen",
             "subtitleTrack": "Untertitelspur",
             "videoName": "Videotitel"

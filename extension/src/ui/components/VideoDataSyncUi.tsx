@@ -32,7 +32,8 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [subtitles, setSubtitles] = useState<VideoDataSubtitleTrack[]>([
         { language: '', url: '-', label: t('extension.videoDataSync.emptySubtitleTrack'), extension: 'srt' },
     ]);
-    const [selectedSubtitle, setSelectedSubtitle] = useState<string>('-');
+    const [selectedSubtitle, setSelectedSubtitle] = useState<string[]>(['-', '-', '-']);
+    const [defaultCheckboxState, setDefaultCheckboxState] = useState<boolean>(false);
     const [openedFromMiningCommand, setOpenedFromMiningCommand] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
     const [themeType, setThemeType] = useState<string>();
@@ -44,9 +45,9 @@ export default function VideoDataSyncUi({ bridge }: Props) {
         bridge.sendMessageFromServer({ command: 'cancel' });
     }, [bridge]);
     const handleConfirm = useCallback(
-        (data: ConfirmedVideoDataSubtitleTrack[]) => {
+        (data: ConfirmedVideoDataSubtitleTrack[], shouldRememberTrackChoices: boolean) => {
             setOpen(false);
-            const message: VideoDataUiBridgeConfirmMessage = { command: 'confirm', data };
+            const message: VideoDataUiBridgeConfirmMessage = { command: 'confirm', data, shouldRememberTrackChoices };
             bridge.sendMessageFromServer(message);
         },
         [bridge]
@@ -90,6 +91,10 @@ export default function VideoDataSyncUi({ bridge }: Props) {
 
             if (Object.prototype.hasOwnProperty.call(state, 'selectedSubtitle')) {
                 setSelectedSubtitle(state.selectedSubtitle);
+            }
+
+            if (Object.prototype.hasOwnProperty.call(state, 'defaultCheckboxState')) {
+                setDefaultCheckboxState(state.defaultCheckboxState);
             }
 
             if (Object.prototype.hasOwnProperty.call(state, 'error')) {
@@ -148,6 +153,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                 showSubSelect={showSubSelect}
                 subtitles={subtitles}
                 selectedSubtitle={selectedSubtitle}
+                defaultCheckboxState={defaultCheckboxState}
                 openedFromMiningCommand={openedFromMiningCommand}
                 error={error}
                 onCancel={handleCancel}

@@ -155,6 +155,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "空",
             "loadSubtitlesFirst": "マイニングを開始する前に字幕をロードしてください。",
+            "rememberTrackPreference": "Remember these track choices for this site",
             "selectSubtitles": "字幕を選択",
             "subtitleTrack": "字幕トラック",
             "videoName": "動画ファイル名"

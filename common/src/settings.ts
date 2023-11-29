@@ -141,7 +141,7 @@ export interface StreamingVideoSettings {
     readonly streamingAutoSync: boolean;
     // Last language selected in subtitle track selector, keyed by domain
     // Used to auto-selecting a language in subtitle track selector, if it's available
-    readonly streamingLastLanguagesSynced: { [key: string]: string };
+    readonly streamingLastLanguagesSynced: { [key: string]: string[] };
     readonly streamingSubtitlePositionOffset: number;
     readonly streamingCondensedPlaybackMinimumSkipIntervalMs: number;
     readonly streamingScreenshotDelay: number;
