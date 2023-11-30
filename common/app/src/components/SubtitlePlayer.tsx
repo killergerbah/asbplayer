@@ -177,15 +177,15 @@ interface ResizeHandleProps extends React.HTMLAttributes<HTMLDivElement> {
     isResizing: boolean;
 }
 
-const ResizeHandle = ({ isResizing, ...rest }: ResizeHandleProps) => {
+const ResizeHandle = ({ isResizing, style, ...rest }: ResizeHandleProps) => {
     return (
         <div
             style={{
+                ...style,
                 position: 'absolute',
                 width: isResizing ? 30 : 5,
-                top: 0,
                 left: 0,
-                bottom: 0,
+                height: '100%',
                 cursor: 'col-resize',
             }}
             {...rest}
@@ -717,6 +717,13 @@ export default function SubtitlePlayer({
         [subtitles, calculateSurroundingSubtitlesForIndex, settings, onCopy]
     );
 
+    const [scrollY, setScrollY] = useState<number>(0);
+
+    const handleScroll = useCallback((event: React.UIEvent<HTMLElement>) => {
+        console.log(`scroll ${(event.target as HTMLElement)?.scrollTop}`);
+        setScrollY((event.target as HTMLElement)?.scrollTop ?? 0);
+    }, []);
+
     const { width, enableResize, isResizing } = useResize({
         initialWidth: Math.max(350, 0.25 * window.innerWidth),
         minWidth: 200,
@@ -778,9 +785,10 @@ export default function SubtitlePlayer({
             ref={containerRef}
             className={classes.container}
             style={{ width: resizable ? width : 'auto' }}
+            onScroll={handleScroll}
         >
             {subtitleTable}
-            {resizable && <ResizeHandle isResizing={isResizing} onMouseDown={enableResize} />}
+            {resizable && <ResizeHandle isResizing={isResizing} onMouseDown={enableResize} style={{ top: scrollY }} />}
         </Paper>
     );
 }
