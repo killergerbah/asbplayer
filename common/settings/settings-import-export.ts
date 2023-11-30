@@ -219,7 +219,10 @@ const settingsSchema = {
         streamingLastLanguagesSynced: {
             type: 'object',
             additionalProperties: {
-                type: 'string',
+                type: 'array',
+                items: {
+                    type: 'string',
+                },
             },
         },
         streamingCondensedPlaybackMinimumSkipIntervalMs: {
@@ -258,7 +261,8 @@ const validateAllKnownKeys = (object: any, path: string[]) => {
     for (const key of Object.keys(object)) {
         const schema = schemaAtPath(settingsSchema, path);
 
-        if (schema === undefined || !(key in schema)) {
+        // Empty string is sentinel value for 'additional properties' which can have any key
+        if (schema === undefined || (schema !== '' && !(key in schema))) {
             throw new Error(`Unknown key '${[...path, key].join('.')}'`);
         }
 
@@ -274,6 +278,10 @@ const schemaAtPath = (schema: any, path: string[]) => {
     let value = schema['properties'];
 
     for (const key of path) {
+        if (typeof value[key] === 'object' && 'additionalProperties' in value[key]) {
+            return '';
+        }
+
         value = value[key]?.['properties'] ?? schemaForRef(value[key]?.['$ref'])?.['properties'];
 
         if (value === undefined) {

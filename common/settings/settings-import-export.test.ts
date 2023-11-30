@@ -14,3 +14,7 @@ it('fails validation when an unknown key bind key is encountered', () => {
         validateSettings({ ...defaultSettings, keyBindSet: { ...defaultSettings.keyBindSet, asdf: { keys: 'a' } } })
     ).toThrowError("Unknown key 'keyBindSet.asdf'");
 });
+
+it('validates last languages synced', () => {
+    validateSettings({ ...defaultSettings, streamingLastLanguagesSynced: { 'domain.com': ['en', 'ja'] } });
+});
