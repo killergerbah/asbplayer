@@ -253,7 +253,7 @@ export const validateSettings = (settings: any) => {
     validateAllKnownKeys(settings, []);
 
     if (!result.valid) {
-        throw new Error('Settings validation failed');
+        throw new Error('Settings validation failed: ' + JSON.stringify(result.errors));
     }
 };
 
