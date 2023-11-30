@@ -99,7 +99,7 @@ export default function VideoDataSyncDialog({
         if (open) {
             setShouldRememberTrackChoices(defaultCheckboxState);
         }
-    }, [open]);
+    }, [open, defaultCheckboxState]);
 
     useEffect(() => {
         setName((name) => {
