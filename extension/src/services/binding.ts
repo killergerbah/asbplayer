@@ -910,7 +910,7 @@ export default class Binding {
         return await cropAndResize(maxWidth, maxHeight, rect, tabImageDataUrl);
     }
 
-    async loadSubtitles(files: File[], flatten: boolean, isEmptySubtitle?: boolean[]) {
+    async loadSubtitles(files: File[], flatten: boolean) {
         const {
             streamingSubtitleListPreference,
             subtitleRegexFilter,
@@ -943,8 +943,7 @@ export default class Binding {
                         originalStart: s.start,
                         originalEnd: s.end,
                     })),
-                    files.map((f) => f.name),
-                    isEmptySubtitle
+                    files.map((f) => f.name)
                 );
                 break;
             case SubtitleListPreference.app:
@@ -970,11 +969,7 @@ export default class Binding {
         }
     }
 
-    private _updateSubtitles(
-        subtitles: SubtitleModelWithIndex[],
-        subtitleFileNames: string[],
-        isEmptySubtitle?: boolean[]
-    ) {
+    private _updateSubtitles(subtitles: SubtitleModelWithIndex[], subtitleFileNames: string[]) {
         this.subtitleController.subtitles = subtitles;
         this.subtitleController.subtitleFileNames = subtitleFileNames;
         this.subtitleController.cacheHtml();
@@ -983,7 +978,13 @@ export default class Binding {
             this.playMode = PlayMode.normal;
         }
 
-        this.subtitleController.showLoadedMessage(isEmptySubtitle);
+        let nonEmptyTrackIndex: number[] = [];
+        for (let i = 0; i < subtitles.length; i++) {
+            if (!nonEmptyTrackIndex.includes(subtitles[i].track)) {
+                nonEmptyTrackIndex.push(subtitles[i].track);
+            }
+        }
+        this.subtitleController.showLoadedMessage(nonEmptyTrackIndex);
         this.videoDataSyncController.unbindVideoSelect();
         this.ankiUiSavedState = undefined;
         this._synced = true;
