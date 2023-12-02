@@ -420,9 +420,6 @@ export default class VideoDataSyncController {
     }
 
     private async _syncSubtitles(serializedFiles: SerializedSubtitleFile[], flatten: boolean) {
-        const isEmptySubtitle: boolean[] = serializedFiles.map((file) => {
-            return file.base64 === '' ? true : false;
-        });
         if ((await this._settings.getSingle('streamingSubtitleListPreference')) === SubtitleListPreference.app) {
             const command: VideoToExtensionCommand<ExtensionSyncMessage> = {
                 sender: 'asbplayer-video',
@@ -440,7 +437,7 @@ export default class VideoDataSyncController {
                     async (f) => new File([await (await fetch('data:text/plain;base64,' + f.base64)).blob()], f.name)
                 )
             );
-            this._context.loadSubtitles(files, flatten, isEmptySubtitle);
+            this._context.loadSubtitles(files, flatten);
         }
     }
 

@@ -486,25 +486,19 @@ export default class SubtitleController {
         }, 3000);
     }
 
-    showLoadedMessage(isEmptySubtitle?: boolean[]) {
+    showLoadedMessage(nonEmptyTrackIndex: number[]) {
         if (!this.subtitleFileNames) {
             return;
         }
 
         let loadedMessage: string;
 
-        let nonEmptySubtitleFileNames: string[];
+        const nonEmptySubtitleFileNames: string[] = this._nonEmptySubtitleNames(nonEmptyTrackIndex);
 
-        if (isEmptySubtitle?.length) {
-            nonEmptySubtitleFileNames = this._nonEmptySubtitleNames(isEmptySubtitle);
-
-            if (nonEmptySubtitleFileNames.length === 0) {
-                loadedMessage = this.subtitleFileNames[0];
-            } else {
-                loadedMessage = nonEmptySubtitleFileNames.join('<br>');
-            }
+        if (nonEmptySubtitleFileNames.length === 0) {
+            loadedMessage = this.subtitleFileNames[0];
         } else {
-            loadedMessage = this.subtitleFileNames.join('<br>');
+            loadedMessage = nonEmptySubtitleFileNames.join('<br>');
         }
 
         if (this.subtitles.length > 0) {
@@ -526,13 +520,12 @@ export default class SubtitleController {
         this.lastLoadedMessageTimestamp = Date.now();
     }
 
-    private _nonEmptySubtitleNames(isEmptySubtitle: boolean[]) {
-        const nonEmptySubtitleFileNames = [];
+    private _nonEmptySubtitleNames(nonEmptyTrackIndex: number[]) {
+        if (nonEmptyTrackIndex.length === 0) return [];
 
-        for (let i = 0; i < isEmptySubtitle.length; i++) {
-            if (!isEmptySubtitle[i]) {
-                nonEmptySubtitleFileNames.push(this.subtitleFileNames![i]);
-            }
+        const nonEmptySubtitleFileNames = [];
+        for (let i = 0; i < nonEmptyTrackIndex.length; i++) {
+            nonEmptySubtitleFileNames.push(this.subtitleFileNames![nonEmptyTrackIndex[i]]);
         }
 
         return nonEmptySubtitleFileNames;
