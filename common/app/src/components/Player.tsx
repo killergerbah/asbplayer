@@ -894,6 +894,7 @@ export default function Player({
 
     const loaded = videoFileUrl || subtitles;
     const videoInWindow = Boolean(loaded && videoFileUrl && !videoPopOut);
+    const actuallyHideSubtitlePlayer = videoInWindow && (hideSubtitlePlayer || !subtitles || subtitles?.length === 0);
 
     return (
         <div onMouseMove={handleMouseMove} className={classes.root}>
@@ -916,77 +917,78 @@ export default function Player({
                     </Grid>
                 )}
 
-                <Grid
-                    item
-                    style={{
-                        flexGrow: videoInWindow ? 0 : 1,
-                        width:
-                            videoInWindow && (hideSubtitlePlayer || !subtitles || subtitles?.length === 0) ? 0 : 'auto',
-                    }}
-                >
-                    {loaded && !(videoFileUrl && !videoPopOut) && !hideControls && (
-                        <Controls
-                            mousePositionRef={mousePositionRef}
+                {!actuallyHideSubtitlePlayer && (
+                    <Grid
+                        item
+                        style={{
+                            flexGrow: videoInWindow ? 0 : 1,
+                            width: 'auto',
+                        }}
+                    >
+                        {loaded && !(videoFileUrl && !videoPopOut) && !hideControls && (
+                            <Controls
+                                mousePositionRef={mousePositionRef}
+                                playing={playing}
+                                clock={clock}
+                                length={calculateLength()}
+                                displayLength={trackLength(channel, subtitles, false)}
+                                audioTracks={audioTracks}
+                                selectedAudioTrack={selectedAudioTrack}
+                                tabs={(!videoFileUrl && availableTabs) || undefined}
+                                selectedTab={tab}
+                                videoFile={videoFile?.name}
+                                offsetEnabled={true}
+                                offset={offset}
+                                playbackRate={playbackRate}
+                                playbackRateEnabled={!tab || extension.supportsPlaybackRateMessage}
+                                onPlaybackRateChange={handlePlaybackRateChange}
+                                playModeEnabled={playModeEnabled}
+                                playMode={playMode}
+                                onPlay={handlePlay}
+                                onPause={handlePause}
+                                onSeek={handleSeek}
+                                onAudioTrackSelected={handleAudioTrackSelected}
+                                onTabSelected={onTabSelected}
+                                onUnloadVideo={() => videoFileUrl && onUnloadVideo(videoFileUrl)}
+                                onOffsetChange={handleOffsetChange}
+                                onPlayMode={handlePlayMode}
+                                disableKeyEvents={disableKeyEvents}
+                                playbackPreferences={playbackPreferences}
+                                showOnMouseMovement={true}
+                            />
+                        )}
+                        <SubtitlePlayer
                             playing={playing}
+                            subtitles={subtitles}
+                            subtitleCollection={subtitleCollection}
                             clock={clock}
                             length={calculateLength()}
-                            displayLength={trackLength(channel, subtitles, false)}
-                            audioTracks={audioTracks}
-                            selectedAudioTrack={selectedAudioTrack}
-                            tabs={(!videoFileUrl && availableTabs) || undefined}
-                            selectedTab={tab}
-                            videoFile={videoFile?.name}
-                            offsetEnabled={true}
-                            offset={offset}
-                            playbackRate={playbackRate}
-                            playbackRateEnabled={!tab || extension.supportsPlaybackRateMessage}
-                            onPlaybackRateChange={handlePlaybackRateChange}
-                            playModeEnabled={playModeEnabled}
-                            playMode={playMode}
-                            onPlay={handlePlay}
-                            onPause={handlePause}
-                            onSeek={handleSeek}
-                            onAudioTrackSelected={handleAudioTrackSelected}
-                            onTabSelected={onTabSelected}
-                            onUnloadVideo={() => videoFileUrl && onUnloadVideo(videoFileUrl)}
-                            onOffsetChange={handleOffsetChange}
-                            onPlayMode={handlePlayMode}
+                            jumpToSubtitle={jumpToSubtitle}
+                            drawerOpen={drawerOpen}
+                            appBarHidden={appBarHidden}
+                            compressed={videoInWindow || (forceCompressedMode ?? false)}
+                            resizable={videoInWindow}
+                            showCopyButton={showCopyButton}
+                            copyButtonEnabled={copyButtonEnabled}
+                            loading={loadingSubtitles}
+                            displayHelp={(videoPopOut && videoFile?.name) || undefined}
                             disableKeyEvents={disableKeyEvents}
-                            playbackPreferences={playbackPreferences}
-                            showOnMouseMovement={true}
+                            // The VideoPlayer will receive the mining commands instead
+                            disableMiningBinds={extension.installed && videoFile !== undefined}
+                            lastJumpToTopTimestamp={lastJumpToTopTimestamp}
+                            hidden={videoInWindow && hideSubtitlePlayer}
+                            disabledSubtitleTracks={disabledSubtitleTracks}
+                            onSeek={handleSeekToTimestamp}
+                            onCopy={handleCopyFromSubtitlePlayer}
+                            onOffsetChange={handleOffsetChange}
+                            onToggleSubtitleTrack={handleToggleSubtitleTrack}
+                            onSubtitlesSelected={handleSubtitlesSelected}
+                            autoPauseContext={autoPauseContext}
+                            settings={settings}
+                            keyBinder={keyBinder}
                         />
-                    )}
-                    <SubtitlePlayer
-                        playing={playing}
-                        subtitles={subtitles}
-                        subtitleCollection={subtitleCollection}
-                        clock={clock}
-                        length={calculateLength()}
-                        jumpToSubtitle={jumpToSubtitle}
-                        drawerOpen={drawerOpen}
-                        appBarHidden={appBarHidden}
-                        compressed={videoInWindow || (forceCompressedMode ?? false)}
-                        resizable={videoInWindow}
-                        showCopyButton={showCopyButton}
-                        copyButtonEnabled={copyButtonEnabled}
-                        loading={loadingSubtitles}
-                        displayHelp={(videoPopOut && videoFile?.name) || undefined}
-                        disableKeyEvents={disableKeyEvents}
-                        // The VideoPlayer will receive the mining commands instead
-                        disableMiningBinds={extension.installed && videoFile !== undefined}
-                        lastJumpToTopTimestamp={lastJumpToTopTimestamp}
-                        hidden={videoInWindow && hideSubtitlePlayer}
-                        disabledSubtitleTracks={disabledSubtitleTracks}
-                        onSeek={handleSeekToTimestamp}
-                        onCopy={handleCopyFromSubtitlePlayer}
-                        onOffsetChange={handleOffsetChange}
-                        onToggleSubtitleTrack={handleToggleSubtitleTrack}
-                        onSubtitlesSelected={handleSubtitlesSelected}
-                        autoPauseContext={autoPauseContext}
-                        settings={settings}
-                        keyBinder={keyBinder}
-                    />
-                </Grid>
+                    </Grid>
+                )}
             </Grid>
         </div>
     );
