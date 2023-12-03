@@ -720,7 +720,6 @@ export default function SubtitlePlayer({
     const [scrollY, setScrollY] = useState<number>(0);
 
     const handleScroll = useCallback((event: React.UIEvent<HTMLElement>) => {
-        console.log(`scroll ${(event.target as HTMLElement)?.scrollTop}`);
         setScrollY((event.target as HTMLElement)?.scrollTop ?? 0);
     }, []);
 
