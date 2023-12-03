@@ -4,26 +4,30 @@ interface Props {
     initialWidth: number;
     minWidth: number;
     maxWidth: number;
+    onResizeStart?: () => void;
+    onResizeEnd?: () => void;
 }
 
 // https://stackoverflow.com/questions/49469834/recommended-way-to-have-drawer-resizable
-export const useResize = ({ initialWidth, minWidth, maxWidth }: Props) => {
+export const useResize = ({ initialWidth, minWidth, maxWidth, onResizeStart, onResizeEnd }: Props) => {
     const [isResizing, setIsResizing] = useState(false);
     const [width, setWidth] = useState(initialWidth);
 
     const enableResize = useCallback(() => {
         setIsResizing(true);
-    }, [setIsResizing]);
+        onResizeStart?.();
+    }, [setIsResizing, onResizeStart]);
 
     const disableResize = useCallback(() => {
         setIsResizing(false);
-    }, [setIsResizing]);
+        onResizeEnd?.();
+    }, [setIsResizing, onResizeEnd]);
 
     const resize = useCallback(
         (e: MouseEvent) => {
             if (isResizing) {
-                const newWidth = maxWidth - e.clientX + 25;
-                if (newWidth >= minWidth) {
+                const newWidth = window.innerWidth - e.clientX;
+                if (newWidth >= minWidth && newWidth <= maxWidth) {
                     setWidth(newWidth);
                 }
             }
@@ -37,7 +41,7 @@ export const useResize = ({ initialWidth, minWidth, maxWidth }: Props) => {
         document.addEventListener('mouseup', disableResize);
 
         return () => {
-            document.removeEventListener('mouseleave', resize);
+            document.removeEventListener('mouseleave', disableResize);
             document.removeEventListener('mousemove', resize);
             document.removeEventListener('mouseup', disableResize);
         };

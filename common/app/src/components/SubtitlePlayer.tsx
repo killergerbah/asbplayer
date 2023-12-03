@@ -184,7 +184,7 @@ const ResizeHandle = ({ isResizing, style, ...rest }: ResizeHandleProps) => {
                 ...style,
                 position: 'absolute',
                 width: isResizing ? 30 : 5,
-                left: 0,
+                left: isResizing ? -15 : -2.5,
                 height: '100%',
                 cursor: 'col-resize',
             }}
@@ -205,6 +205,8 @@ interface SubtitlePlayerProps {
     onOffsetChange: (offset: number) => void;
     onToggleSubtitleTrack: (track: number) => void;
     onSubtitlesSelected: (subtitles: SubtitleModel[]) => void;
+    onResizeStart?: () => void;
+    onResizeEnd?: () => void;
     autoPauseContext: AutoPauseContext;
     playing: boolean;
     subtitles?: DisplaySubtitleModel[];
@@ -226,6 +228,7 @@ interface SubtitlePlayerProps {
     disabledSubtitleTracks: { [track: number]: boolean };
     settings: AsbplayerSettings;
     keyBinder: KeyBinder;
+    maxResizeWidth: number;
 }
 
 export default function SubtitlePlayer({
@@ -235,6 +238,8 @@ export default function SubtitlePlayer({
     onOffsetChange,
     onToggleSubtitleTrack,
     onSubtitlesSelected,
+    onResizeStart,
+    onResizeEnd,
     autoPauseContext,
     playing,
     subtitles,
@@ -256,6 +261,7 @@ export default function SubtitlePlayer({
     disabledSubtitleTracks,
     settings,
     keyBinder,
+    maxResizeWidth,
 }: SubtitlePlayerProps) {
     const { t } = useTranslation();
     const playingRef = useRef<boolean>();
@@ -726,7 +732,9 @@ export default function SubtitlePlayer({
     const { width, enableResize, isResizing } = useResize({
         initialWidth: Math.max(350, 0.25 * window.innerWidth),
         minWidth: 200,
-        maxWidth: window.innerWidth,
+        maxWidth: maxResizeWidth,
+        onResizeStart,
+        onResizeEnd,
     });
 
     let subtitleTable: ReactNode | null = null;

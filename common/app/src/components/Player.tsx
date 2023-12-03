@@ -26,6 +26,9 @@ import SubtitlePlayer, { DisplaySubtitleModel } from './SubtitlePlayer';
 import VideoChannel from '../services/video-channel';
 import ChromeExtension from '../services/chrome-extension';
 import PlaybackPreferences from '../services/playback-preferences';
+import { useWindowSize } from '../hooks/use-window-size';
+
+const minVideoPlayerWidth = 400;
 
 interface StylesProps {
     appBarHidden: boolean;
@@ -186,6 +189,7 @@ export default function Player({
     const videoFile = sources?.videoFile;
     const videoFileUrl = sources?.videoFileUrl;
     const playModeEnabled = subtitles && subtitles.length > 0 && Boolean(videoFileUrl);
+    const [subtitlePlayerResizing, setSubtitlePlayerResizing] = useState<boolean>(false);
     const [loadingSubtitles, setLoadingSubtitles] = useState<boolean>(false);
     const [playing, setPlaying] = useState<boolean>(false);
     const [lastJumpToTopTimestamp, setLastJumpToTopTimestamp] = useState<number>(0);
@@ -216,6 +220,9 @@ export default function Player({
     const clock = useMemo<Clock>(() => new Clock(), []);
     const classes = useStyles({ appBarHidden });
     const calculateLength = () => trackLength(channelRef.current, subtitlesRef.current);
+
+    const handleSubtitlePlayerResizeStart = useCallback(() => setSubtitlePlayerResizing(true), []);
+    const handleSubtitlePlayerResizeEnd = useCallback(() => setSubtitlePlayerResizing(false), []);
 
     const handleOnStartedShowingSubtitle = useCallback(() => {
         if (
@@ -891,6 +898,7 @@ export default function Player({
         pause(clock, mediaAdapter, true);
         seek(rewindSubtitle.start, clock, true);
     }, [clock, rewindSubtitle?.start, mediaAdapter, seek]);
+    const [windowWidth] = useWindowSize(true);
 
     const loaded = videoFileUrl || subtitles;
     const videoInWindow = Boolean(loaded && videoFileUrl && !videoPopOut);
@@ -900,10 +908,13 @@ export default function Player({
         <div onMouseMove={handleMouseMove} className={classes.root}>
             <Grid container direction="row" wrap="nowrap" className={classes.container}>
                 {videoInWindow && (
-                    <Grid item style={{ flexGrow: 1, minWidth: 400 }}>
+                    <Grid item style={{ flexGrow: 1, minWidth: minVideoPlayerWidth }}>
                         <iframe
                             ref={videoFrameRef}
                             className={classes.videoFrame}
+                            style={{
+                                pointerEvents: subtitlePlayerResizing ? 'none' : 'auto',
+                            }}
                             src={
                                 origin +
                                 '?video=' +
@@ -983,6 +994,9 @@ export default function Player({
                             onOffsetChange={handleOffsetChange}
                             onToggleSubtitleTrack={handleToggleSubtitleTrack}
                             onSubtitlesSelected={handleSubtitlesSelected}
+                            onResizeStart={handleSubtitlePlayerResizeStart}
+                            onResizeEnd={handleSubtitlePlayerResizeEnd}
+                            maxResizeWidth={Math.max(0, windowWidth - minVideoPlayerWidth)}
                             autoPauseContext={autoPauseContext}
                             settings={settings}
                             keyBinder={keyBinder}
