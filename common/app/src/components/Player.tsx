@@ -899,7 +899,7 @@ export default function Player({
         <div onMouseMove={handleMouseMove} className={classes.root}>
             <Grid container direction="row" wrap="nowrap" className={classes.container}>
                 {videoInWindow && (
-                    <Grid item style={{ flexGrow: 1, minWidth: 600 }}>
+                    <Grid item style={{ flexGrow: 1, minWidth: 400 }}>
                         <iframe
                             ref={videoFrameRef}
                             className={classes.videoFrame}

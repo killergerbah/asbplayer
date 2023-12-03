@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, useRef, MutableRefObject } from 'react';
 import { useTranslation } from 'react-i18next';
-import { makeStyles, withStyles } from '@material-ui/core/styles';
+import { makeStyles, withStyles, useTheme } from '@material-ui/core/styles';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import AudiotrackIcon from '@material-ui/icons/Audiotrack';
@@ -32,6 +32,10 @@ import { SubtitleAlignment } from '@project/common/settings';
 import Clock from '../services/clock';
 import PlaybackPreferences from '../services/playback-preferences';
 import Tooltip from '@material-ui/core/Tooltip';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
 
 const useControlStyles = makeStyles((theme) => ({
     container: {
@@ -487,6 +491,56 @@ function PlayModeSelector({ open, anchorEl, selectedPlayMode, onPlayMode, onClos
         </div>
     );
 }
+
+interface ResponsiveButtonGroupProps {
+    children: React.ReactNode[];
+}
+
+const ResponsiveButtonGroup = ({ children }: ResponsiveButtonGroupProps) => {
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down(600));
+    const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement>();
+
+    const handleCloseMenu = () => {
+        setAnchorEl(undefined);
+    };
+
+    const handleOpenMenu = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        setAnchorEl(e.currentTarget);
+    };
+
+    const anchorExists = anchorEl !== undefined && document.body.contains(anchorEl);
+    const definedChildren = children.filter((c) => c !== undefined && c !== false);
+
+    if (isSmallScreen && definedChildren.length > 1) {
+        return (
+            <>
+                <Grid item>
+                    <IconButton color="inherit" onClick={handleOpenMenu}>
+                        <MoreVertIcon />
+                    </IconButton>
+                </Grid>
+                <Menu anchorEl={anchorExists ? anchorEl : undefined} open={anchorExists} onClose={handleCloseMenu}>
+                    {definedChildren.map((child, i) => {
+                        return <MenuItem key={i}>{child}</MenuItem>;
+                    })}
+                </Menu>
+            </>
+        );
+    }
+
+    return (
+        <>
+            {children.map((child, i) => {
+                return (
+                    <Grid item key={i}>
+                        {child}
+                    </Grid>
+                );
+            })}
+        </>
+    );
+};
 
 export interface Point {
     x: number;
@@ -994,7 +1048,7 @@ export default function Controls({
                 <Fade in={show} timeout={200}>
                     <div className={classes.subContainer}>
                         <ProgressBar onSeek={handleSeek} value={progress * 100} />
-                        <Grid container className={classes.gridContainer} direction="row">
+                        <Grid container className={classes.gridContainer} direction="row" wrap="nowrap">
                             <Grid item>
                                 <IconButton color="inherit" onClick={() => (playing ? onPause() : onPlay())}>
                                     {playing ? (
@@ -1075,8 +1129,8 @@ export default function Controls({
                                 </Grid>
                             )}
                             <Grid item style={{ flexGrow: 1 }}></Grid>
-                            {subtitleAlignmentEnabled && subtitleAlignment !== undefined && (
-                                <Grid item>
+                            <ResponsiveButtonGroup>
+                                {subtitleAlignmentEnabled && subtitleAlignment !== undefined && (
                                     <IconButton color="inherit" onClick={handleSubtitleAlignment}>
                                         {subtitleAlignment === 'top' ? (
                                             <VerticalAlignTopIcon />
@@ -1084,68 +1138,52 @@ export default function Controls({
                                             <VerticalAlignBottomIcon />
                                         )}
                                     </IconButton>
-                                </Grid>
-                            )}
-                            {subtitlesToggle && (
-                                <Grid item>
+                                )}
+                                {subtitlesToggle && (
                                     <IconButton color="inherit" onClick={onSubtitlesToggle}>
                                         <SubtitlesIcon
                                             className={subtitlesEnabled ? classes.button : classes.inactiveButton}
                                         />
                                     </IconButton>
-                                </Grid>
-                            )}
-                            {videoFile && (
-                                <Grid item>
+                                )}
+                                {videoFile && (
                                     <IconButton color="inherit" onClick={handleVideoUnloaderOpened}>
                                         <VideocamIcon className={classes.button} />
                                     </IconButton>
-                                </Grid>
-                            )}
-                            {audioFile && (
-                                <Grid item>
+                                )}
+                                {audioFile && (
                                     <IconButton color="inherit" onClick={handleAudioUnloaderOpened}>
                                         <AudiotrackIcon className={classes.button} />
                                     </IconButton>
-                                </Grid>
-                            )}
-                            {audioTracks && audioTracks.length > 1 && (
-                                <Grid item>
+                                )}
+                                {audioTracks && audioTracks.length > 1 && (
                                     <IconButton color="inherit" onClick={handleAudioTrackSelectorOpened}>
                                         <QueueMusicIcon className={classes.button} />
                                     </IconButton>
-                                </Grid>
-                            )}
-                            {tabs && tabs.length > 0 && (
-                                <Grid item>
+                                )}
+                                {tabs && tabs.length > 0 && (
                                     <IconButton color="inherit" onClick={handleTabSelectorOpened}>
                                         <VideocamIcon
                                             className={selectedTab ? classes.button : classes.inactiveButton}
                                         />
                                     </IconButton>
-                                </Grid>
-                            )}
-                            {playModeEnabled && (
-                                <Grid item>
+                                )}
+                                {playModeEnabled && (
                                     <IconButton color="inherit" onClick={handlePlayModeSelectorOpened}>
                                         <TuneIcon
                                             className={playModeEnabled ? classes.button : classes.inactiveButton}
                                         />
                                     </IconButton>
-                                </Grid>
-                            )}
-                            {popOutEnabled && (
-                                <Grid item>
+                                )}
+                                {popOutEnabled && (
                                     <IconButton color="inherit" onClick={onPopOutToggle}>
                                         <OpenInNewIcon
                                             className={classes.button}
                                             style={popOut ? { transform: 'rotateX(180deg)' } : {}}
                                         />
                                     </IconButton>
-                                </Grid>
-                            )}
-                            {fullscreenEnabled && (
-                                <Grid item>
+                                )}
+                                {fullscreenEnabled && (
                                     <IconButton color="inherit" onClick={onFullscreenToggle}>
                                         {fullscreen ? (
                                             <FullscreenExitIcon className={classes.button} />
@@ -1153,8 +1191,8 @@ export default function Controls({
                                             <FullscreenIcon className={classes.button} />
                                         )}
                                     </IconButton>
-                                </Grid>
-                            )}
+                                )}
+                            </ResponsiveButtonGroup>
                         </Grid>
                     </div>
                 </Fade>
