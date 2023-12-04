@@ -855,6 +855,10 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     return;
                 }
 
+                if (sources.videoFileUrl) {
+                    handleUnloadVideo(sources.videoFileUrl);
+                }
+
                 handleFiles({ files: subtitleFiles, flattenSubtitleFiles: flatten });
                 setTab(tab);
             } else if (message.data.command === 'edit-keyboard-shortcuts') {
@@ -870,7 +874,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         const unsubscribe = extension.subscribe(onMessage);
         extension.startHeartbeat({ fromVideoPlayer: false });
         return unsubscribe;
-    }, [extension, playbackPreferences, inVideoPlayer, handleFiles, handleAnki]);
+    }, [extension, playbackPreferences, inVideoPlayer, handleFiles, handleAnki, handleUnloadVideo]);
 
     const handleAutoPauseModeChangedViaBind = useCallback(
         (oldPlayMode: PlayMode, newPlayMode: PlayMode) => {
