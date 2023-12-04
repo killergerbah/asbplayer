@@ -404,7 +404,10 @@ export default class Binding {
                         );
                         break;
                     case 'request-subtitles':
-                        sendResponse(this.subtitleController.subtitles);
+                        sendResponse({
+                            subtitles: this.subtitleController.subtitles,
+                            subtitleFileNames: this.subtitleController.subtitleFileNames ?? [],
+                        });
                         break;
                     case 'offset':
                         const offsetMessage = request.message as OffsetToVideoMessage;

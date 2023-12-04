@@ -7,11 +7,11 @@ import {
     LoadSubtitlesMessage,
     RequestSubtitlesMessage,
     ShowAnkiUiMessage,
-    SubtitleModel,
     VideoTabModel,
     ExtensionToAsbPlayerCommand,
     CopySubtitleMessage,
     CardModel,
+    RequestSubtitlesResponse,
 } from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
 import { AudioClip } from '@project/common/audio-clip';
@@ -39,6 +39,7 @@ import SidePanelTopControls from './SidePanelTopControls';
 import CopyHistory from '@project/common/app/src/components/CopyHistory';
 import CopyHistoryList from '@project/common/app/src/components/CopyHistoryList';
 import { useAppKeyBinder } from '@project/common/app/src/hooks/use-app-key-binder';
+import { download } from '@project/common/util';
 
 const mp3WorkerFactory = () =>
     new Worker(new URL('../../../../common/audio-clip/src/mp3-encoder-worker.ts', import.meta.url));
@@ -64,6 +65,8 @@ export default function SidePanel({ settings, extension }: Props) {
         [settings]
     );
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>();
+    const [subtitleFileNames, setSubtitleFileNames] = useState<string[]>();
+    const [canDownloadSubtitles, setCanDownloadSubtitles] = useState<boolean>(true);
     const [alert, setAlert] = useState<string>();
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
     const [alertSeverity, setAlertSeverity] = useState<Color>();
@@ -75,6 +78,10 @@ export default function SidePanel({ settings, extension }: Props) {
     const keyBinder = useAppKeyBinder(settings.keyBindSet, extension);
     const currentTabId = useCurrentTabId();
     const videoElementCount = useVideoElementCount({ extension, currentTabId });
+
+    useEffect(() => {
+        setCanDownloadSubtitles(subtitles?.some((s) => s.text !== '') ?? false);
+    }, [subtitles]);
 
     useEffect(() => {
         if (currentTabId === undefined) {
@@ -108,16 +115,18 @@ export default function SidePanel({ settings, extension }: Props) {
                         },
                         src: lastSyncedVideoTab.src,
                     };
-                    const subs = (await chrome.tabs.sendMessage(lastSyncedVideoTab.id, message)) as
-                        | SubtitleModel[]
+                    const response = (await chrome.tabs.sendMessage(lastSyncedVideoTab.id, message)) as
+                        | RequestSubtitlesResponse
                         | undefined;
 
-                    if (subs !== undefined) {
+                    if (response !== undefined) {
+                        const subs = response.subtitles;
                         const length = subs.length > 0 ? subs[subs.length - 1].end : 0;
                         setSyncedVideoElement(lastSyncedVideoTab);
                         setSubtitles(
                             subs.map((s, index) => ({ ...s, index, displayTime: timeDurationDisplay(s.start, length) }))
                         );
+                        setSubtitleFileNames(response.subtitleFileNames);
                     }
                 }
             }
@@ -221,6 +230,16 @@ export default function SidePanel({ settings, extension }: Props) {
         };
         chrome.runtime.sendMessage(message);
     }, [currentTabId]);
+
+    const handleDownloadSubtitles = useCallback(() => {
+        if (subtitles) {
+            const fileName =
+                subtitleFileNames !== undefined && subtitleFileNames.length > 0
+                    ? `${subtitleFileNames[0]}.srt`
+                    : 'subtitles.srt';
+            download(new Blob([subtitleReader.subtitlesToSrt(subtitles)], { type: 'text/plain' }), fileName);
+        }
+    }, [subtitles, subtitleFileNames]);
 
     const topControlsRef = useRef<HTMLDivElement>(null);
     const [showTopControls, setShowTopControls] = useState<boolean>(false);
@@ -431,6 +450,8 @@ export default function SidePanel({ settings, extension }: Props) {
                                 ref={topControlsRef}
                                 show={showTopControls}
                                 onLoadSubtitles={handleLoadSubtitles}
+                                canDownloadSubtitles={canDownloadSubtitles}
+                                onDownloadSubtitles={handleDownloadSubtitles}
                                 onShowMiningHistory={handleShowCopyHistory}
                             />
                             <SidePanelBottomControls

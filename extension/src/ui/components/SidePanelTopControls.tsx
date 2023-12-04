@@ -1,6 +1,7 @@
 import IconButton from '@material-ui/core/IconButton';
 import ListIcon from '@material-ui/icons/List';
 import SubtitlesIcon from '@material-ui/icons/Subtitles';
+import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
 import Fade from '@material-ui/core/Fade';
@@ -11,12 +12,14 @@ import { useTranslation } from 'react-i18next';
 
 interface Props {
     show: boolean;
+    canDownloadSubtitles: boolean;
     onLoadSubtitles: () => void;
+    onDownloadSubtitles: () => void;
     onShowMiningHistory: () => void;
 }
 
 const SidePanelTopControls = React.forwardRef(function SidePanelTopControls(
-    { show, onLoadSubtitles, onShowMiningHistory }: Props,
+    { show, canDownloadSubtitles, onLoadSubtitles, onDownloadSubtitles, onShowMiningHistory }: Props,
     ref: ForwardedRef<HTMLDivElement>
 ) {
     const { t } = useTranslation();
@@ -40,6 +43,15 @@ const SidePanelTopControls = React.forwardRef(function SidePanelTopControls(
                             </IconButton>
                         </Tooltip>
                     </Grid>
+                    {canDownloadSubtitles && (
+                        <Grid item>
+                            <Tooltip title={t('action.downloadSubtitlesAsSrt')!}>
+                                <IconButton onClick={onDownloadSubtitles}>
+                                    <SaveAltIcon />
+                                </IconButton>
+                            </Tooltip>
+                        </Grid>
+                    )}
                     <Grid item>
                         <IconButton onClick={onShowMiningHistory}>
                             <Tooltip title={t('bar.miningHistory')!}>
