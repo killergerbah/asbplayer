@@ -239,7 +239,7 @@ export default function SidePanel({ settings, extension }: Props) {
                     : 'subtitles.srt';
             download(new Blob([subtitleReader.subtitlesToSrt(subtitles)], { type: 'text/plain' }), fileName);
         }
-    }, [subtitles, subtitleFileNames]);
+    }, [subtitles, subtitleFileNames, subtitleReader]);
 
     const topControlsRef = useRef<HTMLDivElement>(null);
     const [showTopControls, setShowTopControls] = useState<boolean>(false);
