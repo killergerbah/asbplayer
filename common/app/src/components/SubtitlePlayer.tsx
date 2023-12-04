@@ -20,6 +20,8 @@ import TableRow, { TableRowProps } from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
 import Clock from '../services/clock';
 
+let lastKnownWidth: number | undefined;
+
 interface StylesProps {
     resizable: boolean;
     appBarHidden: boolean;
@@ -730,12 +732,16 @@ export default function SubtitlePlayer({
     }, []);
 
     const { width, enableResize, isResizing } = useResize({
-        initialWidth: Math.max(350, 0.25 * window.innerWidth),
+        initialWidth: lastKnownWidth ?? Math.max(350, 0.25 * window.innerWidth),
         minWidth: 200,
         maxWidth: maxResizeWidth,
         onResizeStart,
         onResizeEnd,
     });
+
+    useEffect(() => {
+        lastKnownWidth = width;
+    }, [width]);
 
     let subtitleTable: ReactNode | null = null;
 
