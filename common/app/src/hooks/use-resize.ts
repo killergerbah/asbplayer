@@ -12,6 +12,7 @@ interface Props {
 export const useResize = ({ initialWidth, minWidth, maxWidth, onResizeStart, onResizeEnd }: Props) => {
     const [isResizing, setIsResizing] = useState(false);
     const [width, setWidth] = useState(initialWidth);
+    const [lastMouseDownClientX, setLastMouseDownClientX] = useState<number>(0);
 
     const enableResize = useCallback(() => {
         setIsResizing(true);
@@ -23,29 +24,39 @@ export const useResize = ({ initialWidth, minWidth, maxWidth, onResizeStart, onR
         onResizeEnd?.();
     }, [setIsResizing, onResizeEnd]);
 
+    const recordLastMouseDownPosition = useCallback((e: MouseEvent) => {
+        setLastMouseDownClientX(e.clientX);
+    }, []);
+
     const resize = useCallback(
         (e: MouseEvent) => {
             if (isResizing) {
-                const newWidth = window.innerWidth - e.clientX;
+                const delta = lastMouseDownClientX - e.clientX;
+                const newWidth = width + delta;
+
+                setLastMouseDownClientX(e.clientX);
+
                 if (newWidth >= minWidth && newWidth <= maxWidth) {
                     setWidth(newWidth);
                 }
             }
         },
-        [minWidth, maxWidth, isResizing]
+        [minWidth, maxWidth, lastMouseDownClientX, width, isResizing]
     );
 
     useEffect(() => {
         document.addEventListener('mouseleave', disableResize);
         document.addEventListener('mousemove', resize);
         document.addEventListener('mouseup', disableResize);
+        document.addEventListener('mousedown', recordLastMouseDownPosition);
 
         return () => {
             document.removeEventListener('mouseleave', disableResize);
             document.removeEventListener('mousemove', resize);
             document.removeEventListener('mouseup', disableResize);
+            document.removeEventListener('mousedown', recordLastMouseDownPosition);
         };
-    }, [disableResize, resize]);
+    }, [disableResize, resize, recordLastMouseDownPosition]);
 
     return { width, enableResize, isResizing };
 };
