@@ -874,7 +874,15 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         const unsubscribe = extension.subscribe(onMessage);
         extension.startHeartbeat({ fromVideoPlayer: false });
         return unsubscribe;
-    }, [extension, playbackPreferences, inVideoPlayer, handleFiles, handleAnki, handleUnloadVideo]);
+    }, [
+        extension,
+        playbackPreferences,
+        inVideoPlayer,
+        sources.videoFileUrl,
+        handleFiles,
+        handleAnki,
+        handleUnloadVideo,
+    ]);
 
     const handleAutoPauseModeChangedViaBind = useCallback(
         (oldPlayMode: PlayMode, newPlayMode: PlayMode) => {
