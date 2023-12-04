@@ -76,6 +76,12 @@ const settingsSchema = {
         subtitlePreview: {
             type: 'string',
         },
+        subtitlePositionOffset: {
+            type: 'number',
+        },
+        subtitleAlignment: {
+            type: 'string',
+        },
         audioPaddingStart: {
             type: 'number',
         },
@@ -228,14 +234,8 @@ const settingsSchema = {
         streamingCondensedPlaybackMinimumSkipIntervalMs: {
             type: 'number',
         },
-        streamingSubtitlePositionOffset: {
-            type: 'number',
-        },
         streamingScreenshotDelay: {
             type: 'number',
-        },
-        streamingSubtitleAlignment: {
-            type: 'string',
         },
         streamingSubtitleListPreference: {
             type: 'string',
