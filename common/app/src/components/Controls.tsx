@@ -58,6 +58,7 @@ const useControlStyles = makeStyles((theme) => ({
         cursor: 'default',
         fontSize: 20,
         marginLeft: 10,
+        whiteSpace: 'nowrap',
     },
     numberInput: {
         height: '100%',
@@ -1069,21 +1070,36 @@ export default function Controls({
                                             : classes.volumeInputContainerHidden
                                     }
                                 >
-                                    <IconButton color="inherit" onClick={handleVolumeToggle}>
-                                        {volume === 0 ? <VolumeOffIcon /> : <VolumeUpIcon />}
-                                    </IconButton>
-                                    <VolumeSlider
-                                        onChange={handleVolumeChange}
-                                        onChangeCommitted={handleVolumeChangeCommitted}
-                                        value={volume}
-                                        defaultValue={100}
-                                        classes={{
-                                            root: showVolumeBar ? classes.volumeInputShown : classes.volumeInputHidden,
-                                            thumb: showVolumeBar
-                                                ? classes.volumeInputThumbShown
-                                                : classes.volumeInputThumbHidden,
-                                        }}
-                                    />
+                                    <Grid container spacing={0} direction="row" wrap="nowrap">
+                                        <Grid item>
+                                            <IconButton color="inherit" onClick={handleVolumeToggle}>
+                                                {volume === 0 ? <VolumeOffIcon /> : <VolumeUpIcon />}
+                                            </IconButton>
+                                        </Grid>
+                                        <Grid
+                                            item
+                                            style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                justifyContent: 'center',
+                                            }}
+                                        >
+                                            <VolumeSlider
+                                                onChange={handleVolumeChange}
+                                                onChangeCommitted={handleVolumeChangeCommitted}
+                                                value={volume}
+                                                defaultValue={100}
+                                                classes={{
+                                                    root: showVolumeBar
+                                                        ? classes.volumeInputShown
+                                                        : classes.volumeInputHidden,
+                                                    thumb: showVolumeBar
+                                                        ? classes.volumeInputThumbShown
+                                                        : classes.volumeInputThumbHidden,
+                                                }}
+                                            />
+                                        </Grid>
+                                    </Grid>
                                 </Grid>
                             )}
                             <Grid item>
@@ -1091,7 +1107,7 @@ export default function Controls({
                                     {displayTime(progress * length)} / {displayTime(displayLength || length)}
                                 </div>
                             </Grid>
-                            {offsetEnabled && (
+                            {offsetEnabled && !showVolumeBar && (
                                 <Grid item>
                                     <Tooltip title={t('controls.subtitleOffset')!}>
                                         <Input
@@ -1108,7 +1124,7 @@ export default function Controls({
                                     </Tooltip>
                                 </Grid>
                             )}
-                            {playbackRateEnabled && (
+                            {playbackRateEnabled && !showVolumeBar && (
                                 <Grid item>
                                     <Tooltip title={t('controls.playbackRate')!}>
                                         <Input
