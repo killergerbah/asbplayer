@@ -45,6 +45,12 @@ export const useResize = ({ initialWidth, minWidth, maxWidth, onResizeStart, onR
     );
 
     useEffect(() => {
+        if (maxWidth !== 0 && width > maxWidth) {
+            setWidth(maxWidth);
+        }
+    }, [maxWidth, width]);
+
+    useEffect(() => {
         document.addEventListener('mouseleave', disableResize);
         document.addEventListener('mousemove', resize);
         document.addEventListener('mouseup', disableResize);
