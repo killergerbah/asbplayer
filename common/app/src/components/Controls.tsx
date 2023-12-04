@@ -130,7 +130,7 @@ const useControlStyles = makeStyles((theme) => ({
         pointerEvents: 'auto',
     },
     inactiveButton: {
-        color: 'rgba(72, 72, 72, 0.7)',
+        color: 'rgba(120, 120, 120, 0.7)',
         pointerEvents: 'auto',
     },
     inactiveTopButton: {
