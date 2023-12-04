@@ -358,11 +358,15 @@ class FileAudioData implements AudioData {
         }
 
         this._playablePromise = new Promise((resolve, reject) => {
-            fetch(this.file.blobUrl, { method: 'GET' })
-                .then((response) => resolve(response.status === 200))
-                .catch((e) => {
-                    resolve(false);
-                });
+            if (this.file.blobUrl) {
+                fetch(this.file.blobUrl, { method: 'GET' })
+                    .then((response) => resolve(response.status === 200))
+                    .catch((e) => {
+                        resolve(false);
+                    });
+            } else {
+                resolve(false);
+            }
         });
         return this._playablePromise;
     }

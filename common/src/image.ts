@@ -82,12 +82,17 @@ class FileImageData implements ImageData {
         }
 
         this._availablePromise = new Promise((resolve, reject) => {
-            fetch(this._file.blobUrl, { method: 'GET' })
-                .then((response) => resolve(response.status === 200))
-                .catch((e) => {
-                    resolve(false);
-                });
+            if (this._file.blobUrl) {
+                fetch(this._file.blobUrl, { method: 'GET' })
+                    .then((response) => resolve(response.status === 200))
+                    .catch((e) => {
+                        resolve(false);
+                    });
+            } else {
+                resolve(false);
+            }
         });
+
         return this._availablePromise;
     }
 
