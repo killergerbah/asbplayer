@@ -79,9 +79,7 @@ const useAudioAvailability = (item: CopyHistoryItem) => {
         const clip = AudioClip.fromCard(item, 0, 0);
 
         if (clip) {
-            clip.isPlayable().then((playable) => {
-                setIsAudioAvailable(playable);
-            });
+            setIsAudioAvailable(clip.isPlayable());
         } else {
             setIsAudioAvailable(false);
         }
@@ -97,9 +95,7 @@ const useImageAvailability = (item: CopyHistoryItem) => {
         const image = Image.fromCard(item, 0, 0);
 
         if (image) {
-            image.isAvailable().then((available) => {
-                setIsImageAvailable(available);
-            });
+            setIsImageAvailable(image.isAvailable());
         } else {
             setIsImageAvailable(false);
         }

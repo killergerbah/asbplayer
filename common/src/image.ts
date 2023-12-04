@@ -1,6 +1,7 @@
 import { resizeCanvas } from './image-transformer';
 import { CardModel, FileModel } from './model';
 import { download } from '../util/util';
+import { isActiveBlobUrl } from '../blob-url';
 
 class Base64ImageData implements ImageData {
     private readonly _name: string;
@@ -23,7 +24,7 @@ class Base64ImageData implements ImageData {
         return this._extension;
     }
 
-    async isAvailable(): Promise<boolean> {
+    isAvailable(): boolean {
         return true;
     }
 
@@ -58,7 +59,6 @@ class FileImageData implements ImageData {
     private readonly _maxWidth: number;
     private readonly _maxHeight: number;
     private readonly _name: string;
-    private _availablePromise?: Promise<boolean>;
 
     constructor(file: FileModel, timestamp: number, maxWidth: number, maxHeight: number) {
         this._file = file;
@@ -76,24 +76,12 @@ class FileImageData implements ImageData {
         return 'jpeg';
     }
 
-    async isAvailable(): Promise<boolean> {
-        if (this._availablePromise) {
-            return this._availablePromise;
+    isAvailable(): boolean {
+        if (this._file.blobUrl) {
+            return isActiveBlobUrl(this._file.blobUrl);
         }
 
-        this._availablePromise = new Promise((resolve, reject) => {
-            if (this._file.blobUrl) {
-                fetch(this._file.blobUrl, { method: 'GET' })
-                    .then((response) => resolve(response.status === 200))
-                    .catch((e) => {
-                        resolve(false);
-                    });
-            } else {
-                resolve(false);
-            }
-        });
-
-        return this._availablePromise;
+        return false;
     }
 
     async base64(): Promise<string> {
@@ -168,7 +156,7 @@ class MissingFileImageData implements ImageData {
         return 'jpeg';
     }
 
-    async isAvailable() {
+    isAvailable() {
         return false;
     }
 
@@ -191,7 +179,7 @@ interface ImageData {
     base64: () => Promise<string>;
     dataUrl: () => Promise<string>;
     blob: () => Promise<Blob>;
-    isAvailable: () => Promise<boolean>;
+    isAvailable: () => boolean;
 }
 
 export default class Image {

@@ -28,6 +28,7 @@ import ChromeExtension from '../services/chrome-extension';
 import PlaybackPreferences from '../services/playback-preferences';
 import { useWindowSize } from '../hooks/use-window-size';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
+import { createBlobUrl } from '../../../blob-url';
 
 const minVideoPlayerWidth = 300;
 
@@ -503,7 +504,7 @@ export default function Player({
                         file: videoFile
                             ? {
                                   name: videoFile.name,
-                                  blobUrl: URL.createObjectURL(videoFile),
+                                  blobUrl: createBlobUrl(videoFile),
                                   audioTrack: channel?.selectedAudioTrack,
                                   playbackRate: channel?.playbackRate,
                               }
@@ -725,7 +726,7 @@ export default function Player({
                                       name: videoFile.name,
                                       audioTrack: selectedAudioTrack,
                                       playbackRate,
-                                      blobUrl: URL.createObjectURL(videoFile),
+                                      blobUrl: createBlobUrl(videoFile),
                                   },
                     },
                     postMineAction,
