@@ -675,7 +675,8 @@ export default function Controls({
     const [showVolumeBar, setShowVolumeBar] = useState<boolean>(false);
     const [volume, setVolume] = useState<number>(100);
     const [lastCommittedVolume, setLastCommittedVolume] = useState<number>(100);
-
+    const theme = useTheme();
+    const isReallySmallScreen = useMediaQuery(theme.breakpoints.down(380));
     const lastMousePositionRef = useRef<Point>({ x: 0, y: 0 });
     const lastShowTimestampRef = useRef<number>(Date.now());
     const lastNumberInputChangeTimestampRef = useRef<number>(Date.now());
@@ -1107,7 +1108,7 @@ export default function Controls({
                                     {displayTime(progress * length)} / {displayTime(displayLength || length)}
                                 </div>
                             </Grid>
-                            {offsetEnabled && !showVolumeBar && (
+                            {offsetEnabled && !showVolumeBar && !isReallySmallScreen && (
                                 <Grid item>
                                     <Tooltip title={t('controls.subtitleOffset')!}>
                                         <Input
@@ -1124,7 +1125,7 @@ export default function Controls({
                                     </Tooltip>
                                 </Grid>
                             )}
-                            {playbackRateEnabled && !showVolumeBar && (
+                            {playbackRateEnabled && !showVolumeBar && !isReallySmallScreen && (
                                 <Grid item>
                                     <Tooltip title={t('controls.playbackRate')!}>
                                         <Input

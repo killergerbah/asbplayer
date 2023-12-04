@@ -28,7 +28,7 @@ import ChromeExtension from '../services/chrome-extension';
 import PlaybackPreferences from '../services/playback-preferences';
 import { useWindowSize } from '../hooks/use-window-size';
 
-const minVideoPlayerWidth = 400;
+const minVideoPlayerWidth = 300;
 
 interface StylesProps {
     appBarHidden: boolean;
