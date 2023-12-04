@@ -70,7 +70,7 @@ export default class PlaybackPreferences {
 
     get subtitleAlignment() {
         if (this._extension.supportsAppIntegration) {
-            return this._settings.streamingSubtitleAlignment;
+            return this._settings.subtitleAlignment;
         }
 
         const val = this._storage.get(subtitleAlignmentKey);
@@ -84,7 +84,7 @@ export default class PlaybackPreferences {
 
     set subtitleAlignment(alignment: SubtitleAlignment) {
         if (this._extension.supportsAppIntegration) {
-            this._extension.setSettings({ streamingSubtitleAlignment: alignment });
+            this._extension.setSettings({ subtitleAlignment: alignment });
         } else {
             this._storage.set(subtitleAlignmentKey, String(alignment));
         }
@@ -92,7 +92,7 @@ export default class PlaybackPreferences {
 
     get subtitlePositionOffset() {
         if (this._extension.supportsAppIntegration) {
-            return this._settings.streamingSubtitlePositionOffset;
+            return this._settings.subtitlePositionOffset;
         }
 
         const val = this._storage.get(subtitlePositionOffetKey);
@@ -106,7 +106,7 @@ export default class PlaybackPreferences {
 
     set subtitlePositionOffset(offset: number) {
         if (this._extension.supportsAppIntegration) {
-            this._extension.setSettings({ streamingSubtitlePositionOffset: offset });
+            this._extension.setSettings({ subtitlePositionOffset: offset });
         } else {
             this._storage.set(subtitlePositionOffetKey, String(offset));
         }

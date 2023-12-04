@@ -571,8 +571,8 @@ export default class Binding {
             (typeof this.video.webkitVideoDecodedByteCount !== 'number' || this.video.webkitVideoDecodedByteCount > 0);
         this.cleanScreenshot = currentSettings.streamingTakeScreenshot && currentSettings.streamingCleanScreenshot;
         this.subtitleController.displaySubtitles = currentSettings.streamingDisplaySubtitles;
-        this.subtitleController.subtitlePositionOffset = currentSettings.streamingSubtitlePositionOffset;
-        this.subtitleController.subtitleAlignment = currentSettings.streamingSubtitleAlignment;
+        this.subtitleController.subtitlePositionOffset = currentSettings.subtitlePositionOffset;
+        this.subtitleController.subtitleAlignment = currentSettings.subtitleAlignment;
         this.subtitleController.refresh();
         this.videoDataSyncController.updateSettings(currentSettings);
         this.keyBindings.setKeyBindSet(this, currentSettings.keyBindSet);

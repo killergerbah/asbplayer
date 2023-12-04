@@ -627,6 +627,8 @@ export default function SettingsForm({
         subtitleBackgroundOpacity,
         subtitleFontFamily,
         subtitlePreview,
+        subtitlePositionOffset,
+        subtitleAlignment,
         audioPaddingStart,
         audioPaddingEnd,
         maxImageWidth,
@@ -659,9 +661,7 @@ export default function SettingsForm({
         streamingSubsDragAndDrop,
         streamingAutoSync,
         streamingCondensedPlaybackMinimumSkipIntervalMs,
-        streamingSubtitlePositionOffset,
         streamingScreenshotDelay,
-        streamingSubtitleAlignment,
         streamingSubtitleListPreference,
     } = settings;
     const handleAddCustomField = useCallback(
@@ -1319,24 +1319,6 @@ export default function SettingsForm({
                                     : null}
                             </TextField>
                         </div>
-                        <div className={classes.subtitleSetting}>
-                            <TextField
-                                type="number"
-                                label={t('settings.imageBasedSubtitleScaleFactor')}
-                                placeholder="Inherited"
-                                fullWidth
-                                inputProps={{
-                                    min: 0,
-                                    max: 1,
-                                    step: 0.1,
-                                }}
-                                value={imageBasedSubtitleScaleFactor}
-                                color="secondary"
-                                onChange={(event) =>
-                                    handleSettingChanged('imageBasedSubtitleScaleFactor', Number(event.target.value))
-                                }
-                            />
-                        </div>
                         {subtitleCustomStyles.map((customStyle, index) => {
                             return (
                                 <CustomStyleSetting
@@ -1377,6 +1359,76 @@ export default function SettingsForm({
                                 style={subtitlePreviewStyles}
                             />
                         </div>
+                        <div className={classes.subtitleSetting}>
+                            <TextField
+                                type="number"
+                                label={t('settings.imageBasedSubtitleScaleFactor')}
+                                placeholder="Inherited"
+                                fullWidth
+                                inputProps={{
+                                    min: 0,
+                                    max: 1,
+                                    step: 0.1,
+                                }}
+                                value={imageBasedSubtitleScaleFactor}
+                                color="secondary"
+                                onChange={(event) =>
+                                    handleSettingChanged('imageBasedSubtitleScaleFactor', Number(event.target.value))
+                                }
+                            />
+                        </div>
+                        {extensionSupportsAppIntegration && (
+                            <>
+                                <div className={classes.subtitleSetting}>
+                                    <FormLabel component="legend">{t('settings.subtitleAlignment')}</FormLabel>
+                                    <RadioGroup row>
+                                        <FormControlLabel
+                                            control={
+                                                <Radio
+                                                    checked={subtitleAlignment === 'bottom'}
+                                                    value={'bottom'}
+                                                    onChange={(event) =>
+                                                        event.target.checked &&
+                                                        handleSettingChanged('subtitleAlignment', 'bottom')
+                                                    }
+                                                />
+                                            }
+                                            label={t('settings.subtitleAlignmentBottom')}
+                                        />
+                                        <FormControlLabel
+                                            control={
+                                                <Radio
+                                                    checked={subtitleAlignment === 'top'}
+                                                    value={'top'}
+                                                    onChange={(event) =>
+                                                        event.target.checked &&
+                                                        handleSettingChanged('subtitleAlignment', 'top')
+                                                    }
+                                                />
+                                            }
+                                            label={t('settings.subtitleAlignmentTop')}
+                                        />
+                                    </RadioGroup>
+                                </div>
+                                <div className={classes.subtitleSetting}>
+                                    <TextField
+                                        className={classes.textField}
+                                        type="number"
+                                        color="secondary"
+                                        fullWidth
+                                        label={t('settings.subtitlePositionOffset')}
+                                        value={subtitlePositionOffset}
+                                        inputProps={{
+                                            min: 0,
+                                            step: 1,
+                                        }}
+                                        onChange={(e) =>
+                                            handleSettingChanged('subtitlePositionOffset', Number(e.target.value))
+                                        }
+                                    />
+                                </div>
+                            </>
+                        )}
                     </FormGroup>
                 </Grid>
             </TabPanel>
@@ -1432,10 +1484,6 @@ export default function SettingsForm({
                                 label={t('extension.settings.openSubtitleList')}
                                 labelPlacement="start"
                             />
-                        </FormGroup>
-                    </Grid>
-                    <Grid item>
-                        <FormGroup className={classes.formGroup}>
                             <FormControlLabel
                                 className={classes.switchLabel}
                                 control={
@@ -1449,56 +1497,6 @@ export default function SettingsForm({
                                 label={t('extension.settings.displaySubtitles')}
                                 labelPlacement="start"
                             />
-                            <TextField
-                                className={classes.textField}
-                                type="number"
-                                color="secondary"
-                                fullWidth
-                                label={t('extension.settings.subtitlePositionOffset')}
-                                value={streamingSubtitlePositionOffset}
-                                inputProps={{
-                                    min: 0,
-                                    step: 1,
-                                }}
-                                onChange={(e) =>
-                                    handleSettingChanged('streamingSubtitlePositionOffset', Number(e.target.value))
-                                }
-                            />
-                        </FormGroup>
-                    </Grid>
-                    <Grid item>
-                        <FormLabel component="legend">{t('extension.settings.subtitleAlignment')}</FormLabel>
-                        <RadioGroup row>
-                            <FormControlLabel
-                                control={
-                                    <Radio
-                                        checked={streamingSubtitleAlignment === 'bottom'}
-                                        value={'bottom'}
-                                        onChange={(event) =>
-                                            event.target.checked &&
-                                            handleSettingChanged('streamingSubtitleAlignment', 'bottom')
-                                        }
-                                    />
-                                }
-                                label={t('extension.settings.subtitleAlignmentBottom')}
-                            />
-                            <FormControlLabel
-                                control={
-                                    <Radio
-                                        checked={streamingSubtitleAlignment === 'top'}
-                                        value={'top'}
-                                        onChange={(event) =>
-                                            event.target.checked &&
-                                            handleSettingChanged('streamingSubtitleAlignment', 'top')
-                                        }
-                                    />
-                                }
-                                label={t('extension.settings.subtitleAlignmentTop')}
-                            />
-                        </RadioGroup>
-                    </Grid>
-                    <Grid item>
-                        <FormGroup>
                             <FormControlLabel
                                 className={classes.switchLabel}
                                 control={

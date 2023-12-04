@@ -24,6 +24,8 @@ export const defaultSettings: AsbplayerSettings = {
     subtitleBackgroundOpacity: 0.5,
     subtitleFontFamily: '',
     subtitlePreview: 'アあ安Aa',
+    subtitlePositionOffset: 75,
+    subtitleAlignment: 'bottom',
     audioPaddingStart: 0,
     audioPaddingEnd: 500,
     maxImageWidth: 0,
@@ -84,9 +86,7 @@ export const defaultSettings: AsbplayerSettings = {
     streamingAutoSync: false,
     streamingLastLanguagesSynced: {},
     streamingCondensedPlaybackMinimumSkipIntervalMs: 1000,
-    streamingSubtitlePositionOffset: 75,
     streamingScreenshotDelay: 1000,
-    streamingSubtitleAlignment: 'bottom',
     streamingSubtitleListPreference: SubtitleListPreference.noSubtitleList,
 };
 
