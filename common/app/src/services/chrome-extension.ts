@@ -110,6 +110,10 @@ export default class ChromeExtension {
         return this.installed && gte(this.version, '1.0.0');
     }
 
+    get supportsVideoPlayerMiningCommands() {
+        return this.installed && gte(this.version, '1.0.0');
+    }
+
     get supportsPlaybackRateMessage() {
         return this.installed && gte(this.version, '0.24.0');
     }

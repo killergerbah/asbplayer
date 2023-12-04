@@ -1,7 +1,6 @@
 import { CopySubtitleMessage, PostMineAction, SubtitleModel } from '@project/common';
 import { DefaultKeyBinder, KeyBinder } from '@project/common/key-binder';
 import ChromeExtension, { ExtensionMessage } from './chrome-extension';
-import { v4 as uuidv4 } from 'uuid';
 
 export default class AppKeyBinder implements KeyBinder {
     private readonly defaultKeyBinder: DefaultKeyBinder;
@@ -10,7 +9,6 @@ export default class AppKeyBinder implements KeyBinder {
     private readonly ankiExportHandlers: ((event: KeyboardEvent) => void)[] = [];
     private readonly updateLastCardHandlers: ((event: KeyboardEvent) => void)[] = [];
     private readonly takeScreenshotHandlers: ((event: KeyboardEvent) => void)[] = [];
-    private readonly id = uuidv4();
     private _unsubscribeExtension?: () => void;
 
     constructor(keyBinder: DefaultKeyBinder, extension: ChromeExtension) {
