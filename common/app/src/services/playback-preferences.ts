@@ -117,7 +117,13 @@ export default class PlaybackPreferences {
             return this._settings.streamingDisplaySubtitles;
         }
 
-        return this._storage.get(displaySubtitlesKey) === 'true' || false;
+        const value = this._storage.get(displaySubtitlesKey);
+
+        if (value === null) {
+            return true;
+        }
+
+        return value === 'true';
     }
 
     set displaySubtitles(displaySubtitles: boolean) {
