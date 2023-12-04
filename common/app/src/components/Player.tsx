@@ -27,16 +27,18 @@ import VideoChannel from '../services/video-channel';
 import ChromeExtension from '../services/chrome-extension';
 import PlaybackPreferences from '../services/playback-preferences';
 import { useWindowSize } from '../hooks/use-window-size';
+import { useAppBarHeight } from '../hooks/use-app-bar-height';
 
 const minVideoPlayerWidth = 300;
 
 interface StylesProps {
     appBarHidden: boolean;
+    appBarHeight: number;
 }
 
 const useStyles = makeStyles<Theme, StylesProps>({
-    root: ({ appBarHidden }) => ({
-        height: appBarHidden ? '100vh' : 'calc(100vh - 64px)',
+    root: ({ appBarHidden, appBarHeight }) => ({
+        height: appBarHidden ? '100vh' : `calc(100vh - ${appBarHeight}px)`,
         position: 'relative',
         overflowX: 'hidden',
     }),
@@ -218,7 +220,8 @@ export default function Player({
         return new MediaAdapter({ current: null });
     }, [channel, videoFileUrl, tab]);
     const clock = useMemo<Clock>(() => new Clock(), []);
-    const classes = useStyles({ appBarHidden });
+    const appBarHeight = useAppBarHeight();
+    const classes = useStyles({ appBarHidden, appBarHeight });
     const calculateLength = () => trackLength(channelRef.current, subtitlesRef.current);
 
     const handleSubtitlePlayerResizeStart = useCallback(() => setSubtitlePlayerResizing(true), []);

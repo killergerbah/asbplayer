@@ -19,17 +19,19 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableRow, { TableRowProps } from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
 import Clock from '../services/clock';
+import { useAppBarHeight } from '../hooks/use-app-bar-height';
 
 let lastKnownWidth: number | undefined;
 
 interface StylesProps {
     resizable: boolean;
     appBarHidden: boolean;
+    appBarHeight: number;
 }
 
 const useSubtitlePlayerStyles = makeStyles<Theme, StylesProps, string>((theme) => ({
     container: {
-        height: ({ appBarHidden }) => (appBarHidden ? '100vh' : 'calc(100vh - 64px)'),
+        height: ({ appBarHidden, appBarHeight }) => (appBarHidden ? '100vh' : `calc(100vh - ${appBarHeight}px)`),
         position: 'relative',
         overflowX: 'hidden',
         backgroundColor: theme.palette.background.default,
@@ -298,7 +300,8 @@ export default function SubtitlePlayer({
     const containerRef = useRef<HTMLElement>();
     const drawerOpenRef = useRef<boolean>();
     drawerOpenRef.current = drawerOpen;
-    const classes = useSubtitlePlayerStyles({ resizable, appBarHidden });
+    const appBarHeight = useAppBarHeight();
+    const classes = useSubtitlePlayerStyles({ resizable, appBarHidden, appBarHeight });
     const autoPauseContextRef = useRef<AutoPauseContext>();
     autoPauseContextRef.current = autoPauseContext;
     const onSubtitlesSelectedRef = useRef<(subtitles: SubtitleModel[]) => void>();

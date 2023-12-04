@@ -8,15 +8,17 @@ import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
 import ChromeExtension from '../services/chrome-extension';
 import { Theme } from '@material-ui/core/styles';
+import { useAppBarHeight } from '../hooks/use-app-bar-height';
 
 interface StylesProps {
     appBarHidden: boolean;
+    appBarHeight: number;
 }
 
 const useStyles = makeStyles<Theme, StylesProps>((theme) => ({
-    background: ({ appBarHidden }) => ({
+    background: ({ appBarHidden, appBarHeight }) => ({
         position: 'absolute',
-        height: appBarHidden ? '100vh' : 'calc(100vh - 64px)',
+        height: appBarHidden ? '100vh' : `calc(100vh - ${appBarHeight}px)`,
         width: '100%',
         zIndex: 100,
         display: 'flex',
@@ -52,7 +54,8 @@ export default function LandingPage({
     appBarHidden,
     onFileSelector,
 }: Props) {
-    const classes = useStyles({ appBarHidden });
+    const appBarHeight = useAppBarHeight();
+    const classes = useStyles({ appBarHidden, appBarHeight });
     const extensionUpdateAvailable = extension.version && gt(latestExtensionVersion, extension.version);
 
     return (

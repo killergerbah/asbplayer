@@ -2,10 +2,12 @@ import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 import Fade from '@material-ui/core/Fade';
 import { Theme } from '@material-ui/core';
+import { useAppBarHeight } from '../hooks/use-app-bar-height';
 
 interface StylesProps {
     dragging: boolean;
     appBarHidden: boolean;
+    appBarHeight: number;
     logoUrl: string;
 }
 
@@ -17,9 +19,9 @@ interface Props {
 }
 
 const useStyles = makeStyles<Theme, StylesProps>((theme) => ({
-    root: ({ dragging, appBarHidden }) => ({
+    root: ({ dragging, appBarHidden, appBarHeight }) => ({
         position: 'absolute',
-        height: appBarHidden ? '100%' : 'calc(100% - 64px)',
+        height: appBarHidden ? '100%' : `calc(100% - ${appBarHeight}px)`,
         width: '100%',
         zIndex: 101,
         pointerEvents: dragging ? 'auto' : 'none',
@@ -49,7 +51,8 @@ const useStyles = makeStyles<Theme, StylesProps>((theme) => ({
 }));
 
 export default function DragOverlay({ dragging, appBarHidden, loading, logoUrl }: Props) {
-    const classes = useStyles({ dragging, appBarHidden, logoUrl });
+    const appBarHeight = useAppBarHeight();
+    const classes = useStyles({ dragging, appBarHidden, logoUrl, appBarHeight });
 
     return (
         <div className={classes.root}>
