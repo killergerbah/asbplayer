@@ -3,7 +3,6 @@ import {
     AsbPlayerToVideoCommandV2,
     AsbplayerInstance,
     CardModel,
-    Command,
     ExtensionToAsbPlayerCommand,
     ExtensionToAsbPlayerCommandTabsCommand,
     GetSettingsMessage,
@@ -186,17 +185,18 @@ export default class ChromeExtension {
     }
 
     notifySettingsUpdated() {
-        const command: Command<SettingsUpdatedMessage> = {
+        const command: AsbPlayerCommand<SettingsUpdatedMessage> = {
             sender: 'asbplayerv2',
             message: {
                 command: 'settings-updated',
             },
+            asbplayerId: id,
         };
         window.postMessage(command);
     }
 
     toggleSidePanel() {
-        const command: Command<ToggleSidePanelMessage> = {
+        const command: AsbPlayerCommand<ToggleSidePanelMessage> = {
             sender: 'asbplayerv2',
             message: {
                 command: 'toggle-side-panel',
@@ -206,7 +206,7 @@ export default class ChromeExtension {
     }
 
     publishCard(card: CardModel) {
-        const command: Command<PublishCardMessage> = {
+        const command: AsbPlayerCommand<PublishCardMessage> = {
             sender: 'asbplayerv2',
             message: {
                 command: 'publish-card',
