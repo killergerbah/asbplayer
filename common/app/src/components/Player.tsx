@@ -434,10 +434,13 @@ export default function Player({
         });
     }, [subtitles, channel, flattenSubtitleFiles, subtitleFiles, subtitlesSentThroughChannel]);
     useEffect(() => channel?.onReady(() => channel?.subtitleSettings(settings)), [channel, settings]);
+    useEffect(
+        () => channel?.onReady(() => channel?.hideSubtitlePlayerToggle(hideSubtitlePlayer)),
+        [channel, hideSubtitlePlayer]
+    );
     useEffect(() => channel?.ankiSettings(settings), [channel, settings]);
     useEffect(() => channel?.miscSettings(settings), [channel, settings]);
     useEffect(() => channel?.playMode(playMode), [channel, playMode]);
-    useEffect(() => channel?.hideSubtitlePlayerToggle(hideSubtitlePlayer), [channel, hideSubtitlePlayer]);
     useEffect(
         () =>
             channel?.onReady(() => {
@@ -887,7 +890,6 @@ export default function Player({
     }, [videoFileUrl, clock, onTakeScreenshot, onAnkiDialogRewind, keyBinder, disableKeyEvents, ankiDialogOpen]);
 
     useEffect(() => channel?.appBarToggle(appBarHidden), [channel, appBarHidden]);
-    useEffect(() => channel?.hideSubtitlePlayerToggle(hideSubtitlePlayer), [channel, hideSubtitlePlayer]);
     useEffect(() => channel?.fullscreenToggle(videoFullscreen), [channel, videoFullscreen]);
 
     useEffect(() => {
