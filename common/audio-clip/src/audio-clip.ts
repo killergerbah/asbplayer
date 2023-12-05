@@ -435,61 +435,6 @@ class Mp3AudioData implements AudioData {
     }
 }
 
-class MissingFileAudioData implements AudioData {
-    private readonly _name: string;
-    private readonly _start: number;
-    private readonly _end: number;
-    private readonly _extension: string;
-
-    constructor(fileName: string, start: number, end: number) {
-        this._name = `${fileName}_${start}_${end}`;
-        this._start = start;
-        this._end = end;
-        [, this._extension] = recorderConfiguration();
-    }
-
-    get name() {
-        return this._name;
-    }
-
-    get extension() {
-        return this._extension;
-    }
-
-    get start() {
-        return this._start;
-    }
-
-    get end() {
-        return this._end;
-    }
-
-    async base64(): Promise<string> {
-        throw new Error('Not supported');
-    }
-
-    async play() {
-        throw new Error('Not supported');
-    }
-
-    async blob(): Promise<Blob> {
-        throw new Error('Not supported');
-    }
-
-    slice(start: number, end: number): AudioData {
-        // Not  supported
-        return this;
-    }
-
-    isSliceable() {
-        return false;
-    }
-
-    isPlayable() {
-        return false;
-    }
-}
-
 export default class AudioClip {
     private readonly data: AudioData;
 
@@ -522,11 +467,6 @@ export default class AudioClip {
             );
         }
 
-        // if (card.audioFileName || card.videoFileName) {
-        //     const [start, end] = calculateInterval();
-        //     return AudioClip.fromMissingFile((card.audioFileName || card.videoFileName)!, start, end);
-        // }
-
         return undefined;
     }
 
@@ -552,10 +492,6 @@ export default class AudioClip {
 
     static fromFile(file: FileModel, start: number, end: number, playbackRate: number, trackId?: string) {
         return new AudioClip(new FileAudioData(file, start, end, playbackRate, trackId));
-    }
-
-    static fromMissingFile(fileName: string, start: number, end: number) {
-        return new AudioClip(new MissingFileAudioData(fileName, start, end));
     }
 
     get start() {
