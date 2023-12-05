@@ -98,7 +98,7 @@ export const settingsDeserializers: SettingsDeserializers = Object.fromEntries(
         }
 
         if (typeof value === 'boolean') {
-            return [key, (s: string) => Boolean(s)];
+            return [key, (s: string) => s === 'true'];
         }
 
         if (typeof value === 'number') {
