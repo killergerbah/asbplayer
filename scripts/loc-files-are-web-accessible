@@ -1,0 +1,12 @@
+#!/bin/bash
+SCRIPTPATH="$(cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P)"
+MANIFESTPATH=$SCRIPTPATH/../extension/src/manifest.json
+
+for f in $(ls $SCRIPTPATH/../common/locales); do
+    resource_path="asbplayer-locales/$f"
+    jq ".web_accessible_resources" $MANIFESTPATH | grep "$resource_path" >/dev/null
+    if [ $? -eq 1 ]; then
+        echo "$resource_path missing from extension manifest web_accessible_resources"
+        exit 1;
+    fi
+done

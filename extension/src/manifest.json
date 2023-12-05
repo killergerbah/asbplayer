@@ -100,7 +100,12 @@
                 "video-data-sync-ui.js",
                 "video-select-ui.js",
                 "active-tab-permission-request-ui.js",
-                "app-ui.js"
+                "app-ui.js",
+                "asbplayer-locales/de.json",
+                "asbplayer-locales/en.json",
+                "asbplayer-locales/ja.json",
+                "asbplayer-locales/pl.json",
+                "asbplayer-locales/zh_CN.json"
             ],
             "matches": ["<all_urls>"]
         }

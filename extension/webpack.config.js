@@ -67,6 +67,10 @@ module.exports = (env, options) => ({
                         ignore: ['**/services', '**/handlers', '**/ui'],
                     },
                 },
+                {
+                    from: '../common/locales',
+                    to: 'asbplayer-locales',
+                },
             ],
             options: {
                 concurrency: 100,
