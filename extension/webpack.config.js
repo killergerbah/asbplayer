@@ -64,7 +64,7 @@ module.exports = (env, options) => ({
                 {
                     from: './src',
                     globOptions: {
-                        ignore: ['**/services', '**/handlers', '**/ui'],
+                        ignore: ['**/services', '**/handlers', '**/ui', '**/.DS_Store'],
                     },
                 },
                 {
