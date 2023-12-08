@@ -26,6 +26,7 @@ import { AsbplayerSettings, KeyBindName, SubtitleListPreference } from '@project
 import { computeStyles, download } from '@project/common/util';
 import { CustomStyle, supportedLanguages, validateSettings } from '@project/common/settings';
 import { useOutsideClickListener } from '@project/common/hooks';
+import { styled } from '@material-ui/core';
 import TagsTextField from '@project/common/components/TagsTextField';
 import hotkeys from 'hotkeys-js';
 import Typography from '@material-ui/core/Typography';
@@ -117,6 +118,15 @@ const useSelectableSettingStyles = makeStyles<Theme>((theme) => ({
         flexDirection: 'row',
         justifyContent: 'end',
         alignItems: 'flex-end',
+    },
+}));
+
+export const LabelWithHoverEffect = styled(FormControlLabel)(({ theme }) => ({
+    '&:hover .MuiSwitch-thumb': {
+        outline: `9px solid ${theme.palette.secondary.main}29`,
+    },
+    '&:hover .MuiRadio-colorSecondary': {
+        background: `${theme.palette.secondary.main}29`,
     },
 }));
 
@@ -1012,7 +1022,7 @@ export default function SettingsForm({
                     {t('settings.clickToMineDefaultAction')}
                 </FormLabel>
                 <RadioGroup row={false}>
-                    <FormControlLabel
+                    <LabelWithHoverEffect
                         control={
                             <Radio
                                 checked={clickToMineDefaultAction === PostMineAction.showAnkiDialog}
@@ -1025,7 +1035,7 @@ export default function SettingsForm({
                         }
                         label={t('postMineAction.showAnkiDialog')}
                     />
-                    <FormControlLabel
+                    <LabelWithHoverEffect
                         control={
                             <Radio
                                 checked={clickToMineDefaultAction === PostMineAction.updateLastCard}
@@ -1038,7 +1048,7 @@ export default function SettingsForm({
                         }
                         label={t('postMineAction.updateLastCard')}
                     />
-                    <FormControlLabel
+                    <LabelWithHoverEffect
                         control={
                             <Radio
                                 checked={clickToMineDefaultAction === PostMineAction.none}
@@ -1053,7 +1063,7 @@ export default function SettingsForm({
                     />
                 </RadioGroup>
                 <FormGroup className={classes.formGroup}>
-                    <FormControlLabel
+                    <LabelWithHoverEffect
                         control={
                             <Switch
                                 checked={preferMp3}
@@ -1064,7 +1074,7 @@ export default function SettingsForm({
                         labelPlacement="start"
                         className={classes.switchLabel}
                     />
-                    <FormControlLabel
+                    <LabelWithHoverEffect
                         control={
                             <Switch
                                 checked={copyToClipboardOnMine}
@@ -1411,7 +1421,7 @@ export default function SettingsForm({
                 <Grid container direction="column" spacing={1}>
                     <Grid item>
                         <FormGroup className={classes.formGroup}>
-                            <FormControlLabel
+                            <LabelWithHoverEffect
                                 className={classes.switchLabel}
                                 control={
                                     <Switch
@@ -1436,7 +1446,7 @@ export default function SettingsForm({
                     </Grid>
                     <Grid item>
                         <FormGroup className={classes.formGroup}>
-                            <FormControlLabel
+                            <LabelWithHoverEffect
                                 className={classes.switchLabel}
                                 control={
                                     <Switch
@@ -1469,7 +1479,7 @@ export default function SettingsForm({
                     <Grid item>
                         <FormLabel component="legend">{t('extension.settings.subtitleAlignment')}</FormLabel>
                         <RadioGroup row>
-                            <FormControlLabel
+                            <LabelWithHoverEffect
                                 control={
                                     <Radio
                                         checked={streamingSubtitleAlignment === 'bottom'}
@@ -1482,7 +1492,7 @@ export default function SettingsForm({
                                 }
                                 label={t('extension.settings.subtitleAlignmentBottom')}
                             />
-                            <FormControlLabel
+                            <LabelWithHoverEffect
                                 control={
                                     <Radio
                                         checked={streamingSubtitleAlignment === 'top'}
@@ -1499,7 +1509,7 @@ export default function SettingsForm({
                     </Grid>
                     <Grid item>
                         <FormGroup>
-                            <FormControlLabel
+                            <LabelWithHoverEffect
                                 className={classes.switchLabel}
                                 control={
                                     <Switch
@@ -1510,7 +1520,7 @@ export default function SettingsForm({
                                 label={t('extension.settings.recordAudio')}
                                 labelPlacement="start"
                             />
-                            <FormControlLabel
+                            <LabelWithHoverEffect
                                 className={classes.switchLabel}
                                 control={
                                     <Switch
@@ -1523,7 +1533,7 @@ export default function SettingsForm({
                                 label={t('extension.settings.takeScreenshot')}
                                 labelPlacement="start"
                             />
-                            <FormControlLabel
+                            <LabelWithHoverEffect
                                 className={classes.switchLabel}
                                 control={
                                     <Switch
@@ -1536,7 +1546,7 @@ export default function SettingsForm({
                                 label={t('extension.settings.cleanScreenshot')}
                                 labelPlacement="start"
                             />
-                            <FormControlLabel
+                            <LabelWithHoverEffect
                                 className={classes.switchLabel}
                                 control={
                                     <Switch
@@ -1571,7 +1581,7 @@ export default function SettingsForm({
                     </Grid>
                     <Grid item>
                         <FormGroup>
-                            <FormControlLabel
+                            <LabelWithHoverEffect
                                 className={classes.switchLabel}
                                 control={
                                     <Switch
@@ -1584,7 +1594,7 @@ export default function SettingsForm({
                                 label={t('extension.settings.dragAndDrop')}
                                 labelPlacement="start"
                             />
-                            <FormControlLabel
+                            <LabelWithHoverEffect
                                 className={classes.switchLabel}
                                 control={
                                     <Switch
@@ -1644,7 +1654,7 @@ export default function SettingsForm({
                         <FormControl>
                             <FormLabel className={classes.top}>{t('settings.theme')}</FormLabel>
                             <RadioGroup row>
-                                <FormControlLabel
+                                <LabelWithHoverEffect
                                     control={
                                         <Radio
                                             checked={themeType === 'light'}
@@ -1656,7 +1666,7 @@ export default function SettingsForm({
                                     }
                                     label={t('settings.themeLight')}
                                 />
-                                <FormControlLabel
+                                <LabelWithHoverEffect
                                     control={
                                         <Radio
                                             checked={themeType === 'dark'}
@@ -1671,7 +1681,7 @@ export default function SettingsForm({
                             </RadioGroup>
                         </FormControl>
                         <FormGroup className={classes.formGroup}>
-                            <FormControlLabel
+                            <LabelWithHoverEffect
                                 control={
                                     <Switch
                                         checked={rememberSubtitleOffset}
@@ -1684,7 +1694,7 @@ export default function SettingsForm({
                                 labelPlacement="start"
                                 className={classes.switchLabel}
                             />
-                            <FormControlLabel
+                            <LabelWithHoverEffect
                                 control={
                                     <Switch
                                         checked={autoCopyCurrentSubtitle}
@@ -1756,7 +1766,7 @@ export default function SettingsForm({
                             </Grid>
                         </Grid>
                         <RadioGroup row>
-                            <FormControlLabel
+                            <LabelWithHoverEffect
                                 control={
                                     <Radio
                                         checked={autoPausePreference === AutoPausePreference.atStart}
@@ -1769,7 +1779,7 @@ export default function SettingsForm({
                                 }
                                 label={t('settings.autoPauseAtSubtitleStart')}
                             />
-                            <FormControlLabel
+                            <LabelWithHoverEffect
                                 control={
                                     <Radio
                                         checked={autoPausePreference === AutoPausePreference.atEnd}
@@ -1785,7 +1795,7 @@ export default function SettingsForm({
                         </RadioGroup>
                     </Grid>
                     <Grid item>
-                        <FormControlLabel
+                        <LabelWithHoverEffect
                             control={
                                 <Switch
                                     checked={preCacheSubtitleDom}
