@@ -9,6 +9,7 @@
         "48": "assets/icon48.png",
         "128": "assets/icon128.png"
     },
+    "minimum_chrome_version": "114",
     "permissions": ["tabs", "tabCapture", "activeTab", "storage", "contextMenus", "sidePanel"],
     "action": {
         "default_title": "asbplayer",
