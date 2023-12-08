@@ -25,6 +25,8 @@ Thank you to all those who have contributed to asbplayer:
 -   [@cyphar](https://www.github.com/cyphar)
 -   [@alexbofa](https://www.github.com/alexbofa)
 -   [@Zyphdoz](https://github.com/Zyphdoz)
+-   [@Zyphdoz](https://github.com/Zyphdoz)
+-   [@artjomsR](https://github.com/artjomsR)
 
 Thank you to all those who have translated asbplayer:
 
