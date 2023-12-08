@@ -37,6 +37,7 @@ export const defaultSettings: AsbplayerSettings = {
         togglePlay: { keys: 'space' },
         toggleAutoPause: { keys: isMacOs ? '⇧+P' : 'shift+P' },
         toggleCondensedPlayback: { keys: isMacOs ? '⇧+O' : 'shift+O' },
+        toggleFastForwardPlayback: { keys: isMacOs ? '⇧+F' : 'shift+F' },
         toggleSubtitles: { keys: 'down' },
         toggleVideoSubtitleTrack1: { keys: '1' },
         toggleVideoSubtitleTrack2: { keys: '2' },

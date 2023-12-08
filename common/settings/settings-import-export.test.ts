@@ -71,6 +71,7 @@ it('validates exported settings', () => {
             toggleAsbplayerSubtitleTrack2: { keys: 'W+2' },
             toggleAutoPause: { keys: '⇧+P' },
             toggleCondensedPlayback: { keys: '⇧+O' },
+            toggleFastForwardPlayback: { keys: '⇧+F' },
             togglePlay: { keys: 'space' },
             toggleSidePanel: { keys: '`' },
             toggleSubtitles: { keys: 'down' },

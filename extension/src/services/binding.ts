@@ -34,18 +34,19 @@ import {
     VideoToExtensionCommand,
 } from '@project/common';
 import { extractAnkiSettings, SettingsProvider, SubtitleListPreference } from '@project/common/settings';
-import { sourceString, surroundingSubtitlesAroundInterval } from '@project/common/util';
 import { SubtitleReader } from '@project/common/subtitle-reader';
+import { sourceString, surroundingSubtitlesAroundInterval } from '@project/common/util';
+import ActiveTabPermissionRequestController from '../controllers/active-tab-permission-request-controller';
 import AnkiUiController from '../controllers/anki-ui-controller';
 import ControlsController from '../controllers/controls-controller';
 import DragController from '../controllers/drag-controller';
-import KeyBindings from './key-bindings';
 import SubtitleController, { SubtitleModelWithIndex } from '../controllers/subtitle-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
-import { i18nInit } from './i18n';
-import { ExtensionSettingsStorage } from './extension-settings-storage';
 import { bufferToBase64 } from './base64';
-import ActiveTabPermissionRequestController from '../controllers/active-tab-permission-request-controller';
+import { ExtensionSettingsStorage } from './extension-settings-storage';
+import { i18nInit } from './i18n';
+import KeyBindings from './key-bindings';
+import { SubtitleSlice } from '@project/common/subtitle-collection';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -86,6 +87,7 @@ export default class Binding {
     private maxImageHeight: number;
     private autoPausePreference: AutoPausePreference;
     private condensedPlaybackMinimumSkipIntervalMs = 1000;
+    private fastForwardPlaybackMinimumGapMs = 600;
     private imageDelay = 0;
 
     private playListener?: EventListener;
@@ -141,6 +143,16 @@ export default class Binding {
     }
 
     set playMode(newPlayMode: PlayMode) {
+        const disableCondensedMode = () => {
+            this.subtitleController.onNextToShow = undefined;
+            this.subtitleController.notification('info.disabledCondensedPlayback');
+        };
+        const disableFastForwardMode = () => {
+            this.subtitleController.onSlice = undefined;
+            this.video.playbackRate = 1;
+            this.subtitleController.notification('info.disabledFastForwardPlayback');
+        };
+
         switch (newPlayMode) {
             case PlayMode.autoPause:
                 this.subtitleController.autoPauseContext.onStartedShowing = () => {
@@ -160,6 +172,9 @@ export default class Binding {
                 this.subtitleController.notification('info.enabledAutoPause');
                 break;
             case PlayMode.condensed:
+                if (this._playMode === PlayMode.fastForward) {
+                    disableFastForwardMode();
+                }
                 let seeking = false;
                 this.subtitleController.onNextToShow = async (subtitle) => {
                     try {
@@ -183,14 +198,51 @@ export default class Binding {
                 };
                 this.subtitleController.notification('info.enabledCondensedPlayback');
                 break;
+            case PlayMode.fastForward:
+                if (this._playMode === PlayMode.condensed) {
+                    disableCondensedMode();
+                }
+                this.subtitleController.onSlice = async (slice: SubtitleSlice<SubtitleModelWithIndex>) => {
+                    const subtitlesAreSufficientlyOffsetFromNow = (subtitleEdgeTime: number | undefined) => {
+                        return (
+                            subtitleEdgeTime &&
+                            Math.abs(subtitleEdgeTime - this.video.currentTime * 1000) >
+                                this.fastForwardPlaybackMinimumGapMs
+                        );
+                    };
+                    if (
+                        slice.showing.length === 0 &&
+                        // Find latest ending subtitle among the shown last ones
+                        subtitlesAreSufficientlyOffsetFromNow(
+                            Math.max.apply(
+                                undefined,
+                                (slice?.lastShown || []).map((e) => e.end)
+                            )
+                        ) &&
+                        // Find earliest starting subtitle among the next ones to be shown
+                        subtitlesAreSufficientlyOffsetFromNow(
+                            Math.min.apply(
+                                undefined,
+                                (slice?.nextToShow || []).map((e) => e.start)
+                            )
+                        )
+                    ) {
+                        this.video.playbackRate = 2.3;
+                    } else {
+                        this.video.playbackRate = 1;
+                    }
+                };
+                this.subtitleController.notification('info.enabledFastForwardPlayback');
+                break;
             case PlayMode.normal:
                 if (this._playMode === PlayMode.autoPause) {
                     this.subtitleController.autoPauseContext.onStartedShowing = undefined;
                     this.subtitleController.autoPauseContext.onWillStopShowing = undefined;
                     this.subtitleController.notification('info.disabledAutoPause');
                 } else if (this._playMode === PlayMode.condensed) {
-                    this.subtitleController.onNextToShow = undefined;
-                    this.subtitleController.notification('info.disabledCondensedPlayback');
+                    disableCondensedMode();
+                } else if (this._playMode === PlayMode.fastForward) {
+                    disableFastForwardMode();
                 }
                 break;
             default:
@@ -331,7 +383,7 @@ export default class Binding {
 
             chrome.runtime.sendMessage(command);
 
-            if (this._synced) {
+            if (this._synced && this._playMode !== PlayMode.fastForward) {
                 this.subtitleController.notification('info.playbackRate', {
                     rate: this.video.playbackRate.toFixed(1),
                 });

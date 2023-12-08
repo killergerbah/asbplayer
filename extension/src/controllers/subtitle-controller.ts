@@ -1,13 +1,14 @@
 import {
+    AutoPauseContext,
     CopyToClipboardMessage,
     OffsetFromVideoMessage,
     SubtitleModel,
     VideoToExtensionCommand,
-    AutoPauseContext,
 } from '@project/common';
 import { SettingsProvider, SubtitleAlignment, SubtitleSettings } from '@project/common/settings';
+import { SubtitleCollection, SubtitleSlice } from '@project/common/subtitle-collection';
 import { computeStyleString, surroundingSubtitles } from '@project/common/util';
-import { SubtitleCollection } from '@project/common/subtitle-collection';
+import i18n from 'i18next';
 import {
     CachingElementOverlay,
     DefaultElementOverlay,
@@ -16,7 +17,6 @@ import {
     KeyedHtml,
     OffsetAnchor,
 } from '../services/element-overlay';
-import i18n from 'i18next';
 
 export interface SubtitleModelWithIndex extends SubtitleModel {
     index: number;
@@ -52,6 +52,7 @@ export default class SubtitleController {
     readonly autoPauseContext: AutoPauseContext = new AutoPauseContext();
 
     onNextToShow?: (subtitle: SubtitleModel) => void;
+    onSlice?: (subtitle: SubtitleSlice<SubtitleModelWithIndex>) => void;
 
     constructor(video: HTMLMediaElement, settings: SettingsProvider) {
         this.video = video;
@@ -263,6 +264,8 @@ export default class SubtitleController {
             let showingSubtitles: SubtitleModelWithIndex[] = [];
             const slice = this.subtitleCollection.subtitlesAt(now);
             showingSubtitles = slice.showing.filter((s) => this._trackEnabled(s)).sort((s1, s2) => s1.track - s2.track);
+
+            this.onSlice?.(slice);
 
             if (slice.willStopShowing && this._trackEnabled(slice.willStopShowing)) {
                 this.autoPauseContext.willStopShowing(slice.willStopShowing);

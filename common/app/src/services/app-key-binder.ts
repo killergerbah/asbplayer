@@ -255,6 +255,14 @@ export default class AppKeyBinder implements KeyBinder {
         return this.defaultKeyBinder.bindCondensedPlayback(onCondensedPlayback, disabledGetter, useCapture);
     }
 
+    bindFastForwardPlayback(
+        onFastForwardPlayback: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        useCapture?: boolean | undefined
+    ): () => void {
+        return this.defaultKeyBinder.bindFastForwardPlayback(onFastForwardPlayback, disabledGetter, useCapture);
+    }
+
     bindToggleSidePanel(
         onToggleSidePanel: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,

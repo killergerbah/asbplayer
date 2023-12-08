@@ -568,6 +568,7 @@ export default function SettingsForm({
             togglePlay: { label: t('binds.togglePlay')!, boundViaChrome: false },
             toggleAutoPause: { label: t('binds.toggleAutoPause')!, boundViaChrome: false },
             toggleCondensedPlayback: { label: t('binds.toggleCondensedPlayback')!, boundViaChrome: false },
+            toggleFastForwardPlayback: { label: t('binds.toggleFastForwardPlayback')!, boundViaChrome: false },
             toggleSubtitles: { label: t('binds.toggleSubtitles')!, boundViaChrome: false },
             toggleVideoSubtitleTrack1: { label: t('binds.toggleVideoSubtitleTrack1')!, boundViaChrome: false },
             toggleVideoSubtitleTrack2: { label: t('binds.toggleVideoSubtitleTrack2')!, boundViaChrome: false },
