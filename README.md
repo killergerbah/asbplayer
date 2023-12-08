@@ -178,12 +178,12 @@ Pull requests are welcome! However, to reduce back-and-forth during review ideal
 npm install --global yarn
 
 # Make sure you're on yarn 3
-yarn set version berry && yarn set version canary
+yarn set version 3.2.0
 
 # Install dependencies
 yarn
 
-# Starts the development server
+# Starts the development server for the website
 yarn workspace @project/client run start
 
 # Build the extension to extension/dist
