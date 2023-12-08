@@ -92,6 +92,11 @@ export interface KeyBinder {
         disabledGetter: () => boolean,
         capture?: boolean
     ): () => void;
+    bindFastForwardPlayback(
+        onFastForwardPlayback: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        capture?: boolean
+    ): () => void;
     bindToggleSidePanel(
         onToggleSidePanel: (event: KeyboardEvent) => void,
         disabledGetter: () => boolean,
@@ -650,7 +655,11 @@ export class DefaultKeyBinder implements KeyBinder {
         return this._bind(shortcut, capture, handler);
     }
 
-    bindCondensedPlayback(onAutoPause: (event: KeyboardEvent) => void, disabledGetter: () => boolean, capture = false) {
+    bindCondensedPlayback(
+        onCondensedPlayback: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        capture = false
+    ) {
         const shortcut = this.keyBindSet.toggleCondensedPlayback.keys;
 
         if (!shortcut) {
@@ -662,7 +671,29 @@ export class DefaultKeyBinder implements KeyBinder {
                 return;
             }
 
-            onAutoPause(event);
+            onCondensedPlayback(event);
+        };
+
+        return this._bind(shortcut, capture, handler);
+    }
+
+    bindFastForwardPlayback(
+        onFastForwardPlayback: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        capture = false
+    ) {
+        const shortcut = this.keyBindSet.toggleFastForwardPlayback.keys;
+
+        if (!shortcut) {
+            return () => {};
+        }
+
+        const handler = (event: KeyboardEvent) => {
+            if (disabledGetter()) {
+                return;
+            }
+
+            onFastForwardPlayback(event);
         };
 
         return this._bind(shortcut, capture, handler);

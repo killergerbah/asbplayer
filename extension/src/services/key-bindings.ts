@@ -16,6 +16,7 @@ export default class KeyBindings {
     private _unbindPlay: Unbinder = false;
     private _unbindAutoPause: Unbinder = false;
     private _unbindCondensedPlayback: Unbinder = false;
+    private _unbindFastForwardPlayback: Unbinder = false;
     private _unbindSeekToSubtitle: Unbinder = false;
     private _unbindSeekToBeginningOfCurrentSubtitle?: Unbinder = false;
     private _unbindSeekBackwardOrForward?: Unbinder = false;
@@ -80,6 +81,17 @@ export default class KeyBindings {
                 event.stopImmediatePropagation();
 
                 context.playMode = context.playMode === PlayMode.condensed ? PlayMode.normal : PlayMode.condensed;
+            },
+            () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
+            true
+        );
+
+        this._unbindFastForwardPlayback = this._keyBinder.bindFastForwardPlayback(
+            (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                context.playMode = context.playMode === PlayMode.fastForward ? PlayMode.normal : PlayMode.fastForward;
             },
             () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
             true
@@ -237,6 +249,11 @@ export default class KeyBindings {
         if (this._unbindCondensedPlayback) {
             this._unbindCondensedPlayback();
             this._unbindCondensedPlayback = false;
+        }
+
+        if (this._unbindFastForwardPlayback) {
+            this._unbindFastForwardPlayback();
+            this._unbindFastForwardPlayback = false;
         }
 
         if (this._unbindSeekToSubtitle) {

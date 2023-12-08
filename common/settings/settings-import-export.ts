@@ -109,6 +109,7 @@ const settingsSchema = {
                 togglePlay: { $ref: '/KeyBind' },
                 toggleAutoPause: { $ref: '/KeyBind' },
                 toggleCondensedPlayback: { $ref: '/KeyBind' },
+                toggleFastForwardPlayback: { $ref: '/KeyBind' },
                 toggleSubtitles: { $ref: '/KeyBind' },
                 toggleVideoSubtitleTrack1: { $ref: '/KeyBind' },
                 toggleVideoSubtitleTrack2: { $ref: '/KeyBind' },
