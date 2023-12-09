@@ -191,4 +191,5 @@ export enum PlayMode {
     normal = 1,
     condensed = 2,
     autoPause = 3,
+    fastForward = 4,
 }

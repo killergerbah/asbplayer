@@ -161,40 +161,44 @@ export class Anki {
         const gui = mode === 'gui';
         const updateLast = mode === 'updateLast';
 
-        if (this.settingsProvider.audioField && audioClip && (await audioClip.isPlayable())) {
+        if (this.settingsProvider.audioField && audioClip && audioClip.isPlayable()) {
             const sanitizedName = this._sanitizeFileName(audioClip.name);
+            const data = await audioClip.base64();
 
-            if (gui || updateLast) {
-                const fileName = (await this._storeMediaFile(sanitizedName, await audioClip.base64(), ankiConnectUrl))
-                    .result;
-                this._appendField(fields, this.settingsProvider.audioField, `[sound:${fileName}]`, false);
-            } else {
-                params.note['audio'] = {
-                    filename: sanitizedName,
-                    data: await audioClip.base64(),
-                    fields: [this.settingsProvider.audioField],
-                };
+            if (data) {
+                if (gui || updateLast) {
+                    const fileName = (await this._storeMediaFile(sanitizedName, data, ankiConnectUrl)).result;
+                    this._appendField(fields, this.settingsProvider.audioField, `[sound:${fileName}]`, false);
+                } else {
+                    params.note['audio'] = {
+                        filename: sanitizedName,
+                        data,
+                        fields: [this.settingsProvider.audioField],
+                    };
+                }
             }
         }
 
-        if (this.settingsProvider.imageField && image && (await image.isAvailable())) {
+        if (this.settingsProvider.imageField && image && image.isAvailable()) {
             const sanitizedName = this._sanitizeFileName(image.name);
+            const data = await image.base64();
 
-            if (gui || updateLast) {
-                const fileName = (await this._storeMediaFile(sanitizedName, await image.base64(), ankiConnectUrl))
-                    .result;
-                this._appendField(
-                    fields,
-                    this.settingsProvider.imageField,
-                    `<div><img src="${fileName}"></div>`,
-                    false
-                );
-            } else {
-                params.note['picture'] = {
-                    filename: sanitizedName,
-                    data: await image.base64(),
-                    fields: [this.settingsProvider.imageField],
-                };
+            if (data) {
+                if (gui || updateLast) {
+                    const fileName = (await this._storeMediaFile(sanitizedName, data, ankiConnectUrl)).result;
+                    this._appendField(
+                        fields,
+                        this.settingsProvider.imageField,
+                        `<div><img src="${fileName}"></div>`,
+                        false
+                    );
+                } else {
+                    params.note['picture'] = {
+                        filename: sanitizedName,
+                        data,
+                        fields: [this.settingsProvider.imageField],
+                    };
+                }
             }
         }
 

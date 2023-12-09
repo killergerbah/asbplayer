@@ -39,6 +39,7 @@ import VideoPlayer, { SeekRequest } from './VideoPlayer';
 import { Color } from '@material-ui/lab';
 import VideoChannel from '../services/video-channel';
 import PlaybackPreferences from '../services/playback-preferences';
+import { createBlobUrl, revokeBlobUrl } from '../../../blob-url';
 import { useTranslation } from 'react-i18next';
 import LocalizedError from './localized-error';
 import { DisplaySubtitleModel } from './SubtitlePlayer';
@@ -532,7 +533,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
             }
 
             setSources((previous) => {
-                URL.revokeObjectURL(videoFileUrl);
+                revokeBlobUrl(videoFileUrl);
 
                 return {
                     subtitleFiles: previous.subtitleFiles,
@@ -703,11 +704,11 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
 
                     if (videoFile) {
                         if (previous.videoFileUrl) {
-                            URL.revokeObjectURL(previous.videoFileUrl);
+                            revokeBlobUrl(previous.videoFileUrl);
                         }
 
                         if (videoFile) {
-                            videoFileUrl = URL.createObjectURL(videoFile);
+                            videoFileUrl = createBlobUrl(videoFile);
                         }
 
                         setTab(undefined);
@@ -855,6 +856,10 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     return;
                 }
 
+                if (sources.videoFileUrl) {
+                    handleUnloadVideo(sources.videoFileUrl);
+                }
+
                 handleFiles({ files: subtitleFiles, flattenSubtitleFiles: flatten });
                 setTab(tab);
             } else if (message.data.command === 'edit-keyboard-shortcuts') {
@@ -870,7 +875,15 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         const unsubscribe = extension.subscribe(onMessage);
         extension.startHeartbeat({ fromVideoPlayer: false });
         return unsubscribe;
-    }, [extension, playbackPreferences, inVideoPlayer, handleFiles, handleAnki]);
+    }, [
+        extension,
+        playbackPreferences,
+        inVideoPlayer,
+        sources.videoFileUrl,
+        handleFiles,
+        handleAnki,
+        handleUnloadVideo,
+    ]);
 
     const handleAutoPauseModeChangedViaBind = useCallback(
         (oldPlayMode: PlayMode, newPlayMode: PlayMode) => {

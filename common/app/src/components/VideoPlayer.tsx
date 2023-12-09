@@ -332,6 +332,11 @@ export default function VideoPlayer({
     const [lastMinedRecord, setLastMinedRecord] = useState<MinedRecord>();
     const [, forceRender] = useState<any>();
 
+    useEffect(() => {
+        setSubtitleAlignment(playbackPreferences.subtitleAlignment);
+        setSubtitlePositionOffset(playbackPreferences.subtitlePositionOffset);
+    }, [playbackPreferences]);
+
     const autoPauseContext = useMemo(() => {
         const context = new AutoPauseContext();
         context.onStartedShowing = () => {

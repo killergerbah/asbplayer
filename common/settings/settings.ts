@@ -87,6 +87,8 @@ export interface TextSubtitleSettings {
 
 export interface SubtitleSettings extends TextSubtitleSettings {
     readonly imageBasedSubtitleScaleFactor: number;
+    readonly subtitlePositionOffset: number;
+    readonly subtitleAlignment: SubtitleAlignment;
 }
 
 export interface KeyBind {
@@ -97,6 +99,7 @@ export interface KeyBindSet {
     readonly togglePlay: KeyBind;
     readonly toggleAutoPause: KeyBind;
     readonly toggleCondensedPlayback: KeyBind;
+    readonly toggleFastForwardPlayback: KeyBind;
     readonly toggleSubtitles: KeyBind;
     readonly toggleVideoSubtitleTrack1: KeyBind;
     readonly toggleVideoSubtitleTrack2: KeyBind;
@@ -142,10 +145,8 @@ export interface StreamingVideoSettings {
     // Last language selected in subtitle track selector, keyed by domain
     // Used to auto-selecting a language in subtitle track selector, if it's available
     readonly streamingLastLanguagesSynced: { [key: string]: string[] };
-    readonly streamingSubtitlePositionOffset: number;
     readonly streamingCondensedPlaybackMinimumSkipIntervalMs: number;
     readonly streamingScreenshotDelay: number;
-    readonly streamingSubtitleAlignment: SubtitleAlignment;
     readonly streamingSubtitleListPreference: SubtitleListPreference;
 }
 

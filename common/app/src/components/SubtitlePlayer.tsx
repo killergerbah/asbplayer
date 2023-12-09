@@ -19,15 +19,19 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableRow, { TableRowProps } from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
 import Clock from '../services/clock';
+import { useAppBarHeight } from '../hooks/use-app-bar-height';
+
+let lastKnownWidth: number | undefined;
 
 interface StylesProps {
     resizable: boolean;
     appBarHidden: boolean;
+    appBarHeight: number;
 }
 
 const useSubtitlePlayerStyles = makeStyles<Theme, StylesProps, string>((theme) => ({
     container: {
-        height: ({ appBarHidden }) => (appBarHidden ? '100vh' : 'calc(100vh - 64px)'),
+        height: ({ appBarHidden, appBarHeight }) => (appBarHidden ? '100vh' : `calc(100vh - ${appBarHeight}px)`),
         position: 'relative',
         overflowX: 'hidden',
         backgroundColor: theme.palette.background.default,
@@ -184,7 +188,7 @@ const ResizeHandle = ({ isResizing, style, ...rest }: ResizeHandleProps) => {
                 ...style,
                 position: 'absolute',
                 width: isResizing ? 30 : 5,
-                left: 0,
+                left: isResizing ? -15 : -2.5,
                 height: '100%',
                 cursor: 'col-resize',
             }}
@@ -205,6 +209,8 @@ interface SubtitlePlayerProps {
     onOffsetChange: (offset: number) => void;
     onToggleSubtitleTrack: (track: number) => void;
     onSubtitlesSelected: (subtitles: SubtitleModel[]) => void;
+    onResizeStart?: () => void;
+    onResizeEnd?: () => void;
     autoPauseContext: AutoPauseContext;
     playing: boolean;
     subtitles?: DisplaySubtitleModel[];
@@ -226,6 +232,7 @@ interface SubtitlePlayerProps {
     disabledSubtitleTracks: { [track: number]: boolean };
     settings: AsbplayerSettings;
     keyBinder: KeyBinder;
+    maxResizeWidth: number;
 }
 
 export default function SubtitlePlayer({
@@ -235,6 +242,8 @@ export default function SubtitlePlayer({
     onOffsetChange,
     onToggleSubtitleTrack,
     onSubtitlesSelected,
+    onResizeStart,
+    onResizeEnd,
     autoPauseContext,
     playing,
     subtitles,
@@ -256,6 +265,7 @@ export default function SubtitlePlayer({
     disabledSubtitleTracks,
     settings,
     keyBinder,
+    maxResizeWidth,
 }: SubtitlePlayerProps) {
     const { t } = useTranslation();
     const playingRef = useRef<boolean>();
@@ -290,7 +300,8 @@ export default function SubtitlePlayer({
     const containerRef = useRef<HTMLElement>();
     const drawerOpenRef = useRef<boolean>();
     drawerOpenRef.current = drawerOpen;
-    const classes = useSubtitlePlayerStyles({ resizable, appBarHidden });
+    const appBarHeight = useAppBarHeight();
+    const classes = useSubtitlePlayerStyles({ resizable, appBarHidden, appBarHeight });
     const autoPauseContextRef = useRef<AutoPauseContext>();
     autoPauseContextRef.current = autoPauseContext;
     const onSubtitlesSelectedRef = useRef<(subtitles: SubtitleModel[]) => void>();
@@ -720,15 +731,20 @@ export default function SubtitlePlayer({
     const [scrollY, setScrollY] = useState<number>(0);
 
     const handleScroll = useCallback((event: React.UIEvent<HTMLElement>) => {
-        console.log(`scroll ${(event.target as HTMLElement)?.scrollTop}`);
         setScrollY((event.target as HTMLElement)?.scrollTop ?? 0);
     }, []);
 
     const { width, enableResize, isResizing } = useResize({
-        initialWidth: Math.max(350, 0.25 * window.innerWidth),
+        initialWidth: lastKnownWidth ?? Math.max(350, 0.25 * window.innerWidth),
         minWidth: 200,
-        maxWidth: window.innerWidth,
+        maxWidth: maxResizeWidth,
+        onResizeStart,
+        onResizeEnd,
     });
+
+    useEffect(() => {
+        lastKnownWidth = width;
+    }, [width]);
 
     let subtitleTable: ReactNode | null = null;
 

@@ -404,6 +404,8 @@ export default class VideoChannel {
             subtitleFontFamily,
             subtitleCustomStyles,
             imageBasedSubtitleScaleFactor,
+            subtitleAlignment,
+            subtitlePositionOffset,
         } = settings;
         const message: SubtitleSettingsToVideoMessage = {
             command: 'subtitleSettings',
@@ -420,6 +422,8 @@ export default class VideoChannel {
                 subtitleFontFamily,
                 subtitleCustomStyles,
                 imageBasedSubtitleScaleFactor,
+                subtitleAlignment,
+                subtitlePositionOffset,
             },
         };
         this.protocol.postMessage(message);

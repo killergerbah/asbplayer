@@ -171,19 +171,18 @@ const useAudioHelperText = (audioClip?: AudioClip, onRerecord?: () => void) => {
 
     useEffect(() => {
         if (audioClip) {
-            audioClip.isPlayable().then((playable) => {
-                setAudioClipPlayable(playable);
+            const playable = audioClip.isPlayable();
+            setAudioClipPlayable(playable);
 
-                if (playable) {
-                    if (onRerecord === undefined && !audioClip.isSliceable()) {
-                        setAudioHelperText(t('ankiDialog.cannotUpdateAudio')!);
-                    } else {
-                        setAudioHelperText(undefined);
-                    }
+            if (playable) {
+                if (onRerecord === undefined && !audioClip.isSliceable()) {
+                    setAudioHelperText(t('ankiDialog.cannotUpdateAudio')!);
                 } else {
-                    setAudioHelperText(t('ankiDialog.audioFileLinkLost')!);
+                    setAudioHelperText(undefined);
                 }
-            });
+            } else {
+                setAudioHelperText(t('ankiDialog.audioFileLinkLost')!);
+            }
         }
     }, [audioClip, onRerecord, t]);
 
@@ -197,15 +196,14 @@ const useImageHelperText = (image?: Image) => {
 
     useEffect(() => {
         if (image) {
-            image.isAvailable().then((available) => {
-                setImageAvailable(available);
+            const available = image.isAvailable();
+            setImageAvailable(available);
 
-                if (available) {
-                    setImageHelperText(undefined);
-                } else {
-                    setImageHelperText(t('ankiDialog.imageFileLinkLost')!);
-                }
-            });
+            if (available) {
+                setImageHelperText(undefined);
+            } else {
+                setImageHelperText(t('ankiDialog.imageFileLinkLost')!);
+            }
         }
     }, [image, t]);
 
@@ -459,7 +457,7 @@ const AnkiDialog = ({
 
     const handlePlayAudio = useCallback(
         async (e: React.MouseEvent<HTMLDivElement>) => {
-            if (!(await audioClip?.isPlayable())) {
+            if (!audioClip?.isPlayable()) {
                 return;
             }
 
@@ -502,7 +500,7 @@ const AnkiDialog = ({
 
     const handleViewImage = useCallback(
         async (e: React.MouseEvent<HTMLDivElement>) => {
-            if (!(await image?.isAvailable())) {
+            if (!image?.isAvailable()) {
                 return;
             }
 

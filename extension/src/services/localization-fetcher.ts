@@ -63,7 +63,10 @@ const fetchAndCache = async ({ code, url, version }: LocalizationConfig): Promis
 const bundledStringsForLang = async (lang: string): Promise<Localization | undefined> => {
     for (const defaultLang of defaultSupportedLanguages) {
         if (lang === defaultLang) {
-            return { lang, strings: await import(`@project/common/locales/${lang}.json`) };
+            return {
+                lang,
+                strings: await (await fetch(chrome.runtime.getURL(`asbplayer-locales/${lang}.json`))).json(),
+            };
         }
     }
 

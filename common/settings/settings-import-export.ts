@@ -76,6 +76,12 @@ const settingsSchema = {
         subtitlePreview: {
             type: 'string',
         },
+        subtitlePositionOffset: {
+            type: 'number',
+        },
+        subtitleAlignment: {
+            type: 'string',
+        },
         audioPaddingStart: {
             type: 'number',
         },
@@ -103,6 +109,7 @@ const settingsSchema = {
                 togglePlay: { $ref: '/KeyBind' },
                 toggleAutoPause: { $ref: '/KeyBind' },
                 toggleCondensedPlayback: { $ref: '/KeyBind' },
+                toggleFastForwardPlayback: { $ref: '/KeyBind' },
                 toggleSubtitles: { $ref: '/KeyBind' },
                 toggleVideoSubtitleTrack1: { $ref: '/KeyBind' },
                 toggleVideoSubtitleTrack2: { $ref: '/KeyBind' },
@@ -228,14 +235,8 @@ const settingsSchema = {
         streamingCondensedPlaybackMinimumSkipIntervalMs: {
             type: 'number',
         },
-        streamingSubtitlePositionOffset: {
-            type: 'number',
-        },
         streamingScreenshotDelay: {
             type: 'number',
-        },
-        streamingSubtitleAlignment: {
-            type: 'string',
         },
         streamingSubtitleListPreference: {
             type: 'string',

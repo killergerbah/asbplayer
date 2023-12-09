@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, useRef, MutableRefObject } from 'react';
 import { useTranslation } from 'react-i18next';
-import { makeStyles, withStyles } from '@material-ui/core/styles';
+import { makeStyles, withStyles, useTheme } from '@material-ui/core/styles';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import AudiotrackIcon from '@material-ui/icons/Audiotrack';
@@ -32,6 +32,10 @@ import { SubtitleAlignment } from '@project/common/settings';
 import Clock from '../services/clock';
 import PlaybackPreferences from '../services/playback-preferences';
 import Tooltip from '@material-ui/core/Tooltip';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
 
 const useControlStyles = makeStyles((theme) => ({
     container: {
@@ -54,6 +58,7 @@ const useControlStyles = makeStyles((theme) => ({
         cursor: 'default',
         fontSize: 20,
         marginLeft: 10,
+        whiteSpace: 'nowrap',
     },
     numberInput: {
         height: '100%',
@@ -125,7 +130,7 @@ const useControlStyles = makeStyles((theme) => ({
         pointerEvents: 'auto',
     },
     inactiveButton: {
-        color: 'rgba(72, 72, 72, 0.7)',
+        color: 'rgba(120, 120, 120, 0.7)',
         pointerEvents: 'auto',
     },
     inactiveTopButton: {
@@ -488,6 +493,56 @@ function PlayModeSelector({ open, anchorEl, selectedPlayMode, onPlayMode, onClos
     );
 }
 
+interface ResponsiveButtonGroupProps {
+    children: React.ReactNode[];
+}
+
+const ResponsiveButtonGroup = ({ children }: ResponsiveButtonGroupProps) => {
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down(600));
+    const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement>();
+
+    const handleCloseMenu = () => {
+        setAnchorEl(undefined);
+    };
+
+    const handleOpenMenu = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        setAnchorEl(e.currentTarget);
+    };
+
+    const anchorExists = anchorEl !== undefined && document.body.contains(anchorEl);
+    const definedChildren = children.filter((c) => c !== undefined && c !== false);
+
+    if (isSmallScreen && definedChildren.length > 1) {
+        return (
+            <>
+                <Grid item>
+                    <IconButton color="inherit" onClick={handleOpenMenu}>
+                        <MoreVertIcon />
+                    </IconButton>
+                </Grid>
+                <Menu anchorEl={anchorExists ? anchorEl : undefined} open={anchorExists} onClose={handleCloseMenu}>
+                    {definedChildren.map((child, i) => {
+                        return <MenuItem key={i}>{child}</MenuItem>;
+                    })}
+                </Menu>
+            </>
+        );
+    }
+
+    return (
+        <>
+            {children.map((child, i) => {
+                return (
+                    <Grid item key={i}>
+                        {child}
+                    </Grid>
+                );
+            })}
+        </>
+    );
+};
+
 export interface Point {
     x: number;
     y: number;
@@ -620,7 +675,8 @@ export default function Controls({
     const [showVolumeBar, setShowVolumeBar] = useState<boolean>(false);
     const [volume, setVolume] = useState<number>(100);
     const [lastCommittedVolume, setLastCommittedVolume] = useState<number>(100);
-
+    const theme = useTheme();
+    const isReallySmallScreen = useMediaQuery(theme.breakpoints.down(380));
     const lastMousePositionRef = useRef<Point>({ x: 0, y: 0 });
     const lastShowTimestampRef = useRef<number>(Date.now());
     const lastNumberInputChangeTimestampRef = useRef<number>(Date.now());
@@ -994,7 +1050,7 @@ export default function Controls({
                 <Fade in={show} timeout={200}>
                     <div className={classes.subContainer}>
                         <ProgressBar onSeek={handleSeek} value={progress * 100} />
-                        <Grid container className={classes.gridContainer} direction="row">
+                        <Grid container className={classes.gridContainer} direction="row" wrap="nowrap">
                             <Grid item>
                                 <IconButton color="inherit" onClick={() => (playing ? onPause() : onPlay())}>
                                     {playing ? (
@@ -1015,21 +1071,36 @@ export default function Controls({
                                             : classes.volumeInputContainerHidden
                                     }
                                 >
-                                    <IconButton color="inherit" onClick={handleVolumeToggle}>
-                                        {volume === 0 ? <VolumeOffIcon /> : <VolumeUpIcon />}
-                                    </IconButton>
-                                    <VolumeSlider
-                                        onChange={handleVolumeChange}
-                                        onChangeCommitted={handleVolumeChangeCommitted}
-                                        value={volume}
-                                        defaultValue={100}
-                                        classes={{
-                                            root: showVolumeBar ? classes.volumeInputShown : classes.volumeInputHidden,
-                                            thumb: showVolumeBar
-                                                ? classes.volumeInputThumbShown
-                                                : classes.volumeInputThumbHidden,
-                                        }}
-                                    />
+                                    <Grid container spacing={0} direction="row" wrap="nowrap">
+                                        <Grid item>
+                                            <IconButton color="inherit" onClick={handleVolumeToggle}>
+                                                {volume === 0 ? <VolumeOffIcon /> : <VolumeUpIcon />}
+                                            </IconButton>
+                                        </Grid>
+                                        <Grid
+                                            item
+                                            style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                justifyContent: 'center',
+                                            }}
+                                        >
+                                            <VolumeSlider
+                                                onChange={handleVolumeChange}
+                                                onChangeCommitted={handleVolumeChangeCommitted}
+                                                value={volume}
+                                                defaultValue={100}
+                                                classes={{
+                                                    root: showVolumeBar
+                                                        ? classes.volumeInputShown
+                                                        : classes.volumeInputHidden,
+                                                    thumb: showVolumeBar
+                                                        ? classes.volumeInputThumbShown
+                                                        : classes.volumeInputThumbHidden,
+                                                }}
+                                            />
+                                        </Grid>
+                                    </Grid>
                                 </Grid>
                             )}
                             <Grid item>
@@ -1037,7 +1108,7 @@ export default function Controls({
                                     {displayTime(progress * length)} / {displayTime(displayLength || length)}
                                 </div>
                             </Grid>
-                            {offsetEnabled && (
+                            {offsetEnabled && !showVolumeBar && !isReallySmallScreen && (
                                 <Grid item>
                                     <Tooltip title={t('controls.subtitleOffset')!}>
                                         <Input
@@ -1054,7 +1125,7 @@ export default function Controls({
                                     </Tooltip>
                                 </Grid>
                             )}
-                            {playbackRateEnabled && (
+                            {playbackRateEnabled && !showVolumeBar && !isReallySmallScreen && (
                                 <Grid item>
                                     <Tooltip title={t('controls.playbackRate')!}>
                                         <Input
@@ -1075,8 +1146,8 @@ export default function Controls({
                                 </Grid>
                             )}
                             <Grid item style={{ flexGrow: 1 }}></Grid>
-                            {subtitleAlignmentEnabled && subtitleAlignment !== undefined && (
-                                <Grid item>
+                            <ResponsiveButtonGroup>
+                                {subtitleAlignmentEnabled && subtitleAlignment !== undefined && (
                                     <IconButton color="inherit" onClick={handleSubtitleAlignment}>
                                         {subtitleAlignment === 'top' ? (
                                             <VerticalAlignTopIcon />
@@ -1084,68 +1155,52 @@ export default function Controls({
                                             <VerticalAlignBottomIcon />
                                         )}
                                     </IconButton>
-                                </Grid>
-                            )}
-                            {subtitlesToggle && (
-                                <Grid item>
+                                )}
+                                {subtitlesToggle && (
                                     <IconButton color="inherit" onClick={onSubtitlesToggle}>
                                         <SubtitlesIcon
                                             className={subtitlesEnabled ? classes.button : classes.inactiveButton}
                                         />
                                     </IconButton>
-                                </Grid>
-                            )}
-                            {videoFile && (
-                                <Grid item>
+                                )}
+                                {videoFile && (
                                     <IconButton color="inherit" onClick={handleVideoUnloaderOpened}>
                                         <VideocamIcon className={classes.button} />
                                     </IconButton>
-                                </Grid>
-                            )}
-                            {audioFile && (
-                                <Grid item>
+                                )}
+                                {audioFile && (
                                     <IconButton color="inherit" onClick={handleAudioUnloaderOpened}>
                                         <AudiotrackIcon className={classes.button} />
                                     </IconButton>
-                                </Grid>
-                            )}
-                            {audioTracks && audioTracks.length > 1 && (
-                                <Grid item>
+                                )}
+                                {audioTracks && audioTracks.length > 1 && (
                                     <IconButton color="inherit" onClick={handleAudioTrackSelectorOpened}>
                                         <QueueMusicIcon className={classes.button} />
                                     </IconButton>
-                                </Grid>
-                            )}
-                            {tabs && tabs.length > 0 && (
-                                <Grid item>
+                                )}
+                                {tabs && tabs.length > 0 && (
                                     <IconButton color="inherit" onClick={handleTabSelectorOpened}>
                                         <VideocamIcon
                                             className={selectedTab ? classes.button : classes.inactiveButton}
                                         />
                                     </IconButton>
-                                </Grid>
-                            )}
-                            {playModeEnabled && (
-                                <Grid item>
+                                )}
+                                {playModeEnabled && (
                                     <IconButton color="inherit" onClick={handlePlayModeSelectorOpened}>
                                         <TuneIcon
                                             className={playModeEnabled ? classes.button : classes.inactiveButton}
                                         />
                                     </IconButton>
-                                </Grid>
-                            )}
-                            {popOutEnabled && (
-                                <Grid item>
+                                )}
+                                {popOutEnabled && (
                                     <IconButton color="inherit" onClick={onPopOutToggle}>
                                         <OpenInNewIcon
                                             className={classes.button}
                                             style={popOut ? { transform: 'rotateX(180deg)' } : {}}
                                         />
                                     </IconButton>
-                                </Grid>
-                            )}
-                            {fullscreenEnabled && (
-                                <Grid item>
+                                )}
+                                {fullscreenEnabled && (
                                     <IconButton color="inherit" onClick={onFullscreenToggle}>
                                         {fullscreen ? (
                                             <FullscreenExitIcon className={classes.button} />
@@ -1153,8 +1208,8 @@ export default function Controls({
                                             <FullscreenIcon className={classes.button} />
                                         )}
                                     </IconButton>
-                                </Grid>
-                            )}
+                                )}
+                            </ResponsiveButtonGroup>
                         </Grid>
                     </div>
                 </Fade>

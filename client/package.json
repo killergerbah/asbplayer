@@ -32,7 +32,8 @@
         "start": "NODE_OPTIONS=--openssl-legacy-provider craco start",
         "build": "../scripts/loc-keys-match && NODE_OPTIONS=--openssl-legacy-provider craco build",
         "test": "craco test",
-        "eject": "react-scripts eject"
+        "eject": "react-scripts eject",
+        "test:nowatch": "react-scripts test --watchAll=false"
     },
     "eslintConfig": {
         "extends": [

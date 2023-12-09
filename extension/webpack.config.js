@@ -64,8 +64,12 @@ module.exports = (env, options) => ({
                 {
                     from: './src',
                     globOptions: {
-                        ignore: ['**/services', '**/handlers', '**/ui'],
+                        ignore: ['**/services', '**/handlers', '**/ui', '**/.DS_Store'],
                     },
+                },
+                {
+                    from: '../common/locales',
+                    to: 'asbplayer-locales',
                 },
             ],
             options: {

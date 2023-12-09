@@ -26,14 +26,20 @@ import SubtitlePlayer, { DisplaySubtitleModel } from './SubtitlePlayer';
 import VideoChannel from '../services/video-channel';
 import ChromeExtension from '../services/chrome-extension';
 import PlaybackPreferences from '../services/playback-preferences';
+import { useWindowSize } from '../hooks/use-window-size';
+import { useAppBarHeight } from '../hooks/use-app-bar-height';
+import { createBlobUrl } from '../../../blob-url';
+
+const minVideoPlayerWidth = 300;
 
 interface StylesProps {
     appBarHidden: boolean;
+    appBarHeight: number;
 }
 
 const useStyles = makeStyles<Theme, StylesProps>({
-    root: ({ appBarHidden }) => ({
-        height: appBarHidden ? '100vh' : 'calc(100vh - 64px)',
+    root: ({ appBarHidden, appBarHeight }) => ({
+        height: appBarHidden ? '100vh' : `calc(100vh - ${appBarHeight}px)`,
         position: 'relative',
         overflowX: 'hidden',
     }),
@@ -186,6 +192,7 @@ export default function Player({
     const videoFile = sources?.videoFile;
     const videoFileUrl = sources?.videoFileUrl;
     const playModeEnabled = subtitles && subtitles.length > 0 && Boolean(videoFileUrl);
+    const [subtitlePlayerResizing, setSubtitlePlayerResizing] = useState<boolean>(false);
     const [loadingSubtitles, setLoadingSubtitles] = useState<boolean>(false);
     const [playing, setPlaying] = useState<boolean>(false);
     const [lastJumpToTopTimestamp, setLastJumpToTopTimestamp] = useState<number>(0);
@@ -214,8 +221,12 @@ export default function Player({
         return new MediaAdapter({ current: null });
     }, [channel, videoFileUrl, tab]);
     const clock = useMemo<Clock>(() => new Clock(), []);
-    const classes = useStyles({ appBarHidden });
+    const appBarHeight = useAppBarHeight();
+    const classes = useStyles({ appBarHidden, appBarHeight });
     const calculateLength = () => trackLength(channelRef.current, subtitlesRef.current);
+
+    const handleSubtitlePlayerResizeStart = useCallback(() => setSubtitlePlayerResizing(true), []);
+    const handleSubtitlePlayerResizeEnd = useCallback(() => setSubtitlePlayerResizing(false), []);
 
     const handleOnStartedShowingSubtitle = useCallback(() => {
         if (
@@ -427,10 +438,13 @@ export default function Player({
         });
     }, [subtitles, channel, flattenSubtitleFiles, subtitleFiles, subtitlesSentThroughChannel]);
     useEffect(() => channel?.onReady(() => channel?.subtitleSettings(settings)), [channel, settings]);
+    useEffect(
+        () => channel?.onReady(() => channel?.hideSubtitlePlayerToggle(hideSubtitlePlayer)),
+        [channel, hideSubtitlePlayer]
+    );
     useEffect(() => channel?.ankiSettings(settings), [channel, settings]);
     useEffect(() => channel?.miscSettings(settings), [channel, settings]);
     useEffect(() => channel?.playMode(playMode), [channel, playMode]);
-    useEffect(() => channel?.hideSubtitlePlayerToggle(hideSubtitlePlayer), [channel, hideSubtitlePlayer]);
     useEffect(
         () =>
             channel?.onReady(() => {
@@ -490,7 +504,7 @@ export default function Player({
                         file: videoFile
                             ? {
                                   name: videoFile.name,
-                                  blobUrl: URL.createObjectURL(videoFile),
+                                  blobUrl: createBlobUrl(videoFile),
                                   audioTrack: channel?.selectedAudioTrack,
                                   playbackRate: channel?.playbackRate,
                               }
@@ -712,7 +726,7 @@ export default function Player({
                                       name: videoFile.name,
                                       audioTrack: selectedAudioTrack,
                                       playbackRate,
-                                      blobUrl: URL.createObjectURL(videoFile),
+                                      blobUrl: createBlobUrl(videoFile),
                                   },
                     },
                     postMineAction,
@@ -880,7 +894,6 @@ export default function Player({
     }, [videoFileUrl, clock, onTakeScreenshot, onAnkiDialogRewind, keyBinder, disableKeyEvents, ankiDialogOpen]);
 
     useEffect(() => channel?.appBarToggle(appBarHidden), [channel, appBarHidden]);
-    useEffect(() => channel?.hideSubtitlePlayerToggle(hideSubtitlePlayer), [channel, hideSubtitlePlayer]);
     useEffect(() => channel?.fullscreenToggle(videoFullscreen), [channel, videoFullscreen]);
 
     useEffect(() => {
@@ -891,18 +904,23 @@ export default function Player({
         pause(clock, mediaAdapter, true);
         seek(rewindSubtitle.start, clock, true);
     }, [clock, rewindSubtitle?.start, mediaAdapter, seek]);
+    const [windowWidth] = useWindowSize(true);
 
     const loaded = videoFileUrl || subtitles;
     const videoInWindow = Boolean(loaded && videoFileUrl && !videoPopOut);
+    const actuallyHideSubtitlePlayer = videoInWindow && (hideSubtitlePlayer || !subtitles || subtitles?.length === 0);
 
     return (
         <div onMouseMove={handleMouseMove} className={classes.root}>
             <Grid container direction="row" wrap="nowrap" className={classes.container}>
                 {videoInWindow && (
-                    <Grid item style={{ flexGrow: 1, minWidth: 600 }}>
+                    <Grid item style={{ flexGrow: 1, minWidth: minVideoPlayerWidth }}>
                         <iframe
                             ref={videoFrameRef}
                             className={classes.videoFrame}
+                            style={{
+                                pointerEvents: subtitlePlayerResizing ? 'none' : 'auto',
+                            }}
                             src={
                                 origin +
                                 '?video=' +
@@ -918,10 +936,10 @@ export default function Player({
 
                 <Grid
                     item
+                    hidden={actuallyHideSubtitlePlayer}
                     style={{
                         flexGrow: videoInWindow ? 0 : 1,
-                        width:
-                            videoInWindow && (hideSubtitlePlayer || !subtitles || subtitles?.length === 0) ? 0 : 'auto',
+                        width: 'auto',
                     }}
                 >
                     {loaded && !(videoFileUrl && !videoPopOut) && !hideControls && (
@@ -972,16 +990,19 @@ export default function Player({
                         loading={loadingSubtitles}
                         displayHelp={(videoPopOut && videoFile?.name) || undefined}
                         disableKeyEvents={disableKeyEvents}
-                        // The VideoPlayer will receive the mining commands instead
-                        disableMiningBinds={extension.installed && videoFile !== undefined}
+                        // On later versions of the extension, VideoPlayer will receive the mining commands instead
+                        disableMiningBinds={extension.supportsVideoPlayerMiningCommands && videoFile !== undefined}
                         lastJumpToTopTimestamp={lastJumpToTopTimestamp}
-                        hidden={videoInWindow && hideSubtitlePlayer}
+                        hidden={actuallyHideSubtitlePlayer}
                         disabledSubtitleTracks={disabledSubtitleTracks}
                         onSeek={handleSeekToTimestamp}
                         onCopy={handleCopyFromSubtitlePlayer}
                         onOffsetChange={handleOffsetChange}
                         onToggleSubtitleTrack={handleToggleSubtitleTrack}
                         onSubtitlesSelected={handleSubtitlesSelected}
+                        onResizeStart={handleSubtitlePlayerResizeStart}
+                        onResizeEnd={handleSubtitlePlayerResizeEnd}
+                        maxResizeWidth={Math.max(0, windowWidth - minVideoPlayerWidth)}
                         autoPauseContext={autoPauseContext}
                         settings={settings}
                         keyBinder={keyBinder}

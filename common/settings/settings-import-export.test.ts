@@ -42,6 +42,8 @@ it('validates exported settings', () => {
         subtitleBackgroundOpacity: 0,
         subtitleFontFamily: 'ToppanBunkyuMidashiGothicStdN-ExtraBold',
         subtitlePreview: 'アあ安Aa',
+        subtitlePositionOffset: 71,
+        subtitleAlignment: 'bottom',
         audioPaddingStart: 0,
         audioPaddingEnd: 500,
         maxImageWidth: 480,
@@ -69,6 +71,7 @@ it('validates exported settings', () => {
             toggleAsbplayerSubtitleTrack2: { keys: 'W+2' },
             toggleAutoPause: { keys: '⇧+P' },
             toggleCondensedPlayback: { keys: '⇧+O' },
+            toggleFastForwardPlayback: { keys: '⇧+F' },
             togglePlay: { keys: 'space' },
             toggleSidePanel: { keys: '`' },
             toggleSubtitles: { keys: 'down' },
@@ -102,9 +105,7 @@ it('validates exported settings', () => {
         streamingAutoSync: true,
         streamingLastLanguagesSynced: { 'www.youtube.com': ['ja', '', ''] },
         streamingCondensedPlaybackMinimumSkipIntervalMs: 1000,
-        streamingSubtitlePositionOffset: 71,
         streamingScreenshotDelay: 1000,
-        streamingSubtitleAlignment: 'bottom',
         streamingSubtitleListPreference: 'app',
     });
 });

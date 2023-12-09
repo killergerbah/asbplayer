@@ -24,6 +24,8 @@ export const defaultSettings: AsbplayerSettings = {
     subtitleBackgroundOpacity: 0.5,
     subtitleFontFamily: '',
     subtitlePreview: 'アあ安Aa',
+    subtitlePositionOffset: 75,
+    subtitleAlignment: 'bottom',
     audioPaddingStart: 0,
     audioPaddingEnd: 500,
     maxImageWidth: 0,
@@ -35,6 +37,7 @@ export const defaultSettings: AsbplayerSettings = {
         togglePlay: { keys: 'space' },
         toggleAutoPause: { keys: isMacOs ? '⇧+P' : 'shift+P' },
         toggleCondensedPlayback: { keys: isMacOs ? '⇧+O' : 'shift+O' },
+        toggleFastForwardPlayback: { keys: isMacOs ? '⇧+F' : 'shift+F' },
         toggleSubtitles: { keys: 'down' },
         toggleVideoSubtitleTrack1: { keys: '1' },
         toggleVideoSubtitleTrack2: { keys: '2' },
@@ -84,9 +87,7 @@ export const defaultSettings: AsbplayerSettings = {
     streamingAutoSync: false,
     streamingLastLanguagesSynced: {},
     streamingCondensedPlaybackMinimumSkipIntervalMs: 1000,
-    streamingSubtitlePositionOffset: 75,
     streamingScreenshotDelay: 1000,
-    streamingSubtitleAlignment: 'bottom',
     streamingSubtitleListPreference: SubtitleListPreference.noSubtitleList,
 };
 
@@ -98,7 +99,7 @@ export const settingsDeserializers: SettingsDeserializers = Object.fromEntries(
         }
 
         if (typeof value === 'boolean') {
-            return [key, (s: string) => Boolean(s)];
+            return [key, (s: string) => s === 'true'];
         }
 
         if (typeof value === 'number') {

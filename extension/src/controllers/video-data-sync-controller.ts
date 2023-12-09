@@ -79,8 +79,8 @@ export default class VideoDataSyncController {
         this._frame = new UiFrame(html);
     }
 
-    private get lastLanguageSynced() {
-        return this._lastLanguagesSynced[this._domain] ?? '';
+    private get lastLanguageSynced(): string[] {
+        return this._lastLanguagesSynced[this._domain] ?? [];
     }
 
     private set lastLanguageSynced(value: string[]) {

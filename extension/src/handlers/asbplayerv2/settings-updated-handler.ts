@@ -1,4 +1,5 @@
 import {
+    AsbPlayerCommand,
     Command,
     ExtensionToAsbPlayerCommand,
     ExtensionToVideoCommand,
@@ -27,26 +28,35 @@ export default class SettingsUpdatedHandler {
     }
 
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
+        const settingsUpdatedCommand = command as AsbPlayerCommand<SettingsUpdatedMessage>;
         this._settingsProvider.getSingle('language').then(primeLocalization);
         this._tabRegistry.publishCommandToVideoElements((videoElement) => {
-            const settingsUpdatedCommand: ExtensionToVideoCommand<SettingsUpdatedMessage> = {
+            const videoElementCommand: ExtensionToVideoCommand<SettingsUpdatedMessage> = {
                 sender: 'asbplayer-extension-to-video',
                 message: {
                     command: 'settings-updated',
                 },
                 src: videoElement.src,
             };
-            return settingsUpdatedCommand;
+            return videoElementCommand;
         });
         this._tabRegistry.publishCommandToAsbplayers({
-            commandFactory: () => {
-                const settingsUpdatedCommand: ExtensionToAsbPlayerCommand<SettingsUpdatedMessage> = {
+            commandFactory: (asbplayer) => {
+                if (
+                    settingsUpdatedCommand.asbplayerId !== undefined &&
+                    settingsUpdatedCommand.asbplayerId === asbplayer.id
+                ) {
+                    // Skip the asbplayer instance that published the message originally
+                    return;
+                }
+
+                const asbplayerCommand: ExtensionToAsbPlayerCommand<SettingsUpdatedMessage> = {
                     sender: 'asbplayer-extension-to-player',
                     message: {
                         command: 'settings-updated',
                     },
                 };
-                return settingsUpdatedCommand;
+                return asbplayerCommand;
             },
         });
         return false;

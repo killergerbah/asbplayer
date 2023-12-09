@@ -20,6 +20,20 @@ export class LocalSettingsStorage implements SettingsStorage {
         return settings as Partial<AsbplayerSettings>;
     }
 
+    async getKeys(keys: (keyof AsbplayerSettings)[]) {
+        const settings: any = {};
+
+        for (const key of keys) {
+            const value = cachedLocalStorage.get(key);
+
+            if (value !== null) {
+                settings[key] = settingsDeserializers[key as keyof AsbplayerSettings]!(value);
+            }
+        }
+
+        return settings as Partial<AsbplayerSettings>;
+    }
+
     async set(settings: Partial<AsbplayerSettings>) {
         for (const [key, value] of Object.entries(settings)) {
             if (typeof value === 'object') {

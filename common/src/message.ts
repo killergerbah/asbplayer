@@ -529,3 +529,8 @@ export interface UpdateStateMessage extends Message {
 export interface AckMessage extends MessageWithId {
     readonly command: 'ack-message';
 }
+
+export interface RequestSubtitlesResponse {
+    subtitles: SubtitleModel[];
+    subtitleFileNames: string[];
+}
