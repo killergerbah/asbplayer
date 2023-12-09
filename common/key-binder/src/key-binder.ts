@@ -552,6 +552,7 @@ export class DefaultKeyBinder implements KeyBinder {
         const shortcuts = [
             this.keyBindSet.toggleVideoSubtitleTrack1.keys,
             this.keyBindSet.toggleVideoSubtitleTrack2.keys,
+            this.keyBindSet.toggleVideoSubtitleTrack3.keys,
         ].filter((s) => s);
 
         if (shortcuts.length === 0) {
@@ -589,6 +590,7 @@ export class DefaultKeyBinder implements KeyBinder {
         const shortcuts = [
             this.keyBindSet.toggleAsbplayerSubtitleTrack1.keys,
             this.keyBindSet.toggleAsbplayerSubtitleTrack2.keys,
+            this.keyBindSet.toggleAsbplayerSubtitleTrack3.keys,
         ].filter((s) => s);
 
         if (shortcuts.length === 0) {

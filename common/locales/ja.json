@@ -88,6 +88,7 @@
         "takeScreenshot": "手動でスクリーンショットを撮影しマイニング時に自動的に撮影されたものを上書きする",
         "toggleAsbplayerSubtitleTrack1": "asbplayer の字幕トラック 1 オン/オフ",
         "toggleAsbplayerSubtitleTrack2": "asbplayer の字幕トラック 2 オン/オフ",
+        "toggleAsbplayerSubtitleTrack3": "asbplayer の字幕トラック 3 オン/オフ",
         "toggleAsbplayerSubtitleTracks": "asbplayer の字幕トラック オン/オフ",
         "toggleAutoPause": "自動一時停止オン/オフ",
         "toggleCondensedPlayback": "短縮プレイバック",
@@ -96,6 +97,7 @@
         "toggleSubtitles": "字幕オン/オフ",
         "toggleVideoSubtitleTrack1": "動画の字幕トラック 1 オン/オフ",
         "toggleVideoSubtitleTrack2": "動画の字幕トラック 2 オン/オフ",
+        "toggleVideoSubtitleTrack3": "動画の字幕トラック 3 オン/オフ",
         "toggleVideoSubtitleTracks": "動画の字幕トラック オン/オフ",
         "updateLastCard": "asbplayer でキャプチャしたスクリーンショットや音声を、最後に作成した Anki カードに添付して更新する",
         "toggleSidePanel": "サイドパネルを開く/閉じる"

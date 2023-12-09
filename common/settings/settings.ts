@@ -103,8 +103,10 @@ export interface KeyBindSet {
     readonly toggleSubtitles: KeyBind;
     readonly toggleVideoSubtitleTrack1: KeyBind;
     readonly toggleVideoSubtitleTrack2: KeyBind;
+    readonly toggleVideoSubtitleTrack3: KeyBind;
     readonly toggleAsbplayerSubtitleTrack1: KeyBind;
     readonly toggleAsbplayerSubtitleTrack2: KeyBind;
+    readonly toggleAsbplayerSubtitleTrack3: KeyBind;
     readonly seekBackward: KeyBind;
     readonly seekForward: KeyBind;
     readonly seekToPreviousSubtitle: KeyBind;

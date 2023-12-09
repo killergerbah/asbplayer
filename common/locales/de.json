@@ -88,6 +88,7 @@
         "takeScreenshot": "Screenshot erstellen",
         "toggleAsbplayerSubtitleTrack1": "Untertitel 1 in absplayer umschalten",
         "toggleAsbplayerSubtitleTrack2": "Untertitel 2 in asbplayer umschalten",
+        "toggleAsbplayerSubtitleTrack3": "Untertitel 3 in asbplayer umschalten",
         "toggleAsbplayerSubtitleTracks": "Untertitel in absplayer umschalten",
         "toggleAutoPause": "Auto-Pause aktivieren / deaktivieren",
         "toggleCondensedPlayback": "Komprimiertes Audio-Playback aktivieren / deaktivieren",
@@ -96,6 +97,7 @@
         "toggleSubtitles": "Untertitel umschalten",
         "toggleVideoSubtitleTrack1": "Untertitel 1 in Video umschalten",
         "toggleVideoSubtitleTrack2": "Untertitel 2 in Video umschalten",
+        "toggleVideoSubtitleTrack3": "Untertitel 3 in Video umschalten",
         "toggleVideoSubtitleTracks": "Untertitel in Video umschalten",
         "updateLastCard": "Zuletzt erstellte Anki-Karte mit aufgezeichnetem Untertitel",
         "toggleSidePanel": "Toggle side panel"

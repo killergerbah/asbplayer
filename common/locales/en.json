@@ -88,6 +88,7 @@
         "takeScreenshot": "Manually take screenshot, overriding the one that is automatically taken when mining",
         "toggleAsbplayerSubtitleTrack1": "Toggle subtitle track 1 in asbplayer",
         "toggleAsbplayerSubtitleTrack2": "Toggle subtitle track 2 in asbplayer",
+        "toggleAsbplayerSubtitleTrack3": "Toggle subtitle track 3 in asbplayer",
         "toggleAsbplayerSubtitleTracks": "Toggle subtitle track in asbplayer",
         "toggleAutoPause": "Toggle auto-pause",
         "toggleCondensedPlayback": "Toggle condensed playback",
@@ -96,6 +97,7 @@
         "toggleSubtitles": "Toggle subtitles",
         "toggleVideoSubtitleTrack1": "Toggle subtitle track 1 in video",
         "toggleVideoSubtitleTrack2": "Toggle subtitle track 2 in video",
+        "toggleVideoSubtitleTrack3": "Toggle subtitle track 3 in video",
         "toggleVideoSubtitleTracks": "Toggle subtitle track in video",
         "updateLastCard": "Update last-created Anki card with asbplayer-captured screenshot, audio, etc.",
         "toggleSidePanel": "Toggle side panel"
