@@ -582,12 +582,17 @@ export default function SettingsForm({
             toggleSubtitles: { label: t('binds.toggleSubtitles')!, boundViaChrome: false },
             toggleVideoSubtitleTrack1: { label: t('binds.toggleVideoSubtitleTrack1')!, boundViaChrome: false },
             toggleVideoSubtitleTrack2: { label: t('binds.toggleVideoSubtitleTrack2')!, boundViaChrome: false },
+            toggleVideoSubtitleTrack3: { label: t('binds.toggleVideoSubtitleTrack3')!, boundViaChrome: false },
             toggleAsbplayerSubtitleTrack1: {
                 label: t('binds.toggleAsbplayerSubtitleTrack1')!,
                 boundViaChrome: false,
             },
             toggleAsbplayerSubtitleTrack2: {
                 label: t('binds.toggleAsbplayerSubtitleTrack2')!,
+                boundViaChrome: false,
+            },
+            toggleAsbplayerSubtitleTrack3: {
+                label: t('binds.toggleAsbplayerSubtitleTrack3')!,
                 boundViaChrome: false,
             },
             seekBackward: { label: t('binds.seekBackward')!, boundViaChrome: false },

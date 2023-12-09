@@ -88,6 +88,7 @@
         "takeScreenshot": "Manualnie wykonaj zrzut ekranu",
         "toggleAsbplayerSubtitleTrack1": "Przełącz ścieżkę napisów 1 w asbplayer",
         "toggleAsbplayerSubtitleTrack2": "Przełącz ścieżkę napisów 2 w asbplayer",
+        "toggleAsbplayerSubtitleTrack3": "Przełącz ścieżkę napisów 3 w asbplayer",
         "toggleAsbplayerSubtitleTracks": "Przełącz ścieżki napisów w asbplayer",
         "toggleAutoPause": "Przełącz automatyczną pauzę",
         "toggleCondensedPlayback": "Przełącz odtwarzanie skondensowane",
@@ -96,6 +97,7 @@
         "toggleSubtitles": "Pokaż napisy",
         "toggleVideoSubtitleTrack1": "Przełącz ścieżkę napisów 1 w wideo",
         "toggleVideoSubtitleTrack2": "Przełącz ścieżkę napisów 2 w wideo",
+        "toggleVideoSubtitleTrack3": "Przełącz ścieżkę napisów 3 w wideo",
         "toggleVideoSubtitleTracks": "Przełącz ścieżki napisów w wideo",
         "updateLastCard": "Zaktualizuj ostatnio zapisaną kartę Anki o zrzuty ekranu",
         "toggleSidePanel": "Toggle side panel"

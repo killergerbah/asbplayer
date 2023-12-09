@@ -59,45 +59,43 @@ export default function LandingPage({
     const extensionUpdateAvailable = extension.version && gt(latestExtensionVersion, extension.version);
 
     return (
-        <React.Fragment>
+        <Paper square variant="elevation" elevation={0} className={classes.background}>
             <Fade in={!loading && !dragging} timeout={500}>
-                <Paper square variant="elevation" elevation={0} className={classes.background}>
-                    <Typography variant="h6">
-                        <Trans i18nKey={'landing.cta'}>
-                            Drag and drop subtitle and media files, or
-                            <Link
-                                target="#"
-                                className={classes.browseLink}
-                                onClick={onFileSelector}
-                                color="secondary"
-                                component="label"
-                            >
-                                browse
+                <Typography variant="h6">
+                    <Trans i18nKey={'landing.cta'}>
+                        Drag and drop subtitle and media files, or
+                        <Link
+                            target="#"
+                            className={classes.browseLink}
+                            onClick={onFileSelector}
+                            color="secondary"
+                            component="label"
+                        >
+                            browse
+                        </Link>
+                        .
+                    </Trans>
+                    <br />
+                    {!extension.installed && (
+                        <Trans i18nKey="landing.extensionNotInstalled">
+                            Install the
+                            <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>
+                                Chrome extension
                             </Link>
-                            .
+                            to sync subtitles with streaming video.
                         </Trans>
-                        <br />
-                        {!extension.installed && (
-                            <Trans i18nKey="landing.extensionNotInstalled">
-                                Install the
-                                <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>
-                                    Chrome extension
-                                </Link>
-                                to sync subtitles with streaming video.
-                            </Trans>
-                        )}
-                        {extensionUpdateAvailable && (
-                            <Trans i18nKey="landing.extensionUpdateAvailable">
-                                An extension
-                                <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>
-                                    update
-                                </Link>{' '}
-                                is available.
-                            </Trans>
-                        )}
-                    </Typography>
-                </Paper>
+                    )}
+                    {extensionUpdateAvailable && (
+                        <Trans i18nKey="landing.extensionUpdateAvailable">
+                            An extension
+                            <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>
+                                update
+                            </Link>{' '}
+                            is available.
+                        </Trans>
+                    )}
+                </Typography>
             </Fade>
-        </React.Fragment>
+        </Paper>
     );
 }
