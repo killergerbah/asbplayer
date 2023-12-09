@@ -13,7 +13,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import makeStyles from '@material-ui/styles/makeStyles';
 import Switch from '@material-ui/core/Switch';
-import { LabelWithHoverEffect } from '@project/common/components/SettingsForm';
+import LabelWithHoverEffect from '@project/common/components/LabelWithHoverEffect';
 import { ConfirmedVideoDataSubtitleTrack, VideoDataSubtitleTrack } from '@project/common';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';

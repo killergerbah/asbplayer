@@ -7,13 +7,13 @@ import Box from '@material-ui/core/Box';
 import EditIcon from '@material-ui/icons/Edit';
 import InfoIcon from '@material-ui/icons/Info';
 import FormControl from '@material-ui/core/FormControl';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
+import LabelWithHoverEffect from '@project/common/components/LabelWithHoverEffect';
 import MenuItem from '@material-ui/core/MenuItem';
 import DeleteIcon from '@material-ui/icons/Delete';
 import Radio from '@material-ui/core/Radio';
@@ -26,7 +26,6 @@ import { AsbplayerSettings, KeyBindName, SubtitleListPreference } from '@project
 import { computeStyles, download } from '@project/common/util';
 import { CustomStyle, supportedLanguages, validateSettings } from '@project/common/settings';
 import { useOutsideClickListener } from '@project/common/hooks';
-import { styled } from '@material-ui/core';
 import TagsTextField from '@project/common/components/TagsTextField';
 import hotkeys from 'hotkeys-js';
 import Typography from '@material-ui/core/Typography';
@@ -118,15 +117,6 @@ const useSelectableSettingStyles = makeStyles<Theme>((theme) => ({
         flexDirection: 'row',
         justifyContent: 'end',
         alignItems: 'flex-end',
-    },
-}));
-
-export const LabelWithHoverEffect = styled(FormControlLabel)(({ theme }) => ({
-    '&:hover .MuiSwitch-thumb': {
-        outline: `9px solid ${theme.palette.secondary.main}29`,
-    },
-    '&:hover .MuiRadio-colorSecondary': {
-        background: `${theme.palette.secondary.main}29`,
     },
 }));
 
