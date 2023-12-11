@@ -2,10 +2,15 @@ import React, { useCallback, useEffect, useState, useMemo, useRef, createRef, Re
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { keysAreEqual } from '../services/util';
 import { useResize } from '../hooks/use-resize';
+import { ScreenLocation, useDragging } from '../hooks/use-dragging';
 import { useTranslation } from 'react-i18next';
 import { PostMineAction, SubtitleModel, AutoPauseContext } from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
-import { surroundingSubtitles, mockSurroundingSubtitles } from '@project/common/util';
+import {
+    surroundingSubtitles,
+    mockSurroundingSubtitles,
+    surroundingSubtitlesAroundInterval,
+} from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { KeyBinder } from '@project/common/key-binder';
 import SubtitleTextImage from '@project/common/components/SubtitleTextImage';
@@ -22,6 +27,52 @@ import Clock from '../services/clock';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
 
 let lastKnownWidth: number | undefined;
+
+const lineIntersects = (a1: number, b1: number, a2: number, b2: number) => {
+    if (a1 === a2 || b1 === b2) {
+        return true;
+    }
+
+    if (a1 < a2) {
+        return b1 >= a2;
+    }
+
+    return b2 >= a1;
+};
+
+const intersects = (
+    startLocation: ScreenLocation,
+    endLocation: ScreenLocation,
+    tableRow: React.RefObject<HTMLElement>
+) => {
+    const element = tableRow.current;
+
+    if (!element) {
+        return false;
+    }
+
+    const locationRect = {
+        x: Math.min(startLocation.clientX, endLocation.clientX),
+        y: Math.min(startLocation.clientY, endLocation.clientY),
+        width: Math.abs(startLocation.clientX - endLocation.clientX),
+        height: Math.abs(startLocation.clientY - endLocation.clientY),
+    };
+    const elementRect = element.getBoundingClientRect();
+    return (
+        lineIntersects(
+            locationRect.x,
+            locationRect.x + locationRect.width,
+            elementRect.x,
+            elementRect.x + elementRect.width
+        ) &&
+        lineIntersects(
+            locationRect.y,
+            locationRect.y + locationRect.height,
+            elementRect.y,
+            elementRect.y + elementRect.height
+        )
+    );
+};
 
 interface StylesProps {
     resizable: boolean;
@@ -61,6 +112,28 @@ const useSubtitleRowStyles = makeStyles((theme) => ({
             backgroundColor: theme.palette.action.hover,
         },
         minWidth: 250,
+    },
+    selectedSubtitleRow: {
+        minWidth: 250,
+        '& td': {
+            borderColor: theme.palette.background.paper,
+        },
+        animation: `$select-subtitle-row 300ms ${theme.transitions.easing.easeInOut} forwards`,
+    },
+    '@keyframes select-subtitle-row': {
+        '100%': {
+            backgroundColor: theme.palette.background.paper,
+        },
+    },
+    unselectedSubtitleRow: {
+        minWidth: 250,
+        animation: `$unselect-subtitle-row 300ms ${theme.transitions.easing.easeInOut} forwards`,
+    },
+    '@keyframes unselect-subtitle-row': {
+        '100%': {
+            filter: 'brightness(.7)',
+            backgroundColor: theme.palette.action.disabledBackground,
+        },
     },
     subtitle: {
         fontSize: 20,
@@ -102,10 +175,16 @@ export interface DisplaySubtitleModel extends SubtitleModel {
     index: number;
 }
 
+enum SelectionState {
+    insideSelection = 1,
+    outsideSelection = 2,
+}
+
 interface SubtitleRowProps extends TableRowProps {
     index: number;
     compressed: boolean;
-    selected: boolean;
+    highlighted: boolean;
+    selectionState?: SelectionState;
     disabled: boolean;
     subtitle: DisplaySubtitleModel;
     showCopyButton: boolean;
@@ -117,7 +196,8 @@ interface SubtitleRowProps extends TableRowProps {
 
 const SubtitleRow = React.memo(function SubtitleRow({
     index,
-    selected,
+    highlighted,
+    selectionState,
     subtitleRef,
     onClickSubtitle,
     onCopySubtitle,
@@ -126,7 +206,6 @@ const SubtitleRow = React.memo(function SubtitleRow({
     subtitle,
     copyButtonEnabled,
     showCopyButton,
-    ...tableRowProps
 }: SubtitleRowProps) {
     const classes = useSubtitleRowStyles();
     const textRef = useRef<HTMLSpanElement>(null);
@@ -153,19 +232,31 @@ const SubtitleRow = React.memo(function SubtitleRow({
         </span>
     );
 
+    let rowClassName: string;
+
+    if (selectionState === undefined) {
+        rowClassName = classes.subtitleRow;
+    } else if (selectionState === SelectionState.insideSelection) {
+        rowClassName = classes.selectedSubtitleRow;
+    } else {
+        rowClassName = classes.unselectedSubtitleRow;
+    }
+
     return (
         <TableRow
             onClick={() => !textSelected && onClickSubtitle(index)}
             onMouseUp={handleMouseUp}
             ref={subtitleRef}
-            className={classes.subtitleRow}
-            selected={selected}
-            {...tableRowProps}
+            className={rowClassName}
+            selected={selectionState === undefined && highlighted}
         >
             <TableCell className={className}>{content}</TableCell>
             {showCopyButton && (
                 <TableCell className={classes.copyButton}>
-                    <IconButton disabled={!copyButtonEnabled} onClick={(e) => onCopySubtitle(e, index)}>
+                    <IconButton
+                        disabled={!copyButtonEnabled || selectionState !== undefined}
+                        onClick={(e) => onCopySubtitle(e, index)}
+                    >
                         <NoteAddIcon fontSize={compressed ? 'small' : 'medium'} />
                     </IconButton>
                 </TableCell>
@@ -208,7 +299,7 @@ interface SubtitlePlayerProps {
     ) => void;
     onOffsetChange: (offset: number) => void;
     onToggleSubtitleTrack: (track: number) => void;
-    onSubtitlesSelected: (subtitles: SubtitleModel[]) => void;
+    onSubtitlesHighlighted: (subtitles: SubtitleModel[]) => void;
     onResizeStart?: () => void;
     onResizeEnd?: () => void;
     autoPauseContext: AutoPauseContext;
@@ -241,7 +332,7 @@ export default function SubtitlePlayer({
     onCopy,
     onOffsetChange,
     onToggleSubtitleTrack,
-    onSubtitlesSelected,
+    onSubtitlesHighlighted,
     onResizeStart,
     onResizeEnd,
     autoPauseContext,
@@ -289,8 +380,9 @@ export default function SubtitlePlayer({
     subtitleCollectionRef.current = subtitleCollection ?? SubtitleCollection.empty<DisplaySubtitleModel>();
     const subtitleRefsRef = useRef<RefObject<HTMLTableRowElement>[]>([]);
     subtitleRefsRef.current = subtitleRefs;
-    const [selectedSubtitleIndexes, setSelectedSubtitleIndexes] = useState<{ [index: number]: boolean }>({});
-    const selectedSubtitleIndexesRef = useRef<{ [index: number]: boolean }>({});
+    const [highlightedSubtitleIndexes, setHighlightedSubtitleIndexes] = useState<{ [index: number]: boolean }>({});
+    const highlightedSubtitleIndexesRef = useRef<{ [index: number]: boolean }>({});
+    const [selectedSubtitleIndexes, setSelectedSubtitleIndexes] = useState<boolean[]>();
     const lengthRef = useRef<number>(0);
     lengthRef.current = length;
     const hiddenRef = useRef<boolean>(false);
@@ -304,8 +396,8 @@ export default function SubtitlePlayer({
     const classes = useSubtitlePlayerStyles({ resizable, appBarHidden, appBarHeight });
     const autoPauseContextRef = useRef<AutoPauseContext>();
     autoPauseContextRef.current = autoPauseContext;
-    const onSubtitlesSelectedRef = useRef<(subtitles: SubtitleModel[]) => void>();
-    onSubtitlesSelectedRef.current = onSubtitlesSelected;
+    const onSubtitlesHighlightedRef = useRef<(subtitles: SubtitleModel[]) => void>();
+    onSubtitlesHighlightedRef.current = onSubtitlesHighlighted;
 
     // This effect should be scheduled only once as re-scheduling seems to cause performance issues.
     // Therefore all of the state it operates on is contained in refs.
@@ -328,10 +420,10 @@ export default function SubtitlePlayer({
                 }
             }
 
-            if (!keysAreEqual(currentSubtitleIndexes, selectedSubtitleIndexesRef.current)) {
-                selectedSubtitleIndexesRef.current = currentSubtitleIndexes;
-                setSelectedSubtitleIndexes(currentSubtitleIndexes);
-                onSubtitlesSelectedRef.current?.(showing);
+            if (!keysAreEqual(currentSubtitleIndexes, highlightedSubtitleIndexesRef.current)) {
+                highlightedSubtitleIndexesRef.current = currentSubtitleIndexes;
+                setHighlightedSubtitleIndexes(currentSubtitleIndexes);
+                onSubtitlesHighlightedRef.current?.(showing);
 
                 if (smallestIndex !== undefined) {
                     const scrollToSubtitleRef = subtitleRefs[smallestIndex];
@@ -368,13 +460,13 @@ export default function SubtitlePlayer({
     }, []);
 
     const scrollToCurrentSubtitle = useCallback(() => {
-        const selectedSubtitleIndexes = selectedSubtitleIndexesRef.current;
+        const highlightedSubtitleIndexes = highlightedSubtitleIndexesRef.current;
 
-        if (!selectedSubtitleIndexes) {
+        if (!highlightedSubtitleIndexes) {
             return;
         }
 
-        const indexes = Object.keys(selectedSubtitleIndexes);
+        const indexes = Object.keys(highlightedSubtitleIndexes);
 
         if (indexes.length === 0) {
             return;
@@ -403,7 +495,7 @@ export default function SubtitlePlayer({
         document.addEventListener('visibilitychange', scrollIfVisible);
 
         return () => document.removeEventListener('visibilitychange', scrollIfVisible);
-    }, [hidden, selectedSubtitleIndexes, subtitleRefs, scrollToCurrentSubtitle]);
+    }, [hidden, highlightedSubtitleIndexes, subtitleRefs, scrollToCurrentSubtitle]);
 
     useEffect(() => {
         if (!hidden) {
@@ -584,11 +676,11 @@ export default function SubtitlePlayer({
     );
 
     const calculateSurroundingSubtitles = useCallback(() => {
-        if (!selectedSubtitleIndexesRef.current) {
+        if (!highlightedSubtitleIndexesRef.current) {
             return [];
         }
 
-        const index = Math.min(...Object.keys(selectedSubtitleIndexesRef.current).map((i) => Number(i)));
+        const index = Math.min(...Object.keys(highlightedSubtitleIndexesRef.current).map((i) => Number(i)));
         return calculateSurroundingSubtitlesForIndex(index);
     }, [calculateSurroundingSubtitlesForIndex]);
 
@@ -606,11 +698,11 @@ export default function SubtitlePlayer({
             };
         }
 
-        if (!selectedSubtitleIndexesRef.current) {
+        if (!highlightedSubtitleIndexesRef.current) {
             return undefined;
         }
 
-        const subtitleIndexes = Object.keys(selectedSubtitleIndexesRef.current).map((i) => Number(i));
+        const subtitleIndexes = Object.keys(highlightedSubtitleIndexesRef.current).map((i) => Number(i));
 
         if (subtitleIndexes.length === 0) {
             return undefined;
@@ -703,8 +795,8 @@ export default function SubtitlePlayer({
                 return;
             }
 
-            const selectedSubtitleIndexes = selectedSubtitleIndexesRef.current || {};
-            onSeek(subtitles[index].start, !playingRef.current && index in selectedSubtitleIndexes);
+            const highlightedSubtitleIndexes = highlightedSubtitleIndexesRef.current || {};
+            onSeek(subtitles[index].start, !playingRef.current && index in highlightedSubtitleIndexes);
         },
         [subtitles, onSeek]
     );
@@ -746,6 +838,59 @@ export default function SubtitlePlayer({
         lastKnownWidth = width;
     }, [width]);
 
+    const { dragging, draggingStartLocation, draggingCurrentLocation } = useDragging({ holdToDragMs: 750 });
+
+    useEffect(() => {
+        if (!dragging || !draggingStartLocation || !draggingCurrentLocation || !subtitleRefs) {
+            setSelectedSubtitleIndexes(undefined);
+            return;
+        }
+
+        setSelectedSubtitleIndexes(
+            subtitleRefs.map((ref) => {
+                return intersects(draggingStartLocation, draggingCurrentLocation, ref);
+            })
+        );
+    }, [dragging, draggingStartLocation, draggingCurrentLocation, subtitleRefs]);
+
+    useEffect(() => {
+        if (
+            subtitles !== undefined &&
+            !dragging &&
+            selectedSubtitleIndexes !== undefined &&
+            selectedSubtitleIndexes.length > 0
+        ) {
+            const selectedSubtitles = selectedSubtitleIndexes
+                .map((selected, index) => (selected ? subtitles[index] : undefined))
+                .filter((s) => s !== undefined)
+                .filter((s) => !disabledSubtitleTracks[s!.track]) as SubtitleModel[];
+
+            if (selectedSubtitles.length > 0) {
+                const startTimestamp = Math.min(...selectedSubtitles.map((s) => s.start));
+                const endTimestamp = Math.max(...selectedSubtitles.map((s) => s.end));
+                const { surroundingSubtitles } = surroundingSubtitlesAroundInterval(
+                    subtitles,
+                    startTimestamp,
+                    endTimestamp,
+                    settings.surroundingSubtitlesCountRadius,
+                    settings.surroundingSubtitlesTimeRadius
+                );
+
+                if (surroundingSubtitles) {
+                    const mergedSubtitle = {
+                        text: selectedSubtitles.map((s) => s.text).join('\n'),
+                        start: startTimestamp,
+                        end: endTimestamp,
+                        originalStart: Math.min(...selectedSubtitles.map((s) => s.originalStart)),
+                        originalEnd: Math.max(...selectedSubtitles.map((s) => s.originalEnd)),
+                        track: 0,
+                    };
+                    onCopy(mergedSubtitle, surroundingSubtitles, PostMineAction.showAnkiDialog, true);
+                }
+            }
+        }
+    }, [dragging, disabledSubtitleTracks, selectedSubtitleIndexes, subtitles, settings, onCopy]);
+
     let subtitleTable: ReactNode | null = null;
 
     if (!subtitles || subtitles.length === 0) {
@@ -763,21 +908,29 @@ export default function SubtitlePlayer({
             );
         }
     } else {
-        const selectableTableClassName = isResizing ? classes.unselectableTable : '';
+        const selectableTableClassName = isResizing || dragging ? classes.unselectableTable : '';
 
         subtitleTable = (
             <TableContainer className={`${classes.table} ${selectableTableClassName}`}>
                 <Table>
                     <TableBody>
                         {subtitles.map((s: SubtitleModel, index: number) => {
-                            const selected = index in selectedSubtitleIndexes;
+                            const highlighted = index in highlightedSubtitleIndexes;
+                            let selectionState: SelectionState | undefined;
+
+                            if (selectedSubtitleIndexes !== undefined) {
+                                selectionState = selectedSubtitleIndexes[index]
+                                    ? SelectionState.insideSelection
+                                    : SelectionState.outsideSelection;
+                            }
 
                             return (
                                 <SubtitleRow
                                     key={index}
                                     index={index}
                                     compressed={compressed}
-                                    selected={selected}
+                                    highlighted={highlighted}
+                                    selectionState={selectionState}
                                     showCopyButton={showCopyButton}
                                     copyButtonEnabled={copyButtonEnabled}
                                     disabled={disabledSubtitleTracks[s.track]}

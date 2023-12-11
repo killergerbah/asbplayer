@@ -783,7 +783,7 @@ export default function Player({
         []
     );
 
-    const handleSubtitlesSelected = useCallback(
+    const handleSubtitlesHighlighted = useCallback(
         (subtitles: SubtitleModel[]) => {
             if (subtitles.length === 0 || !settings.autoCopyCurrentSubtitle || !document.hasFocus()) {
                 return;
@@ -999,7 +999,7 @@ export default function Player({
                         onCopy={handleCopyFromSubtitlePlayer}
                         onOffsetChange={handleOffsetChange}
                         onToggleSubtitleTrack={handleToggleSubtitleTrack}
-                        onSubtitlesSelected={handleSubtitlesSelected}
+                        onSubtitlesHighlighted={handleSubtitlesHighlighted}
                         onResizeStart={handleSubtitlePlayerResizeStart}
                         onResizeEnd={handleSubtitlePlayerResizeEnd}
                         maxResizeWidth={Math.max(0, windowWidth - minVideoPlayerWidth)}

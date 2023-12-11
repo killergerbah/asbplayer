@@ -6,7 +6,7 @@ import { Image, SubtitleModel, CardModel } from '@project/common';
 import { AnkiSettings } from '@project/common/settings';
 import {
     humanReadableTime,
-    surroundingSubtitles,
+    surroundingSubtitlesAroundInterval,
     subtitleIntersectsTimeInterval,
     joinSubtitles,
 } from '@project/common/util';
@@ -66,9 +66,10 @@ const boundaryIntervalFromCard = (subtitle: SubtitleModel, theSurroundingSubtitl
     let index = theSurroundingSubtitles.findIndex((s) => s.start === subtitle.start);
     index = index === -1 ? theSurroundingSubtitles.length / 2 : index;
 
-    const subtitlesToDisplay = surroundingSubtitles(
+    const { surroundingSubtitles: subtitlesToDisplay } = surroundingSubtitlesAroundInterval(
         theSurroundingSubtitles,
-        index,
+        subtitle.start,
+        subtitle.end,
         boundaryIntervalSubtitleCountRadius,
         boundaryIntervalSubtitleTimeRadius
     );
@@ -76,7 +77,7 @@ const boundaryIntervalFromCard = (subtitle: SubtitleModel, theSurroundingSubtitl
     let min: number | null = null;
     let max: number | null = null;
 
-    for (const s of subtitlesToDisplay) {
+    for (const s of subtitlesToDisplay ?? []) {
         if (min === null || s.start < min) {
             min = s.start;
         }
