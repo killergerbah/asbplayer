@@ -841,7 +841,7 @@ export default function SubtitlePlayer({
     const { dragging, draggingStartLocation, draggingCurrentLocation } = useDragging({ holdToDragMs: 750 });
 
     useEffect(() => {
-        if (!dragging || !draggingStartLocation || !draggingCurrentLocation || !subtitleRefs) {
+        if (!dragging || !draggingStartLocation || !draggingCurrentLocation || !subtitleRefs || isResizing) {
             setSelectedSubtitleIndexes(undefined);
             return;
         }
@@ -851,7 +851,7 @@ export default function SubtitlePlayer({
                 return intersects(draggingStartLocation, draggingCurrentLocation, ref);
             })
         );
-    }, [dragging, draggingStartLocation, draggingCurrentLocation, subtitleRefs]);
+    }, [dragging, draggingStartLocation, draggingCurrentLocation, subtitleRefs, isResizing]);
 
     useEffect(() => {
         if (
