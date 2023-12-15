@@ -44,7 +44,9 @@ export const useDragging = ({ holdToDragMs }: DraggingOptions) => {
 
     useEffect(() => {
         const enableDragging = (e: MouseEvent) => {
-            if (e.button === 0) {
+            // Must be left-click and far enough to the left to avoid
+            // triggering drag due to scrolling
+            if (e.button === 0 && e.clientX <= window.innerWidth - 50) {
                 setHolding(true);
                 updateLocation(e);
             }

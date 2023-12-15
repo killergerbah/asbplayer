@@ -51,7 +51,7 @@ const intersects = (
         return false;
     }
 
-    const locationRect = {
+    const selectionRect = {
         x: Math.min(startLocation.clientX, endLocation.clientX),
         y: Math.min(startLocation.clientY, endLocation.clientY),
         width: Math.abs(startLocation.clientX - endLocation.clientX),
@@ -60,14 +60,14 @@ const intersects = (
     const elementRect = element.getBoundingClientRect();
     return (
         lineIntersects(
-            locationRect.x,
-            locationRect.x + locationRect.width,
+            selectionRect.x,
+            selectionRect.x + selectionRect.width,
             elementRect.x,
             elementRect.x + elementRect.width
         ) &&
         lineIntersects(
-            locationRect.y,
-            locationRect.y + locationRect.height,
+            selectionRect.y,
+            selectionRect.y + selectionRect.height,
             elementRect.y,
             elementRect.y + elementRect.height
         )
