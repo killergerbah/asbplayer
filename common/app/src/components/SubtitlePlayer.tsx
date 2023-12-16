@@ -22,6 +22,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableRow, { TableRowProps } from '@material-ui/core/TableRow';
+import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import Clock from '../services/clock';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
@@ -212,6 +213,7 @@ const SubtitleRow = React.memo(function SubtitleRow({
     const [textSelected, setTextSelected] = useState<boolean>(false);
     const className = compressed ? classes.compressedSubtitle : classes.subtitle;
     const disabledClassName = disabled ? classes.disabledSubtitle : '';
+    const { t } = useTranslation();
 
     if (subtitle.start < 0 || subtitle.end < 0) {
         return null;
@@ -250,7 +252,17 @@ const SubtitleRow = React.memo(function SubtitleRow({
             className={rowClassName}
             selected={selectionState === undefined && highlighted}
         >
-            <TableCell className={className}>{content}</TableCell>
+            {selectionState === undefined && (
+                <Tooltip
+                    enterDelay={1500}
+                    enterNextDelay={1500}
+                    title={t('subtitlePlayer.multiSubtitleSelectHelp')!}
+                    placement="left"
+                >
+                    <TableCell className={className}>{content}</TableCell>
+                </Tooltip>
+            )}
+            {selectionState !== undefined && <TableCell className={className}>{content}</TableCell>}
             {showCopyButton && (
                 <TableCell className={classes.copyButton}>
                     <IconButton

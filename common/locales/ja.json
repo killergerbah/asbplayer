@@ -268,5 +268,8 @@
         "unboundBind": "キーバインドなし",
         "urlField": "URL フィールド",
         "wordField": "単語フィールド"
+    },
+    "subtitlePlayer": {
+        "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"
     }
 }

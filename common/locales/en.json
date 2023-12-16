@@ -268,5 +268,8 @@
         "unboundBind": "Unbound",
         "urlField": "URL Field",
         "wordField": "Word Field"
+    },
+    "subtitlePlayer": {
+        "multiSubtitleSelectHelp": "Click, hold, and drag to mine multiple subtitles"
     }
 }

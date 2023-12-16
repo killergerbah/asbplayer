@@ -268,5 +268,8 @@
         "unboundBind": "Nieprzypisane",
         "urlField": "Pole na URL",
         "wordField": "Pole na słowo "
+    },
+    "subtitlePlayer": {
+        "multiSubtitleSelectHelp": "Click, hold, and drag to mine multiple subtitles"
     }
 }

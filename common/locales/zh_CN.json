@@ -268,5 +268,8 @@
         "unboundBind": "未绑定",
         "urlField": "URL字段",
         "wordField": "Word字段"
+    },
+    "subtitlePlayer": {
+        "multiSubtitleSelectHelp": "Click, hold, and drag to mine multiple subtitles"
     }
 }
