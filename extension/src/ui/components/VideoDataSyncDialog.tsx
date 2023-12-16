@@ -250,10 +250,10 @@ export default function VideoDataSyncDialog({
                                 label={t('extension.videoDataSync.rememberTrackPreference')}
                                 labelPlacement="start"
                                 style={{
-                                    justifyContent: 'end',
-                                    width: '100%',
-                                    flexDirection: 'row-reverse',
-                                    marginLeft: '13px',
+                                    display: 'flex',
+                                    marginLeft: 'auto',
+                                    marginRight: '-13px',
+                                    width: 'fit-content',
                                 }}
                             />
                         </Grid>
