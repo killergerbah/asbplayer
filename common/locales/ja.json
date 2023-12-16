@@ -107,13 +107,25 @@
         "condensedMode": "短縮",
         "normalMode": "通常",
         "playbackRate": "再生速度",
-        "subtitleOffset": "字幕表示タイミング"
+        "subtitleOffset": "字幕表示タイミング",
+        "subtitleAlignment": "字幕の表示位置",
+        "toggleSubtitles": "字幕オン/オフ",
+        "playbackMode": "プレイバックモード",
+        "unloadVideo": "動画をアンロード",
+        "selectAudioTrack": "オーディオトラックを選択",
+        "selectVideoElement": "動画埋め込み要素",
+        "popOut": "動画をポップアウト",
+        "popIn": "動画をポップイン",
+        "toggleFullscreen": "フルスクリーンオン/オフ",
+        "toggleTheaterMode": "シアターモードオン/オフ",
+        "showSubtitlePlayer": "字幕リストを表示",
+        "hideSubtitlePlayer": "字幕リストを非表示"
     },
     "copyHistory": {
         "blank": "空白",
         "downloadMinedSubsAsSrt": "マイニングした字幕を SRT 形式でダウンロードする",
         "exportToAnki": "Anki にエクスポートする",
-        "miningHistoryEmpty": "マイニング履歴はありません"
+        "miningHistoryEmpty": "マイニング履歴はありませïん"
     },
     "error": {
         "bothAudioAndVideNotAllowed": "音声と動画ファイルを同時にロードできません",

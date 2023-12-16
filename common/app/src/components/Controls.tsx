@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { makeStyles, withStyles, useTheme } from '@material-ui/core/styles';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
-import AudiotrackIcon from '@material-ui/icons/Audiotrack';
 import CloseIcon from '@material-ui/icons/Close';
 import Fade from '@material-ui/core/Fade';
 import Grid from '@material-ui/core/Grid';
@@ -581,7 +580,6 @@ interface ControlsProps {
     subtitlesToggle?: boolean;
     onSubtitlesToggle?: () => void;
     videoFile?: string;
-    audioFile?: string;
     audioTracks?: AudioTrackModel[];
     selectedAudioTrack?: string;
     tabs?: VideoTabModel[];
@@ -637,7 +635,6 @@ export default function Controls({
     subtitlesToggle,
     onSubtitlesToggle,
     videoFile,
-    audioFile,
     audioTracks,
     selectedAudioTrack,
     tabs,
@@ -1003,40 +1000,52 @@ export default function Controls({
                 <Grid container style={{ position: 'absolute', top: 0 }}>
                     <Grid item style={{ flexGrow: 1 }}>
                         {closeEnabled && (
-                            <IconButton
-                                ref={closeButtonRef}
-                                color="inherit"
-                                className={classes.topButton}
-                                onClick={onClose}
-                                onMouseOver={handleMouseOver}
-                                onMouseOut={handleMouseOut}
-                            >
-                                <CloseIcon />
-                            </IconButton>
+                            <Tooltip title={t('controls.unloadVideo')!}>
+                                <IconButton
+                                    ref={closeButtonRef}
+                                    color="inherit"
+                                    className={classes.topButton}
+                                    onClick={onClose}
+                                    onMouseOver={handleMouseOver}
+                                    onMouseOut={handleMouseOut}
+                                >
+                                    <CloseIcon />
+                                </IconButton>
+                            </Tooltip>
                         )}
                     </Grid>
                     <Grid item>
                         {theaterModeToggleEnabled && (
-                            <IconButton
-                                color="inherit"
-                                className={theaterModeEnabled ? classes.topButton : classes.inactiveTopButton}
-                                onClick={onTheaterModeToggle}
-                                onMouseOver={handleMouseOver}
-                                onMouseOut={handleMouseOut}
-                            >
-                                <AspectRatioIcon />
-                            </IconButton>
+                            <Tooltip title={t('controls.toggleTheaterMode')!}>
+                                <IconButton
+                                    color="inherit"
+                                    className={theaterModeEnabled ? classes.topButton : classes.inactiveTopButton}
+                                    onClick={onTheaterModeToggle}
+                                    onMouseOver={handleMouseOver}
+                                    onMouseOut={handleMouseOut}
+                                >
+                                    <AspectRatioIcon />
+                                </IconButton>
+                            </Tooltip>
                         )}
                         {hideSubtitlePlayerToggleEnabled && (
-                            <IconButton
-                                color="inherit"
-                                className={classes.topButton}
-                                onClick={onHideSubtitlePlayerToggle}
-                                onMouseOver={handleMouseOver}
-                                onMouseOut={handleMouseOut}
+                            <Tooltip
+                                title={
+                                    subtitlePlayerHidden
+                                        ? t('controls.showSubtitlePlayer')!
+                                        : t('controls.hideSubtitlePlayer')!
+                                }
                             >
-                                {subtitlePlayerHidden ? <ArrowBackIcon /> : <ArrowForwardIcon />}
-                            </IconButton>
+                                <IconButton
+                                    color="inherit"
+                                    className={classes.topButton}
+                                    onClick={onHideSubtitlePlayerToggle}
+                                    onMouseOver={handleMouseOver}
+                                    onMouseOut={handleMouseOut}
+                                >
+                                    {subtitlePlayerHidden ? <ArrowBackIcon /> : <ArrowForwardIcon />}
+                                </IconButton>
+                            </Tooltip>
                         )}
                     </Grid>
                 </Grid>
@@ -1148,66 +1157,77 @@ export default function Controls({
                             <Grid item style={{ flexGrow: 1 }}></Grid>
                             <ResponsiveButtonGroup>
                                 {subtitleAlignmentEnabled && subtitleAlignment !== undefined && (
-                                    <IconButton color="inherit" onClick={handleSubtitleAlignment}>
-                                        {subtitleAlignment === 'top' ? (
-                                            <VerticalAlignTopIcon />
-                                        ) : (
-                                            <VerticalAlignBottomIcon />
-                                        )}
-                                    </IconButton>
+                                    <Tooltip title={t('controls.subtitleAlignment')!}>
+                                        <IconButton color="inherit" onClick={handleSubtitleAlignment}>
+                                            {subtitleAlignment === 'top' ? (
+                                                <VerticalAlignTopIcon />
+                                            ) : (
+                                                <VerticalAlignBottomIcon />
+                                            )}
+                                        </IconButton>
+                                    </Tooltip>
                                 )}
                                 {subtitlesToggle && (
-                                    <IconButton color="inherit" onClick={onSubtitlesToggle}>
-                                        <SubtitlesIcon
-                                            className={subtitlesEnabled ? classes.button : classes.inactiveButton}
-                                        />
-                                    </IconButton>
+                                    <Tooltip title={t('controls.toggleSubtitles')!}>
+                                        <IconButton color="inherit" onClick={onSubtitlesToggle}>
+                                            <SubtitlesIcon
+                                                className={subtitlesEnabled ? classes.button : classes.inactiveButton}
+                                            />
+                                        </IconButton>
+                                    </Tooltip>
                                 )}
                                 {videoFile && (
-                                    <IconButton color="inherit" onClick={handleVideoUnloaderOpened}>
-                                        <VideocamIcon className={classes.button} />
-                                    </IconButton>
-                                )}
-                                {audioFile && (
-                                    <IconButton color="inherit" onClick={handleAudioUnloaderOpened}>
-                                        <AudiotrackIcon className={classes.button} />
-                                    </IconButton>
+                                    <Tooltip title={t('controls.unloadVideo')!}>
+                                        <IconButton color="inherit" onClick={handleVideoUnloaderOpened}>
+                                            <VideocamIcon className={classes.button} />
+                                        </IconButton>
+                                    </Tooltip>
                                 )}
                                 {audioTracks && audioTracks.length > 1 && (
-                                    <IconButton color="inherit" onClick={handleAudioTrackSelectorOpened}>
-                                        <QueueMusicIcon className={classes.button} />
-                                    </IconButton>
+                                    <Tooltip title={t('controls.selectAudioTrack')!}>
+                                        <IconButton color="inherit" onClick={handleAudioTrackSelectorOpened}>
+                                            <QueueMusicIcon className={classes.button} />
+                                        </IconButton>
+                                    </Tooltip>
                                 )}
                                 {tabs && tabs.length > 0 && (
-                                    <IconButton color="inherit" onClick={handleTabSelectorOpened}>
-                                        <VideocamIcon
-                                            className={selectedTab ? classes.button : classes.inactiveButton}
-                                        />
-                                    </IconButton>
+                                    <Tooltip title={t('controls.selectVideoElement')!}>
+                                        <IconButton color="inherit" onClick={handleTabSelectorOpened}>
+                                            <VideocamIcon
+                                                className={selectedTab ? classes.button : classes.inactiveButton}
+                                            />
+                                        </IconButton>
+                                    </Tooltip>
                                 )}
                                 {playModeEnabled && (
-                                    <IconButton color="inherit" onClick={handlePlayModeSelectorOpened}>
-                                        <TuneIcon
-                                            className={playModeEnabled ? classes.button : classes.inactiveButton}
-                                        />
-                                    </IconButton>
+                                    <Tooltip title={t('controls.playbackMode')!}>
+                                        <IconButton color="inherit" onClick={handlePlayModeSelectorOpened}>
+                                            <TuneIcon
+                                                className={playModeEnabled ? classes.button : classes.inactiveButton}
+                                            />
+                                        </IconButton>
+                                    </Tooltip>
                                 )}
                                 {popOutEnabled && (
-                                    <IconButton color="inherit" onClick={onPopOutToggle}>
-                                        <OpenInNewIcon
-                                            className={classes.button}
-                                            style={popOut ? { transform: 'rotateX(180deg)' } : {}}
-                                        />
-                                    </IconButton>
+                                    <Tooltip title={popOut ? t('controls.popOut')! : t('controls.popIn')!}>
+                                        <IconButton color="inherit" onClick={onPopOutToggle}>
+                                            <OpenInNewIcon
+                                                className={classes.button}
+                                                style={popOut ? { transform: 'rotateX(180deg)' } : {}}
+                                            />
+                                        </IconButton>
+                                    </Tooltip>
                                 )}
                                 {fullscreenEnabled && (
-                                    <IconButton color="inherit" onClick={onFullscreenToggle}>
-                                        {fullscreen ? (
-                                            <FullscreenExitIcon className={classes.button} />
-                                        ) : (
-                                            <FullscreenIcon className={classes.button} />
-                                        )}
-                                    </IconButton>
+                                    <Tooltip title={t('controls.toggleFullscreen')!}>
+                                        <IconButton color="inherit" onClick={onFullscreenToggle}>
+                                            {fullscreen ? (
+                                                <FullscreenExitIcon className={classes.button} />
+                                            ) : (
+                                                <FullscreenIcon className={classes.button} />
+                                            )}
+                                        </IconButton>
+                                    </Tooltip>
                                 )}
                             </ResponsiveButtonGroup>
                         </Grid>
@@ -1228,13 +1248,6 @@ export default function Controls({
                     selectedAudioTrack={selectedAudioTrack}
                     onClose={handleAudioTrackSelectorClosed}
                     onAudioTrackSelected={handleAudioTrackSelected}
-                />
-                <MediaUnloader
-                    open={audioUnloaderOpen}
-                    anchorEl={audioUnloaderAnchorEl}
-                    file={audioFile}
-                    onClose={handleAudioUnloaderClosed}
-                    onUnload={handleUnloadAudio}
                 />
                 <MediaUnloader
                     open={videoUnloaderOpen}

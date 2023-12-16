@@ -107,7 +107,19 @@
         "condensedMode": "Condensed",
         "normalMode": "Normal",
         "playbackRate": "Playback Rate",
-        "subtitleOffset": "Subtitle Offset"
+        "subtitleOffset": "Subtitle Offset",
+        "subtitleAlignment": "Subtitle Alignment",
+        "toggleSubtitles": "Toggle Subtitles",
+        "playbackMode": "Playback Mode",
+        "unloadVideo": "Unload Video",
+        "selectAudioTrack": "Select Audio Track",
+        "selectVideoElement": "Select Video Element",
+        "popOut": "Pop Out",
+        "popIn": "Pop In",
+        "toggleFullscreen": "Toggle Fullscreen",
+        "toggleTheaterMode": "Toggle Theater Mode",
+        "showSubtitlePlayer": "Show Subtitle List",
+        "hideSubtitlePlayer": "Hide Subtitle List"
     },
     "copyHistory": {
         "blank": "Blank",
