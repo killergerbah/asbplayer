@@ -859,7 +859,8 @@ export default function SubtitlePlayer({
             !draggingCurrentLocation ||
             !subtitleRefs ||
             isResizing ||
-            !showCopyButton
+            !showCopyButton ||
+            disableKeyEvents
         ) {
             setSelectedSubtitleIndexes(undefined);
             return;
@@ -870,7 +871,15 @@ export default function SubtitlePlayer({
                 return intersects(draggingStartLocation, draggingCurrentLocation, ref);
             })
         );
-    }, [dragging, draggingStartLocation, draggingCurrentLocation, subtitleRefs, isResizing, showCopyButton]);
+    }, [
+        dragging,
+        draggingStartLocation,
+        draggingCurrentLocation,
+        subtitleRefs,
+        isResizing,
+        showCopyButton,
+        disableKeyEvents,
+    ]);
 
     useEffect(() => {
         if (
