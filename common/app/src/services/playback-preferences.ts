@@ -113,10 +113,6 @@ export default class PlaybackPreferences {
     }
 
     get displaySubtitles() {
-        if (this._extension.supportsAppIntegration) {
-            return this._settings.streamingDisplaySubtitles;
-        }
-
         const value = this._storage.get(displaySubtitlesKey);
 
         if (value === null) {
@@ -127,10 +123,6 @@ export default class PlaybackPreferences {
     }
 
     set displaySubtitles(displaySubtitles: boolean) {
-        if (this._extension.supportsAppIntegration) {
-            this._extension.setSettings({ streamingDisplaySubtitles: displaySubtitles });
-        } else {
-            this._storage.set(displaySubtitlesKey, String(displaySubtitles));
-        }
+        this._storage.set(displaySubtitlesKey, String(displaySubtitles));
     }
 }
