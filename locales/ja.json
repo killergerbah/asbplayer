@@ -88,13 +88,16 @@
         "takeScreenshot": "手動でスクリーンショットを撮影しマイニング時に自動的に撮影されたものを上書きする",
         "toggleAsbplayerSubtitleTrack1": "asbplayer の字幕トラック 1 オン/オフ",
         "toggleAsbplayerSubtitleTrack2": "asbplayer の字幕トラック 2 オン/オフ",
+        "toggleAsbplayerSubtitleTrack3": "asbplayer の字幕トラック 3 オン/オフ",
         "toggleAsbplayerSubtitleTracks": "asbplayer の字幕トラック オン/オフ",
         "toggleAutoPause": "自動一時停止オン/オフ",
         "toggleCondensedPlayback": "短縮プレイバック",
+        "toggleFastForwardPlayback": "早送りプレイバックオン/オフ",
         "togglePlay": "再生/一時停止",
         "toggleSubtitles": "字幕オン/オフ",
         "toggleVideoSubtitleTrack1": "動画の字幕トラック 1 オン/オフ",
         "toggleVideoSubtitleTrack2": "動画の字幕トラック 2 オン/オフ",
+        "toggleVideoSubtitleTrack3": "動画の字幕トラック 3 オン/オフ",
         "toggleVideoSubtitleTracks": "動画の字幕トラック オン/オフ",
         "updateLastCard": "asbplayer でキャプチャしたスクリーンショットや音声を、最後に作成した Anki カードに添付して更新する",
         "toggleSidePanel": "サイドパネルを開く/閉じる"
@@ -104,13 +107,25 @@
         "condensedMode": "短縮",
         "normalMode": "通常",
         "playbackRate": "再生速度",
-        "subtitleOffset": "字幕表示タイミング"
+        "subtitleOffset": "字幕表示タイミング",
+        "subtitleAlignment": "字幕の表示位置",
+        "toggleSubtitles": "字幕オン/オフ",
+        "playbackMode": "プレイバックモード",
+        "unloadVideo": "動画をアンロード",
+        "selectAudioTrack": "オーディオトラックを選択",
+        "selectVideoElement": "動画埋め込み要素",
+        "popOut": "動画をポップアウト",
+        "popIn": "動画をポップイン",
+        "toggleFullscreen": "フルスクリーンオン/オフ",
+        "toggleTheaterMode": "シアターモードオン/オフ",
+        "showSubtitlePlayer": "字幕リストを表示",
+        "hideSubtitlePlayer": "字幕リストを非表示"
     },
     "copyHistory": {
         "blank": "空白",
         "downloadMinedSubsAsSrt": "マイニングした字幕を SRT 形式でダウンロードする",
         "exportToAnki": "Anki にエクスポートする",
-        "miningHistoryEmpty": "マイニング履歴はありません"
+        "miningHistoryEmpty": "マイニング履歴はありませïん"
     },
     "error": {
         "bothAudioAndVideNotAllowed": "音声と動画ファイルを同時にロードできません",
@@ -170,8 +185,10 @@
         "copiedSubtitle": "コピーしました：{{text}}",
         "disabledAutoPause": "自動一時停止：オフ",
         "disabledCondensedPlayback": "短縮プレイバック：オフ",
+        "disabledFastForwardPlayback": "Fast forward playback: Off",
         "enabledAutoPause": "自動一時停止：オン",
         "enabledCondensedPlayback": "短縮プレイバック：オン",
+        "enabledFastForwardPlayback": "Fast forward playback: On",
         "exportedCard": "カードのエクスポート：{{result}}",
         "playbackRate": "再生速度：{{rate}}",
         "savedTimestamp": "保存しました：{{timestamp}}",
@@ -263,5 +280,8 @@
         "unboundBind": "キーバインドなし",
         "urlField": "URL フィールド",
         "wordField": "単語フィールド"
+    },
+    "subtitlePlayer": {
+        "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"
     }
 }

@@ -88,13 +88,16 @@
         "takeScreenshot": "Manually take screenshot, overriding the one that is automatically taken when mining",
         "toggleAsbplayerSubtitleTrack1": "Toggle subtitle track 1 in asbplayer",
         "toggleAsbplayerSubtitleTrack2": "Toggle subtitle track 2 in asbplayer",
+        "toggleAsbplayerSubtitleTrack3": "Toggle subtitle track 3 in asbplayer",
         "toggleAsbplayerSubtitleTracks": "Toggle subtitle track in asbplayer",
         "toggleAutoPause": "Toggle auto-pause",
         "toggleCondensedPlayback": "Toggle condensed playback",
+        "toggleFastForwardPlayback": "Toggle fast forward playback",
         "togglePlay": "Play/pause",
         "toggleSubtitles": "Toggle subtitles",
         "toggleVideoSubtitleTrack1": "Toggle subtitle track 1 in video",
         "toggleVideoSubtitleTrack2": "Toggle subtitle track 2 in video",
+        "toggleVideoSubtitleTrack3": "Toggle subtitle track 3 in video",
         "toggleVideoSubtitleTracks": "Toggle subtitle track in video",
         "updateLastCard": "Update last-created Anki card with asbplayer-captured screenshot, audio, etc.",
         "toggleSidePanel": "Toggle side panel"
@@ -104,7 +107,19 @@
         "condensedMode": "Condensed",
         "normalMode": "Normal",
         "playbackRate": "Playback Rate",
-        "subtitleOffset": "Subtitle Offset"
+        "subtitleOffset": "Subtitle Offset",
+        "subtitleAlignment": "Subtitle Alignment",
+        "toggleSubtitles": "Toggle Subtitles",
+        "playbackMode": "Playback Mode",
+        "unloadVideo": "Unload Video",
+        "selectAudioTrack": "Select Audio Track",
+        "selectVideoElement": "Select Video Element",
+        "popOut": "Pop Out",
+        "popIn": "Pop In",
+        "toggleFullscreen": "Toggle Fullscreen",
+        "toggleTheaterMode": "Toggle Theater Mode",
+        "showSubtitlePlayer": "Show Subtitle List",
+        "hideSubtitlePlayer": "Hide Subtitle List"
     },
     "copyHistory": {
         "blank": "Blank",
@@ -170,8 +185,10 @@
         "copiedSubtitle": "Copied: {{text}}",
         "disabledAutoPause": "Auto-pause: Off",
         "disabledCondensedPlayback": "Condensed playback: Off",
+        "disabledFastForwardPlayback": "Fast forward playback: Off",
         "enabledAutoPause": "Auto-pause: On",
         "enabledCondensedPlayback": "Condensed playback: On",
+        "enabledFastForwardPlayback": "Fast forward playback: On",
         "exportedCard": "Exported card: {{result}}",
         "playbackRate": "Playback Rate: {{rate}}",
         "savedTimestamp": "Saved: {{timestamp}}",
@@ -263,5 +280,8 @@
         "unboundBind": "Unbound",
         "urlField": "URL Field",
         "wordField": "Word Field"
+    },
+    "subtitlePlayer": {
+        "multiSubtitleSelectHelp": "Click, hold, and drag to mine multiple subtitles"
     }
 }

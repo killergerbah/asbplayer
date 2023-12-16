@@ -88,13 +88,16 @@
         "takeScreenshot": "Screenshot erstellen",
         "toggleAsbplayerSubtitleTrack1": "Untertitel 1 in absplayer umschalten",
         "toggleAsbplayerSubtitleTrack2": "Untertitel 2 in asbplayer umschalten",
+        "toggleAsbplayerSubtitleTrack3": "Untertitel 3 in asbplayer umschalten",
         "toggleAsbplayerSubtitleTracks": "Untertitel in absplayer umschalten",
         "toggleAutoPause": "Auto-Pause aktivieren / deaktivieren",
         "toggleCondensedPlayback": "Komprimiertes Audio-Playback aktivieren / deaktivieren",
+        "toggleFastForwardPlayback": "Toggle fast forward playback",
         "togglePlay": "Play / Pause",
         "toggleSubtitles": "Untertitel umschalten",
         "toggleVideoSubtitleTrack1": "Untertitel 1 in Video umschalten",
         "toggleVideoSubtitleTrack2": "Untertitel 2 in Video umschalten",
+        "toggleVideoSubtitleTrack3": "Untertitel 3 in Video umschalten",
         "toggleVideoSubtitleTracks": "Untertitel in Video umschalten",
         "updateLastCard": "Zuletzt erstellte Anki-Karte mit aufgezeichnetem Untertitel",
         "toggleSidePanel": "Toggle side panel"
@@ -104,7 +107,19 @@
         "condensedMode": "Condensed",
         "normalMode": "Normal",
         "playbackRate": "Playback Rate",
-        "subtitleOffset": "Subtitle Offset"
+        "subtitleOffset": "Subtitle Offset",
+        "subtitleAlignment": "Subtitle Alignment",
+        "toggleSubtitles": "Toggle Subtitles",
+        "playbackMode": "Playback Mode",
+        "unloadVideo": "Unload Video",
+        "selectAudioTrack": "Select Audio Track",
+        "selectVideoElement": "Select Video Element",
+        "popOut": "Pop Out",
+        "popIn": "Pop In",
+        "toggleFullscreen": "Toggle Fullscreen",
+        "toggleTheaterMode": "Toggle Theater Mode",
+        "showSubtitlePlayer": "Show Subtitle List",
+        "hideSubtitlePlayer": "Hide Subtitle List"
     },
     "copyHistory": {
         "blank": "Leer",
@@ -170,8 +185,10 @@
         "copiedSubtitle": "Copied: {{text}}",
         "disabledAutoPause": "Auto-pause: Off",
         "disabledCondensedPlayback": "Condensed playback: Off",
+        "disabledFastForwardPlayback": "Fast forward playback: Off",
         "enabledAutoPause": "Auto-pause: On",
         "enabledCondensedPlayback": "Condensed playback: On",
+        "enabledFastForwardPlayback": "Fast forward playback: On",
         "exportedCard": "Exported card: {{result}}",
         "playbackRate": "Playback Rate: {{rate}}",
         "savedTimestamp": "Saved: {{timestamp}}",
@@ -243,10 +260,10 @@
         "subtitleShadowColor": "Subtitle Shadow Color",
         "subtitleShadowThickness": "Subtitle Shadow Thickness",
         "subtitleOutlineThicknessHelperText": "Adds an outline around subtitle text. If this causes overlapping lines, try using a different font.",
+        "subtitlePositionOffset": "Untertitelabstand vom unteren Bildschirmrand",
         "subtitleAlignment": "Untertitel-Position",
         "subtitleAlignmentBottom": "Unten",
         "subtitleAlignmentTop": "Oben",
-        "subtitlePositionOffset": "Untertitelabstand vom unteren Bildschirmrand",
         "subtitleRegexFilter": "Untertitelfilter (Regulärer Ausdruck)",
         "subtitleRegexFilterTextReplacement": "Untertitelfilter Ersetzung",
         "subtitleSize": "Untertitelgröße",
@@ -263,5 +280,8 @@
         "unboundBind": "Nicht gesetzt",
         "urlField": "URL-Feld",
         "wordField": "Wort-Feld"
+    },
+    "subtitlePlayer": {
+        "multiSubtitleSelectHelp": "Click, hold, and drag to mine multiple subtitles"
     }
 }
