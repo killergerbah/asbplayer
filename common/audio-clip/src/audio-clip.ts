@@ -90,8 +90,7 @@ class Base64AudioData implements AudioData {
         const blob = await this._blob();
         const audio = new Audio();
         audio.src = URL.createObjectURL(blob);
-        audio.preload = 'none';
-        audio.load();
+        audio.preload = 'metadata';
         this.playingAudio = audio;
 
         await audio.play();
@@ -291,11 +290,11 @@ class FileAudioData implements AudioData {
 
     private _audioElement(blobUrl: string, selectTrack: boolean): Promise<ExperimentalAudioElement> {
         const audio = new Audio() as ExperimentalAudioElement;
-        audio.preload = 'none';
+        audio.preload = 'metadata';
         audio.src = blobUrl;
 
         return new Promise((resolve, reject) => {
-            audio.onloadedmetadata = (e) => {
+            audio.onloadedmetadata = () => {
                 if (selectTrack && this.trackId && audio.audioTracks && audio.audioTracks.length > 0) {
                     // @ts-ignore
                     for (const t of audio.audioTracks) {
@@ -306,6 +305,10 @@ class FileAudioData implements AudioData {
                 audio.currentTime = this._start / 1000;
                 audio.playbackRate = this.playbackRate;
                 resolve(audio);
+            };
+
+            audio.onerror = () => {
+                reject(audio.error?.message ?? 'Could not load audio');
             };
         });
     }
