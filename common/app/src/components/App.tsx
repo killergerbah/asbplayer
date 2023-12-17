@@ -15,6 +15,8 @@ import {
     CardModel,
     ShowAnkiUiMessage,
     JumpToSubtitleMessage,
+    DownloadImageMessage,
+    DownloadAudioMessage,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import { AsbplayerSettings } from '@project/common/settings';
@@ -548,32 +550,41 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
     );
 
     const handleClipAudio = useCallback(
-        async (item: CopyHistoryItem) => {
+        async (card: CardModel) => {
             try {
-                const clip = AudioClip.fromCard(item, settings.audioPaddingStart, settings.audioPaddingEnd);
+                const clip = AudioClip.fromCard(card, settings.audioPaddingStart, settings.audioPaddingEnd);
 
-                if (settings.preferMp3) {
-                    clip!.toMp3(mp3WorkerFactory).download();
+                if (clip?.isPlayable()) {
+                    if (settings.preferMp3) {
+                        clip!.toMp3(mp3WorkerFactory).download();
+                    } else {
+                        clip!.download();
+                    }
                 } else {
-                    clip!.download();
+                    handleError(t('ankiDialog.audioFileLinkLost'));
                 }
             } catch (e) {
                 handleError(e);
             }
         },
-        [handleError, settings]
+        [handleError, settings, t]
     );
 
     const handleDownloadImage = useCallback(
-        async (item: CopyHistoryItem) => {
+        (item: CardModel) => {
             try {
-                Image.fromCard(item, settings.maxImageWidth, settings.maxImageHeight)!.download();
+                const image = Image.fromCard(item, settings.maxImageWidth, settings.maxImageHeight)!;
+
+                if (image.isAvailable()) {
+                    image.download();
+                } else {
+                    handleError(t('ankiDialog.imageFileLinkLost'));
+                }
             } catch (e) {
-                console.error(e);
                 handleError(e);
             }
         },
-        [handleError, settings]
+        [handleError, settings, t]
     );
 
     const handleDownloadCopyHistorySectionAsSrt = useCallback(
@@ -905,6 +916,30 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
             }
         });
     }, [extension, inVideoPlayer, handleJumpToSubtitle]);
+
+    useEffect(() => {
+        if (inVideoPlayer) {
+            return;
+        }
+
+        return extension.subscribe((message: ExtensionMessage) => {
+            if (message.data.command === 'download-image') {
+                handleDownloadImage(message.data as DownloadImageMessage);
+            }
+        });
+    }, [extension, inVideoPlayer, handleDownloadImage]);
+
+    useEffect(() => {
+        if (inVideoPlayer) {
+            return;
+        }
+
+        return extension.subscribe((message: ExtensionMessage) => {
+            if (message.data.command === 'download-audio') {
+                handleClipAudio(message.data as DownloadAudioMessage);
+            }
+        });
+    }, [extension, inVideoPlayer, handleClipAudio]);
 
     const handleAutoPauseModeChangedViaBind = useCallback(
         (oldPlayMode: PlayMode, newPlayMode: PlayMode) => {

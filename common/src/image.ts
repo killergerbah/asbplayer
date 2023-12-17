@@ -85,23 +85,29 @@ class FileImageData implements ImageData {
     }
 
     async base64(): Promise<string> {
-        return new Promise(async (resolve, reject) => {
-            const canvas = await this._canvas();
-            const dataUrl = canvas.toDataURL('image/jpeg');
-            resolve(dataUrl.substring(dataUrl.indexOf(',') + 1));
+        return new Promise((resolve, reject) => {
+            this._canvas()
+                .then((canvas) => {
+                    const dataUrl = canvas.toDataURL('image/jpeg');
+                    resolve(dataUrl.substring(dataUrl.indexOf(',') + 1));
+                })
+                .catch(reject);
         });
     }
 
     async blob(): Promise<Blob> {
-        return new Promise(async (resolve, reject) => {
-            const canvas = await this._canvas();
-            canvas.toBlob((blob) => {
-                if (blob === null) {
-                    reject(new Error('Could not obtain blob'));
-                } else {
-                    resolve(blob);
-                }
-            }, 'image/jpeg');
+        return new Promise((resolve, reject) => {
+            this._canvas()
+                .then((canvas) => {
+                    canvas.toBlob((blob) => {
+                        if (blob === null) {
+                            reject(new Error('Could not obtain blob'));
+                        } else {
+                            resolve(blob);
+                        }
+                    }, 'image/jpeg');
+                })
+                .catch(reject);
         });
     }
 
@@ -126,6 +132,10 @@ class FileImageData implements ImageData {
                 } else {
                     resolve(canvas);
                 }
+            };
+
+            video.onerror = () => {
+                reject(video.error?.message ?? 'Could not load video to obtain screenshot');
             };
         });
     }

@@ -12,6 +12,7 @@ interface CopyHistoryProps {
     open: boolean;
     drawerWidth?: number;
     items: CopyHistoryItem[];
+    forceShowDownloadOptions?: boolean;
     onClose: () => void;
     onDelete: (item: CopyHistoryItem) => void;
     onAnki: (item: CopyHistoryItem) => void;

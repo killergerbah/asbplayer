@@ -21,6 +21,7 @@ import { Image } from '../../..';
 
 interface CopyHistoryListProps {
     open: boolean;
+    forceShowDownloadOptions?: boolean;
     items: CopyHistoryItem[];
     onClose: () => void;
     onDelete: (item: CopyHistoryItem) => void;
@@ -108,6 +109,7 @@ interface MenuProps {
     open: boolean;
     item: CopyHistoryItem;
     anchorEl?: Element;
+    forceShowDownloadOptions?: boolean;
     onClose: () => void;
     onSelect?: (item: CopyHistoryItem) => void;
     onClipAudio: (item: CopyHistoryItem) => void;
@@ -115,7 +117,17 @@ interface MenuProps {
     onDelete: (item: CopyHistoryItem) => void;
 }
 
-function Menu({ open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage, onDelete, item }: MenuProps) {
+function Menu({
+    open,
+    anchorEl,
+    forceShowDownloadOptions,
+    onClose,
+    onSelect,
+    onClipAudio,
+    onDownloadImage,
+    onDelete,
+    item,
+}: MenuProps) {
     const { t } = useTranslation();
     const handleCopy = useCallback(() => {
         navigator.clipboard.writeText(item!.subtitle.text);
@@ -173,7 +185,7 @@ function Menu({ open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage,
                         <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary={t('action.jumpTo')} />
                     </ListItem>
                 )}
-                {isAudioAvailable && (
+                {(isAudioAvailable || forceShowDownloadOptions) && (
                     <ListItem button onClick={handleClipAudio}>
                         <ListItemText
                             primaryTypographyProps={{ variant: 'body2' }}
@@ -181,7 +193,7 @@ function Menu({ open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage,
                         />
                     </ListItem>
                 )}
-                {isImageAvailable && (
+                {(isImageAvailable || forceShowDownloadOptions) && (
                     <ListItem button onClick={handleDownloadImage}>
                         <ListItemText
                             primaryTypographyProps={{ variant: 'body2' }}
@@ -200,6 +212,7 @@ function Menu({ open, anchorEl, onClose, onSelect, onClipAudio, onDownloadImage,
 export default function CopyHistoryList({
     open,
     items,
+    forceShowDownloadOptions,
     onSelect,
     onClipAudio,
     onDownloadImage,
@@ -340,6 +353,7 @@ export default function CopyHistoryList({
             {menuItem && (
                 <Menu
                     open={open && menuOpen}
+                    forceShowDownloadOptions={forceShowDownloadOptions}
                     anchorEl={menuAnchorEl}
                     item={menuItem}
                     onClose={handleMenuClosed}

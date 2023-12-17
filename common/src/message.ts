@@ -540,3 +540,11 @@ export interface JumpToSubtitleMessage extends Message {
     readonly subtitle: SubtitleModel;
     readonly subtitleFileName: string;
 }
+
+export interface DownloadImageMessage extends Message, CardModel {
+    readonly command: 'download-image';
+}
+
+export interface DownloadAudioMessage extends Message, CardModel {
+    readonly command: 'download-audio';
+}

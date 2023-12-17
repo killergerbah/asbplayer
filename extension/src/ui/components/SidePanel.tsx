@@ -12,8 +12,9 @@ import {
     CopySubtitleMessage,
     CardModel,
     RequestSubtitlesResponse,
-    SubtitleModel,
     JumpToSubtitleMessage,
+    DownloadImageMessage,
+    DownloadAudioMessage,
 } from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
 import { AudioClip } from '@project/common/audio-clip';
@@ -287,30 +288,53 @@ export default function SidePanel({ settings, extension }: Props) {
     const handleCloseCopyHistory = useCallback(() => setShowCopyHistory(false), []);
     const handleClipAudio = useCallback(
         (item: CopyHistoryItem) => {
-            const clip = AudioClip.fromCard(item, settings.audioPaddingStart, settings.audioPaddingEnd);
-
-            if (!clip) {
-                return;
-            }
-            if (settings.preferMp3) {
-                clip.toMp3(mp3WorkerFactory).download();
+            if (viewingAsbplayer) {
+                if (currentTabId) {
+                    const downloadAudioCommand: ExtensionToAsbPlayerCommand<DownloadAudioMessage> = {
+                        sender: 'asbplayer-extension-to-player',
+                        message: {
+                            command: 'download-audio',
+                            ...item,
+                        },
+                    };
+                    chrome.tabs.sendMessage(currentTabId, downloadAudioCommand);
+                }
             } else {
-                clip.download();
+                const clip = AudioClip.fromCard(item, settings.audioPaddingStart, settings.audioPaddingEnd);
+
+                if (clip) {
+                    if (settings.preferMp3) {
+                        clip.toMp3(mp3WorkerFactory).download();
+                    } else {
+                        clip.download();
+                    }
+                }
             }
         },
-        [settings]
+        [settings, currentTabId, viewingAsbplayer]
     );
     const handleDownloadImage = useCallback(
         (item: CopyHistoryItem) => {
-            const image = Image.fromCard(item, settings.maxImageWidth, settings.maxImageHeight);
+            if (viewingAsbplayer) {
+                if (currentTabId) {
+                    const downloadImageCommand: ExtensionToAsbPlayerCommand<DownloadImageMessage> = {
+                        sender: 'asbplayer-extension-to-player',
+                        message: {
+                            command: 'download-image',
+                            ...item,
+                        },
+                    };
+                    chrome.tabs.sendMessage(currentTabId, downloadImageCommand);
+                }
+            } else {
+                const image = Image.fromCard(item, settings.maxImageWidth, settings.maxImageHeight);
 
-            if (!image) {
-                return;
+                if (image) {
+                    image.download();
+                }
             }
-
-            image.download();
         },
-        [settings]
+        [settings, currentTabId, viewingAsbplayer]
     );
     const handleJumpToSubtitle = useCallback(
         (card: CardModel) => {
@@ -402,6 +426,7 @@ export default function SidePanel({ settings, extension }: Props) {
                 <CopyHistoryList
                     open={true}
                     items={copyHistoryItems}
+                    forceShowDownloadOptions={true}
                     onClose={handleCloseCopyHistory}
                     onDelete={deleteCopyHistoryItem}
                     onAnki={handleAnki}
