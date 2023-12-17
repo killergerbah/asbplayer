@@ -395,6 +395,7 @@ export default function SubtitlePlayer({
     const [highlightedSubtitleIndexes, setHighlightedSubtitleIndexes] = useState<{ [index: number]: boolean }>({});
     const highlightedSubtitleIndexesRef = useRef<{ [index: number]: boolean }>({});
     const [selectedSubtitleIndexes, setSelectedSubtitleIndexes] = useState<boolean[]>();
+    const [highlightedJumpToSubtitleIndex, setHighlightedJumpToSubtitleIndex] = useState<number>();
     const lengthRef = useRef<number>(0);
     lengthRef.current = length;
     const hiddenRef = useRef<boolean>(false);
@@ -649,6 +650,8 @@ export default function SubtitlePlayer({
                 inline: 'nearest',
                 behavior: 'smooth',
             });
+            setHighlightedJumpToSubtitleIndex(jumpToIndex);
+            setTimeout(() => setHighlightedJumpToSubtitleIndex(undefined), 1000);
         }
     }, [hidden, jumpToSubtitle, subtitles, subtitleRefs]);
 
@@ -950,6 +953,13 @@ export default function SubtitlePlayer({
                                 selectionState = selectedSubtitleIndexes[index]
                                     ? SelectionState.insideSelection
                                     : SelectionState.outsideSelection;
+                            }
+
+                            if (highlightedJumpToSubtitleIndex !== undefined) {
+                                selectionState =
+                                    highlightedJumpToSubtitleIndex === index
+                                        ? SelectionState.insideSelection
+                                        : SelectionState.outsideSelection;
                             }
 
                             return (
