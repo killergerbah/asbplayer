@@ -207,6 +207,7 @@ const bind = () => {
                 break;
             case 'settings-updated':
                 bindToggleSidePanel();
+                ankiUiController.updateSettings();
                 break;
             default:
             // ignore

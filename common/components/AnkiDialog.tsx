@@ -11,6 +11,7 @@ import {
     joinSubtitles,
 } from '@project/common/util';
 import { AudioClip } from '@project/common/audio-clip';
+import Badge from '@material-ui/core/Badge';
 import Button from '@material-ui/core/Button';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import TextField from '@material-ui/core/TextField';
@@ -310,6 +311,7 @@ const AnkiDialog = ({
     const [lastAppliedTimestampIntervalToAudio, setLastAppliedTimestampIntervalToAudio] = useState<number[]>();
     const [width, setWidth] = useState<number>(0);
     const [audioClip, setAudioClip] = useState<AudioClip>();
+    const [ankiIsAvailable, setAnkiIsAvailable] = useState<boolean>(true);
     const dialogRefCallback = useCallback((element: HTMLElement) => {
         setWidth(element?.getBoundingClientRect().width ?? 0);
     }, []);
@@ -360,6 +362,16 @@ const AnkiDialog = ({
         initialWord,
         initialCustomFieldValues,
     ]);
+
+    useEffect(() => {
+        anki.version()
+            .then(() => {
+                setAnkiIsAvailable(true);
+            })
+            .catch(() => {
+                setAnkiIsAvailable(false);
+            });
+    }, [anki]);
 
     useEffect(() => {
         setTags(settings.tags);
@@ -666,7 +678,9 @@ const AnkiDialog = ({
                 </Typography>
                 {onOpenSettings && (
                     <IconButton edge="end" onClick={() => onOpenSettings()}>
-                        <SettingsIcon />
+                        <Badge invisible={ankiIsAvailable} badgeContent={'!'} color="error">
+                            <SettingsIcon />
+                        </Badge>
                     </IconButton>
                 )}
                 {onCancel && (

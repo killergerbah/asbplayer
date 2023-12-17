@@ -59,6 +59,13 @@ export class TabAnkiUiController {
         client.updateState(state);
     }
 
+    async updateSettings() {
+        const ankiSettings = await this._settings.get([...ankiSettingsKeys]);
+        if (this._frame.bound) {
+            this._frame.client().then((client) => client.sendMessage({ command: 'ankiSettings', value: ankiSettings }));
+        }
+    }
+
     private async _client(language: string, ankiSettings: AnkiSettings) {
         this._frame.fetchOptions = {
             allowedFetchUrl: ankiSettings.ankiConnectUrl,

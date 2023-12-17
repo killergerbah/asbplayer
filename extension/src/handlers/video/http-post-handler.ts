@@ -14,6 +14,7 @@ const allowedActions = [
     'updateNoteFields',
     'addNote',
     'storeMediaFile',
+    'version',
 ];
 
 export default class HttpPostHandler {

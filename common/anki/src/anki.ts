@@ -110,6 +110,11 @@ export class Anki {
         return response.result;
     }
 
+    async version(ankiConnectUrl?: string) {
+        const response = await this._executeAction('version', null, ankiConnectUrl);
+        return response.result;
+    }
+
     async export(
         text: string | undefined,
         definition: string | undefined,
