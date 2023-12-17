@@ -635,7 +635,7 @@ export default function SubtitlePlayer({
         let i = 0;
 
         for (let s of subtitles) {
-            if (s.originalStart === jumpToSubtitle.originalStart && s.text === jumpToSubtitle.text) {
+            if (s.originalStart === jumpToSubtitle.originalStart && jumpToSubtitle.text.includes(s.text)) {
                 jumpToIndex = i;
                 break;
             }

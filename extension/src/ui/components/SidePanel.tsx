@@ -12,6 +12,8 @@ import {
     CopySubtitleMessage,
     CardModel,
     RequestSubtitlesResponse,
+    SubtitleModel,
+    JumpToSubtitleMessage,
 } from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
 import { AudioClip } from '@project/common/audio-clip';
@@ -310,6 +312,24 @@ export default function SidePanel({ settings, extension }: Props) {
         },
         [settings]
     );
+    const handleJumpToSubtitle = useCallback(
+        (card: CardModel) => {
+            if (!currentTabId || !viewingAsbplayer) {
+                return;
+            }
+
+            const asbplayerCommand: ExtensionToAsbPlayerCommand<JumpToSubtitleMessage> = {
+                sender: 'asbplayer-extension-to-player',
+                message: {
+                    command: 'jump-to-subtitle',
+                    subtitle: card.subtitle,
+                    subtitleFileName: card.subtitleFileName,
+                },
+            };
+            chrome.tabs.sendMessage(currentTabId, asbplayerCommand);
+        },
+        [currentTabId, viewingAsbplayer]
+    );
     const handleAnki = useCallback(
         (copyHistoryItem: CopyHistoryItem) => {
             if (currentTabId === undefined) {
@@ -387,6 +407,7 @@ export default function SidePanel({ settings, extension }: Props) {
                     onAnki={handleAnki}
                     onClipAudio={handleClipAudio}
                     onDownloadImage={handleDownloadImage}
+                    onSelect={handleJumpToSubtitle}
                 />
             ) : (
                 <>

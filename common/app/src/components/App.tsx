@@ -14,6 +14,7 @@ import {
     Fetcher,
     CardModel,
     ShowAnkiUiMessage,
+    JumpToSubtitleMessage,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import { AsbplayerSettings } from '@project/common/settings';
@@ -600,16 +601,23 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         [subtitleReader]
     );
 
-    const handleSelectCopyHistoryItem = useCallback(
-        (item: CopyHistoryItem) => {
-            if (!subtitleFiles.find((f) => f.name === item.subtitleFileName)) {
-                handleError(t('error.subtitleFileNotOpen', { fileName: item.subtitleFileName }));
+    const handleJumpToSubtitle = useCallback(
+        (subtitle: SubtitleModel, subtitleFileName: string) => {
+            if (!subtitleFiles.find((f) => f.name === subtitleFileName)) {
+                handleError(t('error.subtitleFileNotOpen', { fileName: subtitleFileName }));
                 return;
             }
 
-            setJumpToSubtitle(item.subtitle);
+            setJumpToSubtitle(subtitle);
         },
         [subtitleFiles, handleError, t]
+    );
+
+    const handleSelectCopyHistoryItem = useCallback(
+        (item: CopyHistoryItem) => {
+            handleJumpToSubtitle(item.subtitle, item.subtitleFileName);
+        },
+        [handleJumpToSubtitle]
     );
 
     const handleAnki = useCallback((card: CardModel) => {
@@ -884,6 +892,19 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         handleAnki,
         handleUnloadVideo,
     ]);
+
+    useEffect(() => {
+        if (inVideoPlayer) {
+            return;
+        }
+
+        return extension.subscribe((message: ExtensionMessage) => {
+            if (message.data.command === 'jump-to-subtitle') {
+                const jumpToSubtitleMessage = message.data as JumpToSubtitleMessage;
+                handleJumpToSubtitle(jumpToSubtitleMessage.subtitle, jumpToSubtitleMessage.subtitleFileName);
+            }
+        });
+    }, [extension, inVideoPlayer, handleJumpToSubtitle]);
 
     const handleAutoPauseModeChangedViaBind = useCallback(
         (oldPlayMode: PlayMode, newPlayMode: PlayMode) => {

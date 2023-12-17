@@ -534,3 +534,9 @@ export interface RequestSubtitlesResponse {
     subtitles: SubtitleModel[];
     subtitleFileNames: string[];
 }
+
+export interface JumpToSubtitleMessage extends Message {
+    readonly command: 'jump-to-subtitle';
+    readonly subtitle: SubtitleModel;
+    readonly subtitleFileName: string;
+}
