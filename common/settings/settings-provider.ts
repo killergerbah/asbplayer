@@ -1,6 +1,8 @@
 import { AsbplayerSettings, KeyBindName, SubtitleListPreference } from '.';
 import { AutoPausePreference, PostMineAction } from '..';
-import { isMacOs } from 'react-device-detect';
+
+// @ts-ignore
+const isMacOs = (navigator.userAgentData?.platform ?? navigator.platform)?.toUpperCase()?.indexOf('MAC') > -1;
 
 export const defaultSettings: AsbplayerSettings = {
     ankiConnectUrl: 'http://127.0.0.1:8765',

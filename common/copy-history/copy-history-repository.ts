@@ -59,7 +59,7 @@ interface CopyHistoryRecord extends CopyHistoryItem {
     index?: number;
 }
 
-export default class CopyHistoryRepository {
+export class CopyHistoryRepository {
     private readonly _db = new CopyHistoryDatabase();
     private _limit: number;
 

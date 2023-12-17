@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useCallback, useState } from 'react';
-import { CopyHistoryItem, CopyHistoryRepository } from '@project/common';
+import { CopyHistoryItem } from '@project/common';
+import { CopyHistoryRepository } from '@project/common/copy-history';
 
 export const useCopyHistory = (miningHistoryStorageLimit: number) => {
     const copyHistoryRepository = useMemo(

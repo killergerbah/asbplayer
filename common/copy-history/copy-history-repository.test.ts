@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import CopyHistoryRepository from './copy-history-repository';
+import { CopyHistoryRepository } from './copy-history-repository';
 
 beforeEach(async () => {
     const repository = new CopyHistoryRepository(1);

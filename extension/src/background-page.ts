@@ -5,8 +5,8 @@ import {
     BackgroundPageReadyMessage,
     AudioBase64Message,
     CopyMessage,
-    CopyHistoryRepository,
 } from '@project/common';
+import { CopyHistoryRepository } from '@project/common/copy-history';
 import { SettingsProvider } from '@project/common/settings';
 import AudioRecorder from './services/audio-recorder';
 import { bufferToBase64 } from './services/base64';
