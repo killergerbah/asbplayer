@@ -143,9 +143,8 @@ class FileImageData implements ImageData {
     _videoElement(file: FileModel) {
         const video = document.createElement('video');
         video.src = file.blobUrl;
-        video.preload = 'none';
+        video.preload = 'metadata';
         video.currentTime = this._timestamp / 1000;
-        video.load();
 
         return video;
     }
