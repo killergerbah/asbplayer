@@ -1201,7 +1201,7 @@ export default function Controls({
                                     </Tooltip>
                                 )}
                                 {popOutEnabled && (
-                                    <Tooltip title={popOut ? t('controls.popOut')! : t('controls.popIn')!}>
+                                    <Tooltip title={popOut ? t('controls.popIn')! : t('controls.popOut')!}>
                                         <IconButton color="inherit" onClick={onPopOutToggle}>
                                             <OpenInNewIcon
                                                 className={classes.button}
