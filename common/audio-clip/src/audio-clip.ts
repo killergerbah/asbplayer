@@ -281,6 +281,7 @@ class FileAudioData implements AudioData {
                             track.stop();
                         }
                     }, (this._end - this._start) / this.playbackRate + 100);
+                    audio.oncanplay = null;
                 };
             } catch (e) {
                 reject(e);
