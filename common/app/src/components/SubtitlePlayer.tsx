@@ -257,7 +257,7 @@ const SubtitleRow = React.memo(function SubtitleRow({
                     enterDelay={1500}
                     enterNextDelay={1500}
                     title={t('subtitlePlayer.multiSubtitleSelectHelp')!}
-                    placement="left"
+                    placement="top"
                 >
                     <TableCell className={className}>{content}</TableCell>
                 </Tooltip>
