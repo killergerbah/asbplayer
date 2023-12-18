@@ -105,6 +105,7 @@
     "controls": {
         "autoPauseMode": "Automatyczna pauza",
         "condensedMode": "Skondensowana",
+        "fastForwardMode": "Fast-forward",
         "normalMode": "Normalna",
         "playbackRate": "Prędkość odtwarzania: {{rate}}",
         "subtitleOffset": "Przesunięcie napisów",

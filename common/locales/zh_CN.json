@@ -105,6 +105,7 @@
     "controls": {
         "autoPauseMode": "自动暂停",
         "condensedMode": "冷凝",
+        "fastForwardMode": "Fast-forward",
         "normalMode": "典型的",
         "playbackRate": "播放速率",
         "subtitleOffset": "字幕偏移",

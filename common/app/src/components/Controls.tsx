@@ -480,6 +480,13 @@ function PlayModeSelector({ open, anchorEl, selectedPlayMode, onPlayMode, onClos
                         {t('controls.condensedMode')}
                     </ListItem>
                     <ListItem
+                        selected={selectedPlayMode === PlayMode.fastForward}
+                        button
+                        onClick={(e) => onPlayMode(PlayMode.fastForward)}
+                    >
+                        {t('controls.fastForwardMode')}
+                    </ListItem>
+                    <ListItem
                         selected={selectedPlayMode === PlayMode.autoPause}
                         button
                         onClick={(e) => onPlayMode(PlayMode.autoPause)}
@@ -895,21 +902,6 @@ export default function Controls({
         },
         [onTabSelected]
     );
-
-    const handleAudioUnloaderClosed = useCallback(() => {
-        setAudioUnloaderAnchorEl(undefined);
-        setAudioUnloaderOpen(false);
-    }, []);
-
-    const handleAudioUnloaderOpened = useCallback((e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        setAudioUnloaderAnchorEl(e.currentTarget);
-        setAudioUnloaderOpen(true);
-    }, []);
-
-    const handleUnloadAudio = useCallback(() => {
-        onUnloadAudio?.();
-        setAudioUnloaderOpen(false);
-    }, [onUnloadAudio]);
 
     const handleVideoUnloaderClosed = useCallback(() => {
         setVideoUnloaderAnchorEl(undefined);

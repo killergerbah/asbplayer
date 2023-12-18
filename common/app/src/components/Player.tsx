@@ -182,7 +182,7 @@ export default function Player({
         () =>
             new SubtitleCollection(subtitles ?? [], {
                 returnLastShown: true,
-                returnNextToShow: playMode === PlayMode.condensed,
+                returnNextToShow: playMode === PlayMode.condensed || playMode === PlayMode.fastForward,
                 showingCheckRadiusMs: 100,
             }),
         [subtitles, playMode]
@@ -277,11 +277,13 @@ export default function Player({
 
     const updatePlaybackRate = useCallback(
         (playbackRate: number, forwardToMedia: boolean) => {
-            clock.rate = playbackRate;
-            setPlaybackRate(playbackRate);
+            if (clock.rate !== playbackRate) {
+                clock.rate = playbackRate;
+                setPlaybackRate(playbackRate);
 
-            if (forwardToMedia) {
-                mediaAdapter.playbackRate(playbackRate);
+                if (forwardToMedia) {
+                    mediaAdapter.playbackRate(playbackRate);
+                }
             }
         },
         [clock, mediaAdapter]
@@ -654,6 +656,33 @@ export default function Player({
     }, [subtitles, subtitleCollection, playMode, clock, seek, playing]);
 
     useEffect(() => {
+        if (playMode !== PlayMode.fastForward) {
+            return;
+        }
+
+        if (!subtitles || subtitles.length === 0) {
+            return;
+        }
+
+        const interval = setInterval(async () => {
+            const timestamp = clock.time(calculateLength());
+            const slice = subtitleCollection.subtitlesAt(timestamp);
+            console.log(slice);
+            if (
+                slice.showing.length === 0 &&
+                (slice.nextToShow === undefined ||
+                    (slice.nextToShow.length > 0 && slice.nextToShow[0].start - timestamp > 1000))
+            ) {
+                updatePlaybackRate(3, true);
+            } else {
+                updatePlaybackRate(1, true);
+            }
+        }, 100);
+
+        return () => clearInterval(interval);
+    }, [updatePlaybackRate, subtitleCollection, clock, subtitles, playMode]);
+
+    useEffect(() => {
         if (videoPopOut && videoFileUrl && channelId) {
             window.open(
                 origin + '?video=' + encodeURIComponent(videoFileUrl) + '&channel=' + channelId + '&popout=true',
@@ -856,8 +885,12 @@ export default function Player({
             setPlayMode(newPlayMode);
             onPlayModeChangedViaBind(playMode, newPlayMode);
             channel?.playMode(newPlayMode);
+
+            if (playMode === PlayMode.fastForward) {
+                updatePlaybackRate(1, true);
+            }
         },
-        [channel, playMode, playModeEnabled, onPlayModeChangedViaBind]
+        [channel, playMode, playModeEnabled, onPlayModeChangedViaBind, updatePlaybackRate]
     );
 
     useEffect(() => {
@@ -870,6 +903,13 @@ export default function Player({
     useEffect(() => {
         return keyBinder.bindCondensedPlayback(
             (event) => togglePlayMode(event, PlayMode.condensed),
+            () => disableKeyEvents
+        );
+    }, [togglePlayMode, keyBinder, disableKeyEvents]);
+
+    useEffect(() => {
+        return keyBinder.bindFastForwardPlayback(
+            (event) => togglePlayMode(event, PlayMode.fastForward),
             () => disableKeyEvents
         );
     }, [togglePlayMode, keyBinder, disableKeyEvents]);

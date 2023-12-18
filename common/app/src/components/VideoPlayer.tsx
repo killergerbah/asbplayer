@@ -1047,6 +1047,13 @@ export default function VideoPlayer({
         );
     }, [keyBinder, togglePlayMode]);
 
+    useEffect(() => {
+        return keyBinder.bindFastForwardPlayback(
+            (event) => togglePlayMode(event, PlayMode.fastForward),
+            () => false
+        );
+    }, [keyBinder, togglePlayMode]);
+
     const handleSubtitlesToggle = useCallback(() => {
         setDisplaySubtitles(!displaySubtitles);
         playbackPreferences.displaySubtitles = !displaySubtitles;
