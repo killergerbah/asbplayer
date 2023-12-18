@@ -673,14 +673,14 @@ export default function Player({
                 (slice.nextToShow === undefined ||
                     (slice.nextToShow.length > 0 && slice.nextToShow[0].start - timestamp > 1000))
             ) {
-                updatePlaybackRate(3, true);
+                updatePlaybackRate(settings.fastForwardModePlaybackRate, true);
             } else {
                 updatePlaybackRate(1, true);
             }
         }, 100);
 
         return () => clearInterval(interval);
-    }, [updatePlaybackRate, subtitleCollection, clock, subtitles, playMode]);
+    }, [updatePlaybackRate, subtitleCollection, clock, subtitles, playMode, settings.fastForwardModePlaybackRate]);
 
     useEffect(() => {
         if (videoPopOut && videoFileUrl && channelId) {

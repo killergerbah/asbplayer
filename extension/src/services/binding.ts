@@ -88,6 +88,7 @@ export default class Binding {
     private autoPausePreference: AutoPausePreference;
     private condensedPlaybackMinimumSkipIntervalMs = 1000;
     private fastForwardPlaybackMinimumGapMs = 600;
+    private fastForwardModePlaybackRate = 2.7;
     private imageDelay = 0;
 
     private playListener?: EventListener;
@@ -227,7 +228,7 @@ export default class Binding {
                             )
                         )
                     ) {
-                        this.video.playbackRate = 2.3;
+                        this.video.playbackRate = this.fastForwardModePlaybackRate;
                     } else {
                         this.video.playbackRate = 1;
                     }
@@ -629,6 +630,7 @@ export default class Binding {
         this.videoDataSyncController.updateSettings(currentSettings);
         this.keyBindings.setKeyBindSet(this, currentSettings.keyBindSet);
         this.condensedPlaybackMinimumSkipIntervalMs = currentSettings.streamingCondensedPlaybackMinimumSkipIntervalMs;
+        this.fastForwardModePlaybackRate = currentSettings.fastForwardModePlaybackRate;
         this.imageDelay = currentSettings.streamingScreenshotDelay;
         this.subtitleController.setSubtitleSettings(currentSettings);
         this.subtitleController.refresh();

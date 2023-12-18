@@ -51,6 +51,7 @@ it('validates exported settings', () => {
         surroundingSubtitlesCountRadius: 2,
         surroundingSubtitlesTimeRadius: 10000,
         autoPausePreference: 2,
+        fastForwardModePlaybackRate: 3,
         keyBindSet: {
             adjustOffsetToNextSubtitle: { keys: '⇧+right' },
             adjustOffsetToPreviousSubtitle: { keys: '⇧+left' },

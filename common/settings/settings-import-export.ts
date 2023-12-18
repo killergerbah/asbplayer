@@ -103,6 +103,9 @@ const settingsSchema = {
         autoPausePreference: {
             type: 'number',
         },
+        fastForwardModePlaybackRate: {
+            type: 'number',
+        },
         keyBindSet: {
             type: 'object',
             properties: {

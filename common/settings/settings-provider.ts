@@ -35,6 +35,7 @@ export const defaultSettings: AsbplayerSettings = {
     surroundingSubtitlesCountRadius: 2,
     surroundingSubtitlesTimeRadius: 10000,
     autoPausePreference: AutoPausePreference.atEnd,
+    fastForwardModePlaybackRate: 2.7,
     keyBindSet: {
         togglePlay: { keys: 'space' },
         toggleAutoPause: { keys: isMacOs ? '⇧+P' : 'shift+P' },

@@ -642,6 +642,7 @@ export default function SettingsForm({
         surroundingSubtitlesCountRadius,
         surroundingSubtitlesTimeRadius,
         autoPausePreference,
+        fastForwardModePlaybackRate,
         keyBindSet,
         clickToMineDefaultAction,
         preferMp3,
@@ -1787,6 +1788,23 @@ export default function SettingsForm({
                                 label={t('settings.autoPauseAtSubtitleEnd')}
                             />
                         </RadioGroup>
+                    </Grid>
+                    <Grid item>
+                        <TextField
+                            type="number"
+                            label={t('settings.fastForwardModePlaybackRate')}
+                            fullWidth
+                            value={fastForwardModePlaybackRate}
+                            color="secondary"
+                            onChange={(event) =>
+                                handleSettingChanged('fastForwardModePlaybackRate', Number(event.target.value))
+                            }
+                            inputProps={{
+                                min: 0.1,
+                                max: 5,
+                                step: 0.1,
+                            }}
+                        />
                     </Grid>
                     <Grid item>
                         <LabelWithHoverEffect
