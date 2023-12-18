@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/asbplayer/static/css/main.86960484.css",
-    "main.js": "/asbplayer/static/js/main.26f5a720.js",
+    "main.js": "/asbplayer/static/js/main.6684aec0.js",
     "static/js/291.ab0ccd71.chunk.js": "/asbplayer/static/js/291.ab0ccd71.chunk.js",
-    "static/js/572.a00a1bad.chunk.js": "/asbplayer/static/js/572.a00a1bad.chunk.js",
-    "static/js/311.1ae36471.chunk.js": "/asbplayer/static/js/311.1ae36471.chunk.js",
-    "static/js/154.9be5ad0f.chunk.js": "/asbplayer/static/js/154.9be5ad0f.chunk.js",
-    "static/js/922.4681c55f.chunk.js": "/asbplayer/static/js/922.4681c55f.chunk.js",
-    "static/js/778.63f41292.chunk.js": "/asbplayer/static/js/778.63f41292.chunk.js",
+    "static/js/572.18a56566.chunk.js": "/asbplayer/static/js/572.18a56566.chunk.js",
+    "static/js/311.0c42eaa3.chunk.js": "/asbplayer/static/js/311.0c42eaa3.chunk.js",
+    "static/js/154.05e5e9fe.chunk.js": "/asbplayer/static/js/154.05e5e9fe.chunk.js",
+    "static/js/922.99a23579.chunk.js": "/asbplayer/static/js/922.99a23579.chunk.js",
+    "static/js/778.0e61749f.chunk.js": "/asbplayer/static/js/778.0e61749f.chunk.js",
     "static/js/347.2371fb9e.chunk.js": "/asbplayer/static/js/347.2371fb9e.chunk.js",
     "static/js/583.9c155296.chunk.js": "/asbplayer/static/js/583.9c155296.chunk.js",
     "static/media/roboto-all-400-normal.woff": "/asbplayer/static/media/roboto-all-400-normal.376ea5d93f71583052f6.woff",
@@ -20,13 +20,13 @@
     "static/media/roboto-greek-ext-400-normal.woff2": "/asbplayer/static/media/roboto-greek-ext-400-normal.bb723e8458c9c653e505.woff2",
     "index.html": "/asbplayer/index.html",
     "main.86960484.css.map": "/asbplayer/static/css/main.86960484.css.map",
-    "main.26f5a720.js.map": "/asbplayer/static/js/main.26f5a720.js.map",
+    "main.6684aec0.js.map": "/asbplayer/static/js/main.6684aec0.js.map",
     "291.ab0ccd71.chunk.js.map": "/asbplayer/static/js/291.ab0ccd71.chunk.js.map",
     "347.2371fb9e.chunk.js.map": "/asbplayer/static/js/347.2371fb9e.chunk.js.map",
     "583.9c155296.chunk.js.map": "/asbplayer/static/js/583.9c155296.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.86960484.css",
-    "static/js/main.26f5a720.js"
+    "static/js/main.6684aec0.js"
   ]
 }

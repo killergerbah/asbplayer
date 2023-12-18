@@ -105,6 +105,7 @@
     "controls": {
         "autoPauseMode": "Auto-pause",
         "condensedMode": "Condensed",
+        "fastForwardMode": "Fast-forward",
         "normalMode": "Normal",
         "playbackRate": "Playback Rate",
         "subtitleOffset": "Subtitle Offset",
@@ -222,6 +223,7 @@
         "autoPauseAtSubtitleStart": "Am Anfang des Untertitels",
         "autoPausePreference": "Auto-Pause",
         "autoPausePreferenceHelperText": "Aktiviert keine Auto-Pause",
+        "fastForwardModePlaybackRate": "Fast-forward Mode Playback Rate",
         "copyOnMine": "Extrahierte Untertitel in die Zwischenablage kopieren",
         "corsHelperText": "Stelle sicher das {{origin}} in der webCorsOriginList innerhalb der AnkiConnect-Einstellungen steht (Siehe <0>video</0>).",
         "customCssField": "CSS: {{styleKey}}",

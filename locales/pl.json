@@ -105,6 +105,7 @@
     "controls": {
         "autoPauseMode": "Automatyczna pauza",
         "condensedMode": "Skondensowana",
+        "fastForwardMode": "Fast-forward",
         "normalMode": "Normalna",
         "playbackRate": "Prędkość odtwarzania: {{rate}}",
         "subtitleOffset": "Przesunięcie napisów",
@@ -222,6 +223,7 @@
         "autoPauseAtSubtitleStart": "Na początku napisu ",
         "autoPausePreference": "Preferencja automatycznej pauzy",
         "autoPausePreferenceHelperText": "Nie włącza automatycznej pauzy. Ustawia preferencję kiedy się zatrzymać gdy automatyczna pauza jest włączona. ",
+        "fastForwardModePlaybackRate": "Fast-forward Mode Playback Rate",
         "copyOnMine": "Skopiuj wykopane napisy do schowka",
         "corsHelperText": "Upewnij się że {{origin}} jest w liście webCorsOriginList w twoich ustawieniach AnkiConnect tak",
         "customCssField": "CSS: {{styleKey}}",

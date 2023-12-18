@@ -105,6 +105,7 @@
     "controls": {
         "autoPauseMode": "Auto-pause",
         "condensedMode": "Condensed",
+        "fastForwardMode": "Fast-forward",
         "normalMode": "Normal",
         "playbackRate": "Playback Rate",
         "subtitleOffset": "Subtitle Offset",
@@ -222,6 +223,7 @@
         "autoPauseAtSubtitleStart": "At Subtitle Start",
         "autoPausePreference": "Auto-pause Preference",
         "autoPausePreferenceHelperText": "Does not enable auto-pause. Sets the preference for when to pause when auto-pause is enabled.",
+        "fastForwardModePlaybackRate": "Fast-forward Mode Playback Rate",
         "copyOnMine": "Copy mined subtitles to clipboard",
         "corsHelperText": "Ensure that {{origin}} is in the webCorsOriginList in your AnkiConnect settings as in this <0>video</0>.",
         "customCssField": "CSS: {{styleKey}}",
