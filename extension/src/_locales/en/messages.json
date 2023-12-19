@@ -1,6 +1,6 @@
 {
     "extensionDescription": {
-        "message": "Sync asbplayer with streaming video."
+        "message": "Enhance streaming video for language-learning."
     },
     "shortcutMineSubtitleDescription": {
         "message": "Mine current subtitle. When video is synced without a subtitle file, starts/stops recording audio."
