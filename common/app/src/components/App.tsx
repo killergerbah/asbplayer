@@ -404,6 +404,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
 
             const newCopiedSubtitle = {
                 ...card,
+                subtitleFileName: card.subtitleFileName || card.file?.name || '',
                 timestamp: Date.now(),
                 id: id || uuidv4(),
             };
