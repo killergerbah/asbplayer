@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cat "$1" | sort | jq -s -R 'split("\r\n") | .[] | split(",") | {"_path": .[0] | split("."), "_value": .[1]} | setpath(._path;._value) | delpaths([["_path"],["_value"]])' | jq -s 'reduce .[] as $item ({}; . *= $item)'
+cat "$1" | sort | jq -s -R 'split("\r\n") | .[] | {"_path": .[:index(",")], "_value": .[index(",")+1:]} | {"_path": ._path | split("."), "_value": ._value} | setpath(._path;._value) | delpaths([["_path"],["_value"]])' | jq -s 'reduce .[] as $item ({}; . *= $item)'
