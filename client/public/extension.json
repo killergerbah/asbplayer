@@ -23,6 +23,11 @@
             "code": "pl",
             "url": "/locales/pl.json",
             "version": 2
+        },
+        {
+            "code": "pt_BR",
+            "url": "/locales/pt_BR.json",
+            "version": 1
         }
     ]
 }

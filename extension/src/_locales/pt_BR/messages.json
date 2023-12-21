@@ -1,0 +1,29 @@
+{
+    "extensionDescription": {
+        "message": "Aprimora o streaming de vídeo para o aprendizado de idiomas."
+    },
+    "shortcutMineSubtitleAndOpenDialogDescription": {
+        "message": "Minera a legenda atual e abre a caixa de diálogo 'Exportar para o Anki'. Quando o vídeo está sincronizado sem um arquivo de legenda, inicia/para a gravação de áudio."
+    },
+    "shortcutMineSubtitleDescription": {
+        "message": "Minera a legenda atual. Quando o vídeo está sincronizado sem um arquivo de legenda, inicia/para a gravação de áudio."
+    },
+    "shortcutSelectSubtitleTrackDescription": {
+        "message": "Seleciona faixas de legenda para carregar"
+    },
+    "shortcutTakeScreenshotDescription": {
+        "message": "Tira manualmente uma captura de tela, substituindo aquela que é automaticamente capturada durante a mineração."
+    },
+    "shortcutToggleRecordingDescription": {
+        "message": "Inicia/para manualmente a gravação de áudio, mesmo quando um arquivo de legenda está carregado."
+    },
+    "shortcutUpdateLastCardDescription": {
+        "message": "Atualiza o último cartão criado no Anki com a mídia capturada pelo asbplayer. Quando o vídeo está sincronizado sem um arquivo de legenda, inicia/para a gravação de áudio."
+    },
+    "contextMenuLoadSubtitles": {
+        "message": "Carregar legenda"
+    },
+    "contextMenuMineSubtitle": {
+        "message": "Minerar legenda"
+    }
+}

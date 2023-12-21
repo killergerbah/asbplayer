@@ -107,7 +107,8 @@
                 "asbplayer-locales/en.json",
                 "asbplayer-locales/ja.json",
                 "asbplayer-locales/pl.json",
-                "asbplayer-locales/zh_CN.json"
+                "asbplayer-locales/zh_CN.json",
+                "asbplayer-locales/pt_BR.json"
             ],
             "matches": ["<all_urls>"]
         }

@@ -3,8 +3,8 @@ import { initReactI18next } from 'react-i18next';
 import resourcesToBackend from 'i18next-resources-to-backend';
 import { useEffect, useState } from 'react';
 
-const init = i18n
-    .use(resourcesToBackend((language: string) => import(`@project/common/locales/${language}.json`)))
+let init: Promise<any> = i18n
+    .use(resourcesToBackend((language: string) => import(`../../locales/${language}.json`)))
     .use(initReactI18next)
     .init({
         partialBundledLanguages: true,
@@ -30,9 +30,7 @@ export const useI18n = ({ language }: { language: string }) => {
     }, [initialized]);
 
     useEffect(() => {
-        if (language !== i18n.language) {
-            init.then(() => i18n.changeLanguage(language));
-        }
+        init = init.then(() => i18n.changeLanguage(language));
     }, [language]);
 
     return { initialized };
