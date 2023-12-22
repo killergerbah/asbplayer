@@ -650,16 +650,7 @@ const AnkiDialog = ({
         audioActionElement = (
             <Tooltip title={t('ankiDialog.rerecord')!}>
                 <span>
-                    <IconButton
-                        disabled={
-                            !timestampInterval ||
-                            !lastAppliedTimestampIntervalToAudio ||
-                            (timestampInterval[0] === lastAppliedTimestampIntervalToAudio[0] &&
-                                timestampInterval[1] === lastAppliedTimestampIntervalToAudio[1])
-                        }
-                        onClick={handleApplyTimestampIntervalToAudio}
-                        edge="end"
-                    >
+                    <IconButton onClick={handleApplyTimestampIntervalToAudio} edge="end">
                         <FiberManualRecordIcon />
                     </IconButton>
                 </span>
