@@ -17,15 +17,17 @@ export interface LocalizationConfig {
 
 const settings = new SettingsProvider(new ExtensionSettingsStorage());
 
-export const fetchExtensionConfig = async (): Promise<ExtensionConfig | undefined> => {
-    const cachedConfig = (await chrome.storage.session.get(['config'])).config;
+export const fetchExtensionConfig = async (noCache = false): Promise<ExtensionConfig | undefined> => {
+    if (!noCache) {
+        const cachedConfig = (await chrome.storage.session.get(['config'])).config;
 
-    if (cachedConfig === '-') {
-        return undefined;
-    }
+        if (cachedConfig === '-') {
+            return undefined;
+        }
 
-    if (cachedConfig !== undefined) {
-        return cachedConfig as ExtensionConfig;
+        if (cachedConfig !== undefined) {
+            return cachedConfig as ExtensionConfig;
+        }
     }
 
     try {
@@ -41,7 +43,6 @@ export const fetchExtensionConfig = async (): Promise<ExtensionConfig | undefine
         console.error(e);
     }
 
-    await chrome.storage.session.set({ config: '-' });
     return undefined;
 };
 

@@ -19,7 +19,7 @@ import {
 import { AsbplayerSettings } from '@project/common/settings';
 import { AudioClip } from '@project/common/audio-clip';
 import { ChromeExtension, useCopyHistory } from '@project/common/app';
-import { useI18n } from '@project/common/hooks';
+import { useI18n } from '../hooks/use-i18n';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Player } from '@project/common/app';

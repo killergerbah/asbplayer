@@ -47,7 +47,7 @@ import { useTranslation } from 'react-i18next';
 import LocalizedError from './localized-error';
 import { DisplaySubtitleModel } from './SubtitlePlayer';
 import { useCopyHistory } from '../hooks/use-copy-history';
-import { useI18n } from '../../../hooks';
+import { useI18n } from '../hooks/use-i18n';
 import { useAppKeyBinder } from '../hooks/use-app-key-binder';
 
 const latestExtensionVersion = '0.28.0';

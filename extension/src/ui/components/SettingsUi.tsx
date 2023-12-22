@@ -9,10 +9,12 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
 import { useCommandKeyBinds } from '../hooks/use-command-key-binds';
-import { useI18n, useLocalFontFamilies } from '@project/common/hooks';
+import { useLocalFontFamilies } from '@project/common/hooks';
+import { useI18n } from '../hooks/use-i18n';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Paper from '@material-ui/core/Paper';
 import { Anki } from '@project/common/anki';
+import { useSupportedLanguages } from '../hooks/use-supported-languages';
 
 const useStyles = makeStyles({
     root: {
@@ -62,6 +64,7 @@ const SettingsUi = () => {
 
         return undefined;
     }, []);
+    const { supportedLanguages } = useSupportedLanguages();
 
     if (!settings || !anki || !commands || !i18nInitialized || !theme) {
         return null;
@@ -85,6 +88,7 @@ const SettingsUi = () => {
                             localFontsAvailable={localFontsAvailable}
                             localFontsPermission={localFontsPermission}
                             localFontFamilies={localFontFamilies}
+                            supportedLanguages={supportedLanguages}
                             onUnlockLocalFonts={handleUnlockLocalFonts}
                             scrollToId={section}
                         />

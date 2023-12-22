@@ -19,15 +19,27 @@ export const fetchLocalization = async (lang: string): Promise<Localization> => 
     );
 };
 
+export const fetchSupportedLanguages = async (): Promise<string[]> => {
+    const config = await fetchExtensionConfig();
+
+    if (config === undefined) {
+        return defaultSupportedLanguages;
+    }
+
+    return config.languages.map((c) => c.code);
+};
+
 export const primeLocalization = async (lang: string): Promise<void> => {
     try {
-        const config = await fetchExtensionConfig();
+        let config = await fetchExtensionConfig();
 
         if (config === undefined) {
             return;
         }
 
-        const langConfig = config.languages.find((c) => c.code === lang);
+        const langConfig =
+            config.languages.find((c) => c.code === lang) ??
+            (await fetchExtensionConfig(true))?.languages.find((c) => c.code === lang);
 
         if (langConfig === undefined) {
             return;

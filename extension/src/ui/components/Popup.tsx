@@ -6,12 +6,13 @@ import SettingsForm from '@project/common/components/SettingsForm';
 import PanelIcon from '@project/common/components/PanelIcon';
 import LaunchIcon from '@material-ui/icons/Launch';
 import { useCallback, useMemo } from 'react';
-import { useI18n } from '@project/common/hooks';
 import Button from '@material-ui/core/Button';
 import { useTranslation } from 'react-i18next';
 import { Fetcher } from '@project/common/src/fetcher';
 import { useLocalFontFamilies } from '@project/common/hooks';
 import { Anki } from '@project/common/anki';
+import { useSupportedLanguages } from '../hooks/use-supported-languages';
+import { useI18n } from '../hooks/use-i18n';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -54,6 +55,7 @@ const Popup = ({
             active: true,
         });
     }, []);
+    const { supportedLanguages } = useSupportedLanguages();
     const { localFontsAvailable, localFontsPermission, localFontFamilies } = useLocalFontFamilies();
 
     if (!i18nInitialized) {
@@ -94,6 +96,7 @@ const Popup = ({
                     localFontsAvailable={localFontsAvailable}
                     localFontsPermission={localFontsPermission}
                     localFontFamilies={localFontFamilies}
+                    supportedLanguages={supportedLanguages}
                     onSettingsChanged={onSettingsChanged}
                     onOpenChromeExtensionShortcuts={onOpenExtensionShortcuts}
                     onUnlockLocalFonts={handleUnlockLocalFonts}

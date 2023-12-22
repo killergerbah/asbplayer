@@ -10,7 +10,7 @@ import ChromeExtension from '../services/chrome-extension';
 import SettingsForm from '../../../components/SettingsForm';
 import { useLocalFontFamilies } from '../../../hooks';
 import { Anki } from '../../../anki';
-import { AsbplayerSettings } from '../../../settings';
+import { AsbplayerSettings, supportedLanguages } from '../../../settings';
 
 const useStyles = makeStyles({
     root: {
@@ -74,6 +74,7 @@ export default function SettingsDialog({
                     localFontsAvailable={localFontsAvailable}
                     localFontsPermission={localFontsPermission}
                     localFontFamilies={localFontFamilies}
+                    supportedLanguages={supportedLanguages}
                     onUnlockLocalFonts={handleUnlockLocalFonts}
                 />
             </DialogContent>

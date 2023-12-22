@@ -24,7 +24,7 @@ import { Theme } from '@material-ui/core/styles';
 import { AutoPausePreference, PostMineAction } from '@project/common';
 import { AsbplayerSettings, KeyBindName, SubtitleListPreference } from '@project/common/settings';
 import { computeStyles, download } from '@project/common/util';
-import { CustomStyle, supportedLanguages, validateSettings } from '@project/common/settings';
+import { CustomStyle, validateSettings } from '@project/common/settings';
 import { useOutsideClickListener } from '@project/common/hooks';
 import TagsTextField from '@project/common/components/TagsTextField';
 import hotkeys from 'hotkeys-js';
@@ -513,6 +513,7 @@ interface Props {
     localFontsAvailable: boolean;
     localFontsPermission?: PermissionState;
     localFontFamilies: string[];
+    supportedLanguages: string[];
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     onOpenChromeExtensionShortcuts: () => void;
     onUnlockLocalFonts: () => void;
@@ -531,6 +532,7 @@ export default function SettingsForm({
     localFontsAvailable,
     localFontsPermission,
     localFontFamilies,
+    supportedLanguages,
     onSettingsChanged,
     onOpenChromeExtensionShortcuts,
     onUnlockLocalFonts,
