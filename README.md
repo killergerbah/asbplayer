@@ -53,19 +53,33 @@ Otherwise, the following steps will work for any language:
 7. When a subtitle appears that you want to mine, use <kbd>Ctrl+Shift+X</kbd> to open the Anki dialog.
 8. Fill in the definition and word fields and then export the card. To fill in the definition field you may use the dictionary you installed in step 1.
 
+## Community guides
+
+-   [Shiki's Lazy Sentence Mining Workflow (Japanese)](https://docs.google.com/document/d/e/2PACX-1vQuEAoZFoJbULZzCJ3_tW7ayT_DcQl9eDlrXMnuPGTwDk62r5fQrXak3ayxBsEgkL85_Z-YY5W4yUom/pub)
+-   [Sentence mining from Netflix and YouTube with asbplayer (Japanese)](https://soyuz18.notion.site/Sentence-mining-from-Netflix-and-YouTube-with-asbplayer-83a03590cd8349ba81ca10340645b565)
+-   [Refold's installation guide](https://www.youtube.com/watch?v=Pv4Sp01Uh64)
+-   [Refold's sentence mining guide (Japanese + European languages)](https://www.youtube.com/watch?v=jXO4gmCmcNE)
+-   [Sentence Mining: Learning Japanese From Anime (Japanese)](https://www.youtube.com/watch?v=B60cj69MSmA)
+
+## Demos
+
+-   [3 ways to mine streaming video with asbplayer](https://www.youtube.com/watch?v=HrIJZ6cUMFw)
+-   [Sentence mining a video file with asbplayer](https://www.youtube.com/watch?v=BSr_JusW8E8)
+
 ## Usage
 
-### Syncing with streaming video
+### Enhancing streaming video with asbplayer features
 
-Install the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest). There are three ways to sync streaming video with asbplayer:
+Install the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest). There are three ways to enhance streaming video with asbplayer:
 
-1. Drag-and-drop a subtitle file into the video element you want to sync.
-2. Load a file into the [asbplayer site](https://killergerbah.github.io/asbplayer/) and click on the camera in the bottom right to pick a video element to sync. This is the recommended way to load BluRay subtitle files onto streaming video.
-3. Use <kbd>Ctrl+Shift+F</kbd> to select a video element to sync. From the dialog that appears you can choose whether to load an [auto-detected subtitle track](#subtitle-track-detection-for-streaming-video) or an empty one.
+1. Drag-and-drop a subtitle file into the video element you want to enhance.
+2. Load a file into the [asbplayer site](https://killergerbah.github.io/asbplayer/) and click on the camera in the bottom right to pick a video element to enhance. This is the recommended way to load BluRay subtitle files onto streaming video.
+3. Use <kbd>Ctrl+Shift+F</kbd> to select a video element to enhance. From the dialog that appears you can choose whether to load an [auto-detected subtitle track](#subtitle-track-detection-for-streaming-video) or an empty one.
+4. asbplayer features will then be accessible for that video.
 
 ### Loading files
 
-Drag-and-drop media and subtitle files into the [asbplayer site](https://killergerbah.github.io/asbplayer/) to load them.
+Drag-and-drop media and subtitle files into the [asbplayer site](https://killergerbah.github.io/asbplayer/) to load them. asbplayer features will then be accessible for those files.
 
 ### Creating Anki flashcards
 
@@ -150,19 +164,6 @@ Most keyboard shortcuts shared by the extension and the website are customizable
 
 -   Make sure the browser zoom setting is at 100%.
 -   You can disable cropping altogether using the extension settings menu.
-
-## Demos
-
--   [3 ways to mine streaming video with asbplayer](https://www.youtube.com/watch?v=HrIJZ6cUMFw)
--   [Sentence mining a video file with asbplayer](https://www.youtube.com/watch?v=BSr_JusW8E8)
-
-## Community guides
-
--   [Shiki's Lazy Sentence Mining Workflow (Japanese)](https://docs.google.com/document/d/e/2PACX-1vQuEAoZFoJbULZzCJ3_tW7ayT_DcQl9eDlrXMnuPGTwDk62r5fQrXak3ayxBsEgkL85_Z-YY5W4yUom/pub)
--   [Sentence mining from Netflix and YouTube with asbplayer (Japanese)](https://soyuz18.notion.site/Sentence-mining-from-Netflix-and-YouTube-with-asbplayer-83a03590cd8349ba81ca10340645b565)
--   [Refold's installation guide](https://www.youtube.com/watch?v=Pv4Sp01Uh64)
--   [Refold's sentence mining guide (Japanese + European languages)](https://www.youtube.com/watch?v=jXO4gmCmcNE)
--   [Sentence Mining: Learning Japanese From Anime (Japanese)](https://www.youtube.com/watch?v=B60cj69MSmA)
 
 ## Browser compatibility
 
