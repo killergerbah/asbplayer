@@ -162,6 +162,7 @@ Most keyboard shortcuts shared by the extension and the website are customizable
 -   [Sentence mining from Netflix and YouTube with asbplayer (Japanese)](https://soyuz18.notion.site/Sentence-mining-from-Netflix-and-YouTube-with-asbplayer-83a03590cd8349ba81ca10340645b565)
 -   [Refold's installation guide](https://www.youtube.com/watch?v=Pv4Sp01Uh64)
 -   [Refold's sentence mining guide (Japanese + European languages)](https://www.youtube.com/watch?v=jXO4gmCmcNE)
+-   [Sentence Mining: Learning Japanese From Anime (Japanese)](https://www.youtube.com/watch?v=B60cj69MSmA)
 
 ## Browser compatibility
 
