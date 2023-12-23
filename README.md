@@ -165,6 +165,10 @@ Most keyboard shortcuts shared by the extension and the website are customizable
 -   Make sure the browser zoom setting is at 100%.
 -   You can disable cropping altogether using the extension settings menu.
 
+### When using the 'update last card' feature, the card does not update in Anki.
+
+-   Make sure Anki's card browser is closed when using 'update last card.' There is a [known issue](https://github.com/FooSoft/anki-connect/issues/82) with AnkiConnect where cards will not appear to update when the card browser is open.
+
 ## Browser compatibility
 
 The asbplayer application and extension have only been tested on the latest version Chrome and likely work on other Chromium-based browsers.
