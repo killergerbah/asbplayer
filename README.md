@@ -187,7 +187,7 @@ An audio track selector will appear for `mkv` files if experimental web platform
 
 The asbplayer application and extension have only been tested on the latest version Chrome and likely work on other Chromium-based browsers.
 
-Local video file playback is supported only for codecs supported by the browser. The [animebook](https://github.com/animebook/animebook.github.io?tab=readme-ov-file#video-format-support-last-update-january-2023) readme has a detailed explanation of this and links to browsers that have good compatibility. Personally, I use Microsoft Edge and paid one dollar for HEVC support.
+Local video file playback is supported only for codecs supported by the browser. The [animebook](https://github.com/animebook/animebook.github.io?tab=readme-ov-file#video-format-support-last-update-january-2023) readme has a detailed explanation of this and links to browsers that have good compatibility.
 
 ## Contributing
 
