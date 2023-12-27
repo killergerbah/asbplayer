@@ -1,6 +1,18 @@
 # asbplayer
 
-asbplayer is a browser-based media player and Chrome extension for subtitle sentence mining, hosted at [https://killergerbah.github.io/asbplayer/](https://killergerbah.github.io/asbplayer/). Use asbplayer to combine subtitles and media extracted from streaming or local video sources to create media-rich Anki flashcards.
+**asbplayer** is a browser-based media player and Chrome extension developed for language learners who learn their target language through subtitled media. With asbplayer, you can:
+
+-   **Easily create high-quality flashcards** out of subtitled videos.
+-   **Load text-selectable subtitles onto most video sources**, including streaming sources.
+-   **Extract subtitles from popular streaming services** like Netflix and YouTube.
+-   **Seek through subtitles** using a **navigable subtitle list**.
+-   **Focus your learning** on subtitled sections of media using **playback modes** such as:
+    -   **Condensed playback**: Only play subtitled sections of a video.
+    -   **Fast-forward playback**: Fast-forward through unsubtitled sections of video.
+    -   **Auto-pause**: Automatically pause at the beginning or end of every subtitle.
+-   **Customizable keyboard shortcuts** to access most of asbplayer's features, including subtitle navigation.
+
+## Thanks
 
 Thank you to all of my sponsors:
 
@@ -38,20 +50,26 @@ Thank you to all those who have translated asbplayer:
 
 If you are a non-English native, and would like to help translate asbplayer, please contact me on [Discord](https://discord.gg/ad7VAQru7m).
 
-## Getting Started (streaming video)
+## Getting Started
 
 First, see if you can get started with one of the [community guides](#community-guides).
 
 Otherwise, the following steps will work for any language:
 
 1. Install a dictionary for your target language that allows you to do instant lookups. Popular ones are [Yomichan](https://chrome.google.com/webstore/detail/yomichan/ogmnaimimemjmbakcfefmnahgdfhfami) for Japanese and [VocabSieve](https://github.com/FreeLanguageTools/vocabsieve) for European languages.
-2. Install the asbplayer Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest).
-3. Install [Anki](https://apps.ankiweb.net/), and create a deck and note type.
-4. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
-5. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect with your deck and note type.
-6. Drag-and-drop a subtitle file into the streaming video you want to mine. You may have to [adjust the subtitle offset](#adjusting-subtitle-offset) to get the subtitles in sync.
-7. When a subtitle appears that you want to mine, use <kbd>Ctrl+Shift+X</kbd> to open the Anki dialog.
-8. Fill in the definition and word fields and then export the card. To fill in the definition field you may use the dictionary you installed in step 1.
+2. Install [Anki](https://apps.ankiweb.net/), and create a deck and note type.
+3. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
+4. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect using your deck and note type.
+
+5. Enhance a video using asbplayer and subtitle files.
+
+    - **For streaming video:** After installing the [Chrome extension](https://github.com/killergerbah/asbplayer/releases/latest), drag-and-drop a subtitle file into the streaming video you want to mine.
+    - **For local files:** Drag-and-drop media/subtitle files into the [asbplayer website](https://killergerbah.github.io/asbplayer).
+
+    You may have to [adjust the subtitle offset](#adjusting-subtitle-offset) to get the subtitles in sync.
+
+6. When a subtitle appears that you want to mine, use <kbd>Ctrl + Shift + X</kbd> to open the flashcard creator.
+7. Fill in the definition and word fields and then export the card. To fill in the definition field you may use the dictionary you installed in step 1.
 
 ## Community guides
 
@@ -66,43 +84,48 @@ Otherwise, the following steps will work for any language:
 -   [3 ways to mine streaming video with asbplayer](https://www.youtube.com/watch?v=HrIJZ6cUMFw)
 -   [Sentence mining a video file with asbplayer](https://www.youtube.com/watch?v=BSr_JusW8E8)
 
-## Usage
+## Detailed usage
 
 ### Enhancing streaming video with asbplayer features
 
 Install the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest). There are three ways to enhance streaming video with asbplayer:
 
 1. Drag-and-drop a subtitle file into the video element you want to enhance.
-2. Load a file into the [asbplayer site](https://killergerbah.github.io/asbplayer/) and click on the camera in the bottom right to pick a video element to enhance. This is the recommended way to load BluRay subtitle files onto streaming video.
-3. Use <kbd>Ctrl+Shift+F</kbd> to select a video element to enhance. From the dialog that appears you can choose whether to load an [auto-detected subtitle track](#subtitle-track-detection-for-streaming-video) or an empty one.
-4. asbplayer features will then be accessible for that video.
+2. Load a subtitle file into the [asbplayer website](https://killergerbah.github.io/asbplayer/) and click on the camera in the bottom right to pick a video element to enhance. This is the recommended way to load BluRay subtitle files onto streaming video.
+3. Use <kbd>Ctrl + Shift + F</kbd> to select a video element to enhance. From the dialog that appears you can choose whether to load an [auto-detected subtitle track](#subtitle-track-detection-for-streaming-video) or an empty one.
 
-### Loading files
+asbplayer features will then be accessible for that video.
 
-Drag-and-drop media and subtitle files into the [asbplayer site](https://killergerbah.github.io/asbplayer/) to load them. asbplayer features will then be accessible for those files.
+### Enhancing local video files with asbplayer features
+
+Drag-and-drop media and subtitle files into the [asbplayer website](https://killergerbah.github.io/asbplayer/) to load them. asbplayer features will then be accessible for those files.
+
+### Keyboard shortcuts
+
+Keyboard shortcuts are customizable from the [asbplayer website settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts). Once asbplayer has been bound to a video, you can use the keyboard shortcuts to access most of asbplayer's features.
 
 ### Creating Anki flashcards
 
-Make sure Anki and AnkiConnect are installed. Integration with AnkiConnect can be configured in the [settings](https://killergerbah.github.io/asbplayer/?view=settings) as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
+Make sure [Anki](https://apps.ankiweb.net/) and [AnkiConnect](https://ankiweb.net/shared/info/2055492159) are installed. Integration with AnkiConnect can be configured in the [settings](https://killergerbah.github.io/asbplayer/?view=settings) as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
 
-When a subtitle that you want to mine appears, <kbd>Ctrl+Shift+X</kbd> opens the Anki export dialog.
+When a subtitle that you want to mine appears, <kbd>Ctrl + Shift + X</kbd> opens the flashcard creator.
 
 ### Adjusting Anki flashcards
 
-All text fields can be edited from the Anki export dialog before exporting the Anki flashcard.
+All text fields can be edited from the flashcard creator prior to flashcard creation.
 
-To adjust audio or subtitle selection, adjust the selected time interval for the card using the slider at the bottom of the export dialog.
-The newly selected time interval can be applied using the buttons in either the sentence or audio fields. See this [video](https://youtu.be/BSr_JusW8E8?t=34) for a demo of this.
+Adjust the selected time interval for the card using the slider at the bottom of the export dialog.
+The newly selected time interval can be applied to the card using the buttons availablbe in the sentence and audio sections of the card. See this [video](https://youtu.be/BSr_JusW8E8?t=34) for a demo.
 
 ### Adjusting subtitle offset
 
-<kbd>Ctrl+Left/Right</kbd> will adjust subtitle offset so that the previous/next subtitle appears at the current timestamp. <kbd>Ctrl+Shift+Left/Right</kbd> will adjust offset by 100 ms increments.
+Use <kbd>Ctrl + Left/Right</kbd> to adjust subtitle offset so that the previous/next subtitle appears at the current timestamp. Then use <kbd>Ctrl + Shift + Left/Right</kbd> for finer adjustment by 100ms increments.
 
-You can also adjust offset manually by clicking on the "Subtitle Offset" text field in the controls in the asbplayer tab, typing a number, and pressing <kbd>Enter</kbd>.
+If you are using the asblayer website, you can also use the "Subtitle Offset" text field available in the controls UI.
 
 ### Subtitle track detection for streaming video
 
-<kbd>Ctrl+Shift+F</kbd> will show detected subtitle tracks for streaming video. Below are the sites where automatic subtitle detection is supported:
+Use <kbd>Ctrl + Shift + F</kbd> to see auto-detected subtitle tracks for streaming video. Below are the sites where automatic subtitle detection is supported:
 
 -   Netflix
 -   Youtube
@@ -112,36 +135,13 @@ You can also adjust offset manually by clicking on the "Subtitle Offset" text fi
 -   Bandai Channel
 -   Amazon Prime (known issue: subtitles sometimes off by ~30 seconds)
 
-<kbd>Ctrl+Shift+F</kbd> also allows you to choose an empty subtitle track so that you can mine streaming video without subtitles.
+<kbd>Ctrl + Shift + F</kbd> also allows you to load an empty subtitle track so that you can extract audio and screenshots from streaming video without loading subtitles.
 
 ### Audio track selection for mkv files
 
-An audio track selector will appear for `mkv` files if experimental web platform features are enabled from `chrome://flags`. Note that enabling this flag may cause issues with other features of asbplayer, such as card creation from streaming sources.
-
-### Keyboard shortcuts
-
-Most keyboard shortcuts shared by the extension and the website are customizable from the [asbplayer website settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts). These shortcuts can be toggled on and off from the extension popup. Extension-only shortcuts and some shared shortcuts that require special access to Chrome extension features are customizable from `chrome://extensions/shortcuts`.
+An audio track selector will appear for `mkv` files if experimental web platform features are enabled from `chrome://flags`. Note that enabling this flag may cause issues with other features of asbplayer, such as card creation through the Chrome extension.
 
 ## Common issues
-
-### asbplayer isn't detecting streaming video.
-
--   Try refreshing both the asbplayer tab and the video in the other tab.
--   Make sure that in the extension details, the extension has access to all sites.
-    A lot of video players are loaded inside of iframes, so it's difficult to
-    know every single URL that the extension might need access to.
-
-### The extension keyboard shortcuts aren't working.
-
--   Check `chrome://extensions/shortcuts`.
--   Check the keyboard shortcut settings from the asbplayer website.
--   You can also check the currently-bound shortcuts from the extension popup menu.
--   Try uninstalling and reinstalling the extension and restarting Chrome.
--   Make sure the extension isn't installed twice.
-
-### The asbplayer website keyboard shortcuts aren't working.
-
--   See the [Keyboard Shortcuts](#keyboard-shortcuts) section.
 
 ### asbplayer can't connect to Anki. It shows an error message e.g. 'Failed to fetch.'
 
@@ -150,24 +150,38 @@ Most keyboard shortcuts shared by the extension and the website are customizable
 -   Make sure that the origin you add to the AnkiConnect settings is exactly `https://killergerah.github.io` (and not `https://killergerah.github.io/asbplayer`).
 -   Check that your browser or an ad blocker isn't blocking the request. A good place to start is by opening your browser's developer console and looking for errors.
 -   As of this writing enabling experimental web platform features is known to cause this issue. Try disabling this flag from `chrome://flags`.
--   On later versions of macOS AnkiConnect will not respond sometimes Anki is in the background. See "Notes for MacOS Users" at the AnkiConnect developer's [website](https://foosoft.net/projects/anki-connect/).
+-   On later versions of macOS, AnkiConnect will not respond when Anki is backgrounded. See "Notes for MacOS Users" on the [AnkiConnect developer's website](https://foosoft.net/projects/anki-connect/).
+
+### When using the 'update last card' feature, the card does not update in Anki.
+
+-   Make sure Anki's card browser is closed when using 'update last card.' There is a [known issue](https://github.com/FooSoft/anki-connect/issues/82) with AnkiConnect where cards will not appear to update when the card browser is open.
 
 ### When loading a local file asbplayer either shows a black screen, or doesn't play audio.
 
 -   See the [Browser Compatibility](#browser-compatibility) section.
 
+### asbplayer isn't detecting streaming video.
+
+-   Try refreshing both the asbplayer tab and the video in the other tab.
+-   Make sure that in the extension details, the extension has access to all sites.
+
+### Keyboard shortcuts aren't working.
+
+-   Check the the [keyboard shortcut settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts).
+-   If you are using the extension:
+    -   Check `chrome://extensions/shortcuts`.
+    -   Try refreshing the page and loading subtitles again.
+    -   Try uninstalling and reinstalling the extension, and restarting Chrome.
+    -   Make sure the extension isn't installed twice.
+
 ### asbplayer isn't including audio/screenshot in flashcards.
 
--   If you're mining streaming video make sure you use an extension keyboard shortcut (<kbd>Ctrl+Shift+X</kbd> by default) from the tab with the streaming video.
+-   If you're mining streaming video via the Chrome extension, make sure that the streaming video tab is selected and in the foreground when you use a mining keyboard shortcut
 
 ### asbplayer isn't properly cropping screenshots from streaming video.
 
 -   Make sure the browser zoom setting is at 100%.
 -   You can disable cropping altogether using the extension settings menu.
-
-### When using the 'update last card' feature, the card does not update in Anki.
-
--   Make sure Anki's card browser is closed when using 'update last card.' There is a [known issue](https://github.com/FooSoft/anki-connect/issues/82) with AnkiConnect where cards will not appear to update when the card browser is open.
 
 ## Browser compatibility
 
