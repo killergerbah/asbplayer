@@ -37,7 +37,7 @@ import {
     ToggleVideoSelectMessage,
 } from '@project/common';
 import { SettingsProvider } from '@project/common/settings';
-import { primeLocalization } from './services/localization-fetcher';
+import { fetchSupportedLanguages, primeLocalization } from './services/localization-fetcher';
 import VideoDisappearedHandler from './handlers/video/video-disappeared-handler';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
 import LoadSubtitlesHandler from './handlers/asbplayerv2/load-subtitles-handler';
@@ -56,7 +56,23 @@ const startListener = async () => {
     primeLocalization(await settings.getSingle('language'));
 };
 
-chrome.runtime.onInstalled.addListener(startListener);
+const installListener = async (details: chrome.runtime.InstalledDetails) => {
+    if (details.reason !== chrome.runtime.OnInstalledReason.INSTALL) {
+        return;
+    }
+
+    const defaultUiLanguage = chrome.i18n.getUILanguage();
+    const supportedLanguages = await fetchSupportedLanguages();
+
+    if (supportedLanguages.includes(defaultUiLanguage)) {
+        await settings.set({ language: defaultUiLanguage });
+        primeLocalization(defaultUiLanguage);
+    }
+
+    chrome.tabs.create({ url: chrome.runtime.getURL('ftue-ui.html'), active: true });
+};
+
+chrome.runtime.onInstalled.addListener(installListener);
 chrome.runtime.onStartup.addListener(startListener);
 
 const tabRegistry = new TabRegistry(settings);

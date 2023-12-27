@@ -15,6 +15,7 @@ module.exports = (env, options) => ({
         'video-data-sync-ui': './src/video-data-sync-ui.ts',
         'video-select-ui': './src/video-select-ui.ts',
         'active-tab-permission-request-ui': './src/active-tab-permission-request-ui.ts',
+        'ftue-ui': './src/ftue-ui.ts',
         asbplayer: './src/asbplayer.ts',
         'background-page': './src/background-page.ts',
         'mp3-encoder-worker': '../common/audio-clip/src/mp3-encoder-worker.ts',

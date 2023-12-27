@@ -6,25 +6,24 @@
         "downloadAudio": "Baixar áudio",
         "downloadImage": "Baixar imagem",
         "downloadSubtitlesAsSrt": "Baixar legenda como SRT",
-        "exportSettings": "Exportar configurações",
-        "importSettings": "Importar configurações",
         "jumpTo": "Pular para",
-        "loadSubtitles": "Carregar legenda",
-        "mine": "Minerar",
-        "mineSubtitle": "Minerar legenda",
         "ok": "OK",
-        "openApp": "Abrir aplicativo",
+        "mineSubtitle": "Minerar legenda",
         "openFiles": "Abrir arquivos",
+        "loadSubtitles": "Carregar legenda",
+        "openApp": "Abrir aplicativo",
         "openSidePanel": "Abrir painel lateral",
+        "mine": "Minerar",
+        "updateLastCard": "Atualizar último card",
         "startRecording": "Iniciar gravação",
         "stopRecording": "Parar gravação",
-        "updateLastCard": "Atualizar último card"
+        "importSettings": "Importar configurações",
+        "exportSettings": "Exportar configurações"
     },
-    "activeTabPermissionRequest": {
-        "grantedPrompt": "A gravação de áudio foi habilitada para esta guia. Agora você pode começar a minerar.",
-        "grantedTitle": "Gravação de áudio habilitada.",
-        "prompt": "Clique no botão de ação do asbplayer no canto superior direito da janela do navegador para habilitar a gravação de áudio para esta guia.",
-        "title": "Habilitar gravação de áudio."
+    "postMineAction": {
+        "none": "Nada",
+        "showAnkiDialog": "Mostrar caixa de diálogo do Anki",
+        "updateLastCard": "Atualizar último card"
     },
     "ankiDialog": {
         "applySelection": "Aplicar seleção",
@@ -95,35 +94,33 @@
         "toggleCondensedPlayback": "Alternar reprodução condensada",
         "toggleFastForwardPlayback": "Alternar reprodução de avanço rápido",
         "togglePlay": "Play/pause",
-        "toggleSidePanel": "Alternar painel lateral",
         "toggleSubtitles": "Alternar legendas",
         "toggleVideoSubtitleTrack1": "Alternar faixa de legenda 1 no vídeo",
         "toggleVideoSubtitleTrack2": "Alternar faixa de legenda 2 no vídeo",
         "toggleVideoSubtitleTrack3": "Alternar faixa de legenda 3 no vídeo",
         "toggleVideoSubtitleTracks": "Alterne a faixa de legenda no vídeo",
-        "updateLastCard": "Atualiza o último cartão criado no Anki com captura de tela, áudio, etc. do asbplayer."
+        "updateLastCard": "Atualiza o último cartão criado no Anki com captura de tela, áudio, etc. do asbplayer.",
+        "toggleSidePanel": "Alternar painel lateral"
     },
-
-
     "controls": {
         "autoPauseMode": "Pausa automática",
         "condensedMode": "Condensado",
         "fastForwardMode": "Avanço rápido",
-        "hideSubtitlePlayer": "Ocultar lista de legendas",
         "normalMode": "Normal",
-        "playbackMode": "Modo de reprodução",
         "playbackRate": "Taxa de reprodução",
-        "popIn": "Recuar",
-        "popOut": "Destacar",
+        "subtitleOffset": "Atraso da legenda",
+        "subtitleAlignment": "Alinhamento da legenda",
+        "toggleSubtitles": "Ativar/Desativar legendas",
+        "playbackMode": "Modo de reprodução",
+        "unloadVideo": "Descarregar vídeo",
         "selectAudioTrack": "Selecionar faixa de áudio",
         "selectVideoElement": "Selecionar elemento de vídeo",
-        "showSubtitlePlayer": "Mostrar lista de legendas",
-        "subtitleAlignment": "Alinhamento da legenda",
-        "subtitleOffset": "Atraso da legenda",
+        "popOut": "Destacar",
+        "popIn": "Recuar",
         "toggleFullscreen": "Alternar tela cheia",
-        "toggleSubtitles": "Ativar/Desativar legendas",
         "toggleTheaterMode": "Alternar modo teatro",
-        "unloadVideo": "Descarregar vídeo"
+        "showSubtitlePlayer": "Mostrar lista de legendas",
+        "hideSubtitlePlayer": "Ocultar lista de legendas"
     },
     "copyHistory": {
         "blank": "Em branco",
@@ -145,9 +142,6 @@
         "videoPlayerDragAndDropNotAllowed": "O player de vídeo não pode receber arquivos arrastados. Solte-os fora do quadro do vídeo."
     },
     "extension": {
-        "backgroundAudioRecordingPage": {
-            "description": "Esta página é usada pelo asbplayer para capturar áudio."
-        },
         "settings": {
             "asbplayerUrl": "URL do aplicativo",
             "autoLoadDetectedSubs": "Carregar automaticamente legendas detectadas",
@@ -156,15 +150,15 @@
             "cropScreenshot": "Recortar captura de tela",
             "displaySubtitles": "Exibir legendas",
             "dragAndDrop": "Permitir ação de arrastar e soltar para arquivos de legenda",
+            "subtitleListPreference": "Preferência da lista de legendas",
+            "openSubtitleList": "Abrir lista de legendas ao carregar legendas",
             "mining": "Mineração",
             "miningKeyboardShortcuts": "Atalhos de Teclado para Mineração",
             "misc": "Diversos",
-            "openSubtitleList": "Abrir lista de legendas ao carregar legendas",
             "playback": "Reprodução",
             "playbackKeyboardShortcuts": "Atalhos de Teclado para Reprodução",
             "recordAudio": "Gravar áudio",
             "screenshotCaptureDelay": "Atraso de captura de tela",
-            "subtitleListPreference": "Preferência da lista de legendas",
             "subtitles": "Legenda",
             "syncing": "Sincronização",
             "takeScreenshot": "Tirar captura de tela",
@@ -183,10 +177,16 @@
             "selectVideo": "Selecione um elemento de vídeo para sincronizá-lo com o asbplayer.",
             "syncBeforeMine": "Um elemento de vídeo deve ser sincronizado com o asbplayer antes que ele possa ser minerado. Selecione um elemento de vídeo para sincronizá-lo com o asbplayer.",
             "videoElement": "Elemento de vídeo"
+        },
+        "backgroundAudioRecordingPage": {
+            "description": "Esta página é usada pelo asbplayer para capturar áudio."
         }
     },
+    "ftue": {
+        "welcome": "Welcome to asbplayer.",
+        "welcomeBody": "Check out the <0>readme</0> to see how to get started."
+    },
     "info": {
-        "activeTabPermissionObtained": "A gravação de áudio agora está habilitada para essa guia.",
         "copiedSubtitle": "Copiado: {{text}}",
         "disabledAutoPause": "Pausa automática: Off",
         "disabledCondensedPlayback": "Reprodução condensada: Off",
@@ -197,20 +197,22 @@
         "exportedCard": "Card exportado: {{result}}",
         "playbackRate": "Taxa de reprodução: {{rate}}",
         "savedTimestamp": "Salvo: {{timestamp}}",
-        "updatedCard": "Atualizar card: {{result}}"
+        "updatedCard": "Atualizar card: {{result}}",
+        "activeTabPermissionObtained": "A gravação de áudio agora está habilitada para essa guia."
     },
     "landing": {
         "cta": "Arraste e solte arquivos de mídia e legenda, ou <1>procure</1>.",
         "extensionNotInstalled": "Instale a  <1>Extensão para o chrome</1> para sincronizar as legendas com o streaming de vídeo.",
         "extensionUpdateAvailable": "Uma <1>atualização</1>  para a extensão está disponível.",
         "noSubtitles": "Sem legendas",
-        "noVideoElementsDetected": "Nenhum vídeo detectado.",
-        "videoElementsDetected": "Carregar legendas em um vídeo para começar a usar o asbplayer."
+        "videoElementsDetected": "Carregar legendas em um vídeo para começar a usar o asbplayer.",
+        "noVideoElementsDetected": "Nenhum vídeo detectado."
     },
-    "postMineAction": {
-        "none": "Nada",
-        "showAnkiDialog": "Mostrar caixa de diálogo do Anki",
-        "updateLastCard": "Atualizar último card"
+    "activeTabPermissionRequest": {
+        "title": "Habilitar gravação de áudio.",
+        "grantedTitle": "Gravação de áudio habilitada.",
+        "prompt": "Clique no botão de ação do asbplayer no canto superior direito da janela do navegador para habilitar a gravação de áudio para esta guia.",
+        "grantedPrompt": "A gravação de áudio foi habilitada para esta guia. Agora você pode começar a minerar."
     },
     "settings": {
         "addCustomCss": "Adicionar CSS customizado",
@@ -225,7 +227,7 @@
         "autoPauseAtSubtitleStart": "No início da legenda",
         "autoPausePreference": "Preferência de pausa automática",
         "autoPausePreferenceHelperText": "Não habilita a pausa automática. Define a preferência de quando pausar quando a pausa automática estiver habilitada.",
-        "clickToMineDefaultAction": "Ação padrão do botão de mineração",
+        "fastForwardModePlaybackRate": "Taxa de reprodução no modo de avanço rápido",
         "copyOnMine": "Copiar legenda minerada para a área de transferência",
         "corsHelperText": "Certifique-se de que {{origin}} esteja na webCorsOriginList em suas configurações do AnkiConnect, como neste <0>vídeo</0>.",
         "customCssField": "CSS: {{styleKey}}",
@@ -233,7 +235,6 @@
         "definitionField": "Campo de definição",
         "extensionOverriddenBind": "Sobreposto",
         "extensionShortcut": "Atalho da extensão",
-        "fastForwardModePlaybackRate": "Taxa de reprodução no modo de avanço rápido",
         "imageBasedSubtitleScaleFactor": "Fator de escala para legendas baseadas em Imagem",
         "imageField": "Campo de imagem",
         "keyboardShortcuts": "Atalhos de teclado",
@@ -242,6 +243,7 @@
         "maxImageWidth": "Largura máxima da Imagem",
         "mining": "Mineração",
         "miningHistoryStorageLimit": "Limite de armazenamento do histórico de mineração",
+        "clickToMineDefaultAction": "Ação padrão do botão de mineração",
         "misc": "Diversos",
         "mp3Preference": "Recodificar áudio como MP3 (mais lento)",
         "noteType": "Tipo de nota",
@@ -250,13 +252,10 @@
         "recordingBind": "Gravando",
         "rememberSubtitleOffset": "Lembrar do atraso da legenda",
         "sentenceField": "Campo da sentença",
-        "sourceField": "Campo da fonte",
         "streamingVideo": "Streaming de vídeo",
         "styleKey": "Tecla de estilo",
         "styleValue": "Valor de estilo",
-        "subtitleAlignment": "Alinhamento da legenda",
-        "subtitleAlignmentBottom": "Inferior",
-        "subtitleAlignmentTop": "Superior",
+        "sourceField": "Campo da fonte",
         "subtitleAppearance": "Aparência da legenda",
         "subtitleBackgroundColor": "Cor de fundo da legenda",
         "subtitleBackgroundOpacity": "Opacidade do fundo da legenda",
@@ -264,12 +263,15 @@
         "subtitleFontFamily": "Família de fonte da legenda",
         "subtitleOutlineColor": "Cor do contorno da legenda",
         "subtitleOutlineThickness": "Expessura do contorno da legenda",
-        "subtitleOutlineThicknessHelperText": "Adiciona um contorno ao redor do texto da legenda. Se isso causar sobreposição de linhas, tente usar uma fonte diferente.",
-        "subtitlePositionOffset": "Deslocamento da posição da legenda a partir da parte inferior",
-        "subtitleRegexFilter": "Filtro regex da legenda",
-        "subtitleRegexFilterTextReplacement": "Substituição de texto do filtro regex da legenda",
         "subtitleShadowColor": "Cor da sombra da legenda",
         "subtitleShadowThickness": "Expessura da sombra da legenda",
+        "subtitleOutlineThicknessHelperText": "Adiciona um contorno ao redor do texto da legenda. Se isso causar sobreposição de linhas, tente usar uma fonte diferente.",
+        "subtitlePositionOffset": "Deslocamento da posição da legenda a partir da parte inferior",
+        "subtitleAlignment": "Alinhamento da legenda",
+        "subtitleAlignmentBottom": "Inferior",
+        "subtitleAlignmentTop": "Superior",
+        "subtitleRegexFilter": "Filtro regex da legenda",
+        "subtitleRegexFilterTextReplacement": "Substituição de texto do filtro regex da legenda",
         "subtitleSize": "Tamanho da legenda",
         "subtitleThickness": "Expessura da fonte da legenda",
         "surroundingSubtitlesCountRadius": "Raio de contagem de legendas ao redor",
@@ -280,8 +282,8 @@
         "themeDark": "Escuro",
         "themeLight": "Claro",
         "title": "Configurações",
-        "unboundBind": "Não vinculado",
         "unlockLocalFonts": "Clique para desbloquear o menu de fontes",
+        "unboundBind": "Não vinculado",
         "urlField": "Campo da URL",
         "wordField": "Campo da palavra"
     },

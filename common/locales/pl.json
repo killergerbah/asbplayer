@@ -182,6 +182,10 @@
             "description": "Ta strona jest używana przez asbplayer do przechwytywania audio."
         }
     },
+    "ftue": {
+        "welcome": "Welcome to asbplayer.",
+        "welcomeBody": "Check out the <0>readme</0> to see how to get started."
+    },
     "info": {
         "copiedSubtitle": "Skopiowano: {{text}}",
         "disabledAutoPause": "Automatyczna pauza: Wyłączona",

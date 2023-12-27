@@ -182,6 +182,10 @@
             "description": "This page is used by asbplayer to capture audio."
         }
     },
+    "ftue": {
+        "welcome": "Welcome to asbplayer.",
+        "welcomeBody": "Check out the <0>readme</0> to see how to get started."
+    },
     "info": {
         "copiedSubtitle": "Copied: {{text}}",
         "disabledAutoPause": "Auto-pause: Off",

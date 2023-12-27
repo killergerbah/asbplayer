@@ -182,6 +182,10 @@
             "description": "此页面由asbplayer用于捕获音频。"
         }
     },
+    "ftue": {
+        "welcome": "Welcome to asbplayer.",
+        "welcomeBody": "Check out the <0>readme</0> to see how to get started."
+    },
     "info": {
         "copiedSubtitle": "已复制：{{text}}",
         "disabledAutoPause": "自动暂停：关闭",
