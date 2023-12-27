@@ -18,6 +18,8 @@ module.exports = [
         rules: {
             ...reactRecommended.rules,
             ...reactHooks.configs.recommended.rules,
+            'react/jsx-uses-react': 'off',
+            'react/react-in-jsx-scope': 'off',
         },
         plugins: {
             ...reactRecommended.plugins,
@@ -26,7 +28,6 @@ module.exports = [
         settings: {
             ...reactRecommended.settings,
             react: {
-                // ...reactRecommended.settings.react,
                 version: 'detect',
             },
         },
