@@ -7,7 +7,7 @@ export const useSupportedLanguages = () => {
 
     useEffect(() => {
         fetchSupportedLanguages().then(setSupportedLanguages);
-    });
+    }, []);
 
     return { supportedLanguages };
 };
