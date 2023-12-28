@@ -56,7 +56,7 @@ First, see if you can get started with one of the [community guides](#community-
 
 Otherwise, the following steps will work for any language:
 
-1. Install a dictionary for your target language that allows you to do instant lookups. Popular ones are [Yomichan](https://chrome.google.com/webstore/detail/yomichan/ogmnaimimemjmbakcfefmnahgdfhfami) for Japanese and [VocabSieve](https://github.com/FreeLanguageTools/vocabsieve) for European languages.
+1. Install a dictionary for your target language that allows you to do instant lookups. Popular ones are [Yomitan](https://chromewebstore.google.com/detail/yomitan/likgccmbimhjbgkjambclfkhldnlhbnn) for Japanese and [VocabSieve](https://github.com/FreeLanguageTools/vocabsieve) for European languages.
 2. Install [Anki](https://apps.ankiweb.net/), and create a deck and note type.
 3. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
 4. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect using your deck and note type.
