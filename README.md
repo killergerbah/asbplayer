@@ -148,7 +148,7 @@ An audio track selector will appear for `mkv` files if experimental web platform
 
 -   If you're using Brave, make sure asbplayer isn't being blocked by Shield.
 -   Make sure that asbplayer is allowed by AnkiConnect, as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
--   Make sure that the origin you add to the AnkiConnect settings is exactly `https://killergerah.github.io` (and not `https://killergerah.github.io/asbplayer`).
+-   Make sure that the origin you add to the AnkiConnect settings is exactly `https://killergerah.github.io` with no slash at the end (and not `https://killergerah.github.io/asbplayer`).
 -   Check that your browser or an ad blocker isn't blocking the request. A good place to start is by opening your browser's developer console and looking for errors.
 -   As of this writing enabling experimental web platform features is known to cause this issue. Try disabling this flag from `chrome://flags`.
 -   On later versions of macOS, AnkiConnect will not respond when Anki is backgrounded. See "Notes for MacOS Users" on the [AnkiConnect developer's website](https://foosoft.net/projects/anki-connect/).
