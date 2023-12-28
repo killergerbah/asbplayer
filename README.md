@@ -27,6 +27,7 @@ Thank you to all of my sponsors:
 -   Attenius
 -   medyas
 -   [@zaerald](https://github.com/zaerald)
+-   Suna
 
 ... and to those who have donated privately.
 
