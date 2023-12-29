@@ -1,5 +1,6 @@
 import { Fetcher } from '@project/common';
-import { RootApp, useChromeExtension } from '@project/common/app';
+import { useChromeExtension } from '@project/common/app';
+import RootApp from '@project/common/app/components/RootApp';
 import { useMemo } from 'react';
 import { AppExtensionSettingsStorage } from '../app-extension-settings-storage';
 import { LocalSettingsStorage } from '../local-settings-storage';

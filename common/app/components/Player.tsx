@@ -28,7 +28,7 @@ import ChromeExtension from '../services/chrome-extension';
 import PlaybackPreferences from '../services/playback-preferences';
 import { useWindowSize } from '../hooks/use-window-size';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
-import { createBlobUrl } from '../../../blob-url';
+import { createBlobUrl } from '../../blob-url';
 
 const minVideoPlayerWidth = 300;
 

@@ -1,1 +1,1 @@
-export { default as SubtitleReader } from './src/subtitle-reader';
+export { default as SubtitleReader } from './subtitle-reader';

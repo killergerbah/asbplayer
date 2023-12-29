@@ -7,10 +7,10 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import ChromeExtension from '../services/chrome-extension';
-import SettingsForm from '../../../components/SettingsForm';
-import { useLocalFontFamilies } from '../../../hooks';
-import { Anki } from '../../../anki';
-import { AsbplayerSettings, supportedLanguages } from '../../../settings';
+import SettingsForm from '../../components/SettingsForm';
+import { useLocalFontFamilies } from '../../hooks';
+import { Anki } from '../../anki';
+import { AsbplayerSettings, supportedLanguages } from '../../settings';
 
 const useStyles = makeStyles({
     root: {

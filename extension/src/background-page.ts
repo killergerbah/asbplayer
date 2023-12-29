@@ -24,7 +24,7 @@ const _sendAudioBase64 = async (base64: string, preferMp3: boolean) => {
         const blob = await (await fetch('data:audio/webm;base64,' + base64)).blob();
         const mp3Blob = await Mp3Encoder.encode(
             blob,
-            () => new Worker(new URL('../../common/audio-clip/src/mp3-encoder-worker.ts', import.meta.url))
+            () => new Worker(new URL('../../common/audio-clip/mp3-encoder-worker.ts', import.meta.url))
         );
         base64 = bufferToBase64(await mp3Blob.arrayBuffer());
     }

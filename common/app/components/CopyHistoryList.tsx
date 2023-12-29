@@ -15,9 +15,9 @@ import NoteAddIcon from '@material-ui/icons/NoteAdd';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
-import { CopyHistoryItem } from '../../..';
-import { AudioClip } from '../../../audio-clip';
-import { Image } from '../../..';
+import { CopyHistoryItem } from '../..';
+import { AudioClip } from '../../audio-clip';
+import { Image } from '../..';
 
 interface CopyHistoryListProps {
     open: boolean;

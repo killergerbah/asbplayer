@@ -4,7 +4,7 @@ import resourcesToBackend from 'i18next-resources-to-backend';
 import { useEffect, useState } from 'react';
 
 let init: Promise<any> = i18n
-    .use(resourcesToBackend((language: string) => import(`../../../locales/${language}.json`)))
+    .use(resourcesToBackend((language: string) => import(`../../locales/${language}.json`)))
     .use(initReactI18next)
     .init({
         partialBundledLanguages: true,

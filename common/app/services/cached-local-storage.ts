@@ -1,4 +1,4 @@
-export default class CachedLocalStorage {
+export class CachedLocalStorage {
     private readonly _cache: { [key: string]: string | null } = {};
 
     get(key: string): string | null {

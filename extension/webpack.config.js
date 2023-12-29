@@ -18,7 +18,7 @@ module.exports = (env, options) => ({
         'ftue-ui': './src/ftue-ui.ts',
         asbplayer: './src/asbplayer.ts',
         'background-page': './src/background-page.ts',
-        'mp3-encoder-worker': '../common/audio-clip/src/mp3-encoder-worker.ts',
+        'mp3-encoder-worker': '../common/audio-clip/mp3-encoder-worker.ts',
         ...Object.fromEntries(
             glob
                 .sync('./src/pages/*.ts')

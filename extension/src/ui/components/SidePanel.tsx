@@ -22,16 +22,16 @@ import { ChromeExtension, useCopyHistory } from '@project/common/app';
 import { useI18n } from '../hooks/use-i18n';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Player } from '@project/common/app';
+import Player from '@project/common/app/components/Player';
 import { PlaybackPreferences } from '@project/common/app';
 import { Color } from '@material-ui/lab';
 import { LocalizedError } from '@project/common/app';
 import { useTranslation } from 'react-i18next';
-import Alert from '@project/common/app/src/components/Alert';
+import Alert from '@project/common/app/components/Alert';
 import SidePanelHome from './SidePanelHome';
-import { DisplaySubtitleModel } from '@project/common/app/src/components/SubtitlePlayer';
+import { DisplaySubtitleModel } from '@project/common/app/components/SubtitlePlayer';
 import { useCurrentTabId } from '../hooks/use-current-tab-id';
-import { timeDurationDisplay } from '@project/common/app/src/services/util';
+import { timeDurationDisplay } from '@project/common/app/services/util';
 import { useVideoElementCount } from '../hooks/use-video-element-count';
 import CenteredGridContainer from './CenteredGridContainer';
 import CenteredGridItem from './CenteredGridItem';
@@ -39,13 +39,13 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import SidePanelBottomControls from './SidePanelBottomControls';
 import SidePanelRecordingOverlay from './SidePanelRecordingOverlay';
 import SidePanelTopControls from './SidePanelTopControls';
-import CopyHistory from '@project/common/app/src/components/CopyHistory';
-import CopyHistoryList from '@project/common/app/src/components/CopyHistoryList';
-import { useAppKeyBinder } from '@project/common/app/src/hooks/use-app-key-binder';
+import CopyHistory from '@project/common/app/components/CopyHistory';
+import CopyHistoryList from '@project/common/app/components/CopyHistoryList';
+import { useAppKeyBinder } from '@project/common/app/hooks/use-app-key-binder';
 import { download } from '@project/common/util';
 
 const mp3WorkerFactory = () =>
-    new Worker(new URL('../../../../common/audio-clip/src/mp3-encoder-worker.ts', import.meta.url));
+    new Worker(new URL('../../../../common/audio-clip/mp3-encoder-worker.ts', import.meta.url));
 
 interface Props {
     settings: AsbplayerSettings;

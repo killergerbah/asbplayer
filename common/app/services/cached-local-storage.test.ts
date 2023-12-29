@@ -1,4 +1,4 @@
-import CachedLocalStorage from './cached-local-storage';
+import { CachedLocalStorage } from './cached-local-storage';
 
 beforeEach(() => {
     localStorage.clear();

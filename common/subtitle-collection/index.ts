@@ -1,1 +1,1 @@
-export * from './src/subtitle-collection';
+export * from './subtitle-collection';

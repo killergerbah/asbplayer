@@ -1,5 +1,5 @@
+import { CachedLocalStorage } from '@project/common/app';
 import { AsbplayerSettings, SettingsStorage, settingsDeserializers } from '@project/common/settings';
-import CachedLocalStorage from '@project/common/app/src/services/cached-local-storage';
 
 const cachedLocalStorage = new CachedLocalStorage();
 

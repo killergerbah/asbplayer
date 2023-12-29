@@ -1,4 +1,4 @@
-export default class LocalizedError extends Error {
+export class LocalizedError extends Error {
     private readonly key: string;
     private readonly params: { [key: string]: string };
 

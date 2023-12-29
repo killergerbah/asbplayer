@@ -2,7 +2,7 @@ import Mp3Encoder from './mp3-encoder';
 
 import { CardModel, FileModel } from '@project/common';
 import { download } from '@project/common/util';
-import { isActiveBlobUrl } from '../../blob-url';
+import { isActiveBlobUrl } from '../blob-url';
 
 interface ExperimentalAudioElement extends HTMLAudioElement {
     audioTracks: any;

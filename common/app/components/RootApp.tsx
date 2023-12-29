@@ -1,7 +1,9 @@
 import { Fetcher } from '@project/common';
 import { AsbplayerSettings, SettingsProvider, SettingsStorage } from '@project/common/settings';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { App, ExtensionMessage, useChromeExtension } from '@project/common/app';
+import App from './App';
+import { useChromeExtension } from '../hooks/use-chrome-extension';
+import { ExtensionMessage } from '../services/chrome-extension';
 
 interface Props {
     origin: string;

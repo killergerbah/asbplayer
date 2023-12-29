@@ -42,9 +42,9 @@ import VideoPlayer, { SeekRequest } from './VideoPlayer';
 import { Color } from '@material-ui/lab';
 import VideoChannel from '../services/video-channel';
 import PlaybackPreferences from '../services/playback-preferences';
-import { createBlobUrl, revokeBlobUrl } from '../../../blob-url';
+import { createBlobUrl, revokeBlobUrl } from '../../blob-url';
 import { useTranslation } from 'react-i18next';
-import LocalizedError from './localized-error';
+import { LocalizedError } from './localized-error';
 import { DisplaySubtitleModel } from './SubtitlePlayer';
 import { useCopyHistory } from '../hooks/use-copy-history';
 import { useI18n } from '../hooks/use-i18n';
@@ -52,7 +52,7 @@ import { useAppKeyBinder } from '../hooks/use-app-key-binder';
 
 const latestExtensionVersion = '0.28.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
-const mp3WorkerFactory = () => new Worker(new URL('../../../audio-clip/src/mp3-encoder-worker.ts', import.meta.url));
+const mp3WorkerFactory = () => new Worker(new URL('../../audio-clip/mp3-encoder-worker.ts', import.meta.url));
 
 const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
     content: {
