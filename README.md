@@ -1,22 +1,11 @@
 # asbplayer
 
-<a href="https://github.com/killergerbah/asbplayer/actions/workflows/verify.yml">
-    <img alt="GitHub Workflow Status (with event)" src="https://img.shields.io/github/actions/workflow/status/killergerbah/asbplayer/verify.yml">
-</a>
-<a href="https://github.com/killergerbah/asbplayer/releases">
-    <img alt="Github All Releases" src="https://img.shields.io/github/downloads/killergerbah/asbplayer/total.svg">
-</a>
-<a href="https://github.com/sponsors/killergerbah">
-    <img alt="GitHub Sponsors" src="https://img.shields.io/github/sponsors/killergerbah">
-</a>
-<a href="https://ko-fi.com/killergerbah">
-    <img alt="Static Badge" src="https://img.shields.io/badge/donate-ko--fi-ed6760?label=donate">
-</a>
-<a href="https://github.com/killergerbah/asbplayer?tab=MIT-1-ov-file">
-    <img alt="GitHub License" src="https://img.shields.io/github/license/killergerbah/asbplayer">
-</a>
+[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/killergerbah/asbplayer/verify.yml)](https://github.com/killergerbah/asbplayer/actions/workflows/verify.yml)
+[![Github All Releases](https://img.shields.io/github/downloads/killergerbah/asbplayer/total.svg)](https://github.com/killergerbah/asbplayer/releases)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/killergerbah)](https://github.com/sponsors/killergerbah)
+[![Static Badge](https://img.shields.io/badge/donate-ko--fi-ed6760?label=donate)](https://ko-fi.com/killergerbah)
+[![GitHub License](https://img.shields.io/github/license/killergerbah/asbplayer)](https://github.com/killergerbah/asbplayer?tab=MIT-1-ov-file)
 
-\
 **asbplayer** is a browser-based media player and Chrome extension developed for language learners who learn their target language through subtitled media. With asbplayer, you can:
 
 -   **Easily create high-quality flashcards** out of subtitled videos.
