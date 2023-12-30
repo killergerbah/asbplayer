@@ -99,6 +99,7 @@
                 "pages/unext-page.js",
                 "anki-ui.js",
                 "mp3-encoder-worker.js",
+                "pgs-parser-worker.js",
                 "video-data-sync-ui.js",
                 "video-select-ui.js",
                 "active-tab-permission-request-ui.js",

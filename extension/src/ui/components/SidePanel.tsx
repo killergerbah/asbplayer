@@ -46,6 +46,8 @@ import { download } from '@project/common/util';
 
 const mp3WorkerFactory = () =>
     new Worker(new URL('../../../../common/audio-clip/mp3-encoder-worker.ts', import.meta.url));
+const pgsWorkerFactory = async () =>
+    new Worker(new URL('../../../../common/subtitle-reader/pgs-parser-worker.ts', import.meta.url));
 
 interface Props {
     settings: AsbplayerSettings;
@@ -64,6 +66,7 @@ export default function SidePanel({ settings, extension }: Props) {
             new SubtitleReader({
                 regexFilter: settings.subtitleRegexFilter,
                 regexFilterTextReplacement: settings.subtitleRegexFilterTextReplacement,
+                pgsWorkerFactory,
             }),
         [settings]
     );

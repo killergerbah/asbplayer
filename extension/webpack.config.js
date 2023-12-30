@@ -19,6 +19,7 @@ module.exports = (env, options) => ({
         asbplayer: './src/asbplayer.ts',
         'background-page': './src/background-page.ts',
         'mp3-encoder-worker': '../common/audio-clip/mp3-encoder-worker.ts',
+        'pgs-parser-worker': '../common/subtitle-reader/pgs-parser-worker.ts',
         ...Object.fromEntries(
             glob
                 .sync('./src/pages/*.ts')

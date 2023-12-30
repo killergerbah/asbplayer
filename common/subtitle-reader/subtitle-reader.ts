@@ -2,13 +2,11 @@ import { compile as parseAss } from 'ass-compiler';
 import SrtParser from '@qgustavor/srt-parser';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
-import { DisplaySet, parseDisplaySets } from 'pgs-parser';
 import { SubtitleTextImage } from '@project/common';
 
 const tagRegex = RegExp('</?([^>]*)>', 'ig');
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
 const helperElement = document.createElement('div');
-const helperCanvas = document.createElement('canvas');
 
 interface SubtitleNode {
     start: number;
@@ -25,14 +23,17 @@ export interface TextFilter {
 
 export default class SubtitleReader {
     private readonly _textFilter?: TextFilter;
+    private readonly _pgsWorkerFactory: () => Promise<Worker>;
     private xmlParser?: XMLParser;
 
     constructor({
         regexFilter,
         regexFilterTextReplacement,
+        pgsWorkerFactory,
     }: {
         regexFilter: string;
         regexFilterTextReplacement: string;
+        pgsWorkerFactory: () => Promise<Worker>;
     }) {
         let regex: RegExp | undefined;
 
@@ -47,6 +48,8 @@ export default class SubtitleReader {
         } else {
             this._textFilter = { regex, replacement: regexFilterTextReplacement };
         }
+
+        this._pgsWorkerFactory = pgsWorkerFactory;
     }
 
     async subtitles(files: File[], flatten?: boolean) {
@@ -150,15 +153,7 @@ export default class SubtitleReader {
         }
 
         if (file.name.endsWith('.sup')) {
-            const subtitles: SubtitleNode[] = [];
-            await file
-                .stream()
-                // FIXME: Figure out how to remove conflicts with @types/node ReadableStream
-                // @ts-ignore
-                .pipeThrough(parseDisplaySets())
-                .pipeTo(this._displaySetsToSubtitles(subtitles, track));
-
-            return subtitles;
+            return await this._parsePgs(file, track);
         }
 
         if (file.name.endsWith('.dfxp') || file.name.endsWith('ttml2')) {
@@ -191,6 +186,54 @@ export default class SubtitleReader {
         throw new Error('Unsupported subtitle file format');
     }
 
+    private _parsePgs(file: File, track: number): Promise<SubtitleNode[]> {
+        const subtitles: SubtitleNode[] = [];
+        return new Promise(async (resolve, reject) => {
+            const worker = await this._pgsWorkerFactory();
+            worker.onmessage = async (e) => {
+                switch (e.data.command) {
+                    case 'subtitle':
+                        const subtitle = { ...e.data.subtitle, track };
+                        const imageBlob = e.data.imageBlob;
+                        subtitle.textImage.dataUrl = await this._blobToDataUrl(imageBlob);
+                        subtitles.push(subtitle);
+                        break;
+                    case 'finished':
+                        worker.terminate();
+                        resolve(subtitles);
+                        break;
+                    case 'error':
+                        worker.terminate();
+                        reject(e.data.error);
+                        break;
+                }
+            };
+            worker.onerror = (e) => {
+                const error = e?.error ?? new Error('PGS decoding failed: ' + e?.message);
+                reject(error);
+                worker.terminate();
+            };
+            const canvas = document.createElement('canvas');
+
+            // transferControlToOffscreen is not in lib.dom.d.ts
+            // @ts-ignore
+            const offscreenCanvas = canvas.transferControlToOffscreen();
+
+            // Node ReadableStream clashes with web ReadableStream
+            const fileStream = (await file.stream()) as unknown as ReadableStream;
+            worker.postMessage({ fileStream, canvas: offscreenCanvas }, [fileStream, offscreenCanvas]);
+        });
+    }
+
+    private _blobToDataUrl(blob: Blob) {
+        return new Promise((resolve, reject) => {
+            var reader = new FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = () => {
+                resolve(reader.result);
+            };
+        });
+    }
     private _parseTtmlTimestamp(timestamp: string) {
         const parts = timestamp.split(':');
         const milliseconds = Math.floor(parseFloat(parts[parts.length - 1]) * 1000);
@@ -232,53 +275,6 @@ export default class SubtitleReader {
         }
 
         return tag;
-    }
-
-    private _displaySetsToSubtitles(subtitles: SubtitleNode[], track: number) {
-        let imageDataArray: Uint8ClampedArray | undefined;
-        let currentImageDisplaySet: DisplaySet | undefined;
-
-        return new WritableStream<DisplaySet>({
-            write(displaySet, controller) {
-                if (displaySet.objectDefinitionSegments.length > 0) {
-                    if (currentImageDisplaySet === undefined) {
-                        currentImageDisplaySet = displaySet;
-                    }
-                } else if (currentImageDisplaySet !== undefined) {
-                    const screenWidth = currentImageDisplaySet.presentationCompositionSegment.width;
-                    const screenHeight = currentImageDisplaySet.presentationCompositionSegment.height;
-                    imageDataArray =
-                        imageDataArray === undefined || imageDataArray.length < screenHeight * screenWidth * 4
-                            ? new Uint8ClampedArray(screenWidth * screenHeight * 4)
-                            : imageDataArray;
-                    const imageData = currentImageDisplaySet.imageData(imageDataArray);
-                    helperCanvas.width = imageData.width;
-                    helperCanvas.height = imageData.height;
-                    const context = helperCanvas.getContext('2d')!;
-                    context.putImageData(imageData, 0, 0);
-                    subtitles.push({
-                        start:
-                            currentImageDisplaySet.objectDefinitionSegments[0].header.presentationTimestamp / 90 ?? 0,
-                        end: displaySet.endDefinitionSegment.header.presentationTimestamp / 90,
-                        text: '',
-                        textImage: {
-                            dataUrl: helperCanvas.toDataURL('image/png'),
-                            image: {
-                                width: imageData.width,
-                                height: imageData.height,
-                            },
-                            screen: {
-                                width: currentImageDisplaySet.presentationCompositionSegment.width,
-                                height: currentImageDisplaySet.presentationCompositionSegment.height,
-                            },
-                        },
-                        track,
-                    });
-
-                    currentImageDisplaySet = undefined;
-                }
-            },
-        });
     }
 
     private _fixRTL(line: string): string {

@@ -986,6 +986,11 @@ export default class Binding {
                 const reader = new SubtitleReader({
                     regexFilter: subtitleRegexFilter,
                     regexFilterTextReplacement: subtitleRegexFilterTextReplacement,
+                    pgsWorkerFactory: async () => {
+                        const code = await (await fetch(chrome.runtime.getURL('./pgs-parser-worker.js'))).text();
+                        const blob = new Blob([code], { type: 'application/javascript' });
+                        return new Worker(URL.createObjectURL(blob));
+                    },
                 });
                 const offset = rememberSubtitleOffset ? lastSubtitleOffset : 0;
                 const subtitles = await reader.subtitles(files, flatten);

@@ -53,7 +53,7 @@ import { useAppKeyBinder } from '../hooks/use-app-key-binder';
 const latestExtensionVersion = '0.28.0';
 const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
 const mp3WorkerFactory = () => new Worker(new URL('../../audio-clip/mp3-encoder-worker.ts', import.meta.url));
-
+const pgsWorkerFactory = async () => new Worker(new URL('../../subtitle-reader/pgs-parser-worker.ts', import.meta.url));
 const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
     content: {
         flexGrow: 1,
@@ -194,6 +194,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         return new SubtitleReader({
             regexFilter: settings.subtitleRegexFilter,
             regexFilterTextReplacement: settings.subtitleRegexFilterTextReplacement,
+            pgsWorkerFactory,
         });
     }, [settings.subtitleRegexFilter, settings.subtitleRegexFilterTextReplacement]);
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>([]);
