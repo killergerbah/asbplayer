@@ -54,6 +54,7 @@ Thank you to all those who have translated asbplayer:
 -   Triline (Polish)
 -   NeverWinterSwor (Simplified Chinese)
 -   Yagxter (Brazilian Portuguese)
+-   Neo (Spanish)
 
 If you are a non-English native, and would like to help translate asbplayer, please contact me on [Discord](https://discord.gg/ad7VAQru7m).
 

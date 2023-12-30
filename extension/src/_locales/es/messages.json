@@ -1,0 +1,29 @@
+{
+    "extensionDescription": {
+        "message": "Mejora la transmisión de video para el aprendizaje de idiomas."
+    },
+    "contextMenuLoadSubtitles": {
+        "message": "Cargar Subtítulos"
+    },
+    "contextMenuMineSubtitle": {
+        "message": "Minar Subtítulos"
+    },
+    "shortcutMineSubtitleAndOpenDialogDescription": {
+        "message": "Minar subtítulo actual y abrir la pestaña para exportar a Anki. Cuando el video es sincronizado sin una pista de subtítulos, comienza/finaliza la grabación de audio."
+    },
+    "shortcutMineSubtitleDescription": {
+        "message": "Minar subtítulo actual. Cuando el video es sincronizado sin una pista de subtítulos, comienza/finaliza la grabación de audio."
+    },
+    "shortcutSelectSubtitleTrackDescription": {
+        "message": "Seleccionar subtítulos a cargar"
+    },
+    "shortcutTakeScreenshotDescription": {
+        "message": "Tomar captura de pantalla manualmente, sobrescribiendo la que se toma automáticamente al minar"
+    },
+    "shortcutToggleRecordingDescription": {
+        "message": "Comenzar/Finalizar grabación de audio manualmente, incluso cuando hay una pista de subtítulos cargada."
+    },
+    "shortcutUpdateLastCardDescription": {
+        "message": "Actualizar la última tarjeta de Anki creada con medios capturados por asbplayer. Cuando el video es sincronizado sin una pista de subtítulos, comienza/finaliza la grabación de audio."
+    }
+}
