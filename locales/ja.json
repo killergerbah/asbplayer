@@ -182,6 +182,10 @@
             "description": "このページは asbplayer が音声を録音する際に使用します。"
         }
     },
+    "ftue": {
+        "welcome": "asbplayerへようこそ。",
+        "welcomeBody": "asbplayerの使い方は<0>readme</0>を参考にしてください。"
+    },
     "info": {
         "copiedSubtitle": "コピーしました：{{text}}",
         "disabledAutoPause": "自動一時停止：オフ",

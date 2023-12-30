@@ -10,6 +10,11 @@
             "version": 2
         },
         {
+            "code": "es",
+            "url": "/locales/es.json",
+            "version": 1
+        },
+        {
             "code": "ja",
             "url": "/locales/ja.json",
             "version": 4
@@ -27,6 +32,11 @@
         {
             "code": "pt_BR",
             "url": "/locales/pt_BR.json",
+            "version": 1
+        },
+        {
+            "code": "zh_CN",
+            "url": "/locales/zh_CN.json",
             "version": 1
         }
     ]
