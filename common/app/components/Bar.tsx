@@ -39,6 +39,7 @@ const useStyles = makeStyles<Theme, StyleProps, string>((theme) => ({
         marginRight: theme.spacing(1),
     },
     appBar: {
+        background: 'linear-gradient(150deg, #ff1f62, #49007a 160%)',
         transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
