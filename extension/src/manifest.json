@@ -3,7 +3,7 @@
     "description": "__MSG_extensionDescription__",
     "version": "1.0.0",
     "manifest_version": 3,
-    "key": "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3pX5ZLVaLxwLIGVMgyd9KWu02jK000NNbtv9nNXHFLClvChM0Qf7GicECdWtq4g3JDGZL5E85cfM8qG/CL0gu0invjTQyxgsfGR+f1gdI54ExoDRRvbnKWZEuRcQL3XCOhpoV9JFJ8xVUrKmzHGuZkbAYY+FeP+4hOwYwh5bUEgLqg/eyZezsRGWSlPSspxEyGpKvs7uixoE8uPBrTJBr4H9nFAr4bhrADOXRck+UVRMB342Yz3pB99wJvnk+JTeQPFi48FN/EY/w6MIZPn7YlOJuL5MWTw1l2SzcQT5YpwLkpzSp27Gcwy1QvLrg4/GGEKepW9dA6JjzQECTH4tkQIDAQAB-----END PUBLIC KEY-----",
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxmdAa3ymqAjLms43ympXqtyuJnC2bSYh70+5ZZmtyx/MsnGhTEdfbqtsp3BKxHbv0rPd49+Joacm1Shik5/mCppZ0h4I4ISMm983X01H6p/hfAzQYAcnvw/ZQNHAv1QgY9JiuyTBirCDoYB50Fxol/kI/0EviYXuX83KoYpjB0VGP/ssY9ocT//fQUbRmeLDJnciry8y6MduWXHzseOP99axQIjeVsNTE30L4fRN+ppX3aOkG/RFJNx0eI02qbLul3qw5dUuBK5GgMbYftwjHnDoOegnZYFr1sxRO1zsgmxdp/6du75RiDPRJOkPCz2GTrw4CX2FCywbDZlqaIpwqQIDAQAB",
     "default_locale": "en",
     "icons": {
         "16": "assets/icon16.png",
