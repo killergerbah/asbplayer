@@ -45,7 +45,6 @@ Thank you to all those who have contributed to asbplayer:
 -   [@cyphar](https://www.github.com/cyphar)
 -   [@alexbofa](https://www.github.com/alexbofa)
 -   [@Zyphdoz](https://github.com/Zyphdoz)
--   [@Zyphdoz](https://github.com/Zyphdoz)
 -   [@artjomsR](https://github.com/artjomsR)
 
 Thank you to all those who have translated asbplayer:
@@ -124,7 +123,7 @@ When a subtitle that you want to mine appears, <kbd>Ctrl + Shift + X</kbd> opens
 All text fields can be edited from the flashcard creator prior to flashcard creation.
 
 Adjust the selected time interval for the card using the slider at the bottom of the export dialog.
-The newly selected time interval can be applied to the card using the buttons availablbe in the sentence and audio sections of the card. See this [video](https://youtu.be/BSr_JusW8E8?t=34) for a demo.
+The newly selected time interval can be applied to the card using the buttons available in the sentence and audio sections of the card. See this [video](https://youtu.be/BSr_JusW8E8?t=34) for a demo.
 
 ### Adjusting subtitle offset
 
