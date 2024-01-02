@@ -1012,6 +1012,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
 
         if (files && files.length > 0) {
             handleFiles({ files });
+            fileInputRef.current.value = '';
         }
     }, [handleFiles]);
 
