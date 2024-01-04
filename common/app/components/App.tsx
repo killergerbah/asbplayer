@@ -50,8 +50,9 @@ import { useCopyHistory } from '../hooks/use-copy-history';
 import { useI18n } from '../hooks/use-i18n';
 import { useAppKeyBinder } from '../hooks/use-app-key-binder';
 
-const latestExtensionVersion = '0.28.0';
-const extensionUrl = 'https://github.com/killergerbah/asbplayer/releases/latest';
+const latestExtensionVersion = '1.0.0';
+const extensionUrl =
+    'https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab';
 const mp3WorkerFactory = () => new Worker(new URL('../../audio-clip/mp3-encoder-worker.ts', import.meta.url));
 const pgsWorkerFactory = async () => new Worker(new URL('../../subtitle-reader/pgs-parser-worker.ts', import.meta.url));
 const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
