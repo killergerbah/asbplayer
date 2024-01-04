@@ -96,11 +96,12 @@ Otherwise, the following steps will work for any language:
 
 ### Enhancing streaming video with asbplayer features
 
-Install the Chrome [extension](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab). There are three ways to enhance streaming video with asbplayer:
+Install the Chrome [extension](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab). There are a number of ways to enhance streaming video with asbplayer:
 
 1. Drag-and-drop a subtitle file into the video element you want to enhance.
 2. Load a subtitle file into the [asbplayer website](https://killergerbah.github.io/asbplayer/) and click on the camera in the bottom right to pick a video element to enhance. This is the recommended way to load BluRay subtitle files onto streaming video.
 3. Use <kbd>Ctrl + Shift + F</kbd> to select a video element to enhance. From the dialog that appears you can choose whether to load an [auto-detected subtitle track](#subtitle-track-detection-for-streaming-video) or an empty one.
+4. Open the side panel (<kbd>\`</kbd> button or `Open Side Panel` from the extension popup). When a video element is on screen, click on the `Load Subtitles` button to open the same subtitle track selector in (3).
 
 asbplayer features will then be accessible for that video.
 
@@ -116,7 +117,9 @@ Keyboard shortcuts are customizable from the [asbplayer website settings](https:
 
 Make sure [Anki](https://apps.ankiweb.net/) and [AnkiConnect](https://ankiweb.net/shared/info/2055492159) are installed. Integration with AnkiConnect can be configured in the [settings](https://killergerbah.github.io/asbplayer/?view=settings) as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
 
-When a subtitle that you want to mine appears, <kbd>Ctrl + Shift + X</kbd> opens the flashcard creator.
+When a subtitle that you want to mine appears, use <kbd>Ctrl + Shift + X</kbd> to open the flashcard creator.
+
+See the [keyboard shortcuts](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts) for other ways to interact with and create cards.
 
 ### Adjusting Anki flashcards
 
@@ -129,7 +132,7 @@ The newly selected time interval can be applied to the card using the buttons av
 
 Use <kbd>Ctrl + Left/Right</kbd> to adjust subtitle offset so that the previous/next subtitle appears at the current timestamp. Then use <kbd>Ctrl + Shift + Left/Right</kbd> for finer adjustment by 100ms increments.
 
-If you are using the asblayer website, you can also use the "Subtitle Offset" text field available in the controls UI.
+If you are using the asblayer website, you can also use the `Subtitle Offset` text field available in the controls UI.
 
 ### Subtitle track detection for streaming video
 
@@ -144,6 +147,10 @@ Use <kbd>Ctrl + Shift + F</kbd> to see auto-detected subtitle tracks for streami
 -   Amazon Prime (known issue: subtitles sometimes off by ~30 seconds)
 
 <kbd>Ctrl + Shift + F</kbd> also allows you to load an empty subtitle track so that you can extract audio and screenshots from streaming video without loading subtitles.
+
+### Extension side panel UI
+
+Most of the extension features detailed above can be accessed through the extension's side panel UI. The side panel can be opened with the <kbd>\`</kbd> button or `Open Side Panel` from the extension popup.
 
 ### Audio track selection for mkv files
 
@@ -167,6 +174,10 @@ An audio track selector will appear for `mkv` files if experimental web platform
 ### When loading a local file asbplayer either shows a black screen, or doesn't play audio.
 
 -   See the [Browser Compatibility](#browser-compatibility) section.
+
+### My popup dictionary extension (e.g. Yomitan) doesn't work on the side panel
+
+-   Chrome does not allow other extension scripts to be injected into extension UI, so there is no fix for this. If you want to scan text with other extensions then you will need to do it from the subtitles displayed inside the video element, or from the subtitle list on the asbplayer website.
 
 ### asbplayer isn't detecting streaming video.
 
