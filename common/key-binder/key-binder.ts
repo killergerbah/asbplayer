@@ -131,6 +131,11 @@ export interface KeyBinder {
         disabledGetter: () => boolean,
         capture?: boolean
     ): () => void;
+    bindToggleRepeat(
+        onToggleRepeat: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        capture?: boolean
+    ): () => void;
 }
 
 export class DefaultKeyBinder implements KeyBinder {
@@ -721,6 +726,24 @@ export class DefaultKeyBinder implements KeyBinder {
             }
 
             onToggleSidePanel(event);
+        };
+
+        return this._bind(shortcut, capture, handler);
+    }
+
+    bindToggleRepeat(
+        onToggleRepeat: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        capture = false
+    ) {
+        const shortcut = this.keyBindSet.toggleRepeat.keys;
+
+        const handler = (event: KeyboardEvent) => {
+            if (disabledGetter()) {
+                return;
+            }
+
+            onToggleRepeat(event);
         };
 
         return this._bind(shortcut, capture, handler);

@@ -916,6 +916,15 @@ export default function Player({
     }, [togglePlayMode, keyBinder, disableKeyEvents]);
 
     useEffect(() => {
+        return keyBinder.bindToggleRepeat(
+            (event) => {
+                togglePlayMode(event, PlayMode.repeat);
+            },
+            () => disableKeyEvents
+        );
+    }, [keyBinder, disableKeyEvents, togglePlayMode]);
+
+    useEffect(() => {
         if (!videoFileUrl) {
             return;
         }

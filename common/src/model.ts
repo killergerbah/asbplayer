@@ -192,4 +192,5 @@ export enum PlayMode {
     condensed = 2,
     autoPause = 3,
     fastForward = 4,
+    repeat = 5,
 }

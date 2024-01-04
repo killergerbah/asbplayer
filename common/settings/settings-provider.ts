@@ -65,6 +65,7 @@ export const defaultSettings: AsbplayerSettings = {
         decreasePlaybackRate: { keys: isMacOs ? '⇧+⌃+[' : 'ctrl+shift+[' },
         increasePlaybackRate: { keys: isMacOs ? '⇧+⌃+]' : 'ctrl+shift+]' },
         toggleSidePanel: { keys: '`' },
+        toggleRepeat: { keys: 'R' },
     },
     preferMp3: true,
     miningHistoryStorageLimit: 25,

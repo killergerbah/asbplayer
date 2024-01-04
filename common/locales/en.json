@@ -100,7 +100,8 @@
         "toggleVideoSubtitleTrack3": "Toggle subtitle track 3 in video",
         "toggleVideoSubtitleTracks": "Toggle subtitle track in video",
         "updateLastCard": "Update last-created Anki card with asbplayer-captured screenshot, audio, etc.",
-        "toggleSidePanel": "Toggle side panel"
+        "toggleSidePanel": "Toggle side panel",
+	"toggleRepeat": "Toggle repeat mode"
     },
     "controls": {
         "autoPauseMode": "Auto-pause",

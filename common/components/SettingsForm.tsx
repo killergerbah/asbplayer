@@ -630,6 +630,7 @@ export default function SettingsForm({
             increasePlaybackRate: { label: t('binds.increasePlaybackRate')!, boundViaChrome: false },
             decreasePlaybackRate: { label: t('binds.decreasePlaybackRate')!, boundViaChrome: false },
             toggleSidePanel: { label: t('binds.toggleSidePanel')!, boundViaChrome: false, hide: !extensionInstalled },
+            toggleRepeat: { label: t('binds.toggleRepeat')!, boundViaChrome: false },
         }),
         [t, extensionInstalled]
     );
