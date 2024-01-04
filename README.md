@@ -71,7 +71,7 @@ Otherwise, the following steps will work for any language:
 
 5. Enhance a video using asbplayer and subtitle files.
 
-    - **For streaming video:** After installing the [Chrome extension](https://github.com/killergerbah/asbplayer/releases/latest), drag-and-drop a subtitle file into the streaming video you want to mine.
+    - **For streaming video:** After installing the [Chrome extension](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab), drag-and-drop a subtitle file into the streaming video you want to mine.
     - **For local files:** Drag-and-drop media/subtitle files into the [asbplayer website](https://killergerbah.github.io/asbplayer).
 
     You may have to [adjust the subtitle offset](#adjusting-subtitle-offset) to get the subtitles in sync.
@@ -96,7 +96,7 @@ Otherwise, the following steps will work for any language:
 
 ### Enhancing streaming video with asbplayer features
 
-Install the Chrome [extension](https://github.com/killergerbah/asbplayer/releases/latest). There are three ways to enhance streaming video with asbplayer:
+Install the Chrome [extension](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab). There are three ways to enhance streaming video with asbplayer:
 
 1. Drag-and-drop a subtitle file into the video element you want to enhance.
 2. Load a subtitle file into the [asbplayer website](https://killergerbah.github.io/asbplayer/) and click on the camera in the bottom right to pick a video element to enhance. This is the recommended way to load BluRay subtitle files onto streaming video.
