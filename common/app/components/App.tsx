@@ -42,7 +42,7 @@ import VideoPlayer, { SeekRequest } from './VideoPlayer';
 import { Color } from '@material-ui/lab';
 import VideoChannel from '../services/video-channel';
 import PlaybackPreferences from '../services/playback-preferences';
-import { createBlobUrl, revokeBlobUrl } from '../../blob-url';
+import { addBlobUrl, createBlobUrl, revokeBlobUrl } from '../../blob-url';
 import { useTranslation } from 'react-i18next';
 import { LocalizedError } from './localized-error';
 import { DisplaySubtitleModel } from './SubtitlePlayer';
@@ -156,6 +156,10 @@ function RenderVideo({ searchParams, ...props }: RenderVideoProps) {
     const videoFile = searchParams.get('video')!;
     const channel = searchParams.get('channel')!;
     const popOut = searchParams.get('popout')! === 'true';
+
+    useEffect(() => {
+        addBlobUrl(videoFile);
+    }, [videoFile]);
 
     return <VideoPlayer videoFile={videoFile} channel={channel} popOut={popOut} {...props} />;
 }

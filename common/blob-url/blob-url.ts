@@ -6,6 +6,10 @@ export const createBlobUrl = (file: File) => {
     return blobUrl;
 };
 
+export const addBlobUrl = (blobUrl: string) => {
+    blobUrls[blobUrl] = true;
+};
+
 export const revokeBlobUrl = (blobUrl: string) => {
     delete blobUrls[blobUrl];
     URL.revokeObjectURL(blobUrl);
