@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useEffect, useMemo, ChangeEvent, ReactNode, useRef } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { makeStyles } from '@material-ui/styles';
+import { makeStyles, useTheme } from '@material-ui/core/styles';
 import AddIcon from '@material-ui/icons/Add';
 import LockIcon from '@material-ui/icons/Lock';
 import Box from '@material-ui/core/Box';
@@ -41,25 +41,41 @@ import FormHelperText from '@material-ui/core/FormHelperText';
 import Link from '@material-ui/core/Link';
 import Button from '@material-ui/core/Button';
 import { Anki } from '../anki';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 
-const useStyles = makeStyles<Theme>((theme) => ({
-    root: {
-        flexGrow: 1,
-        backgroundColor: theme.palette.background.paper,
-        display: 'flex',
-        maxHeight: '100%',
-        height: '100%',
+interface StylesProps {
+    smallScreen: boolean;
+}
+const useStyles = makeStyles<Theme, StylesProps>((theme) => ({
+    root: ({ smallScreen }) => {
+        let styles: any = {
+            backgroundColor: theme.palette.background.paper,
+            maxHeight: '100%',
+            height: 'calc(100% - 48px)',
+        };
+
+        if (!smallScreen) {
+            styles = { ...styles, flexGrow: 1, display: 'flex', height: '100%' };
+        }
+
+        return styles;
     },
-    tabs: {
-        minWidth: 120,
-        width: 120,
-        '& .MuiButtonBase-root': {
-            paddingLeft: 0,
-            paddingRight: theme.spacing(1),
-        },
-        '& .MuiTab-root': {
-            minWidth: 120,
-        },
+    tabs: ({ smallScreen }) => {
+        let styles: any = {
+            '& .MuiButtonBase-root': {
+                paddingLeft: 0,
+                paddingRight: theme.spacing(1),
+            },
+            '& .MuiTab-root': {
+                minWidth: 120,
+            },
+        };
+
+        if (!smallScreen) {
+            styles = { ...styles, minWidth: 120, width: 120 };
+        }
+
+        return styles;
     },
     formGroup: {
         '& .MuiTextField-root': {
@@ -537,7 +553,9 @@ export default function SettingsForm({
     onOpenChromeExtensionShortcuts,
     onUnlockLocalFonts,
 }: Props) {
-    const classes = useStyles();
+    const theme = useTheme();
+    const smallScreen = useMediaQuery(theme.breakpoints.down('xs'));
+    const classes = useStyles({ smallScreen });
     const handleSettingChanged = useCallback(
         async <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => {
             onSettingsChanged({ [key]: value });
@@ -884,7 +902,7 @@ export default function SettingsForm({
     return (
         <div className={classes.root}>
             <Tabs
-                orientation="vertical"
+                orientation={smallScreen ? 'horizontal' : 'vertical'}
                 variant="scrollable"
                 value={tabIndex}
                 className={classes.tabs}
