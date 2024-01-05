@@ -28,6 +28,14 @@ export const useResize = ({ initialWidth, minWidth, maxWidth, onResizeStart, onR
         setLastMouseDownClientX(e.clientX);
     }, []);
 
+    const recordLastTouchStartPosition = useCallback((e: TouchEvent) => {
+        if (e.touches.length === 0) {
+            return;
+        }
+
+        setLastMouseDownClientX(e.touches[0].clientX);
+    }, []);
+
     const resize = useCallback(
         (e: MouseEvent) => {
             if (isResizing) {
@@ -35,6 +43,26 @@ export const useResize = ({ initialWidth, minWidth, maxWidth, onResizeStart, onR
                 const newWidth = width + delta;
 
                 setLastMouseDownClientX(e.clientX);
+
+                if (newWidth >= minWidth && newWidth <= maxWidth) {
+                    setWidth(newWidth);
+                }
+            }
+        },
+        [minWidth, maxWidth, lastMouseDownClientX, width, isResizing]
+    );
+
+    const resizeFromTouch = useCallback(
+        (e: TouchEvent) => {
+            if (e.touches.length === 0) {
+                return;
+            }
+
+            if (isResizing) {
+                const delta = lastMouseDownClientX - e.touches[0].clientX;
+                const newWidth = width + delta;
+
+                setLastMouseDownClientX(e.touches[0].clientX);
 
                 if (newWidth >= minWidth && newWidth <= maxWidth) {
                     setWidth(newWidth);
@@ -56,13 +84,23 @@ export const useResize = ({ initialWidth, minWidth, maxWidth, onResizeStart, onR
         document.addEventListener('mouseup', disableResize);
         document.addEventListener('mousedown', recordLastMouseDownPosition);
 
+        document.addEventListener('touchcancel', disableResize);
+        document.addEventListener('touchmove', resizeFromTouch);
+        document.addEventListener('touchend', disableResize);
+        document.addEventListener('touchstart', recordLastTouchStartPosition);
+
         return () => {
             document.removeEventListener('mouseleave', disableResize);
             document.removeEventListener('mousemove', resize);
             document.removeEventListener('mouseup', disableResize);
             document.removeEventListener('mousedown', recordLastMouseDownPosition);
+
+            document.removeEventListener('touchcancel', disableResize);
+            document.removeEventListener('touchmove', resizeFromTouch);
+            document.removeEventListener('touchend', disableResize);
+            document.removeEventListener('touchstart', recordLastTouchStartPosition);
         };
-    }, [disableResize, resize, recordLastMouseDownPosition]);
+    }, [disableResize, resize, resizeFromTouch, recordLastMouseDownPosition, recordLastTouchStartPosition]);
 
     return { width, enableResize, isResizing };
 };

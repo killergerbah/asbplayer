@@ -26,6 +26,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import Clock from '../services/clock';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
+import { isMobile } from 'react-device-detect';
 
 let lastKnownWidth: number | undefined;
 
@@ -290,7 +291,7 @@ const ResizeHandle = ({ isResizing, style, ...rest }: ResizeHandleProps) => {
             style={{
                 ...style,
                 position: 'absolute',
-                width: isResizing ? 30 : 5,
+                width: isResizing ? 30 : isMobile ? 20 : 5,
                 left: isResizing ? -15 : -2.5,
                 height: '100%',
                 cursor: 'col-resize',
@@ -995,7 +996,14 @@ export default function SubtitlePlayer({
             onScroll={handleScroll}
         >
             {subtitleTable}
-            {resizable && <ResizeHandle isResizing={isResizing} onMouseDown={enableResize} style={{ top: scrollY }} />}
+            {resizable && (
+                <ResizeHandle
+                    isResizing={isResizing}
+                    onMouseDown={enableResize}
+                    onTouchStart={enableResize}
+                    style={{ top: scrollY }}
+                />
+            )}
         </Paper>
     );
 }
