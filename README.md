@@ -107,7 +107,7 @@ asbplayer features will then be accessible for that video.
 
 ### Enhancing local video files with asbplayer features
 
-Drag-and-drop media and subtitle files into the [asbplayer website](https://killergerbah.github.io/asbplayer/) to load them. asbplayer features will then be accessible for those files.
+Drag-and-drop media and subtitle files into the [asbplayer website](https://killergerbah.github.io/asbplayer/) to load them. asbplayer features will then be accessible for those files. Not all media files may be compatible - see the [Browser Compatibility](#browser-compatibility) section.
 
 ### Keyboard shortcuts
 
@@ -206,7 +206,7 @@ An audio track selector will appear for `mkv` files if experimental web platform
 
 The asbplayer application and extension have only been tested on the latest version Chrome and likely work on other Chromium-based browsers.
 
-Local video file playback is supported only for codecs supported by the browser. The [animebook](https://github.com/animebook/animebook.github.io?tab=readme-ov-file#video-format-support-last-update-january-2023) readme has a detailed explanation of this and links to browsers that have good compatibility.
+Local video file playback is supported only for codecs supported by the browser. The latest versions of Chrome can decode H.265 video as long as hardware acceleration is enabled. The [animebook](https://github.com/animebook/animebook.github.io?tab=readme-ov-file#video-format-support-last-update-january-2023) readme has a detailed explanation of this and links to browsers that have good compatibility.
 
 ## Contributing
 
