@@ -463,7 +463,7 @@ export default function SidePanel({ settings, extension }: Props) {
                                 subtitles={subtitles}
                                 hideControls={true}
                                 showCopyButton={true}
-                                copyButtonEnabled={currentTabId === syncedVideoTab?.id}
+                                copyButtonEnabled={!recordingAudio && currentTabId === syncedVideoTab?.id}
                                 forceCompressedMode={true}
                                 subtitleReader={subtitleReader}
                                 settings={settings}
