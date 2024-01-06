@@ -304,10 +304,18 @@ export function computeStyles({
             key = customStyle.key;
         }
 
-        styles[key] = customStyle.value;
+        if (!isNumeric(key)) {
+            // A bug has allowed style keys that look like '0', '1',... to make it into some users' settings
+            // Using such a style key with react crashes the app, so filter them out here
+            styles[key] = customStyle.value;
+        }
     }
 
     return styles;
+}
+
+export function isNumeric(str: string) {
+    return !isNaN(Number(str));
 }
 
 // https://stackoverflow.com/questions/63116039/camelcase-to-kebab-case

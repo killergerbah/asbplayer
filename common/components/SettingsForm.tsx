@@ -23,7 +23,7 @@ import TextField from '@material-ui/core/TextField';
 import { Theme } from '@material-ui/core/styles';
 import { AutoPausePreference, PostMineAction } from '@project/common';
 import { AsbplayerSettings, KeyBindName, SubtitleListPreference } from '@project/common/settings';
-import { computeStyles, download } from '@project/common/util';
+import { computeStyles, download, isNumeric } from '@project/common/util';
 import { CustomStyle, validateSettings } from '@project/common/settings';
 import { useOutsideClickListener } from '@project/common/hooks';
 import TagsTextField from '@project/common/components/TagsTextField';
@@ -536,7 +536,8 @@ interface Props {
     onUnlockLocalFonts: () => void;
 }
 
-const cssStyles = Object.keys(document.body.style);
+// Filter out keys that look like '0', '1', ... as those are invalid
+const cssStyles = Object.keys(document.body.style).filter((s) => !isNumeric(s));
 
 export default function SettingsForm({
     anki,
