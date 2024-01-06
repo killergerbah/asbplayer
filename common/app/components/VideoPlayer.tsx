@@ -1274,6 +1274,15 @@ export default function VideoPlayer({
         ms: 500,
     });
 
+    // If the video player is taking up the entire screen, then the subtitle player isn't showing
+    // This code assumes some behavior in Player, namely that the subtitle player is automatically hidden
+    // (and therefore the VideoPlayer takes up all the space) when there isn't enough room for the subtitle player
+    // to be displayed.
+    const notEnoughRoomForSubtitlePlayer =
+        !subtitlePlayerHidden &&
+        parent?.document?.body !== undefined &&
+        parent.document.body.clientWidth === document.body.clientWidth;
+
     if (!playerChannelSubscribed) {
         return null;
     }
@@ -1340,7 +1349,9 @@ export default function VideoPlayer({
                 popOutEnabled={!isMobile}
                 playModeEnabled={subtitles && subtitles.length > 0}
                 playMode={playMode}
-                hideSubtitlePlayerToggleEnabled={subtitles?.length > 0 && !popOut && !fullscreen}
+                hideSubtitlePlayerToggleEnabled={
+                    subtitles?.length > 0 && !popOut && !fullscreen && !notEnoughRoomForSubtitlePlayer
+                }
                 subtitlePlayerHidden={subtitlePlayerHidden}
                 onPlay={handlePlay}
                 onPause={handlePause}

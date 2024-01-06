@@ -22,7 +22,7 @@ import Clock from '../services/clock';
 import Controls, { Point } from './Controls';
 import Grid from '@material-ui/core/Grid';
 import MediaAdapter, { MediaElement } from '../services/media-adapter';
-import SubtitlePlayer, { DisplaySubtitleModel } from './SubtitlePlayer';
+import SubtitlePlayer, { DisplaySubtitleModel, minSubtitlePlayerWidth } from './SubtitlePlayer';
 import VideoChannel from '../services/video-channel';
 import ChromeExtension from '../services/chrome-extension';
 import PlaybackPreferences from '../services/playback-preferences';
@@ -948,7 +948,11 @@ export default function Player({
 
     const loaded = videoFileUrl || subtitles;
     const videoInWindow = Boolean(loaded && videoFileUrl && !videoPopOut);
-    const actuallyHideSubtitlePlayer = videoInWindow && (hideSubtitlePlayer || !subtitles || subtitles?.length === 0);
+    const subtitlePlayerMaxResizeWidth = Math.max(0, windowWidth - minVideoPlayerWidth);
+    const notEnoughSpaceForSubtitlePlayer = subtitlePlayerMaxResizeWidth < minSubtitlePlayerWidth;
+    const actuallyHideSubtitlePlayer =
+        videoInWindow &&
+        (hideSubtitlePlayer || !subtitles || subtitles?.length === 0 || notEnoughSpaceForSubtitlePlayer);
 
     return (
         <div onMouseMove={handleMouseMove} className={classes.root}>
@@ -1042,7 +1046,7 @@ export default function Player({
                         onSubtitlesHighlighted={handleSubtitlesHighlighted}
                         onResizeStart={handleSubtitlePlayerResizeStart}
                         onResizeEnd={handleSubtitlePlayerResizeEnd}
-                        maxResizeWidth={Math.max(0, windowWidth - minVideoPlayerWidth)}
+                        maxResizeWidth={subtitlePlayerMaxResizeWidth}
                         autoPauseContext={autoPauseContext}
                         settings={settings}
                         keyBinder={keyBinder}

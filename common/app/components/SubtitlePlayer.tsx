@@ -29,6 +29,7 @@ import { useAppBarHeight } from '../hooks/use-app-bar-height';
 import { isMobile } from 'react-device-detect';
 
 let lastKnownWidth: number | undefined;
+export const minSubtitlePlayerWidth = 200;
 const calculateInitialWidth = () => lastKnownWidth ?? Math.max(350, 0.25 * window.innerWidth);
 
 const lineIntersects = (a1: number, b1: number, a2: number, b2: number) => {
@@ -845,7 +846,7 @@ export default function SubtitlePlayer({
 
     const { width, setWidth, enableResize, isResizing } = useResize({
         initialWidth: calculateInitialWidth,
-        minWidth: 200,
+        minWidth: minSubtitlePlayerWidth,
         maxWidth: maxResizeWidth,
         onResizeStart,
         onResizeEnd,

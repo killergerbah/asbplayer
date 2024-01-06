@@ -73,10 +73,12 @@ export const useResize = ({ initialWidth, minWidth, maxWidth, onResizeStart, onR
     );
 
     useEffect(() => {
-        if (maxWidth !== 0 && width > maxWidth) {
+        if (minWidth !== 0 && width < minWidth) {
+            setWidth(minWidth);
+        } else if (maxWidth !== 0 && width > maxWidth) {
             setWidth(maxWidth);
         }
-    }, [maxWidth, width]);
+    }, [maxWidth, minWidth, width]);
 
     useEffect(() => {
         document.addEventListener('mouseleave', disableResize);
