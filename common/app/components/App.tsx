@@ -960,6 +960,9 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                 case PlayMode.fastForward:
                     setAlert(t('info.enabledFastForwardPlayback')!);
                     break;
+                case PlayMode.repeat:
+                    setAlert(t('info.enabledRepeatPlayback')!);
+                    break;
                 case PlayMode.normal:
                     if (oldPlayMode === PlayMode.autoPause) {
                         setAlert(t('info.disabledAutoPause')!);
@@ -967,7 +970,9 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                         setAlert(t('info.disabledCondensedPlayback')!);
                     } else if (oldPlayMode === PlayMode.fastForward) {
                         setAlert(t('info.disabledFastForwardPlayback')!);
-                    }
+                    } else if (oldPlayMode === PlayMode.repeat) {
+		        setAlert(t('info.disabledRepeatPlayback')!);
+		    }
                     break;
             }
 

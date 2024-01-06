@@ -199,7 +199,9 @@
         "playbackRate": "Playback Rate: {{rate}}",
         "savedTimestamp": "Saved: {{timestamp}}",
         "updatedCard": "Updated card: {{result}}",
-        "activeTabPermissionObtained": "Audio recording is now enabled for this tab."
+        "activeTabPermissionObtained": "Audio recording is now enabled for this tab.",
+	"enabledRepeatPlayback": "Repeat playback: On",
+	"disabledRepeatPlayback": "Repeat playback: Off"
     },
     "landing": {
         "cta": "Drag and drop subtitle and media files, or <1>browse</1>.",

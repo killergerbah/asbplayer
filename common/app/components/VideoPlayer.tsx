@@ -1065,7 +1065,7 @@ export default function VideoPlayer({
             if (currentTime && currentTime >= currentSubtitle.end) {
                 videoRef.current.currentTime = currentSubtitle.start / 1000; // Convert back to seconds
             }
-        }, 100); // Adjust interval timing
+        }, 100);
 
         return () => clearInterval(interval);
     }, [playMode, videoRef]);
