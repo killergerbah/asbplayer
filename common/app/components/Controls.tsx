@@ -606,6 +606,7 @@ interface ControlsProps {
     subtitleAlignmentEnabled?: boolean;
     subtitleAlignment?: SubtitleAlignment;
     onSubtitleAlignment?: (alignment: SubtitleAlignment) => void;
+    forceShow?: boolean;
 }
 
 export default function Controls({
@@ -660,6 +661,7 @@ export default function Controls({
     subtitleAlignment,
     subtitleAlignmentEnabled,
     onSubtitleAlignment,
+    forceShow,
 }: ControlsProps) {
     const classes = useControlStyles();
     const { t } = useTranslation();
@@ -739,6 +741,7 @@ export default function Controls({
                 forceShowRef.current ||
                 offsetInputRef.current === document.activeElement ||
                 playbackRateInputRef.current === document.activeElement ||
+                forceShow ||
                 Date.now() - lastNumberInputChangeTimestampRef.current < 2000;
 
             if (currentShow && !lastShowRef.current) {
@@ -753,7 +756,7 @@ export default function Controls({
             lastMousePositionRef.current.y = mousePositionRef.current.y;
         }, 100);
         return () => clearInterval(interval);
-    }, [mousePositionRef, showOnMouseMovement]);
+    }, [mousePositionRef, showOnMouseMovement, forceShow]);
 
     useEffect(() => onShow?.(show), [onShow, show]);
 

@@ -29,6 +29,7 @@ import PlaybackPreferences from '../services/playback-preferences';
 import { useWindowSize } from '../hooks/use-window-size';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
 import { createBlobUrl } from '../../blob-url';
+import { isMobile } from 'react-device-detect';
 
 const minVideoPlayerWidth = 300;
 
@@ -1016,6 +1017,7 @@ export default function Player({
                             disableKeyEvents={disableKeyEvents}
                             playbackPreferences={playbackPreferences}
                             showOnMouseMovement={true}
+                            forceShow={!playing && isMobile}
                         />
                     )}
                     <SubtitlePlayer
