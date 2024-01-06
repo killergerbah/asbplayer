@@ -570,7 +570,6 @@ interface ControlsProps {
     onPause: () => void;
     onPlay: () => void;
     onTabSelected?: (tab: VideoTabModel) => void;
-    onUnloadAudio?: () => void;
     onUnloadVideo?: () => void;
     onOffsetChange: (offset: number) => void;
     onPlaybackRateChange: (playbackRate: number) => void;
@@ -625,7 +624,6 @@ export default function Controls({
     onPause,
     onPlay,
     onTabSelected,
-    onUnloadAudio,
     onUnloadVideo,
     onOffsetChange,
     onPlaybackRateChange,
@@ -670,8 +668,6 @@ export default function Controls({
     const [audioTrackSelectorAnchorEl, setAudioTrackSelectorAnchorEl] = useState<Element>();
     const [tabSelectorOpen, setTabSelectorOpen] = useState<boolean>(false);
     const [tabSelectorAnchorEl, setTabSelectorAnchorEl] = useState<Element>();
-    const [audioUnloaderOpen, setAudioUnloaderOpen] = useState<boolean>(false);
-    const [audioUnloaderAnchorEl, setAudioUnloaderAnchorEl] = useState<Element>();
     const [videoUnloaderOpen, setVideoUnloaderOpen] = useState<boolean>(false);
     const [videoUnloaderAnchorEl, setVideoUnloaderAnchorEl] = useState<Element>();
     const [playModeSelectorOpen, setPlayModeSelectorOpen] = useState<boolean>(false);
