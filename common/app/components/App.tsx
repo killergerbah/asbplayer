@@ -1184,7 +1184,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                         <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />
                     </>
                 ) : (
-                    <Paper>
+                    <Paper square>
                         <CopyHistory
                             items={copyHistoryItems}
                             open={effectiveCopyHistoryOpen}
@@ -1242,7 +1242,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                             hidden
                         />
                         <Content drawerWidth={drawerWidth} drawerOpen={effectiveCopyHistoryOpen}>
-                            <Paper style={{ width: '100%', height: '100%', position: 'relative' }}>
+                            <Paper square style={{ width: '100%', height: '100%', position: 'relative' }}>
                                 {nothingLoaded && (
                                     <LandingPage
                                         latestExtensionVersion={latestExtensionVersion}
