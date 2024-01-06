@@ -37,8 +37,10 @@ import { Color } from '@material-ui/lab/Alert';
 import Alert from './Alert';
 import { useSubtitleDomCache } from '../hooks/use-subtitle-dom-cache';
 import { useAppKeyBinder } from '../hooks/use-app-key-binder';
+import { Direction, useSwipe } from '../hooks/use-swipe';
 import './video-player.css';
 import i18n from 'i18next';
+import { adjacentSubtitle } from '../../key-binder';
 
 interface ExperimentalHTMLVideoElement extends HTMLVideoElement {
     readonly audioTracks: any;
@@ -1255,6 +1257,22 @@ export default function VideoPlayer({
             [subtitleStylesString, imageBasedSubtitleScaleFactor]
         )
     );
+
+    const handleSwipe = useCallback(
+        (direction: Direction) => {
+            const subtitle = adjacentSubtitle(direction === 'left', clock.time(length), subtitles);
+            if (subtitle) {
+                playerChannel.currentTime(subtitle.start / 1000);
+            }
+        },
+        [clock, length, subtitles, playerChannel]
+    );
+
+    useSwipe({
+        onSwipe: handleSwipe,
+        distance: 50,
+        ms: 500,
+    });
 
     if (!playerChannelSubscribed) {
         return null;

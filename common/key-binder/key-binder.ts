@@ -2,6 +2,35 @@ import { SubtitleModel } from '../src/model';
 import hotkeys from 'hotkeys-js';
 import { KeyBindSet } from '../settings/settings';
 
+export function adjacentSubtitle(forward: boolean, time: number, subtitles: SubtitleModel[]) {
+    const now = time;
+    let adjacentSubtitleIndex = -1;
+    let minDiff = Number.MAX_SAFE_INTEGER;
+
+    for (let i = 0; i < subtitles.length; ++i) {
+        const s = subtitles[i];
+        const diff = forward ? s.start - now : now - s.start;
+
+        if (minDiff <= diff) {
+            continue;
+        }
+
+        if (forward && now < s.start) {
+            minDiff = diff;
+            adjacentSubtitleIndex = i;
+        } else if (!forward && now > s.start) {
+            minDiff = diff;
+            adjacentSubtitleIndex = now < s.end ? Math.max(0, i - 1) : i;
+        }
+    }
+
+    if (adjacentSubtitleIndex !== -1) {
+        return subtitles[adjacentSubtitleIndex];
+    }
+
+    return null;
+}
+
 export interface KeyBinder {
     bindCopy<T extends SubtitleModel = SubtitleModel>(
         onCopy: (event: KeyboardEvent, subtitle: T) => void,
@@ -235,7 +264,7 @@ export class DefaultKeyBinder implements KeyBinder {
                 return;
             }
 
-            const subtitle = this._adjacentSubtitle(forward, timeGetter(), subtitles);
+            const subtitle = adjacentSubtitle(forward, timeGetter(), subtitles);
 
             if (subtitle !== null && subtitle.start >= 0 && subtitle.end >= 0) {
                 onSeekToSubtitle(event, subtitle);
@@ -374,7 +403,7 @@ export class DefaultKeyBinder implements KeyBinder {
             }
 
             const time = timeGetter();
-            const subtitle = this._adjacentSubtitle(forward, time, subtitles);
+            const subtitle = adjacentSubtitle(forward, time, subtitles);
 
             if (subtitle !== null) {
                 const subtitleStart = subtitle.originalStart;
@@ -402,35 +431,6 @@ export class DefaultKeyBinder implements KeyBinder {
             unbindPrevious?.();
             unbindNext?.();
         };
-    }
-
-    _adjacentSubtitle(forward: boolean, time: number, subtitles: SubtitleModel[]) {
-        const now = time;
-        let adjacentSubtitleIndex = -1;
-        let minDiff = Number.MAX_SAFE_INTEGER;
-
-        for (let i = 0; i < subtitles.length; ++i) {
-            const s = subtitles[i];
-            const diff = forward ? s.start - now : now - s.start;
-
-            if (minDiff <= diff) {
-                continue;
-            }
-
-            if (forward && now < s.start) {
-                minDiff = diff;
-                adjacentSubtitleIndex = i;
-            } else if (!forward && now > s.start) {
-                minDiff = diff;
-                adjacentSubtitleIndex = now < s.end ? Math.max(0, i - 1) : i;
-            }
-        }
-
-        if (adjacentSubtitleIndex !== -1) {
-            return subtitles[adjacentSubtitleIndex];
-        }
-
-        return null;
     }
 
     bindAdjustOffset(
