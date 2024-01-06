@@ -530,6 +530,7 @@ interface Props {
     localFontsPermission?: PermissionState;
     localFontFamilies: string[];
     supportedLanguages: string[];
+    forceVerticalTabs?: boolean;
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     onOpenChromeExtensionShortcuts: () => void;
     onUnlockLocalFonts: () => void;
@@ -549,12 +550,13 @@ export default function SettingsForm({
     localFontsPermission,
     localFontFamilies,
     supportedLanguages,
+    forceVerticalTabs,
     onSettingsChanged,
     onOpenChromeExtensionShortcuts,
     onUnlockLocalFonts,
 }: Props) {
     const theme = useTheme();
-    const smallScreen = useMediaQuery(theme.breakpoints.down('xs'));
+    const smallScreen = useMediaQuery(theme.breakpoints.down('xs')) && !forceVerticalTabs;
     const classes = useStyles({ smallScreen });
     const handleSettingChanged = useCallback(
         async <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => {

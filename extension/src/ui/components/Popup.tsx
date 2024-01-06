@@ -90,6 +90,7 @@ const Popup = ({
                 <SettingsForm
                     extensionInstalled
                     extensionSupportsAppIntegration
+                    forceVerticalTabs
                     anki={anki}
                     chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}
                     settings={settings}
