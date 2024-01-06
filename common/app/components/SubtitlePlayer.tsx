@@ -29,6 +29,7 @@ import { useAppBarHeight } from '../hooks/use-app-bar-height';
 import { isMobile } from 'react-device-detect';
 
 let lastKnownWidth: number | undefined;
+const calculateInitialWidth = () => lastKnownWidth ?? Math.max(350, 0.25 * window.innerWidth);
 
 const lineIntersects = (a1: number, b1: number, a2: number, b2: number) => {
     if (a1 === a2 || b1 === b2) {
@@ -842,8 +843,8 @@ export default function SubtitlePlayer({
         setScrollY((event.target as HTMLElement)?.scrollTop ?? 0);
     }, []);
 
-    const { width, enableResize, isResizing } = useResize({
-        initialWidth: lastKnownWidth ?? Math.max(350, 0.25 * window.innerWidth),
+    const { width, setWidth, enableResize, isResizing } = useResize({
+        initialWidth: calculateInitialWidth,
         minWidth: 200,
         maxWidth: maxResizeWidth,
         onResizeStart,
@@ -852,7 +853,16 @@ export default function SubtitlePlayer({
 
     useEffect(() => {
         lastKnownWidth = width;
-    }, [width]);
+    }, [width, maxResizeWidth]);
+
+    useEffect(() => {
+        const listener = () => {
+            lastKnownWidth = undefined;
+            setWidth(calculateInitialWidth());
+        };
+        screen.orientation.addEventListener('change', listener);
+        return () => screen.orientation.removeEventListener('change', listener);
+    }, [setWidth]);
 
     const { dragging, draggingStartLocation, draggingCurrentLocation } = useDragging({ holdToDragMs: 750 });
 

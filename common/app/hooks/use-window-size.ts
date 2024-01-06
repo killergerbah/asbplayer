@@ -12,9 +12,13 @@ export function useWindowSize(enabled: boolean) {
         }
 
         window.addEventListener('resize', updateSize);
+        screen.orientation.addEventListener('change', updateSize);
         updateSize();
 
-        return () => window.removeEventListener('resize', updateSize);
+        return () => {
+            window.removeEventListener('resize', updateSize);
+            screen.orientation.removeEventListener('change', updateSize);
+        };
     }, [enabled]);
 
     return size;

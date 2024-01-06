@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 interface Props {
-    initialWidth: number;
+    initialWidth: () => number;
     minWidth: number;
     maxWidth: number;
     onResizeStart?: () => void;
@@ -102,5 +102,5 @@ export const useResize = ({ initialWidth, minWidth, maxWidth, onResizeStart, onR
         };
     }, [disableResize, resize, resizeFromTouch, recordLastMouseDownPosition, recordLastTouchStartPosition]);
 
-    return { width, enableResize, isResizing };
+    return { width, setWidth, enableResize, isResizing };
 };
