@@ -387,7 +387,7 @@ const AnkiDialog = ({
             timestampInterval === undefined
                 ? []
                 : card.surroundingSubtitles.filter((s) => subtitleIntersectsTimeInterval(s, timestampInterval));
-        setText(card.subtitle.text ?? joinSubtitles(selectedSubtitles));
+        setText(initialText ?? card.subtitle.text ?? joinSubtitles(selectedSubtitles));
         setTimestampInterval(timestampInterval);
         setSelectedSubtitles(selectedSubtitles);
         setInitialTimestampInterval(forceInitialTimestampInterval || timestampInterval);
