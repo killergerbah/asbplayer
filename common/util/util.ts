@@ -287,7 +287,7 @@ export function computeStyles({
     }
 
     if (subtitleFontFamily && subtitleFontFamily.length > 0) {
-        styles['fontFamily'] = subtitleFontFamily;
+        styles['fontFamily'] = `'${subtitleFontFamily}'`;
     }
 
     for (const customStyle of subtitleCustomStyles) {

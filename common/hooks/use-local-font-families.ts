@@ -19,7 +19,15 @@ export const useLocalFontFamilies = () => {
             // @ts-ignore
             queryLocalFonts()
                 // @ts-ignore
-                .then((fonts) => setLocalFontFamilies(fonts.map((f) => f.postscriptName)))
+                .then((fonts) => {
+                    const families: { [family: string]: boolean } = {};
+
+                    for (const f of fonts) {
+                        families[f.family] = true;
+                    }
+
+                    setLocalFontFamilies(Object.keys(families));
+                })
                 .catch(console.error);
         }
     }, []);
