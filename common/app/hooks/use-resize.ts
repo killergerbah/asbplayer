@@ -73,9 +73,10 @@ export const useResize = ({ initialWidth, minWidth, maxWidth, onResizeStart, onR
     );
 
     useEffect(() => {
+        // Prioritize minWidth even if it's larger than maxWidth
         if (minWidth !== 0 && width < minWidth) {
             setWidth(minWidth);
-        } else if (maxWidth !== 0 && width > maxWidth) {
+        } else if (maxWidth !== 0 && width > Math.max(minWidth, maxWidth)) {
             setWidth(maxWidth);
         }
     }, [maxWidth, minWidth, width]);
