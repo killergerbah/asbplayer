@@ -3,6 +3,21 @@ const CopyPlugin = require('copy-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const glob = require('glob');
 
+const modifyManifestForProduction = (content, options) => {
+    if (options.mode !== 'production') {
+        return content;
+    }
+
+    const manifest = JSON.parse(content.toString());
+    const modifiedContentScripts = manifest.content_scripts.map((originalContentScript) => ({
+        ...originalContentScript,
+        exclude_globs: originalContentScript.exclude_globs?.filter((pattern) => !pattern.includes('localhost')),
+        matches: originalContentScript.matches?.filter((pattern) => !pattern.includes('localhost')),
+    }));
+    const modifiedManifest = { ...manifest, content_scripts: modifiedContentScripts };
+    return JSON.stringify(modifiedManifest);
+};
+
 module.exports = (env, options) => ({
     entry: {
         video: './src/video.ts',
@@ -66,12 +81,24 @@ module.exports = (env, options) => ({
                 {
                     from: './src',
                     globOptions: {
-                        ignore: ['**/services', '**/handlers', '**/ui', '**/.DS_Store', '**/controllers', '**/*.ts'],
+                        ignore: [
+                            '**/services',
+                            '**/handlers',
+                            '**/ui',
+                            '**/.DS_Store',
+                            '**/controllers',
+                            '**/*.ts',
+                            '**/manifest.json',
+                        ],
                     },
                 },
                 {
                     from: '../common/locales',
                     to: 'asbplayer-locales',
+                },
+                {
+                    from: './src/manifest.json',
+                    transform: (content, path) => modifyManifestForProduction(content, options),
                 },
             ],
             options: {
