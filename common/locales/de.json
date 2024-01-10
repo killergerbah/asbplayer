@@ -218,6 +218,7 @@
         "addCustomCss": "Add Custom CSS",
         "addCustomField": "Eigenes Feld hinzufügen",
         "anki": "Anki",
+        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current subtitle'",
         "ankiConnectUrl": "Anki-Connect-URL",
         "audioField": "Audio-Feld",
         "audioPaddingEnd": "Audio-Padding Ende",

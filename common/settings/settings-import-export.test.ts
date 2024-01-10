@@ -89,6 +89,7 @@ it('validates exported settings', () => {
         rememberSubtitleOffset: true,
         lastSubtitleOffset: 0,
         autoCopyCurrentSubtitle: false,
+        alwaysPlayOnSubtitleRepeat: true,
         subtitleRegexFilter: '',
         subtitleRegexFilterTextReplacement: '',
         language: 'en',
