@@ -166,6 +166,9 @@ const settingsSchema = {
         autoCopyCurrentSubtitle: {
             type: 'boolean',
         },
+        alwaysPlayOnSubtitleRepeat: {
+            type: 'boolean',
+        },
         subtitleRegexFilter: {
             type: 'string',
         },

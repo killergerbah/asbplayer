@@ -675,6 +675,7 @@ export default function SettingsForm({
         copyToClipboardOnMine,
         rememberSubtitleOffset,
         autoCopyCurrentSubtitle,
+        alwaysPlayOnSubtitleRepeat,
         subtitleRegexFilter,
         subtitleRegexFilterTextReplacement,
         language,
@@ -1722,6 +1723,19 @@ export default function SettingsForm({
                                     />
                                 }
                                 label={t('settings.autoCopy')}
+                                labelPlacement="start"
+                                className={classes.switchLabel}
+                            />
+                            <LabelWithHoverEffect
+                                control={
+                                    <Switch
+                                        checked={alwaysPlayOnSubtitleRepeat}
+                                        onChange={(event) =>
+                                            handleSettingChanged('alwaysPlayOnSubtitleRepeat', event.target.checked)
+                                        }
+                                    />
+                                }
+                                label={t('settings.alwaysPlayOnSubtitleRepeat')}
                                 labelPlacement="start"
                                 className={classes.switchLabel}
                             />

@@ -58,6 +58,7 @@ export default class Binding {
     subscribed: boolean = false;
 
     ankiUiSavedState?: AnkiUiSavedState;
+    alwaysPlayOnSubtitleRepeat: boolean;
 
     private _synced: boolean;
     private _syncedTimestamp?: number;
@@ -125,6 +126,7 @@ export default class Binding {
         this.maxImageHeight = 0;
         this.autoPausePreference = AutoPausePreference.atEnd;
         this.copyToClipboardOnMine = false;
+        this.alwaysPlayOnSubtitleRepeat = true;
         this._synced = false;
         this.recordingMedia = false;
         this.recordingMediaWithScreenshot = false;
@@ -643,6 +645,7 @@ export default class Binding {
         this.subtitleController.surroundingSubtitlesTimeRadius = currentSettings.surroundingSubtitlesTimeRadius;
         this.copyToClipboardOnMine = currentSettings.copyToClipboardOnMine;
         this.autoPausePreference = currentSettings.autoPausePreference;
+        this.alwaysPlayOnSubtitleRepeat = currentSettings.alwaysPlayOnSubtitleRepeat;
         this.keyBindings.setKeyBindSet(this, currentSettings.keyBindSet);
         this.subtitleController.autoCopyCurrentSubtitle = currentSettings.autoCopyCurrentSubtitle;
         this.subtitleController.preCacheDom = currentSettings.preCacheSubtitleDom;

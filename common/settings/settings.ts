@@ -8,6 +8,7 @@ export interface MiscSettings {
     readonly keyBindSet: KeyBindSet;
     readonly rememberSubtitleOffset: boolean;
     readonly autoCopyCurrentSubtitle: boolean;
+    readonly alwaysPlayOnSubtitleRepeat: boolean;
     readonly subtitleRegexFilter: string;
     readonly subtitleRegexFilterTextReplacement: string;
     readonly miningHistoryStorageLimit: number;
