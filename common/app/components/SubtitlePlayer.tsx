@@ -592,13 +592,13 @@ export default function SubtitlePlayer({
             (event, subtitle) => {
                 event.preventDefault();
                 event.stopPropagation();
-                onSeek(subtitle.start, playingRef.current ?? false);
+                onSeek(subtitle.start, settings.alwaysPlayOnSubtitleRepeat || (playingRef.current ?? false));
             },
             () => disableKeyEvents,
             () => clock.time(length),
             () => subtitles
         );
-    }, [keyBinder, onSeek, subtitles, disableKeyEvents, clock, length]);
+    }, [keyBinder, onSeek, subtitles, disableKeyEvents, clock, length, settings]);
 
     useEffect(() => {
         return keyBinder.bindSeekBackwardOrForward(

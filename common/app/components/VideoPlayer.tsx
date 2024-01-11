@@ -689,12 +689,16 @@ export default function VideoPlayer({
             (event, subtitle) => {
                 event.preventDefault();
                 playerChannel.currentTime(subtitle.start / 1000);
+
+                if (settings.alwaysPlayOnSubtitleRepeat) {
+                    playerChannel.play();
+                }
             },
             () => !videoRef.current,
             () => clock.time(length),
             () => subtitles
         );
-    }, [keyBinder, playerChannel, subtitles, length, clock]);
+    }, [keyBinder, playerChannel, subtitles, length, clock, settings]);
 
     useEffect(() => {
         return keyBinder.bindSeekBackwardOrForward(
