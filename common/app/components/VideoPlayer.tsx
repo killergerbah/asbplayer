@@ -325,14 +325,20 @@ export default function VideoPlayer({
     const [showCursor, setShowCursor] = useState<boolean>(false);
     const lastMouseMovementTimestamp = useRef<number>(0);
     const containerRef = useRef<HTMLDivElement>(null);
-    const [miscSettings, setMiscSettings] = useState<MiscSettings>(settings);
-    const [subtitleSettings, setSubtitleSettings] = useState<SubtitleSettings>(settings);
-    const [ankiSettings, setAnkiSettings] = useState<AnkiSettings>(settings);
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
     const [alertMessage, setAlertMessage] = useState<string>('');
     const [alertSeverity, setAlertSeverity] = useState<Color>('info');
     const [lastMinedRecord, setLastMinedRecord] = useState<MinedRecord>();
     const [, forceRender] = useState<any>();
+    const [miscSettings, setMiscSettings] = useState<MiscSettings>(settings);
+    const [subtitleSettings, setSubtitleSettings] = useState<SubtitleSettings>(settings);
+    const [ankiSettings, setAnkiSettings] = useState<AnkiSettings>(settings);
+
+    useEffect(() => {
+        setMiscSettings(settings);
+        setSubtitleSettings(settings);
+        setAnkiSettings(settings);
+    }, [settings]);
 
     useEffect(() => {
         setSubtitleAlignment(playbackPreferences.subtitleAlignment);
