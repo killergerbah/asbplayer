@@ -217,6 +217,7 @@
     "settings": {
         "addCustomCss": "カスタムCSSを追加",
         "addCustomField": "カスタムフィールドを追加",
+        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current subtitle'",
         "anki": "Anki",
         "ankiConnectUrl": "AnkiConnect の URL",
         "audioField": "音声フィールド",

@@ -217,6 +217,7 @@
     "settings": {
         "addCustomCss": "Adicionar CSS customizado",
         "addCustomField": "Adicionar campo customizado",
+        "alwaysPlayOnSubtitleRepeat": "Sempre reproduzir depois de invocar 'Vai para o início da legenda atual'",
         "anki": "Anki",
         "ankiConnectUrl": "URL do Anki Connect",
         "audioField": "Campo de áudio",
