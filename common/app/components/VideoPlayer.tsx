@@ -1035,22 +1035,6 @@ export default function VideoPlayer({
         );
     }, [keyBinder, playerChannel]);
 
-    useEffect(() => {
-        const unbindRepeat = keyBinder.bindToggleRepeat(
-            (event) => {
-                event.preventDefault();
-                if (playMode === PlayMode.repeat) {
-                    setPlayMode(PlayMode.normal);
-                } else {
-                    setPlayMode(PlayMode.repeat);
-                }
-            },
-            () => false
-        );
-
-        return () => unbindRepeat();
-    }, [keyBinder, playMode, setPlayMode]);
-
     const togglePlayMode = useCallback(
         (event: KeyboardEvent, togglePlayMode: PlayMode) => {
             event.preventDefault();
@@ -1078,6 +1062,13 @@ export default function VideoPlayer({
     useEffect(() => {
         return keyBinder.bindFastForwardPlayback(
             (event) => togglePlayMode(event, PlayMode.fastForward),
+            () => false
+        );
+    }, [keyBinder, togglePlayMode]);
+
+    useEffect(() => {
+        return keyBinder.bindToggleRepeat(
+            (event) => togglePlayMode(event, PlayMode.repeat),
             () => false
         );
     }, [keyBinder, togglePlayMode]);

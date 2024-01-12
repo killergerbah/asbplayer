@@ -245,8 +245,8 @@ export default class Binding {
                     this.subtitleController.autoPauseContext.onWillStopShowing = () => {
                         this.seek(currentSubtitle.start / 1000);
                     };
+                    this.subtitleController.notification('info.enabledRepeatPlayback');
                 }
-                this.subtitleController.notification('info.enabledRepeatPlayback');
                 break;
             case PlayMode.normal:
                 if (this._playMode === PlayMode.repeat) {

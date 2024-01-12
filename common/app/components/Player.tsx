@@ -226,6 +226,20 @@ export default function Player({
     const classes = useStyles({ appBarHidden, appBarHeight });
     const calculateLength = () => trackLength(channelRef.current, subtitlesRef.current);
 
+    const seek = useCallback(
+        async (time: number, clock: Clock, forwardToMedia: boolean) => {
+            clock.setTime(time);
+            forceUpdate();
+
+            if (forwardToMedia) {
+                await mediaAdapter.seek(time / 1000);
+            }
+
+            autoPauseContextRef.current?.clear();
+        },
+        [forceUpdate, mediaAdapter]
+    );
+
     const handleSubtitlePlayerResizeStart = useCallback(() => setSubtitlePlayerResizing(true), []);
     const handleSubtitlePlayerResizeEnd = useCallback(() => setSubtitlePlayerResizing(false), []);
 
@@ -241,17 +255,27 @@ export default function Player({
         pause(clock, mediaAdapter, true);
     }, [playMode, clock, mediaAdapter, videoFileUrl, settings]);
 
-    const handleOnWillStopShowingSubtitle = useCallback(() => {
-        if (
-            playMode !== PlayMode.autoPause ||
-            settings.autoPausePreference !== AutoPausePreference.atEnd ||
-            videoFileUrl // Let VideoPlayer do the auto-pausing
-        ) {
-            return;
-        }
+    const getCurrentSubtitle = (currentTime: number) => {
+        const subtitlesAtCurrentTime = subtitleCollection.subtitlesAt(currentTime);
+        return subtitlesAtCurrentTime.showing.length > 0 ? subtitlesAtCurrentTime.showing[0] : null;
+    };
 
-        pause(clock, mediaAdapter, true);
-    }, [playMode, clock, mediaAdapter, videoFileUrl, settings]);
+    const handleOnWillStopShowingSubtitle = useCallback(() => {
+        const currentTime = clock.time(calculateLength());
+        const currentSubtitle = getCurrentSubtitle(currentTime);
+
+        if (playMode === PlayMode.repeat && currentSubtitle) {
+            // If in repeat mode, seek to the start of the current subtitle
+            seek(currentSubtitle.start, clock, true);
+        } else if (
+            playMode === PlayMode.autoPause &&
+            settings.autoPausePreference === AutoPausePreference.atEnd &&
+            !videoFileUrl // Ensure not to interfere with VideoPlayer's auto-pausing
+        ) {
+            // Handle auto-pause logic
+            pause(clock, mediaAdapter, true);
+        }
+    }, [playMode, clock, mediaAdapter, videoFileUrl, settings, seek, getCurrentSubtitle, calculateLength]);
 
     const autoPauseContext = useMemo(() => {
         const context = new AutoPauseContext();
@@ -261,20 +285,6 @@ export default function Player({
     }, [handleOnStartedShowingSubtitle, handleOnWillStopShowingSubtitle]);
     const autoPauseContextRef = useRef<AutoPauseContext>();
     autoPauseContextRef.current = autoPauseContext;
-
-    const seek = useCallback(
-        async (time: number, clock: Clock, forwardToMedia: boolean) => {
-            clock.setTime(time);
-            forceUpdate();
-
-            if (forwardToMedia) {
-                await mediaAdapter.seek(time / 1000);
-            }
-
-            autoPauseContextRef.current?.clear();
-        },
-        [forceUpdate, mediaAdapter]
-    );
 
     const updatePlaybackRate = useCallback(
         (playbackRate: number, forwardToMedia: boolean) => {
@@ -684,31 +694,6 @@ export default function Player({
     }, [updatePlaybackRate, subtitleCollection, clock, subtitles, playMode, settings.fastForwardModePlaybackRate]);
 
     useEffect(() => {
-        if (playMode === PlayMode.repeat) {
-            autoPauseContext.onWillStopShowing = () => {
-                const currentTime = clock.time(calculateLength());
-                const currentSubtitle = getCurrentSubtitle(currentTime);
-                if (currentSubtitle) {
-                    seek(currentSubtitle.start, clock, true);
-                }
-            };
-        } else {
-            autoPauseContext.onWillStopShowing = undefined;
-        }
-
-        return () => {
-            if (autoPauseContext.onWillStopShowing) {
-                autoPauseContext.onWillStopShowing = undefined;
-            }
-        };
-    }, [playMode, autoPauseContext, seek, clock, subtitleCollection]);
-
-    const getCurrentSubtitle = (currentTime: number) => {
-        const subtitlesAtCurrentTime = subtitleCollection.subtitlesAt(currentTime);
-        return subtitlesAtCurrentTime.showing.length > 0 ? subtitlesAtCurrentTime.showing[0] : null;
-    };
-
-    useEffect(() => {
         if (videoPopOut && videoFileUrl && channelId) {
             window.open(
                 origin + '?video=' + encodeURIComponent(videoFileUrl) + '&channel=' + channelId + '&popout=true',
@@ -943,7 +928,9 @@ export default function Player({
     useEffect(() => {
         return keyBinder.bindToggleRepeat(
             (event) => {
-                togglePlayMode(event, PlayMode.repeat);
+                if (subtitles && subtitles.length !== 0) {
+                    togglePlayMode(event, PlayMode.repeat);
+                }
             },
             () => disableKeyEvents
         );
