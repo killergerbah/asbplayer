@@ -240,24 +240,18 @@ export default class Binding {
                 this.subtitleController.notification('info.enabledFastForwardPlayback');
                 break;
             case PlayMode.repeat:
-                if (!this.repeatIntervalId) {
-                    const [currentSubtitle, _] = this.subtitleController.currentSubtitle();
-                    this.repeatIntervalId = setInterval(() => {
-                        if (currentSubtitle && this.video.currentTime * 1000 >= currentSubtitle.end) {
-                            this.seek(currentSubtitle.start / 1000);
-                        }
-                    }, 100); // Check every 100ms
-
-                    this.subtitleController.notification('info.enabledRepeatPlayback');
+                const [currentSubtitle] = this.subtitleController.currentSubtitle();
+                if (currentSubtitle) {
+                    this.subtitleController.autoPauseContext.onWillStopShowing = () => {
+                        this.seek(currentSubtitle.start / 1000);
+                    };
                 }
+                this.subtitleController.notification('info.enabledRepeatPlayback');
                 break;
             case PlayMode.normal:
                 if (this._playMode === PlayMode.repeat) {
-                    if (this.repeatIntervalId) {
-                        clearInterval(this.repeatIntervalId);
-                        this.repeatIntervalId = undefined;
-                        this.subtitleController.notification('info.disabledRepeatPlayback');
-                    }
+                    this.subtitleController.autoPauseContext.onWillStopShowing = undefined;
+                    this.subtitleController.notification('info.disabledRepeatPlayback');
                 }
                 if (this._playMode === PlayMode.autoPause) {
                     this.subtitleController.autoPauseContext.onStartedShowing = undefined;

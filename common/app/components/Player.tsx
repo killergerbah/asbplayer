@@ -684,6 +684,31 @@ export default function Player({
     }, [updatePlaybackRate, subtitleCollection, clock, subtitles, playMode, settings.fastForwardModePlaybackRate]);
 
     useEffect(() => {
+        if (playMode === PlayMode.repeat) {
+            autoPauseContext.onWillStopShowing = () => {
+                const currentTime = clock.time(calculateLength());
+                const currentSubtitle = getCurrentSubtitle(currentTime);
+                if (currentSubtitle) {
+                    seek(currentSubtitle.start, clock, true);
+                }
+            };
+        } else {
+            autoPauseContext.onWillStopShowing = undefined;
+        }
+
+        return () => {
+            if (autoPauseContext.onWillStopShowing) {
+                autoPauseContext.onWillStopShowing = undefined;
+            }
+        };
+    }, [playMode, autoPauseContext, seek, clock, subtitleCollection]);
+
+    const getCurrentSubtitle = (currentTime: number) => {
+        const subtitlesAtCurrentTime = subtitleCollection.subtitlesAt(currentTime);
+        return subtitlesAtCurrentTime.showing.length > 0 ? subtitlesAtCurrentTime.showing[0] : null;
+    };
+
+    useEffect(() => {
         if (videoPopOut && videoFileUrl && channelId) {
             window.open(
                 origin + '?video=' + encodeURIComponent(videoFileUrl) + '&channel=' + channelId + '&popout=true',

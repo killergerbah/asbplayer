@@ -1051,25 +1051,6 @@ export default function VideoPlayer({
         return () => unbindRepeat();
     }, [keyBinder, playMode, setPlayMode]);
 
-    useEffect(() => {
-        if (playMode !== PlayMode.repeat || showSubtitlesRef.current.length === 0) {
-            return;
-        }
-
-        // Capture the current subtitle outside the interval
-        const currentSubtitle = showSubtitlesRef.current[0];
-
-        const interval = setInterval(() => {
-            const currentTime = videoRef.current?.currentTime * 1000; // Convert to milliseconds
-
-            if (currentTime && currentTime >= currentSubtitle.end) {
-                videoRef.current.currentTime = currentSubtitle.start / 1000; // Convert back to seconds
-            }
-        }, 100);
-
-        return () => clearInterval(interval);
-    }, [playMode, videoRef]);
-
     const togglePlayMode = useCallback(
         (event: KeyboardEvent, togglePlayMode: PlayMode) => {
             event.preventDefault();
