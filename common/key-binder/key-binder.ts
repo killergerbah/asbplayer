@@ -316,7 +316,7 @@ export class DefaultKeyBinder implements KeyBinder {
                 return;
             }
 
-            const subtitle = this._currentSubtitle(timeGetter(), subtitles);
+            const subtitle = this._currentOrPreviousSubtitle(timeGetter(), subtitles);
 
             if (subtitle !== undefined && subtitle.start >= 0 && subtitle.end >= 0) {
                 onSeekToBeginningOfCurrentSubtitle(event, subtitle);
@@ -325,9 +325,10 @@ export class DefaultKeyBinder implements KeyBinder {
         return this._bind(shortcut, capture, handler);
     }
 
-    _currentSubtitle(time: number, subtitles: SubtitleModel[]) {
+    _currentOrPreviousSubtitle(time: number, subtitles: SubtitleModel[]) {
         const now = time;
         let currentSubtitle: SubtitleModel | undefined;
+        let previousSubtitle: SubtitleModel | undefined;
         let minDiff = Number.MAX_SAFE_INTEGER;
 
         for (let i = 0; i < subtitles.length; ++i) {
@@ -344,10 +345,12 @@ export class DefaultKeyBinder implements KeyBinder {
                     currentSubtitle = s;
                     minDiff = diff;
                 }
+            } else if (now > s.end) {
+                previousSubtitle = s;
             }
         }
 
-        return currentSubtitle;
+        return currentSubtitle ? currentSubtitle : previousSubtitle;
     }
 
     bindSeekBackwardOrForward(

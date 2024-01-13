@@ -81,7 +81,7 @@
         "seekBackward": "向后搜索10秒",
         "seekBackwardOrForward": "向后/向前搜索10秒",
         "seekForward": "向前搜索10秒",
-        "seekToBeginningOfCurrentSubtitle": "搜索到当前字幕的开头",
+        "seekToBeginningOfCurrentOrPreviousSubtitle": "Seek to beginning of current/previous subtitle",
         "seekToNextSubtitle": "查找下一个字幕",
         "seekToPreviousSubtitle": "查找上一个/下一个字幕",
         "seekToSubtitle": "查找上一个/下一个字幕",
@@ -217,7 +217,7 @@
     "settings": {
         "addCustomCss": "添加自定义CSS",
         "addCustomField": "添加自定义字段",
-        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current subtitle'",
+        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current/previous subtitle'",
         "anki": "Anki",
         "ankiConnectUrl": "Anki连接URL",
         "audioField": "音频字段",
