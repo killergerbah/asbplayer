@@ -750,6 +750,7 @@ export default class Binding {
         if (this.recordMedia) {
             this.recordingMedia = true;
             this.recordingMediaStartedTimestamp = this.video.currentTime * 1000;
+            this.recordingMediaWithScreenshot = this.takeScreenshot;
             const start = Math.max(0, subtitle.start - this.audioPaddingStart);
             this.seek(start / 1000);
             await this.play();
