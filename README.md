@@ -35,6 +35,7 @@ Thank you to all of my sponsors:
 -   [@zaerald](https://github.com/zaerald)
 -   Suna
 -   [@tony7253](https://github.com/tony7253)
+-   [@voothi](https://github.com/voothi)
 
 ... and to those who have donated privately.
 
