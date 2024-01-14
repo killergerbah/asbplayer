@@ -82,7 +82,7 @@
         "seekBackward": "Retroceder 10 segundos",
         "seekBackwardOrForward": "Avanzar/Retroceder 10 segundos",
         "seekForward": "Avanzar 10 segundos",
-        "seekToBeginningOfCurrentSubtitle": "Ir al inicio del subtítulo actual",
+        "seekToBeginningOfCurrentOrPreviousSubtitle": "Ir al inicio del subtítulo actual/anterior",
         "seekToNextSubtitle": "Avanzar al siguiente subtítulo",
         "seekToPreviousSubtitle": "Retroceder al subtítulo anterior",
         "seekToSubtitle": "Ir al subtítulo anterior/siguiente",
@@ -218,7 +218,7 @@
     "settings": {
         "addCustomCss": "Agregar CSS Personalizado",
         "addCustomField": "Agregar Campo Personalizado",
-        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current subtitle'",
+        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current/previous subtitle'",
         "anki": "Anki",
         "ankiConnectUrl": "URL de Anki Connect",
         "audioField": "Campo de Audio",

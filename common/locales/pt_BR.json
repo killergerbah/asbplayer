@@ -81,7 +81,7 @@
         "seekBackward": "Retrocede 10 segundos",
         "seekBackwardOrForward": "Retroceda/avança 10 segundos",
         "seekForward": "Avança 10 segundos",
-        "seekToBeginningOfCurrentSubtitle": "Vai para o início da legenda atual",
+        "seekToBeginningOfCurrentOrPreviousSubtitle": "Vai para o início da legenda atual/anterior",
         "seekToNextSubtitle": "Vai para a próxima legenda",
         "seekToPreviousSubtitle": "Vai para a legenda anterior",
         "seekToSubtitle": "Vá para a legenda anterior/próxima",
