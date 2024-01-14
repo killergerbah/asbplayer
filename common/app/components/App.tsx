@@ -453,7 +453,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                         audioClip,
                         Image.fromCard(newCopiedSubtitle, settings.maxImageWidth, settings.maxImageHeight),
                         '',
-                        `${newCopiedSubtitle} (${humanReadableTime(card.mediaTimestamp)})`,
+                        `${newCopiedSubtitle.subtitleFileName} (${humanReadableTime(card.mediaTimestamp)})`,
                         '',
                         {},
                         settings.tags,
