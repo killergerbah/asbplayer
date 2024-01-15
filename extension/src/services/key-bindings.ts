@@ -27,6 +27,7 @@ export default class KeyBindings {
     private _unbindAdjustOffset?: Unbinder = false;
     private _unbindResetOffset?: Unbinder = false;
     private _unbindAdjustPlaybackRate?: Unbinder = false;
+    private _unbindToggleRepeat: Unbinder = false;
 
     private _bound: boolean;
 
@@ -81,6 +82,17 @@ export default class KeyBindings {
                 event.stopImmediatePropagation();
 
                 context.playMode = context.playMode === PlayMode.condensed ? PlayMode.normal : PlayMode.condensed;
+            },
+            () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
+            true
+        );
+
+        this._unbindToggleRepeat = this._keyBinder.bindToggleRepeat(
+            (event) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                context.playMode = context.playMode === PlayMode.repeat ? PlayMode.normal : PlayMode.repeat;
             },
             () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
             true
@@ -300,6 +312,11 @@ export default class KeyBindings {
         if (this._unbindResetOffset) {
             this._unbindResetOffset();
             this._unbindResetOffset = false;
+        }
+
+        if (this._unbindToggleRepeat) {
+            this._unbindToggleRepeat();
+            this._unbindToggleRepeat = false;
         }
 
         if (this._unbindAdjustPlaybackRate) {

@@ -66,6 +66,7 @@ export default class Binding {
     private recordingMediaStartedTimestamp?: number;
     private recordingMediaWithScreenshot: boolean;
     private _playMode: PlayMode = PlayMode.normal;
+    private repeatIntervalId?: NodeJS.Timeout;
 
     readonly video: HTMLMediaElement;
     readonly subSyncAvailable: boolean;
@@ -131,6 +132,7 @@ export default class Binding {
         this.recordingMedia = false;
         this.recordingMediaWithScreenshot = false;
         this.frameId = frameId;
+        this.repeatIntervalId = undefined;
     }
 
     get synced() {
@@ -237,8 +239,20 @@ export default class Binding {
                 };
                 this.subtitleController.notification('info.enabledFastForwardPlayback');
                 break;
+            case PlayMode.repeat:
+                const [currentSubtitle] = this.subtitleController.currentSubtitle();
+                if (currentSubtitle) {
+                    this.subtitleController.autoPauseContext.onWillStopShowing = () => {
+                        this.seek(currentSubtitle.start / 1000);
+                    };
+                    this.subtitleController.notification('info.enabledRepeatPlayback');
+                }
+                break;
             case PlayMode.normal:
-                if (this._playMode === PlayMode.autoPause) {
+                if (this._playMode === PlayMode.repeat) {
+                    this.subtitleController.autoPauseContext.onWillStopShowing = undefined;
+                    this.subtitleController.notification('info.disabledRepeatPlayback');
+                } else if (this._playMode === PlayMode.autoPause) {
                     this.subtitleController.autoPauseContext.onStartedShowing = undefined;
                     this.subtitleController.autoPauseContext.onWillStopShowing = undefined;
                     this.subtitleController.notification('info.disabledAutoPause');

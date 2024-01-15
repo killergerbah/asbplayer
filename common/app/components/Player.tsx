@@ -226,6 +226,20 @@ export default function Player({
     const classes = useStyles({ appBarHidden, appBarHeight });
     const calculateLength = () => trackLength(channelRef.current, subtitlesRef.current);
 
+    const seek = useCallback(
+        async (time: number, clock: Clock, forwardToMedia: boolean) => {
+            clock.setTime(time);
+            forceUpdate();
+
+            if (forwardToMedia) {
+                await mediaAdapter.seek(time / 1000);
+            }
+
+            autoPauseContextRef.current?.clear();
+        },
+        [forceUpdate, mediaAdapter]
+    );
+
     const handleSubtitlePlayerResizeStart = useCallback(() => setSubtitlePlayerResizing(true), []);
     const handleSubtitlePlayerResizeEnd = useCallback(() => setSubtitlePlayerResizing(false), []);
 
@@ -241,17 +255,22 @@ export default function Player({
         pause(clock, mediaAdapter, true);
     }, [playMode, clock, mediaAdapter, videoFileUrl, settings]);
 
-    const handleOnWillStopShowingSubtitle = useCallback(() => {
-        if (
-            playMode !== PlayMode.autoPause ||
-            settings.autoPausePreference !== AutoPausePreference.atEnd ||
-            videoFileUrl // Let VideoPlayer do the auto-pausing
-        ) {
-            return;
-        }
-
-        pause(clock, mediaAdapter, true);
-    }, [playMode, clock, mediaAdapter, videoFileUrl, settings]);
+    const handleOnWillStopShowingSubtitle = useCallback(
+        (subtitle: SubtitleModel) => {
+            if (playMode === PlayMode.repeat) {
+                // If in repeat mode, seek to the start of the current subtitle
+                seek(subtitle.start, clock, true);
+            } else if (
+                playMode === PlayMode.autoPause &&
+                settings.autoPausePreference === AutoPausePreference.atEnd &&
+                !videoFileUrl // Ensure not to interfere with VideoPlayer's auto-pausing
+            ) {
+                // Handle auto-pause logic
+                pause(clock, mediaAdapter, true);
+            }
+        },
+        [playMode, clock, mediaAdapter, videoFileUrl, settings, seek]
+    );
 
     const autoPauseContext = useMemo(() => {
         const context = new AutoPauseContext();
@@ -261,20 +280,6 @@ export default function Player({
     }, [handleOnStartedShowingSubtitle, handleOnWillStopShowingSubtitle]);
     const autoPauseContextRef = useRef<AutoPauseContext>();
     autoPauseContextRef.current = autoPauseContext;
-
-    const seek = useCallback(
-        async (time: number, clock: Clock, forwardToMedia: boolean) => {
-            clock.setTime(time);
-            forceUpdate();
-
-            if (forwardToMedia) {
-                await mediaAdapter.seek(time / 1000);
-            }
-
-            autoPauseContextRef.current?.clear();
-        },
-        [forceUpdate, mediaAdapter]
-    );
 
     const updatePlaybackRate = useCallback(
         (playbackRate: number, forwardToMedia: boolean) => {
@@ -914,6 +919,17 @@ export default function Player({
             () => disableKeyEvents
         );
     }, [togglePlayMode, keyBinder, disableKeyEvents]);
+
+    useEffect(() => {
+        return keyBinder.bindToggleRepeat(
+            (event) => {
+                if (subtitles && subtitles.length !== 0) {
+                    togglePlayMode(event, PlayMode.repeat);
+                }
+            },
+            () => disableKeyEvents
+        );
+    }, [keyBinder, disableKeyEvents, togglePlayMode, subtitles]);
 
     useEffect(() => {
         if (!videoFileUrl) {

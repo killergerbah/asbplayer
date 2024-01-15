@@ -1066,6 +1066,13 @@ export default function VideoPlayer({
         );
     }, [keyBinder, togglePlayMode]);
 
+    useEffect(() => {
+        return keyBinder.bindToggleRepeat(
+            (event) => togglePlayMode(event, PlayMode.repeat),
+            () => false
+        );
+    }, [keyBinder, togglePlayMode]);
+
     const handleSubtitlesToggle = useCallback(() => {
         setDisplaySubtitles(!displaySubtitles);
         playbackPreferences.displaySubtitles = !displaySubtitles;

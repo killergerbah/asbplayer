@@ -100,7 +100,8 @@
         "toggleVideoSubtitleTrack3": "動画の字幕トラック 3 オン/オフ",
         "toggleVideoSubtitleTracks": "動画の字幕トラック オン/オフ",
         "updateLastCard": "asbplayer でキャプチャしたスクリーンショットや音声を、最後に作成した Anki カードに添付して更新する",
-        "toggleSidePanel": "サイドパネルを開く/閉じる"
+        "toggleSidePanel": "サイドパネルを開く/閉じる",
+        "toggleRepeat": "Toggle repeat mode"
     },
     "controls": {
         "autoPauseMode": "自動一時停止",
@@ -198,7 +199,9 @@
         "playbackRate": "再生速度：{{rate}}",
         "savedTimestamp": "保存しました：{{timestamp}}",
         "updatedCard": "カードの更新：{{result}}",
-        "activeTabPermissionObtained": "音声記録が有効になりました。"
+        "activeTabPermissionObtained": "音声記録が有効になりました。",
+        "enabledRepeatPlayback": "Repeat playback: On",
+        "disabledRepeatPlayback": "Repeat playback: Off"
     },
     "landing": {
         "cta": "字幕やメディアファイルをドラッグ＆ドロップ、または<1>ファイルを選択</1>してください。",

@@ -122,6 +122,7 @@ export interface KeyBindSet {
     readonly decreasePlaybackRate: KeyBind;
     readonly increasePlaybackRate: KeyBind;
     readonly toggleSidePanel: KeyBind;
+    readonly toggleRepeat: KeyBind;
 
     // Bound from Chrome if extension is installed
     readonly copySubtitle: KeyBind;

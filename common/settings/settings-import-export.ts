@@ -137,6 +137,7 @@ const settingsSchema = {
                 decreasePlaybackRate: { $ref: '/KeyBind' },
                 increasePlaybackRate: { $ref: '/KeyBind' },
                 toggleSidePanel: { $ref: '/KeyBind' },
+                toggleRepeat: { $ref: '/KeyBind' },
             },
         },
         preferMp3: {

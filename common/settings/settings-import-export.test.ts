@@ -74,6 +74,7 @@ it('validates exported settings', () => {
             toggleCondensedPlayback: { keys: '⇧+O' },
             toggleFastForwardPlayback: { keys: '⇧+F' },
             togglePlay: { keys: 'space' },
+            toggleRepeat: { keys: '⇧+R' },
             toggleSidePanel: { keys: '`' },
             toggleSubtitles: { keys: 'down' },
             toggleVideoSubtitleTrack1: { keys: '1' },
