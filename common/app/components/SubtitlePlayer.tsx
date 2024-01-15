@@ -167,6 +167,7 @@ const useSubtitleRowStyles = makeStyles((theme) => ({
         textAlign: 'right',
         paddingRight: 15,
         paddingLeft: 5,
+        userSelect: 'none',
     },
     copyButton: {
         textAlign: 'right',
