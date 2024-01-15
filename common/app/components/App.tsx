@@ -971,8 +971,8 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     } else if (oldPlayMode === PlayMode.fastForward) {
                         setAlert(t('info.disabledFastForwardPlayback')!);
                     } else if (oldPlayMode === PlayMode.repeat) {
-		        setAlert(t('info.disabledRepeatPlayback')!);
-		    }
+                        setAlert(t('info.disabledRepeatPlayback')!);
+                    }
                     break;
             }
 

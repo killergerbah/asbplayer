@@ -731,11 +731,7 @@ export class DefaultKeyBinder implements KeyBinder {
         return this._bind(shortcut, capture, handler);
     }
 
-    bindToggleRepeat(
-        onToggleRepeat: (event: KeyboardEvent) => void,
-        disabledGetter: () => boolean,
-        capture = false
-    ) {
+    bindToggleRepeat(onToggleRepeat: (event: KeyboardEvent) => void, disabledGetter: () => boolean, capture = false) {
         const shortcut = this.keyBindSet.toggleRepeat.keys;
 
         const handler = (event: KeyboardEvent) => {

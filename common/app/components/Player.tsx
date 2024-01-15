@@ -255,27 +255,22 @@ export default function Player({
         pause(clock, mediaAdapter, true);
     }, [playMode, clock, mediaAdapter, videoFileUrl, settings]);
 
-    const getCurrentSubtitle = (currentTime: number) => {
-        const subtitlesAtCurrentTime = subtitleCollection.subtitlesAt(currentTime);
-        return subtitlesAtCurrentTime.showing.length > 0 ? subtitlesAtCurrentTime.showing[0] : null;
-    };
-
-    const handleOnWillStopShowingSubtitle = useCallback(() => {
-        const currentTime = clock.time(calculateLength());
-        const currentSubtitle = getCurrentSubtitle(currentTime);
-
-        if (playMode === PlayMode.repeat && currentSubtitle) {
-            // If in repeat mode, seek to the start of the current subtitle
-            seek(currentSubtitle.start, clock, true);
-        } else if (
-            playMode === PlayMode.autoPause &&
-            settings.autoPausePreference === AutoPausePreference.atEnd &&
-            !videoFileUrl // Ensure not to interfere with VideoPlayer's auto-pausing
-        ) {
-            // Handle auto-pause logic
-            pause(clock, mediaAdapter, true);
-        }
-    }, [playMode, clock, mediaAdapter, videoFileUrl, settings, seek, getCurrentSubtitle, calculateLength]);
+    const handleOnWillStopShowingSubtitle = useCallback(
+        (subtitle: SubtitleModel) => {
+            if (playMode === PlayMode.repeat) {
+                // If in repeat mode, seek to the start of the current subtitle
+                seek(subtitle.start, clock, true);
+            } else if (
+                playMode === PlayMode.autoPause &&
+                settings.autoPausePreference === AutoPausePreference.atEnd &&
+                !videoFileUrl // Ensure not to interfere with VideoPlayer's auto-pausing
+            ) {
+                // Handle auto-pause logic
+                pause(clock, mediaAdapter, true);
+            }
+        },
+        [playMode, clock, mediaAdapter, videoFileUrl, settings, seek]
+    );
 
     const autoPauseContext = useMemo(() => {
         const context = new AutoPauseContext();
@@ -934,7 +929,7 @@ export default function Player({
             },
             () => disableKeyEvents
         );
-    }, [keyBinder, disableKeyEvents, togglePlayMode]);
+    }, [keyBinder, disableKeyEvents, togglePlayMode, subtitles]);
 
     useEffect(() => {
         if (!videoFileUrl) {

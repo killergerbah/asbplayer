@@ -100,7 +100,8 @@
         "toggleVideoSubtitleTrack3": "切换视频中的字幕音轨3",
         "toggleVideoSubtitleTracks": "切换视频中的字幕音轨",
         "updateLastCard": "使用asbplayer捕获的屏幕截图、音频等更新上次创建的Anki卡。",
-        "toggleSidePanel": "Toggle side panel"
+        "toggleSidePanel": "Toggle side panel",
+        "toggleRepeat": "Toggle repeat mode"
     },
     "controls": {
         "autoPauseMode": "自动暂停",
@@ -198,7 +199,9 @@
         "playbackRate": "播放速率：{{Rate}}",
         "savedTimestamp": "已保存：{{时间戳}}",
         "updatedCard": "更新的卡：{{result}}",
-        "activeTabPermissionObtained": "Audio recording is now enabled for this tab."
+        "activeTabPermissionObtained": "Audio recording is now enabled for this tab.",
+        "enabledRepeatPlayback": "Repeat playback: On",
+        "disabledRepeatPlayback": "Repeat playback: Off"
     },
     "landing": {
         "cta": "拖放字幕和媒体文件，或<1>浏览</1>。",

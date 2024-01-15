@@ -252,8 +252,7 @@ export default class Binding {
                 if (this._playMode === PlayMode.repeat) {
                     this.subtitleController.autoPauseContext.onWillStopShowing = undefined;
                     this.subtitleController.notification('info.disabledRepeatPlayback');
-                }
-                if (this._playMode === PlayMode.autoPause) {
+                } else if (this._playMode === PlayMode.autoPause) {
                     this.subtitleController.autoPauseContext.onStartedShowing = undefined;
                     this.subtitleController.autoPauseContext.onWillStopShowing = undefined;
                     this.subtitleController.notification('info.disabledAutoPause');

@@ -100,7 +100,8 @@
         "toggleVideoSubtitleTrack3": "Przełącz ścieżkę napisów 3 w wideo",
         "toggleVideoSubtitleTracks": "Przełącz ścieżki napisów w wideo",
         "updateLastCard": "Zaktualizuj ostatnio zapisaną kartę Anki o zrzuty ekranu",
-        "toggleSidePanel": "Toggle side panel"
+        "toggleSidePanel": "Toggle side panel",
+        "toggleRepeat": "Toggle repeat mode"
     },
     "controls": {
         "autoPauseMode": "Automatyczna pauza",
@@ -198,7 +199,9 @@
         "playbackRate": "Playback Rate: {{rate}}",
         "savedTimestamp": "Zapisano: {{timestamp}}",
         "updatedCard": "Zaktualizowana karta: {{result}}",
-        "activeTabPermissionObtained": "Audio recording is now enabled for this tab."
+        "activeTabPermissionObtained": "Audio recording is now enabled for this tab.",
+        "enabledRepeatPlayback": "Repeat playback: On",
+        "disabledRepeatPlayback": "Repeat playback: Off"
     },
     "landing": {
         "cta": "Przenieś i upuść napisy i pliki medialne, lub <1>przeglądaj</1>.",
