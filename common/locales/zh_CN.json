@@ -201,7 +201,9 @@
         "updatedCard": "更新的卡：{{result}}",
         "activeTabPermissionObtained": "Audio recording is now enabled for this tab.",
         "enabledRepeatPlayback": "Repeat playback: On",
-        "disabledRepeatPlayback": "Repeat playback: Off"
+        "disabledRepeatPlayback": "Repeat playback: Off",
+        "connectionSucceeded": "Connection succeeded",
+        "connectionFailed": "Connection failed"
     },
     "landing": {
         "cta": "拖放字幕和媒体文件，或<1>浏览</1>。",
@@ -289,7 +291,9 @@
         "unlockLocalFonts": "Click to unlock font menu",
         "unboundBind": "未绑定",
         "urlField": "URL字段",
-        "wordField": "Word字段"
+        "wordField": "Word字段",
+        "webSocketClientEnabled": "Enable WebSocket client",
+        "webSocketServerUrl": "WebSocket Server URL"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Click, hold, and drag to mine multiple subtitles"

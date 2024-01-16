@@ -250,6 +250,12 @@ const settingsSchema = {
         streamingSubtitleListPreference: {
             type: 'string',
         },
+        webSocketClientEnabled: {
+            type: 'boolean',
+        },
+        webSocketServerUrl: {
+            type: 'string',
+        },
         _schema: {
             type: 'number',
         },

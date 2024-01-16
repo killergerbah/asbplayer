@@ -42,6 +42,7 @@ import Link from '@material-ui/core/Link';
 import Button from '@material-ui/core/Button';
 import { Anki } from '../anki';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
+import { WebSocketClient } from '../web-socket-client/web-socket-client';
 
 interface StylesProps {
     smallScreen: boolean;
@@ -695,6 +696,8 @@ export default function SettingsForm({
         streamingCondensedPlaybackMinimumSkipIntervalMs,
         streamingScreenshotDelay,
         streamingSubtitleListPreference,
+        webSocketClientEnabled,
+        webSocketServerUrl,
     } = settings;
     const handleAddCustomField = useCallback(
         (customFieldName: string) => {
@@ -836,6 +839,35 @@ export default function SettingsForm({
             canceled = true;
         };
     }, [anki, noteType, ankiConnectUrl, ankiConnectUrlError]);
+
+    const [webSocketConnectionSucceeded, setWebSocketConnectionSucceeded] = useState<boolean>();
+    const pingWebSocketServer = useCallback(() => {
+        const client = new WebSocketClient();
+        client
+            .bind(webSocketServerUrl)
+            .then(() => client.ping())
+            .then(() => setWebSocketConnectionSucceeded(true))
+            .catch((e) => {
+                console.error(e);
+                setWebSocketConnectionSucceeded(false);
+            })
+            .finally(() => client.unbind());
+    }, [webSocketServerUrl]);
+    useEffect(() => {
+        if (webSocketClientEnabled && webSocketServerUrl) {
+            pingWebSocketServer();
+        }
+    }, [pingWebSocketServer, webSocketClientEnabled, webSocketServerUrl]);
+
+    let webSocketServerUrlHelperText = undefined;
+
+    if (webSocketClientEnabled) {
+        if (webSocketConnectionSucceeded) {
+            webSocketServerUrlHelperText = t('info.connectionSucceeded');
+        } else if (webSocketConnectionSucceeded === false) {
+            webSocketServerUrlHelperText = t('info.connectionFailed');
+        }
+    }
 
     const customFieldInputs = Object.keys(customAnkiFields).map((customFieldName) => {
         return (
@@ -1868,6 +1900,41 @@ export default function SettingsForm({
                             }
                             labelPlacement="start"
                             className={classes.switchLabel}
+                        />
+                    </Grid>
+                    <Grid item>
+                        <LabelWithHoverEffect
+                            className={classes.switchLabel}
+                            control={
+                                <Switch
+                                    checked={webSocketClientEnabled}
+                                    onChange={(e) => handleSettingChanged('webSocketClientEnabled', e.target.checked)}
+                                />
+                            }
+                            label={t('settings.webSocketClientEnabled')}
+                            labelPlacement="start"
+                        />
+                    </Grid>
+                    <Grid item>
+                        <TextField
+                            className={classes.textField}
+                            color="secondary"
+                            fullWidth
+                            label={t('settings.webSocketServerUrl')}
+                            value={webSocketServerUrl}
+                            disabled={!webSocketClientEnabled}
+                            onChange={(e) => handleSettingChanged('webSocketServerUrl', e.target.value)}
+                            error={webSocketClientEnabled && webSocketConnectionSucceeded === false}
+                            helperText={webSocketServerUrlHelperText}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={pingWebSocketServer}>
+                                            <RefreshIcon />
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            }}
                         />
                     </Grid>
                     <Grid item>

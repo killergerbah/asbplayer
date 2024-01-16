@@ -10,6 +10,7 @@ import {
     PostMineAction,
     PlayMode,
     CardModel,
+    CardTextFieldValues,
 } from './model';
 import { AsbPlayerToVideoCommandV2 } from './command';
 
@@ -89,7 +90,7 @@ export interface ImageCaptureParams {
     readonly frameId?: string;
 }
 
-export interface RecordMediaAndForwardSubtitleMessage extends Message, ImageCaptureParams {
+export interface RecordMediaAndForwardSubtitleMessage extends Message, CardTextFieldValues, ImageCaptureParams {
     readonly command: 'record-media-and-forward-subtitle';
     readonly subtitle: SubtitleModel;
     readonly surroundingSubtitles: SubtitleModel[];
@@ -139,18 +140,23 @@ export interface PublishCardMessage extends Message, CardModel {
     readonly command: 'publish-card';
 }
 
-export interface CopyToVideoMessage extends Message {
+export interface CopyToVideoMessage extends Message, CardTextFieldValues {
     readonly command: 'copy';
     readonly postMineAction: PostMineAction;
     readonly subtitle?: SubtitleModel;
     readonly surroundingSubtitles?: SubtitleModel[];
 }
 
-export interface CopySubtitleMessage extends Message {
+export interface CopySubtitleMessage extends Message, CardTextFieldValues {
     readonly command: 'copy-subtitle';
     readonly postMineAction: PostMineAction;
     readonly subtitle?: SubtitleModel;
     readonly surroundingSubtitles?: SubtitleModel[];
+}
+
+export interface CopySubtitleWithAdditionalFieldsMessage extends Message, CardTextFieldValues {
+    readonly command: 'copy-subtitle-with-additional-fields';
+    readonly postMineAction: PostMineAction;
 }
 
 export interface TakeScreenshotMessage extends Message {

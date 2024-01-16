@@ -28,7 +28,14 @@ export interface SubtitleModel {
     readonly track: number;
 }
 
-export interface CardModel {
+export interface CardTextFieldValues {
+    readonly word?: string;
+    readonly definition?: string;
+    readonly text?: string;
+    readonly customFieldValues?: { [fieldName: string]: string };
+}
+
+export interface CardModel extends CardTextFieldValues {
     readonly id?: string;
     readonly subtitle: SubtitleModel;
     readonly surroundingSubtitles: SubtitleModel[];
@@ -67,7 +74,7 @@ export interface AudioModel {
     readonly playbackRate?: number;
 }
 
-export interface AnkiUiState {
+export interface AnkiUiState extends CardTextFieldValues {
     readonly type: 'initial' | 'resume';
     readonly open: boolean;
     readonly canRerecord: boolean;
@@ -180,6 +187,7 @@ export enum PostMineAction {
     none = 0,
     showAnkiDialog = 1,
     updateLastCard = 2,
+    createCard = 3,
 }
 
 export enum AutoPausePreference {

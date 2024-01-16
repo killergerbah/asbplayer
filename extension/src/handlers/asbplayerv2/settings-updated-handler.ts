@@ -9,6 +9,7 @@ import {
 import { SettingsProvider } from '@project/common/settings';
 import { primeLocalization } from '../../services/localization-fetcher';
 import TabRegistry from '../../services/tab-registry';
+import { bindWebSocketClient, unbindWebSocketClient } from '../../services/web-socket-client-binding';
 
 export default class SettingsUpdatedHandler {
     private readonly _tabRegistry: TabRegistry;
@@ -29,7 +30,17 @@ export default class SettingsUpdatedHandler {
 
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
         const settingsUpdatedCommand = command as AsbPlayerCommand<SettingsUpdatedMessage>;
-        this._settingsProvider.getSingle('language').then(primeLocalization);
+        this._settingsProvider
+            .get(['language', 'webSocketClientEnabled'])
+            .then(({ language, webSocketClientEnabled }) => {
+                primeLocalization(language);
+
+                if (webSocketClientEnabled) {
+                    bindWebSocketClient(this._settingsProvider, this._tabRegistry);
+                } else {
+                    unbindWebSocketClient();
+                }
+            });
         this._tabRegistry.publishCommandToVideoElements((videoElement) => {
             const videoElementCommand: ExtensionToVideoCommand<SettingsUpdatedMessage> = {
                 sender: 'asbplayer-extension-to-video',

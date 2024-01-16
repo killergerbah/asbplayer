@@ -5,6 +5,7 @@ import {
     BackgroundPageReadyMessage,
     AudioBase64Message,
     CopyMessage,
+    CopySubtitleMessage,
 } from '@project/common';
 import { CopyHistoryRepository } from '@project/common/copy-history';
 import { SettingsProvider } from '@project/common/settings';

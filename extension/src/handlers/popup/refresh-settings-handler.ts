@@ -6,12 +6,16 @@ import {
     SettingsUpdatedMessage,
 } from '@project/common';
 import TabRegistry from '../../services/tab-registry';
+import { SettingsProvider } from '@project/common/settings';
+import { primeLocalization } from '../../services/localization-fetcher';
+import { bindWebSocketClient, unbindWebSocketClient } from '../../services/web-socket-client-binding';
 
 export default class RefreshSettingsHandler {
-    private readonly tabRegistry: TabRegistry;
-
-    constructor(tabRegistry: TabRegistry) {
-        this.tabRegistry = tabRegistry;
+    private readonly _tabRegistry: TabRegistry;
+    private readonly _settingsProvider: SettingsProvider;
+    constructor(tabRegistry: TabRegistry, settingsProvider: SettingsProvider) {
+        this._tabRegistry = tabRegistry;
+        this._settingsProvider = settingsProvider;
     }
 
     get sender() {
@@ -23,7 +27,18 @@ export default class RefreshSettingsHandler {
     }
 
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
-        this.tabRegistry.publishCommandToVideoElements((videoElement) => {
+        this._settingsProvider
+            .get(['language', 'webSocketClientEnabled'])
+            .then(({ language, webSocketClientEnabled }) => {
+                primeLocalization(language);
+
+                if (webSocketClientEnabled) {
+                    bindWebSocketClient(this._settingsProvider, this._tabRegistry);
+                } else {
+                    unbindWebSocketClient();
+                }
+            });
+        this._tabRegistry.publishCommandToVideoElements((videoElement) => {
             const settingsUpdatedCommand: ExtensionToVideoCommand<SettingsUpdatedMessage> = {
                 sender: 'asbplayer-extension-to-video',
                 message: {
@@ -33,7 +48,7 @@ export default class RefreshSettingsHandler {
             };
             return settingsUpdatedCommand;
         });
-        this.tabRegistry.publishCommandToAsbplayers({
+        this._tabRegistry.publishCommandToAsbplayers({
             commandFactory: () => {
                 const settingsUpdatedCommand: ExtensionToAsbPlayerCommand<SettingsUpdatedMessage> = {
                     sender: 'asbplayer-extension-to-player',

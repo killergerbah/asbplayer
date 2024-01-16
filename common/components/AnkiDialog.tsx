@@ -251,11 +251,7 @@ interface AnkiDialogProps {
     onCopyToClipboard: (blob: Blob) => void;
     settings: AnkiSettings;
     anki: Anki;
-    text?: string;
-    definition?: string;
-    word?: string;
     source?: string;
-    customFieldValues?: { [key: string]: string };
     initialTimestampInterval?: number[];
     timestampBoundaryInterval?: number[];
     timestampInterval?: number[];
@@ -277,11 +273,7 @@ const AnkiDialog = ({
     onCopyToClipboard,
     settings,
     anki,
-    text: initialText,
-    definition: initialDefinition,
-    word: initialWord,
     source: initialSource,
-    customFieldValues: initialCustomFieldValues,
     timestampInterval: initialSelectedTimestampInterval,
     timestampBoundaryInterval: forceTimestampBoundaryInterval,
     initialTimestampInterval: forceInitialTimestampInterval,
@@ -343,6 +335,13 @@ const AnkiDialog = ({
         },
         [card.surroundingSubtitles]
     );
+
+    const {
+        text: initialText,
+        definition: initialDefinition,
+        word: initialWord,
+        customFieldValues: initialCustomFieldValues,
+    } = card;
 
     useEffect(() => {
         setText(initialText ?? card.subtitle.text ?? '');

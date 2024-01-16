@@ -11,6 +11,7 @@ import {
     AutoPausePreference,
     AutoPauseContext,
     OffscreenDomCache,
+    CardTextFieldValues,
 } from '@project/common';
 import {
     MiscSettings,
@@ -243,6 +244,7 @@ interface Props {
         playbackRate: number,
         subtitle: SubtitleModel,
         surroundingSubtitles: SubtitleModel[],
+        cardTextFieldValues: CardTextFieldValues,
         timestamp: number
     ) => void;
     onAnkiDialogRewind: () => void;
@@ -847,6 +849,7 @@ export default function VideoPlayer({
             playbackRate: number,
             subtitle: SubtitleModel,
             surroundingSubtitles: SubtitleModel[],
+            cardTextFieldValues: CardTextFieldValues,
             timestamp: number
         ) => {
             switch (postMineAction) {
@@ -855,6 +858,7 @@ export default function VideoPlayer({
                         playerChannel.copy(
                             subtitle,
                             surroundingSubtitles,
+                            cardTextFieldValues,
                             videoFileName ?? '',
                             timestamp,
                             PostMineAction.none
@@ -866,6 +870,7 @@ export default function VideoPlayer({
                             playbackRate,
                             subtitle,
                             surroundingSubtitles,
+                            cardTextFieldValues,
                             timestamp
                         );
 
@@ -877,6 +882,7 @@ export default function VideoPlayer({
                         playerChannel.copy(
                             subtitle,
                             surroundingSubtitles,
+                            cardTextFieldValues,
                             videoFileName ?? '',
                             timestamp,
                             PostMineAction.showAnkiDialog
@@ -884,7 +890,14 @@ export default function VideoPlayer({
                     }
                     break;
                 default:
-                    playerChannel.copy(subtitle, surroundingSubtitles, videoFileName ?? '', timestamp, postMineAction);
+                    playerChannel.copy(
+                        subtitle,
+                        surroundingSubtitles,
+                        cardTextFieldValues,
+                        videoFileName ?? '',
+                        timestamp,
+                        postMineAction
+                    );
             }
 
             setLastMinedRecord({
@@ -901,7 +914,12 @@ export default function VideoPlayer({
     );
 
     const mineCurrentSubtitle = useCallback(
-        (postMineAction: PostMineAction, subtitle?: SubtitleModel, surroundingSubtitles?: SubtitleModel[]) => {
+        (
+            postMineAction: PostMineAction,
+            subtitle?: SubtitleModel,
+            surroundingSubtitles?: SubtitleModel[],
+            cardTextFieldValues?: CardTextFieldValues
+        ) => {
             const video = videoRef.current;
 
             if (!video) {
@@ -932,6 +950,7 @@ export default function VideoPlayer({
                 video.playbackRate,
                 subtitle,
                 surroundingSubtitles,
+                cardTextFieldValues ?? {},
                 mediaTimestamp
             );
         },
@@ -993,6 +1012,7 @@ export default function VideoPlayer({
                         lastMinedRecord.playbackRate,
                         lastMinedRecord.subtitle,
                         lastMinedRecord.surroundingSubtitles,
+                        {},
                         currentTimestamp
                     );
                 }

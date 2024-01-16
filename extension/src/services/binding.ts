@@ -504,19 +504,11 @@ export default class Binding {
                                 copySubtitleMessage.subtitle !== undefined &&
                                 copySubtitleMessage.surroundingSubtitles !== undefined
                             ) {
-                                this._copySubtitle(
-                                    copySubtitleMessage.postMineAction,
-                                    copySubtitleMessage.subtitle,
-                                    copySubtitleMessage.surroundingSubtitles
-                                );
+                                this._copySubtitle(copySubtitleMessage);
                             } else if (this.subtitleController.subtitles.length > 0) {
                                 const [subtitle, surroundingSubtitles] = this.subtitleController.currentSubtitle();
                                 if (subtitle !== null && surroundingSubtitles !== null) {
-                                    this._copySubtitle(
-                                        copySubtitleMessage.postMineAction,
-                                        subtitle,
-                                        surroundingSubtitles
-                                    );
+                                    this._copySubtitle({ ...copySubtitleMessage, subtitle, surroundingSubtitles });
                                 }
                             } else {
                                 this._toggleRecordingMedia(copySubtitleMessage.postMineAction);
@@ -567,13 +559,7 @@ export default class Binding {
                         break;
                     case 'show-anki-ui':
                         const showAnkiUiMessage = request.message as ShowAnkiUiMessage;
-                        this.ankiUiController.show(
-                            this,
-                            showAnkiUiMessage.subtitle,
-                            showAnkiUiMessage.surroundingSubtitles,
-                            showAnkiUiMessage.image,
-                            showAnkiUiMessage.audio
-                        );
+                        this.ankiUiController.show(this, showAnkiUiMessage);
                         break;
                     case 'show-anki-ui-after-rerecord':
                         const showAnkiUiAfterRerecordMessage = request.message as ShowAnkiUiAfterRerecordMessage;
@@ -746,11 +732,19 @@ export default class Binding {
         this.ankiUiSavedState = undefined;
     }
 
-    async _copySubtitle(
-        postMineAction: PostMineAction,
-        subtitle: SubtitleModel,
-        surroundingSubtitles: SubtitleModel[]
-    ) {
+    async _copySubtitle({
+        postMineAction,
+        subtitle,
+        surroundingSubtitles,
+        text,
+        definition,
+        word,
+        customFieldValues,
+    }: CopySubtitleMessage) {
+        if (!subtitle || !surroundingSubtitles) {
+            return;
+        }
+
         if (this.copyToClipboardOnMine) {
             navigator.clipboard.writeText(subtitle.text);
         }
@@ -784,6 +778,10 @@ export default class Binding {
                 audioPaddingEnd: this.audioPaddingEnd,
                 imageDelay: this.imageDelay,
                 playbackRate: this.video.playbackRate,
+                text,
+                definition,
+                word,
+                customFieldValues,
                 ...this._imageCaptureParams,
             },
             src: this.video.src,

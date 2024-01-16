@@ -131,6 +131,11 @@ export interface KeyBindSet {
     readonly takeScreenshot: KeyBind;
 }
 
+export interface WebSocketClientSettings {
+    readonly webSocketServerUrl: string;
+    readonly webSocketClientEnabled: boolean;
+}
+
 export type ChromeBoundKeyBindName = 'copySubtitle' | 'ankiExport' | 'updateLastCard' | 'takeScreenshot';
 export type SubtitleAlignment = 'top' | 'bottom';
 export enum SubtitleListPreference {
@@ -157,7 +162,12 @@ export interface StreamingVideoSettings {
 
 export type KeyBindName = keyof KeyBindSet;
 
-export interface AsbplayerSettings extends MiscSettings, AnkiSettings, SubtitleSettings, StreamingVideoSettings {
+export interface AsbplayerSettings
+    extends MiscSettings,
+        AnkiSettings,
+        SubtitleSettings,
+        StreamingVideoSettings,
+        WebSocketClientSettings {
     readonly subtitlePreview: string;
 }
 

@@ -35,9 +35,9 @@ export interface VideoElement {
 
 export default class TabRegistry {
     private readonly _settings: SettingsProvider;
-    private _onNoSyncedElementsCallback?: () => void;
-    private _onSyncedElementCallback?: () => void;
-    private _onAsbplayerInstanceCallback?: () => void;
+    private _onNoSyncedElementsCallbacks: (() => void)[] = [];
+    private _onSyncedElementCallbacks: (() => void)[] = [];
+    private _onAsbplayerInstanceCallbacks: (() => void)[] = [];
 
     constructor(settings: SettingsProvider) {
         this._settings = settings;
@@ -122,10 +122,14 @@ export default class TabRegistry {
         const oldSyncedElementExists = Object.values(oldVideoElements).find((v) => v.synced) !== undefined;
         const syncedElementExists = Object.values(videoElements).find((v) => v.synced) !== undefined;
 
-        if (this._onNoSyncedElementsCallback !== undefined && oldSyncedElementExists && !syncedElementExists) {
-            this._onNoSyncedElementsCallback();
-        } else if (this._onSyncedElementCallback !== undefined && !oldSyncedElementExists && syncedElementExists) {
-            this._onSyncedElementCallback();
+        if (this._onNoSyncedElementsCallbacks.length > 0 && oldSyncedElementExists && !syncedElementExists) {
+            for (const c of this._onNoSyncedElementsCallbacks) {
+                c();
+            }
+        } else if (this._onSyncedElementCallbacks.length > 0 && !oldSyncedElementExists && syncedElementExists) {
+            for (const c of this._onSyncedElementCallbacks) {
+                c();
+            }
         }
 
         return videoElements;
@@ -175,7 +179,9 @@ export default class TabRegistry {
         }
 
         if (newAsplayerAppeared) {
-            this._onAsbplayerInstanceCallback?.();
+            for (const c of this._onAsbplayerInstanceCallbacks) {
+                c();
+            }
         }
 
         return asbplayers;
@@ -332,15 +338,15 @@ export default class TabRegistry {
     }
 
     onNoSyncedElements(callback: () => void) {
-        this._onNoSyncedElementsCallback = callback;
+        this._onNoSyncedElementsCallbacks.push(callback);
     }
 
     onSyncedElement(callback: () => void) {
-        this._onSyncedElementCallback = callback;
+        this._onSyncedElementCallbacks.push(callback);
     }
 
     onAsbplayerInstance(callback: () => void) {
-        this._onAsbplayerInstanceCallback = callback;
+        this._onAsbplayerInstanceCallbacks.push(callback);
     }
 
     async publishTabsToAsbplayers() {

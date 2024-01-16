@@ -17,12 +17,13 @@ import {
     JumpToSubtitleMessage,
     DownloadImageMessage,
     DownloadAudioMessage,
+    CardTextFieldValues,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import { AsbplayerSettings } from '@project/common/settings';
 import { humanReadableTime, download, extractText } from '@project/common/util';
 import { AudioClip } from '@project/common/audio-clip';
-import { Anki, AnkiExportMode } from '@project/common/anki';
+import { AnkiExportMode } from '@project/common/anki';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { v4 as uuidv4 } from 'uuid';
 import clsx from 'clsx';
@@ -49,6 +50,7 @@ import { DisplaySubtitleModel } from './SubtitlePlayer';
 import { useCopyHistory } from '../hooks/use-copy-history';
 import { useI18n } from '../hooks/use-i18n';
 import { useAppKeyBinder } from '../hooks/use-app-key-binder';
+import { useAnki } from '../hooks/use-anki';
 
 const latestExtensionVersion = '1.0.1';
 const extensionUrl =
@@ -145,6 +147,7 @@ interface RenderVideoProps {
         playbackRate: number,
         subtitle: SubtitleModel,
         surroundingSubtitles: SubtitleModel[],
+        cardTextFieldValues: CardTextFieldValues,
         timestamp: number
     ) => void;
     onAnkiDialogRewind: () => void;
@@ -208,7 +211,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         [settings, extension]
     );
     const theme = useMemo<Theme>(() => createTheme(settings.themeType), [settings.themeType]);
-    const anki = useMemo<Anki>(() => new Anki(settings, fetcher), [settings, fetcher]);
+    const anki = useAnki({ settings, fetcher });
     const searchParams = useMemo(() => new URLSearchParams(location.search), []);
     const inVideoPlayer = useMemo(() => searchParams.get('video') !== null, [searchParams]);
     const [videoFullscreen, setVideoFullscreen] = useState<boolean>(false);
@@ -301,11 +304,13 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
             playbackRate: number,
             subtitle: SubtitleModel,
             surroundingSubtitles: SubtitleModel[],
+            cardTextFieldValues: CardTextFieldValues,
             timestamp: number
         ) => {
             const item = {
                 subtitle,
                 surroundingSubtitles,
+                ...cardTextFieldValues,
                 timestamp: Date.now(),
                 id: uuidv4(),
                 subtitleFileName: videoFileName,
@@ -408,7 +413,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                 navigator.clipboard.writeText(card.subtitle.text);
             }
 
-            const newCopiedSubtitle = {
+            const newCard = {
                 ...card,
                 subtitleFileName: card.subtitleFileName || card.file?.name || '',
                 timestamp: Date.now(),
@@ -416,9 +421,9 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
             };
 
             if (extension.supportsAppIntegration) {
-                extension.publishCard(newCopiedSubtitle);
+                extension.publishCard(newCard);
             } else {
-                saveCopyHistoryItem(newCopiedSubtitle);
+                saveCopyHistoryItem(newCard);
             }
 
             switch (postMineAction ?? PostMineAction.none) {
@@ -432,16 +437,12 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     setAlertOpen(true);
                     break;
                 case PostMineAction.showAnkiDialog:
-                    handleAnkiDialogRequest(newCopiedSubtitle);
+                    handleAnkiDialogRequest(newCard);
                     break;
                 case PostMineAction.updateLastCard:
                     // FIXME: We should really rename the functions below because we're actually skipping the Anki dialog in this case
                     setAnkiDialogRequested(true);
-                    let audioClip = AudioClip.fromCard(
-                        newCopiedSubtitle,
-                        settings.audioPaddingStart,
-                        settings.audioPaddingEnd
-                    );
+                    let audioClip = AudioClip.fromCard(newCard, settings.audioPaddingStart, settings.audioPaddingEnd);
 
                     if (audioClip && settings.preferMp3) {
                         audioClip = audioClip.toMp3(mp3WorkerFactory);
@@ -449,13 +450,13 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
 
                     handleAnkiDialogProceed(
                         extractText(card.subtitle, card.surroundingSubtitles),
-                        '',
+                        newCard.definition ?? '',
                         audioClip,
-                        Image.fromCard(newCopiedSubtitle, settings.maxImageWidth, settings.maxImageHeight),
+                        Image.fromCard(newCard, settings.maxImageWidth, settings.maxImageHeight),
+                        newCard.word ?? '',
+                        `${newCard.subtitleFileName} (${humanReadableTime(card.mediaTimestamp)})`,
                         '',
-                        `${newCopiedSubtitle.subtitleFileName} (${humanReadableTime(card.mediaTimestamp)})`,
-                        '',
-                        {},
+                        newCard.customFieldValues ?? {},
                         settings.tags,
                         'updateLast'
                     );

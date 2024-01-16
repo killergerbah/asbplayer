@@ -96,6 +96,8 @@ export const defaultSettings: AsbplayerSettings = {
     streamingCondensedPlaybackMinimumSkipIntervalMs: 1000,
     streamingScreenshotDelay: 1000,
     streamingSubtitleListPreference: SubtitleListPreference.noSubtitleList,
+    webSocketClientEnabled: false,
+    webSocketServerUrl: 'ws://127.0.0.1:8766/ws',
 };
 
 type SettingsDeserializers = { [key in keyof AsbplayerSettings]: (serialized: string) => any };

@@ -5,6 +5,7 @@ import {
     AudioTrackModel,
     AudioTrackSelectedFromVideoMessage,
     AudioTrackSelectedToVideoMessage,
+    CardTextFieldValues,
     CopyMessage,
     CopyToVideoMessage,
     CurrentTimeToVideoMessage,
@@ -51,7 +52,8 @@ export default class PlayerChannel {
     private copyCallbacks: ((
         postMineAction: PostMineAction,
         subtitle?: SubtitleModel,
-        surroundingSubtitles?: SubtitleModel[]
+        surroundingSubtitles?: SubtitleModel[],
+        cardTextFieldValues?: CardTextFieldValues
     ) => void)[];
 
     constructor(channel: string) {
@@ -202,7 +204,14 @@ export default class PlayerChannel {
                     const copyMessage = event.data as CopyToVideoMessage;
 
                     for (const callback of that.copyCallbacks) {
-                        callback(copyMessage.postMineAction, copyMessage.subtitle, copyMessage.surroundingSubtitles);
+                        const { text, word, definition, customFieldValues } = copyMessage;
+                        const cardTextFieldValues = { text, word, definition, customFieldValues };
+                        callback(
+                            copyMessage.postMineAction,
+                            copyMessage.subtitle,
+                            copyMessage.surroundingSubtitles,
+                            cardTextFieldValues
+                        );
                     }
                     break;
                 default:
@@ -304,7 +313,8 @@ export default class PlayerChannel {
         callback: (
             postMineAction: PostMineAction,
             subtitle?: SubtitleModel,
-            surroundingSubtitles?: SubtitleModel[]
+            surroundingSubtitles?: SubtitleModel[],
+            cardTextFieldValues?: CardTextFieldValues
         ) => void
     ) {
         this.copyCallbacks.push(callback);
@@ -368,6 +378,7 @@ export default class PlayerChannel {
     copy(
         subtitle: SubtitleModel,
         surroundingSubtitles: SubtitleModel[],
+        cardTextFieldValues: CardTextFieldValues,
         subtitleFileName: string,
         mediaTimestamp: number,
         postMineAction: PostMineAction
@@ -376,6 +387,7 @@ export default class PlayerChannel {
             command: 'copy',
             subtitle,
             surroundingSubtitles,
+            ...cardTextFieldValues,
             subtitleFileName,
             postMineAction,
             mediaTimestamp,

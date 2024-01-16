@@ -47,6 +47,7 @@ import { RequestingActiveTabPermissionHandler } from './handlers/video/requestin
 import { CardPublisher } from './services/card-publisher';
 import AckMessageHandler from './handlers/video/ack-message-handler';
 import PublishCardHandler from './handlers/asbplayerv2/publish-card-handler';
+import { bindWebSocketClient, unbindWebSocketClient } from './services/web-socket-client-binding';
 
 chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
 
@@ -107,7 +108,7 @@ const handlers: CommandHandler[] = [
     new OpenExtensionShortcutsHandler(),
     new ExtensionCommandsHandler(),
     new AsbplayerV2ToVideoCommandForwardingHandler(),
-    new RefreshSettingsHandler(tabRegistry),
+    new RefreshSettingsHandler(tabRegistry, settings),
     new BackgroundPageReadyHandler(backgroundPageManager),
     new AudioBase64Handler(backgroundPageManager),
     new CaptureVisibleTabHandler(),
@@ -316,3 +317,17 @@ function postMineActionFromCommand(command: string) {
             throw new Error('Cannot determine post mine action for unknown command ' + command);
     }
 }
+
+const updateWebSocketClientState = () => {
+    settings.getSingle('webSocketClientEnabled').then((webSocketClientEnabled) => {
+        if (webSocketClientEnabled) {
+            bindWebSocketClient(settings, tabRegistry);
+        } else {
+            unbindWebSocketClient();
+        }
+    });
+};
+
+updateWebSocketClientState();
+tabRegistry.onAsbplayerInstance(updateWebSocketClientState);
+tabRegistry.onSyncedElement(updateWebSocketClientState);

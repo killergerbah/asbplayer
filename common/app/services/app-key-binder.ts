@@ -9,7 +9,6 @@ export default class AppKeyBinder implements KeyBinder {
     private readonly ankiExportHandlers: ((event: KeyboardEvent) => void)[] = [];
     private readonly updateLastCardHandlers: ((event: KeyboardEvent) => void)[] = [];
     private readonly takeScreenshotHandlers: ((event: KeyboardEvent) => void)[] = [];
-    private readonly repeatModeHandlers: ((event: KeyboardEvent) => void)[] = [];
     private _unsubscribeExtension?: () => void;
 
     constructor(keyBinder: DefaultKeyBinder, extension: ChromeExtension) {

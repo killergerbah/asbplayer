@@ -115,28 +115,24 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             const s = (message as UpdateStateMessage).state as AnkiUiState;
 
             if (s.type === 'initial') {
-                setText(undefined);
                 setTimestampInterval((s.audio?.start && s.audio?.end && [s.audio.start, s.audio.end]) || undefined);
                 setTimestampBoundaryInterval(undefined);
                 setInitialTimestampInterval(undefined);
-                setDefinition('');
-                setWord('');
-                setCustomFieldValues({});
                 setLastAppliedTimestampIntervalToText(undefined);
                 setLastAppliedTimestampIntervalToAudio(undefined);
             } else if (s.type === 'resume') {
                 const state = s as AnkiUiResumeState;
-                setText(state.text);
                 setInitialTimestampInterval(state.initialTimestampInterval);
                 setTimestampInterval(state.timestampInterval);
                 setTimestampBoundaryInterval(state.timestampBoundaryInterval);
-                setDefinition(state.definition);
-                setWord(state.word);
-                setCustomFieldValues(state.customFieldValues);
                 setLastAppliedTimestampIntervalToText(state.lastAppliedTimestampIntervalToText);
                 setLastAppliedTimestampIntervalToAudio(state.lastAppliedTimestampIntervalToAudio);
             }
 
+            setText(s.text);
+            setDefinition(s.definition ?? '');
+            setWord(s.word ?? '');
+            setCustomFieldValues(s.customFieldValues ?? {});
             setCanRerecord(s.canRerecord);
             setSubtitle(s.subtitle);
             setSurroundingSubtitles(s.surroundingSubtitles);
@@ -305,8 +301,24 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
             file,
             subtitleFileName: source,
             mediaTimestamp: serializedAudio?.start ?? subtitle.start,
+            text,
+            word,
+            definition,
+            customFieldValues,
         };
-    }, [file, source, subtitle, surroundingSubtitles, url, serializedImage, serializedAudio]);
+    }, [
+        file,
+        source,
+        subtitle,
+        surroundingSubtitles,
+        url,
+        serializedImage,
+        serializedAudio,
+        text,
+        word,
+        definition,
+        customFieldValues,
+    ]);
 
     return (
         <ThemeProvider theme={theme}>
@@ -335,11 +347,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                     onViewImage={handleViewImage}
                     onOpenSettings={handleOpenSettings}
                     onCopyToClipboard={handleCopyToClipboard}
-                    text={text}
-                    definition={definition}
-                    word={word}
                     source={source}
-                    customFieldValues={customFieldValues}
                     initialTimestampInterval={initialTimestampInterval}
                     timestampBoundaryInterval={timestampBoundaryInterval}
                     timestampInterval={timestampInterval}

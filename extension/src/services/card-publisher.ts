@@ -8,7 +8,7 @@ import {
     PostMineAction,
     ShowAnkiUiMessage,
 } from '@project/common';
-import { humanReadableTime, sourceString } from '@project/common/util';
+import { humanReadableTime } from '@project/common/util';
 import { AnkiSettings, ankiSettingsKeys, SettingsProvider } from '@project/common/settings';
 import BackgroundPageManager from './background-page-manager';
 import { v4 as uuidv4 } from 'uuid';
@@ -44,13 +44,8 @@ export class CardPublisher {
             chrome.tabs.sendMessage(tabId, showAnkiUiCommand);
         } else if (postMineAction == PostMineAction.updateLastCard) {
             const cardName = await updateLastCard(
-                (await this._settingsProvider.get(ankiSettingsKeys)) as AnkiSettings,
-                card.subtitle,
-                card.surroundingSubtitles,
-                card.audio,
-                card.image,
-                sourceString(card.subtitleFileName, card.mediaTimestamp),
-                card.url
+                card,
+                (await this._settingsProvider.get(ankiSettingsKeys)) as AnkiSettings
             );
 
             const cardUpdatedCommand: ExtensionToVideoCommand<CardUpdatedMessage> = {

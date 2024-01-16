@@ -6,6 +6,7 @@ import {
     AutoPauseContext,
     AutoPausePreference,
     CardModel,
+    CardTextFieldValues,
     PlayMode,
     PostMineAction,
     SubtitleModel,
@@ -502,28 +503,40 @@ export default function Player({
     useEffect(() => channel?.onPlaybackRate(updatePlaybackRate), [channel, updatePlaybackRate]);
     useEffect(
         () =>
-            channel?.onCopy((subtitle, surroundingSubtitles, audio, image, url, postMineAction, id, mediaTimestamp) =>
-                onCopy(
-                    {
-                        subtitle,
-                        surroundingSubtitles,
-                        subtitleFileName: subtitle ? subtitleFiles?.[subtitle.track]?.name ?? '' : '',
-                        mediaTimestamp: mediaTimestamp ?? 0,
-                        file: videoFile
-                            ? {
-                                  name: videoFile.name,
-                                  blobUrl: createBlobUrl(videoFile),
-                                  audioTrack: channel?.selectedAudioTrack,
-                                  playbackRate: channel?.playbackRate,
-                              }
-                            : undefined,
-                        audio,
-                        image,
-                        url,
-                    },
+            channel?.onCopy(
+                (
+                    subtitle,
+                    surroundingSubtitles,
+                    cardTextFieldValues,
+                    audio,
+                    image,
+                    url,
                     postMineAction,
-                    id
-                )
+                    id,
+                    mediaTimestamp
+                ) =>
+                    onCopy(
+                        {
+                            subtitle,
+                            surroundingSubtitles,
+                            subtitleFileName: subtitle ? subtitleFiles?.[subtitle.track]?.name ?? '' : '',
+                            ...cardTextFieldValues,
+                            mediaTimestamp: mediaTimestamp ?? 0,
+                            file: videoFile
+                                ? {
+                                      name: videoFile.name,
+                                      blobUrl: createBlobUrl(videoFile),
+                                      audioTrack: channel?.selectedAudioTrack,
+                                      playbackRate: channel?.playbackRate,
+                                  }
+                                : undefined,
+                            audio,
+                            image,
+                            url,
+                        },
+                        postMineAction,
+                        id
+                    )
             ),
         [channel, onCopy, videoFile, subtitleFiles]
     );
@@ -738,11 +751,12 @@ export default function Player({
             subtitle: SubtitleModel,
             surroundingSubtitles: SubtitleModel[],
             postMineAction: PostMineAction,
-            forceUseGivenSubtitle?: boolean
+            forceUseGivenSubtitle?: boolean,
+            cardTextFieldValues?: CardTextFieldValues
         ) => {
             if (videoFileUrl) {
                 if (forceUseGivenSubtitle) {
-                    channel?.copy(postMineAction, subtitle, surroundingSubtitles);
+                    channel?.copy(postMineAction, subtitle, surroundingSubtitles, cardTextFieldValues);
                 } else {
                     // Let VideoPlayer do the copying to ensure copied subtitle is consistent with the VideoPlayer clock
                     channel?.copy(postMineAction);
@@ -763,6 +777,7 @@ export default function Player({
                                       playbackRate,
                                       blobUrl: createBlobUrl(videoFile),
                                   },
+                        ...cardTextFieldValues,
                     },
                     postMineAction,
                     undefined
@@ -1045,6 +1060,7 @@ export default function Player({
                         subtitles={subtitles}
                         subtitleCollection={subtitleCollection}
                         clock={clock}
+                        extension={extension}
                         length={calculateLength()}
                         jumpToSubtitle={jumpToSubtitle}
                         drawerOpen={drawerOpen}

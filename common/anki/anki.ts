@@ -1,48 +1,40 @@
 import { AudioClip } from '@project/common/audio-clip';
-import { Image } from '@project/common';
+import { CardModel, Image } from '@project/common';
 import { HttpFetcher, Fetcher } from '@project/common';
 import { AnkiSettings } from '@project/common/settings';
 import sanitize from 'sanitize-filename';
-import { AudioModel, ImageModel, SubtitleModel } from '@project/common';
-import { extractText } from '@project/common/util';
+import { extractText, sourceString } from '@project/common/util';
 
 const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
 
 export type AnkiExportMode = 'gui' | 'updateLast' | 'default';
 
-export async function updateLastCard(
-    ankiSettings: AnkiSettings,
-    subtitle: SubtitleModel,
-    surroundingSubtitles: SubtitleModel[],
-    audioModel: AudioModel | undefined,
-    imageModel: ImageModel | undefined,
-    sourceString: string,
-    url: string | undefined
-) {
+export async function updateLastCard(card: CardModel, ankiSettings: AnkiSettings) {
     const anki = new Anki(ankiSettings);
+    const source = sourceString(card.subtitleFileName, card.mediaTimestamp);
     let audioClip =
-        audioModel === undefined
+        card.audio === undefined
             ? undefined
             : AudioClip.fromBase64(
-                  sourceString,
-                  subtitle.start,
-                  subtitle.end,
-                  audioModel.playbackRate ?? 1,
-                  audioModel.base64,
-                  audioModel.extension
+                  source,
+                  card.subtitle.start,
+                  card.subtitle.end,
+                  card.audio.playbackRate ?? 1,
+                  card.audio.base64,
+                  card.audio.extension
               );
 
     return await anki.export(
-        extractText(subtitle, surroundingSubtitles),
-        undefined,
+        card.text ?? extractText(card.subtitle, card.surroundingSubtitles),
+        card.definition,
         audioClip,
-        imageModel === undefined
+        card.image === undefined
             ? undefined
-            : Image.fromBase64(sourceString, subtitle.start, imageModel.base64, imageModel.extension),
-        undefined,
-        sourceString,
-        url,
-        {},
+            : Image.fromBase64(source, card.subtitle.start, card.image.base64, card.image.extension),
+        card.word,
+        source,
+        card.url,
+        card.customFieldValues ?? {},
         ankiSettings.tags,
         'updateLast'
     );

@@ -201,7 +201,9 @@
         "updatedCard": "カードの更新：{{result}}",
         "activeTabPermissionObtained": "音声記録が有効になりました。",
         "enabledRepeatPlayback": "リピートプレイバック：オン",
-        "disabledRepeatPlayback": "リピートプレイバック：オフ"
+        "disabledRepeatPlayback": "リピートプレイバック：オフ",
+        "connectionSucceeded": "接続が成功しました",
+        "connectionFailed": "接続に失敗しました"
     },
     "landing": {
         "cta": "字幕やメディアファイルをドラッグ＆ドロップ、または<1>ファイルを選択</1>してください。",
@@ -289,7 +291,9 @@
         "unlockLocalFonts": "フォント検出の解除",
         "unboundBind": "キーバインドなし",
         "urlField": "URL フィールド",
-        "wordField": "単語フィールド"
+        "wordField": "単語フィールド",
+        "webSocketClientEnabled": "WebSocketクライアントを有効",
+        "webSocketServerUrl": "WebSocketサーバーのURL"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"

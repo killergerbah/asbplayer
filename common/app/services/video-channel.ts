@@ -6,6 +6,7 @@ import {
     AudioTrackModel,
     AudioTrackSelectedFromVideoMessage,
     AudioTrackSelectedToVideoMessage,
+    CardTextFieldValues,
     CopyMessage,
     CopyToVideoMessage,
     CurrentTimeFromVideoMessage,
@@ -51,6 +52,7 @@ export default class VideoChannel {
     private copyCallbacks: ((
         subtitle: SubtitleModel,
         surroundingSubtitles: SubtitleModel[],
+        cardTextFieldValues: CardTextFieldValues,
         audio: AudioModel | undefined,
         image: ImageModel | undefined,
         url: string | undefined,
@@ -180,10 +182,11 @@ export default class VideoChannel {
                 case 'copy':
                     for (let callback of that.copyCallbacks) {
                         const copyMessage = event.data as CopyMessage;
-
+                        const { word, text, definition, customFieldValues } = copyMessage;
                         callback(
                             copyMessage.subtitle,
                             copyMessage.surroundingSubtitles,
+                            { word, text, definition, customFieldValues },
                             copyMessage.audio,
                             copyMessage.image,
                             copyMessage.url,
@@ -310,6 +313,7 @@ export default class VideoChannel {
         callback: (
             subtitle: SubtitleModel,
             surroundingSubtitles: SubtitleModel[],
+            cardTextFieldValues: CardTextFieldValues,
             audio: AudioModel | undefined,
             image: ImageModel | undefined,
             url: string | undefined,
@@ -556,8 +560,19 @@ export default class VideoChannel {
         this.protocol.postMessage(msg);
     }
 
-    copy(postMineAction: PostMineAction, subtitle?: SubtitleModel, surroundingSubtitles?: SubtitleModel[]) {
-        const message: CopyToVideoMessage = { command: 'copy', postMineAction, subtitle, surroundingSubtitles };
+    copy(
+        postMineAction: PostMineAction,
+        subtitle?: SubtitleModel,
+        surroundingSubtitles?: SubtitleModel[],
+        cardTextFieldValues?: CardTextFieldValues
+    ) {
+        const message: CopyToVideoMessage = {
+            command: 'copy',
+            postMineAction,
+            subtitle,
+            surroundingSubtitles,
+            ...(cardTextFieldValues ?? {}),
+        };
         this.protocol.postMessage(message);
     }
 

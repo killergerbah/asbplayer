@@ -4,7 +4,13 @@ import { keysAreEqual } from '../services/util';
 import { useResize } from '../hooks/use-resize';
 import { ScreenLocation, useDragging } from '../hooks/use-dragging';
 import { useTranslation } from 'react-i18next';
-import { PostMineAction, SubtitleModel, AutoPauseContext } from '@project/common';
+import {
+    PostMineAction,
+    SubtitleModel,
+    AutoPauseContext,
+    CopySubtitleWithAdditionalFieldsMessage,
+    CardTextFieldValues,
+} from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
 import {
     surroundingSubtitles,
@@ -26,7 +32,10 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import Clock from '../services/clock';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
+import { MineSubtitleParams, useAppWebSocketClient } from '../hooks/use-app-web-socket-client';
 import { isMobile } from 'react-device-detect';
+import ChromeExtension, { ExtensionMessage } from '../services/chrome-extension';
+import { MineSubtitleCommand, WebSocketClient } from '../../web-socket-client';
 
 let lastKnownWidth: number | undefined;
 export const minSubtitlePlayerWidth = 200;
@@ -306,12 +315,14 @@ const ResizeHandle = ({ isResizing, style, ...rest }: ResizeHandleProps) => {
 
 interface SubtitlePlayerProps {
     clock: Clock;
+    extension: ChromeExtension;
     onSeek: (progress: number, shouldPlay: boolean) => void;
     onCopy: (
         subtitle: SubtitleModel,
         surroundingSubtitles: SubtitleModel[],
         postMineAction: PostMineAction,
-        forceUseGivenSubtitle?: boolean
+        forceUseGivenSubtitle?: boolean,
+        cardTextFieldValues?: CardTextFieldValues
     ) => void;
     onOffsetChange: (offset: number) => void;
     onToggleSubtitleTrack: (track: number) => void;
@@ -344,6 +355,7 @@ interface SubtitlePlayerProps {
 
 export default function SubtitlePlayer({
     clock,
+    extension,
     onSeek,
     onCopy,
     onOffsetChange,
@@ -749,6 +761,58 @@ export default function SubtitlePlayer({
         calculateSurroundingSubtitles,
         onCopy,
     ]);
+
+    const copyFromWebSocketClient = useCallback(
+        ({ postMineAction, text, word, definition, customFieldValues }: MineSubtitleParams) => {
+            if (!subtitles || subtitles.length === 0) {
+                return false;
+            }
+
+            const index = (subtitles ?? []).findIndex((s) => s.text === text);
+            const subtitle = index === -1 ? calculateCurrentSubtitle() : subtitles![index];
+
+            if (subtitle) {
+                const surroundingSubtitles =
+                    index === -1 ? calculateSurroundingSubtitles() : calculateSurroundingSubtitlesForIndex(index);
+                const cardTextFieldValues = {
+                    text,
+                    word,
+                    definition,
+                    customFieldValues,
+                };
+                onCopy(subtitle, surroundingSubtitles, postMineAction, true, cardTextFieldValues);
+                return true;
+            }
+
+            return false;
+        },
+        [
+            onCopy,
+            calculateCurrentSubtitle,
+            calculateSurroundingSubtitles,
+            calculateSurroundingSubtitlesForIndex,
+            subtitles,
+        ]
+    );
+
+    useAppWebSocketClient({
+        onMineSubtitle: copyFromWebSocketClient,
+        settings,
+        enabled: !extension.installed && subtitles !== undefined && subtitles.length > 0,
+    });
+
+    useEffect(() => {
+        if (extension.installed) {
+            return extension.subscribe((message: ExtensionMessage) => {
+                if (message.data.command !== 'copy-subtitle-with-additional-fields') {
+                    return;
+                }
+
+                const copySubtitleMessage = message.data as CopySubtitleWithAdditionalFieldsMessage;
+                copyFromWebSocketClient(copySubtitleMessage);
+            });
+        }
+    }, [extension, copyFromWebSocketClient]);
 
     useEffect(() => {
         return keyBinder.bindToggleSubtitleTrackInList(

@@ -3,14 +3,12 @@ import {
     AnkiUiInitialState,
     AnkiUiSavedState,
     AnkiUiResumeState,
-    AudioModel,
-    ImageModel,
-    SubtitleModel,
     AnkiUiBridgeResumeMessage,
     AnkiUiBridgeRewindMessage,
     OpenAsbplayerSettingsMessage,
     VideoToExtensionCommand,
     CopyToClipboardMessage,
+    ShowAnkiUiMessage,
 } from '@project/common';
 import { AnkiSettings } from '@project/common/settings';
 import { sourceString } from '@project/common/util';
@@ -68,10 +66,7 @@ export default class AnkiUiController {
 
     async show(
         context: Binding,
-        subtitle: SubtitleModel,
-        surroundingSubtitles: SubtitleModel[],
-        image: ImageModel | undefined,
-        audio: AudioModel | undefined
+        { subtitle, surroundingSubtitles, image, audio, text, definition, word, customFieldValues }: ShowAnkiUiMessage
     ) {
         if (!this._ankiSettings) {
             throw new Error('Unable to show Anki UI because settings are missing.');
@@ -95,6 +90,10 @@ export default class AnkiUiController {
             audio: audio,
             themeType: themeType,
             dialogRequestedTimestamp: context.video.currentTime * 1000,
+            text,
+            word,
+            definition,
+            customFieldValues,
         };
         client.updateState(state);
     }
