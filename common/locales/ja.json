@@ -81,7 +81,7 @@
         "seekBackward": "10 秒巻き戻し",
         "seekBackwardOrForward": "10 秒巻き戻し/早送り",
         "seekForward": "10 秒早送り",
-        "seekToBeginningOfCurrentOrPreviousSubtitle": "Seek to beginning of current/previous subtitle",
+        "seekToBeginningOfCurrentOrPreviousSubtitle": "今の、または前の字幕冒頭に移動",
         "seekToNextSubtitle": "次の字幕に早送り",
         "seekToPreviousSubtitle": "前の字幕に巻き戻り",
         "seekToSubtitle": "前/次の字幕に移動",
@@ -101,7 +101,7 @@
         "toggleVideoSubtitleTracks": "動画の字幕トラック オン/オフ",
         "updateLastCard": "asbplayer でキャプチャしたスクリーンショットや音声を、最後に作成した Anki カードに添付して更新する",
         "toggleSidePanel": "サイドパネルを開く/閉じる",
-        "toggleRepeat": "Toggle repeat mode"
+        "toggleRepeat": "リピートプレイバックオン/オフ"
     },
     "controls": {
         "autoPauseMode": "自動一時停止",
@@ -200,8 +200,8 @@
         "savedTimestamp": "保存しました：{{timestamp}}",
         "updatedCard": "カードの更新：{{result}}",
         "activeTabPermissionObtained": "音声記録が有効になりました。",
-        "enabledRepeatPlayback": "Repeat playback: On",
-        "disabledRepeatPlayback": "Repeat playback: Off"
+        "enabledRepeatPlayback": "リピートプレイバック：オン",
+        "disabledRepeatPlayback": "リピートプレイバック：オフ"
     },
     "landing": {
         "cta": "字幕やメディアファイルをドラッグ＆ドロップ、または<1>ファイルを選択</1>してください。",
@@ -220,7 +220,7 @@
     "settings": {
         "addCustomCss": "カスタムCSSを追加",
         "addCustomField": "カスタムフィールドを追加",
-        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current/previous subtitle'",
+        "alwaysPlayOnSubtitleRepeat": "「今の、または前の字幕冒頭に移動」の実行後、再生する",
         "anki": "Anki",
         "ankiConnectUrl": "AnkiConnect の URL",
         "audioField": "音声フィールド",
