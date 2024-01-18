@@ -1037,12 +1037,16 @@ export default function VideoPlayer({
 
     const togglePlayMode = useCallback(
         (event: KeyboardEvent, togglePlayMode: PlayMode) => {
+            if (subtitles.length === 0) {
+                return;
+            }
+
             event.preventDefault();
             const newPlayMode = playMode === togglePlayMode ? PlayMode.normal : togglePlayMode;
             playerChannel.playMode(newPlayMode);
             onPlayModeChangedViaBind(playMode, newPlayMode);
         },
-        [playMode, playerChannel, onPlayModeChangedViaBind]
+        [playMode, playerChannel, subtitles, onPlayModeChangedViaBind]
     );
 
     useEffect(() => {
