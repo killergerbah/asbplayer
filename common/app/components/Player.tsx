@@ -923,13 +923,17 @@ export default function Player({
     useEffect(() => {
         return keyBinder.bindToggleRepeat(
             (event) => {
-                if (subtitles && subtitles.length !== 0) {
+                const length = calculateLength();
+                const timestamp = clock.time(length);
+                const slice = subtitleCollection.subtitlesAt(timestamp);
+
+                if (slice.showing.length > 0) {
                     togglePlayMode(event, PlayMode.repeat);
                 }
             },
             () => disableKeyEvents
         );
-    }, [keyBinder, disableKeyEvents, togglePlayMode, subtitles]);
+    }, [keyBinder, disableKeyEvents, togglePlayMode, subtitleCollection, clock]);
 
     useEffect(() => {
         if (!videoFileUrl) {

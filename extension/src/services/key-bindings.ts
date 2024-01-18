@@ -91,8 +91,11 @@ export default class KeyBindings {
             (event) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
+                const [currentSubtitle] = context.subtitleController.currentSubtitle();
 
-                context.playMode = context.playMode === PlayMode.repeat ? PlayMode.normal : PlayMode.repeat;
+                if (currentSubtitle) {
+                    context.playMode = context.playMode === PlayMode.repeat ? PlayMode.normal : PlayMode.repeat;
+                }
             },
             () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
             true

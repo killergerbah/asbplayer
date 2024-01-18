@@ -1068,10 +1068,14 @@ export default function VideoPlayer({
 
     useEffect(() => {
         return keyBinder.bindToggleRepeat(
-            (event) => togglePlayMode(event, PlayMode.repeat),
+            (event) => {
+                if (showSubtitles.length > 0) {
+                    togglePlayMode(event, PlayMode.repeat);
+                }
+            },
             () => false
         );
-    }, [keyBinder, togglePlayMode]);
+    }, [keyBinder, togglePlayMode, showSubtitles]);
 
     const handleSubtitlesToggle = useCallback(() => {
         setDisplaySubtitles(!displaySubtitles);
