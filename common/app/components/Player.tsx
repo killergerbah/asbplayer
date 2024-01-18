@@ -673,7 +673,7 @@ export default function Player({
         const interval = setInterval(async () => {
             const timestamp = clock.time(calculateLength());
             const slice = subtitleCollection.subtitlesAt(timestamp);
-            console.log(slice);
+
             if (
                 slice.showing.length === 0 &&
                 (slice.nextToShow === undefined ||
