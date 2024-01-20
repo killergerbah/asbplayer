@@ -841,9 +841,16 @@ export default function SubtitlePlayer({
 
     const [scrollY, setScrollY] = useState<number>(0);
 
-    const handleScroll = useCallback((event: React.UIEvent<HTMLElement>) => {
-        setScrollY((event.target as HTMLElement)?.scrollTop ?? 0);
-    }, []);
+    useEffect(() => {
+        if (!resizable) {
+            return;
+        }
+
+        const interval = setInterval(() => {
+            setScrollY(containerRef.current?.scrollTop ?? 0);
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [resizable]);
 
     const { width, setWidth, enableResize, isResizing } = useResize({
         initialWidth: calculateInitialWidth,
@@ -1005,7 +1012,6 @@ export default function SubtitlePlayer({
             ref={containerRef}
             className={classes.container}
             style={{ width: resizable ? width : 'auto' }}
-            onScroll={handleScroll}
         >
             {subtitleTable}
             {resizable && (
