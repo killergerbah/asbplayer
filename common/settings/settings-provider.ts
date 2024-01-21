@@ -142,10 +142,48 @@ export const settingsDeserializers: SettingsDeserializers = Object.fromEntries(
     })
 ) as SettingsDeserializers;
 
+const deepEquals = (a: any, b: any) => {
+    if (typeof a !== typeof b) {
+        return false;
+    }
+
+    if (typeof a !== 'object') {
+        return a === b;
+    }
+
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+
+    if (a.length !== b.length) {
+        return false;
+    }
+
+    for (const k of aKeys) {
+        if (!deepEquals(a[k], b[k])) {
+            return false;
+        }
+    }
+
+    for (const k of bKeys) {
+        if (!deepEquals(a[k], b[k])) {
+            return false;
+        }
+    }
+
+    return true;
+};
+
 type SettingsKey = keyof AsbplayerSettings;
+
+const complexValuedKeys = Object.fromEntries(
+    Object.keys(defaultSettings)
+        .filter((k) => typeof defaultSettings[k as SettingsKey] === 'object')
+        .map((k) => [k, true])
+);
 
 export class SettingsProvider {
     private _storage;
+    private _complexValues: { [key: string]: any } = {};
 
     constructor(storage: SettingsStorage) {
         this._storage = storage;
@@ -172,7 +210,20 @@ export class SettingsProvider {
         const result: any = {};
 
         for (const key in parameters) {
-            result[key] = data[key as SettingsKey] ?? defaultSettings[key as SettingsKey];
+            const value = data[key as SettingsKey] ?? defaultSettings[key as SettingsKey];
+
+            if (complexValuedKeys[key]) {
+                const lastValue = this._complexValues[key as SettingsKey];
+
+                if (lastValue !== undefined && deepEquals(lastValue, value)) {
+                    result[key] = lastValue;
+                } else {
+                    this._complexValues[key as SettingsKey] = value;
+                    result[key] = value;
+                }
+            } else {
+                result[key] = value;
+            }
         }
 
         return result;
