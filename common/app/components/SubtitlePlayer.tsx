@@ -768,14 +768,26 @@ export default function SubtitlePlayer({
                 return false;
             }
 
-            const index = (subtitles ?? []).findIndex((s) => s.text === text);
+            let index = -1;
+
+            if (text) {
+                index = subtitles.findIndex((s) => s.text === text);
+
+                if (index === -1) {
+                    index =
+                        subtitles.filter((s) => s.text.includes(text)).length === 1
+                            ? subtitles.findIndex((s) => s.text.includes(text))
+                            : -1;
+                }
+            }
+
             const subtitle = index === -1 ? calculateCurrentSubtitle() : subtitles![index];
 
             if (subtitle) {
                 const surroundingSubtitles =
                     index === -1 ? calculateSurroundingSubtitles() : calculateSurroundingSubtitlesForIndex(index);
                 const cardTextFieldValues = {
-                    text,
+                    text: index === -1 ? text : subtitle.text,
                     word,
                     definition,
                     customFieldValues,
