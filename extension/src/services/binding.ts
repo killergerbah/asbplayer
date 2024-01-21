@@ -2,6 +2,7 @@ import {
     AckMessage,
     AnkiUiSavedState,
     AutoPausePreference,
+    CardExportedMessage,
     CardSavedMessage,
     CardUpdatedMessage,
     CopySubtitleMessage,
@@ -521,38 +522,40 @@ export default class Binding {
                         }
                         break;
                     case 'card-updated':
-                        const cardUpdatedMessage = request.message as CardUpdatedMessage;
-                        this.subtitleController.notification('info.updatedCard', { result: request.message.cardName });
+                    case 'card-exported':
+                    case 'card-saved':
+                        const cardMessage = request.message as
+                            | CardUpdatedMessage
+                            | CardExportedMessage
+                            | CardSavedMessage;
+                        let locKey: string;
+                        switch (cardMessage.command) {
+                            case 'card-updated':
+                                locKey = 'info.updatedCard';
+                                break;
+                            case 'card-exported':
+                                locKey = 'info.exportedCard';
+                                break;
+                            case 'card-saved':
+                                locKey = 'info.copiedSubtitle2';
+                                break;
+                        }
+                        this.subtitleController.notification(locKey, { result: request.message.cardName });
                         this.ankiUiSavedState = {
-                            subtitle: cardUpdatedMessage.subtitle,
-                            surroundingSubtitles: cardUpdatedMessage.surroundingSubtitles,
-                            text: '',
-                            definition: '',
-                            image: cardUpdatedMessage.image,
-                            audio: cardUpdatedMessage.audio,
-                            word: cardUpdatedMessage.cardName,
-                            source: sourceString(this.subtitleFileName(), cardUpdatedMessage.subtitle.start),
-                            url: cardUpdatedMessage.url ?? '',
-                            customFieldValues: {},
-                            timestampInterval: [cardUpdatedMessage.subtitle.start, cardUpdatedMessage.subtitle.end],
-                            initialTimestampInterval: [
-                                cardUpdatedMessage.subtitle.start,
-                                cardUpdatedMessage.subtitle.end,
-                            ],
-                            lastAppliedTimestampIntervalToText: [
-                                cardUpdatedMessage.subtitle.start,
-                                cardUpdatedMessage.subtitle.end,
-                            ],
-                            lastAppliedTimestampIntervalToAudio: [
-                                cardUpdatedMessage.subtitle.start,
-                                cardUpdatedMessage.subtitle.end,
-                            ],
+                            ...cardMessage,
+                            text: cardMessage.text ?? '',
+                            definition: cardMessage.definition ?? '',
+                            word: cardMessage.word ?? cardMessage.cardName,
+                            source: sourceString(this.subtitleFileName(), cardMessage.subtitle.start),
+                            url: cardMessage.url ?? '',
+                            customFieldValues: cardMessage.customFieldValues ?? {},
+                            timestampInterval: [cardMessage.subtitle.start, cardMessage.subtitle.end],
+                            initialTimestampInterval: [cardMessage.subtitle.start, cardMessage.subtitle.end],
+                            lastAppliedTimestampIntervalToText: [cardMessage.subtitle.start, cardMessage.subtitle.end],
+                            lastAppliedTimestampIntervalToAudio: [cardMessage.subtitle.start, cardMessage.subtitle.end],
                             dialogRequestedTimestamp: this.video.currentTime * 1000,
                         };
                         break;
-                    case 'card-saved':
-                        const cardSavedMessage = request.message as CardSavedMessage;
-                        this.subtitleController.notification('info.copiedSubtitle', { text: cardSavedMessage.text });
                     case 'recording-finished':
                         this.recordingMedia = false;
                         this.recordingMediaStartedTimestamp = undefined;

@@ -9,7 +9,7 @@ const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
 
 export type AnkiExportMode = 'gui' | 'updateLast' | 'default';
 
-export async function updateLastCard(card: CardModel, ankiSettings: AnkiSettings) {
+export async function exportCard(card: CardModel, ankiSettings: AnkiSettings, exportMode: AnkiExportMode) {
     const anki = new Anki(ankiSettings);
     const source = sourceString(card.subtitleFileName, card.mediaTimestamp);
     let audioClip =
@@ -36,7 +36,7 @@ export async function updateLastCard(card: CardModel, ankiSettings: AnkiSettings
         card.url,
         card.customFieldValues ?? {},
         ankiSettings.tags,
-        'updateLast'
+        exportMode
     );
 }
 

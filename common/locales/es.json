@@ -23,7 +23,8 @@
     "postMineAction": {
         "none": "Ninguna",
         "showAnkiDialog": "Mostrar ventana de Anki",
-        "updateLastCard": "Actualizar última tarjeta"
+        "updateLastCard": "Actualizar última tarjeta",
+        "exportCard": "Export card"
     },
     "ankiDialog": {
         "applySelection": "Aplicar Selección",
@@ -189,6 +190,7 @@
     },
     "info": {
         "copiedSubtitle": "Copiado: {{text}}",
+        "copiedSubtitle2": "Copiado: {{result}}",
         "disabledAutoPause": "Pausado automático: Desactivado",
         "disabledCondensedPlayback": "Reproducción condensada: Desactivada",
         "disabledFastForwardPlayback": "Reproducción acelerada: Desactivada",

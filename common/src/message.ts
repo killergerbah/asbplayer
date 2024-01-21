@@ -174,19 +174,19 @@ export interface TakeScreenshotToVideoPlayerMessage extends Message {
     readonly command: 'takeScreenshot';
 }
 
-export interface CardUpdatedMessage extends Message {
+export interface CardUpdatedMessage extends Message, CardModel {
     readonly command: 'card-updated';
     readonly cardName: string;
-    readonly subtitle: SubtitleModel;
-    readonly surroundingSubtitles: SubtitleModel[];
-    readonly image?: ImageModel;
-    readonly audio?: AudioModel;
-    readonly url?: string;
 }
 
-export interface CardSavedMessage extends Message {
+export interface CardExportedMessage extends Message, CardModel {
+    readonly command: 'card-exported';
+    readonly cardName: string;
+}
+
+export interface CardSavedMessage extends Message, CardModel {
     readonly command: 'card-saved';
-    readonly text: string;
+    readonly cardName: string;
 }
 
 export interface ScreenshotTakenMessage extends Message {

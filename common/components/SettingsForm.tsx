@@ -1105,6 +1105,19 @@ export default function SettingsForm({
                     <LabelWithHoverEffect
                         control={
                             <Radio
+                                checked={clickToMineDefaultAction === PostMineAction.exportCard}
+                                value={PostMineAction.exportCard}
+                                onChange={(event) =>
+                                    event.target.checked &&
+                                    handleSettingChanged('clickToMineDefaultAction', PostMineAction.exportCard)
+                                }
+                            />
+                        }
+                        label={t('postMineAction.exportCard')}
+                    />
+                    <LabelWithHoverEffect
+                        control={
+                            <Radio
                                 checked={clickToMineDefaultAction === PostMineAction.none}
                                 value={PostMineAction.none}
                                 onChange={(event) =>

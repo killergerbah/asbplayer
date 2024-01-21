@@ -1,4 +1,5 @@
 import {
+    CardExportedMessage,
     CardModel,
     CardSavedMessage,
     CardUpdatedMessage,
@@ -12,7 +13,7 @@ import { humanReadableTime } from '@project/common/util';
 import { AnkiSettings, ankiSettingsKeys, SettingsProvider } from '@project/common/settings';
 import BackgroundPageManager from './background-page-manager';
 import { v4 as uuidv4 } from 'uuid';
-import { updateLastCard } from '@project/common/anki';
+import { exportCard } from '@project/common/anki';
 
 export class CardPublisher {
     private readonly _backgroundPageManager: BackgroundPageManager;
@@ -43,34 +44,44 @@ export class CardPublisher {
 
             chrome.tabs.sendMessage(tabId, showAnkiUiCommand);
         } else if (postMineAction == PostMineAction.updateLastCard) {
-            const cardName = await updateLastCard(
-                card,
-                (await this._settingsProvider.get(ankiSettingsKeys)) as AnkiSettings
-            );
+            const ankiSettings = (await this._settingsProvider.get(ankiSettingsKeys)) as AnkiSettings;
+            const cardName = await exportCard(card, ankiSettings, 'updateLast');
 
             const cardUpdatedCommand: ExtensionToVideoCommand<CardUpdatedMessage> = {
                 sender: 'asbplayer-extension-to-video',
                 message: {
+                    ...card,
                     command: 'card-updated',
                     cardName: `${cardName}`,
-                    subtitle: card.subtitle,
-                    surroundingSubtitles: card.surroundingSubtitles,
-                    audio: card.audio,
-                    image: card.image,
-                    url: card.url,
                 },
                 src,
             };
 
             chrome.tabs.sendMessage(tabId, cardUpdatedCommand);
-        } else if (postMineAction == PostMineAction.none) {
+        } else if (postMineAction === PostMineAction.exportCard) {
+            const ankiSettings = (await this._settingsProvider.get(ankiSettingsKeys)) as AnkiSettings;
+            const cardName = await exportCard(card, ankiSettings, 'default');
+
+            const cardExportedCommand: ExtensionToVideoCommand<CardExportedMessage> = {
+                sender: 'asbplayer-extension-to-video',
+                message: {
+                    ...card,
+                    command: 'card-exported',
+                    cardName: `${cardName}`,
+                },
+                src,
+            };
+
+            chrome.tabs.sendMessage(tabId, cardExportedCommand);
+        } else if (postMineAction === PostMineAction.none) {
             savePromise.then((saved: boolean) => {
                 if (saved) {
                     const cardSavedCommand: ExtensionToVideoCommand<CardSavedMessage> = {
                         sender: 'asbplayer-extension-to-video',
                         message: {
+                            ...card,
                             command: 'card-saved',
-                            text: card.subtitle.text || humanReadableTime(card.mediaTimestamp),
+                            cardName: card.subtitle.text || humanReadableTime(card.mediaTimestamp),
                         },
                         src: src,
                     };

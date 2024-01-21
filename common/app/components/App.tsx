@@ -432,13 +432,14 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     setAlert(
                         card.subtitle.text === ''
                             ? t('info.savedTimestamp', { timestamp: humanReadableTime(card.subtitle.start) })!
-                            : t('info.copiedSubtitle', { text: card.subtitle.text })!
+                            : t('info.copiedSubtitle2', { result: card.subtitle.text })!
                     );
                     setAlertOpen(true);
                     break;
                 case PostMineAction.showAnkiDialog:
                     handleAnkiDialogRequest(newCard);
                     break;
+                case PostMineAction.exportCard:
                 case PostMineAction.updateLastCard:
                     // FIXME: We should really rename the functions below because we're actually skipping the Anki dialog in this case
                     setAnkiDialogRequested(true);
@@ -458,7 +459,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                         '',
                         newCard.customFieldValues ?? {},
                         settings.tags,
-                        'updateLast'
+                        postMineAction === PostMineAction.updateLastCard ? 'updateLast' : 'default'
                     );
                     break;
                 default:

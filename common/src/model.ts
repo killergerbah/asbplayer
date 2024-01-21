@@ -187,7 +187,7 @@ export enum PostMineAction {
     none = 0,
     showAnkiDialog = 1,
     updateLastCard = 2,
-    createCard = 3,
+    exportCard = 3,
 }
 
 export enum AutoPausePreference {

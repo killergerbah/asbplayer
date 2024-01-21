@@ -23,7 +23,8 @@
     "postMineAction": {
         "none": "何もしない",
         "showAnkiDialog": "Anki のエクスポートウィンドウを開く",
-        "updateLastCard": "最後のカードを更新する"
+        "updateLastCard": "最後のカードを更新する",
+        "exportCard": "カードをエクスポート"
     },
     "ankiDialog": {
         "applySelection": "選択範囲を適用する",
@@ -189,6 +190,7 @@
     },
     "info": {
         "copiedSubtitle": "コピーしました：{{text}}",
+        "copiedSubtitle2": "コピーしました：{{result}}",
         "disabledAutoPause": "自動一時停止：オフ",
         "disabledCondensedPlayback": "短縮プレイバック：オフ",
         "disabledFastForwardPlayback": "早送りプレイバック：オフ",

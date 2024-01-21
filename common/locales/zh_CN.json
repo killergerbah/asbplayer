@@ -23,7 +23,8 @@
     "postMineAction": {
         "none": "None",
         "showAnkiDialog": "Show Anki dialog",
-        "updateLastCard": "Update last card"
+        "updateLastCard": "Update last card",
+        "exportCard": "Export card"
     },
     "ankiDialog": {
         "applySelection": "应用选中时间范围",
@@ -189,6 +190,7 @@
     },
     "info": {
         "copiedSubtitle": "已复制：{{text}}",
+        "copiedSubtitle2": "已复制：{{result}}",
         "disabledAutoPause": "自动暂停：关闭",
         "disabledCondensedPlayback": "浓缩播放：关闭",
         "disabledFastForwardPlayback": "Fast forward playback: Off",
