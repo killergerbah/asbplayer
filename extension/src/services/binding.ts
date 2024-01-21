@@ -36,7 +36,7 @@ import {
 } from '@project/common';
 import { extractAnkiSettings, SettingsProvider, SubtitleListPreference } from '@project/common/settings';
 import { SubtitleReader } from '@project/common/subtitle-reader';
-import { sourceString, surroundingSubtitlesAroundInterval } from '@project/common/util';
+import { extractText, sourceString, surroundingSubtitlesAroundInterval } from '@project/common/util';
 import ActiveTabPermissionRequestController from '../controllers/active-tab-permission-request-controller';
 import AnkiUiController from '../controllers/anki-ui-controller';
 import ControlsController from '../controllers/controls-controller';
@@ -763,6 +763,10 @@ export default class Binding {
             const start = Math.max(0, subtitle.start - this.audioPaddingStart);
             this.seek(start / 1000);
             await this.play();
+        }
+
+        if (!text || subtitle.text.includes(text.trim())) {
+            text = extractText(subtitle, surroundingSubtitles);
         }
 
         const command: VideoToExtensionCommand<RecordMediaAndForwardSubtitleMessage> = {

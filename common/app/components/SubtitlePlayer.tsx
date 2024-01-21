@@ -16,6 +16,7 @@ import {
     surroundingSubtitles,
     mockSurroundingSubtitles,
     surroundingSubtitlesAroundInterval,
+    extractText,
 } from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { KeyBinder } from '@project/common/key-binder';
@@ -774,9 +775,10 @@ export default function SubtitlePlayer({
                 index = subtitles.findIndex((s) => s.text === text);
 
                 if (index === -1) {
+                    const trimmedText = text.trim();
                     index =
-                        subtitles.filter((s) => s.text.includes(text)).length === 1
-                            ? subtitles.findIndex((s) => s.text.includes(text))
+                        subtitles.filter((s) => s.text.includes(trimmedText)).length === 1
+                            ? subtitles.findIndex((s) => s.text.includes(trimmedText))
                             : -1;
                 }
             }
@@ -787,7 +789,7 @@ export default function SubtitlePlayer({
                 const surroundingSubtitles =
                     index === -1 ? calculateSurroundingSubtitles() : calculateSurroundingSubtitlesForIndex(index);
                 const cardTextFieldValues = {
-                    text: index === -1 ? text : subtitle.text,
+                    text: index === -1 ? text : extractText(subtitle, surroundingSubtitles),
                     word,
                     definition,
                     customFieldValues,
