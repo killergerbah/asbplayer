@@ -466,7 +466,20 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     throw new Error('Unknown post mine action: ' + postMineAction);
             }
         },
-        [settings, extension, saveCopyHistoryItem, handleAnkiDialogProceed, handleAnkiDialogRequest, t]
+        [
+            settings.copyToClipboardOnMine,
+            settings.audioPaddingStart,
+            settings.audioPaddingEnd,
+            settings.preferMp3,
+            settings.maxImageWidth,
+            settings.maxImageHeight,
+            settings.tags,
+            extension,
+            saveCopyHistoryItem,
+            handleAnkiDialogProceed,
+            handleAnkiDialogRequest,
+            t,
+        ]
     );
 
     const handleOpenCopyHistory = useCallback(async () => {
