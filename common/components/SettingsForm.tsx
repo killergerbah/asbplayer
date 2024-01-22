@@ -593,6 +593,7 @@ export default function SettingsForm({
             toggleAutoPause: { label: t('binds.toggleAutoPause')!, boundViaChrome: false },
             toggleCondensedPlayback: { label: t('binds.toggleCondensedPlayback')!, boundViaChrome: false },
             toggleFastForwardPlayback: { label: t('binds.toggleFastForwardPlayback')!, boundViaChrome: false },
+            toggleRepeat: { label: t('binds.toggleRepeat')!, boundViaChrome: false },
             toggleSubtitles: { label: t('binds.toggleSubtitles')!, boundViaChrome: false },
             toggleVideoSubtitleTrack1: { label: t('binds.toggleVideoSubtitleTrack1')!, boundViaChrome: false },
             toggleVideoSubtitleTrack2: { label: t('binds.toggleVideoSubtitleTrack2')!, boundViaChrome: false },
@@ -631,7 +632,6 @@ export default function SettingsForm({
             increasePlaybackRate: { label: t('binds.increasePlaybackRate')!, boundViaChrome: false },
             decreasePlaybackRate: { label: t('binds.decreasePlaybackRate')!, boundViaChrome: false },
             toggleSidePanel: { label: t('binds.toggleSidePanel')!, boundViaChrome: false, hide: !extensionInstalled },
-            toggleRepeat: { label: t('binds.toggleRepeat')!, boundViaChrome: false },
         }),
         [t, extensionInstalled]
     );
