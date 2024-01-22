@@ -812,7 +812,7 @@ export default function SubtitlePlayer({
     useAppWebSocketClient({
         onMineSubtitle: copyFromWebSocketClient,
         settings,
-        enabled: !extension.installed && subtitles !== undefined && subtitles.length > 0,
+        enabled: !extension.supportsWebSocketClient && subtitles !== undefined && subtitles.length > 0,
     });
 
     useEffect(() => {

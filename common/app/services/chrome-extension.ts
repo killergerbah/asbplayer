@@ -111,6 +111,10 @@ export default class ChromeExtension {
         return this.installed && gte(this.version, '1.0.0');
     }
 
+    get supportsWebSocketClient() {
+        return this.installed && gte(this.version, '1.1.0');
+    }
+
     get supportsVideoPlayerMiningCommands() {
         return this.installed && gte(this.version, '1.0.0');
     }
