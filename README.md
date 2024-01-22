@@ -179,7 +179,7 @@ See the proxy's [example configuration file](https://github.com/killergerbah/asb
 
 The asbplayer website can be controlled remotely through a WebSocket connection, which enables [one-click mining flows](#one-click-mining-flow) with the right setup. Currently asbplayer responds to one type of payload:
 
-```json
+```javascript
 {
     "command": "mine-subtitle",
     // Message ID to correlate with asbplayer's response
