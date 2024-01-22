@@ -205,7 +205,8 @@
         "enabledRepeatPlayback": "リピートプレイバック：オン",
         "disabledRepeatPlayback": "リピートプレイバック：オフ",
         "connectionSucceeded": "接続が成功しました",
-        "connectionFailed": "接続に失敗しました"
+        "connectionFailed": "接続に失敗しました",
+        "error": "エラー：{{message}}"
     },
     "landing": {
         "cta": "字幕やメディアファイルをドラッグ＆ドロップ、または<1>ファイルを選択</1>してください。",

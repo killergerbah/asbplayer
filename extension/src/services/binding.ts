@@ -11,6 +11,7 @@ import {
     CurrentTimeToVideoMessage,
     ExtensionSyncMessage,
     ImageCaptureParams,
+    NotifyErrorMessage,
     OffsetToVideoMessage,
     PauseFromVideoMessage,
     PlaybackRateFromVideoMessage,
@@ -556,6 +557,10 @@ export default class Binding {
                             lastAppliedTimestampIntervalToAudio: [cardMessage.subtitle.start, cardMessage.subtitle.end],
                             dialogRequestedTimestamp: this.video.currentTime * 1000,
                         };
+                        break;
+                    case 'notify-error':
+                        const notifyErrorMessage = request.message as NotifyErrorMessage;
+                        this.subtitleController.notification('info.error', { message: notifyErrorMessage.message });
                         break;
                     case 'recording-finished':
                         this.recordingMedia = false;

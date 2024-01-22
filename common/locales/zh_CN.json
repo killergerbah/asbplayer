@@ -205,7 +205,8 @@
         "enabledRepeatPlayback": "Repeat playback: On",
         "disabledRepeatPlayback": "Repeat playback: Off",
         "connectionSucceeded": "Connection succeeded",
-        "connectionFailed": "Connection failed"
+        "connectionFailed": "Connection failed",
+        "error": "Error: {{message}}"
     },
     "landing": {
         "cta": "拖放字幕和媒体文件，或<1>浏览</1>。",

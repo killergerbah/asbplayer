@@ -556,3 +556,8 @@ export interface DownloadImageMessage extends Message, CardModel {
 export interface DownloadAudioMessage extends Message, CardModel {
     readonly command: 'download-audio';
 }
+
+export interface NotifyErrorMessage extends Message {
+    readonly command: 'notify-error';
+    readonly message: string;
+}
