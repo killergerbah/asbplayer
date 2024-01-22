@@ -198,7 +198,7 @@ The asbplayer website can be controlled remotely through a WebSocket connection,
 
 Response:
 
-```json
+```javascript
 {
     "command": "response",
     // Same message ID received in request
