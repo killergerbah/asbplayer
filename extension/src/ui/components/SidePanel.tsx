@@ -86,6 +86,13 @@ export default function SidePanel({ settings, extension }: Props) {
     const videoElementCount = useVideoElementCount({ extension, currentTabId });
 
     useEffect(() => {
+        extension.startHeartbeat({
+            fromVideoPlayer: false,
+            loadedSubtitles: subtitles !== undefined && subtitles.length > 0,
+        });
+    }, [extension, subtitles]);
+
+    useEffect(() => {
         setCanDownloadSubtitles(subtitles?.some((s) => s.text !== '') ?? false);
     }, [subtitles]);
 

@@ -48,6 +48,10 @@ export const bindWebSocketClient = async (settings: SettingsProvider, tabRegistr
                 let published = false;
 
                 const publishToVideoElements = tabRegistry.publishCommandToVideoElements((videoElement) => {
+                    if (!videoElement.loadedSubtitles) {
+                        return undefined;
+                    }
+
                     if (tabs.find((t) => t.id === videoElement.tab.id) === undefined) {
                         return undefined;
                     }
@@ -70,7 +74,7 @@ export const bindWebSocketClient = async (settings: SettingsProvider, tabRegistr
 
                 const publishToAsbplayers = await tabRegistry.publishCommandToAsbplayers({
                     commandFactory: (asbplayer) => {
-                        if (asbplayer.sidePanel) {
+                        if (asbplayer.sidePanel || !asbplayer.loadedSubtitles) {
                             return undefined;
                         }
 

@@ -13,6 +13,7 @@ import {
     SetSettingsMessage,
     SettingsUpdatedMessage,
     VideoTabModel,
+    AsbplayerHeartbeatMessage,
 } from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
 import { v4 as uuidv4 } from 'uuid';
@@ -40,7 +41,7 @@ export default class ChromeExtension {
     private readonly _responseResolves: { [key: string]: (value: any) => void } = {};
     private onMessageCallbacks: Array<(message: ExtensionMessage) => void>;
     private onTabsCallbacks: Array<(tabs: VideoTabModel[]) => void>;
-    private heartbeatStarted = false;
+    private heartbeatInterval?: NodeJS.Timeout;
 
     constructor(version?: string, extensionCommands?: { [key: string]: string | undefined }) {
         this.onMessageCallbacks = [];
@@ -122,36 +123,39 @@ export default class ChromeExtension {
         return this.installed && gte(this.version, '0.23.0');
     }
 
-    startHeartbeat({ fromVideoPlayer }: { fromVideoPlayer: boolean }) {
+    startHeartbeat({ fromVideoPlayer, loadedSubtitles }: { fromVideoPlayer: boolean; loadedSubtitles: boolean }) {
         if (!this.installed) {
             return;
         }
 
-        if (!this.heartbeatStarted) {
-            if (fromVideoPlayer) {
-                if (gt(this.version, '0.23.0')) {
-                    this._sendHeartbeat(true);
-                    setInterval(() => this._sendHeartbeat(true), 1000);
-                }
-            } else {
-                this._sendHeartbeat(false);
-                setInterval(() => this._sendHeartbeat(false), 1000);
-            }
+        if (this.heartbeatInterval !== undefined) {
+            clearInterval(this.heartbeatInterval);
+            this.heartbeatInterval = undefined;
+        }
 
-            this.heartbeatStarted = true;
+        if (fromVideoPlayer) {
+            if (gt(this.version, '0.23.0')) {
+                this._sendHeartbeat(true, loadedSubtitles);
+                this.heartbeatInterval = setInterval(() => this._sendHeartbeat(true, loadedSubtitles), 1000);
+            }
+        } else {
+            this._sendHeartbeat(false, loadedSubtitles);
+            this.heartbeatInterval = setInterval(() => this._sendHeartbeat(false, loadedSubtitles), 1000);
         }
     }
 
-    private _sendHeartbeat(fromVideoPlayer: boolean) {
+    private _sendHeartbeat(fromVideoPlayer: boolean, loadedSubtitles: boolean) {
+        const message: AsbplayerHeartbeatMessage = {
+            command: 'heartbeat',
+            id: id,
+            receivedTabs: fromVideoPlayer ? [] : this.tabs,
+            videoPlayer: fromVideoPlayer,
+            sidePanel: this.sidePanel,
+            loadedSubtitles,
+        };
         window.postMessage({
             sender: 'asbplayerv2',
-            message: {
-                command: 'heartbeat',
-                id: id,
-                receivedTabs: fromVideoPlayer ? [] : this.tabs,
-                videoPlayer: fromVideoPlayer,
-                sidePanel: this.sidePanel,
-            },
+            message,
         });
     }
 

@@ -1,10 +1,13 @@
 import {
+    AckTabsMessage,
     ActiveVideoElement,
+    AsbplayerHeartbeatMessage,
     AsbplayerInstance,
     Command,
     ExtensionToAsbPlayerCommandTabsCommand,
     ExtensionToVideoCommand,
     Message,
+    VideoHeartbeatMessage,
     VideoTabModel,
 } from '@project/common';
 import { SettingsProvider } from '@project/common/settings';
@@ -22,6 +25,7 @@ export interface Asbplayer {
     timestamp: number;
     receivedTabs?: ActiveVideoElement[];
     videoPlayer: boolean;
+    loadedSubtitles?: boolean;
 }
 
 export interface VideoElement {
@@ -31,6 +35,7 @@ export interface VideoElement {
     subscribed: boolean;
     synced: boolean;
     syncedTimestamp?: number;
+    loadedSubtitles?: boolean;
 }
 
 export default class TabRegistry {
@@ -189,12 +194,16 @@ export default class TabRegistry {
 
     async onAsbplayerHeartbeat(
         tab: chrome.tabs.Tab | undefined,
-        asbplayerId: string,
-        videoPlayer: boolean,
-        sidePanel: boolean,
-        receivedTabs?: ActiveVideoElement[]
+        { id: asbplayerId, videoPlayer, sidePanel, receivedTabs, loadedSubtitles }: AsbplayerHeartbeatMessage
     ) {
-        this._updateAsbplayers(tab, asbplayerId, videoPlayer, sidePanel, receivedTabs);
+        this._updateAsbplayers(
+            tab,
+            asbplayerId,
+            videoPlayer,
+            sidePanel ?? false,
+            loadedSubtitles ?? false,
+            receivedTabs
+        );
 
         try {
             const command: ExtensionToAsbPlayerCommandTabsCommand = {
@@ -219,11 +228,9 @@ export default class TabRegistry {
 
     async onAsbplayerAckTabs(
         tab: chrome.tabs.Tab | undefined,
-        asbplayerId: string,
-        sidePanel: boolean,
-        receivedTabs?: ActiveVideoElement[]
+        { id: asbplayerId, sidePanel, receivedTabs }: AckTabsMessage
     ) {
-        this._updateAsbplayers(tab, asbplayerId, false, sidePanel, receivedTabs);
+        this._updateAsbplayers(tab, asbplayerId, false, sidePanel ?? false, false, receivedTabs);
     }
 
     private async _updateAsbplayers(
@@ -231,6 +238,7 @@ export default class TabRegistry {
         asbplayerId: string,
         videoPlayer: boolean,
         sidePanel: boolean,
+        loadedSubtitles: boolean,
         receivedTabs?: ActiveVideoElement[]
     ) {
         const slimTab =
@@ -248,6 +256,7 @@ export default class TabRegistry {
                 timestamp: Date.now(),
                 receivedTabs: receivedTabs,
                 sidePanel: sidePanel,
+                loadedSubtitles: loadedSubtitles,
                 videoPlayer: videoPlayer,
             };
             return true;
@@ -297,9 +306,7 @@ export default class TabRegistry {
     async onVideoElementHeartbeat(
         tab: chrome.tabs.Tab,
         src: string,
-        subscribed: boolean,
-        synced: boolean,
-        syncedTimestamp?: number
+        { subscribed, synced, syncedTimestamp, loadedSubtitles }: VideoHeartbeatMessage
     ) {
         if (tab.id === undefined) {
             return;
@@ -319,6 +326,7 @@ export default class TabRegistry {
                 timestamp: Date.now(),
                 synced,
                 syncedTimestamp,
+                loadedSubtitles,
             };
             return true;
         });

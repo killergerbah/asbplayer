@@ -426,6 +426,7 @@ export default class Binding {
                     subscribed: this.subscribed,
                     synced: this._synced,
                     syncedTimestamp: this._syncedTimestamp,
+                    loadedSubtitles: this.subtitleController.subtitles.length > 0,
                 },
                 src: this.video.src,
             };

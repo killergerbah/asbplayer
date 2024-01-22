@@ -20,10 +20,6 @@ const SidePanelUi = () => {
     }, []);
 
     useEffect(() => {
-        extension.startHeartbeat({ fromVideoPlayer: false });
-    }, [extension]);
-
-    useEffect(() => {
         return extension.subscribe((message: ExtensionMessage) => {
             if (message.data.command === 'settings-updated') {
                 settingsProvider.getAll().then(setSettings);

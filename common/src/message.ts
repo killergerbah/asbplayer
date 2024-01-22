@@ -45,6 +45,7 @@ export interface AsbplayerHeartbeatMessage extends Message {
     readonly receivedTabs?: ActiveVideoElement[];
     readonly videoPlayer: boolean;
     readonly sidePanel?: boolean;
+    readonly loadedSubtitles?: boolean;
 }
 
 export interface TabsMessage extends Message {
@@ -66,6 +67,7 @@ export interface VideoHeartbeatMessage extends Message {
     readonly subscribed: boolean;
     readonly synced: boolean;
     readonly syncedTimestamp?: number;
+    readonly loadedSubtitles: boolean;
 }
 
 export interface VideoDisappearedMessage extends Message {

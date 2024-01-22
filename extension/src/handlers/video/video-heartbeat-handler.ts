@@ -23,9 +23,7 @@ export default class VideoHeartbeatHandler {
             this.tabRegistry.onVideoElementHeartbeat(
                 sender.tab,
                 videoToExtensionCommand.src,
-                videoToExtensionCommand.message.subscribed,
-                videoToExtensionCommand.message.synced,
-                videoToExtensionCommand.message.syncedTimestamp
+                videoToExtensionCommand.message
             );
         }
 

@@ -839,7 +839,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
 
     useEffect(() => {
         if (inVideoPlayer) {
-            extension.startHeartbeat({ fromVideoPlayer: true });
+            extension.startHeartbeat({ fromVideoPlayer: true, loadedSubtitles: false });
             return undefined;
         }
 
@@ -914,11 +914,12 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         }
 
         const unsubscribe = extension.subscribe(onMessage);
-        extension.startHeartbeat({ fromVideoPlayer: false });
+        extension.startHeartbeat({ fromVideoPlayer: false, loadedSubtitles: subtitles.length > 0 });
         return unsubscribe;
     }, [
         extension,
         playbackPreferences,
+        subtitles,
         inVideoPlayer,
         sources.videoFileUrl,
         handleFiles,
