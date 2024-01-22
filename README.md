@@ -168,12 +168,12 @@ The asbplayer website can be setup to support one-click mining workflows by inte
     cd scripts/anki-connect-proxy
     go run main.go
     ```
-3. Enable asbplayer's WebSocket client from the [website settings](https://killergerbah.github.io/asbplayer?view=settings#misc).
+3. Enable asbplayer's WebSocket client from the [website settings](https://killergerbah.github.io/asbplayer?view=settings#misc-settings).
 4. Point Yomitan at the proxy by configuring `http://127.0.0.1:8766` for the AnkiConnect URL.
 5. Configure Yomitan to use the same note type you have configured for asbplayer.
 6. Using Yomitan's `+` button on asbplayer subtitles will now trigger the flashcard creator with word and definition fields pre-populated by Yomitan.
 
-See the proxy's [example configuration file](https://github.com/killergerbah/asbplayer/blob/main/scripts/anki-connect-proxy/.env.example) to see how to further configure it.
+See the proxy's [example configuration file](https://github.com/killergerbah/asbplayer/blob/main/scripts/anki-connect-proxy/.env.example) for how to further configure it.
 
 ### WebSocket interface
 
