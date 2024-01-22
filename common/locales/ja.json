@@ -82,7 +82,8 @@
         "seekBackward": "10 秒巻き戻し",
         "seekBackwardOrForward": "10 秒巻き戻し/早送り",
         "seekForward": "10 秒早送り",
-        "seekToBeginningOfCurrentSubtitle": "今の、または前の字幕冒頭に移動",
+        "seekToBeginningOfCurrentSubtitle": "今の字幕冒頭に移動",
+        "seekToBeginningOfCurrentOrPreviousSubtitle": "今の、または前の字幕冒頭に移動",
         "seekToNextSubtitle": "次の字幕に早送り",
         "seekToPreviousSubtitle": "前の字幕に巻き戻り",
         "seekToSubtitle": "前/次の字幕に移動",
@@ -102,7 +103,7 @@
         "toggleVideoSubtitleTracks": "動画の字幕トラック オン/オフ",
         "updateLastCard": "asbplayer でキャプチャしたスクリーンショットや音声を、最後に作成した Anki カードに添付して更新する",
         "toggleSidePanel": "サイドパネルを開く/閉じる",
-        "toggleRepeat": "リピートモードオン/オフ"
+        "toggleRepeat": "リピートプレイバックオン/オフ"
     },
     "controls": {
         "autoPauseMode": "自動一時停止",
