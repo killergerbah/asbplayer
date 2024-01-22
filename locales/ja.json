@@ -23,7 +23,8 @@
     "postMineAction": {
         "none": "何もしない",
         "showAnkiDialog": "Anki のエクスポートウィンドウを開く",
-        "updateLastCard": "最後のカードを更新する"
+        "updateLastCard": "最後のカードを更新する",
+        "exportCard": "カードをエクスポート"
     },
     "ankiDialog": {
         "applySelection": "選択範囲を適用する",
@@ -82,6 +83,7 @@
         "seekBackwardOrForward": "10 秒巻き戻し/早送り",
         "seekForward": "10 秒早送り",
         "seekToBeginningOfCurrentSubtitle": "今の字幕冒頭に移動",
+        "seekToBeginningOfCurrentOrPreviousSubtitle": "今の、または前の字幕冒頭に移動",
         "seekToNextSubtitle": "次の字幕に早送り",
         "seekToPreviousSubtitle": "前の字幕に巻き戻り",
         "seekToSubtitle": "前/次の字幕に移動",
@@ -100,7 +102,8 @@
         "toggleVideoSubtitleTrack3": "動画の字幕トラック 3 オン/オフ",
         "toggleVideoSubtitleTracks": "動画の字幕トラック オン/オフ",
         "updateLastCard": "asbplayer でキャプチャしたスクリーンショットや音声を、最後に作成した Anki カードに添付して更新する",
-        "toggleSidePanel": "サイドパネルを開く/閉じる"
+        "toggleSidePanel": "サイドパネルを開く/閉じる",
+        "toggleRepeat": "リピートプレイバックオン/オフ"
     },
     "controls": {
         "autoPauseMode": "自動一時停止",
@@ -188,6 +191,7 @@
     },
     "info": {
         "copiedSubtitle": "コピーしました：{{text}}",
+        "copiedSubtitle2": "コピーしました：{{result}}",
         "disabledAutoPause": "自動一時停止：オフ",
         "disabledCondensedPlayback": "短縮プレイバック：オフ",
         "disabledFastForwardPlayback": "早送りプレイバック：オフ",
@@ -198,7 +202,12 @@
         "playbackRate": "再生速度：{{rate}}",
         "savedTimestamp": "保存しました：{{timestamp}}",
         "updatedCard": "カードの更新：{{result}}",
-        "activeTabPermissionObtained": "音声記録が有効になりました。"
+        "activeTabPermissionObtained": "音声記録が有効になりました。",
+        "enabledRepeatPlayback": "リピートプレイバック：オン",
+        "disabledRepeatPlayback": "リピートプレイバック：オフ",
+        "connectionSucceeded": "接続が成功しました",
+        "connectionFailed": "接続に失敗しました",
+        "error": "エラー：{{message}}"
     },
     "landing": {
         "cta": "字幕やメディアファイルをドラッグ＆ドロップ、または<1>ファイルを選択</1>してください。",
@@ -217,7 +226,7 @@
     "settings": {
         "addCustomCss": "カスタムCSSを追加",
         "addCustomField": "カスタムフィールドを追加",
-        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current subtitle'",
+        "alwaysPlayOnSubtitleRepeat": "「今の、または前の字幕冒頭に移動」の実行後、再生する",
         "anki": "Anki",
         "ankiConnectUrl": "AnkiConnect の URL",
         "audioField": "音声フィールド",
@@ -286,7 +295,9 @@
         "unlockLocalFonts": "フォント検出の解除",
         "unboundBind": "キーバインドなし",
         "urlField": "URL フィールド",
-        "wordField": "単語フィールド"
+        "wordField": "単語フィールド",
+        "webSocketClientEnabled": "WebSocketクライアントを有効",
+        "webSocketServerUrl": "WebSocketサーバーのURL"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"

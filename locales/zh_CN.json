@@ -23,7 +23,8 @@
     "postMineAction": {
         "none": "None",
         "showAnkiDialog": "Show Anki dialog",
-        "updateLastCard": "Update last card"
+        "updateLastCard": "Update last card",
+        "exportCard": "Export card"
     },
     "ankiDialog": {
         "applySelection": "应用选中时间范围",
@@ -82,6 +83,7 @@
         "seekBackwardOrForward": "向后/向前搜索10秒",
         "seekForward": "向前搜索10秒",
         "seekToBeginningOfCurrentSubtitle": "搜索到当前字幕的开头",
+        "seekToBeginningOfCurrentOrPreviousSubtitle": "Seek to beginning of current/previous subtitle",
         "seekToNextSubtitle": "查找下一个字幕",
         "seekToPreviousSubtitle": "查找上一个/下一个字幕",
         "seekToSubtitle": "查找上一个/下一个字幕",
@@ -100,7 +102,8 @@
         "toggleVideoSubtitleTrack3": "切换视频中的字幕音轨3",
         "toggleVideoSubtitleTracks": "切换视频中的字幕音轨",
         "updateLastCard": "使用asbplayer捕获的屏幕截图、音频等更新上次创建的Anki卡。",
-        "toggleSidePanel": "Toggle side panel"
+        "toggleSidePanel": "Toggle side panel",
+        "toggleRepeat": "Toggle repeat mode"
     },
     "controls": {
         "autoPauseMode": "自动暂停",
@@ -188,6 +191,7 @@
     },
     "info": {
         "copiedSubtitle": "已复制：{{text}}",
+        "copiedSubtitle2": "已复制：{{result}}",
         "disabledAutoPause": "自动暂停：关闭",
         "disabledCondensedPlayback": "浓缩播放：关闭",
         "disabledFastForwardPlayback": "Fast forward playback: Off",
@@ -198,7 +202,12 @@
         "playbackRate": "播放速率：{{Rate}}",
         "savedTimestamp": "已保存：{{时间戳}}",
         "updatedCard": "更新的卡：{{result}}",
-        "activeTabPermissionObtained": "Audio recording is now enabled for this tab."
+        "activeTabPermissionObtained": "Audio recording is now enabled for this tab.",
+        "enabledRepeatPlayback": "Repeat mode: On",
+        "disabledRepeatPlayback": "Repeat mode: Off",
+        "connectionSucceeded": "Connection succeeded",
+        "connectionFailed": "Connection failed",
+        "error": "Error: {{message}}"
     },
     "landing": {
         "cta": "拖放字幕和媒体文件，或<1>浏览</1>。",
@@ -217,7 +226,7 @@
     "settings": {
         "addCustomCss": "添加自定义CSS",
         "addCustomField": "添加自定义字段",
-        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current subtitle'",
+        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current/previous subtitle'",
         "anki": "Anki",
         "ankiConnectUrl": "Anki连接URL",
         "audioField": "音频字段",
@@ -286,7 +295,9 @@
         "unlockLocalFonts": "Click to unlock font menu",
         "unboundBind": "未绑定",
         "urlField": "URL字段",
-        "wordField": "Word字段"
+        "wordField": "Word字段",
+        "webSocketClientEnabled": "Enable WebSocket client",
+        "webSocketServerUrl": "WebSocket Server URL"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Click, hold, and drag to mine multiple subtitles"

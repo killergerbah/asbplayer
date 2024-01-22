@@ -23,7 +23,8 @@
     "postMineAction": {
         "none": "None",
         "showAnkiDialog": "Show Anki dialog",
-        "updateLastCard": "Update last card"
+        "updateLastCard": "Update last card",
+        "exportCard": "Export card"
     },
     "ankiDialog": {
         "applySelection": "Apply Selection",
@@ -82,6 +83,7 @@
         "seekBackwardOrForward": "Seek backward/forward 10 seconds",
         "seekForward": "Seek forward 10 seconds",
         "seekToBeginningOfCurrentSubtitle": "Seek to beginning of current subtitle",
+        "seekToBeginningOfCurrentOrPreviousSubtitle": "Seek to beginning of current/previous subtitle",
         "seekToNextSubtitle": "Seek to next subtitle",
         "seekToPreviousSubtitle": "Seek to previous subtitle",
         "seekToSubtitle": "Seek to previous/next subtitle",
@@ -100,7 +102,8 @@
         "toggleVideoSubtitleTrack3": "Toggle subtitle track 3 in video",
         "toggleVideoSubtitleTracks": "Toggle subtitle track in video",
         "updateLastCard": "Update last-created Anki card with asbplayer-captured screenshot, audio, etc.",
-        "toggleSidePanel": "Toggle side panel"
+        "toggleSidePanel": "Toggle side panel",
+        "toggleRepeat": "Toggle repeat mode"
     },
     "controls": {
         "autoPauseMode": "Auto-pause",
@@ -188,6 +191,7 @@
     },
     "info": {
         "copiedSubtitle": "Copied: {{text}}",
+        "copiedSubtitle2": "Copied: {{result}}",
         "disabledAutoPause": "Auto-pause: Off",
         "disabledCondensedPlayback": "Condensed playback: Off",
         "disabledFastForwardPlayback": "Fast forward playback: Off",
@@ -198,7 +202,12 @@
         "playbackRate": "Playback Rate: {{rate}}",
         "savedTimestamp": "Saved: {{timestamp}}",
         "updatedCard": "Updated card: {{result}}",
-        "activeTabPermissionObtained": "Audio recording is now enabled for this tab."
+        "activeTabPermissionObtained": "Audio recording is now enabled for this tab.",
+        "enabledRepeatPlayback": "Repeat playback: On",
+        "disabledRepeatPlayback": "Repeat playback: Off",
+        "connectionSucceeded": "Connection succeeded",
+        "connectionFailed": "Connection failed",
+        "error": "Error: {{message}}"
     },
     "landing": {
         "cta": "Drag and drop subtitle and media files, or <1>browse</1>.",
@@ -217,7 +226,7 @@
     "settings": {
         "addCustomCss": "Add Custom CSS",
         "addCustomField": "Add Custom Field",
-        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current subtitle'",
+        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current/previous subtitle'",
         "anki": "Anki",
         "ankiConnectUrl": "Anki Connect URL",
         "audioField": "Audio Field",
@@ -286,7 +295,9 @@
         "unlockLocalFonts": "Click to unlock font menu",
         "unboundBind": "Unbound",
         "urlField": "URL Field",
-        "wordField": "Word Field"
+        "wordField": "Word Field",
+        "webSocketClientEnabled": "Enable WebSocket client",
+        "webSocketServerUrl": "WebSocket Server URL"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Click, hold, and drag to mine multiple subtitles"

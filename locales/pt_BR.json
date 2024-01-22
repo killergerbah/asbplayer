@@ -23,7 +23,8 @@
     "postMineAction": {
         "none": "Nada",
         "showAnkiDialog": "Mostrar caixa de diálogo do Anki",
-        "updateLastCard": "Atualizar último card"
+        "updateLastCard": "Atualizar último card",
+        "exportCard": "Export card"
     },
     "ankiDialog": {
         "applySelection": "Aplicar seleção",
@@ -82,6 +83,7 @@
         "seekBackwardOrForward": "Retroceda/avança 10 segundos",
         "seekForward": "Avança 10 segundos",
         "seekToBeginningOfCurrentSubtitle": "Vai para o início da legenda atual",
+        "seekToBeginningOfCurrentOrPreviousSubtitle": "Vai para o início da legenda atual/anterior",
         "seekToNextSubtitle": "Vai para a próxima legenda",
         "seekToPreviousSubtitle": "Vai para a legenda anterior",
         "seekToSubtitle": "Vá para a legenda anterior/próxima",
@@ -100,7 +102,8 @@
         "toggleVideoSubtitleTrack3": "Alternar faixa de legenda 3 no vídeo",
         "toggleVideoSubtitleTracks": "Alterne a faixa de legenda no vídeo",
         "updateLastCard": "Atualiza o último cartão criado no Anki com captura de tela, áudio, etc. do asbplayer.",
-        "toggleSidePanel": "Alternar painel lateral"
+        "toggleSidePanel": "Alternar painel lateral",
+        "toggleRepeat": "Toggle repeat mode"
     },
     "controls": {
         "autoPauseMode": "Pausa automática",
@@ -188,6 +191,7 @@
     },
     "info": {
         "copiedSubtitle": "Copiado: {{text}}",
+        "copiedSubtitle2": "Copiado: {{result}}",
         "disabledAutoPause": "Pausa automática: Off",
         "disabledCondensedPlayback": "Reprodução condensada: Off",
         "disabledFastForwardPlayback": "Reprodução de avanço rápido: Off",
@@ -198,7 +202,12 @@
         "playbackRate": "Taxa de reprodução: {{rate}}",
         "savedTimestamp": "Salvo: {{timestamp}}",
         "updatedCard": "Atualizar card: {{result}}",
-        "activeTabPermissionObtained": "A gravação de áudio agora está habilitada para essa guia."
+        "activeTabPermissionObtained": "A gravação de áudio agora está habilitada para essa guia.",
+        "enabledRepeatPlayback": "Repeat playback: On",
+        "disabledRepeatPlayback": "Repeat playback: Off",
+        "connectionSucceeded": "Connection succeeded",
+        "connectionFailed": "Connection failed",
+        "error": "Error: {{message}}"
     },
     "landing": {
         "cta": "Arraste e solte arquivos de mídia e legenda, ou <1>procure</1>.",
@@ -286,7 +295,9 @@
         "unlockLocalFonts": "Clique para desbloquear o menu de fontes",
         "unboundBind": "Não vinculado",
         "urlField": "Campo da URL",
-        "wordField": "Campo da palavra"
+        "wordField": "Campo da palavra",
+        "webSocketClientEnabled": "Enable WebSocket client",
+        "webSocketServerUrl": "WebSocket Server URL"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Clique, segure e arraste para minerar múltiplas legendas"

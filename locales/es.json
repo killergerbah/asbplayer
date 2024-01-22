@@ -6,25 +6,25 @@
         "downloadAudio": "Descargar Audio",
         "downloadImage": "Descargar Imagen",
         "downloadSubtitlesAsSrt": "Descargar Subtítulos como SRT",
-        "exportSettings": "Exportar Ajustes",
-        "importSettings": "Importar Ajustes",
         "jumpTo": "Saltar A",
-        "loadSubtitles": "Cargar Subtítulos",
-        "mine": "Minar",
-        "mineSubtitle": "Minar Subtítulo",
         "ok": "OK",
-        "openApp": "Abrir App",
+        "mineSubtitle": "Minar Subtítulo",
         "openFiles": "Abrir Archivos",
+        "loadSubtitles": "Cargar Subtítulos",
+        "openApp": "Abrir App",
         "openSidePanel": "Abrir Panel Lateral",
+        "mine": "Minar",
+        "updateLastCard": "Actualizar Última Tarjeta",
         "startRecording": "Comenzar Grabación",
         "stopRecording": "Finalizar Grabación",
-        "updateLastCard": "Actualizar Última Tarjeta"
+        "importSettings": "Importar Ajustes",
+        "exportSettings": "Exportar Ajustes"
     },
-    "activeTabPermissionRequest": {
-        "grantedPrompt": "Grabación de audio habilitada para esta pestaña. Puedes empezar a minar.",
-        "grantedTitle": "Grabación de audio habilitada",
-        "prompt": "Haz click en el botón de acción de asbplayer en la esquina superior derecha de la ventana del navegador para habilitar la grabación de audio para esta pestaña.",
-        "title": "Habilitar grabación de audio"
+    "postMineAction": {
+        "none": "Ninguna",
+        "showAnkiDialog": "Mostrar ventana de Anki",
+        "updateLastCard": "Actualizar última tarjeta",
+        "exportCard": "Export card"
     },
     "ankiDialog": {
         "applySelection": "Aplicar Selección",
@@ -83,6 +83,7 @@
         "seekBackwardOrForward": "Avanzar/Retroceder 10 segundos",
         "seekForward": "Avanzar 10 segundos",
         "seekToBeginningOfCurrentSubtitle": "Ir al inicio del subtítulo actual",
+        "seekToBeginningOfCurrentOrPreviousSubtitle": "Ir al inicio del subtítulo actual/anterior",
         "seekToNextSubtitle": "Avanzar al siguiente subtítulo",
         "seekToPreviousSubtitle": "Retroceder al subtítulo anterior",
         "seekToSubtitle": "Ir al subtítulo anterior/siguiente",
@@ -95,33 +96,34 @@
         "toggleCondensedPlayback": "Activar/Desactivar reproducción condensada",
         "toggleFastForwardPlayback": "Activar/Desactivar reproducción acelerada",
         "togglePlay": "Reproducir/Pausar",
-        "toggleSidePanel": "Abrir/Cerrar Panel Lateral",
         "toggleSubtitles": "Activar/Desactivar subtítulos",
         "toggleVideoSubtitleTrack1": "Activar/Desactivar pista de subtítulos 1 en el video",
         "toggleVideoSubtitleTrack2": "Activar/Desactivar pista de subtítulos 2 en el video",
         "toggleVideoSubtitleTrack3": "Activar/Desactivar pista de subtítulos 3 en el video",
         "toggleVideoSubtitleTracks": "Activar/Desactivar pista de subtítulos en el video",
-        "updateLastCard": "Actualizar la última tarjeta de Anki creada con captura de pantalla, audio, etc. capturado por asbplayer"
+        "updateLastCard": "Actualizar la última tarjeta de Anki creada con captura de pantalla, audio, etc. capturado por asbplayer",
+        "toggleSidePanel": "Abrir/Cerrar Panel Lateral",
+        "toggleRepeat": "Toggle repeat mode"
     },
     "controls": {
         "autoPauseMode": "Pausado Automático",
         "condensedMode": "Condensado",
         "fastForwardMode": "Acelerado",
-        "hideSubtitlePlayer": "Ocultar Lista de Subtítulos",
         "normalMode": "Normal",
-        "playbackMode": "Modo de Reproducción",
         "playbackRate": "Velocidad de Reproducción",
-        "popIn": "Volver a la Aplicación",
-        "popOut": "Abrir en Otra Ventana",
+        "subtitleOffset": "Offset de Subtítulos",
+        "subtitleAlignment": "Alineación de Subtítulos",
+        "toggleSubtitles": "Activar/Desactivar Subtítulos",
+        "playbackMode": "Modo de Reproducción",
+        "unloadVideo": "Remover Video",
         "selectAudioTrack": "Seleccionar Pista de Audio",
         "selectVideoElement": "Seleccionar Elemento de Video",
-        "showSubtitlePlayer": "Mostrar Lista de Subtítulos",
-        "subtitleAlignment": "Alineación de Subtítulos",
-        "subtitleOffset": "Offset de Subtítulos",
+        "popOut": "Abrir en Otra Ventana",
+        "popIn": "Volver a la Aplicación",
         "toggleFullscreen": "Pantalla Completa",
-        "toggleSubtitles": "Activar/Desactivar Subtítulos",
         "toggleTheaterMode": "Modo Cine",
-        "unloadVideo": "Remover Video"
+        "showSubtitlePlayer": "Mostrar Lista de Subtítulos",
+        "hideSubtitlePlayer": "Ocultar Lista de Subtítulos"
     },
     "copyHistory": {
         "blank": "En Blanco",
@@ -143,9 +145,6 @@
         "videoPlayerDragAndDropNotAllowed": "El reproductor de video no puede recibir archivos. Arrástralos fuera del cuadro de video."
     },
     "extension": {
-        "backgroundAudioRecordingPage": {
-            "description": "Esta página es usada por asbplayer para capturar audio"
-        },
         "settings": {
             "asbplayerUrl": "URL de la Aplicación",
             "autoLoadDetectedSubs": "Cargar subtítulos detectados automáticamente",
@@ -154,15 +153,15 @@
             "cropScreenshot": "Recortar captura de pantalla",
             "displaySubtitles": "Mostrar subtítulos",
             "dragAndDrop": "Permitir arrastrar y soltar archivos de subtítulos",
+            "subtitleListPreference": "Preferencia de lista de subtítulos",
+            "openSubtitleList": "Abrir lista de subtítulos al cargar subtítulos",
             "mining": "Minado",
             "miningKeyboardShortcuts": "Atajos de Teclado para Minado",
             "misc": "Otros",
-            "openSubtitleList": "Abrir lista de subtítulos al cargar subtítulos",
             "playback": "Reproducción",
             "playbackKeyboardShortcuts": "Atajos de Teclado para Reproducción",
             "recordAudio": "Grabar audio",
             "screenshotCaptureDelay": "Retardo de captura de pantalla",
-            "subtitleListPreference": "Preferencia de lista de subtítulos",
             "subtitles": "Subtítulos",
             "syncing": "Sincronización",
             "takeScreenshot": "Tomar captura de pantalla",
@@ -181,16 +180,18 @@
             "selectVideo": "Selecciona un elemento de video para sincronizar con asbplayer.",
             "syncBeforeMine": "Un elemento de video debe ser sincronizado con asbplayer antes de que pueda ser minado. Selecciona un elemento de video a sincronizar con asbplayer.",
             "videoElement": "Elemento de Video"
+        },
+        "backgroundAudioRecordingPage": {
+            "description": "Esta página es usada por asbplayer para capturar audio"
         }
     },
-
     "ftue": {
         "welcome": "Bienvenido a asbplayer",
         "welcomeBody": "Revisa el <0>léeme</0> para comenzar\ninfo.activeTabPermissionObtained,Grabación de audio activada para esta pestaña"
     },
     "info": {
-        "activeTabPermissionObtained": "Grabación de audio activada para esta pestaña",
         "copiedSubtitle": "Copiado: {{text}}",
+        "copiedSubtitle2": "Copiado: {{result}}",
         "disabledAutoPause": "Pausado automático: Desactivado",
         "disabledCondensedPlayback": "Reproducción condensada: Desactivada",
         "disabledFastForwardPlayback": "Reproducción acelerada: Desactivada",
@@ -200,25 +201,32 @@
         "exportedCard": "Tarjeta exportada: {{result}}",
         "playbackRate": "Velocidad de Reproducción: {{rate}}",
         "savedTimestamp": "Guardado: {{timestamp}}",
-        "updatedCard": "Tarjeta actualizada: {{result}}"
+        "updatedCard": "Tarjeta actualizada: {{result}}",
+        "activeTabPermissionObtained": "Grabación de audio activada para esta pestaña",
+        "enabledRepeatPlayback": "Repeat playback: On",
+        "disabledRepeatPlayback": "Repeat playback: Off",
+        "connectionSucceeded": "Connection succeeded",
+        "connectionFailed": "Connection failed",
+        "error": "Error: {{message}}"
     },
     "landing": {
         "cta": "Arrastra archivos de medios y subtítulos o <1>explora</1>.",
         "extensionNotInstalled": "Instala la <1>extensión de Chrome</1> para sincronizar los subtítulos con el video.",
         "extensionUpdateAvailable": "Hay una <1>actualización</1> disponible para la extensión.",
         "noSubtitles": "No hay subtítulos",
-        "noVideoElementsDetected": "No se detectaron videos",
-        "videoElementsDetected": "Carga subtítulos a un video para comenzar a usar asbplayer"
+        "videoElementsDetected": "Carga subtítulos a un video para comenzar a usar asbplayer",
+        "noVideoElementsDetected": "No se detectaron videos"
     },
-    "postMineAction": {
-        "none": "Ninguna",
-        "showAnkiDialog": "Mostrar ventana de Anki",
-        "updateLastCard": "Actualizar última tarjeta"
+    "activeTabPermissionRequest": {
+        "title": "Habilitar grabación de audio",
+        "grantedTitle": "Grabación de audio habilitada",
+        "prompt": "Haz click en el botón de acción de asbplayer en la esquina superior derecha de la ventana del navegador para habilitar la grabación de audio para esta pestaña.",
+        "grantedPrompt": "Grabación de audio habilitada para esta pestaña. Puedes empezar a minar."
     },
     "settings": {
         "addCustomCss": "Agregar CSS Personalizado",
         "addCustomField": "Agregar Campo Personalizado",
-        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current subtitle'",
+        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current/previous subtitle'",
         "anki": "Anki",
         "ankiConnectUrl": "URL de Anki Connect",
         "audioField": "Campo de Audio",
@@ -229,7 +237,7 @@
         "autoPauseAtSubtitleStart": "Al Inicio del Subtítulo",
         "autoPausePreference": "Preferencia para el pausado automático",
         "autoPausePreferenceHelperText": "No activa el pausado automático. Establece cuando pausar si el pausado automático está activado.",
-        "clickToMineDefaultAction": "Acción por defecto del botón de minado",
+        "fastForwardModePlaybackRate": "Velocidad de la Reproducción Acelerada",
         "copyOnMine": "Copiar subtítulos minados al portapapeles",
         "corsHelperText": "Asegúrate de que {{origin}} esté en webCorsOriginList en tu configuración de AnkiConnect como en este <0>video</0>.",
         "customCssField": "CSS: {{styleKey}}",
@@ -237,7 +245,6 @@
         "definitionField": "Campo de Definición",
         "extensionOverriddenBind": "Anulado",
         "extensionShortcut": "Atajo de teclado de la extensión",
-        "fastForwardModePlaybackRate": "Velocidad de la Reproducción Acelerada",
         "imageBasedSubtitleScaleFactor": "Factor de Escalado para Subtítulos Basados en Imágenes",
         "imageField": "Campo de Imagen",
         "keyboardShortcuts": "Atajos de Teclado",
@@ -246,6 +253,7 @@
         "maxImageWidth": "Ancho máximo de la imagen",
         "mining": "Minado",
         "miningHistoryStorageLimit": "Límite de almacenamiento del historial de minado",
+        "clickToMineDefaultAction": "Acción por defecto del botón de minado",
         "misc": "Otros",
         "mp3Preference": "Recodificar audio como MP3 (más lento)",
         "noteType": "Tipo de Nota",
@@ -254,13 +262,10 @@
         "recordingBind": "Grabando",
         "rememberSubtitleOffset": "Recordar offset de subtítulos",
         "sentenceField": "Campo de Oración",
-        "sourceField": "Campo de Fuente",
         "streamingVideo": "Streaming de Video",
         "styleKey": "Tecla de Estilo",
         "styleValue": "Valor de Estilo",
-        "subtitleAlignment": "Alineación de Subtítulos",
-        "subtitleAlignmentBottom": "Inferior",
-        "subtitleAlignmentTop": "Superior",
+        "sourceField": "Campo de Fuente",
         "subtitleAppearance": "Apariencia de Subtítulos",
         "subtitleBackgroundColor": "Color del Fondo de los Subtítulos",
         "subtitleBackgroundOpacity": "Opacidad del Fondo de los Subtítulos",
@@ -268,12 +273,15 @@
         "subtitleFontFamily": "Familia de Fuente de los Subtítulos",
         "subtitleOutlineColor": "Color del Contorno de los Subtítulos",
         "subtitleOutlineThickness": "Grosor del Contorno de los Subtítulos",
-        "subtitleOutlineThicknessHelperText": "Agrega un contorno al texto de los subtítulos. Si esto causa líneas superpuestas, trata de usar otra fuente.",
-        "subtitlePositionOffset": "Distancia de los subtítulos desde el borde inferior",
-        "subtitleRegexFilter": "Filtro regex para subtítulos",
-        "subtitleRegexFilterTextReplacement": "Texto de reemplazo para el filtro regex",
         "subtitleShadowColor": "Color de la Sombra de los Subtítulos",
         "subtitleShadowThickness": "Grosor del Sombreado de los Subtítulos",
+        "subtitleOutlineThicknessHelperText": "Agrega un contorno al texto de los subtítulos. Si esto causa líneas superpuestas, trata de usar otra fuente.",
+        "subtitlePositionOffset": "Distancia de los subtítulos desde el borde inferior",
+        "subtitleAlignment": "Alineación de Subtítulos",
+        "subtitleAlignmentBottom": "Inferior",
+        "subtitleAlignmentTop": "Superior",
+        "subtitleRegexFilter": "Filtro regex para subtítulos",
+        "subtitleRegexFilterTextReplacement": "Texto de reemplazo para el filtro regex",
         "subtitleSize": "Tamaño de los subtítulos",
         "subtitleThickness": "Grosor de la Fuente de los Subtítulos",
         "surroundingSubtitlesCountRadius": "Radio de Cantidad de Subtítulos Circundantes",
@@ -284,10 +292,12 @@
         "themeDark": "Oscuro",
         "themeLight": "Claro",
         "title": "Ajustes",
-        "unboundBind": "Sin Asignar",
         "unlockLocalFonts": "Haz click para desbloquear el menú de fuentes",
+        "unboundBind": "Sin Asignar",
         "urlField": "Campo de URL",
-        "wordField": "Campo de Palabra"
+        "wordField": "Campo de Palabra",
+        "webSocketClientEnabled": "Enable WebSocket client",
+        "webSocketServerUrl": "WebSocket Server URL"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Haz click, mantén y arrastra para minar múltiples subtítulos"
