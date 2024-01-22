@@ -1,4 +1,4 @@
-import { AsbplayerSettings, SubtitleAlignment } from '@project/common/settings';
+import { MiscSettings, SubtitleAlignment, SubtitleSettings } from '@project/common/settings';
 import { CachedLocalStorage } from './cached-local-storage';
 import ChromeExtension from './chrome-extension';
 
@@ -6,16 +6,16 @@ const volumeKey = 'volume';
 const theaterModeKey = 'theaterMode';
 const offsetKey = 'offset';
 const displaySubtitlesKey = 'displaySubtitles';
-const subtitleAlignmentKey = 'subtitleAlignment2';
+const subtitleAlignmentKey = 'subtitleAlignment';
 const subtitlePositionOffetKey = 'subtitlePositionOffset';
 const defaultVolume = 100;
 
 export default class PlaybackPreferences {
-    private readonly _settings: AsbplayerSettings;
+    private readonly _settings: SubtitleSettings & MiscSettings;
     private readonly _storage = new CachedLocalStorage();
     private readonly _extension: ChromeExtension;
 
-    constructor(settings: AsbplayerSettings, extension: ChromeExtension) {
+    constructor(settings: SubtitleSettings & MiscSettings, extension: ChromeExtension) {
         this._settings = settings;
         this._extension = extension;
     }
@@ -82,6 +82,8 @@ export default class PlaybackPreferences {
         return val as SubtitleAlignment;
     }
 
+    // FIXME: Leaky abstraction - subtitlAlignmentKey and subtitlePositionOffsetKey must have the same values
+    // as the keys in the settings.ts for these setters to update the shared settings as well
     set subtitleAlignment(alignment: SubtitleAlignment) {
         if (this._extension.supportsAppIntegration) {
             this._extension.setSettings({ subtitleAlignment: alignment });

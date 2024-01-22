@@ -229,7 +229,6 @@ export interface SeekRequest {
 
 interface Props {
     settings: AsbplayerSettings;
-    playbackPreferences: PlaybackPreferences;
     extension: ChromeExtension;
     videoFile: string;
     channel: string;
@@ -268,7 +267,6 @@ interface MinedRecord {
 
 export default function VideoPlayer({
     settings,
-    playbackPreferences,
     extension,
     videoFile,
     channel,
@@ -309,6 +307,13 @@ export default function VideoPlayer({
         [subtitles]
     );
     const [showSubtitles, setShowSubtitles] = useState<IndexedSubtitleModel[]>([]);
+    const [miscSettings, setMiscSettings] = useState<MiscSettings>(settings);
+    const [subtitleSettings, setSubtitleSettings] = useState<SubtitleSettings>(settings);
+    const [ankiSettings, setAnkiSettings] = useState<AnkiSettings>(settings);
+    const playbackPreferences = useMemo<PlaybackPreferences>(
+        () => new PlaybackPreferences({ ...subtitleSettings, ...miscSettings }, extension),
+        [subtitleSettings, miscSettings, extension]
+    );
     const [displaySubtitles, setDisplaySubtitles] = useState(playbackPreferences.displaySubtitles);
     const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState<{ [index: number]: boolean }>({});
     const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
@@ -332,9 +337,6 @@ export default function VideoPlayer({
     const [alertSeverity, setAlertSeverity] = useState<Color>('info');
     const [lastMinedRecord, setLastMinedRecord] = useState<MinedRecord>();
     const [, forceRender] = useState<any>();
-    const [miscSettings, setMiscSettings] = useState<MiscSettings>(settings);
-    const [subtitleSettings, setSubtitleSettings] = useState<SubtitleSettings>(settings);
-    const [ankiSettings, setAnkiSettings] = useState<AnkiSettings>(settings);
 
     useEffect(() => {
         setMiscSettings(settings);

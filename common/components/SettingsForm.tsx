@@ -1454,58 +1454,52 @@ export default function SettingsForm({
                                 }
                             />
                         </div>
-                        {extensionSupportsAppIntegration && (
-                            <>
-                                <div className={classes.subtitleSetting}>
-                                    <FormLabel component="legend">{t('settings.subtitleAlignment')}</FormLabel>
-                                    <RadioGroup row>
-                                        <LabelWithHoverEffect
-                                            control={
-                                                <Radio
-                                                    checked={subtitleAlignment === 'bottom'}
-                                                    value={'bottom'}
-                                                    onChange={(event) =>
-                                                        event.target.checked &&
-                                                        handleSettingChanged('subtitleAlignment', 'bottom')
-                                                    }
-                                                />
+
+                        <div className={classes.subtitleSetting}>
+                            <FormLabel component="legend">{t('settings.subtitleAlignment')}</FormLabel>
+                            <RadioGroup row>
+                                <LabelWithHoverEffect
+                                    control={
+                                        <Radio
+                                            checked={subtitleAlignment === 'bottom'}
+                                            value={'bottom'}
+                                            onChange={(event) =>
+                                                event.target.checked &&
+                                                handleSettingChanged('subtitleAlignment', 'bottom')
                                             }
-                                            label={t('settings.subtitleAlignmentBottom')}
                                         />
-                                        <LabelWithHoverEffect
-                                            control={
-                                                <Radio
-                                                    checked={subtitleAlignment === 'top'}
-                                                    value={'top'}
-                                                    onChange={(event) =>
-                                                        event.target.checked &&
-                                                        handleSettingChanged('subtitleAlignment', 'top')
-                                                    }
-                                                />
+                                    }
+                                    label={t('settings.subtitleAlignmentBottom')}
+                                />
+                                <LabelWithHoverEffect
+                                    control={
+                                        <Radio
+                                            checked={subtitleAlignment === 'top'}
+                                            value={'top'}
+                                            onChange={(event) =>
+                                                event.target.checked && handleSettingChanged('subtitleAlignment', 'top')
                                             }
-                                            label={t('settings.subtitleAlignmentTop')}
                                         />
-                                    </RadioGroup>
-                                </div>
-                                <div className={classes.subtitleSetting}>
-                                    <TextField
-                                        className={classes.textField}
-                                        type="number"
-                                        color="secondary"
-                                        fullWidth
-                                        label={t('settings.subtitlePositionOffset')}
-                                        value={subtitlePositionOffset}
-                                        inputProps={{
-                                            min: 0,
-                                            step: 1,
-                                        }}
-                                        onChange={(e) =>
-                                            handleSettingChanged('subtitlePositionOffset', Number(e.target.value))
-                                        }
-                                    />
-                                </div>
-                            </>
-                        )}
+                                    }
+                                    label={t('settings.subtitleAlignmentTop')}
+                                />
+                            </RadioGroup>
+                        </div>
+                        <div className={classes.subtitleSetting}>
+                            <TextField
+                                className={classes.textField}
+                                type="number"
+                                color="secondary"
+                                fullWidth
+                                label={t('settings.subtitlePositionOffset')}
+                                value={subtitlePositionOffset}
+                                inputProps={{
+                                    min: 0,
+                                    step: 1,
+                                }}
+                                onChange={(e) => handleSettingChanged('subtitlePositionOffset', Number(e.target.value))}
+                            />
+                        </div>
                     </FormGroup>
                 </Grid>
             </TabPanel>

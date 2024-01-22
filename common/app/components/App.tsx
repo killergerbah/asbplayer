@@ -135,7 +135,6 @@ function extractSources(files: FileList | File[]): MediaSources {
 interface RenderVideoProps {
     searchParams: URLSearchParams;
     settings: AsbplayerSettings;
-    playbackPreferences: PlaybackPreferences;
     extension: ChromeExtension;
     ankiDialogFinishedRequest: AnkiDialogFinishedRequest;
     ankiDialogOpen: boolean;
@@ -916,16 +915,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         const unsubscribe = extension.subscribe(onMessage);
         extension.startHeartbeat({ fromVideoPlayer: false, loadedSubtitles: subtitles.length > 0 });
         return unsubscribe;
-    }, [
-        extension,
-        playbackPreferences,
-        subtitles,
-        inVideoPlayer,
-        sources.videoFileUrl,
-        handleFiles,
-        handleAnki,
-        handleUnloadVideo,
-    ]);
+    }, [extension, subtitles, inVideoPlayer, sources.videoFileUrl, handleFiles, handleAnki, handleUnloadVideo]);
 
     useEffect(() => {
         if (inVideoPlayer) {
@@ -1178,7 +1168,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                         <RenderVideo
                             searchParams={searchParams}
                             settings={settings}
-                            playbackPreferences={playbackPreferences}
                             extension={extension}
                             ankiDialogFinishedRequest={ankiDialogFinishedRequest}
                             ankiDialogOpen={ankiDialogOpen}

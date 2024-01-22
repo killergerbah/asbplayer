@@ -1,8 +1,11 @@
-import { AsbplayerSettings, SettingsStorage } from '@project/common/settings';
+import { AsbplayerSettings } from '@project/common/settings';
 import { ChromeExtension } from '@project/common/app';
+import { AppSettingsStorage } from '@project/common/app/services/app-settings-storage';
 
-export class AppExtensionSettingsStorage implements SettingsStorage {
+export class AppExtensionSettingsStorage implements AppSettingsStorage {
     private readonly _extension: ChromeExtension;
+    private readonly _settingsUpdatedCallbacks: (() => void)[] = [];
+    private _unsubscribeExtension?: () => void;
 
     constructor(extension: ChromeExtension) {
         this._extension = extension;
@@ -14,5 +17,32 @@ export class AppExtensionSettingsStorage implements SettingsStorage {
 
     set(settings: Partial<AsbplayerSettings>): Promise<void> {
         return this._extension.setSettings(settings);
+    }
+
+    onSettingsUpdated(callback: () => void) {
+        if (this._settingsUpdatedCallbacks.length === 0) {
+            this._unsubscribeExtension = this._extension.subscribe((message) => {
+                if (message.data.command === 'settings-updated') {
+                    for (const c of this._settingsUpdatedCallbacks) {
+                        c();
+                    }
+                }
+            });
+        }
+        this._settingsUpdatedCallbacks.push(callback);
+        return () => this._unsubscribeCallback(callback);
+    }
+
+    _unsubscribeCallback(callback: () => void) {
+        for (let i = this._settingsUpdatedCallbacks.length - 1; i >= 0; --i) {
+            if (callback === this._settingsUpdatedCallbacks[i]) {
+                this._settingsUpdatedCallbacks.splice(i, 1);
+                break;
+            }
+        }
+
+        if (this._settingsUpdatedCallbacks.length === 0) {
+            this._unsubscribeExtension?.();
+        }
     }
 }

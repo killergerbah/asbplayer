@@ -1,5 +1,5 @@
 export class CachedLocalStorage {
-    private readonly _cache: { [key: string]: string | null } = {};
+    private _cache: { [key: string]: string | null } = {};
 
     get(key: string): string | null {
         let cached = this._cache[key];
@@ -21,5 +21,9 @@ export class CachedLocalStorage {
     delete(key: string) {
         delete this._cache[key];
         localStorage.removeItem(key);
+    }
+
+    bustCache() {
+        this._cache = {};
     }
 }

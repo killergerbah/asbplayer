@@ -4,12 +4,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import App from './App';
 import { useChromeExtension } from '../hooks/use-chrome-extension';
 import { ExtensionMessage } from '../services/chrome-extension';
+import { AppSettingsStorage } from '../services/app-settings-storage';
 
 interface Props {
     origin: string;
     logoUrl: string;
     fetcher: Fetcher;
-    settingsStorage: SettingsStorage;
+    settingsStorage: AppSettingsStorage;
 }
 
 const RootApp = ({ origin, logoUrl, settingsStorage, fetcher }: Props) => {
@@ -31,12 +32,10 @@ const RootApp = ({ origin, logoUrl, settingsStorage, fetcher }: Props) => {
     );
 
     useEffect(() => {
-        return extension.subscribe((message: ExtensionMessage) => {
-            if (message.data.command === 'settings-updated') {
-                settingsProvider.getAll().then(setSettings);
-            }
+        return settingsStorage.onSettingsUpdated(() => {
+            settingsProvider.getAll().then(setSettings);
         });
-    }, [extension, settingsProvider]);
+    }, [extension, settingsProvider, settingsStorage]);
 
     if (settings === undefined) {
         return null;
