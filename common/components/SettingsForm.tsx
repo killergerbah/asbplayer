@@ -615,7 +615,7 @@ export default function SettingsForm({
             seekToPreviousSubtitle: { label: t('binds.seekToPreviousSubtitle')!, boundViaChrome: false },
             seekToNextSubtitle: { label: t('binds.seekToNextSubtitle')!, boundViaChrome: false },
             seekToBeginningOfCurrentSubtitle: {
-                label: t('binds.seekToBeginningOfCurrentOrPreviousSubtitle')!,
+                label: t('binds.seekToBeginningOfCurrentSubtitle')!,
                 boundViaChrome: false,
             },
             adjustOffsetToPreviousSubtitle: {
