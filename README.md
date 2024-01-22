@@ -158,6 +158,58 @@ Most of the extension features detailed above can be accessed through the extens
 
 An audio track selector will appear for `mkv` files if experimental web platform features are enabled from `chrome://flags`. Note that enabling this flag may cause issues with other features of asbplayer, such as card creation through the Chrome extension.
 
+### One-click mining flow
+
+The asbplayer website can be setup to support one-click mining workflows by integrating with other tools via its [WebSocket interface](#websocket-interface) and a locally-running proxy that intercepts AnkiConnect traffic. Below are steps to set up such a workflow using Yomitan:
+
+1. Install [Go](https://go.dev/doc/install).
+2. Clone this repository and start the AnkiConnect proxy server:
+    ```
+    cd scripts/anki-connect-proxy
+    go run main.go
+    ```
+3. Enable asbplayer's WebSocket client from the [website settings](https://killergerbah.github.io/asbplayer?view=settings#misc).
+4. Point Yomitan at the proxy by configuring `http://127.0.0.1:8766` for the AnkiConnect URL.
+5. Configure Yomitan to use the same note type you have configured for asbplayer.
+6. Using Yomitan's `+` button on asbplayer subtitles will now trigger the flashcard creator with word and definition fields pre-populated by Yomitan.
+
+See the proxy's [example configuration file](https://github.com/killergerbah/asbplayer/blob/main/scripts/anki-connect-proxy/.env.example) to see how to further configure it.
+
+### WebSocket interface
+
+The asbplayer website can be controlled remotely through a WebSocket connection, which enables [one-click mining flows](#one-click-mining-flow) with the right setup. Currently asbplayer responds to one type of payload:
+
+```json
+{
+    "command": "mine-subtitle",
+    // Message ID to correlate with asbplayer's response
+    "messageId": "10281760-d787-4356-8572-f698d8ff3884",
+    "body": {
+        // 0 = "None", 1 = "Show anki dialog", 2 = "Update last card", 3 = "Export card"
+        "postMineAction": 1,
+        // Key-value pairs corresponding to an Anki note type
+        "fields": {
+            "key1": "value1",
+            "key2": "value2"
+        }
+    }
+}
+```
+
+Response:
+
+```json
+{
+    "command": "response",
+    // Same message ID received in request
+    "messageId": "10281760-d787-4356-8572-f698d8ff3884",
+    "body": {
+        // Whether the command was successfully published to the website
+        "published": true
+    }
+}
+```
+
 ## Common issues
 
 ### asbplayer can't connect to Anki. It shows an error message e.g. 'Failed to fetch.'
