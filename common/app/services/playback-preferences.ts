@@ -1,4 +1,4 @@
-import { MiscSettings, SubtitleAlignment, SubtitleSettings } from '@project/common/settings';
+import { SubtitleAlignment } from '@project/common/settings';
 import { CachedLocalStorage } from './cached-local-storage';
 import ChromeExtension from './chrome-extension';
 
@@ -10,12 +10,19 @@ const subtitleAlignmentKey = 'subtitleAlignment';
 const subtitlePositionOffetKey = 'subtitlePositionOffset';
 const defaultVolume = 100;
 
+interface PlaybackPrefSettings {
+    rememberSubtitleOffset: boolean;
+    lastSubtitleOffset: number;
+    subtitleAlignment: SubtitleAlignment;
+    subtitlePositionOffset: number;
+}
+
 export default class PlaybackPreferences {
-    private readonly _settings: SubtitleSettings & MiscSettings;
+    private readonly _settings: PlaybackPrefSettings;
     private readonly _storage = new CachedLocalStorage();
     private readonly _extension: ChromeExtension;
 
-    constructor(settings: SubtitleSettings & MiscSettings, extension: ChromeExtension) {
+    constructor(settings: PlaybackPrefSettings, extension: ChromeExtension) {
         this._settings = settings;
         this._extension = extension;
     }

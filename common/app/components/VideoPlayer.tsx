@@ -42,6 +42,7 @@ import { Direction, useSwipe } from '../hooks/use-swipe';
 import './video-player.css';
 import i18n from 'i18next';
 import { adjacentSubtitle } from '../../key-binder';
+import { usePlaybackPreferences } from '../hooks/use-playback-preferences';
 
 interface ExperimentalHTMLVideoElement extends HTMLVideoElement {
     readonly audioTracks: any;
@@ -310,10 +311,7 @@ export default function VideoPlayer({
     const [miscSettings, setMiscSettings] = useState<MiscSettings>(settings);
     const [subtitleSettings, setSubtitleSettings] = useState<SubtitleSettings>(settings);
     const [ankiSettings, setAnkiSettings] = useState<AnkiSettings>(settings);
-    const playbackPreferences = useMemo<PlaybackPreferences>(
-        () => new PlaybackPreferences({ ...subtitleSettings, ...miscSettings }, extension),
-        [subtitleSettings, miscSettings, extension]
-    );
+    const playbackPreferences = usePlaybackPreferences({ ...miscSettings, ...subtitleSettings }, extension);
     const [displaySubtitles, setDisplaySubtitles] = useState(playbackPreferences.displaySubtitles);
     const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState<{ [index: number]: boolean }>({});
     const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);

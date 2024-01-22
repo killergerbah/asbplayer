@@ -51,6 +51,7 @@ import { useCopyHistory } from '../hooks/use-copy-history';
 import { useI18n } from '../hooks/use-i18n';
 import { useAppKeyBinder } from '../hooks/use-app-key-binder';
 import { useAnki } from '../hooks/use-anki';
+import { usePlaybackPreferences } from '../hooks/use-playback-preferences';
 
 const latestExtensionVersion = '1.0.1';
 const extensionUrl =
@@ -205,10 +206,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         });
     }, [settings.subtitleRegexFilter, settings.subtitleRegexFilterTextReplacement]);
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>([]);
-    const playbackPreferences = useMemo<PlaybackPreferences>(
-        () => new PlaybackPreferences(settings, extension),
-        [settings, extension]
-    );
+    const playbackPreferences = usePlaybackPreferences(settings, extension);
     const theme = useMemo<Theme>(() => createTheme(settings.themeType), [settings.themeType]);
     const anki = useAnki({ settings, fetcher });
     const searchParams = useMemo(() => new URLSearchParams(location.search), []);
