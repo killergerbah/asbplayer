@@ -3,8 +3,6 @@ import {
     CardModel,
     CardSavedMessage,
     CardUpdatedMessage,
-    CopyMessage,
-    ExtensionToBackgroundPageCommand,
     ExtensionToVideoCommand,
     NotifyErrorMessage,
     PostMineAction,
@@ -12,15 +10,13 @@ import {
 } from '@project/common';
 import { humanReadableTime } from '@project/common/util';
 import { AnkiSettings, ankiSettingsKeys, SettingsProvider } from '@project/common/settings';
-import BackgroundPageManager from './background-page-manager';
 import { v4 as uuidv4 } from 'uuid';
 import { exportCard } from '@project/common/anki';
+import { CopyHistoryRepository } from '@project/common/copy-history';
 
 export class CardPublisher {
-    private readonly _backgroundPageManager: BackgroundPageManager;
     private readonly _settingsProvider: SettingsProvider;
-    constructor(backgroundPageManager: BackgroundPageManager, settingsProvider: SettingsProvider) {
-        this._backgroundPageManager = backgroundPageManager;
+    constructor(settingsProvider: SettingsProvider) {
         this._settingsProvider = settingsProvider;
     }
 
@@ -116,17 +112,13 @@ export class CardPublisher {
 
     private async _saveCardToRepository(id: string, card: CardModel) {
         try {
-            const backgroundPageCopyCommand: ExtensionToBackgroundPageCommand<CopyMessage> = {
-                sender: 'asbplayer-extension-to-background-page',
-                message: { ...card, id, command: 'copy' },
-            };
-            const tabId = await this._backgroundPageManager.tabId();
-
-            if (tabId !== undefined) {
-                return await chrome.tabs.sendMessage(tabId, backgroundPageCopyCommand);
-            }
-
-            return false;
+            const storageLimit = await this._settingsProvider.getSingle('miningHistoryStorageLimit');
+            new CopyHistoryRepository(storageLimit).save({
+                ...card,
+                id: card.id ?? id,
+                timestamp: Date.now(),
+            });
+            return true;
         } catch (e) {
             console.error(e);
             return false;

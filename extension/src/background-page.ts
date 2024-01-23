@@ -4,16 +4,12 @@ import {
     BackgroundPageToExtensionCommand,
     BackgroundPageReadyMessage,
     AudioBase64Message,
-    CopyMessage,
-    CopySubtitleMessage,
 } from '@project/common';
-import { CopyHistoryRepository } from '@project/common/copy-history';
 import { SettingsProvider } from '@project/common/settings';
 import AudioRecorder from './services/audio-recorder';
 import { bufferToBase64 } from './services/base64';
 import i18n from 'i18next';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
-import { v4 as uuidv4 } from 'uuid';
 import { i18nInit } from './services/i18n';
 import { Mp3Encoder } from '@project/common/audio-clip';
 
@@ -73,19 +69,6 @@ window.onload = async () => {
                         .stop()
                         .then((audioBase64) => _sendAudioBase64(audioBase64, stopRecordingAudioMessage.preferMp3));
                     break;
-                case 'copy':
-                    const copyMessage = request.message as CopyMessage;
-                    settings
-                        .getSingle('miningHistoryStorageLimit')
-                        .then((storageLimit) => {
-                            return new CopyHistoryRepository(storageLimit).save({
-                                ...copyMessage,
-                                id: copyMessage.id ?? uuidv4(),
-                                timestamp: Date.now(),
-                            });
-                        })
-                        .then(() => sendResponse(true));
-                    return true;
             }
         }
     };

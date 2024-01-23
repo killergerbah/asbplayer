@@ -77,9 +77,9 @@ chrome.runtime.onInstalled.addListener(installListener);
 chrome.runtime.onStartup.addListener(startListener);
 
 const tabRegistry = new TabRegistry(settings);
-const backgroundPageManager = new BackgroundPageManager(tabRegistry);
+const backgroundPageManager = new BackgroundPageManager(tabRegistry, settings);
 const imageCapturer = new ImageCapturer(settings);
-const cardPublisher = new CardPublisher(backgroundPageManager, settings);
+const cardPublisher = new CardPublisher(settings);
 
 const handlers: CommandHandler[] = [
     new VideoHeartbeatHandler(tabRegistry),

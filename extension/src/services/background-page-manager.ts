@@ -10,6 +10,7 @@ import {
     StopRecordingAudioMessage,
 } from '@project/common';
 import TabRegistry from './tab-registry';
+import { SettingsProvider } from '@project/common/settings';
 
 const backgroundPageUrl = `chrome-extension://${chrome.runtime.id}/background-page.html`;
 
@@ -23,16 +24,17 @@ export default class BackgroundPageManager {
     private backgroundPageResolve?: (value: chrome.tabs.Tab) => void;
     private audioBase64Resolve?: (value: string) => void;
 
-    constructor(tabRegistry: TabRegistry) {
+    constructor(tabRegistry: TabRegistry, settings: SettingsProvider) {
         this._tabRegistry = tabRegistry;
         tabRegistry.onNoSyncedElements(async () => {
             this._removeBackgroundPage();
         });
         tabRegistry.onSyncedElement(async () => {
-            this._backgroundPageTabId();
-        });
-        tabRegistry.onAsbplayerInstance(async () => {
-            this._backgroundPageTabId();
+            const audioRecordingEnabled = await settings.getSingle('streamingRecordMedia');
+
+            if (audioRecordingEnabled) {
+                this._backgroundPageTabId();
+            }
         });
         this._removeOrphanedBackgroundPage();
     }
