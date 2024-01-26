@@ -84,7 +84,7 @@ const cardPublisher = new CardPublisher(settings);
 const handlers: CommandHandler[] = [
     new VideoHeartbeatHandler(tabRegistry),
     new RecordMediaHandler(backgroundPageManager, imageCapturer, cardPublisher, settings),
-    new RerecordMediaHandler(backgroundPageManager, cardPublisher),
+    new RerecordMediaHandler(settings, backgroundPageManager, cardPublisher),
     new StartRecordingMediaHandler(backgroundPageManager, imageCapturer, cardPublisher),
     new StopRecordingMediaHandler(backgroundPageManager, imageCapturer, cardPublisher, settings),
     new TakeScreenshotHandler(imageCapturer, cardPublisher),

@@ -10,12 +10,19 @@ import {
 } from '@project/common';
 import BackgroundPageManager from '../../services/background-page-manager';
 import { CardPublisher } from '../../services/card-publisher';
+import { SettingsProvider } from '@project/common/settings';
 
 export default class RerecordMediaHandler {
+    private readonly _settingsProvider: SettingsProvider;
     private readonly _audioRecorder: BackgroundPageManager;
     private readonly _cardPublisher: CardPublisher;
 
-    constructor(audioRecorder: BackgroundPageManager, cardPublisher: CardPublisher) {
+    constructor(
+        settingsProvider: SettingsProvider,
+        audioRecorder: BackgroundPageManager,
+        cardPublisher: CardPublisher
+    ) {
+        this._settingsProvider = settingsProvider;
         this._audioRecorder = audioRecorder;
         this._cardPublisher = cardPublisher;
     }
@@ -32,14 +39,15 @@ export default class RerecordMediaHandler {
         const rerecordCommand = command as VideoToExtensionCommand<RerecordMediaMessage>;
 
         try {
+            const preferMp3 = await this._settingsProvider.getSingle('preferMp3');
             const audio: AudioModel = {
                 base64: await this._audioRecorder.startWithTimeout(
                     rerecordCommand.message.duration / rerecordCommand.message.playbackRate +
                         rerecordCommand.message.audioPaddingEnd,
-                    false,
+                    preferMp3,
                     { src: rerecordCommand.src, tabId: sender.tab?.id }
                 ),
-                extension: 'webm',
+                extension: preferMp3 ? 'mp3' : 'webm',
                 paddingStart: rerecordCommand.message.audioPaddingStart,
                 paddingEnd: rerecordCommand.message.audioPaddingEnd,
                 start: rerecordCommand.message.timestamp,
