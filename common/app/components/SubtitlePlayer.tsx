@@ -36,7 +36,6 @@ import { useAppBarHeight } from '../hooks/use-app-bar-height';
 import { MineSubtitleParams, useAppWebSocketClient } from '../hooks/use-app-web-socket-client';
 import { isMobile } from 'react-device-detect';
 import ChromeExtension, { ExtensionMessage } from '../services/chrome-extension';
-import { MineSubtitleCommand, WebSocketClient } from '../../web-socket-client';
 
 let lastKnownWidth: number | undefined;
 export const minSubtitlePlayerWidth = 200;
@@ -612,7 +611,7 @@ export default function SubtitlePlayer({
             () => clock.time(length),
             () => subtitles
         );
-    }, [keyBinder, onSeek, subtitles, disableKeyEvents, clock, length, settings]);
+    }, [keyBinder, onSeek, subtitles, disableKeyEvents, clock, length, settings.alwaysPlayOnSubtitleRepeat]);
 
     useEffect(() => {
         return keyBinder.bindSeekBackwardOrForward(
@@ -898,6 +897,14 @@ export default function SubtitlePlayer({
         [subtitles, onSeek]
     );
 
+    // Avoid re-rendering the entire subtitle table by having handleCopy operate on refs
+    const calculateSurroundingSubtitlesForIndexRef = useRef(calculateSurroundingSubtitlesForIndex);
+    calculateSurroundingSubtitlesForIndexRef.current = calculateSurroundingSubtitlesForIndex;
+    const settingsRef = useRef(settings);
+    settingsRef.current = settings;
+    const onCopyRef = useRef(onCopy);
+    onCopyRef.current = onCopy;
+
     const handleCopy = useCallback(
         (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => {
             e.preventDefault();
@@ -907,14 +914,14 @@ export default function SubtitlePlayer({
                 return;
             }
 
-            onCopy(
+            onCopyRef.current(
                 subtitles[index],
-                calculateSurroundingSubtitlesForIndex(index),
-                settings.clickToMineDefaultAction,
+                calculateSurroundingSubtitlesForIndexRef.current(index),
+                settingsRef.current.clickToMineDefaultAction,
                 true
             );
         },
-        [subtitles, calculateSurroundingSubtitlesForIndex, settings, onCopy]
+        [subtitles]
     );
 
     const [scrollY, setScrollY] = useState<number>(0);
@@ -1018,7 +1025,15 @@ export default function SubtitlePlayer({
                 }
             }
         }
-    }, [dragging, disabledSubtitleTracks, selectedSubtitleIndexes, subtitles, settings, onCopy]);
+    }, [
+        dragging,
+        disabledSubtitleTracks,
+        selectedSubtitleIndexes,
+        subtitles,
+        settings.surroundingSubtitlesCountRadius,
+        settings.surroundingSubtitlesTimeRadius,
+        onCopy,
+    ]);
 
     let subtitleTable: ReactNode | null = null;
 

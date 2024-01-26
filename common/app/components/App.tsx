@@ -404,9 +404,12 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         [sources.videoFile, copyHistoryItems, handleAnkiDialogRequest, saveCopyHistoryItem]
     );
 
+    // Avoid unnecessary re-renders by having handleCopy operate on a ref to settings
+    const settingsRef = useRef(settings);
+    settingsRef.current = settings;
     const handleCopy = useCallback(
         async (card: CardModel, postMineAction?: PostMineAction, id?: string) => {
-            if (card.subtitle && settings.copyToClipboardOnMine) {
+            if (card.subtitle && settingsRef.current.copyToClipboardOnMine) {
                 navigator.clipboard.writeText(card.subtitle.text);
             }
 
@@ -440,9 +443,13 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                 case PostMineAction.updateLastCard:
                     // FIXME: We should really rename the functions below because we're actually skipping the Anki dialog in this case
                     setAnkiDialogRequested(true);
-                    let audioClip = AudioClip.fromCard(newCard, settings.audioPaddingStart, settings.audioPaddingEnd);
+                    let audioClip = AudioClip.fromCard(
+                        newCard,
+                        settingsRef.current.audioPaddingStart,
+                        settingsRef.current.audioPaddingEnd
+                    );
 
-                    if (audioClip && settings.preferMp3) {
+                    if (audioClip && settingsRef.current.preferMp3) {
                         audioClip = audioClip.toMp3(mp3WorkerFactory);
                     }
 
@@ -450,12 +457,12 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                         extractText(card.subtitle, card.surroundingSubtitles),
                         newCard.definition ?? '',
                         audioClip,
-                        Image.fromCard(newCard, settings.maxImageWidth, settings.maxImageHeight),
+                        Image.fromCard(newCard, settingsRef.current.maxImageWidth, settingsRef.current.maxImageHeight),
                         newCard.word ?? '',
                         `${newCard.subtitleFileName} (${humanReadableTime(card.mediaTimestamp)})`,
                         '',
                         newCard.customFieldValues ?? {},
-                        settings.tags,
+                        settingsRef.current.tags,
                         postMineAction === PostMineAction.updateLastCard ? 'updateLast' : 'default'
                     );
                     break;
@@ -463,20 +470,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     throw new Error('Unknown post mine action: ' + postMineAction);
             }
         },
-        [
-            settings.copyToClipboardOnMine,
-            settings.audioPaddingStart,
-            settings.audioPaddingEnd,
-            settings.preferMp3,
-            settings.maxImageWidth,
-            settings.maxImageHeight,
-            settings.tags,
-            extension,
-            saveCopyHistoryItem,
-            handleAnkiDialogProceed,
-            handleAnkiDialogRequest,
-            t,
-        ]
+        [extension, saveCopyHistoryItem, handleAnkiDialogProceed, handleAnkiDialogRequest, t]
     );
 
     const handleOpenCopyHistory = useCallback(async () => {
@@ -536,10 +530,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         // ATM only the Anki dialog may appear under the settings dialog,
         // so it's the only one we need to check to re-enable key events
         setDisableKeyEvents(ankiDialogOpen);
-        videoChannelRef.current?.subtitleSettings(settings);
-        videoChannelRef.current?.ankiSettings(settings);
-        videoChannelRef.current?.miscSettings(settings);
-    }, [settings, ankiDialogOpen]);
+    }, [ankiDialogOpen]);
 
     const handleDeleteCopyHistoryItem = useCallback(
         (item: CopyHistoryItem) => {
@@ -586,7 +577,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                 handleError(e);
             }
         },
-        [handleError, settings, t]
+        [handleError, settings.audioPaddingStart, settings.audioPaddingEnd, settings.preferMp3, t]
     );
 
     const handleDownloadImage = useCallback(
@@ -603,7 +594,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                 handleError(e);
             }
         },
-        [handleError, settings, t]
+        [handleError, settings.maxImageWidth, settings.maxImageHeight, t]
     );
 
     const handleDownloadCopyHistorySectionAsSrt = useCallback(

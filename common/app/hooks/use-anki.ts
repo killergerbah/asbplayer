@@ -3,73 +3,74 @@ import { Anki } from '../../anki';
 import { AnkiSettings } from '../../settings';
 import { useMemo } from 'react';
 
+class SettingsAccessor {
+    settings!: AnkiSettings;
+
+    get ankiConnectUrl() {
+        return this.settings.ankiConnectUrl;
+    }
+    get deck() {
+        return this.settings.deck;
+    }
+    get noteType() {
+        return this.settings.noteType;
+    }
+    get sentenceField() {
+        return this.settings.sentenceField;
+    }
+    get definitionField() {
+        return this.settings.definitionField;
+    }
+    get audioField() {
+        return this.settings.audioField;
+    }
+    get imageField() {
+        return this.settings.imageField;
+    }
+    get wordField() {
+        return this.settings.wordField;
+    }
+    get sourceField() {
+        return this.settings.sourceField;
+    }
+    get urlField() {
+        return this.settings.urlField;
+    }
+    get customAnkiFields() {
+        return this.settings.customAnkiFields;
+    }
+    get tags() {
+        return this.settings.tags;
+    }
+    get preferMp3() {
+        return this.settings.preferMp3;
+    }
+    get audioPaddingStart() {
+        return this.settings.audioPaddingStart;
+    }
+    get audioPaddingEnd() {
+        return this.settings.audioPaddingEnd;
+    }
+    get maxImageWidth() {
+        return this.settings.maxImageWidth;
+    }
+    get maxImageHeight() {
+        return this.settings.maxImageHeight;
+    }
+    get surroundingSubtitlesCountRadius() {
+        return this.settings.surroundingSubtitlesCountRadius;
+    }
+    get surroundingSubtitlesTimeRadius() {
+        return this.settings.surroundingSubtitlesTimeRadius;
+    }
+}
+
+const settingsAccessor = new SettingsAccessor();
+
+// Avoid unnecessary re-renders caused from reconstructing Anki by having Anki access settings indirectly
 export const useAnki = ({ settings, fetcher }: { settings: AnkiSettings; fetcher: Fetcher }) => {
-    const {
-        ankiConnectUrl,
-        deck,
-        noteType,
-        sentenceField,
-        definitionField,
-        audioField,
-        imageField,
-        wordField,
-        sourceField,
-        urlField,
-        customAnkiFields,
-        tags,
-        preferMp3,
-        audioPaddingStart,
-        audioPaddingEnd,
-        maxImageWidth,
-        maxImageHeight,
-        surroundingSubtitlesCountRadius,
-        surroundingSubtitlesTimeRadius,
-    } = settings;
+    settingsAccessor.settings = settings;
     return useMemo(() => {
-        return new Anki(
-            {
-                ankiConnectUrl,
-                deck,
-                noteType,
-                sentenceField,
-                definitionField,
-                audioField,
-                imageField,
-                wordField,
-                sourceField,
-                urlField,
-                customAnkiFields,
-                tags,
-                preferMp3,
-                audioPaddingStart,
-                audioPaddingEnd,
-                maxImageWidth,
-                maxImageHeight,
-                surroundingSubtitlesCountRadius,
-                surroundingSubtitlesTimeRadius,
-            },
-            fetcher
-        );
-    }, [
-        ankiConnectUrl,
-        deck,
-        noteType,
-        sentenceField,
-        definitionField,
-        audioField,
-        imageField,
-        wordField,
-        sourceField,
-        urlField,
-        customAnkiFields,
-        tags,
-        preferMp3,
-        audioPaddingStart,
-        audioPaddingEnd,
-        maxImageWidth,
-        maxImageHeight,
-        surroundingSubtitlesCountRadius,
-        surroundingSubtitlesTimeRadius,
-        fetcher,
-    ]);
+        return new Anki(settingsAccessor, fetcher);
+    }, [fetcher]);
 };

@@ -254,7 +254,7 @@ export default function Player({
         }
 
         pause(clock, mediaAdapter, true);
-    }, [playMode, clock, mediaAdapter, videoFileUrl, settings]);
+    }, [playMode, clock, mediaAdapter, videoFileUrl, settings.autoPausePreference]);
 
     const handleOnWillStopShowingSubtitle = useCallback(
         (subtitle: SubtitleModel) => {
@@ -270,7 +270,7 @@ export default function Player({
                 pause(clock, mediaAdapter, true);
             }
         },
-        [playMode, clock, mediaAdapter, videoFileUrl, settings, seek]
+        [playMode, clock, mediaAdapter, videoFileUrl, settings.autoPausePreference, seek]
     );
 
     const autoPauseContext = useMemo(() => {
