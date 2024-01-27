@@ -8,15 +8,15 @@
 
 **asbplayer** is a browser-based media player and Chrome extension developed for language learners who learn their target language through subtitled media. With asbplayer, you can:
 
--   **Easily create high-quality flashcards** out of subtitled videos.
+-   **Easily create high-quality, multimedia flashcards** out of subtitled videos.
 -   **Load text-selectable subtitles onto most video sources**, including streaming sources.
 -   **Extract subtitles from popular streaming services** like Netflix and YouTube.
 -   **Seek through subtitles** using a **navigable subtitle list**.
--   **Focus your learning** on subtitled sections of media using **playback modes** such as:
+-   **Optimize language-learning efficiency** using subtitled videos with **playback modes** like:
     -   **Condensed playback**: Only play subtitled sections of a video.
     -   **Fast-forward playback**: Fast-forward through unsubtitled sections of video.
     -   **Auto-pause**: Automatically pause at the beginning or end of every subtitle.
--   **Customizable keyboard shortcuts** to access most of asbplayer's features, including subtitle navigation.
+-   **Use customizable keyboard shortcuts** to access most of asbplayer's features.
 
 ## Thanks
 
