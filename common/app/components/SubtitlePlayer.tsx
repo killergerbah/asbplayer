@@ -202,7 +202,6 @@ interface SubtitleRowProps extends TableRowProps {
     disabled: boolean;
     subtitle: DisplaySubtitleModel;
     showCopyButton: boolean;
-    copyButtonEnabled: boolean;
     subtitleRef: RefObject<HTMLTableRowElement>;
     onClickSubtitle: (index: number) => void;
     onCopySubtitle: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => void;
@@ -218,7 +217,6 @@ const SubtitleRow = React.memo(function SubtitleRow({
     compressed,
     disabled,
     subtitle,
-    copyButtonEnabled,
     showCopyButton,
 }: SubtitleRowProps) {
     const classes = useSubtitleRowStyles();
@@ -278,10 +276,7 @@ const SubtitleRow = React.memo(function SubtitleRow({
             {selectionState !== undefined && <TableCell className={className}>{content}</TableCell>}
             {showCopyButton && (
                 <TableCell className={classes.copyButton}>
-                    <IconButton
-                        disabled={!copyButtonEnabled || selectionState !== undefined}
-                        onClick={(e) => onCopySubtitle(e, index)}
-                    >
+                    <IconButton disabled={selectionState !== undefined} onClick={(e) => onCopySubtitle(e, index)}>
                         <NoteAddIcon fontSize={compressed ? 'small' : 'medium'} />
                     </IconButton>
                 </TableCell>
@@ -904,13 +899,15 @@ export default function SubtitlePlayer({
     settingsRef.current = settings;
     const onCopyRef = useRef(onCopy);
     onCopyRef.current = onCopy;
+    const copyButtonEnabledRef = useRef(copyButtonEnabled);
+    copyButtonEnabledRef.current = copyButtonEnabled;
 
     const handleCopy = useCallback(
         (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => {
             e.preventDefault();
             e.stopPropagation();
 
-            if (!subtitles) {
+            if (!subtitles || !copyButtonEnabledRef.current) {
                 return;
             }
 
@@ -1083,7 +1080,6 @@ export default function SubtitlePlayer({
                                     highlighted={highlighted}
                                     selectionState={selectionState}
                                     showCopyButton={showCopyButton}
-                                    copyButtonEnabled={copyButtonEnabled}
                                     disabled={disabledSubtitleTracks[s.track]}
                                     subtitle={subtitles[index]}
                                     subtitleRef={subtitleRefs[index]}
