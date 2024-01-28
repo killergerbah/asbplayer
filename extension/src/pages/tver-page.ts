@@ -1,6 +1,6 @@
-import { extractExtension, inferTracksFromJson } from './util';
+import { extractExtension, inferTracks } from './util';
 
-inferTracksFromJson({
+inferTracks({
     onJson: (value, addTrack, setBasename) => {
         if (value?.text_tracks instanceof Array) {
             for (const track of value.text_tracks) {

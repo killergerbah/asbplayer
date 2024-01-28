@@ -1,4 +1,4 @@
-import { extractExtension, inferTracksFromJson, poll } from './util';
+import { extractExtension, inferTracks, poll } from './util';
 
 function basenameFromDOM() {
     const seriesElement = document.getElementById('bch-series-title');
@@ -19,7 +19,7 @@ function basenameFromDOM() {
     return `${seriesElement.textContent} ${episodeElement.childNodes[0].nodeValue}`;
 }
 
-inferTracksFromJson({
+inferTracks({
     onJson: (value, addTrack, setBasename) => {
         let basename: string | undefined;
 

@@ -71,6 +71,14 @@
             "autoSync": {
                 "enabled": false
             }
+        },
+        {
+            "host": ".+\\.viki\\.(io|com)",
+            "script": "viki-page.js",
+            "path": "videos",
+            "autoSync": {
+                "enabled": true
+            }
         }
     ]
 }
