@@ -12,7 +12,7 @@ interface PageConfig {
     };
     ignore?: {
         class?: string;
-        style?: { [key: string]: string }; 
+        style?: { [key: string]: string };
     };
 }
 
