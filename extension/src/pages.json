@@ -79,6 +79,15 @@
             "autoSync": {
                 "enabled": true
             }
+        },
+        {
+            "host": "emby*|:8096*",
+            "script": "emby-page.js",
+            "path": ".*",
+            "hash": "#!/videoosd/videoosd.html",
+            "autoSync": {
+                "enabled": true
+            }
         }
     ]
 }

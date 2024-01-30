@@ -4,6 +4,7 @@ interface PageConfig {
     host: string;
     script: string;
     path: string;
+    hash?: string;
     autoSync: {
         enabled: boolean;
         videoSrc?: string;
@@ -11,7 +12,7 @@ interface PageConfig {
     };
     ignore?: {
         class?: string;
-        style?: { [key: string]: string };
+        style?: { [key: string]: string }; 
     };
 }
 
@@ -74,6 +75,9 @@ export class PageDelegate {
     }
 
     isVideoPage() {
+        if (this.config.hash) {
+            return new RegExp(this.config.hash).test(this.url.hash);
+        }
         return new RegExp(this.config.path).test(this.url.pathname);
     }
 }
