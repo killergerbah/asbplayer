@@ -6,9 +6,17 @@ declare const ApiClient: any | undefined;
 document.addEventListener(
     'asbplayer-get-synced-data',
     async () => {
+        const response: VideoData = { error: '', basename: '', subtitles: [] };
+        if (!ApiClient) {
+            response.error = 'ApiClient is undefined';
+            return document.dispatchEvent(
+                new CustomEvent('asbplayer-synced-data', {
+                    detail: response,
+                })
+            );
+        }
         const deviceID = ApiClient?._deviceId;
         const apikey = ApiClient?._userAuthInfo.AccessToken;
-        const response: VideoData = { error: '', basename: '', subtitles: [] };
         await fetch("/Sessions?api_key=" + apikey + "&IsPlaying=True&DeviceId=" + deviceID).then((webResponse) => {
             return webResponse.json()
         }).then((sessions) => {
