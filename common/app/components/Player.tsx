@@ -102,7 +102,6 @@ interface PlayerProps {
     drawerOpen: boolean;
     appBarHidden: boolean;
     showCopyButton: boolean;
-    copyButtonEnabled: boolean;
     videoFullscreen: boolean;
     hideSubtitlePlayer: boolean;
     videoPopOut: boolean;
@@ -133,7 +132,7 @@ interface PlayerProps {
     forceCompressedMode?: boolean;
 }
 
-export default function Player({
+const Player = React.memo(function Player({
     sources,
     subtitles,
     subtitleReader,
@@ -146,7 +145,6 @@ export default function Player({
     drawerOpen,
     appBarHidden,
     showCopyButton,
-    copyButtonEnabled,
     videoFullscreen,
     hideSubtitlePlayer,
     videoPopOut,
@@ -196,7 +194,6 @@ export default function Player({
     const playModeEnabled = subtitles && subtitles.length > 0 && Boolean(videoFileUrl);
     const [subtitlePlayerResizing, setSubtitlePlayerResizing] = useState<boolean>(false);
     const [loadingSubtitles, setLoadingSubtitles] = useState<boolean>(false);
-    const [playing, setPlaying] = useState<boolean>(false);
     const [lastJumpToTopTimestamp, setLastJumpToTopTimestamp] = useState<number>(0);
     const [offset, setOffset] = useState<number>(0);
     const [playbackRate, setPlaybackRate] = useState<number>(1);
@@ -213,7 +210,6 @@ export default function Player({
     const hideSubtitlePlayerRef = useRef<boolean>();
     hideSubtitlePlayerRef.current = hideSubtitlePlayer;
     const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState<{ [track: number]: boolean }>({});
-    const forceUpdate = useCallback(() => updateState({}), []);
     const mousePositionRef = useRef<Point>({ x: 0, y: 0 });
     const mediaAdapter = useMemo(() => {
         if (videoFileUrl || tab) {
@@ -230,7 +226,6 @@ export default function Player({
     const seek = useCallback(
         async (time: number, clock: Clock, forwardToMedia: boolean) => {
             clock.setTime(time);
-            forceUpdate();
 
             if (forwardToMedia) {
                 await mediaAdapter.seek(time / 1000);
@@ -238,7 +233,7 @@ export default function Player({
 
             autoPauseContextRef.current?.clear();
         },
-        [forceUpdate, mediaAdapter]
+        [mediaAdapter]
     );
 
     const handleSubtitlePlayerResizeStart = useCallback(() => setSubtitlePlayerResizing(true), []);
@@ -361,7 +356,6 @@ export default function Player({
         return () => {
             clock.setTime(0);
             clock.stop();
-            setPlaying(false);
             channel.close();
         };
     }, [clock, videoPopOut, videoFile, tab, extension, videoChannelRef, onLoaded]);
@@ -480,8 +474,6 @@ export default function Player({
                     clock.start();
                 }
 
-                setPlaying(!paused);
-
                 if (channel?.playbackRate) {
                     clock.rate = channel.playbackRate;
                     setPlaybackRate(channel.playbackRate);
@@ -568,6 +560,8 @@ export default function Player({
     useEffect(
         () =>
             channel?.onAudioTrackSelected(async (id) => {
+                const playing = clock.running;
+
                 if (playing) {
                     clock.stop();
                 }
@@ -579,7 +573,7 @@ export default function Player({
 
                 setSelectedAudioTrack(id);
             }),
-        [channel, clock, mediaAdapter, playing]
+        [channel, clock, mediaAdapter]
     );
     useEffect(() => channel?.onAnkiDialogRequest(() => onAnkiDialogRequest()), [channel, onAnkiDialogRequest]);
     useEffect(
@@ -594,7 +588,6 @@ export default function Player({
         [channel]
     );
     function play(clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) {
-        setPlaying(true);
         clock.start();
 
         if (forwardToMedia) {
@@ -603,7 +596,6 @@ export default function Player({
     }
 
     function pause(clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) {
-        setPlaying(false);
         clock.stop();
 
         if (forwardToMedia) {
@@ -624,11 +616,11 @@ export default function Player({
     }, [ankiDialogFinishedRequest, clock, mediaAdapter]);
 
     useEffect(() => {
-        if (ankiDialogRequested && playing) {
+        if (ankiDialogRequested && clock.running) {
             pause(clock, mediaAdapter, true);
             setResumeOnFinishedAnkiDialogRequest(true);
         }
-    }, [ankiDialogRequested, clock, mediaAdapter, playing]);
+    }, [ankiDialogRequested, clock, mediaAdapter]);
 
     useEffect(() => {
         if (playMode !== PlayMode.condensed) {
@@ -653,6 +645,8 @@ export default function Player({
                     return;
                 }
 
+                const playing = clock.running;
+
                 if (playing) {
                     clock.stop();
                 }
@@ -672,7 +666,7 @@ export default function Player({
         }, 100);
 
         return () => clearInterval(interval);
-    }, [subtitles, subtitleCollection, playMode, clock, seek, playing]);
+    }, [subtitles, subtitleCollection, playMode, clock, seek]);
 
     useEffect(() => {
         if (playMode !== PlayMode.fastForward) {
@@ -717,6 +711,8 @@ export default function Player({
     const handlePause = useCallback(() => pause(clock, mediaAdapter, true), [clock, mediaAdapter]);
     const handleSeek = useCallback(
         async (progress: number) => {
+            const playing = clock.running;
+
             if (playing) {
                 clock.stop();
             }
@@ -727,7 +723,7 @@ export default function Player({
                 clock.start();
             }
         },
-        [clock, seek, playing]
+        [clock, seek]
     );
 
     const handleSeekToTimestamp = useCallback(
@@ -738,12 +734,12 @@ export default function Player({
 
             await seek(time, clock, true);
 
-            if (shouldPlay && !playing) {
+            if (shouldPlay && !clock.running) {
                 // play method will start the clock again
                 play(clock, mediaAdapter, true);
             }
         },
-        [clock, seek, mediaAdapter, playing]
+        [clock, seek, mediaAdapter]
     );
 
     const handleCopyFromSubtitlePlayer = useCallback(
@@ -799,11 +795,11 @@ export default function Player({
 
             await seek(0, clock, true);
 
-            if (playing) {
+            if (clock.running) {
                 play(clock, mediaAdapter, true);
             }
         },
-        [channel, clock, mediaAdapter, seek, playing]
+        [channel, clock, mediaAdapter, seek]
     );
 
     const handleOffsetChange = useCallback(
@@ -869,7 +865,7 @@ export default function Player({
             (event) => {
                 event.preventDefault();
 
-                if (playing) {
+                if (clock.running) {
                     pause(clock, mediaAdapter, true);
                 } else {
                     play(clock, mediaAdapter, true);
@@ -879,7 +875,7 @@ export default function Player({
         );
 
         return () => unbind();
-    }, [keyBinder, playing, clock, mediaAdapter, disableKeyEvents]);
+    }, [keyBinder, clock, mediaAdapter, disableKeyEvents]);
 
     useEffect(() => {
         return keyBinder.bindAdjustPlaybackRate(
@@ -1025,7 +1021,6 @@ export default function Player({
                     {loaded && !(videoFileUrl && !videoPopOut) && !hideControls && (
                         <Controls
                             mousePositionRef={mousePositionRef}
-                            playing={playing}
                             clock={clock}
                             length={calculateLength()}
                             displayLength={trackLength(channel, subtitles, false)}
@@ -1052,11 +1047,9 @@ export default function Player({
                             disableKeyEvents={disableKeyEvents}
                             playbackPreferences={playbackPreferences}
                             showOnMouseMovement={true}
-                            forceShow={!playing && isMobile}
                         />
                     )}
                     <SubtitlePlayer
-                        playing={playing}
                         subtitles={subtitles}
                         subtitleCollection={subtitleCollection}
                         clock={clock}
@@ -1068,7 +1061,6 @@ export default function Player({
                         compressed={videoInWindow || (forceCompressedMode ?? false)}
                         resizable={videoInWindow}
                         showCopyButton={showCopyButton}
-                        copyButtonEnabled={copyButtonEnabled}
                         loading={loadingSubtitles}
                         displayHelp={(videoPopOut && videoFile?.name) || undefined}
                         disableKeyEvents={disableKeyEvents}
@@ -1093,4 +1085,6 @@ export default function Player({
             </Grid>
         </div>
     );
-}
+});
+
+export default Player;

@@ -35,7 +35,7 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
-
+import { isMobile } from 'react-device-detect';
 const useControlStyles = makeStyles((theme) => ({
     container: {
         position: 'absolute',
@@ -556,7 +556,6 @@ export interface Point {
 
 interface ControlsProps {
     clock: Clock;
-    playing: boolean;
     length: number;
     offsetEnabled?: boolean;
     displayLength?: number;
@@ -606,12 +605,10 @@ interface ControlsProps {
     subtitleAlignmentEnabled?: boolean;
     subtitleAlignment?: SubtitleAlignment;
     onSubtitleAlignment?: (alignment: SubtitleAlignment) => void;
-    forceShow?: boolean;
 }
 
 export default function Controls({
     clock,
-    playing,
     length,
     offsetEnabled,
     displayLength,
@@ -661,7 +658,6 @@ export default function Controls({
     subtitleAlignment,
     subtitleAlignmentEnabled,
     onSubtitleAlignment,
-    forceShow,
 }: ControlsProps) {
     const classes = useControlStyles();
     const { t } = useTranslation();
@@ -718,6 +714,16 @@ export default function Controls({
         }
     }, [playbackPreferences, onVolumeChange]);
 
+    const [playing, setPlaying] = useState<boolean>(clock.running);
+    useEffect(() => {
+        clock.onEvent('start', () => setPlaying(true));
+        setPlaying(clock.running);
+    }, [clock]);
+    useEffect(() => {
+        clock.onEvent('stop', () => setPlaying(false));
+        setPlaying(clock.running);
+    }, [clock]);
+
     useEffect(() => {
         const interval = setInterval(() => {
             let currentShow: boolean;
@@ -741,7 +747,7 @@ export default function Controls({
                 forceShowRef.current ||
                 offsetInputRef.current === document.activeElement ||
                 playbackRateInputRef.current === document.activeElement ||
-                forceShow ||
+                (!playing && isMobile) ||
                 Date.now() - lastNumberInputChangeTimestampRef.current < 2000;
 
             if (currentShow && !lastShowRef.current) {
@@ -756,7 +762,7 @@ export default function Controls({
             lastMousePositionRef.current.y = mousePositionRef.current.y;
         }, 100);
         return () => clearInterval(interval);
-    }, [mousePositionRef, showOnMouseMovement, forceShow]);
+    }, [mousePositionRef, showOnMouseMovement, playing]);
 
     useEffect(() => onShow?.(show), [onShow, show]);
 

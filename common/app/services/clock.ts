@@ -1,8 +1,11 @@
+export type ClockEvent = 'stop' | 'start';
+
 export default class Clock {
     private _accumulated: number;
     private _started: boolean;
     private _startTime?: number;
     private _rate = 1;
+    private _callbacks: { [event in ClockEvent]: (() => void)[] } = { stop: [], start: [] };
 
     constructor() {
         this._accumulated = 0;
@@ -36,11 +39,13 @@ export default class Clock {
 
     stop() {
         if (!this._started) {
+            this._fireEvent('stop');
             return;
         }
 
         this._started = false;
         this._accumulated += this._elapsed();
+        this._fireEvent('stop');
     }
 
     private _elapsed() {
@@ -50,6 +55,7 @@ export default class Clock {
     start() {
         this._startTime = Date.now();
         this._started = true;
+        this._fireEvent('start');
     }
 
     setTime(time: number) {
@@ -63,5 +69,25 @@ export default class Clock {
 
     progress(max: number) {
         return max === 0 ? 0 : Math.min(1, this.time(max) / max);
+    }
+
+    onEvent(eventName: ClockEvent, callback: () => void) {
+        this._callbacks[eventName].push(callback);
+        return () => this._remove(callback, this._callbacks[eventName]);
+    }
+
+    private _fireEvent(eventName: ClockEvent) {
+        for (const callback of this._callbacks[eventName]) {
+            callback();
+        }
+    }
+
+    _remove(callback: Function, callbacks: Function[]) {
+        for (let i = callbacks.length - 1; i >= 0; --i) {
+            if (callback === callbacks[i]) {
+                callbacks.splice(i, 1);
+                break;
+            }
+        }
     }
 }

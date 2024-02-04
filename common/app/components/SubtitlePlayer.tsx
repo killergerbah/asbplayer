@@ -342,7 +342,6 @@ interface SubtitlePlayerProps {
     onResizeStart?: () => void;
     onResizeEnd?: () => void;
     autoPauseContext: AutoPauseContext;
-    playing: boolean;
     subtitles?: DisplaySubtitleModel[];
     subtitleCollection?: SubtitleCollection<DisplaySubtitleModel>;
     length: number;
@@ -350,7 +349,6 @@ interface SubtitlePlayerProps {
     compressed: boolean;
     resizable: boolean;
     showCopyButton: boolean;
-    copyButtonEnabled: boolean;
     loading: boolean;
     drawerOpen: boolean;
     appBarHidden: boolean;
@@ -376,7 +374,6 @@ export default function SubtitlePlayer({
     onResizeStart,
     onResizeEnd,
     autoPauseContext,
-    playing,
     subtitles,
     subtitleCollection,
     length,
@@ -384,7 +381,6 @@ export default function SubtitlePlayer({
     compressed,
     resizable,
     showCopyButton,
-    copyButtonEnabled,
     loading,
     drawerOpen,
     appBarHidden,
@@ -399,8 +395,6 @@ export default function SubtitlePlayer({
     maxResizeWidth,
 }: SubtitlePlayerProps) {
     const { t } = useTranslation();
-    const playingRef = useRef<boolean>();
-    playingRef.current = playing;
     const clockRef = useRef<Clock>(clock);
     clockRef.current = clock;
     const subtitleListRef = useRef<DisplaySubtitleModel[]>();
@@ -617,7 +611,7 @@ export default function SubtitlePlayer({
             (event, subtitle) => {
                 event.preventDefault();
                 event.stopPropagation();
-                onSeek(subtitle.start, playingRef.current ?? false);
+                onSeek(subtitle.start, clock.running ?? false);
             },
             () => disableKeyEvents,
             () => clock.time(length),
@@ -630,7 +624,7 @@ export default function SubtitlePlayer({
             (event, subtitle) => {
                 event.preventDefault();
                 event.stopPropagation();
-                onSeek(subtitle.start, settings.alwaysPlayOnSubtitleRepeat || (playingRef.current ?? false));
+                onSeek(subtitle.start, settings.alwaysPlayOnSubtitleRepeat || clock.running);
             },
             () => disableKeyEvents,
             () => clock.time(length),
@@ -644,9 +638,9 @@ export default function SubtitlePlayer({
                 event.stopPropagation();
                 event.preventDefault();
                 if (forward) {
-                    onSeek(Math.min(length, clock.time(length) + 10000), playingRef.current ?? false);
+                    onSeek(Math.min(length, clock.time(length) + 10000), clock.running);
                 } else {
-                    onSeek(Math.max(0, clock.time(length) - 10000), playingRef.current ?? false);
+                    onSeek(Math.max(0, clock.time(length) - 10000), clock.running);
                 }
             },
             () => disableKeyEvents
@@ -917,9 +911,9 @@ export default function SubtitlePlayer({
             }
 
             const highlightedSubtitleIndexes = highlightedSubtitleIndexesRef.current || {};
-            onSeek(subtitles[index].start, !playingRef.current && index in highlightedSubtitleIndexes);
+            onSeek(subtitles[index].start, !clock.running && index in highlightedSubtitleIndexes);
         },
-        [subtitles, onSeek]
+        [subtitles, onSeek, clock]
     );
 
     // Avoid re-rendering the entire subtitle table by having handleCopy operate on refs
@@ -929,15 +923,13 @@ export default function SubtitlePlayer({
     settingsRef.current = settings;
     const onCopyRef = useRef(onCopy);
     onCopyRef.current = onCopy;
-    const copyButtonEnabledRef = useRef(copyButtonEnabled);
-    copyButtonEnabledRef.current = copyButtonEnabled;
 
     const handleCopy = useCallback(
         (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => {
             e.preventDefault();
             e.stopPropagation();
 
-            if (!subtitles || !copyButtonEnabledRef.current) {
+            if (!subtitles) {
                 return;
             }
 

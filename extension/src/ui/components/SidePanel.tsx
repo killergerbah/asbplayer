@@ -58,6 +58,8 @@ const sameVideoTab = (a: VideoTabModel, b: VideoTabModel) => {
     return a.id === b.id && a.src === b.src && a.synced === b.synced && a.syncedTimestamp === b.syncedTimestamp;
 };
 
+const emptyArray: VideoTabModel[] = [];
+
 export default function SidePanel({ settings, extension }: Props) {
     const { t } = useTranslation();
     const playbackPreferences = useMemo(() => new PlaybackPreferences(settings, extension), [settings, extension]);
@@ -388,9 +390,16 @@ export default function SidePanel({ settings, extension }: Props) {
         [currentTabId]
     );
 
+    const recordingAudioRef = useRef(recordingAudio);
+    recordingAudioRef.current = recordingAudio;
+
     const handleMineFromSubtitlePlayer = useCallback(
         (card: CardModel) => {
             if (syncedVideoTab === undefined) {
+                return;
+            }
+
+            if (recordingAudioRef.current || currentTabId !== syncedVideoTab.id) {
                 return;
             }
 
@@ -407,7 +416,7 @@ export default function SidePanel({ settings, extension }: Props) {
             };
             chrome.runtime.sendMessage(message);
         },
-        [syncedVideoTab, settings.clickToMineDefaultAction]
+        [syncedVideoTab, settings.clickToMineDefaultAction, currentTabId]
     );
     const noOp = useCallback(() => {}, []);
 
@@ -470,7 +479,6 @@ export default function SidePanel({ settings, extension }: Props) {
                                 subtitles={subtitles}
                                 hideControls={true}
                                 showCopyButton={true}
-                                copyButtonEnabled={!recordingAudio && currentTabId === syncedVideoTab?.id}
                                 forceCompressedMode={true}
                                 subtitleReader={subtitleReader}
                                 settings={settings}
@@ -490,7 +498,7 @@ export default function SidePanel({ settings, extension }: Props) {
                                 onSubtitles={setSubtitles}
                                 onTakeScreenshot={noOp}
                                 tab={syncedVideoTab}
-                                availableTabs={extension.tabs ?? []}
+                                availableTabs={emptyArray}
                                 extension={extension}
                                 drawerOpen={false}
                                 appBarHidden={true}

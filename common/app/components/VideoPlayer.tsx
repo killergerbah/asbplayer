@@ -1375,8 +1375,6 @@ export default function VideoPlayer({
             )}
             <Controls
                 mousePositionRef={mousePositionRef}
-                playing={playing()}
-                forceShow={isMobile && !playing()}
                 clock={clock}
                 length={length}
                 audioTracks={audioTracks}
