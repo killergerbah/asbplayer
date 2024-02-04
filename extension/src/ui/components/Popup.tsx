@@ -87,7 +87,7 @@ const Popup = ({
                     {t('action.openSidePanel')}
                 </Button>
             </Grid>
-            <Grid item style={{ height: isMobile ? 'auto' : 450, marginTop: 8 }}>
+            <Grid item style={{ height: isMobile ? 'auto' : 450, marginTop: 8, marginRight: 8 }}>
                 <SettingsForm
                     extensionInstalled
                     extensionSupportsAppIntegration
