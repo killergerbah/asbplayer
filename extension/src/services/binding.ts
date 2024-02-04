@@ -372,7 +372,7 @@ export default class Binding {
         };
 
         this.seekedListener = (event) => {
-            const command: VideoToExtensionCommand<CurrentTimeFromVideoMessage> = {
+            const currentTimeCommand: VideoToExtensionCommand<CurrentTimeFromVideoMessage> = {
                 sender: 'asbplayer-video',
                 message: {
                     command: 'currentTime',
@@ -381,8 +381,17 @@ export default class Binding {
                 },
                 src: this.video.src,
             };
+            const readyStateCommand: VideoToExtensionCommand<ReadyStateFromVideoMessage> = {
+                sender: 'asbplayer-video',
+                message: {
+                    command: 'readyState',
+                    value: this.video.readyState,
+                },
+                src: this.video.src,
+            };
 
-            chrome.runtime.sendMessage(command);
+            chrome.runtime.sendMessage(currentTimeCommand);
+            chrome.runtime.sendMessage(readyStateCommand);
 
             this.subtitleController.autoPauseContext.clear();
         };
