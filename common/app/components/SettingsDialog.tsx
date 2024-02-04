@@ -58,7 +58,7 @@ export default function SettingsDialog({
     }, [updateLocalFontsPermission, updateLocalFonts]);
 
     return (
-        <Dialog open={open} maxWidth="sm" fullWidth className={classes.root} onClose={onClose}>
+        <Dialog open={open} maxWidth="md" fullWidth className={classes.root} onClose={onClose}>
             <DialogTitle>{t('settings.title')}</DialogTitle>
             <DialogContent className={classes.content}>
                 <SettingsForm
