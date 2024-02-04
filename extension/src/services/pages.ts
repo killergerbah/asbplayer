@@ -3,7 +3,8 @@ import pagesConfig from '../pages.json';
 interface PageConfig {
     host: string;
     script: string;
-    path: string;
+    path?: string;
+    hash?: string;
     autoSync: {
         enabled: boolean;
         videoSrc?: string;
@@ -74,6 +75,14 @@ export class PageDelegate {
     }
 
     isVideoPage() {
-        return new RegExp(this.config.path).test(this.url.pathname);
+        var hashMatch = true;
+        var pathMatch = true;
+        if (this.config.hash) {
+            hashMatch = new RegExp(this.config.hash).test(this.url.hash);
+        }
+        if (this.config.path) {
+            pathMatch = new RegExp(this.config.path).test(this.url.pathname);
+        }
+        return hashMatch && pathMatch;
     }
 }
