@@ -1,4 +1,14 @@
-import React, { useCallback, useEffect, useState, useMemo, useRef, createRef, RefObject, ReactNode } from 'react';
+import React, {
+    ForwardedRef,
+    useCallback,
+    useEffect,
+    useState,
+    useMemo,
+    useRef,
+    createRef,
+    RefObject,
+    ReactNode,
+} from 'react';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { keysAreEqual } from '../services/util';
 import { useResize } from '../hooks/use-resize';
@@ -197,7 +207,6 @@ enum SelectionState {
 interface SubtitleRowProps extends TableRowProps {
     index: number;
     compressed: boolean;
-    highlighted: boolean;
     selectionState?: SelectionState;
     disabled: boolean;
     subtitle: DisplaySubtitleModel;
@@ -209,7 +218,6 @@ interface SubtitleRowProps extends TableRowProps {
 
 const SubtitleRow = React.memo(function SubtitleRow({
     index,
-    highlighted,
     selectionState,
     subtitleRef,
     onClickSubtitle,
@@ -261,7 +269,6 @@ const SubtitleRow = React.memo(function SubtitleRow({
             onMouseUp={handleMouseUp}
             ref={subtitleRef}
             className={rowClassName}
-            selected={selectionState === undefined && highlighted}
         >
             {selectionState === undefined && (
                 <Tooltip
@@ -288,13 +295,23 @@ const SubtitleRow = React.memo(function SubtitleRow({
     );
 });
 
+interface ResizeHandleStylesProps {
+    isResizing: boolean;
+    appBarHidden: boolean;
+    appBarHeight: number;
+}
+
 interface ResizeHandleProps extends React.HTMLAttributes<HTMLDivElement> {
     isResizing: boolean;
 }
 
-const ResizeHandle = ({ isResizing, style, ...rest }: ResizeHandleProps) => {
+const ResizeHandle = React.forwardRef(function ResizeHandle(
+    { isResizing, style, ...rest }: ResizeHandleProps,
+    ref: ForwardedRef<HTMLDivElement>
+) {
     return (
         <div
+            ref={ref}
             style={{
                 ...style,
                 position: 'absolute',
@@ -306,7 +323,7 @@ const ResizeHandle = ({ isResizing, style, ...rest }: ResizeHandleProps) => {
             {...rest}
         />
     );
-};
+});
 
 interface SubtitlePlayerProps {
     clock: Clock;
@@ -403,7 +420,6 @@ export default function SubtitlePlayer({
     subtitleCollectionRef.current = subtitleCollection ?? SubtitleCollection.empty<DisplaySubtitleModel>();
     const subtitleRefsRef = useRef<RefObject<HTMLTableRowElement>[]>([]);
     subtitleRefsRef.current = subtitleRefs;
-    const [highlightedSubtitleIndexes, setHighlightedSubtitleIndexes] = useState<{ [index: number]: boolean }>({});
     const highlightedSubtitleIndexesRef = useRef<{ [index: number]: boolean }>({});
     const [selectedSubtitleIndexes, setSelectedSubtitleIndexes] = useState<boolean[]>();
     const [highlightedJumpToSubtitleIndex, setHighlightedJumpToSubtitleIndex] = useState<number>();
@@ -422,6 +438,20 @@ export default function SubtitlePlayer({
     autoPauseContextRef.current = autoPauseContext;
     const onSubtitlesHighlightedRef = useRef<(subtitles: SubtitleModel[]) => void>();
     onSubtitlesHighlightedRef.current = onSubtitlesHighlighted;
+
+    // Performance optimization: Set highlight style via refs rather than React state to avoid re-renders
+    const updateHighlightedSubtitleRows = () => {
+        const highlightedIndexes = highlightedSubtitleIndexesRef.current;
+        for (let index = 0; index < subtitleRefsRef.current.length; ++index) {
+            const classList = subtitleRefsRef.current[index].current?.classList;
+
+            if (index in highlightedIndexes) {
+                classList?.add('Mui-selected');
+            } else {
+                classList?.remove('Mui-selected');
+            }
+        }
+    };
 
     // This effect should be scheduled only once as re-scheduling seems to cause performance issues.
     // Therefore all of the state it operates on is contained in refs.
@@ -446,7 +476,7 @@ export default function SubtitlePlayer({
 
             if (!keysAreEqual(currentSubtitleIndexes, highlightedSubtitleIndexesRef.current)) {
                 highlightedSubtitleIndexesRef.current = currentSubtitleIndexes;
-                setHighlightedSubtitleIndexes(currentSubtitleIndexes);
+                updateHighlightedSubtitleRows();
                 onSubtitlesHighlightedRef.current?.(showing);
 
                 if (smallestIndex !== undefined) {
@@ -519,7 +549,7 @@ export default function SubtitlePlayer({
         document.addEventListener('visibilitychange', scrollIfVisible);
 
         return () => document.removeEventListener('visibilitychange', scrollIfVisible);
-    }, [hidden, highlightedSubtitleIndexes, subtitleRefs, scrollToCurrentSubtitle]);
+    }, [hidden, subtitleRefs, scrollToCurrentSubtitle]);
 
     useEffect(() => {
         if (!hidden) {
@@ -921,7 +951,7 @@ export default function SubtitlePlayer({
         [subtitles]
     );
 
-    const [scrollY, setScrollY] = useState<number>(0);
+    const resizeHandleRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (!resizable) {
@@ -929,7 +959,11 @@ export default function SubtitlePlayer({
         }
 
         const interval = setInterval(() => {
-            setScrollY(containerRef.current?.scrollTop ?? 0);
+            const resizeHandleDiv = resizeHandleRef.current;
+
+            if (resizeHandleDiv) {
+                resizeHandleDiv.style.top = `${containerRef.current?.scrollTop ?? 0}px`;
+            }
         }, 1000);
         return () => clearInterval(interval);
     }, [resizable]);
@@ -1022,6 +1056,8 @@ export default function SubtitlePlayer({
                 }
             }
         }
+
+        updateHighlightedSubtitleRows();
     }, [
         dragging,
         disabledSubtitleTracks,
@@ -1056,7 +1092,6 @@ export default function SubtitlePlayer({
                 <Table>
                     <TableBody>
                         {subtitles.map((s: SubtitleModel, index: number) => {
-                            const highlighted = index in highlightedSubtitleIndexes;
                             let selectionState: SelectionState | undefined;
 
                             if (selectedSubtitleIndexes !== undefined) {
@@ -1077,7 +1112,6 @@ export default function SubtitlePlayer({
                                     key={index}
                                     index={index}
                                     compressed={compressed}
-                                    highlighted={highlighted}
                                     selectionState={selectionState}
                                     showCopyButton={showCopyButton}
                                     disabled={disabledSubtitleTracks[s.track]}
@@ -1108,7 +1142,7 @@ export default function SubtitlePlayer({
                     isResizing={isResizing}
                     onMouseDown={enableResize}
                     onTouchStart={enableResize}
-                    style={{ top: scrollY }}
+                    ref={resizeHandleRef}
                 />
             )}
         </Paper>
