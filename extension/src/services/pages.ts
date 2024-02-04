@@ -76,7 +76,7 @@ export class PageDelegate {
 
     isVideoPage() {
         var hashMatch = true;
-        var pathMatch = true
+        var pathMatch = true;
         if (this.config.hash) {
             hashMatch = new RegExp(this.config.hash).test(this.url.hash);
         }
