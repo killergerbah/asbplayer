@@ -13,6 +13,7 @@ import { useLocalFontFamilies } from '@project/common/hooks';
 import { Anki } from '@project/common/anki';
 import { useSupportedLanguages } from '../hooks/use-supported-languages';
 import { useI18n } from '../hooks/use-i18n';
+import { isMobile } from 'react-device-detect';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -63,8 +64,8 @@ const Popup = ({
     }
 
     return (
-        <Grid container direction="column" spacing={1} style={{ width: 500 }}>
-            <Grid item>
+        <Grid container direction="column" spacing={0}>
+            <Grid item style={{ marginLeft: 16, marginTop: 16, marginRight: 16 }}>
                 <Button
                     variant="contained"
                     color="secondary"
@@ -75,7 +76,7 @@ const Popup = ({
                     {t('action.openApp')}
                 </Button>
             </Grid>
-            <Grid item>
+            <Grid item style={{ marginLeft: 16, marginTop: 8, marginRight: 16 }}>
                 <Button
                     variant="contained"
                     color="secondary"
@@ -86,11 +87,11 @@ const Popup = ({
                     {t('action.openSidePanel')}
                 </Button>
             </Grid>
-            <Grid item style={{ height: 450 }}>
+            <Grid item style={{ height: isMobile ? 'auto' : 450, marginTop: 8 }}>
                 <SettingsForm
                     extensionInstalled
                     extensionSupportsAppIntegration
-                    forceVerticalTabs
+                    forceVerticalTabs={false}
                     anki={anki}
                     chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}
                     settings={settings}

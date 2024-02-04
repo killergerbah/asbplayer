@@ -15,6 +15,7 @@ import Typography from '@material-ui/core/Typography';
 import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
 import Popup from './Popup';
 import { useRequestingActiveTabPermission } from '../hooks/use-requesting-active-tab-permission';
+import { isMobile } from 'react-device-detect';
 
 interface Props {
     commands: any;
@@ -84,8 +85,8 @@ export function PopupUi({ commands }: Props) {
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-            <Paper square>
-                <Box p={2}>
+            <Paper square elevation={0} style={{ width: isMobile ? '100%' : 600 }}>
+                <Box>
                     <Popup
                         commands={commands}
                         settings={settings}

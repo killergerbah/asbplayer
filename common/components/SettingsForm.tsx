@@ -944,6 +944,7 @@ export default function SettingsForm({
                 value={tabIndex}
                 className={classes.tabs}
                 onChange={(event, index) => setTabIndex(index)}
+                style={{ maxWidth: '100vw' }}
             >
                 <Tab tabIndex={0} label={t('settings.anki')} id="anki-settings" />
                 <Tab tabIndex={1} label={t('settings.mining')} id="mining-settings" />
