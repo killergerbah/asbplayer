@@ -346,7 +346,7 @@ function KeyBindField({
 
     return (
         <Grid container className={classes.container} wrap={'nowrap'} spacing={1}>
-            <Grid item className={classes.labelItem} xs={6}>
+            <Grid item className={classes.labelItem} xs={12}>
                 <Typography>{label}</Typography>
             </Grid>
             <Grid item xs={6}>
