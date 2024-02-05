@@ -613,6 +613,9 @@ export default class Binding {
                     case 'granted-active-tab-permission':
                         this.requestActiveTabPermissionController.onPermissionGranted();
                         break;
+                    case 'load-subtitles':
+                        this.showVideoDataDialog(false);
+                        break;
                 }
 
                 if ('messageId' in request.message) {

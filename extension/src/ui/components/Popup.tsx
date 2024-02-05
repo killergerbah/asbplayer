@@ -1,6 +1,6 @@
 import React from 'react';
 import Grid from '@material-ui/core/Grid';
-import { HttpPostMessage, PopupToExtensionCommand } from '@project/common';
+import { ActiveVideoElement, HttpPostMessage, PopupToExtensionCommand } from '@project/common';
 import { AsbplayerSettings, chromeCommandBindsToKeyBinds } from '@project/common/settings';
 import SettingsForm from '@project/common/components/SettingsForm';
 import PanelIcon from '@project/common/components/PanelIcon';
@@ -14,6 +14,7 @@ import { Anki } from '@project/common/anki';
 import { useSupportedLanguages } from '../hooks/use-supported-languages';
 import { useI18n } from '../hooks/use-i18n';
 import { isMobile } from 'react-device-detect';
+import VideoElementSelector from './VideoElementSelector';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -22,6 +23,7 @@ interface Props {
     onOpenApp: () => void;
     onOpenSidePanel: () => void;
     onOpenExtensionShortcuts: () => void;
+    onVideoElementSelected: (element: ActiveVideoElement) => void;
 }
 
 class ExtensionFetcher implements Fetcher {
@@ -46,6 +48,7 @@ const Popup = ({
     onOpenSidePanel,
     onSettingsChanged,
     onOpenExtensionShortcuts,
+    onVideoElementSelected,
 }: Props) => {
     const { t } = useTranslation();
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
@@ -76,17 +79,24 @@ const Popup = ({
                     {t('action.openApp')}
                 </Button>
             </Grid>
-            <Grid item style={{ marginLeft: 16, marginTop: 8, marginRight: 16 }}>
-                <Button
-                    variant="contained"
-                    color="secondary"
-                    startIcon={<PanelIcon />}
-                    onClick={onOpenSidePanel}
-                    style={{ width: '100%' }}
-                >
-                    {t('action.openSidePanel')}
-                </Button>
-            </Grid>
+            {!isMobile && (
+                <Grid item style={{ marginLeft: 16, marginTop: 8, marginRight: 16 }}>
+                    <Button
+                        variant="contained"
+                        color="secondary"
+                        startIcon={<PanelIcon />}
+                        onClick={onOpenSidePanel}
+                        style={{ width: '100%' }}
+                    >
+                        {t('action.openSidePanel')}
+                    </Button>
+                </Grid>
+            )}
+            {isMobile && (
+                <Grid item style={{ padding: 16, maxWidth: '100vw' }}>
+                    <VideoElementSelector onVideoElementSelected={onVideoElementSelected} />
+                </Grid>
+            )}
             <Grid item style={{ height: isMobile ? 'auto' : 450, marginTop: 8, marginRight: 8 }}>
                 <SettingsForm
                     extensionInstalled
