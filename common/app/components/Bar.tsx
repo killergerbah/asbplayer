@@ -186,7 +186,7 @@ export default function Bar({
                             edge="end"
                             color="inherit"
                             component="a"
-                            href="https://github.com/killergerbah/asbplayer#usage"
+                            href="https://github.com/killergerbah/asbplayer#detailed-usage"
                             target="_blank"
                             rel="noreferrer"
                         >
