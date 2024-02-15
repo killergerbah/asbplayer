@@ -62,33 +62,36 @@ Thank you to all those who have translated asbplayer:
 If you are a non-English native, and would like to help translate asbplayer, please contact me on [Discord](https://discord.gg/ad7VAQru7m).
 
 ## Getting Started
+ - *Note: asbplayer can either be used purely as a tool for subtitle control or as a deck mining tool (in which case you will need the subtitle functionality to mine).
+If you want to strictly learn how to use asbplayer's subtitle features and are not interested in sentence or vocabulary mining, you can read about them under the [Detailed Usage](#detailed-usage) header.*
 
-First, see if you can get started with one of the [community guides](#community-guides).
+First, see if you can get started by following one of the [community guides](#community-guides).
 
-Otherwise, the following steps will work for any language:
+Otherwise, the following steps for setting up automated Anki flashcards should work for any language:
 
-1. Install a dictionary for your target language that allows you to do instant lookups. Popular ones are [Yomitan](https://chromewebstore.google.com/detail/yomitan/likgccmbimhjbgkjambclfkhldnlhbnn) for Japanese and [VocabSieve](https://github.com/FreeLanguageTools/vocabsieve) for European languages.
+1. Install and set up a dictionary tool for your target language that allows you to do instant lookups. Popular ones are [Yomitan](https://chromewebstore.google.com/detail/yomitan/likgccmbimhjbgkjambclfkhldnlhbnn) for Japanese and [VocabSieve](https://github.com/FreeLanguageTools/vocabsieve) for European languages.
 2. Install [Anki](https://apps.ankiweb.net/), and create a deck and note type.
-3. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
-4. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect using your deck and note type.
-
-5. Enhance a video using asbplayer and subtitle files.
+   - *Note: In order to use asbplayer's flashcard audio and screenshot capabilities, you will need to set the deck up accordingly. You can learn how to do this from one of the [community guides](#community-guides).*
+4. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
+5. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect using your deck and note type.
+6. Enhance a video using asbplayer and subtitle files.
 
     - **For streaming video:** After installing the [Chrome extension](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab), drag-and-drop a subtitle file into the streaming video you want to mine.
     - **For local files:** Drag-and-drop media/subtitle files into the [asbplayer website](https://killergerbah.github.io/asbplayer).
 
     You may have to [adjust the subtitle offset](#adjusting-subtitle-offset) to get the subtitles in sync.
 
-6. When a subtitle appears that you want to mine, use <kbd>Ctrl + Shift + X</kbd> to open the flashcard creator.
-7. Fill in the definition and word fields and then export the card. To fill in the definition field you may use the dictionary you installed in step 1.
+7. When a subtitle appears that you want to mine, use <kbd>Ctrl + Shift + X</kbd> to open the flashcard creator.
+8. Fill in the definition and word fields and then export the card. To fill in the definition field you may use the dictionary you installed in step 1.
 
 ## Community guides
 
 -   [Shiki's Lazy Sentence Mining Workflow (Japanese)](https://docs.google.com/document/d/e/2PACX-1vQuEAoZFoJbULZzCJ3_tW7ayT_DcQl9eDlrXMnuPGTwDk62r5fQrXak3ayxBsEgkL85_Z-YY5W4yUom/pub)
 -   [Sentence mining from Netflix and YouTube with asbplayer (Japanese)](https://soyuz18.notion.site/Sentence-mining-from-Netflix-and-YouTube-with-asbplayer-83a03590cd8349ba81ca10340645b565)
--   [Refold's installation guide](https://www.youtube.com/watch?v=Pv4Sp01Uh64)
--   [Refold's sentence mining guide (Japanese + European languages)](https://www.youtube.com/watch?v=jXO4gmCmcNE)
--   [Sentence Mining: Learning Japanese From Anime (Japanese)](https://www.youtube.com/watch?v=B60cj69MSmA)
+-   [Refold's installation guide (2023)](https://www.youtube.com/watch?v=Pv4Sp01Uh64)
+-   [Refold's sentence mining guide (Japanese + European languages) (2023)](https://www.youtube.com/watch?v=jXO4gmCmcNE)
+-   [Sentence Mining: Learning Japanese From Anime (Japanese) (2023)](https://www.youtube.com/watch?v=B60cj69MSmA)
+-   [How to Setup and Use ASBPlayer for Vocab Mining (2024)](https://www.youtube.com/watch?v=D1tlb7zo8Og&ab_channel=pooks_)
 
 ## Demos
 
@@ -211,6 +214,22 @@ Response:
     }
 }
 ```
+
+### Filtering Subtitles
+
+If you'd like to filter subtitles, one way to do so is by using regexing. asbplayer will match any sequence following regex pattern and remove the matches.
+
+Under the MISC section in asbplayer settings, locate the "Subtitle regex filter" textbox. Enter an appropriate regex to filter desired content.
+You can replace filtered content similarly by entering a string into the "Subtitle regex filter text replacement" textbox. Leaving this blank will simply remove the content.
+
+Potential use cases for filtering include:
+ - Remove names enclosed by parenthesis to indicate speakers  (i.e. "**(山田)**　元気ですか？")
+ - Remove indications enclosed by brackets that sound or music that is playing (i.e. "**\[PLAYFUL MUSIC]**")
+
+Helpful materials on regexing:
+- [GeeksForGeeks regex tutorial](https://www.geeksforgeeks.org/write-regular-expressions/)
+- [RexEgg regex cheatsheet](https://www.rexegg.com/regex-quickstart.html)
+- Test regex with the [Regexr webtool](https://regexr.com/)
 
 ## Common issues
 
