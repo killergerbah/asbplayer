@@ -62,8 +62,9 @@ Thank you to all those who have translated asbplayer:
 If you are a non-English native, and would like to help translate asbplayer, please contact me on [Discord](https://discord.gg/ad7VAQru7m).
 
 ## Getting Started
- - *Note: asbplayer can either be used purely as a tool for subtitle control or as a deck mining tool (in which case you will need the subtitle functionality to mine).
-If you want to strictly learn how to use asbplayer's subtitle features and are not interested in sentence or vocabulary mining, you can read about them under the [Detailed Usage](#detailed-usage) header.*
+> [!NOTE]  
+> asbplayer can either be used purely as a tool for subtitle control or as a flashcard creation tool (in which case you will need the subtitle functionality to mine vocabulary or sentences).
+If you want to strictly learn how to use asbplayer's subtitle features and are not interested in sentence or vocabulary mining, you can read about them under the [Subtitle setup and features](#subtitle-setup-and-features) header.
 
 First, see if you can get started by following one of the [community guides](#community-guides).
 
@@ -86,12 +87,15 @@ Otherwise, the following steps for setting up automated Anki flashcards should w
 
 ## Community guides
 
+Text guides: 
 -   [Shiki's Lazy Sentence Mining Workflow (Japanese)](https://docs.google.com/document/d/e/2PACX-1vQuEAoZFoJbULZzCJ3_tW7ayT_DcQl9eDlrXMnuPGTwDk62r5fQrXak3ayxBsEgkL85_Z-YY5W4yUom/pub)
 -   [Sentence mining from Netflix and YouTube with asbplayer (Japanese)](https://soyuz18.notion.site/Sentence-mining-from-Netflix-and-YouTube-with-asbplayer-83a03590cd8349ba81ca10340645b565)
--   [Refold's installation guide (2023)](https://www.youtube.com/watch?v=Pv4Sp01Uh64)
--   [Refold's sentence mining guide (Japanese + European languages) (2023)](https://www.youtube.com/watch?v=jXO4gmCmcNE)
--   [Sentence Mining: Learning Japanese From Anime (Japanese) (2023)](https://www.youtube.com/watch?v=B60cj69MSmA)
--   [How to Setup and Use ASBPlayer for Vocab Mining (2024)](https://www.youtube.com/watch?v=D1tlb7zo8Og&ab_channel=pooks_)
+
+Video guides:
+-   [Refold's installation guide](https://www.youtube.com/watch?v=Pv4Sp01Uh64)
+-   [Refold's sentence mining guide (Japanese + European languages)](https://www.youtube.com/watch?v=jXO4gmCmcNE)
+-   [Sentence Mining: Learning Japanese From Anime (Japanese)](https://www.youtube.com/watch?v=B60cj69MSmA)
+-   [How to Setup and Use ASBPlayer for Vocab Mining (Japanese) (Latest)](https://www.youtube.com/watch?v=D1tlb7zo8Og&ab_channel=pooks_)
 
 ## Demos
 
@@ -100,9 +104,16 @@ Otherwise, the following steps for setting up automated Anki flashcards should w
 
 ## Detailed usage
 
-### Enhancing streaming video with asbplayer features
+First, install the Chrome [extension](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab).
 
-Install the Chrome [extension](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab). There are a number of ways to enhance streaming video with asbplayer:
+In order to make use of any of asbplayer's features (those outside of subtitles, e.g. mining), subtitles must first be loaded into the extension, with the context of loading them into streaming video or with local video files. The following section instructs how to do this.
+
+---
+### Subtitle setup and features
+
+### Injecting and detecting subtitles into streaming video
+
+There are a number of ways to load subtitles with streaming video:
 
 1. Drag-and-drop a subtitle file into the video element you want to enhance.
 2. Load a subtitle file into the [asbplayer website](https://killergerbah.github.io/asbplayer/) and click on the camera in the bottom right to pick a video element to enhance. This is the recommended way to load BluRay subtitle files onto streaming video.
@@ -111,28 +122,9 @@ Install the Chrome [extension](https://chromewebstore.google.com/detail/asbplaye
 
 asbplayer features will then be accessible for that video.
 
-### Enhancing local video files with asbplayer features
+### Enhancing local video files with asbplayer controlled subtitles
 
 Drag-and-drop media and subtitle files into the [asbplayer website](https://killergerbah.github.io/asbplayer/) to load them. asbplayer features will then be accessible for those files. Not all media files may be compatible - see the [Browser Compatibility](#browser-compatibility) section.
-
-### Keyboard shortcuts
-
-Keyboard shortcuts are customizable from the [asbplayer website settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts). Once asbplayer has been bound to a video, you can use the keyboard shortcuts to access most of asbplayer's features.
-
-### Creating Anki flashcards
-
-Make sure [Anki](https://apps.ankiweb.net/) and [AnkiConnect](https://ankiweb.net/shared/info/2055492159) are installed. Integration with AnkiConnect can be configured in the [settings](https://killergerbah.github.io/asbplayer/?view=settings) as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
-
-When a subtitle that you want to mine appears, use <kbd>Ctrl + Shift + X</kbd> to open the flashcard creator.
-
-See the [keyboard shortcuts](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts) for other ways to interact with and create cards.
-
-### Adjusting Anki flashcards
-
-All text fields can be edited from the flashcard creator prior to flashcard creation.
-
-Adjust the selected time interval for the card using the slider at the bottom of the export dialog.
-The newly selected time interval can be applied to the card using the buttons available in the sentence and audio sections of the card. See this [video](https://youtu.be/BSr_JusW8E8?t=34) for a demo.
 
 ### Adjusting subtitle offset
 
@@ -155,13 +147,65 @@ Use <kbd>Ctrl + Shift + F</kbd> to see auto-detected subtitle tracks for streami
 
 <kbd>Ctrl + Shift + F</kbd> also allows you to load an empty subtitle track so that you can extract audio and screenshots from streaming video without loading subtitles.
 
+### Filtering subtitle text
+
+If you'd like to filter out specific instances subtitle text, one way to do so is by using a regular expression (regex). asbplayer can match any sequence following a specified regex pattern and remove the matches.
+
+Under the MISC section in asbplayer settings, locate the "Subtitle regex filter" textbox. Enter an appropriate regex to filter desired content.
+You can replace filtered content similarly by entering a string into the "Subtitle regex filter text replacement" textbox. Leaving this blank will simply remove the content.
+
+Potential use cases for filtering include:
+ - Remove names enclosed by parenthesis to indicate speakers  (i.e. "**（山田）**　元気ですか？")
+ - Remove indications enclosed by brackets that sound or music that is playing (i.e. "**\[PLAYFUL MUSIC]**")
+
+Helpful materials on writing regular expressions:
+- [GeeksForGeeks regex tutorial](https://www.geeksforgeeks.org/write-regular-expressions/)
+- [RexEgg regex cheatsheet](https://www.rexegg.com/regex-quickstart.html)
+- Test regex with the [Regexr webtool](https://regexr.com/)
+
+> Note: Japanese parentheses are usually different characters than the ones found on english keyboards: "()" versus "（）"
+
+### Downloading subtitle files
+
+Once subtitles have been loaded into asbplayer using one of the previously mentioned methods, you can choose to download them either by opening the side panel and clicking the `Download Subtitles as SRT` button in the top right, or by accessing the [asbplayer website](https://killergerbah.github.io/asbplayer/) and clicking the same button in the top left.
+
+> Note: if you have used the [regex feature](#filtering-subtitle-text), it will alter the loaded subtitles and as a result alter the .srt that is downloaded.
+
+---
+### Anki integration
+
+### Creating Anki flashcards
+
+Make sure [Anki](https://apps.ankiweb.net/) and [AnkiConnect](https://ankiweb.net/shared/info/2055492159) are installed. Integration with AnkiConnect can be configured in the [settings](https://killergerbah.github.io/asbplayer/?view=settings) as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
+
+When a subtitle that you want to mine appears, use <kbd>Ctrl + Shift + X</kbd> to open the flashcard creator.
+
+See the [keyboard shortcuts](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts) for other ways to interact with and create cards.
+
+### Adjusting Anki flashcards
+
+All text fields can be edited from the flashcard creator prior to flashcard creation.
+
+Adjust the selected time interval for the card using the slider at the bottom of the export dialog.
+The newly selected time interval can be applied to the card using the buttons available in the sentence and audio sections of the card. See this [video](https://youtu.be/BSr_JusW8E8?t=34) for a demo.
+
+---
+### Other features
+
 ### Extension side panel UI
 
 Most of the extension features detailed above can be accessed through the extension's side panel UI. The side panel can be opened with the <kbd>\`</kbd> button or `Open Side Panel` from the extension popup.
 
+### Keyboard shortcuts
+
+Keyboard shortcuts are customizable from the [asbplayer website settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts) or from accessing the extension directly. Once asbplayer has been bound to a video, you can use the keyboard shortcuts to access most of asbplayer's features.
+
 ### Audio track selection for mkv files
 
 An audio track selector will appear for `mkv` files if experimental web platform features are enabled from `chrome://flags`. Note that enabling this flag may cause issues with other features of asbplayer, such as card creation through the Chrome extension.
+
+---
+### Advanced features
 
 ### One-click mining flow
 
@@ -214,22 +258,6 @@ Response:
     }
 }
 ```
-
-### Filtering Subtitles
-
-If you'd like to filter subtitles, one way to do so is by using regexing. asbplayer will match any sequence following regex pattern and remove the matches.
-
-Under the MISC section in asbplayer settings, locate the "Subtitle regex filter" textbox. Enter an appropriate regex to filter desired content.
-You can replace filtered content similarly by entering a string into the "Subtitle regex filter text replacement" textbox. Leaving this blank will simply remove the content.
-
-Potential use cases for filtering include:
- - Remove names enclosed by parenthesis to indicate speakers  (i.e. "**(山田)**　元気ですか？")
- - Remove indications enclosed by brackets that sound or music that is playing (i.e. "**\[PLAYFUL MUSIC]**")
-
-Helpful materials on regexing:
-- [GeeksForGeeks regex tutorial](https://www.geeksforgeeks.org/write-regular-expressions/)
-- [RexEgg regex cheatsheet](https://www.rexegg.com/regex-quickstart.html)
-- Test regex with the [Regexr webtool](https://regexr.com/)
 
 ## Common issues
 
