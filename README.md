@@ -190,7 +190,7 @@ Adjust the selected time interval for the card using the slider at the bottom of
 The newly selected time interval can be applied to the card using the buttons available in the sentence and audio sections of the card. See this [video](https://youtu.be/BSr_JusW8E8?t=34) for a demo.
 
 ---
-### Other features
+### Other basic features
 
 ### Extension side panel UI
 
