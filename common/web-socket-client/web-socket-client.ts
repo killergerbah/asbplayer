@@ -44,7 +44,7 @@ export class WebSocketClient {
                 this._pingPromises = [];
                 this._connect(url);
             } else {
-                this.ping();
+                this.ping().catch(console.info);
             }
         }, 10000);
 
@@ -92,7 +92,7 @@ export class WebSocketClient {
                 this._connectPromise = undefined;
             };
             socket.onopen = () => {
-                this.ping();
+                this.ping().catch(console.error);
                 this._connectPromise?.resolve(undefined);
                 this._connectPromise = undefined;
             };
