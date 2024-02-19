@@ -394,6 +394,9 @@ export default function VideoPlayer({
         forceRender({});
     }, [playerChannel]);
 
+    const onErrorRef = useRef(onError);
+    onErrorRef.current = onError;
+
     const videoRefCallback = useCallback(
         (element: HTMLVideoElement) => {
             if (element) {
@@ -417,14 +420,14 @@ export default function VideoPlayer({
                 };
 
                 videoElement.ontimeupdate = (event) => clock.setTime(element.currentTime * 1000);
-                videoElement.onerror = (event) => onError(errorMessage(element));
+                videoElement.onerror = (event) => onErrorRef.current?.(errorMessage(element));
                 videoElement.onplay = updatePlayerState;
                 videoElement.onpause = updatePlayerState;
                 videoElement.onratechange = updatePlayerState;
                 videoElement.onseeked = updatePlayerState;
             }
         },
-        [clock, playerChannel, updatePlayerState, onError]
+        [clock, playerChannel, updatePlayerState]
     );
 
     function selectAudioTrack(id: string) {
