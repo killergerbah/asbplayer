@@ -197,7 +197,6 @@ const Player = React.memo(function Player({
     const [lastJumpToTopTimestamp, setLastJumpToTopTimestamp] = useState<number>(0);
     const [offset, setOffset] = useState<number>(0);
     const [playbackRate, setPlaybackRate] = useState<number>(1);
-    const [, updateState] = useState<any>();
     const [audioTracks, setAudioTracks] = useState<AudioTrackModel[]>();
     const [selectedAudioTrack, setSelectedAudioTrack] = useState<string>();
     const [channelId, setChannelId] = useState<string>();
