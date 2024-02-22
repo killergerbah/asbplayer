@@ -67,3 +67,13 @@ export interface ExtensionToBackgroundPageCommand<T extends Message> extends Com
 export interface BackgroundPageToExtensionCommand<T extends Message> extends Command<T> {
     readonly sender: 'asbplayer-background-page';
 }
+
+export interface MobileOverlayToVideoCommand<T extends Message> extends Command<T> {
+    readonly sender: 'asbplayer-mobile-overlay-to-video';
+    readonly src: string;
+}
+
+export interface VideoToMobileOverlayCommand<T extends Message> extends Command<T> {
+    readonly sender: 'asbplayer-video-to-mobile-overlay';
+    readonly src: string;
+}

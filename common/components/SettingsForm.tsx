@@ -523,6 +523,7 @@ interface Props {
     anki: Anki;
     extensionInstalled: boolean;
     extensionSupportsAppIntegration: boolean;
+    extensionSupportsOverlay: boolean;
     insideApp?: boolean;
     settings: AsbplayerSettings;
     scrollToId?: string;
@@ -545,6 +546,7 @@ export default function SettingsForm({
     settings,
     extensionInstalled,
     extensionSupportsAppIntegration,
+    extensionSupportsOverlay,
     insideApp,
     scrollToId,
     chromeKeyBinds,
@@ -696,6 +698,7 @@ export default function SettingsForm({
         streamingCondensedPlaybackMinimumSkipIntervalMs,
         streamingScreenshotDelay,
         streamingSubtitleListPreference,
+        streamingEnableOverlay,
         webSocketClientEnabled,
         webSocketServerUrl,
     } = settings;
@@ -1556,6 +1559,21 @@ export default function SettingsForm({
                                 label={t('extension.settings.openSubtitleList')}
                                 labelPlacement="start"
                             />
+                            {extensionSupportsOverlay && (
+                                <LabelWithHoverEffect
+                                    className={classes.switchLabel}
+                                    control={
+                                        <Switch
+                                            checked={streamingEnableOverlay}
+                                            onChange={(e) =>
+                                                handleSettingChanged('streamingEnableOverlay', e.target.checked)
+                                            }
+                                        />
+                                    }
+                                    label={t('extension.settings.enableOverlay')}
+                                    labelPlacement="start"
+                                />
+                            )}
                             <LabelWithHoverEffect
                                 className={classes.switchLabel}
                                 control={

@@ -158,6 +158,7 @@ export default class AnkiUiController {
 
         context.keyBindings.unbind();
         context.subtitleController.forceHideSubtitles = true;
+        context.mobileVideoOverlayController.forceHide = true;
     }
 
     private async _client(context: Binding) {
@@ -209,6 +210,7 @@ export default class AnkiUiController {
 
                 context.keyBindings.bind(context);
                 context.subtitleController.forceHideSubtitles = false;
+                context.mobileVideoOverlayController.forceHide = false;
                 this.frame?.hide();
 
                 if (this.fullscreenElement) {

@@ -143,3 +143,15 @@
     left: 100% !important;
     top: 100% !important;
 }
+
+.asbplayer-mobile-video-overlay-container {
+    position: absolute !important;
+    transform: translate(-50%) !important;
+    z-index: 2147483647 !important;
+    width: 100% !important;
+    text-align: center;
+}
+
+.asbplayer-mobile-video-overlay {
+    width: 100% !important;
+}

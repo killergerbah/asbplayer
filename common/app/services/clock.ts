@@ -1,11 +1,11 @@
-export type ClockEvent = 'stop' | 'start';
+export type ClockEvent = 'stop' | 'start' | 'settime';
 
 export default class Clock {
     private _accumulated: number;
     private _started: boolean;
     private _startTime?: number;
     private _rate = 1;
-    private _callbacks: { [event in ClockEvent]: (() => void)[] } = { stop: [], start: [] };
+    private _callbacks: { [event in ClockEvent]: (() => void)[] } = { stop: [], start: [], settime: [] };
 
     constructor() {
         this._accumulated = 0;
@@ -65,6 +65,7 @@ export default class Clock {
         } else {
             this._accumulated = time;
         }
+        this._fireEvent('settime');
     }
 
     progress(max: number) {

@@ -3,6 +3,8 @@ import { AutoPausePreference, PostMineAction } from '..';
 
 // @ts-ignore
 const isMacOs = (navigator.userAgentData?.platform ?? navigator.platform)?.toUpperCase()?.indexOf('MAC') > -1;
+// @ts-ignore
+const isMobile = navigator.userAgentData?.mobile ?? /Mobi/i.test(navigator.userAgent);
 
 export const defaultSettings: AsbplayerSettings = {
     ankiConnectUrl: 'http://127.0.0.1:8765',
@@ -96,6 +98,7 @@ export const defaultSettings: AsbplayerSettings = {
     streamingCondensedPlaybackMinimumSkipIntervalMs: 1000,
     streamingScreenshotDelay: 1000,
     streamingSubtitleListPreference: SubtitleListPreference.noSubtitleList,
+    streamingEnableOverlay: isMobile,
     webSocketClientEnabled: false,
     webSocketServerUrl: 'ws://127.0.0.1:8766/ws',
 };

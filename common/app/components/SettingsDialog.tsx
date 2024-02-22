@@ -65,6 +65,7 @@ export default function SettingsDialog({
                     anki={anki}
                     extensionInstalled={extension.installed}
                     extensionSupportsAppIntegration={extension.supportsAppIntegration}
+                    extensionSupportsOverlay={extension.supportsStreamingVideoOverlay}
                     insideApp
                     chromeKeyBinds={extension.extensionCommands}
                     onOpenChromeExtensionShortcuts={extension.openShortcuts}

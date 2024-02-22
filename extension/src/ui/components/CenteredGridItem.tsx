@@ -1,10 +1,11 @@
-import Grid from '@material-ui/core/Grid';
+import Grid, { GridProps } from '@material-ui/core/Grid';
 
 import React from 'react';
 
-const CenteredGridItem = ({ children, ...props }: { children: React.ReactNode }) => {
+const CenteredGridItem = ({ children, ...props }: { children: React.ReactNode } & GridProps) => {
+    const { style, ...rest } = props;
     return (
-        <Grid style={{ textAlign: 'center' }} {...props}>
+        <Grid style={{ textAlign: 'center', ...style }} {...rest}>
             {children}
         </Grid>
     );

@@ -53,6 +53,7 @@ export default class SubtitleController {
 
     onNextToShow?: (subtitle: SubtitleModel) => void;
     onSlice?: (subtitle: SubtitleSlice<SubtitleModelWithIndex>) => void;
+    onOffsetChange?: () => void;
 
     constructor(video: HTMLMediaElement, settings: SettingsProvider) {
         this.video = video;
@@ -453,6 +454,8 @@ export default class SubtitleController {
 
             chrome.runtime.sendMessage(command);
         }
+
+        this.onOffsetChange?.();
 
         this.settings.getSingle('rememberSubtitleOffset').then((rememberSubtitleOffset) => {
             if (rememberSubtitleOffset) {

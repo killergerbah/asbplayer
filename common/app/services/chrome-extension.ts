@@ -107,6 +107,10 @@ export default class ChromeExtension {
         window.addEventListener('message', this.windowEventListener);
     }
 
+    get supportsStreamingVideoOverlay() {
+        return this.installed && gte(this.version, '1.1.0');
+    }
+
     get supportsAppIntegration() {
         return this.installed && gte(this.version, '1.0.0');
     }

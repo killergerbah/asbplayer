@@ -295,12 +295,6 @@ const SubtitleRow = React.memo(function SubtitleRow({
     );
 });
 
-interface ResizeHandleStylesProps {
-    isResizing: boolean;
-    appBarHidden: boolean;
-    appBarHeight: number;
-}
-
 interface ResizeHandleProps extends React.HTMLAttributes<HTMLDivElement> {
     isResizing: boolean;
 }

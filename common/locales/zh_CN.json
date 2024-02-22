@@ -165,7 +165,8 @@
             "subtitles": "字幕",
             "syncing": "正在同步",
             "takeScreenshot": "截屏",
-            "updateAvailable": "可用更新"
+            "updateAvailable": "可用更新",
+            "enableOverlay": "Enable controls overlay"
         },
         "videoDataSync": {
             "emptySubtitleTrack": "空的",

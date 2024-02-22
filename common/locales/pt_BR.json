@@ -165,7 +165,8 @@
             "subtitles": "Legenda",
             "syncing": "Sincronização",
             "takeScreenshot": "Tirar captura de tela",
-            "updateAvailable": "Atualização disponível"
+            "updateAvailable": "Atualização disponível",
+            "enableOverlay": "Enable controls overlay"
         },
         "videoDataSync": {
             "emptySubtitleTrack": "Vazio",

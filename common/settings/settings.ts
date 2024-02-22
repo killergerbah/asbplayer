@@ -158,6 +158,7 @@ export interface StreamingVideoSettings {
     readonly streamingCondensedPlaybackMinimumSkipIntervalMs: number;
     readonly streamingScreenshotDelay: number;
     readonly streamingSubtitleListPreference: SubtitleListPreference;
+    readonly streamingEnableOverlay: boolean;
 }
 
 export type KeyBindName = keyof KeyBindSet;

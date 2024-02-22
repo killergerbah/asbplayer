@@ -49,6 +49,7 @@ import { ExtensionSettingsStorage } from './extension-settings-storage';
 import { i18nInit } from './i18n';
 import KeyBindings from './key-bindings';
 import { SubtitleSlice } from '@project/common/subtitle-collection';
+import { MobileVideoOverlayController } from '../controllers/mobile-video-overlay-controller';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -64,9 +65,11 @@ export default class Binding {
 
     private _synced: boolean;
     private _syncedTimestamp?: number;
-    private recordingMedia: boolean;
+
+    recordingMedia: boolean;
     private recordingMediaStartedTimestamp?: number;
     private recordingMediaWithScreenshot: boolean;
+
     private _playMode: PlayMode = PlayMode.normal;
 
     readonly video: HTMLMediaElement;
@@ -77,11 +80,11 @@ export default class Binding {
     readonly dragController: DragController;
     readonly ankiUiController: AnkiUiController;
     readonly requestActiveTabPermissionController: ActiveTabPermissionRequestController;
+    readonly mobileVideoOverlayController: MobileVideoOverlayController;
     readonly keyBindings: KeyBindings;
     readonly settings: SettingsProvider;
 
     private copyToClipboardOnMine: boolean;
-    private recordMedia: boolean;
     private takeScreenshot: boolean;
     private cleanScreenshot: boolean;
     private audioPaddingStart: number;
@@ -93,6 +96,7 @@ export default class Binding {
     private fastForwardPlaybackMinimumGapMs = 600;
     private fastForwardModePlaybackRate = 2.7;
     private imageDelay = 0;
+    recordMedia: boolean;
 
     private playListener?: EventListener;
     private pauseListener?: EventListener;
@@ -119,6 +123,8 @@ export default class Binding {
         this.keyBindings = new KeyBindings();
         this.ankiUiController = new AnkiUiController();
         this.requestActiveTabPermissionController = new ActiveTabPermissionRequestController(this);
+        this.mobileVideoOverlayController = new MobileVideoOverlayController(this);
+        this.subtitleController.onOffsetChange = () => this.mobileVideoOverlayController.updateModel();
         this.recordMedia = true;
         this.takeScreenshot = true;
         this.cleanScreenshot = true;
@@ -644,35 +650,42 @@ export default class Binding {
             // @ts-ignore
             (typeof this.video.webkitVideoDecodedByteCount !== 'number' || this.video.webkitVideoDecodedByteCount > 0);
         this.cleanScreenshot = currentSettings.streamingTakeScreenshot && currentSettings.streamingCleanScreenshot;
-        this.subtitleController.displaySubtitles = currentSettings.streamingDisplaySubtitles;
-        this.subtitleController.subtitlePositionOffset = currentSettings.subtitlePositionOffset;
-        this.subtitleController.subtitleAlignment = currentSettings.subtitleAlignment;
-        this.subtitleController.refresh();
-        this.videoDataSyncController.updateSettings(currentSettings);
-        this.keyBindings.setKeyBindSet(this, currentSettings.keyBindSet);
         this.condensedPlaybackMinimumSkipIntervalMs = currentSettings.streamingCondensedPlaybackMinimumSkipIntervalMs;
         this.fastForwardModePlaybackRate = currentSettings.fastForwardModePlaybackRate;
         this.imageDelay = currentSettings.streamingScreenshotDelay;
-        this.subtitleController.setSubtitleSettings(currentSettings);
-        this.subtitleController.refresh();
-        this.ankiUiController.ankiSettings = extractAnkiSettings(currentSettings);
         this.audioPaddingStart = currentSettings.audioPaddingStart;
         this.audioPaddingEnd = currentSettings.audioPaddingEnd;
         this.maxImageWidth = currentSettings.maxImageWidth;
         this.maxImageHeight = currentSettings.maxImageHeight;
-        this.subtitleController.surroundingSubtitlesCountRadius = currentSettings.surroundingSubtitlesCountRadius;
-        this.subtitleController.surroundingSubtitlesTimeRadius = currentSettings.surroundingSubtitlesTimeRadius;
         this.copyToClipboardOnMine = currentSettings.copyToClipboardOnMine;
         this.autoPausePreference = currentSettings.autoPausePreference;
         this.alwaysPlayOnSubtitleRepeat = currentSettings.alwaysPlayOnSubtitleRepeat;
-        this.keyBindings.setKeyBindSet(this, currentSettings.keyBindSet);
+
+        this.subtitleController.displaySubtitles = currentSettings.streamingDisplaySubtitles;
+        this.subtitleController.subtitlePositionOffset = currentSettings.subtitlePositionOffset;
+        this.subtitleController.subtitleAlignment = currentSettings.subtitleAlignment;
+        this.subtitleController.surroundingSubtitlesCountRadius = currentSettings.surroundingSubtitlesCountRadius;
+        this.subtitleController.surroundingSubtitlesTimeRadius = currentSettings.surroundingSubtitlesTimeRadius;
         this.subtitleController.autoCopyCurrentSubtitle = currentSettings.autoCopyCurrentSubtitle;
         this.subtitleController.preCacheDom = currentSettings.preCacheSubtitleDom;
+        this.subtitleController.setSubtitleSettings(currentSettings);
+        this.subtitleController.refresh();
+
+        this.videoDataSyncController.updateSettings(currentSettings);
+        this.ankiUiController.ankiSettings = extractAnkiSettings(currentSettings);
+        this.keyBindings.setKeyBindSet(this, currentSettings.keyBindSet);
 
         if (currentSettings.streamingSubsDragAndDrop) {
             this.dragController.bind(this);
         } else {
             this.dragController.unbind();
+        }
+
+        if (currentSettings.streamingEnableOverlay) {
+            this.mobileVideoOverlayController.bind();
+            this.mobileVideoOverlayController.updateModel();
+        } else {
+            this.mobileVideoOverlayController.unbind();
         }
 
         await i18nInit(currentSettings.language);
@@ -718,6 +731,7 @@ export default class Binding {
         this.dragController.unbind();
         this.keyBindings.unbind();
         this.videoDataSyncController.unbind();
+        this.mobileVideoOverlayController.unbind();
         this.subscribed = false;
 
         const command: VideoToExtensionCommand<VideoDisappearedMessage> = {
@@ -850,6 +864,10 @@ export default class Binding {
                 this.recordingMedia = true;
                 this.recordingMediaStartedTimestamp = timestamp;
                 this.recordingMediaWithScreenshot = this.takeScreenshot;
+
+                if (this.video.paused) {
+                    await this.play();
+                }
             }
 
             const command: VideoToExtensionCommand<StartRecordingMediaMessage> = {
@@ -870,6 +888,8 @@ export default class Binding {
 
             chrome.runtime.sendMessage(command);
         }
+
+        this.mobileVideoOverlayController.updateModel();
     }
 
     private _surroundingSubtitlesAroundInterval(start: number, end: number) {
@@ -1087,6 +1107,7 @@ export default class Binding {
         }
         this.subtitleController.showLoadedMessage(nonEmptyTrackIndex);
         this.videoDataSyncController.unbindVideoSelect();
+        this.mobileVideoOverlayController.updateModel();
         this.ankiUiSavedState = undefined;
         this._synced = true;
         this._syncedTimestamp = Date.now();

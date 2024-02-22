@@ -36,6 +36,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { isMobile } from 'react-device-detect';
+import SubtitleOffsetInput from './SubtitleOffsetInput';
 const useControlStyles = makeStyles((theme) => ({
     container: {
         position: 'absolute',
@@ -680,7 +681,6 @@ export default function Controls({
     const lastNumberInputChangeTimestampRef = useRef<number>(Date.now());
     const lastShowRef = useRef<boolean>(true);
     const forceShowRef = useRef<boolean>(false);
-    const [offsetInputWidth, setOffsetInputWidth] = useState<number>(5);
     const [playbackRateInputWidth, setPlaybackRateInputWidth] = useState<number>(5);
     const offsetInputRef = useRef<HTMLInputElement>();
     const playbackRateInputRef = useRef<HTMLInputElement>();
@@ -766,22 +766,6 @@ export default function Controls({
 
     useEffect(() => onShow?.(show), [onShow, show]);
 
-    const updateOffset = useCallback((offset: number) => {
-        if (offsetInputRef.current) {
-            if (offset === 0) {
-                offsetInputRef.current.value = '';
-                setOffsetInputWidth(5);
-            } else {
-                const offsetSeconds = offset / 1000;
-                const value = offsetSeconds >= 0 ? '+' + offsetSeconds.toFixed(2) : String(offsetSeconds.toFixed(2));
-                offsetInputRef.current.value = value;
-                lastNumberInputChangeTimestampRef.current = Date.now();
-                setOffsetInputWidth(value.length);
-            }
-            offsetInputRef.current.blur();
-        }
-    }, []);
-
     const updatePlaybackRate = useCallback((playbackRate: number) => {
         if (playbackRateInputRef.current) {
             if (playbackRate === 1) {
@@ -797,6 +781,14 @@ export default function Controls({
         }
     }, []);
 
+    const handleOffsetChange = useCallback(
+        (offset: number) => {
+            lastNumberInputChangeTimestampRef.current = Date.now();
+            onOffsetChange(offset);
+        },
+        [onOffsetChange]
+    );
+
     useEffect(() => {
         if (disableKeyEvents) {
             return;
@@ -804,20 +796,7 @@ export default function Controls({
 
         function handleKey(event: KeyboardEvent) {
             if (event.key === 'Enter') {
-                if (offsetInputRef.current === document.activeElement) {
-                    const newOffset = Number(offsetInputRef.current.value);
-
-                    if (newOffset === offset) {
-                        updateOffset(offset);
-                        return;
-                    }
-
-                    if (Number.isNaN(newOffset)) {
-                        return;
-                    }
-
-                    onOffsetChange(newOffset * 1000);
-                } else if (playbackRateInputRef.current === document.activeElement) {
+                if (playbackRateInputRef.current === document.activeElement) {
                     const newPlaybackRate = Number(playbackRateInputRef.current.value);
 
                     if (playbackRate === newPlaybackRate) {
@@ -839,15 +818,7 @@ export default function Controls({
         return () => {
             window.removeEventListener('keydown', handleKey);
         };
-    }, [
-        onOffsetChange,
-        onPlaybackRateChange,
-        updateOffset,
-        updatePlaybackRate,
-        offset,
-        playbackRate,
-        disableKeyEvents,
-    ]);
+    }, [onOffsetChange, onPlaybackRateChange, updatePlaybackRate, offset, playbackRate, disableKeyEvents]);
 
     const handleNumberInputClicked = useCallback((e: React.MouseEvent<HTMLInputElement>) => {
         const inputElement = e.target as HTMLInputElement;
@@ -855,16 +826,17 @@ export default function Controls({
     }, []);
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            forceUpdate();
-        }, 100);
-
-        return () => clearInterval(interval);
-    }, [forceUpdate]);
+        clock.onEvent('settime', () => forceUpdate());
+    }, [clock, forceUpdate]);
 
     useEffect(() => {
-        updateOffset(offset);
-    }, [offset, updateOffset]);
+        if (!show || !playing) {
+            return;
+        }
+
+        const interval = setInterval(() => forceUpdate(), 100);
+        return () => clearInterval(interval);
+    }, [show, playing, forceUpdate]);
 
     useEffect(() => {
         updatePlaybackRate(playbackRate);
@@ -1116,19 +1088,12 @@ export default function Controls({
                             </Grid>
                             {offsetEnabled && !showVolumeBar && !isReallySmallScreen && (
                                 <Grid item>
-                                    <Tooltip title={t('controls.subtitleOffset')!}>
-                                        <Input
-                                            style={{
-                                                width: `${offsetInputWidth}ch`,
-                                            }}
-                                            inputRef={offsetInputRef}
-                                            disableUnderline={true}
-                                            className={classes.numberInput}
-                                            placeholder={'±' + Number(0).toFixed(2)}
-                                            onClick={handleNumberInputClicked}
-                                            onChange={(e) => setOffsetInputWidth(Math.max(5, e.target.value.length))}
-                                        />
-                                    </Tooltip>
+                                    <SubtitleOffsetInput
+                                        inputRef={offsetInputRef}
+                                        offset={offset}
+                                        onOffset={handleOffsetChange}
+                                        disableKeyEvents={disableKeyEvents}
+                                    />
                                 </Grid>
                             )}
                             {playbackRateEnabled && !showVolumeBar && !isReallySmallScreen && (

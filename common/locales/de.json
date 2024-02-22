@@ -165,7 +165,8 @@
             "subtitles": "Untertitel",
             "syncing": "Syncronisation",
             "takeScreenshot": "Screenshot erstellen",
-            "updateAvailable": "Aktualisierung verfügbar"
+            "updateAvailable": "Aktualisierung verfügbar",
+            "enableOverlay": "Enable controls overlay"
         },
         "videoDataSync": {
             "emptySubtitleTrack": "Empty",

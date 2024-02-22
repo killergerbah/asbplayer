@@ -202,3 +202,15 @@ export enum PlayMode {
     fastForward = 4,
     repeat = 5,
 }
+
+export interface MobileOverlayModel {
+    offset: number;
+    emptySubtitleTrack: boolean;
+    recordingEnabled: boolean;
+    recording: boolean;
+    previousSubtitleTimestamp?: number;
+    nextSubtitleTimestamp?: number;
+    currentTimestamp: number;
+    language: string;
+    postMineAction: PostMineAction;
+}

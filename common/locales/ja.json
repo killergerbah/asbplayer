@@ -165,7 +165,8 @@
             "subtitles": "字幕",
             "syncing": "同期",
             "takeScreenshot": "スクリーンショットを撮る",
-            "updateAvailable": "アップデートがあります"
+            "updateAvailable": "アップデートがあります",
+            "enableOverlay": "コントロールオーバーレイを表示"
         },
         "videoDataSync": {
             "emptySubtitleTrack": "空",

@@ -81,6 +81,7 @@ const SettingsUi = () => {
                             anki={anki}
                             extensionInstalled
                             extensionSupportsAppIntegration
+                            extensionSupportsOverlay
                             chromeKeyBinds={commands}
                             onOpenChromeExtensionShortcuts={handleOpenExtensionShortcuts}
                             onSettingsChanged={onSettingsChanged}

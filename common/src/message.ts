@@ -11,6 +11,7 @@ import {
     PlayMode,
     CardModel,
     CardTextFieldValues,
+    MobileOverlayModel,
 } from './model';
 import { AsbPlayerToVideoCommandV2 } from './command';
 
@@ -560,4 +561,14 @@ export interface DownloadAudioMessage extends Message, CardModel {
 export interface NotifyErrorMessage extends Message {
     readonly command: 'notify-error';
     readonly message: string;
+}
+
+export interface RequestMobileOverlayModelMessage extends Message {
+    readonly command: 'request-mobile-overlay-model';
+    readonly tabId: number;
+}
+
+export interface UpdateMobileOverlayModelMessage extends Message {
+    readonly command: 'update-mobile-overlay-model';
+    readonly model: MobileOverlayModel;
 }
