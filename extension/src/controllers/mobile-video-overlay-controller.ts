@@ -138,7 +138,7 @@ export class MobileVideoOverlayController {
             {
                 key: 'ui',
                 html: () =>
-                    `<iframe src="${chrome.runtime.getURL('mobile-video-overlay-ui.html')}?src=${encodeURIComponent(
+                    `<iframe style="border: 0; color-scheme: normal" src="${chrome.runtime.getURL('mobile-video-overlay-ui.html')}?src=${encodeURIComponent(
                         this._context.video.src
                     )}"/>`,
             },
