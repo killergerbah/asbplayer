@@ -13,8 +13,7 @@
     "minimum_chrome_version": "114",
     "permissions": ["tabs", "tabCapture", "activeTab", "storage", "contextMenus", "sidePanel"],
     "action": {
-        "default_title": "asbplayer",
-        "default_popup": "popup-ui.html"
+        "default_title": "asbplayer"
     },
     "options_ui": {
         "page": "settings-ui.html",

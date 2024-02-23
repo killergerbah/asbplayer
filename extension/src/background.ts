@@ -331,3 +331,25 @@ const updateWebSocketClientState = () => {
 updateWebSocketClientState();
 tabRegistry.onAsbplayerInstance(updateWebSocketClientState);
 tabRegistry.onSyncedElement(updateWebSocketClientState);
+
+// @ts-ignore
+if (navigator.userAgentData.mobile) {
+    chrome.action.onClicked.addListener((tab) => {
+        if (tab.id !== undefined) {
+            const extensionToVideoCommand: ExtensionToVideoCommand<ToggleVideoSelectMessage> = {
+                sender: 'asbplayer-extension-to-video',
+                message: {
+                    command: 'toggle-video-select',
+                },
+            };
+            chrome.tabs.sendMessage(tab.id, extensionToVideoCommand);
+        }
+    });
+} else {
+    chrome.action.setPopup({
+        popup: 'popup-ui.html',
+    });
+    chrome.action.onClicked.addListener((tab) => {
+        chrome.action.openPopup();
+    });
+}
