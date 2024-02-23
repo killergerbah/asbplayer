@@ -110,7 +110,7 @@ In order to make use of any of asbplayer's features, subtitles (or an empty subt
 ---
 ### Subtitle features
 
-#### ► Enhancing streaming video with asbplayer-controlled subtitles
+#### Enhancing streaming video with asbplayer-controlled subtitles
 
 There are a number of ways to load subtitles with streaming video:
 
@@ -121,17 +121,17 @@ There are a number of ways to load subtitles with streaming video:
 
 asbplayer features will then be accessible for that video.
 
-#### ► Enhancing local video files with asbplayer-controlled subtitles
+#### Enhancing local video files with asbplayer-controlled subtitles
 
 Drag-and-drop media and subtitle files into the [asbplayer website](https://killergerbah.github.io/asbplayer/) to load them. asbplayer features will then be accessible for those files. Not all media files may be compatible - see the [Browser Compatibility](#browser-compatibility) section.
 
-#### ► Adjusting subtitle offset
+#### Adjusting subtitle offset
 
 Use <kbd>Ctrl + Left/Right</kbd> to adjust subtitle offset so that the previous/next subtitle appears at the current timestamp. Then use <kbd>Ctrl + Shift + Left/Right</kbd> for finer adjustment by 100ms increments.
 
 If you are using the asblayer website, you can also use the `Subtitle Offset` text field available in the controls UI.
 
-#### ► Subtitle track detection for streaming video
+#### Subtitle track detection for streaming video
 
 Use <kbd>Ctrl + Shift + F</kbd> to see auto-detected subtitle tracks for streaming video. Below are the sites where automatic subtitle detection is supported:
 
@@ -146,7 +146,7 @@ Use <kbd>Ctrl + Shift + F</kbd> to see auto-detected subtitle tracks for streami
 
 <kbd>Ctrl + Shift + F</kbd> also allows you to load an empty subtitle track so that you can extract audio and screenshots from streaming video without loading subtitles.
 
-#### ► Filtering subtitle text
+#### Filtering subtitle text
 
 If you'd like to filter out specific instances subtitle text, one way to do so is by using a regular expression (regex). asbplayer can match any sequence following a specified regex pattern and remove the matches.
 
@@ -159,7 +159,7 @@ Useful examples of regular expressions:
 
 Learn how to write and test custom regular expressions at [Regex Learn - Playground](https://regexlearn.com/playground).
 
-#### ► Downloading subtitle files
+#### Downloading subtitle files
 
 Once loaded into the extension, you can download the subtitles by opening the side panel and clicking the `Download Subtitles as SRT` button in the top-right. You can also download subtitles via the website by clicking the same download button in the top-left.
 
@@ -168,7 +168,7 @@ Once loaded into the extension, you can download the subtitles by opening the si
 ---
 ### Anki integration
 
-#### ► Creating Anki flashcards
+#### Creating Anki flashcards
 
 Make sure [Anki](https://apps.ankiweb.net/) and [AnkiConnect](https://ankiweb.net/shared/info/2055492159) are installed. Integration with AnkiConnect can be configured in the [settings](https://killergerbah.github.io/asbplayer/?view=settings) as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
 
@@ -176,7 +176,7 @@ When a subtitle that you want to mine appears, use <kbd>Ctrl + Shift + X</kbd> t
 
 See the [keyboard shortcuts](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts) for other ways to interact with and create cards.
 
-#### ► Adjusting Anki flashcards
+#### Adjusting Anki flashcards
 
 All text fields can be edited from the flashcard creator prior to flashcard creation.
 
@@ -186,22 +186,22 @@ The newly selected time interval can be applied to the card using the buttons av
 ---
 ### Other basic features
 
-#### ► Extension side panel UI
+#### Extension side panel UI
 
 Most of the extension features detailed above can be accessed through the extension's side panel UI. The side panel can be opened with the <kbd>\`</kbd> button or `Open Side Panel` from the extension popup.
 
-#### ► Keyboard shortcuts
+#### Keyboard shortcuts
 
 Keyboard shortcuts are customizable from the [asbplayer website settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts) or from accessing the extension directly. Once asbplayer has been bound to a video, you can use the keyboard shortcuts to access most of asbplayer's features.
 
-#### ► Audio track selection for mkv files
+#### Audio track selection for mkv files
 
 An audio track selector will appear for `mkv` files if experimental web platform features are enabled from `chrome://flags`. Note that enabling this flag may cause issues with other features of asbplayer, such as card creation through the Chrome extension.
 
 ---
 ### Advanced features
 
-#### ► One-click mining flow
+#### One-click mining flow
 
 The asbplayer website can be setup to support one-click mining workflows by integrating with other tools via its [WebSocket interface](#websocket-interface) and a locally-running proxy that intercepts AnkiConnect traffic. Below are steps to set up such a workflow using Yomitan:
 
@@ -218,7 +218,7 @@ The asbplayer website can be setup to support one-click mining workflows by inte
 
 See the proxy's [example configuration file](https://github.com/killergerbah/asbplayer/blob/main/scripts/anki-connect-proxy/.env.example) for how to further configure it.
 
-#### ► WebSocket interface
+#### WebSocket interface
 
 The asbplayer website can be controlled remotely through a WebSocket connection, which enables [one-click mining flows](#one-click-mining-flow) with the right setup. Currently asbplayer responds to one type of payload:
 
