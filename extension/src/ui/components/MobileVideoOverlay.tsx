@@ -29,7 +29,13 @@ const useStyles = makeStyles({
     button: {
         color: 'white',
     },
-    container: { backgroundColor: 'rgba(0, 0, 0, .5)', backdropFilter: 'blur(3px)', borderRadius: 16 },
+    container: {
+        display: 'inline-flex',
+        width: 'auto',
+        backgroundColor: 'rgba(0, 0, 0, .5)',
+        backdropFilter: 'blur(3px)',
+        borderRadius: 16,
+    },
 });
 
 const GridContainer = ({ children, ...props }: { children: React.ReactNode } & GridProps) => {
