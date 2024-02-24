@@ -43,6 +43,7 @@ export default class ActiveTabPermissionRequestController {
                     this._frame.hide();
                     this._notifyRequesting(false);
                     this._context.subtitleController.forceHideSubtitles = false;
+                    this._context.mobileVideoOverlayController.forceHide = false;
                     this._context.controlsController.show();
                 }
             });

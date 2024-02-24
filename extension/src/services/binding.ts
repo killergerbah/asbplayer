@@ -605,6 +605,7 @@ export default class Binding {
                     case 'screenshot-taken':
                         const screenshotTakenMessage = request.message as ScreenshotTakenMessage;
                         this.subtitleController.forceHideSubtitles = false;
+                        this.mobileVideoOverlayController.forceHide = false;
 
                         if (screenshotTakenMessage.ankiUiState) {
                             this.ankiUiController.showAfterRetakingScreenshot(this, screenshotTakenMessage.ankiUiState);
@@ -909,6 +910,7 @@ export default class Binding {
     async _prepareScreenshot() {
         if (this.cleanScreenshot) {
             this.subtitleController.forceHideSubtitles = true;
+            this.mobileVideoOverlayController.forceHide = true;
             await this.controlsController.hide();
         }
     }

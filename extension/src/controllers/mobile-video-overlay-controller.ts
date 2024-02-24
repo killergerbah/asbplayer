@@ -70,8 +70,8 @@ export class MobileVideoOverlayController {
             }
         } else {
             if (this._forceHiding) {
-                this._show();
                 this._forceHiding = false;
+                this._show();
             }
         }
     }
