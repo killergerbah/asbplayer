@@ -55,9 +55,9 @@ export const useSwipe = ({
 
             if (insideRect(x, y) && Date.now() - start.timestamp <= ms) {
                 if (start.x >= x + distance) {
-                    onSwipe('right');
-                } else if (start.x <= x - distance) {
                     onSwipe('left');
+                } else if (start.x <= x - distance) {
+                    onSwipe('right');
                 }
             }
 

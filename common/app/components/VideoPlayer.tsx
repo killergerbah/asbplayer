@@ -1308,7 +1308,7 @@ export default function VideoPlayer({
 
     const handleSwipe = useCallback(
         (direction: Direction) => {
-            const subtitle = adjacentSubtitle(direction === 'left', clock.time(length), subtitles);
+            const subtitle = adjacentSubtitle(direction === 'right', clock.time(length), subtitles);
             if (subtitle) {
                 playerChannel.currentTime(subtitle.start / 1000);
             }
