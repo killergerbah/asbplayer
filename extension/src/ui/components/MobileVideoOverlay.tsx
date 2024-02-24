@@ -29,6 +29,9 @@ const useStyles = makeStyles({
     button: {
         color: 'white',
     },
+    inactiveButton: {
+        color: 'rgba(120, 120, 120, 0.7)',
+    },
     recordingButton: {
         color: 'red',
     },
@@ -165,7 +168,9 @@ const MobileVideoOverlay = () => {
                             // Wrap in span so that Tooltip doesn't complain about disabled child
                             <span>
                                 <IconButton disabled={miningButtonDisabled} onClick={handleMineSubtitle}>
-                                    <NoteAddIcon className={miningButtonDisabled ? '' : classes.button} />
+                                    <NoteAddIcon
+                                        className={miningButtonDisabled ? classes.inactiveButton : classes.button}
+                                    />
                                 </IconButton>
                             </span>
                         )}
@@ -175,7 +180,7 @@ const MobileVideoOverlay = () => {
                     <Tooltip title={t('action.loadSubtitles')!}>
                         <span>
                             <IconButton disabled={model.recording} onClick={handleLoadSubtitles}>
-                                <SubtitlesIcon className={model.recording ? '' : classes.button} />
+                                <SubtitlesIcon className={model.recording ? classes.inactiveButton : classes.button} />
                             </IconButton>
                         </span>
                     </Tooltip>
@@ -184,7 +189,9 @@ const MobileVideoOverlay = () => {
                     <>
                         <Grid item>
                             <IconButton onClick={handleOffsetToPrevious} disabled={offsetToPreviousButtonDisabled}>
-                                <NavigateBeforeIcon className={offsetToPreviousButtonDisabled ? '' : classes.button} />
+                                <NavigateBeforeIcon
+                                    className={offsetToPreviousButtonDisabled ? classes.inactiveButton : classes.button}
+                                />
                             </IconButton>
                         </Grid>
                         <Grid item>
@@ -196,7 +203,9 @@ const MobileVideoOverlay = () => {
                         </Grid>
                         <Grid item>
                             <IconButton onClick={handleOffsetToNext} disabled={offsetToNextButtonDisabled}>
-                                <NavigateNextIcon className={offsetToNextButtonDisabled ? '' : classes.button} />
+                                <NavigateNextIcon
+                                    className={offsetToNextButtonDisabled ? classes.inactiveButton : classes.button}
+                                />
                             </IconButton>
                         </Grid>
                     </>
