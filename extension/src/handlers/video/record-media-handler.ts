@@ -12,17 +12,17 @@ import {
     CardModel,
 } from '@project/common';
 import { SettingsProvider } from '@project/common/settings';
-import BackgroundPageManager from '../../services/background-page-manager';
+import OffscreenAudioRecorder from '../../services/offscreen-audio-recorder';
 import { CardPublisher } from '../../services/card-publisher';
 
 export default class RecordMediaHandler {
-    private readonly _audioRecorder: BackgroundPageManager;
+    private readonly _audioRecorder: OffscreenAudioRecorder;
     private readonly _imageCapturer: ImageCapturer;
     private readonly _cardPublisher: CardPublisher;
     private readonly _settingsProvider: SettingsProvider;
 
     constructor(
-        audioRecorder: BackgroundPageManager,
+        audioRecorder: OffscreenAudioRecorder,
         imageCapturer: ImageCapturer,
         cardPublisher: CardPublisher,
         settingsProvider: SettingsProvider

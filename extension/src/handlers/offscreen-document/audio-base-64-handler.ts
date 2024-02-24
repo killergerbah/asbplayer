@@ -1,11 +1,11 @@
 import { AudioBase64Message, Command, Message, OffscreenDocumentToExtensionCommand } from '@project/common';
-import BackgroundPageManager from '../../services/background-page-manager';
+import OffscreenAudioRecorder from '../../services/offscreen-audio-recorder';
 
 export default class AudioBase64Handler {
-    private readonly backgroundPageAudioRecorder: BackgroundPageManager;
+    private readonly offscreenAudioRecorder: OffscreenAudioRecorder;
 
-    constructor(backgroundPageAudioRecorder: BackgroundPageManager) {
-        this.backgroundPageAudioRecorder = backgroundPageAudioRecorder;
+    constructor(offscreenAudioRecorder: OffscreenAudioRecorder) {
+        this.offscreenAudioRecorder = offscreenAudioRecorder;
     }
 
     get sender() {
@@ -18,7 +18,7 @@ export default class AudioBase64Handler {
 
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
         const audioBase64Command = command as OffscreenDocumentToExtensionCommand<AudioBase64Message>;
-        this.backgroundPageAudioRecorder.onAudioBase64(audioBase64Command.message.base64);
+        this.offscreenAudioRecorder.onAudioBase64(audioBase64Command.message.base64);
         return false;
     }
 }

@@ -8,18 +8,18 @@ import {
     ShowAnkiUiAfterRerecordMessage,
     VideoToExtensionCommand,
 } from '@project/common';
-import BackgroundPageManager from '../../services/background-page-manager';
+import OffscreenAudioRecorder from '../../services/offscreen-audio-recorder';
 import { CardPublisher } from '../../services/card-publisher';
 import { SettingsProvider } from '@project/common/settings';
 
 export default class RerecordMediaHandler {
     private readonly _settingsProvider: SettingsProvider;
-    private readonly _audioRecorder: BackgroundPageManager;
+    private readonly _audioRecorder: OffscreenAudioRecorder;
     private readonly _cardPublisher: CardPublisher;
 
     constructor(
         settingsProvider: SettingsProvider,
-        audioRecorder: BackgroundPageManager,
+        audioRecorder: OffscreenAudioRecorder,
         cardPublisher: CardPublisher
     ) {
         this._settingsProvider = settingsProvider;

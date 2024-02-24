@@ -17,7 +17,7 @@ interface Requester {
     src: string;
 }
 
-export default class BackgroundPageManager {
+export default class OffscreenAudioRecorder {
     private readonly _tabRegistry: TabRegistry;
     private audioBase64Resolve?: (value: string) => void;
 

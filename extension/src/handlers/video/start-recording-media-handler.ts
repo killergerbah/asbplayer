@@ -9,15 +9,15 @@ import {
     SubtitleModel,
     VideoToExtensionCommand,
 } from '@project/common';
-import BackgroundPageManager from '../../services/background-page-manager';
+import OffscreenAudioRecorder from '../../services/offscreen-audio-recorder';
 import { CardPublisher } from '../../services/card-publisher';
 
 export default class StartRecordingMediaHandler {
-    private readonly _audioRecorder: BackgroundPageManager;
+    private readonly _audioRecorder: OffscreenAudioRecorder;
     private readonly _imageCapturer: ImageCapturer;
     private readonly _cardPublisher: CardPublisher;
 
-    constructor(audioRecorder: BackgroundPageManager, imageCapturer: ImageCapturer, cardPublisher: CardPublisher) {
+    constructor(audioRecorder: OffscreenAudioRecorder, imageCapturer: ImageCapturer, cardPublisher: CardPublisher) {
         this._audioRecorder = audioRecorder;
         this._imageCapturer = imageCapturer;
         this._cardPublisher = cardPublisher;

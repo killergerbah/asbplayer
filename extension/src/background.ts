@@ -15,7 +15,7 @@ import AsbplayerHeartbeatHandler from './handlers/asbplayerv2/asbplayer-heartbea
 import RefreshSettingsHandler from './handlers/popup/refresh-settings-handler';
 import { CommandHandler } from './handlers/command-handler';
 import TakeScreenshotHandler from './handlers/video/take-screenshot-handler';
-import BackgroundPageManager from './services/background-page-manager';
+import OffscreenAudioRecorder from './services/offscreen-audio-recorder';
 import AudioBase64Handler from './handlers/offscreen-document/audio-base-64-handler';
 import AckTabsHandler from './handlers/asbplayerv2/ack-tabs-handler';
 import OpenExtensionShortcutsHandler from './handlers/asbplayerv2/open-extension-shortcuts-handler';
@@ -76,16 +76,16 @@ chrome.runtime.onInstalled.addListener(installListener);
 chrome.runtime.onStartup.addListener(startListener);
 
 const tabRegistry = new TabRegistry(settings);
-const backgroundPageManager = new BackgroundPageManager(tabRegistry, settings);
+const offscreenAudioRecorder = new OffscreenAudioRecorder(tabRegistry, settings);
 const imageCapturer = new ImageCapturer(settings);
 const cardPublisher = new CardPublisher(settings);
 
 const handlers: CommandHandler[] = [
     new VideoHeartbeatHandler(tabRegistry),
-    new RecordMediaHandler(backgroundPageManager, imageCapturer, cardPublisher, settings),
-    new RerecordMediaHandler(settings, backgroundPageManager, cardPublisher),
-    new StartRecordingMediaHandler(backgroundPageManager, imageCapturer, cardPublisher),
-    new StopRecordingMediaHandler(backgroundPageManager, imageCapturer, cardPublisher, settings),
+    new RecordMediaHandler(offscreenAudioRecorder, imageCapturer, cardPublisher, settings),
+    new RerecordMediaHandler(settings, offscreenAudioRecorder, cardPublisher),
+    new StartRecordingMediaHandler(offscreenAudioRecorder, imageCapturer, cardPublisher),
+    new StopRecordingMediaHandler(offscreenAudioRecorder, imageCapturer, cardPublisher, settings),
     new TakeScreenshotHandler(imageCapturer, cardPublisher),
     new ToggleSubtitlesHandler(settings, tabRegistry),
     new SyncHandler(tabRegistry),
@@ -108,7 +108,7 @@ const handlers: CommandHandler[] = [
     new ExtensionCommandsHandler(),
     new AsbplayerV2ToVideoCommandForwardingHandler(),
     new RefreshSettingsHandler(tabRegistry, settings),
-    new AudioBase64Handler(backgroundPageManager),
+    new AudioBase64Handler(offscreenAudioRecorder),
     new CaptureVisibleTabHandler(),
 ];
 
