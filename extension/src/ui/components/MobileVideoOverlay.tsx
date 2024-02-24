@@ -180,13 +180,15 @@ const MobileVideoOverlay = () => {
                 <Grid item>
                     <Tooltip title={miningButtonTooltip(model)!}>
                         {model.emptySubtitleTrack && model.recordingEnabled ? (
-                            <IconButton onClick={handleMineSubtitle}>
-                                <FiberManualRecordIcon
-                                    className={model.recording ? classes.recordingButton : classes.button}
-                                />
-                            </IconButton>
+                            // Wrap in span so that Tooltip doesn't complain about disabled child. Spacing also looks better.
+                            <span>
+                                <IconButton onClick={handleMineSubtitle}>
+                                    <FiberManualRecordIcon
+                                        className={model.recording ? classes.recordingButton : classes.button}
+                                    />
+                                </IconButton>
+                            </span>
                         ) : (
-                            // Wrap in span so that Tooltip doesn't complain about disabled child
                             <span>
                                 <IconButton disabled={miningButtonDisabled} onClick={handleMineSubtitle}>
                                     <NoteAddIcon
