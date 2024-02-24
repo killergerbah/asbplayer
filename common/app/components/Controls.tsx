@@ -1087,14 +1087,16 @@ export default function Controls({
                                 </div>
                             </Grid>
                             {offsetEnabled && !showVolumeBar && !isReallySmallScreen && (
-                                <Grid item>
-                                    <SubtitleOffsetInput
-                                        inputRef={offsetInputRef}
-                                        offset={offset}
-                                        onOffset={handleOffsetChange}
-                                        disableKeyEvents={disableKeyEvents}
-                                    />
-                                </Grid>
+                                <Tooltip title={t('controls.subtitleOffset')!}>
+                                    <Grid item>
+                                        <SubtitleOffsetInput
+                                            inputRef={offsetInputRef}
+                                            offset={offset}
+                                            onOffset={handleOffsetChange}
+                                            disableKeyEvents={disableKeyEvents}
+                                        />
+                                    </Grid>
+                                </Tooltip>
                             )}
                             {playbackRateEnabled && !showVolumeBar && !isReallySmallScreen && (
                                 <Grid item>

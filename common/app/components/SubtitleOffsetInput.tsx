@@ -1,5 +1,4 @@
 import Input from '@material-ui/core/Input';
-import Tooltip from '@material-ui/core/Tooltip';
 import React, { MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
@@ -90,18 +89,16 @@ export default function SubtitleOffsetInput({ inputRef, offset, onOffset, disabl
     }, [updateOffset, onOffset, disableKeyEvents, inputRef, offset]);
 
     return (
-        <Tooltip title={t('controls.subtitleOffset')!}>
-            <Input
-                style={{
-                    width: `${offsetInputWidth}ch`,
-                }}
-                inputRef={inputRef}
-                disableUnderline={true}
-                className={classes.input}
-                placeholder={'±' + Number(0).toFixed(2)}
-                onClick={handleNumberInputClicked}
-                onChange={(e) => setOffsetInputWidth(Math.max(5, e.target.value.length))}
-            />
-        </Tooltip>
+        <Input
+            style={{
+                width: `${offsetInputWidth}ch`,
+            }}
+            inputRef={inputRef}
+            disableUnderline={true}
+            className={classes.input}
+            placeholder={'±' + Number(0).toFixed(2)}
+            onClick={handleNumberInputClicked}
+            onChange={(e) => setOffsetInputWidth(Math.max(5, e.target.value.length))}
+        />
     );
 }
