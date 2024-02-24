@@ -62,33 +62,39 @@ Thank you to all those who have translated asbplayer:
 If you are a non-English native, and would like to help translate asbplayer, please contact me on [Discord](https://discord.gg/ad7VAQru7m).
 
 ## Getting Started
+> [!NOTE]  
+> asbplayer is both a subtitle control and flashcard creation tool. If you are not interested in flashcards, and only want to use asbplayer's subtitle features, you can read about them under [Subtitle features](#subtitle-features).
 
-First, see if you can get started with one of the [community guides](#community-guides).
+First, see if you can get started by following one of the [community guides](#community-guides).
 
-Otherwise, the following steps will work for any language:
+Otherwise, the following steps for setting up automated Anki flashcards should work for any language:
 
-1. Install a dictionary for your target language that allows you to do instant lookups. Popular ones are [Yomitan](https://chromewebstore.google.com/detail/yomitan/likgccmbimhjbgkjambclfkhldnlhbnn) for Japanese and [VocabSieve](https://github.com/FreeLanguageTools/vocabsieve) for European languages.
+1. Install and set up a dictionary tool for your target language that allows you to do instant lookups. Popular ones are [Yomitan](https://chromewebstore.google.com/detail/yomitan/likgccmbimhjbgkjambclfkhldnlhbnn) for Japanese and [VocabSieve](https://github.com/FreeLanguageTools/vocabsieve) for European languages.
 2. Install [Anki](https://apps.ankiweb.net/), and create a deck and note type.
-3. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
-4. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect using your deck and note type.
-
-5. Enhance a video using asbplayer and subtitle files.
+   - *Note: Use one of the [community guides](#community-guides) to learn how to set up an Anki deck.*
+4. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
+5. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect using your deck and note type.
+6. Enhance a video using asbplayer and subtitle files.
 
     - **For streaming video:** After installing the [Chrome extension](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab), drag-and-drop a subtitle file into the streaming video you want to mine.
     - **For local files:** Drag-and-drop media/subtitle files into the [asbplayer website](https://killergerbah.github.io/asbplayer).
 
     You may have to [adjust the subtitle offset](#adjusting-subtitle-offset) to get the subtitles in sync.
 
-6. When a subtitle appears that you want to mine, use <kbd>Ctrl + Shift + X</kbd> to open the flashcard creator.
-7. Fill in the definition and word fields and then export the card. To fill in the definition field you may use the dictionary you installed in step 1.
+7. When a subtitle appears that you want to mine, use <kbd>Ctrl + Shift + X</kbd> to open the flashcard creator.
+8. Fill in the definition and word fields and then export the card. To fill in the definition field you may use the dictionary you installed in step 1.
 
 ## Community guides
 
+Text guides: 
 -   [Shiki's Lazy Sentence Mining Workflow (Japanese)](https://docs.google.com/document/d/e/2PACX-1vQuEAoZFoJbULZzCJ3_tW7ayT_DcQl9eDlrXMnuPGTwDk62r5fQrXak3ayxBsEgkL85_Z-YY5W4yUom/pub)
 -   [Sentence mining from Netflix and YouTube with asbplayer (Japanese)](https://soyuz18.notion.site/Sentence-mining-from-Netflix-and-YouTube-with-asbplayer-83a03590cd8349ba81ca10340645b565)
+
+Video guides:
 -   [Refold's installation guide](https://www.youtube.com/watch?v=Pv4Sp01Uh64)
 -   [Refold's sentence mining guide (Japanese + European languages)](https://www.youtube.com/watch?v=jXO4gmCmcNE)
 -   [Sentence Mining: Learning Japanese From Anime (Japanese)](https://www.youtube.com/watch?v=B60cj69MSmA)
+-   [How to Setup and Use ASBPlayer for Vocab Mining (Japanese)](https://www.youtube.com/watch?v=D1tlb7zo8Og&ab_channel=pooks_)
 
 ## Demos
 
@@ -97,9 +103,16 @@ Otherwise, the following steps will work for any language:
 
 ## Detailed usage
 
-### Enhancing streaming video with asbplayer features
+To use asbplayer with streaming video, install the Chrome [extension](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab). Otherwise, use the [website](https://killergerbah.github.io/asbplayer/). 
 
-Install the Chrome [extension](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab). There are a number of ways to enhance streaming video with asbplayer:
+In order to make use of any of asbplayer's features, subtitles (or an empty subtitle track) must first be loaded, either onto a streaming video or a local video file. The following section instructs how to do this.
+
+---
+### Subtitle features
+
+#### Enhancing streaming video with asbplayer-controlled subtitles
+
+There are a number of ways to load subtitles with streaming video:
 
 1. Drag-and-drop a subtitle file into the video element you want to enhance.
 2. Load a subtitle file into the [asbplayer website](https://killergerbah.github.io/asbplayer/) and click on the camera in the bottom right to pick a video element to enhance. This is the recommended way to load BluRay subtitle files onto streaming video.
@@ -108,36 +121,17 @@ Install the Chrome [extension](https://chromewebstore.google.com/detail/asbplaye
 
 asbplayer features will then be accessible for that video.
 
-### Enhancing local video files with asbplayer features
+#### Enhancing local video files with asbplayer-controlled subtitles
 
 Drag-and-drop media and subtitle files into the [asbplayer website](https://killergerbah.github.io/asbplayer/) to load them. asbplayer features will then be accessible for those files. Not all media files may be compatible - see the [Browser Compatibility](#browser-compatibility) section.
 
-### Keyboard shortcuts
-
-Keyboard shortcuts are customizable from the [asbplayer website settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts). Once asbplayer has been bound to a video, you can use the keyboard shortcuts to access most of asbplayer's features.
-
-### Creating Anki flashcards
-
-Make sure [Anki](https://apps.ankiweb.net/) and [AnkiConnect](https://ankiweb.net/shared/info/2055492159) are installed. Integration with AnkiConnect can be configured in the [settings](https://killergerbah.github.io/asbplayer/?view=settings) as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
-
-When a subtitle that you want to mine appears, use <kbd>Ctrl + Shift + X</kbd> to open the flashcard creator.
-
-See the [keyboard shortcuts](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts) for other ways to interact with and create cards.
-
-### Adjusting Anki flashcards
-
-All text fields can be edited from the flashcard creator prior to flashcard creation.
-
-Adjust the selected time interval for the card using the slider at the bottom of the export dialog.
-The newly selected time interval can be applied to the card using the buttons available in the sentence and audio sections of the card. See this [video](https://youtu.be/BSr_JusW8E8?t=34) for a demo.
-
-### Adjusting subtitle offset
+#### Adjusting subtitle offset
 
 Use <kbd>Ctrl + Left/Right</kbd> to adjust subtitle offset so that the previous/next subtitle appears at the current timestamp. Then use <kbd>Ctrl + Shift + Left/Right</kbd> for finer adjustment by 100ms increments.
 
 If you are using the asblayer website, you can also use the `Subtitle Offset` text field available in the controls UI.
 
-### Subtitle track detection for streaming video
+#### Subtitle track detection for streaming video
 
 Use <kbd>Ctrl + Shift + F</kbd> to see auto-detected subtitle tracks for streaming video. Below are the sites where automatic subtitle detection is supported:
 
@@ -152,15 +146,62 @@ Use <kbd>Ctrl + Shift + F</kbd> to see auto-detected subtitle tracks for streami
 
 <kbd>Ctrl + Shift + F</kbd> also allows you to load an empty subtitle track so that you can extract audio and screenshots from streaming video without loading subtitles.
 
-### Extension side panel UI
+#### Filtering subtitle text
+
+If you'd like to filter out specific instances subtitle text, one way to do so is by using a regular expression (regex). asbplayer can match any sequence following a specified regex pattern and remove the matches.
+
+Under the MISC section in asbplayer settings, locate the "Subtitle regex filter" textbox. Enter an appropriate regex to filter desired content.
+You can replace filtered content similarly by entering a string into the "Subtitle regex filter text replacement" textbox. Leaving this blank will simply remove the content.
+
+Useful examples of regular expressions:
+ - `(\(|（).*(\)|）)` : Remove names enclosed by parenthesis to indicate speakers  (i.e. "**（山田）**　元気ですか？")
+ - `\[.*\]` : Remove indications enclosed by brackets that sound or music that is playing (i.e. "**\[PLAYFUL MUSIC]**")
+
+Learn how to write and test custom regular expressions at [Regex Learn - Playground](https://regexlearn.com/playground).
+
+#### Downloading subtitle files
+
+Once loaded into the extension, you can download the subtitles by opening the side panel and clicking the `Download Subtitles as SRT` button in the top-right. You can also download subtitles via the website by clicking the same download button in the top-left.
+
+> Note: Using the [regex feature](#filtering-subtitle-text) will alter the .srt that is downloaded.
+
+---
+### Anki integration
+
+#### Creating Anki flashcards
+
+Make sure [Anki](https://apps.ankiweb.net/) and [AnkiConnect](https://ankiweb.net/shared/info/2055492159) are installed. Integration with AnkiConnect can be configured in the [settings](https://killergerbah.github.io/asbplayer/?view=settings) as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
+
+When a subtitle that you want to mine appears, use <kbd>Ctrl + Shift + X</kbd> to open the flashcard creator.
+
+See the [keyboard shortcuts](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts) for other ways to interact with and create cards.
+
+#### Adjusting Anki flashcards
+
+All text fields can be edited from the flashcard creator prior to flashcard creation.
+
+Adjust the selected time interval for the card using the slider at the bottom of the export dialog.
+The newly selected time interval can be applied to the card using the buttons available in the sentence and audio sections of the card. See this [video](https://youtu.be/BSr_JusW8E8?t=34) for a demo.
+
+---
+### Other basic features
+
+#### Extension side panel UI
 
 Most of the extension features detailed above can be accessed through the extension's side panel UI. The side panel can be opened with the <kbd>\`</kbd> button or `Open Side Panel` from the extension popup.
 
-### Audio track selection for mkv files
+#### Keyboard shortcuts
+
+Keyboard shortcuts are customizable from the [asbplayer website settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts) or from accessing the extension directly. Once asbplayer has been bound to a video, you can use the keyboard shortcuts to access most of asbplayer's features.
+
+#### Audio track selection for mkv files
 
 An audio track selector will appear for `mkv` files if experimental web platform features are enabled from `chrome://flags`. Note that enabling this flag may cause issues with other features of asbplayer, such as card creation through the Chrome extension.
 
-### One-click mining flow
+---
+### Advanced features
+
+#### One-click mining flow
 
 The asbplayer website can be setup to support one-click mining workflows by integrating with other tools via its [WebSocket interface](#websocket-interface) and a locally-running proxy that intercepts AnkiConnect traffic. Below are steps to set up such a workflow using Yomitan:
 
@@ -177,7 +218,7 @@ The asbplayer website can be setup to support one-click mining workflows by inte
 
 See the proxy's [example configuration file](https://github.com/killergerbah/asbplayer/blob/main/scripts/anki-connect-proxy/.env.example) for how to further configure it.
 
-### WebSocket interface
+#### WebSocket interface
 
 The asbplayer website can be controlled remotely through a WebSocket connection, which enables [one-click mining flows](#one-click-mining-flow) with the right setup. Currently asbplayer responds to one type of payload:
 
