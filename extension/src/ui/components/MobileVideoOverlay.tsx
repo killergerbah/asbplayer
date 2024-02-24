@@ -23,7 +23,8 @@ import { ExtensionSettingsStorage } from '../../services/extension-settings-stor
 import SubtitleOffsetInput from '@project/common/app/components/SubtitleOffsetInput';
 import { useMobileVideoOverlayLocation } from '../hooks/use-mobile-video-overlay-location';
 import { useMobileVideoOverlayModel } from '../hooks/use-mobile-video-overlay-model';
-import { makeStyles, withStyles } from '@material-ui/core/styles';
+import makeStyles from '@material-ui/core/styles/makeStyles';
+import withStyles from '@material-ui/core/styles/withStyles';
 import { useI18n } from '../hooks/use-i18n';
 import { useTranslation } from 'react-i18next';
 import MuiTooltip from '@material-ui/core/Tooltip';

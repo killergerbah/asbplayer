@@ -1,6 +1,6 @@
 import Input from '@material-ui/core/Input';
-import React, { MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import React, { MutableRefObject, useCallback, useEffect, useState } from 'react';
+import makeStyles from '@material-ui/core/styles/makeStyles';
 import { useTranslation } from 'react-i18next';
 
 const useStyles = makeStyles({
