@@ -162,17 +162,22 @@ const MobileVideoOverlay = () => {
                                 />
                             </IconButton>
                         ) : (
-                            <IconButton disabled={miningButtonDisabled} onClick={handleMineSubtitle}>
-                                <NoteAddIcon className={miningButtonDisabled ? '' : classes.button} />
-                            </IconButton>
+                            // Wrap in span so that Tooltip doesn't complain about disabled child
+                            <span>
+                                <IconButton disabled={miningButtonDisabled} onClick={handleMineSubtitle}>
+                                    <NoteAddIcon className={miningButtonDisabled ? '' : classes.button} />
+                                </IconButton>
+                            </span>
                         )}
                     </Tooltip>
                 </Grid>
                 <Grid item>
                     <Tooltip title={t('action.loadSubtitles')!}>
-                        <IconButton disabled={model.recording} onClick={handleLoadSubtitles}>
-                            <SubtitlesIcon className={model.recording ? '' : classes.button} />
-                        </IconButton>
+                        <span>
+                            <IconButton disabled={model.recording} onClick={handleLoadSubtitles}>
+                                <SubtitlesIcon className={model.recording ? '' : classes.button} />
+                            </IconButton>
+                        </span>
                     </Tooltip>
                 </Grid>
                 {!model.emptySubtitleTrack && (
