@@ -4,7 +4,7 @@ import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
 import { SubtitleTextImage } from '@project/common';
 
-const tagRegex = RegExp('</?([^>]*)>', 'ig');
+const tagRegex = RegExp(/<([^>]+)>([^]*)<\/\1>/s, 'ig');
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
 const helperElement = document.createElement('div');
 
@@ -67,7 +67,7 @@ export default class SubtitleReader {
                 return {
                     start: Math.floor((node.startTime as number) * 1000),
                     end: Math.floor((node.endTime as number) * 1000),
-                    text: this._filterText(node.text).replace(tagRegex, ''),
+                    text: this._filterText(node.text).replace(tagRegex, '$2'),
                     track: track,
                 };
             });
@@ -79,7 +79,7 @@ export default class SubtitleReader {
                 const parser = new WebVTT.Parser(window, WebVTT.StringDecoder());
                 const cues: any[] = [];
                 parser.oncue = (c: any) => {
-                    c.text = this._filterText(c.text).replace(tagRegex, '');
+                    c.text = this._filterText(c.text).replace(tagRegex, '$2');
 
                     if (isFromNetflix) {
                         const lines = c.text.split('\n');
@@ -145,7 +145,7 @@ export default class SubtitleReader {
                 const subtitle = {
                     start: Math.floor(start * 1000),
                     end: Math.floor((start + parseFloat(elm['@_dur'])) * 1000),
-                    text: this._filterText(this._decodeHTML(String(elm['#text'])).replace(tagRegex, '')),
+                    text: this._filterText(this._decodeHTML(String(elm['#text'])).replace(tagRegex, '$2')),
                     track,
                 };
 
