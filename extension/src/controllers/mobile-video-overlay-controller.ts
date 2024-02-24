@@ -11,7 +11,7 @@ import { adjacentSubtitle } from '@project/common/key-binder';
 
 export class MobileVideoOverlayController {
     private readonly _context: Binding;
-    private readonly _overlay: ElementOverlay;
+    private _overlay: ElementOverlay;
     private _pauseListener?: () => void;
     private _playListener?: () => void;
     private _forceHiding: boolean = false;
@@ -24,17 +24,38 @@ export class MobileVideoOverlayController {
     ) => void;
     private _bound = false;
 
-    constructor(context: Binding) {
+    constructor(context: Binding, offsetAnchor: OffsetAnchor) {
         this._context = context;
-        this._overlay = new CachingElementOverlay({
-            targetElement: this._context.video,
-            nonFullscreenContainerClassName: 'asbplayer-mobile-video-overlay-container',
-            fullscreenContainerClassName: 'asbplayer-mobile-video-overlay-container',
+        this._overlay = MobileVideoOverlayController._elementOverlay(context.video, offsetAnchor);
+    }
+
+    private static _elementOverlay(video: HTMLMediaElement, offsetAnchor: OffsetAnchor) {
+        const containerClassName =
+            offsetAnchor === OffsetAnchor.top
+                ? 'asbplayer-mobile-video-overlay-container-top'
+                : 'asbplayer-mobile-video-overlay-container-bottom';
+        return new CachingElementOverlay({
+            targetElement: video,
+            nonFullscreenContainerClassName: containerClassName,
+            fullscreenContainerClassName: containerClassName,
             nonFullscreenContentClassName: 'asbplayer-mobile-video-overlay',
             fullscreenContentClassName: 'asbplayer-mobile-video-overlay',
-            offsetAnchor: OffsetAnchor.top,
+            offsetAnchor,
             contentPositionOffset: 8,
         });
+    }
+
+    set offsetAnchor(value: OffsetAnchor) {
+        if (this._overlay.offsetAnchor === value) {
+            return;
+        }
+
+        this._overlay.dispose();
+        this._overlay = MobileVideoOverlayController._elementOverlay(this._context.video, value);
+
+        if (this._showing) {
+            this._doShow();
+        }
     }
 
     set forceHide(forceHide: boolean) {
@@ -44,7 +65,7 @@ export class MobileVideoOverlayController {
 
         if (forceHide) {
             if (this._showing) {
-                this._hide();
+                this._doHide();
                 this._forceHiding = true;
             }
         } else {
@@ -149,13 +170,18 @@ export class MobileVideoOverlayController {
             return;
         }
 
+        this._doShow();
+    }
+
+    private _doShow() {
+        const anchor = this._overlay.offsetAnchor === OffsetAnchor.bottom ? 'bottom' : 'top';
         this._overlay.setHtml([
             {
                 key: 'ui',
                 html: () =>
                     `<iframe style="border: 0; color-scheme: normal" src="${chrome.runtime.getURL(
                         'mobile-video-overlay-ui.html'
-                    )}?src=${encodeURIComponent(this._context.video.src)}"/>`,
+                    )}?src=${encodeURIComponent(this._context.video.src)}&anchor=${anchor}"/>`,
             },
         ]);
         this._showing = true;
@@ -166,6 +192,10 @@ export class MobileVideoOverlayController {
             return;
         }
 
+        this._doHide();
+    }
+
+    private _doHide() {
         this._overlay.hide();
         this._showing = false;
     }

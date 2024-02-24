@@ -152,7 +152,7 @@ const MobileVideoOverlay = () => {
 
     return (
         <Fade in timeout={300}>
-            <GridContainer direction="row" className={classes.container}>
+            <GridContainer direction="row" wrap="nowrap" className={classes.container}>
                 <Grid item>
                     <Tooltip title={miningButtonTooltip(model)!}>
                         {model.emptySubtitleTrack && model.recordingEnabled ? (

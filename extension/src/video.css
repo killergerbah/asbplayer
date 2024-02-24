@@ -144,10 +144,19 @@
     top: 100% !important;
 }
 
-.asbplayer-mobile-video-overlay-container {
+.asbplayer-mobile-video-overlay-container-top {
     position: absolute !important;
     left: 50% !important;
     transform: translate(-50%) !important;
+    display: inline-block !important;
+    z-index: 2147483647 !important;
+    text-align: center !important;
+}
+
+.asbplayer-mobile-video-overlay-container-bottom {
+    position: absolute !important;
+    left: 50% !important;
+    transform: translate(-50%, -100%) !important;
     display: inline-block !important;
     z-index: 2147483647 !important;
     text-align: center !important;

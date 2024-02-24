@@ -148,6 +148,10 @@ export default class SubtitleController {
         this._subtitleAlignment = value;
     }
 
+    get subtitleAlignment() {
+        return this._subtitleAlignment;
+    }
+
     private _applyElementOverlayParams(overlay: ElementOverlay, params: ElementOverlayParams) {
         overlay.offsetAnchor = params.offsetAnchor;
         overlay.fullscreenContainerClassName = params.fullscreenContainerClassName;

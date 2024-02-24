@@ -50,6 +50,7 @@ import { i18nInit } from './i18n';
 import KeyBindings from './key-bindings';
 import { SubtitleSlice } from '@project/common/subtitle-collection';
 import { MobileVideoOverlayController } from '../controllers/mobile-video-overlay-controller';
+import { OffsetAnchor } from './element-overlay';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -123,7 +124,7 @@ export default class Binding {
         this.keyBindings = new KeyBindings();
         this.ankiUiController = new AnkiUiController();
         this.requestActiveTabPermissionController = new ActiveTabPermissionRequestController(this);
-        this.mobileVideoOverlayController = new MobileVideoOverlayController(this);
+        this.mobileVideoOverlayController = new MobileVideoOverlayController(this, OffsetAnchor.top);
         this.subtitleController.onOffsetChange = () => this.mobileVideoOverlayController.updateModel();
         this.recordMedia = true;
         this.takeScreenshot = true;
@@ -685,6 +686,8 @@ export default class Binding {
         }
 
         if (currentSettings.streamingEnableOverlay) {
+            this.mobileVideoOverlayController.offsetAnchor =
+                currentSettings.subtitleAlignment === 'bottom' ? OffsetAnchor.top : OffsetAnchor.bottom;
             this.mobileVideoOverlayController.bind();
             this.mobileVideoOverlayController.updateModel();
         } else {
