@@ -14,6 +14,7 @@ export class MobileVideoOverlayController {
     private _overlay: ElementOverlay;
     private _pauseListener?: () => void;
     private _playListener?: () => void;
+    private _seekedListener?: () => void;
     private _forceHiding: boolean = false;
     private _showing: boolean = false;
     private _tabId?: number;
@@ -87,9 +88,13 @@ export class MobileVideoOverlayController {
         this._playListener = () => {
             this._hide();
         };
+        this._seekedListener = () => {
+            this.updateModel();
+        };
 
         this._context.video.addEventListener('pause', this._pauseListener);
         this._context.video.addEventListener('play', this._playListener);
+        this._context.video.addEventListener('seeked', this._seekedListener);
         this._messageListener = (
             message: any,
             sender: chrome.runtime.MessageSender,
@@ -209,6 +214,11 @@ export class MobileVideoOverlayController {
         if (this._playListener) {
             this._context.video.removeEventListener('play', this._playListener);
             this._playListener = undefined;
+        }
+
+        if (this._seekedListener) {
+            this._context.video.removeEventListener('seeked', this._seekedListener);
+            this._seekedListener = undefined;
         }
 
         if (this._messageListener) {
