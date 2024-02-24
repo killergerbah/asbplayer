@@ -18,22 +18,20 @@ document.addEventListener(
                 .then((pageString) => new window.DOMParser().parseFromString(pageString, 'text/html'))
                 .then((page) => {
                     const scriptElements = page.body.querySelectorAll('script');
-                    let playerScript;
 
                     for (let i = 0; i < scriptElements.length; ++i) {
                         const elm = scriptElements[i];
 
                         if (elm.textContent?.includes('ytInitialPlayerResponse')) {
-                            playerScript = elm;
-                            break;
+                            const context = new Function(`${elm.textContent}; return ytInitialPlayerResponse;`)();
+
+                            if (context) {
+                                return context;
+                            }
                         }
                     }
 
-                    if (!playerScript) {
-                        throw new Error('YT Player Context not found...');
-                    }
-
-                    return new Function(`${playerScript.textContent}; return ytInitialPlayerResponse;`)();
+                    return undefined;
                 });
 
             if (!playerContext) {
@@ -44,7 +42,7 @@ document.addEventListener(
             response.subtitles = (playerContext?.captions?.playerCaptionsTracklistRenderer?.captionTracks || []).map(
                 (track: any) => {
                     return {
-                        label: `${track.languageCode} - ${track.name?.simpleText}`,
+                        label: `${track.languageCode} - ${track.name?.simpleText ?? track.name?.runs?.[0]?.text}`,
                         language: track.languageCode.toLowerCase(),
                         url: track.baseUrl,
                         extension: 'ytxml',

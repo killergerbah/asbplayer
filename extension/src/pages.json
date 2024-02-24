@@ -9,7 +9,7 @@
             }
         },
         {
-            "host": "www\\.youtube\\.com",
+            "host": "(m|www)\\.youtube\\.com",
             "script": "youtube-page.js",
             "path": "watch",
             "autoSync": {
