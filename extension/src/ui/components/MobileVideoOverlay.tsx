@@ -1,5 +1,6 @@
 import Fade from '@material-ui/core/Fade';
 import Grid, { GridProps } from '@material-ui/core/Grid';
+import Box from '@material-ui/core/Box';
 import IconButton from '@material-ui/core/IconButton';
 import NoteAddIcon from '@material-ui/icons/NoteAdd';
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
@@ -24,6 +25,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { useI18n } from '../hooks/use-i18n';
 import { useTranslation } from 'react-i18next';
 import { Tooltip } from '@material-ui/core';
+import LogoIcon from '@project/common/components/LogoIcon';
 
 const useStyles = makeStyles({
     button: {
@@ -156,6 +158,11 @@ const MobileVideoOverlay = () => {
     return (
         <Fade in timeout={300}>
             <GridContainer direction="row" wrap="nowrap" className={classes.container}>
+                <Grid item>
+                    <Box p={1.5} pl={2}>
+                        <LogoIcon />
+                    </Box>
+                </Grid>
                 <Grid item>
                     <Tooltip title={miningButtonTooltip(model)!}>
                         {model.emptySubtitleTrack && model.recordingEnabled ? (
