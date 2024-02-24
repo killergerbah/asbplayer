@@ -35,7 +35,7 @@ export default class StartRecordingMediaHandler {
         const startRecordingCommand = command as VideoToExtensionCommand<StartRecordingMediaMessage>;
 
         if (startRecordingCommand.message.record) {
-            this._audioRecorder.start({ src: startRecordingCommand.src, tabId: sender.tab?.id });
+            this._audioRecorder.start({ src: startRecordingCommand.src, tabId: sender.tab?.id! });
         }
 
         let imageBase64: string | undefined;

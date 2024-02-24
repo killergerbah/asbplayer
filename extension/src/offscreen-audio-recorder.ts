@@ -1,19 +1,14 @@
 import {
     StartRecordingAudioWithTimeoutMessage,
     StopRecordingAudioMessage,
-    BackgroundPageToExtensionCommand,
-    BackgroundPageReadyMessage,
     AudioBase64Message,
+    StartRecordingAudioMessage,
+    OffscreenDocumentToExtensionCommand,
 } from '@project/common';
-import { SettingsProvider } from '@project/common/settings';
 import AudioRecorder from './services/audio-recorder';
 import { bufferToBase64 } from './services/base64';
-import i18n from 'i18next';
-import { ExtensionSettingsStorage } from './services/extension-settings-storage';
-import { i18nInit } from './services/i18n';
 import { Mp3Encoder } from '@project/common/audio-clip';
 
-const settings = new SettingsProvider(new ExtensionSettingsStorage());
 const audioRecorder = new AudioRecorder();
 
 const _sendAudioBase64 = async (base64: string, preferMp3: boolean) => {
@@ -26,8 +21,8 @@ const _sendAudioBase64 = async (base64: string, preferMp3: boolean) => {
         base64 = bufferToBase64(await mp3Blob.arrayBuffer());
     }
 
-    const command: BackgroundPageToExtensionCommand<AudioBase64Message> = {
-        sender: 'asbplayer-background-page',
+    const command: OffscreenDocumentToExtensionCommand<AudioBase64Message> = {
+        sender: 'asbplayer-offscreen-document',
         message: {
             command: 'audio-base64',
             base64: base64,
@@ -39,24 +34,29 @@ const _sendAudioBase64 = async (base64: string, preferMp3: boolean) => {
 
 window.onload = async () => {
     const listener = (request: any, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
-        if (request.sender === 'asbplayer-extension-to-background-page') {
+        if (request.sender === 'asbplayer-extension-to-offscreen-document') {
             switch (request.message.command) {
                 case 'start-recording-audio-with-timeout':
                     const startRecordingAudioWithTimeoutMessage =
                         request.message as StartRecordingAudioWithTimeoutMessage;
                     audioRecorder
-                        .startWithTimeout(startRecordingAudioWithTimeoutMessage.timeout, () => sendResponse(true))
+                        .startWithTimeout(
+                            startRecordingAudioWithTimeoutMessage.streamId,
+                            startRecordingAudioWithTimeoutMessage.timeout,
+                            () => sendResponse(true)
+                        )
                         .then((audioBase64) =>
                             _sendAudioBase64(audioBase64, startRecordingAudioWithTimeoutMessage.preferMp3)
                         )
                         .catch((e) => {
-                            console.error(e);
+                            console.error(e instanceof Error ? e.message : String(e));
                             sendResponse(false);
                         });
                     return true;
                 case 'start-recording-audio':
+                    const startRecordingAudioMessage = request.message as StartRecordingAudioMessage;
                     audioRecorder
-                        .start()
+                        .start(startRecordingAudioMessage.streamId)
                         .then(() => sendResponse(true))
                         .catch((e) => {
                             console.error(e);
@@ -77,20 +77,4 @@ window.onload = async () => {
     window.addEventListener('beforeunload', (event) => {
         chrome.runtime.onMessage.removeListener(listener);
     });
-
-    const readyCommand: BackgroundPageToExtensionCommand<BackgroundPageReadyMessage> = {
-        sender: 'asbplayer-background-page',
-        message: {
-            command: 'background-page-ready',
-        },
-    };
-    const acked = await chrome.runtime.sendMessage(readyCommand);
-
-    if (!acked) {
-        window.close();
-    }
-
-    const language = await settings.getSingle('language');
-    await i18nInit(language);
-    document.getElementById('helper-text')!.innerHTML = i18n.t('extension.backgroundAudioRecordingPage.description');
 };

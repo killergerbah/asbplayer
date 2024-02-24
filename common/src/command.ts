@@ -60,12 +60,12 @@ export interface ExtensionToAsbPlayerCommandTabsCommand extends Command<TabsMess
     readonly sender: 'asbplayer-extension-to-player';
 }
 
-export interface ExtensionToBackgroundPageCommand<T extends Message> extends Command<T> {
-    readonly sender: 'asbplayer-extension-to-background-page';
+export interface ExtensionToOffscreenDocumentCommand<T extends Message> extends Command<T> {
+    readonly sender: 'asbplayer-extension-to-offscreen-document';
 }
 
-export interface BackgroundPageToExtensionCommand<T extends Message> extends Command<T> {
-    readonly sender: 'asbplayer-background-page';
+export interface OffscreenDocumentToExtensionCommand<T extends Message> extends Command<T> {
+    readonly sender: 'asbplayer-offscreen-document';
 }
 
 export interface MobileOverlayToVideoCommand<T extends Message> extends Command<T> {

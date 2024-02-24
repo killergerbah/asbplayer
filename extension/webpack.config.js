@@ -33,7 +33,7 @@ module.exports = (env, options) => ({
         'ftue-ui': './src/ftue-ui.ts',
         'mobile-video-overlay-ui': './src/mobile-video-overlay-ui.ts',
         asbplayer: './src/asbplayer.ts',
-        'background-page': './src/background-page.ts',
+        'offscreen-audio-recorder': './src/offscreen-audio-recorder.ts',
         'mp3-encoder-worker': '../common/audio-clip/mp3-encoder-worker.ts',
         'pgs-parser-worker': '../common/subtitle-reader/pgs-parser-worker.ts',
         ...Object.fromEntries(

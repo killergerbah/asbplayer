@@ -59,7 +59,7 @@ export default class RecordMediaHandler {
                     recordMediaCommand.message.audioPaddingEnd;
                 audioPromise = this._audioRecorder.startWithTimeout(time, preferMp3, {
                     src: recordMediaCommand.src,
-                    tabId: sender.tab?.id,
+                    tabId: sender.tab?.id!,
                 });
             }
 

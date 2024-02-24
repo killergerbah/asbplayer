@@ -15,7 +15,7 @@ export default class AudioRecorder {
         this.blobPromise = null;
     }
 
-    startWithTimeout(time: number, onStartedCallback: () => void): Promise<string> {
+    startWithTimeout(streamId: string, time: number, onStartedCallback: () => void): Promise<string> {
         return new Promise(async (resolve, reject) => {
             try {
                 if (this.recording) {
@@ -24,7 +24,7 @@ export default class AudioRecorder {
                     return;
                 }
 
-                await this.start();
+                await this.start(streamId);
                 onStartedCallback();
                 setTimeout(async () => {
                     resolve(await this.stop());
@@ -35,19 +35,23 @@ export default class AudioRecorder {
         });
     }
 
-    async start(): Promise<void> {
+    async start(streamId: string): Promise<void> {
         if (this.recording) {
             console.error('Already recording, cannot start');
             return;
         }
 
-        return new Promise((resolve, reject) => {
-            chrome.tabCapture.capture({ audio: true }, (stream) => {
-                if (!stream) {
-                    reject(new Error(chrome.runtime.lastError?.message ?? 'Missing stream'));
-                    return;
-                }
-
+        return new Promise(async (resolve, reject) => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        // @ts-ignore
+                        mandatory: {
+                            chromeMediaSource: 'tab',
+                            chromeMediaSourceId: streamId,
+                        },
+                    },
+                });
                 const recorder = new MediaRecorder(stream);
                 const chunks: BlobPart[] = [];
                 recorder.ondataavailable = (e) => {
@@ -68,7 +72,9 @@ export default class AudioRecorder {
                 this.stream = stream;
                 this.audio = audio;
                 resolve(undefined);
-            });
+            } catch (e) {
+                reject(e);
+            }
         });
     }
 

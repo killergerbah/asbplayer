@@ -16,8 +16,7 @@ import RefreshSettingsHandler from './handlers/popup/refresh-settings-handler';
 import { CommandHandler } from './handlers/command-handler';
 import TakeScreenshotHandler from './handlers/video/take-screenshot-handler';
 import BackgroundPageManager from './services/background-page-manager';
-import BackgroundPageReadyHandler from './handlers/backgroundpage/background-page-ready-handler';
-import AudioBase64Handler from './handlers/backgroundpage/audio-base-64-handler';
+import AudioBase64Handler from './handlers/offscreen-document/audio-base-64-handler';
 import AckTabsHandler from './handlers/asbplayerv2/ack-tabs-handler';
 import OpenExtensionShortcutsHandler from './handlers/asbplayerv2/open-extension-shortcuts-handler';
 import ExtensionCommandsHandler from './handlers/asbplayerv2/extension-commands-handler';
@@ -109,7 +108,6 @@ const handlers: CommandHandler[] = [
     new ExtensionCommandsHandler(),
     new AsbplayerV2ToVideoCommandForwardingHandler(),
     new RefreshSettingsHandler(tabRegistry, settings),
-    new BackgroundPageReadyHandler(backgroundPageManager),
     new AudioBase64Handler(backgroundPageManager),
     new CaptureVisibleTabHandler(),
 ];

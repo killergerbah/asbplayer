@@ -45,7 +45,7 @@ export default class RerecordMediaHandler {
                     rerecordCommand.message.duration / rerecordCommand.message.playbackRate +
                         rerecordCommand.message.audioPaddingEnd,
                     preferMp3,
-                    { src: rerecordCommand.src, tabId: sender.tab?.id }
+                    { src: rerecordCommand.src, tabId: sender.tab?.id! }
                 ),
                 extension: preferMp3 ? 'mp3' : 'webm',
                 paddingStart: rerecordCommand.message.audioPaddingStart,

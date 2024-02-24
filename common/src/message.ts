@@ -432,10 +432,12 @@ export interface StartRecordingAudioWithTimeoutMessage extends Message {
     readonly command: 'start-recording-audio-with-timeout';
     readonly timeout: number;
     readonly preferMp3: boolean;
+    readonly streamId: string;
 }
 
-export interface StartRecordingAudio extends Message {
+export interface StartRecordingAudioMessage extends Message {
     readonly command: 'start-recording-audio';
+    readonly streamId: string;
 }
 
 export interface StopRecordingAudioMessage extends Message {
