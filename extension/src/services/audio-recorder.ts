@@ -4,14 +4,12 @@ export default class AudioRecorder {
     private recording: boolean;
     private recorder: MediaRecorder | null;
     private stream: MediaStream | null;
-    private audio: HTMLAudioElement | null;
     private blobPromise: Promise<Blob> | null;
 
     constructor() {
         this.recording = false;
         this.recorder = null;
         this.stream = null;
-        this.audio = null;
         this.blobPromise = null;
     }
 
@@ -63,14 +61,13 @@ export default class AudioRecorder {
                     };
                 });
                 recorder.start();
-                const audio = new Audio();
-                audio.srcObject = stream;
-                audio.play();
+                const output = new AudioContext();
+                const source = output.createMediaStreamSource(stream);
+                source.connect(output.destination);
 
                 this.recorder = recorder;
                 this.recording = true;
                 this.stream = stream;
-                this.audio = audio;
                 resolve(undefined);
             } catch (e) {
                 reject(e);
@@ -86,15 +83,8 @@ export default class AudioRecorder {
         this.recording = false;
         this.recorder?.stop();
         this.recorder = null;
-        this.stream?.getAudioTracks()[0].stop();
+        this.stream?.getTracks()?.forEach((t) => t.stop());
         this.stream = null;
-
-        if (this.audio) {
-            this.audio.pause();
-            this.audio.srcObject = null;
-            this.audio = null;
-        }
-
         const blob = await this.blobPromise;
         this.blobPromise = null;
         return await bufferToBase64(await blob!.arrayBuffer());
