@@ -51,6 +51,8 @@ import KeyBindings from './key-bindings';
 import { SubtitleSlice } from '@project/common/subtitle-collection';
 import { MobileVideoOverlayController } from '../controllers/mobile-video-overlay-controller';
 import { OffsetAnchor } from './element-overlay';
+import { MobileGestureController } from '../controllers/mobile-gesture-controller';
+import { adjacentSubtitle } from '@project/common/key-binder';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -82,6 +84,7 @@ export default class Binding {
     readonly ankiUiController: AnkiUiController;
     readonly requestActiveTabPermissionController: ActiveTabPermissionRequestController;
     readonly mobileVideoOverlayController: MobileVideoOverlayController;
+    readonly mobileGestureController: MobileGestureController;
     readonly keyBindings: KeyBindings;
     readonly settings: SettingsProvider;
 
@@ -126,6 +129,7 @@ export default class Binding {
         this.requestActiveTabPermissionController = new ActiveTabPermissionRequestController(this);
         this.mobileVideoOverlayController = new MobileVideoOverlayController(this, OffsetAnchor.top);
         this.subtitleController.onOffsetChange = () => this.mobileVideoOverlayController.updateModel();
+        this.mobileGestureController = new MobileGestureController(this);
         this.recordMedia = true;
         this.takeScreenshot = true;
         this.cleanScreenshot = true;
@@ -331,6 +335,22 @@ export default class Binding {
         });
         this.subtitleController.bind();
         this.dragController.bind(this);
+        this.mobileGestureController.bind();
+
+        const seek = (forward: boolean) => {
+            const subtitle = adjacentSubtitle(
+                forward,
+                this.video.currentTime * 1000,
+                this.subtitleController.subtitles
+            );
+
+            if (subtitle !== null) {
+                this.seek(subtitle.start / 1000);
+            }
+        };
+
+        this.mobileGestureController.onSwipeLeft = () => seek(false);
+        this.mobileGestureController.onSwipeRight = () => seek(true);
     }
 
     _notifyReady() {
@@ -739,6 +759,7 @@ export default class Binding {
         this.keyBindings.unbind();
         this.videoDataSyncController.unbind();
         this.mobileVideoOverlayController.unbind();
+        this.mobileGestureController.unbind();
         this.subscribed = false;
 
         const command: VideoToExtensionCommand<VideoDisappearedMessage> = {
