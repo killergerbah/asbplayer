@@ -18,7 +18,8 @@
         "startRecording": "Iniciar gravação",
         "stopRecording": "Parar gravação",
         "importSettings": "Importar configurações",
-        "exportSettings": "Exportar configurações"
+        "exportSettings": "Exportar configurações",
+        "hideOverlay": "Hide Overlay"
     },
     "postMineAction": {
         "none": "Nada",

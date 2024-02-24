@@ -18,7 +18,8 @@
         "startRecording": "録音開始",
         "stopRecording": "録音停止",
         "importSettings": "設定をインポートする",
-        "exportSettings": "設定をエクスポートする"
+        "exportSettings": "設定をエクスポートする",
+        "hideOverlay": "オーバーレイを非表示"
     },
     "postMineAction": {
         "none": "何もしない",

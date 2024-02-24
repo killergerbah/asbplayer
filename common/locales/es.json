@@ -18,7 +18,8 @@
         "startRecording": "Comenzar Grabación",
         "stopRecording": "Finalizar Grabación",
         "importSettings": "Importar Ajustes",
-        "exportSettings": "Exportar Ajustes"
+        "exportSettings": "Exportar Ajustes",
+        "hideOverlay": "Hide Overlay"
     },
     "postMineAction": {
         "none": "Ninguna",

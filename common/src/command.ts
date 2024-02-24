@@ -77,3 +77,7 @@ export interface VideoToMobileOverlayCommand<T extends Message> extends Command<
     readonly sender: 'asbplayer-video-to-mobile-overlay';
     readonly src: string;
 }
+
+export interface MobileOverlayCommand<T extends Message> extends Command<T> {
+    readonly sender: 'asbplayer-mobile-overlay';
+}

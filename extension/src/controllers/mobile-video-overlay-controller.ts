@@ -122,7 +122,7 @@ export class MobileVideoOverlayController {
     }
 
     async updateModel() {
-        if (this._tabId === undefined) {
+        if (!this._bound || this._tabId === undefined) {
             return;
         }
 
@@ -184,7 +184,7 @@ export class MobileVideoOverlayController {
             {
                 key: 'ui',
                 html: () =>
-                    `<iframe style="border: 0; color-scheme: normal" src="${chrome.runtime.getURL(
+                    `<iframe style="border: 0; color-scheme: normal; width: 400px; height: 130px" src="${chrome.runtime.getURL(
                         'mobile-video-overlay-ui.html'
                     )}?src=${encodeURIComponent(this._context.video.src)}&anchor=${anchor}"/>`,
             },

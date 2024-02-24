@@ -12,9 +12,11 @@ import {
     CopySubtitleMessage,
     ExtensionToVideoCommand,
     LoadSubtitlesMessage,
+    MobileOverlayCommand,
     MobileOverlayModel,
     OffsetToVideoMessage,
     PostMineAction,
+    SettingsUpdatedMessage,
 } from '@project/common';
 import { SettingsProvider } from '@project/common/settings';
 import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
@@ -26,6 +28,7 @@ import { useI18n } from '../hooks/use-i18n';
 import { useTranslation } from 'react-i18next';
 import { Tooltip } from '@material-ui/core';
 import LogoIcon from '@project/common/components/LogoIcon';
+import CloseIcon from '@material-ui/icons/Close';
 
 const useStyles = makeStyles({
     button: {
@@ -120,6 +123,17 @@ const MobileVideoOverlay = () => {
 
         handleOffset(model.currentTimestamp - model.nextSubtitleTimestamp);
     }, [handleOffset, model]);
+
+    const handleDisableOverlay = useCallback(async () => {
+        await settings.set({ streamingEnableOverlay: false });
+        const command: MobileOverlayCommand<SettingsUpdatedMessage> = {
+            sender: 'asbplayer-mobile-overlay',
+            message: {
+                command: 'settings-updated',
+            },
+        };
+        chrome.runtime.sendMessage(command);
+    }, []);
 
     const { initialized: i18nInitialized } = useI18n({ language: model?.language ?? 'en' });
     const { t } = useTranslation();
@@ -217,6 +231,15 @@ const MobileVideoOverlay = () => {
                         </Grid>
                     </>
                 )}
+                <Grid item>
+                    <Tooltip title={t('action.hideOverlay')!}>
+                        <span>
+                            <IconButton disabled={model.recording} onClick={handleDisableOverlay}>
+                                <CloseIcon className={classes.button} />
+                            </IconButton>
+                        </span>
+                    </Tooltip>
+                </Grid>
             </GridContainer>
         </Fade>
     );
