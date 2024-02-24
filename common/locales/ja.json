@@ -19,7 +19,9 @@
         "stopRecording": "録音停止",
         "importSettings": "設定をインポートする",
         "exportSettings": "設定をエクスポートする",
-        "hideOverlay": "オーバーレイを非表示"
+        "hideOverlay": "オーバーレイを非表示",
+        "decreaseOffsetButton": "次の字幕を現在のタイムスタンプに合わせる。長押しすると、字幕表示タイミングが100msずつ変わる。",
+        "increaseOffsetButton": "前の字幕を現在のタイムスタンプに合わせる。長押しすると、字幕表示タイミングが100msずつ変わる。"
     },
     "postMineAction": {
         "none": "何もしない",

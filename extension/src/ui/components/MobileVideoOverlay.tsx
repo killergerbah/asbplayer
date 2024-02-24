@@ -29,6 +29,7 @@ import { useTranslation } from 'react-i18next';
 import { Tooltip } from '@material-ui/core';
 import LogoIcon from '@project/common/components/LogoIcon';
 import CloseIcon from '@material-ui/icons/Close';
+import HoldableIconButton from './HoldableIconButton';
 
 const useStyles = makeStyles({
     button: {
@@ -124,6 +125,22 @@ const MobileVideoOverlay = () => {
         handleOffset(model.currentTimestamp - model.nextSubtitleTimestamp);
     }, [handleOffset, model]);
 
+    const handleIncrementOffset = useCallback(() => {
+        if (!model) {
+            return;
+        }
+
+        handleOffset(model.offset + 100);
+    }, [handleOffset, model]);
+
+    const handleDecrementOffset = useCallback(() => {
+        if (!model) {
+            return;
+        }
+
+        handleOffset(model.offset - 100);
+    }, [handleOffset, model]);
+
     const handleDisableOverlay = useCallback(async () => {
         await settings.set({ streamingEnableOverlay: false });
         const command: MobileOverlayCommand<SettingsUpdatedMessage> = {
@@ -211,11 +228,21 @@ const MobileVideoOverlay = () => {
                 {!model.emptySubtitleTrack && (
                     <>
                         <Grid item>
-                            <IconButton onClick={handleOffsetToPrevious} disabled={offsetToPreviousButtonDisabled}>
-                                <NavigateBeforeIcon
-                                    className={offsetToPreviousButtonDisabled ? classes.inactiveButton : classes.button}
-                                />
-                            </IconButton>
+                            <Tooltip title={t('action.increaseOffsetButton')!}>
+                                <span>
+                                    <HoldableIconButton
+                                        onClick={handleOffsetToPrevious}
+                                        onHold={handleIncrementOffset}
+                                        disabled={offsetToPreviousButtonDisabled}
+                                    >
+                                        <NavigateBeforeIcon
+                                            className={
+                                                offsetToPreviousButtonDisabled ? classes.inactiveButton : classes.button
+                                            }
+                                        />
+                                    </HoldableIconButton>
+                                </span>
+                            </Tooltip>
                         </Grid>
                         <Grid item>
                             <SubtitleOffsetInput
@@ -225,11 +252,21 @@ const MobileVideoOverlay = () => {
                             />
                         </Grid>
                         <Grid item>
-                            <IconButton onClick={handleOffsetToNext} disabled={offsetToNextButtonDisabled}>
-                                <NavigateNextIcon
-                                    className={offsetToNextButtonDisabled ? classes.inactiveButton : classes.button}
-                                />
-                            </IconButton>
+                            <Tooltip title={t('action.decreaseOffsetButton')!}>
+                                <span>
+                                    <HoldableIconButton
+                                        onClick={handleOffsetToNext}
+                                        onHold={handleDecrementOffset}
+                                        disabled={offsetToNextButtonDisabled}
+                                    >
+                                        <NavigateNextIcon
+                                            className={
+                                                offsetToNextButtonDisabled ? classes.inactiveButton : classes.button
+                                            }
+                                        />
+                                    </HoldableIconButton>
+                                </span>
+                            </Tooltip>
                         </Grid>
                     </>
                 )}

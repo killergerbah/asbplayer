@@ -19,7 +19,9 @@
         "stopRecording": "Finalizar Grabación",
         "importSettings": "Importar Ajustes",
         "exportSettings": "Exportar Ajustes",
-        "hideOverlay": "Hide Overlay"
+        "hideOverlay": "Hide Overlay",
+        "decreaseOffsetButton": "Decrease offset to so that next subtitle is at current position. Hold to decrease by 100ms.",
+        "increaseOffsetButton": "Increase offset to so that previous subtitle is at current position. Hold to increase by 100ms."
     },
     "postMineAction": {
         "none": "Ninguna",
