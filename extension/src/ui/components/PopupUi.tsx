@@ -2,10 +2,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import {
-    ActiveVideoElement,
     ExtensionToVideoCommand,
     GrantedActiveTabPermissionMessage,
-    LoadSubtitlesMessage,
     PopupToExtensionCommand,
     SettingsUpdatedMessage,
 } from '@project/common';
@@ -62,18 +60,6 @@ export function PopupUi({ commands }: Props) {
         chrome.sidePanel.open({ windowId: (await chrome.windows.getLastFocused()).id });
     }, []);
 
-    const handleVideoElementSelected = useCallback((element: ActiveVideoElement) => {
-        const command: ExtensionToVideoCommand<LoadSubtitlesMessage> = {
-            sender: 'asbplayer-extension-to-video',
-            message: {
-                command: 'load-subtitles',
-            },
-            src: element.src,
-        };
-        chrome.tabs.sendMessage(element.id, command);
-        chrome.tabs.update(element.id, { active: true });
-    }, []);
-
     const { requestingActiveTabPermission, tabRequestingActiveTabPermission } = useRequestingActiveTabPermission();
 
     useEffect(() => {
@@ -108,7 +94,6 @@ export function PopupUi({ commands }: Props) {
                         onOpenApp={handleOpenApp}
                         onOpenSidePanel={handleOpenSidePanel}
                         onOpenExtensionShortcuts={handleOpenExtensionShortcuts}
-                        onVideoElementSelected={handleVideoElementSelected}
                     />
                 </Box>
                 <Box p={0.5} textAlign="right">
