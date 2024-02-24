@@ -1,4 +1,5 @@
 import { Command, Message } from '@project/common';
+import { captureVisibleTab } from '../../services/capture-visible-tab';
 
 export default class CaptureVisibleTabHandler {
     get sender() {
@@ -10,9 +11,14 @@ export default class CaptureVisibleTabHandler {
     }
 
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) {
-        chrome.tabs.captureVisibleTab({ format: 'jpeg' }, (dataUrl) => {
+        if (sender.tab === undefined || sender.tab.id === undefined) {
+            return;
+        }
+
+        captureVisibleTab(sender.tab.id).then((dataUrl) => {
             sendResponse(dataUrl);
         });
+
         return true;
     }
 }

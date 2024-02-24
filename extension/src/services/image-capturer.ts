@@ -1,5 +1,6 @@
 import { CropAndResizeMessage, ExtensionToVideoCommand, ImageCaptureParams, RectModel } from '@project/common';
 import { SettingsProvider } from '@project/common/settings';
+import { captureVisibleTab } from './capture-visible-tab';
 
 export interface CaptureOptions {
     maxWidth: number;
@@ -48,7 +49,7 @@ export default class ImageCapturer {
         resolve: (value: string) => void
     ) {
         const timeoutId = setTimeout(() => {
-            chrome.tabs.captureVisibleTab({ format: 'jpeg' }, async (dataUrl) => {
+            captureVisibleTab(tabId).then(async (dataUrl) => {
                 if (timeoutId !== this.lastCaptureTimeoutId) {
                     // The promise was already resolved by another call to capture with a shorter delay
                     return;
