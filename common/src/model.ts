@@ -213,4 +213,5 @@ export interface MobileOverlayModel {
     currentTimestamp: number;
     language: string;
     postMineAction: PostMineAction;
+    subtitleDisplaying: boolean;
 }

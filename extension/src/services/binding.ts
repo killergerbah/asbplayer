@@ -531,11 +531,14 @@ export default class Binding {
                             } else {
                                 this._toggleRecordingMedia(copySubtitleMessage.postMineAction);
                             }
+
+                            this.mobileVideoOverlayController.updateModel();
                         }
                         break;
                     case 'toggle-recording':
                         if (this._synced) {
                             this._toggleRecordingMedia(PostMineAction.showAnkiDialog);
+                            this.mobileVideoOverlayController.updateModel();
                         }
                         break;
                     case 'card-updated':
@@ -888,8 +891,6 @@ export default class Binding {
 
             chrome.runtime.sendMessage(command);
         }
-
-        this.mobileVideoOverlayController.updateModel();
     }
 
     private _surroundingSubtitlesAroundInterval(start: number, end: number) {
@@ -1107,9 +1108,14 @@ export default class Binding {
         }
         this.subtitleController.showLoadedMessage(nonEmptyTrackIndex);
         this.videoDataSyncController.unbindVideoSelect();
-        this.mobileVideoOverlayController.updateModel();
         this.ankiUiSavedState = undefined;
         this._synced = true;
         this._syncedTimestamp = Date.now();
+
+        if (this.video.paused) {
+            this.mobileVideoOverlayController.show();
+        }
+
+        this.mobileVideoOverlayController.updateModel();
     }
 }

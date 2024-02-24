@@ -29,6 +29,9 @@ const useStyles = makeStyles({
     button: {
         color: 'white',
     },
+    recordingButton: {
+        color: 'red',
+    },
     container: {
         display: 'inline-flex',
         width: 'auto',
@@ -122,6 +125,7 @@ const MobileVideoOverlay = () => {
 
     const offsetToPreviousButtonDisabled = model.previousSubtitleTimestamp === undefined;
     const offsetToNextButtonDisabled = model.nextSubtitleTimestamp === undefined;
+    const miningButtonDisabled = (!model.emptySubtitleTrack && !model.subtitleDisplaying) || model.recording;
 
     function miningButtonTooltip(model: MobileOverlayModel) {
         if (!model) {
@@ -151,19 +155,23 @@ const MobileVideoOverlay = () => {
             <GridContainer direction="row" className={classes.container}>
                 <Grid item>
                     <Tooltip title={miningButtonTooltip(model)!}>
-                        <IconButton onClick={handleMineSubtitle}>
-                            {model.emptySubtitleTrack && model.recordingEnabled && !model.recording ? (
-                                <FiberManualRecordIcon className={classes.button} />
-                            ) : (
-                                <NoteAddIcon className={classes.button} />
-                            )}
-                        </IconButton>
+                        {model.emptySubtitleTrack && model.recordingEnabled ? (
+                            <IconButton onClick={handleMineSubtitle}>
+                                <FiberManualRecordIcon
+                                    className={model.recording ? classes.recordingButton : classes.button}
+                                />
+                            </IconButton>
+                        ) : (
+                            <IconButton disabled={miningButtonDisabled} onClick={handleMineSubtitle}>
+                                <NoteAddIcon className={miningButtonDisabled ? '' : classes.button} />
+                            </IconButton>
+                        )}
                     </Tooltip>
                 </Grid>
                 <Grid item>
                     <Tooltip title={t('action.loadSubtitles')!}>
-                        <IconButton onClick={handleLoadSubtitles}>
-                            <SubtitlesIcon className={classes.button} />
+                        <IconButton disabled={model.recording} onClick={handleLoadSubtitles}>
+                            <SubtitlesIcon className={model.recording ? '' : classes.button} />
                         </IconButton>
                     </Tooltip>
                 </Grid>

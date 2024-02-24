@@ -38,15 +38,19 @@ export class MobileVideoOverlayController {
     }
 
     set forceHide(forceHide: boolean) {
+        if (!this._bound) {
+            return;
+        }
+
         if (forceHide) {
             if (this._showing) {
-                this._forceHiding = true;
                 this._hide();
+                this._forceHiding = true;
             }
         } else {
             if (this._forceHiding) {
-                this._forceHiding = false;
                 this._show();
+                this._forceHiding = false;
             }
         }
     }
@@ -57,17 +61,9 @@ export class MobileVideoOverlayController {
         }
 
         this._pauseListener = () => {
-            if (!this._context.synced || this._forceHiding) {
-                return;
-            }
-
             this._show();
         };
         this._playListener = () => {
-            if (!this._context.synced || this._context.recordingMedia) {
-                return;
-            }
-
             this._hide();
         };
 
@@ -93,6 +89,10 @@ export class MobileVideoOverlayController {
         };
         chrome.runtime.onMessage.addListener(this._messageListener);
         this._bound = true;
+
+        if (this._context.video.paused) {
+            this._show();
+        }
     }
 
     async updateModel() {
@@ -114,6 +114,8 @@ export class MobileVideoOverlayController {
 
     private async _model() {
         const subtitles = this._context.subtitleController.subtitles;
+        const subtitleDisplaying =
+            subtitles.length > 0 && this._context.subtitleController.currentSubtitle()[0] !== null;
         const timestamp = this._context.video.currentTime * 1000;
         const { language, clickToMineDefaultAction } = await this._context.settings.get([
             'language',
@@ -129,16 +131,29 @@ export class MobileVideoOverlayController {
             currentTimestamp: timestamp,
             language,
             postMineAction: clickToMineDefaultAction,
+            subtitleDisplaying,
         };
         return model;
     }
 
+    show() {
+        if (!this._bound) {
+            return;
+        }
+
+        this._show();
+    }
+
     private _show() {
+        if (!this._context.synced || this._forceHiding) {
+            return;
+        }
+
         this._overlay.setHtml([
             {
                 key: 'ui',
                 html: () =>
-                    `<iframe style="border: 0; width: auto; color-scheme: normal" src="${chrome.runtime.getURL(
+                    `<iframe style="border: 0; color-scheme: normal" src="${chrome.runtime.getURL(
                         'mobile-video-overlay-ui.html'
                     )}?src=${encodeURIComponent(this._context.video.src)}"/>`,
             },
@@ -147,6 +162,10 @@ export class MobileVideoOverlayController {
     }
 
     private _hide() {
+        if (!this._context.synced || this._context.recordingMedia) {
+            return;
+        }
+
         this._overlay.hide();
         this._showing = false;
     }
@@ -166,5 +185,9 @@ export class MobileVideoOverlayController {
             chrome.runtime.onMessage.removeListener(this._messageListener);
             this._messageListener = undefined;
         }
+
+        this._overlay.hide();
+        this._showing = false;
+        this._bound = false;
     }
 }
