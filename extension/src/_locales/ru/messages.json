@@ -1,0 +1,29 @@
+{
+    "extensionDescription": {
+        "message": "Оптимизирует видео для изучения иностранных языков"
+    },
+    "contextMenuLoadSubtitles": {
+        "message": "Загрузить субтитры"
+    },
+    "contextMenuMineSubtitle": {
+        "message": "Майнить субтитр"
+    },
+    "shortcutMineSubtitleAndOpenDialogDescription": {
+        "message": "Смайнить текущий субтитры и открыть диалог экспорта в Анки.  Если у текущего видео нет субтитров, будет запущена/остановлена запись аудио."
+    },
+    "shortcutMineSubtitleDescription": {
+        "message": "Смайнить текущий субтитр. Если у текущего видео нет субтитров, будет запущена/остановлена запись аудио."
+    },
+    "shortcutSelectSubtitleTrackDescription": {
+        "message": "Выбрать дорожки субтитров для загрузки."
+    },
+    "shortcutTakeScreenshotDescription": {
+        "message": "Сделать скриншот вручную. Этот скриншот перезапишет тот, что был добавлен в карточку автоматически. "
+    },
+    "shortcutToggleRecordingDescription": {
+        "message": "Начать/остановить запись аудио вручную"
+    },
+    "shortcutUpdateLastCardDescription": {
+        "message": "Обновить последнюю созданную Анки-карточку, добавив туда смайненную asbplayer'ом информацию. Если у текущего видео нет субтитров, будет запущена/остановлена запись аудио."
+    }
+}

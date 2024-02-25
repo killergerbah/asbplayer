@@ -38,6 +38,11 @@
             "code": "zh_CN",
             "url": "/locales/zh_CN.json",
             "version": 1
+        },
+        {
+            "code": "ru",
+            "url": "/locales/ru.json",
+            "version": 1
         }
     ]
 }
