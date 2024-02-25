@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://raw.githubusercontent.com/killergerbah/asbplayer/main/logo.svg" width="75" height="75" style="border-radius: 16px" alt="asbplayer" />
+    <img src="https://raw.githubusercontent.com/killergerbah/asbplayer/main/extension/src/assets/icon128.png" width="75" height="75" style="border-radius: 16px" alt="asbplayer" />
 </p>
 
 <p align="center">
