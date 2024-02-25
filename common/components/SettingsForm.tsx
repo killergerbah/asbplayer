@@ -767,7 +767,21 @@ export default function SettingsForm({
 
     const requestAnkiConnect = useCallback(async () => {
         try {
-            await anki.requestPermission(ankiConnectUrl);
+            if (insideApp) {
+                try {
+                    await anki.requestPermission(ankiConnectUrl);
+                } catch (e) {
+                    // Request permission can give confusing errors due to AnkiConnect's implementation (or the implementation not existing in the case of Android).
+                    // Furthermore, "request permission" should hardly ever work since recent Chrome security policies require the origin of the asbplayer app to
+                    // be specified manually in the AnkiConnect settings anyway.
+                    // So fallback to using the "version" endpoint if the above fails.
+                    await anki.version(ankiConnectUrl);
+                }
+            } else {
+                // Extension does not need to be allowed explicitly by AnkiConnect
+                await anki.version(ankiConnectUrl);
+            }
+
             setDeckNames(await anki.deckNames(ankiConnectUrl));
             setModelNames(await anki.modelNames(ankiConnectUrl));
             setAnkiConnectUrlError(undefined);
@@ -784,7 +798,7 @@ export default function SettingsForm({
                 setAnkiConnectUrlError(String(e));
             }
         }
-    }, [anki, ankiConnectUrl]);
+    }, [anki, ankiConnectUrl, insideApp]);
 
     useEffect(() => {
         let canceled = false;
