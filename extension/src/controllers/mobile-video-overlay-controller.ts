@@ -170,6 +170,11 @@ export class MobileVideoOverlayController {
         this._show();
     }
 
+    disposeOverlay() {
+        this._overlay.dispose();
+        this._overlay = MobileVideoOverlayController._elementOverlay(this._context.video, this._overlay.offsetAnchor);
+    }
+
     private _show() {
         if (!this._context.synced || this._forceHiding) {
             return;

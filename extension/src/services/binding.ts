@@ -451,6 +451,7 @@ export default class Binding {
         if (this.subSyncAvailable) {
             this.videoChangeListener = () => {
                 this.videoDataSyncController.requestSubtitles();
+                this.mobileVideoOverlayController.disposeOverlay();
             };
             this.video.addEventListener('loadedmetadata', this.videoChangeListener);
         }

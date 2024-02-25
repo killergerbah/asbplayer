@@ -16,6 +16,7 @@ interface Params {
 
 export const useMobileVideoOverlayModel = ({ location }: Params) => {
     const [model, setModel] = useState<MobileOverlayModel>();
+
     useEffect(() => {
         if (!location) {
             return;
@@ -30,17 +31,25 @@ export const useMobileVideoOverlayModel = ({ location }: Params) => {
                 },
                 src: location.src,
             };
-            const model = await chrome.tabs.sendMessage(location.tabId, command);
-            setModel(model);
+            const initialModel = await chrome.tabs.sendMessage(location.tabId, command);
+            setModel(initialModel);
         };
 
         let timeout: NodeJS.Timeout | undefined;
+        let cancelled = false;
 
         const init = async () => {
             try {
+                if (cancelled) {
+                    return;
+                }
+
                 await requestModel();
             } catch (e) {
-                console.log('Failed to request overlay model, retrying in 1s');
+                console.log(
+                    'Failed to request overlay model, retrying in 1s. Message: ' +
+                        (e instanceof Error ? e.message : String(e))
+                );
                 timeout = setTimeout(() => init(), 1000);
             }
         };
@@ -51,8 +60,11 @@ export const useMobileVideoOverlayModel = ({ location }: Params) => {
             if (timeout !== undefined) {
                 clearTimeout(timeout);
             }
+
+            cancelled = true;
         };
     }, [location]);
+
     useEffect(() => {
         if (!location) {
             return;
