@@ -3,6 +3,12 @@ import { CardModel, FileModel } from './model';
 import { download } from '../util/util';
 import { isActiveBlobUrl } from '../blob-url';
 
+const maxPrefixLength = 32;
+
+const makeFileName = (prefix: string, timestamp: number) => {
+    return `${prefix.substring(0, Math.min(prefix.length, maxPrefixLength))}_${Math.floor(timestamp)}`;
+};
+
 class Base64ImageData implements ImageData {
     private readonly _name: string;
     private readonly _base64: string;
@@ -62,7 +68,7 @@ class FileImageData implements ImageData {
 
     constructor(file: FileModel, timestamp: number, maxWidth: number, maxHeight: number) {
         this._file = file;
-        this._name = file.name + '_' + Math.floor(timestamp) + '.jpeg';
+        this._name = `${makeFileName(file.name, timestamp)}.jpeg`;
         this._timestamp = timestamp;
         this._maxWidth = maxWidth;
         this._maxHeight = maxHeight;
@@ -154,7 +160,7 @@ class MissingFileImageData implements ImageData {
     private readonly _name: string;
 
     constructor(fileName: string, timestamp: number) {
-        this._name = `${fileName}_${Math.floor(timestamp)}`;
+        this._name = makeFileName(fileName, timestamp);
     }
 
     get name() {
@@ -216,12 +222,8 @@ export default class Image {
     }
 
     static fromBase64(subtitleFileName: string, timestamp: number, base64: string, extension: string) {
-        const imageName =
-            subtitleFileName.substring(0, subtitleFileName.lastIndexOf('.')) +
-            '_' +
-            Math.floor(timestamp) +
-            '.' +
-            extension;
+        const prefix = subtitleFileName.substring(0, subtitleFileName.lastIndexOf('.'));
+        const imageName = `${makeFileName(prefix, timestamp)}.${extension}`;
         return new Image(new Base64ImageData(imageName, base64, extension));
     }
 
