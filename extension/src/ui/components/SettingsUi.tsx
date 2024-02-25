@@ -74,7 +74,7 @@ const SettingsUi = () => {
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <Paper square style={{ height: '100vh' }}>
-                <Dialog open={true} maxWidth="sm" fullWidth className={classes.root} onClose={() => {}}>
+                <Dialog open={true} maxWidth="md" fullWidth className={classes.root} onClose={() => {}}>
                     <DialogTitle>{t('settings.title')}</DialogTitle>
                     <DialogContent className={classes.content}>
                         <SettingsForm
