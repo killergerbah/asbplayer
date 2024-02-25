@@ -56,6 +56,8 @@ const startListener = async () => {
     primeLocalization(await settings.getSingle('language'));
 };
 
+const isMobile = (navigator as any).userAgentData?.mobile ?? false;
+
 const installListener = async (details: chrome.runtime.InstalledDetails) => {
     if (details.reason !== chrome.runtime.OnInstalledReason.INSTALL) {
         return;
@@ -67,6 +69,15 @@ const installListener = async (details: chrome.runtime.InstalledDetails) => {
     if (supportedLanguages.includes(defaultUiLanguage)) {
         await settings.set({ language: defaultUiLanguage });
         primeLocalization(defaultUiLanguage);
+    }
+
+    if (isMobile) {
+        // Set reasonable defaults for mobile
+        await settings.set({
+            streamingTakeScreenshot: false, // Kiwi Browser does not support captureVisibleTab
+            subtitleSize: 18,
+            subtitlePositionOffset: 25,
+        });
     }
 
     chrome.tabs.create({ url: chrome.runtime.getURL('ftue-ui.html'), active: true });
@@ -330,8 +341,7 @@ updateWebSocketClientState();
 tabRegistry.onAsbplayerInstance(updateWebSocketClientState);
 tabRegistry.onSyncedElement(updateWebSocketClientState);
 
-// @ts-ignore
-if (navigator.userAgentData.mobile) {
+if (isMobile) {
     chrome.action.onClicked.addListener((tab) => {
         if (tab.id !== undefined) {
             const extensionToVideoCommand: ExtensionToVideoCommand<ToggleVideoSelectMessage> = {
