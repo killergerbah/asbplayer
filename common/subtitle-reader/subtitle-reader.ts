@@ -4,7 +4,7 @@ import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
 import { SubtitleTextImage } from '@project/common';
 
-const tagRegex = RegExp(/<([^>]+)>([^]*)<\/\1>/s, 'ig');
+const tagRegex = RegExp(/<([^>]+)>([^]*)<\/\1>/, 'ig');
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
 const helperElement = document.createElement('div');
 
@@ -67,7 +67,7 @@ export default class SubtitleReader {
                 return {
                     start: Math.floor((node.startTime as number) * 1000),
                     end: Math.floor((node.endTime as number) * 1000),
-                    text: this._filterText(node.text).replace(tagRegex, '$2'),
+                    text: this._filterText(node.text, true),
                     track: track,
                 };
             });
@@ -79,7 +79,7 @@ export default class SubtitleReader {
                 const parser = new WebVTT.Parser(window, WebVTT.StringDecoder());
                 const cues: any[] = [];
                 parser.oncue = (c: any) => {
-                    c.text = this._filterText(c.text).replace(tagRegex, '$2');
+                    c.text = this._filterText(c.text, true);
 
                     if (isFromNetflix) {
                         const lines = c.text.split('\n');
@@ -114,7 +114,8 @@ export default class SubtitleReader {
                     start: Math.round(dialogue.start * 1000),
                     end: Math.round(dialogue.end * 1000),
                     text: this._filterText(
-                        dialogue.slices.flatMap((slice) => slice.fragments.map((fragment) => fragment.text)).join('')
+                        dialogue.slices.flatMap((slice) => slice.fragments.map((fragment) => fragment.text)).join(''),
+                        false
                     ).replace(assNewLineRegex, '\n'),
                     track: track,
                 };
@@ -145,7 +146,7 @@ export default class SubtitleReader {
                 const subtitle = {
                     start: Math.floor(start * 1000),
                     end: Math.floor((start + parseFloat(elm['@_dur'])) * 1000),
-                    text: this._filterText(this._decodeHTML(String(elm['#text'])).replace(tagRegex, '$2')),
+                    text: this._filterText(this._decodeHTML(String(elm['#text'])), true),
                     track,
                 };
 
@@ -197,7 +198,7 @@ export default class SubtitleReader {
                 }
 
                 subtitles.push({
-                    text: this._filterText(elm.textContent ?? ''),
+                    text: this._filterText(elm.textContent ?? '', false),
                     start: this._parseTtmlTimestamp(beginAttribute),
                     end: this._parseTtmlTimestamp(endAttribute),
                     track,
@@ -332,12 +333,29 @@ export default class SubtitleReader {
         return this.xmlParser;
     }
 
-    private _filterText(text: string): string {
-        if (this._textFilter === undefined) {
-            return text;
+    private _filterText(text: string, removeXmlTags: boolean): string {
+        text =
+            this._textFilter === undefined
+                ? text
+                : text.replace(this._textFilter.regex, this._textFilter.replacement).trim();
+
+        if (removeXmlTags) {
+            text = this._removeXmlTags(text);
         }
 
-        return text.replace(this._textFilter.regex, this._textFilter.replacement).trim();
+        return text;
+    }
+
+    private _removeXmlTags(text: string) {
+        tagRegex.lastIndex = 0;
+        let match;
+
+        while ((match = tagRegex.exec(text)) !== null) {
+            text = text.replace(match[0], match[2]);
+            tagRegex.lastIndex = 0;
+        }
+
+        return text;
     }
 
     subtitlesToSrt(subtitles: SubtitleNode[]) {
