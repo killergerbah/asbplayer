@@ -1,86 +1,93 @@
 import { v4 as uuidv4 } from 'uuid';
 
-export class FrameInfoListener {
+export class FrameInfoBroadcaster {
     readonly frameId = uuidv4();
-    private _windowMessageListener?: (event: MessageEvent) => void;
+    private _broadcastInterval?: NodeJS.Timeout;
+    private _bound = false;
 
     bind() {
-        this._windowMessageListener = (event) => {
-            if (event.data.sender !== 'asbplayer-video') {
-                return;
-            }
-
-            if (event.source !== window.parent) {
-                return;
-            }
-
-            switch (event.data.message.command) {
-                case 'frameId': {
-                    window.parent.postMessage(
-                        {
-                            sender: 'asbplayer-video',
-                            message: {
-                                requestId: event.data.message.requestId,
-                                frameId: this.frameId,
-                            },
-                        },
-                        '*'
-                    );
-                }
-            }
-        };
-        window.addEventListener('message', this._windowMessageListener);
-    }
-
-    unbind() {
-        if (this._windowMessageListener) {
-            window.removeEventListener('message', this._windowMessageListener);
-        }
-    }
-}
-
-export const fetchFrameId = (frame: HTMLIFrameElement): Promise<string | undefined> => {
-    return new Promise((resolve, reject) => {
-        if (!frame.contentWindow) {
-            return resolve(undefined);
+        if (this._bound) {
+            return;
         }
 
-        const requestId = uuidv4();
-        let timeoutId: NodeJS.Timeout | undefined;
-        const listener = (event: MessageEvent) => {
-            if (event.source !== frame.contentWindow) {
-                return;
-            }
+        this._broadcastInterval = setInterval(() => this._broadcast(), 10000);
+        this._broadcast();
+        this._bound = true;
+    }
 
-            if (event.data.message?.requestId !== requestId) {
-                return;
-            }
-
-            if (typeof event.data.message?.frameId === 'string') {
-                if (timeoutId) {
-                    clearTimeout(timeoutId);
-                }
-
-                window.removeEventListener('message', listener);
-                resolve(event.data.message.frameId);
-            }
-        };
-
-        window.addEventListener('message', listener);
-        frame.contentWindow.postMessage(
+    private _broadcast() {
+        window.parent.postMessage(
             {
                 sender: 'asbplayer-video',
                 message: {
-                    command: 'frameId',
-                    requestId: requestId,
+                    frameId: this.frameId,
                 },
             },
             '*'
         );
+    }
 
-        timeoutId = setTimeout(() => {
-            window.removeEventListener('message', listener);
-            resolve(undefined);
-        }, 1000);
-    });
-};
+    unbind() {
+        if (this._broadcastInterval !== undefined) {
+            clearInterval(this._broadcastInterval);
+            this._broadcastInterval = undefined;
+        }
+
+        this._bound = false;
+    }
+}
+
+export class FrameInfoListener {
+    readonly iframesById: { [key: string]: HTMLIFrameElement } = {};
+    private _listener?: (event: MessageEvent) => void;
+    private _bound = false;
+
+    bind() {
+        if (this._bound) {
+            return;
+        }
+
+        this._listener = (event: MessageEvent) => {
+            if (event.data?.sender !== 'asbplayer-video') {
+                return;
+            }
+
+            const sourceIframe = this._sourceIframeForEvent(event);
+
+            if (sourceIframe === undefined) {
+                return;
+            }
+
+            const frameId = event.data.message.frameId;
+
+            if (!frameId) {
+                return;
+            }
+
+            this.iframesById[frameId] = sourceIframe;
+        };
+
+        window.addEventListener('message', this._listener);
+        this._bound = true;
+    }
+
+    unbind() {
+        if (this._listener !== undefined) {
+            window.removeEventListener('message', this._listener);
+            this._listener = undefined;
+        }
+
+        this._bound = false;
+    }
+
+    private _sourceIframeForEvent(event: MessageEvent) {
+        const iframes = document.getElementsByTagName('iframe');
+        for (const iframe of iframes) {
+            if (iframe.contentWindow === event.source) {
+                return iframe;
+            }
+        }
+
+        return undefined;
+    }
+}

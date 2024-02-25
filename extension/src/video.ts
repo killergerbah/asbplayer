@@ -8,7 +8,7 @@ import {
     ToggleSidePanelMessage,
 } from '@project/common';
 import { SettingsProvider } from '@project/common/settings';
-import { FrameInfoListener, fetchFrameId } from './services/frame-info';
+import { FrameInfoBroadcaster, FrameInfoListener } from './services/frame-info';
 import { cropAndResize } from '@project/common/src/image-transformer';
 import { TabAnkiUiController } from './controllers/tab-anki-ui-controller';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
@@ -16,39 +16,6 @@ import { DefaultKeyBinder } from '@project/common/key-binder';
 
 const extensionSettingsStorage = new ExtensionSettingsStorage();
 const settingsProvider = new SettingsProvider(extensionSettingsStorage);
-const iframesByFrameId: { [frameId: string]: HTMLIFrameElement } = {};
-
-const cacheIframesByFrameId = () => {
-    const iframes = document.getElementsByTagName('iframe');
-
-    for (let i = 0; i < iframes.length; ++i) {
-        const iframe = iframes[i];
-
-        if (!Object.values(iframesByFrameId).find((f) => iframe === f)) {
-            fetchFrameId(iframe).then((frameId) => {
-                if (frameId) {
-                    iframesByFrameId[frameId] = iframe;
-                }
-            });
-        }
-    }
-
-    for (const frameId of Object.keys(iframesByFrameId)) {
-        let iframeExists = false;
-
-        for (let i = 0; i < iframes.length; ++i) {
-            const iframe = iframes[i];
-
-            if (iframe.isSameNode(iframesByFrameId[frameId])) {
-                iframeExists = true;
-            }
-        }
-
-        if (!iframeExists) {
-            delete iframesByFrameId[frameId];
-        }
-    }
-};
 
 let unbindToggleSidePanel: (() => void) | undefined;
 
@@ -95,11 +62,16 @@ const bind = () => {
     const page = currentPageDelegate();
     let subSyncAvailable = page !== undefined;
     let frameInfoListener: FrameInfoListener | undefined;
+    let frameInfoBroadcaster: FrameInfoBroadcaster | undefined;
+    const isParentDocument = window.self === window.top;
 
-    if (window.self !== window.top) {
-        // Inside iframe, listen for frame ID requests
+    if (isParentDocument) {
+        // Parent document, listen for child iframe info
         frameInfoListener = new FrameInfoListener();
         frameInfoListener.bind();
+    } else {
+        // Child iframe, broadcast frame info
+        frameInfoBroadcaster = new FrameInfoBroadcaster();
     }
 
     const bindToVideoElements = () => {
@@ -110,7 +82,7 @@ const bind = () => {
             const bindingExists = bindings.filter((b) => b.video.isSameNode(videoElement)).length > 0;
 
             if (!bindingExists && hasValidVideoSource(videoElement) && !page?.shouldIgnore(videoElement)) {
-                const b = new Binding(videoElement, subSyncAvailable, frameInfoListener?.frameId);
+                const b = new Binding(videoElement, subSyncAvailable, frameInfoBroadcaster?.frameId);
                 b.bind();
                 bindings.push(b);
             }
@@ -134,18 +106,21 @@ const bind = () => {
                 b.unbind();
             }
         }
+
+        if (bindings.length === 0) {
+            frameInfoBroadcaster?.unbind();
+        } else {
+            frameInfoBroadcaster?.bind();
+        }
     };
 
     bindToVideoElements();
-    cacheIframesByFrameId();
     const videoInterval = setInterval(bindToVideoElements, 1000);
-    const iframeInterval = setInterval(cacheIframesByFrameId, 10000);
 
     const videoSelectController = new VideoSelectController(bindings);
     videoSelectController.bind();
 
     const ankiUiController = new TabAnkiUiController(settingsProvider);
-    const isParentDocument = window.self === window.top;
 
     if (isParentDocument) {
         bindToggleSidePanel();
@@ -179,7 +154,7 @@ const bind = () => {
                 let rect = cropAndResizeMessage.rect;
 
                 if (cropAndResizeMessage.frameId !== undefined) {
-                    const iframe = iframesByFrameId[cropAndResizeMessage.frameId];
+                    const iframe = frameInfoListener?.iframesById?.[cropAndResizeMessage.frameId];
 
                     if (iframe !== undefined) {
                         const iframeRect = iframe.getBoundingClientRect();
@@ -224,9 +199,9 @@ const bind = () => {
         bindings.length = 0;
 
         clearInterval(videoInterval);
-        clearInterval(iframeInterval);
         videoSelectController.unbind();
         frameInfoListener?.unbind();
+        frameInfoBroadcaster?.unbind();
         unbindToggleSidePanel?.();
         chrome.runtime.onMessage.removeListener(messageListener);
     });
