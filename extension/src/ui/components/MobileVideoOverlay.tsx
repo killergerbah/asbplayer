@@ -166,8 +166,8 @@ const MobileVideoOverlay = () => {
         return null;
     }
 
-    const offsetToPreviousButtonDisabled = model.previousSubtitleTimestamp === undefined;
-    const offsetToNextButtonDisabled = model.nextSubtitleTimestamp === undefined;
+    const offsetToPreviousButtonDisabled = model.previousSubtitleTimestamp === undefined || model.recording;
+    const offsetToNextButtonDisabled = model.nextSubtitleTimestamp === undefined || model.recording;
     const miningButtonDisabled = (!model.emptySubtitleTrack && !model.subtitleDisplaying) || model.recording;
 
     function miningButtonTooltip(model: MobileOverlayModel) {
