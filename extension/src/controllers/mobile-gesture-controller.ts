@@ -38,14 +38,6 @@ export class MobileGestureController {
             const x = event.changedTouches[0].clientX;
             const y = event.changedTouches[0].clientY;
 
-            console.log(
-                'swipe time: ' +
-                    (Date.now() - this._startTouch.timestamp) +
-                    ' inside rect: ' +
-                    this._insideRect(x, y) +
-                    ' distance: ' +
-                    (x - this._startTouch.x)
-            );
             if (this._insideRect(x, y) && Date.now() - this._startTouch.timestamp < timeLimit) {
                 if (this._startTouch.x >= x + minimumDistance) {
                     this.onSwipeLeft?.();
