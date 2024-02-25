@@ -1,10 +1,31 @@
-# asbplayer
+<p align="center">
+    <img src="https://raw.githubusercontent.com/killergerbah/asbplayer/main/logo.svg" width="75" height="75" style="border-radius: 16px" alt="asbplayer" />
+</p>
 
-[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/killergerbah/asbplayer/verify.yml)](https://github.com/killergerbah/asbplayer/actions/workflows/verify.yml)
-[![Github All Releases](https://img.shields.io/github/downloads/killergerbah/asbplayer/total.svg)](https://github.com/killergerbah/asbplayer/releases)
-[![GitHub Sponsors](https://img.shields.io/github/sponsors/killergerbah)](https://github.com/sponsors/killergerbah)
-[![Static Badge](https://img.shields.io/badge/donate-ko--fi-ed6760?label=donate)](https://ko-fi.com/killergerbah)
-[![GitHub License](https://img.shields.io/github/license/killergerbah/asbplayer)](https://github.com/killergerbah/asbplayer?tab=MIT-1-ov-file)
+<p align="center">
+<a href="https://github.com/killergerbah/asbplayer/actions/workflows/verify.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/killergerbah/asbplayer/verify.yml" alt="GitHub Workflow Status (with event)">
+</a>
+<a href="https://github.com/killergerbah/asbplayer/releases">
+    <img src="https://img.shields.io/github/downloads/killergerbah/asbplayer/total.svg" alt="Github All Releases">
+</a>
+<a href="https://github.com/sponsors/killergerbah">
+    <img src="https://img.shields.io/github/sponsors/killergerbah" alt="GitHub Sponsors">
+</a>
+<a href="https://ko-fi.com/killergerbah">
+    <img src="https://img.shields.io/badge/donate-ko--fi-ed6760?label=donate" alt="Static Badge">
+</a>
+<a href="https://github.com/killergerbah/asbplayer?tab=MIT-1-ov-file">
+    <img src="https://img.shields.io/github/license/killergerbah/asbplayer" alt="GitHub License">
+</a>
+<!-- [![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/killergerbah/asbplayer/verify.yml)](https://github.com/killergerbah/asbplayer/actions/workflows/verify.yml) -->
+<!-- [![Github All Releases](https://img.shields.io/github/downloads/killergerbah/asbplayer/total.svg)](https://github.com/killergerbah/asbplayer/releases) -->
+<!-- [![GitHub Sponsors](https://img.shields.io/github/sponsors/killergerbah)](https://github.com/sponsors/killergerbah) -->
+<!-- [![Static Badge](https://img.shields.io/badge/donate-ko--fi-ed6760?label=donate)](https://ko-fi.com/killergerbah)
+[![GitHub License](https://img.shields.io/github/license/killergerbah/asbplayer)](https://github.com/killergerbah/asbplayer?tab=MIT-1-ov-file) -->
+</p>
+
+# asbplayer
 
 **asbplayer** is a browser-based media player and Chrome extension developed for language learners who learn their target language through subtitled media. With asbplayer, you can:
 
@@ -22,46 +43,47 @@
 
 Thank you to all of my sponsors:
 
--   [@vivekchoksi](https://www.github.com/vivekchoksi)
--   [@nzarbayezid](https://www.github.com/nzarbayezid)
--   [@ManuJapan](https://www.github.com/ManuJapan)
--   AdamM
--   realgoodsmiley
--   Alex
--   [@m4eko](https://github.com/m4eko)
--   Simon
--   Attenius
--   medyas
--   [@zaerald](https://github.com/zaerald)
--   Suna
--   [@tony7253](https://github.com/tony7253)
--   [@voothi](https://github.com/voothi)
+[@vivekchoksi](https://www.github.com/vivekchoksi),
+[@nzarbayezid](https://www.github.com/nzarbayezid),
+[@ManuJapan](https://www.github.com/ManuJapan),
+AdamM,
+realgoodsmiley,
+Alex,
+[@m4eko](https://github.com/m4eko),
+Simon,
+Attenius,
+medyas,
+[@zaerald](https://github.com/zaerald),
+Suna,
+[@tony7253](https://github.com/tony7253),
+[@voothi](https://github.com/voothi)
 
-... and to those who have donated privately.
+and to those who have donated privately.
 
 Thank you to all those who have contributed to asbplayer:
 
--   [@Renji-XD](https://www.github.com/Renji-XD)
--   [@MatiasIslaA](https://www.github.com/MatiasIslaA)
--   [@cyphar](https://www.github.com/cyphar)
--   [@alexbofa](https://www.github.com/alexbofa)
--   [@Zyphdoz](https://github.com/Zyphdoz)
--   [@artjomsR](https://github.com/artjomsR)
--   [@iam6lake](https://github.com/iam6lake)
--   [@bpwhelan](https://github.com/bpwhelan)
+[@Renji-XD](https://www.github.com/Renji-XD),
+[@MatiasIslaA](https://www.github.com/MatiasIslaA),
+[@cyphar](https://www.github.com/cyphar),
+[@alexbofa](https://www.github.com/alexbofa),
+[@Zyphdoz](https://github.com/Zyphdoz),
+[@artjomsR](https://github.com/artjomsR),
+[@iam6lake](https://github.com/iam6lake),
+[@bpwhelan](https://github.com/bpwhelan),
+[@pooky-programs](https://github.com/pooky-programs)
 
 Thank you to all those who have translated asbplayer:
 
--   Mana Tsutsumi (Japanese, initial translation)
--   Kai Böse (German)
--   Triline (Polish)
--   NeverWinterSwor (Simplified Chinese)
--   Yagxter (Brazilian Portuguese)
--   Leo Gonzalez (Spanish)
+**Mana Tsutsumi** (Japanese, initial translation),
+**Kai Böse** (German), **Triline** (Polish),
+**NeverWinterSwor** (Simplified Chinese),
+**Yagxter** (Brazilian Portuguese),
+**Leo Gonzalez** (Spanish)
 
 If you are a non-English native, and would like to help translate asbplayer, please contact me on [Discord](https://discord.gg/ad7VAQru7m).
 
 ## Getting Started
+
 > [!NOTE]  
 > asbplayer is both a subtitle control and flashcard creation tool. If you are not interested in flashcards, and only want to use asbplayer's subtitle features, you can read about them under [Subtitle features](#subtitle-features).
 
@@ -71,26 +93,28 @@ Otherwise, the following steps for setting up automated Anki flashcards should w
 
 1. Install and set up a dictionary tool for your target language that allows you to do instant lookups. Popular ones are [Yomitan](https://chromewebstore.google.com/detail/yomitan/likgccmbimhjbgkjambclfkhldnlhbnn) for Japanese and [VocabSieve](https://github.com/FreeLanguageTools/vocabsieve) for European languages.
 2. Install [Anki](https://apps.ankiweb.net/), and create a deck and note type.
-   - *Note: Use one of the [community guides](#community-guides) to learn how to set up an Anki deck.*
-4. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
-5. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect using your deck and note type.
-6. Enhance a video using asbplayer and subtitle files.
+    - _Note: Use one of the [community guides](#community-guides) to learn how to set up an Anki deck._
+3. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
+4. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect using your deck and note type.
+5. Enhance a video using asbplayer and subtitle files.
 
     - **For streaming video:** After installing the [Chrome extension](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab), drag-and-drop a subtitle file into the streaming video you want to mine.
     - **For local files:** Drag-and-drop media/subtitle files into the [asbplayer website](https://killergerbah.github.io/asbplayer).
 
     You may have to [adjust the subtitle offset](#adjusting-subtitle-offset) to get the subtitles in sync.
 
-7. When a subtitle appears that you want to mine, use <kbd>Ctrl + Shift + X</kbd> to open the flashcard creator.
-8. Fill in the definition and word fields and then export the card. To fill in the definition field you may use the dictionary you installed in step 1.
+6. When a subtitle appears that you want to mine, use <kbd>Ctrl + Shift + X</kbd> to open the flashcard creator.
+7. Fill in the definition and word fields and then export the card. To fill in the definition field you may use the dictionary you installed in step 1.
 
 ## Community guides
 
-Text guides: 
+Text guides:
+
 -   [Shiki's Lazy Sentence Mining Workflow (Japanese)](https://docs.google.com/document/d/e/2PACX-1vQuEAoZFoJbULZzCJ3_tW7ayT_DcQl9eDlrXMnuPGTwDk62r5fQrXak3ayxBsEgkL85_Z-YY5W4yUom/pub)
 -   [Sentence mining from Netflix and YouTube with asbplayer (Japanese)](https://soyuz18.notion.site/Sentence-mining-from-Netflix-and-YouTube-with-asbplayer-83a03590cd8349ba81ca10340645b565)
 
 Video guides:
+
 -   [Refold's installation guide](https://www.youtube.com/watch?v=Pv4Sp01Uh64)
 -   [Refold's sentence mining guide (Japanese + European languages)](https://www.youtube.com/watch?v=jXO4gmCmcNE)
 -   [Sentence Mining: Learning Japanese From Anime (Japanese)](https://www.youtube.com/watch?v=B60cj69MSmA)
@@ -103,11 +127,12 @@ Video guides:
 
 ## Detailed usage
 
-To use asbplayer with streaming video, install the Chrome [extension](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab). Otherwise, use the [website](https://killergerbah.github.io/asbplayer/). 
+To use asbplayer with streaming video, install the Chrome [extension](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab). Otherwise, use the [website](https://killergerbah.github.io/asbplayer/).
 
 In order to make use of any of asbplayer's features, subtitles (or an empty subtitle track) must first be loaded, either onto a streaming video or a local video file. The following section instructs how to do this.
 
 ---
+
 ### Subtitle features
 
 #### Enhancing streaming video with asbplayer-controlled subtitles
@@ -154,8 +179,9 @@ Under the MISC section in asbplayer settings, locate the "Subtitle regex filter"
 You can replace filtered content similarly by entering a string into the "Subtitle regex filter text replacement" textbox. Leaving this blank will simply remove the content.
 
 Useful examples of regular expressions:
- - `(\(|（).*(\)|）)` : Remove names enclosed by parenthesis to indicate speakers  (i.e. "**（山田）**　元気ですか？")
- - `\[.*\]` : Remove indications enclosed by brackets that sound or music that is playing (i.e. "**\[PLAYFUL MUSIC]**")
+
+-   `(\(|（).*(\)|）)` : Remove names enclosed by parenthesis to indicate speakers (i.e. "**（山田）**　元気ですか？")
+-   `\[.*\]` : Remove indications enclosed by brackets that sound or music that is playing (i.e. "**\[PLAYFUL MUSIC]**")
 
 Learn how to write and test custom regular expressions at [Regex Learn - Playground](https://regexlearn.com/playground).
 
@@ -166,6 +192,7 @@ Once loaded into the extension, you can download the subtitles by opening the si
 > Note: Using the [regex feature](#filtering-subtitle-text) will alter the .srt that is downloaded.
 
 ---
+
 ### Anki integration
 
 #### Creating Anki flashcards
@@ -184,6 +211,7 @@ Adjust the selected time interval for the card using the slider at the bottom of
 The newly selected time interval can be applied to the card using the buttons available in the sentence and audio sections of the card. See this [video](https://youtu.be/BSr_JusW8E8?t=34) for a demo.
 
 ---
+
 ### Other basic features
 
 #### Extension side panel UI
@@ -199,6 +227,7 @@ Keyboard shortcuts are customizable from the [asbplayer website settings](https:
 An audio track selector will appear for `mkv` files if experimental web platform features are enabled from `chrome://flags`. Note that enabling this flag may cause issues with other features of asbplayer, such as card creation through the Chrome extension.
 
 ---
+
 ### Advanced features
 
 #### One-click mining flow
