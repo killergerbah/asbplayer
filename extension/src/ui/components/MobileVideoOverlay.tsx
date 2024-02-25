@@ -46,7 +46,6 @@ const useStyles = makeStyles({
         display: 'inline-flex',
         width: 'auto',
         backgroundColor: 'rgba(0, 0, 0, .5)',
-        backdropFilter: 'blur(3px)',
         borderRadius: 16,
     },
 });
