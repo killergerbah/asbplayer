@@ -2,28 +2,15 @@
     <img src="https://raw.githubusercontent.com/killergerbah/asbplayer/main/extension/src/assets/icon128.png" width="75" height="75" style="border-radius: 16px" alt="asbplayer" />
 </p>
 
-<p align="center">
-<a href="https://github.com/killergerbah/asbplayer/actions/workflows/verify.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/killergerbah/asbplayer/verify.yml" alt="GitHub Workflow Status (with event)">
-</a>
-<a href="https://github.com/killergerbah/asbplayer/releases">
-    <img src="https://img.shields.io/github/downloads/killergerbah/asbplayer/total.svg" alt="Github All Releases">
-</a>
-<a href="https://github.com/sponsors/killergerbah">
-    <img src="https://img.shields.io/github/sponsors/killergerbah" alt="GitHub Sponsors">
-</a>
-<a href="https://ko-fi.com/killergerbah">
-    <img src="https://img.shields.io/badge/donate-ko--fi-ed6760?label=donate" alt="Static Badge">
-</a>
-<a href="https://github.com/killergerbah/asbplayer?tab=MIT-1-ov-file">
-    <img src="https://img.shields.io/github/license/killergerbah/asbplayer" alt="GitHub License">
-</a>
-<!-- [![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/killergerbah/asbplayer/verify.yml)](https://github.com/killergerbah/asbplayer/actions/workflows/verify.yml) -->
-<!-- [![Github All Releases](https://img.shields.io/github/downloads/killergerbah/asbplayer/total.svg)](https://github.com/killergerbah/asbplayer/releases) -->
-<!-- [![GitHub Sponsors](https://img.shields.io/github/sponsors/killergerbah)](https://github.com/sponsors/killergerbah) -->
-<!-- [![Static Badge](https://img.shields.io/badge/donate-ko--fi-ed6760?label=donate)](https://ko-fi.com/killergerbah)
-[![GitHub License](https://img.shields.io/github/license/killergerbah/asbplayer)](https://github.com/killergerbah/asbplayer?tab=MIT-1-ov-file) -->
-</p>
+<div align="center">
+
+[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/killergerbah/asbplayer/verify.yml)](https://github.com/killergerbah/asbplayer/actions/workflows/verify.yml)
+[![Github All Releases](https://img.shields.io/github/downloads/killergerbah/asbplayer/total.svg)](https://github.com/killergerbah/asbplayer/releases)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/killergerbah)](https://github.com/sponsors/killergerbah)
+[![Static Badge](https://img.shields.io/badge/donate-ko--fi-ed6760?label=donate)](https://ko-fi.com/killergerbah)
+[![GitHub License](https://img.shields.io/github/license/killergerbah/asbplayer)](https://github.com/killergerbah/asbplayer?tab=MIT-1-ov-file)
+
+</div>
 
 # asbplayer
 
