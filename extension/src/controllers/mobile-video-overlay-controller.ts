@@ -226,7 +226,8 @@ export class MobileVideoOverlayController {
             this._messageListener = undefined;
         }
 
-        this._overlay.hide();
+        this._overlay.dispose();
+        this._overlay = MobileVideoOverlayController._elementOverlay(this._context.video, this._overlay.offsetAnchor);
         this._showing = false;
         this._bound = false;
     }

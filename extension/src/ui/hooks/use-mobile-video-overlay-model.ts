@@ -20,7 +20,8 @@ export const useMobileVideoOverlayModel = ({ location }: Params) => {
         if (!location) {
             return;
         }
-        const init = async () => {
+
+        const requestModel = async () => {
             const command: MobileOverlayToVideoCommand<RequestMobileOverlayModelMessage> = {
                 sender: 'asbplayer-mobile-overlay-to-video',
                 message: {
@@ -32,7 +33,25 @@ export const useMobileVideoOverlayModel = ({ location }: Params) => {
             const model = await chrome.tabs.sendMessage(location.tabId, command);
             setModel(model);
         };
+
+        let timeout: NodeJS.Timeout | undefined;
+
+        const init = async () => {
+            try {
+                await requestModel();
+            } catch (e) {
+                console.log('Failed to request overlay model, retrying in 1s');
+                timeout = setTimeout(() => init(), 1000);
+            }
+        };
+
         init();
+
+        return () => {
+            if (timeout !== undefined) {
+                clearTimeout(timeout);
+            }
+        };
     }, [location]);
     useEffect(() => {
         if (!location) {
