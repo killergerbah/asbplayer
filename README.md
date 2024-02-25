@@ -62,10 +62,12 @@ Thank you to all those who have contributed to asbplayer:
 Thank you to all those who have translated asbplayer:
 
 **Mana Tsutsumi** (Japanese, initial translation),
-**Kai Böse** (German), **Triline** (Polish),
+**Kai Böse** (German),
+**Triline** (Polish),
 **NeverWinterSwor** (Simplified Chinese),
 **Yagxter** (Brazilian Portuguese),
-**Leo Gonzalez** (Spanish)
+**Leo Gonzalez** (Spanish),
+**Yuri (ganqqwerty)** (Russian)
 
 If you are a non-English native, and would like to help translate asbplayer, please contact me on [Discord](https://discord.gg/ad7VAQru7m).
 
