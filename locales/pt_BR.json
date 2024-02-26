@@ -18,7 +18,10 @@
         "startRecording": "Iniciar gravação",
         "stopRecording": "Parar gravação",
         "importSettings": "Importar configurações",
-        "exportSettings": "Exportar configurações"
+        "exportSettings": "Exportar configurações",
+        "hideOverlay": "Hide Overlay",
+        "decreaseOffsetButton": "Decrease offset to so that next subtitle is at current position. Hold to decrease by 100ms.",
+        "increaseOffsetButton": "Increase offset to so that previous subtitle is at current position. Hold to increase by 100ms."
     },
     "postMineAction": {
         "none": "Nada",
@@ -165,7 +168,8 @@
             "subtitles": "Legenda",
             "syncing": "Sincronização",
             "takeScreenshot": "Tirar captura de tela",
-            "updateAvailable": "Atualização disponível"
+            "updateAvailable": "Atualização disponível",
+            "enableOverlay": "Enable controls overlay"
         },
         "videoDataSync": {
             "emptySubtitleTrack": "Vazio",
@@ -188,6 +192,10 @@
     "ftue": {
         "welcome": "Welcome to asbplayer.",
         "welcomeBody": "Check out the <0>readme</0> to see how to get started."
+    },
+    "update": {
+        "heading": "asbplayer just updated to version {{version}}.",
+        "body": "Check out the release notes <0>here</0>."
     },
     "info": {
         "copiedSubtitle": "Copiado: {{text}}",

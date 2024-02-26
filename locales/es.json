@@ -18,7 +18,10 @@
         "startRecording": "Comenzar Grabación",
         "stopRecording": "Finalizar Grabación",
         "importSettings": "Importar Ajustes",
-        "exportSettings": "Exportar Ajustes"
+        "exportSettings": "Exportar Ajustes",
+        "hideOverlay": "Hide Overlay",
+        "decreaseOffsetButton": "Decrease offset to so that next subtitle is at current position. Hold to decrease by 100ms.",
+        "increaseOffsetButton": "Increase offset to so that previous subtitle is at current position. Hold to increase by 100ms."
     },
     "postMineAction": {
         "none": "Ninguna",
@@ -165,7 +168,8 @@
             "subtitles": "Subtítulos",
             "syncing": "Sincronización",
             "takeScreenshot": "Tomar captura de pantalla",
-            "updateAvailable": "Actualización Disponible"
+            "updateAvailable": "Actualización Disponible",
+            "enableOverlay": "Enable controls overlay"
         },
         "videoDataSync": {
             "emptySubtitleTrack": "En Blanco",
@@ -188,6 +192,10 @@
     "ftue": {
         "welcome": "Bienvenido a asbplayer",
         "welcomeBody": "Revisa el <0>léeme</0> para comenzar\ninfo.activeTabPermissionObtained,Grabación de audio activada para esta pestaña"
+    },
+    "update": {
+        "heading": "asbplayer just updated to version {{version}}.",
+        "body": "Check out the release notes <0>here</0>."
     },
     "info": {
         "copiedSubtitle": "Copiado: {{text}}",

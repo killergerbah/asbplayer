@@ -1,16 +1,17 @@
 {
   "files": {
     "main.css": "/asbplayer/static/css/main.86960484.css",
-    "main.js": "/asbplayer/static/js/main.74bf3200.js",
+    "main.js": "/asbplayer/static/js/main.337472c3.js",
     "static/js/952.c01a84bd.chunk.js": "/asbplayer/static/js/952.c01a84bd.chunk.js",
     "static/js/958.9e8e0c75.chunk.js": "/asbplayer/static/js/958.9e8e0c75.chunk.js",
-    "static/js/572.1edf17df.chunk.js": "/asbplayer/static/js/572.1edf17df.chunk.js",
-    "static/js/311.fa7b74c3.chunk.js": "/asbplayer/static/js/311.fa7b74c3.chunk.js",
-    "static/js/76.4053446a.chunk.js": "/asbplayer/static/js/76.4053446a.chunk.js",
-    "static/js/154.b3ea1a56.chunk.js": "/asbplayer/static/js/154.b3ea1a56.chunk.js",
-    "static/js/922.7b44d40e.chunk.js": "/asbplayer/static/js/922.7b44d40e.chunk.js",
-    "static/js/748.8b5510b2.chunk.js": "/asbplayer/static/js/748.8b5510b2.chunk.js",
-    "static/js/778.dadde05b.chunk.js": "/asbplayer/static/js/778.dadde05b.chunk.js",
+    "static/js/572.3eb745c4.chunk.js": "/asbplayer/static/js/572.3eb745c4.chunk.js",
+    "static/js/311.b39f47b0.chunk.js": "/asbplayer/static/js/311.b39f47b0.chunk.js",
+    "static/js/76.2563ce70.chunk.js": "/asbplayer/static/js/76.2563ce70.chunk.js",
+    "static/js/154.b17ee66b.chunk.js": "/asbplayer/static/js/154.b17ee66b.chunk.js",
+    "static/js/922.e5c5850b.chunk.js": "/asbplayer/static/js/922.e5c5850b.chunk.js",
+    "static/js/748.ca8bcbba.chunk.js": "/asbplayer/static/js/748.ca8bcbba.chunk.js",
+    "static/js/741.79e54df0.chunk.js": "/asbplayer/static/js/741.79e54df0.chunk.js",
+    "static/js/778.5d6f61ec.chunk.js": "/asbplayer/static/js/778.5d6f61ec.chunk.js",
     "static/js/347.2371fb9e.chunk.js": "/asbplayer/static/js/347.2371fb9e.chunk.js",
     "static/js/583.9c155296.chunk.js": "/asbplayer/static/js/583.9c155296.chunk.js",
     "static/media/roboto-all-400-normal.woff": "/asbplayer/static/media/roboto-all-400-normal.376ea5d93f71583052f6.woff",
@@ -23,7 +24,7 @@
     "static/media/roboto-greek-ext-400-normal.woff2": "/asbplayer/static/media/roboto-greek-ext-400-normal.bb723e8458c9c653e505.woff2",
     "index.html": "/asbplayer/index.html",
     "main.86960484.css.map": "/asbplayer/static/css/main.86960484.css.map",
-    "main.74bf3200.js.map": "/asbplayer/static/js/main.74bf3200.js.map",
+    "main.337472c3.js.map": "/asbplayer/static/js/main.337472c3.js.map",
     "952.c01a84bd.chunk.js.map": "/asbplayer/static/js/952.c01a84bd.chunk.js.map",
     "958.9e8e0c75.chunk.js.map": "/asbplayer/static/js/958.9e8e0c75.chunk.js.map",
     "347.2371fb9e.chunk.js.map": "/asbplayer/static/js/347.2371fb9e.chunk.js.map",
@@ -31,6 +32,6 @@
   },
   "entrypoints": [
     "static/css/main.86960484.css",
-    "static/js/main.74bf3200.js"
+    "static/js/main.337472c3.js"
   ]
 }

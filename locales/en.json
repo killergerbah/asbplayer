@@ -18,7 +18,10 @@
         "startRecording": "Start Recording",
         "stopRecording": "Stop Recording",
         "importSettings": "Import Settings",
-        "exportSettings": "Export Settings"
+        "exportSettings": "Export Settings",
+        "hideOverlay": "Hide Overlay",
+        "decreaseOffsetButton": "Decrease offset to so that next subtitle is at current position. Hold to decrease by 100ms.",
+        "increaseOffsetButton": "Increase offset to so that previous subtitle is at current position. Hold to increase by 100ms."
     },
     "postMineAction": {
         "none": "None",
@@ -165,7 +168,8 @@
             "subtitles": "Subtitles",
             "syncing": "Syncing",
             "takeScreenshot": "Take screenshot",
-            "updateAvailable": "Update Available"
+            "updateAvailable": "Update Available",
+            "enableOverlay": "Enable controls overlay"
         },
         "videoDataSync": {
             "emptySubtitleTrack": "Empty",
@@ -188,6 +192,10 @@
     "ftue": {
         "welcome": "Welcome to asbplayer.",
         "welcomeBody": "Check out the <0>readme</0> to see how to get started."
+    },
+    "update": {
+        "heading": "asbplayer just updated to version {{version}}.",
+        "body": "Check out the release notes <0>here</0>."
     },
     "info": {
         "copiedSubtitle": "Copied: {{text}}",
