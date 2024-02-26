@@ -190,8 +190,12 @@
         }
     },
     "ftue": {
-        "welcome": "asbplayerへようこそ。",
-        "welcomeBody": "asbplayerの使い方は<0>readme</0>を参考にしてください。"
+        "welcome": "asbplayer へようこそ。",
+        "welcomeBody": "asbplayer の使い方は<0>readme</0>をご参考ください。"
+    },
+    "update": {
+        "heading": "asbplayer が新しいバージョン{{version}}にアップデートされました。",
+        "body": "リリースノートは<0>こちら</0>をご参照ください。"
     },
     "info": {
         "copiedSubtitle": "コピーしました：{{text}}",

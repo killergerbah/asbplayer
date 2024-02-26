@@ -193,6 +193,10 @@
         "welcome": "Bienvenido a asbplayer",
         "welcomeBody": "Revisa el <0>léeme</0> para comenzar\ninfo.activeTabPermissionObtained,Grabación de audio activada para esta pestaña"
     },
+    "update": {
+        "heading": "asbplayer just updated to version {{version}}.",
+        "body": "Check out the release notes <0>here</0>."
+    },
     "info": {
         "copiedSubtitle": "Copiado: {{text}}",
         "copiedSubtitle2": "Copiado: {{result}}",

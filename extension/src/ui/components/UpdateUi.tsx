@@ -3,25 +3,26 @@ import Typography from '@material-ui/core/Typography';
 import { Trans, useTranslation } from 'react-i18next';
 import InstallUi from './InstallUi';
 
-const FtueUi = () => {
+const UpdateUi = () => {
     const { t } = useTranslation();
+    const version = chrome.runtime.getManifest().version;
 
     return (
         <InstallUi
-            heading={<Typography variant="h5">{t('ftue.welcome')}</Typography>}
+            heading={<Typography variant="h5">{t('update.heading', { version })}</Typography>}
             body={
                 <Typography variant="h6">
                     <Trans
-                        i18nKey="ftue.welcomeBody"
+                        i18nKey="update.body"
                         components={[
                             <Link
                                 key={0}
                                 color="secondary"
                                 target="_blank"
                                 rel="noreferrer"
-                                href={'https://github.com/killergerbah/asbplayer?tab=readme-ov-file#getting-started'}
+                                href={`https://github.com/killergerbah/asbplayer/releases/tag/v${version}`}
                             >
-                                readme
+                                here
                             </Link>,
                         ]}
                     />
@@ -31,4 +32,4 @@ const FtueUi = () => {
     );
 };
 
-export default FtueUi;
+export default UpdateUi;
