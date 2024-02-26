@@ -45,7 +45,7 @@ const useStyles = makeStyles({
     container: {
         display: 'inline-flex',
         width: 'auto',
-        backgroundColor: 'rgba(0, 0, 0, .5)',
+        backgroundColor: 'rgba(0, 0, 0, .7)',
         borderRadius: 16,
     },
 });
