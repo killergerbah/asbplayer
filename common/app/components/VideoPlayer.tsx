@@ -649,7 +649,7 @@ export default function VideoPlayer({
             }
         }, 100);
 
-        return () => clearTimeout(interval);
+        return () => clearInterval(interval);
     }, [
         subtitleCollection,
         playerChannel,
