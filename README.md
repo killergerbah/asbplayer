@@ -81,8 +81,7 @@ First, see if you can get started by following one of the [community guides](#co
 Otherwise, the following steps for setting up automated Anki flashcards should work for any language:
 
 1. Install and set up a dictionary tool for your target language that allows you to do instant lookups. Popular ones are [Yomitan](https://chromewebstore.google.com/detail/yomitan/likgccmbimhjbgkjambclfkhldnlhbnn) for Japanese and [VocabSieve](https://github.com/FreeLanguageTools/vocabsieve) for European languages.
-2. Install [Anki](https://apps.ankiweb.net/), and create a deck and note type.
-    - _Note: Use one of the [community guides](#community-guides) to learn how to set up an Anki deck._
+2. Install [Anki](https://apps.ankiweb.net/), and create a deck and note type. More details on [Refold's guide](https://refold.la/roadmap/stage-1/a/anki-setup).
 3. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
 4. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect using your deck and note type.
 5. Enhance a video using asbplayer and subtitle files.
