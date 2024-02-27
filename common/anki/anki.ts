@@ -183,12 +183,7 @@ export class Anki {
             if (data) {
                 if (gui || updateLast) {
                     const fileName = (await this._storeMediaFile(sanitizedName, data, ankiConnectUrl)).result;
-                    this._appendField(
-                        fields,
-                        this.settingsProvider.imageField,
-                        `<img src="${fileName}">`,
-                        false
-                    );
+                    this._appendField(fields, this.settingsProvider.imageField, `<img src="${fileName}">`, false);
                 } else {
                     params.note['picture'] = {
                         filename: sanitizedName,
