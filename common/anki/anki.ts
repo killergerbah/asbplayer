@@ -186,7 +186,7 @@ export class Anki {
                     this._appendField(
                         fields,
                         this.settingsProvider.imageField,
-                        `<div><img src="${fileName}"></div>`,
+                        `<img src="${fileName}">`,
                         false
                     );
                 } else {
