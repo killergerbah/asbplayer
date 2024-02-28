@@ -2,10 +2,11 @@ import pagesConfig from '../pages.json';
 
 interface PageConfig {
     host: string;
-    script: string;
+    script?: string;
     path?: string;
     hash?: string;
-    autoSync: {
+    allowBlankSrc?: boolean;
+    autoSync?: {
         enabled: boolean;
         videoSrc?: string;
         elementId?: string;
@@ -40,6 +41,10 @@ export class PageDelegate {
     }
 
     loadScripts() {
+        if (this.config.script === undefined) {
+            return;
+        }
+
         const s = document.createElement('script');
         s.src = chrome.runtime.getURL(`pages/${this.config.script}`);
         s.onload = () => s.remove();
@@ -68,6 +73,7 @@ export class PageDelegate {
 
     canAutoSync(element: HTMLMediaElement) {
         return (
+            this.config.autoSync !== undefined &&
             this.config.autoSync.enabled &&
             (this.config.autoSync.elementId === undefined || element.id === this.config.autoSync.elementId) &&
             (this.config.autoSync.videoSrc === undefined || new RegExp(this.config.autoSync.videoSrc).test(element.src))

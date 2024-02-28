@@ -197,7 +197,7 @@ export default class VideoDataSyncController {
                 : {
                       open: true,
                       isLoading: this._context.subSyncAvailable && this._waitingForSubtitles,
-                      suggestedName: '',
+                      suggestedName: document.title,
                       selectedSubtitle: ['-'],
                       error: '',
                       showSubSelect: true,

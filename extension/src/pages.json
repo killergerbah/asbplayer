@@ -87,6 +87,10 @@
             "autoSync": {
                 "enabled": true
             }
+        },
+        {
+            "host": "www.twitch.tv",
+            "allowBlankSrc": true
         }
     ]
 }

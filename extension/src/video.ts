@@ -1,5 +1,5 @@
 import Binding from './services/binding';
-import { currentPageDelegate } from './services/pages';
+import { PageDelegate, currentPageDelegate } from './services/pages';
 import VideoSelectController from './controllers/video-select-controller';
 import {
     CopyToClipboardMessage,
@@ -41,7 +41,11 @@ const bindToggleSidePanel = () => {
     });
 };
 
-const hasValidVideoSource = (videoElement: HTMLVideoElement) => {
+const hasValidVideoSource = (videoElement: HTMLVideoElement, page?: PageDelegate) => {
+    if (page?.config?.allowBlankSrc) {
+        return true;
+    }
+
     if (videoElement.src) {
         return true;
     }
@@ -60,7 +64,7 @@ const hasValidVideoSource = (videoElement: HTMLVideoElement) => {
 const bind = () => {
     const bindings: Binding[] = [];
     const page = currentPageDelegate();
-    let subSyncAvailable = page !== undefined;
+    let subSyncAvailable = page?.config.script !== undefined;
     let frameInfoListener: FrameInfoListener | undefined;
     let frameInfoBroadcaster: FrameInfoBroadcaster | undefined;
     const isParentDocument = window.self === window.top;
@@ -81,7 +85,7 @@ const bind = () => {
             const videoElement = videoElements[i];
             const bindingExists = bindings.filter((b) => b.video.isSameNode(videoElement)).length > 0;
 
-            if (!bindingExists && hasValidVideoSource(videoElement) && !page?.shouldIgnore(videoElement)) {
+            if (!bindingExists && hasValidVideoSource(videoElement, page) && !page?.shouldIgnore(videoElement)) {
                 const b = new Binding(videoElement, subSyncAvailable, frameInfoBroadcaster?.frameId);
                 b.bind();
                 bindings.push(b);
@@ -95,7 +99,7 @@ const bind = () => {
             for (let j = 0; j < videoElements.length; ++j) {
                 const videoElement = videoElements[j];
 
-                if (videoElement.isSameNode(b.video) && hasValidVideoSource(videoElement)) {
+                if (videoElement.isSameNode(b.video) && hasValidVideoSource(videoElement, page)) {
                     videoElementExists = true;
                     break;
                 }
