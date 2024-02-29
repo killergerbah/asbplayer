@@ -61,7 +61,7 @@ export default class KeyBindings {
                     context.pause();
                 }
             },
-            () => false,
+            () => !context.synced,
             true
         );
 
@@ -72,7 +72,7 @@ export default class KeyBindings {
 
                 context.playMode = context.playMode === PlayMode.autoPause ? PlayMode.normal : PlayMode.autoPause;
             },
-            () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
+            () => context.subtitleController.subtitles.length === 0,
             true
         );
 
@@ -83,7 +83,7 @@ export default class KeyBindings {
 
                 context.playMode = context.playMode === PlayMode.condensed ? PlayMode.normal : PlayMode.condensed;
             },
-            () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
+            () => context.subtitleController.subtitles.length === 0,
             true
         );
 
@@ -97,7 +97,7 @@ export default class KeyBindings {
                     context.playMode = context.playMode === PlayMode.repeat ? PlayMode.normal : PlayMode.repeat;
                 }
             },
-            () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
+            () => context.subtitleController.subtitles.length === 0,
             true
         );
 
@@ -108,7 +108,7 @@ export default class KeyBindings {
 
                 context.playMode = context.playMode === PlayMode.fastForward ? PlayMode.normal : PlayMode.fastForward;
             },
-            () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
+            () => context.subtitleController.subtitles.length === 0,
             true
         );
 
@@ -118,7 +118,7 @@ export default class KeyBindings {
                 event.stopImmediatePropagation();
                 context.seek(subtitle.start / 1000);
             },
-            () => false,
+            () => context.subtitleController.subtitles.length === 0,
             () => context.video.currentTime * 1000,
             () => context.subtitleController.subtitles,
             true
@@ -135,7 +135,7 @@ export default class KeyBindings {
                     context.seek(Math.max(0, context.video.currentTime - 10));
                 }
             },
-            () => false,
+            () => !context.synced,
             true
         );
 
@@ -146,7 +146,7 @@ export default class KeyBindings {
                 context.seek(subtitle.start / 1000);
                 if (context.alwaysPlayOnSubtitleRepeat) context.play();
             },
-            () => false,
+            () => context.subtitleController.subtitles.length === 0,
             () => context.video.currentTime * 1000,
             () => context.subtitleController.subtitles,
             true
@@ -167,7 +167,7 @@ export default class KeyBindings {
 
                 chrome.runtime.sendMessage(toggleSubtitlesCommand);
             },
-            () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
+            () => context.subtitleController.subtitles.length === 0,
             true
         );
 
@@ -178,7 +178,7 @@ export default class KeyBindings {
                 context.subtitleController.disabledSubtitleTracks[track] =
                     !context.subtitleController.disabledSubtitleTracks[track];
             },
-            () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
+            () => context.subtitleController.subtitles.length === 0,
             true
         );
 
@@ -196,7 +196,7 @@ export default class KeyBindings {
                 };
                 chrome.runtime.sendMessage(command);
             },
-            () => !context.subtitleController.subtitles || context.subtitleController.subtitles.length === 0,
+            () => context.subtitleController.subtitles.length === 0,
             true
         );
 
@@ -206,7 +206,7 @@ export default class KeyBindings {
                 event.stopImmediatePropagation();
                 context.subtitleController.offset(offset);
             },
-            () => false,
+            () => context.subtitleController.subtitles.length === 0,
             () => context.video.currentTime * 1000,
             () => context.subtitleController.subtitles,
             true
@@ -218,7 +218,7 @@ export default class KeyBindings {
                 event.stopImmediatePropagation();
                 context.subtitleController.offset(offset);
             },
-            () => false,
+            () => context.subtitleController.subtitles.length === 0,
             () => context.subtitleController.subtitles,
             true
         );
@@ -229,7 +229,7 @@ export default class KeyBindings {
                 event.stopImmediatePropagation();
                 context.subtitleController.offset(0);
             },
-            () => false,
+            () => context.subtitleController.subtitles.length === 0,
             true
         );
 
@@ -244,7 +244,7 @@ export default class KeyBindings {
                     context.video.playbackRate = Math.max(0.1, Math.round(context.video.playbackRate * 10 - 1) / 10);
                 }
             },
-            () => false,
+            () => !context.synced,
             true
         );
 
