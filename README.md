@@ -100,11 +100,12 @@ Text guides:
 
 -   [Shiki's Lazy Sentence Mining Workflow (Japanese)](https://docs.google.com/document/d/e/2PACX-1vQuEAoZFoJbULZzCJ3_tW7ayT_DcQl9eDlrXMnuPGTwDk62r5fQrXak3ayxBsEgkL85_Z-YY5W4yUom/pub)
 -   [Sentence mining from Netflix and YouTube with asbplayer (Japanese)](https://soyuz18.notion.site/Sentence-mining-from-Netflix-and-YouTube-with-asbplayer-83a03590cd8349ba81ca10340645b565)
+-   [Refold's Anki guide](https://refold.la/roadmap/stage-1/a/anki-setup)
 
 Video guides:
 
--   [Refold's installation guide](https://www.youtube.com/watch?v=Pv4Sp01Uh64)
--   [Refold's sentence mining guide (Japanese + European languages)](https://www.youtube.com/watch?v=jXO4gmCmcNE)
+-   [Refold's installation and basic usage guide](https://www.youtube.com/watch?v=GYsf-NOVoYc)
+-   [Refold's sentence mining guide (European languages)](https://youtu.be/jXO4gmCmcNE?si=u-8F7L7PWgdsXK5t&t=678)
 -   [Sentence Mining: Learning Japanese From Anime (Japanese)](https://www.youtube.com/watch?v=B60cj69MSmA)
 -   [How to Setup and Use ASBPlayer for Vocab Mining (Japanese)](https://www.youtube.com/watch?v=D1tlb7zo8Og&ab_channel=pooks_)
 
