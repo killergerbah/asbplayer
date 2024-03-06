@@ -142,5 +142,8 @@ export class WebSocketClient {
         this._pingPromises = [];
         this._lastPingTimestampMs = undefined;
         this._pongReceived = false;
+        this._connectPromise?.reject('Disconnecting');
+        this._connectPromise = undefined;
+        this.onMineSubtitle = undefined;
     }
 }
