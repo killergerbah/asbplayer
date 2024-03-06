@@ -220,7 +220,7 @@ func (forwarder forwarder) handlePostRequest(c echo.Context) error {
 			return forwarder.forwardToAnkiConnect(buf, c)
 		}
 
-		c.JSON(http.StatusOK, "{\"result\":null,\"error\":null}")
+		c.JSON(http.StatusOK, -1)
 	}
 
 	return nil
