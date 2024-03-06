@@ -192,7 +192,7 @@ func (forwarder forwarder) handlePostRequest(c echo.Context) error {
 
 	c.Set("ankiConnectAction", request.Action)
 
-	if request.Action != "addNote" {
+	if request.Action != "addNote" || len(forwarder.WebsocketClients) == 0 {
 		return forwarder.forwardToAnkiConnect(buf, c)
 	}
 
