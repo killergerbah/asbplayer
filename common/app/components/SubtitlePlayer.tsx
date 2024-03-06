@@ -647,7 +647,7 @@ export default function SubtitlePlayer({
         }
 
         const table = containerRef.current;
-        table?.addEventListener('wheel', handleScroll);
+        table?.addEventListener('wheel', handleScroll, { passive: true });
 
         return () => table?.removeEventListener('wheel', handleScroll);
     }, [containerRef, lastScrollTimestampRef]);
