@@ -830,7 +830,7 @@ export default function SubtitlePlayer({
     useEffect(() => {
         if (extension.installed) {
             return extension.subscribe((message: ExtensionMessage) => {
-                if (message.data.command !== 'copy-subtitle-with-additional-fields') {
+                if (!document.hasFocus() || message.data.command !== 'copy-subtitle-with-additional-fields') {
                     return;
                 }
 

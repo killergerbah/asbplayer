@@ -2,6 +2,7 @@ import { AnkiSettings, WebSocketClientSettings, ankiSettingsKeys } from '../../s
 import { CardTextFieldValues, PostMineAction } from '../../src/model';
 import { MineSubtitleCommand, WebSocketClient } from '../../web-socket-client';
 import { useEffect, useState } from 'react';
+import { useDocumentHasFocus } from './use-document-has-focus';
 
 export interface MineSubtitleParams extends CardTextFieldValues {
     postMineAction: PostMineAction;
@@ -17,17 +18,18 @@ export const useAppWebSocketClient = ({
     enabled: boolean;
 }) => {
     const [client, setClient] = useState<WebSocketClient>();
+    const documentHasFocus = useDocumentHasFocus();
 
     useEffect(() => {
-        if (enabled && settings.webSocketClientEnabled && settings.webSocketServerUrl) {
+        if (enabled && settings.webSocketClientEnabled && settings.webSocketServerUrl && documentHasFocus) {
             const client = new WebSocketClient();
-            client.bind(settings.webSocketServerUrl);
+            client.bind(settings.webSocketServerUrl).catch(console.error);
             setClient(client);
             return () => client.unbind();
         }
 
         setClient(undefined);
-    }, [settings.webSocketServerUrl, settings.webSocketClientEnabled, enabled]);
+    }, [documentHasFocus, settings.webSocketServerUrl, settings.webSocketClientEnabled, enabled]);
 
     useEffect(() => {
         if (!client) {
