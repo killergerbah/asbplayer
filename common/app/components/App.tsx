@@ -42,7 +42,6 @@ import SettingsDialog from './SettingsDialog';
 import VideoPlayer, { SeekRequest } from './VideoPlayer';
 import { Color } from '@material-ui/lab';
 import VideoChannel from '../services/video-channel';
-import PlaybackPreferences from '../services/playback-preferences';
 import { addBlobUrl, createBlobUrl, revokeBlobUrl } from '../../blob-url';
 import { useTranslation } from 'react-i18next';
 import { LocalizedError } from './localized-error';
