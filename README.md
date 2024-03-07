@@ -157,6 +157,7 @@ Use <kbd>Ctrl + Shift + F</kbd> to see auto-detected subtitle tracks for streami
 -   Bandai Channel
 -   Amazon Prime (known issue: subtitles sometimes off by ~30 seconds)
 -   Emby
+-   Rakuten Viki
 
 <kbd>Ctrl + Shift + F</kbd> also allows you to load an empty subtitle track so that you can extract audio and screenshots from streaming video without loading subtitles.
 
@@ -209,7 +210,11 @@ Most of the extension features detailed above can be accessed through the extens
 
 #### Keyboard shortcuts
 
-Keyboard shortcuts are customizable from the [asbplayer website settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts) or from accessing the extension directly. Once asbplayer has been bound to a video, you can use the keyboard shortcuts to access most of asbplayer's features.
+Keyboard shortcuts are customizable from the [settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts) or from accessing the extension directly. Once asbplayer has been bound to a video, you can use the keyboard shortcuts to access most of asbplayer's features.
+
+### Extension video overlay
+
+By default some overlay UI appears when streaming video is paused. It can be toggled on/off from the [settings](https://killergerbah.github.io/asbplayer/?view=settings#streaming-video). It exists primarily to make it possible to sentence mine on Kiwi Browser for Android, with buttons/fields to mine a subtitle, load subtitles, and adjust subtitle offset.
 
 #### Audio track selection for mkv files
 
@@ -221,7 +226,7 @@ An audio track selector will appear for `mkv` files if experimental web platform
 
 #### One-click mining flow
 
-The asbplayer website can be setup to support one-click mining workflows by integrating with other tools via its [WebSocket interface](#websocket-interface) and a locally-running proxy that intercepts AnkiConnect traffic. Below are steps to set up such a workflow using Yomitan:
+asbplayer can be setup to support one-click mining workflows by integrating with other tools via its [WebSocket interface](#websocket-interface) and a locally-running proxy that intercepts AnkiConnect traffic. Below are steps to set up such a workflow using Yomitan:
 
 1. Install [Go](https://go.dev/doc/install).
 2. Clone this repository and start the AnkiConnect proxy server:
@@ -229,7 +234,7 @@ The asbplayer website can be setup to support one-click mining workflows by inte
     cd scripts/anki-connect-proxy
     go run main.go
     ```
-3. Enable asbplayer's WebSocket client from the [website settings](https://killergerbah.github.io/asbplayer?view=settings#misc-settings).
+3. Enable asbplayer's WebSocket client from the [settings](https://killergerbah.github.io/asbplayer?view=settings#misc-settings).
 4. Point Yomitan at the proxy by configuring `http://127.0.0.1:8766` for the AnkiConnect URL.
 5. Configure Yomitan to use the same note type you have configured for asbplayer.
 6. Using Yomitan's `+` button on asbplayer subtitles will now trigger the flashcard creator with word and definition fields pre-populated by Yomitan.
