@@ -212,9 +212,9 @@ Most of the extension features detailed above can be accessed through the extens
 
 Keyboard shortcuts are customizable from the [settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts) or from accessing the extension directly. Once asbplayer has been bound to a video, you can use the keyboard shortcuts to access most of asbplayer's features.
 
-### Extension video overlay
+#### Extension video overlay
 
-By default some overlay UI appears when streaming video is paused. It can be toggled on/off from the [settings](https://killergerbah.github.io/asbplayer/?view=settings#streaming-video). It exists primarily to make it possible to sentence mine on Kiwi Browser for Android, with buttons/fields to mine a subtitle, load subtitles, and adjust subtitle offset.
+By default some UI appears at the top of streaming video when it is paused. It can be toggled on/off from the [settings](https://killergerbah.github.io/asbplayer/?view=settings#streaming-video). It exists primarily to make it possible to sentence mine on Kiwi Browser for Android, with buttons/fields to mine a subtitle, load subtitles, and adjust subtitle offset.
 
 #### Audio track selection for mkv files
 
