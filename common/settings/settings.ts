@@ -16,6 +16,7 @@ export interface MiscSettings {
     readonly language: string;
     readonly clickToMineDefaultAction: PostMineAction;
     readonly lastSubtitleOffset: number;
+    readonly tabName: string;
 }
 
 export interface AnkiSettings {

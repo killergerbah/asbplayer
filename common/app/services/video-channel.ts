@@ -531,6 +531,7 @@ export default class VideoChannel {
             clickToMineDefaultAction,
             language,
             lastSubtitleOffset,
+            tabName,
         } = settings;
         const message: MiscSettingsToVideoMessage = {
             command: 'miscSettings',
@@ -550,6 +551,7 @@ export default class VideoChannel {
                 clickToMineDefaultAction,
                 language,
                 lastSubtitleOffset,
+                tabName,
             },
         };
         this.protocol.postMessage(message);

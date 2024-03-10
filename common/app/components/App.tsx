@@ -1127,6 +1127,10 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         );
     }, [keyBinder, handleOpenCopyHistory, ankiDialogOpen]);
 
+    useEffect(() => {
+        document.title = settings.tabName;
+    }, [settings]);
+
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
 
     if (!i18nInitialized) {

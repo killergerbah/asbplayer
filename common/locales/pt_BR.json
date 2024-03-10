@@ -288,6 +288,7 @@
         "subtitleAlignment": "Alinhamento da legenda",
         "subtitleAlignmentBottom": "Inferior",
         "subtitleAlignmentTop": "Superior",
+        "tabName": "Nome da guia",
         "subtitleRegexFilter": "Filtro regex da legenda",
         "subtitleRegexFilterTextReplacement": "Substituição de texto do filtro regex da legenda",
         "subtitleSize": "Tamanho da legenda",

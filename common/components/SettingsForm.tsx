@@ -680,6 +680,7 @@ export default function SettingsForm({
         rememberSubtitleOffset,
         autoCopyCurrentSubtitle,
         alwaysPlayOnSubtitleRepeat,
+        tabName,
         subtitleRegexFilter,
         subtitleRegexFilterTextReplacement,
         language,
@@ -1825,6 +1826,13 @@ export default function SettingsForm({
                                     min: 0,
                                     step: 1,
                                 }}
+                            />
+                            <TextField
+                                label={t('settings.tabName')}
+                                fullWidth
+                                value={tabName}
+                                color="secondary"
+                                onChange={(event) => handleSettingChanged('tabName', event.target.value)}
                             />
                             <TextField
                                 label={t('settings.subtitleRegexFilter')}
