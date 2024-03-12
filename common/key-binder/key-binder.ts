@@ -167,16 +167,17 @@ export class DefaultKeyBinder implements KeyBinder {
     ) {
         return (event: KeyboardEvent) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             const subtitle = subtitleGetter();
 
             if (!subtitle) {
-                return;
+                return false;
             }
 
             onCopy(event, subtitle);
+            return true;
         };
     }
 
@@ -194,10 +195,11 @@ export class DefaultKeyBinder implements KeyBinder {
     ankiExportHandler(onAnkiExport: (event: KeyboardEvent) => void, disabledGetter: () => boolean) {
         return (event: KeyboardEvent) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             onAnkiExport(event);
+            return true;
         };
     }
 
@@ -219,10 +221,11 @@ export class DefaultKeyBinder implements KeyBinder {
     updateLastCardHandler(onUpdateLastCard: (event: KeyboardEvent) => void, disabledGetter: () => boolean) {
         return (event: KeyboardEvent) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             onUpdateLastCard(event);
+            return true;
         };
     }
 
@@ -237,17 +240,18 @@ export class DefaultKeyBinder implements KeyBinder {
             return () => {};
         }
 
-        const handler = this.updateLastCardHandler(onTakeScreenshot, disabledGetter);
+        const handler = this.takeScreenshotHandler(onTakeScreenshot, disabledGetter);
         return this._bind(shortcut, capture, handler);
     }
 
     takeScreenshotHandler(onTakeScreenshot: (event: KeyboardEvent) => void, disabledGetter: () => boolean) {
         return (event: KeyboardEvent) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             onTakeScreenshot(event);
+            return true;
         };
     }
 
@@ -260,20 +264,23 @@ export class DefaultKeyBinder implements KeyBinder {
     ) {
         const delegate = (event: KeyboardEvent, forward: boolean) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             const subtitles = subtitlesGetter();
 
             if (!subtitles || subtitles.length === 0) {
-                return;
+                return false;
             }
 
             const subtitle = adjacentSubtitle(forward, timeGetter(), subtitles);
 
             if (subtitle !== null && subtitle.start >= 0 && subtitle.end >= 0) {
                 onSeekToSubtitle(event, subtitle);
+                return true;
             }
+
+            return false;
         };
         const previousShortcut = this.keyBindSet.seekToPreviousSubtitle.keys;
         const nextShortcut = this.keyBindSet.seekToNextSubtitle.keys;
@@ -312,20 +319,23 @@ export class DefaultKeyBinder implements KeyBinder {
 
         const handler = (event: KeyboardEvent) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             const subtitles = subtitlesGetter();
 
             if (!subtitles || subtitles.length === 0) {
-                return;
+                return false;
             }
 
             const subtitle = this._currentOrPreviousSubtitle(timeGetter(), subtitles);
 
             if (subtitle !== undefined && subtitle.start >= 0 && subtitle.end >= 0) {
                 onSeekToBeginningOfCurrentSubtitle(event, subtitle);
+                return true;
             }
+
+            return false;
         };
         return this._bind(shortcut, capture, handler);
     }
@@ -365,10 +375,11 @@ export class DefaultKeyBinder implements KeyBinder {
     ) {
         const delegate = (event: KeyboardEvent, forward: boolean) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             onSeekBackwardOrForward(event, forward);
+            return true;
         };
         const backShortcut = this.keyBindSet.seekBackward.keys;
         const nextShortcut = this.keyBindSet.seekForward.keys;
@@ -401,13 +412,13 @@ export class DefaultKeyBinder implements KeyBinder {
     ) {
         const delegate = (event: KeyboardEvent, forward: boolean) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             const subtitles = subtitlesGetter();
 
             if (!subtitles || subtitles.length === 0) {
-                return;
+                return false;
             }
 
             const time = timeGetter();
@@ -417,7 +428,10 @@ export class DefaultKeyBinder implements KeyBinder {
                 const subtitleStart = subtitle.originalStart;
                 const newOffset = time - subtitleStart;
                 onOffsetChange(event, newOffset);
+                return true;
             }
+
+            return false;
         };
         const previousShortcut = this.keyBindSet.adjustOffsetToPreviousSubtitle.keys;
         const nextShortcut = this.keyBindSet.adjustOffsetToNextSubtitle.keys;
@@ -449,18 +463,19 @@ export class DefaultKeyBinder implements KeyBinder {
     ) {
         const delegate = (event: KeyboardEvent, increase: boolean) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             const subtitles = subtitlesGetter();
 
             if (!subtitles || subtitles.length === 0) {
-                return;
+                return false;
             }
 
             const currentOffset = subtitles[0].start - subtitles[0].originalStart;
             const newOffset = currentOffset + (increase ? 100 : -100);
             onOffsetChange(event, newOffset);
+            return true;
         };
 
         const decreaseShortcut = this.keyBindSet.decreaseOffset.keys;
@@ -489,10 +504,11 @@ export class DefaultKeyBinder implements KeyBinder {
 
         const handler = (event: KeyboardEvent) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             onResetOffset(event);
+            return true;
         };
 
         return this._bind(shortcut, capture ?? false, handler);
@@ -505,10 +521,11 @@ export class DefaultKeyBinder implements KeyBinder {
     ) {
         const delegate = (event: KeyboardEvent, increase: boolean) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             onAdjustPlaybackRate(event, increase);
+            return true;
         };
         const increaseShortcut = this.keyBindSet.increasePlaybackRate.keys;
         const decreaseShortcut = this.keyBindSet.decreasePlaybackRate.keys;
@@ -544,10 +561,11 @@ export class DefaultKeyBinder implements KeyBinder {
 
         const handler = (event: KeyboardEvent) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             onToggleSubtitles(event);
+            return true;
         };
         return this._bind(shortcut, capture, handler);
     }
@@ -569,10 +587,11 @@ export class DefaultKeyBinder implements KeyBinder {
 
         const delegate = (event: KeyboardEvent, track: number) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             onToggleSubtitleTrack(event, track);
+            return true;
         };
         let unbindHandlers: (() => void)[] = [];
 
@@ -607,10 +626,11 @@ export class DefaultKeyBinder implements KeyBinder {
 
         const delegate = (event: KeyboardEvent, track: number) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             onToggleSubtitleTrackInList(event, track);
+            return true;
         };
 
         let unbindHandlers: (() => void)[] = [];
@@ -638,10 +658,11 @@ export class DefaultKeyBinder implements KeyBinder {
 
         const handler = (event: KeyboardEvent) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             onPlay(event);
+            return true;
         };
 
         return this._bind(shortcut, capture, handler);
@@ -656,10 +677,11 @@ export class DefaultKeyBinder implements KeyBinder {
 
         const handler = (event: KeyboardEvent) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             onAutoPause(event);
+            return true;
         };
 
         return this._bind(shortcut, capture, handler);
@@ -678,10 +700,11 @@ export class DefaultKeyBinder implements KeyBinder {
 
         const handler = (event: KeyboardEvent) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             onCondensedPlayback(event);
+            return true;
         };
 
         return this._bind(shortcut, capture, handler);
@@ -700,10 +723,11 @@ export class DefaultKeyBinder implements KeyBinder {
 
         const handler = (event: KeyboardEvent) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             onFastForwardPlayback(event);
+            return true;
         };
 
         return this._bind(shortcut, capture, handler);
@@ -722,10 +746,11 @@ export class DefaultKeyBinder implements KeyBinder {
 
         const handler = (event: KeyboardEvent) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             onToggleSidePanel(event);
+            return true;
         };
 
         return this._bind(shortcut, capture, handler);
@@ -736,24 +761,32 @@ export class DefaultKeyBinder implements KeyBinder {
 
         const handler = (event: KeyboardEvent) => {
             if (disabledGetter()) {
-                return;
+                return false;
             }
 
             onToggleRepeat(event);
+            return true;
         };
 
         return this._bind(shortcut, capture, handler);
     }
 
-    private _bind(shortcut: string, capture: boolean, handler: (event: KeyboardEvent) => void) {
+    private _bind(shortcut: string, capture: boolean, handler: (event: KeyboardEvent) => boolean) {
+        let handled: boolean | undefined = undefined;
+
         const wrappedHandler = (event: KeyboardEvent) => {
             if (event.type === 'keydown') {
-                handler(event);
+                handled = handler(event);
             } else if (event.type === 'keyup') {
-                event.preventDefault();
-                event.stopImmediatePropagation();
+                if (handled) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                }
+
+                handled = undefined;
             }
         };
+
         hotkeys(shortcut, { capture, keydown: true, keyup: true }, wrappedHandler);
         return () => hotkeys.unbind(shortcut, wrappedHandler);
     }
