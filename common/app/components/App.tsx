@@ -1129,7 +1129,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
 
     useEffect(() => {
         document.title = settings.tabName;
-    }, [settings]);
+    }, [settings.tabName]);
 
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
 
