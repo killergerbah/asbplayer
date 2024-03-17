@@ -82,6 +82,7 @@ it('validates exported settings', () => {
             updateLastCard: { keys: '⇧+⌃+U' },
         },
         preferMp3: true,
+        tabName: "asbplayer",
         miningHistoryStorageLimit: 25,
         preCacheSubtitleDom: true,
         clickToMineDefaultAction: 1,

@@ -143,6 +143,9 @@ const settingsSchema = {
         preferMp3: {
             type: 'boolean',
         },
+        tabName: {
+            type: 'string',
+        },
         miningHistoryStorageLimit: {
             type: 'number',
         },
