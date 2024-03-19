@@ -288,6 +288,7 @@
         "subtitleAlignment": "Wyrównanie napisów",
         "subtitleAlignmentBottom": "Dół",
         "subtitleAlignmentTop": "Góra",
+        "tabName": "Nazwa karty",
         "subtitleRegexFilter": "Filtr Regex napisów",
         "subtitleRegexFilterTextReplacement": "Zamiana tekstu z filtru Regex napisów",
         "subtitleSize": "Wielkość napisów",

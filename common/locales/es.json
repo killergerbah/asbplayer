@@ -288,6 +288,7 @@
         "subtitleAlignment": "Alineación de Subtítulos",
         "subtitleAlignmentBottom": "Inferior",
         "subtitleAlignmentTop": "Superior",
+        "tabName": "Nombre de la pestaña",
         "subtitleRegexFilter": "Filtro regex para subtítulos",
         "subtitleRegexFilterTextReplacement": "Texto de reemplazo para el filtro regex",
         "subtitleSize": "Tamaño de los subtítulos",

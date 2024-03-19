@@ -68,6 +68,7 @@ export const defaultSettings: AsbplayerSettings = {
         toggleRepeat: { keys: isMacOs ? '⇧+R' : 'shift+R' },
     },
     preferMp3: true,
+    tabName: 'asbplayer',
     miningHistoryStorageLimit: 25,
     preCacheSubtitleDom: true,
     clickToMineDefaultAction: PostMineAction.showAnkiDialog,

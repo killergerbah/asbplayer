@@ -288,6 +288,7 @@
         "subtitleAlignment": "Выравнивание субтитров",
         "subtitleAlignmentBottom": "По нижнему краю",
         "subtitleAlignmentTop": "По верхнему краю",
+        "tabName": "название вкладки",
         "subtitleRegexFilter": "Пропускать субтитры через фильтр с регулярным выражением",
         "subtitleRegexFilterTextReplacement": "Замена текста для фильтра регулярных выражений для субтитров",
         "subtitleSize": "Размер субтитров",
