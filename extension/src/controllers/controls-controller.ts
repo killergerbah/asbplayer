@@ -32,13 +32,25 @@ export default class ControlsController {
     }
 
     _garbageCollectElements() {
-        this.elements = this.elements.filter((e) => document.body.contains(e));
+        this.elements = this.elements.filter((e) => this.video.getRootNode().contains(e));
     }
 
     _findElements() {
+        const rootNode = this.video.getRootNode() as Node & DocumentOrShadowRoot;
+
+        if (typeof rootNode.elementFromPoint !== 'function') {
+            return;
+        }
+
+        const host: Element | undefined = (rootNode as ShadowRoot).host;
+
         for (const p of this._samplePoints()) {
-            for (const element of this._path(document.elementFromPoint(p.x, p.y))) {
-                if (element && !this._contains(this.elements, element)) {
+            for (const element of this._path(rootNode.elementFromPoint(p.x, p.y))) {
+                if (
+                    element &&
+                    (host === undefined || !element.contains(host)) &&
+                    !this._contains(this.elements, element)
+                ) {
                     this.elements.push(element);
                 }
             }
