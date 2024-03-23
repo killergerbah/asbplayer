@@ -13,6 +13,7 @@ import { cropAndResize } from '@project/common/src/image-transformer';
 import { TabAnkiUiController } from './controllers/tab-anki-ui-controller';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
 import { DefaultKeyBinder } from '@project/common/key-binder';
+import { incrementallyFindShadowRoots, shadowRoots } from './services/shadow-roots';
 
 const extensionSettingsStorage = new ExtensionSettingsStorage();
 const settingsProvider = new SettingsProvider(extensionSettingsStorage);
@@ -79,7 +80,13 @@ const bind = () => {
     }
 
     const bindToVideoElements = () => {
-        const videoElements = document.getElementsByTagName('video');
+        const videoElements = [...document.getElementsByTagName('video')];
+
+        for (const shadowRoot of shadowRoots) {
+            for (const video of shadowRoot.querySelectorAll('video')) {
+                videoElements.push(video);
+            }
+        }
 
         for (let i = 0; i < videoElements.length; ++i) {
             const videoElement = videoElements[i];
@@ -120,6 +127,7 @@ const bind = () => {
 
     bindToVideoElements();
     const videoInterval = setInterval(bindToVideoElements, 1000);
+    const shadowRootInterval = setInterval(incrementallyFindShadowRoots, 1000);
 
     const videoSelectController = new VideoSelectController(bindings);
     videoSelectController.bind();
@@ -203,6 +211,7 @@ const bind = () => {
         bindings.length = 0;
 
         clearInterval(videoInterval);
+        clearInterval(shadowRootInterval);
         videoSelectController.unbind();
         frameInfoListener?.unbind();
         frameInfoBroadcaster?.unbind();
