@@ -789,6 +789,31 @@ export default function Controls({
         [onOffsetChange]
     );
 
+    const tryApplyPlaybackRate = useCallback(
+        (revertOnFailure: boolean) => {
+            if (!playbackRateInputRef.current) {
+                return;
+            }
+            const newPlaybackRate = Number(playbackRateInputRef.current.value);
+
+            if (playbackRate === newPlaybackRate) {
+                updatePlaybackRate(playbackRate);
+                return;
+            }
+
+            if (Number.isNaN(newPlaybackRate) || newPlaybackRate < 0.1 || newPlaybackRate > 5) {
+                if (revertOnFailure) {
+                    updatePlaybackRate(playbackRate);
+                }
+
+                return;
+            }
+
+            onPlaybackRateChange(newPlaybackRate);
+        },
+        [onPlaybackRateChange, updatePlaybackRate, playbackRate]
+    );
+
     useEffect(() => {
         if (disableKeyEvents) {
             return;
@@ -796,20 +821,7 @@ export default function Controls({
 
         function handleKey(event: KeyboardEvent) {
             if (event.key === 'Enter') {
-                if (playbackRateInputRef.current === document.activeElement) {
-                    const newPlaybackRate = Number(playbackRateInputRef.current.value);
-
-                    if (playbackRate === newPlaybackRate) {
-                        updatePlaybackRate(playbackRate);
-                        return;
-                    }
-
-                    if (Number.isNaN(newPlaybackRate) || newPlaybackRate < 0.1 || newPlaybackRate > 5) {
-                        return;
-                    }
-
-                    onPlaybackRateChange(newPlaybackRate);
-                }
+                tryApplyPlaybackRate(false);
             }
         }
 
@@ -818,12 +830,16 @@ export default function Controls({
         return () => {
             window.removeEventListener('keydown', handleKey);
         };
-    }, [onOffsetChange, onPlaybackRateChange, updatePlaybackRate, offset, playbackRate, disableKeyEvents]);
+    }, [tryApplyPlaybackRate, playbackRate, disableKeyEvents]);
 
     const handleNumberInputClicked = useCallback((e: React.MouseEvent<HTMLInputElement>) => {
         const inputElement = e.target as HTMLInputElement;
         inputElement.setSelectionRange(0, inputElement.value?.length || 0);
     }, []);
+
+    const handleNumberInputDeselected = useCallback(() => {
+        tryApplyPlaybackRate(true);
+    }, [tryApplyPlaybackRate]);
 
     useEffect(() => {
         clock.onEvent('settime', () => forceUpdate());
@@ -1111,6 +1127,7 @@ export default function Controls({
                                             className={classes.numberInput}
                                             placeholder={'×' + Number(1).toFixed(2)}
                                             onClick={handleNumberInputClicked}
+                                            onBlur={handleNumberInputDeselected}
                                             onChange={(e) =>
                                                 setPlaybackRateInputWidth(Math.max(5, e.target.value.length))
                                             }

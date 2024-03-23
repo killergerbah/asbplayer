@@ -53,6 +53,36 @@ export default function SubtitleOffsetInput({ inputRef, offset, onOffset, disabl
         },
         [inputRef]
     );
+
+    const tryApplyOffset = useCallback(
+        (revertOnFailure: boolean) => {
+            if (!inputRef.current) {
+                return;
+            }
+
+            const newOffset = Number(inputRef.current.value) * 1000;
+
+            if (newOffset === offset) {
+                updateOffset(offset);
+                return;
+            }
+
+            if (Number.isNaN(newOffset)) {
+                if (revertOnFailure) {
+                    updateOffset(offset);
+                }
+                return;
+            }
+
+            onOffset(newOffset);
+        },
+        [updateOffset, onOffset, offset, inputRef]
+    );
+
+    const handleNumberInputDeselected = useCallback(() => {
+        tryApplyOffset(true);
+    }, [tryApplyOffset]);
+
     useEffect(() => {
         updateOffset(offset);
     }, [offset, updateOffset]);
@@ -63,21 +93,8 @@ export default function SubtitleOffsetInput({ inputRef, offset, onOffset, disabl
         }
 
         function handleKey(event: KeyboardEvent) {
-            if (event.key === 'Enter') {
-                if (inputRef.current !== null && inputRef.current === document.activeElement) {
-                    const newOffset = Number(inputRef.current.value);
-
-                    if (newOffset === offset) {
-                        updateOffset(offset);
-                        return;
-                    }
-
-                    if (Number.isNaN(newOffset)) {
-                        return;
-                    }
-
-                    onOffset(newOffset * 1000);
-                }
+            if (event.key === 'Enter' && inputRef.current !== null && inputRef.current === document.activeElement) {
+                tryApplyOffset(false);
             }
         }
 
@@ -86,7 +103,7 @@ export default function SubtitleOffsetInput({ inputRef, offset, onOffset, disabl
         return () => {
             window.removeEventListener('keydown', handleKey);
         };
-    }, [updateOffset, onOffset, disableKeyEvents, inputRef, offset]);
+    }, [tryApplyOffset, disableKeyEvents, inputRef]);
 
     return (
         <Input
@@ -98,6 +115,7 @@ export default function SubtitleOffsetInput({ inputRef, offset, onOffset, disabl
             className={classes.input}
             placeholder={'±' + Number(0).toFixed(2)}
             onClick={handleNumberInputClicked}
+            onBlur={handleNumberInputDeselected}
             onChange={(e) => setOffsetInputWidth(Math.max(5, e.target.value.length))}
         />
     );
