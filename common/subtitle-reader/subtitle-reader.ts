@@ -197,8 +197,9 @@ export default class SubtitleReader {
                     continue;
                 }
 
+                const text = this._decodeHTML(elm.innerHTML.replaceAll(/<br(\s[^\s]+)?(\/)?>/g, '\n'));
                 subtitles.push({
-                    text: this._filterText(elm.textContent ?? '', false),
+                    text: this._filterText(text, false),
                     start: this._parseTtmlTimestamp(beginAttribute),
                     end: this._parseTtmlTimestamp(endAttribute),
                     track,
