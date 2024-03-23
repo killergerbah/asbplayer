@@ -59,7 +59,7 @@
         {
             "host": "www\\.disneyplus\\..+",
             "script": "disney-plus-page.js",
-            "path": "video",
+            "path": "video|play",
             "autoSync": {
                 "enabled": true
             }
