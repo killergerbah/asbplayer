@@ -60,6 +60,7 @@
             "host": "www\\.disneyplus\\..+",
             "script": "disney-plus-page.js",
             "path": "video|play",
+            "searchShadowRoots": true,
             "autoSync": {
                 "enabled": true
             }

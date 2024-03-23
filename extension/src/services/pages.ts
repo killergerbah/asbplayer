@@ -5,6 +5,7 @@ interface PageConfig {
     script?: string;
     path?: string;
     hash?: string;
+    searchShadowRoots?: boolean;
     allowBlankSrc?: boolean;
     autoSync?: {
         enabled: boolean;
