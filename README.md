@@ -43,7 +43,9 @@ medyas,
 [@zaerald](https://github.com/zaerald),
 Suna,
 [@tony7253](https://github.com/tony7253),
-[@voothi](https://github.com/voothi)
+[@voothi](https://github.com/voothi),
+kibo,
+[@genericdave](https://github.com/genericdave)
 
 and to those who have donated privately.
 
@@ -57,7 +59,8 @@ Thank you to all those who have contributed to asbplayer:
 [@artjomsR](https://github.com/artjomsR),
 [@iam6lake](https://github.com/iam6lake),
 [@bpwhelan](https://github.com/bpwhelan),
-[@pooky-programs](https://github.com/pooky-programs)
+[@pooky-programs](https://github.com/pooky-programs),
+[@m-edlund](https://github.com/m-edlund)
 
 Thank you to all those who have translated asbplayer:
 
