@@ -288,6 +288,7 @@
         "subtitleAlignment": "Subtitle Alignment",
         "subtitleAlignmentBottom": "Bottom",
         "subtitleAlignmentTop": "Top",
+        "tabName": "Name of the tab",
         "subtitleRegexFilter": "Subtitle regex filter",
         "subtitleRegexFilterTextReplacement": "Subtitle regex filter text replacement",
         "subtitleSize": "Subtitle Size",

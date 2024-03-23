@@ -288,6 +288,7 @@
         "subtitleAlignment": "字幕の表示位置",
         "subtitleAlignmentBottom": "下部",
         "subtitleAlignmentTop": "上部",
+        "tabName": "タブ名",
         "subtitleRegexFilter": "字幕の正規表現フィルタ",
         "subtitleRegexFilterTextReplacement": "字幕の正規表現フィルタの置き換えテキスト",
         "subtitleSize": "字幕のサイズ",

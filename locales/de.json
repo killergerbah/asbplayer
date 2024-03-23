@@ -288,6 +288,7 @@
         "subtitleAlignment": "Untertitel-Position",
         "subtitleAlignmentBottom": "Unten",
         "subtitleAlignmentTop": "Oben",
+        "tabName": "Reiterbezeichnung",
         "subtitleRegexFilter": "Untertitelfilter (Regulärer Ausdruck)",
         "subtitleRegexFilterTextReplacement": "Untertitelfilter Ersetzung",
         "subtitleSize": "Untertitelgröße",

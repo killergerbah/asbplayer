@@ -288,6 +288,7 @@
         "subtitleAlignment": "字幕对齐方式",
         "subtitleAlignmentBottom": "底部",
         "subtitleAlignmentTop": "顶部",
+        "tabName": "选项卡名称",
         "subtitleRegexFilter": "字幕正则筛选器",
         "subtitleRegexFilterTextReplacement": "字幕正则筛选器文本替换",
         "subtitleSize": "字幕大小",
