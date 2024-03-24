@@ -33,7 +33,7 @@
             }
         },
         {
-            "host": "www\\.amazon\\..+",
+            "host": "www\\.amazon\\..+|www\\.primevideo\\.com",
             "script": "amazon-prime-page.js",
             "path": ".*",
             "autoSync": {
