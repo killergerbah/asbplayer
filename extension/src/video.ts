@@ -13,7 +13,7 @@ import { cropAndResize } from '@project/common/src/image-transformer';
 import { TabAnkiUiController } from './controllers/tab-anki-ui-controller';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
 import { DefaultKeyBinder } from '@project/common/key-binder';
-import { incrementallyFindShadowRoots, shadowRoots } from './services/shadow-roots';
+import { incrementallyFindShadowRoots, shadowRootHosts } from './services/shadow-roots';
 
 const extensionSettingsStorage = new ExtensionSettingsStorage();
 const settingsProvider = new SettingsProvider(extensionSettingsStorage);
@@ -82,8 +82,12 @@ const bind = () => {
     const bindToVideoElements = () => {
         const videoElements = [...document.getElementsByTagName('video')];
 
-        for (const shadowRoot of shadowRoots) {
-            for (const video of shadowRoot.querySelectorAll('video')) {
+        for (const shadowRootHost of shadowRootHosts) {
+            if (!shadowRootHost.shadowRoot) {
+                continue;
+            }
+
+            for (const video of shadowRootHost.shadowRoot.querySelectorAll('video')) {
                 videoElements.push(video);
             }
         }
@@ -128,7 +132,7 @@ const bind = () => {
     bindToVideoElements();
     const videoInterval = setInterval(bindToVideoElements, 1000);
     const shadowRootInterval = page?.config.searchShadowRoots
-        ? setInterval(incrementallyFindShadowRoots, 1000)
+        ? setInterval(incrementallyFindShadowRoots, 500)
         : undefined;
 
     const videoSelectController = new VideoSelectController(bindings);

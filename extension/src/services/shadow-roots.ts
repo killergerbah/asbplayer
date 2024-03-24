@@ -1,12 +1,27 @@
-export const shadowRoots: ShadowRoot[] = [];
+export const shadowRootHosts: Element[] = [];
 
 const nodes: Node[] = [];
 const iterationLimit = 100;
-let found = false;
+
+const garbageCollect = () => {
+    let i = 0;
+
+    while (i < shadowRootHosts.length) {
+        const host = shadowRootHosts[i];
+
+        if (!document.contains(host) || !host.shadowRoot) {
+            shadowRootHosts.splice(i, 1);
+        } else {
+            ++i;
+        }
+    }
+};
 
 export const incrementallyFindShadowRoots = () => {
+    garbageCollect();
+
     if (nodes.length === 0) {
-        if (found) {
+        if (shadowRootHosts.length > 0) {
             return;
         }
 
@@ -24,9 +39,8 @@ export const incrementallyFindShadowRoots = () => {
 
         const shadowRoot = (node as Element).shadowRoot;
 
-        if (shadowRoot && !shadowRoots.includes(shadowRoot)) {
-            shadowRoots.push(shadowRoot);
-            found = true;
+        if (shadowRoot) {
+            shadowRootHosts.push(node as Element);
         }
 
         for (const child of node.childNodes) {
