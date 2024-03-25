@@ -11,11 +11,11 @@ import { createTheme } from '@project/common/theme';
 import { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
 import Box from '@material-ui/core/Box';
 import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
 import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
 import Popup from './Popup';
 import { useRequestingActiveTabPermission } from '../hooks/use-requesting-active-tab-permission';
 import { isMobile } from 'react-device-detect';
+import Link from '@material-ui/core/Link';
 
 interface Props {
     commands: any;
@@ -82,6 +82,8 @@ export function PopupUi({ commands }: Props) {
         return null;
     }
 
+    const version = chrome.runtime.getManifest().version;
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
@@ -97,9 +99,17 @@ export function PopupUi({ commands }: Props) {
                     />
                 </Box>
                 <Box p={0.5} textAlign="right">
-                    <Typography variant="caption" align="right" color="textSecondary">
-                        {`v${chrome.runtime.getManifest().version}`}
-                    </Typography>
+                    <Link
+                        target="_blank"
+                        rel="noreferrer"
+                        href={`https://github.com/killergerbah/asbplayer/releases/tag/v${version}`}
+                        variant="caption"
+                        align="right"
+                        color="textSecondary"
+                        underline="always"
+                    >
+                        {`v${version}`}
+                    </Link>
                 </Box>
             </Paper>
         </ThemeProvider>
