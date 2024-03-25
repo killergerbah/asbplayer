@@ -83,22 +83,7 @@ const installListener = async (details: chrome.runtime.InstalledDetails) => {
     chrome.tabs.create({ url: chrome.runtime.getURL('ftue-ui.html'), active: true });
 };
 
-const updateListener = async (details: chrome.runtime.InstalledDetails) => {
-    if (details.reason !== chrome.runtime.OnInstalledReason.UPDATE) {
-        return;
-    }
-
-    const lastUpdateNotifVersion = (await chrome.storage.local.get('lastUpdateNotifVersion')).lastUpdateNotifVersion;
-    const currentVersion = chrome.runtime.getManifest().version;
-
-    if (lastUpdateNotifVersion !== currentVersion) {
-        chrome.tabs.create({ url: `${chrome.runtime.getURL('ftue-ui.html')}?update=true`, active: true });
-        await chrome.storage.local.set({ lastUpdateNotifVersion: currentVersion });
-    }
-};
-
 chrome.runtime.onInstalled.addListener(installListener);
-chrome.runtime.onInstalled.addListener(updateListener);
 chrome.runtime.onStartup.addListener(startListener);
 
 const tabRegistry = new TabRegistry(settings);
