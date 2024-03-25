@@ -42,15 +42,9 @@ export default class ControlsController {
             return;
         }
 
-        const host: Element | undefined = (rootNode as ShadowRoot).host;
-
         for (const p of this._samplePoints()) {
-            for (const element of this._path(rootNode.elementFromPoint(p.x, p.y))) {
-                if (
-                    element &&
-                    (host === undefined || !element.contains(host)) &&
-                    !this._contains(this.elements, element)
-                ) {
+            for (const element of this._path(rootNode.elementFromPoint(p.x, p.y), rootNode)) {
+                if (element && !this._contains(this.elements, element)) {
                     this.elements.push(element);
                 }
             }
@@ -80,18 +74,19 @@ export default class ControlsController {
         return Math.min(max, Math.max(min, center + (Math.random() * radius * 2 - radius)));
     }
 
-    *_path(element: Element | null) {
+    *_path(element: Element | null, rootNode: Node & DocumentOrShadowRoot) {
         if (!element || element.contains(this.video)) {
             return;
         }
 
+        const host: Element | undefined = (rootNode as ShadowRoot).host;
         let current = element;
         yield current;
 
         while (true) {
             const parent = current.parentElement;
 
-            if (!parent || parent.contains(this.video)) {
+            if (!parent || parent.contains(this.video) || (host !== undefined && parent.contains(host))) {
                 break;
             }
 
