@@ -95,6 +95,7 @@
                 "pages/amazon-prime-page.js",
                 "pages/hulu-page.js",
                 "pages/disney-plus-page.js",
+                "pages/apps-disney-plus-page.js",
                 "pages/viki-page.js",
                 "pages/unext-page.js",
                 "pages/emby-page.js",

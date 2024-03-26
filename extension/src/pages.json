@@ -57,9 +57,18 @@
             }
         },
         {
-            "host": "www\\.(apps\\.)?disneyplus\\..+",
+            "host": "www\\.disneyplus\\..+",
             "script": "disney-plus-page.js",
             "path": "video|play",
+            "searchShadowRoots": true,
+            "autoSync": {
+                "enabled": true
+            }
+        },
+        {
+            "host": "www\\.apps\\.disneyplus\\..+",
+            "script": "apps-disney-plus-page.js",
+            "path": "watch",
             "searchShadowRoots": true,
             "autoSync": {
                 "enabled": true
