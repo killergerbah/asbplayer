@@ -57,7 +57,7 @@
             }
         },
         {
-            "host": "www\\.disneyplus\\..+",
+            "host": "www\\.(apps\\.)?disneyplus\\..+",
             "script": "disney-plus-page.js",
             "path": "video|play",
             "searchShadowRoots": true,
