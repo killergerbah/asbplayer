@@ -52,7 +52,7 @@ import { useAppKeyBinder } from '../hooks/use-app-key-binder';
 import { useAnki } from '../hooks/use-anki';
 import { usePlaybackPreferences } from '../hooks/use-playback-preferences';
 
-const latestExtensionVersion = '1.1.1';
+const latestExtensionVersion = '1.1.2';
 const extensionUrl =
     'https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab';
 const mp3WorkerFactory = () => new Worker(new URL('../../audio-clip/mp3-encoder-worker.ts', import.meta.url));
