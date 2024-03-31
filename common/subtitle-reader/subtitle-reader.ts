@@ -5,6 +5,7 @@ import { XMLParser } from 'fast-xml-parser';
 import { SubtitleTextImage } from '@project/common';
 
 const tagRegex = RegExp(/<([^>]+)>([^]*)<\/\1>/, 'ig');
+const vttClassRegex = /<(\/)?c.[^>]+>/g;
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
 const helperElement = document.createElement('div');
 
@@ -79,7 +80,7 @@ export default class SubtitleReader {
                 const parser = new WebVTT.Parser(window, WebVTT.StringDecoder());
                 const cues: any[] = [];
                 parser.oncue = (c: any) => {
-                    c.text = this._filterText(c.text, true);
+                    c.text = this._filterText(c.text.replaceAll(vttClassRegex, ''), true);
 
                     if (isFromNetflix) {
                         const lines = c.text.split('\n');
