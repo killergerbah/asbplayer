@@ -2,7 +2,15 @@ import { VideoDataSubtitleTrack } from '@project/common';
 import { extractExtension, inferTracks } from './util';
 import { parse } from 'mpd-parser';
 
-export const inferTracksFromInterceptedMpd = (mpdUrlRegex: RegExp) => {
+export interface Playlist {
+    attributes: any;
+    resolvedUri: string;
+}
+
+export const inferTracksFromInterceptedMpd = (
+    mpdUrlRegex: RegExp,
+    trackExtractor: (playlist: Playlist, language: string) => VideoDataSubtitleTrack | undefined
+) => {
     const originalFetch = window.fetch;
 
     const tryExtractSubtitleTracks = async (mpdUrl: string): Promise<VideoDataSubtitleTrack[]> => {
@@ -31,13 +39,11 @@ export const inferTracksFromInterceptedMpd = (mpdUrlRegex: RegExp) => {
                     continue;
                 }
 
-                const name = playlist.attributes?.NAME;
-                tracks.push({
-                    label: name === undefined ? language : `${language} - ${name}`,
-                    language,
-                    url: playlist.resolvedUri,
-                    extension: extractExtension(playlist.resolvedUri, 'vtt'),
-                });
+                const track = trackExtractor(playlist, language);
+
+                if (track !== undefined) {
+                    tracks.push(track);
+                }
             }
         }
 
