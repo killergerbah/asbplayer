@@ -194,6 +194,25 @@ setTimeout(() => {
         return value;
     };
 
+    Function.prototype.apply = new Proxy(Function.prototype.apply, {
+        apply: function (target, originalThis, args) {
+            if (args && args[1] && typeof args[1][0] === 'string') {
+                const property = args[1][0];
+
+                if (
+                    property === 'preciseSeeking' ||
+                    property === 'preciseseeking' ||
+                    property === 'preciseseekingontwocoredevice'
+                ) {
+                    return true;
+                }
+            }
+
+            // @ts-ignore
+            return target.call(originalThis, ...args);
+        },
+    });
+
     document.addEventListener('asbplayer-query-netflix', () => {
         document.dispatchEvent(
             new CustomEvent('asbplayer-netflix-enabled', {
