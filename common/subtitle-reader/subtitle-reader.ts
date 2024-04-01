@@ -5,7 +5,7 @@ import { XMLParser } from 'fast-xml-parser';
 import { SubtitleTextImage } from '@project/common';
 
 const tagRegex = RegExp(/<([^>]+)>([^]*)<\/\1>/, 'ig');
-const vttClassRegex = /<(\/)?c.[^>]+>/g;
+const vttClassRegex = /<(\/)?c(\.[^>]*)?>/g;
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
 const helperElement = document.createElement('div');
 
