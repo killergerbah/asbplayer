@@ -101,6 +101,14 @@
         {
             "host": "www.twitch.tv",
             "allowBlankSrc": true
+        },
+        {
+            "host": "osnplus.com",
+            "script": "osnplus-page.js",
+            "path": "watch",
+            "autoSync": {
+                "enabled": true
+            }
         }
     ]
 }

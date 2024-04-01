@@ -99,6 +99,7 @@
                 "pages/viki-page.js",
                 "pages/unext-page.js",
                 "pages/emby-page.js",
+                "pages/osnplus-page.js",
                 "anki-ui.js",
                 "mp3-encoder-worker.js",
                 "pgs-parser-worker.js",
