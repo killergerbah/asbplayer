@@ -109,6 +109,14 @@
             "autoSync": {
                 "enabled": true
             }
+        },
+        {
+            "host": "www.bilibili.tv",
+            "script": "bilibili-page.js",
+            "path": "play|video",
+            "autoSync": {
+                "enabled": true
+            }
         }
     ]
 }

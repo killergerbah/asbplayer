@@ -210,6 +210,16 @@ export default class SubtitleReader {
             return subtitles;
         }
 
+        if (file.name.endsWith('.bbjson')) {
+            const body = JSON.parse(await file.text()).body;
+            return body.map((s: any) => ({
+                text: s.content,
+                start: s.from * 1000,
+                end: s.to * 1000,
+                track,
+            }));
+        }
+
         throw new Error('Unsupported subtitle file format');
     }
 
