@@ -240,13 +240,9 @@ interface KeyBindFieldProps {
     onOpenExtensionShortcuts: () => void;
 }
 
-function KeyBindField({
-    label,
-    keys,
-    boundViaChrome: extensionOverridden,
-    onKeysChange,
-    onOpenExtensionShortcuts,
-}: KeyBindFieldProps) {
+const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+
+function KeyBindField({ label, keys, boundViaChrome, onKeysChange, onOpenExtensionShortcuts }: KeyBindFieldProps) {
     const { t } = useTranslation();
     const classes = useKeyBindFieldStyles();
     const [currentKeyString, setCurrentKeyString] = useState<string>(keys);
@@ -264,7 +260,7 @@ function KeyBindField({
                 return;
             }
 
-            if (extensionOverridden) {
+            if (boundViaChrome) {
                 onOpenExtensionShortcuts();
                 return;
             }
@@ -272,7 +268,7 @@ function KeyBindField({
             setCurrentKeyString('');
             setEditing(true);
         },
-        [onOpenExtensionShortcuts, extensionOverridden]
+        [onOpenExtensionShortcuts, boundViaChrome]
     );
 
     const ref = useRef<HTMLButtonElement>(null);
@@ -338,11 +334,13 @@ function KeyBindField({
 
     if (editing) {
         placeholder = t('settings.recordingBind');
-    } else if (extensionOverridden) {
+    } else if (boundViaChrome) {
         placeholder = t('settings.extensionOverriddenBind');
     } else {
         placeholder = t('settings.unboundBind');
     }
+
+    const firefoxExtensionShortcut = isFirefox && boundViaChrome;
 
     return (
         <Grid container className={classes.container} wrap={'nowrap'} spacing={1}>
@@ -354,16 +352,27 @@ function KeyBindField({
                     placeholder={placeholder}
                     size="small"
                     contentEditable={false}
-                    disabled={extensionOverridden}
-                    helperText={extensionOverridden ? t('settings.extensionShortcut') : undefined}
+                    disabled={boundViaChrome}
+                    helperText={boundViaChrome ? t('settings.extensionShortcut') : undefined}
                     value={currentKeyString}
                     color="secondary"
                     InputProps={{
                         endAdornment: (
                             <InputAdornment position="end">
-                                <IconButton ref={ref} onClick={handleEditKeyBinding}>
-                                    <EditIcon fontSize="small" />
-                                </IconButton>
+                                {!firefoxExtensionShortcut && (
+                                    <IconButton ref={ref} onClick={handleEditKeyBinding}>
+                                        <EditIcon fontSize="small" />
+                                    </IconButton>
+                                )}
+                                {firefoxExtensionShortcut && (
+                                    <Tooltip title={t('settings.firefoxExtensionShortcutHelp')!}>
+                                        <span>
+                                            <IconButton disabled={true}>
+                                                <EditIcon fontSize="small" />
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                )}
                             </InputAdornment>
                         ),
                     }}
@@ -524,6 +533,7 @@ interface Props {
     extensionInstalled: boolean;
     extensionSupportsAppIntegration: boolean;
     extensionSupportsOverlay: boolean;
+    extensionSupportsSidePanel: boolean;
     insideApp?: boolean;
     settings: AsbplayerSettings;
     scrollToId?: string;
@@ -547,6 +557,7 @@ export default function SettingsForm({
     extensionInstalled,
     extensionSupportsAppIntegration,
     extensionSupportsOverlay,
+    extensionSupportsSidePanel,
     insideApp,
     scrollToId,
     chromeKeyBinds,
@@ -633,9 +644,13 @@ export default function SettingsForm({
             resetOffset: { label: t('binds.resetOffset')!, boundViaChrome: false },
             increasePlaybackRate: { label: t('binds.increasePlaybackRate')!, boundViaChrome: false },
             decreasePlaybackRate: { label: t('binds.decreasePlaybackRate')!, boundViaChrome: false },
-            toggleSidePanel: { label: t('binds.toggleSidePanel')!, boundViaChrome: false, hide: !extensionInstalled },
+            toggleSidePanel: {
+                label: t('binds.toggleSidePanel')!,
+                boundViaChrome: false,
+                hide: !extensionInstalled || !extensionSupportsSidePanel,
+            },
         }),
-        [t, extensionInstalled]
+        [t, extensionInstalled, extensionSupportsSidePanel]
     );
 
     const {

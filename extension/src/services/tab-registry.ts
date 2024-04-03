@@ -502,7 +502,6 @@ export default class TabRegistry {
             chrome.tabs.create(
                 {
                     active: false,
-                    selected: false,
                     url: await this._settings.getSingle('streamingAppUrl'),
                     index: activeTabIndex,
                 },

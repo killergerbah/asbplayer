@@ -12,17 +12,17 @@ import {
     CardModel,
 } from '@project/common';
 import { SettingsProvider } from '@project/common/settings';
-import OffscreenAudioRecorder from '../../services/offscreen-audio-recorder';
 import { CardPublisher } from '../../services/card-publisher';
+import AudioRecorderService from '../../services/audio-recorder-service';
 
 export default class RecordMediaHandler {
-    private readonly _audioRecorder: OffscreenAudioRecorder;
+    private readonly _audioRecorder: AudioRecorderService;
     private readonly _imageCapturer: ImageCapturer;
     private readonly _cardPublisher: CardPublisher;
     private readonly _settingsProvider: SettingsProvider;
 
     constructor(
-        audioRecorder: OffscreenAudioRecorder,
+        audioRecorder: AudioRecorderService,
         imageCapturer: ImageCapturer,
         cardPublisher: CardPublisher,
         settingsProvider: SettingsProvider
@@ -44,90 +44,82 @@ export default class RecordMediaHandler {
     async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
         const senderTab = sender.tab!;
         const recordMediaCommand = command as VideoToExtensionCommand<RecordMediaAndForwardSubtitleMessage>;
+        await this._recordAndForward(recordMediaCommand, sender, senderTab);
+    }
 
-        try {
-            const subtitle = recordMediaCommand.message.subtitle;
-            let audioPromise = undefined;
-            let imagePromise = undefined;
-            let imageModel: ImageModel | undefined = undefined;
-            let audioModel: AudioModel | undefined = undefined;
-            const preferMp3 = await this._settingsProvider.getSingle('preferMp3');
+    private async _recordAndForward(
+        recordMediaCommand: VideoToExtensionCommand<RecordMediaAndForwardSubtitleMessage>,
+        sender: chrome.runtime.MessageSender,
+        senderTab: chrome.tabs.Tab
+    ) {
+        const subtitle = recordMediaCommand.message.subtitle;
+        let audioPromise = undefined;
+        let imagePromise = undefined;
+        let imageModel: ImageModel | undefined = undefined;
+        let audioModel: AudioModel | undefined = undefined;
+        const preferMp3 = await this._settingsProvider.getSingle('preferMp3');
 
-            if (recordMediaCommand.message.record) {
-                const time =
-                    (subtitle.end - subtitle.start) / recordMediaCommand.message.playbackRate +
-                    recordMediaCommand.message.audioPaddingEnd;
-                audioPromise = this._audioRecorder.startWithTimeout(time, preferMp3, {
-                    src: recordMediaCommand.src,
-                    tabId: sender.tab?.id!,
-                });
-            }
-
-            if (recordMediaCommand.message.screenshot) {
-                const { maxWidth, maxHeight, rect, frameId } = recordMediaCommand.message;
-                imagePromise = this._imageCapturer.capture(
-                    senderTab.id!,
-                    recordMediaCommand.src,
-                    Math.min(subtitle.end - subtitle.start, recordMediaCommand.message.imageDelay),
-                    { maxWidth, maxHeight, rect, frameId }
-                );
-            }
-
-            let imageBase64: string | undefined;
-
-            if (imagePromise) {
-                imageBase64 = await imagePromise;
-                const screenshotTakenCommand: ExtensionToVideoCommand<ScreenshotTakenMessage> = {
-                    sender: 'asbplayer-extension-to-video',
-                    message: {
-                        command: 'screenshot-taken',
-                    },
-                    src: recordMediaCommand.src,
-                };
-                chrome.tabs.sendMessage(senderTab.id!, screenshotTakenCommand);
-            }
-
-            if (audioPromise) {
-                const audioBase64 = await audioPromise;
-                audioModel = {
-                    base64: audioBase64,
-                    extension: preferMp3 ? 'mp3' : 'webm',
-                    paddingStart: recordMediaCommand.message.audioPaddingStart,
-                    paddingEnd: recordMediaCommand.message.audioPaddingEnd,
-                    playbackRate: recordMediaCommand.message.playbackRate,
-                };
-            }
-
-            if (imagePromise) {
-                // Use the last screenshot taken to allow user to re-take screenshot while audio is recording
-                imageModel = {
-                    base64: imageBase64!,
-                    extension: 'jpeg',
-                };
-            }
-
-            const card: CardModel = {
-                image: imageModel,
-                audio: audioModel,
-                ...recordMediaCommand.message,
-            };
-            this._cardPublisher.publish(
-                card,
-                recordMediaCommand.message.postMineAction,
-                senderTab.id!,
-                recordMediaCommand.src
-            );
-        } finally {
-            if (recordMediaCommand.message.record) {
-                const recordingFinishedCommand: ExtensionToVideoCommand<RecordingFinishedMessage> = {
-                    sender: 'asbplayer-extension-to-video',
-                    message: {
-                        command: 'recording-finished',
-                    },
-                    src: recordMediaCommand.src,
-                };
-                chrome.tabs.sendMessage(senderTab.id!, recordingFinishedCommand);
-            }
+        if (recordMediaCommand.message.record) {
+            const time =
+                (subtitle.end - subtitle.start) / recordMediaCommand.message.playbackRate +
+                recordMediaCommand.message.audioPaddingEnd;
+            audioPromise = this._audioRecorder.startWithTimeout(time, preferMp3, {
+                src: recordMediaCommand.src,
+                tabId: sender.tab?.id!,
+            });
         }
+
+        if (recordMediaCommand.message.screenshot) {
+            const { maxWidth, maxHeight, rect, frameId } = recordMediaCommand.message;
+            imagePromise = this._imageCapturer.capture(
+                senderTab.id!,
+                recordMediaCommand.src,
+                Math.min(subtitle.end - subtitle.start, recordMediaCommand.message.imageDelay),
+                { maxWidth, maxHeight, rect, frameId }
+            );
+        }
+
+        if (audioPromise) {
+            const audioBase64 = await audioPromise;
+            audioModel = {
+                base64: audioBase64,
+                extension: preferMp3 ? 'mp3' : 'webm',
+                paddingStart: recordMediaCommand.message.audioPaddingStart,
+                paddingEnd: recordMediaCommand.message.audioPaddingEnd,
+                playbackRate: recordMediaCommand.message.playbackRate,
+            };
+        }
+
+        let imageBase64: string | undefined;
+
+        if (imagePromise) {
+            imageBase64 = await imagePromise;
+            const screenshotTakenCommand: ExtensionToVideoCommand<ScreenshotTakenMessage> = {
+                sender: 'asbplayer-extension-to-video',
+                message: {
+                    command: 'screenshot-taken',
+                },
+                src: recordMediaCommand.src,
+            };
+            chrome.tabs.sendMessage(senderTab.id!, screenshotTakenCommand);
+
+            // Use the last screenshot taken to allow user to re-take screenshot while audio is recording
+            imageModel = {
+                base64: imageBase64!,
+                extension: 'jpeg',
+            };
+        }
+
+        const card: CardModel = {
+            image: imageModel,
+            audio: audioModel,
+            ...recordMediaCommand.message,
+        };
+        this._cardPublisher.publish(
+            card,
+            recordMediaCommand.message.postMineAction,
+            senderTab.id!,
+            recordMediaCommand.src
+        );
     }
 }

@@ -15,7 +15,7 @@ import AsbplayerHeartbeatHandler from './handlers/asbplayerv2/asbplayer-heartbea
 import RefreshSettingsHandler from './handlers/popup/refresh-settings-handler';
 import { CommandHandler } from './handlers/command-handler';
 import TakeScreenshotHandler from './handlers/video/take-screenshot-handler';
-import OffscreenAudioRecorder from './services/offscreen-audio-recorder';
+import AudioRecorderService from './services/audio-recorder-service';
 import AudioBase64Handler from './handlers/offscreen-document/audio-base-64-handler';
 import AckTabsHandler from './handlers/asbplayerv2/ack-tabs-handler';
 import OpenExtensionShortcutsHandler from './handlers/asbplayerv2/open-extension-shortcuts-handler';
@@ -47,8 +47,15 @@ import { CardPublisher } from './services/card-publisher';
 import AckMessageHandler from './handlers/video/ack-message-handler';
 import PublishCardHandler from './handlers/asbplayerv2/publish-card-handler';
 import { bindWebSocketClient, unbindWebSocketClient } from './services/web-socket-client-binding';
+import { isFirefox } from './services/browser-detection';
+import { CaptureStreamAudioRecorder, OffscreenAudioRecorder } from './services/audio-recorder-delegate';
+import RequestModelHandler from './handlers/mobile-overlay/request-model-handler';
+import CurrentTabHandler from './handlers/mobile-overlay/current-tab-handler';
+import UpdateMobileOverlayModelHandler from './handlers/video/update-mobile-overlay-model-handler';
 
-chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
+if (!isFirefox) {
+    chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
+}
 
 const settings = new SettingsProvider(new ExtensionSettingsStorage());
 
@@ -87,16 +94,19 @@ chrome.runtime.onInstalled.addListener(installListener);
 chrome.runtime.onStartup.addListener(startListener);
 
 const tabRegistry = new TabRegistry(settings);
-const offscreenAudioRecorder = new OffscreenAudioRecorder(tabRegistry, settings);
+const audioRecorder = new AudioRecorderService(
+    tabRegistry,
+    isFirefox ? new CaptureStreamAudioRecorder() : new OffscreenAudioRecorder()
+);
 const imageCapturer = new ImageCapturer(settings);
 const cardPublisher = new CardPublisher(settings);
 
 const handlers: CommandHandler[] = [
     new VideoHeartbeatHandler(tabRegistry),
-    new RecordMediaHandler(offscreenAudioRecorder, imageCapturer, cardPublisher, settings),
-    new RerecordMediaHandler(settings, offscreenAudioRecorder, cardPublisher),
-    new StartRecordingMediaHandler(offscreenAudioRecorder, imageCapturer, cardPublisher),
-    new StopRecordingMediaHandler(offscreenAudioRecorder, imageCapturer, cardPublisher, settings),
+    new RecordMediaHandler(audioRecorder, imageCapturer, cardPublisher, settings),
+    new RerecordMediaHandler(settings, audioRecorder, cardPublisher),
+    new StartRecordingMediaHandler(audioRecorder, imageCapturer, cardPublisher),
+    new StopRecordingMediaHandler(audioRecorder, imageCapturer, cardPublisher, settings),
     new TakeScreenshotHandler(imageCapturer, cardPublisher),
     new ToggleSubtitlesHandler(settings, tabRegistry),
     new SyncHandler(tabRegistry),
@@ -110,6 +120,8 @@ const handlers: CommandHandler[] = [
     new LoadSubtitlesHandler(tabRegistry),
     new PublishCardHandler(cardPublisher),
     new AckMessageHandler(tabRegistry),
+    new AudioBase64Handler(audioRecorder),
+    new UpdateMobileOverlayModelHandler(),
     new VideoToAsbplayerCommandForwardingHandler(tabRegistry),
     new AsbplayerToVideoCommandForwardingHandler(),
     new AsbplayerHeartbeatHandler(tabRegistry),
@@ -119,8 +131,9 @@ const handlers: CommandHandler[] = [
     new ExtensionCommandsHandler(),
     new AsbplayerV2ToVideoCommandForwardingHandler(),
     new RefreshSettingsHandler(tabRegistry, settings),
-    new AudioBase64Handler(offscreenAudioRecorder),
     new CaptureVisibleTabHandler(),
+    new RequestModelHandler(),
+    new CurrentTabHandler(),
 ];
 
 chrome.runtime.onMessage.addListener((request: Command<Message>, sender, sendResponse) => {
@@ -351,6 +364,35 @@ if (isMobile) {
                 },
             };
             chrome.tabs.sendMessage(tab.id, extensionToVideoCommand);
+        }
+    });
+} else if (isFirefox) {
+    let hasHostPermission = true;
+
+    chrome.permissions.contains({ origins: ['<all_urls>'] }).then((result) => {
+        hasHostPermission = result;
+
+        if (hasHostPermission) {
+            chrome.action.setPopup({
+                popup: 'popup-ui.html',
+            });
+        }
+    });
+
+    chrome.action.onClicked.addListener(async (tab) => {
+        if (hasHostPermission) {
+            chrome.action.openPopup();
+        } else {
+            try {
+                const obtainedHostPermission = await chrome.permissions.request({ origins: ['<all_urls>'] });
+
+                if (obtainedHostPermission) {
+                    hasHostPermission = true;
+                    chrome.runtime.reload();
+                }
+            } catch (e) {
+                console.error(e);
+            }
         }
     });
 } else {

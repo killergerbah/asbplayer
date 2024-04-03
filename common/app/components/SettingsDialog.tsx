@@ -66,6 +66,7 @@ export default function SettingsDialog({
                     extensionInstalled={extension.installed}
                     extensionSupportsAppIntegration={extension.supportsAppIntegration}
                     extensionSupportsOverlay={extension.supportsStreamingVideoOverlay}
+                    extensionSupportsSidePanel={extension.supportsSidePanel}
                     insideApp
                     chromeKeyBinds={extension.extensionCommands}
                     onOpenChromeExtensionShortcuts={extension.openShortcuts}

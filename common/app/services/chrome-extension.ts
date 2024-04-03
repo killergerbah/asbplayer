@@ -27,6 +27,7 @@ export interface ExtensionMessage {
 }
 
 const id = uuidv4();
+const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
 
 export default class ChromeExtension {
     readonly version: string;
@@ -109,6 +110,10 @@ export default class ChromeExtension {
 
     get supportsStreamingVideoOverlay() {
         return this.installed && gte(this.version, '1.1.0');
+    }
+
+    get supportsSidePanel() {
+        return this.installed && !isFirefox && gte(this.version, '1.0.0');
     }
 
     get supportsAppIntegration() {

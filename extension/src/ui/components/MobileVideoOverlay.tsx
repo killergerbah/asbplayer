@@ -9,8 +9,8 @@ import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
 import SubtitlesIcon from '@material-ui/icons/Subtitles';
 import { useCallback, useRef } from 'react';
 import {
+    AsbPlayerToVideoCommandV2,
     CopySubtitleMessage,
-    ExtensionToVideoCommand,
     LoadSubtitlesMessage,
     MobileOverlayCommand,
     MobileOverlayModel,
@@ -76,12 +76,16 @@ const MobileVideoOverlay = () => {
             return;
         }
 
-        const command: ExtensionToVideoCommand<CopySubtitleMessage> = {
-            sender: 'asbplayer-extension-to-video',
-            message: { command: 'copy-subtitle', postMineAction: await settings.getSingle('clickToMineDefaultAction') },
+        const command: AsbPlayerToVideoCommandV2<CopySubtitleMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'copy-subtitle',
+                postMineAction: await settings.getSingle('clickToMineDefaultAction'),
+            },
+            tabId: location.tabId,
             src: location.src,
         };
-        chrome.tabs.sendMessage(location.tabId, command);
+        chrome.runtime.sendMessage(command);
     }, [location]);
 
     const handleLoadSubtitles = useCallback(() => {
@@ -89,12 +93,13 @@ const MobileVideoOverlay = () => {
             return;
         }
 
-        const command: ExtensionToVideoCommand<LoadSubtitlesMessage> = {
-            sender: 'asbplayer-extension-to-video',
+        const command: AsbPlayerToVideoCommandV2<LoadSubtitlesMessage> = {
+            sender: 'asbplayerv2',
             message: { command: 'load-subtitles' },
+            tabId: location.tabId,
             src: location.src,
         };
-        chrome.tabs.sendMessage(location.tabId, command);
+        chrome.runtime.sendMessage(command);
     }, [location]);
 
     const handleOffset = useCallback(
@@ -103,12 +108,13 @@ const MobileVideoOverlay = () => {
                 return;
             }
 
-            const command: ExtensionToVideoCommand<OffsetToVideoMessage> = {
-                sender: 'asbplayer-extension-to-video',
+            const command: AsbPlayerToVideoCommandV2<OffsetToVideoMessage> = {
+                sender: 'asbplayerv2',
                 message: { command: 'offset', value: offset },
+                tabId: location.tabId,
                 src: location.src,
             };
-            chrome.tabs.sendMessage(location.tabId, command);
+            chrome.runtime.sendMessage(command);
         },
         [location]
     );

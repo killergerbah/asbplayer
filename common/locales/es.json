@@ -231,6 +231,10 @@
         "prompt": "Haz click en el botón de acción de asbplayer en la esquina superior derecha de la ventana del navegador para habilitar la grabación de audio para esta pestaña.",
         "grantedPrompt": "Grabación de audio habilitada para esta pestaña. Puedes empezar a minar."
     },
+    "audioCaptureFailed": {
+        "title": "Audio capture failed",
+        "message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer."
+    },
     "settings": {
         "addCustomCss": "Agregar CSS Personalizado",
         "addCustomField": "Agregar Campo Personalizado",
@@ -306,7 +310,8 @@
         "urlField": "Campo de URL",
         "wordField": "Campo de Palabra",
         "webSocketClientEnabled": "Enable WebSocket client",
-        "webSocketServerUrl": "WebSocket Server URL"
+        "webSocketServerUrl": "WebSocket Server URL",
+        "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons."
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Haz click, mantén y arrastra para minar múltiples subtítulos"

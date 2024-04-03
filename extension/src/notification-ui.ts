@@ -1,10 +1,10 @@
 import FrameBridgeServer from './services/frame-bridge-server';
-import { renderActiveTabPermissionRequestUi } from './ui/active-tab-permission-request';
+import { renderNotificationUi } from './ui/notification';
 
 window.addEventListener('load', () => {
     const root = document.getElementById('root')!;
     const loc = JSON.parse(document.getElementById('loc')!.innerHTML!);
-    const bridge = renderActiveTabPermissionRequestUi(root, loc.lang, loc.strings);
+    const bridge = renderNotificationUi(root, loc.lang, loc.strings);
     const listener = new FrameBridgeServer(bridge);
     listener.bind();
 

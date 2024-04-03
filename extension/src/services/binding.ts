@@ -1,6 +1,7 @@
 import {
     AckMessage,
     AnkiUiSavedState,
+    AudioBase64Message,
     AutoPausePreference,
     CardExportedMessage,
     CardSavedMessage,
@@ -11,6 +12,7 @@ import {
     CurrentTimeToVideoMessage,
     ExtensionSyncMessage,
     ImageCaptureParams,
+    NotificationDialogMessage,
     NotifyErrorMessage,
     OffsetToVideoMessage,
     PauseFromVideoMessage,
@@ -22,11 +24,14 @@ import {
     ReadyFromVideoMessage,
     ReadyStateFromVideoMessage,
     RecordMediaAndForwardSubtitleMessage,
+    RequestingActiveTabPermsisionMessage,
     RerecordMediaMessage,
     ScreenshotTakenMessage,
     ShowAnkiUiAfterRerecordMessage,
     ShowAnkiUiMessage,
+    StartRecordingAudioWithTimeoutViaCaptureStreamMessage,
     StartRecordingMediaMessage,
+    StopRecordingAudioMessage,
     StopRecordingMediaMessage,
     SubtitleModel,
     SubtitlesToVideoMessage,
@@ -38,7 +43,6 @@ import {
 import { extractAnkiSettings, SettingsProvider, SubtitleListPreference } from '@project/common/settings';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { extractText, sourceString, surroundingSubtitlesAroundInterval } from '@project/common/util';
-import ActiveTabPermissionRequestController from '../controllers/active-tab-permission-request-controller';
 import AnkiUiController from '../controllers/anki-ui-controller';
 import ControlsController from '../controllers/controls-controller';
 import DragController from '../controllers/drag-controller';
@@ -53,6 +57,9 @@ import { MobileVideoOverlayController } from '../controllers/mobile-video-overla
 import { OffsetAnchor } from './element-overlay';
 import { MobileGestureController } from '../controllers/mobile-gesture-controller';
 import { adjacentSubtitle } from '@project/common/key-binder';
+import AudioRecorder from './audio-recorder';
+import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
+import NotificationController from '../controllers/notification-controller';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -82,11 +89,12 @@ export default class Binding {
     readonly controlsController: ControlsController;
     readonly dragController: DragController;
     readonly ankiUiController: AnkiUiController;
-    readonly requestActiveTabPermissionController: ActiveTabPermissionRequestController;
+    readonly notificationController: NotificationController;
     readonly mobileVideoOverlayController: MobileVideoOverlayController;
     readonly mobileGestureController: MobileGestureController;
     readonly keyBindings: KeyBindings;
     readonly settings: SettingsProvider;
+    private readonly _audioRecorder = new AudioRecorder();
 
     private copyToClipboardOnMine: boolean;
     private takeScreenshot: boolean;
@@ -126,7 +134,7 @@ export default class Binding {
         this.dragController = new DragController(video);
         this.keyBindings = new KeyBindings();
         this.ankiUiController = new AnkiUiController();
-        this.requestActiveTabPermissionController = new ActiveTabPermissionRequestController(this);
+        this.notificationController = new NotificationController(this);
         this.mobileVideoOverlayController = new MobileVideoOverlayController(this, OffsetAnchor.top);
         this.subtitleController.onOffsetChange = () => this.mobileVideoOverlayController.updateModel();
         this.mobileGestureController = new MobileGestureController(this);
@@ -638,15 +646,71 @@ export default class Binding {
                         // ignore
                         break;
                     case 'request-active-tab-permission':
-                        this.requestActiveTabPermissionController.show();
-                        // Recording must have failed, reset flag
-                        this.recordingMedia = false;
+                        this.notificationController.onClose = () => {
+                            this._notifyRequestingActiveTabPermission(false);
+                        };
+                        this.notificationController.show(
+                            'activeTabPermissionRequest.title',
+                            'activeTabPermissionRequest.prompt'
+                        );
+                        this._notifyRequestingActiveTabPermission(true);
                         break;
                     case 'granted-active-tab-permission':
-                        this.requestActiveTabPermissionController.onPermissionGranted();
+                        if (this.notificationController.showing) {
+                            this.notificationController.show(
+                                'activeTabPermissionRequest.grantedTitle',
+                                'activeTabPermissionRequest.grantedPrompt'
+                            );
+                        }
                         break;
                     case 'load-subtitles':
                         this.showVideoDataDialog(false);
+                        break;
+                    case 'start-recording-audio-with-timeout':
+                        const startRecordingAudioWithTimeoutMessage =
+                            request.message as StartRecordingAudioWithTimeoutViaCaptureStreamMessage;
+
+                        this._captureStream()
+                            .then((stream) =>
+                                this._audioRecorder.startWithTimeout(
+                                    stream,
+                                    startRecordingAudioWithTimeoutMessage.timeout,
+                                    () => sendResponse(true)
+                                )
+                            )
+                            .then((audioBase64) =>
+                                this._sendAudioBase64(audioBase64, startRecordingAudioWithTimeoutMessage.preferMp3)
+                            )
+                            .then(() => this._resumeAudioAfterRecording())
+                            .catch((e) => {
+                                console.error(e instanceof Error ? e.message : String(e));
+                                sendResponse(false);
+                            });
+                        return true;
+                    case 'start-recording-audio':
+                        this._captureStream()
+                            .then((stream) => this._audioRecorder.start(stream))
+                            .then(() => sendResponse(true))
+                            .then(() => this._resumeAudioAfterRecording())
+                            .catch((e) => {
+                                console.error(e instanceof Error ? e.message : String(e));
+                                sendResponse(false);
+                            });
+                        return true;
+                    case 'stop-recording-audio':
+                        const stopRecordingAudioMessage = request.message as StopRecordingAudioMessage;
+                        this._audioRecorder
+                            .stop()
+                            .then((audioBase64) =>
+                                this._sendAudioBase64(audioBase64, stopRecordingAudioMessage.preferMp3)
+                            );
+                        break;
+                    case 'notification-dialog':
+                        const notificationDialogMesesage = request.message as NotificationDialogMessage;
+                        this.notificationController.show(
+                            notificationDialogMesesage.titleLocKey,
+                            notificationDialogMesesage.messageLocKey
+                        );
                         break;
                 }
 
@@ -761,6 +825,7 @@ export default class Binding {
         this.videoDataSyncController.unbind();
         this.mobileVideoOverlayController.unbind();
         this.mobileGestureController.unbind();
+        this.notificationController.unbind();
         this.subscribed = false;
 
         const command: VideoToExtensionCommand<VideoDisappearedMessage> = {
@@ -931,6 +996,7 @@ export default class Binding {
 
     async _prepareScreenshot() {
         if (this.cleanScreenshot) {
+            this.notificationController.hide();
             this.subtitleController.forceHideSubtitles = true;
             this.mobileVideoOverlayController.forceHide = true;
             await this.controlsController.hide();
@@ -1144,5 +1210,87 @@ export default class Binding {
         }
 
         this.mobileVideoOverlayController.updateModel();
+    }
+
+    private _captureStream(): Promise<MediaStream> {
+        return new Promise((resolve, reject) => {
+            try {
+                let stream: MediaStream | undefined;
+
+                if (typeof (this.video as any).captureStream === 'function') {
+                    stream = (this.video as any).captureStream();
+                }
+
+                if (typeof (this.video as any).mozCaptureStreamUntilEnded === 'function') {
+                    stream = (this.video as any).mozCaptureStreamUntilEnded();
+                }
+
+                if (stream === undefined) {
+                    reject(new Error('Unable to capture stream from audio'));
+                    return;
+                }
+
+                const audioStream = new MediaStream();
+
+                for (const track of stream.getVideoTracks()) {
+                    track.stop();
+                }
+
+                for (const track of stream.getAudioTracks()) {
+                    if (track.enabled) {
+                        audioStream.addTrack(track);
+                    }
+                }
+
+                resolve(audioStream);
+            } catch (e) {
+                reject(e);
+            }
+        });
+    }
+
+    private async _resumeAudioAfterRecording() {
+        // On Firefox the audio is muted once audio recording is stopped.
+        // Below is a hack to resume the audio.
+        const stream = await this._captureStream();
+        const output = new AudioContext();
+        const source = output.createMediaStreamSource(stream);
+        source.connect(output.destination);
+    }
+
+    private async _sendAudioBase64(base64: string, preferMp3: boolean) {
+        if (preferMp3) {
+            const blob = await (await fetch('data:audio/webm;base64,' + base64)).blob();
+            const mp3Blob = await Mp3Encoder.encode(blob, async () => {
+                const code = await (await fetch(chrome.runtime.getURL('./mp3-encoder-worker.js'))).text();
+                const blob = new Blob([code], { type: 'application/javascript' });
+                return new Worker(URL.createObjectURL(blob));
+            });
+            base64 = bufferToBase64(await mp3Blob.arrayBuffer());
+        }
+
+        const command: VideoToExtensionCommand<AudioBase64Message> = {
+            sender: 'asbplayer-video',
+            message: {
+                command: 'audio-base64',
+                base64: base64,
+            },
+            src: this.video.src,
+        };
+
+        chrome.runtime.sendMessage(command);
+    }
+
+    private _notifyRequestingActiveTabPermission(requesting: boolean) {
+        const command: VideoToExtensionCommand<RequestingActiveTabPermsisionMessage> = {
+            sender: 'asbplayer-video',
+            message: {
+                command: 'requesting-active-tab-permission',
+                requesting,
+            },
+            src: this.video.src,
+        };
+
+        chrome.runtime.sendMessage(command);
     }
 }

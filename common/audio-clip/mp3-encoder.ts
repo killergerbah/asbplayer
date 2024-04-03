@@ -6,7 +6,7 @@ export interface SerializableAudioBuffer {
 }
 
 export default class Mp3Encoder {
-    static async encode(blob: Blob, workerFactory: () => Worker): Promise<Blob> {
+    static async encode(blob: Blob, workerFactory: () => Worker | Promise<Worker>): Promise<Blob> {
         return new Promise(async (resolve, reject) => {
             var reader = new FileReader();
             reader.onload = async (e) => {
@@ -25,7 +25,8 @@ export default class Mp3Encoder {
                         channels.push(audioBuffer.getChannelData(i));
                     }
 
-                    const worker = workerFactory();
+                    const workerValue = workerFactory();
+                    const worker = workerValue instanceof Worker ? workerValue : await workerValue;
                     worker.postMessage({
                         command: 'encode',
                         audioBuffer: {

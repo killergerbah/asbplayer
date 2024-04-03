@@ -32,6 +32,18 @@ const _sendAudioBase64 = async (base64: string, preferMp3: boolean) => {
     chrome.runtime.sendMessage(command);
 };
 
+const _stream = (streamId: string) => {
+    return navigator.mediaDevices.getUserMedia({
+        audio: {
+            // @ts-ignore
+            mandatory: {
+                chromeMediaSource: 'tab',
+                chromeMediaSourceId: streamId,
+            },
+        },
+    });
+};
+
 window.onload = async () => {
     const listener = (request: any, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
         if (request.sender === 'asbplayer-extension-to-offscreen-document') {
@@ -39,12 +51,14 @@ window.onload = async () => {
                 case 'start-recording-audio-with-timeout':
                     const startRecordingAudioWithTimeoutMessage =
                         request.message as StartRecordingAudioWithTimeoutMessage;
-                    audioRecorder
-                        .startWithTimeout(
-                            startRecordingAudioWithTimeoutMessage.streamId,
-                            startRecordingAudioWithTimeoutMessage.timeout,
-                            () => sendResponse(true)
-                        )
+                    _stream(startRecordingAudioWithTimeoutMessage.streamId)
+                        .then((stream) => {
+                            return audioRecorder.startWithTimeout(
+                                stream,
+                                startRecordingAudioWithTimeoutMessage.timeout,
+                                () => sendResponse(true)
+                            );
+                        })
                         .then((audioBase64) =>
                             _sendAudioBase64(audioBase64, startRecordingAudioWithTimeoutMessage.preferMp3)
                         )
@@ -55,8 +69,8 @@ window.onload = async () => {
                     return true;
                 case 'start-recording-audio':
                     const startRecordingAudioMessage = request.message as StartRecordingAudioMessage;
-                    audioRecorder
-                        .start(startRecordingAudioMessage.streamId)
+                    _stream(startRecordingAudioMessage.streamId)
+                        .then((stream) => audioRecorder.start(stream))
                         .then(() => sendResponse(true))
                         .catch((e) => {
                             console.error(e);

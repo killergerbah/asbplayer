@@ -5,8 +5,10 @@
     "scripts": {
         "buildDev": "NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode development",
         "buildProd": "yarn workspace root run verify && NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode production",
-        "packageDev": "yarn buildDev && cd dist && zip -r ../asbplayer-extension-$(jq -r .version ../src/manifest.json).zip * && cd ..",
-        "packageProd": "yarn buildProd && cd dist && zip -r ../asbplayer-extension-$(jq -r .version ../src/manifest.json).zip * && cd .."
+        "package": "cd dist && zip -r ../asbplayer-extension-$(jq -r .version ../src/manifest.json).zip * && cd ..",
+        "packageDev": "yarn buildDev && yarn package",
+        "packageProd": "yarn buildProd && yarn package",
+        "packageProdFirefox": "yarn buildProd --env firefox && yarn package"
     },
     "dependencies": {
         "@fontsource/roboto": "^4.5.0",

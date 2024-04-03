@@ -13,7 +13,7 @@ export default class AudioRecorder {
         this.blobPromise = null;
     }
 
-    startWithTimeout(streamId: string, time: number, onStartedCallback: () => void): Promise<string> {
+    startWithTimeout(stream: MediaStream, time: number, onStartedCallback: () => void): Promise<string> {
         return new Promise(async (resolve, reject) => {
             try {
                 if (this.recording) {
@@ -22,7 +22,7 @@ export default class AudioRecorder {
                     return;
                 }
 
-                await this.start(streamId);
+                await this.start(stream);
                 onStartedCallback();
                 setTimeout(async () => {
                     resolve(await this.stop());
@@ -33,23 +33,14 @@ export default class AudioRecorder {
         });
     }
 
-    async start(streamId: string): Promise<void> {
-        if (this.recording) {
-            console.error('Already recording, cannot start');
-            return;
-        }
+    start(stream: MediaStream): Promise<void> {
+        return new Promise((resolve, reject) => {
+            if (this.recording) {
+                reject('Already recording, cannot start');
+                return;
+            }
 
-        return new Promise(async (resolve, reject) => {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    audio: {
-                        // @ts-ignore
-                        mandatory: {
-                            chromeMediaSource: 'tab',
-                            chromeMediaSourceId: streamId,
-                        },
-                    },
-                });
                 const recorder = new MediaRecorder(stream);
                 const chunks: BlobPart[] = [];
                 recorder.ondataavailable = (e) => {

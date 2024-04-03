@@ -61,10 +61,7 @@ export default class UiFrame {
         this._frame.style.colorScheme = 'normal';
         this._client = new FrameBridgeClient(this._frame, this._fetchOptions);
         document.body.appendChild(this._frame);
-        const doc = this._frame.contentDocument!;
-        doc.open();
-        doc.write(await this._html(this._language));
-        doc.close();
+        this._frame.srcdoc = await this._html(this._language);
         await this._client!.bind();
         return true;
     }

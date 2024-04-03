@@ -1,0 +1,16 @@
+import { Command, Message } from '@project/common';
+
+export default class CurrentTabHandler {
+    get sender() {
+        return 'asbplayer-mobile-overlay';
+    }
+
+    get command() {
+        return 'current-tab';
+    }
+
+    handle(command: Command<Message>, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) {
+        sendResponse(sender.tab?.id);
+        return false;
+    }
+}

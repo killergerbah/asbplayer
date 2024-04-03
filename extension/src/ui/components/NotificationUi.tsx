@@ -1,4 +1,3 @@
-import React from 'react';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -17,14 +16,16 @@ interface Props {
     bridge: Bridge;
 }
 
-const ActiveTabPermissionRequestUi = ({ bridge }: Props) => {
+const NotificationUi = ({ bridge }: Props) => {
     const { t } = useTranslation();
     const handleClose = useCallback(() => {
         bridge.sendMessageFromServer({
             command: 'close',
         });
-        setPermissionGranted(false);
     }, [bridge]);
+    const [title, setTitle] = useState<string>();
+    const [message, setMessage] = useState<string>();
+
     useEffect(() => {
         bridge.addClientMessageListener((message: Message) => {
             if (message.command !== 'updateState') {
@@ -37,28 +38,28 @@ const ActiveTabPermissionRequestUi = ({ bridge }: Props) => {
                 setThemeType(state.themeType);
             }
 
-            if (state.permissionGranted !== undefined) {
-                setPermissionGranted(state.permissionGranted);
+            if (state.titleLocKey !== undefined) {
+                setTitle(t(state.titleLocKey) ?? '');
+            }
+
+            if (state.messageLocKey !== undefined) {
+                setMessage(t(state.messageLocKey) ?? '');
             }
         });
-    }, [bridge]);
+    }, [bridge, t]);
     const [themeType, setThemeType] = useState<PaletteType>('dark');
-    const [permissionGranted, setPermissionGranted] = useState<boolean>(false);
     const theme = useMemo(() => createTheme(themeType), [themeType]);
+
+    if (!message || !title) {
+        return null;
+    }
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <Dialog open={true} disableEnforceFocus fullWidth maxWidth="sm" onClose={handleClose}>
-                <DialogTitle>
-                    {permissionGranted
-                        ? t('activeTabPermissionRequest.grantedTitle')
-                        : t('activeTabPermissionRequest.title')}
-                </DialogTitle>
-                <DialogContent>
-                    {permissionGranted
-                        ? t('activeTabPermissionRequest.grantedPrompt')
-                        : t('activeTabPermissionRequest.prompt')}
-                </DialogContent>
+                <DialogTitle>{title}</DialogTitle>
+                <DialogContent>{message}</DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose}>{t('action.ok')}</Button>
                 </DialogActions>
@@ -67,4 +68,4 @@ const ActiveTabPermissionRequestUi = ({ bridge }: Props) => {
     );
 };
 
-export default ActiveTabPermissionRequestUi;
+export default NotificationUi;

@@ -350,8 +350,11 @@ yarn
 # Starts the development server for the website
 yarn workspace @project/client run start
 
-# Build the extension to extension/dist
+# Build the Chromium version of the extension to extension/dist/chromium
 yarn workspace @project/extension buildDev
+
+# Build the Firefox version of the extension to extension/dist/firefox
+yarn workspace @project/extension buildDev --env firefox
 ```
 
 If you have problems building try deleting `node_modules` and re-running `yarn`.

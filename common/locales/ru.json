@@ -231,6 +231,10 @@
         "prompt": "Нажмите на кнопку действия asbplayer в правом верхнем углу окна браузера, чтобы разрешить запись аудио для этой вкладки.",
         "grantedPrompt": "Запись аудио разрешена для этой вкладки. Теперь вы можете приступить к майнингу."
     },
+    "audioCaptureFailed": {
+        "title": "Audio capture failed",
+        "message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer."
+    },
     "settings": {
         "addCustomCss": "Добавить пользовательские CSS стили",
         "addCustomField": "Добавить пользовательское поле",
@@ -306,7 +310,8 @@
         "urlField": "Поле URL-адреса",
         "wordField": "Поле слова",
         "webSocketClientEnabled": "Enable WebSocket client",
-        "webSocketServerUrl": "WebSocket Server URL"
+        "webSocketServerUrl": "WebSocket Server URL",
+        "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons."
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Нажмите, удерживайте и перетащите, чтобы смайнить несколько субтитров"

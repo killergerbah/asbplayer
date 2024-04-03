@@ -1,3 +1,4 @@
+import { CurrentTabMessage, MobileOverlayCommand } from '@project/common';
 import { useEffect, useState } from 'react';
 
 export interface Location {
@@ -10,9 +11,16 @@ export const useMobileVideoOverlayLocation = () => {
 
     useEffect(() => {
         const init = async () => {
-            const tabs = await chrome.tabs.query({ active: true });
+            const command: MobileOverlayCommand<CurrentTabMessage> = {
+                sender: 'asbplayer-mobile-overlay',
+                message: {
+                    command: 'current-tab',
+                },
+            };
 
-            if (tabs.length === 0 || !tabs[0].id) {
+            const tabId = (await chrome.runtime.sendMessage(command)) as number | undefined;
+
+            if (tabId === undefined) {
                 return;
             }
 
@@ -22,7 +30,7 @@ export const useMobileVideoOverlayLocation = () => {
                 return;
             }
 
-            setLocation({ src, tabId: tabs[0].id });
+            setLocation({ src, tabId });
         };
         init();
     }, []);

@@ -2,8 +2,8 @@ import {
     MobileOverlayToVideoCommand,
     MobileOverlayModel,
     RequestMobileOverlayModelMessage,
-    VideoToMobileOverlayCommand,
     UpdateMobileOverlayModelMessage,
+    VideoToExtensionCommand,
 } from '@project/common';
 import Binding from '../services/binding';
 import { CachingElementOverlay, ElementOverlay, OffsetAnchor } from '../services/element-overlay';
@@ -17,7 +17,7 @@ export class MobileVideoOverlayController {
     private _seekedListener?: () => void;
     private _forceHiding: boolean = false;
     private _showing: boolean = false;
-    private _tabId?: number;
+    private _uiInitialized: boolean = false;
     private _messageListener?: (
         message: any,
         sender: chrome.runtime.MessageSender,
@@ -105,10 +105,10 @@ export class MobileVideoOverlayController {
                 message.message.command === 'request-mobile-overlay-model'
             ) {
                 const command = message as MobileOverlayToVideoCommand<RequestMobileOverlayModelMessage>;
-                this._tabId = command.message.tabId;
 
                 if (command.src === this._context.video.src) {
                     this._model().then(sendResponse);
+                    this._uiInitialized = true;
                     return true;
                 }
             }
@@ -122,13 +122,13 @@ export class MobileVideoOverlayController {
     }
 
     async updateModel() {
-        if (!this._bound || this._tabId === undefined) {
+        if (!this._bound || !this._uiInitialized) {
             return;
         }
 
         const model = await this._model();
-        const command: VideoToMobileOverlayCommand<UpdateMobileOverlayModelMessage> = {
-            sender: 'asbplayer-video-to-mobile-overlay',
+        const command: VideoToExtensionCommand<UpdateMobileOverlayModelMessage> = {
+            sender: 'asbplayer-video',
             message: {
                 command: 'update-mobile-overlay-model',
                 model,

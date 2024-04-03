@@ -435,9 +435,19 @@ export interface StartRecordingAudioWithTimeoutMessage extends Message {
     readonly streamId: string;
 }
 
+export interface StartRecordingAudioWithTimeoutViaCaptureStreamMessage extends Message {
+    readonly command: 'start-recording-audio-with-timeout';
+    readonly timeout: number;
+    readonly preferMp3: boolean;
+}
+
 export interface StartRecordingAudioMessage extends Message {
     readonly command: 'start-recording-audio';
     readonly streamId: string;
+}
+
+export interface StartRecordingAudioViaCaptureStreamMessage extends Message {
+    readonly command: 'start-recording-audio';
 }
 
 export interface StopRecordingAudioMessage extends Message {
@@ -567,10 +577,19 @@ export interface NotifyErrorMessage extends Message {
 
 export interface RequestMobileOverlayModelMessage extends Message {
     readonly command: 'request-mobile-overlay-model';
-    readonly tabId: number;
 }
 
 export interface UpdateMobileOverlayModelMessage extends Message {
     readonly command: 'update-mobile-overlay-model';
     readonly model: MobileOverlayModel;
+}
+
+export interface CurrentTabMessage extends Message {
+    readonly command: 'current-tab';
+}
+
+export interface NotificationDialogMessage extends Message {
+    readonly command: 'notification-dialog';
+    readonly titleLocKey: string;
+    readonly messageLocKey: string;
 }

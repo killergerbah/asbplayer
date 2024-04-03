@@ -1,29 +1,29 @@
 import {
-    ExtensionToAsbPlayerCommand,
     ExtensionToOffscreenDocumentCommand,
     ExtensionToVideoCommand,
-    RecordingFinishedMessage,
-    RecordingStartedMessage,
+    NotificationDialogMessage,
     RequestActiveTabPermissionMessage,
     StartRecordingAudioMessage,
+    StartRecordingAudioViaCaptureStreamMessage,
     StartRecordingAudioWithTimeoutMessage,
+    StartRecordingAudioWithTimeoutViaCaptureStreamMessage,
     StopRecordingAudioMessage,
 } from '@project/common';
-import TabRegistry from './tab-registry';
-import { SettingsProvider } from '@project/common/settings';
 
-interface Requester {
+export interface Requester {
     tabId: number;
     src: string;
 }
 
-export default class OffscreenAudioRecorder {
-    private readonly _tabRegistry: TabRegistry;
-    private audioBase64Resolve?: (value: string) => void;
+export interface AudioRecorderDelegate {
+    onAudioBase64: (base64: string) => void;
+    startWithTimeout: (time: number, preferMp3: boolean, { tabId, src }: Requester) => Promise<string>;
+    start: (requester: Requester) => Promise<void>;
+    stop: (preferMp3: boolean, requester: Requester) => Promise<string>;
+}
 
-    constructor(tabRegistry: TabRegistry, settings: SettingsProvider) {
-        this._tabRegistry = tabRegistry;
-    }
+export class OffscreenAudioRecorder implements AudioRecorderDelegate {
+    private audioBase64Resolve?: (value: string) => void;
 
     onAudioBase64(base64: string) {
         this.audioBase64Resolve?.(base64);
@@ -82,13 +82,7 @@ export default class OffscreenAudioRecorder {
             throw new Error('Failed to start recording');
         }
 
-        this._notifyRecordingStarted();
-
-        try {
-            return await this._audioBase64();
-        } finally {
-            this._notifyRecordingFinished();
-        }
+        return await this._audioBase64();
     }
 
     async start({ tabId, src }: Requester) {
@@ -115,8 +109,6 @@ export default class OffscreenAudioRecorder {
 
             throw new Error('Failed to start recording');
         }
-
-        this._notifyRecordingStarted();
     }
 
     private _requestActiveTab(tabId: number, src: string) {
@@ -139,7 +131,6 @@ export default class OffscreenAudioRecorder {
             },
         };
         chrome.runtime.sendMessage(command);
-        this._notifyRecordingFinished();
         return await this._audioBase64();
     }
 
@@ -148,28 +139,96 @@ export default class OffscreenAudioRecorder {
             this.audioBase64Resolve = resolve;
         });
     }
+}
 
-    private _notifyRecordingStarted() {
-        const command: ExtensionToAsbPlayerCommand<RecordingStartedMessage> = {
-            sender: 'asbplayer-extension-to-player',
-            message: {
-                command: 'recording-started',
-            },
-        };
-        this._tabRegistry.publishCommandToAsbplayers({
-            commandFactory: (asbplayer) => (asbplayer.sidePanel ? command : undefined),
-        });
+export class CaptureStreamAudioRecorder implements AudioRecorderDelegate {
+    private audioBase64Resolve?: (value: string) => void;
+
+    onAudioBase64(base64: string) {
+        this.audioBase64Resolve?.(base64);
+        this.audioBase64Resolve = undefined;
     }
 
-    private _notifyRecordingFinished() {
-        const command: ExtensionToAsbPlayerCommand<RecordingFinishedMessage> = {
-            sender: 'asbplayer-extension-to-player',
+    async startWithTimeout(time: number, preferMp3: boolean, { tabId, src }: Requester): Promise<string> {
+        if (this.audioBase64Resolve !== undefined) {
+            throw new Error('Already recording');
+        }
+
+        const command: ExtensionToVideoCommand<StartRecordingAudioWithTimeoutViaCaptureStreamMessage> = {
+            sender: 'asbplayer-extension-to-video',
             message: {
-                command: 'recording-finished',
+                command: 'start-recording-audio-with-timeout',
+                timeout: time,
+                preferMp3,
             },
+            src,
         };
-        this._tabRegistry.publishCommandToAsbplayers({
-            commandFactory: (asbplayer) => (asbplayer.sidePanel ? command : undefined),
+
+        const started = (await chrome.tabs.sendMessage(tabId, command)) as boolean;
+
+        if (!started) {
+            if (tabId !== undefined) {
+                this._notifyCaptureFailed(tabId, src);
+            }
+
+            throw new Error('Failed to start recording');
+        }
+
+        return await this._audioBase64();
+    }
+
+    async start({ tabId, src }: Requester) {
+        if (this.audioBase64Resolve !== undefined) {
+            throw new Error('Already recording');
+        }
+
+        const command: ExtensionToVideoCommand<StartRecordingAudioViaCaptureStreamMessage> = {
+            sender: 'asbplayer-extension-to-video',
+            message: {
+                command: 'start-recording-audio',
+            },
+            src,
+        };
+        const started = (await chrome.tabs.sendMessage(tabId, command)) as boolean;
+
+        if (!started) {
+            if (tabId !== undefined) {
+                this._notifyCaptureFailed(tabId, src);
+            }
+
+            throw new Error('Failed to start recording');
+        }
+    }
+
+    private _notifyCaptureFailed(tabId: number, src: string) {
+        const command: ExtensionToVideoCommand<NotificationDialogMessage> = {
+            sender: 'asbplayer-extension-to-video',
+            message: {
+                command: 'notification-dialog',
+                titleLocKey: 'audioCaptureFailed.title',
+                messageLocKey: 'audioCaptureFailed.message',
+            },
+            src,
+        };
+        chrome.tabs.sendMessage(tabId, command);
+    }
+
+    async stop(preferMp3: boolean, { tabId, src }: Requester): Promise<string> {
+        const command: ExtensionToVideoCommand<StopRecordingAudioMessage> = {
+            sender: 'asbplayer-extension-to-video',
+            message: {
+                command: 'stop-recording-audio',
+                preferMp3,
+            },
+            src,
+        };
+        chrome.tabs.sendMessage(tabId, command);
+        return await this._audioBase64();
+    }
+
+    private _audioBase64(): Promise<string> {
+        return new Promise((resolve, reject) => {
+            this.audioBase64Resolve = resolve;
         });
     }
 }

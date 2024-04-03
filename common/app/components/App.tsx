@@ -474,7 +474,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
     );
 
     const handleOpenCopyHistory = useCallback(async () => {
-        if (extension.supportsAppIntegration) {
+        if (extension.supportsSidePanel) {
             extension.toggleSidePanel();
         } else {
             await refreshCopyHistory();
@@ -1123,10 +1123,10 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
             () => {
                 handleOpenCopyHistory();
             },
-            () => ankiDialogOpen,
+            () => ankiDialogOpen || !extension.supportsSidePanel,
             false
         );
-    }, [keyBinder, handleOpenCopyHistory, ankiDialogOpen]);
+    }, [extension, keyBinder, handleOpenCopyHistory, ankiDialogOpen]);
 
     useEffect(() => {
         document.title = settings.tabName;

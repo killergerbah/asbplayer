@@ -1,6 +1,6 @@
 import React from 'react';
 import Grid from '@material-ui/core/Grid';
-import { ActiveVideoElement, HttpPostMessage, PopupToExtensionCommand } from '@project/common';
+import { HttpPostMessage, PopupToExtensionCommand } from '@project/common';
 import { AsbplayerSettings, chromeCommandBindsToKeyBinds } from '@project/common/settings';
 import SettingsForm from '@project/common/components/SettingsForm';
 import PanelIcon from '@project/common/components/PanelIcon';
@@ -14,6 +14,7 @@ import { Anki } from '@project/common/anki';
 import { useSupportedLanguages } from '../hooks/use-supported-languages';
 import { useI18n } from '../hooks/use-i18n';
 import { isMobile } from 'react-device-detect';
+import { isFirefox } from '../../services/browser-detection';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -76,7 +77,7 @@ const Popup = ({
                     {t('action.openApp')}
                 </Button>
             </Grid>
-            {!isMobile && (
+            {!isMobile && !isFirefox && (
                 <Grid item style={{ marginLeft: 16, marginTop: 8, marginRight: 16 }}>
                     <Button
                         variant="contained"
@@ -94,6 +95,7 @@ const Popup = ({
                     extensionInstalled
                     extensionSupportsAppIntegration
                     extensionSupportsOverlay
+                    extensionSupportsSidePanel={!isFirefox}
                     forceVerticalTabs={false}
                     anki={anki}
                     chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}

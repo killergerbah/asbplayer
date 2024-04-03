@@ -231,6 +231,10 @@
         "prompt": "Clique no botão de ação do asbplayer no canto superior direito da janela do navegador para habilitar a gravação de áudio para esta guia.",
         "grantedPrompt": "A gravação de áudio foi habilitada para esta guia. Agora você pode começar a minerar."
     },
+    "audioCaptureFailed": {
+        "title": "Audio capture failed",
+        "message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer."
+    },
     "settings": {
         "addCustomCss": "Adicionar CSS customizado",
         "addCustomField": "Adicionar campo customizado",
@@ -306,7 +310,8 @@
         "urlField": "Campo da URL",
         "wordField": "Campo da palavra",
         "webSocketClientEnabled": "Enable WebSocket client",
-        "webSocketServerUrl": "WebSocket Server URL"
+        "webSocketServerUrl": "WebSocket Server URL",
+        "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons."
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Clique, segure e arraste para minerar múltiplas legendas"

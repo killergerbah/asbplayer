@@ -1,15 +1,15 @@
-import { AudioBase64Message, Command, Message, OffscreenDocumentToExtensionCommand } from '@project/common';
-import OffscreenAudioRecorder from '../../services/offscreen-audio-recorder';
+import { AudioBase64Message, Command, Message } from '@project/common';
+import AudioRecorderService from '../../services/audio-recorder-service';
 
 export default class AudioBase64Handler {
-    private readonly offscreenAudioRecorder: OffscreenAudioRecorder;
+    private readonly _audioRecorder: AudioRecorderService;
 
-    constructor(offscreenAudioRecorder: OffscreenAudioRecorder) {
-        this.offscreenAudioRecorder = offscreenAudioRecorder;
+    constructor(offscreenAudioRecorder: AudioRecorderService) {
+        this._audioRecorder = offscreenAudioRecorder;
     }
 
     get sender() {
-        return 'asbplayer-offscreen-document';
+        return ['asbplayer-offscreen-document', 'asbplayer-video'];
     }
 
     get command() {
@@ -17,8 +17,8 @@ export default class AudioBase64Handler {
     }
 
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
-        const audioBase64Command = command as OffscreenDocumentToExtensionCommand<AudioBase64Message>;
-        this.offscreenAudioRecorder.onAudioBase64(audioBase64Command.message.base64);
+        const audioBase64Command = command as Command<AudioBase64Message>;
+        this._audioRecorder.onAudioBase64(audioBase64Command.message.base64);
         return false;
     }
 }
