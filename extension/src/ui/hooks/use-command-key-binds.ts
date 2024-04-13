@@ -4,6 +4,11 @@ import { useEffect, useState } from 'react';
 export const useCommandKeyBinds = () => {
     const [commands, setCommands] = useState<{ [key: string]: string | undefined }>();
     useEffect(() => {
+        if (chrome.commands === undefined) {
+            setCommands({});
+            return;
+        }
+
         chrome.commands.getAll().then((commands) => {
             const commandsObj: any = {};
 

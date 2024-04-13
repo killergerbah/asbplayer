@@ -13,6 +13,11 @@ const manifestWithoutLocalhostPatterns = (manifest) => {
     return { ...manifest, content_scripts: modifiedContentScripts };
 };
 
+const manifestModifiedForFirefoxAndroid = (manifest) => {
+    delete manifest['commands'];
+    return { ...manifestModifiedForFirefox(manifest), permissions: ['tabs', 'storage'] };
+};
+
 const manifestModifiedForFirefox = (manifest) => {
     delete manifest['minimum_chrome_version'];
     delete manifest['key'];
@@ -34,11 +39,27 @@ const modifyManifest = (content, env, options) => {
         manifest = manifestModifiedForFirefox(manifest);
     }
 
+    if (env.firefoxandroid) {
+        manifest = manifestModifiedForFirefoxAndroid(manifest);
+    }
+
     if (options.mode === 'production') {
         manifest = manifestWithoutLocalhostPatterns(manifest);
     }
 
     return JSON.stringify(manifest);
+};
+
+const distPath = (env) => {
+    if (env.firefox) {
+        return 'dist/firefox';
+    }
+
+    if (env.firefoxandroid) {
+        return 'dist/firefoxandroid';
+    }
+
+    return 'dist/chromium';
 };
 
 module.exports = (env, options) => ({
@@ -67,7 +88,7 @@ module.exports = (env, options) => ({
     },
     output: {
         filename: '[name].js',
-        path: path.resolve(__dirname, env.firefox ? 'dist/firefox' : 'dist/chromium'),
+        path: path.resolve(__dirname, distPath(env)),
     },
     module: {
         rules: [
@@ -100,7 +121,7 @@ module.exports = (env, options) => ({
     },
     plugins: [
         new CleanWebpackPlugin(),
-        new DefinePlugin({ FIREFOX: JSON.stringify(env.firefox) }),
+        new DefinePlugin({ FIREFOX: JSON.stringify(env.firefox ?? env.firefoxandroid) }),
         new CopyPlugin({
             patterns: [
                 {

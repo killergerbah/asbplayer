@@ -355,6 +355,9 @@ yarn workspace @project/extension buildDev
 
 # Build the Firefox version of the extension to extension/dist/firefox
 yarn workspace @project/extension buildDev --env firefox
+
+# Build the Firefox for Android version of the extension to extension/dist/firefoxandroid
+yarn workspace @project/extension buildDev --env firefoxandroid
 ```
 
 If you have problems building try deleting `node_modules` and re-running `yarn`.

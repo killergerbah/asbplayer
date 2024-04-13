@@ -63,7 +63,7 @@ const startListener = async () => {
     primeLocalization(await settings.getSingle('language'));
 };
 
-const isMobile = (navigator as any).userAgentData?.mobile ?? false;
+const isMobile = (navigator as any).userAgentData?.mobile ?? navigator.userAgent.includes('Android') ?? false;
 
 const installListener = async (details: chrome.runtime.InstalledDetails) => {
     if (details.reason !== chrome.runtime.OnInstalledReason.INSTALL) {
@@ -154,20 +154,20 @@ chrome.runtime.onMessage.addListener((request: Command<Message>, sender, sendRes
 });
 
 chrome.runtime.onInstalled.addListener(() => {
-    chrome.contextMenus.create({
+    chrome.contextMenus?.create({
         id: 'load-subtitles',
         title: chrome.i18n.getMessage('contextMenuLoadSubtitles'),
         contexts: ['page', 'video'],
     });
 
-    chrome.contextMenus.create({
+    chrome.contextMenus?.create({
         id: 'mine-subtitle',
         title: chrome.i18n.getMessage('contextMenuMineSubtitle'),
         contexts: ['page', 'video'],
     });
 });
 
-chrome.contextMenus.onClicked.addListener((info) => {
+chrome.contextMenus?.onClicked.addListener((info) => {
     if (info.menuItemId === 'load-subtitles') {
         const toggleVideoSelectCommand: ExtensionToVideoCommand<ToggleVideoSelectMessage> = {
             sender: 'asbplayer-extension-to-video',
@@ -205,7 +205,7 @@ chrome.contextMenus.onClicked.addListener((info) => {
     }
 });
 
-chrome.commands.onCommand.addListener((command) => {
+chrome.commands?.onCommand.addListener((command) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const validAsbplayer = (asbplayer: Asbplayer) => {
             if (asbplayer.sidePanel) {
@@ -354,8 +354,8 @@ updateWebSocketClientState();
 tabRegistry.onAsbplayerInstance(updateWebSocketClientState);
 tabRegistry.onSyncedElement(updateWebSocketClientState);
 
-if (isMobile) {
-    chrome.action.onClicked.addListener((tab) => {
+const defaultAction = (tab: chrome.tabs.Tab) => {
+    if (isMobile) {
         if (tab.id !== undefined) {
             const extensionToVideoCommand: ExtensionToVideoCommand<ToggleVideoSelectMessage> = {
                 sender: 'asbplayer-extension-to-video',
@@ -365,14 +365,18 @@ if (isMobile) {
             };
             chrome.tabs.sendMessage(tab.id, extensionToVideoCommand);
         }
-    });
-} else if (isFirefox) {
+    } else {
+        chrome.action.openPopup();
+    }
+};
+
+if (isFirefox) {
     let hasHostPermission = true;
 
     chrome.permissions.contains({ origins: ['<all_urls>'] }).then((result) => {
         hasHostPermission = result;
 
-        if (hasHostPermission) {
+        if (hasHostPermission && !isMobile) {
             chrome.action.setPopup({
                 popup: 'popup-ui.html',
             });
@@ -381,7 +385,7 @@ if (isMobile) {
 
     chrome.action.onClicked.addListener(async (tab) => {
         if (hasHostPermission) {
-            chrome.action.openPopup();
+            defaultAction(tab);
         } else {
             try {
                 const obtainedHostPermission = await chrome.permissions.request({ origins: ['<all_urls>'] });
@@ -399,7 +403,5 @@ if (isMobile) {
     chrome.action.setPopup({
         popup: 'popup-ui.html',
     });
-    chrome.action.onClicked.addListener((tab) => {
-        chrome.action.openPopup();
-    });
+    chrome.action.onClicked.addListener(defaultAction);
 }

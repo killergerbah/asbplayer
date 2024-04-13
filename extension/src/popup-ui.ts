@@ -4,6 +4,11 @@ import { SettingsProvider } from '@project/common/settings';
 
 const fetchShortcuts = () => {
     return new Promise((resolve, reject) => {
+        if (chrome.commands === undefined) {
+            resolve({});
+            return;
+        }
+
         chrome.commands.getAll((commands) => {
             const commandsObj: any = {};
 
