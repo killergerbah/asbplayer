@@ -20,6 +20,6 @@ export const useCommandKeyBinds = () => {
 
             setCommands(chromeCommandBindsToKeyBinds(commandsObj));
         });
-    });
+    }, []);
     return commands;
 };
