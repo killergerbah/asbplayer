@@ -67,8 +67,9 @@ export class MobileVideoOverlayController {
         if (forceHide) {
             if (this._showing) {
                 this._doHide();
-                this._forceHiding = true;
             }
+
+            this._forceHiding = true;
         } else {
             if (this._forceHiding) {
                 this._forceHiding = false;
