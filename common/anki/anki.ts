@@ -35,6 +35,60 @@ const makeUniqueFileName = (fileName: string) => {
     return `${baseName}_${randomString()}.${exension}`;
 };
 
+const htmlTagRegexString = '<([^/ >])*[^>]*>(.*?)</\\1>';
+
+// Given <a><b>content</b></a> return ['<a><b>content</b></a>', '<b>content</b>', 'content']
+const tagContent = (html: string) => {
+    const htmlTagRegex = new RegExp(htmlTagRegexString);
+    let content = html;
+    let contents = [html];
+
+    while (true) {
+        const match = htmlTagRegex.exec(content);
+
+        if (match === null || match.length < 3) {
+            break;
+        }
+
+        content = match[2];
+        contents.push(content);
+    }
+
+    return contents;
+};
+
+export const inheritHtmlMarkup = (original: string, markedUp: string) => {
+    const htmlTagRegex = new RegExp(htmlTagRegexString, 'ig');
+    const markedUpWithoutBreaklines = markedUp.replaceAll('<br>', '');
+    let inherited = original;
+
+    while (true) {
+        const match = htmlTagRegex.exec(markedUpWithoutBreaklines);
+
+        if (match === null || match.length < 3) {
+            break;
+        }
+
+        let newInherited = inherited;
+
+        if (!inherited.includes(match[0])) {
+            const candidateTargets = tagContent(match[2]);
+
+            for (const target of candidateTargets) {
+                newInherited = inherited.replace(target, match[0]);
+
+                if (newInherited !== inherited) {
+                    break;
+                }
+            }
+        }
+
+        inherited = newInherited;
+    }
+
+    return inherited;
+};
+
 export type AnkiExportMode = 'gui' | 'updateLast' | 'default';
 
 export async function exportCard(card: CardModel, ankiSettings: AnkiSettings, exportMode: AnkiExportMode) {
@@ -249,7 +303,7 @@ export class Anki {
                         typeof info.fields[this.settingsProvider.sentenceField]?.value === 'string' &&
                         typeof params.note.fields[this.settingsProvider.sentenceField] === 'string'
                     ) {
-                        params.note.fields[this.settingsProvider.sentenceField] = this._inheritHtmlMarkup(
+                        params.note.fields[this.settingsProvider.sentenceField] = inheritHtmlMarkup(
                             params.note.fields[this.settingsProvider.sentenceField],
                             info.fields[this.settingsProvider.sentenceField].value
                         );
@@ -303,24 +357,6 @@ export class Anki {
 
     private _sanitizeFileName(name: string) {
         return sanitize(name, { replacement: '_' });
-    }
-
-    private _inheritHtmlMarkup(original: string, markedUp: string) {
-        const htmlTagRegex = RegExp('<[^>]*>(.*?)</[^>]*>', 'ig');
-        const markedUpWithoutBreaklines = markedUp.replace('<br>', '');
-        let inherited = original;
-
-        while (true) {
-            const match = htmlTagRegex.exec(markedUpWithoutBreaklines);
-
-            if (match === null || match.length < 2) {
-                break;
-            }
-
-            inherited = inherited.replace(match[1], match[0]);
-        }
-
-        return inherited;
     }
 
     private async _storeMediaFile(name: string, base64: string, ankiConnectUrl?: string) {
