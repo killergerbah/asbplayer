@@ -215,7 +215,8 @@
         "disabledRepeatPlayback": "Repeat playback: Off",
         "connectionSucceeded": "Connection succeeded",
         "connectionFailed": "Connection failed",
-        "error": "Error: {{message}}"
+        "error": "Error: {{message}}",
+        "errorNoMessage": "Error"
     },
     "landing": {
         "cta": "Перетащите медиафайлы и файлы субтитров или <1>выберите</1> их.",

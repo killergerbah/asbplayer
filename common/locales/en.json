@@ -215,7 +215,8 @@
         "disabledRepeatPlayback": "Repeat playback: Off",
         "connectionSucceeded": "Connection succeeded",
         "connectionFailed": "Connection failed",
-        "error": "Error: {{message}}"
+        "error": "Error: {{message}}",
+        "errorNoMessage": "Error"
     },
     "landing": {
         "cta": "Drag and drop subtitle and media files, or <1>browse</1>.",

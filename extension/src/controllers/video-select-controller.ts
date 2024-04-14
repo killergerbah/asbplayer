@@ -87,6 +87,8 @@ export default class VideoSelectController {
         } else if (this._bindings.length > 1) {
             // Toggle on
             this._showUi(openedFromMiningCommand);
+        } else {
+            this._showNoVideoElementsUi();
         }
     }
 
@@ -110,6 +112,18 @@ export default class VideoSelectController {
             videoElements.push(await p);
         }
 
+        const client = await this._prepareAndShowFrame();
+        const themeType = await this._settings.getSingle('themeType');
+        client.updateState({ open: true, themeType, videoElements, openedFromMiningCommand });
+    }
+
+    private async _showNoVideoElementsUi() {
+        const client = await this._prepareAndShowFrame();
+        const themeType = await this._settings.getSingle('themeType');
+        client.updateState({ open: true, themeType, videoElements: [] });
+    }
+
+    private async _prepareAndShowFrame() {
         this._frame.language = await this._settings.getSingle('language');
         const isNewClient = await this._frame.bind();
         const client = await this._frame.client();
@@ -130,8 +144,7 @@ export default class VideoSelectController {
         }
 
         this._frame.show();
-        const themeType = await this._settings.getSingle('themeType');
-        client.updateState({ open: true, themeType, videoElements, openedFromMiningCommand });
+        return client;
     }
 
     private async _hideUi() {

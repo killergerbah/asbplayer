@@ -14,7 +14,6 @@ import TextField from '@material-ui/core/TextField';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
-import { PaletteType } from '@material-ui/core';
 import Bridge from '../bridge';
 import {
     Message,
@@ -23,6 +22,7 @@ import {
     VideoSelectModeConfirmMessage,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
+import { PaletteType } from '@material-ui/core';
 
 interface Props {
     bridge: Bridge;
@@ -91,52 +91,77 @@ export default function VideoSelectUi({ bridge }: Props) {
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <Dialog open={open} fullWidth maxWidth="sm">
-                <Toolbar>
-                    <Typography variant="h6" style={{ flexGrow: 1 }}>
-                        {t('extension.videoSelect.multipleVideoElements')}{' '}
-                    </Typography>
-                    <IconButton edge="end" onClick={() => handleCancel()}>
-                        <CloseIcon />
-                    </IconButton>
-                </Toolbar>
-                <DialogContent>
-                    {openedFromMiningCommand ? (
-                        <DialogContentText>{t('extension.videoSelect.syncBeforeMine')}</DialogContentText>
-                    ) : (
-                        <DialogContentText>{t('extension.videoSelect.selectVideo')}</DialogContentText>
-                    )}
-                    <Grid container direction="column" spacing={2}>
-                        <Grid item style={{ maxWidth: '100%' }}>
-                            <TextField
-                                select
-                                fullWidth
-                                color="secondary"
-                                variant="filled"
-                                label={t('extension.videoSelect.videoElement')}
-                                value={selectedVideoElementSrc}
-                                onChange={(e) => setSelectedVideoElementSrc(e.target.value)}
-                            >
-                                {videoElements.map((v) => (
-                                    <MenuItem value={v.src} key={v.src}>
-                                        <img style={{ maxWidth: 20, marginRight: 12 }} src={v.imageDataUrl} />
-                                        {v.src}
-                                    </MenuItem>
-                                ))}
-                            </TextField>
-                        </Grid>
-                        <Grid item style={{ maxWidth: '100%' }}>
-                            {selectedVideoElementSrc !== '' && (
-                                <img
-                                    style={{ width: '100%' }}
-                                    src={videoElements.find((v) => v.src === selectedVideoElementSrc)!.imageDataUrl}
-                                />
+                {videoElements.length > 0 && (
+                    <>
+                        <Toolbar>
+                            <Typography variant="h6" style={{ flexGrow: 1 }}>
+                                {t('extension.videoSelect.multipleVideoElements')}
+                            </Typography>
+                            <IconButton edge="end" onClick={() => handleCancel()}>
+                                <CloseIcon />
+                            </IconButton>
+                        </Toolbar>
+                        <DialogContent>
+                            {openedFromMiningCommand ? (
+                                <DialogContentText>{t('extension.videoSelect.syncBeforeMine')}</DialogContentText>
+                            ) : (
+                                <DialogContentText>{t('extension.videoSelect.selectVideo')}</DialogContentText>
                             )}
-                        </Grid>
-                    </Grid>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleConfirm}>{t('action.ok')}</Button>
-                </DialogActions>
+                            <Grid container direction="column" spacing={2}>
+                                <Grid item style={{ maxWidth: '100%' }}>
+                                    <TextField
+                                        select
+                                        fullWidth
+                                        color="secondary"
+                                        variant="filled"
+                                        label={t('extension.videoSelect.videoElement')}
+                                        value={selectedVideoElementSrc}
+                                        onChange={(e) => setSelectedVideoElementSrc(e.target.value)}
+                                    >
+                                        {videoElements.map((v) => (
+                                            <MenuItem value={v.src} key={v.src}>
+                                                <img style={{ maxWidth: 20, marginRight: 12 }} src={v.imageDataUrl} />
+                                                {v.src}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
+                                </Grid>
+                                <Grid item style={{ maxWidth: '100%' }}>
+                                    {selectedVideoElementSrc !== '' && (
+                                        <img
+                                            style={{ width: '100%' }}
+                                            src={
+                                                videoElements.find((v) => v.src === selectedVideoElementSrc)!
+                                                    .imageDataUrl
+                                            }
+                                        />
+                                    )}
+                                </Grid>
+                            </Grid>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleConfirm}>{t('action.ok')}</Button>
+                        </DialogActions>
+                    </>
+                )}
+                {videoElements.length === 0 && (
+                    <>
+                        <Toolbar>
+                            <Typography variant="h6" style={{ flexGrow: 1 }}>
+                                {t('info.errorNoMessage')}
+                            </Typography>
+                            <IconButton edge="end" onClick={() => handleCancel()}>
+                                <CloseIcon />
+                            </IconButton>
+                        </Toolbar>
+                        <DialogContent>
+                            <DialogContentText>{t('landing.noVideoElementsDetected')}</DialogContentText>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={handleCancel}>{t('action.ok')}</Button>
+                        </DialogActions>
+                    </>
+                )}
             </Dialog>
         </ThemeProvider>
     );
