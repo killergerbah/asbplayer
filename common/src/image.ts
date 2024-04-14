@@ -3,10 +3,12 @@ import { CardModel, FileModel } from './model';
 import { download } from '../util/util';
 import { isActiveBlobUrl } from '../blob-url';
 
-const maxPrefixLength = 32;
+const maxPrefixLength = 24;
 
 const makeFileName = (prefix: string, timestamp: number) => {
-    return `${prefix.substring(0, Math.min(prefix.length, maxPrefixLength))}_${Math.floor(timestamp)}`;
+    return `${prefix.replaceAll(' ', '_').substring(0, Math.min(prefix.length, maxPrefixLength))}_${Math.floor(
+        timestamp
+    )}`;
 };
 
 class Base64ImageData implements ImageData {

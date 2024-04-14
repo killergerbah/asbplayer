@@ -6,8 +6,8 @@ import { isActiveBlobUrl } from '../blob-url';
 
 const maxPrefixLength = 24;
 
-const makeFileName = (prefix: string, start: number, end: number) => {
-    return `${prefix.substring(0, Math.min(prefix.length, maxPrefixLength))}_${Math.floor(start)}_${Math.floor(end)}`;
+const makeFileName = (prefix: string, start: number) => {
+    return `${prefix.replaceAll(' ', '_').substring(0, Math.min(prefix.length, maxPrefixLength))}_${Math.floor(start)}`;
 };
 
 interface ExperimentalAudioElement extends HTMLAudioElement {
@@ -52,7 +52,7 @@ class Base64AudioData implements AudioData {
     private cachedBlob?: Blob;
 
     constructor(baseName: string, start: number, end: number, playbackRate: number, base64: string, extension: string) {
-        this._name = makeFileName(baseName, start, end);
+        this._name = makeFileName(baseName, start);
         this._start = start;
         this._end = end;
         this.playbackRate = playbackRate;
@@ -161,7 +161,7 @@ class FileAudioData implements AudioData {
         const [recorderMimeType, recorderExtension] = recorderConfiguration();
         this.recorderMimeType = recorderMimeType;
         this.file = file;
-        this._name = makeFileName(file.name, start, end);
+        this._name = makeFileName(file.name, start);
         this._start = start;
         this._end = end;
         this.playbackRate = playbackRate;

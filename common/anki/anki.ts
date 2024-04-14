@@ -6,6 +6,34 @@ import sanitize from 'sanitize-filename';
 import { extractText, sourceString } from '@project/common/util';
 
 const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
+const alphaNumericCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+const randomString = () => {
+    let string = '';
+
+    for (let i = 0; i < 8; ++i) {
+        string += alphaNumericCharacters.charAt(Math.floor(Math.random() * alphaNumericCharacters.length));
+    }
+
+    return string;
+};
+
+// Makes a file name unique with reasonable probability by appending a string of random characters.
+// Leaves more room for the original file name than Anki's appended hash when `storeMediaFile`
+// is called with `deleteExising` == true.
+// Also, AnkiConnect Android doesn't support `deleteExisting` anyway.
+const makeUniqueFileName = (fileName: string) => {
+    const match = /(.*)\.(.*)/.exec(fileName);
+
+    if (match === null || match.length < 3) {
+        // Give up (not likely since we expect fileName to have an extension)
+        return fileName;
+    }
+
+    const baseName = match[1];
+    const exension = match[2];
+    return `${baseName}_${randomString()}.${exension}`;
+};
 
 export type AnkiExportMode = 'gui' | 'updateLast' | 'default';
 
@@ -296,7 +324,11 @@ export class Anki {
     }
 
     private async _storeMediaFile(name: string, base64: string, ankiConnectUrl?: string) {
-        return this._executeAction('storeMediaFile', { filename: name, data: base64 }, ankiConnectUrl);
+        return this._executeAction(
+            'storeMediaFile',
+            { filename: makeUniqueFileName(name), data: base64, deleteExisting: false },
+            ankiConnectUrl
+        );
     }
 
     private async _executeAction(action: string, params: any, ankiConnectUrl?: string) {
