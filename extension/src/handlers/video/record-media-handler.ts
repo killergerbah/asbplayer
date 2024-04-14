@@ -77,6 +77,16 @@ export default class RecordMediaHandler {
                 Math.min(subtitle.end - subtitle.start, recordMediaCommand.message.imageDelay),
                 { maxWidth, maxHeight, rect, frameId }
             );
+            imagePromise.then(() => {
+                const screenshotTakenCommand: ExtensionToVideoCommand<ScreenshotTakenMessage> = {
+                    sender: 'asbplayer-extension-to-video',
+                    message: {
+                        command: 'screenshot-taken',
+                    },
+                    src: recordMediaCommand.src,
+                };
+                chrome.tabs.sendMessage(senderTab.id!, screenshotTakenCommand);
+            });
         }
 
         if (audioPromise) {
@@ -90,22 +100,12 @@ export default class RecordMediaHandler {
             };
         }
 
-        let imageBase64: string | undefined;
-
         if (imagePromise) {
-            imageBase64 = await imagePromise;
-            const screenshotTakenCommand: ExtensionToVideoCommand<ScreenshotTakenMessage> = {
-                sender: 'asbplayer-extension-to-video',
-                message: {
-                    command: 'screenshot-taken',
-                },
-                src: recordMediaCommand.src,
-            };
-            chrome.tabs.sendMessage(senderTab.id!, screenshotTakenCommand);
+            await imagePromise;
 
             // Use the last screenshot taken to allow user to re-take screenshot while audio is recording
             imageModel = {
-                base64: imageBase64!,
+                base64: this._imageCapturer.lastImageBase64!,
                 extension: 'jpeg',
             };
         }

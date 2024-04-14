@@ -635,12 +635,11 @@ export default class Binding {
                         const screenshotTakenMessage = request.message as ScreenshotTakenMessage;
                         this.subtitleController.forceHideSubtitles = false;
                         this.mobileVideoOverlayController.forceHide = false;
+                        this.controlsController.show();
 
-                        if (screenshotTakenMessage.ankiUiState) {
+                        if (!this.recordingMedia && screenshotTakenMessage.ankiUiState) {
                             this.ankiUiController.showAfterRetakingScreenshot(this, screenshotTakenMessage.ankiUiState);
                         }
-
-                        this.controlsController.show();
                         break;
                     case 'alert':
                         // ignore

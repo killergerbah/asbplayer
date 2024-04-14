@@ -16,6 +16,7 @@ export default class ImageCapturer {
     private imageBase64Reject: ((error: any) => void) | undefined;
     private lastCaptureTimeoutId?: NodeJS.Timeout;
 
+    private _capturing = false;
     private _lastImageBase64?: string;
 
     constructor(settings: SettingsProvider) {
@@ -27,6 +28,10 @@ export default class ImageCapturer {
     }
 
     capture(tabId: number, src: string, delay: number, captureParams: ImageCaptureParams): Promise<string> {
+        if (this._capturing) {
+            return Promise.reject(new Error('Already capturing visible tab'));
+        }
+
         this._lastImageBase64 = undefined;
 
         if (
@@ -56,31 +61,38 @@ export default class ImageCapturer {
         reject: (error: any) => void
     ) {
         const timeoutId = setTimeout(() => {
-            captureVisibleTab(tabId).then(async (dataUrl) => {
-                try {
-                    if (timeoutId !== this.lastCaptureTimeoutId) {
-                        // The promise was already resolved by another call to capture with a shorter delay
-                        return;
+            this._capturing = true;
+            captureVisibleTab(tabId)
+                .then(async (dataUrl) => {
+                    try {
+                        this._capturing = false;
+
+                        if (timeoutId !== this.lastCaptureTimeoutId) {
+                            // The promise was already resolved by another call to capture with a shorter delay
+                            return;
+                        }
+
+                        const croppedDataUrl = await this._cropAndResize(dataUrl, tabId, src, captureParams);
+
+                        if (timeoutId !== this.lastCaptureTimeoutId) {
+                            // The promise was already resolved by another call to capture with a shorter delay
+                            return;
+                        }
+
+                        this._lastImageBase64 = croppedDataUrl.substring(croppedDataUrl.indexOf(',') + 1);
+                        resolve(this._lastImageBase64);
+                    } catch (e) {
+                        reject(e);
                     }
-
-                    const croppedDataUrl = await this._cropAndResize(dataUrl, tabId, src, captureParams);
-
-                    if (timeoutId !== this.lastCaptureTimeoutId) {
-                        // The promise was already resolved by another call to capture with a shorter delay
-                        return;
-                    }
-
-                    this._lastImageBase64 = croppedDataUrl.substring(croppedDataUrl.indexOf(',') + 1);
-                    resolve(this._lastImageBase64);
-                } catch (e) {
-                    reject(e);
-                } finally {
+                })
+                .catch(reject)
+                .finally(() => {
+                    this._capturing = false;
                     this.imageBase64Promise = undefined;
                     this.imageBase64Resolve = undefined;
                     this.imageBase64Reject = undefined;
                     this.lastCaptureTimeoutId = undefined;
-                }
-            });
+                });
         }, delay);
         this.lastCaptureTimeoutId = timeoutId;
     }
