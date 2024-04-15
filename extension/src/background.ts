@@ -64,7 +64,6 @@ const startListener = async () => {
     primeLocalization(await settings.getSingle('language'));
 };
 
-
 const installListener = async (details: chrome.runtime.InstalledDetails) => {
     if (details.reason !== chrome.runtime.OnInstalledReason.INSTALL) {
         return;
@@ -404,4 +403,32 @@ if (isFirefox) {
         popup: 'popup-ui.html',
     });
     chrome.action.onClicked.addListener(defaultAction);
+}
+
+if (isFirefox) {
+    // Firefox requires the use of iframe.srcdoc in order to load UI into an about:blank iframe
+    // (which is required for UI to be scannable by other extensions like Yomitan).
+    // However, such an iframe inherits the content security directives of the parent document,
+    // which may prevent loading of extension scripts into the iframe.
+    // Because of this, we modify CSP headers below to explicitly allow access to extension-packaged resources.
+    chrome.webRequest.onHeadersReceived.addListener(
+        (details) => {
+            const responseHeaders = details.responseHeaders;
+
+            if (!responseHeaders) {
+                return;
+            }
+
+            for (const header of responseHeaders) {
+                if (header.name.toLowerCase() === 'content-security-policy') {
+                    let cspValue = header.value;
+                    cspValue += ` ; script-src moz-extension://${chrome.runtime.id}`;
+                }
+            }
+
+            return { responseHeaders };
+        },
+        { urls: ['<all_urls>'] },
+        ['blocking', 'responseHeaders']
+    );
 }

@@ -25,7 +25,7 @@ const manifestModifiedForFirefox = (manifest) => {
     return {
         ...manifest,
         host_permissions: ['<all_urls>'],
-        permissions: ['tabs', 'storage', 'contextMenus'],
+        permissions: ['tabs', 'storage', 'contextMenus', 'webRequest', 'webRequestBlocking'],
         background: {
             scripts: ['background.js'],
         },

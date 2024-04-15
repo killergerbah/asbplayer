@@ -1,3 +1,4 @@
+import { isFirefox } from './browser-detection';
 import FrameBridgeClient, { FetchOptions } from './frame-bridge-client';
 
 export default class UiFrame {
@@ -59,9 +60,24 @@ export default class UiFrame {
         // Prevent iframe from showing up with solid background
         // https://stackoverflow.com/questions/69591128/chrome-is-forcing-a-white-background-on-frames-only-on-some-websites
         this._frame.style.colorScheme = 'normal';
+
         this._client = new FrameBridgeClient(this._frame, this._fetchOptions);
         document.body.appendChild(this._frame);
-        this._frame.srcdoc = await this._html(this._language);
+
+        if (isFirefox) {
+            // Firefox does not allow document.write() into the about:blank iframe.
+            // CSP headers are modified using the webRequest API to allow extension scripts to
+            // be loaded.
+            this._frame.srcdoc = await this._html(this._language);
+        } else {
+            // On Chromium, use document.write() since it allows the loading of extension scripts
+            // into the iframe without additional work.
+            const doc = this._frame.contentDocument!;
+            doc.open();
+            doc.write(await this._html(this._language));
+            doc.close();
+        }
+
         await this._client!.bind();
         return true;
     }
