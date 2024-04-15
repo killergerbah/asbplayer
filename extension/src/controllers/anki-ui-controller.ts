@@ -241,9 +241,9 @@ export default class AnkiUiController {
                             if (context.video.currentTime !== seekTo) {
                                 context.seek(seekTo);
                             }
+                        }
 
-                            context.play();
-                        } else {
+                        if (context.wasPlayingBeforeRecordingMedia) {
                             context.play();
                         }
                         break;

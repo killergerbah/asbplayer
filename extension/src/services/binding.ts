@@ -77,6 +77,7 @@ export default class Binding {
     private _syncedTimestamp?: number;
 
     recordingMedia: boolean;
+    wasPlayingBeforeRecordingMedia?: boolean;
     private recordingMediaStartedTimestamp?: number;
     private recordingMediaWithScreenshot: boolean;
 
@@ -605,6 +606,7 @@ export default class Binding {
                             lastAppliedTimestampIntervalToAudio: [cardMessage.subtitle.start, cardMessage.subtitle.end],
                             dialogRequestedTimestamp: this.video.currentTime * 1000,
                         };
+
                         break;
                     case 'notify-error':
                         const notifyErrorMessage = request.message as NotifyErrorMessage;
@@ -613,6 +615,9 @@ export default class Binding {
                     case 'recording-finished':
                         this.recordingMedia = false;
                         this.recordingMediaStartedTimestamp = undefined;
+                        if (this.wasPlayingBeforeRecordingMedia === false) {
+                            this.video.pause();
+                        }
                         break;
                     case 'show-anki-ui':
                         const showAnkiUiMessage = request.message as ShowAnkiUiMessage;
@@ -883,6 +888,7 @@ export default class Binding {
 
         if (this.recordMedia) {
             this.recordingMedia = true;
+            this.wasPlayingBeforeRecordingMedia = !this.video.paused;
             this.recordingMediaStartedTimestamp = this.video.currentTime * 1000;
             this.recordingMediaWithScreenshot = this.takeScreenshot;
             const start = Math.max(0, subtitle.start - this.audioPaddingStart);
@@ -955,6 +961,7 @@ export default class Binding {
 
             if (this.recordMedia) {
                 this.recordingMedia = true;
+                this.wasPlayingBeforeRecordingMedia = !this.video.paused;
                 this.recordingMediaStartedTimestamp = timestamp;
                 this.recordingMediaWithScreenshot = this.takeScreenshot;
 
