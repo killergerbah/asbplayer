@@ -60,6 +60,7 @@ import { adjacentSubtitle } from '@project/common/key-binder';
 import AudioRecorder from './audio-recorder';
 import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
 import NotificationController from '../controllers/notification-controller';
+import { isMobile } from './device-detection';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -710,10 +711,10 @@ export default class Binding {
                             );
                         break;
                     case 'notification-dialog':
-                        const notificationDialogMesesage = request.message as NotificationDialogMessage;
+                        const notificationDialogMessage = request.message as NotificationDialogMessage;
                         this.notificationController.show(
-                            notificationDialogMesesage.titleLocKey,
-                            notificationDialogMesesage.messageLocKey
+                            notificationDialogMessage.titleLocKey,
+                            notificationDialogMessage.messageLocKey
                         );
                         break;
                 }
@@ -1216,6 +1217,18 @@ export default class Binding {
         }
 
         this.mobileVideoOverlayController.updateModel();
+
+        if (!isMobile) {
+            this.settings
+                .get(['streamingDisplaySubtitles', 'keyBindSet'])
+                .then(({ streamingDisplaySubtitles, keyBindSet }) => {
+                    if (!streamingDisplaySubtitles && keyBindSet.toggleSubtitles.keys) {
+                        this.subtitleController.notification('info.toggleSubtitlesShortcut', {
+                            keys: keyBindSet.toggleSubtitles.keys,
+                        });
+                    }
+                });
+        }
     }
 
     private _captureStream(): Promise<MediaStream> {

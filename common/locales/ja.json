@@ -216,7 +216,8 @@
         "connectionSucceeded": "接続が成功しました",
         "connectionFailed": "接続に失敗しました",
         "error": "エラー：{{message}}",
-        "errorNoMessage": "エラー"
+        "errorNoMessage": "エラー",
+        "toggleSubtitlesShortcut": "字幕を表示するには 「{{keys}}」 を押してください"
     },
     "landing": {
         "cta": "字幕やメディアファイルをドラッグ＆ドロップ、または<1>ファイルを選択</1>してください。",

@@ -52,6 +52,7 @@ import { CaptureStreamAudioRecorder, OffscreenAudioRecorder } from './services/a
 import RequestModelHandler from './handlers/mobile-overlay/request-model-handler';
 import CurrentTabHandler from './handlers/mobile-overlay/current-tab-handler';
 import UpdateMobileOverlayModelHandler from './handlers/video/update-mobile-overlay-model-handler';
+import { isMobile } from './services/device-detection';
 
 if (!isFirefox) {
     chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
@@ -63,7 +64,6 @@ const startListener = async () => {
     primeLocalization(await settings.getSingle('language'));
 };
 
-const isMobile = (navigator as any).userAgentData?.mobile ?? navigator.userAgent.includes('Android') ?? false;
 
 const installListener = async (details: chrome.runtime.InstalledDetails) => {
     if (details.reason !== chrome.runtime.OnInstalledReason.INSTALL) {

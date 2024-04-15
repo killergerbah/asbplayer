@@ -216,7 +216,8 @@
         "connectionSucceeded": "Connection succeeded",
         "connectionFailed": "Connection failed",
         "error": "Error: {{message}}",
-        "errorNoMessage": "Error"
+        "errorNoMessage": "Error",
+        "toggleSubtitlesShortcut": "Press \"{{keys}}\" to toggle subtitle display"
     },
     "landing": {
         "cta": "Arraste e solte arquivos de mídia e legenda, ou <1>procure</1>.",

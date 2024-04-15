@@ -216,7 +216,8 @@
         "connectionSucceeded": "Connection succeeded",
         "connectionFailed": "Connection failed",
         "error": "Error: {{message}}",
-        "errorNoMessage": "Error"
+        "errorNoMessage": "Error",
+        "toggleSubtitlesShortcut": "Press \"{{keys}}\" to toggle subtitle display"
     },
     "landing": {
         "cta": "Untertitel und Medien hierher ziehen oder <1>suchen</1>",

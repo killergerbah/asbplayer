@@ -216,7 +216,8 @@
         "connectionSucceeded": "Connection succeeded",
         "connectionFailed": "Connection failed",
         "error": "Error: {{message}}",
-        "errorNoMessage": "Error"
+        "errorNoMessage": "Error",
+        "toggleSubtitlesShortcut": "Press \"{{keys}}\" to toggle subtitle display"
     },
     "landing": {
         "cta": "拖放字幕和媒体文件，或<1>浏览</1>。",
