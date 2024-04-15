@@ -314,13 +314,12 @@ export class CachingElementOverlay implements ElementOverlay {
         const rect = this.targetElement.getBoundingClientRect();
         container.style.left = rect.left + rect.width / 2 + 'px';
         container.style.maxWidth = rect.width + 'px';
-        const clampedTop = Math.max(0, rect.top);
 
         if (this.offsetAnchor === OffsetAnchor.bottom) {
-            container.style.top = clampedTop + rect.height + window.scrollY - this.contentPositionOffset + 'px';
+            container.style.top = rect.top + rect.height + window.scrollY - this.contentPositionOffset + 'px';
             container.style.bottom = '';
         } else {
-            container.style.top = clampedTop + window.scrollY + this.contentPositionOffset + 'px';
+            container.style.top = rect.top + window.scrollY + this.contentPositionOffset + 'px';
             container.style.bottom = '';
         }
     }
@@ -482,13 +481,12 @@ export class DefaultElementOverlay implements ElementOverlay {
         const rect = this.targetElement.getBoundingClientRect();
         container.style.left = rect.left + rect.width / 2 + 'px';
         container.style.maxWidth = rect.width + 'px';
-        const clampedTop = Math.max(0, rect.top);
 
         if (this.offsetAnchor === OffsetAnchor.bottom) {
-            container.style.top = clampedTop + rect.height + window.scrollY - this.contentPositionOffset + 'px';
+            container.style.top = rect.top + rect.height + window.scrollY - this.contentPositionOffset + 'px';
             container.style.bottom = '';
         } else {
-            container.style.top = clampedTop + window.scrollY + this.contentPositionOffset + 'px';
+            container.style.top = rect.top + window.scrollY + this.contentPositionOffset + 'px';
             container.style.bottom = '';
         }
     }
