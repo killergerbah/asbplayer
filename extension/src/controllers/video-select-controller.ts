@@ -37,6 +37,10 @@ export default class VideoSelectController {
     }
 
     bind() {
+        if (window.self !== window.top) {
+            return;
+        }
+
         this.messageListener = (
             request: any,
             sender: chrome.runtime.MessageSender,
@@ -73,6 +77,7 @@ export default class VideoSelectController {
 
         if (this.messageListener) {
             chrome.runtime.onMessage.removeListener(this.messageListener);
+            this.messageListener = undefined;
         }
     }
 
