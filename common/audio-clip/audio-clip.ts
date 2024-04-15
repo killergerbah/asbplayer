@@ -22,6 +22,7 @@ interface AudioData {
     start: number;
     end: number;
     play: () => Promise<void>;
+    stop: () => void;
     blob: () => Promise<Blob>;
     base64: () => Promise<string>;
     slice: (start: number, end: number) => AudioData;
@@ -86,10 +87,7 @@ class Base64AudioData implements AudioData {
 
     async play(): Promise<void> {
         if (this.playingAudio) {
-            this.stopAudio(this.playingAudio);
-            clearTimeout(this.stopAudioTimeout!);
-            this.playingAudio = undefined;
-            this.stopAudioTimeout = undefined;
+            this.stop();
             return;
         }
 
@@ -106,6 +104,17 @@ class Base64AudioData implements AudioData {
             this.playingAudio = undefined;
             this.stopAudioTimeout = undefined;
         }, (this._end - this._start) / this.playbackRate + 100);
+    }
+
+    stop() {
+        if (!this.playingAudio) {
+            return;
+        }
+
+        this.stopAudio(this.playingAudio);
+        clearTimeout(this.stopAudioTimeout!);
+        this.playingAudio = undefined;
+        this.stopAudioTimeout = undefined;
     }
 
     private stopAudio(audio: HTMLAudioElement) {
@@ -210,10 +219,7 @@ class FileAudioData implements AudioData {
         }
 
         if (this.playingAudio) {
-            this.stopAudio(this.playingAudio, true);
-            clearTimeout(this.stopAudioTimeout!);
-            this.playingAudio = undefined;
-            this.stopAudioTimeout = undefined;
+            this._stopPlayingAudio();
             return;
         }
 
@@ -226,6 +232,16 @@ class FileAudioData implements AudioData {
             this.stopAudioTimeout = undefined;
             this.playingAudio = undefined;
         }, (this._end - this._start) / this.playbackRate + 100);
+    }
+
+    stop() {
+        if (this.playingAudio) {
+            this._stopPlayingAudio();
+        }
+
+        if (this.clippingAudio) {
+            this._stopClippingAudio();
+        }
     }
 
     async blob() {
@@ -242,12 +258,7 @@ class FileAudioData implements AudioData {
 
     async _clipAudio(): Promise<Blob | undefined> {
         if (this.clippingAudio) {
-            this.stopAudio(this.clippingAudio, false);
-            clearTimeout(this.stopClippingTimeout!);
-            this.clippingAudioReject?.('Did not finish recording blob');
-            this.clippingAudio = undefined;
-            this.stopClippingTimeout = undefined;
-            this.clippingAudioReject = undefined;
+            this._stopClippingAudio();
             return undefined;
         }
 
@@ -293,6 +304,30 @@ class FileAudioData implements AudioData {
                 reject(e);
             }
         });
+    }
+
+    private _stopClippingAudio() {
+        if (!this.clippingAudio) {
+            return;
+        }
+
+        this.stopAudio(this.clippingAudio, false);
+        clearTimeout(this.stopClippingTimeout!);
+        this.clippingAudioReject?.('Did not finish recording blob');
+        this.clippingAudio = undefined;
+        this.stopClippingTimeout = undefined;
+        this.clippingAudioReject = undefined;
+    }
+
+    private _stopPlayingAudio() {
+        if (!this.playingAudio) {
+            return;
+        }
+
+        this.stopAudio(this.playingAudio, true);
+        clearTimeout(this.stopAudioTimeout!);
+        this.playingAudio = undefined;
+        this.stopAudioTimeout = undefined;
     }
 
     private _audioElement(blobUrl: string, selectTrack: boolean): Promise<ExperimentalAudioElement> {
@@ -424,6 +459,10 @@ class Mp3AudioData implements AudioData {
         await this.data.play();
     }
 
+    stop() {
+        this.data.stop();
+    }
+
     async blob() {
         if (!this._blob) {
             this._blob = await Mp3Encoder.encode(await this.data.blob(), this.workerFactory);
@@ -522,6 +561,10 @@ export default class AudioClip {
 
     async play() {
         await this.data.play();
+    }
+
+    stop() {
+        this.data.stop();
     }
 
     async base64() {

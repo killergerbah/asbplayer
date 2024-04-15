@@ -475,7 +475,7 @@ const AnkiDialog = ({
 
             e.preventDefault();
             e.stopPropagation();
-            audioClip!.play();
+            audioClip!.play().catch(console.info);
         },
         [audioClip]
     );
@@ -659,6 +659,12 @@ const AnkiDialog = ({
 
     const { audioHelperText, audioClipPlayable } = useAudioHelperText(audioClip, onRerecord);
     const { imageHelperText, imageAvailable } = useImageHelperText(image);
+
+    useEffect(() => {
+        if (!open) {
+            audioClip?.stop();
+        }
+    }, [open, audioClip]);
 
     return (
         <Dialog open={open} disableEnforceFocus fullWidth maxWidth="sm" onClose={onCancel}>
