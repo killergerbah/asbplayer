@@ -1,6 +1,35 @@
 import { isFirefox } from './browser-detection';
 import FrameBridgeClient, { FetchOptions } from './frame-bridge-client';
 
+const frameColorScheme = () => {
+    // Prevent iframe from showing up with solid background by selecting suitable color scheme according to document's color scheme
+    // https://fvsch.com/transparent-iframes
+
+    const documentColorSchemeMetaTag = document.querySelector('meta[name="color-scheme"]');
+
+    if (documentColorSchemeMetaTag === null) {
+        return 'normal';
+    }
+
+    const documentColorScheme = (documentColorSchemeMetaTag as HTMLMetaElement).content;
+    const light = documentColorScheme.includes('light');
+    const dark = documentColorScheme.includes('dark');
+
+    if (light && dark) {
+        return 'none';
+    }
+
+    if (light) {
+        return 'light';
+    }
+
+    if (dark) {
+        return 'dark';
+    }
+
+    return 'normal';
+};
+
 export default class UiFrame {
     private readonly _html: (lang: string) => Promise<string>;
     private _fetchOptions: FetchOptions | undefined;
@@ -57,9 +86,8 @@ export default class UiFrame {
         this._frame = document.createElement('iframe');
         this._frame.className = 'asbplayer-ui-frame';
 
-        // Prevent iframe from showing up with solid background
-        // https://stackoverflow.com/questions/69591128/chrome-is-forcing-a-white-background-on-frames-only-on-some-websites
-        this._frame.style.colorScheme = 'normal';
+        this._frame.style.colorScheme = frameColorScheme();
+        this._frame.setAttribute('allowtransparency', 'true');
 
         this._client = new FrameBridgeClient(this._frame, this._fetchOptions);
         document.body.appendChild(this._frame);
