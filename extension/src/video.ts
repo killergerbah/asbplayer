@@ -132,7 +132,7 @@ const bind = () => {
     bindToVideoElements();
     const videoInterval = setInterval(bindToVideoElements, 1000);
     const shadowRootInterval = page?.config.searchShadowRoots
-        ? setInterval(incrementallyFindShadowRoots, 500)
+        ? setInterval(incrementallyFindShadowRoots, 100)
         : undefined;
 
     const videoSelectController = new VideoSelectController(bindings);
