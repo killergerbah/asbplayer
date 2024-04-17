@@ -12,8 +12,19 @@ export const useAppBarHeight = () => {
             setAppbarHeight(appBar?.clientHeight || 0);
         }
 
+        const observer = new MutationObserver(() => {
+            setAppbarHeight(appBar?.clientHeight || 0);
+        });
+
+        if (appBar) {
+            observer.observe(appBar, { attributes: true, attributeFilter: ['class'] });
+        }
+
         window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            observer.disconnect();
+        };
     }, []);
 
     return appbarHeight;
