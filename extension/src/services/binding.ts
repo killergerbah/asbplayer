@@ -61,6 +61,7 @@ import AudioRecorder from './audio-recorder';
 import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
 import NotificationController from '../controllers/notification-controller';
 import { isMobile } from './device-detection';
+import { shouldShowUpdateAlert } from './update-alert';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -1229,6 +1230,12 @@ export default class Binding {
                     }
                 });
         }
+
+        shouldShowUpdateAlert().then((shouldShowUpdateAlert) => {
+            if (shouldShowUpdateAlert) {
+                this.notificationController.updateAlert(chrome.runtime.getManifest().version);
+            }
+        });
     }
 
     private _captureStream(): Promise<MediaStream> {

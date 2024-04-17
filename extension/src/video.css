@@ -76,7 +76,18 @@
     width: 100% !important;
     height: 100% !important;
     z-index: 2147483647 !important;
-    border: 0;
+    border: 0 !important;
+}
+
+.asbplayer-alert {
+    position: fixed !important;
+    bottom: 8px !important;
+    width: 50% !important;
+    transform: translate(50%) !important;
+    visibility: visible !important;
+    height: auto !important;
+    z-index: 2147483647 !important;
+    border: 0 !important;
 }
 
 .asbplayer-hide {

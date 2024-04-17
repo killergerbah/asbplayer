@@ -53,6 +53,7 @@ import RequestModelHandler from './handlers/mobile-overlay/request-model-handler
 import CurrentTabHandler from './handlers/mobile-overlay/current-tab-handler';
 import UpdateMobileOverlayModelHandler from './handlers/video/update-mobile-overlay-model-handler';
 import { isMobile } from './services/device-detection';
+import { enqueueUpdateAlert } from './services/update-alert';
 
 if (!isFirefox) {
     chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
@@ -89,7 +90,16 @@ const installListener = async (details: chrome.runtime.InstalledDetails) => {
     chrome.tabs.create({ url: chrome.runtime.getURL('ftue-ui.html'), active: true });
 };
 
+const updateListener = async (details: chrome.runtime.InstalledDetails) => {
+    if (details.reason !== chrome.runtime.OnInstalledReason.UPDATE) {
+        return;
+    }
+
+    enqueueUpdateAlert();
+};
+
 chrome.runtime.onInstalled.addListener(installListener);
+chrome.runtime.onInstalled.addListener(updateListener);
 chrome.runtime.onStartup.addListener(startListener);
 
 const tabRegistry = new TabRegistry(settings);

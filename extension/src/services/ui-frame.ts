@@ -64,6 +64,10 @@ export default class UiFrame {
         return this._bound;
     }
 
+    get frame() {
+        return this._frame;
+    }
+
     async bind(): Promise<boolean> {
         return await this._init();
     }

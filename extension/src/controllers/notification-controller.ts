@@ -13,19 +13,20 @@ export default class NotificationController {
     constructor(context: Binding) {
         this._context = context;
         this._frame = new UiFrame(
-            async (lang) => `<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="utf-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <title>asbplayer</title>
-        </head>
-        <body>
-        <div id="root" style="width:100%;height:100vh;"></div>
-        <script type="application/json" id="loc">${JSON.stringify(await fetchLocalization(lang))}</script>
-        <script src="${chrome.runtime.getURL('./notification-ui.js')}"></script>
-        </body>
-    </html>`
+            async (lang) =>
+                `<!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="utf-8" />
+                        <meta name="viewport" content="width=device-width, initial-scale=1" />
+                        <title>asbplayer</title>
+                    </head>
+                    <body>
+                    <div id="root" style="width:100%;height:100vh;"></div>
+                    <script type="application/json" id="loc">${JSON.stringify(await fetchLocalization(lang))}</script>
+                    <script src="${chrome.runtime.getURL('./notification-ui.js')}"></script>
+                    </body>
+                </html>`
         );
     }
 
@@ -38,8 +39,30 @@ export default class NotificationController {
     }
 
     async show(titleLocKey: string, messageLocKey: string) {
+        await this._prepareAndShowFrame('asbplayer-ui-frame');
+        this._client!.updateState({
+            themeType: await this._context.settings.getSingle('themeType'),
+            titleLocKey,
+            messageLocKey,
+            alertLocKey: '',
+        });
+        this._context.pause();
+    }
+
+    async updateAlert(newVersion: string) {
+        await this._prepareAndShowFrame('asbplayer-alert');
+        this._client!.updateState({
+            themeType: await this._context.settings.getSingle('themeType'),
+            titleLocKey: '',
+            messageLocKey: '',
+            newVersion,
+        });
+    }
+
+    private async _prepareAndShowFrame(className: string) {
         this._frame.language = await this._context.settings.getSingle('language');
         const isNewClient = await this._frame.bind();
+        this._frame.frame!.className = className;
         this._client = await this._frame.client();
 
         if (isNewClient) {
@@ -55,12 +78,6 @@ export default class NotificationController {
         }
 
         this._frame.show();
-        this._client.updateState({
-            themeType: await this._context.settings.getSingle('themeType'),
-            titleLocKey,
-            messageLocKey,
-        });
-        this._context.pause();
     }
 
     unbind() {

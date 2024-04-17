@@ -195,7 +195,8 @@
     },
     "update": {
         "heading": "asbplayer just updated to version {{version}}.",
-        "body": "Check out the release notes <0>here</0>."
+        "body": "Check out the release notes <0>here</0>.",
+        "alert": "asbplayer updated to version {{version}}. Check out the <0>release notes</0>."
     },
     "info": {
         "copiedSubtitle": "Скопировано: {{text}}",
