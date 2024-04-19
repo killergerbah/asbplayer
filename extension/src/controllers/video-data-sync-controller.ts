@@ -314,6 +314,7 @@ export default class VideoDataSyncController {
                 if (shallUpdate) {
                     this._context.keyBindings.bind(this._context);
                     this._context.subtitleController.forceHideSubtitles = false;
+                    this._context.mobileVideoOverlayController.forceHide = false;
                     this._frame?.hide();
 
                     if (this._fullscreenElement) {
@@ -360,6 +361,7 @@ export default class VideoDataSyncController {
 
         this._context.keyBindings.unbind();
         this._context.subtitleController.forceHideSubtitles = true;
+        this._context.mobileVideoOverlayController.forceHide = true;
     }
 
     private async _syncData(data: VideoDataSubtitleTrack[]) {
