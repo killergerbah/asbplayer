@@ -116,6 +116,7 @@ function extractSources(files: FileList | File[]): MediaSources {
             case 'ogg':
             case 'wav':
             case 'opus':
+            case 'm4b':
                 if (videoFile) {
                     throw new LocalizedError('error.onlyOneAudioFile');
                 }
