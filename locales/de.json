@@ -195,7 +195,8 @@
     },
     "update": {
         "heading": "asbplayer just updated to version {{version}}.",
-        "body": "Check out the release notes <0>here</0>."
+        "body": "Check out the release notes <0>here</0>.",
+        "alert": "asbplayer updated to version {{version}}. Check out the <0>release notes</0>."
     },
     "info": {
         "copiedSubtitle": "Copied: {{text}}",
@@ -215,7 +216,9 @@
         "disabledRepeatPlayback": "Repeat playback: Off",
         "connectionSucceeded": "Connection succeeded",
         "connectionFailed": "Connection failed",
-        "error": "Error: {{message}}"
+        "error": "Error: {{message}}",
+        "errorNoMessage": "Error",
+        "toggleSubtitlesShortcut": "Press \"{{keys}}\" to toggle subtitle display"
     },
     "landing": {
         "cta": "Untertitel und Medien hierher ziehen oder <1>suchen</1>",
@@ -230,6 +233,10 @@
         "grantedTitle": "Audio recording enabled",
         "prompt": "Click on the asbplayer action button in the top-right of the browser window to enable audio recording for this tab.",
         "grantedPrompt": "Audio recording has been enabled for this tab. You can now begin mining."
+    },
+    "audioCaptureFailed": {
+        "title": "Audio capture failed",
+        "message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer."
     },
     "settings": {
         "addCustomCss": "Add Custom CSS",
@@ -306,7 +313,8 @@
         "urlField": "URL-Feld",
         "wordField": "Wort-Feld",
         "webSocketClientEnabled": "Enable WebSocket client",
-        "webSocketServerUrl": "WebSocket Server URL"
+        "webSocketServerUrl": "WebSocket Server URL",
+        "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons."
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Click, hold, and drag to mine multiple subtitles"

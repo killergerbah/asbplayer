@@ -195,7 +195,8 @@
     },
     "update": {
         "heading": "asbplayer just updated to version {{version}}.",
-        "body": "Check out the release notes <0>here</0>."
+        "body": "Check out the release notes <0>here</0>.",
+        "alert": "asbplayer updated to version {{version}}. Check out the <0>release notes</0>."
     },
     "info": {
         "copiedSubtitle": "Скопировано: {{text}}",
@@ -215,7 +216,9 @@
         "disabledRepeatPlayback": "Repeat playback: Off",
         "connectionSucceeded": "Connection succeeded",
         "connectionFailed": "Connection failed",
-        "error": "Error: {{message}}"
+        "error": "Error: {{message}}",
+        "errorNoMessage": "Error",
+        "toggleSubtitlesShortcut": "Press \"{{keys}}\" to toggle subtitle display"
     },
     "landing": {
         "cta": "Перетащите медиафайлы и файлы субтитров или <1>выберите</1> их.",
@@ -230,6 +233,10 @@
         "grantedTitle": "Запись аудио разрешена.",
         "prompt": "Нажмите на кнопку действия asbplayer в правом верхнем углу окна браузера, чтобы разрешить запись аудио для этой вкладки.",
         "grantedPrompt": "Запись аудио разрешена для этой вкладки. Теперь вы можете приступить к майнингу."
+    },
+    "audioCaptureFailed": {
+        "title": "Audio capture failed",
+        "message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer."
     },
     "settings": {
         "addCustomCss": "Добавить пользовательские CSS стили",
@@ -306,7 +313,8 @@
         "urlField": "Поле URL-адреса",
         "wordField": "Поле слова",
         "webSocketClientEnabled": "Enable WebSocket client",
-        "webSocketServerUrl": "WebSocket Server URL"
+        "webSocketServerUrl": "WebSocket Server URL",
+        "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons."
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Нажмите, удерживайте и перетащите, чтобы смайнить несколько субтитров"

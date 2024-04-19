@@ -195,7 +195,8 @@
     },
     "update": {
         "heading": "asbplayer が新しいバージョン{{version}}にアップデートされました。",
-        "body": "リリースノートは<0>こちら</0>をご参照ください。"
+        "body": "リリースノートは<0>こちら</0>をご参照ください。",
+        "alert": "asbplayer が新しいバージョン{{version}}にアップデートされました。リリースノートは<0>こちら</0>をご参照ください。"
     },
     "info": {
         "copiedSubtitle": "コピーしました：{{text}}",
@@ -215,21 +216,27 @@
         "disabledRepeatPlayback": "リピートプレイバック：オフ",
         "connectionSucceeded": "接続が成功しました",
         "connectionFailed": "接続に失敗しました",
-        "error": "エラー：{{message}}"
+        "error": "エラー：{{message}}",
+        "errorNoMessage": "エラー",
+        "toggleSubtitlesShortcut": "字幕を表示するには 「{{keys}}」 を押してください"
     },
     "landing": {
         "cta": "字幕やメディアファイルをドラッグ＆ドロップ、または<1>ファイルを選択</1>してください。",
         "extensionNotInstalled": "Web上の動画と字幕を同期するために<1>Chrome 拡張機能</1>をインストールしてください。",
         "extensionUpdateAvailable": "拡張機能の<1>アップデート</1>を公開しました。",
         "noSubtitles": "字幕はありません",
-        "videoElementsDetected": "asbplayerを使用するには字幕をロードしてください。",
+        "videoElementsDetected": "asbplayer を使用するには字幕をロードしてください。",
         "noVideoElementsDetected": "動画を探知できませんでした。"
     },
     "activeTabPermissionRequest": {
         "title": "音声記録を有効にしてください",
         "grantedTitle": "音声記録が有効になりました",
-        "prompt": "音声記録を有効するにはブラウザの右上にあるasbplayerのアクションボタンをクリックしてください。",
+        "prompt": "音声記録を有効するにはブラウザの右上にある asbplayer のアクションボタンをクリックしてください。",
         "grantedPrompt": "音声記録が有効になりました。マイニングを始めてください。"
+    },
+    "audioCaptureFailed": {
+        "title": "録音に失敗しました",
+        "message": "DRMで保護されている音声は asbplayer のFirefox版では録音できません。"
     },
     "settings": {
         "addCustomCss": "カスタムCSSを追加",
@@ -266,7 +273,7 @@
         "mp3Preference": "音声を mp3 形式で再録音（低速）",
         "noteType": "メモタイプ",
         "preCacheSubtitleDom": "字幕DOMをキャッシュ",
-        "preCacheSubtitleDomHelperText": "この設定をオンにすると、asbplayerは隠れたDOM要素に字幕をレンダリングし、字幕が表示される際には既存の要素を再利用します。そのため、字幕のテキストは外部のコードによって永続的に変更可能となります。",
+        "preCacheSubtitleDomHelperText": "この設定をオンにすると、asbplayer は隠れたDOM要素に字幕をレンダリングし、字幕が表示される際には既存の要素を再利用します。そのため、字幕のテキストは外部のコードによって永続的に変更可能となります。",
         "recordingBind": "記録中",
         "rememberSubtitleOffset": "字幕の表示タイミングを記憶する",
         "sentenceField": "文フィールド",
@@ -306,7 +313,8 @@
         "urlField": "URL フィールド",
         "wordField": "単語フィールド",
         "webSocketClientEnabled": "WebSocketクライアントを有効",
-        "webSocketServerUrl": "WebSocketサーバーのURL"
+        "webSocketServerUrl": "WebSocketサーバーのURL",
+        "firefoxExtensionShortcutHelp": "ショートカットの編集はプラグイン管理 （about:addons）で行えます。"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"
