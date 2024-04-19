@@ -4,7 +4,6 @@ import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
 import { SubtitleTextImage } from '@project/common';
 
-const tagRegex = RegExp(/<([^>]+)>([^]*)<\/\1>/, 'ig');
 const vttClassRegex = /<(\/)?c(\.[^>]*)?>/g;
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
 const helperElement = document.createElement('div');
@@ -332,6 +331,12 @@ export default class SubtitleReader {
 
     private _decodeHTML(text: string): string {
         helperElement.innerHTML = text;
+
+        const rubyTextElements = [...helperElement.getElementsByTagName('rt')];
+        for (const rubyTextElement of rubyTextElements) {
+            rubyTextElement.remove();
+        }
+
         return helperElement.textContent ?? helperElement.innerText;
     }
 
@@ -345,26 +350,14 @@ export default class SubtitleReader {
         return this.xmlParser;
     }
 
-    private _filterText(text: string, removeXmlTags: boolean): string {
+    private _filterText(text: string, removeXml: boolean): string {
         text =
             this._textFilter === undefined
                 ? text
                 : text.replace(this._textFilter.regex, this._textFilter.replacement).trim();
 
-        if (removeXmlTags) {
-            text = this._removeXmlTags(text);
-        }
-
-        return text;
-    }
-
-    private _removeXmlTags(text: string) {
-        tagRegex.lastIndex = 0;
-        let match;
-
-        while ((match = tagRegex.exec(text)) !== null) {
-            text = text.replace(match[0], match[2]);
-            tagRegex.lastIndex = 0;
+        if (removeXml) {
+            text = this._decodeHTML(text);
         }
 
         return text;
