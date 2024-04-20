@@ -28,7 +28,7 @@
     "content_scripts": [
         {
             "matches": ["<all_urls>"],
-            "exclude_globs": ["*://killergerbah.github.io/asbplayer*", "*://localhost/*"],
+            "exclude_globs": ["*://killergerbah.github.io/asbplayer*", "*://localhost:3000/*"],
             "js": ["video.js"],
             "css": ["video.css"],
             "all_frames": true,
@@ -36,7 +36,7 @@
         },
         {
             "matches": ["<all_urls>"],
-            "exclude_globs": ["*://killergerbah.github.io/asbplayer*", "*://localhost/*"],
+            "exclude_globs": ["*://killergerbah.github.io/asbplayer*", "*://localhost:3000/*"],
             "js": ["page.js"],
             "all_frames": true,
             "run_at": "document_start"
