@@ -40,6 +40,11 @@ export default class NotificationController {
 
     async show(titleLocKey: string, messageLocKey: string) {
         await this._prepareAndShowFrame('asbplayer-ui-frame');
+
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        }
+
         this._client!.updateState({
             themeType: await this._context.settings.getSingle('themeType'),
             titleLocKey,
