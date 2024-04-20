@@ -37,10 +37,6 @@ export default class VideoSelectController {
     }
 
     bind() {
-        if (window.self !== window.top) {
-            return;
-        }
-
         this.messageListener = (
             request: any,
             sender: chrome.runtime.MessageSender,
@@ -92,8 +88,6 @@ export default class VideoSelectController {
         } else if (this._bindings.length > 1) {
             // Toggle on
             this._showUi(openedFromMiningCommand);
-        } else {
-            this._showNoVideoElementsUi();
         }
     }
 
@@ -120,12 +114,6 @@ export default class VideoSelectController {
         const client = await this._prepareAndShowFrame();
         const themeType = await this._settings.getSingle('themeType');
         client.updateState({ open: true, themeType, videoElements, openedFromMiningCommand });
-    }
-
-    private async _showNoVideoElementsUi() {
-        const client = await this._prepareAndShowFrame();
-        const themeType = await this._settings.getSingle('themeType');
-        client.updateState({ open: true, themeType, videoElements: [] });
     }
 
     private async _prepareAndShowFrame() {
