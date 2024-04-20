@@ -1219,7 +1219,7 @@ export default class Binding {
 
         this.mobileVideoOverlayController.updateModel();
 
-        if (!isMobile) {
+        if (!isMobile && subtitles.length > 0) {
             this.settings
                 .get(['streamingDisplaySubtitles', 'keyBindSet'])
                 .then(({ streamingDisplaySubtitles, keyBindSet }) => {
