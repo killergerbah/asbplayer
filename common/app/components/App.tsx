@@ -565,14 +565,14 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
             try {
                 const clip = AudioClip.fromCard(card, settings.audioPaddingStart, settings.audioPaddingEnd);
 
-                if (clip?.isPlayable()) {
+                if (clip?.error === undefined) {
                     if (settings.preferMp3) {
                         clip!.toMp3(mp3WorkerFactory).download();
                     } else {
                         clip!.download();
                     }
                 } else {
-                    handleError(t('ankiDialog.audioFileLinkLost'));
+                    handleError(t(clip.errorLocKey!));
                 }
             } catch (e) {
                 handleError(e);

@@ -1,7 +1,6 @@
 import {
     ExtensionToOffscreenDocumentCommand,
     ExtensionToVideoCommand,
-    NotificationDialogMessage,
     RequestActiveTabPermissionMessage,
     StartRecordingAudioMessage,
     StartRecordingAudioViaCaptureStreamMessage,
@@ -21,6 +20,8 @@ export interface AudioRecorderDelegate {
     start: (requester: Requester) => Promise<void>;
     stop: (preferMp3: boolean, requester: Requester) => Promise<string>;
 }
+
+export class DrmProtectedStreamError extends Error {}
 
 export class OffscreenAudioRecorder implements AudioRecorderDelegate {
     private audioBase64Resolve?: (value: string) => void;
@@ -167,11 +168,7 @@ export class CaptureStreamAudioRecorder implements AudioRecorderDelegate {
         const started = (await chrome.tabs.sendMessage(tabId, command)) as boolean;
 
         if (!started) {
-            if (tabId !== undefined) {
-                this._notifyCaptureFailed(tabId, src);
-            }
-
-            throw new Error('Failed to start recording');
+            throw new DrmProtectedStreamError();
         }
 
         return await this._audioBase64();
@@ -192,25 +189,8 @@ export class CaptureStreamAudioRecorder implements AudioRecorderDelegate {
         const started = (await chrome.tabs.sendMessage(tabId, command)) as boolean;
 
         if (!started) {
-            if (tabId !== undefined) {
-                this._notifyCaptureFailed(tabId, src);
-            }
-
-            throw new Error('Failed to start recording');
+            throw new DrmProtectedStreamError();
         }
-    }
-
-    private _notifyCaptureFailed(tabId: number, src: string) {
-        const command: ExtensionToVideoCommand<NotificationDialogMessage> = {
-            sender: 'asbplayer-extension-to-video',
-            message: {
-                command: 'notification-dialog',
-                titleLocKey: 'audioCaptureFailed.title',
-                messageLocKey: 'audioCaptureFailed.message',
-            },
-            src,
-        };
-        chrome.tabs.sendMessage(tabId, command);
     }
 
     async stop(preferMp3: boolean, { tabId, src }: Requester): Promise<string> {

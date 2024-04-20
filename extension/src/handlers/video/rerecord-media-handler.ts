@@ -1,9 +1,9 @@
 import {
+    AudioErrorCode,
     AudioModel,
     Command,
     ExtensionToVideoCommand,
     Message,
-    RecordingFinishedMessage,
     RerecordMediaMessage,
     ShowAnkiUiAfterRerecordMessage,
     VideoToExtensionCommand,
@@ -11,6 +11,7 @@ import {
 import { CardPublisher } from '../../services/card-publisher';
 import { SettingsProvider } from '@project/common/settings';
 import AudioRecorderService from '../../services/audio-recorder-service';
+import { DrmProtectedStreamError } from '../../services/audio-recorder-delegate';
 
 export default class RerecordMediaHandler {
     private readonly _settingsProvider: SettingsProvider;
@@ -34,13 +35,8 @@ export default class RerecordMediaHandler {
     async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
         const rerecordCommand = command as VideoToExtensionCommand<RerecordMediaMessage>;
         const preferMp3 = await this._settingsProvider.getSingle('preferMp3');
-        const audio: AudioModel = {
-            base64: await this._audioRecorder.startWithTimeout(
-                rerecordCommand.message.duration / rerecordCommand.message.playbackRate +
-                    rerecordCommand.message.audioPaddingEnd,
-                preferMp3,
-                { src: rerecordCommand.src, tabId: sender.tab?.id! }
-            ),
+        const baseAudioModel: AudioModel = {
+            base64: '',
             extension: preferMp3 ? 'mp3' : 'webm',
             paddingStart: rerecordCommand.message.audioPaddingStart,
             paddingEnd: rerecordCommand.message.audioPaddingEnd,
@@ -50,6 +46,28 @@ export default class RerecordMediaHandler {
                 rerecordCommand.message.duration / rerecordCommand.message.playbackRate,
             playbackRate: rerecordCommand.message.playbackRate,
         };
+        let audio: AudioModel;
+
+        try {
+            audio = {
+                ...baseAudioModel,
+                base64: await this._audioRecorder.startWithTimeout(
+                    rerecordCommand.message.duration / rerecordCommand.message.playbackRate +
+                        rerecordCommand.message.audioPaddingEnd,
+                    preferMp3,
+                    { src: rerecordCommand.src, tabId: sender.tab?.id! }
+                ),
+            };
+        } catch (e) {
+            if (!(e instanceof DrmProtectedStreamError)) {
+                throw e;
+            }
+
+            audio = {
+                ...baseAudioModel,
+                error: AudioErrorCode.drmProtected,
+            };
+        }
 
         this._cardPublisher.publish(
             {

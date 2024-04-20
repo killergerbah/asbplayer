@@ -2,7 +2,7 @@ import React, { MutableRefObject, useCallback, useState, useEffect, useMemo } fr
 import { useTranslation } from 'react-i18next';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import withStyles from '@material-ui/core/styles/withStyles';
-import { Image, SubtitleModel, CardModel } from '@project/common';
+import { Image, SubtitleModel, CardModel, AudioErrorCode } from '@project/common';
 import { AnkiSettings } from '@project/common/settings';
 import {
     humanReadableTime,
@@ -173,7 +173,7 @@ const useAudioHelperText = (audioClip?: AudioClip, onRerecord?: () => void) => {
 
     useEffect(() => {
         if (audioClip) {
-            const playable = audioClip.isPlayable();
+            const playable = audioClip.error === undefined;
             setAudioClipPlayable(playable);
 
             if (playable) {
@@ -183,7 +183,7 @@ const useAudioHelperText = (audioClip?: AudioClip, onRerecord?: () => void) => {
                     setAudioHelperText(undefined);
                 }
             } else {
-                setAudioHelperText(t('ankiDialog.audioFileLinkLost')!);
+                setAudioHelperText(t(audioClip.errorLocKey!)!);
             }
         }
     }, [audioClip, onRerecord, t]);
@@ -469,7 +469,7 @@ const AnkiDialog = ({
 
     const handlePlayAudio = useCallback(
         async (e: React.MouseEvent<HTMLDivElement>) => {
-            if (!audioClip?.isPlayable()) {
+            if (audioClip?.error !== undefined) {
                 return;
             }
 
@@ -649,7 +649,11 @@ const AnkiDialog = ({
         audioActionElement = (
             <Tooltip title={t('ankiDialog.rerecord')!}>
                 <span>
-                    <IconButton onClick={handleApplyTimestampIntervalToAudio} edge="end">
+                    <IconButton
+                        disabled={audioClip?.error !== undefined}
+                        onClick={handleApplyTimestampIntervalToAudio}
+                        edge="end"
+                    >
                         <FiberManualRecordIcon />
                     </IconButton>
                 </span>

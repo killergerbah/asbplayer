@@ -103,7 +103,8 @@ export async function exportCard(card: CardModel, ankiSettings: AnkiSettings, ex
                   card.subtitle.end,
                   card.audio.playbackRate ?? 1,
                   card.audio.base64,
-                  card.audio.extension
+                  card.audio.extension,
+                  card.audio.error
               );
 
     return await anki.export(
@@ -240,7 +241,7 @@ export class Anki {
         const gui = mode === 'gui';
         const updateLast = mode === 'updateLast';
 
-        if (this.settingsProvider.audioField && audioClip && audioClip.isPlayable()) {
+        if (this.settingsProvider.audioField && audioClip && audioClip.error !== undefined) {
             const sanitizedName = this._sanitizeFileName(audioClip.name);
             const data = await audioClip.base64();
 

@@ -80,7 +80,7 @@ const useAudioAvailability = (item: CopyHistoryItem) => {
         const clip = AudioClip.fromCard(item, 0, 0);
 
         if (clip) {
-            setIsAudioAvailable(clip.isPlayable());
+            setIsAudioAvailable(clip.error === undefined);
         } else {
             setIsAudioAvailable(false);
         }

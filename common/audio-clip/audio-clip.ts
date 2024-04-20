@@ -1,6 +1,6 @@
 import Mp3Encoder from './mp3-encoder';
 
-import { CardModel, FileModel } from '@project/common';
+import { AudioErrorCode, CardModel, FileModel } from '@project/common';
 import { download } from '@project/common/util';
 import { isActiveBlobUrl } from '../blob-url';
 
@@ -27,7 +27,7 @@ interface AudioData {
     base64: () => Promise<string>;
     slice: (start: number, end: number) => AudioData;
     isSliceable: () => boolean;
-    isPlayable: () => boolean;
+    error?: AudioErrorCode;
 }
 
 function recorderConfiguration() {
@@ -47,18 +47,28 @@ class Base64AudioData implements AudioData {
     private readonly playbackRate: number;
     private readonly _base64: string;
     private readonly _extension: string;
+    private readonly _error?: AudioErrorCode;
 
     private playingAudio?: HTMLAudioElement;
     private stopAudioTimeout?: NodeJS.Timeout;
     private cachedBlob?: Blob;
 
-    constructor(baseName: string, start: number, end: number, playbackRate: number, base64: string, extension: string) {
+    constructor(
+        baseName: string,
+        start: number,
+        end: number,
+        playbackRate: number,
+        base64: string,
+        extension: string,
+        error: AudioErrorCode | undefined
+    ) {
         this._name = makeFileName(baseName, start);
         this._start = start;
         this._end = end;
         this.playbackRate = playbackRate;
         this._base64 = base64;
         this._extension = extension;
+        this._error = error;
     }
 
     get name(): string {
@@ -142,8 +152,8 @@ class Base64AudioData implements AudioData {
         return false;
     }
 
-    isPlayable() {
-        return true;
+    get error() {
+        return this._error;
     }
 }
 
@@ -404,12 +414,12 @@ class FileAudioData implements AudioData {
         return true;
     }
 
-    isPlayable() {
+    get error() {
         if (this.file.blobUrl) {
-            return isActiveBlobUrl(this.file.blobUrl);
+            return isActiveBlobUrl(this.file.blobUrl) ? undefined : AudioErrorCode.fileLinkLost;
         }
 
-        return false;
+        return undefined;
     }
 }
 
@@ -479,8 +489,8 @@ class Mp3AudioData implements AudioData {
         return this.data.isSliceable();
     }
 
-    isPlayable() {
-        return this.data.isPlayable();
+    get error() {
+        return this.data.error;
     }
 }
 
@@ -502,7 +512,8 @@ export default class AudioClip {
                 end + (card.audio.paddingEnd ?? 0),
                 card.audio.playbackRate ?? 1,
                 card.audio.base64,
-                card.audio.extension
+                card.audio.extension,
+                card.audio.error
             );
         }
 
@@ -525,7 +536,8 @@ export default class AudioClip {
         end: number,
         playbackRate: number,
         base64: string,
-        extension: string
+        extension: string,
+        error: AudioErrorCode | undefined
     ) {
         return new AudioClip(
             new Base64AudioData(
@@ -534,7 +546,8 @@ export default class AudioClip {
                 end,
                 playbackRate,
                 base64,
-                extension
+                extension,
+                error
             )
         );
     }
@@ -596,7 +609,20 @@ export default class AudioClip {
         return this.data.isSliceable();
     }
 
-    isPlayable() {
-        return this.data.isPlayable();
+    get error() {
+        return this.data.error;
+    }
+
+    get errorLocKey() {
+        if (this.data.error === undefined) {
+            return undefined;
+        }
+
+        switch (this.data.error) {
+            case AudioErrorCode.drmProtected:
+                return 'audioCaptureFailed.message';
+            case AudioErrorCode.fileLinkLost:
+                return 'ankiDialog.audioFileLinkLost';
+        }
     }
 }

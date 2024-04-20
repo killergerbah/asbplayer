@@ -64,6 +64,11 @@ export interface ImageModel {
     readonly extension: 'jpeg';
 }
 
+export enum AudioErrorCode {
+    drmProtected = 1,
+    fileLinkLost = 2,
+}
+
 export interface AudioModel {
     readonly base64: string;
     readonly extension: 'webm' | 'mp3';
@@ -72,6 +77,7 @@ export interface AudioModel {
     readonly start?: number;
     readonly end?: number;
     readonly playbackRate?: number;
+    readonly error?: AudioErrorCode;
 }
 
 export interface AnkiUiState extends CardTextFieldValues {

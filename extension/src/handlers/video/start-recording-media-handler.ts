@@ -1,5 +1,7 @@
 import ImageCapturer from '../../services/image-capturer';
 import {
+    AudioErrorCode,
+    AudioModel,
     Command,
     ExtensionToVideoCommand,
     ImageModel,
@@ -11,16 +13,25 @@ import {
 } from '@project/common';
 import { CardPublisher } from '../../services/card-publisher';
 import AudioRecorderService from '../../services/audio-recorder-service';
+import { DrmProtectedStreamError } from '../../services/audio-recorder-delegate';
+import { SettingsProvider } from '@project/common/settings';
 
 export default class StartRecordingMediaHandler {
     private readonly _audioRecorder: AudioRecorderService;
     private readonly _imageCapturer: ImageCapturer;
     private readonly _cardPublisher: CardPublisher;
+    private readonly _settings: SettingsProvider;
 
-    constructor(audioRecorder: AudioRecorderService, imageCapturer: ImageCapturer, cardPublisher: CardPublisher) {
+    constructor(
+        audioRecorder: AudioRecorderService,
+        imageCapturer: ImageCapturer,
+        cardPublisher: CardPublisher,
+        settings: SettingsProvider
+    ) {
         this._audioRecorder = audioRecorder;
         this._imageCapturer = imageCapturer;
         this._cardPublisher = cardPublisher;
+        this._settings = settings;
     }
 
     get sender() {
@@ -33,9 +44,18 @@ export default class StartRecordingMediaHandler {
 
     async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
         const startRecordingCommand = command as VideoToExtensionCommand<StartRecordingMediaMessage>;
+        let drmProtectedStreamError: DrmProtectedStreamError | undefined;
 
         if (startRecordingCommand.message.record) {
-            this._audioRecorder.start({ src: startRecordingCommand.src, tabId: sender.tab?.id! });
+            try {
+                await this._audioRecorder.start({ src: startRecordingCommand.src, tabId: sender.tab?.id! });
+            } catch (e) {
+                if (!(e instanceof DrmProtectedStreamError)) {
+                    throw e;
+                }
+
+                drmProtectedStreamError = e;
+            }
         }
 
         let imageBase64: string | undefined;
@@ -60,13 +80,15 @@ export default class StartRecordingMediaHandler {
             chrome.tabs.sendMessage(sender.tab!.id!, screenshotTakenCommand);
         }
 
-        if (!startRecordingCommand.message.record) {
+        if (!startRecordingCommand.message.record || drmProtectedStreamError !== undefined) {
+            const mediaTimestamp = startRecordingCommand.message.mediaTimestamp;
+
             const subtitle: SubtitleModel = {
                 text: '',
-                start: startRecordingCommand.message.mediaTimestamp,
-                originalStart: startRecordingCommand.message.mediaTimestamp,
-                end: startRecordingCommand.message.mediaTimestamp,
-                originalEnd: startRecordingCommand.message.mediaTimestamp,
+                start: mediaTimestamp,
+                originalStart: mediaTimestamp,
+                end: mediaTimestamp,
+                originalEnd: mediaTimestamp,
                 track: 0,
             };
 
@@ -79,11 +101,27 @@ export default class StartRecordingMediaHandler {
                 };
             }
 
+            const preferMp3 = await this._settings.getSingle('preferMp3');
+            const audioModel: AudioModel | undefined =
+                drmProtectedStreamError === undefined
+                    ? undefined
+                    : {
+                          base64: '',
+                          extension: preferMp3 ? 'mp3' : 'webm',
+                          paddingStart: 0,
+                          paddingEnd: 0,
+                          start: mediaTimestamp,
+                          end: mediaTimestamp,
+                          playbackRate: 1,
+                          error: AudioErrorCode.drmProtected,
+                      };
+
             this._cardPublisher.publish(
                 {
                     subtitle: subtitle,
                     surroundingSubtitles: [],
                     image: imageModel,
+                    audio: audioModel,
                     url: startRecordingCommand.message.url,
                     subtitleFileName: startRecordingCommand.message.subtitleFileName,
                     mediaTimestamp: startRecordingCommand.message.mediaTimestamp,

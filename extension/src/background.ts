@@ -114,7 +114,7 @@ const handlers: CommandHandler[] = [
     new VideoHeartbeatHandler(tabRegistry),
     new RecordMediaHandler(audioRecorder, imageCapturer, cardPublisher, settings),
     new RerecordMediaHandler(settings, audioRecorder, cardPublisher),
-    new StartRecordingMediaHandler(audioRecorder, imageCapturer, cardPublisher),
+    new StartRecordingMediaHandler(audioRecorder, imageCapturer, cardPublisher, settings),
     new StopRecordingMediaHandler(audioRecorder, imageCapturer, cardPublisher, settings),
     new TakeScreenshotHandler(imageCapturer, cardPublisher),
     new ToggleSubtitlesHandler(settings, tabRegistry),

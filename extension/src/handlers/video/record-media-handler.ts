@@ -8,12 +8,13 @@ import {
     VideoToExtensionCommand,
     ExtensionToVideoCommand,
     ScreenshotTakenMessage,
-    RecordingFinishedMessage,
     CardModel,
+    AudioErrorCode,
 } from '@project/common';
 import { SettingsProvider } from '@project/common/settings';
 import { CardPublisher } from '../../services/card-publisher';
 import AudioRecorderService from '../../services/audio-recorder-service';
+import { DrmProtectedStreamError } from '../../services/audio-recorder-delegate';
 
 export default class RecordMediaHandler {
     private readonly _audioRecorder: AudioRecorderService;
@@ -90,14 +91,35 @@ export default class RecordMediaHandler {
         }
 
         if (audioPromise) {
-            const audioBase64 = await audioPromise;
-            audioModel = {
-                base64: audioBase64,
+            const {
+                audioPaddingStart: paddingStart,
+                audioPaddingEnd: paddingEnd,
+                playbackRate,
+            } = recordMediaCommand.message;
+            const baseAudioModel: AudioModel = {
+                base64: '',
                 extension: preferMp3 ? 'mp3' : 'webm',
-                paddingStart: recordMediaCommand.message.audioPaddingStart,
-                paddingEnd: recordMediaCommand.message.audioPaddingEnd,
-                playbackRate: recordMediaCommand.message.playbackRate,
+                paddingStart,
+                paddingEnd,
+                playbackRate,
             };
+
+            try {
+                const audioBase64 = await audioPromise;
+                audioModel = {
+                    ...baseAudioModel,
+                    base64: audioBase64,
+                };
+            } catch (e) {
+                if (!(e instanceof DrmProtectedStreamError)) {
+                    throw e;
+                }
+
+                audioModel = {
+                    ...baseAudioModel,
+                    error: AudioErrorCode.drmProtected,
+                };
+            }
         }
 
         if (imagePromise) {
