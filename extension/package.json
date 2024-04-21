@@ -5,10 +5,9 @@
     "scripts": {
         "buildDev": "NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode development",
         "buildProd": "yarn workspace root run verify && NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode production",
-        "package": "cd dist/$PLATFORM && zip -r ../asbplayer-extension-$(jq -r .version manifest.json)-$PLATFORM.zip * && cd ../..",
-        "packageDev": "yarn buildDev && PLATFORM=chromium yarn package",
-        "packageProd": "yarn buildProd && PLATFORM=chromium yarn package",
-        "packageProdFirefox": "yarn buildProd --env firefox && PLATFORM=firefox yarn package"
+        "packageDev": "yarn buildDev && ../scripts/package chromium",
+        "packageProd": "yarn buildProd && ../scripts/package chromium",
+        "packageProdFirefox": "yarn buildProd --env firefox && ../scripts/package firefox"
     },
     "dependencies": {
         "@fontsource/roboto": "^4.5.0",

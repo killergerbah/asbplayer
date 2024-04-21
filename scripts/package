@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -e
+
+usage() {
+    echo "usage: $0 {chromium,firefox,firefoxandroid}"
+}
+
+if [[ -z "$1" ]]; then
+    usage
+    exit 1
+fi
+
+PLATFORM=$1
+SCRIPTPATH="$(cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P)"
+DISTPATH=$SCRIPTPATH/../extension/dist
+
+pushd $DISTPATH
+
+NAME="asbplayer-extension-$(jq -r .version $PLATFORM/manifest.json)-$PLATFORM.zip"
+
+# Remove old zip file
+rm -f $NAME
+
+# Force file timestamps to constant so that final zip is deterministic
+find $PLATFORM -mindepth 1 | xargs touch -ad "1970-01-01T00:00:00"
+find $PLATFORM -mindepth 1 | xargs touch -md "1970-01-01T00:00:00"
+
+# Zip everything up
+find $PLATFORM -mindepth 1 | xargs zip -X $NAME $PLATFORM/*
+
+popd
