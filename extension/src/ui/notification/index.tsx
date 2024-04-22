@@ -1,4 +1,3 @@
-import '@fontsource/roboto';
 import { createRoot } from 'react-dom/client';
 import Bridge from '../bridge';
 import { i18nInit } from '../i18n';

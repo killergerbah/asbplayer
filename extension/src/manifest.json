@@ -88,6 +88,15 @@
         {
             "resources": [
                 "assets/image.png",
+                "assets/fonts.css",
+                "assets/Roboto-Bold.woff2",
+                "assets/Roboto-Light.woff2",
+                "assets/Roboto-Medium.woff2",
+                "assets/Roboto-Regular.woff2",
+                "assets/Roboto-BoldItalic.woff2",
+                "assets/Roboto-LightItalic.woff2",
+                "assets/Roboto-MediumItalic.woff2",
+                "assets/Roboto-Italic.woff2",
                 "pages/netflix-page.js",
                 "pages/youtube-page.js",
                 "pages/tver-page.js",

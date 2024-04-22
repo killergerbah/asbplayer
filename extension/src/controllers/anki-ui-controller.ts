@@ -21,19 +21,24 @@ import { fetchLocalization } from '../services/localization-fetcher';
 async function html(language: string) {
     const mp3WorkerSource = await (await fetch(chrome.runtime.getURL('./mp3-encoder-worker.js'))).text();
     return `<!DOCTYPE html>
-              <html lang="en">
-              <head>
-                  <meta charset="utf-8" />
-                  <meta name="viewport" content="width=device-width, initial-scale=1" />
-                  <title>asbplayer - Anki</title>
-              </head>
-              <body>
-              <div id="root" style="width:100%;height:100vh;"></div>
-              <script type="application/json" id="loc">${JSON.stringify(await fetchLocalization(language))}</script>
-              <script id="mp3-encoder-worker" type="javascript/worker">${mp3WorkerSource}</script>
-              <script src="${chrome.runtime.getURL('./anki-ui.js')}"></script>
-              </body>
-              </html>`;
+                <html lang="en">
+                <head>
+                    <meta charset="utf-8" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1" />
+                    <title>asbplayer - Anki</title>
+                    <style>
+                        @import url(${chrome.runtime.getURL('./assets/fonts.css')});
+                    </style>
+                </head>
+                <body>
+                    <div id="root" style="width:100%;height:100vh;"></div>
+                    <script type="application/json" id="loc">${JSON.stringify(
+                        await fetchLocalization(language)
+                    )}</script>
+                    <script id="mp3-encoder-worker" type="javascript/worker">${mp3WorkerSource}</script>
+                    <script src="${chrome.runtime.getURL('./anki-ui.js')}"></script>
+                </body>
+            </html>`;
 }
 
 export default class AnkiUiController {

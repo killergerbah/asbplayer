@@ -1,4 +1,3 @@
-import '@fontsource/roboto';
 import { createRoot } from 'react-dom/client';
 import MobileVideoOverlay from '../components/MobileVideoOverlay';
 

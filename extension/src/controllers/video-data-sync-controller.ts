@@ -21,18 +21,21 @@ import i18n from 'i18next';
 
 async function html(lang: string) {
     return `<!DOCTYPE html>
-              <html lang="en">
-              <head>
-                  <meta charset="utf-8" />
-                  <meta name="viewport" content="width=device-width, initial-scale=1" />
-                  <title>asbplayer - Video Data Sync</title>
-              </head>
-              <body>
-              <div id="root" style="width:100%;height:100vh;"></div>
-              <script type="application/json" id="loc">${JSON.stringify(await fetchLocalization(lang))}</script>
-              <script src="${chrome.runtime.getURL('./video-data-sync-ui.js')}"></script>
-              </body>
-              </html>`;
+            <html lang="en">
+            <head>
+                <meta charset="utf-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <title>asbplayer - Video Data Sync</title>
+                <style>
+                    @import url(${chrome.runtime.getURL('./assets/fonts.css')});
+                </style>
+            </head>
+            <body>
+                <div id="root" style="width:100%;height:100vh;"></div>
+                <script type="application/json" id="loc">${JSON.stringify(await fetchLocalization(lang))}</script>
+                <script src="${chrome.runtime.getURL('./video-data-sync-ui.js')}"></script>
+            </body>
+            </html>`;
 }
 
 interface ShowOptions {

@@ -1,5 +1,3 @@
-import React from 'react';
-import '@fontsource/roboto';
 import { createRoot } from 'react-dom/client';
 import SidePanelUi from '../components/SidePanelUi';
 
