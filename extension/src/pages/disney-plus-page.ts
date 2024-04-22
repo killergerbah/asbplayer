@@ -50,7 +50,8 @@ setTimeout(() => {
     function m3U8(url: string): Promise<any> {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
-                fetch(url)
+                // Bypass cache since Chrome might try to use a cached response that doesn't have appropriate CORS headers
+                fetch(url, { cache: 'no-store' })
                     .then((response) => response.text())
                     .then((text) => {
                         const parser = new Parser();
