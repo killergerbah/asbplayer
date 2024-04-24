@@ -15,7 +15,10 @@ const manifestWithoutLocalhostPatterns = (manifest) => {
 
 const manifestModifiedForFirefoxAndroid = (manifest) => {
     delete manifest['commands'];
-    return { ...manifestModifiedForFirefox(manifest), permissions: ['tabs', 'storage'] };
+    return {
+        ...manifestModifiedForFirefox(manifest),
+        permissions: ['tabs', 'storage', 'webRequest', 'webRequestBlocking'],
+    };
 };
 
 const manifestModifiedForFirefox = (manifest) => {
