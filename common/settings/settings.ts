@@ -92,6 +92,9 @@ export interface SubtitleSettings extends TextSubtitleSettings {
     readonly imageBasedSubtitleScaleFactor: number;
     readonly subtitlePositionOffset: number;
     readonly subtitleAlignment: SubtitleAlignment;
+    readonly subtitleBlurTrack1: boolean;
+    readonly subtitleBlurTrack2: boolean;
+    readonly subtitleBlurTrack3: boolean;
 }
 
 export interface KeyBind {

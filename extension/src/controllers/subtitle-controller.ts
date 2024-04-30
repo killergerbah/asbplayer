@@ -40,6 +40,7 @@ export default class SubtitleController {
     private subtitlesElementOverlay: ElementOverlay;
     private notificationElementOverlay: ElementOverlay;
     disabledSubtitleTracks: { [key: number]: boolean | undefined };
+    blurredSubtitleTracks: { [key: number]: boolean | undefined };
     subtitleFileNames?: string[];
     _forceHideSubtitles: boolean;
     _displaySubtitles: boolean;
@@ -70,6 +71,7 @@ export default class SubtitleController {
         this.subtitleCollection = new SubtitleCollection<SubtitleModelWithIndex>([]);
         this.showingSubtitles = [];
         this.disabledSubtitleTracks = {};
+        this.blurredSubtitleTracks = {};
         this._forceHideSubtitles = false;
         this._displaySubtitles = true;
         this.lastLoadedMessageTimestamp = 0;
@@ -127,7 +129,12 @@ export default class SubtitleController {
     setSubtitleSettings(subtitleSettings: SubtitleSettings) {
         const styles = computeStyleString(subtitleSettings);
 
-        if (styles !== this.subtitleStyles) {
+        const shouldForceRerender =
+            this.subtitleSettings?.subtitleBlurTrack1 !== subtitleSettings.subtitleBlurTrack1 ||
+            this.subtitleSettings?.subtitleBlurTrack2 !== subtitleSettings.subtitleBlurTrack2 ||
+            this.subtitleSettings?.subtitleBlurTrack3 !== subtitleSettings.subtitleBlurTrack3;
+
+        if (styles !== this.subtitleStyles || shouldForceRerender) {
             this.subtitleStyles = styles;
             this.cacheHtml();
         }
@@ -150,6 +157,16 @@ export default class SubtitleController {
 
     get subtitleAlignment() {
         return this._subtitleAlignment;
+    }
+
+    setBlurredSubtitleTracks(values: boolean[]) {
+        values.forEach((value, trackIndex) => {
+            this.blurredSubtitleTracks[trackIndex] = value;
+        });
+    }
+
+    getBlurredSubtitleTrack(trackIndex: number) {
+        return this.blurredSubtitleTracks[trackIndex] || false;
     }
 
     private _applyElementOverlayParams(overlay: ElementOverlay, params: ElementOverlayParams) {
@@ -345,6 +362,10 @@ export default class SubtitleController {
         return subtitles.map((subtitle) => {
             return {
                 html: () => {
+                    const blurClass = this.getBlurredSubtitleTrack(subtitle.track)
+                        ? 'asbplayer-subtitles-blurred'
+                        : undefined;
+
                     if (subtitle.textImage) {
                         const imageScale =
                             ((this.subtitleSettings?.imageBasedSubtitleScaleFactor ?? 1) *
@@ -353,16 +374,16 @@ export default class SubtitleController {
                         const width = imageScale * subtitle.textImage.image.width;
 
                         return `
-<div style="max-width:${width}px;">
-    <img
-        style="width:100%;"
-        alt="subtitle"
-        src="${subtitle.textImage.dataUrl}"
-    />
-</div>
-`;
+                            <div style="max-width:${width}px;" ${blurClass ? `class="${blurClass}"` : ''}">
+                                <img
+                                    style="width:100%;"
+                                    alt="subtitle"
+                                    src="${subtitle.textImage.dataUrl}"
+                                />
+                            </div>
+                        `;
                     } else {
-                        return this._buildTextHtml(subtitle.text);
+                        return this._buildTextHtml(subtitle.text, blurClass);
                     }
                 },
                 key: String(subtitle.index),
@@ -370,8 +391,8 @@ export default class SubtitleController {
         });
     }
 
-    private _buildTextHtml(text: string) {
-        return `<span style="${this._subtitleStyles()}">${text}</span>`;
+    private _buildTextHtml(text: string, className?: string) {
+        return `<span ${className ? `class="${className}"` : ''}" style="${this._subtitleStyles()}">${text}</span>`;
     }
 
     unbind() {

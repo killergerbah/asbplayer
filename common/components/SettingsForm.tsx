@@ -677,6 +677,9 @@ export default function SettingsForm({
         subtitlePreview,
         subtitlePositionOffset,
         subtitleAlignment,
+        subtitleBlurTrack1,
+        subtitleBlurTrack2,
+        subtitleBlurTrack3,
         audioPaddingStart,
         audioPaddingEnd,
         maxImageWidth,
@@ -1534,6 +1537,48 @@ export default function SettingsForm({
                                 onChange={(e) => handleSettingChanged('subtitlePositionOffset', Number(e.target.value))}
                             />
                         </div>
+                        <FormLabel className={classes.top} component="legend">
+                            {t('settings.subtitleBlur')}
+                        </FormLabel>
+                        <LabelWithHoverEffect
+                            control={
+                                <Switch
+                                    checked={subtitleBlurTrack1}
+                                    onChange={(e) => {
+                                        handleSettingChanged('subtitleBlurTrack1', e.target.checked);
+                                    }}
+                                />
+                            }
+                            label={t('settings.subtitleBlurTrack1')}
+                            labelPlacement="start"
+                            className={classes.switchLabel}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Switch
+                                    checked={subtitleBlurTrack2}
+                                    onChange={(e) => {
+                                        handleSettingChanged('subtitleBlurTrack2', e.target.checked);
+                                    }}
+                                />
+                            }
+                            label={t('settings.subtitleBlurTrack2')}
+                            labelPlacement="start"
+                            className={classes.switchLabel}
+                        />
+                        <LabelWithHoverEffect
+                            control={
+                                <Switch
+                                    checked={subtitleBlurTrack3}
+                                    onChange={(e) => {
+                                        handleSettingChanged('subtitleBlurTrack3', e.target.checked);
+                                    }}
+                                />
+                            }
+                            label={t('settings.subtitleBlurTrack3')}
+                            labelPlacement="start"
+                            className={classes.switchLabel}
+                        />
                     </FormGroup>
                 </Grid>
             </TabPanel>

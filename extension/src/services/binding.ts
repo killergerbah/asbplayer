@@ -760,6 +760,11 @@ export default class Binding {
         this.subtitleController.displaySubtitles = currentSettings.streamingDisplaySubtitles;
         this.subtitleController.subtitlePositionOffset = currentSettings.subtitlePositionOffset;
         this.subtitleController.subtitleAlignment = currentSettings.subtitleAlignment;
+        this.subtitleController.setBlurredSubtitleTracks([
+            currentSettings.subtitleBlurTrack1,
+            currentSettings.subtitleBlurTrack2,
+            currentSettings.subtitleBlurTrack3,
+        ]);
         this.subtitleController.surroundingSubtitlesCountRadius = currentSettings.surroundingSubtitlesCountRadius;
         this.subtitleController.surroundingSubtitlesTimeRadius = currentSettings.surroundingSubtitlesTimeRadius;
         this.subtitleController.autoCopyCurrentSubtitle = currentSettings.autoCopyCurrentSubtitle;
