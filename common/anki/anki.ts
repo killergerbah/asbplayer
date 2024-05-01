@@ -241,7 +241,7 @@ export class Anki {
         const gui = mode === 'gui';
         const updateLast = mode === 'updateLast';
 
-        if (this.settingsProvider.audioField && audioClip && audioClip.error !== undefined) {
+        if (this.settingsProvider.audioField && audioClip && audioClip.error === undefined) {
             const sanitizedName = this._sanitizeFileName(audioClip.name);
             const data = await audioClip.base64();
 
