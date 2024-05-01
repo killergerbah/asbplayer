@@ -45,7 +45,8 @@ Suna,
 [@tony7253](https://github.com/tony7253),
 [@voothi](https://github.com/voothi),
 kibo,
-[@genericdave](https://github.com/genericdave)
+[@genericdave](https://github.com/genericdave),
+Daniel
 
 and to those who have donated privately.
 
