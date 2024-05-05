@@ -29,6 +29,11 @@
         "updateLastCard": "最後のカードを更新する",
         "exportCard": "カードをエクスポート"
     },
+    "postMinePlayback": {
+        "remember": "Keep previous state (as before mining)",
+        "play": "Always play",
+        "paused": "Always pause"
+    },
     "ankiDialog": {
         "applySelection": "選択範囲を適用する",
         "audio": "音声",
@@ -269,6 +274,7 @@
         "mining": "マイニング",
         "miningHistoryStorageLimit": "マイニング履歴の保存数上限",
         "clickToMineDefaultAction": "ボタンでマイニングした際のデフォルト動作",
+        "clickToMineDefaultPlayback": "Play mode to use after subtitle has been mined",
         "misc": "その他",
         "mp3Preference": "音声を mp3 形式で再録音（低速）",
         "noteType": "メモタイプ",

@@ -155,6 +155,9 @@ const settingsSchema = {
         clickToMineDefaultAction: {
             type: 'number',
         },
+        clickToMineDefaultPlayback: {
+            type: 'number',
+        },
         themeType: {
             type: 'string',
         },

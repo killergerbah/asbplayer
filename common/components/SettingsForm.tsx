@@ -21,7 +21,7 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import { Theme } from '@material-ui/core/styles';
-import { AutoPausePreference, PostMineAction } from '@project/common';
+import { AutoPausePreference, PostMineAction, PostMinePlayback } from '@project/common';
 import { AsbplayerSettings, KeyBindName, SubtitleListPreference } from '@project/common/settings';
 import { computeStyles, download, isNumeric } from '@project/common/util';
 import { CustomStyle, validateSettings } from '@project/common/settings';
@@ -687,6 +687,7 @@ export default function SettingsForm({
         fastForwardModePlaybackRate,
         keyBindSet,
         clickToMineDefaultAction,
+        clickToMineDefaultPlayback,
         preferMp3,
         miningHistoryStorageLimit,
         preCacheSubtitleDom,
@@ -1161,6 +1162,50 @@ export default function SettingsForm({
                             />
                         }
                         label={t('postMineAction.none')}
+                    />
+                </RadioGroup>
+                <FormLabel className={classes.top} component="legend">
+                    {t('settings.postMinePlayback')}
+                </FormLabel>
+                <RadioGroup row={false}>
+                    <LabelWithHoverEffect
+                        control={
+                            <Radio
+                                checked={clickToMineDefaultPlayback === PostMinePlayback.remember}
+                                value={PostMinePlayback.remember}
+                                onChange={(event) =>
+                                    event.target.checked &&
+                                    handleSettingChanged('clickToMineDefaultPlayback', PostMinePlayback.remember)
+                                }
+                            />
+                        }
+                        label={t('postMinePlayback.remember')}
+                    />
+                    <LabelWithHoverEffect
+                        control={
+                            <Radio
+                                checked={clickToMineDefaultPlayback === PostMinePlayback.play}
+                                value={PostMinePlayback.play}
+                                onChange={(event) =>
+                                    event.target.checked &&
+                                    handleSettingChanged('clickToMineDefaultPlayback', PostMinePlayback.play)
+                                }
+                            />
+                        }
+                        label={t('postMinePlayback.play')}
+                    />
+                    <LabelWithHoverEffect
+                        control={
+                            <Radio
+                                checked={clickToMineDefaultPlayback === PostMinePlayback.pause}
+                                value={PostMinePlayback.pause}
+                                onChange={(event) =>
+                                    event.target.checked &&
+                                    handleSettingChanged('clickToMineDefaultPlayback', PostMinePlayback.pause)
+                                }
+                            />
+                        }
+                        label={t('postMinePlayback.pause')}
                     />
                 </RadioGroup>
                 <FormGroup className={classes.formGroup}>

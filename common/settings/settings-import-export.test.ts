@@ -86,6 +86,7 @@ it('validates exported settings', () => {
         miningHistoryStorageLimit: 25,
         preCacheSubtitleDom: true,
         clickToMineDefaultAction: 1,
+        clickToMineDefaultPlayback: 0,
         themeType: 'dark',
         copyToClipboardOnMine: false,
         rememberSubtitleOffset: true,

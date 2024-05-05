@@ -21,6 +21,7 @@ import {
     PlayFromVideoMessage,
     PlayMode,
     PostMineAction,
+    PostMinePlayback,
     ReadyFromVideoMessage,
     ReadyStateFromVideoMessage,
     RecordMediaAndForwardSubtitleMessage,
@@ -80,6 +81,7 @@ export default class Binding {
 
     recordingMedia: boolean;
     wasPlayingBeforeRecordingMedia?: boolean;
+    postMinePlayback: PostMinePlayback = PostMinePlayback.remember;
     private recordingMediaStartedTimestamp?: number;
     private recordingMediaWithScreenshot: boolean;
 
@@ -151,6 +153,7 @@ export default class Binding {
         this.autoPausePreference = AutoPausePreference.atEnd;
         this.copyToClipboardOnMine = false;
         this.alwaysPlayOnSubtitleRepeat = true;
+        this.postMinePlayback = PostMinePlayback.remember;
         this._synced = false;
         this.recordingMedia = false;
         this.recordingMediaWithScreenshot = false;
@@ -617,8 +620,19 @@ export default class Binding {
                     case 'recording-finished':
                         this.recordingMedia = false;
                         this.recordingMediaStartedTimestamp = undefined;
-                        if (this.wasPlayingBeforeRecordingMedia === false) {
-                            this.video.pause();
+
+                        switch (this.postMinePlayback) {
+                            case PostMinePlayback.remember:
+                                if (!this.wasPlayingBeforeRecordingMedia) {
+                                    this.video.pause();
+                                }
+                                break;
+                            case PostMinePlayback.play:
+                                // already playing, don't need to do anything
+                                break;
+                            case PostMinePlayback.pause:
+                                this.video.pause();
+                                break;
                         }
                         break;
                     case 'show-anki-ui':
@@ -769,6 +783,7 @@ export default class Binding {
 
         this.videoDataSyncController.updateSettings(currentSettings);
         this.ankiUiController.ankiSettings = extractAnkiSettings(currentSettings);
+        this.postMinePlayback = currentSettings.clickToMineDefaultPlayback;
         this.keyBindings.setKeyBindSet(this, currentSettings.keyBindSet);
 
         if (currentSettings.streamingSubsDragAndDrop) {

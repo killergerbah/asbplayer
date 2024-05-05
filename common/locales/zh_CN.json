@@ -29,6 +29,11 @@
         "updateLastCard": "Update last card",
         "exportCard": "Export card"
     },
+    "postMinePlayback": {
+        "remember": "Keep previous state (as before mining)",
+        "play": "Always play",
+        "paused": "Always pause"
+    },
     "ankiDialog": {
         "applySelection": "应用选中时间范围",
         "audio": "音频",
@@ -269,6 +274,7 @@
         "mining": "挖掘",
         "miningHistoryStorageLimit": "挖掘历史存储限制",
         "clickToMineDefaultAction": "Mining button default action",
+        "clickToMineDefaultPlayback": "Play mode to use after subtitle has been mined",
         "misc": "杂项",
         "mp3Preference": "将音频重新编码为mp3（较慢）",
         "noteType": "Anki卡牌类型",

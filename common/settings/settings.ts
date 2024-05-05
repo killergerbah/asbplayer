@@ -1,4 +1,4 @@
-import { AutoPausePreference, PostMineAction } from '../src/model';
+import { AutoPausePreference, PostMineAction, PostMinePlayback } from '../src/model';
 
 export interface MiscSettings {
     readonly themeType: 'dark' | 'light';
@@ -39,6 +39,7 @@ export interface AnkiSettings {
     readonly maxImageHeight: number;
     readonly surroundingSubtitlesCountRadius: number;
     readonly surroundingSubtitlesTimeRadius: number;
+    readonly clickToMineDefaultPlayback: PostMinePlayback;
 }
 
 const ankiSettingsKeysObject: { [key in keyof AnkiSettings]: boolean } = {
@@ -61,6 +62,7 @@ const ankiSettingsKeysObject: { [key in keyof AnkiSettings]: boolean } = {
     maxImageHeight: true,
     surroundingSubtitlesCountRadius: true,
     surroundingSubtitlesTimeRadius: true,
+    clickToMineDefaultPlayback: true,
 };
 
 export const ankiSettingsKeys: (keyof AnkiSettings)[] = Object.keys(ankiSettingsKeysObject) as (keyof AnkiSettings)[];

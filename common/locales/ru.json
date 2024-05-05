@@ -29,6 +29,11 @@
         "updateLastCard": "Обновить последнюю карточку",
         "exportCard": "Export card"
     },
+    "postMinePlayback": {
+        "remember": "Keep previous state (as before mining)",
+        "play": "Always play",
+        "paused": "Always pause"
+    },
     "ankiDialog": {
         "applySelection": "Применить выбор",
         "audio": "Аудио",
@@ -269,6 +274,7 @@
         "mining": "Майнинг",
         "miningHistoryStorageLimit": "Лимит хранения истории майнинга",
         "clickToMineDefaultAction": "Стандартное действие кнопки майнинга",
+        "clickToMineDefaultPlayback": "Play mode to use after subtitle has been mined",
         "misc": "Разное",
         "mp3Preference": "Перекодировать аудио в MP3 (медленнее)",
         "noteType": "Тип анки-заметки",

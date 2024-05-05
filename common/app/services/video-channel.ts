@@ -486,6 +486,7 @@ export default class VideoChannel {
             maxImageHeight,
             surroundingSubtitlesCountRadius,
             surroundingSubtitlesTimeRadius,
+            clickToMineDefaultPlayback,
         } = settings;
         const message: AnkiSettingsToVideoMessage = {
             command: 'ankiSettings',
@@ -509,6 +510,7 @@ export default class VideoChannel {
                 maxImageHeight,
                 surroundingSubtitlesCountRadius,
                 surroundingSubtitlesTimeRadius,
+                clickToMineDefaultPlayback,
             },
         };
         this.protocol.postMessage(message);

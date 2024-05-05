@@ -29,6 +29,11 @@
         "updateLastCard": "Update last card",
         "exportCard": "Export card"
     },
+    "postMinePlayback": {
+        "remember": "Keep previous state (as before mining)",
+        "play": "Always play",
+        "paused": "Always pause"
+    },
     "ankiDialog": {
         "applySelection": "Apply Selection",
         "audio": "Audio",
@@ -269,6 +274,7 @@
         "mining": "Mining",
         "miningHistoryStorageLimit": "Mining history storage limit",
         "clickToMineDefaultAction": "Mining button default action",
+        "clickToMineDefaultPlayback": "Play mode to use after subtitle has been mined",
         "misc": "Misc",
         "mp3Preference": "Re-encode audio as mp3 (slower)",
         "noteType": "Note Type",

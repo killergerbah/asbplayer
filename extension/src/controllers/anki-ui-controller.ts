@@ -1,20 +1,21 @@
 import {
     AnkiUiBridgeRerecordMessage,
-    AnkiUiInitialState,
-    AnkiUiSavedState,
-    AnkiUiResumeState,
     AnkiUiBridgeResumeMessage,
     AnkiUiBridgeRewindMessage,
-    OpenAsbplayerSettingsMessage,
-    VideoToExtensionCommand,
+    AnkiUiInitialState,
+    AnkiUiResumeState,
+    AnkiUiSavedState,
     CopyToClipboardMessage,
+    OpenAsbplayerSettingsMessage,
+    PostMinePlayback,
     ShowAnkiUiMessage,
+    VideoToExtensionCommand,
 } from '@project/common';
 import { AnkiSettings } from '@project/common/settings';
 import { sourceString } from '@project/common/util';
 import Binding from '../services/binding';
-import UiFrame from '../services/ui-frame';
 import { fetchLocalization } from '../services/localization-fetcher';
+import UiFrame from '../services/ui-frame';
 
 // We need to write the HTML into the iframe manually so that the iframe keeps it's about:blank URL.
 // Otherwise, Chrome won't insert content scripts into the iframe (e.g. Yomichan won't work).
@@ -248,8 +249,18 @@ export default class AnkiUiController {
                             }
                         }
 
-                        if (context.wasPlayingBeforeRecordingMedia) {
-                            context.play();
+                        switch (this._ankiSettings?.clickToMineDefaultPlayback) {
+                            case PostMinePlayback.remember:
+                                if (context.wasPlayingBeforeRecordingMedia) {
+                                    context.play();
+                                }
+                                break;
+                            case PostMinePlayback.play:
+                                context.play();
+                                break;
+                            case PostMinePlayback.pause:
+                                // already paused, don't need to do anything
+                                break;
                         }
                         break;
                     case 'rewind':
