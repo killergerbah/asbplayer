@@ -92,9 +92,9 @@ export interface SubtitleSettings extends TextSubtitleSettings {
     readonly imageBasedSubtitleScaleFactor: number;
     readonly subtitlePositionOffset: number;
     readonly subtitleAlignment: SubtitleAlignment;
-    readonly subtitleBlurTrack1: boolean;
-    readonly subtitleBlurTrack2: boolean;
-    readonly subtitleBlurTrack3: boolean;
+    readonly subtitleTracks: {
+        blur: boolean;
+    }[];
 }
 
 export interface KeyBind {
@@ -113,6 +113,9 @@ export interface KeyBindSet {
     readonly toggleAsbplayerSubtitleTrack1: KeyBind;
     readonly toggleAsbplayerSubtitleTrack2: KeyBind;
     readonly toggleAsbplayerSubtitleTrack3: KeyBind;
+    readonly toggleAsbplayerBlurTrack1: KeyBind;
+    readonly toggleAsbplayerBlurTrack2: KeyBind;
+    readonly toggleAsbplayerBlurTrack3: KeyBind;
     readonly seekBackward: KeyBind;
     readonly seekForward: KeyBind;
     readonly seekToPreviousSubtitle: KeyBind;

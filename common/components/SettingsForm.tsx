@@ -623,6 +623,18 @@ export default function SettingsForm({
                 label: t('binds.toggleAsbplayerSubtitleTrack3')!,
                 boundViaChrome: false,
             },
+            toggleAsbplayerBlurTrack1: {
+                label: t('binds.toggleAsbplayerBlurTrack', { trackNumber: 1 })!,
+                boundViaChrome: false,
+            },
+            toggleAsbplayerBlurTrack2: {
+                label: t('binds.toggleAsbplayerBlurTrack', { trackNumber: 2 })!,
+                boundViaChrome: false,
+            },
+            toggleAsbplayerBlurTrack3: {
+                label: t('binds.toggleAsbplayerBlurTrack', { trackNumber: 3 })!,
+                boundViaChrome: false,
+            },
             seekBackward: { label: t('binds.seekBackward')!, boundViaChrome: false },
             seekForward: { label: t('binds.seekForward')!, boundViaChrome: false },
             seekToPreviousSubtitle: { label: t('binds.seekToPreviousSubtitle')!, boundViaChrome: false },
@@ -677,9 +689,7 @@ export default function SettingsForm({
         subtitlePreview,
         subtitlePositionOffset,
         subtitleAlignment,
-        subtitleBlurTrack1,
-        subtitleBlurTrack2,
-        subtitleBlurTrack3,
+        subtitleTracks,
         audioPaddingStart,
         audioPaddingEnd,
         maxImageWidth,
@@ -1541,51 +1551,34 @@ export default function SettingsForm({
                             {t('settings.subtitleBlur')}
                         </FormLabel>
                         <Grid container>
-                            <Grid item xs={4}>
-                                <LabelWithHoverEffect
-                                    control={
-                                        <Switch
-                                            checked={subtitleBlurTrack1}
-                                            onChange={(e) => {
-                                                handleSettingChanged('subtitleBlurTrack1', e.target.checked);
-                                            }}
+                            {subtitleTracks.map((trackData, trackIndex) => {
+                                return (
+                                    <Grid item xs={4} key={`blurTrack${trackIndex}`}>
+                                        <LabelWithHoverEffect
+                                            control={
+                                                <Switch
+                                                    checked={trackData.blur}
+                                                    onChange={(e) => {
+                                                        handleSettingChanged(
+                                                            'subtitleTracks',
+                                                            subtitleTracks.map((entry, entryIndex) => {
+                                                                return entryIndex === trackIndex
+                                                                    ? { ...entry, blur: e.target.checked }
+                                                                    : entry;
+                                                            })
+                                                        );
+                                                    }}
+                                                />
+                                            }
+                                            label={t('settings.subtitleBlurEntryLabel', {
+                                                trackNumber: trackIndex + 1,
+                                            })}
+                                            labelPlacement="start"
+                                            className={classes.switchLabel}
                                         />
-                                    }
-                                    label={t('settings.subtitleBlurTrack1')}
-                                    labelPlacement="start"
-                                    className={classes.switchLabel}
-                                />
-                            </Grid>
-                            <Grid item xs={4}>
-                                <LabelWithHoverEffect
-                                    control={
-                                        <Switch
-                                            checked={subtitleBlurTrack2}
-                                            onChange={(e) => {
-                                                handleSettingChanged('subtitleBlurTrack2', e.target.checked);
-                                            }}
-                                        />
-                                    }
-                                    label={t('settings.subtitleBlurTrack2')}
-                                    labelPlacement="start"
-                                    className={classes.switchLabel}
-                                />
-                            </Grid>
-                            <Grid item xs={4}>
-                                <LabelWithHoverEffect
-                                    control={
-                                        <Switch
-                                            checked={subtitleBlurTrack3}
-                                            onChange={(e) => {
-                                                handleSettingChanged('subtitleBlurTrack3', e.target.checked);
-                                            }}
-                                        />
-                                    }
-                                    label={t('settings.subtitleBlurTrack3')}
-                                    labelPlacement="start"
-                                    className={classes.switchLabel}
-                                />
-                            </Grid>
+                                    </Grid>
+                                );
+                            })}
                         </Grid>
                         <FormHelperText>{t('settings.subtitleBlurDescription')}</FormHelperText>
                     </FormGroup>

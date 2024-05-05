@@ -126,20 +126,22 @@ export default class SubtitleController {
         this.subtitlesElementOverlay.contentPositionOffset = value;
     }
 
-    setSubtitleSettings(subtitleSettings: SubtitleSettings) {
-        const styles = computeStyleString(subtitleSettings);
+    setSubtitleSettings(newSubtitleSettings: SubtitleSettings) {
+        const styles = computeStyleString(newSubtitleSettings);
 
-        const shouldForceRerender =
-            this.subtitleSettings?.subtitleBlurTrack1 !== subtitleSettings.subtitleBlurTrack1 ||
-            this.subtitleSettings?.subtitleBlurTrack2 !== subtitleSettings.subtitleBlurTrack2 ||
-            this.subtitleSettings?.subtitleBlurTrack3 !== subtitleSettings.subtitleBlurTrack3;
+        const blurSettingsChanged =
+            newSubtitleSettings.subtitleTracks.find((entry, index) => {
+                const oldBlur = this.subtitleSettings?.subtitleTracks[index].blur;
+                return entry.blur !== oldBlur;
+            }) !== undefined;
+        const shouldForceRerender = blurSettingsChanged;
 
         if (styles !== this.subtitleStyles || shouldForceRerender) {
             this.subtitleStyles = styles;
             this.cacheHtml();
         }
 
-        this.subtitleSettings = subtitleSettings;
+        this.subtitleSettings = newSubtitleSettings;
     }
 
     set subtitleAlignment(value: SubtitleAlignment) {
@@ -159,10 +161,8 @@ export default class SubtitleController {
         return this._subtitleAlignment;
     }
 
-    setBlurredSubtitleTracks(values: boolean[]) {
-        values.forEach((value, trackIndex) => {
-            this.blurredSubtitleTracks[trackIndex] = value;
-        });
+    setBlurredSubtitleTrack(trackIndex: number, value: boolean) {
+        this.blurredSubtitleTracks[trackIndex] = value;
     }
 
     getBlurredSubtitleTrack(trackIndex: number) {

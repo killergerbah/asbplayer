@@ -110,6 +110,11 @@ export interface KeyBinder {
         disabledGetter: () => boolean,
         capture?: boolean
     ): () => void;
+    bindToggleBlurTrack(
+        onToggleBlurTrack: (event: KeyboardEvent, extra: any) => void,
+        disabledGetter: () => boolean,
+        capture?: boolean
+    ): () => void;
     bindPlay(onPlay: (event: KeyboardEvent) => void, disabledGetter: () => boolean, capture?: boolean): () => void;
     bindAutoPause(
         onAutoPause: (event: KeyboardEvent) => void,
@@ -643,6 +648,45 @@ export class DefaultKeyBinder implements KeyBinder {
 
         return () => {
             for (let i = 0; i < 9; ++i) {
+                const unbindHandler = unbindHandlers[i];
+                unbindHandler();
+            }
+        };
+    }
+
+    bindToggleBlurTrack(
+        onToggleBlurTrack: (event: KeyboardEvent, extra: any) => void,
+        disabledGetter: () => boolean,
+        capture = false
+    ) {
+        const shortcuts = [
+            this.keyBindSet.toggleAsbplayerBlurTrack1.keys,
+            this.keyBindSet.toggleAsbplayerBlurTrack2.keys,
+            this.keyBindSet.toggleAsbplayerBlurTrack3.keys,
+        ].filter((s) => s);
+
+        if (shortcuts.length === 0) {
+            return () => {};
+        }
+
+        const delegate = (event: KeyboardEvent, track: number) => {
+            if (disabledGetter()) {
+                return false;
+            }
+
+            onToggleBlurTrack(event, track);
+            return true;
+        };
+        let unbindHandlers: (() => void)[] = [];
+
+        for (let i = 0; i < shortcuts.length; ++i) {
+            const handler = (event: KeyboardEvent) => delegate(event, i);
+            const unbindHandler = shortcuts[i] ? this._bind(shortcuts[i], capture, handler) : () => {};
+            unbindHandlers.push(unbindHandler);
+        }
+
+        return () => {
+            for (let i = 0; i < shortcuts.length; ++i) {
                 const unbindHandler = unbindHandlers[i];
                 unbindHandler();
             }

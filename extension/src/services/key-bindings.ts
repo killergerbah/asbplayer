@@ -1,5 +1,6 @@
 import {
     PlayMode,
+    SettingsUpdatedMessage,
     ToggleSubtitlesInListFromVideoMessage,
     ToggleSubtitlesMessage,
     VideoToExtensionCommand,
@@ -23,6 +24,7 @@ export default class KeyBindings {
     private _unbindToggleSubtitles: Unbinder = false;
     private _unbindToggleSubtitleTrackInVideo?: Unbinder = false;
     private _unbindToggleSubtitleTrackInList?: Unbinder = false;
+    private _unbindToggleBlurTrack?: Unbinder = false;
     private _unbindOffsetToSubtitle?: Unbinder = false;
     private _unbindAdjustOffset?: Unbinder = false;
     private _unbindResetOffset?: Unbinder = false;
@@ -182,6 +184,30 @@ export default class KeyBindings {
             true
         );
 
+        this._unbindToggleBlurTrack = this._keyBinder.bindToggleBlurTrack(
+            (event, track) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                context.subtitleController.setBlurredSubtitleTrack(
+                    track,
+                    !context.subtitleController.getBlurredSubtitleTrack(track)
+                );
+
+                const updateSettingsCommand: VideoToExtensionCommand<SettingsUpdatedMessage> = {
+                    sender: 'asbplayer-video',
+                    message: {
+                        command: 'settings-updated',
+                    },
+                    src: context.video.src,
+                };
+
+                chrome.runtime.sendMessage(updateSettingsCommand);
+            },
+            () => context.subtitleController.subtitles.length === 0,
+            true
+        );
+
         this._unbindToggleSubtitleTrackInList = this._keyBinder.bindToggleSubtitleTrackInList(
             (event, track) => {
                 event.preventDefault();
@@ -300,6 +326,11 @@ export default class KeyBindings {
         if (this._unbindToggleSubtitleTrackInList) {
             this._unbindToggleSubtitleTrackInList();
             this._unbindToggleSubtitleTrackInList = false;
+        }
+
+        if (this._unbindToggleBlurTrack) {
+            this._unbindToggleBlurTrack();
+            this._unbindToggleBlurTrack = false;
         }
 
         if (this._unbindOffsetToSubtitle) {
