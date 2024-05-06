@@ -163,6 +163,8 @@ Use <kbd>Ctrl + Shift + F</kbd> to see auto-detected subtitle tracks for streami
 -   Amazon Prime (known issue: subtitles sometimes off by ~30 seconds)
 -   Emby
 -   Rakuten Viki
+-   osnplus
+-   BiliBili
 
 <kbd>Ctrl + Shift + F</kbd> also allows you to load an empty subtitle track so that you can extract audio and screenshots from streaming video without loading subtitles.
 
