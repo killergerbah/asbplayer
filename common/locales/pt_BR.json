@@ -274,7 +274,7 @@
         "mining": "Mineração",
         "miningHistoryStorageLimit": "Limite de armazenamento do histórico de mineração",
         "clickToMineDefaultAction": "Ação padrão do botão de mineração",
-        "clickToMineDefaultPlayback": "Modo de reprodução a ser usado depois de mineração",
+        "postMiningPlaybackState": "Modo de reprodução a ser usado depois de mineração",
         "misc": "Diversos",
         "mp3Preference": "Recodificar áudio como MP3 (mais lento)",
         "noteType": "Tipo de nota",

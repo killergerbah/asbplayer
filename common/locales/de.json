@@ -274,7 +274,7 @@
         "mining": "Extraktion",
         "miningHistoryStorageLimit": "Extraktions-Historie Speicherlimit",
         "clickToMineDefaultAction": "Mining button default action",
-        "clickToMineDefaultPlayback": "Play mode to use after subtitle has been mined",
+        "postMiningPlaybackState": "Play mode to use after subtitle has been mined",
         "misc": "Sonstige",
         "mp3Preference": "Audio in MP3 neu encoden (langsamer)",
         "noteType": "Notiztyp",

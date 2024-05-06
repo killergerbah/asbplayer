@@ -39,7 +39,7 @@ export interface AnkiSettings {
     readonly maxImageHeight: number;
     readonly surroundingSubtitlesCountRadius: number;
     readonly surroundingSubtitlesTimeRadius: number;
-    readonly clickToMineDefaultPlayback: PostMinePlayback;
+    readonly postMiningPlaybackState: PostMinePlayback;
 }
 
 const ankiSettingsKeysObject: { [key in keyof AnkiSettings]: boolean } = {
@@ -62,7 +62,7 @@ const ankiSettingsKeysObject: { [key in keyof AnkiSettings]: boolean } = {
     maxImageHeight: true,
     surroundingSubtitlesCountRadius: true,
     surroundingSubtitlesTimeRadius: true,
-    clickToMineDefaultPlayback: true,
+    postMiningPlaybackState: true,
 };
 
 export const ankiSettingsKeys: (keyof AnkiSettings)[] = Object.keys(ankiSettingsKeysObject) as (keyof AnkiSettings)[];

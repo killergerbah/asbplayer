@@ -274,7 +274,7 @@
         "mining": "Kopanie",
         "miningHistoryStorageLimit": "Limit przechowywania historii kopania",
         "clickToMineDefaultAction": "Mining button default action",
-        "clickToMineDefaultPlayback": "Play mode to use after subtitle has been mined",
+        "postMiningPlaybackState": "Play mode to use after subtitle has been mined",
         "misc": "Różne",
         "mp3Preference": "Ponowne kodowanie dźwięku do formatu mp3 (wolniejsze)",
         "noteType": "Typ notatek",

@@ -274,7 +274,7 @@
         "mining": "マイニング",
         "miningHistoryStorageLimit": "マイニング履歴の保存数上限",
         "clickToMineDefaultAction": "ボタンでマイニングした際のデフォルト動作",
-        "clickToMineDefaultPlayback": "Play mode to use after subtitle has been mined",
+        "postMiningPlaybackState": "Play mode to use after subtitle has been mined",
         "misc": "その他",
         "mp3Preference": "音声を mp3 形式で再録音（低速）",
         "noteType": "メモタイプ",

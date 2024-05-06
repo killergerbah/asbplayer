@@ -155,7 +155,7 @@ const settingsSchema = {
         clickToMineDefaultAction: {
             type: 'number',
         },
-        clickToMineDefaultPlayback: {
+        postMiningPlaybackState: {
             type: 'number',
         },
         themeType: {

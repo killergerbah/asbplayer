@@ -1,47 +1,45 @@
-import React, { useCallback, useState, useEffect, useMemo, ChangeEvent, ReactNode, useRef } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { makeStyles, useTheme } from '@material-ui/core/styles';
-import AddIcon from '@material-ui/icons/Add';
-import LockIcon from '@material-ui/icons/Lock';
 import Box from '@material-ui/core/Box';
-import EditIcon from '@material-ui/icons/Edit';
-import InfoIcon from '@material-ui/icons/Info';
+import Button from '@material-ui/core/Button';
 import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
+import FormHelperText from '@material-ui/core/FormHelperText';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
-import InputAdornment from '@material-ui/core/InputAdornment';
 import IconButton from '@material-ui/core/IconButton';
+import InputAdornment from '@material-ui/core/InputAdornment';
 import InputLabel from '@material-ui/core/InputLabel';
-import LabelWithHoverEffect from '@project/common/components/LabelWithHoverEffect';
+import Link from '@material-ui/core/Link';
 import MenuItem from '@material-ui/core/MenuItem';
-import DeleteIcon from '@material-ui/icons/Delete';
 import Radio from '@material-ui/core/Radio';
-import RefreshIcon from '@material-ui/icons/Refresh';
-import Select from '@material-ui/core/Select';
-import TextField from '@material-ui/core/TextField';
-import { Theme } from '@material-ui/core/styles';
-import { AutoPausePreference, PostMineAction, PostMinePlayback } from '@project/common';
-import { AsbplayerSettings, KeyBindName, SubtitleListPreference } from '@project/common/settings';
-import { computeStyles, download, isNumeric } from '@project/common/util';
-import { CustomStyle, validateSettings } from '@project/common/settings';
-import { useOutsideClickListener } from '@project/common/hooks';
-import TagsTextField from '@project/common/components/TagsTextField';
-import hotkeys from 'hotkeys-js';
-import Typography from '@material-ui/core/Typography';
-import { isMacOs } from 'react-device-detect';
-import Switch from '@material-ui/core/Switch';
 import RadioGroup from '@material-ui/core/RadioGroup';
-import Tooltip from '@material-ui/core/Tooltip';
-import Autocomplete from '@material-ui/lab/Autocomplete';
+import Select from '@material-ui/core/Select';
 import Slider from '@material-ui/core/Slider';
+import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import FormHelperText from '@material-ui/core/FormHelperText';
-import Link from '@material-ui/core/Link';
-import Button from '@material-ui/core/Button';
-import { Anki } from '../anki';
+import TextField from '@material-ui/core/TextField';
+import Tooltip from '@material-ui/core/Tooltip';
+import Typography from '@material-ui/core/Typography';
+import { Theme, makeStyles, useTheme } from '@material-ui/core/styles';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
+import AddIcon from '@material-ui/icons/Add';
+import DeleteIcon from '@material-ui/icons/Delete';
+import EditIcon from '@material-ui/icons/Edit';
+import InfoIcon from '@material-ui/icons/Info';
+import LockIcon from '@material-ui/icons/Lock';
+import RefreshIcon from '@material-ui/icons/Refresh';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import { AutoPausePreference, PostMineAction, PostMinePlayback } from '@project/common';
+import LabelWithHoverEffect from '@project/common/components/LabelWithHoverEffect';
+import TagsTextField from '@project/common/components/TagsTextField';
+import { useOutsideClickListener } from '@project/common/hooks';
+import { AsbplayerSettings, CustomStyle, KeyBindName, SubtitleListPreference, validateSettings } from '@project/common/settings';
+import { computeStyles, download, isNumeric } from '@project/common/util';
+import hotkeys from 'hotkeys-js';
+import React, { ChangeEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { isMacOs } from 'react-device-detect';
+import { Trans, useTranslation } from 'react-i18next';
+import { Anki } from '../anki';
 import { WebSocketClient } from '../web-socket-client/web-socket-client';
 
 interface StylesProps {
@@ -687,7 +685,7 @@ export default function SettingsForm({
         fastForwardModePlaybackRate,
         keyBindSet,
         clickToMineDefaultAction,
-        clickToMineDefaultPlayback,
+        postMiningPlaybackState,
         preferMp3,
         miningHistoryStorageLimit,
         preCacheSubtitleDom,
@@ -1171,11 +1169,11 @@ export default function SettingsForm({
                     <LabelWithHoverEffect
                         control={
                             <Radio
-                                checked={clickToMineDefaultPlayback === PostMinePlayback.remember}
+                                checked={postMiningPlaybackState === PostMinePlayback.remember}
                                 value={PostMinePlayback.remember}
                                 onChange={(event) =>
                                     event.target.checked &&
-                                    handleSettingChanged('clickToMineDefaultPlayback', PostMinePlayback.remember)
+                                    handleSettingChanged('postMiningPlaybackState', PostMinePlayback.remember)
                                 }
                             />
                         }
@@ -1184,11 +1182,11 @@ export default function SettingsForm({
                     <LabelWithHoverEffect
                         control={
                             <Radio
-                                checked={clickToMineDefaultPlayback === PostMinePlayback.play}
+                                checked={postMiningPlaybackState === PostMinePlayback.play}
                                 value={PostMinePlayback.play}
                                 onChange={(event) =>
                                     event.target.checked &&
-                                    handleSettingChanged('clickToMineDefaultPlayback', PostMinePlayback.play)
+                                    handleSettingChanged('postMiningPlaybackState', PostMinePlayback.play)
                                 }
                             />
                         }
@@ -1197,11 +1195,11 @@ export default function SettingsForm({
                     <LabelWithHoverEffect
                         control={
                             <Radio
-                                checked={clickToMineDefaultPlayback === PostMinePlayback.pause}
+                                checked={postMiningPlaybackState === PostMinePlayback.pause}
                                 value={PostMinePlayback.pause}
                                 onChange={(event) =>
                                     event.target.checked &&
-                                    handleSettingChanged('clickToMineDefaultPlayback', PostMinePlayback.pause)
+                                    handleSettingChanged('postMiningPlaybackState', PostMinePlayback.pause)
                                 }
                             />
                         }
