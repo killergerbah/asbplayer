@@ -90,7 +90,7 @@ Otherwise, the following steps for setting up automated Anki flashcards should w
 4. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect using your deck and note type.
 5. Enhance a video using asbplayer and subtitle files.
 
-    - **For streaming video:** After installing the [Chrome extension](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab), drag-and-drop a subtitle file into the streaming video you want to mine.
+    - **For streaming video:** After installing the [browser extension](https://github.com/killergerbah/asbplayer/releases/latest), drag-and-drop a subtitle file into the streaming video you want to mine.
     - **For local files:** Drag-and-drop media/subtitle files into the [asbplayer website](https://killergerbah.github.io/asbplayer).
 
     You may have to [adjust the subtitle offset](#adjusting-subtitle-offset) to get the subtitles in sync.
@@ -120,7 +120,7 @@ Video guides:
 
 ## Detailed usage
 
-To use asbplayer with streaming video, install the Chrome [extension](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab). Otherwise, use the [website](https://killergerbah.github.io/asbplayer/).
+To use asbplayer with streaming video, install the [browser extension](https://github.com/killergerbah/asbplayer/releases/latest). Otherwise, use the [website](https://killergerbah.github.io/asbplayer/).
 
 In order to make use of any of asbplayer's features, subtitles (or an empty subtitle track) must first be loaded, either onto a streaming video or a local video file. The following section instructs how to do this.
 
@@ -130,12 +130,13 @@ In order to make use of any of asbplayer's features, subtitles (or an empty subt
 
 #### Enhancing streaming video with asbplayer-controlled subtitles
 
-There are a number of ways to load subtitles with streaming video:
+There are a number of ways to load subtitles onto streaming video:
 
 1. Drag-and-drop a subtitle file into the video element you want to enhance.
 2. Load a subtitle file into the [asbplayer website](https://killergerbah.github.io/asbplayer/) and click on the camera in the bottom right to pick a video element to enhance. This is the recommended way to load BluRay subtitle files onto streaming video.
 3. Use <kbd>Ctrl + Shift + F</kbd> to select a video element to enhance. From the dialog that appears you can choose whether to load an [auto-detected subtitle track](#subtitle-track-detection-for-streaming-video) or an empty one.
 4. Open the side panel (<kbd>\`</kbd> button or `Open Side Panel` from the extension popup). When a video element is on screen, click on the `Load Subtitles` button to open the same subtitle track selector in (3).
+5. Right click on a video element and click "asbplayer" → "Load subtitles."
 
 asbplayer features will then be accessible for that video.
 
@@ -328,9 +329,13 @@ Response:
 
 ## Browser compatibility
 
-The asbplayer application and extension have only been tested on the latest version Chrome and likely work on other Chromium-based browsers.
+### Website
 
-Local video file playback is supported only for codecs supported by the browser. The latest versions of Chrome can decode H.265 video as long as hardware acceleration is enabled. The [animebook](https://github.com/animebook/animebook.github.io?tab=readme-ov-file#video-format-support-last-update-january-2023) readme has a detailed explanation of this and links to browsers that have good compatibility.
+Local video file playback is supported only for codecs supported by the browser. Firefox does not support many popular video codecs. Later versions of Chrome can decode H.265 video as long as hardware acceleration is enabled. See the [animebook](https://github.com/animebook/animebook.github.io?tab=readme-ov-file#video-format-support-last-update-january-2023) readme for a detailed explanation of this and links to browsers that have good compatibility.
+
+### Extension
+
+The extension is compatible with most Chromium-based browsers. It is also compatible with Firefox, but on Firefox version of the extension is missing feaures like the side panel and the ability to record DRM-protected audio.
 
 ## Contributing
 
