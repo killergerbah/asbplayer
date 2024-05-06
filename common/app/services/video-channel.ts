@@ -486,7 +486,6 @@ export default class VideoChannel {
             maxImageHeight,
             surroundingSubtitlesCountRadius,
             surroundingSubtitlesTimeRadius,
-            postMiningPlaybackState,
         } = settings;
         const message: AnkiSettingsToVideoMessage = {
             command: 'ankiSettings',
@@ -510,7 +509,6 @@ export default class VideoChannel {
                 maxImageHeight,
                 surroundingSubtitlesCountRadius,
                 surroundingSubtitlesTimeRadius,
-                postMiningPlaybackState,
             },
         };
         this.protocol.postMessage(message);
@@ -531,6 +529,7 @@ export default class VideoChannel {
             miningHistoryStorageLimit,
             preCacheSubtitleDom,
             clickToMineDefaultAction,
+            postMiningPlaybackState,
             language,
             lastSubtitleOffset,
             tabName,
@@ -551,6 +550,7 @@ export default class VideoChannel {
                 miningHistoryStorageLimit,
                 preCacheSubtitleDom,
                 clickToMineDefaultAction,
+                postMiningPlaybackState,
                 language,
                 lastSubtitleOffset,
                 tabName,

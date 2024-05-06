@@ -249,7 +249,7 @@ export default class AnkiUiController {
                             }
                         }
 
-                        switch (this._ankiSettings?.postMiningPlaybackState) {
+                        switch (context.postMinePlayback) {
                             case PostMinePlayback.remember:
                                 if (context.wasPlayingBeforeRecordingMedia) {
                                     context.play();

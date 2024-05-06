@@ -15,6 +15,7 @@ export interface MiscSettings {
     readonly preCacheSubtitleDom: boolean;
     readonly language: string;
     readonly clickToMineDefaultAction: PostMineAction;
+    readonly postMiningPlaybackState: PostMinePlayback;
     readonly lastSubtitleOffset: number;
     readonly tabName: string;
 }
@@ -39,7 +40,6 @@ export interface AnkiSettings {
     readonly maxImageHeight: number;
     readonly surroundingSubtitlesCountRadius: number;
     readonly surroundingSubtitlesTimeRadius: number;
-    readonly postMiningPlaybackState: PostMinePlayback;
 }
 
 const ankiSettingsKeysObject: { [key in keyof AnkiSettings]: boolean } = {
@@ -62,7 +62,6 @@ const ankiSettingsKeysObject: { [key in keyof AnkiSettings]: boolean } = {
     maxImageHeight: true,
     surroundingSubtitlesCountRadius: true,
     surroundingSubtitlesTimeRadius: true,
-    postMiningPlaybackState: true,
 };
 
 export const ankiSettingsKeys: (keyof AnkiSettings)[] = Object.keys(ankiSettingsKeysObject) as (keyof AnkiSettings)[];
