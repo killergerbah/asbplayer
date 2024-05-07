@@ -133,7 +133,12 @@ class FileImageData implements ImageData {
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 const ctx = canvas.getContext('2d');
+                await video.play();
                 ctx!.drawImage(video, 0, 0, canvas.width, canvas.height);
+                await video.pause();
+                video.removeAttribute('src');
+                video.load();
+                video.remove();
                 if (this._maxWidth > 0 || this._maxHeight > 0) {
                     await resizeCanvas(canvas, ctx!, this._maxWidth, this._maxHeight);
                     resolve(canvas);
@@ -152,6 +157,7 @@ class FileImageData implements ImageData {
         const video = document.createElement('video');
         video.src = file.blobUrl;
         video.preload = 'metadata';
+        video.volume = 0;
         video.currentTime = this._timestamp / 1000;
 
         return video;
