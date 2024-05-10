@@ -43,6 +43,7 @@ import CopyHistory from '@project/common/app/components/CopyHistory';
 import CopyHistoryList from '@project/common/app/components/CopyHistoryList';
 import { useAppKeyBinder } from '@project/common/app/hooks/use-app-key-binder';
 import { download } from '@project/common/util';
+import { MiningContext } from '@project/common/app/services/mining-context';
 
 const mp3WorkerFactory = () =>
     new Worker(new URL('../../../../common/audio-clip/mp3-encoder-worker.ts', import.meta.url));
@@ -59,6 +60,7 @@ const sameVideoTab = (a: VideoTabModel, b: VideoTabModel) => {
 };
 
 const emptyArray: VideoTabModel[] = [];
+const miningContext = new MiningContext();
 
 export default function SidePanel({ settings, extension }: Props) {
     const { t } = useTranslation();
@@ -506,7 +508,7 @@ export default function SidePanel({ settings, extension }: Props) {
                                 hideSubtitlePlayer={false}
                                 videoPopOut={false}
                                 disableKeyEvents={false}
-                                ankiDialogRequested={false}
+                                miningContext={miningContext}
                                 keyBinder={keyBinder}
                                 ankiDialogOpen={false}
                             />
