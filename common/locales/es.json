@@ -29,6 +29,11 @@
         "updateLastCard": "Actualizar última tarjeta",
         "exportCard": "Export card"
     },
+    "postMinePlayback": {
+        "remember": "Keep previous state (as before mining)",
+        "play": "Always play",
+        "pause": "Always pause"
+    },
     "ankiDialog": {
         "applySelection": "Aplicar Selección",
         "audio": "Audio",
@@ -269,6 +274,7 @@
         "mining": "Minado",
         "miningHistoryStorageLimit": "Límite de almacenamiento del historial de minado",
         "clickToMineDefaultAction": "Acción por defecto del botón de minado",
+        "postMiningPlaybackState": "Play mode to use after subtitle has been mined",
         "misc": "Otros",
         "mp3Preference": "Recodificar audio como MP3 (más lento)",
         "noteType": "Tipo de Nota",
@@ -314,7 +320,8 @@
         "wordField": "Campo de Palabra",
         "webSocketClientEnabled": "Enable WebSocket client",
         "webSocketServerUrl": "WebSocket Server URL",
-        "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons."
+        "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons.",
+        "postMinePlayback": "Post-mining playback state"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Haz click, mantén y arrastra para minar múltiples subtítulos"

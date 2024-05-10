@@ -1,4 +1,4 @@
-import { AutoPausePreference, PostMineAction } from '../src/model';
+import { AutoPausePreference, PostMineAction, PostMinePlayback } from '../src/model';
 
 export interface MiscSettings {
     readonly themeType: 'dark' | 'light';
@@ -15,6 +15,7 @@ export interface MiscSettings {
     readonly preCacheSubtitleDom: boolean;
     readonly language: string;
     readonly clickToMineDefaultAction: PostMineAction;
+    readonly postMiningPlaybackState: PostMinePlayback;
     readonly lastSubtitleOffset: number;
     readonly tabName: string;
 }

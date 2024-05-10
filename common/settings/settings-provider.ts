@@ -1,5 +1,5 @@
 import { AsbplayerSettings, KeyBindName, SubtitleListPreference } from '.';
-import { AutoPausePreference, PostMineAction } from '..';
+import { AutoPausePreference, PostMineAction, PostMinePlayback } from '..';
 
 // @ts-ignore
 const isMacOs = (navigator.userAgentData?.platform ?? navigator.platform)?.toUpperCase()?.indexOf('MAC') > -1;
@@ -72,6 +72,7 @@ export const defaultSettings: AsbplayerSettings = {
     miningHistoryStorageLimit: 25,
     preCacheSubtitleDom: true,
     clickToMineDefaultAction: PostMineAction.showAnkiDialog,
+    postMiningPlaybackState: PostMinePlayback.remember,
     themeType: 'dark',
     copyToClipboardOnMine: false,
     rememberSubtitleOffset: true,

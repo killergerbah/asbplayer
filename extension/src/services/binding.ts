@@ -21,6 +21,7 @@ import {
     PlayFromVideoMessage,
     PlayMode,
     PostMineAction,
+    PostMinePlayback,
     ReadyFromVideoMessage,
     ReadyStateFromVideoMessage,
     RecordMediaAndForwardSubtitleMessage,
@@ -40,27 +41,27 @@ import {
     VideoHeartbeatMessage,
     VideoToExtensionCommand,
 } from '@project/common';
+import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
+import { adjacentSubtitle } from '@project/common/key-binder';
 import { extractAnkiSettings, SettingsProvider, SubtitleListPreference } from '@project/common/settings';
+import { SubtitleSlice } from '@project/common/subtitle-collection';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { extractText, sourceString, surroundingSubtitlesAroundInterval } from '@project/common/util';
 import AnkiUiController from '../controllers/anki-ui-controller';
 import ControlsController from '../controllers/controls-controller';
 import DragController from '../controllers/drag-controller';
+import { MobileGestureController } from '../controllers/mobile-gesture-controller';
+import { MobileVideoOverlayController } from '../controllers/mobile-video-overlay-controller';
+import NotificationController from '../controllers/notification-controller';
 import SubtitleController, { SubtitleModelWithIndex } from '../controllers/subtitle-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
+import AudioRecorder from './audio-recorder';
 import { bufferToBase64 } from './base64';
+import { isMobile } from './device-detection';
+import { OffsetAnchor } from './element-overlay';
 import { ExtensionSettingsStorage } from './extension-settings-storage';
 import { i18nInit } from './i18n';
 import KeyBindings from './key-bindings';
-import { SubtitleSlice } from '@project/common/subtitle-collection';
-import { MobileVideoOverlayController } from '../controllers/mobile-video-overlay-controller';
-import { OffsetAnchor } from './element-overlay';
-import { MobileGestureController } from '../controllers/mobile-gesture-controller';
-import { adjacentSubtitle } from '@project/common/key-binder';
-import AudioRecorder from './audio-recorder';
-import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
-import NotificationController from '../controllers/notification-controller';
-import { isMobile } from './device-detection';
 import { shouldShowUpdateAlert } from './update-alert';
 
 let netflix = false;
@@ -80,6 +81,7 @@ export default class Binding {
 
     recordingMedia: boolean;
     wasPlayingBeforeRecordingMedia?: boolean;
+    postMinePlayback: PostMinePlayback = PostMinePlayback.remember;
     private recordingMediaStartedTimestamp?: number;
     private recordingMediaWithScreenshot: boolean;
 
@@ -151,6 +153,7 @@ export default class Binding {
         this.autoPausePreference = AutoPausePreference.atEnd;
         this.copyToClipboardOnMine = false;
         this.alwaysPlayOnSubtitleRepeat = true;
+        this.postMinePlayback = PostMinePlayback.remember;
         this._synced = false;
         this.recordingMedia = false;
         this.recordingMediaWithScreenshot = false;
@@ -617,8 +620,19 @@ export default class Binding {
                     case 'recording-finished':
                         this.recordingMedia = false;
                         this.recordingMediaStartedTimestamp = undefined;
-                        if (this.wasPlayingBeforeRecordingMedia === false) {
-                            this.video.pause();
+
+                        switch (this.postMinePlayback) {
+                            case PostMinePlayback.remember:
+                                if (!this.wasPlayingBeforeRecordingMedia) {
+                                    this.video.pause();
+                                }
+                                break;
+                            case PostMinePlayback.play:
+                                // already playing, don't need to do anything
+                                break;
+                            case PostMinePlayback.pause:
+                                this.video.pause();
+                                break;
                         }
                         break;
                     case 'show-anki-ui':
@@ -769,6 +783,7 @@ export default class Binding {
 
         this.videoDataSyncController.updateSettings(currentSettings);
         this.ankiUiController.ankiSettings = extractAnkiSettings(currentSettings);
+        this.postMinePlayback = currentSettings.postMiningPlaybackState;
         this.keyBindings.setKeyBindSet(this, currentSettings.keyBindSet);
 
         if (currentSettings.streamingSubsDragAndDrop) {

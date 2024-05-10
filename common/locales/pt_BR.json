@@ -29,6 +29,11 @@
         "updateLastCard": "Atualizar último card",
         "exportCard": "Export card"
     },
+    "postMinePlayback": {
+        "remember": "Manter o estado anterior (como antes da mineração)",
+        "play": "Sempre reproduzir",
+        "pause": "Sempre pausado"
+    },
     "ankiDialog": {
         "applySelection": "Aplicar seleção",
         "audio": "Áudio",
@@ -269,6 +274,7 @@
         "mining": "Mineração",
         "miningHistoryStorageLimit": "Limite de armazenamento do histórico de mineração",
         "clickToMineDefaultAction": "Ação padrão do botão de mineração",
+        "postMiningPlaybackState": "Modo de reprodução a ser usado depois de mineração",
         "misc": "Diversos",
         "mp3Preference": "Recodificar áudio como MP3 (mais lento)",
         "noteType": "Tipo de nota",
@@ -314,7 +320,8 @@
         "wordField": "Campo da palavra",
         "webSocketClientEnabled": "Enable WebSocket client",
         "webSocketServerUrl": "WebSocket Server URL",
-        "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons."
+        "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons.",
+        "postMinePlayback": "Post-mining playback state"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Clique, segure e arraste para minerar múltiplas legendas"

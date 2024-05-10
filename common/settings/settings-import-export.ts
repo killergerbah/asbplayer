@@ -155,6 +155,9 @@ const settingsSchema = {
         clickToMineDefaultAction: {
             type: 'number',
         },
+        postMiningPlaybackState: {
+            type: 'number',
+        },
         themeType: {
             type: 'string',
         },
