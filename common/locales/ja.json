@@ -32,7 +32,7 @@
     "postMinePlayback": {
         "remember": "Keep previous state (as before mining)",
         "play": "Always play",
-        "paused": "Always pause"
+        "pause": "Always pause"
     },
     "ankiDialog": {
         "applySelection": "選択範囲を適用する",
@@ -320,7 +320,8 @@
         "wordField": "単語フィールド",
         "webSocketClientEnabled": "WebSocketクライアントを有効",
         "webSocketServerUrl": "WebSocketサーバーのURL",
-        "firefoxExtensionShortcutHelp": "ショートカットの編集はプラグイン管理 （about:addons）で行えます。"
+        "firefoxExtensionShortcutHelp": "ショートカットの編集はプラグイン管理 （about:addons）で行えます。",
+        "postMinePlayback": "Post-mining playback state"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"

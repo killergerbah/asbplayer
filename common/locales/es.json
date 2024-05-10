@@ -32,7 +32,7 @@
     "postMinePlayback": {
         "remember": "Keep previous state (as before mining)",
         "play": "Always play",
-        "paused": "Always pause"
+        "pause": "Always pause"
     },
     "ankiDialog": {
         "applySelection": "Aplicar Selección",
@@ -320,7 +320,8 @@
         "wordField": "Campo de Palabra",
         "webSocketClientEnabled": "Enable WebSocket client",
         "webSocketServerUrl": "WebSocket Server URL",
-        "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons."
+        "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons.",
+        "postMinePlayback": "Post-mining playback state"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Haz click, mantén y arrastra para minar múltiples subtítulos"
