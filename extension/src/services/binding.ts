@@ -611,7 +611,7 @@ export default class Binding {
                             lastAppliedTimestampIntervalToAudio: [cardMessage.subtitle.start, cardMessage.subtitle.end],
                             dialogRequestedTimestamp: this.video.currentTime * 1000,
                         };
-
+                        this.mobileVideoOverlayController.updateModel();
                         break;
                     case 'notify-error':
                         const notifyErrorMessage = request.message as NotifyErrorMessage;
@@ -625,10 +625,13 @@ export default class Binding {
                             case PostMinePlayback.remember:
                                 if (!this.wasPlayingBeforeRecordingMedia) {
                                     this.video.pause();
+                                } else if (!this.video.paused) {
+                                    this.mobileVideoOverlayController.hide();
                                 }
                                 break;
                             case PostMinePlayback.play:
                                 // already playing, don't need to do anything
+                                this.mobileVideoOverlayController.hide();
                                 break;
                             case PostMinePlayback.pause:
                                 this.video.pause();

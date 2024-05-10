@@ -198,6 +198,14 @@ export class MobileVideoOverlayController {
         this._showing = true;
     }
 
+    hide() {
+        if (!this._bound) {
+            return;
+        }
+
+        this._hide();
+    }
+
     private _hide() {
         if (!this._context.synced || this._context.recordingMedia) {
             return;
