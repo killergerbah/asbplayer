@@ -86,6 +86,7 @@ export default class Binding {
     private recordingMediaWithScreenshot: boolean;
 
     private _playMode: PlayMode = PlayMode.normal;
+    private _speedChangeStep = 0.1;
 
     readonly video: HTMLMediaElement;
     readonly subSyncAvailable: boolean;
@@ -166,6 +167,10 @@ export default class Binding {
 
     get url() {
         return window.location !== window.parent.location ? document.referrer : document.location.href;
+    }
+
+    get speedChangeStep() {
+        return this._speedChangeStep;
     }
 
     get playMode() {
@@ -757,6 +762,7 @@ export default class Binding {
 
     async _refreshSettings() {
         const currentSettings = await this.settings.getAll();
+        this._speedChangeStep = currentSettings.speedChangeStep;
         this.recordMedia = currentSettings.streamingRecordMedia;
         this.takeScreenshot =
             currentSettings.streamingTakeScreenshot &&

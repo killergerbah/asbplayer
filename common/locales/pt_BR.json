@@ -251,6 +251,7 @@
         "autoPauseAtSubtitleStart": "No início da legenda",
         "autoPausePreference": "Preferência de pausa automática",
         "autoPausePreferenceHelperText": "Não habilita a pausa automática. Define a preferência de quando pausar quando a pausa automática estiver habilitada.",
+        "speedChangeStep": "Passo de ajuste da velocidade de reprodução (ao utilizar os respectivos atalhos)",
         "fastForwardModePlaybackRate": "Taxa de reprodução no modo de avanço rápido",
         "copyOnMine": "Copiar legenda minerada para a área de transferência",
         "corsHelperText": "Certifique-se de que {{origin}} esteja na webCorsOriginList em suas configurações do AnkiConnect, como neste <0>vídeo</0>.",

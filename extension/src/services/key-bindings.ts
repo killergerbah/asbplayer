@@ -238,10 +238,11 @@ export default class KeyBindings {
                 event.preventDefault();
                 event.stopImmediatePropagation();
 
+                const speedOffset = (context.speedChangeStep * 10);
                 if (increase) {
-                    context.video.playbackRate = Math.min(5, Math.round(context.video.playbackRate * 10 + 1) / 10);
+                    context.video.playbackRate = Math.min(5, Math.round(context.video.playbackRate * 10 + speedOffset) / 10);
                 } else {
-                    context.video.playbackRate = Math.max(0.1, Math.round(context.video.playbackRate * 10 - 1) / 10);
+                    context.video.playbackRate = Math.max(0.1, Math.round(context.video.playbackRate * 10 - speedOffset) / 10);
                 }
             },
             () => !context.synced,

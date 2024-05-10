@@ -251,6 +251,7 @@
         "autoPauseAtSubtitleStart": "字幕の開始時",
         "autoPausePreference": "自動一時停止の設定",
         "autoPausePreferenceHelperText": "自動一時停止を有効化する項目ではなく、自動一時停止がオンになっている時に一時停止するタイミングを設定する。",
+        "speedChangeStep": "Playback speed adjust step (when using respective shortcuts)",
         "fastForwardModePlaybackRate": "早送りモードの再生速度",
         "copyOnMine": "マイニングした字幕をクリップボードにコピー",
         "corsHelperText": "<0>この動画</0>を参考に、{{origin}} が AnkiConnect 設定の webCorsOriginList に入っていることを確認してください。",

@@ -4,6 +4,7 @@ export interface MiscSettings {
     readonly themeType: 'dark' | 'light';
     readonly copyToClipboardOnMine: boolean;
     readonly autoPausePreference: AutoPausePreference;
+    readonly speedChangeStep: number;
     readonly fastForwardModePlaybackRate: number;
     readonly keyBindSet: KeyBindSet;
     readonly rememberSubtitleOffset: boolean;

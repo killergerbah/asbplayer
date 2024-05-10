@@ -251,6 +251,7 @@
         "autoPauseAtSubtitleStart": "Al Inicio del Subtítulo",
         "autoPausePreference": "Preferencia para el pausado automático",
         "autoPausePreferenceHelperText": "No activa el pausado automático. Establece cuando pausar si el pausado automático está activado.",
+        "speedChangeStep": "Playback speed adjust step (when using respective shortcuts)",
         "fastForwardModePlaybackRate": "Velocidad de la Reproducción Acelerada",
         "copyOnMine": "Copiar subtítulos minados al portapapeles",
         "corsHelperText": "Asegúrate de que {{origin}} esté en webCorsOriginList en tu configuración de AnkiConnect como en este <0>video</0>.",

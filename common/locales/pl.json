@@ -251,6 +251,7 @@
         "autoPauseAtSubtitleStart": "Na początku napisu",
         "autoPausePreference": "Preferencja automatycznej pauzy",
         "autoPausePreferenceHelperText": "Nie włącza automatycznej pauzy. Ustawia preferencję kiedy się zatrzymać gdy automatyczna pauza jest włączona.",
+        "speedChangeStep": "Playback speed adjust step (when using respective shortcuts)",
         "fastForwardModePlaybackRate": "Fast-forward Mode Playback Rate",
         "copyOnMine": "Skopiuj wykopane napisy do schowka",
         "corsHelperText": "Upewnij się że {{origin}} jest w liście webCorsOriginList w twoich ustawieniach AnkiConnect tak",
