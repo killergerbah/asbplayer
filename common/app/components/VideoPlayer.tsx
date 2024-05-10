@@ -12,6 +12,7 @@ import {
     AutoPauseContext,
     OffscreenDomCache,
     CardTextFieldValues,
+    PostMinePlayback,
 } from '@project/common';
 import {
     MiscSettings,
@@ -32,8 +33,6 @@ import Clock from '../services/clock';
 import Controls, { Point } from './Controls';
 import PlayerChannel from '../services/player-channel';
 import ChromeExtension from '../services/chrome-extension';
-import PlaybackPreferences from '../services/playback-preferences';
-import { AnkiDialogFinishedRequest } from './Player';
 import { Color } from '@material-ui/lab/Alert';
 import Alert from './Alert';
 import { useSubtitleDomCache } from '../hooks/use-subtitle-dom-cache';
@@ -43,6 +42,7 @@ import './video-player.css';
 import i18n from 'i18next';
 import { adjacentSubtitle } from '../../key-binder';
 import { usePlaybackPreferences } from '../hooks/use-playback-preferences';
+import { MiningContext } from '../services/mining-context';
 
 interface ExperimentalHTMLVideoElement extends HTMLVideoElement {
     readonly audioTracks: any;
@@ -234,7 +234,7 @@ interface Props {
     videoFile: string;
     channel: string;
     popOut: boolean;
-    ankiDialogFinishedRequest: AnkiDialogFinishedRequest;
+    miningContext: MiningContext;
     ankiDialogOpen: boolean;
     seekRequest?: SeekRequest;
     onAnkiDialogRequest: (
@@ -272,7 +272,7 @@ export default function VideoPlayer({
     videoFile,
     channel,
     popOut,
-    ankiDialogFinishedRequest,
+    miningContext,
     ankiDialogOpen,
     seekRequest,
     onAnkiDialogRequest,
@@ -297,7 +297,7 @@ export default function VideoPlayer({
     const [offset, setOffset] = useState<number>(0);
     const [audioTracks, setAudioTracks] = useState<AudioTrackModel[]>();
     const [selectedAudioTrack, setSelectedAudioTrack] = useState<string>();
-    const [, setResumeOnFinishedAnkiDialogRequest] = useState<boolean>(false);
+    const [wasPlayingOnAnkiDialogRequest, setWasPlayingOnAnkiDialogRequest] = useState<boolean>(false);
     const [subtitles, setSubtitles] = useState<IndexedSubtitleModel[]>([]);
     const subtitleCollection = useMemo<SubtitleCollection<IndexedSubtitleModel>>(
         () =>
@@ -879,7 +879,9 @@ export default function VideoPlayer({
 
                         if (playing()) {
                             playerChannel.pause();
-                            setResumeOnFinishedAnkiDialogRequest(true);
+                            setWasPlayingOnAnkiDialogRequest(true);
+                        } else {
+                            setWasPlayingOnAnkiDialogRequest(false);
                         }
                     } else {
                         playerChannel.copy(
@@ -976,16 +978,22 @@ export default function VideoPlayer({
     }, [mineCurrentSubtitle, keyBinder]);
 
     useEffect(() => {
-        if (ankiDialogFinishedRequest && ankiDialogFinishedRequest.timestamp > 0) {
-            setResumeOnFinishedAnkiDialogRequest((resumeOnFinishedAnkiDialogRequest) => {
-                if (resumeOnFinishedAnkiDialogRequest && ankiDialogFinishedRequest.resume) {
+        return miningContext.onEvent('stopped-mining', () => {
+            switch (miscSettings.postMiningPlaybackState) {
+                case PostMinePlayback.play:
                     playerChannel.play();
-                }
-
-                return false;
-            });
-        }
-    }, [ankiDialogFinishedRequest, playerChannel]);
+                    break;
+                case PostMinePlayback.pause:
+                    playerChannel.pause();
+                    break;
+                case PostMinePlayback.remember:
+                    if (wasPlayingOnAnkiDialogRequest) {
+                        playerChannel.play();
+                    }
+                    break;
+            }
+        });
+    }, [miningContext, wasPlayingOnAnkiDialogRequest, miscSettings, playerChannel]);
 
     useEffect(() => {
         return keyBinder.bindUpdateLastCard(

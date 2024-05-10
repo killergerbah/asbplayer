@@ -37,7 +37,7 @@ import Bar from './Bar';
 import ChromeExtension, { ExtensionMessage } from '../services/chrome-extension';
 import CopyHistory from './CopyHistory';
 import LandingPage from './LandingPage';
-import Player, { AnkiDialogFinishedRequest, MediaSources } from './Player';
+import Player, { MediaSources } from './Player';
 import SettingsDialog from './SettingsDialog';
 import VideoPlayer, { SeekRequest } from './VideoPlayer';
 import { Color } from '@material-ui/lab';
@@ -51,6 +51,7 @@ import { useI18n } from '../hooks/use-i18n';
 import { useAppKeyBinder } from '../hooks/use-app-key-binder';
 import { useAnki } from '../hooks/use-anki';
 import { usePlaybackPreferences } from '../hooks/use-playback-preferences';
+import { MiningContext } from '../services/mining-context';
 
 const latestExtensionVersion = '1.2.0';
 const extensionUrl =
@@ -138,7 +139,7 @@ interface RenderVideoProps {
     searchParams: URLSearchParams;
     settings: AsbplayerSettings;
     extension: ChromeExtension;
-    ankiDialogFinishedRequest: AnkiDialogFinishedRequest;
+    miningContext: MiningContext;
     ankiDialogOpen: boolean;
     seekRequest?: SeekRequest;
     onAnkiDialogRequest: (
@@ -243,11 +244,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
     const [ankiDialogOpen, setAnkiDialogOpen] = useState<boolean>(false);
     const [ankiDialogDisabled, setAnkiDialogDisabled] = useState<boolean>(false);
     const [ankiDialogCard, setAnkiDialogCard] = useState<CardModel>();
-    const [ankiDialogRequested, setAnkiDialogRequested] = useState<boolean>(false);
-    const [ankiDialogFinishedRequest, setAnkiDialogFinishedRequest] = useState<AnkiDialogFinishedRequest>({
-        timestamp: 0,
-        resume: false,
-    });
+    const miningContext = useMemo(() => new MiningContext(), []);
     const [settingsDialogOpen, setSettingsDialogOpen] = useState<boolean>(false);
     const [settingsDialogScrollToId, setSettingsDialogScrollToId] = useState<string>();
     const [imageDialogOpen, setImageDialogOpen] = useState<boolean>(false);
@@ -257,7 +254,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
     const [availableTabs, setAvailableTabs] = useState<VideoTabModel[]>();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const ankiDialogRequestedRef = useRef<boolean>(false);
-    ankiDialogRequestedRef.current = ankiDialogRequested;
     const { subtitleFiles } = sources;
 
     const handleError = useCallback(
@@ -281,18 +277,21 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         [t]
     );
 
-    const handleAnkiDialogRequest = useCallback((ankiDialogItem?: CopyHistoryItem) => {
-        if (!ankiDialogItem && copyHistoryItemsRef.current!.length === 0) {
-            return;
-        }
+    const handleAnkiDialogRequest = useCallback(
+        (ankiDialogItem?: CopyHistoryItem) => {
+            if (!ankiDialogItem && copyHistoryItemsRef.current!.length === 0) {
+                return;
+            }
 
-        const item = ankiDialogItem ?? copyHistoryItemsRef.current[copyHistoryItemsRef.current.length - 1];
-        setAnkiDialogCard(item);
-        setAnkiDialogOpen(true);
-        setAnkiDialogDisabled(false);
-        setDisableKeyEvents(true);
-        setAnkiDialogRequested(true);
-    }, []);
+            const item = ankiDialogItem ?? copyHistoryItemsRef.current[copyHistoryItemsRef.current.length - 1];
+            setAnkiDialogCard(item);
+            setAnkiDialogOpen(true);
+            setAnkiDialogDisabled(false);
+            setDisableKeyEvents(true);
+            miningContext.started();
+        },
+        [miningContext]
+    );
 
     const handleAnkiDialogRequestFromVideoPlayer = useCallback(
         async (
@@ -367,11 +366,8 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
 
                     setAnkiDialogOpen(false);
 
-                    // We need the ref to avoid causing a state change that would re-init Player
-                    // It's a future task to make the Player init hook depend on less state
-                    if (ankiDialogRequestedRef.current) {
-                        setAnkiDialogFinishedRequest({ timestamp: Date.now(), resume: true });
-                        setAnkiDialogRequested(false);
+                    if (miningContext.mining) {
+                        miningContext.stopped();
                     }
                 }
             } catch (e) {
@@ -381,7 +377,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                 setDisableKeyEvents(false);
             }
         },
-        [anki, handleError, t]
+        [anki, miningContext, handleError, t]
     );
 
     const handleTakeScreenshot = useCallback(
@@ -442,8 +438,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     break;
                 case PostMineAction.exportCard:
                 case PostMineAction.updateLastCard:
-                    // FIXME: We should really rename the functions below because we're actually skipping the Anki dialog in this case
-                    setAnkiDialogRequested(true);
+                    miningContext.started();
                     let audioClip = AudioClip.fromCard(
                         newCard,
                         settingsRef.current.audioPaddingStart,
@@ -471,7 +466,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                     throw new Error('Unknown post mine action: ' + postMineAction);
             }
         },
-        [extension, saveCopyHistoryItem, handleAnkiDialogProceed, handleAnkiDialogRequest, t]
+        [extension, miningContext, saveCopyHistoryItem, handleAnkiDialogProceed, handleAnkiDialogRequest, t]
     );
 
     const handleOpenCopyHistory = useCallback(async () => {
@@ -654,11 +649,10 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
         setAnkiDialogDisabled(false);
         setDisableKeyEvents(false);
 
-        if (ankiDialogRequested) {
-            setAnkiDialogFinishedRequest({ timestamp: Date.now(), resume: true });
-            setAnkiDialogRequested(false);
+        if (miningContext.mining) {
+            miningContext.stopped();
         }
-    }, [ankiDialogRequested]);
+    }, [miningContext]);
 
     const handleAnkiDialogRewind = useCallback(() => {
         if (!ankiDialogCard) {
@@ -1163,7 +1157,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                             searchParams={searchParams}
                             settings={settings}
                             extension={extension}
-                            ankiDialogFinishedRequest={ankiDialogFinishedRequest}
+                            miningContext={miningContext}
                             ankiDialogOpen={ankiDialogOpen}
                             seekRequest={videoPlayerSeekRequest}
                             onAnkiDialogRequest={handleAnkiDialogRequestFromVideoPlayer}
@@ -1300,8 +1294,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                                 hideSubtitlePlayer={hideSubtitlePlayer || videoFullscreen}
                                 videoPopOut={videoPopOut}
                                 disableKeyEvents={disableKeyEvents}
-                                ankiDialogRequested={ankiDialogRequested}
-                                ankiDialogFinishedRequest={ankiDialogFinishedRequest}
+                                miningContext={miningContext}
                                 keyBinder={keyBinder}
                                 ankiDialogOpen={ankiDialogOpen}
                             />

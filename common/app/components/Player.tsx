@@ -9,6 +9,7 @@ import {
     CardTextFieldValues,
     PlayMode,
     PostMineAction,
+    PostMinePlayback,
     SubtitleModel,
     VideoTabModel,
 } from '@project/common';
@@ -30,7 +31,7 @@ import PlaybackPreferences from '../services/playback-preferences';
 import { useWindowSize } from '../hooks/use-window-size';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
 import { createBlobUrl } from '../../blob-url';
-import { isMobile } from 'react-device-detect';
+import { MiningContext } from '../services/mining-context';
 
 const minVideoPlayerWidth = 300;
 
@@ -84,11 +85,6 @@ export interface MediaSources {
     videoFileUrl?: string;
 }
 
-export interface AnkiDialogFinishedRequest {
-    resume: boolean;
-    timestamp: number;
-}
-
 interface PlayerProps {
     sources?: MediaSources;
     subtitles: DisplaySubtitleModel[];
@@ -107,9 +103,8 @@ interface PlayerProps {
     videoPopOut: boolean;
     tab?: VideoTabModel;
     availableTabs: VideoTabModel[];
-    ankiDialogRequested: boolean;
+    miningContext: MiningContext;
     ankiDialogOpen: boolean;
-    ankiDialogFinishedRequest?: AnkiDialogFinishedRequest;
     origin: string;
     onError: (error: any) => void;
     onUnloadVideo: (url: string) => void;
@@ -150,8 +145,7 @@ const Player = React.memo(function Player({
     videoPopOut,
     tab,
     availableTabs,
-    ankiDialogRequested,
-    ankiDialogFinishedRequest,
+    miningContext,
     ankiDialogOpen,
     origin,
     onError,
@@ -205,7 +199,7 @@ const Player = React.memo(function Player({
     channelRef.current = channel;
     const playbackPreferencesRef = useRef<PlaybackPreferences>();
     playbackPreferencesRef.current = playbackPreferences;
-    const [, setResumeOnFinishedAnkiDialogRequest] = useState<boolean>(false);
+    const [wasPlayingWhenMiningStarted, setWasPlayingWhenMiningStarted] = useState<boolean>();
     const hideSubtitlePlayerRef = useRef<boolean>();
     hideSubtitlePlayerRef.current = hideSubtitlePlayer;
     const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState<{ [track: number]: boolean }>({});
@@ -603,23 +597,33 @@ const Player = React.memo(function Player({
     }
 
     useEffect(() => {
-        if (ankiDialogFinishedRequest && ankiDialogFinishedRequest.timestamp > 0) {
-            setResumeOnFinishedAnkiDialogRequest((resumeOnFinishedAnkiDialogRequest) => {
-                if (resumeOnFinishedAnkiDialogRequest && ankiDialogFinishedRequest.resume) {
+        return miningContext.onEvent('stopped-mining', () => {
+            switch (settings.postMiningPlaybackState) {
+                case PostMinePlayback.play:
                     play(clock, mediaAdapter, true);
-                }
-
-                return false;
-            });
-        }
-    }, [ankiDialogFinishedRequest, clock, mediaAdapter]);
+                    break;
+                case PostMinePlayback.pause:
+                    pause(clock, mediaAdapter, true);
+                    break;
+                case PostMinePlayback.remember:
+                    if (wasPlayingWhenMiningStarted) {
+                        play(clock, mediaAdapter, true);
+                    }
+                    break;
+            }
+        });
+    }, [miningContext, settings, wasPlayingWhenMiningStarted, clock, mediaAdapter]);
 
     useEffect(() => {
-        if (ankiDialogRequested && clock.running) {
-            pause(clock, mediaAdapter, true);
-            setResumeOnFinishedAnkiDialogRequest(true);
-        }
-    }, [ankiDialogRequested, clock, mediaAdapter]);
+        return miningContext.onEvent('started-mining', () => {
+            if (clock.running) {
+                pause(clock, mediaAdapter, true);
+                setWasPlayingWhenMiningStarted(true);
+            } else {
+                setWasPlayingWhenMiningStarted(false);
+            }
+        });
+    }, [miningContext, clock, mediaAdapter]);
 
     useEffect(() => {
         if (playMode !== PlayMode.condensed) {
