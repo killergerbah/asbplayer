@@ -1977,9 +1977,7 @@ export default function SettingsForm({
                             fullWidth
                             value={speedChangeStep}
                             color="secondary"
-                            onChange={(event) =>
-                                handleSettingChanged('speedChangeStep', Number(event.target.value))
-                            }
+                            onChange={(event) => handleSettingChanged('speedChangeStep', Number(event.target.value))}
                             inputProps={{
                                 min: 0.1,
                                 max: 1,
