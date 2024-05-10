@@ -21,7 +21,7 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import { Theme } from '@material-ui/core/styles';
-import { AutoPausePreference, PostMineAction } from '@project/common';
+import { AutoPausePreference, PostMineAction, PostMinePlayback } from '@project/common';
 import { AsbplayerSettings, KeyBindName, SubtitleListPreference } from '@project/common/settings';
 import { computeStyles, download, isNumeric } from '@project/common/util';
 import { CustomStyle, validateSettings } from '@project/common/settings';
