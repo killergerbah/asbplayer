@@ -17,7 +17,13 @@ const manifestModifiedForFirefoxAndroid = (manifest) => {
     delete manifest['commands'];
     return {
         ...manifestModifiedForFirefox(manifest),
+        name: 'asbplayer (Android)',
         permissions: ['tabs', 'storage', 'webRequest', 'webRequestBlocking'],
+        browser_specific_settings: {
+            gecko: {
+                id: '{49de9206-c73e-4829-be4d-bda770d7f4b5}',
+            },
+        },
     };
 };
 

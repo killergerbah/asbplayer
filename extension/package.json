@@ -7,7 +7,8 @@
         "buildProd": "yarn workspace root run verify && NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack.config.js --mode production",
         "packageDev": "yarn buildDev && ../scripts/package chromium",
         "packageProd": "yarn buildProd && ../scripts/package chromium",
-        "packageProdFirefox": "yarn buildProd --env firefox && ../scripts/package firefox"
+        "packageProdFirefox": "yarn buildProd --env firefox && ../scripts/package firefox",
+        "packageProdFirefoxAndroid": "yarn buildProd --env firefoxandroid && ../scripts/package firefoxandroid"
     },
     "dependencies": {
         "@material-ui/core": "^4.11.3",
