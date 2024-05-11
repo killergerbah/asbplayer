@@ -765,9 +765,9 @@ export default function VideoPlayer({
                 }
 
                 if (increase) {
-                    updatePlaybackRate(Math.min(5, video.playbackRate + 0.1), true);
+                    updatePlaybackRate(Math.min(5, video.playbackRate + settings.speedChangeStep), true);
                 } else {
-                    updatePlaybackRate(Math.max(0.1, video.playbackRate - 0.1), true);
+                    updatePlaybackRate(Math.max(0.1, video.playbackRate - settings.speedChangeStep), true);
                 }
             },
             () => false
