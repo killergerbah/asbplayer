@@ -161,7 +161,6 @@
             "cropScreenshot": "Обрезать скриншот",
             "displaySubtitles": "Отображать субтитры",
             "dragAndDrop": "Разрешить перетаскивание для файлов субтитров",
-            "subtitleListPreference": "Настройки списка субтитров",
             "openSubtitleList": "Открыть список субтитров при загрузке субтитров",
             "mining": "Майнинг",
             "miningKeyboardShortcuts": "Горячие клавиши для майнинга",
@@ -189,14 +188,11 @@
             "selectVideo": "Выберите видеоэлемент для синхронизации с asbplayer.",
             "syncBeforeMine": "Видеоэлемент должен быть синхронизирован с asbplayer перед началом майнинга. Выберите видеоэлемент для синхронизации с asbplayer.",
             "videoElement": "Видеоэлемент"
-        },
-        "backgroundAudioRecordingPage": {
-            "description": "Эта страница используется asbplayer для захвата аудио."
         }
     },
     "ftue": {
         "welcome": "Добро пожаловать в asbplayer!",
-        "welcomeBody": "Прочтите руководство пользователя чтобы начать\ninfo.activeTabPermissionObtained,Запись аудио теперь разрешена для этой вкладки."
+        "welcomeBody": "Прочтите руководство пользователя чтобы начать."
     },
     "update": {
         "heading": "asbplayer just updated to version {{version}}.",
@@ -216,7 +212,6 @@
         "playbackRate": "Скорость воспроизведения: {{rate}}",
         "savedTimestamp": "Сохранено: {{timestamp}}",
         "updatedCard": "Карточка обновлена: {{result}}",
-        "activeTabPermissionObtained": "Audio recording is now enabled for this tab.",
         "enabledRepeatPlayback": "Repeat playback: On",
         "disabledRepeatPlayback": "Repeat playback: Off",
         "connectionSucceeded": "Connection succeeded",
@@ -240,7 +235,6 @@
         "grantedPrompt": "Запись аудио разрешена для этой вкладки. Теперь вы можете приступить к майнингу."
     },
     "audioCaptureFailed": {
-        "title": "Audio capture failed",
         "message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer."
     },
     "settings": {
@@ -274,7 +268,6 @@
         "mining": "Майнинг",
         "miningHistoryStorageLimit": "Лимит хранения истории майнинга",
         "clickToMineDefaultAction": "Стандартное действие кнопки майнинга",
-        "postMiningPlaybackState": "Режим воспроизведения после майнинга",
         "misc": "Разное",
         "mp3Preference": "Перекодировать аудио в MP3 (медленнее)",
         "noteType": "Тип анки-заметки",

@@ -161,7 +161,6 @@
             "cropScreenshot": "Recortar captura de tela",
             "displaySubtitles": "Exibir legendas",
             "dragAndDrop": "Permitir ação de arrastar e soltar para arquivos de legenda",
-            "subtitleListPreference": "Preferência da lista de legendas",
             "openSubtitleList": "Abrir lista de legendas ao carregar legendas",
             "mining": "Mineração",
             "miningKeyboardShortcuts": "Atalhos de Teclado para Mineração",
@@ -189,9 +188,6 @@
             "selectVideo": "Selecione um elemento de vídeo para sincronizá-lo com o asbplayer.",
             "syncBeforeMine": "Um elemento de vídeo deve ser sincronizado com o asbplayer antes que ele possa ser minerado. Selecione um elemento de vídeo para sincronizá-lo com o asbplayer.",
             "videoElement": "Elemento de vídeo"
-        },
-        "backgroundAudioRecordingPage": {
-            "description": "Esta página é usada pelo asbplayer para capturar áudio."
         }
     },
     "ftue": {
@@ -216,7 +212,6 @@
         "playbackRate": "Taxa de reprodução: {{rate}}",
         "savedTimestamp": "Salvo: {{timestamp}}",
         "updatedCard": "Atualizar card: {{result}}",
-        "activeTabPermissionObtained": "A gravação de áudio agora está habilitada para essa guia.",
         "enabledRepeatPlayback": "Repeat playback: On",
         "disabledRepeatPlayback": "Repeat playback: Off",
         "connectionSucceeded": "Connection succeeded",
@@ -240,7 +235,6 @@
         "grantedPrompt": "A gravação de áudio foi habilitada para esta guia. Agora você pode começar a minerar."
     },
     "audioCaptureFailed": {
-        "title": "Audio capture failed",
         "message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer."
     },
     "settings": {
@@ -274,7 +268,6 @@
         "mining": "Mineração",
         "miningHistoryStorageLimit": "Limite de armazenamento do histórico de mineração",
         "clickToMineDefaultAction": "Ação padrão do botão de mineração",
-        "postMiningPlaybackState": "Modo de reprodução a ser usado depois de mineração",
         "misc": "Diversos",
         "mp3Preference": "Recodificar áudio como MP3 (mais lento)",
         "noteType": "Tipo de nota",

@@ -161,7 +161,6 @@
             "cropScreenshot": "Crop screenshot",
             "displaySubtitles": "Display subtitles",
             "dragAndDrop": "Allow subtitle file drag-and-drop",
-            "subtitleListPreference": "Subtitle list preference",
             "openSubtitleList": "Open subtitle list when loading subtitles",
             "mining": "Mining",
             "miningKeyboardShortcuts": "Mining Keyboard Shortcuts",
@@ -189,9 +188,6 @@
             "selectVideo": "Select a video element to sync it with asbplayer.",
             "syncBeforeMine": "A video element must be synced with asbplayer before it can be mined. Select a video element to sync it with asbplayer.",
             "videoElement": "Video Element"
-        },
-        "backgroundAudioRecordingPage": {
-            "description": "This page is used by asbplayer to capture audio."
         }
     },
     "ftue": {
@@ -216,7 +212,6 @@
         "playbackRate": "Playback Rate: {{rate}}",
         "savedTimestamp": "Saved: {{timestamp}}",
         "updatedCard": "Updated card: {{result}}",
-        "activeTabPermissionObtained": "Audio recording is now enabled for this tab.",
         "enabledRepeatPlayback": "Repeat playback: On",
         "disabledRepeatPlayback": "Repeat playback: Off",
         "connectionSucceeded": "Connection succeeded",
@@ -240,7 +235,6 @@
         "grantedPrompt": "Audio recording has been enabled for this tab. You can now begin mining."
     },
     "audioCaptureFailed": {
-        "title": "Audio capture failed",
         "message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer."
     },
     "settings": {
@@ -274,7 +268,6 @@
         "mining": "Mining",
         "miningHistoryStorageLimit": "Mining history storage limit",
         "clickToMineDefaultAction": "Mining button default action",
-        "postMiningPlaybackState": "Play mode to use after subtitle has been mined",
         "misc": "Misc",
         "mp3Preference": "Re-encode audio as mp3 (slower)",
         "noteType": "Note Type",

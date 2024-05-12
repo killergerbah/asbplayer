@@ -30,9 +30,9 @@
         "exportCard": "カードをエクスポート"
     },
     "postMinePlayback": {
-        "remember": "Keep previous state (as before mining)",
-        "play": "Always play",
-        "pause": "Always pause"
+        "remember": "マイニング前の状態を維持",
+        "play": "常に再生する",
+        "pause": "常に維持停止する"
     },
     "ankiDialog": {
         "applySelection": "選択範囲を適用する",
@@ -161,7 +161,6 @@
             "cropScreenshot": "スクリーンショットのクロッピング",
             "displaySubtitles": "字幕表示オン/オフ",
             "dragAndDrop": "字幕ファイルのドラッグ＆ドロップを許可",
-            "subtitleListPreference": "字幕リストの表示設定",
             "openSubtitleList": "字幕ロード時に字幕リストを開く",
             "mining": "マイニング",
             "miningKeyboardShortcuts": "マイニング関連のキーボードショートカット",
@@ -189,9 +188,6 @@
             "selectVideo": "asbplayer と同期する動画埋め込み要素を選択してください。",
             "syncBeforeMine": "動画埋め込み要素のマイニングを開始する前に、動画と asbplayer を同期してください。選択した動画埋め込み要素を asbplayer と同期します。",
             "videoElement": "動画埋め込み要素を選択"
-        },
-        "backgroundAudioRecordingPage": {
-            "description": "このページは asbplayer が音声を録音する際に使用します。"
         }
     },
     "ftue": {
@@ -216,7 +212,6 @@
         "playbackRate": "再生速度：{{rate}}",
         "savedTimestamp": "保存しました：{{timestamp}}",
         "updatedCard": "カードの更新：{{result}}",
-        "activeTabPermissionObtained": "音声記録が有効になりました。",
         "enabledRepeatPlayback": "リピートプレイバック：オン",
         "disabledRepeatPlayback": "リピートプレイバック：オフ",
         "connectionSucceeded": "接続が成功しました",
@@ -240,7 +235,6 @@
         "grantedPrompt": "音声記録が有効になりました。マイニングを始めてください。"
     },
     "audioCaptureFailed": {
-        "title": "録音に失敗しました",
         "message": "DRMで保護されている音声は asbplayer のFirefox版では録音できません。"
     },
     "settings": {
@@ -274,7 +268,6 @@
         "mining": "マイニング",
         "miningHistoryStorageLimit": "マイニング履歴の保存数上限",
         "clickToMineDefaultAction": "ボタンでマイニングした際のデフォルト動作",
-        "postMiningPlaybackState": "Play mode to use after subtitle has been mined",
         "misc": "その他",
         "mp3Preference": "音声を mp3 形式で再録音（低速）",
         "noteType": "メモタイプ",
@@ -321,7 +314,7 @@
         "webSocketClientEnabled": "WebSocketクライアントを有効",
         "webSocketServerUrl": "WebSocketサーバーのURL",
         "firefoxExtensionShortcutHelp": "ショートカットの編集はプラグイン管理 （about:addons）で行えます。",
-        "postMinePlayback": "Post-mining playback state"
+        "postMinePlayback": "マイニング後のプレイバック状態"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"

@@ -161,7 +161,6 @@
             "cropScreenshot": "Screenshot zuschneiden",
             "displaySubtitles": "Untertitel anzeigen",
             "dragAndDrop": "Erlaube Untertitel Drag & Drop",
-            "subtitleListPreference": "Subtitle list preference",
             "openSubtitleList": "Open subtitle list when loading subtitles",
             "mining": "Extraktion",
             "miningKeyboardShortcuts": "Tastaturkürzel für Extraktion",
@@ -189,9 +188,6 @@
             "selectVideo": "Wähle ein Video-Element zum synchronisieren aus",
             "syncBeforeMine": "Ein Video muss mit absplayer synchronisiert werden",
             "videoElement": "Video-Element"
-        },
-        "backgroundAudioRecordingPage": {
-            "description": "This page is used by asbplayer to capture audio."
         }
     },
     "ftue": {
@@ -216,7 +212,6 @@
         "playbackRate": "Playback Rate: {{rate}}",
         "savedTimestamp": "Saved: {{timestamp}}",
         "updatedCard": "Updated card: {{result}}",
-        "activeTabPermissionObtained": "Audio recording is now enabled for this tab.",
         "enabledRepeatPlayback": "Repeat playback: On",
         "disabledRepeatPlayback": "Repeat playback: Off",
         "connectionSucceeded": "Connection succeeded",
@@ -240,7 +235,6 @@
         "grantedPrompt": "Audio recording has been enabled for this tab. You can now begin mining."
     },
     "audioCaptureFailed": {
-        "title": "Audio capture failed",
         "message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer."
     },
     "settings": {
@@ -274,7 +268,6 @@
         "mining": "Extraktion",
         "miningHistoryStorageLimit": "Extraktions-Historie Speicherlimit",
         "clickToMineDefaultAction": "Mining button default action",
-        "postMiningPlaybackState": "Play mode to use after subtitle has been mined",
         "misc": "Sonstige",
         "mp3Preference": "Audio in MP3 neu encoden (langsamer)",
         "noteType": "Notiztyp",

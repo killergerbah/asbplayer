@@ -161,7 +161,6 @@
             "cropScreenshot": "Recortar captura de pantalla",
             "displaySubtitles": "Mostrar subtítulos",
             "dragAndDrop": "Permitir arrastrar y soltar archivos de subtítulos",
-            "subtitleListPreference": "Preferencia de lista de subtítulos",
             "openSubtitleList": "Abrir lista de subtítulos al cargar subtítulos",
             "mining": "Minado",
             "miningKeyboardShortcuts": "Atajos de Teclado para Minado",
@@ -189,14 +188,11 @@
             "selectVideo": "Selecciona un elemento de video para sincronizar con asbplayer.",
             "syncBeforeMine": "Un elemento de video debe ser sincronizado con asbplayer antes de que pueda ser minado. Selecciona un elemento de video a sincronizar con asbplayer.",
             "videoElement": "Elemento de Video"
-        },
-        "backgroundAudioRecordingPage": {
-            "description": "Esta página es usada por asbplayer para capturar audio"
         }
     },
     "ftue": {
         "welcome": "Bienvenido a asbplayer",
-        "welcomeBody": "Revisa el <0>léeme</0> para comenzar\ninfo.activeTabPermissionObtained,Grabación de audio activada para esta pestaña"
+        "welcomeBody": "Revisa el <0>léeme</0> para comenzar"
     },
     "update": {
         "heading": "asbplayer just updated to version {{version}}.",
@@ -216,7 +212,6 @@
         "playbackRate": "Velocidad de Reproducción: {{rate}}",
         "savedTimestamp": "Guardado: {{timestamp}}",
         "updatedCard": "Tarjeta actualizada: {{result}}",
-        "activeTabPermissionObtained": "Grabación de audio activada para esta pestaña",
         "enabledRepeatPlayback": "Repeat playback: On",
         "disabledRepeatPlayback": "Repeat playback: Off",
         "connectionSucceeded": "Connection succeeded",
@@ -240,7 +235,6 @@
         "grantedPrompt": "Grabación de audio habilitada para esta pestaña. Puedes empezar a minar."
     },
     "audioCaptureFailed": {
-        "title": "Audio capture failed",
         "message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer."
     },
     "settings": {
@@ -274,7 +268,6 @@
         "mining": "Minado",
         "miningHistoryStorageLimit": "Límite de almacenamiento del historial de minado",
         "clickToMineDefaultAction": "Acción por defecto del botón de minado",
-        "postMiningPlaybackState": "Play mode to use after subtitle has been mined",
         "misc": "Otros",
         "mp3Preference": "Recodificar audio como MP3 (más lento)",
         "noteType": "Tipo de Nota",

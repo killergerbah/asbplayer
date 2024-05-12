@@ -73,7 +73,7 @@ Thank you to all those who have translated asbplayer:
 **Leo Gonzalez** (Spanish),
 **Yuri (ganqqwerty)** (Russian)
 
-If you are a non-English native, and would like to help translate asbplayer, please contact me on [Discord](https://discord.gg/ad7VAQru7m).
+If you are a non-English native, and would like to help translate asbplayer, join the [Crowdin project](https://crowdin.com/project/asbplayer).
 
 ## Getting Started
 

@@ -1,8 +1,8 @@
 #!/bin/bash
 SCRIPTPATH="$(cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P)"
-CONFIGPATH=$SCRIPTPATH/../client/public/extension.json
+CONFIGPATH=$SCRIPTPATH/../../client/public/extension.json
 
-for f in $(ls $SCRIPTPATH/../common/locales); do
+for f in $(ls $SCRIPTPATH/../../common/locales); do
     code="${f%.*}"
     test=$(jq ".languages[] | select(.code == \"$code\")" $CONFIGPATH)
     if [[ $test == "" ]]; then

@@ -5,8 +5,8 @@ paths() {
     jq 'paths(scalars) | join(".")' $1 | sort
 }
 
-for file in $(ls $SCRIPTPATH/../common/locales); do
-    diff <(paths $SCRIPTPATH/../common/locales/en.json) <(paths $SCRIPTPATH/../common/locales/$file)
+for file in $(ls $SCRIPTPATH/../../common/locales); do
+    diff <(paths $SCRIPTPATH/../../common/locales/en.json) <(paths $SCRIPTPATH/../../common/locales/$file)
     if [[ $? -eq 1 ]]; then
         echo "^^^^ $file has mismatching loc keys ^^^^"
         exit 1

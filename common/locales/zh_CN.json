@@ -161,7 +161,6 @@
             "cropScreenshot": "裁剪屏幕截图",
             "displaySubtitles": "显示字幕",
             "dragAndDrop": "允许拖放字幕文件",
-            "subtitleListPreference": "Subtitle list preference",
             "openSubtitleList": "Open subtitle list when loading subtitles",
             "mining": "采矿",
             "miningKeyboardShortcuts": "挖掘键盘快捷键",
@@ -189,9 +188,6 @@
             "selectVideo": "选择一个视频元素以将其与asbplayer同步。",
             "syncBeforeMine": "视频元素必须与asbplayer同步，然后才能进行挖掘。选择一个视频元素以将其与asbplayer同步。",
             "videoElement": "视频元素"
-        },
-        "backgroundAudioRecordingPage": {
-            "description": "此页面由asbplayer用于捕获音频。"
         }
     },
     "ftue": {
@@ -216,7 +212,6 @@
         "playbackRate": "播放速率：{{Rate}}",
         "savedTimestamp": "已保存：{{时间戳}}",
         "updatedCard": "更新的卡：{{result}}",
-        "activeTabPermissionObtained": "Audio recording is now enabled for this tab.",
         "enabledRepeatPlayback": "Repeat mode: On",
         "disabledRepeatPlayback": "Repeat mode: Off",
         "connectionSucceeded": "Connection succeeded",
@@ -240,7 +235,6 @@
         "grantedPrompt": "Audio recording has been enabled for this tab. You can now begin mining."
     },
     "audioCaptureFailed": {
-        "title": "Audio capture failed",
         "message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer."
     },
     "settings": {
@@ -274,7 +268,6 @@
         "mining": "挖掘",
         "miningHistoryStorageLimit": "挖掘历史存储限制",
         "clickToMineDefaultAction": "Mining button default action",
-        "postMiningPlaybackState": "Play mode to use after subtitle has been mined",
         "misc": "杂项",
         "mp3Preference": "将音频重新编码为mp3（较慢）",
         "noteType": "Anki卡牌类型",
