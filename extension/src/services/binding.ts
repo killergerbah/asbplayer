@@ -70,6 +70,12 @@ document.addEventListener('asbplayer-netflix-enabled', (e) => {
 });
 document.dispatchEvent(new CustomEvent('asbplayer-query-netflix'));
 
+enum RecordingState {
+    requested,
+    started,
+    notRecording,
+}
+
 export default class Binding {
     subscribed: boolean = false;
 
@@ -79,7 +85,7 @@ export default class Binding {
     private _synced: boolean;
     private _syncedTimestamp?: number;
 
-    recordingMedia: boolean;
+    recordingState: RecordingState = RecordingState.notRecording;
     wasPlayingBeforeRecordingMedia?: boolean;
     postMinePlayback: PostMinePlayback = PostMinePlayback.remember;
     private recordingMediaStartedTimestamp?: number;
@@ -156,9 +162,12 @@ export default class Binding {
         this.alwaysPlayOnSubtitleRepeat = true;
         this.postMinePlayback = PostMinePlayback.remember;
         this._synced = false;
-        this.recordingMedia = false;
         this.recordingMediaWithScreenshot = false;
         this.frameId = frameId;
+    }
+
+    get recordingMedia() {
+        return this.recordingState !== RecordingState.notRecording;
     }
 
     get synced() {
@@ -622,8 +631,11 @@ export default class Binding {
                         const notifyErrorMessage = request.message as NotifyErrorMessage;
                         this.subtitleController.notification('info.error', { message: notifyErrorMessage.message });
                         break;
+                    case 'recording-started':
+                        this.recordingState = RecordingState.started;
+                        break;
                     case 'recording-finished':
-                        this.recordingMedia = false;
+                        this.recordingState = RecordingState.notRecording;
                         this.recordingMediaStartedTimestamp = undefined;
 
                         switch (this.postMinePlayback) {
@@ -904,6 +916,10 @@ export default class Binding {
             return;
         }
 
+        if (this.recordMedia && this.recordingMedia) {
+            return;
+        }
+
         if (this.copyToClipboardOnMine) {
             navigator.clipboard.writeText(subtitle.text);
         }
@@ -913,7 +929,7 @@ export default class Binding {
         }
 
         if (this.recordMedia) {
-            this.recordingMedia = true;
+            this.recordingState = RecordingState.requested;
             this.wasPlayingBeforeRecordingMedia = !this.video.paused;
             this.recordingMediaStartedTimestamp = this.video.currentTime * 1000;
             this.recordingMediaWithScreenshot = this.takeScreenshot;
@@ -955,7 +971,11 @@ export default class Binding {
     }
 
     async _toggleRecordingMedia(postMineAction: PostMineAction) {
-        if (this.recordingMedia) {
+        if (this.recordingState === RecordingState.requested) {
+            return;
+        }
+
+        if (this.recordingState === RecordingState.started) {
             const currentTimestamp = this.video.currentTime * 1000;
             const command: VideoToExtensionCommand<StopRecordingMediaMessage> = {
                 sender: 'asbplayer-video',
@@ -986,7 +1006,7 @@ export default class Binding {
             const timestamp = this.video.currentTime * 1000;
 
             if (this.recordMedia) {
-                this.recordingMedia = true;
+                this.recordingState = RecordingState.requested;
                 this.wasPlayingBeforeRecordingMedia = !this.video.paused;
                 this.recordingMediaStartedTimestamp = timestamp;
                 this.recordingMediaWithScreenshot = this.takeScreenshot;
@@ -1036,10 +1056,14 @@ export default class Binding {
     }
 
     async rerecord(start: number, end: number, uiState: AnkiUiSavedState) {
+        if (this.recordingMedia) {
+            return;
+        }
+
         const noSubtitles = this.subtitleController.subtitles.length === 0;
         const audioPaddingStart = noSubtitles ? 0 : this.audioPaddingStart;
         const audioPaddingEnd = noSubtitles ? 0 : this.audioPaddingEnd;
-        this.recordingMedia = true;
+        this.recordingState = RecordingState.requested;
         this.recordingMediaStartedTimestamp = this.video.currentTime * 1000;
         this.seek(Math.max(0, start - audioPaddingStart) / 1000);
         await this.play();

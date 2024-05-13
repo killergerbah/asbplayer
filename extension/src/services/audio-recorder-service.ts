@@ -27,7 +27,7 @@ export default class AudioRecorderService {
 
     async startWithTimeout(time: number, preferMp3: boolean, requester: Requester): Promise<string> {
         const promise = this._delegate.startWithTimeout(time, preferMp3, requester);
-        this._notifyRecordingStarted();
+        this._notifyRecordingStarted(requester);
 
         try {
             return await promise;
@@ -39,7 +39,7 @@ export default class AudioRecorderService {
     async start(requester: Requester) {
         try {
             await this._delegate.start(requester);
-            this._notifyRecordingStarted();
+            this._notifyRecordingStarted(requester);
         } catch (e) {
             this._notifyRecordingFinished(requester);
             throw e;
@@ -52,7 +52,7 @@ export default class AudioRecorderService {
         return await promise;
     }
 
-    private _notifyRecordingStarted() {
+    private _notifyRecordingStarted({ tabId, src }: Requester) {
         const command: ExtensionToAsbPlayerCommand<RecordingStartedMessage> = {
             sender: 'asbplayer-extension-to-player',
             message: {
@@ -62,6 +62,14 @@ export default class AudioRecorderService {
         this._tabRegistry.publishCommandToAsbplayers({
             commandFactory: (asbplayer) => (asbplayer.sidePanel ? command : undefined),
         });
+        const videoCommand: ExtensionToVideoCommand<RecordingStartedMessage> = {
+            sender: 'asbplayer-extension-to-video',
+            message: {
+                command: 'recording-started',
+            },
+            src,
+        };
+        chrome.tabs.sendMessage(tabId, videoCommand);
     }
 
     private _notifyRecordingFinished({ tabId, src }: Requester) {
