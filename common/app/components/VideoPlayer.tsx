@@ -821,6 +821,20 @@ export default function VideoPlayer({
     }, [keyBinder, playerChannel]);
 
     useEffect(() => {
+        return keyBinder.bindToggleBlurTrack(
+            (event, track) => {
+                event.preventDefault();
+
+                const subtitleTracks = subtitleSettings.subtitleTracks;
+                subtitleTracks[track].blur = !subtitleTracks[track].blur;
+
+                setSubtitleSettings({ ...subtitleSettings, subtitleTracks });
+            },
+            () => false
+        );
+    }, [keyBinder]);
+
+    useEffect(() => {
         return keyBinder.bindOffsetToSubtitle(
             (event, offset) => {
                 event.preventDefault();

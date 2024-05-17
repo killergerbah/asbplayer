@@ -1,6 +1,6 @@
 import {
+    BlurSubtitlesMessage,
     PlayMode,
-    SettingsUpdatedMessage,
     ToggleSubtitlesInListFromVideoMessage,
     ToggleSubtitlesMessage,
     VideoToExtensionCommand,
@@ -188,21 +188,15 @@ export default class KeyBindings {
             (event, track) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-
-                context.subtitleController.setBlurredSubtitleTrack(
-                    track,
-                    !context.subtitleController.getBlurredSubtitleTrack(track)
-                );
-
-                const updateSettingsCommand: VideoToExtensionCommand<SettingsUpdatedMessage> = {
+                const command: VideoToExtensionCommand<BlurSubtitlesMessage> = {
                     sender: 'asbplayer-video',
                     message: {
-                        command: 'settings-updated',
+                        command: 'blur-subtitles',
+                        track: track,
                     },
                     src: context.video.src,
                 };
-
-                chrome.runtime.sendMessage(updateSettingsCommand);
+                chrome.runtime.sendMessage(command);
             },
             () => context.subtitleController.subtitles.length === 0,
             true
