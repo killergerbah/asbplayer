@@ -103,6 +103,9 @@ const settingsSchema = {
         autoPausePreference: {
             type: 'number',
         },
+        speedChangeStep: {
+            type: 'number',
+        },
         fastForwardModePlaybackRate: {
             type: 'number',
         },

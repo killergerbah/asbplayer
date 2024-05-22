@@ -35,6 +35,7 @@ export const defaultSettings: AsbplayerSettings = {
     surroundingSubtitlesCountRadius: 2,
     surroundingSubtitlesTimeRadius: 10000,
     autoPausePreference: AutoPausePreference.atEnd,
+    speedChangeStep: 0.1,
     fastForwardModePlaybackRate: 2.7,
     keyBindSet: {
         togglePlay: { keys: 'space' },

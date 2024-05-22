@@ -684,6 +684,7 @@ export default function SettingsForm({
         surroundingSubtitlesCountRadius,
         surroundingSubtitlesTimeRadius,
         autoPausePreference,
+        speedChangeStep,
         fastForwardModePlaybackRate,
         keyBindSet,
         clickToMineDefaultAction,
@@ -1968,6 +1969,21 @@ export default function SettingsForm({
                                 label={t('settings.autoPauseAtSubtitleEnd')}
                             />
                         </RadioGroup>
+                    </Grid>
+                    <Grid item>
+                        <TextField
+                            type="number"
+                            label={t('settings.speedChangeStep')}
+                            fullWidth
+                            value={speedChangeStep}
+                            color="secondary"
+                            onChange={(event) => handleSettingChanged('speedChangeStep', Number(event.target.value))}
+                            inputProps={{
+                                min: 0.1,
+                                max: 1,
+                                step: 0.1,
+                            }}
+                        />
                     </Grid>
                     <Grid item>
                         <TextField
