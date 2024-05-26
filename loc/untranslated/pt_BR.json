@@ -5,6 +5,8 @@
         "action.increaseOffsetButton": "Increase offset to so that previous subtitle is at current position. Hold to increase by 100ms.",
         "postMineAction.exportCard": "Export card",
         "ankiDialog.url": "URL",
+        "binds.decreasePlaybackRate": "Decrease playback rate",
+        "binds.increasePlaybackRate": "Increase playback rate",
         "binds.togglePlay": "Play/pause",
         "binds.toggleRepeat": "Toggle repeat mode",
         "controls.normalMode": "Normal",

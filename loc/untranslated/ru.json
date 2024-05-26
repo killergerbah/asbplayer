@@ -3,6 +3,8 @@
         "action.hideOverlay": "Hide Overlay",
         "action.decreaseOffsetButton": "Decrease offset to so that next subtitle is at current position. Hold to decrease by 100ms.",
         "action.increaseOffsetButton": "Increase offset to so that previous subtitle is at current position. Hold to increase by 100ms.",
+        "binds.decreasePlaybackRate": "Decrease playback rate",
+        "binds.increasePlaybackRate": "Increase playback rate",
         "postMineAction.exportCard": "Export card",
         "postMinePlayback.remember": "Keep previous state (as before mining)",
         "postMinePlayback.play": "Always play",

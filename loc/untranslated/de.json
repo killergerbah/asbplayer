@@ -23,6 +23,8 @@
         "ankiDialog.definition": "Definition",
         "ankiDialog.title": "Anki Export",
         "ankiDialog.url": "URL",
+        "binds.decreasePlaybackRate": "Decrease playback rate",
+        "binds.increasePlaybackRate": "Increase playback rate",
         "binds.seekToBeginningOfCurrentOrPreviousSubtitle": "Seek to beginning of current/previous subtitle",
         "binds.toggleFastForwardPlayback": "Toggle fast forward playback",
         "binds.toggleSidePanel": "Toggle side panel",

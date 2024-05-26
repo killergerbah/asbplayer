@@ -1,5 +1,8 @@
 {
-    "common": {},
+    "common": {
+        "binds.decreasePlaybackRate": "Decrease playback rate",
+        "binds.increasePlaybackRate": "Increase playback rate"
+    },
     "extension": {},
     "external": {}
 }
