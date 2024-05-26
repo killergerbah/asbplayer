@@ -135,8 +135,8 @@ func (forwarder forwarder) publishMessageAndAwaitResponse(command clientCommand,
 	}
 }
 
-func (forwarder forwarder) forwardToAnkiConnect(buf *bytes.Buffer, c echo.Context) error {
-	ankiConnectRequest, err := http.NewRequest("POST", forwarder.AnkiConnectUrl, buf)
+func (forwarder forwarder) forwardToAnkiConnect(buf *bytes.Buffer, c echo.Context, method string) error {
+	ankiConnectRequest, err := http.NewRequest(method, forwarder.AnkiConnectUrl, buf)
 
 	for key, values := range c.Request().Header {
 		ankiConnectRequest.Header[key] = values
@@ -193,7 +193,7 @@ func (forwarder forwarder) handlePostRequest(c echo.Context) error {
 	c.Set("ankiConnectAction", request.Action)
 
 	if request.Action != "addNote" || len(forwarder.WebsocketClients) == 0 {
-		return forwarder.forwardToAnkiConnect(buf, c)
+		return forwarder.forwardToAnkiConnect(buf, c, "POST")
 	}
 
 	command := clientCommand{Command: "mine-subtitle", MessageId: uuid.NewString(), Body: map[string]interface{}{
@@ -217,13 +217,17 @@ func (forwarder forwarder) handlePostRequest(c echo.Context) error {
 		err := json.Unmarshal(response.Body, &mineSubtitleResponseBody)
 
 		if err != nil || !mineSubtitleResponseBody.Published {
-			return forwarder.forwardToAnkiConnect(buf, c)
+			return forwarder.forwardToAnkiConnect(buf, c, "POST")
 		}
 
 		c.JSON(http.StatusOK, -1)
 	}
 
 	return nil
+}
+
+func (forwarder forwarder) handleOptionsRequest(c echo.Context) error {
+	return forwarder.forwardToAnkiConnect(new(bytes.Buffer), c, "OPTIONS")
 }
 
 func main() {
@@ -262,5 +266,6 @@ func main() {
 	e.GET("/ws", forwarder.handleWebsocketClient)
 	e.GET("/", forwarder.handleGetRequest)
 	e.POST("/", forwarder.handlePostRequest)
+	e.OPTIONS("/", forwarder.handleOptionsRequest)
 	e.Logger.Fatal(e.Start(":" + port))
 }
