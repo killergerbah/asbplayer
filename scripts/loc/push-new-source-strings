@@ -6,5 +6,5 @@ if [ -z $CROWDIN_API_TOKEN ]; then
 fi
 
 node loc-xliff.js
-crowdin push translations -T $CROWDIN_API_TOKEN
+crowdin push sources -T $CROWDIN_API_TOKEN
 
