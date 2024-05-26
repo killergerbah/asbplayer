@@ -177,7 +177,7 @@ You can replace filtered content similarly by entering a string into the "Subtit
 
 Useful examples of regular expressions:
 
--   `(\(|（)[^\)）]+(\)|）)` : Remove names enclosed by parenthesis to indicate speakers (i.e. "**（山田）**　元気ですか？")
+-   `([(（]([^()（）]|(([(（][^()（）]+[)）])))+[)）])` : Remove names enclosed by parenthesis to indicate speakers (i.e. "**（山田）**　元気ですか？")
 -   `\[.*\]` : Remove indications enclosed by brackets that sound or music that is playing (i.e. "**\[PLAYFUL MUSIC]**")
 
 Learn how to write and test custom regular expressions at [Regex Learn - Playground](https://regexlearn.com/playground).
