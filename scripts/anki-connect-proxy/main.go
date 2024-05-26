@@ -205,7 +205,19 @@ func (forwarder forwarder) handlePostRequest(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
+	if forwarder.PostMineAction == 2 {
+		response := forwarder.forwardToAnkiConnect(buf, c, "POST")
+		err := forwarder.publishMessage(command)
+
+		if err != nil {
+			fmt.Printf("Failed to publish command to asbplayer: %v", err)
+		}
+
+		return response
+	}
+
 	responseChannel := make(chan clientResponse)
+
 	go forwarder.publishMessageAndAwaitResponse(command, responseChannel)
 	select {
 	case response, ok := <-responseChannel:
