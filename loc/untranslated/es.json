@@ -25,12 +25,7 @@
         "info.errorNoMessage": "Error",
         "info.toggleSubtitlesShortcut": "Press \"{{keys}}\" to toggle subtitle display",
         "audioCaptureFailed.message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer.",
-        "settings.alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current/previous subtitle'",
-        "settings.customCssField": "CSS: {{styleKey}}",
-        "settings.webSocketClientEnabled": "Enable WebSocket client",
-        "settings.webSocketServerUrl": "WebSocket Server URL",
-        "settings.firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons.",
-        "settings.postMinePlayback": "Post-mining playback state"
+        "settings.alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current/previous subtitle'"
     },
     "extension": {},
     "external": {}

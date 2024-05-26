@@ -312,10 +312,10 @@
         "unboundBind": "Sin Asignar",
         "urlField": "Campo de URL",
         "wordField": "Campo de Palabra",
-        "webSocketClientEnabled": "Enable WebSocket client",
-        "webSocketServerUrl": "WebSocket Server URL",
-        "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons.",
-        "postMinePlayback": "Post-mining playback state"
+        "webSocketClientEnabled": "Habilitar cliente WebSocket",
+        "webSocketServerUrl": "URL del servidor WebSocket",
+        "firefoxExtensionShortcutHelp": "Edita este acceso directo desde el gestor de plugins en about:addons.",
+        "postMinePlayback": "Estado de reproducción post-minado"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Haz click, mantén y arrastra para minar múltiples subtítulos"
