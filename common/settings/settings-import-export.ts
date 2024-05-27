@@ -82,6 +82,17 @@ const settingsSchema = {
         subtitleAlignment: {
             type: 'string',
         },
+        subtitleTracks: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    blur: {
+                        type: 'boolean',
+                    },
+                },
+            },
+        },
         audioPaddingStart: {
             type: 'number',
         },

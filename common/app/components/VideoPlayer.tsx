@@ -832,7 +832,7 @@ export default function VideoPlayer({
             },
             () => false
         );
-    }, [keyBinder]);
+    }, [keyBinder, subtitleSettings]);
 
     useEffect(() => {
         return keyBinder.bindOffsetToSubtitle(
