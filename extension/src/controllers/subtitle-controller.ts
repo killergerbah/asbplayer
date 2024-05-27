@@ -40,6 +40,7 @@ export default class SubtitleController {
     private subtitlesElementOverlay: ElementOverlay;
     private notificationElementOverlay: ElementOverlay;
     disabledSubtitleTracks: { [key: number]: boolean | undefined };
+    blurredSubtitleTracks: { [key: number]: boolean | undefined };
     subtitleFileNames?: string[];
     _forceHideSubtitles: boolean;
     _displaySubtitles: boolean;
@@ -70,6 +71,7 @@ export default class SubtitleController {
         this.subtitleCollection = new SubtitleCollection<SubtitleModelWithIndex>([]);
         this.showingSubtitles = [];
         this.disabledSubtitleTracks = {};
+        this.blurredSubtitleTracks = {};
         this._forceHideSubtitles = false;
         this._displaySubtitles = true;
         this.lastLoadedMessageTimestamp = 0;
@@ -124,15 +126,22 @@ export default class SubtitleController {
         this.subtitlesElementOverlay.contentPositionOffset = value;
     }
 
-    setSubtitleSettings(subtitleSettings: SubtitleSettings) {
-        const styles = computeStyleString(subtitleSettings);
+    setSubtitleSettings(newSubtitleSettings: SubtitleSettings) {
+        const styles = computeStyleString(newSubtitleSettings);
 
-        if (styles !== this.subtitleStyles) {
+        const blurSettingsChanged =
+            newSubtitleSettings.subtitleTracks.find((entry, index) => {
+                const oldBlur = this.subtitleSettings?.subtitleTracks[index].blur;
+                return entry.blur !== oldBlur;
+            }) !== undefined;
+        const shouldForceRerender = blurSettingsChanged;
+
+        if (styles !== this.subtitleStyles || shouldForceRerender) {
             this.subtitleStyles = styles;
             this.cacheHtml();
         }
 
-        this.subtitleSettings = subtitleSettings;
+        this.subtitleSettings = newSubtitleSettings;
     }
 
     set subtitleAlignment(value: SubtitleAlignment) {
@@ -150,6 +159,14 @@ export default class SubtitleController {
 
     get subtitleAlignment() {
         return this._subtitleAlignment;
+    }
+
+    setBlurredSubtitleTrack(trackIndex: number, value: boolean) {
+        this.blurredSubtitleTracks[trackIndex] = value;
+    }
+
+    getBlurredSubtitleTrack(trackIndex: number) {
+        return this.blurredSubtitleTracks[trackIndex] || false;
     }
 
     private _applyElementOverlayParams(overlay: ElementOverlay, params: ElementOverlayParams) {
@@ -345,6 +362,10 @@ export default class SubtitleController {
         return subtitles.map((subtitle) => {
             return {
                 html: () => {
+                    const blurClass = this.getBlurredSubtitleTrack(subtitle.track)
+                        ? 'asbplayer-subtitles-blurred'
+                        : undefined;
+
                     if (subtitle.textImage) {
                         const imageScale =
                             ((this.subtitleSettings?.imageBasedSubtitleScaleFactor ?? 1) *
@@ -353,16 +374,16 @@ export default class SubtitleController {
                         const width = imageScale * subtitle.textImage.image.width;
 
                         return `
-<div style="max-width:${width}px;">
-    <img
-        style="width:100%;"
-        alt="subtitle"
-        src="${subtitle.textImage.dataUrl}"
-    />
-</div>
-`;
+                            <div style="max-width:${width}px;" ${blurClass ? `class="${blurClass}"` : ''}">
+                                <img
+                                    style="width:100%;"
+                                    alt="subtitle"
+                                    src="${subtitle.textImage.dataUrl}"
+                                />
+                            </div>
+                        `;
                     } else {
-                        return this._buildTextHtml(subtitle.text);
+                        return this._buildTextHtml(subtitle.text, blurClass);
                     }
                 },
                 key: String(subtitle.index),
@@ -370,8 +391,8 @@ export default class SubtitleController {
         });
     }
 
-    private _buildTextHtml(text: string) {
-        return `<span style="${this._subtitleStyles()}">${text}</span>`;
+    private _buildTextHtml(text: string, className?: string) {
+        return `<span ${className ? `class="${className}"` : ''}" style="${this._subtitleStyles()}">${text}</span>`;
     }
 
     unbind() {

@@ -623,6 +623,18 @@ export default function SettingsForm({
                 label: t('binds.toggleAsbplayerSubtitleTrack3')!,
                 boundViaChrome: false,
             },
+            toggleAsbplayerBlurTrack1: {
+                label: t('binds.toggleAsbplayerBlurTrack', { trackNumber: 1 })!,
+                boundViaChrome: false,
+            },
+            toggleAsbplayerBlurTrack2: {
+                label: t('binds.toggleAsbplayerBlurTrack', { trackNumber: 2 })!,
+                boundViaChrome: false,
+            },
+            toggleAsbplayerBlurTrack3: {
+                label: t('binds.toggleAsbplayerBlurTrack', { trackNumber: 3 })!,
+                boundViaChrome: false,
+            },
             seekBackward: { label: t('binds.seekBackward')!, boundViaChrome: false },
             seekForward: { label: t('binds.seekForward')!, boundViaChrome: false },
             seekToPreviousSubtitle: { label: t('binds.seekToPreviousSubtitle')!, boundViaChrome: false },
@@ -677,6 +689,7 @@ export default function SettingsForm({
         subtitlePreview,
         subtitlePositionOffset,
         subtitleAlignment,
+        subtitleTracks,
         audioPaddingStart,
         audioPaddingEnd,
         maxImageWidth,
@@ -1580,6 +1593,40 @@ export default function SettingsForm({
                                 onChange={(e) => handleSettingChanged('subtitlePositionOffset', Number(e.target.value))}
                             />
                         </div>
+                        <FormLabel className={classes.top} component="legend">
+                            {t('settings.subtitleBlur')}
+                        </FormLabel>
+                        <Grid container>
+                            {subtitleTracks.map((trackData, trackIndex) => {
+                                return (
+                                    <Grid item xs={4} key={`blurTrack${trackIndex}`}>
+                                        <LabelWithHoverEffect
+                                            control={
+                                                <Switch
+                                                    checked={trackData.blur}
+                                                    onChange={(e) => {
+                                                        handleSettingChanged(
+                                                            'subtitleTracks',
+                                                            subtitleTracks.map((entry, entryIndex) => {
+                                                                return entryIndex === trackIndex
+                                                                    ? { ...entry, blur: e.target.checked }
+                                                                    : entry;
+                                                            })
+                                                        );
+                                                    }}
+                                                />
+                                            }
+                                            label={t('settings.subtitleBlurEntryLabel', {
+                                                trackNumber: trackIndex + 1,
+                                            })}
+                                            labelPlacement="start"
+                                            className={classes.switchLabel}
+                                        />
+                                    </Grid>
+                                );
+                            })}
+                        </Grid>
+                        <FormHelperText>{t('settings.subtitleBlurDescription')}</FormHelperText>
                     </FormGroup>
                 </Grid>
             </TabPanel>

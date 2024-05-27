@@ -82,6 +82,17 @@ const settingsSchema = {
         subtitleAlignment: {
             type: 'string',
         },
+        subtitleTracks: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    blur: {
+                        type: 'boolean',
+                    },
+                },
+            },
+        },
         audioPaddingStart: {
             type: 'number',
         },
@@ -123,6 +134,9 @@ const settingsSchema = {
                 toggleAsbplayerSubtitleTrack1: { $ref: '/KeyBind' },
                 toggleAsbplayerSubtitleTrack2: { $ref: '/KeyBind' },
                 toggleAsbplayerSubtitleTrack3: { $ref: '/KeyBind' },
+                toggleAsbplayerBlurTrack1: { $ref: '/KeyBind' },
+                toggleAsbplayerBlurTrack2: { $ref: '/KeyBind' },
+                toggleAsbplayerBlurTrack3: { $ref: '/KeyBind' },
                 seekBackward: { $ref: '/KeyBind' },
                 seekForward: { $ref: '/KeyBind' },
                 seekToPreviousSubtitle: { $ref: '/KeyBind' },

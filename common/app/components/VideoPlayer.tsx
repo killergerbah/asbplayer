@@ -73,6 +73,12 @@ const useStyles = makeStyles({
         whiteSpace: 'pre-wrap',
         lineHeight: 'normal',
     },
+    subtitleEntryBlurred: {
+        filter: 'blur(10px)',
+        '&:hover': {
+            filter: 'none',
+        },
+    },
 });
 
 function notifyReady(
@@ -173,6 +179,7 @@ interface ShowingSubtitleProps {
     videoRef: MutableRefObject<ExperimentalHTMLVideoElement | undefined>;
     subtitleStyles: any;
     imageBasedSubtitleScaleFactor: number;
+    className?: string;
 }
 
 const ShowingSubtitle = ({
@@ -180,6 +187,7 @@ const ShowingSubtitle = ({
     videoRef,
     subtitleStyles,
     imageBasedSubtitleScaleFactor,
+    className,
 }: ShowingSubtitleProps) => {
     let content;
 
@@ -195,20 +203,23 @@ const ShowingSubtitle = ({
         content = <span style={subtitleStyles}>{subtitle.text}</span>;
     }
 
-    return <div>{content}</div>;
+    return <div className={className ? className : ''}>{content}</div>;
 };
 
 interface CachedShowingSubtitleProps {
     index: number;
     domCache: OffscreenDomCache;
+    className?: string;
 }
 
 const CachedShowingSubtitle = React.memo(function CachedShowingSubtitle({
     index,
     domCache,
+    className,
 }: CachedShowingSubtitleProps) {
     return (
         <div
+            className={className ? className : ''}
             ref={(ref) => {
                 if (!ref) {
                     return;
@@ -810,6 +821,20 @@ export default function VideoPlayer({
     }, [keyBinder, playerChannel]);
 
     useEffect(() => {
+        return keyBinder.bindToggleBlurTrack(
+            (event, track) => {
+                event.preventDefault();
+
+                const subtitleTracks = subtitleSettings.subtitleTracks;
+                subtitleTracks[track].blur = !subtitleTracks[track].blur;
+
+                setSubtitleSettings({ ...subtitleSettings, subtitleTracks });
+            },
+            () => false
+        );
+    }, [keyBinder, subtitleSettings]);
+
+    useEffect(() => {
         return keyBinder.bindOffsetToSubtitle(
             (event, offset) => {
                 event.preventDefault();
@@ -1367,9 +1392,18 @@ export default function VideoPlayer({
                     className={classes.subtitleContainer}
                 >
                     {showSubtitles.map((subtitle, index) => {
+                        const trackSetting = subtitleSettings.subtitleTracks[index];
+
                         if (miscSettings.preCacheSubtitleDom) {
                             const domCache = getSubtitleDomCache();
-                            return <CachedShowingSubtitle key={index} index={subtitle.index} domCache={domCache} />;
+                            return (
+                                <CachedShowingSubtitle
+                                    key={index}
+                                    index={subtitle.index}
+                                    domCache={domCache}
+                                    className={trackSetting.blur ? classes.subtitleEntryBlurred : ''}
+                                />
+                            );
                         }
 
                         return (
@@ -1379,6 +1413,7 @@ export default function VideoPlayer({
                                 subtitleStyles={subtitleStyles}
                                 videoRef={videoRef}
                                 imageBasedSubtitleScaleFactor={imageBasedSubtitleScaleFactor}
+                                className={trackSetting.blur ? classes.subtitleEntryBlurred : ''}
                             />
                         );
                     })}

@@ -409,6 +409,7 @@ export default class VideoChannel {
             subtitleCustomStyles,
             imageBasedSubtitleScaleFactor,
             subtitleAlignment,
+            subtitleTracks,
             subtitlePositionOffset,
         } = settings;
         const message: SubtitleSettingsToVideoMessage = {
@@ -427,6 +428,7 @@ export default class VideoChannel {
                 subtitleCustomStyles,
                 imageBasedSubtitleScaleFactor,
                 subtitleAlignment,
+                subtitleTracks,
                 subtitlePositionOffset,
             },
         };

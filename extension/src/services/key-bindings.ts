@@ -1,4 +1,5 @@
 import {
+    BlurSubtitlesMessage,
     PlayMode,
     ToggleSubtitlesInListFromVideoMessage,
     ToggleSubtitlesMessage,
@@ -23,6 +24,7 @@ export default class KeyBindings {
     private _unbindToggleSubtitles: Unbinder = false;
     private _unbindToggleSubtitleTrackInVideo?: Unbinder = false;
     private _unbindToggleSubtitleTrackInList?: Unbinder = false;
+    private _unbindToggleBlurTrack?: Unbinder = false;
     private _unbindOffsetToSubtitle?: Unbinder = false;
     private _unbindAdjustOffset?: Unbinder = false;
     private _unbindResetOffset?: Unbinder = false;
@@ -182,6 +184,24 @@ export default class KeyBindings {
             true
         );
 
+        this._unbindToggleBlurTrack = this._keyBinder.bindToggleBlurTrack(
+            (event, track) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                const command: VideoToExtensionCommand<BlurSubtitlesMessage> = {
+                    sender: 'asbplayer-video',
+                    message: {
+                        command: 'blur-subtitles',
+                        track: track,
+                    },
+                    src: context.video.src,
+                };
+                chrome.runtime.sendMessage(command);
+            },
+            () => context.subtitleController.subtitles.length === 0,
+            true
+        );
+
         this._unbindToggleSubtitleTrackInList = this._keyBinder.bindToggleSubtitleTrackInList(
             (event, track) => {
                 event.preventDefault();
@@ -303,6 +323,11 @@ export default class KeyBindings {
         if (this._unbindToggleSubtitleTrackInList) {
             this._unbindToggleSubtitleTrackInList();
             this._unbindToggleSubtitleTrackInList = false;
+        }
+
+        if (this._unbindToggleBlurTrack) {
+            this._unbindToggleBlurTrack();
+            this._unbindToggleBlurTrack = false;
         }
 
         if (this._unbindOffsetToSubtitle) {
