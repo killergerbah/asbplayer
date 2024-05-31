@@ -2074,41 +2074,47 @@ export default function SettingsForm({
                             className={classes.switchLabel}
                         />
                     </Grid>
-                    <Grid item>
-                        <LabelWithHoverEffect
-                            className={classes.switchLabel}
-                            control={
-                                <Switch
-                                    checked={webSocketClientEnabled}
-                                    onChange={(e) => handleSettingChanged('webSocketClientEnabled', e.target.checked)}
+                    {!isFirefox && (
+                        <>
+                            <Grid item>
+                                <LabelWithHoverEffect
+                                    className={classes.switchLabel}
+                                    control={
+                                        <Switch
+                                            checked={webSocketClientEnabled}
+                                            onChange={(e) =>
+                                                handleSettingChanged('webSocketClientEnabled', e.target.checked)
+                                            }
+                                        />
+                                    }
+                                    label={t('settings.webSocketClientEnabled')}
+                                    labelPlacement="start"
                                 />
-                            }
-                            label={t('settings.webSocketClientEnabled')}
-                            labelPlacement="start"
-                        />
-                    </Grid>
-                    <Grid item>
-                        <TextField
-                            className={classes.textField}
-                            color="secondary"
-                            fullWidth
-                            label={t('settings.webSocketServerUrl')}
-                            value={webSocketServerUrl}
-                            disabled={!webSocketClientEnabled}
-                            onChange={(e) => handleSettingChanged('webSocketServerUrl', e.target.value)}
-                            error={webSocketClientEnabled && webSocketConnectionSucceeded === false}
-                            helperText={webSocketServerUrlHelperText}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton onClick={pingWebSocketServer}>
-                                            <RefreshIcon />
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-                    </Grid>
+                            </Grid>
+                            <Grid item>
+                                <TextField
+                                    className={classes.textField}
+                                    color="secondary"
+                                    fullWidth
+                                    label={t('settings.webSocketServerUrl')}
+                                    value={webSocketServerUrl}
+                                    disabled={!webSocketClientEnabled}
+                                    onChange={(e) => handleSettingChanged('webSocketServerUrl', e.target.value)}
+                                    error={webSocketClientEnabled && webSocketConnectionSucceeded === false}
+                                    helperText={webSocketServerUrlHelperText}
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton onClick={pingWebSocketServer}>
+                                                    <RefreshIcon />
+                                                </IconButton>
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+                            </Grid>
+                        </>
+                    )}
                     <Grid item>
                         <Button
                             variant="contained"
