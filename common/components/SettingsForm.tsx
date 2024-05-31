@@ -43,6 +43,7 @@ import Button from '@material-ui/core/Button';
 import { Anki } from '../anki';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { WebSocketClient } from '../web-socket-client/web-socket-client';
+import { isFirefox } from '@project/common/browser-detection';
 
 interface StylesProps {
     smallScreen: boolean;
@@ -239,8 +240,6 @@ interface KeyBindFieldProps {
     onKeysChange: (keys: string) => void;
     onOpenExtensionShortcuts: () => void;
 }
-
-const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
 
 function KeyBindField({ label, keys, boundViaChrome, onKeysChange, onOpenExtensionShortcuts }: KeyBindFieldProps) {
     const { t } = useTranslation();

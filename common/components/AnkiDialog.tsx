@@ -37,6 +37,7 @@ import ZoomOutIcon from '@material-ui/icons/ZoomOut';
 import SubtitleTextImage from './SubtitleTextImage';
 import TagsTextField from './TagsTextField';
 import { Anki, AnkiExportMode } from '../anki';
+import { isFirefox } from '../browser-detection';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -811,7 +812,7 @@ const AnkiDialog = ({
                                 helperText={imageHelperText}
                                 disabled={!imageAvailable}
                                 InputProps={{
-                                    endAdornment: (
+                                    endAdornment: !isFirefox && (
                                         <InputAdornment position="end">
                                             <Tooltip title={t('ankiDialog.copyToClipboard')!}>
                                                 <span>

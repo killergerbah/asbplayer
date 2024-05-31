@@ -1,6 +1,6 @@
 import { SettingsProvider } from '@project/common/settings';
 import { ExtensionSettingsStorage } from './extension-settings-storage';
-import { isFirefox } from './browser-detection';
+import { isFirefoxBuild } from './build-flags';
 
 export interface ExtensionConfig {
     latest: {
@@ -20,7 +20,7 @@ const settings = new SettingsProvider(new ExtensionSettingsStorage());
 
 // As of this writing, session storage is not accessible to content scripts on Firefox so we use local storage instead.
 // Since unlike session storage, local storage is not automatically cleared, we clear it manually once a day.
-const storage = isFirefox ? chrome.storage.session : chrome.storage.local;
+const storage = isFirefoxBuild ? chrome.storage.session : chrome.storage.local;
 const firefoxTtl = 3600 * 24 * 1000; // 1 day
 
 export const fetchExtensionConfig = async (noCache = false): Promise<ExtensionConfig | undefined> => {
@@ -44,7 +44,7 @@ export const fetchExtensionConfig = async (noCache = false): Promise<ExtensionCo
         const extensionJson = await (await fetch(extensionJsonUrl)).json();
 
         if (validJson(extensionJson)) {
-            if (isFirefox) {
+            if (isFirefoxBuild) {
                 extensionJson.ttl = Date.now() + firefoxTtl;
             }
 

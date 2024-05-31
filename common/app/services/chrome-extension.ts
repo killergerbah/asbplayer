@@ -19,6 +19,7 @@ import { AsbplayerSettings } from '@project/common/settings';
 import { v4 as uuidv4 } from 'uuid';
 import gte from 'semver/functions/gte';
 import gt from 'semver/functions/gt';
+import { isFirefox } from '../../browser-detection';
 
 export interface ExtensionMessage {
     data: Message;
@@ -27,7 +28,6 @@ export interface ExtensionMessage {
 }
 
 const id = uuidv4();
-const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
 
 export default class ChromeExtension {
     readonly version: string;

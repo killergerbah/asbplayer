@@ -14,7 +14,7 @@ import { Anki } from '@project/common/anki';
 import { useSupportedLanguages } from '../hooks/use-supported-languages';
 import { useI18n } from '../hooks/use-i18n';
 import { isMobile } from 'react-device-detect';
-import { isFirefox } from '../../services/browser-detection';
+import { isFirefoxBuild } from '../../services/build-flags';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -77,7 +77,7 @@ const Popup = ({
                     {t('action.openApp')}
                 </Button>
             </Grid>
-            {!isMobile && !isFirefox && (
+            {!isMobile && !isFirefoxBuild && (
                 <Grid item style={{ marginLeft: 16, marginTop: 8, marginRight: 16 }}>
                     <Button
                         variant="contained"
@@ -95,7 +95,7 @@ const Popup = ({
                     extensionInstalled
                     extensionSupportsAppIntegration
                     extensionSupportsOverlay
-                    extensionSupportsSidePanel={!isFirefox}
+                    extensionSupportsSidePanel={!isFirefoxBuild}
                     forceVerticalTabs={false}
                     anki={anki}
                     chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}

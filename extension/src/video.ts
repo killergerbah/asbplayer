@@ -14,6 +14,7 @@ import { TabAnkiUiController } from './controllers/tab-anki-ui-controller';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
 import { DefaultKeyBinder } from '@project/common/key-binder';
 import { incrementallyFindShadowRoots, shadowRootHosts } from './services/shadow-roots';
+import { isFirefoxBuild } from './services/build-flags';
 
 const extensionSettingsStorage = new ExtensionSettingsStorage();
 const settingsProvider = new SettingsProvider(extensionSettingsStorage);
@@ -163,9 +164,19 @@ const bind = () => {
                 const copyToClipboardMessage = request.message as CopyToClipboardMessage;
                 fetch(copyToClipboardMessage.dataUrl)
                     .then((response) => response.blob())
-                    .then((blob) =>
-                        navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]).catch(console.error)
-                    );
+                    .then((blob) => {
+                        if (isFirefoxBuild) {
+                            if (blob.type.startsWith('text/plain')) {
+                                blob.text()
+                                    .then((text) => navigator.clipboard.writeText(text))
+                                    .catch(console.info);
+                            } else {
+                                console.error(`Cannot write blob type ${blob.type} to clipboard on Firefox`);
+                            }
+                        } else {
+                            navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]).catch(console.error);
+                        }
+                    });
                 break;
             case 'crop-and-resize':
                 const cropAndResizeMessage = request.message as CropAndResizeMessage;

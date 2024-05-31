@@ -47,7 +47,7 @@ import { CardPublisher } from './services/card-publisher';
 import AckMessageHandler from './handlers/video/ack-message-handler';
 import PublishCardHandler from './handlers/asbplayerv2/publish-card-handler';
 import { bindWebSocketClient, unbindWebSocketClient } from './services/web-socket-client-binding';
-import { isFirefox } from './services/browser-detection';
+import { isFirefoxBuild } from './services/build-flags';
 import { CaptureStreamAudioRecorder, OffscreenAudioRecorder } from './services/audio-recorder-delegate';
 import RequestModelHandler from './handlers/mobile-overlay/request-model-handler';
 import CurrentTabHandler from './handlers/mobile-overlay/current-tab-handler';
@@ -56,7 +56,7 @@ import { isMobile } from './services/device-detection';
 import { enqueueUpdateAlert } from './services/update-alert';
 import BlurSubtitlesHandler from './handlers/video/blur-subtitles-handler';
 
-if (!isFirefox) {
+if (!isFirefoxBuild) {
     chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
 }
 
@@ -106,7 +106,7 @@ chrome.runtime.onStartup.addListener(startListener);
 const tabRegistry = new TabRegistry(settings);
 const audioRecorder = new AudioRecorderService(
     tabRegistry,
-    isFirefox ? new CaptureStreamAudioRecorder() : new OffscreenAudioRecorder()
+    isFirefoxBuild ? new CaptureStreamAudioRecorder() : new OffscreenAudioRecorder()
 );
 const imageCapturer = new ImageCapturer(settings);
 const cardPublisher = new CardPublisher(settings);
@@ -381,7 +381,7 @@ const defaultAction = (tab: chrome.tabs.Tab) => {
     }
 };
 
-if (isFirefox) {
+if (isFirefoxBuild) {
     let hasHostPermission = true;
 
     chrome.permissions.contains({ origins: ['<all_urls>'] }).then((result) => {
@@ -417,7 +417,7 @@ if (isFirefox) {
     chrome.action.onClicked.addListener(defaultAction);
 }
 
-if (isFirefox) {
+if (isFirefoxBuild) {
     // Firefox requires the use of iframe.srcdoc in order to load UI into an about:blank iframe
     // (which is required for UI to be scannable by other extensions like Yomitan).
     // However, such an iframe inherits the content security directives of the parent document,

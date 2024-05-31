@@ -1,4 +1,4 @@
-import { isFirefox } from './browser-detection';
+import { isFirefoxBuild } from './build-flags';
 import FrameBridgeClient, { FetchOptions } from './frame-bridge-client';
 
 const frameColorScheme = () => {
@@ -96,7 +96,7 @@ export default class UiFrame {
         this._client = new FrameBridgeClient(this._frame, this._fetchOptions);
         document.body.appendChild(this._frame);
 
-        if (isFirefox) {
+        if (isFirefoxBuild) {
             // Firefox does not allow document.write() into the about:blank iframe.
             // CSP headers are modified using the webRequest API to allow extension scripts to
             // be loaded.

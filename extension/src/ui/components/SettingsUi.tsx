@@ -15,7 +15,7 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import Paper from '@material-ui/core/Paper';
 import { Anki } from '@project/common/anki';
 import { useSupportedLanguages } from '../hooks/use-supported-languages';
-import { isFirefox } from '../../services/browser-detection';
+import { isFirefoxBuild } from '../../services/build-flags';
 
 const useStyles = makeStyles({
     root: {
@@ -83,7 +83,7 @@ const SettingsUi = () => {
                             extensionInstalled
                             extensionSupportsAppIntegration
                             extensionSupportsOverlay
-                            extensionSupportsSidePanel={!isFirefox}
+                            extensionSupportsSidePanel={!isFirefoxBuild}
                             chromeKeyBinds={commands}
                             onOpenChromeExtensionShortcuts={handleOpenExtensionShortcuts}
                             onSettingsChanged={onSettingsChanged}
