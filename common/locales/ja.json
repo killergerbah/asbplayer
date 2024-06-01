@@ -32,7 +32,7 @@
     "postMinePlayback": {
         "remember": "マイニング前の状態を維持",
         "play": "常に再生する",
-        "pause": "常に維持停止する"
+        "pause": "常に停止する"
     },
     "ankiDialog": {
         "applySelection": "選択範囲を適用する",
