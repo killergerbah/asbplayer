@@ -245,7 +245,7 @@ func (forwarder forwarder) handleOptionsRequest(c echo.Context) error {
 func main() {
 	port := getenv("PORT", "8766")
 	ankiConnectUrl := getenv("ANKI_CONNECT_URL", "http://127.0.0.1:8765")
-	postMineAction, _ := strconv.Atoi(getenv("POST_MINE_ACTION", "1"))
+	postMineAction, _ := strconv.Atoi(getenv("POST_MINE_ACTION", "2"))
 	fmt.Printf("Started with config:\n\n\tPORT=%v\n\tANKI_CONNECT_URL=%v\n\tPOST_MINE_ACTION=%v\n",
 		port, ankiConnectUrl, postMineAction)
 
