@@ -1,4 +1,10 @@
-import { GetSettingsMessage, SetSettingsMessage } from '@project/common';
+import {
+    AddProfileMessage,
+    GetSettingsMessage,
+    RemoveProfileMessage,
+    SetActiveProfileMessage,
+    SetSettingsMessage,
+} from '@project/common';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
 
 const sendMessageToPlayer = (message: any) => {
@@ -29,6 +35,39 @@ window.addEventListener('message', async (event) => {
             case 'set-settings':
                 const setSettingsMessage = command.message as SetSettingsMessage;
                 await settingsStorage.set(setSettingsMessage.settings);
+                sendMessageToPlayer({
+                    messageId: command.message.messageId,
+                });
+                break;
+            case 'get-active-profile':
+                sendMessageToPlayer({
+                    response: await settingsStorage.activeProfile(),
+                    messageId: command.message.messageId,
+                });
+                break;
+            case 'set-active-profile':
+                const setActiveProfileMessage = command.message as SetActiveProfileMessage;
+                await settingsStorage.setActiveProfile(setActiveProfileMessage.name);
+                sendMessageToPlayer({
+                    messageId: command.message.messageId,
+                });
+                break;
+            case 'get-profiles':
+                sendMessageToPlayer({
+                    response: await settingsStorage.profiles(),
+                    messageId: command.message.messageId,
+                });
+                break;
+            case 'add-profile':
+                const addProfileMessage = command.message as AddProfileMessage;
+                await settingsStorage.addProfile(addProfileMessage.name);
+                sendMessageToPlayer({
+                    messageId: command.message.messageId,
+                });
+                break;
+            case 'remove-profile':
+                const removeProfileMessage = command.message as RemoveProfileMessage;
+                await settingsStorage.removeProfile(removeProfileMessage.name);
                 sendMessageToPlayer({
                     messageId: command.message.messageId,
                 });

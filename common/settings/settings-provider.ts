@@ -242,7 +242,53 @@ export class SettingsProvider {
     }
 }
 
+export type AsbplayerSettingsProfile<P extends string> = {
+    [K in keyof AsbplayerSettings as K extends string ? `_prof_${P}_${K}` : never]: AsbplayerSettings[K];
+};
+
+const keyPrefix = (profile: string) => {
+    return `_prof_${profile}_`;
+};
+
+export const prefixKey = (key: string, profile: string) => {
+    return `${keyPrefix(profile)}${key}`;
+};
+
+export const unprefixKey = (key: string, profile: string) => {
+    return (key as string).substring(profile.length + 7);
+};
+
+export const prefixedSettings = <P extends string>(
+    settings: Partial<AsbplayerSettings>,
+    profile: P
+): Partial<AsbplayerSettingsProfile<P>> => {
+    const prefixed: any = {};
+
+    for (const key of Object.keys(settings)) {
+        prefixed[prefixKey(key as keyof AsbplayerSettings, profile)] = settings[key as keyof AsbplayerSettings];
+    }
+
+    return prefixed;
+};
+
+export const unprefixedSettings = <P extends string>(settings: Partial<AsbplayerSettingsProfile<P>>, profile: P) => {
+    const unprefixed: any = {};
+
+    for (const key of Object.keys(settings)) {
+        const unprefixedKey = unprefixKey(key as keyof AsbplayerSettingsProfile<P>, profile);
+        unprefixed[unprefixedKey] = settings[key as keyof AsbplayerSettingsProfile<P>];
+    }
+
+    return unprefixed;
+};
+
 export interface SettingsStorage {
     get: (keysAndDefaults: Partial<AsbplayerSettings>) => Promise<Partial<AsbplayerSettings>>;
     set: (settings: Partial<AsbplayerSettings>) => Promise<void>;
+
+    activeProfile: () => Promise<string | undefined>;
+    setActiveProfile: (name: string) => Promise<void>;
+    profiles: () => Promise<string[]>;
+    addProfile: (name: string) => Promise<void>;
+    removeProfile: (name: string) => Promise<void>;
 }

@@ -19,6 +19,26 @@ export class AppExtensionSettingsStorage implements AppSettingsStorage {
         return this._extension.setSettings(settings);
     }
 
+    activeProfile(): Promise<string | undefined> {
+        return this._extension.activeSettingsProfile();
+    }
+
+    setActiveProfile(name: string): Promise<void> {
+        return this._extension.setActiveSettingsProfile(name);
+    }
+
+    profiles(): Promise<string[]> {
+        return this._extension.settingsProfiles();
+    }
+
+    addProfile(name: string): Promise<void> {
+        return this._extension.addSettingsProfile(name);
+    }
+
+    removeProfile(name: string): Promise<void> {
+        return this._extension.removeSettingsProfile(name);
+    }
+
     onSettingsUpdated(callback: () => void) {
         if (this._settingsUpdatedCallbacks.length === 0) {
             this._unsubscribeExtension = this._extension.subscribe((message) => {

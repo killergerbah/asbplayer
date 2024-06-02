@@ -542,6 +542,29 @@ export interface SetSettingsMessage extends MessageWithId {
     readonly settings: Partial<AsbplayerSettings>;
 }
 
+export interface GetActiveProfileMessage extends MessageWithId {
+    readonly command: 'get-active-profile';
+}
+
+export interface SetActiveProfileMessage extends MessageWithId {
+    readonly command: 'set-active-profile';
+    readonly name: string;
+}
+
+export interface GetProfilesMessage extends MessageWithId {
+    readonly command: 'get-profiles';
+}
+
+export interface AddProfileMessage extends MessageWithId {
+    readonly command: 'add-profile';
+    readonly name: string;
+}
+
+export interface RemoveProfileMessage extends MessageWithId {
+    readonly command: 'remove-profile';
+    readonly name: string;
+}
+
 export interface ForwardCommandMessage extends Message {
     readonly command: 'forward-command';
     readonly commandToForward: AsbPlayerToVideoCommandV2<Message>;

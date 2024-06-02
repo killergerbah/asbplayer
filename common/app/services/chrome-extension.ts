@@ -14,6 +14,11 @@ import {
     SettingsUpdatedMessage,
     VideoTabModel,
     AsbplayerHeartbeatMessage,
+    GetActiveProfileMessage,
+    SetActiveProfileMessage,
+    GetProfilesMessage,
+    AddProfileMessage,
+    RemoveProfileMessage,
 } from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
 import { v4 as uuidv4 } from 'uuid';
@@ -263,6 +268,56 @@ export default class ChromeExtension {
         };
         window.postMessage(command);
         return this._createResponsePromise(messageId).then(() => this.notifySettingsUpdated());
+    }
+
+    activeSettingsProfile(): Promise<string | undefined> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<GetActiveProfileMessage> = {
+            sender: 'asbplayerv2',
+            message: { command: 'get-active-profile', messageId },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId);
+    }
+
+    setActiveSettingsProfile(name: string): Promise<void> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<SetActiveProfileMessage> = {
+            sender: 'asbplayerv2',
+            message: { command: 'set-active-profile', name, messageId },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId).then(() => this.notifySettingsUpdated());
+    }
+
+    settingsProfiles(): Promise<string[]> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<GetProfilesMessage> = {
+            sender: 'asbplayerv2',
+            message: { command: 'get-profiles', messageId },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId);
+    }
+
+    addSettingsProfile(name: string): Promise<void> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<AddProfileMessage> = {
+            sender: 'asbplayerv2',
+            message: { command: 'add-profile', name, messageId },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId);
+    }
+
+    removeSettingsProfile(name: string): Promise<void> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<RemoveProfileMessage> = {
+            sender: 'asbplayerv2',
+            message: { command: 'remove-profile', name, messageId },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId);
     }
 
     private _createResponsePromise<T>(messageId: string) {

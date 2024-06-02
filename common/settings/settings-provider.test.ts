@@ -1,23 +1,65 @@
-import { AsbplayerSettings, SettingsProvider, SettingsStorage, defaultSettings } from '@project/common/settings';
+import {
+    AsbplayerSettings,
+    AsbplayerSettingsProfile,
+    SettingsProvider,
+    SettingsStorage,
+    defaultSettings,
+    prefixedSettings,
+    unprefixedSettings,
+} from '@project/common/settings';
 
 export class MockSettingsStorage implements SettingsStorage {
+    private _activeProfile?: string;
+    private _profiles: string[] = [];
     private _cache: any = {};
 
     async get(keysAndDefaults: Partial<AsbplayerSettings>) {
         const settings: any = {};
 
-        for (const [key, defaultValue] of Object.entries(keysAndDefaults)) {
+        const actualKeysAndDefaults =
+            this._activeProfile === undefined
+                ? keysAndDefaults
+                : prefixedSettings(keysAndDefaults, this._activeProfile);
+
+        for (const [key, defaultValue] of Object.entries(actualKeysAndDefaults)) {
             // Simulate retrieval from actual storage - object references should change
             settings[key] = JSON.parse(JSON.stringify(this._cache[key] ?? defaultValue));
         }
 
-        return settings as Partial<AsbplayerSettings>;
+        return this._activeProfile === undefined
+            ? (settings as Partial<AsbplayerSettings>)
+            : unprefixedSettings(settings as Partial<AsbplayerSettingsProfile<string>>, this._activeProfile);
     }
 
     async set(settings: Partial<AsbplayerSettings>) {
-        for (const [key, value] of Object.entries(settings)) {
+        const actualSettings =
+            this._activeProfile === undefined ? settings : prefixedSettings(settings, this._activeProfile);
+
+        for (const [key, value] of Object.entries(actualSettings)) {
             this._cache[key] = value;
         }
+    }
+
+    async activeProfile(): Promise<string | undefined> {
+        return this._activeProfile;
+    }
+
+    async setActiveProfile(name: string): Promise<void> {
+        this._activeProfile = name;
+    }
+
+    async profiles(): Promise<string[]> {
+        return this._profiles;
+    }
+
+    async addProfile(name: string): Promise<void> {
+        if (!this._profiles.includes(name)) {
+            this._profiles.push(name);
+        }
+    }
+
+    async removeProfile(name: string): Promise<void> {
+        this._profiles = this._profiles.filter((p) => p !== name);
     }
 }
 
@@ -53,4 +95,15 @@ it('returns the same object references if the values inside do not change', asyn
     };
     await provider.set({ keyBindSet: newKeyBindSet });
     expect(await provider.getSingle('keyBindSet')).toBe(await provider.getSingle('keyBindSet'));
+});
+
+it('changes different keys for different profiles', async () => {
+    const storage = new MockSettingsStorage();
+    const provider = new SettingsProvider(storage);
+    const defaultProfileValue = 'https://foo.bar';
+    await provider.set({ streamingAppUrl: defaultProfileValue });
+    await storage.addProfile('profile');
+    await storage.setActiveProfile('profile');
+    const profileValue = await provider.getSingle('streamingAppUrl');
+    expect(profileValue).toEqual('https://killergerbah.github.io/asbplayer');
 });
