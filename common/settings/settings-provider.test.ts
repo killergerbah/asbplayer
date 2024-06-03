@@ -1,6 +1,7 @@
 import {
     AsbplayerSettings,
     AsbplayerSettingsProfile,
+    Profile,
     SettingsProvider,
     SettingsStorage,
     defaultSettings,
@@ -10,7 +11,7 @@ import {
 
 export class MockSettingsStorage implements SettingsStorage {
     private _activeProfile?: string;
-    private _profiles: string[] = [];
+    private _profiles: Profile[] = [];
     private _cache: any = {};
 
     async get(keysAndDefaults: Partial<AsbplayerSettings>) {
@@ -40,26 +41,34 @@ export class MockSettingsStorage implements SettingsStorage {
         }
     }
 
-    async activeProfile(): Promise<string | undefined> {
-        return this._activeProfile;
+    async activeProfile(): Promise<Profile | undefined> {
+        return this._activeProfile === undefined
+            ? undefined
+            : this._profiles.find((p) => p.name === this._activeProfile);
     }
 
     async setActiveProfile(name: string | undefined): Promise<void> {
         this._activeProfile = name;
     }
 
-    async profiles(): Promise<string[]> {
+    async profiles(): Promise<Profile[]> {
         return this._profiles;
     }
 
     async addProfile(name: string): Promise<void> {
-        if (!this._profiles.includes(name)) {
-            this._profiles.push(name);
+        const existing = this._profiles.find((p) => p.name === name);
+
+        if (existing === undefined) {
+            this._profiles.push({ name });
         }
     }
 
     async removeProfile(name: string): Promise<void> {
-        this._profiles = this._profiles.filter((p) => p !== name);
+        if (this._activeProfile === name) {
+            throw new Error('Cannot remove active profile');
+        }
+
+        this._profiles = this._profiles.filter((p) => p.name !== name);
     }
 }
 

@@ -1,4 +1,4 @@
-import { SettingsProvider } from '../settings';
+import { Profile, SettingsProvider } from '../settings';
 import { useEffect, useState, useCallback } from 'react';
 
 interface Params {
@@ -7,12 +7,15 @@ interface Params {
 }
 
 export const useSettingsProfileContext = ({ settingsProvider, onProfileChanged }: Params) => {
-    const [profiles, setProfiles] = useState<string[]>([]);
+    const [profiles, setProfiles] = useState<Profile[]>([]);
     const [activeProfile, setActiveProfile] = useState<string>();
-    useEffect(() => {
+    const refreshProfileContext = useCallback(() => {
         settingsProvider.profiles().then(setProfiles);
-        settingsProvider.activeProfile().then(setActiveProfile);
+        settingsProvider.activeProfile().then((p) => setActiveProfile(p?.name));
     }, [settingsProvider]);
+    useEffect(() => {
+        refreshProfileContext();
+    }, [refreshProfileContext]);
 
     const onNewProfile = useCallback(
         (name: string) =>
@@ -38,5 +41,5 @@ export const useSettingsProfileContext = ({ settingsProvider, onProfileChanged }
         [settingsProvider, onProfileChanged]
     );
 
-    return { profiles, activeProfile, onNewProfile, onRemoveProfile, onSetActiveProfile };
+    return { profiles, activeProfile, onNewProfile, onRemoveProfile, onSetActiveProfile, refreshProfileContext };
 };

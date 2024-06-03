@@ -31,16 +31,20 @@ const RootApp = ({ origin, logoUrl, settingsStorage, fetcher }: Props) => {
         [settingsProvider]
     );
 
-    useEffect(() => {
-        return settingsStorage.onSettingsUpdated(() => {
-            settingsProvider.getAll().then(setSettings);
-        });
-    }, [extension, settingsProvider, settingsStorage]);
-
     const handleProfileChanged = useCallback(() => {
         settingsProvider.getAll().then(setSettings);
     }, [settingsProvider]);
-    const profilesContext = useSettingsProfileContext({ settingsProvider, onProfileChanged: handleProfileChanged });
+    const { refreshProfileContext, ...profilesContext } = useSettingsProfileContext({
+        settingsProvider,
+        onProfileChanged: handleProfileChanged,
+    });
+
+    useEffect(() => {
+        return settingsStorage.onSettingsUpdated(() => {
+            settingsProvider.getAll().then(setSettings);
+            refreshProfileContext();
+        });
+    }, [extension, settingsProvider, settingsStorage, refreshProfileContext]);
 
     if (settings === undefined) {
         return null;

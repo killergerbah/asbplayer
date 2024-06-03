@@ -2,8 +2,9 @@ import { HttpFetcher } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import React, { useCallback, useMemo } from 'react';
 import { useSettings } from '../hooks/use-settings';
-import { ThemeProvider, makeStyles } from '@material-ui/core/styles';
+import { ThemeProvider, makeStyles, useTheme } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
+import Box from '@material-ui/core/Box';
 import SettingsForm from '@project/common/components/SettingsForm';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
@@ -16,8 +17,9 @@ import Paper from '@material-ui/core/Paper';
 import { Anki } from '@project/common/anki';
 import { useSupportedLanguages } from '../hooks/use-supported-languages';
 import { isFirefoxBuild } from '../../services/build-flags';
+import SettingsProfileSelectMenu from '@project/common/components/SettingsProfileSelectMenu';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
     root: {
         '& .MuiPaper-root': {
             height: '100vh',
@@ -26,12 +28,16 @@ const useStyles = makeStyles({
     content: {
         maxHeight: '100%',
     },
-});
+    profilesContainer: {
+        paddingLeft: theme.spacing(4),
+        paddingRight: theme.spacing(4),
+    },
+}));
 
 const SettingsUi = () => {
     const { t } = useTranslation();
 
-    const { settings, onSettingsChanged } = useSettings();
+    const { settings, onSettingsChanged, profileContext } = useSettings();
     const anki = useMemo(
         () => (settings === undefined ? undefined : new Anki(settings, new HttpFetcher())),
         [settings]
@@ -96,6 +102,9 @@ const SettingsUi = () => {
                             scrollToId={section}
                         />
                     </DialogContent>
+                    <Box style={{ marginBottom: theme.spacing(2) }} className={classes.profilesContainer}>
+                        <SettingsProfileSelectMenu {...profileContext} />
+                    </Box>
                 </Dialog>
             </Paper>
         </ThemeProvider>

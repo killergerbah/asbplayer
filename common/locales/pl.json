@@ -239,7 +239,7 @@
         "message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer."
     },
     "settings": {
-        "activeProfile": "Active Profile",
+        "activeProfile": "Profile",
         "defaultProfile": "Default",
         "newProfile": "Add New Profile...",
         "profileName": "Profile Name",

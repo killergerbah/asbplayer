@@ -302,13 +302,17 @@ export const unprefixedSettings = <P extends string>(settings: Partial<Asbplayer
     return unprefixed;
 };
 
+export interface Profile {
+    name: string;
+}
+
 export interface SettingsStorage {
     get: (keysAndDefaults: Partial<AsbplayerSettings>) => Promise<Partial<AsbplayerSettings>>;
     set: (settings: Partial<AsbplayerSettings>) => Promise<void>;
 
-    activeProfile: () => Promise<string | undefined>;
+    activeProfile: () => Promise<Profile | undefined>;
     setActiveProfile: (name: string | undefined) => Promise<void>;
-    profiles: () => Promise<string[]>;
+    profiles: () => Promise<Profile[]>;
     addProfile: (name: string) => Promise<void>;
     removeProfile: (name: string) => Promise<void>;
 }

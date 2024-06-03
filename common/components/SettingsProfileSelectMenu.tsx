@@ -7,17 +7,27 @@ import IconButton from '@material-ui/core/IconButton';
 import AddIcon from '@material-ui/icons/Add';
 import ClearIcon from '@material-ui/icons/Clear';
 import DeleteIcon from '@material-ui/icons/Delete';
+import makeStyles from '@material-ui/core/styles/makeStyles';
+import { Profile } from '../settings';
 
 const maxProfileNameLength = 16;
 const maxProfiles = 5;
 
 interface Props {
-    profiles: string[];
+    profiles: Profile[];
     activeProfile?: string;
     onNewProfile: (name: string) => void;
     onRemoveProfile: (name: string) => void;
     onSetActiveProfile: (name: string | undefined) => void;
 }
+
+const useStyles = makeStyles((theme) => ({
+    newProfileTextField: {
+        '& .MuiInputBase-root': {
+            paddingRight: 0,
+        },
+    },
+}));
 
 export default function SettingsProfileSelectMenu({
     profiles,
@@ -27,6 +37,7 @@ export default function SettingsProfileSelectMenu({
     onSetActiveProfile,
 }: Props) {
     const { t } = useTranslation();
+    const classes = useStyles();
     const [addingNewProfile, setAddingNewProfile] = useState<boolean>(false);
     const newProfileInput = useRef<HTMLInputElement>();
     const [newProfile, setNewProfile] = useState<string>('');
@@ -36,7 +47,7 @@ export default function SettingsProfileSelectMenu({
         trimmed !== '-' &&
         trimmed.length >= 1 &&
         trimmed.length <= maxProfileNameLength &&
-        !profiles.includes(trimmed);
+        profiles.find((p) => p.name === trimmed) === undefined;
 
     useEffect(() => {
         if (!addingNewProfile) {
@@ -67,8 +78,12 @@ export default function SettingsProfileSelectMenu({
                         newProfileInput.current = input;
                         input?.focus();
                     }}
+                    className={classes.newProfileTextField}
                     fullWidth
+                    size="small"
                     color="secondary"
+                    variant="outlined"
+                    style={{ paddingRight: 0 }}
                     label={t('settings.profileName')}
                     placeholder={t('settings.enterProfileName')!}
                     value={newProfile}
@@ -84,7 +99,7 @@ export default function SettingsProfileSelectMenu({
                                         setAddingNewProfile(false);
                                     }}
                                 >
-                                    <ClearIcon />
+                                    <ClearIcon fontSize="small" />
                                 </IconButton>
                                 <IconButton
                                     disabled={!validNewProfile}
@@ -93,7 +108,7 @@ export default function SettingsProfileSelectMenu({
                                         onNewProfile(newProfile.trim());
                                     }}
                                 >
-                                    <AddIcon />
+                                    <AddIcon fontSize="small" />
                                 </IconButton>
                             </InputAdornment>
                         ),
@@ -104,7 +119,9 @@ export default function SettingsProfileSelectMenu({
                 <TextField
                     select
                     fullWidth
+                    size="small"
                     color="secondary"
+                    variant="outlined"
                     label={t('settings.activeProfile')}
                     value={activeProfile ?? '-'}
                 >
@@ -113,26 +130,26 @@ export default function SettingsProfileSelectMenu({
                     </MenuItem>
                     {profiles.map((p, i) => {
                         return (
-                            <MenuItem divider={i === profiles.length - 1} key={p} value={p}>
+                            <MenuItem divider={i === profiles.length - 1} key={p.name} value={p.name}>
                                 <div
                                     onClick={(e) => {
                                         if (e.currentTarget === e.target) {
-                                            onSetActiveProfile(p);
+                                            onSetActiveProfile(p.name);
                                         }
                                     }}
                                     style={{ flexGrow: 1 }}
                                 >
-                                    {p}
+                                    {p.name}
                                 </div>
-                                {activeProfile !== p && (
-                                    <IconButton>
-                                        <DeleteIcon
-                                            onClick={(e) => {
-                                                e.nativeEvent.stopPropagation();
-                                                onRemoveProfile(p);
-                                            }}
-                                            fontSize="small"
-                                        />
+                                {activeProfile !== p.name && (
+                                    <IconButton
+                                        onClick={(e) => {
+                                            e.nativeEvent.stopPropagation();
+                                            onRemoveProfile(p.name);
+                                        }}
+                                        style={{ padding: 4 }}
+                                    >
+                                        <DeleteIcon fontSize="small" />
                                     </IconButton>
                                 )}
                             </MenuItem>

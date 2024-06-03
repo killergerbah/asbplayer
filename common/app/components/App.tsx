@@ -20,7 +20,7 @@ import {
     CardTextFieldValues,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
-import { AsbplayerSettings } from '@project/common/settings';
+import { AsbplayerSettings, Profile } from '@project/common/settings';
 import { humanReadableTime, download, extractText } from '@project/common/util';
 import { AudioClip } from '@project/common/audio-clip';
 import { AnkiExportMode } from '@project/common/anki';
@@ -196,7 +196,7 @@ interface Props {
     extension: ChromeExtension;
     fetcher: Fetcher;
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
-    profiles: string[];
+    profiles: Profile[];
     activeProfile?: string;
     onNewProfile: (name: string) => void;
     onRemoveProfile: (name: string) => void;

@@ -1,4 +1,4 @@
-import { AsbplayerSettings } from '@project/common/settings';
+import { AsbplayerSettings, Profile } from '@project/common/settings';
 import { ChromeExtension } from '@project/common/app';
 import { AppSettingsStorage } from '@project/common/app/services/app-settings-storage';
 
@@ -19,7 +19,7 @@ export class AppExtensionSettingsStorage implements AppSettingsStorage {
         return this._extension.setSettings(settings);
     }
 
-    activeProfile(): Promise<string | undefined> {
+    activeProfile(): Promise<Profile | undefined> {
         return this._extension.activeSettingsProfile();
     }
 
@@ -27,7 +27,7 @@ export class AppExtensionSettingsStorage implements AppSettingsStorage {
         return this._extension.setActiveSettingsProfile(name);
     }
 
-    profiles(): Promise<string[]> {
+    profiles(): Promise<Profile[]> {
         return this._extension.settingsProfiles();
     }
 

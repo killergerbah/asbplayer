@@ -239,7 +239,7 @@
         "message": "DRMで保護されている音声は asbplayer のFirefox版では録音できません。"
     },
     "settings": {
-        "activeProfile": "Active Profile",
+        "activeProfile": "Profile",
         "defaultProfile": "Default",
         "newProfile": "Add New Profile...",
         "profileName": "Profile Name",

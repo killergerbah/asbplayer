@@ -16,10 +16,21 @@ import Popup from './Popup';
 import { useRequestingActiveTabPermission } from '../hooks/use-requesting-active-tab-permission';
 import { isMobile } from 'react-device-detect';
 import Link from '@material-ui/core/Link';
+import { useSettingsProfileContext } from '@project/common/hooks/use-settings-profile-context';
 
 interface Props {
     commands: any;
 }
+
+const notifySettingsUpdated = () => {
+    const settingsUpdatedCommand: PopupToExtensionCommand<SettingsUpdatedMessage> = {
+        sender: 'asbplayer-popup',
+        message: {
+            command: 'settings-updated',
+        },
+    };
+    chrome.runtime.sendMessage(settingsUpdatedCommand);
+};
 
 export function PopupUi({ commands }: Props) {
     const settingsProvider = useMemo(() => new SettingsProvider(new ExtensionSettingsStorage()), []);
@@ -34,13 +45,7 @@ export function PopupUi({ commands }: Props) {
         async (changed: Partial<AsbplayerSettings>) => {
             setSettings((old: any) => ({ ...old, ...changed }));
             await settingsProvider.set(changed);
-            const settingsUpdatedCommand: PopupToExtensionCommand<SettingsUpdatedMessage> = {
-                sender: 'asbplayer-popup',
-                message: {
-                    command: 'settings-updated',
-                },
-            };
-            chrome.runtime.sendMessage(settingsUpdatedCommand);
+            notifySettingsUpdated();
         },
         [settingsProvider]
     );
@@ -78,6 +83,13 @@ export function PopupUi({ commands }: Props) {
         window.close();
     }, [requestingActiveTabPermission, tabRequestingActiveTabPermission]);
 
+    const handleProfileChanged = useCallback(() => {
+        settingsProvider.getAll().then(setSettings);
+        notifySettingsUpdated();
+    }, [settingsProvider]);
+
+    const profilesContext = useSettingsProfileContext({ settingsProvider, onProfileChanged: handleProfileChanged });
+
     if (!settings || !theme || requestingActiveTabPermission === undefined) {
         return null;
     }
@@ -96,6 +108,7 @@ export function PopupUi({ commands }: Props) {
                         onOpenApp={handleOpenApp}
                         onOpenSidePanel={handleOpenSidePanel}
                         onOpenExtensionShortcuts={handleOpenExtensionShortcuts}
+                        {...profilesContext}
                     />
                 </Box>
                 <Box p={0.5} textAlign="right">

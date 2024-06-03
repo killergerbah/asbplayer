@@ -11,8 +11,9 @@ import ChromeExtension from '../services/chrome-extension';
 import SettingsForm from '../../components/SettingsForm';
 import { useLocalFontFamilies } from '../../hooks';
 import { Anki } from '../../anki';
-import { AsbplayerSettings, supportedLanguages } from '../../settings';
+import { AsbplayerSettings, Profile, supportedLanguages } from '../../settings';
 import SettingsProfileSelectMenu from '../../components/SettingsProfileSelectMenu';
+
 const useStyles = makeStyles((theme) => ({
     root: {
         '& .MuiPaper-root': {
@@ -36,7 +37,7 @@ interface Props {
     scrollToId?: string;
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     onClose: () => void;
-    profiles: string[];
+    profiles: Profile[];
     activeProfile?: string;
     onNewProfile: (name: string) => void;
     onRemoveProfile: (name: string) => void;

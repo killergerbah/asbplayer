@@ -20,7 +20,7 @@ import {
     AddProfileMessage,
     RemoveProfileMessage,
 } from '@project/common';
-import { AsbplayerSettings } from '@project/common/settings';
+import { AsbplayerSettings, Profile } from '@project/common/settings';
 import { v4 as uuidv4 } from 'uuid';
 import gte from 'semver/functions/gte';
 import gt from 'semver/functions/gt';
@@ -274,7 +274,7 @@ export default class ChromeExtension {
         return this._createResponsePromise(messageId).then(() => this.notifySettingsUpdated());
     }
 
-    activeSettingsProfile(): Promise<string | undefined> {
+    activeSettingsProfile(): Promise<Profile | undefined> {
         const messageId = uuidv4();
         const command: AsbPlayerCommand<GetActiveProfileMessage> = {
             sender: 'asbplayerv2',
@@ -294,7 +294,7 @@ export default class ChromeExtension {
         return this._createResponsePromise(messageId).then(() => this.notifySettingsUpdated());
     }
 
-    settingsProfiles(): Promise<string[]> {
+    settingsProfiles(): Promise<Profile[]> {
         const messageId = uuidv4();
         const command: AsbPlayerCommand<GetProfilesMessage> = {
             sender: 'asbplayerv2',

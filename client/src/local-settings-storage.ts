@@ -2,6 +2,7 @@ import { CachedLocalStorage } from '@project/common/app';
 import { AppSettingsStorage } from '@project/common/app/services/app-settings-storage';
 import {
     AsbplayerSettings,
+    Profile,
     defaultSettings,
     prefixKey,
     prefixedSettings,
@@ -19,9 +20,13 @@ export class LocalSettingsStorage implements AppSettingsStorage {
 
     async get(keysAndDefaults: Partial<AsbplayerSettings>) {
         const activeProfile = this._activeProfile();
+        return this._get(keysAndDefaults, activeProfile);
+    }
+
+    private _get(keysAndDefaults: Partial<AsbplayerSettings>, activeProfile?: Profile) {
         const settings: any = {};
         const actualKeysAndDefaults =
-            activeProfile === undefined ? keysAndDefaults : prefixedSettings(keysAndDefaults, activeProfile);
+            activeProfile === undefined ? keysAndDefaults : prefixedSettings(keysAndDefaults, activeProfile.name);
 
         for (const [key, defaultValue] of Object.entries(actualKeysAndDefaults)) {
             const value = cachedLocalStorage.get(key);
@@ -29,7 +34,7 @@ export class LocalSettingsStorage implements AppSettingsStorage {
             if (value === null) {
                 settings[key] = defaultValue;
             } else {
-                const originalKey = activeProfile === undefined ? key : unprefixKey(key, activeProfile);
+                const originalKey = activeProfile === undefined ? key : unprefixKey(key, activeProfile.name);
                 settings[key] = settingsDeserializers[originalKey as keyof AsbplayerSettings]!(value);
             }
         }
@@ -42,7 +47,7 @@ export class LocalSettingsStorage implements AppSettingsStorage {
         const activeProfile = this._activeProfile();
 
         for (const key of keys) {
-            const actualKey = activeProfile === undefined ? key : prefixKey(key, activeProfile);
+            const actualKey = activeProfile === undefined ? key : prefixKey(key, activeProfile.name);
             const value = cachedLocalStorage.get(actualKey);
 
             if (value !== null) {
@@ -55,7 +60,11 @@ export class LocalSettingsStorage implements AppSettingsStorage {
 
     async set(settings: Partial<AsbplayerSettings>) {
         const activeProfile = this._activeProfile();
-        const actualSettings = activeProfile === undefined ? settings : prefixedSettings(settings, activeProfile);
+        this._set(settings, activeProfile);
+    }
+
+    private _set(settings: Partial<AsbplayerSettings>, activeProfile?: Profile) {
+        const actualSettings = activeProfile === undefined ? settings : prefixedSettings(settings, activeProfile.name);
 
         for (const [key, value] of Object.entries(actualSettings)) {
             if (typeof value === 'object') {
@@ -66,12 +75,18 @@ export class LocalSettingsStorage implements AppSettingsStorage {
         }
     }
 
-    async activeProfile(): Promise<string | undefined> {
+    async activeProfile(): Promise<Profile | undefined> {
         return this._activeProfile();
     }
 
-    private _activeProfile(): string | undefined {
-        return cachedLocalStorage.get(activeProfileKey) ?? undefined;
+    private _activeProfile(): Profile | undefined {
+        const name = cachedLocalStorage.get(activeProfileKey) ?? undefined;
+        if (name === undefined) {
+            return undefined;
+        }
+
+        const profiles = this._profiles();
+        return profiles.find((p) => p.name === name);
     }
 
     async setActiveProfile(name: string | undefined): Promise<void> {
@@ -82,11 +97,11 @@ export class LocalSettingsStorage implements AppSettingsStorage {
         }
     }
 
-    async profiles(): Promise<string[]> {
+    async profiles(): Promise<Profile[]> {
         return this._profiles();
     }
 
-    private _profiles(): string[] {
+    private _profiles(): Profile[] {
         const value = cachedLocalStorage.get(profilesKey);
 
         if (value === null) {
@@ -98,23 +113,27 @@ export class LocalSettingsStorage implements AppSettingsStorage {
 
     async addProfile(name: string): Promise<void> {
         const profiles = this._profiles();
+        const existing = profiles.find((p) => p.name === name);
+        const newProfile = { name };
 
-        if (!profiles.includes(name)) {
-            profiles.push(name);
+        if (existing === undefined) {
+            profiles.push(newProfile);
         }
 
         cachedLocalStorage.set(profilesKey, JSON.stringify(profiles));
+        const initialValues = this._get(defaultSettings);
+        this._set(initialValues, newProfile);
     }
 
     async removeProfile(name: string): Promise<void> {
         const profiles = this._profiles();
         const activeProfile = this._activeProfile();
 
-        if (name === activeProfile) {
+        if (name === activeProfile?.name) {
             throw new Error('Cannot remove active profile');
         }
 
-        const newProfiles = profiles.filter((p) => p !== name);
+        const newProfiles = profiles.filter((p) => p.name !== name);
         const prefixedKeys = Object.keys(prefixedSettings(defaultSettings, name));
 
         for (const key of prefixedKeys) {

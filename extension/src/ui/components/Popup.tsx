@@ -1,7 +1,7 @@
 import React from 'react';
 import Grid from '@material-ui/core/Grid';
 import { HttpPostMessage, PopupToExtensionCommand } from '@project/common';
-import { AsbplayerSettings, chromeCommandBindsToKeyBinds } from '@project/common/settings';
+import { AsbplayerSettings, Profile, chromeCommandBindsToKeyBinds } from '@project/common/settings';
 import SettingsForm from '@project/common/components/SettingsForm';
 import PanelIcon from '@project/common/components/PanelIcon';
 import LaunchIcon from '@material-ui/icons/Launch';
@@ -15,6 +15,8 @@ import { useSupportedLanguages } from '../hooks/use-supported-languages';
 import { useI18n } from '../hooks/use-i18n';
 import { isMobile } from 'react-device-detect';
 import { isFirefoxBuild } from '../../services/build-flags';
+import { useTheme } from '@material-ui/core';
+import SettingsProfileSelectMenu from '@project/common/components/SettingsProfileSelectMenu';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -23,6 +25,11 @@ interface Props {
     onOpenApp: () => void;
     onOpenSidePanel: () => void;
     onOpenExtensionShortcuts: () => void;
+    profiles: Profile[];
+    activeProfile?: string;
+    onNewProfile: (name: string) => void;
+    onRemoveProfile: (name: string) => void;
+    onSetActiveProfile: (name: string | undefined) => void;
 }
 
 class ExtensionFetcher implements Fetcher {
@@ -47,6 +54,7 @@ const Popup = ({
     onOpenSidePanel,
     onSettingsChanged,
     onOpenExtensionShortcuts,
+    ...profilesContext
 }: Props) => {
     const { t } = useTranslation();
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
@@ -59,6 +67,7 @@ const Popup = ({
     }, []);
     const { supportedLanguages } = useSupportedLanguages();
     const { localFontsAvailable, localFontsPermission, localFontFamilies } = useLocalFontFamilies();
+    const theme = useTheme();
 
     if (!i18nInitialized) {
         return null;
@@ -66,7 +75,10 @@ const Popup = ({
 
     return (
         <Grid container direction="column" spacing={0}>
-            <Grid item style={{ marginLeft: 16, marginTop: 16, marginRight: 16 }}>
+            <Grid
+                item
+                style={{ marginLeft: theme.spacing(2), marginTop: theme.spacing(2), marginRight: theme.spacing(2) }}
+            >
                 <Button
                     variant="contained"
                     color="secondary"
@@ -78,7 +90,10 @@ const Popup = ({
                 </Button>
             </Grid>
             {!isMobile && !isFirefoxBuild && (
-                <Grid item style={{ marginLeft: 16, marginTop: 8, marginRight: 16 }}>
+                <Grid
+                    item
+                    style={{ marginLeft: theme.spacing(2), marginTop: theme.spacing(1), marginRight: theme.spacing(2) }}
+                >
                     <Button
                         variant="contained"
                         color="secondary"
@@ -90,7 +105,10 @@ const Popup = ({
                     </Button>
                 </Grid>
             )}
-            <Grid item style={{ height: isMobile ? 'auto' : 450, marginTop: 8, marginRight: 8 }}>
+            <Grid
+                item
+                style={{ height: isMobile ? 'auto' : 400, marginTop: theme.spacing(1), marginRight: theme.spacing(1) }}
+            >
                 <SettingsForm
                     extensionInstalled
                     extensionSupportsAppIntegration
@@ -108,6 +126,17 @@ const Popup = ({
                     onOpenChromeExtensionShortcuts={onOpenExtensionShortcuts}
                     onUnlockLocalFonts={handleUnlockLocalFonts}
                 />
+            </Grid>
+            <Grid
+                item
+                style={{
+                    marginLeft: theme.spacing(2),
+                    marginTop: theme.spacing(1),
+                    marginRight: theme.spacing(2),
+                    marginBottom: theme.spacing(1),
+                }}
+            >
+                <SettingsProfileSelectMenu {...profilesContext} />
             </Grid>
         </Grid>
     );
