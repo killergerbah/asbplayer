@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import App from './App';
 import { useChromeExtension } from '../hooks/use-chrome-extension';
 import { AppSettingsStorage } from '../services/app-settings-storage';
+import { useSettingsProfileContext } from '../../hooks/use-settings-profile-context';
 
 interface Props {
     origin: string;
@@ -36,6 +37,11 @@ const RootApp = ({ origin, logoUrl, settingsStorage, fetcher }: Props) => {
         });
     }, [extension, settingsProvider, settingsStorage]);
 
+    const handleProfileChanged = useCallback(() => {
+        settingsProvider.getAll().then(setSettings);
+    }, [settingsProvider]);
+    const profilesContext = useSettingsProfileContext({ settingsProvider, onProfileChanged: handleProfileChanged });
+
     if (settings === undefined) {
         return null;
     }
@@ -48,6 +54,7 @@ const RootApp = ({ origin, logoUrl, settingsStorage, fetcher }: Props) => {
             extension={extension}
             fetcher={fetcher}
             onSettingsChanged={handleSettingsChanged}
+            {...profilesContext}
         />
     );
 };

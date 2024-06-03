@@ -548,7 +548,7 @@ export interface GetActiveProfileMessage extends MessageWithId {
 
 export interface SetActiveProfileMessage extends MessageWithId {
     readonly command: 'set-active-profile';
-    readonly name: string;
+    readonly name: string | undefined;
 }
 
 export interface GetProfilesMessage extends MessageWithId {

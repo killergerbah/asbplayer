@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
-import { makeStyles } from '@material-ui/styles';
+import makeStyles from '@material-ui/core/styles/makeStyles';
 import { useTranslation } from 'react-i18next';
+import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -11,8 +12,8 @@ import SettingsForm from '../../components/SettingsForm';
 import { useLocalFontFamilies } from '../../hooks';
 import { Anki } from '../../anki';
 import { AsbplayerSettings, supportedLanguages } from '../../settings';
-
-const useStyles = makeStyles({
+import SettingsProfileSelectMenu from '../../components/SettingsProfileSelectMenu';
+const useStyles = makeStyles((theme) => ({
     root: {
         '& .MuiPaper-root': {
             height: '100vh',
@@ -21,7 +22,11 @@ const useStyles = makeStyles({
     content: {
         maxHeight: '100%',
     },
-});
+    profilesContainer: {
+        paddingLeft: theme.spacing(4),
+        paddingRight: theme.spacing(4),
+    },
+}));
 
 interface Props {
     anki: Anki;
@@ -31,6 +36,11 @@ interface Props {
     scrollToId?: string;
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     onClose: () => void;
+    profiles: string[];
+    activeProfile?: string;
+    onNewProfile: (name: string) => void;
+    onRemoveProfile: (name: string) => void;
+    onSetActiveProfile: (name: string | undefined) => void;
 }
 
 export default function SettingsDialog({
@@ -41,6 +51,7 @@ export default function SettingsDialog({
     scrollToId,
     onSettingsChanged,
     onClose,
+    ...profilesContext
 }: Props) {
     const { t } = useTranslation();
     const classes = useStyles();
@@ -80,6 +91,12 @@ export default function SettingsDialog({
                     onUnlockLocalFonts={handleUnlockLocalFonts}
                 />
             </DialogContent>
+            {!extension.installed ||
+                (extension.supportsSettingsProfiles && (
+                    <Box className={classes.profilesContainer}>
+                        <SettingsProfileSelectMenu {...profilesContext} />
+                    </Box>
+                ))}
             <DialogActions>
                 <Button onClick={onClose}>{t('action.ok')}</Button>
             </DialogActions>

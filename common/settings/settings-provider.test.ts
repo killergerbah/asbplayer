@@ -44,7 +44,7 @@ export class MockSettingsStorage implements SettingsStorage {
         return this._activeProfile;
     }
 
-    async setActiveProfile(name: string): Promise<void> {
+    async setActiveProfile(name: string | undefined): Promise<void> {
         this._activeProfile = name;
     }
 

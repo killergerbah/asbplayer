@@ -34,15 +34,19 @@ export class ExtensionSettingsStorage implements SettingsStorage {
     }
 
     async activeProfile(): Promise<string | undefined> {
-        return (await chrome.storage.local.get({ [activeProfileKey]: undefined }))[activeProfileKey];
+        return (await chrome.storage.local.get(activeProfileKey))[activeProfileKey];
     }
 
-    async setActiveProfile(name: string): Promise<void> {
-        await chrome.storage.local.set({ [activeProfileKey]: name });
+    async setActiveProfile(name: string | undefined): Promise<void> {
+        if (name === undefined) {
+            await chrome.storage.local.remove(activeProfileKey);
+        } else {
+            await chrome.storage.local.set({ [activeProfileKey]: name });
+        }
     }
 
     async profiles(): Promise<string[]> {
-        return (await chrome.storage.local.get({ [profilesKey]: undefined }))[profilesKey];
+        return (await chrome.storage.local.get({ [profilesKey]: [] }))[profilesKey] ?? [];
     }
 
     async addProfile(name: string): Promise<void> {
@@ -57,6 +61,12 @@ export class ExtensionSettingsStorage implements SettingsStorage {
 
     async removeProfile(name: string): Promise<void> {
         const profiles = await this.profiles();
+        const activeProfile = await this.activeProfile();
+
+        if (name === activeProfile) {
+            throw new Error('Cannot remove active profile');
+        }
+
         const newProfiles = profiles.filter((p) => p !== name);
         const prefixedKeys = Object.keys(prefixedSettings(defaultSettings, name));
         await chrome.storage.local.remove(prefixedKeys);

@@ -240,6 +240,26 @@ export class SettingsProvider {
     async set(settings: Partial<AsbplayerSettings>): Promise<void> {
         await this._storage.set(settings);
     }
+
+    async activeProfile() {
+        return await this._storage.activeProfile();
+    }
+
+    async setActiveProfile(name: string | undefined) {
+        await this._storage.setActiveProfile(name);
+    }
+
+    async profiles() {
+        return await this._storage.profiles();
+    }
+
+    async addProfile(name: string) {
+        await this._storage.addProfile(name);
+    }
+
+    async removeProfile(name: string) {
+        await this._storage.removeProfile(name);
+    }
 }
 
 export type AsbplayerSettingsProfile<P extends string> = {
@@ -287,7 +307,7 @@ export interface SettingsStorage {
     set: (settings: Partial<AsbplayerSettings>) => Promise<void>;
 
     activeProfile: () => Promise<string | undefined>;
-    setActiveProfile: (name: string) => Promise<void>;
+    setActiveProfile: (name: string | undefined) => Promise<void>;
     profiles: () => Promise<string[]>;
     addProfile: (name: string) => Promise<void>;
     removeProfile: (name: string) => Promise<void>;

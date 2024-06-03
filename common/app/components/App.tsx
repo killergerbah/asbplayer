@@ -196,9 +196,14 @@ interface Props {
     extension: ChromeExtension;
     fetcher: Fetcher;
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
+    profiles: string[];
+    activeProfile?: string;
+    onNewProfile: (name: string) => void;
+    onRemoveProfile: (name: string) => void;
+    onSetActiveProfile: (name: string | undefined) => void;
 }
 
-function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged }: Props) {
+function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged, ...profilesContext }: Props) {
     const { t } = useTranslation();
     const subtitleReader = useMemo<SubtitleReader>(() => {
         return new SubtitleReader({
@@ -253,7 +258,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
     const [tab, setTab] = useState<VideoTabModel>();
     const [availableTabs, setAvailableTabs] = useState<VideoTabModel[]>();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const ankiDialogRequestedRef = useRef<boolean>(false);
     const { subtitleFiles } = sources;
 
     const handleError = useCallback(
@@ -1219,6 +1223,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged 
                             onClose={handleCloseSettings}
                             settings={settings}
                             scrollToId={settingsDialogScrollToId}
+                            {...profilesContext}
                         />
                         <Bar
                             title={fileName || 'asbplayer'}

@@ -239,6 +239,12 @@
         "message": "DRMで保護されている音声は asbplayer のFirefox版では録音できません。"
     },
     "settings": {
+        "activeProfile": "Active Profile",
+        "defaultProfile": "Default",
+        "newProfile": "Add New Profile...",
+        "profileName": "Profile Name",
+        "enterProfileName": "Enter profile name",
+        "profileLimitReached": "Profile limit reached",
         "addCustomCss": "カスタムCSSを追加",
         "addCustomField": "カスタムフィールドを追加",
         "alwaysPlayOnSubtitleRepeat": "「今の、または前の字幕冒頭に移動」の実行後、再生する",

@@ -23,7 +23,7 @@ export class AppExtensionSettingsStorage implements AppSettingsStorage {
         return this._extension.activeSettingsProfile();
     }
 
-    setActiveProfile(name: string): Promise<void> {
+    setActiveProfile(name: string | undefined): Promise<void> {
         return this._extension.setActiveSettingsProfile(name);
     }
 

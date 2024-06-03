@@ -74,8 +74,12 @@ export class LocalSettingsStorage implements AppSettingsStorage {
         return cachedLocalStorage.get(activeProfileKey) ?? undefined;
     }
 
-    async setActiveProfile(name: string): Promise<void> {
-        cachedLocalStorage.set(activeProfileKey, name);
+    async setActiveProfile(name: string | undefined): Promise<void> {
+        if (name === undefined) {
+            cachedLocalStorage.delete(activeProfileKey);
+        } else {
+            cachedLocalStorage.set(activeProfileKey, name);
+        }
     }
 
     async profiles(): Promise<string[]> {
@@ -104,6 +108,12 @@ export class LocalSettingsStorage implements AppSettingsStorage {
 
     async removeProfile(name: string): Promise<void> {
         const profiles = this._profiles();
+        const activeProfile = this._activeProfile();
+
+        if (name === activeProfile) {
+            throw new Error('Cannot remove active profile');
+        }
+
         const newProfiles = profiles.filter((p) => p !== name);
         const prefixedKeys = Object.keys(prefixedSettings(defaultSettings, name));
 

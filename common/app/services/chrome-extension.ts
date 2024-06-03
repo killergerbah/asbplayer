@@ -141,6 +141,10 @@ export default class ChromeExtension {
         return this.installed && gte(this.version, '0.23.0');
     }
 
+    get supportsSettingsProfiles() {
+        return this.installed && gte(this.version, '1.3.0');
+    }
+
     startHeartbeat({ fromVideoPlayer, loadedSubtitles }: { fromVideoPlayer: boolean; loadedSubtitles: boolean }) {
         if (!this.installed) {
             return;
@@ -280,7 +284,7 @@ export default class ChromeExtension {
         return this._createResponsePromise(messageId);
     }
 
-    setActiveSettingsProfile(name: string): Promise<void> {
+    setActiveSettingsProfile(name: string | undefined): Promise<void> {
         const messageId = uuidv4();
         const command: AsbPlayerCommand<SetActiveProfileMessage> = {
             sender: 'asbplayerv2',

@@ -239,6 +239,12 @@
         "message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer."
     },
     "settings": {
+        "activeProfile": "Active Profile",
+        "defaultProfile": "Default",
+        "newProfile": "Add New Profile...",
+        "profileName": "Profile Name",
+        "enterProfileName": "Enter profile name",
+        "profileLimitReached": "Profile limit reached",
         "addCustomCss": "Add Custom CSS",
         "addCustomField": "Dodaj niestandardowe pole",
         "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current/previous subtitle'",
