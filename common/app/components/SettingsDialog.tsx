@@ -92,12 +92,11 @@ export default function SettingsDialog({
                     onUnlockLocalFonts={handleUnlockLocalFonts}
                 />
             </DialogContent>
-            {!extension.installed ||
-                (extension.supportsSettingsProfiles && (
-                    <Box className={classes.profilesContainer}>
-                        <SettingsProfileSelectMenu {...profilesContext} />
-                    </Box>
-                ))}
+            {(!extension.installed || extension.supportsSettingsProfiles) && (
+                <Box className={classes.profilesContainer}>
+                    <SettingsProfileSelectMenu {...profilesContext} />
+                </Box>
+            )}
             <DialogActions>
                 <Button onClick={onClose}>{t('action.ok')}</Button>
             </DialogActions>

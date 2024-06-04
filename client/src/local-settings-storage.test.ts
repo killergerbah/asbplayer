@@ -10,7 +10,7 @@ it('serializes and deserializes the default settings', async () => {
     }
 
     expect(await settingsStorage.get(defaultSettings)).toEqual(defaultSettings);
-    expect(await settingsStorage.getKeys(Object.keys(defaultSettings) as (keyof AsbplayerSettings)[])).toEqual(
+    expect(await settingsStorage.getStored(Object.keys(defaultSettings) as (keyof AsbplayerSettings)[])).toEqual(
         defaultSettings
     );
 });

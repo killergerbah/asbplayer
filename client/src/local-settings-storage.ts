@@ -30,21 +30,25 @@ export class LocalSettingsStorage implements AppSettingsStorage {
 
         for (const [key, defaultValue] of Object.entries(actualKeysAndDefaults)) {
             const value = cachedLocalStorage.get(key);
+            const originalKey = activeProfile === undefined ? key : unprefixKey(key, activeProfile.name);
 
             if (value === null) {
-                settings[key] = defaultValue;
+                settings[originalKey] = defaultValue;
             } else {
-                const originalKey = activeProfile === undefined ? key : unprefixKey(key, activeProfile.name);
-                settings[key] = settingsDeserializers[originalKey as keyof AsbplayerSettings]!(value);
+                settings[originalKey] = settingsDeserializers[originalKey as keyof AsbplayerSettings]!(value);
             }
         }
 
         return settings as Partial<AsbplayerSettings>;
     }
 
-    async getKeys(keys: (keyof AsbplayerSettings)[]) {
-        const settings: any = {};
+    async getStored(keys: (keyof AsbplayerSettings)[]) {
         const activeProfile = this._activeProfile();
+        return this._getStored(keys, activeProfile);
+    }
+
+    private _getStored(keys: (keyof AsbplayerSettings)[], activeProfile?: Profile) {
+        const settings: any = {};
 
         for (const key of keys) {
             const actualKey = activeProfile === undefined ? key : prefixKey(key, activeProfile.name);
@@ -121,7 +125,7 @@ export class LocalSettingsStorage implements AppSettingsStorage {
         }
 
         cachedLocalStorage.set(profilesKey, JSON.stringify(profiles));
-        const initialValues = this._get(defaultSettings);
+        const initialValues = this._getStored(Object.keys(defaultSettings) as (keyof AsbplayerSettings)[]);
         this._set(initialValues, newProfile);
     }
 

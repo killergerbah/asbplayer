@@ -66,7 +66,7 @@ export class ExtensionSettingsStorage implements SettingsStorage {
         }
 
         await chrome.storage.local.set({ [profilesKey]: profiles });
-        const initialValues = await chrome.storage.local.get(defaultSettings);
+        const initialValues = await chrome.storage.local.get(Object.keys(defaultSettings));
         await chrome.storage.local.set(prefixedSettings(initialValues, name));
     }
 
