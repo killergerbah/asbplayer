@@ -129,6 +129,7 @@ const textSubtitleSettingsKeysObject: { [key in keyof TextSubtitleSettings]: boo
     subtitleFontFamily: true,
     subtitleCustomStyles: true,
     subtitleBlur: true,
+    subtitleAlignment: true,
 };
 
 export const textSubtitleSettingsKeys: (keyof TextSubtitleSettings)[] = Object.keys(
@@ -181,12 +182,12 @@ export interface TextSubtitleSettings {
     readonly subtitleFontFamily: string;
     readonly subtitleCustomStyles: CustomStyle[];
     readonly subtitleBlur: boolean;
+    readonly subtitleAlignment: SubtitleAlignment;
 }
 
 export interface SubtitleSettings extends TextSubtitleSettings {
     readonly imageBasedSubtitleScaleFactor: number;
     readonly subtitlePositionOffset: number;
-    readonly subtitleAlignment: SubtitleAlignment;
 
     // Settings for (0-based) tracks 1, 2,...
     // We don't configure track 0 here to avoid having to migrate old settings into this new data structure.

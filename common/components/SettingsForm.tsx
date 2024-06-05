@@ -791,7 +791,6 @@ export default function SettingsForm({
         ankiFieldSettings,
         subtitlePreview,
         subtitlePositionOffset,
-        subtitleAlignment,
         subtitlesWidth,
         audioPaddingStart,
         audioPaddingEnd,
@@ -852,6 +851,7 @@ export default function SettingsForm({
         subtitleFontFamily,
         subtitleCustomStyles,
         subtitleBlur,
+        subtitleAlignment,
     } = textSubtitleSettingsForTrack(settings, selectedSubtitleAppearanceTrack);
 
     const handleAddCustomField = useCallback(
@@ -1863,6 +1863,42 @@ export default function SettingsForm({
                             </Tooltip>
                         )}
 
+                        {subtitleAlignment !== undefined && (
+                            <>
+                                <FormLabel className={classes.top} component="legend">
+                                    {t('settings.subtitleAlignment')}
+                                </FormLabel>
+                                <RadioGroup row>
+                                    <LabelWithHoverEffect
+                                        control={
+                                            <Radio
+                                                checked={subtitleAlignment === 'bottom'}
+                                                value={'bottom'}
+                                                onChange={(event) =>
+                                                    event.target.checked &&
+                                                    handleSubtitleTextSettingChanged('subtitleAlignment', 'bottom')
+                                                }
+                                            />
+                                        }
+                                        label={t('settings.subtitleAlignmentBottom')}
+                                    />
+                                    <LabelWithHoverEffect
+                                        control={
+                                            <Radio
+                                                checked={subtitleAlignment === 'top'}
+                                                value={'top'}
+                                                onChange={(event) =>
+                                                    event.target.checked &&
+                                                    handleSubtitleTextSettingChanged('subtitleAlignment', 'top')
+                                                }
+                                            />
+                                        }
+                                        label={t('settings.subtitleAlignmentTop')}
+                                    />
+                                </RadioGroup>
+                            </>
+                        )}
+
                         {subtitleCustomStyles !== undefined && (
                             <>
                                 {subtitleCustomStyles.map((customStyle, index) => {
@@ -1902,39 +1938,6 @@ export default function SettingsForm({
 
                         {selectedSubtitleAppearanceTrack === undefined && (
                             <>
-                                <div className={classes.subtitleSetting}>
-                                    <FormLabel className={classes.top} component="legend">
-                                        {t('settings.subtitleAlignment')}
-                                    </FormLabel>
-                                    <RadioGroup row>
-                                        <LabelWithHoverEffect
-                                            control={
-                                                <Radio
-                                                    checked={subtitleAlignment === 'bottom'}
-                                                    value={'bottom'}
-                                                    onChange={(event) =>
-                                                        event.target.checked &&
-                                                        handleSettingChanged('subtitleAlignment', 'bottom')
-                                                    }
-                                                />
-                                            }
-                                            label={t('settings.subtitleAlignmentBottom')}
-                                        />
-                                        <LabelWithHoverEffect
-                                            control={
-                                                <Radio
-                                                    checked={subtitleAlignment === 'top'}
-                                                    value={'top'}
-                                                    onChange={(event) =>
-                                                        event.target.checked &&
-                                                        handleSettingChanged('subtitleAlignment', 'top')
-                                                    }
-                                                />
-                                            }
-                                            label={t('settings.subtitleAlignmentTop')}
-                                        />
-                                    </RadioGroup>
-                                </div>
                                 <div className={classes.subtitleSetting}>
                                     <TextField
                                         className={classes.textField}

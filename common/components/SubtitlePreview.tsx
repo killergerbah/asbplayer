@@ -58,6 +58,7 @@ const SubtitlePreviewInput = ({ text, className, textSubtitleSettings, onTextCha
         subtitleFontFamily,
         subtitleCustomStyles,
         subtitleBlur,
+        subtitleAlignment,
     } = textSubtitleSettings;
 
     const subtitlePreviewStyles = useMemo(
@@ -75,6 +76,7 @@ const SubtitlePreviewInput = ({ text, className, textSubtitleSettings, onTextCha
                 subtitleFontFamily,
                 subtitleCustomStyles,
                 subtitleBlur,
+                subtitleAlignment,
             }),
         [
             subtitleColor,
@@ -89,6 +91,7 @@ const SubtitlePreviewInput = ({ text, className, textSubtitleSettings, onTextCha
             subtitleFontFamily,
             subtitleCustomStyles,
             subtitleBlur,
+            subtitleAlignment,
         ]
     );
 
