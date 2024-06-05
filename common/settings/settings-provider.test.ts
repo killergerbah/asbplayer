@@ -169,6 +169,7 @@ const subtitleSettings = {
     subtitleCustomStyles: [],
     imageBasedSubtitleScaleFactor: 1,
     subtitlePositionOffset: 70,
+    topSubtitlePositionOffset: 70,
     subtitleAlignment: 'top' as SubtitleAlignment,
     subtitlesWidth: 100,
     subtitleTracksV2: [

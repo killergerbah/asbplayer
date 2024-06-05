@@ -347,6 +347,9 @@ export default function VideoPlayer({
     const [subtitlePositionOffset, setSubtitlePositionOffset] = useState<number>(
         subtitleSettings.subtitlePositionOffset
     );
+    const [topSubtitlePositionOffset, setTopSubtitlePositionOffset] = useState<number>(
+        subtitleSettings.topSubtitlePositionOffset
+    );
     const showSubtitlesRef = useRef<IndexedSubtitleModel[]>([]);
     showSubtitlesRef.current = showSubtitles;
     const clock = useMemo<Clock>(() => new Clock(), []);
@@ -370,6 +373,7 @@ export default function VideoPlayer({
     useEffect(() => {
         setSubtitleAlignment(subtitleSettings.subtitleAlignment);
         setSubtitlePositionOffset(subtitleSettings.subtitlePositionOffset);
+        setTopSubtitlePositionOffset(subtitleSettings.topSubtitlePositionOffset);
     }, [subtitleSettings]);
 
     const autoPauseContext = useMemo(() => {
@@ -1320,7 +1324,7 @@ export default function VideoPlayer({
                     style={{
                         ...(subtitleAlignment === 'bottom'
                             ? { bottom: subtitlePositionOffset }
-                            : { top: subtitlePositionOffset }),
+                            : { top: topSubtitlePositionOffset }),
                         ...(subtitleSettings.subtitlesWidth === -1
                             ? {}
                             : { width: `${subtitleSettings.subtitlesWidth}%` }),

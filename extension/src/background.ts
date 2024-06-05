@@ -84,6 +84,7 @@ const installListener = async (details: chrome.runtime.InstalledDetails) => {
             streamingTakeScreenshot: false, // Kiwi Browser does not support captureVisibleTab
             subtitleSize: 18,
             subtitlePositionOffset: 25,
+            topSubtitlePositionOffset: 25,
             subtitlesWidth: 100,
         });
     }

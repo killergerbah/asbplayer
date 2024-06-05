@@ -63,6 +63,7 @@ it('validates exported settings', () => {
         ],
         subtitlePreview: 'アあ安Aa',
         subtitlePositionOffset: 71,
+        topSubtitlePositionOffset: 71,
         audioPaddingStart: 0,
         audioPaddingEnd: 500,
         maxImageWidth: 480,

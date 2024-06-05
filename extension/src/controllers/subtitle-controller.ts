@@ -140,12 +140,15 @@ export default class SubtitleController {
 
     set subtitlePositionOffset(value: number) {
         this.subtitlesElementOverlay.contentPositionOffset = value;
+    }
+
+    set topSubtitlePositionOffset(value: number) {
         this.topSubtitlesElementOverlay.contentPositionOffset = value;
     }
 
     set subtitlesWidth(value: number) {
         this.subtitlesElementOverlay.contentWidthPercentage = value;
-        this.topSubtitlesElementOverlay.contentPositionOffset = value;
+        this.topSubtitlesElementOverlay.contentWidthPercentage = value;
     }
 
     setSubtitleSettings(newSubtitleSettings: SubtitleSettings) {
@@ -208,6 +211,8 @@ export default class SubtitleController {
         const { subtitlesElementOverlay, topSubtitlesElementOverlay, notificationElementOverlay } = this._overlays(alignment, preCacheDom);
         subtitlesElementOverlay.contentPositionOffset = this.subtitlesElementOverlay.contentPositionOffset;
         subtitlesElementOverlay.contentWidthPercentage = this.subtitlesElementOverlay.contentWidthPercentage;
+        topSubtitlesElementOverlay.contentPositionOffset = this.subtitlesElementOverlay.contentPositionOffset;
+        topSubtitlesElementOverlay.contentWidthPercentage = this.subtitlesElementOverlay.contentWidthPercentage;
         notificationElementOverlay.contentPositionOffset = this.notificationElementOverlay.contentPositionOffset;
         notificationElementOverlay.contentWidthPercentage = this.notificationElementOverlay.contentWidthPercentage;
         this.subtitlesElementOverlay = subtitlesElementOverlay;

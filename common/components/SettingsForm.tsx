@@ -791,6 +791,7 @@ export default function SettingsForm({
         ankiFieldSettings,
         subtitlePreview,
         subtitlePositionOffset,
+        topSubtitlePositionOffset,
         subtitlesWidth,
         audioPaddingStart,
         audioPaddingEnd,
@@ -1952,6 +1953,23 @@ export default function SettingsForm({
                                         }}
                                         onChange={(e) =>
                                             handleSettingChanged('subtitlePositionOffset', Number(e.target.value))
+                                        }
+                                    />
+                                </div>
+                                <div className={classes.subtitleSetting}>
+                                    <TextField
+                                        className={classes.textField}
+                                        type="number"
+                                        color="secondary"
+                                        fullWidth
+                                        label={t('settings.topSubtitlePositionOffset')}
+                                        value={topSubtitlePositionOffset}
+                                        inputProps={{
+                                            min: 0,
+                                            step: 1,
+                                        }}
+                                        onChange={(e) =>
+                                            handleSettingChanged('topSubtitlePositionOffset', Number(e.target.value))
                                         }
                                     />
                                 </div>
