@@ -45,6 +45,7 @@ export default class SubtitleController {
     private _subtitles: SubtitleModelWithIndex[];
     private subtitleCollection: SubtitleCollection<SubtitleModelWithIndex>;
     private subtitlesElementOverlay: ElementOverlay;
+    private topSubtitlesElementOverlay: ElementOverlay;
     private notificationElementOverlay: ElementOverlay;
     private unblurredSubtitleTracks: { [key: number]: boolean | undefined };
     disabledSubtitleTracks: { [key: number]: boolean | undefined };
@@ -69,11 +70,12 @@ export default class SubtitleController {
         this.settings = settings;
         this._subtitleAlignment = 'bottom';
         this._preCacheDom = false;
-        const { subtitlesElementOverlay, notificationElementOverlay } = this._overlays(
+        const { subtitlesElementOverlay, topSubtitlesElementOverlay, notificationElementOverlay } = this._overlays(
             this._subtitleAlignment,
             this._preCacheDom
         );
         this.subtitlesElementOverlay = subtitlesElementOverlay;
+        this.topSubtitlesElementOverlay = topSubtitlesElementOverlay;
         this.notificationElementOverlay = notificationElementOverlay;
         this._subtitles = [];
         this.subtitleCollection = new SubtitleCollection<SubtitleModelWithIndex>([]);
@@ -138,10 +140,16 @@ export default class SubtitleController {
 
     set subtitlePositionOffset(value: number) {
         this.subtitlesElementOverlay.contentPositionOffset = value;
+        this.topSubtitlesElementOverlay.contentPositionOffset = value;
     }
 
     set subtitlesWidth(value: number) {
         this.subtitlesElementOverlay.contentWidthPercentage = value;
+    }
+
+    set subtitlesWidth(value: number) {
+        this.subtitlesElementOverlay.contentWidthPercentage = value;
+        this.topSubtitlesElementOverlay.contentPositionOffset = value;
     }
 
     setSubtitleSettings(newSubtitleSettings: SubtitleSettings) {
@@ -180,8 +188,9 @@ export default class SubtitleController {
             return;
         }
 
-        const { subtitleOverlayParams, notificationOverlayParams } = this._elementOverlayParams(value);
+        const { subtitleOverlayParams, topSubtitleOverlayParams, notificationOverlayParams } = this._elementOverlayParams(value);
         this._applyElementOverlayParams(this.subtitlesElementOverlay, subtitleOverlayParams);
+        this._applyElementOverlayParams(this.topSubtitlesElementOverlay, topSubtitleOverlayParams);
         this._applyElementOverlayParams(this.notificationElementOverlay, notificationOverlayParams);
         this.subtitlesElementOverlay.hide();
         this.notificationElementOverlay.hide();
@@ -213,12 +222,13 @@ export default class SubtitleController {
     private _resetOverlays(alignment: SubtitleAlignment, preCacheDom: boolean, skipCacheHtml: boolean = false) {
         this.subtitlesElementOverlay.dispose();
         this.notificationElementOverlay.dispose();
-        const { subtitlesElementOverlay, notificationElementOverlay } = this._overlays(alignment, preCacheDom);
+        const { subtitlesElementOverlay, topSubtitlesElementOverlay, notificationElementOverlay } = this._overlays(alignment, preCacheDom);
         subtitlesElementOverlay.contentPositionOffset = this.subtitlesElementOverlay.contentPositionOffset;
         subtitlesElementOverlay.contentWidthPercentage = this.subtitlesElementOverlay.contentWidthPercentage;
         notificationElementOverlay.contentPositionOffset = this.notificationElementOverlay.contentPositionOffset;
         notificationElementOverlay.contentWidthPercentage = this.notificationElementOverlay.contentWidthPercentage;
         this.subtitlesElementOverlay = subtitlesElementOverlay;
+        this.topSubtitlesElementOverlay = topSubtitlesElementOverlay;
         this.notificationElementOverlay = notificationElementOverlay;
 
         if (!skipCacheHtml) {
@@ -227,23 +237,26 @@ export default class SubtitleController {
     }
 
     private _overlays(alignment: SubtitleAlignment, preCacheDom: boolean) {
-        const { subtitleOverlayParams, notificationOverlayParams } = this._elementOverlayParams(alignment);
+        const { subtitleOverlayParams, topSubtitleOverlayParams, notificationOverlayParams } = this._elementOverlayParams(alignment);
 
         if (preCacheDom) {
             return {
                 subtitlesElementOverlay: new CachingElementOverlay(subtitleOverlayParams),
+                topSubtitlesElementOverlay: new CachingElementOverlay(topSubtitleOverlayParams),
                 notificationElementOverlay: new CachingElementOverlay(notificationOverlayParams),
             };
         }
 
         return {
             subtitlesElementOverlay: new DefaultElementOverlay(subtitleOverlayParams),
+            topSubtitlesElementOverlay: new DefaultElementOverlay(topSubtitleOverlayParams),
             notificationElementOverlay: new DefaultElementOverlay(notificationOverlayParams),
         };
     }
 
     private _elementOverlayParams(alignment: SubtitleAlignment) {
         let subtitleOverlayParams: ElementOverlayParams;
+        let topSubtitleOverlayParams: ElementOverlayParams;
         let notificationOverlayParams: ElementOverlayParams;
 
         switch (alignment) {
@@ -255,6 +268,16 @@ export default class SubtitleController {
                     fullscreenContainerClassName: 'asbplayer-subtitles-container-bottom',
                     fullscreenContentClassName: 'asbplayer-fullscreen-subtitles',
                     offsetAnchor: OffsetAnchor.bottom,
+                    contentWidthPercentage: -1,
+                    onMouseOver: (event: MouseEvent) => this.onMouseOver?.(event),
+                };
+                topSubtitleOverlayParams = {
+                    targetElement: this.video,
+                    nonFullscreenContainerClassName: 'asbplayer-subtitles-container-top',
+                    nonFullscreenContentClassName: 'asbplayer-subtitles',
+                    fullscreenContainerClassName: 'asbplayer-subtitles-container-top',
+                    fullscreenContentClassName: 'asbplayer-fullscreen-subtitles',
+                    offsetAnchor: OffsetAnchor.top,
                     contentWidthPercentage: -1,
                     onMouseOver: (event: MouseEvent) => this.onMouseOver?.(event),
                 };
@@ -281,6 +304,16 @@ export default class SubtitleController {
                     contentWidthPercentage: -1,
                     onMouseOver: (event: MouseEvent) => this.onMouseOver?.(event),
                 };
+                topSubtitleOverlayParams = {
+                    targetElement: this.video,
+                    nonFullscreenContainerClassName: 'asbplayer-subtitles-container-top',
+                    nonFullscreenContentClassName: 'asbplayer-subtitles',
+                    fullscreenContainerClassName: 'asbplayer-subtitles-container-top',
+                    fullscreenContentClassName: 'asbplayer-fullscreen-subtitles',
+                    offsetAnchor: OffsetAnchor.top,
+                    contentWidthPercentage: -1,
+                    onMouseOver: (event: MouseEvent) => this.onMouseOver?.(event),
+                };
                 notificationOverlayParams = {
                     targetElement: this.video,
                     nonFullscreenContainerClassName: 'asbplayer-notification-container-bottom',
@@ -295,7 +328,7 @@ export default class SubtitleController {
             }
         }
 
-        return { subtitleOverlayParams, notificationOverlayParams };
+        return { subtitleOverlayParams, topSubtitleOverlayParams, notificationOverlayParams };
     }
 
     bind() {
@@ -458,6 +491,7 @@ export default class SubtitleController {
         }
 
         this.subtitlesElementOverlay.dispose();
+        this.topSubtitlesElementOverlay.dispose();
         this.notificationElementOverlay.dispose();
         this.onNextToShow = undefined;
         this.onSlice = undefined;
@@ -467,6 +501,7 @@ export default class SubtitleController {
 
     refresh() {
         this.subtitlesElementOverlay.refresh();
+        this.topSubtitlesElementOverlay.refresh();
         this.notificationElementOverlay.refresh();
     }
 
@@ -630,10 +665,12 @@ export default class SubtitleController {
 
     private _setSubtitlesHtml(htmls: KeyedHtml[]) {
         this.subtitlesElementOverlay.setHtml(htmls);
+        this.topSubtitlesElementOverlay.setHtml(htmls);
     }
 
     private _appendSubtitlesHtml(html: string) {
         this.subtitlesElementOverlay.appendHtml(html);
+        this.topSubtitlesElementOverlay.appendHtml(html);
     }
 
     private _subtitleClasses(track?: number) {
