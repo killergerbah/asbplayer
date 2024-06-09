@@ -10,16 +10,32 @@ import {
 const activeProfileKey = 'activeSettingsProfile';
 const profilesKey = 'settingsProfiles';
 
+export interface StorageArea {
+    set(items: { [key: string]: any }): Promise<void>;
+
+    remove(keys: string | string[]): Promise<void>;
+
+    get(keys?: string | string[] | { [key: string]: any } | null): Promise<{ [key: string]: any }>;
+
+    clear(): Promise<void>;
+}
+
 export class ExtensionSettingsStorage implements SettingsStorage {
+    private readonly _storage: StorageArea;
+
+    constructor(storage?: StorageArea) {
+        this._storage = storage ?? chrome.storage.local;
+    }
+
     async get(keysAndDefaults: Partial<AsbplayerSettings>) {
         const activeProfile = await this.activeProfile();
 
         if (activeProfile === undefined) {
-            return await chrome.storage.local.get(keysAndDefaults);
+            return await this._storage.get(keysAndDefaults);
         }
 
         return unprefixedSettings(
-            await chrome.storage.local.get(prefixedSettings(keysAndDefaults, activeProfile.name)),
+            await this._storage.get(prefixedSettings(keysAndDefaults, activeProfile.name)),
             activeProfile.name
         );
     }
@@ -28,14 +44,14 @@ export class ExtensionSettingsStorage implements SettingsStorage {
         const activeProfile = await this.activeProfile();
 
         if (activeProfile === undefined) {
-            await chrome.storage.local.set(settings);
+            await this._storage.set(settings);
         } else {
-            await chrome.storage.local.set(prefixedSettings(settings, activeProfile.name));
+            await this._storage.set(prefixedSettings(settings, activeProfile.name));
         }
     }
 
     async activeProfile(): Promise<Profile | undefined> {
-        const name = (await chrome.storage.local.get(activeProfileKey))[activeProfileKey];
+        const name = (await this._storage.get(activeProfileKey))[activeProfileKey];
 
         if (name === undefined) {
             return undefined;
@@ -47,14 +63,21 @@ export class ExtensionSettingsStorage implements SettingsStorage {
 
     async setActiveProfile(name: string | undefined): Promise<void> {
         if (name === undefined) {
-            await chrome.storage.local.remove(activeProfileKey);
+            await this._storage.remove(activeProfileKey);
         } else {
-            await chrome.storage.local.set({ [activeProfileKey]: name });
+            const profiles = await this.profiles();
+            const profileExists = profiles.find((p) => p.name === name) !== undefined;
+
+            if (!profileExists) {
+                throw new Error(`Cannot set active profile to non-existant profile ${name}`);
+            }
+
+            await this._storage.set({ [activeProfileKey]: name });
         }
     }
 
     async profiles(): Promise<Profile[]> {
-        return (await chrome.storage.local.get({ [profilesKey]: [] }))[profilesKey] ?? [];
+        return (await this._storage.get({ [profilesKey]: [] }))[profilesKey] ?? [];
     }
 
     async addProfile(name: string): Promise<void> {
@@ -65,9 +88,9 @@ export class ExtensionSettingsStorage implements SettingsStorage {
             profiles.push({ name });
         }
 
-        await chrome.storage.local.set({ [profilesKey]: profiles });
-        const initialValues = await chrome.storage.local.get(Object.keys(defaultSettings));
-        await chrome.storage.local.set(prefixedSettings(initialValues, name));
+        await this._storage.set({ [profilesKey]: profiles });
+        const initialValues = await this._storage.get(Object.keys(defaultSettings));
+        await this._storage.set(prefixedSettings(initialValues, name));
     }
 
     async removeProfile(name: string): Promise<void> {
@@ -80,7 +103,11 @@ export class ExtensionSettingsStorage implements SettingsStorage {
 
         const newProfiles = profiles.filter((p) => p.name !== name);
         const prefixedKeys = Object.keys(prefixedSettings(defaultSettings, name));
-        await chrome.storage.local.remove(prefixedKeys);
-        await chrome.storage.local.set({ [profilesKey]: newProfiles });
+        await this._storage.remove(prefixedKeys);
+        await this._storage.set({ [profilesKey]: newProfiles });
+    }
+
+    async clear() {
+        await this._storage.clear();
     }
 }

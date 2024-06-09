@@ -97,6 +97,13 @@ export class LocalSettingsStorage implements AppSettingsStorage {
         if (name === undefined) {
             cachedLocalStorage.delete(activeProfileKey);
         } else {
+            const profiles = this._profiles();
+            const profileExists = profiles.find((p) => p.name === name) !== undefined;
+
+            if (!profileExists) {
+                throw new Error(`Cannot set active profile to non-existant profile ${name}`);
+            }
+
             cachedLocalStorage.set(activeProfileKey, name);
         }
     }
@@ -175,5 +182,10 @@ export class LocalSettingsStorage implements AppSettingsStorage {
         if (this._settingsUpdatedCallbacks.length === 0 && this._storageListener !== undefined) {
             window.removeEventListener('storage', this._storageListener);
         }
+    }
+
+    clear() {
+        cachedLocalStorage.bustCache();
+        localStorage.clear();
     }
 }
