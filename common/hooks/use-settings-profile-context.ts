@@ -28,9 +28,15 @@ export const useSettingsProfileContext = ({ settingsProvider, onProfileChanged }
         [settingsProvider, onProfileChanged]
     );
     const onRemoveProfile = useCallback(
-        (name: string) =>
-            settingsProvider.removeProfile(name).then(() => settingsProvider.profiles().then(setProfiles)),
-        [settingsProvider]
+        async (name: string) => {
+            if (name === activeProfile) {
+                await settingsProvider.setActiveProfile(undefined);
+                setActiveProfile(undefined);
+            }
+
+            settingsProvider.removeProfile(name).then(() => settingsProvider.profiles().then(setProfiles));
+        },
+        [settingsProvider, activeProfile]
     );
     const onSetActiveProfile = useCallback(
         (name: string | undefined) =>

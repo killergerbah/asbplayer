@@ -4,11 +4,12 @@ import MenuItem from '@material-ui/core/MenuItem';
 import { useTranslation } from 'react-i18next';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import IconButton from '@material-ui/core/IconButton';
-import AddIcon from '@material-ui/icons/Add';
+import CheckIcon from '@material-ui/icons/Check';
 import ClearIcon from '@material-ui/icons/Clear';
 import DeleteIcon from '@material-ui/icons/Delete';
-import makeStyles from '@material-ui/core/styles/makeStyles';
+import { makeStyles, Theme } from '@material-ui/core/styles';
 import { Profile } from '../settings';
+import { TFunction } from 'i18next';
 
 const maxProfileNameLength = 16;
 const maxProfiles = 5;
@@ -21,13 +22,82 @@ interface Props {
     onSetActiveProfile: (name: string | undefined) => void;
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles({
     newProfileTextField: {
         '& .MuiInputBase-root': {
             paddingRight: 0,
         },
     },
-}));
+    menu: {
+        '& .MuiSelect-root': {
+            padding: 0,
+        },
+    },
+});
+
+interface ProfileMenuStyleProps {
+    collapsed: boolean;
+}
+
+interface ProfileMenuItemProps {
+    profile?: Profile;
+    onRemoveProfile: (name: string) => void;
+    onSetActiveProfile: (name: string | undefined) => void;
+    divider: boolean;
+    collapsed: boolean;
+    t: TFunction;
+    className: string;
+}
+
+const useMenuItemStyles = makeStyles<Theme, ProfileMenuStyleProps>({
+    root: ({ collapsed }) =>
+        collapsed
+            ? {
+                  '&:hover': {
+                      backgroundColor: 'transparent',
+                  },
+                  margin: 0,
+              }
+            : { margin: 0 },
+});
+
+// MUI requires <MenuItem> to be a direct descendent of the parent select menu.
+// So this function is not itself a component, but returns the <MenuItem> component instead.
+function renderMenuItem({
+    onRemoveProfile,
+    onSetActiveProfile,
+    divider,
+    profile,
+    collapsed,
+    t,
+    className,
+}: ProfileMenuItemProps) {
+    return (
+        <MenuItem key={profile?.name ?? ''} className={className} divider={divider} value={profile?.name ?? '-'}>
+            <div
+                onClick={(e) => {
+                    if (e.currentTarget === e.target) {
+                        onSetActiveProfile(profile?.name);
+                    }
+                }}
+                style={{ flexGrow: 1 }}
+            >
+                {profile?.name ?? t('settings.defaultProfile')}
+            </div>
+
+            {profile !== undefined && (
+                <IconButton
+                    onClick={(e) => {
+                        onRemoveProfile(profile.name);
+                    }}
+                    style={{ padding: 4, marginRight: collapsed ? 16 : 0 }}
+                >
+                    <DeleteIcon fontSize="small" />
+                </IconButton>
+            )}
+        </MenuItem>
+    );
+}
 
 export default function SettingsProfileSelectMenu({
     profiles,
@@ -38,6 +108,9 @@ export default function SettingsProfileSelectMenu({
 }: Props) {
     const { t } = useTranslation();
     const classes = useStyles();
+    const collapsedMenuItemStyles = useMenuItemStyles({ collapsed: true });
+    const expandedMenuItemStyles = useMenuItemStyles({ collapsed: false });
+
     const [addingNewProfile, setAddingNewProfile] = useState<boolean>(false);
     const newProfileInput = useRef<HTMLInputElement>();
     const [newProfile, setNewProfile] = useState<string>('');
@@ -108,7 +181,7 @@ export default function SettingsProfileSelectMenu({
                                         onNewProfile(newProfile.trim());
                                     }}
                                 >
-                                    <AddIcon fontSize="small" />
+                                    <CheckIcon fontSize="small" />
                                 </IconButton>
                             </InputAdornment>
                         ),
@@ -119,41 +192,39 @@ export default function SettingsProfileSelectMenu({
                 <TextField
                     select
                     fullWidth
+                    className={classes.menu}
                     size="small"
                     color="secondary"
                     variant="outlined"
                     label={t('settings.activeProfile')}
                     value={activeProfile ?? '-'}
+                    SelectProps={{
+                        renderValue: (option) => {
+                            return renderMenuItem({
+                                profile: profiles.find((p) => p.name === option)!,
+                                divider: false,
+                                onRemoveProfile,
+                                onSetActiveProfile,
+                                collapsed: true,
+                                t,
+                                className: collapsedMenuItemStyles.root,
+                            });
+                        },
+                    }}
                 >
                     <MenuItem key={''} value={'-'} onClick={() => onSetActiveProfile(undefined)}>
                         {t('settings.defaultProfile')}
                     </MenuItem>
-                    {profiles.map((p, i) => {
-                        return (
-                            <MenuItem divider={i === profiles.length - 1} key={p.name} value={p.name}>
-                                <div
-                                    onClick={(e) => {
-                                        if (e.currentTarget === e.target) {
-                                            onSetActiveProfile(p.name);
-                                        }
-                                    }}
-                                    style={{ flexGrow: 1 }}
-                                >
-                                    {p.name}
-                                </div>
-                                {activeProfile !== p.name && (
-                                    <IconButton
-                                        onClick={(e) => {
-                                            e.nativeEvent.stopPropagation();
-                                            onRemoveProfile(p.name);
-                                        }}
-                                        style={{ padding: 4 }}
-                                    >
-                                        <DeleteIcon fontSize="small" />
-                                    </IconButton>
-                                )}
-                            </MenuItem>
-                        );
+                    {profiles.map((profile, index) => {
+                        return renderMenuItem({
+                            profile,
+                            divider: index === profiles.length - 1,
+                            onRemoveProfile,
+                            onSetActiveProfile,
+                            collapsed: false,
+                            t,
+                            className: expandedMenuItemStyles.root,
+                        });
                     })}
                     <MenuItem
                         disabled={limitReached}
