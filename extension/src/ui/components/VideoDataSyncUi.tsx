@@ -5,7 +5,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import VideoDataSyncDialog from './VideoDataSyncDialog';
 import Bridge from '../bridge';
 import {
-    ConfirmedVideoDataSubtitleTrack,
     Message,
     SerializedSubtitleFile,
     UpdateStateMessage,
@@ -45,7 +44,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
         bridge.sendMessageFromServer({ command: 'cancel' });
     }, [bridge]);
     const handleConfirm = useCallback(
-        (data: ConfirmedVideoDataSubtitleTrack[], shouldRememberTrackChoices: boolean) => {
+        (data: VideoDataSubtitleTrack[], shouldRememberTrackChoices: boolean) => {
             setOpen(false);
             const message: VideoDataUiBridgeConfirmMessage = { command: 'confirm', data, shouldRememberTrackChoices };
             bridge.sendMessageFromServer(message);

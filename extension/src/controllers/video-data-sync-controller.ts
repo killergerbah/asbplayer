@@ -1,5 +1,4 @@
 import {
-    ConfirmedVideoDataSubtitleTrack,
     ExtensionSyncMessage,
     SerializedSubtitleFile,
     VideoData,
@@ -187,28 +186,28 @@ export default class VideoDataSyncController {
             const themeType = await this._context.settings.getSingle('themeType');
             let state: VideoDataUiState = this._syncedData
                 ? {
-                      open: true,
-                      isLoading: this._syncedData.subtitles === undefined,
-                      suggestedName: this._syncedData.basename,
-                      selectedSubtitle: ['-'],
-                      subtitles: subtitleTrackChoices,
-                      error: this._syncedData.error,
-                      themeType: themeType,
-                      openedFromMiningCommand,
-                      defaultCheckboxState: defaultCheckboxState,
-                  }
+                    open: true,
+                    isLoading: this._syncedData.subtitles === undefined,
+                    suggestedName: this._syncedData.basename,
+                    selectedSubtitle: ['-'],
+                    subtitles: subtitleTrackChoices,
+                    error: this._syncedData.error,
+                    themeType: themeType,
+                    openedFromMiningCommand,
+                    defaultCheckboxState: defaultCheckboxState,
+                }
                 : {
-                      open: true,
-                      isLoading: this._context.subSyncAvailable && this._waitingForSubtitles,
-                      suggestedName: document.title,
-                      selectedSubtitle: ['-'],
-                      error: '',
-                      showSubSelect: true,
-                      subtitles: subtitleTrackChoices,
-                      themeType: themeType,
-                      openedFromMiningCommand,
-                      defaultCheckboxState: defaultCheckboxState,
-                  };
+                    open: true,
+                    isLoading: this._context.subSyncAvailable && this._waitingForSubtitles,
+                    suggestedName: document.title,
+                    selectedSubtitle: ['-'],
+                    error: '',
+                    showSubSelect: true,
+                    subtitles: subtitleTrackChoices,
+                    themeType: themeType,
+                    openedFromMiningCommand,
+                    defaultCheckboxState: defaultCheckboxState,
+                };
             state.selectedSubtitle = selectedSub.map((subtitle) => subtitle.url || '-');
             const client = await this._client();
             this._prepareShow();
@@ -294,10 +293,10 @@ export default class VideoDataSyncController {
                         this.lastLanguageSynced = confirmMessage.data.map((track) => track.language);
                         await this._context.settings
                             .set({ streamingLastLanguagesSynced: this._lastLanguagesSynced })
-                            .catch(() => {});
+                            .catch(() => { });
                     }
 
-                    const data = confirmMessage.data as ConfirmedVideoDataSubtitleTrack[];
+                    const data = confirmMessage.data as VideoDataSubtitleTrack[];
 
                     shallUpdate = await this._syncDataArray(data);
                 } else if ('openFile' === message.command) {
@@ -398,13 +397,13 @@ export default class VideoDataSyncController {
         }
     }
 
-    private async _syncDataArray(data: ConfirmedVideoDataSubtitleTrack[]) {
+    private async _syncDataArray(data: VideoDataSubtitleTrack[]) {
         try {
             let subtitles: SerializedSubtitleFile[] = [];
 
             for (let i = 0; i < data.length; i++) {
-                const { name, extension, subtitleUrl, m3U8BaseUrl } = data[i];
-                const subtitleFiles = await this._subtitlesForUrl(name, extension, subtitleUrl, m3U8BaseUrl);
+                const { label, extension, url, m3U8BaseUrl } = data[i];
+                const subtitleFiles = await this._subtitlesForUrl(label, extension, url, m3U8BaseUrl);
                 if (subtitleFiles !== undefined) {
                     subtitles.push(...subtitleFiles);
                 }
