@@ -186,28 +186,28 @@ export default class VideoDataSyncController {
             const themeType = await this._context.settings.getSingle('themeType');
             let state: VideoDataUiState = this._syncedData
                 ? {
-                    open: true,
-                    isLoading: this._syncedData.subtitles === undefined,
-                    suggestedName: this._syncedData.basename,
-                    selectedSubtitle: ['-'],
-                    subtitles: subtitleTrackChoices,
-                    error: this._syncedData.error,
-                    themeType: themeType,
-                    openedFromMiningCommand,
-                    defaultCheckboxState: defaultCheckboxState,
-                }
+                      open: true,
+                      isLoading: this._syncedData.subtitles === undefined,
+                      suggestedName: this._syncedData.basename,
+                      selectedSubtitle: ['-'],
+                      subtitles: subtitleTrackChoices,
+                      error: this._syncedData.error,
+                      themeType: themeType,
+                      openedFromMiningCommand,
+                      defaultCheckboxState: defaultCheckboxState,
+                  }
                 : {
-                    open: true,
-                    isLoading: this._context.subSyncAvailable && this._waitingForSubtitles,
-                    suggestedName: document.title,
-                    selectedSubtitle: ['-'],
-                    error: '',
-                    showSubSelect: true,
-                    subtitles: subtitleTrackChoices,
-                    themeType: themeType,
-                    openedFromMiningCommand,
-                    defaultCheckboxState: defaultCheckboxState,
-                };
+                      open: true,
+                      isLoading: this._context.subSyncAvailable && this._waitingForSubtitles,
+                      suggestedName: document.title,
+                      selectedSubtitle: ['-'],
+                      error: '',
+                      showSubSelect: true,
+                      subtitles: subtitleTrackChoices,
+                      themeType: themeType,
+                      openedFromMiningCommand,
+                      defaultCheckboxState: defaultCheckboxState,
+                  };
             state.selectedSubtitle = selectedSub.map((subtitle) => subtitle.url || '-');
             const client = await this._client();
             this._prepareShow();
@@ -293,7 +293,7 @@ export default class VideoDataSyncController {
                         this.lastLanguageSynced = confirmMessage.data.map((track) => track.language);
                         await this._context.settings
                             .set({ streamingLastLanguagesSynced: this._lastLanguagesSynced })
-                            .catch(() => { });
+                            .catch(() => {});
                     }
 
                     const data = confirmMessage.data as VideoDataSubtitleTrack[];
