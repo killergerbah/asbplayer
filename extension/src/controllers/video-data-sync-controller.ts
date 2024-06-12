@@ -298,7 +298,7 @@ export default class VideoDataSyncController {
 
                     const data = confirmMessage.data as VideoDataSubtitleTrack[];
 
-                    shallUpdate = await this._syncDataArray(data);
+                    shallUpdate = await this._syncData(data);
                 } else if ('openFile' === message.command) {
                     const openFileMessage = message as VideoDataUiBridgeOpenFileMessage;
                     const subtitles = openFileMessage.subtitles as SerializedSubtitleFile[];
@@ -378,32 +378,6 @@ export default class VideoDataSyncController {
                     url,
                     m3U8BaseUrl
                 );
-                if (subtitleFiles !== undefined) {
-                    subtitles.push(...subtitleFiles);
-                }
-            }
-
-            this._syncSubtitles(
-                subtitles,
-                data.some((track) => track.m3U8BaseUrl !== undefined)
-            );
-            return true;
-        } catch (error) {
-            if (typeof (error as Error).message !== 'undefined') {
-                this._reportError(`Data Sync failed: ${(error as Error).message}`);
-            }
-
-            return false;
-        }
-    }
-
-    private async _syncDataArray(data: VideoDataSubtitleTrack[]) {
-        try {
-            let subtitles: SerializedSubtitleFile[] = [];
-
-            for (let i = 0; i < data.length; i++) {
-                const { label, extension, url, m3U8BaseUrl } = data[i];
-                const subtitleFiles = await this._subtitlesForUrl(label, extension, url, m3U8BaseUrl);
                 if (subtitleFiles !== undefined) {
                     subtitles.push(...subtitleFiles);
                 }
