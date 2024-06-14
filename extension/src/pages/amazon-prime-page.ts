@@ -13,6 +13,7 @@ inferTracks({
                     const label = `${value.catalogMetadata.catalog.title} ${track.displayName}`;
 
                     addTrack({
+                        type: "url",
                         label: label,
                         language: track.languageCode.toLowerCase(),
                         url: track.url,

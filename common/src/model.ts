@@ -133,7 +133,26 @@ export interface AnkiUiSavedState {
     dialogRequestedTimestamp: number;
 }
 
-export interface VideoDataSubtitleTrack {
+export type SubtitleTrack = SerializedSubtitleFile | EmbeddedSubtitle;
+
+// typeguard 
+export const isSubtitleFile = (b:SubtitleTrack): b is SerializedSubtitleFile => {
+    return (b as SerializedSubtitleFile).type === "file";
+}
+
+// typeguard 
+export const isEmbeddedSubtitle = (b:SubtitleTrack): b is EmbeddedSubtitle => {
+    return (b as EmbeddedSubtitle).type === "url";
+}
+
+export interface SerializedSubtitleFile {
+    type: "file";
+    name: string;
+    base64: string;
+}
+
+export interface EmbeddedSubtitle {
+    type: "url";
     label: string;
     language: string;
     url: string;
@@ -144,14 +163,14 @@ export interface VideoDataSubtitleTrack {
 export interface VideoData {
     basename: string;
     error?: string;
-    subtitles?: VideoDataSubtitleTrack[];
+    subtitles?: EmbeddedSubtitle[];
 }
 
 export interface VideoDataUiState {
     open?: boolean;
     isLoading?: boolean;
     suggestedName?: string;
-    subtitles?: VideoDataSubtitleTrack[];
+    subtitles?: EmbeddedSubtitle[];
     error?: string;
     themeType?: string;
     selectedSubtitle?: string[];

@@ -6,12 +6,13 @@ import {
     AudioModel,
     AudioTrackModel,
     AnkiUiSavedState,
-    VideoDataSubtitleTrack,
+    EmbeddedSubtitle,
     PostMineAction,
     PlayMode,
     CardModel,
     CardTextFieldValues,
     MobileOverlayModel,
+    SerializedSubtitleFile,
 } from './model';
 import { AsbPlayerToVideoCommandV2 } from './command';
 
@@ -234,11 +235,6 @@ export interface ShowAnkiUiAfterRerecordMessage extends Message {
     readonly uiState: AnkiUiSavedState;
 }
 
-export interface SerializedSubtitleFile {
-    name: string;
-    base64: string;
-}
-
 export interface LegacyPlayerSyncMessage extends Message {
     readonly command: 'sync';
     readonly subtitles: SerializedSubtitleFile;
@@ -420,7 +416,7 @@ export interface AnkiUiBridgeRerecordMessage extends Message {
 
 export interface VideoDataUiBridgeConfirmMessage extends Message {
     readonly command: 'confirm';
-    readonly data: VideoDataSubtitleTrack[];
+    readonly data: EmbeddedSubtitle[];
     readonly shouldRememberTrackChoices: boolean;
 }
 

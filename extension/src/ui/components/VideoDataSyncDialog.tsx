@@ -14,7 +14,7 @@ import Typography from '@material-ui/core/Typography';
 import makeStyles from '@material-ui/styles/makeStyles';
 import Switch from '@material-ui/core/Switch';
 import LabelWithHoverEffect from '@project/common/components/LabelWithHoverEffect';
-import { VideoDataSubtitleTrack } from '@project/common';
+import { EmbeddedSubtitle } from '@project/common';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -51,14 +51,14 @@ interface Props {
     isLoading: boolean;
     suggestedName: string;
     showSubSelect: boolean;
-    subtitles: VideoDataSubtitleTrack[];
+    subtitles: EmbeddedSubtitle[];
     selectedSubtitle: string[];
     defaultCheckboxState: boolean;
     error: string;
     openedFromMiningCommand: boolean;
     onCancel: () => void;
     onOpenFile: () => void;
-    onConfirm: (track: VideoDataSubtitleTrack[], shouldRememberTrackChoices: boolean) => void;
+    onConfirm: (track: EmbeddedSubtitle[], shouldRememberTrackChoices: boolean) => void;
 }
 
 export default function VideoDataSyncDialog({
@@ -131,7 +131,7 @@ export default function VideoDataSyncDialog({
     }, [suggestedName, selectedSubtitles, subtitles]);
 
     function handleOkButtonClick() {
-        const selectedSubtitleTracks: VideoDataSubtitleTrack[] = allSelectedSubtitleTracks();
+        const selectedSubtitleTracks: EmbeddedSubtitle[] = allSelectedSubtitleTracks();
         onConfirm(selectedSubtitleTracks, shouldRememberTrackChoices);
     }
 
@@ -140,12 +140,13 @@ export default function VideoDataSyncDialog({
     }
 
     function allSelectedSubtitleTracks() {
-        const selectedSubtitleTracks: VideoDataSubtitleTrack[] = selectedSubtitles
-            .map((selected): VideoDataSubtitleTrack | undefined => {
+        const selectedSubtitleTracks: EmbeddedSubtitle[] = selectedSubtitles
+            .map((selected): EmbeddedSubtitle | undefined => {
                 const subtitle = subtitles.find((subtitle) => subtitle.url === selected);
                 if (subtitle) {
                     const { language, extension, m3U8BaseUrl } = subtitle;
                     return {
+                        type: "url",
                         label: suggestedName.trim() + language.trim(),
                         extension: extension,
                         url: selected,
@@ -154,7 +155,7 @@ export default function VideoDataSyncDialog({
                     };
                 }
             })
-            .filter((track): track is VideoDataSubtitleTrack => track !== undefined);
+            .filter((track): track is EmbeddedSubtitle => track !== undefined);
 
         // Give the first track the trimmed name from the name field in case it has been changed by the user
         selectedSubtitleTracks[0].label = trimmedName;

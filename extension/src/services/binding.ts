@@ -1224,6 +1224,7 @@ export default class Binding {
                                 const base64 = await bufferToBase64(await f.arrayBuffer());
 
                                 return {
+                                    type: "file",
                                     name: f.name,
                                     base64: base64,
                                 };
