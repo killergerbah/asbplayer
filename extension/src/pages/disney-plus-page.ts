@@ -1,4 +1,4 @@
-import { VideoDataSubtitleTrack } from '@project/common';
+import { EmbeddedSubtitle } from '@project/common';
 import { Parser } from 'm3u8-parser';
 
 setTimeout(() => {
@@ -64,7 +64,7 @@ setTimeout(() => {
         });
     }
 
-    function completeM3U8(url: string): Promise<VideoDataSubtitleTrack[]> {
+    function completeM3U8(url: string): Promise<EmbeddedSubtitle[]> {
         return new Promise((resolve, reject) => {
             setTimeout(async () => {
                 try {
@@ -75,7 +75,7 @@ setTimeout(() => {
 
                         if (subtitleGroup && subtitleGroup['sub-main']) {
                             const tracks = subtitleGroup['sub-main'];
-                            const subtitles: VideoDataSubtitleTrack[] = [];
+                            const subtitles: EmbeddedSubtitle[] = [];
 
                             for (const label of Object.keys(tracks)) {
                                 const track = tracks[label];
@@ -84,6 +84,7 @@ setTimeout(() => {
                                     const baseUrl = baseUrlForUrl(url);
                                     const subtitleM3U8Url = `${baseUrl}/${track.uri}`;
                                     subtitles.push({
+                                        type: 'url',
                                         label: label,
                                         language: track.language,
                                         url: subtitleM3U8Url,
@@ -106,7 +107,7 @@ setTimeout(() => {
         });
     }
 
-    let subtitlesPromise: Promise<VideoDataSubtitleTrack[]> | undefined;
+    let subtitlesPromise: Promise<EmbeddedSubtitle[]> | undefined;
 
     const originalParse = JSON.parse;
     JSON.parse = function () {

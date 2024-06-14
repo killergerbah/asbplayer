@@ -18,6 +18,7 @@ inferTracks({
                     const url = track.sources[0].src;
 
                     addTrack({
+                        type: "url",
                         label: label,
                         language: language,
                         url: url.replace(/^http:\/\//, 'https://'),

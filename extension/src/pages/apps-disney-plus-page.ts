@@ -17,6 +17,7 @@ inferTracksFromInterceptedMpd(/https:\/\/.+\.apps\.disneyplus\..+\.mpd/, (playli
     }
 
     return {
+        type: "url",
         label,
         language,
         url: playlist.resolvedUri,

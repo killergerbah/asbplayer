@@ -1,4 +1,4 @@
-import { VideoDataSubtitleTrack } from '@project/common';
+import { EmbeddedSubtitle } from '@project/common';
 import { extractExtension } from './util';
 
 setTimeout(() => {
@@ -7,7 +7,7 @@ setTimeout(() => {
     }
 
     function extractSubtitleTracks(value: any) {
-        const subtitles = [];
+        const subtitles: EmbeddedSubtitle[] = [];
         if (isObject(value.transcripts_urls?.webvtt)) {
             const urls = value.transcripts_urls.webvtt;
 
@@ -17,6 +17,7 @@ setTimeout(() => {
                 if (typeof url === 'string') {
                     if (subtitles.find((s) => s.label === s.language) === undefined) {
                         subtitles.push({
+                            type: "url",
                             label: language,
                             language: language.toLowerCase(),
                             url: url,
@@ -32,7 +33,7 @@ setTimeout(() => {
 
     let playlistController: AbortController | undefined;
 
-    function fetchPlaylistAndExtractSubtitles(payload: any): Promise<VideoDataSubtitleTrack[]> {
+    function fetchPlaylistAndExtractSubtitles(payload: any): Promise<EmbeddedSubtitle[]> {
         playlistController?.abort();
         return new Promise((resolve, reject) => {
             setTimeout(() => {
@@ -86,7 +87,7 @@ setTimeout(() => {
         });
     }
 
-    let subtitlesPromise: Promise<VideoDataSubtitleTrack[]> | undefined;
+    let subtitlesPromise: Promise<EmbeddedSubtitle[]> | undefined;
     let basenamePromise: Promise<string> | undefined;
 
     const originalStringify = JSON.stringify;
@@ -109,7 +110,7 @@ setTimeout(() => {
         'asbplayer-get-synced-data',
         async () => {
             let basename = '';
-            let subtitles: VideoDataSubtitleTrack[] = [];
+            let subtitles: EmbeddedSubtitle[] = [];
             let error = '';
 
             try {

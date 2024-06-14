@@ -1,4 +1,4 @@
-import { VideoDataSubtitleTrack } from '@project/common';
+import { EmbeddedSubtitle } from '@project/common';
 import { extractExtension, inferTracks } from './util';
 import { parse } from 'mpd-parser';
 
@@ -9,15 +9,15 @@ export interface Playlist {
 
 export const inferTracksFromInterceptedMpd = (
     mpdUrlRegex: RegExp,
-    trackExtractor: (playlist: Playlist, language: string) => VideoDataSubtitleTrack | undefined
+    trackExtractor: (playlist: Playlist, language: string) => EmbeddedSubtitle | undefined
 ) => {
     const originalFetch = window.fetch;
 
-    const tryExtractSubtitleTracks = async (mpdUrl: string): Promise<VideoDataSubtitleTrack[]> => {
+    const tryExtractSubtitleTracks = async (mpdUrl: string): Promise<EmbeddedSubtitle[]> => {
         const manifest = await (await originalFetch(mpdUrl)).text();
         const parsedManifest = parse(manifest, { manifestUri: mpdUrl });
         const subGroups = parsedManifest.mediaGroups?.SUBTITLES?.subs ?? {};
-        const tracks: VideoDataSubtitleTrack[] = [];
+        const tracks: EmbeddedSubtitle[] = [];
 
         if (typeof subGroups !== 'object') {
             return [];
