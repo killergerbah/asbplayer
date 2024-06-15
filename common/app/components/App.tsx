@@ -23,7 +23,7 @@ import { createTheme } from '@project/common/theme';
 import { AsbplayerSettings, Profile } from '@project/common/settings';
 import { humanReadableTime, download, extractText } from '@project/common/util';
 import { AudioClip } from '@project/common/audio-clip';
-import { AnkiExportMode } from '@project/common/anki';
+import { AnkiExportMode, ExportParams } from '@project/common/anki';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { v4 as uuidv4 } from 'uuid';
 import clsx from 'clsx';
@@ -329,40 +329,18 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
     );
 
     const handleAnkiDialogProceed = useCallback(
-        async (
-            text: string,
-            definition: string,
-            audioClip: AudioClip | undefined,
-            image: Image | undefined,
-            word: string,
-            source: string,
-            url: string,
-            customFieldValues: { [key: string]: string },
-            tags: string[],
-            mode: AnkiExportMode
-        ) => {
+        async (params: ExportParams) => {
             setAnkiDialogDisabled(true);
 
             try {
-                const result = await anki.export(
-                    text,
-                    definition,
-                    audioClip,
-                    image,
-                    word,
-                    source,
-                    url,
-                    customFieldValues,
-                    tags,
-                    mode
-                );
+                const result = await anki.export(params);
 
-                if (mode !== 'gui') {
-                    if (mode === 'default') {
+                if (params.mode !== 'gui') {
+                    if (params.mode === 'default') {
                         setAlertSeverity('success');
                         setAlert(t('info.exportedCard', { result })!);
                         setAlertOpen(true);
-                    } else if (mode === 'updateLast') {
+                    } else if (params.mode === 'updateLast') {
                         setAlertSeverity('success');
                         setAlert(t('info.updatedCard', { result })!);
                         setAlertOpen(true);
@@ -453,18 +431,25 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                         audioClip = audioClip.toMp3(mp3WorkerFactory);
                     }
 
-                    handleAnkiDialogProceed(
-                        extractText(card.subtitle, card.surroundingSubtitles),
-                        newCard.definition ?? '',
-                        audioClip,
-                        Image.fromCard(newCard, settingsRef.current.maxImageWidth, settingsRef.current.maxImageHeight),
-                        newCard.word ?? '',
-                        `${newCard.subtitleFileName} (${humanReadableTime(card.mediaTimestamp)})`,
-                        '',
-                        newCard.customFieldValues ?? {},
-                        settingsRef.current.tags,
-                        postMineAction === PostMineAction.updateLastCard ? 'updateLast' : 'default'
-                    );
+                    handleAnkiDialogProceed({
+                        text: extractText(card.subtitle, card.surroundingSubtitles),
+                        track1: extractText(card.subtitle, card.surroundingSubtitles, 0),
+                        track2: extractText(card.subtitle, card.surroundingSubtitles, 1),
+                        track3: extractText(card.subtitle, card.surroundingSubtitles, 2),
+                        definition: newCard.definition ?? '',
+                        audioClip: audioClip,
+                        image: Image.fromCard(
+                            newCard,
+                            settingsRef.current.maxImageWidth,
+                            settingsRef.current.maxImageHeight
+                        ),
+                        word: newCard.word ?? '',
+                        source: `${newCard.subtitleFileName} (${humanReadableTime(card.mediaTimestamp)})`,
+                        url: '',
+                        customFieldValues: newCard.customFieldValues ?? {},
+                        tags: settingsRef.current.tags,
+                        mode: postMineAction === PostMineAction.updateLastCard ? 'updateLast' : 'default',
+                    });
                     break;
                 default:
                     throw new Error('Unknown post mine action: ' + postMineAction);

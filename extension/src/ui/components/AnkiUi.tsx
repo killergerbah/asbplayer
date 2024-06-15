@@ -18,7 +18,6 @@ import {
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import { AnkiSettings } from '@project/common/settings';
-import { AudioClip } from '@project/common/audio-clip';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import Alert, { Color } from '@material-ui/lab/Alert';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -29,7 +28,7 @@ import Bridge from '../bridge';
 import { PaletteType } from '@material-ui/core';
 import { AnkiDialogState } from '@project/common/components/AnkiDialog';
 import { BridgeFetcher } from '../bridge-fetcher';
-import { Anki, AnkiExportMode } from '@project/common/anki';
+import { Anki, ExportParams } from '@project/common/anki';
 
 interface Props {
     bridge: Bridge;
@@ -153,35 +152,13 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
 
     const mp3WorkerFactory = useMemo(() => () => new Worker(mp3WorkerUrl), [mp3WorkerUrl]);
     const handleProceed = useCallback(
-        async (
-            text: string,
-            definition: string,
-            audioClip: AudioClip | undefined,
-            image: Image | undefined,
-            word: string,
-            source: string,
-            url: string,
-            customFieldValues: { [key: string]: string },
-            tags: string[],
-            mode: AnkiExportMode
-        ) => {
+        async (params: ExportParams) => {
             setDisabled(true);
 
             try {
-                await anki!.export(
-                    text,
-                    definition,
-                    audioClip,
-                    image,
-                    word,
-                    source,
-                    url,
-                    customFieldValues,
-                    tags,
-                    mode
-                );
+                await anki!.export(params);
 
-                if (mode !== 'gui') {
+                if (params.mode !== 'gui') {
                     setOpen(false);
                     setImageDialogOpen(false);
                     const message: AnkiUiBridgeResumeMessage = {

@@ -1,22 +1,9 @@
-import React from 'react';
 import Paper from '@material-ui/core/Paper';
-import InputAdornment from '@material-ui/core/InputAdornment';
 import TextField from '@material-ui/core/TextField';
-import Tooltip from '@material-ui/core/Tooltip';
-import IconButton from '@material-ui/core/IconButton';
-import DoneIcon from '@material-ui/icons/Done';
 import makeStyles from '@material-ui/core/styles/makeStyles';
-import withStyles from '@material-ui/core/styles/withStyles';
 import { SubtitleModel } from '..';
 import SubtitleTextImage from './SubtitleTextImage';
 import { useTranslation } from 'react-i18next';
-
-const TextFieldEndAdornment = withStyles({
-    // Hack to recenter TextField end adornment
-    root: {
-        transform: 'translateY(-8px)',
-    },
-})(InputAdornment);
 
 interface TextImageSetProps {
     selectedSubtitles: SubtitleModel[];
@@ -50,20 +37,12 @@ const TextImageSet = ({ selectedSubtitles, width }: TextImageSetProps) => {
 interface Props {
     width: number;
     text: string;
+    label: string;
     onChangeText: (text: string) => void;
     selectedSubtitles: SubtitleModel[];
-    applySelectedRangeDisabled: boolean;
-    onApplySelectedRangeToText: () => void;
 }
 
-export default function SentenceField({
-    width,
-    text,
-    onChangeText,
-    selectedSubtitles,
-    applySelectedRangeDisabled,
-    onApplySelectedRangeToText,
-}: Props) {
+export default function SentenceField({ width, text, label, onChangeText, selectedSubtitles }: Props) {
     const { t } = useTranslation();
     return (
         <>
@@ -77,26 +56,9 @@ export default function SentenceField({
                 multiline
                 fullWidth
                 maxRows={8}
-                label={t('ankiDialog.sentence')}
+                label={label}
                 value={text}
                 onChange={(e) => onChangeText(e.target.value)}
-                InputProps={{
-                    endAdornment: (
-                        <TextFieldEndAdornment position="end">
-                            <Tooltip title={t('ankiDialog.applySelection')!}>
-                                <span>
-                                    <IconButton
-                                        disabled={applySelectedRangeDisabled}
-                                        onClick={onApplySelectedRangeToText}
-                                        edge="end"
-                                    >
-                                        <DoneIcon />
-                                    </IconButton>
-                                </span>
-                            </Tooltip>
-                        </TextFieldEndAdornment>
-                    ),
-                }}
             />
         </>
     );

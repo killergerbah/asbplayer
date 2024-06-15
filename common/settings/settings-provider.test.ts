@@ -142,11 +142,11 @@ it('removes corresponding field settings when custom anki fields are removed', a
     const provider = new SettingsProvider(storage);
     await provider.set({
         customAnkiFields: { foo: 'bar', baz: 'moo' },
-        customAnkiFieldSettings: { foo: { order: 1 }, baz: { order: 2 } },
+        customAnkiFieldSettings: { foo: { order: 1, display: true }, baz: { order: 2, display: false } },
     });
     await provider.set({ customAnkiFields: { foo: 'bar' } });
     expect(await provider.get(['customAnkiFields', 'customAnkiFieldSettings'])).toEqual({
         customAnkiFields: { foo: 'bar' },
-        customAnkiFieldSettings: { foo: { order: 1 } },
+        customAnkiFieldSettings: { foo: { order: 1, display: true } },
     });
 });

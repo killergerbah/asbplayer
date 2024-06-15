@@ -8,6 +8,7 @@ import {
     surroundingSubtitlesAroundInterval,
     subtitleIntersectsTimeInterval,
     joinSubtitles,
+    extractText,
 } from '@project/common/util';
 import { AudioClip } from '@project/common/audio-clip';
 import Badge from '@material-ui/core/Badge';
@@ -16,7 +17,6 @@ import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import Paper from '@material-ui/core/Paper';
@@ -29,9 +29,10 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import ZoomInIcon from '@material-ui/icons/ZoomIn';
 import ZoomOutIcon from '@material-ui/icons/ZoomOut';
+import DoneIcon from '@material-ui/icons/Done';
 import SubtitleTextImage from './SubtitleTextImage';
 import TagsTextField from './TagsTextField';
-import { Anki, AnkiExportMode } from '../anki';
+import { Anki, AnkiExportMode, ExportParams } from '../anki';
 import { isFirefox } from '../browser-detection';
 import SentenceField from './SentenceField';
 import DefinitionField from './DefinitionField';
@@ -145,22 +146,6 @@ const useTextImageSetStyles = makeStyles((theme) => ({
     },
 }));
 
-const TextImageSet = ({ selectedSubtitles, width }: TextImageSetProps) => {
-    const classes = useTextImageSetStyles();
-
-    if (selectedSubtitles.length === 0 || width <= 0) {
-        return null;
-    }
-
-    return (
-        <Paper elevation={0} className={classes.root}>
-            {selectedSubtitles.map((s, index) => {
-                return <SubtitleTextImage key={index} availableWidth={width} subtitle={s} scale={1} />;
-            })}
-        </Paper>
-    );
-};
-
 export interface AnkiDialogState {
     text: string;
     subtitle: SubtitleModel;
@@ -169,6 +154,9 @@ export interface AnkiDialogState {
     word: string;
     source: string;
     url: string;
+    track1: string;
+    track2: string;
+    track3: string;
     customFieldValues: { [key: string]: string };
     lastAppliedTimestampIntervalToText?: number[];
     lastAppliedTimestampIntervalToAudio?: number[];
@@ -181,18 +169,7 @@ interface AnkiDialogProps {
     open: boolean;
     disabled: boolean;
     card: CardModel;
-    onProceed: (
-        text: string,
-        definition: string,
-        audioClip: AudioClip | undefined,
-        image: Image | undefined,
-        word: string,
-        source: string,
-        url: string,
-        customFieldValues: { [key: string]: string },
-        tags: string[],
-        mode: AnkiExportMode
-    ) => void;
+    onProceed: (params: ExportParams) => void;
     onRerecord?: () => void;
     onCancel: () => void;
     onViewImage: (image: Image) => void;
@@ -235,12 +212,12 @@ const AnkiDialog = ({
     const [definition, setDefinition] = useState<string>('');
     const [text, setText] = useState<string>('');
     const [word, setWord] = useState<string>('');
-    const [lastSearchedWord, setLastSearchedWord] = useState<string>();
     const [source, setSource] = useState<string>('');
     const [tags, setTags] = useState<string[]>(settings.tags);
     const [url, setUrl] = useState<string>(card.url ?? '');
-    const [duplicateNotes, setDuplicateNotes] = useState<any[]>([]);
-    const [wordTimestamp, setWordTimestamp] = useState<number>(0);
+    const [track1, setTrack1] = useState<string>('');
+    const [track2, setTrack2] = useState<string>('');
+    const [track3, setTrack3] = useState<string>('');
     const [customFieldValues, setCustomFieldValues] = useState<{ [key: string]: string }>({});
     const [timestampInterval, setTimestampInterval] = useState<number[]>();
     const [selectedSubtitles, setSelectedSubtitles] = useState<SubtitleModel[]>([]);
@@ -267,6 +244,9 @@ const AnkiDialog = ({
             word,
             source,
             url,
+            track1,
+            track2,
+            track3,
             customFieldValues,
             initialTimestampInterval,
             timestampBoundaryInterval,
@@ -277,9 +257,11 @@ const AnkiDialog = ({
     }
 
     const textForTimestampInterval = useCallback(
-        (timestampInterval: number[]) => {
+        (timestampInterval: number[], track?: number) => {
             return joinSubtitles(
-                card.surroundingSubtitles.filter((s) => subtitleIntersectsTimeInterval(s, timestampInterval))
+                card.surroundingSubtitles
+                    .filter((s) => subtitleIntersectsTimeInterval(s, timestampInterval))
+                    .filter((s) => track === undefined || s.track === track)
             );
         },
         [card.surroundingSubtitles]
@@ -293,15 +275,18 @@ const AnkiDialog = ({
     } = card;
 
     useEffect(() => {
-        setText(initialText ?? card.subtitle.text ?? '');
+        setText(initialText ?? extractText(card.subtitle, card.surroundingSubtitles) ?? '');
         setDefinition(initialDefinition ?? '');
         setWord(initialWord ?? '');
         setSource(initialSource ?? `${card.subtitleFileName} (${humanReadableTime(card.subtitle.start)})`);
         setUrl(card.url ?? '');
-        setDuplicateNotes([]);
+        setTrack1(extractText(card.subtitle, card.surroundingSubtitles, 0));
+        setTrack2(extractText(card.subtitle, card.surroundingSubtitles, 1));
+        setTrack3(extractText(card.subtitle, card.surroundingSubtitles, 2));
         setCustomFieldValues(initialCustomFieldValues ?? {});
     }, [
         card.subtitle,
+        card.surroundingSubtitles,
         card.url,
         card.subtitleFileName,
         initialText,
@@ -335,7 +320,11 @@ const AnkiDialog = ({
             timestampInterval === undefined
                 ? []
                 : card.surroundingSubtitles.filter((s) => subtitleIntersectsTimeInterval(s, timestampInterval));
-        setText(initialText ?? joinSubtitles(selectedSubtitles) ?? card.subtitle.text);
+        setText(initialText ?? joinSubtitles(selectedSubtitles));
+        const trackText = (track: number) => joinSubtitles(selectedSubtitles.filter((s) => s.track === track));
+        setTrack1(trackText(0));
+        setTrack2(trackText(1));
+        setTrack3(trackText(2));
         setTimestampInterval(timestampInterval);
         setSelectedSubtitles(selectedSubtitles);
         setInitialTimestampInterval(forceInitialTimestampInterval || timestampInterval);
@@ -389,33 +378,6 @@ const AnkiDialog = ({
         settings.audioPaddingEnd,
     ]);
 
-    useEffect(() => {
-        setWordTimestamp(Date.now());
-    }, [word]);
-
-    useEffect(() => {
-        if (!word || !settings.wordField) {
-            return;
-        }
-
-        const trimmedWord = word.trim();
-
-        if (trimmedWord === '' || trimmedWord === lastSearchedWord) {
-            return;
-        }
-
-        const timeout = setTimeout(async () => {
-            try {
-                setDuplicateNotes(await anki.findNotesWithWord(trimmedWord));
-                setLastSearchedWord(trimmedWord);
-            } catch (e) {
-                console.error(e);
-            }
-        }, 500);
-
-        return () => clearTimeout(timeout);
-    }, [word, wordTimestamp, lastSearchedWord, anki, settings.wordField]);
-
     const handlePlayAudio = useCallback(
         async (e: React.MouseEvent<HTMLDivElement>) => {
             if (audioClip?.error !== undefined) {
@@ -439,21 +401,6 @@ const AnkiDialog = ({
         [customFieldValues]
     );
 
-    let wordHelperText;
-
-    if (word && word.trim() === lastSearchedWord && settings.wordField) {
-        wordHelperText =
-            duplicateNotes.length > 0
-                ? t('ankiDialog.foundDuplicateNotes', {
-                      count: duplicateNotes.length,
-                      word: word,
-                      field: settings.wordField,
-                  })
-                : t('ankiDialog.foundNoDuplicateNote', { word: word, field: settings.wordField });
-    } else {
-        wordHelperText = '';
-    }
-
     const image = useMemo(
         () => Image.fromCard(card, settings.maxImageWidth, settings.maxImageHeight),
         [card, settings.maxImageWidth, settings.maxImageHeight]
@@ -472,15 +419,45 @@ const AnkiDialog = ({
         [image, onViewImage]
     );
 
+    const applyTimestampIntervalToTrack = useCallback(
+        (
+            newTimestampInterval: number[],
+            currentText: string,
+            changeText: (newText: string) => void,
+            track?: number,
+            force?: boolean
+        ) => {
+            const expectedUnchangedText =
+                lastAppliedTimestampIntervalToText === undefined
+                    ? undefined
+                    : textForTimestampInterval(lastAppliedTimestampIntervalToText, track);
+
+            if (force || expectedUnchangedText === undefined || currentText.trim() === expectedUnchangedText.trim()) {
+                const newText = textForTimestampInterval(newTimestampInterval, track);
+                changeText(newText);
+            }
+        },
+        [textForTimestampInterval, lastAppliedTimestampIntervalToText]
+    );
+
+    const applyTimestampIntervalToAllTracks = useCallback(
+        (newTimestampInterval: number[], force?: boolean) => {
+            applyTimestampIntervalToTrack(newTimestampInterval, text, setText, undefined, force);
+            applyTimestampIntervalToTrack(newTimestampInterval, track1, setTrack1, 0, force);
+            applyTimestampIntervalToTrack(newTimestampInterval, track2, setTrack2, 1, force);
+            applyTimestampIntervalToTrack(newTimestampInterval, track3, setTrack3, 2, force);
+        },
+        [applyTimestampIntervalToTrack, text, track1, track2, track3]
+    );
+
     const handleApplyTimestampIntervalToText = useCallback(() => {
         if (timestampInterval === undefined) {
             return;
         }
 
-        const newText = textForTimestampInterval(timestampInterval);
-        setText(newText);
+        applyTimestampIntervalToAllTracks(timestampInterval, true);
         setLastAppliedTimestampIntervalToText(timestampInterval);
-    }, [textForTimestampInterval, timestampInterval]);
+    }, [applyTimestampIntervalToAllTracks, timestampInterval]);
 
     const handleTimestampIntervalChange = useCallback(
         (e: React.ChangeEvent<{}>, newValue: number | number[]) => {
@@ -490,41 +467,14 @@ const AnkiDialog = ({
                 subtitleIntersectsTimeInterval(s, newTimestampInterval)
             );
             setSelectedSubtitles(selectedSubtitles);
-
-            if (lastAppliedTimestampIntervalToText !== undefined) {
-                const expectedUnchangedText = textForTimestampInterval(lastAppliedTimestampIntervalToText);
-
-                if (text.trim() === expectedUnchangedText.trim()) {
-                    const newText = textForTimestampInterval(newTimestampInterval);
-                    setText(newText);
-                    setLastAppliedTimestampIntervalToText(newTimestampInterval);
-                }
-            }
+            applyTimestampIntervalToAllTracks(newTimestampInterval);
+            setLastAppliedTimestampIntervalToText(newTimestampInterval);
 
             if (onRerecord === undefined && audioClip?.isSliceable() === true) {
                 setLastAppliedTimestampIntervalToAudio(newTimestampInterval);
             }
         },
-        [
-            card.surroundingSubtitles,
-            audioClip,
-            onRerecord,
-            text,
-            lastAppliedTimestampIntervalToText,
-            textForTimestampInterval,
-        ]
-    );
-
-    const handleApplyTimestampIntervalToAudio = useCallback(
-        (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-            if (onRerecord) {
-                e.stopPropagation();
-                onRerecord();
-            } else {
-                setLastAppliedTimestampIntervalToAudio(timestampInterval);
-            }
-        },
-        [onRerecord, timestampInterval]
+        [card.surroundingSubtitles, audioClip, onRerecord, applyTimestampIntervalToAllTracks]
     );
 
     const handleResetTimestampInterval = useCallback(() => {
@@ -540,7 +490,17 @@ const AnkiDialog = ({
         setTimestampInterval(initialTimestampInterval);
         setTimestampBoundaryInterval(initialTimestampBoundaryInterval);
         setTimestampMarks(sliderMarksFromCard(card.surroundingSubtitles, initialTimestampBoundaryInterval));
-    }, [initialTimestampInterval, initialTimestampBoundaryInterval, card.surroundingSubtitles]);
+
+        if (initialTimestampInterval !== undefined) {
+            applyTimestampIntervalToAllTracks(initialTimestampInterval, true);
+            setLastAppliedTimestampIntervalToText(initialTimestampInterval);
+        }
+    }, [
+        initialTimestampInterval,
+        initialTimestampBoundaryInterval,
+        card.surroundingSubtitles,
+        applyTimestampIntervalToAllTracks,
+    ]);
 
     const handleZoomInTimestampInterval = useCallback(() => {
         if (!timestampBoundaryInterval || !timestampInterval) {
@@ -591,25 +551,6 @@ const AnkiDialog = ({
     );
 
     const disableApplyTextSelection = card.surroundingSubtitles.filter((s) => s.text.trim() !== '').length === 0;
-
-    let audioActionElement: JSX.Element | undefined = undefined;
-
-    if (onRerecord !== undefined) {
-        audioActionElement = (
-            <Tooltip title={t('ankiDialog.rerecord')!}>
-                <span>
-                    <IconButton
-                        disabled={audioClip?.error !== undefined}
-                        onClick={handleApplyTimestampIntervalToAudio}
-                        edge="end"
-                    >
-                        <FiberManualRecordIcon />
-                    </IconButton>
-                </span>
-            </Tooltip>
-        );
-    }
-
     const ankiFieldModels = sortedAnkiFieldModels(settings);
 
     useEffect(() => {
@@ -617,6 +558,26 @@ const AnkiDialog = ({
             audioClip?.stop();
         }
     }, [open, audioClip]);
+
+    const handleSentenceTextChange = useCallback((text: string) => {
+        setText(text);
+        setLastAppliedTimestampIntervalToText(undefined);
+    }, []);
+
+    const handleTrack1TextChange = useCallback((text: string) => {
+        setTrack1(text);
+        setLastAppliedTimestampIntervalToText(undefined);
+    }, []);
+
+    const handleTrack2TextChange = useCallback((text: string) => {
+        setTrack2(text);
+        setLastAppliedTimestampIntervalToText(undefined);
+    }, []);
+
+    const handleTrack3TextChange = useCallback((text: string) => {
+        setTrack3(text);
+        setLastAppliedTimestampIntervalToText(undefined);
+    }, []);
 
     return (
         <Dialog open={open} disableEnforceFocus fullWidth maxWidth="sm" onClose={onCancel}>
@@ -647,17 +608,10 @@ const AnkiDialog = ({
                                 {!model.custom && model.key === 'sentence' && model.field.display && (
                                     <SentenceField
                                         text={text}
+                                        label={t('ankiDialog.sentence')!}
                                         width={width}
-                                        onChangeText={setText}
+                                        onChangeText={handleSentenceTextChange}
                                         selectedSubtitles={selectedSubtitles}
-                                        applySelectedRangeDisabled={
-                                            !timestampInterval ||
-                                            !lastAppliedTimestampIntervalToText ||
-                                            (timestampInterval[0] === lastAppliedTimestampIntervalToText[0] &&
-                                                timestampInterval[1] === lastAppliedTimestampIntervalToText[1]) ||
-                                            disableApplyTextSelection
-                                        }
-                                        onApplySelectedRangeToText={handleApplyTimestampIntervalToText}
                                     />
                                 )}
                                 {!model.custom && model.key === 'definition' && model.field.display && (
@@ -697,7 +651,7 @@ const AnkiDialog = ({
                                         onChange={(e) => setSource(e.target.value)}
                                     />
                                 )}
-                                {!model.custom && model.key === 'url' && model.field.display && (
+                                {!model.custom && model.key === 'url' && model.field.display && card.url && (
                                     <TextField
                                         variant="filled"
                                         color="secondary"
@@ -705,6 +659,33 @@ const AnkiDialog = ({
                                         label={t('ankiDialog.url')}
                                         value={url}
                                         onChange={(e) => setUrl(e.target.value)}
+                                    />
+                                )}
+                                {!model.custom && model.key === 'track1' && model.field.display && (
+                                    <SentenceField
+                                        text={track1}
+                                        label={t('ankiDialog.track1')}
+                                        width={width}
+                                        onChangeText={handleTrack1TextChange}
+                                        selectedSubtitles={selectedSubtitles.filter((s) => s.track === 0)}
+                                    />
+                                )}
+                                {!model.custom && model.key === 'track2' && model.field.display && (
+                                    <SentenceField
+                                        text={track2}
+                                        label={t('ankiDialog.track2')}
+                                        width={width}
+                                        onChangeText={handleTrack2TextChange}
+                                        selectedSubtitles={selectedSubtitles.filter((s) => s.track === 1)}
+                                    />
+                                )}
+                                {!model.custom && model.key === 'track3' && model.field.display && (
+                                    <SentenceField
+                                        text={track3}
+                                        label={t('ankiDialog.track3')}
+                                        width={width}
+                                        onChangeText={handleTrack3TextChange}
+                                        selectedSubtitles={selectedSubtitles.filter((s) => s.track === 2)}
                                     />
                                 )}
                                 {model.custom && model.field.display && (
@@ -751,7 +732,7 @@ const AnkiDialog = ({
                                             style={{ marginTop: -8 }}
                                             onClick={handleResetTimestampInterval}
                                         >
-                                            <RestoreIcon />
+                                            <RestoreIcon fontSize="small" />
                                         </IconButton>
                                     </span>
                                 </Tooltip>
@@ -764,7 +745,7 @@ const AnkiDialog = ({
                                             style={{ marginTop: -8 }}
                                             onClick={handleZoomInTimestampInterval}
                                         >
-                                            <ZoomInIcon />
+                                            <ZoomInIcon fontSize="small" />
                                         </IconButton>
                                     </span>
                                 </Tooltip>
@@ -777,7 +758,27 @@ const AnkiDialog = ({
                                             style={{ marginTop: -8 }}
                                             onClick={handleZoomOutTimestampInterval}
                                         >
-                                            <ZoomOutIcon />
+                                            <ZoomOutIcon fontSize="small" />
+                                        </IconButton>
+                                    </span>
+                                </Tooltip>
+                            </Grid>
+                            <Grid item>
+                                <Tooltip title={t('ankiDialog.applySelection')!}>
+                                    <span>
+                                        <IconButton
+                                            edge="end"
+                                            style={{ marginTop: -8 }}
+                                            disabled={
+                                                !timestampInterval ||
+                                                (lastAppliedTimestampIntervalToText !== undefined &&
+                                                    timestampInterval[0] === lastAppliedTimestampIntervalToText[0] &&
+                                                    timestampInterval[1] === lastAppliedTimestampIntervalToText[1]) ||
+                                                disableApplyTextSelection
+                                            }
+                                            onClick={handleApplyTimestampIntervalToText}
+                                        >
+                                            <DoneIcon fontSize="small" />
                                         </IconButton>
                                     </span>
                                 </Tooltip>
@@ -790,18 +791,21 @@ const AnkiDialog = ({
                 <Button
                     disabled={disabled}
                     onClick={() =>
-                        onProceed(
+                        onProceed({
                             text,
+                            track1,
+                            track2,
+                            track3,
                             definition,
                             audioClip,
                             image,
                             word,
-                            source ?? '',
-                            url ?? '',
+                            source,
+                            url,
                             customFieldValues,
                             tags,
-                            'gui'
-                        )
+                            mode: 'gui',
+                        })
                     }
                 >
                     {t('ankiDialog.openInAnki')}
@@ -809,18 +813,21 @@ const AnkiDialog = ({
                 <Button
                     disabled={disabled}
                     onClick={() =>
-                        onProceed(
+                        onProceed({
                             text,
+                            track1,
+                            track2,
+                            track3,
                             definition,
                             audioClip,
                             image,
                             word,
-                            source ?? '',
-                            url ?? '',
+                            source,
+                            url,
                             customFieldValues,
                             tags,
-                            'updateLast'
-                        )
+                            mode: 'updateLast',
+                        })
                     }
                 >
                     {t('ankiDialog.updateLastCard')}
@@ -828,18 +835,21 @@ const AnkiDialog = ({
                 <Button
                     disabled={disabled}
                     onClick={() =>
-                        onProceed(
+                        onProceed({
                             text,
+                            track1,
+                            track2,
+                            track3,
                             definition,
                             audioClip,
                             image,
                             word,
-                            source ?? '',
-                            url ?? '',
+                            source,
+                            url,
                             customFieldValues,
                             tags,
-                            'default'
-                        )
+                            mode: 'default',
+                        })
                     }
                 >
                     {t('ankiDialog.export')}

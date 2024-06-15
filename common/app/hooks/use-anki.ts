@@ -36,9 +36,31 @@ class SettingsAccessor {
     get urlField() {
         return this.settings.urlField;
     }
+
+    get track1Field() {
+        return this.settings.track1Field;
+    }
+
+    get track2Field() {
+        return this.settings.track2Field;
+    }
+
+    get track3Field() {
+        return this.settings.track3Field;
+    }
+
+    get ankiFieldSettings() {
+        return this.settings.ankiFieldSettings;
+    }
+
     get customAnkiFields() {
         return this.settings.customAnkiFields;
     }
+
+    get customAnkiFieldSettings() {
+        return this.settings.customAnkiFieldSettings;
+    }
+
     get tags() {
         return this.settings.tags;
     }

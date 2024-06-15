@@ -55,6 +55,15 @@ const settingsSchema = {
         urlField: {
             type: 'string',
         },
+        track1Field: {
+            type: 'string',
+        },
+        track2Field: {
+            type: 'string',
+        },
+        track3Field: {
+            type: 'string',
+        },
         ankiFieldSettings: {
             type: 'object',
             properties: {
@@ -65,6 +74,9 @@ const settingsSchema = {
                 word: { $ref: '/AnkiField' },
                 source: { $ref: '/AnkiField' },
                 url: { $ref: '/AnkiField' },
+                track1: { $ref: '/AnkiField' },
+                track2: { $ref: '/AnkiField' },
+                track3: { $ref: '/AnkiField' },
             },
         },
         customAnkiFieldSettings: {

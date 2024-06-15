@@ -773,6 +773,9 @@ export default function SettingsForm({
         wordField,
         sourceField,
         urlField,
+        track1Field,
+        track2Field,
+        track3Field,
         ankiFieldSettings,
         subtitleSize,
         subtitleColor,
@@ -1311,6 +1314,42 @@ export default function SettingsForm({
                                         onChange={(event) => handleSettingChanged('urlField', event.target.value)}
                                         onSelectionChange={(event) =>
                                             handleSettingChanged('urlField', event.target.value as string)
+                                        }
+                                        {...rest}
+                                    />
+                                )}
+                                {!model.custom && model.key === 'track1' && (
+                                    <SelectableSetting
+                                        label={t('settings.track1Field')}
+                                        value={track1Field}
+                                        selections={fieldNames}
+                                        onChange={(event) => handleSettingChanged('track1Field', event.target.value)}
+                                        onSelectionChange={(event) =>
+                                            handleSettingChanged('track1Field', event.target.value as string)
+                                        }
+                                        {...rest}
+                                    />
+                                )}
+                                {!model.custom && model.key === 'track2' && (
+                                    <SelectableSetting
+                                        label={t('settings.track2Field')}
+                                        value={track2Field}
+                                        selections={fieldNames}
+                                        onChange={(event) => handleSettingChanged('track2Field', event.target.value)}
+                                        onSelectionChange={(event) =>
+                                            handleSettingChanged('track2Field', event.target.value as string)
+                                        }
+                                        {...rest}
+                                    />
+                                )}
+                                {!model.custom && model.key === 'track3' && (
+                                    <SelectableSetting
+                                        label={t('settings.track3Field')}
+                                        value={track3Field}
+                                        selections={fieldNames}
+                                        onChange={(event) => handleSettingChanged('track3Field', event.target.value)}
+                                        onSelectionChange={(event) =>
+                                            handleSettingChanged('track3Field', event.target.value as string)
                                         }
                                         {...rest}
                                     />

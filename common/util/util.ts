@@ -227,13 +227,17 @@ export function joinSubtitles(subtitles: SubtitleModel[]) {
         .join('\n');
 }
 
-export function extractText(subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[]) {
+export function extractText(subtitle: SubtitleModel, surroundingSubtitles: SubtitleModel[], track?: number) {
     if (surroundingSubtitles.length === 0) {
         return subtitle.text;
     }
 
     const interval = [subtitle.start, subtitle.end];
-    return joinSubtitles(surroundingSubtitles.filter((s) => subtitleIntersectsTimeInterval(s, interval)));
+    return joinSubtitles(
+        surroundingSubtitles
+            .filter((s) => subtitleIntersectsTimeInterval(s, interval))
+            .filter((s) => track === undefined || s.track === track)
+    );
 }
 
 export function download(blob: Blob, name: string) {

@@ -32,6 +32,9 @@ export interface AnkiSettings {
     readonly wordField: string;
     readonly sourceField: string;
     readonly urlField: string;
+    readonly track1Field: string;
+    readonly track2Field: string;
+    readonly track3Field: string;
     readonly customAnkiFields: { [key: string]: string };
     readonly tags: string[];
     readonly preferMp3: boolean;
@@ -58,6 +61,9 @@ export interface AnkiFieldSettings {
     readonly word: AnkiField;
     readonly source: AnkiField;
     readonly url: AnkiField;
+    readonly track1: AnkiField;
+    readonly track2: AnkiField;
+    readonly track3: AnkiField;
 }
 
 export type CustomAnkiFieldSettings = { [key: string]: AnkiField };
@@ -73,6 +79,9 @@ const ankiSettingsKeysObject: { [key in keyof AnkiSettings]: boolean } = {
     wordField: true,
     sourceField: true,
     urlField: true,
+    track1Field: true,
+    track2Field: true,
+    track3Field: true,
     customAnkiFields: true,
     tags: true,
     preferMp3: true,

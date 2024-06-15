@@ -91,6 +91,23 @@ export const inheritHtmlMarkup = (original: string, markedUp: string) => {
 
 export type AnkiExportMode = 'gui' | 'updateLast' | 'default';
 
+export interface ExportParams {
+    text: string | undefined;
+    track1: string | undefined;
+    track2: string | undefined;
+    track3: string | undefined;
+    definition: string | undefined;
+    audioClip: AudioClip | undefined;
+    image: Image | undefined;
+    word: string | undefined;
+    source: string | undefined;
+    url: string | undefined;
+    customFieldValues: { [key: string]: string };
+    tags: string[];
+    mode: AnkiExportMode;
+    ankiConnectUrl?: string;
+}
+
 export async function exportCard(card: CardModel, ankiSettings: AnkiSettings, exportMode: AnkiExportMode) {
     const anki = new Anki(ankiSettings);
     const source = sourceString(card.subtitleFileName, card.mediaTimestamp);
@@ -107,20 +124,24 @@ export async function exportCard(card: CardModel, ankiSettings: AnkiSettings, ex
                   card.audio.error
               );
 
-    return await anki.export(
-        card.text ?? extractText(card.subtitle, card.surroundingSubtitles),
-        card.definition,
+    return await anki.export({
+        text: card.text ?? extractText(card.subtitle, card.surroundingSubtitles),
+        track1: extractText(card.subtitle, card.surroundingSubtitles, 0),
+        track2: extractText(card.subtitle, card.surroundingSubtitles, 1),
+        track3: extractText(card.subtitle, card.surroundingSubtitles, 2),
+        definition: card.definition,
         audioClip,
-        card.image === undefined
-            ? undefined
-            : Image.fromBase64(source, card.subtitle.start, card.image.base64, card.image.extension),
-        card.word,
-        source,
-        card.url,
-        card.customFieldValues ?? {},
-        ankiSettings.tags,
-        exportMode
-    );
+        image:
+            card.image === undefined
+                ? undefined
+                : Image.fromBase64(source, card.subtitle.start, card.image.base64, card.image.extension),
+        word: card.word,
+        source: source,
+        url: card.url,
+        customFieldValues: card.customFieldValues ?? {},
+        tags: ankiSettings.tags,
+        mode: exportMode,
+    });
 }
 
 export class Anki {
@@ -190,22 +211,28 @@ export class Anki {
         return response.result;
     }
 
-    async export(
-        text: string | undefined,
-        definition: string | undefined,
-        audioClip: AudioClip | undefined,
-        image: Image | undefined,
-        word: string | undefined,
-        source: string | undefined,
-        url: string | undefined,
-        customFieldValues: { [key: string]: string },
-        tags: string[],
-        mode: AnkiExportMode,
-        ankiConnectUrl?: string
-    ) {
+    async export({
+        text,
+        track1,
+        track2,
+        track3,
+        definition,
+        audioClip,
+        image,
+        word,
+        source,
+        url,
+        customFieldValues,
+        tags,
+        mode,
+        ankiConnectUrl,
+    }: ExportParams) {
         const fields = {};
 
         this._appendField(fields, this.settingsProvider.sentenceField, text, true);
+        this._appendField(fields, this.settingsProvider.track1Field, track1, true);
+        this._appendField(fields, this.settingsProvider.track2Field, track2, true);
+        this._appendField(fields, this.settingsProvider.track3Field, track3, true);
         this._appendField(fields, this.settingsProvider.definitionField, definition, true);
         this._appendField(fields, this.settingsProvider.wordField, word, false);
         this._appendField(fields, this.settingsProvider.sourceField, source, false);
