@@ -6,7 +6,7 @@ import {
     AudioModel,
     AudioTrackModel,
     AnkiUiSavedState,
-    EmbeddedSubtitle,
+    SubtitleTrack,
     PostMineAction,
     PlayMode,
     CardModel,
@@ -416,7 +416,7 @@ export interface AnkiUiBridgeRerecordMessage extends Message {
 
 export interface VideoDataUiBridgeConfirmMessage extends Message {
     readonly command: 'confirm';
-    readonly data: EmbeddedSubtitle[];
+    readonly data: SubtitleTrack[];
     readonly shouldRememberTrackChoices: boolean;
 }
 
