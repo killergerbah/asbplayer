@@ -19,7 +19,6 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
-import Paper from '@material-ui/core/Paper';
 import RestoreIcon from '@material-ui/icons/Restore';
 import SettingsIcon from '@material-ui/icons/Settings';
 import CloseIcon from '@material-ui/icons/Close';
@@ -30,9 +29,8 @@ import Typography from '@material-ui/core/Typography';
 import ZoomInIcon from '@material-ui/icons/ZoomIn';
 import ZoomOutIcon from '@material-ui/icons/ZoomOut';
 import DoneIcon from '@material-ui/icons/Done';
-import SubtitleTextImage from './SubtitleTextImage';
 import TagsTextField from './TagsTextField';
-import { Anki, AnkiExportMode, ExportParams } from '../anki';
+import { Anki, ExportParams } from '../anki';
 import { isFirefox } from '../browser-detection';
 import SentenceField from './SentenceField';
 import DefinitionField from './DefinitionField';
@@ -59,6 +57,15 @@ const useStyles = makeStyles((theme) => ({
     rangeSelectSlider: {
         '& .MuiSlider-markLabel': {
             transform: 'translateX(-3%)',
+            background: theme.palette.type === 'dark' ? '#222' : '#ddd',
+            borderRadius: theme.spacing(1),
+            paddingLeft: theme.spacing(1),
+            paddingRight: theme.spacing(1),
+            color: theme.palette.text.disabled,
+        },
+        '& .MuiSlider-markLabelActive': {
+            opacity: 1,
+            color: theme.palette.text.primary,
         },
     },
 }));
