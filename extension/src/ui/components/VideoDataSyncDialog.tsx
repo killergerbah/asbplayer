@@ -14,7 +14,7 @@ import Typography from '@material-ui/core/Typography';
 import makeStyles from '@material-ui/styles/makeStyles';
 import Switch from '@material-ui/core/Switch';
 import LabelWithHoverEffect from '@project/common/components/LabelWithHoverEffect';
-import { EmbeddedSubtitle } from '@project/common';
+import { EmbeddedSubtitle, SubtitleTrack, isEmbeddedSubtitle, isSubtitleFile } from '@project/common';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -51,14 +51,14 @@ interface Props {
     isLoading: boolean;
     suggestedName: string;
     showSubSelect: boolean;
-    subtitles: EmbeddedSubtitle[];
+    subtitles: SubtitleTrack[];
     selectedSubtitle: string[];
     defaultCheckboxState: boolean;
     error: string;
     openedFromMiningCommand: boolean;
     onCancel: () => void;
     onOpenFile: () => void;
-    onConfirm: (track: EmbeddedSubtitle[], shouldRememberTrackChoices: boolean) => void;
+    onConfirm: (track: SubtitleTrack[], shouldRememberTrackChoices: boolean) => void;
 }
 
 export default function VideoDataSyncDialog({
@@ -86,8 +86,8 @@ export default function VideoDataSyncDialog({
     useEffect(() => {
         if (open) {
             setSelectedSubtitles(
-                selectedSubtitle.map((url) => {
-                    return url !== undefined ? url : '-';
+                selectedSubtitle.map((key) => {
+                    return key !== undefined ? key : '-';
                 })
             );
         } else if (!open) {
@@ -114,9 +114,10 @@ export default function VideoDataSyncDialog({
             if (
                 !name ||
                 name === suggestedName ||
-                subtitles.find((track) => track.url !== '-' && name === calculateName(suggestedName, track.label))
+                subtitles.find((track) => isEmbeddedSubtitle(track) && track.url !== '-' && name === calculateName(suggestedName, track.label))
             ) {
-                const selectedTrack = subtitles.find((track) => track.url === selectedSubtitles[0])!;
+                // TODO(xpire): make this logic work for SerializedSubtitleFile as well
+                const selectedTrack = subtitles.find((track) => (track as EmbeddedSubtitle).url === selectedSubtitles[0])! as EmbeddedSubtitle;
 
                 if (selectedTrack.url === '-') {
                     return suggestedName;
@@ -131,7 +132,7 @@ export default function VideoDataSyncDialog({
     }, [suggestedName, selectedSubtitles, subtitles]);
 
     function handleOkButtonClick() {
-        const selectedSubtitleTracks: EmbeddedSubtitle[] = allSelectedSubtitleTracks();
+        const selectedSubtitleTracks: SubtitleTrack[] = allSelectedSubtitleTracks();
         onConfirm(selectedSubtitleTracks, shouldRememberTrackChoices);
     }
 
@@ -140,26 +141,35 @@ export default function VideoDataSyncDialog({
     }
 
     function allSelectedSubtitleTracks() {
-        const selectedSubtitleTracks: EmbeddedSubtitle[] = selectedSubtitles
-            .map((selected): EmbeddedSubtitle | undefined => {
-                const subtitle = subtitles.find((subtitle) => subtitle.url === selected);
+        const selectedSubtitleTracks: SubtitleTrack[] = selectedSubtitles
+            .map((selected): SubtitleTrack | undefined => {
+                const subtitle = subtitles.find((subtitle) => isEmbeddedSubtitle(subtitle) && subtitle.url === selected || isSubtitleFile(subtitle) && subtitle.name == selected);
                 if (subtitle) {
-                    const { language, extension, m3U8BaseUrl } = subtitle;
-                    return {
-                        type: "url",
-                        label: suggestedName.trim() + language.trim(),
-                        extension: extension,
-                        url: selected,
-                        language: language,
-                        m3U8BaseUrl: m3U8BaseUrl,
-                    };
+                    if (isEmbeddedSubtitle(subtitle)) {
+                        const { language, extension, m3U8BaseUrl } = subtitle;
+                        return {
+                            type: "url",
+                            label: suggestedName.trim() + language.trim(),
+                            extension: extension,
+                            url: selected,
+                            language: language,
+                            m3U8BaseUrl: m3U8BaseUrl,
+                        };
+                    } else {
+                        // isSubtitleFile
+                        return subtitle;
+                    }
+
                 }
             })
             .filter((track): track is EmbeddedSubtitle => track !== undefined);
 
         // Give the first track the trimmed name from the name field in case it has been changed by the user
-        selectedSubtitleTracks[0].label = trimmedName;
-
+        if (isEmbeddedSubtitle(selectedSubtitleTracks[0]))
+            selectedSubtitleTracks[0].label = trimmedName;
+        else {
+            selectedSubtitleTracks[0].name = trimmedName;
+        }
         return selectedSubtitleTracks;
     }
 
@@ -188,9 +198,13 @@ export default function VideoDataSyncDialog({
                                 })
                             }
                         >
-                            {subtitles.map((subtitle) => (
+                            {subtitles.map((subtitle) => (isEmbeddedSubtitle(subtitle) ?
                                 <MenuItem value={subtitle.url} key={subtitle.url}>
                                     {subtitle.label}
+                                </MenuItem>
+                                :
+                                <MenuItem value={subtitle.name} key={subtitle.name}>
+                                    {subtitle.name}
                                 </MenuItem>
                             ))}
                         </TextField>
