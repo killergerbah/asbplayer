@@ -47,6 +47,7 @@ export interface AnkiSettings {
 
 export interface AnkiField {
     readonly order: number;
+    readonly display: boolean;
 }
 
 export interface AnkiFieldSettings {

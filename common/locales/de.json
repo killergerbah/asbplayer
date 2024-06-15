@@ -270,6 +270,8 @@
         "imageBasedSubtitleScaleFactor": "Bildbasierte Untertitel-Skalierung",
         "imageField": "Bild-Feld",
         "keyboardShortcuts": "Tastatürkürzel",
+        "hideInCardCreator": "Hide in card creator",
+        "showInCardCreator": "Show in card creator",
         "language": "Sprache",
         "maxImageHeight": "Maximale Bild-Höhe",
         "maxImageWidth": "Maximale Bild-Breite",

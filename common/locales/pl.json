@@ -270,6 +270,8 @@
         "imageBasedSubtitleScaleFactor": "Skalowanie napisów na bazie obrazu",
         "imageField": "Pole na obraz",
         "keyboardShortcuts": "Skróty klawiszowe",
+        "hideInCardCreator": "Hide in card creator",
+        "showInCardCreator": "Show in card creator",
         "language": "Język",
         "maxImageHeight": "Maksymalna wysokość obrazu",
         "maxImageWidth": "Maksymalna szerokość obrazu",

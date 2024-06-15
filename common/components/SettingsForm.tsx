@@ -21,6 +21,8 @@ import Radio from '@material-ui/core/Radio';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
+import VisibilityIcon from '@material-ui/icons/Visibility';
+import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import { Theme } from '@material-ui/core/styles';
@@ -42,6 +44,7 @@ import hotkeys from 'hotkeys-js';
 import Typography from '@material-ui/core/Typography';
 import { isMacOs } from 'react-device-detect';
 import Switch from '@material-ui/core/Switch';
+// import Checkbox from '@material-ui/core/Checkbox';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Tooltip from '@material-ui/core/Tooltip';
 import Autocomplete from '@material-ui/lab/Autocomplete';
@@ -150,6 +153,12 @@ const useSelectableSettingStyles = makeStyles<Theme>((theme) => ({
         justifyContent: 'end',
         alignItems: 'flex-end',
     },
+    hidden: {
+        opacity: 0.5,
+    },
+    checkbox: {
+        padding: 0,
+    },
 }));
 
 function regexIsValid(regex: string) {
@@ -171,6 +180,8 @@ interface SelectableSettingProps {
     value: string;
     selections?: string[];
     removable?: boolean;
+    display?: boolean;
+    onDisplayChange?: (displaying: boolean) => void;
     onChange: (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;
     onSelectionChange: (event: ChangeEvent<{ name?: string | undefined; value: unknown }>, child: ReactNode) => void;
     disabledDirection?: Direction;
@@ -183,6 +194,8 @@ function SelectableSetting({
     value,
     selections,
     removable,
+    display,
+    onDisplayChange,
     disabledDirection,
     onChange,
     onSelectionChange,
@@ -190,6 +203,7 @@ function SelectableSetting({
     onRemoval,
 }: SelectableSettingProps) {
     const classes = useSelectableSettingStyles();
+    const { t } = useTranslation();
     const [optionsMenuOpen, setOptionsMenuOpen] = useState<boolean>(false);
     const [optionsMenuAnchorEl, setOptionsMenuAnchorEl] = useState<Element>();
     const handleOrderChange = (direction: Direction) => {
@@ -197,8 +211,10 @@ function SelectableSetting({
         onOrderChange?.(direction);
     };
 
+    const className = display === false ? `${classes.root} ${classes.hidden}` : classes.root;
+
     return (
-        <div className={classes.root}>
+        <div className={className}>
             <TextField
                 label={label}
                 value={value}
@@ -258,6 +274,16 @@ function SelectableSetting({
                             <ListItem button onClick={() => handleOrderChange(Direction.up)}>
                                 <ArrowUpwardIcon fontSize="small" />
                             </ListItem>
+                        )}
+                        {display !== undefined && onDisplayChange !== undefined && (
+                            <Tooltip
+                                title={(display ? t('settings.hideInCardCreator') : t('settings.showInCardCreator'))!}
+                            >
+                                <ListItem button onClick={() => onDisplayChange(!display)}>
+                                    {display === false && <VisibilityOffIcon fontSize="small" />}
+                                    {display === true && <VisibilityIcon fontSize="small" />}
+                                </ListItem>
+                            </Tooltip>
                         )}
                         {disabledDirection !== Direction.down && (
                             <ListItem button onClick={() => handleOrderChange(Direction.down)}>
@@ -1058,8 +1084,8 @@ export default function SettingsForm({
             const other = direction === Direction.up ? models[index - 1] : models[index + 1];
             let newCustomAnkiFieldSettings: CustomAnkiFieldSettings | undefined = undefined;
             let newAnkiFieldSettings: AnkiFieldSettings | undefined = undefined;
-            const newMeField = { [me.key]: { order: other.field.order } };
-            const newOtherField = { [other.key]: { order: me.field.order } };
+            const newMeField = { [me.key]: { ...me.field, order: other.field.order } };
+            const newOtherField = { [other.key]: { ...other.field, order: me.field.order } };
 
             if (other.custom) {
                 newCustomAnkiFieldSettings = { ...customAnkiFieldSettings, ...newOtherField };
@@ -1084,17 +1110,24 @@ export default function SettingsForm({
         [onSettingsChanged, customAnkiFieldSettings, ankiFieldSettings]
     );
 
-    const disabledDirection = (index: number) => {
-        if (index === 0) {
-            return Direction.up;
-        }
+    const handleAnkiFieldDisplayChange = useCallback(
+        (model: AnkiFieldUiModel, display: boolean) => {
+            const newField = { ...model.field, display };
 
-        if (index === ankiFieldModels.length - 1) {
-            return Direction.down;
-        }
-
-        return undefined;
-    };
+            if (model.custom) {
+                const newCustomAnkiFieldSettings = { ...customAnkiFieldSettings, [model.key]: newField };
+                onSettingsChanged({
+                    customAnkiFieldSettings: newCustomAnkiFieldSettings,
+                });
+            } else {
+                const newAnkiFieldSettings = { ...ankiFieldSettings, [model.key]: newField };
+                onSettingsChanged({
+                    ankiFieldSettings: newAnkiFieldSettings,
+                });
+            }
+        },
+        [customAnkiFieldSettings, ankiFieldSettings, onSettingsChanged]
+    );
 
     return (
         <div className={classes.root}>
@@ -1174,6 +1207,26 @@ export default function SettingsForm({
                             !extensionInstalled || extensionSupportsOrderableAnkiFields
                                 ? (d: Direction) => handleAnkiFieldOrderChange(d, ankiFieldModels, index)
                                 : undefined;
+                        const handleDisplayChange =
+                            !extensionInstalled || extensionSupportsOrderableAnkiFields
+                                ? (display: boolean) => handleAnkiFieldDisplayChange(model, display)
+                                : undefined;
+
+                        let disabledDirection: Direction | undefined = undefined;
+
+                        if (index === 0) {
+                            disabledDirection = Direction.up;
+                        } else if (index === ankiFieldModels.length - 1) {
+                            disabledDirection = Direction.down;
+                        }
+
+                        const rest = {
+                            onOrderChange: handleOrderChange,
+                            onDisplayChange: handleDisplayChange,
+                            disabledDirection,
+                            display: model.field.display,
+                        };
+
                         return (
                             <React.Fragment key={key}>
                                 {!model.custom && model.key === 'sentence' && (
@@ -1185,8 +1238,7 @@ export default function SettingsForm({
                                         onSelectionChange={(event) =>
                                             handleSettingChanged('sentenceField', event.target.value as string)
                                         }
-                                        disabledDirection={disabledDirection(index)}
-                                        onOrderChange={handleOrderChange}
+                                        {...rest}
                                     />
                                 )}
                                 {!model.custom && model.key === 'definition' && (
@@ -1200,8 +1252,7 @@ export default function SettingsForm({
                                         onSelectionChange={(event) =>
                                             handleSettingChanged('definitionField', event.target.value as string)
                                         }
-                                        disabledDirection={disabledDirection(index)}
-                                        onOrderChange={handleOrderChange}
+                                        {...rest}
                                     />
                                 )}
                                 {!model.custom && model.key === 'word' && (
@@ -1213,8 +1264,7 @@ export default function SettingsForm({
                                         onSelectionChange={(event) =>
                                             handleSettingChanged('wordField', event.target.value as string)
                                         }
-                                        disabledDirection={disabledDirection(index)}
-                                        onOrderChange={handleOrderChange}
+                                        {...rest}
                                     />
                                 )}
                                 {!model.custom && model.key === 'audio' && (
@@ -1226,8 +1276,7 @@ export default function SettingsForm({
                                         onSelectionChange={(event) =>
                                             handleSettingChanged('audioField', event.target.value as string)
                                         }
-                                        disabledDirection={disabledDirection(index)}
-                                        onOrderChange={handleOrderChange}
+                                        {...rest}
                                     />
                                 )}
                                 {!model.custom && model.key === 'image' && (
@@ -1239,8 +1288,7 @@ export default function SettingsForm({
                                         onSelectionChange={(event) =>
                                             handleSettingChanged('imageField', event.target.value as string)
                                         }
-                                        disabledDirection={disabledDirection(index)}
-                                        onOrderChange={handleOrderChange}
+                                        {...rest}
                                     />
                                 )}
                                 {!model.custom && model.key === 'source' && (
@@ -1252,8 +1300,7 @@ export default function SettingsForm({
                                         onSelectionChange={(event) =>
                                             handleSettingChanged('sourceField', event.target.value as string)
                                         }
-                                        disabledDirection={disabledDirection(index)}
-                                        onOrderChange={handleOrderChange}
+                                        {...rest}
                                     />
                                 )}
                                 {!model.custom && model.key === 'url' && (
@@ -1265,8 +1312,7 @@ export default function SettingsForm({
                                         onSelectionChange={(event) =>
                                             handleSettingChanged('urlField', event.target.value as string)
                                         }
-                                        disabledDirection={disabledDirection(index)}
-                                        onOrderChange={handleOrderChange}
+                                        {...rest}
                                     />
                                 )}
                                 {model.custom && (
@@ -1278,10 +1324,9 @@ export default function SettingsForm({
                                         onSelectionChange={(e) =>
                                             handleCustomFieldChange(model.key, e.target.value as string)
                                         }
-                                        disabledDirection={disabledDirection(index)}
                                         onRemoval={() => handleCustomFieldRemoval(model.key)}
                                         removable={true}
-                                        onOrderChange={handleOrderChange}
+                                        {...rest}
                                     />
                                 )}
                             </React.Fragment>

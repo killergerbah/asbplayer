@@ -16,6 +16,9 @@ const ankiFieldSchema = {
         order: {
             type: 'number',
         },
+        display: {
+            type: 'boolean',
+        },
     },
 };
 const settingsSchema = {

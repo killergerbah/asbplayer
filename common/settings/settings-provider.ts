@@ -24,13 +24,13 @@ export const defaultSettings: AsbplayerSettings = {
     sourceField: '',
     urlField: '',
     ankiFieldSettings: {
-        sentence: { order: 1 },
-        definition: { order: 2 },
-        word: { order: 3 },
-        audio: { order: 4 },
-        image: { order: 5 },
-        source: { order: 6 },
-        url: { order: 7 },
+        sentence: { order: 1, display: true },
+        definition: { order: 2, display: true },
+        word: { order: 3, display: true },
+        audio: { order: 4, display: true },
+        image: { order: 5, display: true },
+        source: { order: 6, display: true },
+        url: { order: 7, display: true },
     },
     customAnkiFieldSettings: {},
     subtitleSize: 36,
@@ -160,7 +160,7 @@ const sortedAnkiFields = (models: AnkiFieldUiModel[]) => {
     });
 };
 
-export const sortedAnkiFieldModels = (settings: AnkiSettings) => {
+export const sortedAnkiFieldModels = (settings: AnkiSettings): AnkiFieldUiModel[] => {
     let last = Math.max(
         ...Object.values({ ...settings.ankiFieldSettings, ...settings.customAnkiFieldSettings }).map((f) => f.order)
     );
@@ -170,7 +170,7 @@ export const sortedAnkiFieldModels = (settings: AnkiSettings) => {
             Object.fromEntries(
                 Object.keys(settings.customAnkiFields).map((name) => [
                     name,
-                    settings.customAnkiFieldSettings[name] ?? { order: ++last },
+                    settings.customAnkiFieldSettings[name] ?? { order: ++last, display: true },
                 ])
             ),
             true

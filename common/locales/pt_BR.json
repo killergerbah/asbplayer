@@ -270,6 +270,8 @@
         "imageBasedSubtitleScaleFactor": "Fator de escala para legendas baseadas em Imagem",
         "imageField": "Campo de imagem",
         "keyboardShortcuts": "Atalhos de teclado",
+        "hideInCardCreator": "Hide in card creator",
+        "showInCardCreator": "Show in card creator",
         "language": "Idioma",
         "maxImageHeight": "Altura máxima da imagem",
         "maxImageWidth": "Largura máxima da Imagem",

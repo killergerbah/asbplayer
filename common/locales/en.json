@@ -270,6 +270,8 @@
         "imageBasedSubtitleScaleFactor": "Image-based Subtitle Scale Factor",
         "imageField": "Image Field",
         "keyboardShortcuts": "Keyboard Shortcuts",
+        "hideInCardCreator": "Hide in card creator",
+        "showInCardCreator": "Show in card creator",
         "language": "Language",
         "maxImageHeight": "Max Image Height",
         "maxImageWidth": "Max Image Width",

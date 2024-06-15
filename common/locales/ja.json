@@ -270,6 +270,8 @@
         "imageBasedSubtitleScaleFactor": "画像ベースの字幕の表示サイズ倍数",
         "imageField": "画像フィールド",
         "keyboardShortcuts": "キーボードショートカット",
+        "hideInCardCreator": "Hide in card creator",
+        "showInCardCreator": "Show in card creator",
         "language": "言語",
         "maxImageHeight": "画像の高さの最大値",
         "maxImageWidth": "画像の幅の最大値",

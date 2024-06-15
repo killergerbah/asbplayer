@@ -644,7 +644,7 @@ const AnkiDialog = ({
 
                         return (
                             <React.Fragment key={key}>
-                                {!model.custom && model.key === 'sentence' && (
+                                {!model.custom && model.key === 'sentence' && model.field.display && (
                                     <SentenceField
                                         text={text}
                                         width={width}
@@ -660,10 +660,10 @@ const AnkiDialog = ({
                                         onApplySelectedRangeToText={handleApplyTimestampIntervalToText}
                                     />
                                 )}
-                                {!model.custom && model.key === 'definition' && (
+                                {!model.custom && model.key === 'definition' && model.field.display && (
                                     <DefinitionField text={definition} onTextChange={setDefinition} />
                                 )}
-                                {!model.custom && model.key === 'word' && (
+                                {!model.custom && model.key === 'word' && model.field.display && (
                                     <WordField
                                         anki={anki}
                                         disabled={disabled}
@@ -672,7 +672,7 @@ const AnkiDialog = ({
                                         wordField={settings.wordField}
                                     />
                                 )}
-                                {image && !model.custom && model.key === 'image' && (
+                                {image && !model.custom && model.key === 'image' && model.field.display && (
                                     <ImageField
                                         onViewImage={handleViewImage}
                                         image={image}
@@ -680,14 +680,14 @@ const AnkiDialog = ({
                                         copyEnabled={!isFirefox}
                                     />
                                 )}
-                                {audioClip && !model.custom && model.key === 'audio' && (
+                                {audioClip && !model.custom && model.key === 'audio' && model.field.display && (
                                     <AudioField
                                         audioClip={audioClip}
                                         onRerecord={onRerecord}
                                         onPlayAudio={handlePlayAudio}
                                     />
                                 )}
-                                {!model.custom && model.key === 'source' && (
+                                {!model.custom && model.key === 'source' && model.field.display && (
                                     <TextField
                                         variant="filled"
                                         color="secondary"
@@ -697,7 +697,7 @@ const AnkiDialog = ({
                                         onChange={(e) => setSource(e.target.value)}
                                     />
                                 )}
-                                {!model.custom && model.key === 'url' && (
+                                {!model.custom && model.key === 'url' && model.field.display && (
                                     <TextField
                                         variant="filled"
                                         color="secondary"
@@ -707,7 +707,7 @@ const AnkiDialog = ({
                                         onChange={(e) => setUrl(e.target.value)}
                                     />
                                 )}
-                                {model.custom && (
+                                {model.custom && model.field.display && (
                                     <CustomField
                                         name={model.key}
                                         text={customFieldValues[model.key] || ''}

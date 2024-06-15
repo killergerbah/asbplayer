@@ -270,6 +270,8 @@
         "imageBasedSubtitleScaleFactor": "Коэффициент масштабирования для субтитров на основе изображений",
         "imageField": "Поле изображения",
         "keyboardShortcuts": "Горячие клавиши",
+        "hideInCardCreator": "Hide in card creator",
+        "showInCardCreator": "Show in card creator",
         "language": "Язык",
         "maxImageHeight": "Максимальная высота изображения",
         "maxImageWidth": "Максимальная ширина изображения",

@@ -14,8 +14,8 @@ export default function DefinitionField({ text, onTextChange }: Props) {
             variant="filled"
             color="secondary"
             multiline
+            maxRows={8}
             fullWidth
-            minRows={8}
             label={t('ankiDialog.definition')!}
             value={text}
             onChange={(e) => onTextChange(e.target.value)}
