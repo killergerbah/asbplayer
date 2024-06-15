@@ -32,11 +32,12 @@ export const useSettingsProfileContext = ({ settingsProvider, onProfileChanged }
             if (name === activeProfile) {
                 await settingsProvider.setActiveProfile(undefined);
                 setActiveProfile(undefined);
+                onProfileChanged();
             }
 
             settingsProvider.removeProfile(name).then(() => settingsProvider.profiles().then(setProfiles));
         },
-        [settingsProvider, activeProfile]
+        [settingsProvider, activeProfile, onProfileChanged]
     );
     const onSetActiveProfile = useCallback(
         (name: string | undefined) =>
