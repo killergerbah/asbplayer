@@ -16,13 +16,24 @@ import InputLabel from '@material-ui/core/InputLabel';
 import LabelWithHoverEffect from '@project/common/components/LabelWithHoverEffect';
 import MenuItem from '@material-ui/core/MenuItem';
 import DeleteIcon from '@material-ui/icons/Delete';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
 import Radio from '@material-ui/core/Radio';
 import RefreshIcon from '@material-ui/icons/Refresh';
+import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
+import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import { Theme } from '@material-ui/core/styles';
 import { AutoPausePreference, PostMineAction, PostMinePlayback } from '@project/common';
-import { AsbplayerSettings, KeyBindName, SubtitleListPreference } from '@project/common/settings';
+import {
+    AnkiFieldSettings,
+    AnkiFieldUiModel,
+    AsbplayerSettings,
+    CustomAnkiFieldSettings,
+    KeyBindName,
+    SubtitleListPreference,
+    sortedAnkiFieldModels,
+} from '@project/common/settings';
 import { computeStyles, download, isNumeric } from '@project/common/util';
 import { CustomStyle, validateSettings } from '@project/common/settings';
 import { useOutsideClickListener } from '@project/common/hooks';
@@ -34,6 +45,9 @@ import Switch from '@material-ui/core/Switch';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Tooltip from '@material-ui/core/Tooltip';
 import Autocomplete from '@material-ui/lab/Autocomplete';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import Popover from '@material-ui/core/Popover';
 import Slider from '@material-ui/core/Slider';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
@@ -147,6 +161,11 @@ function regexIsValid(regex: string) {
     }
 }
 
+enum Direction {
+    up = 1,
+    down = 2,
+}
+
 interface SelectableSettingProps {
     label: string;
     value: string;
@@ -154,6 +173,8 @@ interface SelectableSettingProps {
     removable?: boolean;
     onChange: (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;
     onSelectionChange: (event: ChangeEvent<{ name?: string | undefined; value: unknown }>, child: ReactNode) => void;
+    disabledDirection?: Direction;
+    onOrderChange?: (direction: Direction) => void;
     onRemoval?: () => void;
 }
 
@@ -162,11 +183,19 @@ function SelectableSetting({
     value,
     selections,
     removable,
+    disabledDirection,
     onChange,
     onSelectionChange,
+    onOrderChange,
     onRemoval,
 }: SelectableSettingProps) {
     const classes = useSelectableSettingStyles();
+    const [optionsMenuOpen, setOptionsMenuOpen] = useState<boolean>(false);
+    const [optionsMenuAnchorEl, setOptionsMenuAnchorEl] = useState<Element>();
+    const handleOrderChange = (direction: Direction) => {
+        setOptionsMenuOpen(false);
+        onOrderChange?.(direction);
+    };
 
     return (
         <div className={classes.root}>
@@ -177,10 +206,16 @@ function SelectableSetting({
                 fullWidth
                 color="secondary"
                 InputProps={{
-                    endAdornment: removable && (
+                    endAdornment: (removable || onOrderChange) && (
                         <InputAdornment position="end">
-                            <IconButton onClick={(e) => onRemoval?.()}>
-                                <DeleteIcon fontSize="small" />
+                            <IconButton
+                                style={{ marginRight: 0 }}
+                                onClick={(e) => {
+                                    setOptionsMenuAnchorEl(e.currentTarget);
+                                    setOptionsMenuOpen(true);
+                                }}
+                            >
+                                <MoreVertIcon fontSize="small" />
                             </IconButton>
                         </InputAdornment>
                     ),
@@ -202,6 +237,41 @@ function SelectableSetting({
                         ))}
                 </Select>
             </FormControl>
+
+            {optionsMenuOpen && (
+                <Popover
+                    disableEnforceFocus={true}
+                    open={optionsMenuOpen}
+                    anchorEl={optionsMenuAnchorEl}
+                    onClose={() => setOptionsMenuOpen(false)}
+                    anchorOrigin={{
+                        vertical: 'center',
+                        horizontal: 'center',
+                    }}
+                    transformOrigin={{
+                        vertical: 'center',
+                        horizontal: 'right',
+                    }}
+                >
+                    <List>
+                        {disabledDirection !== Direction.up && (
+                            <ListItem button onClick={() => handleOrderChange(Direction.up)}>
+                                <ArrowUpwardIcon fontSize="small" />
+                            </ListItem>
+                        )}
+                        {disabledDirection !== Direction.down && (
+                            <ListItem button onClick={() => handleOrderChange(Direction.down)}>
+                                <ArrowDownwardIcon fontSize="small" />
+                            </ListItem>
+                        )}
+                        {removable && (
+                            <ListItem button onClick={(e) => onRemoval?.()}>
+                                <DeleteIcon fontSize="small" />
+                            </ListItem>
+                        )}
+                    </List>
+                </Popover>
+            )}
         </div>
     );
 }
@@ -533,6 +603,7 @@ interface Props {
     extensionSupportsAppIntegration: boolean;
     extensionSupportsOverlay: boolean;
     extensionSupportsSidePanel: boolean;
+    extensionSupportsOrderableAnkiFields: boolean;
     insideApp?: boolean;
     settings: AsbplayerSettings;
     scrollToId?: string;
@@ -557,6 +628,7 @@ export default function SettingsForm({
     extensionSupportsAppIntegration,
     extensionSupportsOverlay,
     extensionSupportsSidePanel,
+    extensionSupportsOrderableAnkiFields,
     insideApp,
     scrollToId,
     chromeKeyBinds,
@@ -675,6 +747,7 @@ export default function SettingsForm({
         wordField,
         sourceField,
         urlField,
+        ankiFieldSettings,
         subtitleSize,
         subtitleColor,
         subtitleThickness,
@@ -714,6 +787,7 @@ export default function SettingsForm({
         subtitleRegexFilterTextReplacement,
         language,
         customAnkiFields,
+        customAnkiFieldSettings,
         tags,
         imageBasedSubtitleScaleFactor,
         streamingAppUrl,
@@ -906,7 +980,7 @@ export default function SettingsForm({
         }
     }, [pingWebSocketServer, webSocketClientEnabled, webSocketServerUrl]);
 
-    let webSocketServerUrlHelperText = undefined;
+    let webSocketServerUrlHelperText: string | null | undefined = undefined;
 
     if (webSocketClientEnabled) {
         if (webSocketConnectionSucceeded) {
@@ -916,20 +990,7 @@ export default function SettingsForm({
         }
     }
 
-    const customFieldInputs = Object.keys(customAnkiFields).map((customFieldName) => {
-        return (
-            <SelectableSetting
-                key={customFieldName}
-                label={`${customFieldName} Field`}
-                value={customAnkiFields[customFieldName]}
-                selections={fieldNames!}
-                onChange={(e) => handleCustomFieldChange(customFieldName, e.target.value)}
-                onSelectionChange={(e) => handleCustomFieldChange(customFieldName, e.target.value as string)}
-                onRemoval={() => handleCustomFieldRemoval(customFieldName)}
-                removable={true}
-            />
-        );
-    });
+    const ankiFieldModels = sortedAnkiFieldModels(settings);
 
     const tabIndicesById = useMemo(() => {
         const tabs = [
@@ -982,6 +1043,58 @@ export default function SettingsForm({
     const handleExportSettings = useCallback(() => {
         download(new Blob([JSON.stringify(settings)], { type: 'appliction/json' }), 'asbplayer-settings.json');
     }, [settings]);
+
+    const handleAnkiFieldOrderChange = useCallback(
+        (direction: Direction, models: AnkiFieldUiModel[], index: number) => {
+            if (direction === Direction.up && index === 0) {
+                return;
+            }
+
+            if (direction === Direction.down && index === models.length - 1) {
+                return;
+            }
+
+            const me = models[index];
+            const other = direction === Direction.up ? models[index - 1] : models[index + 1];
+            let newCustomAnkiFieldSettings: CustomAnkiFieldSettings | undefined = undefined;
+            let newAnkiFieldSettings: AnkiFieldSettings | undefined = undefined;
+            const newMeField = { [me.key]: { order: other.field.order } };
+            const newOtherField = { [other.key]: { order: me.field.order } };
+
+            if (other.custom) {
+                newCustomAnkiFieldSettings = { ...customAnkiFieldSettings, ...newOtherField };
+            } else {
+                newAnkiFieldSettings = { ...ankiFieldSettings, ...newOtherField };
+            }
+
+            if (me.custom) {
+                newCustomAnkiFieldSettings = {
+                    ...(newCustomAnkiFieldSettings ?? customAnkiFieldSettings),
+                    ...newMeField,
+                };
+            } else {
+                newAnkiFieldSettings = { ...(newAnkiFieldSettings ?? ankiFieldSettings), ...newMeField };
+            }
+
+            onSettingsChanged({
+                ankiFieldSettings: newAnkiFieldSettings ?? ankiFieldSettings,
+                customAnkiFieldSettings: newCustomAnkiFieldSettings ?? customAnkiFieldSettings,
+            });
+        },
+        [onSettingsChanged, customAnkiFieldSettings, ankiFieldSettings]
+    );
+
+    const disabledDirection = (index: number) => {
+        if (index === 0) {
+            return Direction.up;
+        }
+
+        if (index === ankiFieldModels.length - 1) {
+            return Direction.down;
+        }
+
+        return undefined;
+    };
 
     return (
         <div className={classes.root}>
@@ -1040,6 +1153,7 @@ export default function SettingsForm({
                             />
                         </FormHelperText>
                     )}
+
                     <SelectableSetting
                         label={t('settings.deck')}
                         value={deck}
@@ -1054,60 +1168,125 @@ export default function SettingsForm({
                         onChange={(event) => handleSettingChanged('noteType', event.target.value)}
                         onSelectionChange={(event) => handleSettingChanged('noteType', event.target.value as string)}
                     />
-                    <SelectableSetting
-                        label={t('settings.sentenceField')}
-                        value={sentenceField}
-                        selections={fieldNames}
-                        onChange={(event) => handleSettingChanged('sentenceField', event.target.value)}
-                        onSelectionChange={(event) =>
-                            handleSettingChanged('sentenceField', event.target.value as string)
-                        }
-                    />
-                    <SelectableSetting
-                        label={t('settings.definitionField')}
-                        value={definitionField}
-                        selections={fieldNames}
-                        onChange={(event) => handleSettingChanged('definitionField', event.target.value)}
-                        onSelectionChange={(event) =>
-                            handleSettingChanged('definitionField', event.target.value as string)
-                        }
-                    />
-                    <SelectableSetting
-                        label={t('settings.wordField')}
-                        value={wordField}
-                        selections={fieldNames}
-                        onChange={(event) => handleSettingChanged('wordField', event.target.value)}
-                        onSelectionChange={(event) => handleSettingChanged('wordField', event.target.value as string)}
-                    />
-                    <SelectableSetting
-                        label={t('settings.audioField')}
-                        value={audioField}
-                        selections={fieldNames}
-                        onChange={(event) => handleSettingChanged('audioField', event.target.value)}
-                        onSelectionChange={(event) => handleSettingChanged('audioField', event.target.value as string)}
-                    />
-                    <SelectableSetting
-                        label={t('settings.imageField')}
-                        value={imageField}
-                        selections={fieldNames}
-                        onChange={(event) => handleSettingChanged('imageField', event.target.value)}
-                        onSelectionChange={(event) => handleSettingChanged('imageField', event.target.value as string)}
-                    />
-                    <SelectableSetting
-                        label={t('settings.sourceField')}
-                        value={sourceField}
-                        selections={fieldNames}
-                        onChange={(event) => handleSettingChanged('sourceField', event.target.value)}
-                        onSelectionChange={(event) => handleSettingChanged('sourceField', event.target.value as string)}
-                    />
-                    <SelectableSetting
-                        label={t('settings.urlField')}
-                        value={urlField}
-                        selections={fieldNames}
-                        onChange={(event) => handleSettingChanged('urlField', event.target.value)}
-                        onSelectionChange={(event) => handleSettingChanged('urlField', event.target.value as string)}
-                    />
-                    {customFieldInputs}
+                    {ankiFieldModels.map((model, index) => {
+                        const key = model.custom ? `custom_${model.key}` : `standard_${model.key}`;
+                        const handleOrderChange =
+                            !extensionInstalled || extensionSupportsOrderableAnkiFields
+                                ? (d: Direction) => handleAnkiFieldOrderChange(d, ankiFieldModels, index)
+                                : undefined;
+                        return (
+                            <React.Fragment key={key}>
+                                {!model.custom && model.key === 'sentence' && (
+                                    <SelectableSetting
+                                        label={t('settings.sentenceField')}
+                                        value={sentenceField}
+                                        selections={fieldNames}
+                                        onChange={(event) => handleSettingChanged('sentenceField', event.target.value)}
+                                        onSelectionChange={(event) =>
+                                            handleSettingChanged('sentenceField', event.target.value as string)
+                                        }
+                                        disabledDirection={disabledDirection(index)}
+                                        onOrderChange={handleOrderChange}
+                                    />
+                                )}
+                                {!model.custom && model.key === 'definition' && (
+                                    <SelectableSetting
+                                        label={t('settings.definitionField')}
+                                        value={definitionField}
+                                        selections={fieldNames}
+                                        onChange={(event) =>
+                                            handleSettingChanged('definitionField', event.target.value)
+                                        }
+                                        onSelectionChange={(event) =>
+                                            handleSettingChanged('definitionField', event.target.value as string)
+                                        }
+                                        disabledDirection={disabledDirection(index)}
+                                        onOrderChange={handleOrderChange}
+                                    />
+                                )}
+                                {!model.custom && model.key === 'word' && (
+                                    <SelectableSetting
+                                        label={t('settings.wordField')}
+                                        value={wordField}
+                                        selections={fieldNames}
+                                        onChange={(event) => handleSettingChanged('wordField', event.target.value)}
+                                        onSelectionChange={(event) =>
+                                            handleSettingChanged('wordField', event.target.value as string)
+                                        }
+                                        disabledDirection={disabledDirection(index)}
+                                        onOrderChange={handleOrderChange}
+                                    />
+                                )}
+                                {!model.custom && model.key === 'audio' && (
+                                    <SelectableSetting
+                                        label={t('settings.audioField')}
+                                        value={audioField}
+                                        selections={fieldNames}
+                                        onChange={(event) => handleSettingChanged('audioField', event.target.value)}
+                                        onSelectionChange={(event) =>
+                                            handleSettingChanged('audioField', event.target.value as string)
+                                        }
+                                        disabledDirection={disabledDirection(index)}
+                                        onOrderChange={handleOrderChange}
+                                    />
+                                )}
+                                {!model.custom && model.key === 'image' && (
+                                    <SelectableSetting
+                                        label={t('settings.imageField')}
+                                        value={imageField}
+                                        selections={fieldNames}
+                                        onChange={(event) => handleSettingChanged('imageField', event.target.value)}
+                                        onSelectionChange={(event) =>
+                                            handleSettingChanged('imageField', event.target.value as string)
+                                        }
+                                        disabledDirection={disabledDirection(index)}
+                                        onOrderChange={handleOrderChange}
+                                    />
+                                )}
+                                {!model.custom && model.key === 'source' && (
+                                    <SelectableSetting
+                                        label={t('settings.sourceField')}
+                                        value={sourceField}
+                                        selections={fieldNames}
+                                        onChange={(event) => handleSettingChanged('sourceField', event.target.value)}
+                                        onSelectionChange={(event) =>
+                                            handleSettingChanged('sourceField', event.target.value as string)
+                                        }
+                                        disabledDirection={disabledDirection(index)}
+                                        onOrderChange={handleOrderChange}
+                                    />
+                                )}
+                                {!model.custom && model.key === 'url' && (
+                                    <SelectableSetting
+                                        label={t('settings.urlField')}
+                                        value={urlField}
+                                        selections={fieldNames}
+                                        onChange={(event) => handleSettingChanged('urlField', event.target.value)}
+                                        onSelectionChange={(event) =>
+                                            handleSettingChanged('urlField', event.target.value as string)
+                                        }
+                                        disabledDirection={disabledDirection(index)}
+                                        onOrderChange={handleOrderChange}
+                                    />
+                                )}
+                                {model.custom && (
+                                    <SelectableSetting
+                                        label={`${model.key}`}
+                                        value={customAnkiFields[model.key]}
+                                        selections={fieldNames!}
+                                        onChange={(e) => handleCustomFieldChange(model.key, e.target.value)}
+                                        onSelectionChange={(e) =>
+                                            handleCustomFieldChange(model.key, e.target.value as string)
+                                        }
+                                        disabledDirection={disabledDirection(index)}
+                                        onRemoval={() => handleCustomFieldRemoval(model.key)}
+                                        removable={true}
+                                        onOrderChange={handleOrderChange}
+                                    />
+                                )}
+                            </React.Fragment>
+                        );
+                    })}
                     <AddCustomField onAddCustomField={handleAddCustomField} />
                     <TagsTextField
                         label={t('settings.tags')}

@@ -90,6 +90,7 @@ const SettingsUi = () => {
                             extensionSupportsAppIntegration
                             extensionSupportsOverlay
                             extensionSupportsSidePanel={!isFirefoxBuild}
+                            extensionSupportsOrderableAnkiFields
                             chromeKeyBinds={commands}
                             onOpenChromeExtensionShortcuts={handleOpenExtensionShortcuts}
                             onSettingsChanged={onSettingsChanged}

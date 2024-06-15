@@ -1,4 +1,12 @@
-import { AsbplayerSettings, KeyBindName, SubtitleListPreference } from '.';
+import {
+    AnkiField,
+    AnkiFieldSettings,
+    AnkiSettings,
+    AsbplayerSettings,
+    CustomAnkiFieldSettings,
+    KeyBindName,
+    SubtitleListPreference,
+} from '.';
 import { AutoPausePreference, PostMineAction, PostMinePlayback } from '..';
 
 // @ts-ignore
@@ -15,6 +23,16 @@ export const defaultSettings: AsbplayerSettings = {
     wordField: '',
     sourceField: '',
     urlField: '',
+    ankiFieldSettings: {
+        sentence: { order: 1 },
+        definition: { order: 2 },
+        word: { order: 3 },
+        audio: { order: 4 },
+        image: { order: 5 },
+        source: { order: 6 },
+        url: { order: 7 },
+    },
+    customAnkiFieldSettings: {},
     subtitleSize: 36,
     subtitleColor: '#ffffff',
     subtitleThickness: 700,
@@ -108,6 +126,58 @@ export const defaultSettings: AsbplayerSettings = {
     webSocketServerUrl: 'ws://127.0.0.1:8766/ws',
 };
 
+export interface AnkiFieldUiModel {
+    key: string;
+    field: AnkiField;
+    custom: boolean;
+}
+
+const ankiFieldEntries = (
+    fieldsMap: Record<string, AnkiField> | AnkiFieldSettings,
+    custom: boolean
+): AnkiFieldUiModel[] => {
+    return Object.entries(fieldsMap).map(([key, value]) => ({
+        key,
+        field: value as AnkiField,
+        custom,
+    }));
+};
+
+const sortedAnkiFields = (models: AnkiFieldUiModel[]) => {
+    return models.sort((a, b) => {
+        const left = a.field;
+        const right = b.field;
+
+        if (left.order < right.order) {
+            return -1;
+        }
+
+        if (left.order > right.order) {
+            return 1;
+        }
+
+        return 0;
+    });
+};
+
+export const sortedAnkiFieldModels = (settings: AnkiSettings) => {
+    let last = Math.max(
+        ...Object.values({ ...settings.ankiFieldSettings, ...settings.customAnkiFieldSettings }).map((f) => f.order)
+    );
+    return sortedAnkiFields([
+        ...ankiFieldEntries(settings.ankiFieldSettings, false),
+        ...ankiFieldEntries(
+            Object.fromEntries(
+                Object.keys(settings.customAnkiFields).map((name) => [
+                    name,
+                    settings.customAnkiFieldSettings[name] ?? { order: ++last },
+                ])
+            ),
+            true
+        ),
+    ]);
+};
+
 type SettingsDeserializers = { [key in keyof AsbplayerSettings]: (serialized: string) => any };
 export const settingsDeserializers: SettingsDeserializers = Object.fromEntries(
     Object.entries(defaultSettings).map(([key, value]) => {
@@ -121,25 +191,6 @@ export const settingsDeserializers: SettingsDeserializers = Object.fromEntries(
 
         if (typeof value === 'number') {
             return [key, (s: string) => Number(s)];
-        }
-
-        if (key === 'keyBindSet') {
-            return [
-                key,
-                (s: string) => {
-                    const keyBindSet = JSON.parse(s);
-
-                    for (const key of Object.keys(defaultSettings.keyBindSet)) {
-                        const keyBindName = key as KeyBindName;
-
-                        if (keyBindSet[keyBindName] === undefined) {
-                            keyBindSet[keyBindName] = defaultSettings.keyBindSet[keyBindName];
-                        }
-                    }
-
-                    return keyBindSet;
-                },
-            ];
         }
 
         if (typeof value === 'object') {
@@ -234,11 +285,83 @@ export class SettingsProvider {
             }
         }
 
-        return result;
+        return this._ensureConsistencyOnRead(result) as Pick<AsbplayerSettings, K>;
+    }
+
+    private _ensureConsistencyOnRead(settings: Partial<AsbplayerSettings>) {
+        let keyBindSetModified = false;
+        let newKeyBindSet: any = {};
+        let ankiFieldSettingsModified = false;
+        let newAnkiFieldSettings: any = {};
+
+        if (settings.keyBindSet !== undefined) {
+            const keyBindSet = settings.keyBindSet;
+
+            for (const key of Object.keys(defaultSettings.keyBindSet)) {
+                const keyBindName = key as KeyBindName;
+
+                if (keyBindSet[keyBindName] === undefined) {
+                    newKeyBindSet[keyBindName] = defaultSettings.keyBindSet[keyBindName];
+                    keyBindSetModified = true;
+                } else {
+                    newKeyBindSet[keyBindName] = keyBindSet[keyBindName];
+                }
+            }
+        }
+
+        if (settings.ankiFieldSettings !== undefined) {
+            const ankiFieldSettings = settings.ankiFieldSettings;
+
+            for (const key of Object.keys(defaultSettings.ankiFieldSettings)) {
+                const fieldName = key as keyof AnkiFieldSettings;
+
+                if (ankiFieldSettings[fieldName] === undefined) {
+                    newAnkiFieldSettings[fieldName] = defaultSettings.ankiFieldSettings[fieldName];
+                    ankiFieldSettingsModified = true;
+                } else {
+                    newAnkiFieldSettings[fieldName] = ankiFieldSettings[fieldName];
+                }
+            }
+        }
+
+        if (!ankiFieldSettingsModified && !keyBindSetModified) {
+            return settings;
+        }
+
+        return { ...settings, ...{ ankiFieldSettings: newAnkiFieldSettings }, ...{ keyBindSet: newKeyBindSet } };
     }
 
     async set(settings: Partial<AsbplayerSettings>): Promise<void> {
-        await this._storage.set(settings);
+        await this._storage.set(await this._ensureConsistencyOnWrite(settings));
+    }
+
+    private async _ensureConsistencyOnWrite(settings: Partial<AsbplayerSettings>) {
+        if (settings.customAnkiFields === undefined) {
+            return settings;
+        }
+
+        const customAnkiFieldSettings =
+            settings.customAnkiFieldSettings ??
+            ((
+                await this._storage.get({
+                    customAnkiFieldSettings: defaultSettings.customAnkiFieldSettings,
+                })
+            ).customAnkiFieldSettings as CustomAnkiFieldSettings);
+
+        let modifyCustomAnkiFieldSettings = false;
+
+        for (const key of Object.keys(customAnkiFieldSettings)) {
+            if (!(key in settings.customAnkiFields)) {
+                delete customAnkiFieldSettings[key];
+                modifyCustomAnkiFieldSettings = true;
+            }
+        }
+
+        if (modifyCustomAnkiFieldSettings) {
+            return { ...settings, customAnkiFieldSettings };
+        }
+
+        return settings;
     }
 
     async activeProfile() {

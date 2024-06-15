@@ -1,9 +1,8 @@
 import React, { MutableRefObject, useCallback, useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import makeStyles from '@material-ui/core/styles/makeStyles';
-import withStyles from '@material-ui/core/styles/withStyles';
-import { Image, SubtitleModel, CardModel, AudioErrorCode } from '@project/common';
-import { AnkiSettings } from '@project/common/settings';
+import { Image, SubtitleModel, CardModel } from '@project/common';
+import { AnkiSettings, sortedAnkiFieldModels } from '@project/common/settings';
 import {
     humanReadableTime,
     surroundingSubtitlesAroundInterval,
@@ -13,19 +12,15 @@ import {
 import { AudioClip } from '@project/common/audio-clip';
 import Badge from '@material-ui/core/Badge';
 import Button from '@material-ui/core/Button';
-import FileCopyIcon from '@material-ui/icons/FileCopy';
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DoneIcon from '@material-ui/icons/Done';
 import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
-import InputAdornment from '@material-ui/core/InputAdornment';
 import Paper from '@material-ui/core/Paper';
 import RestoreIcon from '@material-ui/icons/Restore';
-import SearchIcon from '@material-ui/icons/Search';
 import SettingsIcon from '@material-ui/icons/Settings';
 import CloseIcon from '@material-ui/icons/Close';
 import Slider, { Mark } from '@material-ui/core/Slider';
@@ -38,6 +33,12 @@ import SubtitleTextImage from './SubtitleTextImage';
 import TagsTextField from './TagsTextField';
 import { Anki, AnkiExportMode } from '../anki';
 import { isFirefox } from '../browser-detection';
+import SentenceField from './SentenceField';
+import DefinitionField from './DefinitionField';
+import WordField from './WorldField';
+import CustomField from './CustomField';
+import AudioField from './AudioField';
+import ImageField from './ImageField';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -158,59 +159,6 @@ const TextImageSet = ({ selectedSubtitles, width }: TextImageSetProps) => {
             })}
         </Paper>
     );
-};
-
-const TextFieldEndAdornment = withStyles({
-    // Hack to recenter TextField end adornment
-    root: {
-        transform: 'translateY(-8px)',
-    },
-})(InputAdornment);
-
-const useAudioHelperText = (audioClip?: AudioClip, onRerecord?: () => void) => {
-    const { t } = useTranslation();
-    const [audioHelperText, setAudioHelperText] = useState<string>();
-    const [audioClipPlayable, setAudioClipPlayable] = useState<boolean>();
-
-    useEffect(() => {
-        if (audioClip) {
-            const playable = audioClip.error === undefined;
-            setAudioClipPlayable(playable);
-
-            if (playable) {
-                if (onRerecord === undefined && !audioClip.isSliceable()) {
-                    setAudioHelperText(t('ankiDialog.cannotUpdateAudio')!);
-                } else {
-                    setAudioHelperText(undefined);
-                }
-            } else {
-                setAudioHelperText(t(audioClip.errorLocKey!)!);
-            }
-        }
-    }, [audioClip, onRerecord, t]);
-
-    return { audioHelperText, audioClipPlayable };
-};
-
-const useImageHelperText = (image?: Image) => {
-    const { t } = useTranslation();
-    const [imageHelperText, setImageHelperText] = useState<string>();
-    const [imageAvailable, setImageAvailable] = useState<boolean>();
-
-    useEffect(() => {
-        if (image) {
-            const available = image.isAvailable();
-            setImageAvailable(available);
-
-            if (available) {
-                setImageHelperText(undefined);
-            } else {
-                setImageHelperText(t('ankiDialog.imageFileLinkLost')!);
-            }
-        }
-    }, [image, t]);
-
-    return { imageHelperText, imageAvailable };
 };
 
 export interface AnkiDialogState {
@@ -662,8 +610,7 @@ const AnkiDialog = ({
         );
     }
 
-    const { audioHelperText, audioClipPlayable } = useAudioHelperText(audioClip, onRerecord);
-    const { imageHelperText, imageAvailable } = useImageHelperText(image);
+    const ankiFieldModels = sortedAnkiFieldModels(settings);
 
     useEffect(() => {
         if (!open) {
@@ -692,163 +639,84 @@ const AnkiDialog = ({
             </Toolbar>
             <DialogContent ref={dialogRefCallback}>
                 <form className={classes.root}>
-                    {timestampInterval && (
-                        <TextImageSet
-                            selectedSubtitles={selectedSubtitles.filter((s) => s.textImage !== undefined)}
-                            width={width}
-                        />
-                    )}
-                    <TextField
-                        variant="filled"
-                        color="secondary"
-                        multiline
-                        fullWidth
-                        maxRows={8}
-                        label={t('ankiDialog.sentence')}
-                        value={text}
-                        onChange={(e) => setText(e.target.value)}
-                        InputProps={{
-                            endAdornment: timestampInterval && (
-                                <TextFieldEndAdornment position="end">
-                                    <Tooltip title={t('ankiDialog.applySelection')!}>
-                                        <span>
-                                            <IconButton
-                                                disabled={
-                                                    !timestampInterval ||
-                                                    !lastAppliedTimestampIntervalToText ||
-                                                    (timestampInterval[0] === lastAppliedTimestampIntervalToText[0] &&
-                                                        timestampInterval[1] ===
-                                                            lastAppliedTimestampIntervalToText[1]) ||
-                                                    disableApplyTextSelection
-                                                }
-                                                onClick={handleApplyTimestampIntervalToText}
-                                                edge="end"
-                                            >
-                                                <DoneIcon />
-                                            </IconButton>
-                                        </span>
-                                    </Tooltip>
-                                </TextFieldEndAdornment>
-                            ),
-                        }}
-                    />
-                    <TextField
-                        variant="filled"
-                        color="secondary"
-                        multiline
-                        fullWidth
-                        minRows={8}
-                        label={t('ankiDialog.definition')!}
-                        value={definition}
-                        onChange={(e) => setDefinition(e.target.value)}
-                    />
-                    <TextField
-                        variant="filled"
-                        color="secondary"
-                        fullWidth
-                        label={t('ankiDialog.word')}
-                        value={word}
-                        onChange={(e) => setWord(e.target.value)}
-                        helperText={wordHelperText}
-                        InputProps={{
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <Tooltip title={t('ankiDialog.searchInAnki')!}>
-                                        <span>
-                                            <IconButton
-                                                disabled={
-                                                    disabled || !settings.wordField || !word || word.trim() === ''
-                                                }
-                                                onClick={() => anki.findNotesWithWordGui(word.trim())}
-                                                edge="end"
-                                            >
-                                                <SearchIcon />
-                                            </IconButton>
-                                        </span>
-                                    </Tooltip>
-                                </InputAdornment>
-                            ),
-                        }}
-                    />
-                    {Object.keys(settings.customAnkiFields).map((customFieldName) => (
-                        <TextField
-                            key={customFieldName}
-                            variant="filled"
-                            color="secondary"
-                            fullWidth
-                            multiline
-                            maxRows={8}
-                            label={customFieldName}
-                            value={customFieldValues[customFieldName] || ''}
-                            onChange={(e) => handleCustomFieldChange(customFieldName, e.target.value)}
-                        />
-                    ))}
-                    {audioClip && (
-                        <div className={classes.mediaField} onClick={handlePlayAudio}>
-                            <TextField
-                                variant="filled"
-                                color="secondary"
-                                fullWidth
-                                value={audioClip.name}
-                                label={t('ankiDialog.audio')}
-                                helperText={audioHelperText}
-                                disabled={!audioClipPlayable}
-                                InputProps={{
-                                    endAdornment: audioActionElement && timestampInterval && (
-                                        <InputAdornment position="end">{audioActionElement}</InputAdornment>
-                                    ),
-                                }}
-                            />
-                        </div>
-                    )}
-                    {image && (
-                        <div className={classes.mediaField} onClick={handleViewImage}>
-                            <TextField
-                                variant="filled"
-                                color="secondary"
-                                fullWidth
-                                value={image.name}
-                                label={t('ankiDialog.image')}
-                                helperText={imageHelperText}
-                                disabled={!imageAvailable}
-                                InputProps={{
-                                    endAdornment: !isFirefox && (
-                                        <InputAdornment position="end">
-                                            <Tooltip title={t('ankiDialog.copyToClipboard')!}>
-                                                <span>
-                                                    <IconButton
-                                                        disabled={!imageAvailable}
-                                                        onClick={handleCopyImageToClipboard}
-                                                        edge="end"
-                                                    >
-                                                        <FileCopyIcon />
-                                                    </IconButton>
-                                                </span>
-                                            </Tooltip>
-                                        </InputAdornment>
-                                    ),
-                                }}
-                            />
-                        </div>
-                    )}
-                    <TextField
-                        variant="filled"
-                        color="secondary"
-                        fullWidth
-                        label={t('ankiDialog.source')}
-                        value={source}
-                        onChange={(e) => setSource(e.target.value)}
-                    />
-                    {card.url && (
-                        <TextField
-                            variant="filled"
-                            color="secondary"
-                            fullWidth
-                            label={t('ankiDialog.url')}
-                            value={url}
-                            onChange={(e) => setUrl(e.target.value)}
-                        />
-                    )}
+                    {ankiFieldModels.map((model) => {
+                        const key = model.custom ? `custom_${model.key}` : `standard_${model.key}`;
+
+                        return (
+                            <React.Fragment key={key}>
+                                {!model.custom && model.key === 'sentence' && (
+                                    <SentenceField
+                                        text={text}
+                                        width={width}
+                                        onChangeText={setText}
+                                        selectedSubtitles={selectedSubtitles}
+                                        applySelectedRangeDisabled={
+                                            !timestampInterval ||
+                                            !lastAppliedTimestampIntervalToText ||
+                                            (timestampInterval[0] === lastAppliedTimestampIntervalToText[0] &&
+                                                timestampInterval[1] === lastAppliedTimestampIntervalToText[1]) ||
+                                            disableApplyTextSelection
+                                        }
+                                        onApplySelectedRangeToText={handleApplyTimestampIntervalToText}
+                                    />
+                                )}
+                                {!model.custom && model.key === 'definition' && (
+                                    <DefinitionField text={definition} onTextChange={setDefinition} />
+                                )}
+                                {!model.custom && model.key === 'word' && (
+                                    <WordField
+                                        anki={anki}
+                                        disabled={disabled}
+                                        text={word}
+                                        onText={setWord}
+                                        wordField={settings.wordField}
+                                    />
+                                )}
+                                {image && !model.custom && model.key === 'image' && (
+                                    <ImageField
+                                        onViewImage={handleViewImage}
+                                        image={image}
+                                        onCopyImageToClipboard={handleCopyImageToClipboard}
+                                        copyEnabled={!isFirefox}
+                                    />
+                                )}
+                                {audioClip && !model.custom && model.key === 'audio' && (
+                                    <AudioField
+                                        audioClip={audioClip}
+                                        onRerecord={onRerecord}
+                                        onPlayAudio={handlePlayAudio}
+                                    />
+                                )}
+                                {!model.custom && model.key === 'source' && (
+                                    <TextField
+                                        variant="filled"
+                                        color="secondary"
+                                        fullWidth
+                                        label={t('ankiDialog.source')}
+                                        value={source}
+                                        onChange={(e) => setSource(e.target.value)}
+                                    />
+                                )}
+                                {!model.custom && model.key === 'url' && (
+                                    <TextField
+                                        variant="filled"
+                                        color="secondary"
+                                        fullWidth
+                                        label={t('ankiDialog.url')}
+                                        value={url}
+                                        onChange={(e) => setUrl(e.target.value)}
+                                    />
+                                )}
+                                {model.custom && (
+                                    <CustomField
+                                        name={model.key}
+                                        text={customFieldValues[model.key] || ''}
+                                        onTextChange={handleCustomFieldChange}
+                                    />
+                                )}
+                            </React.Fragment>
+                        );
+                    })}
                     <TagsTextField
                         variant="filled"
                         label="Tags"

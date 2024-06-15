@@ -112,6 +112,13 @@ export default class ChromeExtension {
 
         window.addEventListener('message', this.windowEventListener);
     }
+    get supportsOrderableAnkiFields() {
+        return this.installed && gte(this.version, '1.3.0');
+    }
+
+    get supportsSettingsProfiles() {
+        return this.installed && gte(this.version, '1.3.0');
+    }
 
     get supportsStreamingVideoOverlay() {
         return this.installed && gte(this.version, '1.1.0');
@@ -139,10 +146,6 @@ export default class ChromeExtension {
 
     get supportsOffsetMessage() {
         return this.installed && gte(this.version, '0.23.0');
-    }
-
-    get supportsSettingsProfiles() {
-        return this.installed && gte(this.version, '1.3.0');
     }
 
     startHeartbeat({ fromVideoPlayer, loadedSubtitles }: { fromVideoPlayer: boolean; loadedSubtitles: boolean }) {

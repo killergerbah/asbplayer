@@ -9,6 +9,15 @@ const keyBindSchema = {
         },
     },
 };
+const ankiFieldSchema = {
+    id: '/AnkiField',
+    type: 'object',
+    properties: {
+        order: {
+            type: 'number',
+        },
+    },
+};
 const settingsSchema = {
     id: '/Settings',
     type: 'object',
@@ -42,6 +51,24 @@ const settingsSchema = {
         },
         urlField: {
             type: 'string',
+        },
+        ankiFieldSettings: {
+            type: 'object',
+            properties: {
+                sentence: { $ref: '/AnkiField' },
+                definition: { $ref: '/AnkiField' },
+                audio: { $ref: '/AnkiField' },
+                image: { $ref: '/AnkiField' },
+                word: { $ref: '/AnkiField' },
+                source: { $ref: '/AnkiField' },
+                url: { $ref: '/AnkiField' },
+            },
+        },
+        customAnkiFieldSettings: {
+            type: 'object',
+            additionalProperties: {
+                type: '/AnkiField',
+            },
         },
         subtitleSize: {
             type: 'number',
@@ -291,6 +318,7 @@ const settingsSchema = {
 export const validateSettings = (settings: any) => {
     const validator = new Validator();
     validator.addSchema(keyBindSchema);
+    validator.addSchema(ankiFieldSchema);
     const result = validator.validate(settings, settingsSchema);
     validateAllKnownKeys(settings, []);
 
@@ -337,6 +365,10 @@ const schemaAtPath = (schema: any, path: string[]) => {
 const schemaForRef = (ref: string) => {
     if (ref === '/KeyBind') {
         return keyBindSchema;
+    }
+
+    if (ref === '/AnkiField') {
+        return ankiFieldSchema;
     }
 
     return undefined;

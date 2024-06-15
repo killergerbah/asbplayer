@@ -12,7 +12,7 @@ import {
 export class MockSettingsStorage implements SettingsStorage {
     private _activeProfile?: string;
     private _profiles: Profile[] = [];
-    private _cache: any = {};
+    private _data: any = {};
 
     async get(keysAndDefaults: Partial<AsbplayerSettings>) {
         const settings: any = {};
@@ -24,7 +24,7 @@ export class MockSettingsStorage implements SettingsStorage {
 
         for (const [key, defaultValue] of Object.entries(actualKeysAndDefaults)) {
             // Simulate retrieval from actual storage - object references should change
-            settings[key] = JSON.parse(JSON.stringify(this._cache[key] ?? defaultValue));
+            settings[key] = JSON.parse(JSON.stringify(this._data[key] ?? defaultValue));
         }
 
         return this._activeProfile === undefined
@@ -37,7 +37,7 @@ export class MockSettingsStorage implements SettingsStorage {
             this._activeProfile === undefined ? settings : prefixedSettings(settings, this._activeProfile);
 
         for (const [key, value] of Object.entries(actualSettings)) {
-            this._cache[key] = value;
+            this._data[key] = value;
         }
     }
 
@@ -69,6 +69,10 @@ export class MockSettingsStorage implements SettingsStorage {
         }
 
         this._profiles = this._profiles.filter((p) => p.name !== name);
+    }
+
+    setData(data: any) {
+        this._data = data;
     }
 }
 
@@ -115,4 +119,34 @@ it('changes different keys for different profiles', async () => {
     await storage.setActiveProfile('profile');
     const profileValue = await provider.getSingle('streamingAppUrl');
     expect(profileValue).toEqual('https://killergerbah.github.io/asbplayer');
+});
+
+it('provides default values for unpopulated, nested settings', async () => {
+    const storage = new MockSettingsStorage();
+    const provider = new SettingsProvider(storage);
+    storage.setData({ keyBindSet: { togglePlay: { keys: 'p' } } });
+    expect(await provider.getSingle('keyBindSet')).toEqual({
+        ...defaultSettings.keyBindSet,
+        togglePlay: { keys: 'p' },
+    });
+
+    storage.setData({ ankiFieldSettings: { url: { order: 12 } } });
+    expect(await provider.getSingle('ankiFieldSettings')).toEqual({
+        ...defaultSettings.ankiFieldSettings,
+        url: { order: 12 },
+    });
+});
+
+it('removes corresponding field settings when custom anki fields are removed', async () => {
+    const storage = new MockSettingsStorage();
+    const provider = new SettingsProvider(storage);
+    await provider.set({
+        customAnkiFields: { foo: 'bar', baz: 'moo' },
+        customAnkiFieldSettings: { foo: { order: 1 }, baz: { order: 2 } },
+    });
+    await provider.set({ customAnkiFields: { foo: 'bar' } });
+    expect(await provider.get(['customAnkiFields', 'customAnkiFieldSettings'])).toEqual({
+        customAnkiFields: { foo: 'bar' },
+        customAnkiFieldSettings: { foo: { order: 1 } },
+    });
 });

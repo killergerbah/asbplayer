@@ -41,7 +41,25 @@ export interface AnkiSettings {
     readonly maxImageHeight: number;
     readonly surroundingSubtitlesCountRadius: number;
     readonly surroundingSubtitlesTimeRadius: number;
+    readonly ankiFieldSettings: AnkiFieldSettings;
+    readonly customAnkiFieldSettings: CustomAnkiFieldSettings;
 }
+
+export interface AnkiField {
+    readonly order: number;
+}
+
+export interface AnkiFieldSettings {
+    readonly sentence: AnkiField;
+    readonly definition: AnkiField;
+    readonly audio: AnkiField;
+    readonly image: AnkiField;
+    readonly word: AnkiField;
+    readonly source: AnkiField;
+    readonly url: AnkiField;
+}
+
+export type CustomAnkiFieldSettings = { [key: string]: AnkiField };
 
 const ankiSettingsKeysObject: { [key in keyof AnkiSettings]: boolean } = {
     ankiConnectUrl: true,
@@ -63,6 +81,8 @@ const ankiSettingsKeysObject: { [key in keyof AnkiSettings]: boolean } = {
     maxImageHeight: true,
     surroundingSubtitlesCountRadius: true,
     surroundingSubtitlesTimeRadius: true,
+    ankiFieldSettings: true,
+    customAnkiFieldSettings: true,
 };
 
 export const ankiSettingsKeys: (keyof AnkiSettings)[] = Object.keys(ankiSettingsKeysObject) as (keyof AnkiSettings)[];
