@@ -80,6 +80,7 @@ export default function SettingsDialog({
                     extensionSupportsOverlay={extension.supportsStreamingVideoOverlay}
                     extensionSupportsSidePanel={extension.supportsSidePanel}
                     extensionSupportsOrderableAnkiFields={extension.supportsOrderableAnkiFields}
+                    extensionSupportsTrackSpecificSettings={extension.supportsTrackSpecificSettings}
                     insideApp
                     chromeKeyBinds={extension.extensionCommands}
                     onOpenChromeExtensionShortcuts={extension.openShortcuts}

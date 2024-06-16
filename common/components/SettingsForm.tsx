@@ -13,7 +13,7 @@ import Grid from '@material-ui/core/Grid';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
-import LabelWithHoverEffect from '@project/common/components/LabelWithHoverEffect';
+import LabelWithHoverEffect from './LabelWithHoverEffect';
 import MenuItem from '@material-ui/core/MenuItem';
 import DeleteIcon from '@material-ui/icons/Delete';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
@@ -34,17 +34,20 @@ import {
     CustomAnkiFieldSettings,
     KeyBindName,
     SubtitleListPreference,
+    TextSubtitleSettings,
+    changeForTextSubtitleSetting,
     sortedAnkiFieldModels,
+    textSubtitleSettingsAreDirty,
+    textSubtitleSettingsForTrack,
 } from '@project/common/settings';
 import { computeStyles, download, isNumeric } from '@project/common/util';
 import { CustomStyle, validateSettings } from '@project/common/settings';
 import { useOutsideClickListener } from '@project/common/hooks';
-import TagsTextField from '@project/common/components/TagsTextField';
+import TagsTextField from './TagsTextField';
 import hotkeys from 'hotkeys-js';
 import Typography from '@material-ui/core/Typography';
 import { isMacOs } from 'react-device-detect';
 import Switch from '@material-ui/core/Switch';
-// import Checkbox from '@material-ui/core/Checkbox';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Tooltip from '@material-ui/core/Tooltip';
 import Autocomplete from '@material-ui/lab/Autocomplete';
@@ -61,10 +64,14 @@ import { Anki } from '../anki';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { WebSocketClient } from '../web-socket-client/web-socket-client';
 import { isFirefox } from '@project/common/browser-detection';
+import SubtitleAppearanceTrackSelector from './SubtitleAppearanceTrackSelector';
+import SubtitlePreview from './SubtitlePreview';
+import UndoIcon from '@material-ui/icons/Undo';
 
 interface StylesProps {
     smallScreen: boolean;
 }
+
 const useStyles = makeStyles<Theme, StylesProps>((theme) => ({
     root: ({ smallScreen }) => {
         let styles: any = {
@@ -155,9 +162,6 @@ const useSelectableSettingStyles = makeStyles<Theme>((theme) => ({
     },
     hidden: {
         opacity: 0.5,
-    },
-    checkbox: {
-        padding: 0,
     },
 }));
 
@@ -630,6 +634,7 @@ interface Props {
     extensionSupportsOverlay: boolean;
     extensionSupportsSidePanel: boolean;
     extensionSupportsOrderableAnkiFields: boolean;
+    extensionSupportsTrackSpecificSettings: boolean;
     insideApp?: boolean;
     settings: AsbplayerSettings;
     scrollToId?: string;
@@ -655,6 +660,7 @@ export default function SettingsForm({
     extensionSupportsOverlay,
     extensionSupportsSidePanel,
     extensionSupportsOrderableAnkiFields,
+    extensionSupportsTrackSpecificSettings,
     insideApp,
     scrollToId,
     chromeKeyBinds,
@@ -777,20 +783,9 @@ export default function SettingsForm({
         track2Field,
         track3Field,
         ankiFieldSettings,
-        subtitleSize,
-        subtitleColor,
-        subtitleThickness,
-        subtitleOutlineThickness,
-        subtitleOutlineColor,
-        subtitleShadowThickness,
-        subtitleShadowColor,
-        subtitleBackgroundColor,
-        subtitleBackgroundOpacity,
-        subtitleFontFamily,
         subtitlePreview,
         subtitlePositionOffset,
         subtitleAlignment,
-        subtitleTracks,
         audioPaddingStart,
         audioPaddingEnd,
         maxImageWidth,
@@ -820,7 +815,6 @@ export default function SettingsForm({
         tags,
         imageBasedSubtitleScaleFactor,
         streamingAppUrl,
-        subtitleCustomStyles,
         streamingDisplaySubtitles,
         streamingRecordMedia,
         streamingTakeScreenshot,
@@ -835,6 +829,23 @@ export default function SettingsForm({
         webSocketClientEnabled,
         webSocketServerUrl,
     } = settings;
+
+    const [selectedSubtitleAppearanceTrack, setSelectedSubtitleAppearanceTrack] = useState<number>();
+    const {
+        subtitleSize,
+        subtitleColor,
+        subtitleThickness,
+        subtitleOutlineThickness,
+        subtitleOutlineColor,
+        subtitleShadowThickness,
+        subtitleShadowColor,
+        subtitleBackgroundColor,
+        subtitleBackgroundOpacity,
+        subtitleFontFamily,
+        subtitleCustomStyles,
+        subtitleBlur,
+    } = textSubtitleSettingsForTrack(settings, selectedSubtitleAppearanceTrack);
+
     const handleAddCustomField = useCallback(
         (customFieldName: string) => {
             handleSettingChanged('customAnkiFields', { ...settings.customAnkiFields, [customFieldName]: '' });
@@ -860,36 +871,6 @@ export default function SettingsForm({
             handleSettingChanged('keyBindSet', { ...settings.keyBindSet, [keyBindName]: { keys } });
         },
         [settings.keyBindSet, handleSettingChanged]
-    );
-
-    const subtitlePreviewStyles = useMemo(
-        () =>
-            computeStyles({
-                subtitleColor,
-                subtitleSize,
-                subtitleThickness,
-                subtitleOutlineThickness,
-                subtitleOutlineColor,
-                subtitleShadowThickness,
-                subtitleShadowColor,
-                subtitleBackgroundOpacity,
-                subtitleBackgroundColor,
-                subtitleFontFamily,
-                subtitleCustomStyles,
-            }),
-        [
-            subtitleColor,
-            subtitleSize,
-            subtitleThickness,
-            subtitleOutlineThickness,
-            subtitleOutlineColor,
-            subtitleShadowThickness,
-            subtitleShadowColor,
-            subtitleBackgroundOpacity,
-            subtitleBackgroundColor,
-            subtitleFontFamily,
-            subtitleCustomStyles,
-        ]
     );
 
     const [deckNames, setDeckNames] = useState<string[]>();
@@ -1131,6 +1112,28 @@ export default function SettingsForm({
         },
         [customAnkiFieldSettings, ankiFieldSettings, onSettingsChanged]
     );
+
+    const handleSubtitleTextSettingChanged = useCallback(
+        <K extends keyof TextSubtitleSettings>(key: K, value: TextSubtitleSettings[K]) => {
+            // See settings.ts for more info about how/why subtitle settings are interpreted
+            const diff = changeForTextSubtitleSetting({ [key]: value }, settings, selectedSubtitleAppearanceTrack);
+            onSettingsChanged(diff);
+        },
+        [selectedSubtitleAppearanceTrack, settings, onSettingsChanged]
+    );
+
+    const handleResetSubtitleTrack = useCallback(() => {
+        const diff = changeForTextSubtitleSetting(
+            textSubtitleSettingsForTrack(settings, 0),
+            settings,
+            selectedSubtitleAppearanceTrack
+        );
+        onSettingsChanged(diff);
+    }, [settings, selectedSubtitleAppearanceTrack, onSettingsChanged]);
+
+    const selectedSubtitleAppearanceTrackIsDirty =
+        selectedSubtitleAppearanceTrack !== undefined &&
+        textSubtitleSettingsAreDirty(settings, selectedSubtitleAppearanceTrack);
 
     return (
         <div className={classes.root}>
@@ -1599,296 +1602,355 @@ export default function SettingsForm({
             <TabPanel value={tabIndex} index={tabIndicesById['subtitle-appearance']}>
                 <Grid item>
                     <FormGroup className={classes.formGroup}>
-                        <div className={classes.subtitleSetting}>
-                            <TextField
-                                type="color"
-                                label={t('settings.subtitleColor')}
-                                fullWidth
-                                value={subtitleColor}
-                                color="secondary"
-                                onChange={(event) => handleSettingChanged('subtitleColor', event.target.value)}
-                            />
-                        </div>
-                        <div className={classes.subtitleSetting}>
-                            <TextField
-                                type="number"
-                                label={t('settings.subtitleSize')}
-                                fullWidth
-                                value={subtitleSize}
-                                color="secondary"
-                                onChange={(event) => handleSettingChanged('subtitleSize', Number(event.target.value))}
-                                inputProps={{
-                                    min: 1,
-                                    step: 1,
-                                }}
-                            />
-                        </div>
-                        <div>
-                            <Typography variant="subtitle2" color="textSecondary">
-                                {t('settings.subtitleThickness')}
-                            </Typography>
-                            <Slider
-                                color="secondary"
-                                value={subtitleThickness}
-                                onChange={(event, value) => handleSettingChanged('subtitleThickness', value as number)}
-                                min={100}
-                                max={900}
-                                step={100}
-                                marks
-                                valueLabelDisplay="auto"
-                            />
-                        </div>
-                        <div className={classes.subtitleSetting}>
-                            <TextField
-                                type="color"
-                                label={t('settings.subtitleOutlineColor')}
-                                fullWidth
-                                value={subtitleOutlineColor}
-                                color="secondary"
-                                onChange={(event) => handleSettingChanged('subtitleOutlineColor', event.target.value)}
-                            />
-                        </div>
-                        <div className={classes.subtitleSetting}>
-                            <TextField
-                                type="number"
-                                label={t('settings.subtitleOutlineThickness')}
-                                helperText={t('settings.subtitleOutlineThicknessHelperText')}
-                                fullWidth
-                                value={subtitleOutlineThickness}
-                                onChange={(event) =>
-                                    handleSettingChanged('subtitleOutlineThickness', Number(event.target.value))
-                                }
-                                inputProps={{
-                                    min: 0,
-                                    step: 0.1,
-                                }}
-                                color="secondary"
-                            />
-                        </div>
-                        <div className={classes.subtitleSetting}>
-                            <TextField
-                                type="color"
-                                label={t('settings.subtitleShadowColor')}
-                                fullWidth
-                                value={subtitleShadowColor}
-                                color="secondary"
-                                onChange={(event) => handleSettingChanged('subtitleShadowColor', event.target.value)}
-                            />
-                        </div>
-                        <div className={classes.subtitleSetting}>
-                            <TextField
-                                type="number"
-                                label={t('settings.subtitleShadowThickness')}
-                                fullWidth
-                                value={subtitleShadowThickness}
-                                onChange={(event) =>
-                                    handleSettingChanged('subtitleShadowThickness', Number(event.target.value))
-                                }
-                                inputProps={{
-                                    min: 0,
-                                    step: 0.1,
-                                }}
-                                color="secondary"
-                            />
-                        </div>
-                        <div className={classes.subtitleSetting}>
-                            <TextField
-                                type="color"
-                                label={t('settings.subtitleBackgroundColor')}
-                                fullWidth
-                                value={subtitleBackgroundColor}
-                                color="secondary"
-                                onChange={(event) =>
-                                    handleSettingChanged('subtitleBackgroundColor', event.target.value)
-                                }
-                            />
-                        </div>
-                        <div className={classes.subtitleSetting}>
-                            <TextField
-                                type="number"
-                                label={t('settings.subtitleBackgroundOpacity')}
-                                fullWidth
-                                inputProps={{
-                                    min: 0,
-                                    max: 1,
-                                    step: 0.1,
-                                }}
-                                value={subtitleBackgroundOpacity}
-                                color="secondary"
-                                onChange={(event) =>
-                                    handleSettingChanged('subtitleBackgroundOpacity', Number(event.target.value))
-                                }
-                            />
-                        </div>
-                        <div className={classes.subtitleSetting}>
-                            <TextField
-                                type="text"
-                                select={localFontFamilies.length > 0}
-                                label={t('settings.subtitleFontFamily')}
-                                fullWidth
-                                value={subtitleFontFamily}
-                                color="secondary"
-                                onChange={(event) => handleSettingChanged('subtitleFontFamily', event.target.value)}
-                                InputProps={{
-                                    endAdornment:
-                                        localFontFamilies.length === 0 &&
-                                        localFontsAvailable &&
-                                        localFontsPermission === 'prompt' ? (
-                                            <Tooltip title={t('settings.unlockLocalFonts')!}>
-                                                <IconButton onClick={onUnlockLocalFonts}>
-                                                    <LockIcon fontSize="small" />
-                                                </IconButton>
-                                            </Tooltip>
-                                        ) : null,
-                                }}
-                            >
-                                {localFontFamilies.length > 0
-                                    ? localFontFamilies.map((f) => (
-                                          <MenuItem key={f} value={f}>
-                                              {f}
-                                          </MenuItem>
-                                      ))
-                                    : null}
-                            </TextField>
-                        </div>
-                        {subtitleCustomStyles.map((customStyle, index) => {
-                            return (
-                                <CustomStyleSetting
-                                    key={index}
-                                    customStyle={customStyle}
-                                    onCustomStyle={(newCustomStyle: CustomStyle) => {
-                                        const newValue = [...settings.subtitleCustomStyles];
-                                        newValue[index] = { ...newCustomStyle };
-                                        handleSettingChanged('subtitleCustomStyles', newValue);
-                                    }}
-                                    onDelete={() => {
-                                        const newValue: CustomStyle[] = [];
-                                        for (let j = 0; j < settings.subtitleCustomStyles.length; ++j) {
-                                            if (j !== index) {
-                                                newValue.push(settings.subtitleCustomStyles[j]);
-                                            }
-                                        }
-                                        handleSettingChanged('subtitleCustomStyles', newValue);
-                                    }}
+                        {(!extensionInstalled || extensionSupportsTrackSpecificSettings) && (
+                            <>
+                                <SubtitleAppearanceTrackSelector
+                                    track={
+                                        selectedSubtitleAppearanceTrack === undefined
+                                            ? 'all'
+                                            : selectedSubtitleAppearanceTrack
+                                    }
+                                    onTrackSelected={(t) =>
+                                        setSelectedSubtitleAppearanceTrack(t === 'all' ? undefined : t)
+                                    }
                                 />
-                            );
-                        })}
-                        <AddCustomStyle
-                            styleKey={currentStyleKey}
-                            onStyleKey={setCurrentStyleKey}
-                            onAddCustomStyle={(styleKey) =>
-                                handleSettingChanged('subtitleCustomStyles', [
-                                    ...settings.subtitleCustomStyles,
-                                    { key: styleKey, value: '' },
-                                ])
-                            }
+                                {selectedSubtitleAppearanceTrack !== undefined && (
+                                    <Button
+                                        startIcon={<UndoIcon />}
+                                        disabled={!selectedSubtitleAppearanceTrackIsDirty}
+                                        onClick={handleResetSubtitleTrack}
+                                        variant="outlined"
+                                    >
+                                        {t('settings.reset')}
+                                    </Button>
+                                )}
+                            </>
+                        )}
+                        <SubtitlePreview
+                            subtitleSettings={settings}
+                            text={subtitlePreview}
+                            onTextChanged={(text) => handleSettingChanged('subtitlePreview', text)}
                         />
-                        <div className={classes.subtitlePreview}>
-                            <input
-                                value={subtitlePreview}
-                                className={classes.subtitlePreviewInput}
-                                onChange={(event) => handleSettingChanged('subtitlePreview', event.target.value)}
-                                style={subtitlePreviewStyles}
-                            />
-                        </div>
-                        <div className={classes.subtitleSetting}>
-                            <TextField
-                                type="number"
-                                label={t('settings.imageBasedSubtitleScaleFactor')}
-                                placeholder="Inherited"
-                                fullWidth
-                                inputProps={{
-                                    min: 0,
-                                    max: 1,
-                                    step: 0.1,
-                                }}
-                                value={imageBasedSubtitleScaleFactor}
-                                color="secondary"
-                                onChange={(event) =>
-                                    handleSettingChanged('imageBasedSubtitleScaleFactor', Number(event.target.value))
-                                }
-                            />
-                        </div>
+                        {subtitleColor !== undefined && (
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="color"
+                                    label={t('settings.subtitleColor')}
+                                    fullWidth
+                                    value={subtitleColor}
+                                    color="secondary"
+                                    onChange={(event) =>
+                                        handleSubtitleTextSettingChanged('subtitleColor', event.target.value)
+                                    }
+                                />
+                            </div>
+                        )}
+                        {subtitleSize !== undefined && (
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="number"
+                                    label={t('settings.subtitleSize')}
+                                    fullWidth
+                                    value={subtitleSize}
+                                    color="secondary"
+                                    onChange={(event) =>
+                                        handleSubtitleTextSettingChanged('subtitleSize', Number(event.target.value))
+                                    }
+                                    inputProps={{
+                                        min: 1,
+                                        step: 1,
+                                    }}
+                                />
+                            </div>
+                        )}
+                        {subtitleThickness !== undefined && (
+                            <div>
+                                <Typography variant="subtitle2" color="textSecondary">
+                                    {t('settings.subtitleThickness')}
+                                </Typography>
+                                <Slider
+                                    color="secondary"
+                                    value={subtitleThickness}
+                                    onChange={(event, value) =>
+                                        handleSubtitleTextSettingChanged('subtitleThickness', value as number)
+                                    }
+                                    min={100}
+                                    max={900}
+                                    step={100}
+                                    marks
+                                    valueLabelDisplay="auto"
+                                />
+                            </div>
+                        )}
+                        {subtitleOutlineColor !== undefined && (
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="color"
+                                    label={t('settings.subtitleOutlineColor')}
+                                    fullWidth
+                                    value={subtitleOutlineColor}
+                                    color="secondary"
+                                    onChange={(event) =>
+                                        handleSubtitleTextSettingChanged('subtitleOutlineColor', event.target.value)
+                                    }
+                                />
+                            </div>
+                        )}
+                        {subtitleOutlineThickness !== undefined && (
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="number"
+                                    label={t('settings.subtitleOutlineThickness')}
+                                    helperText={t('settings.subtitleOutlineThicknessHelperText')}
+                                    fullWidth
+                                    value={subtitleOutlineThickness}
+                                    onChange={(event) =>
+                                        handleSubtitleTextSettingChanged(
+                                            'subtitleOutlineThickness',
+                                            Number(event.target.value)
+                                        )
+                                    }
+                                    inputProps={{
+                                        min: 0,
+                                        step: 0.1,
+                                    }}
+                                    color="secondary"
+                                />
+                            </div>
+                        )}
+                        {subtitleShadowColor !== undefined && (
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="color"
+                                    label={t('settings.subtitleShadowColor')}
+                                    fullWidth
+                                    value={subtitleShadowColor}
+                                    color="secondary"
+                                    onChange={(event) =>
+                                        handleSubtitleTextSettingChanged('subtitleShadowColor', event.target.value)
+                                    }
+                                />
+                            </div>
+                        )}
+                        {subtitleShadowThickness !== undefined && (
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="number"
+                                    label={t('settings.subtitleShadowThickness')}
+                                    fullWidth
+                                    value={subtitleShadowThickness}
+                                    onChange={(event) =>
+                                        handleSubtitleTextSettingChanged(
+                                            'subtitleShadowThickness',
+                                            Number(event.target.value)
+                                        )
+                                    }
+                                    inputProps={{
+                                        min: 0,
+                                        step: 0.1,
+                                    }}
+                                    color="secondary"
+                                />
+                            </div>
+                        )}
+                        {subtitleBackgroundColor !== undefined && (
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="color"
+                                    label={t('settings.subtitleBackgroundColor')}
+                                    fullWidth
+                                    value={subtitleBackgroundColor}
+                                    color="secondary"
+                                    onChange={(event) =>
+                                        handleSubtitleTextSettingChanged('subtitleBackgroundColor', event.target.value)
+                                    }
+                                />
+                            </div>
+                        )}
+                        {subtitleBackgroundOpacity !== undefined && (
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="number"
+                                    label={t('settings.subtitleBackgroundOpacity')}
+                                    fullWidth
+                                    inputProps={{
+                                        min: 0,
+                                        max: 1,
+                                        step: 0.1,
+                                    }}
+                                    value={subtitleBackgroundOpacity}
+                                    color="secondary"
+                                    onChange={(event) =>
+                                        handleSubtitleTextSettingChanged(
+                                            'subtitleBackgroundOpacity',
+                                            Number(event.target.value)
+                                        )
+                                    }
+                                />
+                            </div>
+                        )}
+                        {subtitleFontFamily !== undefined && (
+                            <div className={classes.subtitleSetting}>
+                                <TextField
+                                    type="text"
+                                    select={localFontFamilies.length > 0}
+                                    label={t('settings.subtitleFontFamily')}
+                                    fullWidth
+                                    value={subtitleFontFamily}
+                                    color="secondary"
+                                    onChange={(event) =>
+                                        handleSubtitleTextSettingChanged('subtitleFontFamily', event.target.value)
+                                    }
+                                    InputProps={{
+                                        endAdornment:
+                                            localFontFamilies.length === 0 &&
+                                            localFontsAvailable &&
+                                            localFontsPermission === 'prompt' ? (
+                                                <Tooltip title={t('settings.unlockLocalFonts')!}>
+                                                    <IconButton onClick={onUnlockLocalFonts}>
+                                                        <LockIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            ) : null,
+                                    }}
+                                >
+                                    {localFontFamilies.length > 0
+                                        ? localFontFamilies.map((f) => (
+                                              <MenuItem key={f} value={f}>
+                                                  {f}
+                                              </MenuItem>
+                                          ))
+                                        : null}
+                                </TextField>
+                            </div>
+                        )}
+                        {subtitleCustomStyles !== undefined && (
+                            <>
+                                {subtitleCustomStyles.map((customStyle, index) => {
+                                    return (
+                                        <CustomStyleSetting
+                                            key={index}
+                                            customStyle={customStyle}
+                                            onCustomStyle={(newCustomStyle: CustomStyle) => {
+                                                const newValue = [...settings.subtitleCustomStyles];
+                                                newValue[index] = { ...newCustomStyle };
+                                                handleSubtitleTextSettingChanged('subtitleCustomStyles', newValue);
+                                            }}
+                                            onDelete={() => {
+                                                const newValue: CustomStyle[] = [];
+                                                for (let j = 0; j < settings.subtitleCustomStyles.length; ++j) {
+                                                    if (j !== index) {
+                                                        newValue.push(settings.subtitleCustomStyles[j]);
+                                                    }
+                                                }
+                                                handleSubtitleTextSettingChanged('subtitleCustomStyles', newValue);
+                                            }}
+                                        />
+                                    );
+                                })}
+                                <AddCustomStyle
+                                    styleKey={currentStyleKey}
+                                    onStyleKey={setCurrentStyleKey}
+                                    onAddCustomStyle={(styleKey) =>
+                                        handleSubtitleTextSettingChanged('subtitleCustomStyles', [
+                                            ...settings.subtitleCustomStyles,
+                                            { key: styleKey, value: '' },
+                                        ])
+                                    }
+                                />
+                            </>
+                        )}
 
-                        <div className={classes.subtitleSetting}>
-                            <FormLabel component="legend">{t('settings.subtitleAlignment')}</FormLabel>
-                            <RadioGroup row>
+                        {subtitleBlur !== undefined && (
+                            <Tooltip placement="bottom-end" title={t('settings.subtitleBlurDescription')!}>
                                 <LabelWithHoverEffect
                                     control={
-                                        <Radio
-                                            checked={subtitleAlignment === 'bottom'}
-                                            value={'bottom'}
-                                            onChange={(event) =>
-                                                event.target.checked &&
-                                                handleSettingChanged('subtitleAlignment', 'bottom')
-                                            }
+                                        <Switch
+                                            checked={subtitleBlur}
+                                            onChange={(e) => {
+                                                handleSubtitleTextSettingChanged('subtitleBlur', e.target.checked);
+                                            }}
                                         />
                                     }
-                                    label={t('settings.subtitleAlignmentBottom')}
+                                    label={t('settings.subtitleBlur')}
+                                    labelPlacement="start"
+                                    className={classes.switchLabel}
                                 />
-                                <LabelWithHoverEffect
-                                    control={
-                                        <Radio
-                                            checked={subtitleAlignment === 'top'}
-                                            value={'top'}
-                                            onChange={(event) =>
-                                                event.target.checked && handleSettingChanged('subtitleAlignment', 'top')
-                                            }
-                                        />
-                                    }
-                                    label={t('settings.subtitleAlignmentTop')}
-                                />
-                            </RadioGroup>
-                        </div>
-                        <div className={classes.subtitleSetting}>
-                            <TextField
-                                className={classes.textField}
-                                type="number"
-                                color="secondary"
-                                fullWidth
-                                label={t('settings.subtitlePositionOffset')}
-                                value={subtitlePositionOffset}
-                                inputProps={{
-                                    min: 0,
-                                    step: 1,
-                                }}
-                                onChange={(e) => handleSettingChanged('subtitlePositionOffset', Number(e.target.value))}
-                            />
-                        </div>
-                        <FormLabel className={classes.top} component="legend">
-                            {t('settings.subtitleBlur')}
-                        </FormLabel>
-                        <Grid container>
-                            {subtitleTracks.map((trackData, trackIndex) => {
-                                return (
-                                    <Grid item xs={4} key={`blurTrack${trackIndex}`}>
+                            </Tooltip>
+                        )}
+                        {selectedSubtitleAppearanceTrack === undefined && (
+                            <>
+                                <div className={classes.subtitleSetting}>
+                                    <TextField
+                                        type="number"
+                                        label={t('settings.imageBasedSubtitleScaleFactor')}
+                                        placeholder="Inherited"
+                                        fullWidth
+                                        inputProps={{
+                                            min: 0,
+                                            max: 1,
+                                            step: 0.1,
+                                        }}
+                                        value={imageBasedSubtitleScaleFactor}
+                                        color="secondary"
+                                        onChange={(event) =>
+                                            handleSettingChanged(
+                                                'imageBasedSubtitleScaleFactor',
+                                                Number(event.target.value)
+                                            )
+                                        }
+                                    />
+                                </div>
+                                <div className={classes.subtitleSetting}>
+                                    <FormLabel component="legend">{t('settings.subtitleAlignment')}</FormLabel>
+                                    <RadioGroup row>
                                         <LabelWithHoverEffect
                                             control={
-                                                <Switch
-                                                    checked={trackData.blur}
-                                                    onChange={(e) => {
-                                                        handleSettingChanged(
-                                                            'subtitleTracks',
-                                                            subtitleTracks.map((entry, entryIndex) => {
-                                                                return entryIndex === trackIndex
-                                                                    ? { ...entry, blur: e.target.checked }
-                                                                    : entry;
-                                                            })
-                                                        );
-                                                    }}
+                                                <Radio
+                                                    checked={subtitleAlignment === 'bottom'}
+                                                    value={'bottom'}
+                                                    onChange={(event) =>
+                                                        event.target.checked &&
+                                                        handleSettingChanged('subtitleAlignment', 'bottom')
+                                                    }
                                                 />
                                             }
-                                            label={t('settings.subtitleBlurEntryLabel', {
-                                                trackNumber: trackIndex + 1,
-                                            })}
-                                            labelPlacement="start"
-                                            className={classes.switchLabel}
+                                            label={t('settings.subtitleAlignmentBottom')}
                                         />
-                                    </Grid>
-                                );
-                            })}
-                        </Grid>
-                        <FormHelperText>{t('settings.subtitleBlurDescription')}</FormHelperText>
+                                        <LabelWithHoverEffect
+                                            control={
+                                                <Radio
+                                                    checked={subtitleAlignment === 'top'}
+                                                    value={'top'}
+                                                    onChange={(event) =>
+                                                        event.target.checked &&
+                                                        handleSettingChanged('subtitleAlignment', 'top')
+                                                    }
+                                                />
+                                            }
+                                            label={t('settings.subtitleAlignmentTop')}
+                                        />
+                                    </RadioGroup>
+                                </div>
+                                <div className={classes.subtitleSetting}>
+                                    <TextField
+                                        className={classes.textField}
+                                        type="number"
+                                        color="secondary"
+                                        fullWidth
+                                        label={t('settings.subtitlePositionOffset')}
+                                        value={subtitlePositionOffset}
+                                        inputProps={{
+                                            min: 0,
+                                            step: 1,
+                                        }}
+                                        onChange={(e) =>
+                                            handleSettingChanged('subtitlePositionOffset', Number(e.target.value))
+                                        }
+                                    />
+                                </div>
+                            </>
+                        )}
                     </FormGroup>
                 </Grid>
             </TabPanel>

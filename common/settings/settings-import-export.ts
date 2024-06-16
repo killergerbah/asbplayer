@@ -8,6 +8,7 @@ const keyBindSchema = {
             type: 'string',
         },
     },
+    required: ['keys'],
 };
 const ankiFieldSchema = {
     id: '/AnkiField',
@@ -20,6 +21,66 @@ const ankiFieldSchema = {
             type: 'boolean',
         },
     },
+    required: ['order', 'display'],
+};
+const textSubtitleSettingsSchema = {
+    id: '/TextSubtitleSettings',
+    type: 'object',
+    properties: {
+        subtitleColor: {
+            type: 'string',
+        },
+        subtitleSize: {
+            type: 'number',
+        },
+        subtitleThickness: {
+            type: 'number',
+        },
+        subtitleOutlineThickness: {
+            type: 'number',
+        },
+        subtitleShadowColor: {
+            type: 'string',
+        },
+        subtitleBackgroundOpacity: {
+            type: 'number',
+        },
+        subtitleBackgroundColor: {
+            type: 'string',
+        },
+        subtitleFontFamily: {
+            type: 'string',
+        },
+        subtitleCustomStyles: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    key: {
+                        type: 'string',
+                    },
+                    value: {
+                        type: 'string',
+                    },
+                },
+            },
+        },
+        subtitleBlur: {
+            type: 'boolean',
+        },
+    },
+    required: [
+        'subtitleColor',
+        'subtitleSize',
+        'subtitleThickness',
+        'subtitleOutlineThickness',
+        'subtitleShadowColor',
+        'subtitleBackgroundOpacity',
+        'subtitleBackgroundColor',
+        'subtitleFontFamily',
+        'subtitleCustomStyles',
+        'subtitleBlur',
+    ],
 };
 const settingsSchema = {
     id: '/Settings',
@@ -115,6 +176,9 @@ const settingsSchema = {
         subtitleFontFamily: {
             type: 'string',
         },
+        subtitleBlur: {
+            type: 'boolean',
+        },
         subtitlePreview: {
             type: 'string',
         },
@@ -124,15 +188,10 @@ const settingsSchema = {
         subtitleAlignment: {
             type: 'string',
         },
-        subtitleTracks: {
+        subtitleTracksV2: {
             type: 'array',
             items: {
-                type: 'object',
-                properties: {
-                    blur: {
-                        type: 'boolean',
-                    },
-                },
+                $ref: '/TextSubtitleSettings',
             },
         },
         audioPaddingStart: {
@@ -334,6 +393,7 @@ export const validateSettings = (settings: any) => {
     const validator = new Validator();
     validator.addSchema(keyBindSchema);
     validator.addSchema(ankiFieldSchema);
+    validator.addSchema(textSubtitleSettingsSchema);
     const result = validator.validate(settings, settingsSchema);
     validateAllKnownKeys(settings, []);
 
@@ -384,6 +444,10 @@ const schemaForRef = (ref: string) => {
 
     if (ref === '/AnkiField') {
         return ankiFieldSchema;
+    }
+
+    if (ref === '/TextSubtitleSettings') {
+        return textSubtitleSettingsSchema;
     }
 
     return undefined;

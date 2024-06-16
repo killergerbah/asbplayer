@@ -87,6 +87,7 @@ function renderMenuItem({
 
             {profile !== undefined && (
                 <IconButton
+                    onMouseDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
                         onRemoveProfile(profile.name);
                     }}

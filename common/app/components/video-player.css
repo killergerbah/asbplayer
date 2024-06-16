@@ -3,3 +3,11 @@
     left: 100% !important;
     top: 100% !important;
 }
+
+.asbplayer-subtitles-blurred {
+    filter: blur(10px);
+}
+
+.asbplayer-subtitles-blurred:hover {
+    filter: none;
+}

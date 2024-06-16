@@ -6,11 +6,30 @@ import {
     CustomAnkiFieldSettings,
     KeyBindName,
     SubtitleListPreference,
+    SubtitleSettings,
+    TextSubtitleSettings,
+    textSubtitleSettingsKeys,
 } from '.';
 import { AutoPausePreference, PostMineAction, PostMinePlayback } from '..';
 
 // @ts-ignore
 const isMacOs = (navigator.userAgentData?.platform ?? navigator.platform)?.toUpperCase()?.indexOf('MAC') > -1;
+
+const defaultSubtitleTextSettings = {
+    subtitleSize: 36,
+    subtitleColor: '#ffffff',
+    subtitleThickness: 700,
+    subtitleOutlineThickness: 0,
+    subtitleOutlineColor: '#000000',
+    subtitleShadowThickness: 3,
+    subtitleShadowColor: '#000000',
+    subtitleBackgroundColor: '#000000',
+    subtitleBackgroundOpacity: 0,
+    subtitleFontFamily: '',
+    subtitlePreview: 'アあ安Aa',
+    subtitleCustomStyles: [],
+    subtitleBlur: false,
+};
 
 export const defaultSettings: AsbplayerSettings = {
     ankiConnectUrl: 'http://127.0.0.1:8765',
@@ -39,20 +58,10 @@ export const defaultSettings: AsbplayerSettings = {
         track3: { order: 10, display: false },
     },
     customAnkiFieldSettings: {},
-    subtitleSize: 36,
-    subtitleColor: '#ffffff',
-    subtitleThickness: 700,
-    subtitleOutlineThickness: 0,
-    subtitleOutlineColor: '#000000',
-    subtitleShadowThickness: 3,
-    subtitleShadowColor: '#000000',
-    subtitleBackgroundColor: '#000000',
-    subtitleBackgroundOpacity: 0,
-    subtitleFontFamily: '',
-    subtitlePreview: 'アあ安Aa',
+    ...defaultSubtitleTextSettings,
     subtitlePositionOffset: 75,
     subtitleAlignment: 'bottom',
-    subtitleTracks: [{ blur: false }, { blur: false }, { blur: false }],
+    subtitleTracksV2: [],
     audioPaddingStart: 0,
     audioPaddingEnd: 500,
     maxImageWidth: 0,
@@ -114,7 +123,6 @@ export const defaultSettings: AsbplayerSettings = {
     customAnkiFields: {},
     tags: [],
     imageBasedSubtitleScaleFactor: 1,
-    subtitleCustomStyles: [],
     streamingAppUrl: 'https://killergerbah.github.io/asbplayer',
     streamingDisplaySubtitles: true,
     streamingRecordMedia: true,
@@ -182,6 +190,116 @@ export const sortedAnkiFieldModels = (settings: AnkiSettings): AnkiFieldUiModel[
             true
         ),
     ]);
+};
+
+export const allTextSubtitleSettings = (subtitleSettings: SubtitleSettings) => {
+    const textSettings: TextSubtitleSettings[] = [];
+
+    for (let i = 0; i <= subtitleSettings.subtitleTracksV2.length; ++i) {
+        textSettings.push(textSubtitleSettingsForTrack(subtitleSettings, i) as TextSubtitleSettings);
+    }
+
+    return textSettings;
+};
+
+export const textSubtitleSettingsForTrack = (
+    subtitleSettings: SubtitleSettings,
+    track?: number
+): Partial<TextSubtitleSettings> | TextSubtitleSettings => {
+    if (track === undefined) {
+        const valuesAllSame = (k: keyof TextSubtitleSettings) => {
+            const val = subtitleSettings[k];
+
+            for (const track of subtitleSettings.subtitleTracksV2) {
+                if (!deepEquals(track[k], val)) {
+                    return false;
+                }
+            }
+
+            return true;
+        };
+
+        let mergedSettings: any = {};
+
+        for (const key of textSubtitleSettingsKeys) {
+            if (valuesAllSame(key)) {
+                mergedSettings[key] = subtitleSettings[key];
+            } else {
+                mergedSettings[key] = undefined;
+            }
+        }
+
+        return mergedSettings as Partial<TextSubtitleSettings>;
+    }
+
+    if (track === 0 || track > subtitleSettings.subtitleTracksV2.length) {
+        return Object.fromEntries(
+            textSubtitleSettingsKeys.map((k) => [k, subtitleSettings[k]])
+        ) as unknown as TextSubtitleSettings;
+    }
+
+    return subtitleSettings.subtitleTracksV2[track - 1] as TextSubtitleSettings;
+};
+
+export const changeForTextSubtitleSetting = (
+    updates: Partial<TextSubtitleSettings>,
+    subtitleSettings: SubtitleSettings,
+    track?: number
+) => {
+    if (track === undefined) {
+        // Change settings for all tracks
+        const newSubtitleTracks = [];
+
+        for (let i = 0; i < subtitleSettings.subtitleTracksV2.length; ++i) {
+            newSubtitleTracks.push({ ...subtitleSettings.subtitleTracksV2[i], ...updates });
+        }
+
+        return {
+            ...updates,
+            subtitleTracksV2: newSubtitleTracks,
+        };
+    }
+
+    if (track === 0) {
+        // Change setting for track 0 (top-level settings object)
+        return { ...updates };
+    }
+
+    // Change setting for track >= 1 (nested subtitleTracks setting)
+    const newSubtitleTracks = [...subtitleSettings.subtitleTracksV2];
+    const firstTrack = textSubtitleSettingsForTrack(subtitleSettings, 0) as TextSubtitleSettings;
+
+    while (newSubtitleTracks.length < track) {
+        newSubtitleTracks.push(firstTrack);
+    }
+
+    newSubtitleTracks[track - 1] = {
+        ...newSubtitleTracks[track - 1],
+        ...updates,
+    };
+
+    let removeFromEnd = 0;
+
+    for (let i = newSubtitleTracks.length - 1; i >= 0; --i) {
+        if (!deepEquals(firstTrack, newSubtitleTracks[i])) {
+            break;
+        }
+
+        ++removeFromEnd;
+    }
+
+    if (removeFromEnd > 0) {
+        newSubtitleTracks.splice(newSubtitleTracks.length - removeFromEnd);
+    }
+
+    return { subtitleTracksV2: newSubtitleTracks };
+};
+
+export const textSubtitleSettingsAreDirty = (settings: SubtitleSettings, track: number) => {
+    return (
+        track !== 0 &&
+        !deepEquals(textSubtitleSettingsForTrack(settings, 0), textSubtitleSettingsForTrack(settings, track))
+    );
 };
 
 type SettingsDeserializers = { [key in keyof AsbplayerSettings]: (serialized: string) => any };
@@ -345,7 +463,6 @@ export class SettingsProvider {
         if (settings.customAnkiFields === undefined) {
             return settings;
         }
-
         const customAnkiFieldSettings =
             settings.customAnkiFieldSettings ??
             ((

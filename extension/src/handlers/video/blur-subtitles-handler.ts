@@ -5,7 +5,13 @@ import {
     Message,
     SettingsUpdatedMessage,
 } from '@project/common';
-import { SettingsProvider } from '@project/common/settings';
+import {
+    SettingsProvider,
+    SubtitleSettings,
+    changeForTextSubtitleSetting,
+    subtitleSettingsKeys,
+    textSubtitleSettingsForTrack,
+} from '@project/common/settings';
 import TabRegistry from '../../services/tab-registry';
 
 export default class BlurSubtitlesHandler {
@@ -27,9 +33,14 @@ export default class BlurSubtitlesHandler {
 
     async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
         const message = command.message as BlurSubtitlesMessage;
-        const trackSettings = await this.settings.getSingle('subtitleTracks');
-        trackSettings[message.track].blur = !trackSettings[message.track].blur;
-        await this.settings.set({ subtitleTracks: trackSettings });
+        const subtitleSettings: SubtitleSettings = await this.settings.get(subtitleSettingsKeys);
+        const oldValue = textSubtitleSettingsForTrack(subtitleSettings, message.track);
+        const change = changeForTextSubtitleSetting(
+            { subtitleBlur: !oldValue.subtitleBlur },
+            subtitleSettings,
+            message.track
+        );
+        await this.settings.set(change);
 
         this.tabRegistry.publishCommandToVideoElements((videoElement) => {
             const settingsUpdatedCommand: ExtensionToVideoCommand<SettingsUpdatedMessage> = {

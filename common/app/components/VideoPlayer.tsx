@@ -20,13 +20,10 @@ import {
     AnkiSettings,
     AsbplayerSettings,
     SubtitleAlignment,
+    changeForTextSubtitleSetting,
+    textSubtitleSettingsForTrack,
 } from '@project/common/settings';
-import {
-    surroundingSubtitles,
-    mockSurroundingSubtitles,
-    computeStyles,
-    computeStyleString,
-} from '@project/common/util';
+import { surroundingSubtitles, mockSurroundingSubtitles } from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import SubtitleTextImage from '@project/common/components/SubtitleTextImage';
 import Clock from '../services/clock';
@@ -43,6 +40,7 @@ import i18n from 'i18next';
 import { adjacentSubtitle } from '../../key-binder';
 import { usePlaybackPreferences } from '../hooks/use-playback-preferences';
 import { MiningContext } from '../services/mining-context';
+import { useSubtitleStyles } from '../hooks/use-subtitle-styles';
 
 interface ExperimentalHTMLVideoElement extends HTMLVideoElement {
     readonly audioTracks: any;
@@ -72,12 +70,6 @@ const useStyles = makeStyles({
         textAlign: 'center',
         whiteSpace: 'pre-wrap',
         lineHeight: 'normal',
-    },
-    subtitleEntryBlurred: {
-        filter: 'blur(10px)',
-        '&:hover': {
-            filter: 'none',
-        },
     },
 });
 
@@ -152,6 +144,7 @@ const showingSubtitleHtml = (
     subtitle: IndexedSubtitleModel,
     videoRef: MutableRefObject<ExperimentalHTMLVideoElement | undefined>,
     subtitleStyles: string,
+    subtitleClasses: string,
     imageBasedSubtitleScaleFactor: number
 ) => {
     if (subtitle.textImage) {
@@ -166,12 +159,13 @@ const showingSubtitleHtml = (
     style="width:100%;"
     alt="subtitle"
     src="${subtitle.textImage.dataUrl}"
+    class="${subtitleClasses}"
 />
 </div>
 `;
     }
 
-    return `<span style="${subtitleStyles}">${subtitle.text}</span>`;
+    return `<span style="${subtitleStyles}" class="${subtitleClasses}">${subtitle.text}</span>`;
 };
 
 interface ShowingSubtitleProps {
@@ -824,11 +818,9 @@ export default function VideoPlayer({
         return keyBinder.bindToggleBlurTrack(
             (event, track) => {
                 event.preventDefault();
-
-                const subtitleTracks = subtitleSettings.subtitleTracks;
-                subtitleTracks[track].blur = !subtitleTracks[track].blur;
-
-                setSubtitleSettings({ ...subtitleSettings, subtitleTracks });
+                const originalValue = textSubtitleSettingsForTrack(subtitleSettings, track).subtitleBlur!;
+                const change = changeForTextSubtitleSetting({ subtitleBlur: !originalValue }, track);
+                setSubtitleSettings({ ...subtitleSettings, ...change });
             },
             () => false
         );
@@ -1242,80 +1234,6 @@ export default function VideoPlayer({
 
     const handleDoubleClick = useCallback(() => handleFullscreenToggle(), [handleFullscreenToggle]);
 
-    const {
-        subtitleSize,
-        subtitleColor,
-        subtitleThickness,
-        subtitleOutlineThickness,
-        subtitleOutlineColor,
-        subtitleShadowThickness,
-        subtitleShadowColor,
-        subtitleBackgroundColor,
-        subtitleBackgroundOpacity,
-        subtitleFontFamily,
-        subtitleCustomStyles,
-        imageBasedSubtitleScaleFactor,
-    } = subtitleSettings;
-    const subtitleStyles = useMemo(
-        () =>
-            computeStyles({
-                subtitleSize,
-                subtitleColor,
-                subtitleThickness,
-                subtitleOutlineThickness,
-                subtitleOutlineColor,
-                subtitleShadowThickness,
-                subtitleShadowColor,
-                subtitleBackgroundColor,
-                subtitleBackgroundOpacity,
-                subtitleFontFamily,
-                subtitleCustomStyles,
-            }),
-        [
-            subtitleSize,
-            subtitleColor,
-            subtitleThickness,
-            subtitleOutlineThickness,
-            subtitleOutlineColor,
-            subtitleShadowThickness,
-            subtitleShadowColor,
-            subtitleBackgroundColor,
-            subtitleBackgroundOpacity,
-            subtitleFontFamily,
-            subtitleCustomStyles,
-        ]
-    );
-
-    const subtitleStylesString = useMemo(
-        () =>
-            computeStyleString({
-                subtitleSize,
-                subtitleColor,
-                subtitleThickness,
-                subtitleOutlineThickness,
-                subtitleOutlineColor,
-                subtitleShadowThickness,
-                subtitleShadowColor,
-                subtitleBackgroundColor,
-                subtitleBackgroundOpacity,
-                subtitleFontFamily,
-                subtitleCustomStyles,
-            }),
-        [
-            subtitleSize,
-            subtitleColor,
-            subtitleThickness,
-            subtitleOutlineThickness,
-            subtitleOutlineColor,
-            subtitleShadowThickness,
-            subtitleShadowColor,
-            subtitleBackgroundColor,
-            subtitleBackgroundOpacity,
-            subtitleFontFamily,
-            subtitleCustomStyles,
-        ]
-    );
-
     useEffect(() => {
         const interval = setInterval(() => {
             if (Date.now() - lastMouseMovementTimestamp.current > 300) {
@@ -1331,11 +1249,19 @@ export default function VideoPlayer({
     }, [showCursor]);
 
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
+    const trackStyles = useSubtitleStyles(subtitleSettings);
     const { getSubtitleDomCache } = useSubtitleDomCache(
         subtitles,
         useCallback(
-            (subtitle) => showingSubtitleHtml(subtitle, videoRef, subtitleStylesString, imageBasedSubtitleScaleFactor),
-            [subtitleStylesString, imageBasedSubtitleScaleFactor]
+            (subtitle) =>
+                showingSubtitleHtml(
+                    subtitle,
+                    videoRef,
+                    trackStyles[subtitle.track]?.styleString ?? trackStyles[0].styleString,
+                    trackStyles[subtitle.track]?.classes ?? trackStyles[0].classes,
+                    subtitleSettings.imageBasedSubtitleScaleFactor
+                ),
+            [trackStyles, subtitleSettings.imageBasedSubtitleScaleFactor]
         )
     );
 
@@ -1392,28 +1318,19 @@ export default function VideoPlayer({
                     className={classes.subtitleContainer}
                 >
                     {showSubtitles.map((subtitle, index) => {
-                        const trackSetting = subtitleSettings.subtitleTracks[index];
-
                         if (miscSettings.preCacheSubtitleDom) {
                             const domCache = getSubtitleDomCache();
-                            return (
-                                <CachedShowingSubtitle
-                                    key={index}
-                                    index={subtitle.index}
-                                    domCache={domCache}
-                                    className={trackSetting.blur ? classes.subtitleEntryBlurred : ''}
-                                />
-                            );
+                            return <CachedShowingSubtitle key={index} index={subtitle.index} domCache={domCache} />;
                         }
 
                         return (
                             <ShowingSubtitle
                                 key={index}
                                 subtitle={subtitle}
-                                subtitleStyles={subtitleStyles}
+                                subtitleStyles={trackStyles[subtitle.track]?.styles ?? trackStyles[0].styles}
+                                className={trackStyles[subtitle.track].classes}
                                 videoRef={videoRef}
-                                imageBasedSubtitleScaleFactor={imageBasedSubtitleScaleFactor}
-                                className={trackSetting.blur ? classes.subtitleEntryBlurred : ''}
+                                imageBasedSubtitleScaleFactor={subtitleSettings.imageBasedSubtitleScaleFactor}
                             />
                         );
                     })}

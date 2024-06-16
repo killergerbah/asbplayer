@@ -4,8 +4,11 @@ import {
     Profile,
     SettingsProvider,
     SettingsStorage,
+    SubtitleAlignment,
+    changeForTextSubtitleSetting,
     defaultSettings,
     prefixedSettings,
+    textSubtitleSettingsForTrack,
     unprefixedSettings,
 } from '@project/common/settings';
 
@@ -148,5 +151,131 @@ it('removes corresponding field settings when custom anki fields are removed', a
     expect(await provider.get(['customAnkiFields', 'customAnkiFieldSettings'])).toEqual({
         customAnkiFields: { foo: 'bar' },
         customAnkiFieldSettings: { foo: { order: 1, display: true } },
+    });
+});
+
+const subtitleSettings = {
+    subtitleSize: 36,
+    subtitleColor: '#ffffff',
+    subtitleThickness: 700,
+    subtitleOutlineThickness: 0,
+    subtitleOutlineColor: '#000000',
+    subtitleShadowThickness: 2,
+    subtitleShadowColor: '#000000',
+    subtitleBackgroundColor: '#000000',
+    subtitleBackgroundOpacity: 0,
+    subtitleFontFamily: 'ToppanBunkyuMidashiGothicStdN-ExtraBold',
+    subtitleBlur: false,
+    subtitleCustomStyles: [],
+    imageBasedSubtitleScaleFactor: 1,
+    subtitlePositionOffset: 70,
+    subtitleAlignment: 'top' as SubtitleAlignment,
+    subtitleTracksV2: [
+        {
+            subtitleSize: 36,
+            subtitleColor: '#ffffff',
+            subtitleThickness: 700,
+            subtitleOutlineThickness: 0,
+            subtitleOutlineColor: '#000000',
+            subtitleShadowThickness: 2,
+            subtitleShadowColor: '#000000',
+            subtitleBackgroundColor: '#000000',
+            subtitleBackgroundOpacity: 0,
+            subtitleFontFamily: 'ToppanBunkyuMidashiGothicStdN-ExtraBold',
+            subtitleBlur: true,
+            subtitleCustomStyles: [],
+        },
+    ],
+};
+
+it('calculates diff for text subtitle settings', () => {
+    expect(
+        changeForTextSubtitleSetting({ subtitleCustomStyles: [{ key: 'opacity', value: '0.5' }] }, subtitleSettings, 2)
+    ).toEqual({
+        subtitleTracksV2: [
+            {
+                subtitleSize: 36,
+                subtitleColor: '#ffffff',
+                subtitleThickness: 700,
+                subtitleOutlineThickness: 0,
+                subtitleOutlineColor: '#000000',
+                subtitleShadowThickness: 2,
+                subtitleShadowColor: '#000000',
+                subtitleBackgroundColor: '#000000',
+                subtitleBackgroundOpacity: 0,
+                subtitleFontFamily: 'ToppanBunkyuMidashiGothicStdN-ExtraBold',
+                subtitleBlur: true,
+                subtitleCustomStyles: [],
+            },
+            {
+                subtitleSize: 36,
+                subtitleColor: '#ffffff',
+                subtitleThickness: 700,
+                subtitleOutlineThickness: 0,
+                subtitleOutlineColor: '#000000',
+                subtitleShadowThickness: 2,
+                subtitleShadowColor: '#000000',
+                subtitleBackgroundColor: '#000000',
+                subtitleBackgroundOpacity: 0,
+                subtitleFontFamily: 'ToppanBunkyuMidashiGothicStdN-ExtraBold',
+                subtitleBlur: false,
+                subtitleCustomStyles: [{ key: 'opacity', value: '0.5' }],
+            },
+        ],
+    });
+    expect(changeForTextSubtitleSetting({ subtitleBlur: false }, subtitleSettings, 0)).toEqual({
+        subtitleBlur: false,
+    });
+    expect(changeForTextSubtitleSetting({ subtitleOutlineColor: '#ccc' }, subtitleSettings, 1)).toEqual({
+        subtitleTracksV2: [
+            {
+                subtitleSize: 36,
+                subtitleColor: '#ffffff',
+                subtitleThickness: 700,
+                subtitleOutlineThickness: 0,
+                subtitleOutlineColor: '#ccc',
+                subtitleShadowThickness: 2,
+                subtitleShadowColor: '#000000',
+                subtitleBackgroundColor: '#000000',
+                subtitleBackgroundOpacity: 0,
+                subtitleFontFamily: 'ToppanBunkyuMidashiGothicStdN-ExtraBold',
+                subtitleBlur: true,
+                subtitleCustomStyles: [],
+            },
+        ],
+    });
+    expect(changeForTextSubtitleSetting({ subtitleBlur: false }, subtitleSettings, 1)).toEqual({
+        subtitleTracksV2: [],
+    });
+});
+
+it('targets correct values for text subtitle ', () => {
+    expect(textSubtitleSettingsForTrack(subtitleSettings, 0)).toEqual({
+        subtitleSize: 36,
+        subtitleColor: '#ffffff',
+        subtitleThickness: 700,
+        subtitleOutlineThickness: 0,
+        subtitleOutlineColor: '#000000',
+        subtitleShadowThickness: 2,
+        subtitleShadowColor: '#000000',
+        subtitleBackgroundColor: '#000000',
+        subtitleBackgroundOpacity: 0,
+        subtitleFontFamily: 'ToppanBunkyuMidashiGothicStdN-ExtraBold',
+        subtitleBlur: false,
+        subtitleCustomStyles: [],
+    });
+    expect(textSubtitleSettingsForTrack(subtitleSettings, 1)).toEqual({
+        subtitleSize: 36,
+        subtitleColor: '#ffffff',
+        subtitleThickness: 700,
+        subtitleOutlineThickness: 0,
+        subtitleOutlineColor: '#000000',
+        subtitleShadowThickness: 2,
+        subtitleShadowColor: '#000000',
+        subtitleBackgroundColor: '#000000',
+        subtitleBackgroundOpacity: 0,
+        subtitleFontFamily: 'ToppanBunkyuMidashiGothicStdN-ExtraBold',
+        subtitleBlur: true,
+        subtitleCustomStyles: [],
     });
 });

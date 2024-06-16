@@ -116,6 +116,10 @@ export default class ChromeExtension {
         return this.installed && gte(this.version, '1.3.0');
     }
 
+    get supportsTrackSpecificSettings() {
+        return this.installed && gte(this.version, '1.3.0');
+    }
+
     get supportsSettingsProfiles() {
         return this.installed && gte(this.version, '1.3.0');
     }

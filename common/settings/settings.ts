@@ -97,6 +97,48 @@ const ankiSettingsKeysObject: { [key in keyof AnkiSettings]: boolean } = {
 
 export const ankiSettingsKeys: (keyof AnkiSettings)[] = Object.keys(ankiSettingsKeysObject) as (keyof AnkiSettings)[];
 
+const textSubtitleSettingsKeysObject: { [key in keyof TextSubtitleSettings]: boolean } = {
+    subtitleColor: true,
+    subtitleSize: true,
+    subtitleThickness: true,
+    subtitleOutlineThickness: true,
+    subtitleOutlineColor: true,
+    subtitleShadowThickness: true,
+    subtitleShadowColor: true,
+    subtitleBackgroundOpacity: true,
+    subtitleBackgroundColor: true,
+    subtitleFontFamily: true,
+    subtitleCustomStyles: true,
+    subtitleBlur: true,
+};
+
+export const textSubtitleSettingsKeys: (keyof TextSubtitleSettings)[] = Object.keys(
+    textSubtitleSettingsKeysObject
+) as (keyof TextSubtitleSettings)[];
+
+const subtitleSettingsKeysObject: { [key in keyof SubtitleSettings]: boolean } = {
+    subtitleColor: true,
+    subtitleSize: true,
+    subtitleThickness: true,
+    subtitleOutlineThickness: true,
+    subtitleOutlineColor: true,
+    subtitleShadowThickness: true,
+    subtitleShadowColor: true,
+    subtitleBackgroundOpacity: true,
+    subtitleBackgroundColor: true,
+    subtitleFontFamily: true,
+    subtitleCustomStyles: true,
+    subtitleBlur: true,
+    imageBasedSubtitleScaleFactor: true,
+    subtitlePositionOffset: true,
+    subtitleAlignment: true,
+    subtitleTracksV2: true,
+};
+
+export const subtitleSettingsKeys: (keyof SubtitleSettings)[] = Object.keys(
+    subtitleSettingsKeysObject
+) as (keyof SubtitleSettings)[];
+
 export const extractAnkiSettings = <T extends AnkiSettings>(settings: T): AnkiSettings => {
     return Object.fromEntries(ankiSettingsKeys.map((k) => [k, settings[k]])) as unknown as AnkiSettings;
 };
@@ -118,15 +160,18 @@ export interface TextSubtitleSettings {
     readonly subtitleBackgroundColor: string;
     readonly subtitleFontFamily: string;
     readonly subtitleCustomStyles: CustomStyle[];
+    readonly subtitleBlur: boolean;
 }
 
 export interface SubtitleSettings extends TextSubtitleSettings {
     readonly imageBasedSubtitleScaleFactor: number;
     readonly subtitlePositionOffset: number;
     readonly subtitleAlignment: SubtitleAlignment;
-    readonly subtitleTracks: {
-        blur: boolean;
-    }[];
+
+    // Settings for (0-based) tracks 1, 2,...
+    // We don't configure track 0 here to avoid having to migrate old settings into this new data structure.
+    // Track 0 continues to be configured from the top-level settings object.
+    readonly subtitleTracksV2: TextSubtitleSettings[];
 }
 
 export interface KeyBind {

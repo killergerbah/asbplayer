@@ -5,7 +5,13 @@ import {
     SubtitleModel,
     VideoToExtensionCommand,
 } from '@project/common';
-import { SettingsProvider, SubtitleAlignment, SubtitleSettings } from '@project/common/settings';
+import {
+    SettingsProvider,
+    SubtitleAlignment,
+    SubtitleSettings,
+    TextSubtitleSettings,
+    allTextSubtitleSettings,
+} from '@project/common/settings';
 import { SubtitleCollection, SubtitleSlice } from '@project/common/subtitle-collection';
 import { computeStyleString, surroundingSubtitles } from '@project/common/util';
 import i18n from 'i18next';
@@ -33,14 +39,14 @@ export default class SubtitleController {
     private subtitlesInterval?: NodeJS.Timer;
     private showingLoadedMessage: boolean;
     private subtitleSettings?: SubtitleSettings;
-    private subtitleStyles?: string;
+    private subtitleStyles?: string[];
+    private subtitleClasses?: string[];
     private notificationElementOverlayHideTimeout?: NodeJS.Timer;
     private _subtitles: SubtitleModelWithIndex[];
     private subtitleCollection: SubtitleCollection<SubtitleModelWithIndex>;
     private subtitlesElementOverlay: ElementOverlay;
     private notificationElementOverlay: ElementOverlay;
     disabledSubtitleTracks: { [key: number]: boolean | undefined };
-    blurredSubtitleTracks: { [key: number]: boolean | undefined };
     subtitleFileNames?: string[];
     _forceHideSubtitles: boolean;
     _displaySubtitles: boolean;
@@ -71,7 +77,6 @@ export default class SubtitleController {
         this.subtitleCollection = new SubtitleCollection<SubtitleModelWithIndex>([]);
         this.showingSubtitles = [];
         this.disabledSubtitleTracks = {};
-        this.blurredSubtitleTracks = {};
         this._forceHideSubtitles = false;
         this._displaySubtitles = true;
         this.lastLoadedMessageTimestamp = 0;
@@ -127,21 +132,33 @@ export default class SubtitleController {
     }
 
     setSubtitleSettings(newSubtitleSettings: SubtitleSettings) {
-        const styles = computeStyleString(newSubtitleSettings);
+        const styles = this._computeStyles(newSubtitleSettings);
+        const classes = this._computeClasses(newSubtitleSettings);
 
-        const blurSettingsChanged =
-            newSubtitleSettings.subtitleTracks.find((entry, index) => {
-                const oldBlur = this.subtitleSettings?.subtitleTracks[index].blur;
-                return entry.blur !== oldBlur;
-            }) !== undefined;
-        const shouldForceRerender = blurSettingsChanged;
-
-        if (styles !== this.subtitleStyles || shouldForceRerender) {
+        if (
+            this.subtitleStyles === undefined ||
+            !this._arrayEquals(styles, this.subtitleStyles, (a, b) => a === b) ||
+            this.subtitleClasses === undefined ||
+            !this._arrayEquals(classes, this.subtitleClasses, (a, b) => a === b)
+        ) {
             this.subtitleStyles = styles;
+            this.subtitleClasses = classes;
             this.cacheHtml();
         }
 
         this.subtitleSettings = newSubtitleSettings;
+    }
+
+    private _computeStyles(settings: SubtitleSettings) {
+        return allTextSubtitleSettings(settings).map((s) => computeStyleString(s));
+    }
+
+    private _computeClasses(settings: SubtitleSettings) {
+        return allTextSubtitleSettings(settings).map((s) => this._computeClassesForTrack(s));
+    }
+
+    private _computeClassesForTrack(settings: TextSubtitleSettings) {
+        return settings.subtitleBlur ? 'asbplayer-subtitles-blurred' : '';
     }
 
     set subtitleAlignment(value: SubtitleAlignment) {
@@ -159,14 +176,6 @@ export default class SubtitleController {
 
     get subtitleAlignment() {
         return this._subtitleAlignment;
-    }
-
-    setBlurredSubtitleTrack(trackIndex: number, value: boolean) {
-        this.blurredSubtitleTracks[trackIndex] = value;
-    }
-
-    getBlurredSubtitleTrack(trackIndex: number) {
-        return this.blurredSubtitleTracks[trackIndex] || false;
     }
 
     private _applyElementOverlayParams(overlay: ElementOverlay, params: ElementOverlayParams) {
@@ -362,11 +371,8 @@ export default class SubtitleController {
         return subtitles.map((subtitle) => {
             return {
                 html: () => {
-                    const blurClass = this.getBlurredSubtitleTrack(subtitle.track)
-                        ? 'asbplayer-subtitles-blurred'
-                        : undefined;
-
                     if (subtitle.textImage) {
+                        const className = this.subtitleClasses?.[subtitle.track] ?? '';
                         const imageScale =
                             ((this.subtitleSettings?.imageBasedSubtitleScaleFactor ?? 1) *
                                 this.video.getBoundingClientRect().width) /
@@ -374,7 +380,7 @@ export default class SubtitleController {
                         const width = imageScale * subtitle.textImage.image.width;
 
                         return `
-                            <div style="max-width:${width}px;" ${blurClass ? `class="${blurClass}"` : ''}">
+                            <div style="max-width:${width}px;" class="${className}"}">
                                 <img
                                     style="width:100%;"
                                     alt="subtitle"
@@ -383,7 +389,7 @@ export default class SubtitleController {
                             </div>
                         `;
                     } else {
-                        return this._buildTextHtml(subtitle.text, blurClass);
+                        return this._buildTextHtml(subtitle.text, subtitle.track);
                     }
                 },
                 key: String(subtitle.index),
@@ -391,8 +397,8 @@ export default class SubtitleController {
         });
     }
 
-    private _buildTextHtml(text: string, className?: string) {
-        return `<span ${className ? `class="${className}"` : ''}" style="${this._subtitleStyles()}">${text}</span>`;
+    private _buildTextHtml(text: string, track?: number) {
+        return `<span class="${this._subtitleClasses(track)}" style="${this._subtitleStyles(track)}">${text}</span>`;
     }
 
     unbind() {
@@ -570,17 +576,20 @@ export default class SubtitleController {
         this.subtitlesElementOverlay.appendHtml(html);
     }
 
-    private _subtitleStyles() {
-        if (this.subtitleStyles) {
-            return this.subtitleStyles;
+    private _subtitleClasses(track?: number) {
+        if (track === undefined || this.subtitleClasses === undefined) {
+            return '';
         }
 
-        if (this.subtitleSettings) {
-            this.subtitleStyles = computeStyleString(this.subtitleSettings);
-            return this.subtitleStyles;
+        return track < this.subtitleClasses.length ? this.subtitleClasses[track] : this.subtitleClasses[0];
+    }
+
+    private _subtitleStyles(track?: number) {
+        if (track === undefined || this.subtitleStyles === undefined) {
+            return '';
         }
 
-        return '';
+        return track < this.subtitleStyles.length ? this.subtitleStyles[track] : this.subtitleStyles[0];
     }
 
     private _arrayEquals<T>(a: T[], b: T[], equals: (lhs: T, rhs: T) => boolean): boolean {
