@@ -819,7 +819,7 @@ export default function VideoPlayer({
             (event, track) => {
                 event.preventDefault();
                 const originalValue = textSubtitleSettingsForTrack(subtitleSettings, track).subtitleBlur!;
-                const change = changeForTextSubtitleSetting({ subtitleBlur: !originalValue }, track);
+                const change = changeForTextSubtitleSetting({ subtitleBlur: !originalValue }, subtitleSettings, track);
                 setSubtitleSettings({ ...subtitleSettings, ...change });
             },
             () => false

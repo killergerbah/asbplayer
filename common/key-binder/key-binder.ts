@@ -111,7 +111,7 @@ export interface KeyBinder {
         capture?: boolean
     ): () => void;
     bindToggleBlurTrack(
-        onToggleBlurTrack: (event: KeyboardEvent, extra: any) => void,
+        onToggleBlurTrack: (event: KeyboardEvent, track: number) => void,
         disabledGetter: () => boolean,
         capture?: boolean
     ): () => void;
@@ -655,7 +655,7 @@ export class DefaultKeyBinder implements KeyBinder {
     }
 
     bindToggleBlurTrack(
-        onToggleBlurTrack: (event: KeyboardEvent, extra: any) => void,
+        onToggleBlurTrack: (event: KeyboardEvent, track: number) => void,
         disabledGetter: () => boolean,
         capture = false
     ) {

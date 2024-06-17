@@ -232,7 +232,7 @@ export default class AppKeyBinder implements KeyBinder {
     }
 
     bindToggleBlurTrack(
-        onToggleBlurTrack: (event: KeyboardEvent, extra: any) => void,
+        onToggleBlurTrack: (event: KeyboardEvent, track: number) => void,
         disabledGetter: () => boolean,
         useCapture?: boolean | undefined
     ): () => void {
