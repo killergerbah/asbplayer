@@ -19,20 +19,20 @@
         "stopRecording": "Finalizar Grabación",
         "importSettings": "Importar Ajustes",
         "exportSettings": "Exportar Ajustes",
-        "hideOverlay": "Hide Overlay",
-        "decreaseOffsetButton": "Decrease offset to so that next subtitle is at current position. Hold to decrease by 100ms.",
-        "increaseOffsetButton": "Increase offset to so that previous subtitle is at current position. Hold to increase by 100ms."
+        "hideOverlay": "Ocultar Overlay",
+        "decreaseOffsetButton": "Reducir el offset para que el siguiente subtítulo esté en la posición actual. Mantenga pulsado para disminuir en 100ms.",
+        "increaseOffsetButton": "Aumentar el offset para que el siguiente subtítulo esté en la posición actual. Mantenga pulsado para disminuir en 100ms."
     },
     "postMineAction": {
         "none": "Ninguna",
         "showAnkiDialog": "Mostrar ventana de Anki",
         "updateLastCard": "Actualizar última tarjeta",
-        "exportCard": "Export card"
+        "exportCard": "Exportar tarjeta"
     },
     "postMinePlayback": {
-        "remember": "Keep previous state (as before mining)",
-        "play": "Always play",
-        "pause": "Always pause"
+        "remember": "Mantener estado anterior (como antes de minar)",
+        "play": "Siempre reproducir",
+        "pause": "Siempre pausar"
     },
     "ankiDialog": {
         "applySelection": "Aplicar Selección",
@@ -80,7 +80,7 @@
         "ankiExport": "Minar subtítulo actual y abrir ventana de Anki",
         "copySubtitle": "Minar subtítulo actual",
         "decreaseOffset": "Ajustar offset de los subtítulos en -100 ms",
-        "decreasePlaybackRate": "Decrease playback rate",
+        "decreasePlaybackRate": "Reducir velocidad de reproducción",
         "extensionAnkiDialog": "Minar subtítulo actual y abrir ventana de Anki. Cuando el video es sincronizado sin un archivo de subtítulos, comienza/finaliza la grabación de audio.",
         "extensionCopySubtitle": "Minar subtítulo actual. Cuando el video es sincronizado sin un archivo de subtítulos, comienza/finaliza la grabación de audio.",
         "extensionSelectSubtitleTrack": "Seleccionar pista de subtítulos a cargar",
@@ -88,7 +88,7 @@
         "extensionToggleRecording": "Comenzar/Finalizar manualmente la grabación de audio, incluso cuando hay una pista de subtítulos cargada",
         "extensionUpdateLastCard": "Actualizar la última tarjeta de Anki creada con medios capturados por asbplayer. Cuando el video es sincronizado sin una pista de subtítulos, comienza/finaliza la grabación de audio.",
         "increaseOffset": "Ajustar offset de los subtítulos en +100ms",
-        "increasePlaybackRate": "Increase playback rate",
+        "increasePlaybackRate": "Aumentar velocidad de reproducción",
         "resetOffset": "Reestablecer offset de los subtítulos",
         "seekBackward": "Retroceder 10 segundos",
         "seekBackwardOrForward": "Avanzar/Retroceder 10 segundos",
@@ -103,7 +103,7 @@
         "toggleAsbplayerSubtitleTrack2": "Activar/Desactivar pista de subtítulos 2 en asbplayer",
         "toggleAsbplayerSubtitleTrack3": "Activar/Desactivar pista de subtítulos 3 en asbplayer",
         "toggleAsbplayerSubtitleTracks": "Activar/Desactivar pista de subtítulos en asbplayer",
-        "toggleAsbplayerBlurTrack": "Toggle subtitle track {{trackNumber}} blur in asbplayer",
+        "toggleAsbplayerBlurTrack": "Activar/Desactivar desenfoque de la pista de subtítulos {{trackNumber}} en asbplayer",
         "toggleAutoPause": "Activar/Desactivar pausado automático",
         "toggleCondensedPlayback": "Activar/Desactivar reproducción condensada",
         "toggleFastForwardPlayback": "Activar/Desactivar reproducción acelerada",
@@ -115,7 +115,7 @@
         "toggleVideoSubtitleTracks": "Activar/Desactivar pista de subtítulos en el video",
         "updateLastCard": "Actualizar la última tarjeta de Anki creada con captura de pantalla, audio, etc. capturado por asbplayer",
         "toggleSidePanel": "Abrir/Cerrar Panel Lateral",
-        "toggleRepeat": "Toggle repeat mode"
+        "toggleRepeat": "Activar/Desactivar modo de repetición"
     },
     "controls": {
         "autoPauseMode": "Pausado Automático",
@@ -177,7 +177,7 @@
             "syncing": "Sincronización",
             "takeScreenshot": "Tomar captura de pantalla",
             "updateAvailable": "Actualización Disponible",
-            "enableOverlay": "Enable controls overlay"
+            "enableOverlay": "Habilitar overlay"
         },
         "videoDataSync": {
             "emptySubtitleTrack": "En Blanco",
@@ -199,9 +199,9 @@
         "welcomeBody": "Revisa el <0>léeme</0> para comenzar"
     },
     "update": {
-        "heading": "asbplayer just updated to version {{version}}.",
-        "body": "Check out the release notes <0>here</0>.",
-        "alert": "asbplayer updated to version {{version}}. Check out the <0>release notes</0>."
+        "heading": "asbplayer acaba de actualizarse a la versión {{version}}.",
+        "body": "Revisa las notas de versión <0>aquí</0>.",
+        "alert": "asbplayer se actualizó a la versión {{version}}. Revisa las notas <0>aquí</0>."
     },
     "info": {
         "copiedSubtitle": "Copiado: {{text}}",
@@ -216,13 +216,13 @@
         "playbackRate": "Velocidad de Reproducción: {{rate}}",
         "savedTimestamp": "Guardado: {{timestamp}}",
         "updatedCard": "Tarjeta actualizada: {{result}}",
-        "enabledRepeatPlayback": "Repeat playback: On",
-        "disabledRepeatPlayback": "Repeat playback: Off",
-        "connectionSucceeded": "Connection succeeded",
-        "connectionFailed": "Connection failed",
+        "enabledRepeatPlayback": "Modo de repetición: Activado",
+        "disabledRepeatPlayback": "Modo de repetición: Desactivado",
+        "connectionSucceeded": "Conexión exitosa",
+        "connectionFailed": "Error en la conexión",
         "error": "Error: {{message}}",
         "errorNoMessage": "Error",
-        "toggleSubtitlesShortcut": "Press \"{{keys}}\" to toggle subtitle display"
+        "toggleSubtitlesShortcut": "Pulsa \"{{keys}}\" para activar/desactivar la visualización de subtítulos"
     },
     "landing": {
         "cta": "Arrastra archivos de medios y subtítulos o <1>explora</1>.",
@@ -239,7 +239,7 @@
         "grantedPrompt": "Grabación de audio habilitada para esta pestaña. Puedes empezar a minar."
     },
     "audioCaptureFailed": {
-        "message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer."
+        "message": "El audio protegido por DRM no puede ser capturado en la versión para Firefox de asbplayer."
     },
     "settings": {
         "activeProfile": "Profile",
@@ -250,7 +250,7 @@
         "profileLimitReached": "Profile limit reached",
         "addCustomCss": "Agregar CSS Personalizado",
         "addCustomField": "Agregar Campo Personalizado",
-        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current/previous subtitle'",
+        "alwaysPlayOnSubtitleRepeat": "Siempre reproducir luego de invocar \"Ir al inicio del subtítulo actual/anterior\"",
         "anki": "Anki",
         "ankiConnectUrl": "URL de Anki Connect",
         "audioField": "Campo de Audio",
@@ -261,7 +261,7 @@
         "autoPauseAtSubtitleStart": "Al Inicio del Subtítulo",
         "autoPausePreference": "Preferencia para el pausado automático",
         "autoPausePreferenceHelperText": "No activa el pausado automático. Establece cuando pausar si el pausado automático está activado.",
-        "speedChangeStep": "Playback speed adjust step (when using respective shortcuts)",
+        "speedChangeStep": "Magnitud del ajuste de velocidad de reproducción (al usar los atajos correspondientes)",
         "fastForwardModePlaybackRate": "Velocidad de la Reproducción Acelerada",
         "copyOnMine": "Copiar subtítulos minados al portapapeles",
         "corsHelperText": "Asegúrate de que {{origin}} esté en webCorsOriginList en tu configuración de AnkiConnect como en este <0>video</0>.",
@@ -311,13 +311,13 @@
         "subtitleAlignment": "Alineación de Subtítulos",
         "subtitleAlignmentBottom": "Inferior",
         "subtitleAlignmentTop": "Superior",
-        "subtitleBlur": "Subtitle blur",
+        "subtitleBlur": "Desenfoque de subtítulos",
         "subtitleTrack": "Subtitle Track",
         "allSubtitleTracks": "All",
         "subtitleTrackChoice": "Track {{trackNumber}}",
         "subtitleTrackSelectorHelper": "Changes settings for ALL tracks. Settings that already have track-specific values are hidden.",
-        "subtitleBlurEntryLabel": "Track {{trackNumber}}",
-        "subtitleBlurDescription": "Hides selected subtitle tracks by blurring them. Can be un-blurred on mouse hover.",
+        "subtitleBlurEntryLabel": "Pista {{trackNumber}}",
+        "subtitleBlurDescription": "Oculta las pistas de subtítulos seleccionadas desenfocándolas. Pueden enfocarse nuevamente al pasar el ratón por encima.",
         "tabName": "Nombre de la pestaña",
         "subtitleRegexFilter": "Filtro regex para subtítulos",
         "subtitleRegexFilterTextReplacement": "Texto de reemplazo para el filtro regex",

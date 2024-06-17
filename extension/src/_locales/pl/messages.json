@@ -19,5 +19,11 @@
     },
     "shortcutUpdateLastCardDescription": {
         "message": "Zaktualizuj ostatnio utworzoną kartę Anki o media przechwycone przez asbplayer. Jeśli wideo jest zsynchronizowane bez pliku z napisami"
+    },
+    "contextMenuMineSubtitle": {
+        "message": "Wykop napisy"
+    },
+    "contextMenuLoadSubtitles": {
+        "message": "Załaduj napisy"
     }
 }

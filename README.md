@@ -62,12 +62,13 @@ Thank you to all those who have contributed to asbplayer:
 [@bpwhelan](https://github.com/bpwhelan),
 [@pooky-programs](https://github.com/pooky-programs),
 [@m-edlund](https://github.com/m-edlund)
+[@nekorushi](https://github.com/nekorushi)
 
 Thank you to all those who have translated asbplayer:
 
 **Mana Tsutsumi** (Japanese, initial translation),
 **Kai Böse** (German),
-**Triline** (Polish),
+**Triline**, **nekorushi** (Polish),
 **NeverWinterSwor** (Simplified Chinese),
 **Yagxter** (Brazilian Portuguese),
 **Leo Gonzalez** (Spanish),
