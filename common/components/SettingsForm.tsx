@@ -274,7 +274,7 @@ function SelectableSetting({
                     }}
                 >
                     <List>
-                        {disabledDirection !== Direction.up && (
+                        {disabledDirection !== Direction.up && onOrderChange !== undefined && (
                             <ListItem button onClick={() => handleOrderChange(Direction.up)}>
                                 <ArrowUpwardIcon fontSize="small" />
                             </ListItem>
@@ -289,7 +289,7 @@ function SelectableSetting({
                                 </ListItem>
                             </Tooltip>
                         )}
-                        {disabledDirection !== Direction.down && (
+                        {disabledDirection !== Direction.down && onOrderChange !== undefined && (
                             <ListItem button onClick={() => handleOrderChange(Direction.down)}>
                                 <ArrowDownwardIcon fontSize="small" />
                             </ListItem>
@@ -1321,42 +1321,54 @@ export default function SettingsForm({
                                         {...rest}
                                     />
                                 )}
-                                {!model.custom && model.key === 'track1' && (
-                                    <SelectableSetting
-                                        label={t('settings.track1Field')}
-                                        value={track1Field}
-                                        selections={fieldNames}
-                                        onChange={(event) => handleSettingChanged('track1Field', event.target.value)}
-                                        onSelectionChange={(event) =>
-                                            handleSettingChanged('track1Field', event.target.value as string)
-                                        }
-                                        {...rest}
-                                    />
-                                )}
-                                {!model.custom && model.key === 'track2' && (
-                                    <SelectableSetting
-                                        label={t('settings.track2Field')}
-                                        value={track2Field}
-                                        selections={fieldNames}
-                                        onChange={(event) => handleSettingChanged('track2Field', event.target.value)}
-                                        onSelectionChange={(event) =>
-                                            handleSettingChanged('track2Field', event.target.value as string)
-                                        }
-                                        {...rest}
-                                    />
-                                )}
-                                {!model.custom && model.key === 'track3' && (
-                                    <SelectableSetting
-                                        label={t('settings.track3Field')}
-                                        value={track3Field}
-                                        selections={fieldNames}
-                                        onChange={(event) => handleSettingChanged('track3Field', event.target.value)}
-                                        onSelectionChange={(event) =>
-                                            handleSettingChanged('track3Field', event.target.value as string)
-                                        }
-                                        {...rest}
-                                    />
-                                )}
+                                {!model.custom &&
+                                    model.key === 'track1' &&
+                                    (!extensionInstalled || extensionSupportsOrderableAnkiFields) && (
+                                        <SelectableSetting
+                                            label={t('settings.track1Field')}
+                                            value={track1Field}
+                                            selections={fieldNames}
+                                            onChange={(event) =>
+                                                handleSettingChanged('track1Field', event.target.value)
+                                            }
+                                            onSelectionChange={(event) =>
+                                                handleSettingChanged('track1Field', event.target.value as string)
+                                            }
+                                            {...rest}
+                                        />
+                                    )}
+                                {!model.custom &&
+                                    model.key === 'track2' &&
+                                    (!extensionInstalled || extensionSupportsOrderableAnkiFields) && (
+                                        <SelectableSetting
+                                            label={t('settings.track2Field')}
+                                            value={track2Field}
+                                            selections={fieldNames}
+                                            onChange={(event) =>
+                                                handleSettingChanged('track2Field', event.target.value)
+                                            }
+                                            onSelectionChange={(event) =>
+                                                handleSettingChanged('track2Field', event.target.value as string)
+                                            }
+                                            {...rest}
+                                        />
+                                    )}
+                                {!model.custom &&
+                                    model.key === 'track3' &&
+                                    (!extensionInstalled || extensionSupportsOrderableAnkiFields) && (
+                                        <SelectableSetting
+                                            label={t('settings.track3Field')}
+                                            value={track3Field}
+                                            selections={fieldNames}
+                                            onChange={(event) =>
+                                                handleSettingChanged('track3Field', event.target.value)
+                                            }
+                                            onSelectionChange={(event) =>
+                                                handleSettingChanged('track3Field', event.target.value as string)
+                                            }
+                                            {...rest}
+                                        />
+                                    )}
                                 {model.custom && (
                                     <SelectableSetting
                                         label={`${model.key}`}
