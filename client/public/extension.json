@@ -7,42 +7,42 @@
         {
             "code": "en",
             "url": "/locales/en.json",
-            "version": 4
+            "version": 5
         },
         {
             "code": "es",
             "url": "/locales/es.json",
-            "version": 3
+            "version": 4
         },
         {
             "code": "ja",
             "url": "/locales/ja.json",
-            "version": 6
+            "version": 7
         },
         {
             "code": "de",
             "url": "/locales/de.json",
-            "version": 4
+            "version": 5
         },
         {
             "code": "pl",
             "url": "/locales/pl.json",
-            "version": 4
+            "version": 5
         },
         {
             "code": "pt_BR",
             "url": "/locales/pt_BR.json",
-            "version": 3
+            "version": 4
         },
         {
             "code": "zh_CN",
             "url": "/locales/zh_CN.json",
-            "version": 3
+            "version": 4
         },
         {
             "code": "ru",
             "url": "/locales/ru.json",
-            "version": 2
+            "version": 3
         }
     ]
 }
