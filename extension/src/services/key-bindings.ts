@@ -193,6 +193,7 @@ export default class KeyBindings {
                     message: {
                         command: 'blur-subtitles',
                         track: track,
+                        trackCount: Math.max(...context.subtitleController.subtitles.map((s) => s.track)) + 1,
                     },
                     src: context.video.src,
                 };

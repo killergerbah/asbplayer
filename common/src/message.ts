@@ -278,6 +278,7 @@ export interface ToggleSubtitlesMessage extends Message {
 export interface BlurSubtitlesMessage extends Message {
     readonly command: 'blur-subtitles';
     readonly track: number;
+    readonly trackCount: number;
 }
 
 export interface ToggleSubtitlesInListFromVideoMessage extends Message {

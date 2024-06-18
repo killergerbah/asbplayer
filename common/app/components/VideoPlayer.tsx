@@ -252,6 +252,7 @@ interface Props {
         cardTextFieldValues: CardTextFieldValues,
         timestamp: number
     ) => void;
+    onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     onAnkiDialogRewind: () => void;
     onError: (error: string) => void;
     onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
@@ -284,6 +285,7 @@ export default function VideoPlayer({
     onError,
     onPlayModeChangedViaBind,
     onAnkiDialogRewind,
+    onSettingsChanged,
 }: Props) {
     const classes = useStyles();
     const poppingInRef = useRef<boolean>();
@@ -322,11 +324,9 @@ export default function VideoPlayer({
     const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
     const [subtitlePlayerHidden, setSubtitlePlayerHidden] = useState<boolean>(false);
     const [appBarHidden, setAppBarHidden] = useState<boolean>(playbackPreferences.theaterMode);
-    const [subtitleAlignment, setSubtitleAlignment] = useState<SubtitleAlignment>(
-        playbackPreferences.subtitleAlignment
-    );
+    const [subtitleAlignment, setSubtitleAlignment] = useState<SubtitleAlignment>(subtitleSettings.subtitleAlignment);
     const [subtitlePositionOffset, setSubtitlePositionOffset] = useState<number>(
-        playbackPreferences.subtitlePositionOffset
+        subtitleSettings.subtitlePositionOffset
     );
     const showSubtitlesRef = useRef<IndexedSubtitleModel[]>([]);
     showSubtitlesRef.current = showSubtitles;
@@ -339,6 +339,7 @@ export default function VideoPlayer({
     const [alertMessage, setAlertMessage] = useState<string>('');
     const [alertSeverity, setAlertSeverity] = useState<Color>('info');
     const [lastMinedRecord, setLastMinedRecord] = useState<MinedRecord>();
+    const [trackCount, setTrackCount] = useState<number>(0);
     const [, forceRender] = useState<any>();
 
     useEffect(() => {
@@ -348,9 +349,9 @@ export default function VideoPlayer({
     }, [settings]);
 
     useEffect(() => {
-        setSubtitleAlignment(playbackPreferences.subtitleAlignment);
-        setSubtitlePositionOffset(playbackPreferences.subtitlePositionOffset);
-    }, [playbackPreferences]);
+        setSubtitleAlignment(subtitleSettings.subtitleAlignment);
+        setSubtitlePositionOffset(subtitleSettings.subtitlePositionOffset);
+    }, [subtitleSettings]);
 
     const autoPauseContext = useMemo(() => {
         const context = new AutoPauseContext();
@@ -525,6 +526,7 @@ export default function VideoPlayer({
 
         playerChannel.onSubtitles((subtitles) => {
             setSubtitles(subtitles.map((s, i) => ({ ...s, index: i })));
+            setTrackCount(Math.max(...subtitles.map((s) => s.track)) + 1);
 
             if (subtitles && subtitles.length > 0) {
                 const s = subtitles[0];
@@ -816,15 +818,27 @@ export default function VideoPlayer({
 
     useEffect(() => {
         return keyBinder.bindToggleBlurTrack(
-            (event, track) => {
+            (event, targetTrack) => {
                 event.preventDefault();
-                const originalValue = textSubtitleSettingsForTrack(subtitleSettings, track).subtitleBlur!;
-                const change = changeForTextSubtitleSetting({ subtitleBlur: !originalValue }, subtitleSettings, track);
-                setSubtitleSettings({ ...subtitleSettings, ...change });
+                let newSubtitleSettings = { ...subtitleSettings };
+
+                for (let currentTrack = 0; currentTrack < trackCount; ++currentTrack) {
+                    const originalValue = textSubtitleSettingsForTrack(subtitleSettings, currentTrack).subtitleBlur!;
+                    const targetValue = currentTrack === targetTrack ? !originalValue : originalValue;
+                    const change = changeForTextSubtitleSetting(
+                        { subtitleBlur: targetValue },
+                        newSubtitleSettings,
+                        currentTrack
+                    );
+                    newSubtitleSettings = { ...newSubtitleSettings, ...change };
+                }
+
+                onSettingsChanged(newSubtitleSettings);
+                setSubtitleSettings(newSubtitleSettings);
             },
             () => false
         );
-    }, [keyBinder, subtitleSettings]);
+    }, [keyBinder, subtitleSettings, trackCount, onSettingsChanged]);
 
     useEffect(() => {
         return keyBinder.bindOffsetToSubtitle(
@@ -1187,9 +1201,9 @@ export default function VideoPlayer({
     const handleSubtitleAlignment = useCallback(
         (alignment: SubtitleAlignment) => {
             setSubtitleAlignment(alignment);
-            playbackPreferences.subtitleAlignment = alignment;
+            onSettingsChanged({ subtitleAlignment: alignment });
         },
-        [playbackPreferences]
+        [onSettingsChanged]
     );
 
     useEffect(() => {
@@ -1215,14 +1229,14 @@ export default function VideoPlayer({
 
             setSubtitlePositionOffset((offset) => {
                 const newOffset = shouldIncreaseOffset ? --offset : ++offset;
-                playbackPreferences.subtitlePositionOffset = newOffset;
+                onSettingsChanged({ subtitlePositionOffset: newOffset });
                 return newOffset;
             });
         };
 
         window.addEventListener('wheel', onWheel);
         return () => window.removeEventListener('wheel', onWheel);
-    }, [subtitleAlignment, displaySubtitles, playbackPreferences]);
+    }, [subtitleAlignment, displaySubtitles, playbackPreferences, onSettingsChanged]);
 
     const handleClick = useCallback(() => {
         if (playing()) {
@@ -1249,7 +1263,7 @@ export default function VideoPlayer({
     }, [showCursor]);
 
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
-    const trackStyles = useSubtitleStyles(subtitleSettings);
+    const trackStyles = useSubtitleStyles(subtitleSettings, trackCount ?? 1);
     const { getSubtitleDomCache } = useSubtitleDomCache(
         subtitles,
         useCallback(

@@ -6,8 +6,6 @@ const volumeKey = 'volume';
 const theaterModeKey = 'theaterMode';
 const offsetKey = 'offset';
 const displaySubtitlesKey = 'displaySubtitles';
-const subtitleAlignmentKey = 'subtitleAlignment';
-const subtitlePositionOffetKey = 'subtitlePositionOffset';
 const defaultVolume = 100;
 
 interface PlaybackPrefSettings {
@@ -72,52 +70,6 @@ export default class PlaybackPreferences {
             this._extension.setSettings({ lastSubtitleOffset: offset });
         } else {
             this._storage.set(offsetKey, String(offset));
-        }
-    }
-
-    get subtitleAlignment() {
-        if (this._extension.supportsAppIntegration) {
-            return this._settings.subtitleAlignment;
-        }
-
-        const val = this._storage.get(subtitleAlignmentKey);
-
-        if (val === null) {
-            return 'bottom';
-        }
-
-        return val as SubtitleAlignment;
-    }
-
-    // FIXME: Leaky abstraction - subtitlAlignmentKey and subtitlePositionOffsetKey must have the same values
-    // as the keys in the settings.ts for these setters to update the shared settings as well
-    set subtitleAlignment(alignment: SubtitleAlignment) {
-        if (this._extension.supportsAppIntegration) {
-            this._extension.setSettings({ subtitleAlignment: alignment });
-        } else {
-            this._storage.set(subtitleAlignmentKey, String(alignment));
-        }
-    }
-
-    get subtitlePositionOffset() {
-        if (this._extension.supportsAppIntegration) {
-            return this._settings.subtitlePositionOffset;
-        }
-
-        const val = this._storage.get(subtitlePositionOffetKey);
-
-        if (val === null) {
-            return 100;
-        }
-
-        return Number(val);
-    }
-
-    set subtitlePositionOffset(offset: number) {
-        if (this._extension.supportsAppIntegration) {
-            this._extension.setSettings({ subtitlePositionOffset: offset });
-        } else {
-            this._storage.set(subtitlePositionOffetKey, String(offset));
         }
     }
 

@@ -8,10 +8,10 @@ interface TrackStyles {
     classes: string;
 }
 
-export const useSubtitleStyles = (settings: SubtitleSettings) => {
+export const useSubtitleStyles = (settings: SubtitleSettings, trackCount: number) => {
     return useMemo(() => {
         const tracks: TrackStyles[] = [];
-        for (let track = 0; track <= settings.subtitleTracksV2.length; ++track) {
+        for (let track = 0; track < trackCount; ++track) {
             const s = textSubtitleSettingsForTrack(settings, track) as TextSubtitleSettings;
             tracks.push({
                 styles: computeStyles(s),
@@ -20,5 +20,5 @@ export const useSubtitleStyles = (settings: SubtitleSettings) => {
             });
         }
         return tracks;
-    }, [settings]);
+    }, [settings, trackCount]);
 };

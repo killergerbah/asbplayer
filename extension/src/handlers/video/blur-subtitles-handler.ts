@@ -34,13 +34,16 @@ export default class BlurSubtitlesHandler {
     async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
         const message = command.message as BlurSubtitlesMessage;
         const subtitleSettings: SubtitleSettings = await this.settings.get(subtitleSettingsKeys);
-        const oldValue = textSubtitleSettingsForTrack(subtitleSettings, message.track);
-        const change = changeForTextSubtitleSetting(
-            { subtitleBlur: !oldValue.subtitleBlur },
-            subtitleSettings,
-            message.track
-        );
-        await this.settings.set(change);
+        let newSettings = { ...subtitleSettings };
+
+        for (let currentTrack = 0; currentTrack < message.trackCount; ++currentTrack) {
+            const originalValue = textSubtitleSettingsForTrack(subtitleSettings, currentTrack).subtitleBlur!;
+            const targetValue = currentTrack === message.track ? !originalValue : originalValue;
+            const change = changeForTextSubtitleSetting({ subtitleBlur: targetValue }, newSettings, currentTrack);
+            newSettings = { ...newSettings, ...change };
+        }
+
+        await this.settings.set(newSettings);
 
         this.tabRegistry.publishCommandToVideoElements((videoElement) => {
             const settingsUpdatedCommand: ExtensionToVideoCommand<SettingsUpdatedMessage> = {

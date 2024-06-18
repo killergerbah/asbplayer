@@ -152,6 +152,7 @@ interface RenderVideoProps {
         cardTextFieldValues: CardTextFieldValues,
         timestamp: number
     ) => void;
+    onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     onAnkiDialogRewind: () => void;
     onError: (error: string) => void;
     onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
@@ -1149,6 +1150,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                             miningContext={miningContext}
                             ankiDialogOpen={ankiDialogOpen}
                             seekRequest={videoPlayerSeekRequest}
+                            onSettingsChanged={onSettingsChanged}
                             onAnkiDialogRequest={handleAnkiDialogRequestFromVideoPlayer}
                             onAnkiDialogRewind={handleAnkiDialogRewindFromVideoPlayer}
                             onError={handleError}
