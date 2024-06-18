@@ -29,6 +29,11 @@
         "updateLastCard": "Update last card",
         "exportCard": "Export card"
     },
+    "postMinePlayback": {
+        "remember": "Keep previous state (as before mining)",
+        "play": "Always play",
+        "pause": "Always pause"
+    },
     "ankiDialog": {
         "applySelection": "Apply Selection",
         "audio": "Audio",
@@ -48,6 +53,9 @@
         "searchInAnki": "Search in Anki",
         "sentence": "Sentence",
         "source": "Source",
+        "track1": "Subtitle Track 1",
+        "track2": "Subtitle Track 2",
+        "track3": "Subtitle Track 3",
         "tagList": "Comma-separated list of strings",
         "title": "Anki Export",
         "updateLastCard": "Update Last Card",
@@ -72,7 +80,7 @@
         "ankiExport": "Mine current subtitle and open Anki dialog",
         "copySubtitle": "Mine current subtitle",
         "decreaseOffset": "Adjust subtitle offset by -100ms",
-        "decreasePlaybackRate": "Adjust playback rate by -0.1",
+        "decreasePlaybackRate": "Decrease playback rate",
         "extensionAnkiDialog": "Mine current subtitle and open Anki export dialog. When video is synced without a subtitle file, starts/stops recording audio.",
         "extensionCopySubtitle": "Mine current subtitle. When video is synced without a subtitle file, starts/stops recording audio.",
         "extensionSelectSubtitleTrack": "Select subtitle tracks to load.",
@@ -80,7 +88,7 @@
         "extensionToggleRecording": "Manually start/stop audio recording, even when a subtitle file is loaded.",
         "extensionUpdateLastCard": "Update last-created Anki card with asbplayer-captured media. When video is synced without a subtitle file, starts/stops recording audio.",
         "increaseOffset": "Adjust subtitle offset by +100ms",
-        "increasePlaybackRate": "Adjust playback rate by +0.1",
+        "increasePlaybackRate": "Increase playback rate",
         "resetOffset": "Reset subtitle offset",
         "seekBackward": "Seek backward 10 seconds",
         "seekBackwardOrForward": "Seek backward/forward 10 seconds",
@@ -95,6 +103,7 @@
         "toggleAsbplayerSubtitleTrack2": "Toggle subtitle track 2 in asbplayer",
         "toggleAsbplayerSubtitleTrack3": "Toggle subtitle track 3 in asbplayer",
         "toggleAsbplayerSubtitleTracks": "Toggle subtitle track in asbplayer",
+        "toggleAsbplayerBlurTrack": "Toggle subtitle track {{trackNumber}} blur in asbplayer",
         "toggleAutoPause": "Toggle auto-pause",
         "toggleCondensedPlayback": "Toggle condensed playback",
         "toggleFastForwardPlayback": "Toggle fast forward playback",
@@ -156,7 +165,6 @@
             "cropScreenshot": "Crop screenshot",
             "displaySubtitles": "Display subtitles",
             "dragAndDrop": "Allow subtitle file drag-and-drop",
-            "subtitleListPreference": "Subtitle list preference",
             "openSubtitleList": "Open subtitle list when loading subtitles",
             "mining": "Mining",
             "miningKeyboardShortcuts": "Mining Keyboard Shortcuts",
@@ -184,9 +192,6 @@
             "selectVideo": "Select a video element to sync it with asbplayer.",
             "syncBeforeMine": "A video element must be synced with asbplayer before it can be mined. Select a video element to sync it with asbplayer.",
             "videoElement": "Video Element"
-        },
-        "backgroundAudioRecordingPage": {
-            "description": "This page is used by asbplayer to capture audio."
         }
     },
     "ftue": {
@@ -211,7 +216,6 @@
         "playbackRate": "Playback Rate: {{rate}}",
         "savedTimestamp": "Saved: {{timestamp}}",
         "updatedCard": "Updated card: {{result}}",
-        "activeTabPermissionObtained": "Audio recording is now enabled for this tab.",
         "enabledRepeatPlayback": "Repeat playback: On",
         "disabledRepeatPlayback": "Repeat playback: Off",
         "connectionSucceeded": "Connection succeeded",
@@ -235,10 +239,15 @@
         "grantedPrompt": "Audio recording has been enabled for this tab. You can now begin mining."
     },
     "audioCaptureFailed": {
-        "title": "Audio capture failed",
         "message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer."
     },
     "settings": {
+        "activeProfile": "Profile",
+        "defaultProfile": "Default",
+        "newProfile": "Add New Profile...",
+        "profileName": "Profile Name",
+        "enterProfileName": "Enter profile name",
+        "profileLimitReached": "Profile limit reached",
         "addCustomCss": "Add Custom CSS",
         "addCustomField": "Add Custom Field",
         "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current/previous subtitle'",
@@ -252,6 +261,7 @@
         "autoPauseAtSubtitleStart": "At Subtitle Start",
         "autoPausePreference": "Auto-pause Preference",
         "autoPausePreferenceHelperText": "Does not enable auto-pause. Sets the preference for when to pause when auto-pause is enabled.",
+        "speedChangeStep": "Playback speed adjust step (when using respective shortcuts)",
         "fastForwardModePlaybackRate": "Fast-forward Mode Playback Rate",
         "copyOnMine": "Copy mined subtitles to clipboard",
         "corsHelperText": "Ensure that {{origin}} is in the webCorsOriginList in your AnkiConnect settings as in this <0>video</0>.",
@@ -263,6 +273,8 @@
         "imageBasedSubtitleScaleFactor": "Image-based Subtitle Scale Factor",
         "imageField": "Image Field",
         "keyboardShortcuts": "Keyboard Shortcuts",
+        "hideInCardCreator": "Hide in card creator",
+        "showInCardCreator": "Show in card creator",
         "language": "Language",
         "maxImageHeight": "Max Image Height",
         "maxImageWidth": "Max Image Width",
@@ -276,11 +288,15 @@
         "preCacheSubtitleDomHelperText": "If enabled, asbplayer will pre-render subtitle text elements in an offscreen element, and re-use those elements for subtitle display. This allows external code to persistently modify subtitle text before it is displayed.",
         "recordingBind": "Recording",
         "rememberSubtitleOffset": "Remember subtitle offset",
-        "sentenceField": "Sentence Field",
+        "sentenceField": "Sentence Field (all tracks)",
         "streamingVideo": "Streaming Video",
         "styleKey": "Style Key",
         "styleValue": "Style Value",
         "sourceField": "Source Field",
+        "track1Field": "Subtitle Track 1 Field",
+        "track2Field": "Subtitle Track 2 Field",
+        "track3Field": "Subtitle Track 3 Field",
+        "reset": "Reset",
         "subtitleAppearance": "Subtitle Appearance",
         "subtitleBackgroundColor": "Subtitle Background Color",
         "subtitleBackgroundOpacity": "Subtitle Background Opacity",
@@ -295,6 +311,13 @@
         "subtitleAlignment": "Subtitle Alignment",
         "subtitleAlignmentBottom": "Bottom",
         "subtitleAlignmentTop": "Top",
+        "subtitleBlur": "Subtitle blur",
+        "subtitleTrack": "Subtitle Track",
+        "allSubtitleTracks": "All",
+        "subtitleTrackChoice": "Track {{trackNumber}}",
+        "subtitleTrackSelectorHelper": "Changes settings for ALL tracks. Settings that already have track-specific values are hidden.",
+        "subtitleBlurEntryLabel": "Track {{trackNumber}}",
+        "subtitleBlurDescription": "Hides selected subtitle tracks by blurring them. Can be un-blurred on mouse hover.",
         "tabName": "Name of the tab",
         "subtitleRegexFilter": "Subtitle regex filter",
         "subtitleRegexFilterTextReplacement": "Subtitle regex filter text replacement",
@@ -314,7 +337,8 @@
         "wordField": "Word Field",
         "webSocketClientEnabled": "Enable WebSocket client",
         "webSocketServerUrl": "WebSocket Server URL",
-        "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons."
+        "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons.",
+        "postMinePlayback": "Post-mining playback state"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Click, hold, and drag to mine multiple subtitles"
