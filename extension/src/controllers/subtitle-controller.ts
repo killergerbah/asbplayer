@@ -581,15 +581,19 @@ export default class SubtitleController {
             return '';
         }
 
-        return track < this.subtitleClasses.length ? this.subtitleClasses[track] : this.subtitleClasses[0];
+        return this.subtitleClasses[track] ?? this.subtitleClasses;
     }
 
     private _subtitleStyles(track?: number) {
-        if (track === undefined || this.subtitleStyles === undefined) {
+        if (this.subtitleStyles === undefined) {
             return '';
         }
 
-        return track < this.subtitleStyles.length ? this.subtitleStyles[track] : this.subtitleStyles[0];
+        if (track === undefined) {
+            return this.subtitleStyles[0] ?? '';
+        }
+
+        return this.subtitleStyles[track] ?? this.subtitleStyles[0] ?? '';
     }
 
     private _arrayEquals<T>(a: T[], b: T[], equals: (lhs: T, rhs: T) => boolean): boolean {
