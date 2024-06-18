@@ -23,7 +23,7 @@ import {
     changeForTextSubtitleSetting,
     textSubtitleSettingsForTrack,
 } from '@project/common/settings';
-import { surroundingSubtitles, mockSurroundingSubtitles } from '@project/common/util';
+import { surroundingSubtitles, mockSurroundingSubtitles, seekWithNudge } from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import SubtitleTextImage from '@project/common/components/SubtitleTextImage';
 import Clock from '../services/clock';
@@ -500,8 +500,10 @@ export default function VideoPlayer({
         });
 
         playerChannel.onCurrentTime((currentTime) => {
+            let actualCurrentTime = currentTime;
+
             if (videoRef.current) {
-                videoRef.current.currentTime = currentTime;
+                actualCurrentTime = seekWithNudge(videoRef.current, currentTime);
             }
 
             if (videoRef.current?.readyState === 4) {
@@ -509,7 +511,7 @@ export default function VideoPlayer({
             }
 
             clock.stop();
-            clock.setTime(currentTime * 1000);
+            clock.setTime(actualCurrentTime * 1000);
             autoPauseContextRef.current?.clear();
         });
 

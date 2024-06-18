@@ -367,3 +367,15 @@ export function hexToRgb(hex: string): Rgb {
 export function sourceString(subtitleFileName: string, timestamp: number) {
     return timestamp === 0 ? subtitleFileName : `${subtitleFileName} (${humanReadableTime(timestamp)})`;
 }
+
+export function seekWithNudge(media: HTMLMediaElement, timestampSeconds: number) {
+    media.currentTime = timestampSeconds;
+
+    if (media.currentTime < timestampSeconds) {
+        // Seeking is imprecise and may not land on the desired timestamp
+        // Favor seeking slightly ahead to avoid getting stuck when seeking between subtitles
+        media.currentTime = Math.min(media.duration, media.currentTime + 0.01);
+    }
+
+    return media.currentTime;
+}

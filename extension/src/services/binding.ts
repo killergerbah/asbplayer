@@ -46,7 +46,7 @@ import { adjacentSubtitle } from '@project/common/key-binder';
 import { extractAnkiSettings, SettingsProvider, SubtitleListPreference } from '@project/common/settings';
 import { SubtitleSlice } from '@project/common/subtitle-collection';
 import { SubtitleReader } from '@project/common/subtitle-reader';
-import { extractText, sourceString, surroundingSubtitlesAroundInterval } from '@project/common/util';
+import { extractText, seekWithNudge, sourceString, surroundingSubtitlesAroundInterval } from '@project/common/util';
 import AnkiUiController from '../controllers/anki-ui-controller';
 import ControlsController from '../controllers/controls-controller';
 import DragController from '../controllers/drag-controller';
@@ -1094,7 +1094,7 @@ export default class Binding {
                 })
             );
         } else {
-            this.video.currentTime = timestamp;
+            seekWithNudge(this.video, timestamp);
         }
     }
 
