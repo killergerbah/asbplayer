@@ -46,7 +46,8 @@ Suna,
 [@voothi](https://github.com/voothi),
 kibo,
 [@genericdave](https://github.com/genericdave),
-Daniel
+Daniel,
+Cristian
 
 and to those who have donated privately.
 
@@ -61,7 +62,7 @@ Thank you to all those who have contributed to asbplayer:
 [@iam6lake](https://github.com/iam6lake),
 [@bpwhelan](https://github.com/bpwhelan),
 [@pooky-programs](https://github.com/pooky-programs),
-[@m-edlund](https://github.com/m-edlund)
+[@m-edlund](https://github.com/m-edlund),
 [@nekorushi](https://github.com/nekorushi)
 
 Thank you to all those who have translated asbplayer:
