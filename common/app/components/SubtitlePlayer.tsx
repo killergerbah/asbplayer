@@ -110,6 +110,9 @@ const useSubtitlePlayerStyles = makeStyles<Theme, StylesProps, string>((theme) =
         overflowX: 'hidden',
         backgroundColor: theme.palette.background.default,
         width: ({ resizable }) => (resizable ? 'auto' : '100%'),
+        '&:focus': {
+            outline: 'none',
+        },
     },
     table: {
         backgroundColor: theme.palette.background.default,
