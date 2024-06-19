@@ -1,1 +1,2 @@
-export const isMobile = (navigator as any).userAgentData?.mobile ?? navigator.userAgent.includes('Android') ?? false;
+export const isMobile =
+    navigator.userAgent.toLowerCase().includes('android') ?? (navigator as any).userAgentData?.mobile ?? false;

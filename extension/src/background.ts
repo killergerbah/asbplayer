@@ -411,9 +411,12 @@ if (isFirefoxBuild) {
         }
     });
 } else {
-    chrome.action.setPopup({
-        popup: 'popup-ui.html',
-    });
+    if (!isMobile) {
+        chrome.action.setPopup({
+            popup: 'popup-ui.html',
+        });
+    }
+
     chrome.action.onClicked.addListener(defaultAction);
 }
 
