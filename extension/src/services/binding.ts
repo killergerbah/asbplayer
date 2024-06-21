@@ -776,10 +776,7 @@ export default class Binding {
         const currentSettings = await this.settings.getAll();
         this._speedChangeStep = currentSettings.speedChangeStep;
         this.recordMedia = currentSettings.streamingRecordMedia;
-        this.takeScreenshot =
-            currentSettings.streamingTakeScreenshot &&
-            // @ts-ignore
-            (typeof this.video.webkitVideoDecodedByteCount !== 'number' || this.video.webkitVideoDecodedByteCount > 0);
+        this.takeScreenshot = currentSettings.streamingTakeScreenshot;
         this.cleanScreenshot = currentSettings.streamingTakeScreenshot && currentSettings.streamingCleanScreenshot;
         this.condensedPlaybackMinimumSkipIntervalMs = currentSettings.streamingCondensedPlaybackMinimumSkipIntervalMs;
         this.fastForwardModePlaybackRate = currentSettings.fastForwardModePlaybackRate;
