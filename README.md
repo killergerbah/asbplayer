@@ -21,6 +21,6 @@ yarn set version 3.2.0
 yarn
 
 # Build production Firefox version of the extension to extension/dist/firefox
-# Zip package is saved to extension/dist/asbplayer-extension-1.3.0-firefox.zip
+# Zip package is saved to extension/dist/asbplayer-extension-1.3.1-firefox.zip
 yarn workspace @project/extension run packageProdFirefox
 ```
