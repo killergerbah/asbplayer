@@ -1,7 +1,12 @@
 {
     "addons": {
         "{e4b27483-2e73-4762-b2ec-8d988a143a40}": {
-            "updates": []
+            "updates": [
+                {
+                    "version": "1.3.1",
+                    "update_link": "https://github.com/killergerbah/asbplayer/releases/download/v1.3.1/asbplayer-extension-1.3.1-firefox.xpi"
+                }
+            ]
         }
     }
 }
