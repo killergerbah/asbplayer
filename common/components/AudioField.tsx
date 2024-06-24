@@ -57,7 +57,14 @@ export default function AudioField({ audioClip, onPlayAudio, onRerecord }: Props
         audioActionElement = (
             <Tooltip title={t('ankiDialog.rerecord')!}>
                 <span>
-                    <IconButton disabled={audioClip?.error !== undefined} onClick={onRerecord} edge="end">
+                    <IconButton
+                        disabled={audioClip?.error !== undefined}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onRerecord();
+                        }}
+                        edge="end"
+                    >
                         <FiberManualRecordIcon />
                     </IconButton>
                 </span>
