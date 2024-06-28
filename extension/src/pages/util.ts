@@ -1,4 +1,4 @@
-import { VideoDataSubtitleTrack } from '@project/common';
+import { EmbeddedSubtitle } from '@project/common';
 
 export function extractExtension(url: string, fallback: string) {
     const dotIndex = url.lastIndexOf('.');
@@ -40,15 +40,15 @@ export function poll(test: () => boolean, timeout: number = 10000): Promise<bool
     });
 }
 
-type SubtitlesByPath = { [key: string]: VideoDataSubtitleTrack[] };
+type SubtitlesByPath = { [key: string]: EmbeddedSubtitle[] };
 
 export interface InferHooks {
     onJson?: (
         value: any,
-        addTrack: (track: VideoDataSubtitleTrack) => void,
+        addTrack: (track: EmbeddedSubtitle) => void,
         setBasename: (basename: string) => void
     ) => void;
-    onRequest?: (addTrack: (track: VideoDataSubtitleTrack) => void, setBasename: (basename: string) => void) => void;
+    onRequest?: (addTrack: (track: EmbeddedSubtitle) => void, setBasename: (basename: string) => void) => void;
     waitForBasename: boolean;
 }
 

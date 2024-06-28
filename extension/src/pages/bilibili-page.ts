@@ -14,6 +14,7 @@ inferTracks({
                     const extension = extractExtension(url, 'srt');
 
                     addTrack({
+                        type: "url",
                         label: track.lang,
                         language: track.lang_key,
                         url,
