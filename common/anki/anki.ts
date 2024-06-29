@@ -5,6 +5,12 @@ import { AnkiSettings } from '@project/common/settings';
 import sanitize from 'sanitize-filename';
 import { extractText, sourceString } from '@project/common/util';
 
+declare global {
+    interface String {
+        toWellFormed?: () => string;
+    }
+}
+
 const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
 const alphaNumericCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -384,6 +390,10 @@ export class Anki {
     }
 
     private _sanitizeFileName(name: string) {
+        if (typeof name.toWellFormed === 'function') {
+            name = name.toWellFormed();
+        }
+
         return sanitize(name, { replacement: '_' });
     }
 
