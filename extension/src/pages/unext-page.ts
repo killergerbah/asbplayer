@@ -1,55 +1,68 @@
-import { poll } from './util';
+setTimeout(() => {
+    let baseName: string | undefined;
 
-document.addEventListener('asbplayer-get-synced-data', async () => {
-    let basename = '';
+    const originalParse = JSON.parse;
+    JSON.parse = function () {
+        // @ts-ignore
+        const value = originalParse.apply(this, arguments);
 
-    await poll(() => {
-        const titleNodes = document.querySelectorAll('div[class^="Header__TitleContainer"]');
-        const segments: string[] = [];
-        const nodes: Node[] = [];
+        if (typeof value?.data?.webfront_title_stage?.titleName === 'string') {
+            baseName = value.data.webfront_title_stage.titleName;
 
-        for (let i = 0; i < titleNodes.length; ++i) {
-            nodes.push(titleNodes[i]);
-        }
+            if (typeof value.data.webfront_title_stage.episode?.id === 'string') {
+                const episodeId = value.data.webfront_title_stage.episode.id;
 
-        while (nodes.length > 0) {
-            const node = nodes.shift();
+                if (
+                    typeof value.data.webfront_title_titleEpisodes?.episodes === 'object' &&
+                    Array.isArray(value.data.webfront_title_titleEpisodes.episodes)
+                ) {
+                    for (const obj of value.data.webfront_title_titleEpisodes.episodes) {
+                        if (obj.id === episodeId) {
+                            if (typeof obj.displayNo === 'string') {
+                                baseName = `${baseName} ${obj.displayNo}`;
+                            }
 
-            if (node === undefined) {
-                break;
-            }
+                            if (typeof obj.episodeName === 'string') {
+                                baseName = `${baseName} ${obj.episodeName}`;
+                            }
 
-            if (node.childNodes.length === 0) {
-                const textContent = node.textContent;
-
-                if (textContent !== null) {
-                    segments.push(textContent);
+                            break;
+                        }
+                    }
                 }
-
-                continue;
-            }
-
-            for (let i = 0; i < node.childNodes.length; ++i) {
-                const childNode = node.childNodes[i];
-                nodes.push(childNode);
             }
         }
 
-        if (segments.length > 0) {
-            basename = segments.join(' ');
-            return true;
-        }
+        return value;
+    };
 
-        return false;
-    });
+    document.addEventListener(
+        'asbplayer-get-synced-data',
+        () => {
+            if (!baseName) {
+                document.dispatchEvent(
+                    new CustomEvent('asbplayer-synced-data', {
+                        detail: {
+                            error: '',
+                            basename: '',
+                            subtitles: [],
+                        },
+                    })
+                );
+                return;
+            }
 
-    document.dispatchEvent(
-        new CustomEvent('asbplayer-synced-data', {
-            detail: {
-                error: '',
-                basename: basename,
-                subtitles: [],
-            },
-        })
+            document.dispatchEvent(
+                new CustomEvent('asbplayer-synced-data', {
+                    detail: {
+                        error: '',
+                        basename: baseName,
+                        subtitles: [],
+                    },
+                })
+            );
+            baseName = undefined;
+        },
+        false
     );
-});
+}, 0);
