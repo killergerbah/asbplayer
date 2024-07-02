@@ -15,7 +15,7 @@ import makeStyles from '@material-ui/styles/makeStyles';
 import Switch from '@material-ui/core/Switch';
 import LabelWithHoverEffect from '@project/common/components/LabelWithHoverEffect';
 import { ConfirmedVideoDataSubtitleTrack, VideoDataSubtitleTrack } from '@project/common';
-import React, { useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const createClasses = makeStyles((theme) => ({
@@ -82,6 +82,8 @@ export default function VideoDataSyncDialog({
     const [shouldRememberTrackChoices, setShouldRememberTrackChoices] = React.useState(false);
     const trimmedName = name.trim();
     const classes = createClasses();
+    const [isDropdownActive, setIsDropdownActive] = useState(false);
+    const okButtonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
         if (open) {
@@ -130,7 +132,23 @@ export default function VideoDataSyncDialog({
         });
     }, [suggestedName, selectedSubtitles, subtitles]);
 
-    function handleOkButtonClick() {
+    useEffect(() => {
+        function handleKeyDown(event: KeyboardEvent) {
+            if (!isDropdownActive && okButtonRef.current && (event.key === 'Enter' || event.key === 'NumpadEnter')) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                okButtonRef.current.click();
+            }
+        }
+        if (open) {
+            document.addEventListener('keydown', handleKeyDown);
+            return () => {
+                document.removeEventListener('keydown', handleKeyDown);
+            };
+        }
+    }, [open, isDropdownActive]);
+
+    function handleSubmit() {
         const selectedSubtitleTracks: ConfirmedVideoDataSubtitleTrack[] = allSelectedSubtitleTracks();
         onConfirm(selectedSubtitleTracks, shouldRememberTrackChoices);
     }
@@ -186,6 +204,8 @@ export default function VideoDataSyncDialog({
                                     return newSelectedSubtitles;
                                 })
                             }
+                            onFocus={() => setIsDropdownActive(true)}
+                            onBlur={() => setIsDropdownActive(false)}
                         >
                             {subtitles.map((subtitle) => (
                                 <MenuItem value={subtitle.url} key={subtitle.url}>
@@ -264,7 +284,7 @@ export default function VideoDataSyncDialog({
                 <Button disabled={disabled} onClick={() => onOpenFile()}>
                     {t('action.openFiles')}
                 </Button>
-                <Button disabled={!trimmedName || disabled} onClick={handleOkButtonClick}>
+                <Button disabled={!trimmedName || disabled} ref={okButtonRef} onClick={handleSubmit}>
                     {t('action.ok')}
                 </Button>
             </DialogActions>
