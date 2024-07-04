@@ -244,9 +244,9 @@
     "settings": {
         "activeProfile": "設定プロファイル",
         "defaultProfile": "デフォルト",
-        "newProfile": "新しい設定プロフィールを作成",
-        "profileName": "設定プロフィール名",
-        "enterProfileName": "設定プロフィール名を入力",
+        "newProfile": "新しい設定プロファイルを作成",
+        "profileName": "設定プロファイル名",
+        "enterProfileName": "設定プロファイル名を入力",
         "profileLimitReached": "設定プロファイルの上限数に達しました",
         "addCustomCss": "カスタムCSSを追加",
         "addCustomField": "カスタムフィールドを追加",
