@@ -103,7 +103,7 @@
         "toggleAsbplayerSubtitleTrack2": "Alternar a faixa de legenda 2 no asbplayer",
         "toggleAsbplayerSubtitleTrack3": "Alternar a faixa de legenda 3 no asbplayer",
         "toggleAsbplayerSubtitleTracks": "Alterne a faixa de legenda no asbplayer",
-        "toggleAsbplayerBlurTrack": "Toggle subtitle track {{trackNumber}} blur in asbplayer",
+        "toggleAsbplayerBlurTrack": "Desfocar a faixa de legenda {{trackNumber}} no asbplayer",
         "toggleAutoPause": "Alternar pausa automática",
         "toggleCondensedPlayback": "Alternar reprodução condensada",
         "toggleFastForwardPlayback": "Alternar reprodução de avanço rápido",

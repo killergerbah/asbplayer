@@ -103,7 +103,7 @@
         "toggleAsbplayerSubtitleTrack2": "Toggle subtitle track 2 in asbplayer",
         "toggleAsbplayerSubtitleTrack3": "Toggle subtitle track 3 in asbplayer",
         "toggleAsbplayerSubtitleTracks": "Toggle subtitle track in asbplayer",
-        "toggleAsbplayerBlurTrack": "Toggle subtitle track {{trackNumber}} blur in asbplayer",
+        "toggleAsbplayerBlurTrack": "Unblur subtitle track {{trackNumber}} in asbplayer",
         "toggleAutoPause": "Toggle auto-pause",
         "toggleCondensedPlayback": "Toggle condensed playback",
         "toggleFastForwardPlayback": "Toggle fast forward playback",

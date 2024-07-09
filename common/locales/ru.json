@@ -103,7 +103,7 @@
         "toggleAsbplayerSubtitleTrack2": "Включить/выключить дорожку субтитров 2 в asbplayer",
         "toggleAsbplayerSubtitleTrack3": "Включить/выключить дорожку субтитров 3 в asbplayer",
         "toggleAsbplayerSubtitleTracks": "Включить/выключить дорожку субтитров в asbplayer",
-        "toggleAsbplayerBlurTrack": "Toggle subtitle track {{trackNumber}} blur in asbplayer",
+        "toggleAsbplayerBlurTrack": "Unblur subtitle track {{trackNumber}} in asbplayer",
         "toggleAutoPause": "Включить/выключить автоматическую паузу",
         "toggleCondensedPlayback": "Включить/выключить конденсированное воспроизведение",
         "toggleFastForwardPlayback": "Включить/выключить ускоренное воспроизведение",
