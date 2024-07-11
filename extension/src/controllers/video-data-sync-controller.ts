@@ -1,13 +1,14 @@
 import {
-    ConfirmedVideoDataSubtitleTrack,
     ExtensionSyncMessage,
     SerializedSubtitleFile,
     VideoData,
-    VideoDataSubtitleTrack,
+    EmbeddedSubtitle,
     VideoDataUiBridgeConfirmMessage,
     VideoDataUiBridgeOpenFileMessage,
     VideoDataUiState,
     VideoToExtensionCommand,
+    isEmbeddedSubtitle,
+    SubtitleTrack,
 } from '@project/common';
 import { AsbplayerSettings, SettingsProvider, SubtitleListPreference } from '@project/common/settings';
 import { bufferToBase64 } from '../services/base64';
@@ -54,7 +55,7 @@ export default class VideoDataSyncController {
     private _doneListener?: () => void;
     private _autoSync?: boolean;
     private _lastLanguagesSynced: { [key: string]: string[] };
-    private _emptySubtitle: VideoDataSubtitleTrack;
+    private _emptySubtitle: EmbeddedSubtitle;
     private _boundFunction?: (event: Event) => void;
     private _syncedData?: VideoData;
     private _wasPaused?: boolean;
@@ -72,6 +73,7 @@ export default class VideoDataSyncController {
         this._autoSync = false;
         this._lastLanguagesSynced = {};
         this._emptySubtitle = {
+            type: 'url',
             language: '',
             url: '-',
             label: i18n.t('extension.videoDataSync.emptySubtitleTrack'),
@@ -167,7 +169,7 @@ export default class VideoDataSyncController {
 
         const subtitleTrackChoices = this._syncedData?.subtitles ?? [];
         const subs = this._matchLastSyncedWithAvailableTracks();
-        const selectedSub: VideoDataSubtitleTrack[] = subs.autoSelectedTracks;
+        const selectedSub: EmbeddedSubtitle[] = subs.autoSelectedTracks;
 
         if (subs.completeMatch && !userRequested && !this._syncedData?.error) {
             // Instead of showing, auto-sync
@@ -187,28 +189,28 @@ export default class VideoDataSyncController {
             const themeType = await this._context.settings.getSingle('themeType');
             let state: VideoDataUiState = this._syncedData
                 ? {
-                      open: true,
-                      isLoading: this._syncedData.subtitles === undefined,
-                      suggestedName: this._syncedData.basename,
-                      selectedSubtitle: ['-'],
-                      subtitles: subtitleTrackChoices,
-                      error: this._syncedData.error,
-                      themeType: themeType,
-                      openedFromMiningCommand,
-                      defaultCheckboxState: defaultCheckboxState,
-                  }
+                    open: true,
+                    isLoading: this._syncedData.subtitles === undefined,
+                    suggestedName: this._syncedData.basename,
+                    selectedSubtitle: ['-'],
+                    subtitles: subtitleTrackChoices,
+                    error: this._syncedData.error,
+                    themeType: themeType,
+                    openedFromMiningCommand,
+                    defaultCheckboxState: defaultCheckboxState,
+                }
                 : {
-                      open: true,
-                      isLoading: this._context.subSyncAvailable && this._waitingForSubtitles,
-                      suggestedName: document.title,
-                      selectedSubtitle: ['-'],
-                      error: '',
-                      showSubSelect: true,
-                      subtitles: subtitleTrackChoices,
-                      themeType: themeType,
-                      openedFromMiningCommand,
-                      defaultCheckboxState: defaultCheckboxState,
-                  };
+                    open: true,
+                    isLoading: this._context.subSyncAvailable && this._waitingForSubtitles,
+                    suggestedName: document.title,
+                    selectedSubtitle: ['-'],
+                    error: '',
+                    showSubSelect: true,
+                    subtitles: subtitleTrackChoices,
+                    themeType: themeType,
+                    openedFromMiningCommand,
+                    defaultCheckboxState: defaultCheckboxState,
+                };
             state.selectedSubtitle = selectedSub.map((subtitle) => subtitle.url || '-');
             const client = await this._client();
             this._prepareShow();
@@ -248,7 +250,7 @@ export default class VideoDataSyncController {
         return tracks;
     }
 
-    private _defaultVideoName(basename: string | undefined, subtitleTrack: VideoDataSubtitleTrack) {
+    private _defaultVideoName(basename: string | undefined, subtitleTrack: EmbeddedSubtitle) {
         if (subtitleTrack.url === '-') {
             return basename ?? '';
         }
@@ -291,15 +293,15 @@ export default class VideoDataSyncController {
                     const confirmMessage = message as VideoDataUiBridgeConfirmMessage;
 
                     if (confirmMessage.shouldRememberTrackChoices) {
-                        this.lastLanguageSynced = confirmMessage.data.map((track) => track.language);
+                        this.lastLanguageSynced = confirmMessage.data.map((track) => isEmbeddedSubtitle(track) ? track.language : '');
                         await this._context.settings
                             .set({ streamingLastLanguagesSynced: this._lastLanguagesSynced })
-                            .catch(() => {});
+                            .catch(() => { });
                     }
 
-                    const data = confirmMessage.data as ConfirmedVideoDataSubtitleTrack[];
+                    const data = confirmMessage.data as SubtitleTrack[];
 
-                    shallUpdate = await this._syncDataArray(data);
+                    shallUpdate = await this._syncData(data);
                 } else if ('openFile' === message.command) {
                     const openFileMessage = message as VideoDataUiBridgeOpenFileMessage;
                     const subtitles = openFileMessage.subtitles as SerializedSubtitleFile[];
@@ -367,52 +369,32 @@ export default class VideoDataSyncController {
         this._context.mobileVideoOverlayController.forceHide = true;
     }
 
-    private async _syncData(data: VideoDataSubtitleTrack[]) {
+    private async _syncData(data: SubtitleTrack[]) {
         try {
             let subtitles: SerializedSubtitleFile[] = [];
 
             for (let i = 0; i < data.length; i++) {
-                const { extension, url, m3U8BaseUrl } = data[i];
-                const subtitleFiles = await this._subtitlesForUrl(
-                    this._defaultVideoName(this._syncedData?.basename, data[i]),
-                    extension,
-                    url,
-                    m3U8BaseUrl
-                );
-                if (subtitleFiles !== undefined) {
-                    subtitles.push(...subtitleFiles);
+                if (isEmbeddedSubtitle(data[i])) {
+                    const embeddedSubtitle = data[i] as EmbeddedSubtitle;
+                    const { extension, url, m3U8BaseUrl } = embeddedSubtitle;
+                    const subtitleFiles = await this._subtitlesForUrl(
+                        this._defaultVideoName(this._syncedData?.basename, embeddedSubtitle),
+                        extension,
+                        url,
+                        m3U8BaseUrl
+                    );
+                    if (subtitleFiles !== undefined) {
+                        subtitles.push(...subtitleFiles);
+                    }
+                } else {
+                    // isSubtitleFile
+                    subtitles.push(data[i] as SerializedSubtitleFile)
                 }
             }
 
             this._syncSubtitles(
                 subtitles,
-                data.some((track) => track.m3U8BaseUrl !== undefined)
-            );
-            return true;
-        } catch (error) {
-            if (typeof (error as Error).message !== 'undefined') {
-                this._reportError(`Data Sync failed: ${(error as Error).message}`);
-            }
-
-            return false;
-        }
-    }
-
-    private async _syncDataArray(data: ConfirmedVideoDataSubtitleTrack[]) {
-        try {
-            let subtitles: SerializedSubtitleFile[] = [];
-
-            for (let i = 0; i < data.length; i++) {
-                const { name, extension, subtitleUrl, m3U8BaseUrl } = data[i];
-                const subtitleFiles = await this._subtitlesForUrl(name, extension, subtitleUrl, m3U8BaseUrl);
-                if (subtitleFiles !== undefined) {
-                    subtitles.push(...subtitleFiles);
-                }
-            }
-
-            this._syncSubtitles(
-                subtitles,
-                data.some((track) => track.m3U8BaseUrl !== undefined)
+                data.some((track) => isEmbeddedSubtitle(track) && track.m3U8BaseUrl !== undefined)
             );
             return true;
         } catch (error) {
@@ -455,6 +437,7 @@ export default class VideoDataSyncController {
         if (url === '-') {
             return [
                 {
+                    type: "file",
                     name: `${name}.${extension}`,
                     base64: '',
                 },
@@ -484,7 +467,7 @@ export default class VideoDataSyncController {
             const promises = parser.manifest.segments
                 .filter((s: any) => !s.discontinuity && s.uri)
                 .map((s: any) => fetch(`${m3U8BaseUrl}/${s.uri}`));
-            const tracks = [];
+            const tracks: SerializedSubtitleFile[] = [];
 
             for (const p of promises) {
                 const response = await p;
@@ -496,6 +479,7 @@ export default class VideoDataSyncController {
                 }
 
                 tracks.push({
+                    type: "file",
                     name: `${name}.${partExtension}`,
                     base64: bufferToBase64(await response.arrayBuffer()),
                 });
@@ -510,6 +494,7 @@ export default class VideoDataSyncController {
 
         return [
             {
+                type: 'file',
                 name: `${name}.${extension}`,
                 base64: response ? bufferToBase64(await response.arrayBuffer()) : '',
             },
@@ -523,7 +508,7 @@ export default class VideoDataSyncController {
         this._prepareShow();
 
         const subtitleTrackChoices = this._syncedData?.subtitles ?? [];
-        let selectedSub: VideoDataSubtitleTrack[] = [this._emptySubtitle, this._emptySubtitle, this._emptySubtitle];
+        let selectedSub: EmbeddedSubtitle[] = [this._emptySubtitle, this._emptySubtitle, this._emptySubtitle];
         for (let i = 0; i < this.lastLanguageSynced.length; i++) {
             const language = this.lastLanguageSynced[i];
             for (let j = 0; j < subtitleTrackChoices.length; j++) {

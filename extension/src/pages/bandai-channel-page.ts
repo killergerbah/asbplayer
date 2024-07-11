@@ -37,6 +37,7 @@ inferTracks({
                         typeof track.label === 'string' ? `${track.srclang} - ${track?.label}` : track.srclang;
                     const url = track.sources[0].src.replace(/^http:\/\//, 'https://');
                     addTrack({
+                        type: "url",
                         label: label,
                         language: track.srclang.toLowerCase(),
                         url: url,

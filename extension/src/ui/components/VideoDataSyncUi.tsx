@@ -5,11 +5,10 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import VideoDataSyncDialog from './VideoDataSyncDialog';
 import Bridge from '../bridge';
 import {
-    ConfirmedVideoDataSubtitleTrack,
     Message,
     SerializedSubtitleFile,
     UpdateStateMessage,
-    VideoDataSubtitleTrack,
+    SubtitleTrack,
     VideoDataUiBridgeConfirmMessage,
     VideoDataUiBridgeOpenFileMessage,
 } from '@project/common';
@@ -29,8 +28,8 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [suggestedName, setSuggestedName] = useState<string>('');
     const [showSubSelect, setShowSubSelect] = useState<boolean>(true);
-    const [subtitles, setSubtitles] = useState<VideoDataSubtitleTrack[]>([
-        { language: '', url: '-', label: t('extension.videoDataSync.emptySubtitleTrack'), extension: 'srt' },
+    const [subtitles, setSubtitles] = useState<SubtitleTrack[]>([
+        { type: "url", language: '', url: '-', label: t('extension.videoDataSync.emptySubtitleTrack'), extension: 'srt' },
     ]);
     const [selectedSubtitle, setSelectedSubtitle] = useState<string[]>(['-', '-', '-']);
     const [defaultCheckboxState, setDefaultCheckboxState] = useState<boolean>(false);
@@ -45,7 +44,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
         bridge.sendMessageFromServer({ command: 'cancel' });
     }, [bridge]);
     const handleConfirm = useCallback(
-        (data: ConfirmedVideoDataSubtitleTrack[], shouldRememberTrackChoices: boolean) => {
+        (data: SubtitleTrack[], shouldRememberTrackChoices: boolean) => {
             setOpen(false);
             const message: VideoDataUiBridgeConfirmMessage = { command: 'confirm', data, shouldRememberTrackChoices };
             bridge.sendMessageFromServer(message);
@@ -119,21 +118,23 @@ export default function VideoDataSyncUi({ bridge }: Props) {
         if (files && files.length > 0) {
             try {
                 setDisabled(true);
-                const subtitles: SerializedSubtitleFile[] = [];
+                const subtitleFiles: SerializedSubtitleFile[] = [];
 
                 for (let i = 0; i < files.length; ++i) {
                     const f = files[i];
                     const base64 = await bufferToBase64(await f.arrayBuffer());
 
-                    subtitles.push({
+                    subtitleFiles.push({
+                        type: "file",
                         name: f.name,
                         base64: base64,
                     });
                 }
 
                 setOpen(false);
-                const message: VideoDataUiBridgeOpenFileMessage = { command: 'openFile', subtitles };
-                bridge.sendMessageFromServer(message);
+                // setSubtitles([...subtitles, ...subtitleFiles])
+                // const message: VideoDataUiBridgeOpenFileMessage = { command: 'openFile', subtitles };
+                // bridge.sendMessageFromServer(message);
             } finally {
                 setDisabled(false);
             }

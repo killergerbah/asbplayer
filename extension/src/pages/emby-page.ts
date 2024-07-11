@@ -1,4 +1,4 @@
-import { VideoDataSubtitleTrack } from '@project/common';
+import { EmbeddedSubtitle } from '@project/common';
 import { VideoData } from '@project/common';
 
 declare const ApiClient: any | undefined;
@@ -26,7 +26,7 @@ document.addEventListener(
                 var mediaID = session.PlayState.MediaSourceId;
                 var nowPlayingItem = session.NowPlayingItem;
                 response.basename = nowPlayingItem.FileName;
-                const subtitles: VideoDataSubtitleTrack[] = [];
+                const subtitles: EmbeddedSubtitle[] = [];
                 nowPlayingItem.MediaStreams.filter(
                     (stream: { IsTextSubtitleStream: any }) => stream.IsTextSubtitleStream
                 ).forEach((sub: { Codec: string; DisplayTitle: any; Language: any; Index: number }) => {
@@ -42,6 +42,7 @@ document.addEventListener(
                         '?api_key=' +
                         apikey;
                     subtitles.push({
+                        type: 'url',
                         label: sub.DisplayTitle,
                         language: sub.Language,
                         url: url,
