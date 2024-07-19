@@ -1208,38 +1208,6 @@ export default function VideoPlayer({
         [onSettingsChanged]
     );
 
-    useEffect(() => {
-        const onWheel = (event: WheelEvent) => {
-            if (!displaySubtitles || !showSubtitlesRef.current?.length) {
-                return;
-            }
-
-            if (Math.abs(event.deltaY) < 10) {
-                return;
-            }
-
-            let shouldIncreaseOffset: boolean;
-
-            switch (subtitleAlignment) {
-                case 'bottom':
-                    shouldIncreaseOffset = event.deltaY > 0;
-                    break;
-                case 'top':
-                    shouldIncreaseOffset = event.deltaY < 0;
-                    break;
-            }
-
-            setSubtitlePositionOffset((offset) => {
-                const newOffset = shouldIncreaseOffset ? --offset : ++offset;
-                onSettingsChanged({ subtitlePositionOffset: newOffset });
-                return newOffset;
-            });
-        };
-
-        window.addEventListener('wheel', onWheel);
-        return () => window.removeEventListener('wheel', onWheel);
-    }, [subtitleAlignment, displaySubtitles, playbackPreferences, onSettingsChanged]);
-
     const handleClick = useCallback(() => {
         if (playing()) {
             playerChannel.pause();
