@@ -323,6 +323,7 @@
         "subtitleRegexFilterTextReplacement": "字幕正则筛选器文本替换",
         "subtitleSize": "字幕大小",
         "subtitleThickness": "字幕字体厚度",
+        "subtitlesWidth": "Subtitles Width",
         "surroundingSubtitlesCountRadius": "环绕字幕计数半径",
         "surroundingSubtitlesTimeRadius": "环绕字幕时间半径",
         "tags": "标签",

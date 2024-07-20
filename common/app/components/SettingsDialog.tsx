@@ -81,6 +81,7 @@ export default function SettingsDialog({
                     extensionSupportsSidePanel={extension.supportsSidePanel}
                     extensionSupportsOrderableAnkiFields={extension.supportsOrderableAnkiFields}
                     extensionSupportsTrackSpecificSettings={extension.supportsTrackSpecificSettings}
+                    extensionSupportsSubtitlesWidthSetting={extension.supportsSubtitlesWidthSetting}
                     insideApp
                     chromeKeyBinds={extension.extensionCommands}
                     onOpenChromeExtensionShortcuts={extension.openShortcuts}

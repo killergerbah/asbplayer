@@ -152,9 +152,8 @@ const showingSubtitleHtml = (
             (imageBasedSubtitleScaleFactor * (videoRef.current?.width ?? window.screen.availWidth)) /
             subtitle.textImage.screen.width;
         const width = imageScale * subtitle.textImage.image.width;
-
         return `
-<div style="max-width:${width}px;">
+<div style="max-width:${width}px;margin:auto;">
 <img
     style="width:100%;"
     alt="subtitle"
@@ -1294,11 +1293,14 @@ export default function VideoPlayer({
             />
             {displaySubtitles && (
                 <div
-                    style={
-                        subtitleAlignment === 'bottom'
+                    style={{
+                        ...(subtitleAlignment === 'bottom'
                             ? { bottom: subtitlePositionOffset }
-                            : { top: subtitlePositionOffset }
-                    }
+                            : { top: subtitlePositionOffset }),
+                        ...(subtitleSettings.subtitlesWidth === -1
+                            ? {}
+                            : { width: `${subtitleSettings.subtitlesWidth}%` }),
+                    }}
                     className={classes.subtitleContainer}
                 >
                     {showSubtitles.map((subtitle, index) => {

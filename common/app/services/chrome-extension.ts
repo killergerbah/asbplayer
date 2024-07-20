@@ -112,6 +112,11 @@ export default class ChromeExtension {
 
         window.addEventListener('message', this.windowEventListener);
     }
+
+    get supportsSubtitlesWidthSetting() {
+        return this.installed && gte(this.version, '1.4.0');
+    }
+
     get supportsOrderableAnkiFields() {
         return this.installed && gte(this.version, '1.3.0');
     }

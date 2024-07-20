@@ -133,6 +133,7 @@ const subtitleSettingsKeysObject: { [key in keyof SubtitleSettings]: boolean } =
     subtitlePositionOffset: true,
     subtitleAlignment: true,
     subtitleTracksV2: true,
+    subtitlesWidth: true,
 };
 
 export const subtitleSettingsKeys: (keyof SubtitleSettings)[] = Object.keys(
@@ -172,6 +173,9 @@ export interface SubtitleSettings extends TextSubtitleSettings {
     // We don't configure track 0 here to avoid having to migrate old settings into this new data structure.
     // Track 0 continues to be configured from the top-level settings object.
     readonly subtitleTracksV2: TextSubtitleSettings[];
+
+    // Percentage of containing video width; -1 means 'auto'
+    readonly subtitlesWidth: number;
 }
 
 export interface KeyBind {

@@ -323,6 +323,7 @@
         "subtitleRegexFilterTextReplacement": "Texto de reemplazo para el filtro regex",
         "subtitleSize": "Tamaño de los subtítulos",
         "subtitleThickness": "Grosor de la Fuente de los Subtítulos",
+        "subtitlesWidth": "Subtitles Width",
         "surroundingSubtitlesCountRadius": "Radio de Cantidad de Subtítulos Circundantes",
         "surroundingSubtitlesTimeRadius": "Radio Temporal para Subtítulos Circundantes",
         "tags": "Etiquetas",

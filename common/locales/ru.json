@@ -323,6 +323,7 @@
         "subtitleRegexFilterTextReplacement": "Замена текста для фильтра регулярных выражений для субтитров",
         "subtitleSize": "Размер субтитров",
         "subtitleThickness": "Толщина шрифта субтитров",
+        "subtitlesWidth": "Subtitles Width",
         "surroundingSubtitlesCountRadius": "Радиус количества окружающих субтитров",
         "surroundingSubtitlesTimeRadius": "Временной радиус окружающих субтитров",
         "tags": "Теги",

@@ -43,6 +43,7 @@ export class MobileVideoOverlayController {
             fullscreenContentClassName: 'asbplayer-mobile-video-overlay',
             offsetAnchor,
             contentPositionOffset: 8,
+            contentWidthPercentage: -1,
         });
     }
 

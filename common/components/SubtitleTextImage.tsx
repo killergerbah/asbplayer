@@ -16,7 +16,7 @@ export default function SubtitleTextImage({ subtitle, availableWidth, scale }: P
     const width = imageScale * subtitle.textImage.image.width;
 
     return (
-        <div style={{ maxWidth: width }}>
+        <div style={{ maxWidth: width, margin: 'auto' }}>
             <img style={{ width: '100%' }} alt="subtitle" src={subtitle.textImage.dataUrl} />
         </div>
     );

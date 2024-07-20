@@ -332,6 +332,9 @@ const settingsSchema = {
                 },
             },
         },
+        subtitlesWidth: {
+            type: 'number',
+        },
         streamingAppUrl: {
             type: 'string',
         },

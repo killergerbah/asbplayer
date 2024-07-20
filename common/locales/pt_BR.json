@@ -323,6 +323,7 @@
         "subtitleRegexFilterTextReplacement": "Substituição de texto do filtro regex da legenda",
         "subtitleSize": "Tamanho da legenda",
         "subtitleThickness": "Expessura da fonte da legenda",
+        "subtitlesWidth": "Subtitles Width",
         "surroundingSubtitlesCountRadius": "Raio de contagem de legendas ao redor",
         "surroundingSubtitlesTimeRadius": "Raio de tempo das legendas ao redor",
         "tags": "Tags",

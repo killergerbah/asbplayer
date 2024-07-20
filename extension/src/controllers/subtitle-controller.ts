@@ -131,6 +131,10 @@ export default class SubtitleController {
         this.subtitlesElementOverlay.contentPositionOffset = value;
     }
 
+    set subtitlesWidth(value: number) {
+        this.subtitlesElementOverlay.contentWidthPercentage = value;
+    }
+
     setSubtitleSettings(newSubtitleSettings: SubtitleSettings) {
         const styles = this._computeStyles(newSubtitleSettings);
         const classes = this._computeClasses(newSubtitleSettings);
@@ -201,7 +205,9 @@ export default class SubtitleController {
         this.notificationElementOverlay.dispose();
         const { subtitlesElementOverlay, notificationElementOverlay } = this._overlays(alignment, preCacheDom);
         subtitlesElementOverlay.contentPositionOffset = this.subtitlesElementOverlay.contentPositionOffset;
+        subtitlesElementOverlay.contentWidthPercentage = this.subtitlesElementOverlay.contentWidthPercentage;
         notificationElementOverlay.contentPositionOffset = this.notificationElementOverlay.contentPositionOffset;
+        notificationElementOverlay.contentWidthPercentage = this.notificationElementOverlay.contentWidthPercentage;
         this.subtitlesElementOverlay = subtitlesElementOverlay;
         this.notificationElementOverlay = notificationElementOverlay;
 
@@ -239,6 +245,7 @@ export default class SubtitleController {
                     fullscreenContainerClassName: 'asbplayer-subtitles-container-bottom',
                     fullscreenContentClassName: 'asbplayer-fullscreen-subtitles',
                     offsetAnchor: OffsetAnchor.bottom,
+                    contentWidthPercentage: -1,
                 };
                 notificationOverlayParams = {
                     targetElement: this.video,
@@ -247,6 +254,7 @@ export default class SubtitleController {
                     fullscreenContainerClassName: 'asbplayer-notification-container-top',
                     fullscreenContentClassName: 'asbplayer-notification',
                     offsetAnchor: OffsetAnchor.top,
+                    contentWidthPercentage: -1,
                 };
                 break;
             }
@@ -258,6 +266,7 @@ export default class SubtitleController {
                     fullscreenContainerClassName: 'asbplayer-subtitles-container-top',
                     fullscreenContentClassName: 'asbplayer-fullscreen-subtitles',
                     offsetAnchor: OffsetAnchor.top,
+                    contentWidthPercentage: -1,
                 };
                 notificationOverlayParams = {
                     targetElement: this.video,
@@ -266,6 +275,7 @@ export default class SubtitleController {
                     fullscreenContainerClassName: 'asbplayer-notification-container-bottom',
                     fullscreenContentClassName: 'asbplayer-notification',
                     offsetAnchor: OffsetAnchor.bottom,
+                    contentWidthPercentage: -1,
                 };
                 break;
             }
@@ -380,7 +390,7 @@ export default class SubtitleController {
                         const width = imageScale * subtitle.textImage.image.width;
 
                         return `
-                            <div style="max-width:${width}px;" class="${className}"}">
+                            <div style="max-width:${width}px;margin:auto;" class="${className}"}">
                                 <img
                                     style="width:100%;"
                                     alt="subtitle"

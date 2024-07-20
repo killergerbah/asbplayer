@@ -62,6 +62,7 @@ export const defaultSettings: AsbplayerSettings = {
     subtitlePositionOffset: 75,
     subtitleAlignment: 'bottom',
     subtitleTracksV2: [],
+    subtitlesWidth: 100,
     audioPaddingStart: 0,
     audioPaddingEnd: 500,
     maxImageWidth: 0,

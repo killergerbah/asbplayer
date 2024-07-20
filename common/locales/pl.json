@@ -323,6 +323,7 @@
         "subtitleRegexFilterTextReplacement": "Zamiana tekstu z filtru Regex napisów",
         "subtitleSize": "Wielkość napisów",
         "subtitleThickness": "Grubość czcionki napisów",
+        "subtitlesWidth": "Subtitles Width",
         "surroundingSubtitlesCountRadius": "Limit liczby napisów otaczających",
         "surroundingSubtitlesTimeRadius": "Limit czasu napisów otaczających",
         "tags": "Tagi",

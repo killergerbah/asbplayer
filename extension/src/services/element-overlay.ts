@@ -18,6 +18,7 @@ export interface ElementOverlayParams {
     fullscreenContentClassName: string;
     offsetAnchor: OffsetAnchor;
     contentPositionOffset?: number;
+    contentWidthPercentage: number;
 }
 
 export interface ElementOverlay {
@@ -32,6 +33,7 @@ export interface ElementOverlay {
     fullscreenContentClassName: string;
     offsetAnchor: OffsetAnchor;
     contentPositionOffset: number;
+    contentWidthPercentage: number;
 }
 
 export class CachingElementOverlay implements ElementOverlay {
@@ -55,6 +57,7 @@ export class CachingElementOverlay implements ElementOverlay {
     fullscreenContentClassName: string;
     offsetAnchor: OffsetAnchor = OffsetAnchor.bottom;
     contentPositionOffset: number;
+    contentWidthPercentage: number;
 
     constructor({
         targetElement,
@@ -64,6 +67,7 @@ export class CachingElementOverlay implements ElementOverlay {
         fullscreenContentClassName,
         offsetAnchor,
         contentPositionOffset,
+        contentWidthPercentage,
     }: ElementOverlayParams) {
         this.targetElement = targetElement;
         this.nonFullscreenContainerClassName = nonFullscreenContainerClassName;
@@ -72,6 +76,7 @@ export class CachingElementOverlay implements ElementOverlay {
         this.fullscreenContentClassName = fullscreenContentClassName;
         this.offsetAnchor = offsetAnchor;
         this.contentPositionOffset = contentPositionOffset ?? 75;
+        this.contentWidthPercentage = contentWidthPercentage;
     }
 
     uncacheHtml() {
@@ -313,7 +318,15 @@ export class CachingElementOverlay implements ElementOverlay {
     private _applyContainerStyles(container: HTMLElement) {
         const rect = this.targetElement.getBoundingClientRect();
         container.style.left = rect.left + rect.width / 2 + 'px';
-        container.style.maxWidth = rect.width + 'px';
+
+        if (this.contentWidthPercentage === -1) {
+            container.style.maxWidth = rect.width + 'px';
+            container.style.width = '';
+        } else {
+            container.style.maxWidth = '';
+            container.style.width = (rect.width * this.contentWidthPercentage) / 100 + 'px';
+        }
+
         const clampedY = Math.max(rect.top + window.scrollY, 0);
 
         if (this.offsetAnchor === OffsetAnchor.bottom) {
@@ -361,6 +374,7 @@ export class DefaultElementOverlay implements ElementOverlay {
     fullscreenContentClassName: string;
     contentPositionOffset: number;
     offsetAnchor: OffsetAnchor = OffsetAnchor.bottom;
+    contentWidthPercentage: number;
 
     constructor({
         targetElement,
@@ -370,6 +384,7 @@ export class DefaultElementOverlay implements ElementOverlay {
         fullscreenContentClassName,
         offsetAnchor,
         contentPositionOffset,
+        contentWidthPercentage,
     }: ElementOverlayParams) {
         this.targetElement = targetElement;
         this.nonFullscreenContainerClassName = nonFullscreenContainerClassName;
@@ -378,6 +393,7 @@ export class DefaultElementOverlay implements ElementOverlay {
         this.fullscreenContentClassName = fullscreenContentClassName;
         this.offsetAnchor = offsetAnchor;
         this.contentPositionOffset = contentPositionOffset ?? 75;
+        this.contentWidthPercentage = contentWidthPercentage;
     }
 
     uncacheHtml(): void {}
@@ -482,7 +498,15 @@ export class DefaultElementOverlay implements ElementOverlay {
     private _applyContainerStyles(container: HTMLElement) {
         const rect = this.targetElement.getBoundingClientRect();
         container.style.left = rect.left + rect.width / 2 + 'px';
-        container.style.maxWidth = rect.width + 'px';
+
+        if (this.contentWidthPercentage === -1) {
+            container.style.maxWidth = rect.width + 'px';
+            container.style.width = '';
+        } else {
+            container.style.maxWidth = '';
+            container.style.width = (rect.width * this.contentWidthPercentage) / 100 + 'px';
+        }
+
         const clampedY = Math.max(rect.top + window.scrollY, 0);
 
         if (this.offsetAnchor === OffsetAnchor.bottom) {
