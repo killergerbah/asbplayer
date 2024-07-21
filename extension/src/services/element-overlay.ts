@@ -330,7 +330,7 @@ export class CachingElementOverlay implements ElementOverlay {
         const clampedY = Math.max(rect.top + window.scrollY, 0);
 
         if (this.offsetAnchor === OffsetAnchor.bottom) {
-            const clampedHeight = Math.min(clampedY + rect.height, window.innerHeight);
+            const clampedHeight = Math.min(clampedY + rect.height, window.innerHeight + window.scrollY);
             container.style.top = clampedHeight - this.contentPositionOffset + 'px';
             container.style.bottom = '';
         } else {
@@ -510,7 +510,7 @@ export class DefaultElementOverlay implements ElementOverlay {
         const clampedY = Math.max(rect.top + window.scrollY, 0);
 
         if (this.offsetAnchor === OffsetAnchor.bottom) {
-            const clampedHeight = Math.min(clampedY + rect.height, window.innerHeight);
+            const clampedHeight = Math.min(clampedY + rect.height, window.innerHeight + window.scrollY);
             container.style.top = clampedHeight - this.contentPositionOffset + 'px';
             container.style.bottom = '';
         } else {
