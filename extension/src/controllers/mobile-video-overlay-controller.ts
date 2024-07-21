@@ -6,12 +6,14 @@ import {
     VideoToExtensionCommand,
 } from '@project/common';
 import Binding from '../services/binding';
-import { CachingElementOverlay, ElementOverlay, OffsetAnchor } from '../services/element-overlay';
+import { CachingElementOverlay, OffsetAnchor } from '../services/element-overlay';
 import { adjacentSubtitle } from '@project/common/key-binder';
+
+const smallScreenVideoHeighThreshold = 300;
 
 export class MobileVideoOverlayController {
     private readonly _context: Binding;
-    private _overlay: ElementOverlay;
+    private _overlay: CachingElementOverlay;
     private _pauseListener?: () => void;
     private _playListener?: () => void;
     private _seekedListener?: () => void;
@@ -24,6 +26,7 @@ export class MobileVideoOverlayController {
         sendResponse: (response?: any) => void
     ) => void;
     private _bound = false;
+    private _smallScreen = false;
 
     constructor(context: Binding, offsetAnchor: OffsetAnchor) {
         this._context = context;
@@ -187,15 +190,25 @@ export class MobileVideoOverlayController {
 
     private _doShow() {
         const anchor = this._overlay.offsetAnchor === OffsetAnchor.bottom ? 'bottom' : 'top';
+        const smallScreen = this._context.video.getBoundingClientRect().height < smallScreenVideoHeighThreshold;
+        const height = smallScreen ? 64 : 108;
+        const tooltips = !smallScreen;
+
+        if (smallScreen !== this._smallScreen) {
+            this._overlay.uncacheHtml();
+            this._smallScreen = smallScreen;
+        }
+
         this._overlay.setHtml([
             {
                 key: 'ui',
                 html: () =>
-                    `<iframe style="border: 0; color-scheme: normal; width: 400px; height: 108px" src="${chrome.runtime.getURL(
+                    `<iframe style="border: 0; color-scheme: normal; width: 400px; height: ${height}px" src="${chrome.runtime.getURL(
                         'mobile-video-overlay-ui.html'
-                    )}?src=${encodeURIComponent(this._context.video.src)}&anchor=${anchor}"/>`,
+                    )}?src=${encodeURIComponent(this._context.video.src)}&anchor=${anchor}&tooltips=${tooltips}"/>`,
             },
         ]);
+
         this._showing = true;
     }
 

@@ -7,7 +7,7 @@ import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
 import SubtitlesIcon from '@material-ui/icons/Subtitles';
-import { useCallback, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
     AsbPlayerToVideoCommandV2,
     CopySubtitleMessage,
@@ -27,7 +27,7 @@ import makeStyles from '@material-ui/core/styles/makeStyles';
 import withStyles from '@material-ui/core/styles/withStyles';
 import { useI18n } from '../hooks/use-i18n';
 import { useTranslation } from 'react-i18next';
-import MuiTooltip from '@material-ui/core/Tooltip';
+import MuiTooltip, { TooltipProps } from '@material-ui/core/Tooltip';
 import LogoIcon from '@project/common/components/LogoIcon';
 import CloseIcon from '@material-ui/icons/Close';
 import HoldableIconButton from './HoldableIconButton';
@@ -49,12 +49,22 @@ const useStyles = makeStyles({
         borderRadius: 16,
     },
 });
+const params = new URLSearchParams(location.search);
+const anchor = params.get('anchor') as 'top' | 'bottom';
+const tooltipsEnabled = params.get('tooltips') === 'true';
 
-const anchor = new URLSearchParams(location.search).get('anchor') as 'top' | 'bottom';
-const Tooltip =
+const DisabledTooltip = ({ children }: { children: React.ReactNode } & TooltipProps) => {
+    return children;
+};
+
+let Tooltip =
     anchor === 'bottom'
         ? withStyles({ tooltipPlacementBottom: { marginTop: 0, marginBottom: 16 } })(MuiTooltip)
         : withStyles({ tooltipPlacementTop: { marginTop: 16, marginBottom: 0 } })(MuiTooltip);
+
+if (!tooltipsEnabled) {
+    Tooltip = DisabledTooltip;
+}
 
 const GridContainer = ({ children, ...props }: { children: React.ReactNode } & GridProps) => {
     return (
