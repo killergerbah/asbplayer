@@ -86,8 +86,8 @@ export default function VideoDataSyncDialog({
     useEffect(() => {
         if (open) {
             setSelectedSubtitles(
-                selectedSubtitle.map((url) => {
-                    return url !== undefined ? url : '-';
+                selectedSubtitle.map((language) => {
+                    return language !== undefined ? language : '-';
                 })
             );
         } else if (!open) {
@@ -116,7 +116,7 @@ export default function VideoDataSyncDialog({
                 name === suggestedName ||
                 subtitles.find((track) => track.url !== '-' && name === calculateName(suggestedName, track.label))
             ) {
-                const selectedTrack = subtitles.find((track) => track.url === selectedSubtitles[0])!;
+                const selectedTrack = subtitles.find((track) => track.language === selectedSubtitles[0])!;
 
                 if (selectedTrack.url === '-') {
                     return suggestedName;
@@ -142,13 +142,13 @@ export default function VideoDataSyncDialog({
     function allSelectedSubtitleTracks() {
         const selectedSubtitleTracks: ConfirmedVideoDataSubtitleTrack[] = selectedSubtitles
             .map((selected): ConfirmedVideoDataSubtitleTrack | undefined => {
-                const subtitle = subtitles.find((subtitle) => subtitle.url === selected);
+                const subtitle = subtitles.find((subtitle) => subtitle.language === selected);
                 if (subtitle) {
-                    const { language, extension, m3U8BaseUrl } = subtitle;
+                    const { language, url, extension, m3U8BaseUrl } = subtitle;
                     return {
                         name: suggestedName.trim() + language.trim(),
                         extension: extension,
-                        subtitleUrl: selected,
+                        subtitleUrl: url,
                         language: language,
                         m3U8BaseUrl: m3U8BaseUrl,
                     };
@@ -188,7 +188,7 @@ export default function VideoDataSyncDialog({
                             }
                         >
                             {subtitles.map((subtitle) => (
-                                <MenuItem value={subtitle.url} key={subtitle.url}>
+                                <MenuItem value={subtitle.language} key={subtitle.language}>
                                     {subtitle.label}
                                 </MenuItem>
                             ))}

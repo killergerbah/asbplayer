@@ -30,7 +30,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [suggestedName, setSuggestedName] = useState<string>('');
     const [showSubSelect, setShowSubSelect] = useState<boolean>(true);
     const [subtitles, setSubtitles] = useState<VideoDataSubtitleTrack[]>([
-        { language: '', url: '-', label: t('extension.videoDataSync.emptySubtitleTrack'), extension: 'srt' },
+        { language: '-', url: '-', label: t('extension.videoDataSync.emptySubtitleTrack'), extension: 'srt' },
     ]);
     const [selectedSubtitle, setSelectedSubtitle] = useState<string[]>(['-', '-', '-']);
     const [defaultCheckboxState, setDefaultCheckboxState] = useState<boolean>(false);
@@ -80,7 +80,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
             if (Object.prototype.hasOwnProperty.call(state, 'subtitles')) {
                 setSubtitles([
                     {
-                        language: '',
+                        language: '-',
                         url: '-',
                         label: t('extension.videoDataSync.emptySubtitleTrack'),
                         extension: 'srt',
