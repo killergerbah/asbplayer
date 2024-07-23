@@ -198,6 +198,13 @@ export default function SidePanel({ settings, extension }: Props) {
         });
     }, [extension]);
 
+    useEffect(() => {
+        return keyBinder.bindToggleSidePanel(
+            () => window.close(),
+            () => false
+        );
+    }, [keyBinder]);
+
     const handleError = useCallback(
         (message: any) => {
             console.error(message);
