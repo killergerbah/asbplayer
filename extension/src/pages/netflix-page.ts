@@ -182,85 +182,98 @@ setTimeout(() => {
         false
     );
 
-    document.addEventListener(
-        'asbplayer-get-synced-language-data',
-        // Fetch data for specific language, since Netflix does not provide all URLs in the initial data sync
-        async (e) => {
-            const fail = (message?: string) => {
-                document.dispatchEvent(
-                    new CustomEvent('asbplayer-synced-language-data', {
-                        detail: {
-                            error: message ?? 'Failed to fetch subtitles for requested language',
-                            basename: '',
-                            subtitles: [],
-                        },
-                    })
-                );
-            };
+    const fetchDataForLanguage = async (e: Event) => {
+        const fail = (message?: string) => {
+            document.dispatchEvent(
+                new CustomEvent('asbplayer-synced-language-data', {
+                    detail: {
+                        error: message ?? 'Failed to fetch subtitles for requested language',
+                        basename: '',
+                        subtitles: [],
+                    },
+                })
+            );
+        };
 
-            const np = player();
+        const np = player();
 
-            if (np === undefined) {
+        if (np === undefined) {
+            fail();
+            return;
+        }
+
+        const previousTrack = np.getTimedTextTrack();
+        let shouldRevert = false;
+
+        try {
+            const event = e as CustomEvent;
+            const language = event.detail as string;
+            const storedTracks = subTracks.get(np.getMovieId()) || new Map();
+            const track = np
+                .getTimedTextTrackList()
+                ?.find((track: any) => dataForTrack(track, storedTracks).language === language);
+
+            if (track === undefined) {
                 fail();
                 return;
             }
 
-            const previousTrack = np.getTimedTextTrack();
-            let shouldRevert = false;
+            const alreadyStoredTrack = storedTracks.get(track.trackId);
 
-            try {
-                const event = e as CustomEvent;
-                const language = event.detail as string;
-                const storedTracks = subTracks.get(np.getMovieId()) || new Map();
-                const track = np
-                    .getTimedTextTrackList()
-                    ?.find((track: any) => dataForTrack(track, storedTracks).language === language);
-
-                if (track === undefined) {
-                    fail();
-                    return;
-                }
-
-                const alreadyStoredTrack = storedTracks.get(track.trackId);
-
-                if (alreadyStoredTrack !== undefined && alreadyStoredTrack !== 'lazy') {
-                    // If track is already stored (e.g. from previous request) then
-                    // send response now and early-out
-                    document.dispatchEvent(
-                        new CustomEvent('asbplayer-synced-language-data', {
-                            detail: await buildResponse(),
-                        })
-                    );
-                    return;
-                }
-
-                // Trigger tracks to be refetched by temporarily setting the text track to the desired language
-                await np.setTimedTextTrack(track);
-                shouldRevert = true;
-
-                // Wait for the track to appear
-                const succeeded = await poll(() => {
-                    const t = storedTracks.get(track.trackId);
-                    return t !== undefined && t !== 'lazy';
-                });
-
-                if (!succeeded) {
-                    fail();
-                    return;
-                }
-
+            if (alreadyStoredTrack !== undefined && alreadyStoredTrack !== 'lazy') {
+                // If track is already stored (e.g. from previous request) then
+                // send response now and early-out
                 document.dispatchEvent(
                     new CustomEvent('asbplayer-synced-language-data', {
                         detail: await buildResponse(),
                     })
                 );
-            } catch (e) {
-                fail(e instanceof Error ? e.message : String(e));
-            } finally {
-                if (shouldRevert && previousTrack !== undefined) {
-                    await np.setTimedTextTrack(previousTrack);
-                }
+                return;
             }
+
+            // Trigger tracks to be refetched by temporarily setting the text track to the desired language
+            await np.setTimedTextTrack(track);
+            shouldRevert = true;
+
+            // Wait for the track to appear
+            const succeeded = await poll(() => {
+                const t = storedTracks.get(track.trackId);
+                return t !== undefined && t !== 'lazy';
+            });
+
+            if (!succeeded) {
+                fail();
+                return;
+            }
+
+            document.dispatchEvent(
+                new CustomEvent('asbplayer-synced-language-data', {
+                    detail: await buildResponse(),
+                })
+            );
+        } catch (e) {
+            fail(e instanceof Error ? e.message : String(e));
+        } finally {
+            if (shouldRevert && previousTrack !== undefined) {
+                await np.setTimedTextTrack(previousTrack);
+            }
+        }
+    };
+
+    let currentFetchForLanguagePromise: Promise<void> | undefined;
+
+    document.addEventListener(
+        'asbplayer-get-synced-language-data',
+        // Fetch data for specific language, since Netflix does not provide all URLs in the initial data sync
+        async (e) => {
+            if (currentFetchForLanguagePromise === undefined) {
+                currentFetchForLanguagePromise = fetchDataForLanguage(e);
+            } else {
+                currentFetchForLanguagePromise.then(() => fetchDataForLanguage(e));
+            }
+
+            await currentFetchForLanguagePromise;
+            currentFetchForLanguagePromise = undefined;
         },
         false
     );
