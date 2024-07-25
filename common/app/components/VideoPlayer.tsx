@@ -165,7 +165,9 @@ const showingSubtitleHtml = (
 `;
     }
 
-    return `<span style="${subtitleStyles}" class="${subtitleClasses}">${subtitle.text}</span>`;
+    const lines = subtitle.text.split('\n');
+    const wrappedText = lines.map(line => `<p class="subtitle-line">${line}</p>`).join('');
+    return `<span style="${subtitleStyles}" class="${subtitleClasses}">${wrappedText}</span>`;
 };
 
 interface ShowingSubtitleProps {
