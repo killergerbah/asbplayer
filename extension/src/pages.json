@@ -117,6 +117,14 @@
             "autoSync": {
                 "enabled": true
             }
+        },
+        {
+            "host": "tv.nrk.no",
+            "script": "nrk-tv-page.js",
+            "path": ".*",
+            "autoSync": {
+                "enabled": true
+            }
         }
     ]
 }

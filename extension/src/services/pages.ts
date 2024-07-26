@@ -1,19 +1,39 @@
 import pagesConfig from '../pages.json';
 
 interface PageConfig {
+    // Regex for URLs where script should be loaded
     host: string;
+
+    // Script to load
     script?: string;
+
+    // URL relative path regex where subtitle track data syncing is allowed
     path?: string;
+
+    // URL hash segment regex where subtitle track data syncing is allowed
     hash?: string;
+
+    // Whether shadow roots should be searched for video elements on this page
     searchShadowRoots?: boolean;
+
+    // Whether video elements with blank src should be bindable on this page
     allowBlankSrc?: boolean;
+
     autoSync?: {
+        // Whether to attempt to load detected subtitles automatically
         enabled: boolean;
+
+        // Video src string regex for video elemennts that should be considered for auto-syync
         videoSrc?: string;
+
+        // Video element ID regex for video elements that should be considered for auto-sync
         elementId?: string;
     };
+
     ignore?: {
+        // CSS classes that should cause video elements to be ignored for binding
         class?: string;
+        // Styles that should cause video elements to be ignored for binding
         style?: { [key: string]: string };
     };
 }

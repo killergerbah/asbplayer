@@ -110,6 +110,7 @@
                 "pages/emby-page.js",
                 "pages/osnplus-page.js",
                 "pages/bilibili-page.js",
+                "pages/nrk-tv-page.js",
                 "anki-ui.js",
                 "mp3-encoder-worker.js",
                 "pgs-parser-worker.js",
