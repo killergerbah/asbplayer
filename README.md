@@ -47,7 +47,9 @@ Suna,
 kibo,
 [@genericdave](https://github.com/genericdave),
 Daniel,
-Cristian
+Cristian,
+Joey Potter,
+[@InteractiveNinja](https://github.com/InteractiveNinja)
 
 and to those who have donated privately.
 
@@ -75,7 +77,7 @@ Thank you to all those who have translated asbplayer:
 **Leo Gonzalez** (Spanish),
 **Yuri (ganqqwerty)** (Russian)
 
-If you are a non-English native, and would like to help translate asbplayer, join the [Crowdin project](https://crowdin.com/project/asbplayer).
+If you are a non-English native, and would like to help translate asbplayer, join the [Crowdin project](https://crowdin.com/project/asbplayer). If your language isn't there, feel free to create an issue to add it on the [issues page](https://github.com/killergerbah/asbplayer/issues).
 
 ## Getting Started
 
@@ -158,7 +160,7 @@ Use <kbd>Ctrl + Shift + F</kbd> to see auto-detected subtitle tracks for streami
 
 -   Netflix
 -   Youtube
--   Disney Plus (known issue: subtitles sometimes off by ~5 seconds)
+-   Disney Plus (known issues: flakey video detection, subtitles sometimes off by ~5 seconds)
 -   Hulu
 -   TVer
 -   Bandai Channel
