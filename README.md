@@ -88,7 +88,7 @@ First, see if you can get started by following one of the [community guides](#co
 
 Otherwise, the following steps for setting up automated Anki flashcards should work for any language:
 
-1. Install and set up a dictionary tool for your target language that allows you to do instant lookups. Popular ones are [Yomitan](https://chromewebstore.google.com/detail/yomitan/likgccmbimhjbgkjambclfkhldnlhbnn) for Japanese and [VocabSieve](https://github.com/FreeLanguageTools/vocabsieve) for European languages.
+1. Install and set up a dictionary tool for your target language that allows you to do instant lookups. Popular ones are [Yomitan](https://chromewebstore.google.com/detail/yomitan/likgccmbimhjbgkjambclfkhldnlhbnn) (see [supported languages](https://yomitan.wiki/other/supported-languages/)) and [VocabSieve](https://github.com/FreeLanguageTools/vocabsieve) (tuned for European languages. Works with Asian languages too but doesn't automatically detect word boundaries).
 2. Install [Anki](https://apps.ankiweb.net/), and create a deck and note type. More details on [Refold's guide](https://refold.la/roadmap/stage-1/a/anki-setup).
 3. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
 4. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect using your deck and note type.
@@ -182,7 +182,11 @@ You can replace filtered content similarly by entering a string into the "Subtit
 Useful examples of regular expressions:
 
 -   `([(（]([^()（）]|(([(（][^()（）]+[)）])))+[)）])` : Remove names enclosed by parenthesis to indicate speakers (i.e. "**（山田）**　元気ですか？")
--   `\[.*\]` : Remove indications enclosed by brackets that sound or music that is playing (i.e. "**\[PLAYFUL MUSIC]**")
+-   `-?\[.*\]` : Remove indications enclosed by square brackets that sound or music that is playing (i.e. "**\[PLAYFUL MUSIC]**" or "**\-[GASPS]**")
+    - `^[\(\)\.\sA-ZAÂÃÀÇÉÊÍÓÔÕÚÑ]+$` : As an alternative to the above, filter out descriptions written in capital letters but without the square brackets, you descriptions that appear in capital letters. If your language has additional letters with diacritics, you feel free to add them to this list
+-   `[♪♬#～〜]+` : Any combination of symbols on their own that represent music (e.g. `♪♬♪`)
+
+Regular expressions can be combined with the character `|` (no spaces needed inbetween). E.g., if you want to use the 2 last regexes from this list, you can use `-?\[.*\]|[♪♬#～〜]+`
 
 Learn how to write and test custom regular expressions at [Regex Learn - Playground](https://regexlearn.com/playground).
 
