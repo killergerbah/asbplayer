@@ -254,6 +254,8 @@ asbplayer can be setup to support one-click mining workflows by integrating with
 5. Configure Yomitan to use the same note type you have configured for asbplayer.
 6. Using Yomitan's `+` button on asbplayer subtitles will now trigger the flashcard creator with word and definition fields pre-populated by Yomitan.
 
+The proxy is very lightweight, so it's fine to leave it running in the background. On Windows, `RBTray` can be used to minimise it to the taskbar.
+
 See the proxy's [example configuration file](https://github.com/killergerbah/asbplayer/blob/main/scripts/anki-connect-proxy/.env.example) for how to further configure it.
 
 #### WebSocket interface
