@@ -184,8 +184,8 @@ Useful examples of regular expressions:
 -   `([(（]([^()（）]|(([(（][^()（）]+[)）])))+[)）])` : Remove names enclosed by parenthesis to indicate speakers (i.e. "**（山田）**　元気ですか？")
 -   `(.*)\n+(?!-)(.*)` : Some subtitles are split in several lines and this regex forces them into a single line. For this filter to work, you must also put `$1 $2` in the "Subtitle regex filter text replacement" field.
 -   `-?\[.*\]` : Remove indications enclosed by square brackets that sound or music that is playing (i.e. "**\[PLAYFUL MUSIC]**" or "**\-[GASPS]**")
-    - `^[\(\)\.\sA-ZAÂÃÀÇÉÊÍÓÔÕÚÑ]+$` : As an alternative to the above, filter out descriptions written in capital letters but without the square brackets, you descriptions that appear in capital letters. If your language has additional letters with diacritics, you feel free to add them to this list
--   `[♪♬#～〜]+` : Any combination of symbols on their own that represent music (e.g. `♪♬♪`)
+    - `^[\(\)\.\sA-ZAÂÃÀÇÉÊÍÓÔÕÚÑ]+$` : As an alternative to the above, filter out descriptions written in capital letters, but without the square brackets (i.e. "**PLAYFUL MUSIC**"). If your language has additional letters with diacritics, you feel free to add them to this list.
+-   `[♪♬#～〜]+` : Any combination of symbols on their own that represent playing music (i.e. `♪♬♪`)
 
 Regular expressions can be combined with the character `|` (no spaces needed inbetween). E.g., if you want to use the 2 last regexes from this list, you can use `-?\[.*\]|[♪♬#～〜]+`. You can combine as many regexes as you wish this way.
 
@@ -255,7 +255,7 @@ asbplayer can be setup to support one-click mining workflows by integrating with
 5. Configure Yomitan to use the same note type you have configured for asbplayer.
 6. Using Yomitan's `+` button on asbplayer subtitles will now trigger the flashcard creator with word and definition fields pre-populated by Yomitan.
 
-The proxy is very lightweight, so it's fine to leave it running in the background. On Windows, `RBTray` can be used to minimise it to the taskbar.
+The proxy is very lightweight, so it's fine to leave it running in the background. On Windows, [RBTray](https://github.com/benbuck/rbtray) can be used to minimise it to the taskbar.
 
 See the proxy's [example configuration file](https://github.com/killergerbah/asbplayer/blob/main/scripts/anki-connect-proxy/.env.example) for how to further configure it.
 
