@@ -181,12 +181,12 @@ You can replace filtered content similarly by entering a string into the "Subtit
 
 Useful examples of regular expressions:
 
--   `([(（]([^()（）]|(([(（][^()（）]+[)）])))+[)）])` : Remove names enclosed by parenthesis to indicate speakers (i.e. "**（山田）**　元気ですか？")
+-   `([(（]([^()（）]|(([(（][^()（）]+[)）])))+[)）])` : Remove names enclosed by parenthesis to indicate speakers (e.g. "**（山田）**　元気ですか？")
 -   `(.*)\n+(?!-)(.*)` : Some subtitles are split in several lines and this regex forces them into a single line. For this filter to work, you must also put `$1 $2` in the "Subtitle regex filter text replacement" field.
     - **NB**: When using this regex pattern in combination with other patterns (using the `|` operator, see below), place this pattern at the end. This ensures that all other regex transformations are applied first, and then the results are finally combined into a single line.
--   `-?\[.*\]` : Remove indications enclosed by square brackets that sound or music that is playing (i.e. "**\[PLAYFUL MUSIC]**" or "**\-[GASPS]**")
-    - `^[-\(\)\.\sA-ZAÂÃÀÇÉÊÍÓÔÕÚÑ]+$` : As an alternative to the above, filter out descriptions written in capital letters, but without the square brackets (i.e. "**PLAYFUL MUSIC**"). If your language has additional letters with diacritics, you feel free to add them to this list.
--   `[♪♬#～〜]+` : Any combination of symbols on their own that represent playing music (i.e. `♪♬♪`)
+-   `-?\[.*\]` : Remove indications enclosed by square brackets that sound or music that is playing (e.g. "**\[PLAYFUL MUSIC]**" or "**\-[GASPS]**")
+    - `^[-\(\)\.\sA-ZAÂÃÀÇÉÊÍÓÔÕÚÑ]+$` : As an alternative to the above, filter out descriptions written in capital letters, but without the square brackets (e.g. "**PLAYFUL MUSIC**"). If your language has additional letters with diacritics, you feel free to add them to this list.
+-   `[♪♬#～〜]+` : Any combination of symbols on their own that represent playing music (e.g. `♪♬♪`)
 
 Regular expressions can be combined with the character `|` (no spaces needed inbetween). E.g., if you want to use the 2 last regexes from this list, you can use `-?\[.*\]|[♪♬#～〜]+`. You can combine as many regexes as you wish this way.
 
