@@ -3,7 +3,7 @@
     left: 50%;
     transform: translate(-50%, -100%);
     display: inline-block;
-    z-index: 2147483647;
+    z-index: 2147483646;
 }
 
 .asbplayer-subtitles-container-top {
@@ -11,7 +11,7 @@
     left: 50%;
     transform: translate(-50%);
     display: inline-block;
-    z-index: 2147483647;
+    z-index: 2147483646;
 }
 
 .asbplayer-subtitles {
@@ -39,7 +39,7 @@
     left: 50%;
     transform: translate(-50%, -100%);
     display: inline-block;
-    z-index: 2147483647 !important;
+    z-index: 2147483646 !important;
 }
 
 .asbplayer-notification-container-top {
@@ -47,7 +47,7 @@
     left: 50%;
     transform: translate(-50%);
     display: inline-block;
-    z-index: 2147483647 !important;
+    z-index: 2147483646 !important;
 }
 
 .asbplayer-notification {
