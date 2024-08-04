@@ -251,9 +251,9 @@ function SelectableSetting({
                     onChange={onSelectionChange}
                 >
                     {selections &&
-                        selections.map((s) => (
+                        ['', ...selections].map((s) => (
                             <MenuItem key={s} value={s}>
-                                {s}
+                                {s === '' ? ' ' : s}
                             </MenuItem>
                         ))}
                 </Select>
@@ -948,7 +948,7 @@ export default function SettingsForm({
                     return;
                 }
 
-                setFieldNames(['', ...(await anki.modelFieldNames(noteType, ankiConnectUrl))]);
+                setFieldNames(await anki.modelFieldNames(noteType, ankiConnectUrl));
                 setAnkiConnectUrlError(undefined);
             } catch (e) {
                 if (canceled) {
