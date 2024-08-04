@@ -49,7 +49,7 @@ export class SubtitleCollection<T extends SubtitleModel> {
             }
         } else {
             for (const s of subtitles) {
-                this.tree.insert([s.start, s.end], s);
+                this.tree.insert([s.start, s.end - 1], s);
             }
         }
     }
