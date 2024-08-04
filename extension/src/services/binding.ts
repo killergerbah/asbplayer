@@ -70,6 +70,8 @@ document.addEventListener('asbplayer-netflix-enabled', (e) => {
 });
 document.dispatchEvent(new CustomEvent('asbplayer-query-netflix'));
 
+const youtube = /(m|www)\.youtube\.com/.test(window.location.host);
+
 enum RecordingState {
     requested,
     started,
@@ -172,10 +174,6 @@ export default class Binding {
 
     get synced() {
         return this._synced;
-    }
-
-    get url() {
-        return window.location !== window.parent.location ? document.referrer : document.location.href;
     }
 
     get speedChangeStep() {
@@ -948,7 +946,7 @@ export default class Binding {
                 surroundingSubtitles: surroundingSubtitles,
                 record: this.recordMedia,
                 screenshot: this.takeScreenshot,
-                url: this.url,
+                url: this.url(subtitle.start, subtitle.end),
                 mediaTimestamp: this.video.currentTime * 1000,
                 subtitleFileName: this.subtitleFileName(subtitle.track),
                 postMineAction: postMineAction,
@@ -985,7 +983,7 @@ export default class Binding {
                     playbackRate: this.video.playbackRate,
                     screenshot: this.recordingMediaWithScreenshot,
                     videoDuration: this.video.duration * 1000,
-                    url: this.url,
+                    url: this.url(this.recordingMediaStartedTimestamp!, currentTimestamp),
                     subtitleFileName: this.subtitleFileName(),
                     ...this._imageCaptureParams,
                     ...this._surroundingSubtitlesAroundInterval(this.recordingMediaStartedTimestamp!, currentTimestamp),
@@ -1022,7 +1020,7 @@ export default class Binding {
                     record: this.recordMedia,
                     postMineAction: postMineAction,
                     screenshot: this.takeScreenshot,
-                    url: this.url,
+                    url: this.url(timestamp),
                     subtitleFileName: this.subtitleFileName(),
                     imageDelay: this.imageDelay,
                     ...this._imageCaptureParams,
@@ -1364,5 +1362,15 @@ export default class Binding {
         };
 
         chrome.runtime.sendMessage(command);
+    }
+
+    url(start: number, end?: number) {
+        if (youtube) {
+            const toSeconds = (ms: number) => Math.floor(ms / 1000);
+            const embedUrl = `https://www.youtube.com/embed/Khqwm3np9wc?start=${toSeconds(start)}&autoplay=1`;
+            return end === undefined ? embedUrl : `${embedUrl}&end=${toSeconds(end)}`;
+        }
+
+        return window.location !== window.parent.location ? document.referrer : document.location.href;
     }
 }
