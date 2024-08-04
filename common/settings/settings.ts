@@ -21,6 +21,18 @@ export interface MiscSettings {
     readonly tabName: string;
 }
 
+export type AnkiSettingsFieldKey =
+    | 'sentenceField'
+    | 'definitionField'
+    | 'audioField'
+    | 'imageField'
+    | 'wordField'
+    | 'sourceField'
+    | 'urlField'
+    | 'track1Field'
+    | 'track2Field'
+    | 'track3Field';
+
 export interface AnkiSettings {
     readonly ankiConnectUrl: string;
     readonly deck: string;
