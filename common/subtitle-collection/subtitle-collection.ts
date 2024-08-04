@@ -37,10 +37,12 @@ export class SubtitleCollection<T extends SubtitleModel> {
             }
 
             for (const s of subtitles) {
-                this.tree.insert([s.start, s.end], s);
+                if (s.start < s.end) {
+                    this.tree.insert([s.start, s.end - 1], s);
+                }
 
                 if (last !== undefined && last.end < s.start) {
-                    this.gapsTree.insert([last.end + 1, s.start - 1], last);
+                    this.gapsTree.insert([last.end, s.start - 1], last);
                 }
 
                 last = s;
@@ -80,7 +82,7 @@ export class SubtitleCollection<T extends SubtitleModel> {
             }
         } else if (this.options.showingCheckRadiusMs !== undefined) {
             for (const s of showing) {
-                if (willStopShowing === undefined && s.end < timestamp + this.options.showingCheckRadiusMs) {
+                if (willStopShowing === undefined && s.end <= timestamp + this.options.showingCheckRadiusMs) {
                     willStopShowing = s;
                 }
 
