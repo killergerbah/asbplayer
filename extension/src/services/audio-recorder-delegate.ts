@@ -23,6 +23,8 @@ export interface AudioRecorderDelegate {
 
 export class DrmProtectedStreamError extends Error {}
 
+export class AutoRecordingInProgressError extends Error {}
+
 export class OffscreenAudioRecorder implements AudioRecorderDelegate {
     private audioBase64Resolve?: (value: string) => void;
 
@@ -131,7 +133,12 @@ export class OffscreenAudioRecorder implements AudioRecorderDelegate {
                 preferMp3,
             },
         };
-        chrome.runtime.sendMessage(command);
+        const stopped = (await chrome.runtime.sendMessage(command)) as boolean;
+
+        if (stopped === false) {
+            throw new AutoRecordingInProgressError();
+        }
+
         return await this._audioBase64();
     }
 
@@ -202,7 +209,12 @@ export class CaptureStreamAudioRecorder implements AudioRecorderDelegate {
             },
             src,
         };
-        chrome.tabs.sendMessage(tabId, command);
+        const stopped = (await chrome.tabs.sendMessage(tabId, command)) as boolean;
+
+        if (stopped === false) {
+            throw new AutoRecordingInProgressError();
+        }
+
         return await this._audioBase64();
     }
 

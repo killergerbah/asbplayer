@@ -1,10 +1,14 @@
 import { bufferToBase64 } from './base64';
 
+export class AutoRecordingInProgressError extends Error {}
+
 export default class AudioRecorder {
     private recording: boolean;
     private recorder: MediaRecorder | null;
     private stream: MediaStream | null;
     private blobPromise: Promise<Blob> | null;
+    private timeoutId?: NodeJS.Timeout;
+    private timeoutResolve?: (base64: string) => void;
 
     constructor() {
         this.recording = false;
@@ -24,7 +28,9 @@ export default class AudioRecorder {
 
                 await this.start(stream);
                 onStartedCallback();
-                setTimeout(async () => {
+                this.timeoutResolve = resolve;
+                this.timeoutId = setTimeout(async () => {
+                    this.timeoutId = undefined;
                     resolve(await this.stop());
                 }, time);
             } catch (e) {
@@ -78,6 +84,16 @@ export default class AudioRecorder {
         this.stream = null;
         const blob = await this.blobPromise;
         this.blobPromise = null;
-        return await bufferToBase64(await blob!.arrayBuffer());
+        const base64 = await bufferToBase64(await blob!.arrayBuffer());
+
+        if (this.timeoutId !== undefined) {
+            clearTimeout(this.timeoutId);
+            this.timeoutId = undefined;
+            this.timeoutResolve?.(base64);
+            this.timeoutResolve = undefined;
+            throw new AutoRecordingInProgressError();
+        }
+
+        return base64;
     }
 }

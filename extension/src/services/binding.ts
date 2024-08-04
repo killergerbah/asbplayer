@@ -60,7 +60,7 @@ import { MobileVideoOverlayController } from '../controllers/mobile-video-overla
 import NotificationController from '../controllers/notification-controller';
 import SubtitleController, { SubtitleModelWithIndex } from '../controllers/subtitle-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
-import AudioRecorder from './audio-recorder';
+import AudioRecorder, { AutoRecordingInProgressError } from './audio-recorder';
 import { bufferToBase64 } from './base64';
 import { isMobile } from './device-detection';
 import { OffsetAnchor } from './element-overlay';
@@ -93,6 +93,7 @@ export default class Binding {
     private _syncedTimestamp?: number;
 
     recordingState: RecordingState = RecordingState.notRecording;
+    recordingPostMineAction?: PostMineAction;
     wasPlayingBeforeRecordingMedia?: boolean;
     postMinePlayback: PostMinePlayback = PostMinePlayback.remember;
     private recordingMediaStartedTimestamp?: number;
@@ -429,6 +430,10 @@ export default class Binding {
             };
 
             chrome.runtime.sendMessage(command);
+
+            if (this.recordingMedia && this.recordingPostMineAction !== undefined) {
+                this._toggleRecordingMedia(this.recordingPostMineAction);
+            }
         };
 
         this.seekedListener = (event) => {
@@ -761,10 +766,18 @@ export default class Binding {
                         const stopRecordingAudioMessage = request.message as StopRecordingAudioMessage;
                         this._audioRecorder
                             .stop()
-                            .then((audioBase64) =>
-                                this._sendAudioBase64(audioBase64, stopRecordingAudioMessage.preferMp3)
-                            );
-                        break;
+                            .then((audioBase64) => {
+                                sendResponse(true);
+                                this._sendAudioBase64(audioBase64, stopRecordingAudioMessage.preferMp3);
+                            })
+                            .catch((e) => {
+                                if (e instanceof AutoRecordingInProgressError) {
+                                    sendResponse(false);
+                                } else {
+                                    console.error(e);
+                                }
+                            });
+                        return true;
                     case 'notification-dialog':
                         const notificationDialogMessage = request.message as NotificationDialogMessage;
                         this.notificationController.show(
@@ -954,6 +967,7 @@ export default class Binding {
 
         if (this.recordMedia) {
             this.recordingState = RecordingState.requested;
+            this.recordingPostMineAction = postMineAction;
             this.wasPlayingBeforeRecordingMedia = !this.video.paused;
             this.recordingMediaStartedTimestamp = this.video.currentTime * 1000;
             this.recordingMediaWithScreenshot = this.takeScreenshot;
@@ -1034,6 +1048,7 @@ export default class Binding {
                 this.wasPlayingBeforeRecordingMedia = !this.video.paused;
                 this.recordingMediaStartedTimestamp = timestamp;
                 this.recordingMediaWithScreenshot = this.takeScreenshot;
+                this.recordingPostMineAction = postMineAction;
 
                 if (this.video.paused) {
                     await this.play();

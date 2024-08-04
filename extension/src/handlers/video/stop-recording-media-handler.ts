@@ -2,10 +2,8 @@ import ImageCapturer from '../../services/image-capturer';
 import {
     AudioModel,
     Command,
-    ExtensionToVideoCommand,
     ImageModel,
     Message,
-    RecordingFinishedMessage,
     StopRecordingMediaMessage,
     SubtitleModel,
     VideoToExtensionCommand,
@@ -14,6 +12,7 @@ import { SettingsProvider } from '@project/common/settings';
 import { mockSurroundingSubtitles } from '@project/common/util';
 import { CardPublisher } from '../../services/card-publisher';
 import AudioRecorderService from '../../services/audio-recorder-service';
+import { AutoRecordingInProgressError } from '../../services/audio-recorder-delegate';
 
 export default class StopRecordingMediaHandler {
     private readonly _audioRecorder: AudioRecorderService;
@@ -77,33 +76,44 @@ export default class StopRecordingMediaHandler {
         }
 
         const preferMp3 = await this._settingsProvider.getSingle('preferMp3');
-        const audioBase64 = await this._audioRecorder.stop(preferMp3, {
-            tabId: sender.tab!.id!,
-            src: stopRecordingCommand.src,
-        });
-        const audioModel: AudioModel = {
-            base64: audioBase64,
-            extension: preferMp3 ? 'mp3' : 'webm',
-            paddingStart: 0,
-            paddingEnd: 0,
-            start: stopRecordingCommand.message.startTimestamp,
-            end: stopRecordingCommand.message.endTimestamp,
-            playbackRate: stopRecordingCommand.message.playbackRate,
-        };
+        try {
+            const audioBase64 = await this._audioRecorder.stop(preferMp3, {
+                tabId: sender.tab!.id!,
+                src: stopRecordingCommand.src,
+            });
+            const audioModel: AudioModel = {
+                base64: audioBase64,
+                extension: preferMp3 ? 'mp3' : 'webm',
+                paddingStart: 0,
+                paddingEnd: 0,
+                start: stopRecordingCommand.message.startTimestamp,
+                end: stopRecordingCommand.message.endTimestamp,
+                playbackRate: stopRecordingCommand.message.playbackRate,
+            };
 
-        this._cardPublisher.publish(
-            {
-                subtitle: subtitle,
-                surroundingSubtitles: surroundingSubtitles,
-                image: imageModel,
-                audio: audioModel,
-                url: stopRecordingCommand.message.url,
-                subtitleFileName: stopRecordingCommand.message.subtitleFileName,
-                mediaTimestamp: stopRecordingCommand.message.startTimestamp,
-            },
-            stopRecordingCommand.message.postMineAction,
-            sender.tab!.id!,
-            stopRecordingCommand.src
-        );
+            this._cardPublisher.publish(
+                {
+                    subtitle: subtitle,
+                    surroundingSubtitles: surroundingSubtitles,
+                    image: imageModel,
+                    audio: audioModel,
+                    url: stopRecordingCommand.message.url,
+                    subtitleFileName: stopRecordingCommand.message.subtitleFileName,
+                    mediaTimestamp: stopRecordingCommand.message.startTimestamp,
+                },
+                stopRecordingCommand.message.postMineAction,
+                sender.tab!.id!,
+                stopRecordingCommand.src
+            );
+        } catch (e) {
+            if (!(e instanceof AutoRecordingInProgressError)) {
+                throw e;
+            }
+
+            // Else a recording scheduled from record-media-handler (or rerecord-media-handler) was in-progress
+            // and the call to stop() just above force-stopped it.
+            // We should do nothing else because execution in record-media-handler will continue
+            // and publish the card etc.
+        }
     }
 }
