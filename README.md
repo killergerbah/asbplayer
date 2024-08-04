@@ -49,7 +49,9 @@ kibo,
 Daniel,
 Cristian,
 Joey Potter,
-[@InteractiveNinja](https://github.com/InteractiveNinja)
+[@InteractiveNinja](https://github.com/InteractiveNinja),
+[@agloo](https://github.com/agloo),
+[@Venous771](https://github.com/Venous771)
 
 and to those who have donated privately.
 
