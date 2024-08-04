@@ -1,3 +1,4 @@
+import { PauseOnHoverMode } from './settings';
 import { validateSettings } from './settings-import-export';
 import { defaultSettings } from './settings-provider';
 
@@ -132,5 +133,6 @@ it('validates exported settings', () => {
         streamingCondensedPlaybackMinimumSkipIntervalMs: 1000,
         streamingScreenshotDelay: 1000,
         streamingSubtitleListPreference: 'app',
+        pauseOnHoverMode: PauseOnHoverMode.disabled,
     });
 });

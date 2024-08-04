@@ -34,6 +34,11 @@
         "play": "Siempre reproducir",
         "pause": "Siempre pausar"
     },
+    "pauseOnHoverMode": {
+        "disabled": "Disabled",
+        "inNotOut": "Enabled",
+        "inAndOut": "Enabled with auto-resume"
+    },
     "ankiDialog": {
         "applySelection": "Aplicar Selección",
         "audio": "Audio",
@@ -339,7 +344,8 @@
         "webSocketClientEnabled": "Habilitar cliente WebSocket",
         "webSocketServerUrl": "URL del servidor WebSocket",
         "firefoxExtensionShortcutHelp": "Edita este acceso directo desde el gestor de plugins en about:addons.",
-        "postMinePlayback": "Estado de reproducción post-minado"
+        "postMinePlayback": "Estado de reproducción post-minado",
+        "pauseOnHoverMode": "Auto-pause when mousing over subtitles"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Haz click, mantén y arrastra para minar múltiples subtítulos"

@@ -1,4 +1,5 @@
 import { OffscreenDomCache } from '@project/common';
+import { MouseEventHandler } from 'react';
 
 export enum OffsetAnchor {
     bottom,
@@ -19,6 +20,7 @@ export interface ElementOverlayParams {
     offsetAnchor: OffsetAnchor;
     contentPositionOffset?: number;
     contentWidthPercentage: number;
+    onMouseOver: (event: MouseEvent) => void;
 }
 
 export interface ElementOverlay {
@@ -50,6 +52,7 @@ export class CachingElementOverlay implements ElementOverlay {
     private fullscreenElementFullscreenChangeListener?: (this: any, event: Event) => any;
     private fullscreenElementFullscreenPollingInterval?: NodeJS.Timer;
     private fullscreenStylesInterval?: NodeJS.Timer;
+    private onMouseOver: (event: MouseEvent) => void;
 
     nonFullscreenContainerClassName: string;
     nonFullscreenContentClassName: string;
@@ -68,6 +71,7 @@ export class CachingElementOverlay implements ElementOverlay {
         offsetAnchor,
         contentPositionOffset,
         contentWidthPercentage,
+        onMouseOver,
     }: ElementOverlayParams) {
         this.targetElement = targetElement;
         this.nonFullscreenContainerClassName = nonFullscreenContainerClassName;
@@ -77,6 +81,7 @@ export class CachingElementOverlay implements ElementOverlay {
         this.offsetAnchor = offsetAnchor;
         this.contentPositionOffset = contentPositionOffset ?? 75;
         this.contentWidthPercentage = contentWidthPercentage;
+        this.onMouseOver = onMouseOver;
     }
 
     uncacheHtml() {
@@ -126,6 +131,7 @@ export class CachingElementOverlay implements ElementOverlay {
 
         const container = document.createElement('div');
         container.className = this.nonFullscreenContainerClassName;
+        container.onmouseover = this.onMouseOver;
         this._applyContainerStyles(container);
         document.body.appendChild(container);
 
@@ -157,6 +163,7 @@ export class CachingElementOverlay implements ElementOverlay {
 
         const container = document.createElement('div');
         container.className = this.fullscreenContainerClassName;
+        container.onmouseover = this.onMouseOver;
         this._applyContainerStyles(container);
         this._findFullscreenParentElement(container).appendChild(container);
         container.style.display = 'none';
@@ -367,6 +374,7 @@ export class DefaultElementOverlay implements ElementOverlay {
     private fullscreenElementFullscreenChangeListener?: (this: any, event: Event) => any;
     private fullscreenElementFullscreenPollingInterval?: NodeJS.Timer;
     private fullscreenStylesInterval?: NodeJS.Timer;
+    private onMouseOver: (event: MouseEvent) => void;
 
     nonFullscreenContainerClassName: string;
     nonFullscreenContentClassName: string;
@@ -385,6 +393,7 @@ export class DefaultElementOverlay implements ElementOverlay {
         offsetAnchor,
         contentPositionOffset,
         contentWidthPercentage,
+        onMouseOver,
     }: ElementOverlayParams) {
         this.targetElement = targetElement;
         this.nonFullscreenContainerClassName = nonFullscreenContainerClassName;
@@ -394,6 +403,7 @@ export class DefaultElementOverlay implements ElementOverlay {
         this.offsetAnchor = offsetAnchor;
         this.contentPositionOffset = contentPositionOffset ?? 75;
         this.contentWidthPercentage = contentWidthPercentage;
+        this.onMouseOver = onMouseOver;
     }
 
     uncacheHtml(): void {}
@@ -472,6 +482,7 @@ export class DefaultElementOverlay implements ElementOverlay {
         const container = document.createElement('div');
         container.appendChild(div);
         container.className = this.nonFullscreenContainerClassName;
+        container.onmouseover = this.onMouseOver;
         div.className = this.nonFullscreenContentClassName;
         this._applyContainerStyles(container);
         document.body.appendChild(container);
@@ -528,6 +539,7 @@ export class DefaultElementOverlay implements ElementOverlay {
         const container = document.createElement('div');
         container.appendChild(div);
         container.className = this.fullscreenContainerClassName;
+        container.onmouseover = this.onMouseOver;
         div.className = this.fullscreenContentClassName;
         this._applyContainerStyles(container);
         this._findFullscreenParentElement(container).appendChild(container);

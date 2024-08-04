@@ -1,5 +1,11 @@
 import { AutoPausePreference, PostMineAction, PostMinePlayback } from '../src/model';
 
+export enum PauseOnHoverMode {
+    disabled = 0,
+    inAndOut = 1,
+    inNotOut = 2,
+}
+
 export interface MiscSettings {
     readonly themeType: 'dark' | 'light';
     readonly copyToClipboardOnMine: boolean;
@@ -19,6 +25,7 @@ export interface MiscSettings {
     readonly postMiningPlaybackState: PostMinePlayback;
     readonly lastSubtitleOffset: number;
     readonly tabName: string;
+    readonly pauseOnHoverMode: PauseOnHoverMode;
 }
 
 export type AnkiSettingsFieldKey =

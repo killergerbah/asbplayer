@@ -61,6 +61,7 @@ export default class SubtitleController {
     onNextToShow?: (subtitle: SubtitleModel) => void;
     onSlice?: (subtitle: SubtitleSlice<SubtitleModelWithIndex>) => void;
     onOffsetChange?: () => void;
+    onMouseOver?: (event: MouseEvent) => void;
 
     constructor(video: HTMLMediaElement, settings: SettingsProvider) {
         this.video = video;
@@ -246,6 +247,7 @@ export default class SubtitleController {
                     fullscreenContentClassName: 'asbplayer-fullscreen-subtitles',
                     offsetAnchor: OffsetAnchor.bottom,
                     contentWidthPercentage: -1,
+                    onMouseOver: (event: MouseEvent) => this.onMouseOver?.(event),
                 };
                 notificationOverlayParams = {
                     targetElement: this.video,
@@ -255,6 +257,7 @@ export default class SubtitleController {
                     fullscreenContentClassName: 'asbplayer-notification',
                     offsetAnchor: OffsetAnchor.top,
                     contentWidthPercentage: -1,
+                    onMouseOver: (event: MouseEvent) => this.onMouseOver?.(event),
                 };
                 break;
             }
@@ -267,6 +270,7 @@ export default class SubtitleController {
                     fullscreenContentClassName: 'asbplayer-fullscreen-subtitles',
                     offsetAnchor: OffsetAnchor.top,
                     contentWidthPercentage: -1,
+                    onMouseOver: (event: MouseEvent) => this.onMouseOver?.(event),
                 };
                 notificationOverlayParams = {
                     targetElement: this.video,
@@ -276,6 +280,7 @@ export default class SubtitleController {
                     fullscreenContentClassName: 'asbplayer-notification',
                     offsetAnchor: OffsetAnchor.bottom,
                     contentWidthPercentage: -1,
+                    onMouseOver: (event: MouseEvent) => this.onMouseOver?.(event),
                 };
                 break;
             }
@@ -424,6 +429,10 @@ export default class SubtitleController {
 
         this.subtitlesElementOverlay.dispose();
         this.notificationElementOverlay.dispose();
+        this.onNextToShow = undefined;
+        this.onSlice = undefined;
+        this.onOffsetChange = undefined;
+        this.onMouseOver = undefined;
     }
 
     refresh() {

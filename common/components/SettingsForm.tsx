@@ -35,6 +35,7 @@ import {
     AsbplayerSettings,
     CustomAnkiFieldSettings,
     KeyBindName,
+    PauseOnHoverMode,
     SubtitleListPreference,
     TextSubtitleSettings,
     changeForTextSubtitleSetting,
@@ -832,6 +833,7 @@ export default function SettingsForm({
         streamingEnableOverlay,
         webSocketClientEnabled,
         webSocketServerUrl,
+        pauseOnHoverMode,
     } = settings;
 
     const [selectedSubtitleAppearanceTrack, setSelectedSubtitleAppearanceTrack] = useState<number>();
@@ -2412,6 +2414,52 @@ export default function SettingsForm({
                                     />
                                 }
                                 label={t('settings.autoPauseAtSubtitleEnd')}
+                            />
+                        </RadioGroup>
+                    </Grid>
+                    <Grid item>
+                        <FormLabel className={classes.top} component="legend">
+                            {t('settings.pauseOnHoverMode')}
+                        </FormLabel>
+                        <RadioGroup row={false}>
+                            <LabelWithHoverEffect
+                                control={
+                                    <Radio
+                                        checked={pauseOnHoverMode === PauseOnHoverMode.disabled}
+                                        value={PauseOnHoverMode.disabled}
+                                        onChange={(event) =>
+                                            event.target.checked &&
+                                            handleSettingChanged('pauseOnHoverMode', PauseOnHoverMode.disabled)
+                                        }
+                                    />
+                                }
+                                label={t('pauseOnHoverMode.disabled')}
+                            />
+                            <LabelWithHoverEffect
+                                control={
+                                    <Radio
+                                        checked={pauseOnHoverMode === PauseOnHoverMode.inAndOut}
+                                        value={PauseOnHoverMode.inAndOut}
+                                        onChange={(event) =>
+                                            event.target.checked &&
+                                            handleSettingChanged('pauseOnHoverMode', PauseOnHoverMode.inAndOut)
+                                        }
+                                    />
+                                }
+                                label={t('pauseOnHoverMode.inAndOut')}
+                            />
+                            <LabelWithHoverEffect
+                                control={
+                                    <Radio
+                                        checked={pauseOnHoverMode === PauseOnHoverMode.inNotOut}
+                                        value={PauseOnHoverMode.inNotOut}
+                                        onChange={(event) =>
+                                            event.target.checked &&
+                                            handleSettingChanged('pauseOnHoverMode', PauseOnHoverMode.inNotOut)
+                                        }
+                                    />
+                                }
+                                label={t('pauseOnHoverMode.inNotOut')}
                             />
                         </RadioGroup>
                     </Grid>

@@ -550,6 +550,7 @@ export default class VideoChannel {
             language,
             lastSubtitleOffset,
             tabName,
+            pauseOnHoverMode,
         } = settings;
         const message: MiscSettingsToVideoMessage = {
             command: 'miscSettings',
@@ -572,6 +573,7 @@ export default class VideoChannel {
                 language,
                 lastSubtitleOffset,
                 tabName,
+                pauseOnHoverMode,
             },
         };
         this.protocol.postMessage(message);

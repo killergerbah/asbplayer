@@ -139,6 +139,7 @@ export const defaultSettings: AsbplayerSettings = {
     streamingEnableOverlay: true,
     webSocketClientEnabled: false,
     webSocketServerUrl: 'ws://127.0.0.1:8766/ws',
+    pauseOnHoverMode: 0,
 };
 
 export interface AnkiFieldUiModel {

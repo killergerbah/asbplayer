@@ -43,7 +43,12 @@ import {
 } from '@project/common';
 import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
 import { adjacentSubtitle } from '@project/common/key-binder';
-import { extractAnkiSettings, SettingsProvider, SubtitleListPreference } from '@project/common/settings';
+import {
+    extractAnkiSettings,
+    PauseOnHoverMode,
+    SettingsProvider,
+    SubtitleListPreference,
+} from '@project/common/settings';
 import { SubtitleSlice } from '@project/common/subtitle-collection';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { extractText, seekWithNudge, sourceString, surroundingSubtitlesAroundInterval } from '@project/common/util';
@@ -92,7 +97,7 @@ export default class Binding {
     postMinePlayback: PostMinePlayback = PostMinePlayback.remember;
     private recordingMediaStartedTimestamp?: number;
     private recordingMediaWithScreenshot: boolean;
-
+    private pausedDueToHover = false;
     private _playMode: PlayMode = PlayMode.normal;
     private _speedChangeStep = 0.1;
 
@@ -122,6 +127,7 @@ export default class Binding {
     private fastForwardPlaybackMinimumGapMs = 600;
     private fastForwardModePlaybackRate = 2.7;
     private imageDelay = 0;
+    private pauseOnHoverMode: PauseOnHoverMode = PauseOnHoverMode.disabled;
     recordMedia: boolean;
 
     private playListener?: EventListener;
@@ -129,6 +135,7 @@ export default class Binding {
     private seekedListener?: EventListener;
     private playbackRateListener?: EventListener;
     private videoChangeListener?: EventListener;
+    private mouseOverListener?: EventListener;
     private listener?: (
         message: any,
         sender: chrome.runtime.MessageSender,
@@ -469,10 +476,25 @@ export default class Binding {
             }
         };
 
+        this.mouseOverListener = () => {
+            if (this.pauseOnHoverMode === PauseOnHoverMode.inAndOut && this.pausedDueToHover && this.video.paused) {
+                this.play();
+            }
+            this.pausedDueToHover = false;
+        };
+
         this.video.addEventListener('play', this.playListener);
         this.video.addEventListener('pause', this.pauseListener);
         this.video.addEventListener('seeked', this.seekedListener);
         this.video.addEventListener('ratechange', this.playbackRateListener);
+        this.video.addEventListener('mouseover', this.mouseOverListener);
+
+        this.subtitleController.onMouseOver = () => {
+            if (this.pauseOnHoverMode !== PauseOnHoverMode.disabled && !this.video.paused) {
+                this.video.pause();
+                this.pausedDueToHover = true;
+            }
+        };
 
         if (this.subSyncAvailable) {
             this.videoChangeListener = () => {
@@ -786,6 +808,7 @@ export default class Binding {
         this.copyToClipboardOnMine = currentSettings.copyToClipboardOnMine;
         this.autoPausePreference = currentSettings.autoPausePreference;
         this.alwaysPlayOnSubtitleRepeat = currentSettings.alwaysPlayOnSubtitleRepeat;
+        this.pauseOnHoverMode = currentSettings.pauseOnHoverMode;
 
         this.subtitleController.displaySubtitles = currentSettings.streamingDisplaySubtitles;
         this.subtitleController.subtitlePositionOffset = currentSettings.subtitlePositionOffset;
@@ -845,6 +868,11 @@ export default class Binding {
         if (this.videoChangeListener) {
             this.video.removeEventListener('loadedmetadata', this.videoChangeListener);
             this.videoChangeListener = undefined;
+        }
+
+        if (this.mouseOverListener) {
+            this.video.removeEventListener('mouseover', this.mouseOverListener);
+            this.mouseOverListener = undefined;
         }
 
         if (this.heartbeatInterval) {
