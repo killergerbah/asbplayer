@@ -15,6 +15,7 @@ interface CopyHistoryProps {
     forceShowDownloadOptions?: boolean;
     onClose: () => void;
     onDelete: (item: CopyHistoryItem) => void;
+    onDeleteAll: () => void;
     onAnki: (item: CopyHistoryItem) => void;
     onSelect?: (item: CopyHistoryItem) => void;
     onClipAudio: (item: CopyHistoryItem) => void;

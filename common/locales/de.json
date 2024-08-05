@@ -146,7 +146,8 @@
         "blank": "Leer",
         "downloadMinedSubsAsSrt": "Extrahierte Untertitel als SRT herunterladen",
         "exportToAnki": "Nach Anki exportieren",
-        "miningHistoryEmpty": "Keine Untertitel extrahiert"
+        "miningHistoryEmpty": "Keine Untertitel extrahiert",
+        "deleteAll": "Clear"
     },
     "error": {
         "bothAudioAndVideNotAllowed": "Cannot load both an audio and video file simultaneously",

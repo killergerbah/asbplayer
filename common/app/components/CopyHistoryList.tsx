@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { makeStyles } from '@material-ui/core/styles';
 import { timeDurationDisplay } from '../services/util';
+import Button from '@material-ui/core/Button';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
@@ -10,6 +11,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Popover from '@material-ui/core/Popover';
+import DeleteIcon from '@material-ui/icons/Delete';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import NoteAddIcon from '@material-ui/icons/NoteAdd';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
@@ -25,6 +27,7 @@ interface CopyHistoryListProps {
     items: CopyHistoryItem[];
     onClose: () => void;
     onDelete: (item: CopyHistoryItem) => void;
+    onDeleteAll: () => void;
     onAnki: (item: CopyHistoryItem) => void;
     onSelect?: (item: CopyHistoryItem) => void;
     onClipAudio: (item: CopyHistoryItem) => void;
@@ -34,10 +37,17 @@ interface CopyHistoryListProps {
 
 const useStyles = makeStyles((theme) => ({
     listContainer: {
-        position: 'relative',
+        display: 'flex',
         height: '100%',
+        flexDirection: 'column',
         overflowY: 'auto',
         overflowX: 'hidden',
+    },
+    list: {
+        flexGrow: 1,
+    },
+    clearButton: {
+        margin: theme.spacing(1.5),
     },
     listItem: {
         '&:hover': {
@@ -217,6 +227,7 @@ export default function CopyHistoryList({
     onClipAudio,
     onDownloadImage,
     onDelete,
+    onDeleteAll,
     onDownloadSectionAsSrt,
     onAnki,
 }: CopyHistoryListProps) {
@@ -336,7 +347,16 @@ export default function CopyHistoryList({
 
         content = (
             <div className={classes.listContainer}>
-                <List>{elements}</List>
+                <List className={classes.list}>{elements}</List>
+                <Button
+                    variant="contained"
+                    color="secondary"
+                    className={classes.clearButton}
+                    startIcon={<DeleteIcon />}
+                    onClick={onDeleteAll}
+                >
+                    {t('copyHistory.deleteAll')}
+                </Button>
             </div>
         );
     } else {

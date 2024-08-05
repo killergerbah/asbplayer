@@ -146,7 +146,8 @@
         "blank": "Пусто",
         "downloadMinedSubsAsSrt": "Скачать смайненные субтитры в формате SRT",
         "exportToAnki": "Экспортировать в Анки",
-        "miningHistoryEmpty": "История майнинга пуста."
+        "miningHistoryEmpty": "История майнинга пуста.",
+        "deleteAll": "Clear"
     },
     "error": {
         "bothAudioAndVideNotAllowed": "Невозможно одновременно загрузить аудиофайл и видеофайл",

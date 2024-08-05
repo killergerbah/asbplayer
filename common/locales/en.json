@@ -146,7 +146,8 @@
         "blank": "Blank",
         "downloadMinedSubsAsSrt": "Download Mined Subtitles as SRT",
         "exportToAnki": "Export to Anki",
-        "miningHistoryEmpty": "Mining history is empty."
+        "miningHistoryEmpty": "Mining history is empty.",
+        "deleteAll": "Clear"
     },
     "error": {
         "bothAudioAndVideNotAllowed": "Cannot load both an audio and video file simultaneously",

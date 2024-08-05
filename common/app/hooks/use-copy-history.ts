@@ -56,5 +56,16 @@ export const useCopyHistory = (miningHistoryStorageLimit: number) => {
         [copyHistoryRepository]
     );
 
-    return { copyHistoryItems, refreshCopyHistory, deleteCopyHistoryItem, saveCopyHistoryItem };
+    const deleteAllCopyHistoryItems = useCallback(async () => {
+        setCopyHistoryItems([]);
+        await copyHistoryRepository.clear();
+    }, [copyHistoryRepository]);
+
+    return {
+        copyHistoryItems,
+        refreshCopyHistory,
+        deleteCopyHistoryItem,
+        deleteAllCopyHistoryItems,
+        saveCopyHistoryItem,
+    };
 };

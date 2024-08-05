@@ -146,7 +146,8 @@
         "blank": "空白",
         "downloadMinedSubsAsSrt": "マイニングした字幕を SRT 形式でダウンロードする",
         "exportToAnki": "Anki にエクスポートする",
-        "miningHistoryEmpty": "マイニング履歴はありませïん"
+        "miningHistoryEmpty": "マイニング履歴はありませïん",
+        "deleteAll": "Clear"
     },
     "error": {
         "bothAudioAndVideNotAllowed": "音声と動画ファイルを同時にロードできません",

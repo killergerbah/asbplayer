@@ -72,7 +72,7 @@ export class CopyHistoryRepository {
     }
 
     async clear() {
-        await this._db.delete();
+        await this._db.copyHistoryItems.clear();
     }
 
     async fetch(count: number): Promise<CopyHistoryItem[]> {

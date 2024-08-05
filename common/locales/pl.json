@@ -146,7 +146,8 @@
         "blank": "Puste",
         "downloadMinedSubsAsSrt": "Pobierz wykopane napisy jako plik SRT",
         "exportToAnki": "Wyeksportuj do Anki",
-        "miningHistoryEmpty": "Historia kopania jest pusta."
+        "miningHistoryEmpty": "Historia kopania jest pusta.",
+        "deleteAll": "Clear"
     },
     "error": {
         "bothAudioAndVideNotAllowed": "Nie można załadować plików audio i wideo naraz",

@@ -146,7 +146,8 @@
         "blank": "空白的",
         "downloadMinedSubsAsSrt": "下载已挖掘字幕作为SRT文件",
         "exportToAnki": "导出到Anki",
-        "miningHistoryEmpty": "挖掘历史记录为空。"
+        "miningHistoryEmpty": "挖掘历史记录为空。",
+        "deleteAll": "Clear"
     },
     "error": {
         "bothAudioAndVideNotAllowed": "无法同时加载音频和视频文件",

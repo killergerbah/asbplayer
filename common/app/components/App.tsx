@@ -23,7 +23,7 @@ import { createTheme } from '@project/common/theme';
 import { AsbplayerSettings, Profile } from '@project/common/settings';
 import { humanReadableTime, download, extractText } from '@project/common/util';
 import { AudioClip } from '@project/common/audio-clip';
-import { AnkiExportMode, ExportParams } from '@project/common/anki';
+import { ExportParams } from '@project/common/anki';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { v4 as uuidv4 } from 'uuid';
 import clsx from 'clsx';
@@ -228,9 +228,13 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
     const drawerRatio = videoFrameRef.current ? 0.2 : 0.3;
     const minDrawerSize = videoFrameRef.current ? 150 : 300;
     const drawerWidth = Math.max(minDrawerSize, width * drawerRatio);
-    const { copyHistoryItems, refreshCopyHistory, deleteCopyHistoryItem, saveCopyHistoryItem } = useCopyHistory(
-        settings.miningHistoryStorageLimit
-    );
+    const {
+        copyHistoryItems,
+        refreshCopyHistory,
+        deleteCopyHistoryItem,
+        saveCopyHistoryItem,
+        deleteAllCopyHistoryItems,
+    } = useCopyHistory(settings.miningHistoryStorageLimit);
     const copyHistoryItemsRef = useRef<CopyHistoryItem[]>([]);
     copyHistoryItemsRef.current = copyHistoryItems;
     const [copyHistoryOpen, setCopyHistoryOpen] = useState<boolean>(false);
@@ -517,13 +521,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
         // so it's the only one we need to check to re-enable key events
         setDisableKeyEvents(ankiDialogOpen);
     }, [ankiDialogOpen]);
-
-    const handleDeleteCopyHistoryItem = useCallback(
-        (item: CopyHistoryItem) => {
-            deleteCopyHistoryItem(item);
-        },
-        [deleteCopyHistoryItem]
-    );
 
     const handleUnloadVideo = useCallback(
         (videoFileUrl: string) => {
@@ -1179,7 +1176,8 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                             open={effectiveCopyHistoryOpen}
                             drawerWidth={drawerWidth}
                             onClose={handleCloseCopyHistory}
-                            onDelete={handleDeleteCopyHistoryItem}
+                            onDelete={deleteCopyHistoryItem}
+                            onDeleteAll={deleteAllCopyHistoryItems}
                             onClipAudio={handleClipAudio}
                             onDownloadImage={handleDownloadImage}
                             onDownloadSectionAsSrt={handleDownloadCopyHistorySectionAsSrt}

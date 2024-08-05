@@ -146,7 +146,8 @@
         "blank": "En Blanco",
         "downloadMinedSubsAsSrt": "Descargar Subtítulos minados como SRT",
         "exportToAnki": "Exportar a Anki",
-        "miningHistoryEmpty": "El historial de minado está vacío."
+        "miningHistoryEmpty": "El historial de minado está vacío.",
+        "deleteAll": "Clear"
     },
     "error": {
         "bothAudioAndVideNotAllowed": "No pueden cargarse archivos de audio y video simultáneamente",
