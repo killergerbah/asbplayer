@@ -47,6 +47,7 @@ export default class SubtitleController {
     private subtitlesElementOverlay: ElementOverlay;
     private notificationElementOverlay: ElementOverlay;
     disabledSubtitleTracks: { [key: number]: boolean | undefined };
+    unblurredSubtitleTracks: { [key: number]: boolean | undefined };
     subtitleFileNames?: string[];
     _forceHideSubtitles: boolean;
     _displaySubtitles: boolean;
@@ -78,6 +79,7 @@ export default class SubtitleController {
         this.subtitleCollection = new SubtitleCollection<SubtitleModelWithIndex>([]);
         this.showingSubtitles = [];
         this.disabledSubtitleTracks = {};
+        this.unblurredSubtitleTracks = {};
         this._forceHideSubtitles = false;
         this._displaySubtitles = true;
         this.lastLoadedMessageTimestamp = 0;
@@ -159,11 +161,11 @@ export default class SubtitleController {
     }
 
     private _computeClasses(settings: SubtitleSettings) {
-        return allTextSubtitleSettings(settings).map((s) => this._computeClassesForTrack(s));
+        return allTextSubtitleSettings(settings).map((s, i) => this._computeClassesForTrack(s, this.unblurredSubtitleTracks[i]));
     }
 
-    private _computeClassesForTrack(settings: TextSubtitleSettings) {
-        return settings.subtitleBlur ? 'asbplayer-subtitles-blurred' : '';
+    private _computeClassesForTrack(settings: TextSubtitleSettings, unblurState: boolean | undefined) {
+        return settings.subtitleBlur && !unblurState ? 'asbplayer-subtitles-blurred' : '';
     }
 
     set subtitleAlignment(value: SubtitleAlignment) {
@@ -325,21 +327,25 @@ export default class SubtitleController {
                 this.onNextToShow?.(slice.nextToShow[0]);
             }
 
+            let shouldUnblur = false;
+            if (this.subtitleSettings) {
+                let classesNew = this._computeClasses(this.subtitleSettings);
+                shouldUnblur = this.subtitleClasses === undefined || !this._arrayEquals(classesNew, this.subtitleClasses, (a, b) => a === b);
+                this.subtitleClasses = classesNew;
+                this.cacheHtml();
+            }
+
             const subtitlesAreNew =
                 this.showingSubtitles === undefined ||
                 !this._arrayEquals(showingSubtitles, this.showingSubtitles, (a, b) => a.index === b.index);
 
-            if (subtitlesAreNew) {
-                this.showingSubtitles = showingSubtitles;
-                this._autoCopyToClipboard(showingSubtitles);
-            }
 
             const shouldRenderOffset =
                 (showOffset && offset !== this.showingOffset) || (!showOffset && this.showingOffset !== undefined);
 
             if ((!showOffset && !this._displaySubtitles) || this._forceHideSubtitles) {
                 this.subtitlesElementOverlay.hide();
-            } else if (subtitlesAreNew || shouldRenderOffset) {
+            } else if (subtitlesAreNew || shouldRenderOffset || shouldUnblur) {
                 this._renderSubtitles(showingSubtitles);
 
                 if (showOffset) {
@@ -348,6 +354,12 @@ export default class SubtitleController {
                 } else {
                     this.showingOffset = undefined;
                 }
+            }
+
+            if (subtitlesAreNew) {
+                this.showingSubtitles = showingSubtitles;
+                this._autoCopyToClipboard(showingSubtitles);
+                this.unblurredSubtitleTracks = {};
             }
         }, 100);
     }
