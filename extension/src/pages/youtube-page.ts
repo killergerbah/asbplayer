@@ -1,5 +1,20 @@
 import { VideoData } from '@project/common';
 
+declare global {
+    interface Window {
+        trustedTypes?: any;
+    }
+}
+
+let trustedPolicy: any = undefined;
+
+if (window.trustedTypes !== undefined) {
+    trustedPolicy = window.trustedTypes.createPolicy('passThrough', {
+        createHTML: (s: string) => s,
+        createScript: (s: string) => s,
+    });
+}
+
 document.addEventListener(
     'asbplayer-get-synced-data',
     async () => {
@@ -15,7 +30,13 @@ document.addEventListener(
                     }
                     return webResponse.text();
                 })
-                .then((pageString) => new window.DOMParser().parseFromString(pageString, 'text/html'))
+                .then((pageString) => {
+                    if (trustedPolicy !== undefined) {
+                        pageString = trustedPolicy.createHTML(pageString);
+                    }
+
+                    return new window.DOMParser().parseFromString(pageString, 'text/html');
+                })
                 .then((page) => {
                     const scriptElements = page.body.querySelectorAll('script');
 
@@ -23,7 +44,13 @@ document.addEventListener(
                         const elm = scriptElements[i];
 
                         if (elm.textContent?.includes('ytInitialPlayerResponse')) {
-                            const context = new Function(`${elm.textContent}; return ytInitialPlayerResponse;`)();
+                            let scriptString = `${elm.textContent}; return ytInitialPlayerResponse;`;
+
+                            if (trustedPolicy !== undefined) {
+                                scriptString = trustedPolicy.createScript(scriptString);
+                            }
+
+                            const context = new Function(scriptString)();
 
                             if (context) {
                                 return context;
