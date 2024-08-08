@@ -22,16 +22,7 @@ if (window.trustedTypes !== undefined) {
     trustedPolicy = window.trustedTypes.createPolicy('passThrough', {
         createHTML: (s: string) => s,
         createScript: (s: string) => s,
-        createScriptURL: (s: string) => s,
     });
-
-    if (window.trustedTypes.defaultPolicy === null) {
-        window.trustedTypes.createPolicy('default', {
-            createHTML: (s: string) => s,
-            createScript: (s: string) => s,
-            createScriptURL: (s: string) => s,
-        });
-    }
 }
 
 document.addEventListener(
