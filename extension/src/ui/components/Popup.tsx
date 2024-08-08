@@ -117,6 +117,7 @@ const Popup = ({
                     extensionSupportsOrderableAnkiFields
                     extensionSupportsTrackSpecificSettings
                     extensionSupportsSubtitlesWidthSetting
+                    extensionSupportsPauseOnHover
                     forceVerticalTabs={false}
                     anki={anki}
                     chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}
