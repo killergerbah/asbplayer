@@ -1410,8 +1410,12 @@ export default class Binding {
     url(start: number, end?: number) {
         if (youtube) {
             const toSeconds = (ms: number) => Math.floor(ms / 1000);
-            const embedUrl = `https://www.youtube.com/embed/Khqwm3np9wc?start=${toSeconds(start)}&autoplay=1`;
-            return end === undefined ? embedUrl : `${embedUrl}&end=${toSeconds(end)}`;
+            const videoId = new URLSearchParams(window.location.search).get('v');
+
+            if (videoId !== null) {
+                const embedUrl = `https://www.youtube.com/embed/${videoId}?start=${toSeconds(start)}&autoplay=1`;
+                return end === undefined ? embedUrl : `${embedUrl}&end=${toSeconds(end)}`;
+            }
         }
 
         return window.location !== window.parent.location ? document.referrer : document.location.href;
