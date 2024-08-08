@@ -34,6 +34,11 @@
         "play": "Always play",
         "pause": "Always pause"
     },
+    "pauseOnHoverMode": {
+        "disabled": "Disabled",
+        "inNotOut": "Enabled",
+        "inAndOut": "Enabled with auto-resume"
+    },
     "ankiDialog": {
         "applySelection": "Apply Selection",
         "audio": "Audio",
@@ -141,7 +146,8 @@
         "blank": "Blank",
         "downloadMinedSubsAsSrt": "Download Mined Subtitles as SRT",
         "exportToAnki": "Export to Anki",
-        "miningHistoryEmpty": "Mining history is empty."
+        "miningHistoryEmpty": "Mining history is empty.",
+        "deleteAll": "Clear"
     },
     "error": {
         "bothAudioAndVideNotAllowed": "Cannot load both an audio and video file simultaneously",
@@ -323,6 +329,7 @@
         "subtitleRegexFilterTextReplacement": "Subtitle regex filter text replacement",
         "subtitleSize": "Subtitle Size",
         "subtitleThickness": "Subtitle Font Thickness",
+        "subtitlesWidth": "Subtitles Width",
         "surroundingSubtitlesCountRadius": "Surrounding Subtitles Count Radius",
         "surroundingSubtitlesTimeRadius": "Surrounding Subtitles Time Radius",
         "tags": "Tags",
@@ -338,7 +345,8 @@
         "webSocketClientEnabled": "Enable WebSocket client",
         "webSocketServerUrl": "WebSocket Server URL",
         "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons.",
-        "postMinePlayback": "Post-mining playback state"
+        "postMinePlayback": "Post-mining playback state",
+        "pauseOnHoverMode": "Auto-pause when mousing over subtitles"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Click, hold, and drag to mine multiple subtitles"
