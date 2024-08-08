@@ -9,6 +9,16 @@ declare global {
 let trustedPolicy: any = undefined;
 
 if (window.trustedTypes !== undefined) {
+    // YouTube doesn't define a default policy
+    // we create a default policy to avoid errors that seem to be caused by chrome not supporting trustedScripts in Function sinks
+    // If YT enforce a strict default policy in the future, we may need to revisit this
+    if (window.trustedTypes.defaultPolicy === null) {
+        window.trustedTypes.createPolicy('default', {
+            createHTML: (s: string) => s,
+            createScript: (s: string) => s,
+            createScriptURL: (s: string) => s,
+        });
+    }
     trustedPolicy = window.trustedTypes.createPolicy('passThrough', {
         createHTML: (s: string) => s,
         createScript: (s: string) => s,
