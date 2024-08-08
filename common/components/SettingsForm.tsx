@@ -638,6 +638,7 @@ interface Props {
     extensionSupportsOrderableAnkiFields: boolean;
     extensionSupportsTrackSpecificSettings: boolean;
     extensionSupportsSubtitlesWidthSetting: boolean;
+    extensionSupportsPauseOnHover: boolean;
     insideApp?: boolean;
     settings: AsbplayerSettings;
     scrollToId?: string;
@@ -665,6 +666,7 @@ export default function SettingsForm({
     extensionSupportsOrderableAnkiFields,
     extensionSupportsTrackSpecificSettings,
     extensionSupportsSubtitlesWidthSetting,
+    extensionSupportsPauseOnHover,
     insideApp,
     scrollToId,
     chromeKeyBinds,
@@ -2417,52 +2419,54 @@ export default function SettingsForm({
                             />
                         </RadioGroup>
                     </Grid>
-                    <Grid item>
-                        <FormLabel className={classes.top} component="legend">
-                            {t('settings.pauseOnHoverMode')}
-                        </FormLabel>
-                        <RadioGroup row={false}>
-                            <LabelWithHoverEffect
-                                control={
-                                    <Radio
-                                        checked={pauseOnHoverMode === PauseOnHoverMode.disabled}
-                                        value={PauseOnHoverMode.disabled}
-                                        onChange={(event) =>
-                                            event.target.checked &&
-                                            handleSettingChanged('pauseOnHoverMode', PauseOnHoverMode.disabled)
-                                        }
-                                    />
-                                }
-                                label={t('pauseOnHoverMode.disabled')}
-                            />
-                            <LabelWithHoverEffect
-                                control={
-                                    <Radio
-                                        checked={pauseOnHoverMode === PauseOnHoverMode.inAndOut}
-                                        value={PauseOnHoverMode.inAndOut}
-                                        onChange={(event) =>
-                                            event.target.checked &&
-                                            handleSettingChanged('pauseOnHoverMode', PauseOnHoverMode.inAndOut)
-                                        }
-                                    />
-                                }
-                                label={t('pauseOnHoverMode.inAndOut')}
-                            />
-                            <LabelWithHoverEffect
-                                control={
-                                    <Radio
-                                        checked={pauseOnHoverMode === PauseOnHoverMode.inNotOut}
-                                        value={PauseOnHoverMode.inNotOut}
-                                        onChange={(event) =>
-                                            event.target.checked &&
-                                            handleSettingChanged('pauseOnHoverMode', PauseOnHoverMode.inNotOut)
-                                        }
-                                    />
-                                }
-                                label={t('pauseOnHoverMode.inNotOut')}
-                            />
-                        </RadioGroup>
-                    </Grid>
+                    {(!extensionInstalled || extensionSupportsPauseOnHover) && (
+                        <Grid item>
+                            <FormLabel className={classes.top} component="legend">
+                                {t('settings.pauseOnHoverMode')}
+                            </FormLabel>
+                            <RadioGroup row={false}>
+                                <LabelWithHoverEffect
+                                    control={
+                                        <Radio
+                                            checked={pauseOnHoverMode === PauseOnHoverMode.disabled}
+                                            value={PauseOnHoverMode.disabled}
+                                            onChange={(event) =>
+                                                event.target.checked &&
+                                                handleSettingChanged('pauseOnHoverMode', PauseOnHoverMode.disabled)
+                                            }
+                                        />
+                                    }
+                                    label={t('pauseOnHoverMode.disabled')}
+                                />
+                                <LabelWithHoverEffect
+                                    control={
+                                        <Radio
+                                            checked={pauseOnHoverMode === PauseOnHoverMode.inAndOut}
+                                            value={PauseOnHoverMode.inAndOut}
+                                            onChange={(event) =>
+                                                event.target.checked &&
+                                                handleSettingChanged('pauseOnHoverMode', PauseOnHoverMode.inAndOut)
+                                            }
+                                        />
+                                    }
+                                    label={t('pauseOnHoverMode.inAndOut')}
+                                />
+                                <LabelWithHoverEffect
+                                    control={
+                                        <Radio
+                                            checked={pauseOnHoverMode === PauseOnHoverMode.inNotOut}
+                                            value={PauseOnHoverMode.inNotOut}
+                                            onChange={(event) =>
+                                                event.target.checked &&
+                                                handleSettingChanged('pauseOnHoverMode', PauseOnHoverMode.inNotOut)
+                                            }
+                                        />
+                                    }
+                                    label={t('pauseOnHoverMode.inNotOut')}
+                                />
+                            </RadioGroup>
+                        </Grid>
+                    )}
                     <Grid item>
                         <TextField
                             type="number"

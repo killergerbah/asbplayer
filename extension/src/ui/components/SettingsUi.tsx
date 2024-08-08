@@ -93,6 +93,7 @@ const SettingsUi = () => {
                             extensionSupportsOrderableAnkiFields
                             extensionSupportsTrackSpecificSettings
                             extensionSupportsSubtitlesWidthSetting
+                            extensionSupportsPauseOnHover
                             chromeKeyBinds={commands}
                             onOpenChromeExtensionShortcuts={handleOpenExtensionShortcuts}
                             onSettingsChanged={onSettingsChanged}
