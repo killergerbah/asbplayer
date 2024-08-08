@@ -35,9 +35,9 @@
         "pause": "常に停止する"
     },
     "pauseOnHoverMode": {
-        "disabled": "Disabled",
-        "inNotOut": "Enabled",
-        "inAndOut": "Enabled with auto-resume"
+        "disabled": "無効",
+        "inNotOut": "有効",
+        "inAndOut": "有効。マウスカーソルを外すと自動再生。"
     },
     "ankiDialog": {
         "applySelection": "選択範囲を適用する",
@@ -93,7 +93,7 @@
         "extensionToggleRecording": "字幕ファイルがロードされていても手動で録音を開始/終了する。",
         "extensionUpdateLastCard": "最後に作成した Anki カードに asbplayer でキャプチャしたメディアを添付して更新する。動画が字幕ファイルなしで同期されている場合、録音を開始/停止する。",
         "increaseOffset": "字幕の表示タイミング +100ms",
-        "increasePlaybackRate": "再生速度を下げる",
+        "increasePlaybackRate": "再生速度を上げる",
         "resetOffset": "字幕の表示タイミングをリセット",
         "seekBackward": "10 秒巻き戻し",
         "seekBackwardOrForward": "10 秒巻き戻し/早送り",
@@ -346,7 +346,7 @@
         "webSocketServerUrl": "WebSocketサーバーのURL",
         "firefoxExtensionShortcutHelp": "ショートカットの編集はプラグイン管理 （about:addons）で行えます。",
         "postMinePlayback": "マイニング後のプレイバック状態",
-        "pauseOnHoverMode": "Auto-pause when mousing over subtitles"
+        "pauseOnHoverMode": "マウスカーソルを字幕に重ねると自動一時停止"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"
