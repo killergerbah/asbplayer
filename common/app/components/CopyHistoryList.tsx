@@ -47,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
         flexGrow: 1,
     },
     clearButton: {
-        margin: theme.spacing(1.5),
+        margin: theme.spacing(2),
     },
     listItem: {
         '&:hover': {
