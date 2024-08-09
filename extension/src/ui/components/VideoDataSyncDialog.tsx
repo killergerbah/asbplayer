@@ -51,8 +51,8 @@ interface Props {
     isLoading: boolean;
     suggestedName: string;
     showSubSelect: boolean;
-    subtitles: VideoDataSubtitleTrack[];
-    selectedSubtitle: string[];
+    subtitleTracks: VideoDataSubtitleTrack[];
+    selectedSubtitleTrackIds: string[];
     defaultCheckboxState: boolean;
     error: string;
     openedFromMiningCommand: boolean;
@@ -67,8 +67,8 @@ export default function VideoDataSyncDialog({
     isLoading,
     suggestedName,
     showSubSelect,
-    subtitles,
-    selectedSubtitle,
+    subtitleTracks,
+    selectedSubtitleTrackIds,
     defaultCheckboxState,
     error,
     openedFromMiningCommand,
@@ -86,14 +86,14 @@ export default function VideoDataSyncDialog({
     useEffect(() => {
         if (open) {
             setSelectedSubtitles(
-                selectedSubtitle.map((language) => {
-                    return language !== undefined ? language : '-';
+                selectedSubtitleTrackIds.map((id) => {
+                    return id !== undefined ? id : '-';
                 })
             );
         } else if (!open) {
             setName('');
         }
-    }, [open, selectedSubtitle]);
+    }, [open, selectedSubtitleTrackIds]);
 
     useEffect(() => {
         if (open) {
@@ -103,7 +103,7 @@ export default function VideoDataSyncDialog({
 
     useEffect(() => {
         setName((name) => {
-            if (!subtitles) {
+            if (!subtitleTracks) {
                 // Unable to calculate the video name
                 return name;
             }
@@ -114,9 +114,9 @@ export default function VideoDataSyncDialog({
             if (
                 !name ||
                 name === suggestedName ||
-                subtitles.find((track) => track.url !== '-' && name === calculateName(suggestedName, track.label))
+                subtitleTracks.find((track) => track.url !== '-' && name === calculateName(suggestedName, track.label))
             ) {
-                const selectedTrack = subtitles.find((track) => track.language === selectedSubtitles[0])!;
+                const selectedTrack = subtitleTracks.find((track) => track.id === selectedSubtitles[0])!;
 
                 if (selectedTrack.url === '-') {
                     return suggestedName;
@@ -128,7 +128,7 @@ export default function VideoDataSyncDialog({
             // Otherwise, let the name be whatever the user set it to
             return name;
         });
-    }, [suggestedName, selectedSubtitles, subtitles]);
+    }, [suggestedName, selectedSubtitles, subtitleTracks]);
 
     function handleOkButtonClick() {
         const selectedSubtitleTracks: ConfirmedVideoDataSubtitleTrack[] = allSelectedSubtitleTracks();
@@ -142,15 +142,12 @@ export default function VideoDataSyncDialog({
     function allSelectedSubtitleTracks() {
         const selectedSubtitleTracks: ConfirmedVideoDataSubtitleTrack[] = selectedSubtitles
             .map((selected): ConfirmedVideoDataSubtitleTrack | undefined => {
-                const subtitle = subtitles.find((subtitle) => subtitle.language === selected);
+                const subtitle = subtitleTracks.find((subtitle) => subtitle.id === selected);
                 if (subtitle) {
-                    const { language, url, extension, m3U8BaseUrl } = subtitle;
+                    const { language } = subtitle;
                     return {
                         name: suggestedName.trim() + language.trim(),
-                        extension: extension,
-                        subtitleUrl: url,
-                        language: language,
-                        m3U8BaseUrl: m3U8BaseUrl,
+                        ...subtitle,
                     };
                 }
             })
@@ -187,8 +184,8 @@ export default function VideoDataSyncDialog({
                                 })
                             }
                         >
-                            {subtitles.map((subtitle) => (
-                                <MenuItem value={subtitle.language} key={subtitle.language}>
+                            {subtitleTracks.map((subtitle) => (
+                                <MenuItem value={subtitle.id} key={subtitle.id}>
                                     {subtitle.label}
                                 </MenuItem>
                             ))}

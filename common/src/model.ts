@@ -133,7 +133,7 @@ export interface AnkiUiSavedState {
     dialogRequestedTimestamp: number;
 }
 
-export interface VideoDataSubtitleTrack {
+export interface VideoDataSubtitleTrackDef {
     label: string;
     language: string;
     url: string;
@@ -141,12 +141,12 @@ export interface VideoDataSubtitleTrack {
     extension: string;
 }
 
-export interface ConfirmedVideoDataSubtitleTrack {
+export interface VideoDataSubtitleTrack extends VideoDataSubtitleTrackDef {
+    id: string;
+}
+
+export interface ConfirmedVideoDataSubtitleTrack extends VideoDataSubtitleTrack {
     name: string;
-    language: string;
-    subtitleUrl: string;
-    m3U8BaseUrl?: string;
-    extension: string;
 }
 
 export interface VideoData {

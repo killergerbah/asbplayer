@@ -1,5 +1,5 @@
-import { VideoDataSubtitleTrack } from '@project/common';
-import { extractExtension, inferTracks } from './util';
+import { VideoDataSubtitleTrack, VideoDataSubtitleTrackDef } from '@project/common';
+import { extractExtension, inferTracks, trackId } from './util';
 import { parse } from 'mpd-parser';
 
 export interface Playlist {
@@ -9,7 +9,7 @@ export interface Playlist {
 
 export const inferTracksFromInterceptedMpd = (
     mpdUrlRegex: RegExp,
-    trackExtractor: (playlist: Playlist, language: string) => VideoDataSubtitleTrack | undefined
+    trackExtractor: (playlist: Playlist, language: string) => VideoDataSubtitleTrackDef | undefined
 ) => {
     const originalFetch = window.fetch;
 
@@ -42,7 +42,8 @@ export const inferTracksFromInterceptedMpd = (
                 const track = trackExtractor(playlist, language);
 
                 if (track !== undefined) {
-                    tracks.push(track);
+                    const id = trackId(track);
+                    tracks.push({ id, ...track });
                 }
             }
         }

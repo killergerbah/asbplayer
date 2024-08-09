@@ -84,6 +84,7 @@ export default class VideoDataSyncController {
         this._autoSync = false;
         this._lastLanguagesSynced = {};
         this._emptySubtitle = {
+            id: '-',
             language: '-',
             url: '-',
             label: i18n.t('extension.videoDataSync.emptySubtitleTrack'),
@@ -221,7 +222,7 @@ export default class VideoDataSyncController {
                       openedFromMiningCommand,
                       defaultCheckboxState: defaultCheckboxState,
                   };
-            state.selectedSubtitle = selectedSub.map((subtitle) => subtitle.language || '-');
+            state.selectedSubtitle = selectedSub.map((subtitle) => subtitle.id || '-');
             const client = await this._client();
             this._prepareShow();
             client.updateState(state);
@@ -418,8 +419,8 @@ export default class VideoDataSyncController {
             let subtitles: SerializedSubtitleFile[] = [];
 
             for (let i = 0; i < data.length; i++) {
-                const { name, language, extension, subtitleUrl, m3U8BaseUrl } = data[i];
-                const subtitleFiles = await this._subtitlesForUrl(name, language, extension, subtitleUrl, m3U8BaseUrl);
+                const { name, language, extension, url, m3U8BaseUrl } = data[i];
+                const subtitleFiles = await this._subtitlesForUrl(name, language, extension, url, m3U8BaseUrl);
                 if (subtitleFiles !== undefined) {
                     subtitles.push(...subtitleFiles);
                 }
@@ -556,24 +557,10 @@ export default class VideoDataSyncController {
 
         this._prepareShow();
 
-        const subtitleTrackChoices = this._syncedData?.subtitles ?? [];
-        let selectedSub: VideoDataSubtitleTrack[] = [this._emptySubtitle, this._emptySubtitle, this._emptySubtitle];
-        for (let i = 0; i < this.lastLanguageSynced.length; i++) {
-            const language = this.lastLanguageSynced[i];
-            for (let j = 0; j < subtitleTrackChoices.length; j++) {
-                if (language === subtitleTrackChoices[j].language) {
-                    selectedSub[i] = subtitleTrackChoices[j];
-                    break;
-                }
-            }
-        }
-
         return client.updateState({
             open: true,
             isLoading: false,
             showSubSelect: true,
-            subtitles: this._syncedData?.subtitles || [],
-            selectedSubtitle: selectedSub.map((subtitle) => subtitle.language) || '-',
             error,
             themeType: themeType,
         });

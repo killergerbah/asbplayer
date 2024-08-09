@@ -30,9 +30,9 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [suggestedName, setSuggestedName] = useState<string>('');
     const [showSubSelect, setShowSubSelect] = useState<boolean>(true);
     const [subtitles, setSubtitles] = useState<VideoDataSubtitleTrack[]>([
-        { language: '-', url: '-', label: t('extension.videoDataSync.emptySubtitleTrack'), extension: 'srt' },
+        { id: '-', language: '-', url: '-', label: t('extension.videoDataSync.emptySubtitleTrack'), extension: 'srt' },
     ]);
-    const [selectedSubtitle, setSelectedSubtitle] = useState<string[]>(['-', '-', '-']);
+    const [selectedSubtitleTrackIds, setSelectedSubtitleTrackIds] = useState<string[]>(['-', '-', '-']);
     const [defaultCheckboxState, setDefaultCheckboxState] = useState<boolean>(false);
     const [openedFromMiningCommand, setOpenedFromMiningCommand] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
@@ -80,6 +80,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
             if (Object.prototype.hasOwnProperty.call(state, 'subtitles')) {
                 setSubtitles([
                     {
+                        id: '-',
                         language: '-',
                         url: '-',
                         label: t('extension.videoDataSync.emptySubtitleTrack'),
@@ -90,7 +91,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
             }
 
             if (Object.prototype.hasOwnProperty.call(state, 'selectedSubtitle')) {
-                setSelectedSubtitle(state.selectedSubtitle);
+                setSelectedSubtitleTrackIds(state.selectedSubtitle);
             }
 
             if (Object.prototype.hasOwnProperty.call(state, 'defaultCheckboxState')) {
@@ -151,8 +152,8 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                 isLoading={isLoading}
                 suggestedName={suggestedName}
                 showSubSelect={showSubSelect}
-                subtitles={subtitles}
-                selectedSubtitle={selectedSubtitle}
+                subtitleTracks={subtitles}
+                selectedSubtitleTrackIds={selectedSubtitleTrackIds}
                 defaultCheckboxState={defaultCheckboxState}
                 openedFromMiningCommand={openedFromMiningCommand}
                 error={error}

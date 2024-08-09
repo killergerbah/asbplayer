@@ -1,5 +1,5 @@
-import { VideoData } from '@project/common';
-import { poll } from './util';
+import { VideoData, VideoDataSubtitleTrack } from '@project/common';
+import { poll, trackFromDef } from './util';
 
 declare const netflix: any | undefined;
 
@@ -132,19 +132,19 @@ setTimeout(() => {
         return basename;
     }
 
-    const dataForTrack = (track: any, storedTracks: Map<string, string>) => {
+    const dataForTrack = (track: any, storedTracks: Map<string, string>): VideoDataSubtitleTrack => {
         const isClosedCaptions = 'CLOSEDCAPTIONS' === track.rawTrackType;
         const language = isClosedCaptions ? `${track.bcp47.toLowerCase()}-CC` : track.bcp47.toLowerCase();
         const label = `${track.bcp47} - ${track.displayName}${isClosedCaptions ? ' [CC]' : ''}`;
 
-        return {
+        return trackFromDef({
             label,
             language,
             // 'lazy' is a sentinel value indicating to the content script that it should
             // make a lazy language-specific request to get the URL
             url: storedTracks.get(track.trackId) ?? 'lazy',
             extension: 'nfvtt',
-        };
+        });
     };
 
     const buildResponse = async () => {

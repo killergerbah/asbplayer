@@ -1,4 +1,5 @@
 import { VideoData } from '@project/common';
+import { trackFromDef } from './util';
 
 declare global {
     interface Window {
@@ -80,12 +81,12 @@ document.addEventListener(
             response.basename = playerContext.videoDetails?.title || document.title;
             response.subtitles = (playerContext?.captions?.playerCaptionsTracklistRenderer?.captionTracks || []).map(
                 (track: any) => {
-                    return {
+                    return trackFromDef({
                         label: `${track.languageCode} - ${track.name?.simpleText ?? track.name?.runs?.[0]?.text}`,
                         language: track.languageCode.toLowerCase(),
                         url: track.baseUrl,
                         extension: 'ytxml',
-                    };
+                    });
                 }
             );
         } catch (error) {
