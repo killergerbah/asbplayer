@@ -9,12 +9,11 @@ declare global {
 let trustedPolicy: any = undefined;
 
 if (window.trustedTypes !== undefined) {
-    trustedPolicy = window.trustedTypes.createPolicy('passThrough', {
-        createHTML: (s: string) => s,
-        createScript: (s: string) => s,
-        createScriptURL: (s: string) => s,
-    });
-
+    // YouTube doesn't define a default policy
+    // we create a default policy to avoid errors that seem to be caused by chrome not supporting trustedScripts in Function sinks
+    // If YT enforce a strict default policy in the future, we may need to revisit this
+    // hopefully by then chrome will have fixed the issue: https://wpt.fyi/results/trusted-types/eval-function-constructor.html
+    // (in chrome 127 the final test was failing)
     if (window.trustedTypes.defaultPolicy === null) {
         window.trustedTypes.createPolicy('default', {
             createHTML: (s: string) => s,
@@ -22,6 +21,10 @@ if (window.trustedTypes !== undefined) {
             createScriptURL: (s: string) => s,
         });
     }
+    trustedPolicy = window.trustedTypes.createPolicy('passThrough', {
+        createHTML: (s: string) => s,
+        createScript: (s: string) => s,
+    });
 }
 
 document.addEventListener(
