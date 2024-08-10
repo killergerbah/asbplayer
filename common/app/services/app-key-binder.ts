@@ -231,12 +231,12 @@ export default class AppKeyBinder implements KeyBinder {
         );
     }
 
-    bindUnblurTrack(
-        onUnblurTrack: (event: KeyboardEvent, track: number) => void,
+    bindToggleBlurTrack(
+        onToggleBlurTrack: (event: KeyboardEvent, track: number) => void,
         disabledGetter: () => boolean,
         useCapture?: boolean | undefined
     ): () => void {
-        return this.defaultKeyBinder.bindUnblurTrack(onUnblurTrack, disabledGetter, useCapture);
+        return this.defaultKeyBinder.bindToggleBlurTrack(onToggleBlurTrack, disabledGetter, useCapture);
     }
 
     bindPlay(

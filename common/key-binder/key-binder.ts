@@ -110,8 +110,8 @@ export interface KeyBinder {
         disabledGetter: () => boolean,
         capture?: boolean
     ): () => void;
-    bindUnblurTrack(
-        onUnblurTrack: (event: KeyboardEvent, track: number) => void,
+    bindToggleBlurTrack(
+        onToggleBlurTrack: (event: KeyboardEvent, track: number) => void,
         disabledGetter: () => boolean,
         capture?: boolean
     ): () => void;
@@ -654,15 +654,15 @@ export class DefaultKeyBinder implements KeyBinder {
         };
     }
 
-    bindUnblurTrack(
-        onUnblurTrack: (event: KeyboardEvent, track: number) => void,
+    bindToggleBlurTrack(
+        onToggleBlurTrack: (event: KeyboardEvent, track: number) => void,
         disabledGetter: () => boolean,
         capture = false
     ) {
         const shortcuts = [
-            this.keyBindSet.unblurTrack1.keys,
-            this.keyBindSet.unblurTrack2.keys,
-            this.keyBindSet.unblurTrack3.keys,
+            this.keyBindSet.toggleAsbplayerBlurTrack1.keys,
+            this.keyBindSet.toggleAsbplayerBlurTrack2.keys,
+            this.keyBindSet.toggleAsbplayerBlurTrack3.keys,
         ].filter((s) => s);
 
         if (shortcuts.length === 0) {
@@ -674,7 +674,7 @@ export class DefaultKeyBinder implements KeyBinder {
                 return false;
             }
 
-            onUnblurTrack(event, track);
+            onToggleBlurTrack(event, track);
             return true;
         };
         let unbindHandlers: (() => void)[] = [];
