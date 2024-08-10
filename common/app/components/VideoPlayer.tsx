@@ -198,7 +198,12 @@ const ShowingSubtitle = ({
             />
         );
     } else {
-        content = <span style={subtitleStyles}>{subtitle.text}</span>;
+        const lines = subtitle.text.split('\n');
+        content = lines.map((line, index) => (
+            <p key={index} className="subtitle-line" style={subtitleStyles}>
+                {line}
+            </p>
+        ));
     }
 
     return (
