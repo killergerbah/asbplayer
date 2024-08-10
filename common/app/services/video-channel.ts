@@ -412,6 +412,7 @@ export default class VideoChannel {
             subtitleAlignment,
             subtitleTracksV2,
             subtitlePositionOffset,
+            subtitlesWidth,
         } = settings;
         const message: SubtitleSettingsToVideoMessage = {
             command: 'subtitleSettings',
@@ -432,6 +433,7 @@ export default class VideoChannel {
                 subtitleAlignment,
                 subtitleTracksV2,
                 subtitlePositionOffset,
+                subtitlesWidth,
             },
         };
         this.protocol.postMessage(message);
@@ -548,6 +550,7 @@ export default class VideoChannel {
             language,
             lastSubtitleOffset,
             tabName,
+            pauseOnHoverMode,
         } = settings;
         const message: MiscSettingsToVideoMessage = {
             command: 'miscSettings',
@@ -570,6 +573,7 @@ export default class VideoChannel {
                 language,
                 lastSubtitleOffset,
                 tabName,
+                pauseOnHoverMode,
             },
         };
         this.protocol.postMessage(message);

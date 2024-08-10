@@ -1,7 +1,7 @@
 import { AudioClip } from '@project/common/audio-clip';
 import { CardModel, Image } from '@project/common';
 import { HttpFetcher, Fetcher } from '@project/common';
-import { AnkiSettings } from '@project/common/settings';
+import { AnkiSettings, AnkiSettingsFieldKey } from '@project/common/settings';
 import sanitize from 'sanitize-filename';
 import { extractText, sourceString } from '@project/common/util';
 
@@ -331,17 +331,10 @@ export class Anki {
                 if (infoResponse.result.length > 0 && infoResponse.result[0].noteId === lastNoteId) {
                     const info = infoResponse.result[0];
 
-                    if (
-                        this.settingsProvider.sentenceField &&
-                        info.fields &&
-                        typeof info.fields[this.settingsProvider.sentenceField]?.value === 'string' &&
-                        typeof params.note.fields[this.settingsProvider.sentenceField] === 'string'
-                    ) {
-                        params.note.fields[this.settingsProvider.sentenceField] = inheritHtmlMarkup(
-                            params.note.fields[this.settingsProvider.sentenceField],
-                            info.fields[this.settingsProvider.sentenceField].value
-                        );
-                    }
+                    this._inheritHtmlMarkupFromField('sentenceField', info, params);
+                    this._inheritHtmlMarkupFromField('track1Field', info, params);
+                    this._inheritHtmlMarkupFromField('track2Field', info, params);
+                    this._inheritHtmlMarkupFromField('track3Field', info, params);
 
                     await this._executeAction('updateNoteFields', params, ankiConnectUrl);
 
@@ -403,6 +396,22 @@ export class Anki {
             { filename: makeUniqueFileName(name), data: base64, deleteExisting: false },
             ankiConnectUrl
         );
+    }
+
+    private _inheritHtmlMarkupFromField(fieldKey: AnkiSettingsFieldKey, info: any, params: any) {
+        const fieldName = this.settingsProvider[fieldKey];
+
+        if (
+            fieldName &&
+            info.fields &&
+            typeof info.fields[fieldName]?.value === 'string' &&
+            typeof params.note.fields[fieldName] === 'string'
+        ) {
+            params.note.fields[fieldName] = inheritHtmlMarkup(
+                params.note.fields[fieldName],
+                info.fields[fieldName].value
+            );
+        }
     }
 
     private async _executeAction(action: string, params: any, ankiConnectUrl?: string) {

@@ -34,6 +34,11 @@
         "play": "常に再生する",
         "pause": "常に停止する"
     },
+    "pauseOnHoverMode": {
+        "disabled": "無効",
+        "inNotOut": "有効",
+        "inAndOut": "有効。マウスカーソルを外すと自動再生。"
+    },
     "ankiDialog": {
         "applySelection": "選択範囲を適用する",
         "audio": "音声",
@@ -88,7 +93,7 @@
         "extensionToggleRecording": "字幕ファイルがロードされていても手動で録音を開始/終了する。",
         "extensionUpdateLastCard": "最後に作成した Anki カードに asbplayer でキャプチャしたメディアを添付して更新する。動画が字幕ファイルなしで同期されている場合、録音を開始/停止する。",
         "increaseOffset": "字幕の表示タイミング +100ms",
-        "increasePlaybackRate": "再生速度を下げる",
+        "increasePlaybackRate": "再生速度を上げる",
         "resetOffset": "字幕の表示タイミングをリセット",
         "seekBackward": "10 秒巻き戻し",
         "seekBackwardOrForward": "10 秒巻き戻し/早送り",
@@ -141,7 +146,8 @@
         "blank": "空白",
         "downloadMinedSubsAsSrt": "マイニングした字幕を SRT 形式でダウンロードする",
         "exportToAnki": "Anki にエクスポートする",
-        "miningHistoryEmpty": "マイニング履歴はありませïん"
+        "miningHistoryEmpty": "マイニング履歴はありませïん",
+        "deleteAll": "Clear"
     },
     "error": {
         "bothAudioAndVideNotAllowed": "音声と動画ファイルを同時にロードできません",
@@ -323,6 +329,7 @@
         "subtitleRegexFilterTextReplacement": "字幕の正規表現フィルタの置き換えテキスト",
         "subtitleSize": "字幕のサイズ",
         "subtitleThickness": "字幕のフォントの太さ",
+        "subtitlesWidth": "字幕の幅",
         "surroundingSubtitlesCountRadius": "前後に表示される字幕の最大数",
         "surroundingSubtitlesTimeRadius": "前後の字幕が表示される範囲（時間）",
         "tags": "タグ",
@@ -338,7 +345,8 @@
         "webSocketClientEnabled": "WebSocketクライアントを有効",
         "webSocketServerUrl": "WebSocketサーバーのURL",
         "firefoxExtensionShortcutHelp": "ショートカットの編集はプラグイン管理 （about:addons）で行えます。",
-        "postMinePlayback": "マイニング後のプレイバック状態"
+        "postMinePlayback": "マイニング後のプレイバック状態",
+        "pauseOnHoverMode": "マウスカーソルを字幕に重ねると自動一時停止"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"

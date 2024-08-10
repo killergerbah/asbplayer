@@ -22,6 +22,7 @@ import {
     SubtitleAlignment,
     changeForTextSubtitleSetting,
     textSubtitleSettingsForTrack,
+    PauseOnHoverMode,
 } from '@project/common/settings';
 import { surroundingSubtitles, mockSurroundingSubtitles, seekWithNudge } from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
@@ -152,9 +153,8 @@ const showingSubtitleHtml = (
             (imageBasedSubtitleScaleFactor * (videoRef.current?.width ?? window.screen.availWidth)) /
             subtitle.textImage.screen.width;
         const width = imageScale * subtitle.textImage.image.width;
-
         return `
-<div style="max-width:${width}px;">
+<div style="max-width:${width}px;margin:auto;">
 <img
     style="width:100%;"
     alt="subtitle"
@@ -174,6 +174,7 @@ interface ShowingSubtitleProps {
     subtitleStyles: any;
     imageBasedSubtitleScaleFactor: number;
     className?: string;
+    onMouseOver: React.MouseEventHandler<HTMLDivElement>;
 }
 
 const ShowingSubtitle = ({
@@ -182,6 +183,7 @@ const ShowingSubtitle = ({
     subtitleStyles,
     imageBasedSubtitleScaleFactor,
     className,
+    onMouseOver,
 }: ShowingSubtitleProps) => {
     let content;
 
@@ -197,23 +199,30 @@ const ShowingSubtitle = ({
         content = <span style={subtitleStyles}>{subtitle.text}</span>;
     }
 
-    return <div className={className ? className : ''}>{content}</div>;
+    return (
+        <div className={className ? className : ''} onMouseOver={onMouseOver}>
+            {content}
+        </div>
+    );
 };
 
 interface CachedShowingSubtitleProps {
     index: number;
     domCache: OffscreenDomCache;
     className?: string;
+    onMouseOver: React.MouseEventHandler<HTMLDivElement>;
 }
 
 const CachedShowingSubtitle = React.memo(function CachedShowingSubtitle({
     index,
     domCache,
     className,
+    onMouseOver,
 }: CachedShowingSubtitleProps) {
     return (
         <div
             className={className ? className : ''}
+            onMouseOver={onMouseOver}
             ref={(ref) => {
                 if (!ref) {
                     return;
@@ -1208,38 +1217,6 @@ export default function VideoPlayer({
         [onSettingsChanged]
     );
 
-    useEffect(() => {
-        const onWheel = (event: WheelEvent) => {
-            if (!displaySubtitles || !showSubtitlesRef.current?.length) {
-                return;
-            }
-
-            if (Math.abs(event.deltaY) < 10) {
-                return;
-            }
-
-            let shouldIncreaseOffset: boolean;
-
-            switch (subtitleAlignment) {
-                case 'bottom':
-                    shouldIncreaseOffset = event.deltaY > 0;
-                    break;
-                case 'top':
-                    shouldIncreaseOffset = event.deltaY < 0;
-                    break;
-            }
-
-            setSubtitlePositionOffset((offset) => {
-                const newOffset = shouldIncreaseOffset ? --offset : ++offset;
-                onSettingsChanged({ subtitlePositionOffset: newOffset });
-                return newOffset;
-            });
-        };
-
-        window.addEventListener('wheel', onWheel);
-        return () => window.removeEventListener('wheel', onWheel);
-    }, [subtitleAlignment, displaySubtitles, playbackPreferences, onSettingsChanged]);
-
     const handleClick = useCallback(() => {
         if (playing()) {
             playerChannel.pause();
@@ -1297,6 +1274,23 @@ export default function VideoPlayer({
         ms: 500,
     });
 
+    const isPausedDueToHoverRef = useRef<boolean>();
+
+    const handleSubtitleMouseOver = useCallback(() => {
+        if (miscSettings.pauseOnHoverMode !== PauseOnHoverMode.disabled && videoRef.current?.paused === false) {
+            playerChannel.pause();
+            isPausedDueToHoverRef.current = true;
+        }
+    }, [miscSettings.pauseOnHoverMode, playerChannel]);
+
+    const handleVideoMouseOver = useCallback(() => {
+        if (miscSettings.pauseOnHoverMode === PauseOnHoverMode.inAndOut && isPausedDueToHoverRef.current) {
+            playerChannel.play();
+        }
+
+        isPausedDueToHoverRef.current = false;
+    }, [miscSettings.pauseOnHoverMode, playerChannel]);
+
     // If the video player is taking up the entire screen, then the subtitle player isn't showing
     // This code assumes some behavior in Player, namely that the subtitle player is automatically hidden
     // (and therefore the VideoPlayer takes up all the space) when there isn't enough room for the subtitle player
@@ -1323,20 +1317,31 @@ export default function VideoPlayer({
                 className={showCursor ? classes.video : `${classes.cursorHidden} ${classes.video}`}
                 ref={videoRefCallback}
                 src={videoFile}
+                onMouseOver={handleVideoMouseOver}
             />
             {displaySubtitles && (
                 <div
-                    style={
-                        subtitleAlignment === 'bottom'
+                    style={{
+                        ...(subtitleAlignment === 'bottom'
                             ? { bottom: subtitlePositionOffset }
-                            : { top: subtitlePositionOffset }
-                    }
+                            : { top: subtitlePositionOffset }),
+                        ...(subtitleSettings.subtitlesWidth === -1
+                            ? {}
+                            : { width: `${subtitleSettings.subtitlesWidth}%` }),
+                    }}
                     className={classes.subtitleContainer}
                 >
                     {showSubtitles.map((subtitle, index) => {
                         if (miscSettings.preCacheSubtitleDom) {
                             const domCache = getSubtitleDomCache();
-                            return <CachedShowingSubtitle key={index} index={subtitle.index} domCache={domCache} />;
+                            return (
+                                <CachedShowingSubtitle
+                                    key={index}
+                                    index={subtitle.index}
+                                    domCache={domCache}
+                                    onMouseOver={handleSubtitleMouseOver}
+                                />
+                            );
                         }
 
                         return (
@@ -1347,6 +1352,7 @@ export default function VideoPlayer({
                                 className={trackStyles[subtitle.track].classes}
                                 videoRef={videoRef}
                                 imageBasedSubtitleScaleFactor={subtitleSettings.imageBasedSubtitleScaleFactor}
+                                onMouseOver={handleSubtitleMouseOver}
                             />
                         );
                     })}

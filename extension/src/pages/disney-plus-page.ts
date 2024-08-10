@@ -1,5 +1,6 @@
 import { VideoDataSubtitleTrack } from '@project/common';
 import { Parser } from 'm3u8-parser';
+import { trackFromDef, trackId } from './util';
 
 setTimeout(() => {
     function basenameFromDOM(): string {
@@ -83,13 +84,14 @@ setTimeout(() => {
                                 if (track && typeof track.language === 'string' && typeof track.uri === 'string') {
                                     const baseUrl = baseUrlForUrl(url);
                                     const subtitleM3U8Url = `${baseUrl}/${track.uri}`;
-                                    subtitles.push({
+                                    const def = {
                                         label: label,
                                         language: track.language,
                                         url: subtitleM3U8Url,
                                         m3U8BaseUrl: baseUrlForUrl(subtitleM3U8Url),
                                         extension: 'm3u8',
-                                    });
+                                    };
+                                    subtitles.push(trackFromDef(def));
                                 }
                             }
 

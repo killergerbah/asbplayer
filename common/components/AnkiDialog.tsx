@@ -140,19 +140,6 @@ const ValueLabelComponent = ({ children, open, value }: ValueLabelComponentProps
     );
 };
 
-interface TextImageSetProps {
-    selectedSubtitles: SubtitleModel[];
-    width: number;
-}
-
-const useTextImageSetStyles = makeStyles((theme) => ({
-    root: {
-        marginBottom: theme.spacing(1),
-        padding: theme.spacing(1),
-        backgroundColor: theme.palette.action.disabledBackground,
-    },
-}));
-
 export interface AnkiDialogState {
     text: string;
     subtitle: SubtitleModel;

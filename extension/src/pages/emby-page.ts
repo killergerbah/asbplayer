@@ -1,5 +1,6 @@
 import { VideoDataSubtitleTrack } from '@project/common';
 import { VideoData } from '@project/common';
+import { trackFromDef } from './util';
 
 declare const ApiClient: any | undefined;
 
@@ -41,12 +42,14 @@ document.addEventListener(
                         sub.Codec +
                         '?api_key=' +
                         apikey;
-                    subtitles.push({
-                        label: sub.DisplayTitle,
-                        language: sub.Language,
-                        url: url,
-                        extension: sub.Codec,
-                    });
+                    subtitles.push(
+                        trackFromDef({
+                            label: sub.DisplayTitle,
+                            language: sub.Language,
+                            url: url,
+                            extension: sub.Codec,
+                        })
+                    );
                 });
                 response.subtitles = subtitles;
 

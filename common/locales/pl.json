@@ -34,6 +34,11 @@
         "play": "Zawsze odtwarzaj",
         "pause": "Zawsze pauzuj"
     },
+    "pauseOnHoverMode": {
+        "disabled": "Disabled",
+        "inNotOut": "Enabled",
+        "inAndOut": "Enabled with auto-resume"
+    },
     "ankiDialog": {
         "applySelection": "Zastosuj wybór",
         "audio": "Audio",
@@ -141,7 +146,8 @@
         "blank": "Puste",
         "downloadMinedSubsAsSrt": "Pobierz wykopane napisy jako plik SRT",
         "exportToAnki": "Wyeksportuj do Anki",
-        "miningHistoryEmpty": "Historia kopania jest pusta."
+        "miningHistoryEmpty": "Historia kopania jest pusta.",
+        "deleteAll": "Clear"
     },
     "error": {
         "bothAudioAndVideNotAllowed": "Nie można załadować plików audio i wideo naraz",
@@ -323,6 +329,7 @@
         "subtitleRegexFilterTextReplacement": "Zamiana tekstu z filtru Regex napisów",
         "subtitleSize": "Wielkość napisów",
         "subtitleThickness": "Grubość czcionki napisów",
+        "subtitlesWidth": "Subtitles Width",
         "surroundingSubtitlesCountRadius": "Limit liczby napisów otaczających",
         "surroundingSubtitlesTimeRadius": "Limit czasu napisów otaczających",
         "tags": "Tagi",
@@ -338,7 +345,8 @@
         "webSocketClientEnabled": "Włącz klienta WebSocket",
         "webSocketServerUrl": "Adres URL serwera WebSocket",
         "firefoxExtensionShortcutHelp": "Edytuj ten skrót z poziomu menedżera wtyczek na about:addons.",
-        "postMinePlayback": "Stan odtwarzania po kopaniu"
+        "postMinePlayback": "Stan odtwarzania po kopaniu",
+        "pauseOnHoverMode": "Auto-pause when mousing over subtitles"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Kliknij, przytrzymaj i przeciągnij, aby wykopać więcej linii napisów"

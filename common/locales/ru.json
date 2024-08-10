@@ -34,6 +34,11 @@
         "play": "Always play",
         "pause": "Always pause"
     },
+    "pauseOnHoverMode": {
+        "disabled": "Disabled",
+        "inNotOut": "Enabled",
+        "inAndOut": "Enabled with auto-resume"
+    },
     "ankiDialog": {
         "applySelection": "Применить выбор",
         "audio": "Аудио",
@@ -141,7 +146,8 @@
         "blank": "Пусто",
         "downloadMinedSubsAsSrt": "Скачать смайненные субтитры в формате SRT",
         "exportToAnki": "Экспортировать в Анки",
-        "miningHistoryEmpty": "История майнинга пуста."
+        "miningHistoryEmpty": "История майнинга пуста.",
+        "deleteAll": "Clear"
     },
     "error": {
         "bothAudioAndVideNotAllowed": "Невозможно одновременно загрузить аудиофайл и видеофайл",
@@ -323,6 +329,7 @@
         "subtitleRegexFilterTextReplacement": "Замена текста для фильтра регулярных выражений для субтитров",
         "subtitleSize": "Размер субтитров",
         "subtitleThickness": "Толщина шрифта субтитров",
+        "subtitlesWidth": "Subtitles Width",
         "surroundingSubtitlesCountRadius": "Радиус количества окружающих субтитров",
         "surroundingSubtitlesTimeRadius": "Временной радиус окружающих субтитров",
         "tags": "Теги",
@@ -338,7 +345,8 @@
         "webSocketClientEnabled": "Enable WebSocket client",
         "webSocketServerUrl": "WebSocket Server URL",
         "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons.",
-        "postMinePlayback": "Post-mining playback state"
+        "postMinePlayback": "Post-mining playback state",
+        "pauseOnHoverMode": "Auto-pause when mousing over subtitles"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Нажмите, удерживайте и перетащите, чтобы смайнить несколько субтитров"

@@ -332,6 +332,9 @@ const settingsSchema = {
                 },
             },
         },
+        subtitlesWidth: {
+            type: 'number',
+        },
         streamingAppUrl: {
             type: 'string',
         },
@@ -382,6 +385,9 @@ const settingsSchema = {
         },
         webSocketServerUrl: {
             type: 'string',
+        },
+        pauseOnHoverMode: {
+            type: 'number',
         },
         _schema: {
             type: 'number',

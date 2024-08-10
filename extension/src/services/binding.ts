@@ -43,7 +43,12 @@ import {
 } from '@project/common';
 import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
 import { adjacentSubtitle } from '@project/common/key-binder';
-import { extractAnkiSettings, SettingsProvider, SubtitleListPreference } from '@project/common/settings';
+import {
+    extractAnkiSettings,
+    PauseOnHoverMode,
+    SettingsProvider,
+    SubtitleListPreference,
+} from '@project/common/settings';
 import { SubtitleSlice } from '@project/common/subtitle-collection';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { extractText, seekWithNudge, sourceString, surroundingSubtitlesAroundInterval } from '@project/common/util';
@@ -55,7 +60,7 @@ import { MobileVideoOverlayController } from '../controllers/mobile-video-overla
 import NotificationController from '../controllers/notification-controller';
 import SubtitleController, { SubtitleModelWithIndex } from '../controllers/subtitle-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
-import AudioRecorder from './audio-recorder';
+import AudioRecorder, { AutoRecordingInProgressError } from './audio-recorder';
 import { bufferToBase64 } from './base64';
 import { isMobile } from './device-detection';
 import { OffsetAnchor } from './element-overlay';
@@ -69,6 +74,8 @@ document.addEventListener('asbplayer-netflix-enabled', (e) => {
     netflix = (e as CustomEvent).detail;
 });
 document.dispatchEvent(new CustomEvent('asbplayer-query-netflix'));
+
+const youtube = /(m|www)\.youtube\.com/.test(window.location.host);
 
 enum RecordingState {
     requested,
@@ -86,11 +93,12 @@ export default class Binding {
     private _syncedTimestamp?: number;
 
     recordingState: RecordingState = RecordingState.notRecording;
+    recordingPostMineAction?: PostMineAction;
     wasPlayingBeforeRecordingMedia?: boolean;
     postMinePlayback: PostMinePlayback = PostMinePlayback.remember;
     private recordingMediaStartedTimestamp?: number;
     private recordingMediaWithScreenshot: boolean;
-
+    private pausedDueToHover = false;
     private _playMode: PlayMode = PlayMode.normal;
     private _speedChangeStep = 0.1;
 
@@ -120,6 +128,7 @@ export default class Binding {
     private fastForwardPlaybackMinimumGapMs = 600;
     private fastForwardModePlaybackRate = 2.7;
     private imageDelay = 0;
+    private pauseOnHoverMode: PauseOnHoverMode = PauseOnHoverMode.disabled;
     recordMedia: boolean;
 
     private playListener?: EventListener;
@@ -127,6 +136,7 @@ export default class Binding {
     private seekedListener?: EventListener;
     private playbackRateListener?: EventListener;
     private videoChangeListener?: EventListener;
+    private mouseOverListener?: EventListener;
     private listener?: (
         message: any,
         sender: chrome.runtime.MessageSender,
@@ -172,10 +182,6 @@ export default class Binding {
 
     get synced() {
         return this._synced;
-    }
-
-    get url() {
-        return window.location !== window.parent.location ? document.referrer : document.location.href;
     }
 
     get speedChangeStep() {
@@ -424,6 +430,10 @@ export default class Binding {
             };
 
             chrome.runtime.sendMessage(command);
+
+            if (this.recordingMedia && this.recordingPostMineAction !== undefined) {
+                this._toggleRecordingMedia(this.recordingPostMineAction);
+            }
         };
 
         this.seekedListener = (event) => {
@@ -471,10 +481,25 @@ export default class Binding {
             }
         };
 
+        this.mouseOverListener = () => {
+            if (this.pauseOnHoverMode === PauseOnHoverMode.inAndOut && this.pausedDueToHover && this.video.paused) {
+                this.play();
+            }
+            this.pausedDueToHover = false;
+        };
+
         this.video.addEventListener('play', this.playListener);
         this.video.addEventListener('pause', this.pauseListener);
         this.video.addEventListener('seeked', this.seekedListener);
         this.video.addEventListener('ratechange', this.playbackRateListener);
+        this.video.addEventListener('mouseover', this.mouseOverListener);
+
+        this.subtitleController.onMouseOver = () => {
+            if (this.pauseOnHoverMode !== PauseOnHoverMode.disabled && !this.video.paused) {
+                this.video.pause();
+                this.pausedDueToHover = true;
+            }
+        };
 
         if (this.subSyncAvailable) {
             this.videoChangeListener = () => {
@@ -741,10 +766,18 @@ export default class Binding {
                         const stopRecordingAudioMessage = request.message as StopRecordingAudioMessage;
                         this._audioRecorder
                             .stop()
-                            .then((audioBase64) =>
-                                this._sendAudioBase64(audioBase64, stopRecordingAudioMessage.preferMp3)
-                            );
-                        break;
+                            .then((audioBase64) => {
+                                sendResponse(true);
+                                this._sendAudioBase64(audioBase64, stopRecordingAudioMessage.preferMp3);
+                            })
+                            .catch((e) => {
+                                if (e instanceof AutoRecordingInProgressError) {
+                                    sendResponse(false);
+                                } else {
+                                    console.error(e);
+                                }
+                            });
+                        return true;
                     case 'notification-dialog':
                         const notificationDialogMessage = request.message as NotificationDialogMessage;
                         this.notificationController.show(
@@ -788,9 +821,11 @@ export default class Binding {
         this.copyToClipboardOnMine = currentSettings.copyToClipboardOnMine;
         this.autoPausePreference = currentSettings.autoPausePreference;
         this.alwaysPlayOnSubtitleRepeat = currentSettings.alwaysPlayOnSubtitleRepeat;
+        this.pauseOnHoverMode = currentSettings.pauseOnHoverMode;
 
         this.subtitleController.displaySubtitles = currentSettings.streamingDisplaySubtitles;
         this.subtitleController.subtitlePositionOffset = currentSettings.subtitlePositionOffset;
+        this.subtitleController.subtitlesWidth = currentSettings.subtitlesWidth;
         this.subtitleController.subtitleAlignment = currentSettings.subtitleAlignment;
         this.subtitleController.surroundingSubtitlesCountRadius = currentSettings.surroundingSubtitlesCountRadius;
         this.subtitleController.surroundingSubtitlesTimeRadius = currentSettings.surroundingSubtitlesTimeRadius;
@@ -846,6 +881,11 @@ export default class Binding {
         if (this.videoChangeListener) {
             this.video.removeEventListener('loadedmetadata', this.videoChangeListener);
             this.videoChangeListener = undefined;
+        }
+
+        if (this.mouseOverListener) {
+            this.video.removeEventListener('mouseover', this.mouseOverListener);
+            this.mouseOverListener = undefined;
         }
 
         if (this.heartbeatInterval) {
@@ -927,6 +967,7 @@ export default class Binding {
 
         if (this.recordMedia) {
             this.recordingState = RecordingState.requested;
+            this.recordingPostMineAction = postMineAction;
             this.wasPlayingBeforeRecordingMedia = !this.video.paused;
             this.recordingMediaStartedTimestamp = this.video.currentTime * 1000;
             this.recordingMediaWithScreenshot = this.takeScreenshot;
@@ -947,7 +988,7 @@ export default class Binding {
                 surroundingSubtitles: surroundingSubtitles,
                 record: this.recordMedia,
                 screenshot: this.takeScreenshot,
-                url: this.url,
+                url: this.url(subtitle.start, subtitle.end),
                 mediaTimestamp: this.video.currentTime * 1000,
                 subtitleFileName: this.subtitleFileName(subtitle.track),
                 postMineAction: postMineAction,
@@ -984,7 +1025,7 @@ export default class Binding {
                     playbackRate: this.video.playbackRate,
                     screenshot: this.recordingMediaWithScreenshot,
                     videoDuration: this.video.duration * 1000,
-                    url: this.url,
+                    url: this.url(this.recordingMediaStartedTimestamp!, currentTimestamp),
                     subtitleFileName: this.subtitleFileName(),
                     ...this._imageCaptureParams,
                     ...this._surroundingSubtitlesAroundInterval(this.recordingMediaStartedTimestamp!, currentTimestamp),
@@ -1007,6 +1048,7 @@ export default class Binding {
                 this.wasPlayingBeforeRecordingMedia = !this.video.paused;
                 this.recordingMediaStartedTimestamp = timestamp;
                 this.recordingMediaWithScreenshot = this.takeScreenshot;
+                this.recordingPostMineAction = postMineAction;
 
                 if (this.video.paused) {
                     await this.play();
@@ -1021,7 +1063,7 @@ export default class Binding {
                     record: this.recordMedia,
                     postMineAction: postMineAction,
                     screenshot: this.takeScreenshot,
-                    url: this.url,
+                    url: this.url(timestamp),
                     subtitleFileName: this.subtitleFileName(),
                     imageDelay: this.imageDelay,
                     ...this._imageCaptureParams,
@@ -1363,5 +1405,19 @@ export default class Binding {
         };
 
         chrome.runtime.sendMessage(command);
+    }
+
+    url(start: number, end?: number) {
+        if (youtube) {
+            const toSeconds = (ms: number) => Math.floor(ms / 1000);
+            const videoId = new URLSearchParams(window.location.search).get('v');
+
+            if (videoId !== null) {
+                const embedUrl = `https://www.youtube.com/embed/${videoId}?start=${toSeconds(start)}&autoplay=1`;
+                return end === undefined ? embedUrl : `${embedUrl}&end=${toSeconds(end)}`;
+            }
+        }
+
+        return window.location !== window.parent.location ? document.referrer : document.location.href;
     }
 }

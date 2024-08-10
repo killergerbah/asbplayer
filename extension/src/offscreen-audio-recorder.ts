@@ -5,7 +5,7 @@ import {
     StartRecordingAudioMessage,
     OffscreenDocumentToExtensionCommand,
 } from '@project/common';
-import AudioRecorder from './services/audio-recorder';
+import AudioRecorder, { AutoRecordingInProgressError } from './services/audio-recorder';
 import { bufferToBase64 } from './services/base64';
 import { Mp3Encoder } from '@project/common/audio-clip';
 
@@ -81,8 +81,18 @@ window.onload = async () => {
                     const stopRecordingAudioMessage = request.message as StopRecordingAudioMessage;
                     audioRecorder
                         .stop()
-                        .then((audioBase64) => _sendAudioBase64(audioBase64, stopRecordingAudioMessage.preferMp3));
-                    break;
+                        .then((audioBase64) => {
+                            sendResponse(true);
+                            _sendAudioBase64(audioBase64, stopRecordingAudioMessage.preferMp3);
+                        })
+                        .catch((e) => {
+                            if (e instanceof AutoRecordingInProgressError) {
+                                sendResponse(false);
+                            } else {
+                                console.error(e);
+                            }
+                        });
+                    return true;
             }
         }
     };

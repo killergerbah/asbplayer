@@ -1,5 +1,5 @@
 import { VideoDataSubtitleTrack } from '@project/common';
-import { extractExtension } from './util';
+import { extractExtension, trackFromDef } from './util';
 
 setTimeout(() => {
     function isObject(val: any) {
@@ -16,12 +16,14 @@ setTimeout(() => {
 
                 if (typeof url === 'string') {
                     if (subtitles.find((s) => s.label === s.language) === undefined) {
-                        subtitles.push({
-                            label: language,
-                            language: language.toLowerCase(),
-                            url: url,
-                            extension: extractExtension(url, 'vtt'),
-                        });
+                        subtitles.push(
+                            trackFromDef({
+                                label: language,
+                                language: language.toLowerCase(),
+                                url: url,
+                                extension: extractExtension(url, 'vtt'),
+                            })
+                        );
                     }
                 }
             }

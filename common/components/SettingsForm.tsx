@@ -4,8 +4,10 @@ import { makeStyles, useTheme } from '@material-ui/core/styles';
 import AddIcon from '@material-ui/icons/Add';
 import LockIcon from '@material-ui/icons/Lock';
 import Box from '@material-ui/core/Box';
+import ClearIcon from '@material-ui/icons/Clear';
 import EditIcon from '@material-ui/icons/Edit';
 import InfoIcon from '@material-ui/icons/Info';
+import UndoIcon from '@material-ui/icons/Undo';
 import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
@@ -33,6 +35,7 @@ import {
     AsbplayerSettings,
     CustomAnkiFieldSettings,
     KeyBindName,
+    PauseOnHoverMode,
     SubtitleListPreference,
     TextSubtitleSettings,
     changeForTextSubtitleSetting,
@@ -40,7 +43,7 @@ import {
     textSubtitleSettingsAreDirty,
     textSubtitleSettingsForTrack,
 } from '@project/common/settings';
-import { computeStyles, download, isNumeric } from '@project/common/util';
+import { download, isNumeric } from '@project/common/util';
 import { CustomStyle, validateSettings } from '@project/common/settings';
 import { useOutsideClickListener } from '@project/common/hooks';
 import TagsTextField from './TagsTextField';
@@ -66,7 +69,6 @@ import { WebSocketClient } from '../web-socket-client/web-socket-client';
 import { isFirefox } from '@project/common/browser-detection';
 import SubtitleAppearanceTrackSelector from './SubtitleAppearanceTrackSelector';
 import SubtitlePreview from './SubtitlePreview';
-import UndoIcon from '@material-ui/icons/Undo';
 
 interface StylesProps {
     smallScreen: boolean;
@@ -250,9 +252,9 @@ function SelectableSetting({
                     onChange={onSelectionChange}
                 >
                     {selections &&
-                        selections.map((s) => (
+                        ['', ...selections].map((s) => (
                             <MenuItem key={s} value={s}>
-                                {s}
+                                {s === '' ? ' ' : s}
                             </MenuItem>
                         ))}
                 </Select>
@@ -635,6 +637,8 @@ interface Props {
     extensionSupportsSidePanel: boolean;
     extensionSupportsOrderableAnkiFields: boolean;
     extensionSupportsTrackSpecificSettings: boolean;
+    extensionSupportsSubtitlesWidthSetting: boolean;
+    extensionSupportsPauseOnHover: boolean;
     insideApp?: boolean;
     settings: AsbplayerSettings;
     scrollToId?: string;
@@ -661,6 +665,8 @@ export default function SettingsForm({
     extensionSupportsSidePanel,
     extensionSupportsOrderableAnkiFields,
     extensionSupportsTrackSpecificSettings,
+    extensionSupportsSubtitlesWidthSetting,
+    extensionSupportsPauseOnHover,
     insideApp,
     scrollToId,
     chromeKeyBinds,
@@ -786,6 +792,7 @@ export default function SettingsForm({
         subtitlePreview,
         subtitlePositionOffset,
         subtitleAlignment,
+        subtitlesWidth,
         audioPaddingStart,
         audioPaddingEnd,
         maxImageWidth,
@@ -828,6 +835,7 @@ export default function SettingsForm({
         streamingEnableOverlay,
         webSocketClientEnabled,
         webSocketServerUrl,
+        pauseOnHoverMode,
     } = settings;
 
     const [selectedSubtitleAppearanceTrack, setSelectedSubtitleAppearanceTrack] = useState<number>();
@@ -944,7 +952,7 @@ export default function SettingsForm({
                     return;
                 }
 
-                setFieldNames(['', ...(await anki.modelFieldNames(noteType, ankiConnectUrl))]);
+                setFieldNames(await anki.modelFieldNames(noteType, ankiConnectUrl));
                 setAnkiConnectUrlError(undefined);
             } catch (e) {
                 if (canceled) {
@@ -1836,6 +1844,25 @@ export default function SettingsForm({
                                 </TextField>
                             </div>
                         )}
+
+                        {subtitleBlur !== undefined && (
+                            <Tooltip placement="bottom-end" title={t('settings.subtitleBlurDescription')!}>
+                                <LabelWithHoverEffect
+                                    control={
+                                        <Switch
+                                            checked={subtitleBlur}
+                                            onChange={(e) => {
+                                                handleSubtitleTextSettingChanged('subtitleBlur', e.target.checked);
+                                            }}
+                                        />
+                                    }
+                                    label={t('settings.subtitleBlur')}
+                                    labelPlacement="start"
+                                    className={classes.switchLabel}
+                                />
+                            </Tooltip>
+                        )}
+
                         {subtitleCustomStyles !== undefined && (
                             <>
                                 {subtitleCustomStyles.map((customStyle, index) => {
@@ -1873,48 +1900,12 @@ export default function SettingsForm({
                             </>
                         )}
 
-                        {subtitleBlur !== undefined && (
-                            <Tooltip placement="bottom-end" title={t('settings.subtitleBlurDescription')!}>
-                                <LabelWithHoverEffect
-                                    control={
-                                        <Switch
-                                            checked={subtitleBlur}
-                                            onChange={(e) => {
-                                                handleSubtitleTextSettingChanged('subtitleBlur', e.target.checked);
-                                            }}
-                                        />
-                                    }
-                                    label={t('settings.subtitleBlur')}
-                                    labelPlacement="start"
-                                    className={classes.switchLabel}
-                                />
-                            </Tooltip>
-                        )}
                         {selectedSubtitleAppearanceTrack === undefined && (
                             <>
                                 <div className={classes.subtitleSetting}>
-                                    <TextField
-                                        type="number"
-                                        label={t('settings.imageBasedSubtitleScaleFactor')}
-                                        placeholder="Inherited"
-                                        fullWidth
-                                        inputProps={{
-                                            min: 0,
-                                            max: 1,
-                                            step: 0.1,
-                                        }}
-                                        value={imageBasedSubtitleScaleFactor}
-                                        color="secondary"
-                                        onChange={(event) =>
-                                            handleSettingChanged(
-                                                'imageBasedSubtitleScaleFactor',
-                                                Number(event.target.value)
-                                            )
-                                        }
-                                    />
-                                </div>
-                                <div className={classes.subtitleSetting}>
-                                    <FormLabel component="legend">{t('settings.subtitleAlignment')}</FormLabel>
+                                    <FormLabel className={classes.top} component="legend">
+                                        {t('settings.subtitleAlignment')}
+                                    </FormLabel>
                                     <RadioGroup row>
                                         <LabelWithHoverEffect
                                             control={
@@ -1958,6 +1949,81 @@ export default function SettingsForm({
                                         }}
                                         onChange={(e) =>
                                             handleSettingChanged('subtitlePositionOffset', Number(e.target.value))
+                                        }
+                                    />
+                                </div>
+                                {(!extensionInstalled || extensionSupportsSubtitlesWidthSetting) && (
+                                    <div className={classes.subtitleSetting}>
+                                        <TextField
+                                            className={classes.textField}
+                                            color="secondary"
+                                            fullWidth
+                                            label={t('settings.subtitlesWidth')}
+                                            disabled={subtitlesWidth === -1}
+                                            value={subtitlesWidth === -1 ? 'auto' : subtitlesWidth}
+                                            onChange={(e) => {
+                                                const numberValue = Number(e.target.value);
+
+                                                if (
+                                                    !Number.isNaN(numberValue) &&
+                                                    numberValue >= 0 &&
+                                                    numberValue <= 100
+                                                ) {
+                                                    handleSettingChanged('subtitlesWidth', numberValue);
+                                                }
+                                            }}
+                                            InputProps={{
+                                                endAdornment: (
+                                                    <>
+                                                        {subtitlesWidth === -1 && (
+                                                            <InputAdornment position="end">
+                                                                <IconButton
+                                                                    onClick={() =>
+                                                                        handleSettingChanged('subtitlesWidth', 100)
+                                                                    }
+                                                                >
+                                                                    <EditIcon />
+                                                                </IconButton>
+                                                            </InputAdornment>
+                                                        )}
+                                                        {subtitlesWidth !== -1 && (
+                                                            <>
+                                                                <InputAdornment position="end">%</InputAdornment>
+                                                                <InputAdornment position="end">
+                                                                    <IconButton
+                                                                        onClick={() =>
+                                                                            handleSettingChanged('subtitlesWidth', -1)
+                                                                        }
+                                                                    >
+                                                                        <ClearIcon />
+                                                                    </IconButton>
+                                                                </InputAdornment>
+                                                            </>
+                                                        )}
+                                                    </>
+                                                ),
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                                <div className={classes.subtitleSetting}>
+                                    <TextField
+                                        type="number"
+                                        label={t('settings.imageBasedSubtitleScaleFactor')}
+                                        placeholder="Inherited"
+                                        fullWidth
+                                        inputProps={{
+                                            min: 0,
+                                            max: 1,
+                                            step: 0.1,
+                                        }}
+                                        value={imageBasedSubtitleScaleFactor}
+                                        color="secondary"
+                                        onChange={(event) =>
+                                            handleSettingChanged(
+                                                'imageBasedSubtitleScaleFactor',
+                                                Number(event.target.value)
+                                            )
                                         }
                                     />
                                 </div>
@@ -2353,6 +2419,54 @@ export default function SettingsForm({
                             />
                         </RadioGroup>
                     </Grid>
+                    {(!extensionInstalled || extensionSupportsPauseOnHover) && (
+                        <Grid item>
+                            <FormLabel className={classes.top} component="legend">
+                                {t('settings.pauseOnHoverMode')}
+                            </FormLabel>
+                            <RadioGroup row={false}>
+                                <LabelWithHoverEffect
+                                    control={
+                                        <Radio
+                                            checked={pauseOnHoverMode === PauseOnHoverMode.disabled}
+                                            value={PauseOnHoverMode.disabled}
+                                            onChange={(event) =>
+                                                event.target.checked &&
+                                                handleSettingChanged('pauseOnHoverMode', PauseOnHoverMode.disabled)
+                                            }
+                                        />
+                                    }
+                                    label={t('pauseOnHoverMode.disabled')}
+                                />
+                                <LabelWithHoverEffect
+                                    control={
+                                        <Radio
+                                            checked={pauseOnHoverMode === PauseOnHoverMode.inAndOut}
+                                            value={PauseOnHoverMode.inAndOut}
+                                            onChange={(event) =>
+                                                event.target.checked &&
+                                                handleSettingChanged('pauseOnHoverMode', PauseOnHoverMode.inAndOut)
+                                            }
+                                        />
+                                    }
+                                    label={t('pauseOnHoverMode.inAndOut')}
+                                />
+                                <LabelWithHoverEffect
+                                    control={
+                                        <Radio
+                                            checked={pauseOnHoverMode === PauseOnHoverMode.inNotOut}
+                                            value={PauseOnHoverMode.inNotOut}
+                                            onChange={(event) =>
+                                                event.target.checked &&
+                                                handleSettingChanged('pauseOnHoverMode', PauseOnHoverMode.inNotOut)
+                                            }
+                                        />
+                                    }
+                                    label={t('pauseOnHoverMode.inNotOut')}
+                                />
+                            </RadioGroup>
+                        </Grid>
+                    )}
                     <Grid item>
                         <TextField
                             type="number"

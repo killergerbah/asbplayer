@@ -1,4 +1,4 @@
-import { VideoDataSubtitleTrack } from '@project/common';
+import { VideoDataSubtitleTrack, VideoDataSubtitleTrackDef } from '@project/common';
 
 export function extractExtension(url: string, fallback: string) {
     const dotIndex = url.lastIndexOf('.');
@@ -45,12 +45,20 @@ type SubtitlesByPath = { [key: string]: VideoDataSubtitleTrack[] };
 export interface InferHooks {
     onJson?: (
         value: any,
-        addTrack: (track: VideoDataSubtitleTrack) => void,
+        addTrack: (track: VideoDataSubtitleTrackDef) => void,
         setBasename: (basename: string) => void
     ) => void;
-    onRequest?: (addTrack: (track: VideoDataSubtitleTrack) => void, setBasename: (basename: string) => void) => void;
+    onRequest?: (addTrack: (track: VideoDataSubtitleTrackDef) => void, setBasename: (basename: string) => void) => void;
     waitForBasename: boolean;
 }
+
+export const trackFromDef = (def: VideoDataSubtitleTrackDef) => {
+    return { id: trackId(def), ...def };
+};
+
+export const trackId = (def: VideoDataSubtitleTrackDef) => {
+    return `${def.language}:${def.label}:${def.url}:${def.m3U8BaseUrl ?? ''}`;
+};
 
 export function inferTracks({ onJson, onRequest, waitForBasename }: InferHooks) {
     setTimeout(() => {
@@ -76,12 +84,10 @@ export function inferTracks({ onJson, onRequest, waitForBasename }: InferHooks) 
                             subtitlesByPath[path] = [];
                         }
 
-                        if (
-                            subtitlesByPath[path].find(
-                                (s) => s.label === track.label && s.language === track.language
-                            ) === undefined
-                        ) {
-                            subtitlesByPath[path].push(track);
+                        const newId = trackId(track);
+
+                        if (subtitlesByPath[path].find((s) => s.id === newId) === undefined) {
+                            subtitlesByPath[path].push({ id: newId, ...track });
                             tracksFound = true;
                         }
                     },
@@ -127,12 +133,10 @@ export function inferTracks({ onJson, onRequest, waitForBasename }: InferHooks) 
                             subtitlesByPath[path] = [];
                         }
 
-                        if (
-                            subtitlesByPath[path].find(
-                                (s) => s.label === track.label && s.language === track.language
-                            ) === undefined
-                        ) {
-                            subtitlesByPath[path].push(track);
+                        const newId = trackId(track);
+
+                        if (subtitlesByPath[path].find((s) => s.id === newId) === undefined) {
+                            subtitlesByPath[path].push({ id: newId, ...track });
                         }
                     },
                     (theBasename) => {

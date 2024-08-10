@@ -198,6 +198,13 @@ export default function SidePanel({ settings, extension }: Props) {
         });
     }, [extension]);
 
+    useEffect(() => {
+        return keyBinder.bindToggleSidePanel(
+            () => window.close(),
+            () => false
+        );
+    }, [keyBinder]);
+
     const handleError = useCallback(
         (message: any) => {
             console.error(message);
@@ -286,7 +293,7 @@ export default function SidePanel({ settings, extension }: Props) {
         [showTopControls]
     );
 
-    const { copyHistoryItems, refreshCopyHistory, deleteCopyHistoryItem } = useCopyHistory(
+    const { copyHistoryItems, refreshCopyHistory, deleteCopyHistoryItem, deleteAllCopyHistoryItems } = useCopyHistory(
         settings.miningHistoryStorageLimit
     );
     useEffect(() => {
@@ -450,6 +457,7 @@ export default function SidePanel({ settings, extension }: Props) {
                     forceShowDownloadOptions={true}
                     onClose={handleCloseCopyHistory}
                     onDelete={deleteCopyHistoryItem}
+                    onDeleteAll={deleteAllCopyHistoryItems}
                     onAnki={handleAnki}
                     onClipAudio={handleClipAudio}
                     onDownloadImage={handleDownloadImage}
@@ -462,6 +470,7 @@ export default function SidePanel({ settings, extension }: Props) {
                         items={copyHistoryItems}
                         onClose={handleCloseCopyHistory}
                         onDelete={deleteCopyHistoryItem}
+                        onDeleteAll={deleteAllCopyHistoryItems}
                         onAnki={handleAnki}
                         onClipAudio={handleClipAudio}
                         onDownloadImage={handleDownloadImage}

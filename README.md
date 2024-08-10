@@ -47,7 +47,15 @@ Suna,
 kibo,
 [@genericdave](https://github.com/genericdave),
 Daniel,
-Cristian
+Cristian,
+Joey Potter,
+[@InteractiveNinja](https://github.com/InteractiveNinja),
+[@agloo](https://github.com/agloo),
+[@Venous771](https://github.com/Venous771),
+[@Viterkim](https://github.com/Viterkim),
+Julian,
+DanglingSabSuu
+
 
 and to those who have donated privately.
 
@@ -75,7 +83,7 @@ Thank you to all those who have translated asbplayer:
 **Leo Gonzalez** (Spanish),
 **Yuri (ganqqwerty)** (Russian)
 
-If you are a non-English native, and would like to help translate asbplayer, join the [Crowdin project](https://crowdin.com/project/asbplayer).
+If you are a non-English native, and would like to help translate asbplayer, join the [Crowdin project](https://crowdin.com/project/asbplayer). If your language isn't there, feel free to create an issue to add it on the [issues page](https://github.com/killergerbah/asbplayer/issues).
 
 ## Getting Started
 
@@ -86,7 +94,7 @@ First, see if you can get started by following one of the [community guides](#co
 
 Otherwise, the following steps for setting up automated Anki flashcards should work for any language:
 
-1. Install and set up a dictionary tool for your target language that allows you to do instant lookups. Popular ones are [Yomitan](https://chromewebstore.google.com/detail/yomitan/likgccmbimhjbgkjambclfkhldnlhbnn) for Japanese and [VocabSieve](https://github.com/FreeLanguageTools/vocabsieve) for European languages.
+1. Install and set up a dictionary tool for your target language that allows you to do instant lookups. Popular ones are [Yomitan](https://chromewebstore.google.com/detail/yomitan/likgccmbimhjbgkjambclfkhldnlhbnn) (see [supported languages](https://yomitan.wiki/other/supported-languages/)) and [VocabSieve](https://github.com/FreeLanguageTools/vocabsieve) (tuned for European languages. Works with Asian languages too but doesn't automatically detect word boundaries).
 2. Install [Anki](https://apps.ankiweb.net/), and create a deck and note type. More details on [Refold's guide](https://refold.la/roadmap/stage-1/a/anki-setup).
 3. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
 4. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect using your deck and note type.
@@ -158,7 +166,7 @@ Use <kbd>Ctrl + Shift + F</kbd> to see auto-detected subtitle tracks for streami
 
 -   Netflix
 -   Youtube
--   Disney Plus (known issue: subtitles sometimes off by ~5 seconds)
+-   Disney Plus (known issues: flakey video detection, subtitles sometimes off by ~5 seconds)
 -   Hulu
 -   TVer
 -   Bandai Channel
@@ -179,8 +187,14 @@ You can replace filtered content similarly by entering a string into the "Subtit
 
 Useful examples of regular expressions:
 
--   `([(（]([^()（）]|(([(（][^()（）]+[)）])))+[)）])` : Remove names enclosed by parenthesis to indicate speakers (i.e. "**（山田）**　元気ですか？")
--   `\[.*\]` : Remove indications enclosed by brackets that sound or music that is playing (i.e. "**\[PLAYFUL MUSIC]**")
+-   `([(（]([^()（）]|(([(（][^()（）]+[)）])))+[)）])` : Remove names enclosed by parenthesis to indicate speakers (e.g. "**（山田）**　元気ですか？")
+-   `(.*)\n+(?!-)(.*)` : Some subtitles are split in several lines and this regex forces them into a single line. For this filter to work, you must also put `$1 $2` in the "Subtitle regex filter text replacement" field.
+    -   **NB**: When using this regex pattern in combination with other patterns (using the `|` operator, see below), place this pattern at the end. This ensures that all other regex transformations are applied first, and then the results are finally combined into a single line.
+-   `-?\[.*\]` : Remove indications enclosed by square brackets that sound or music that is playing (e.g. "**\[PLAYFUL MUSIC]**" or "**\-[GASPS]**")
+    -   `^[-\(\)\.\sA-ZAÂÃÀÇÉÊÍÓÔÕÚÑ]+$` : As an alternative to the above, filter out descriptions written in capital letters, but without the square brackets (e.g. "**PLAYFUL MUSIC**"). If your language has additional letters with diacritics, you feel free to add them to this list.
+-   `[♪♬#～〜]+` : Any combination of symbols on their own that represent playing music (e.g. `♪♬♪`)
+
+Regular expressions can be combined with the character `|` (no spaces needed inbetween). E.g., if you want to use the 2 last regexes from this list, you can use `-?\[.*\]|[♪♬#～〜]+`. You can combine as many regexes as you wish this way.
 
 Learn how to write and test custom regular expressions at [Regex Learn - Playground](https://regexlearn.com/playground).
 
@@ -247,6 +261,8 @@ asbplayer can be setup to support one-click mining workflows by integrating with
 4. Point Yomitan at the proxy by configuring `http://127.0.0.1:8766` for the AnkiConnect URL.
 5. Configure Yomitan to use the same note type you have configured for asbplayer.
 6. Using Yomitan's `+` button on asbplayer subtitles will now trigger the flashcard creator with word and definition fields pre-populated by Yomitan.
+
+The proxy is very lightweight, so it's fine to leave it running in the background. On Windows, [RBTray](https://github.com/benbuck/rbtray) can be used to minimise it to the taskbar.
 
 See the proxy's [example configuration file](https://github.com/killergerbah/asbplayer/blob/main/scripts/anki-connect-proxy/.env.example) for how to further configure it.
 

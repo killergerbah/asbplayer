@@ -43,6 +43,18 @@ interface ShowOptions {
     openedFromMiningCommand: boolean;
 }
 
+const fetchDataForLanguageOnDemand = (language: string): Promise<VideoData> => {
+    return new Promise((resolve, reject) => {
+        const listener = (event: Event) => {
+            const data = (event as CustomEvent).detail as VideoData;
+            resolve(data);
+            document.removeEventListener('asbplayer-synced-language-data', listener, false);
+        };
+        document.addEventListener('asbplayer-synced-language-data', listener, false);
+        document.dispatchEvent(new CustomEvent('asbplayer-get-synced-language-data', { detail: language }));
+    });
+};
+
 export default class VideoDataSyncController {
     private readonly _context: Binding;
     private readonly _domain: string;
@@ -72,7 +84,8 @@ export default class VideoDataSyncController {
         this._autoSync = false;
         this._lastLanguagesSynced = {};
         this._emptySubtitle = {
-            language: '',
+            id: '-',
+            language: '-',
             url: '-',
             label: i18n.t('extension.videoDataSync.emptySubtitleTrack'),
             extension: 'srt',
@@ -209,7 +222,7 @@ export default class VideoDataSyncController {
                       openedFromMiningCommand,
                       defaultCheckboxState: defaultCheckboxState,
                   };
-            state.selectedSubtitle = selectedSub.map((subtitle) => subtitle.url || '-');
+            state.selectedSubtitle = selectedSub.map((subtitle) => subtitle.id || '-');
             const client = await this._client();
             this._prepareShow();
             client.updateState(state);
@@ -223,14 +236,16 @@ export default class VideoDataSyncController {
             completeMatch: false,
         };
 
-        if (!subtitleTrackChoices.length && this.lastLanguageSynced.join('') === '') {
+        const emptyChoice = this.lastLanguageSynced.some((lang) => lang !== '-') === undefined;
+
+        if (!subtitleTrackChoices.length && emptyChoice) {
             tracks.completeMatch = true;
         } else {
             let matches: number = 0;
             for (let i = 0; i < this.lastLanguageSynced.length; i++) {
                 const language = this.lastLanguageSynced[i];
                 for (let j = 0; j < subtitleTrackChoices.length; j++) {
-                    if (language === '') {
+                    if (language === '-') {
                         matches++;
                         break;
                     } else if (language === subtitleTrackChoices[j].language) {
@@ -372,9 +387,10 @@ export default class VideoDataSyncController {
             let subtitles: SerializedSubtitleFile[] = [];
 
             for (let i = 0; i < data.length; i++) {
-                const { extension, url, m3U8BaseUrl } = data[i];
+                const { extension, url, m3U8BaseUrl, language } = data[i];
                 const subtitleFiles = await this._subtitlesForUrl(
                     this._defaultVideoName(this._syncedData?.basename, data[i]),
+                    language,
                     extension,
                     url,
                     m3U8BaseUrl
@@ -403,8 +419,8 @@ export default class VideoDataSyncController {
             let subtitles: SerializedSubtitleFile[] = [];
 
             for (let i = 0; i < data.length; i++) {
-                const { name, extension, subtitleUrl, m3U8BaseUrl } = data[i];
-                const subtitleFiles = await this._subtitlesForUrl(name, extension, subtitleUrl, m3U8BaseUrl);
+                const { name, language, extension, url, m3U8BaseUrl } = data[i];
+                const subtitleFiles = await this._subtitlesForUrl(name, language, extension, url, m3U8BaseUrl);
                 if (subtitleFiles !== undefined) {
                     subtitles.push(...subtitleFiles);
                 }
@@ -448,6 +464,7 @@ export default class VideoDataSyncController {
 
     private async _subtitlesForUrl(
         name: string,
+        language: string,
         extension: string,
         url: string,
         m3U8BaseUrl?: string
@@ -459,6 +476,24 @@ export default class VideoDataSyncController {
                     base64: '',
                 },
             ];
+        }
+
+        if (url === 'lazy') {
+            const data = await fetchDataForLanguageOnDemand(language);
+
+            if (data.error) {
+                this._reportError(data.error);
+                return undefined;
+            }
+
+            const lazilyFetchedUrl = data.subtitles?.find((t) => t.language === language)?.url;
+
+            if (lazilyFetchedUrl === undefined) {
+                this._reportError('Failed to fetch subtitles for specified language');
+                return undefined;
+            }
+
+            url = lazilyFetchedUrl;
         }
 
         const response = await fetch(url).catch((error) => {
@@ -522,24 +557,10 @@ export default class VideoDataSyncController {
 
         this._prepareShow();
 
-        const subtitleTrackChoices = this._syncedData?.subtitles ?? [];
-        let selectedSub: VideoDataSubtitleTrack[] = [this._emptySubtitle, this._emptySubtitle, this._emptySubtitle];
-        for (let i = 0; i < this.lastLanguageSynced.length; i++) {
-            const language = this.lastLanguageSynced[i];
-            for (let j = 0; j < subtitleTrackChoices.length; j++) {
-                if (language === subtitleTrackChoices[j].language) {
-                    selectedSub[i] = subtitleTrackChoices[j];
-                    break;
-                }
-            }
-        }
-
         return client.updateState({
             open: true,
             isLoading: false,
             showSubSelect: true,
-            subtitles: this._syncedData?.subtitles || [],
-            selectedSubtitle: selectedSub.map((subtitle) => subtitle.url) || '-',
             error,
             themeType: themeType,
         });

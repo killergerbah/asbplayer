@@ -116,6 +116,8 @@ const Popup = ({
                     extensionSupportsSidePanel={!isFirefoxBuild}
                     extensionSupportsOrderableAnkiFields
                     extensionSupportsTrackSpecificSettings
+                    extensionSupportsSubtitlesWidthSetting
+                    extensionSupportsPauseOnHover
                     forceVerticalTabs={false}
                     anki={anki}
                     chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}

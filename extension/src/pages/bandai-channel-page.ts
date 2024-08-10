@@ -56,8 +56,8 @@ inferTracks({
             setBasename(value.bch.episode_title);
         }
     },
-    onRequest: (addTrack, setBasename) => {
-        const succeeded = poll(() => {
+    onRequest: async (addTrack, setBasename) => {
+        const succeeded = await poll(() => {
             const basename = basenameFromDOM();
 
             if (basename) {

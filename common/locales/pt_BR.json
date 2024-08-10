@@ -34,6 +34,11 @@
         "play": "Sempre reproduzir",
         "pause": "Sempre pausado"
     },
+    "pauseOnHoverMode": {
+        "disabled": "Disabled",
+        "inNotOut": "Enabled",
+        "inAndOut": "Enabled with auto-resume"
+    },
     "ankiDialog": {
         "applySelection": "Aplicar seleção",
         "audio": "Áudio",
@@ -141,7 +146,8 @@
         "blank": "Em branco",
         "downloadMinedSubsAsSrt": "Baixar legendas mineradas como SRT",
         "exportToAnki": "Exportar para o Anki",
-        "miningHistoryEmpty": "O histórico de mineração está vazio."
+        "miningHistoryEmpty": "O histórico de mineração está vazio.",
+        "deleteAll": "Clear"
     },
     "error": {
         "bothAudioAndVideNotAllowed": "Não é possível carregar simultaneamente um arquivo de áudio e um arquivo de vídeo",
@@ -323,6 +329,7 @@
         "subtitleRegexFilterTextReplacement": "Substituição de texto do filtro regex da legenda",
         "subtitleSize": "Tamanho da legenda",
         "subtitleThickness": "Expessura da fonte da legenda",
+        "subtitlesWidth": "Subtitles Width",
         "surroundingSubtitlesCountRadius": "Raio de contagem de legendas ao redor",
         "surroundingSubtitlesTimeRadius": "Raio de tempo das legendas ao redor",
         "tags": "Tags",
@@ -338,7 +345,8 @@
         "webSocketClientEnabled": "Enable WebSocket client",
         "webSocketServerUrl": "WebSocket Server URL",
         "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons.",
-        "postMinePlayback": "Post-mining playback state"
+        "postMinePlayback": "Post-mining playback state",
+        "pauseOnHoverMode": "Auto-pause when mousing over subtitles"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Clique, segure e arraste para minerar múltiplas legendas"

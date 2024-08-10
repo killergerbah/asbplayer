@@ -80,7 +80,7 @@ export default class AnkiUiController {
 
         this._prepareShow(context);
         const client = await this._client(context);
-        const url = context.url;
+        const url = context.url(subtitle.start, subtitle.end);
         const themeType = await context.settings.getSingle('themeType');
 
         const state: AnkiUiInitialState = {

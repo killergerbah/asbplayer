@@ -1,5 +1,11 @@
 import { AutoPausePreference, PostMineAction, PostMinePlayback } from '../src/model';
 
+export enum PauseOnHoverMode {
+    disabled = 0,
+    inAndOut = 1,
+    inNotOut = 2,
+}
+
 export interface MiscSettings {
     readonly themeType: 'dark' | 'light';
     readonly copyToClipboardOnMine: boolean;
@@ -19,7 +25,20 @@ export interface MiscSettings {
     readonly postMiningPlaybackState: PostMinePlayback;
     readonly lastSubtitleOffset: number;
     readonly tabName: string;
+    readonly pauseOnHoverMode: PauseOnHoverMode;
 }
+
+export type AnkiSettingsFieldKey =
+    | 'sentenceField'
+    | 'definitionField'
+    | 'audioField'
+    | 'imageField'
+    | 'wordField'
+    | 'sourceField'
+    | 'urlField'
+    | 'track1Field'
+    | 'track2Field'
+    | 'track3Field';
 
 export interface AnkiSettings {
     readonly ankiConnectUrl: string;
@@ -133,6 +152,7 @@ const subtitleSettingsKeysObject: { [key in keyof SubtitleSettings]: boolean } =
     subtitlePositionOffset: true,
     subtitleAlignment: true,
     subtitleTracksV2: true,
+    subtitlesWidth: true,
 };
 
 export const subtitleSettingsKeys: (keyof SubtitleSettings)[] = Object.keys(
@@ -172,6 +192,9 @@ export interface SubtitleSettings extends TextSubtitleSettings {
     // We don't configure track 0 here to avoid having to migrate old settings into this new data structure.
     // Track 0 continues to be configured from the top-level settings object.
     readonly subtitleTracksV2: TextSubtitleSettings[];
+
+    // Percentage of containing video width; -1 means 'auto'
+    readonly subtitlesWidth: number;
 }
 
 export interface KeyBind {

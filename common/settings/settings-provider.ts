@@ -62,6 +62,7 @@ export const defaultSettings: AsbplayerSettings = {
     subtitlePositionOffset: 75,
     subtitleAlignment: 'bottom',
     subtitleTracksV2: [],
+    subtitlesWidth: 100,
     audioPaddingStart: 0,
     audioPaddingEnd: 500,
     maxImageWidth: 0,
@@ -138,6 +139,7 @@ export const defaultSettings: AsbplayerSettings = {
     streamingEnableOverlay: true,
     webSocketClientEnabled: false,
     webSocketServerUrl: 'ws://127.0.0.1:8766/ws',
+    pauseOnHoverMode: 0,
 };
 
 export interface AnkiFieldUiModel {
