@@ -69,8 +69,8 @@ const useStyles = makeStyles({
         paddingLeft: 20,
         paddingRight: 20,
         textAlign: 'center',
-        whiteSpace: 'pre-wrap',
-        lineHeight: 'normal',
+        whiteSpace: 'normal',
+        lineHeight: 'inherit',
     },
 });
 
@@ -165,7 +165,9 @@ const showingSubtitleHtml = (
 `;
     }
 
-    return `<span style="${subtitleStyles}" class="${subtitleClasses}">${subtitle.text}</span>`;
+    const lines = subtitle.text.split('\n');
+    const wrappedText = lines.map((line) => `<p class="subtitle-line">${line}</p>`).join('');
+    return `<span style="${subtitleStyles}" class="${subtitleClasses}">${wrappedText}</span>`;
 };
 
 interface ShowingSubtitleProps {
@@ -196,7 +198,12 @@ const ShowingSubtitle = ({
             />
         );
     } else {
-        content = <span style={subtitleStyles}>{subtitle.text}</span>;
+        const lines = subtitle.text.split('\n');
+        content = lines.map((line, index) => (
+            <p key={index} className="subtitle-line" style={subtitleStyles}>
+                {line}
+            </p>
+        ));
     }
 
     return (
