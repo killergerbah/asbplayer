@@ -69,7 +69,7 @@ const useStyles = makeStyles({
         paddingLeft: 20,
         paddingRight: 20,
         textAlign: 'center',
-        whiteSpace: 'pre-wrap',
+        whiteSpace: 'normal',
         lineHeight: 'normal',
     },
 });
