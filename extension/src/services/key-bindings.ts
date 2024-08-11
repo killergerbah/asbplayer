@@ -187,8 +187,7 @@ export default class KeyBindings {
             (event, track) => {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                context.subtitleController.unblurredSubtitleTracks[track] =
-                    true;
+                context.subtitleController.unblur(track);
             },
             () => context.subtitleController.subtitles.length === 0,
             true

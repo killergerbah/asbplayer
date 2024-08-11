@@ -1,5 +1,4 @@
 import { OffscreenDomCache } from '@project/common';
-import { MouseEventHandler } from 'react';
 
 export enum OffsetAnchor {
     bottom,
@@ -36,6 +35,7 @@ export interface ElementOverlay {
     offsetAnchor: OffsetAnchor;
     contentPositionOffset: number;
     contentWidthPercentage: number;
+    displayingElements: () => Iterable<HTMLElement>;
 }
 
 export class CachingElementOverlay implements ElementOverlay {
@@ -82,6 +82,30 @@ export class CachingElementOverlay implements ElementOverlay {
         this.contentPositionOffset = contentPositionOffset ?? 75;
         this.contentWidthPercentage = contentWidthPercentage;
         this.onMouseOver = onMouseOver;
+    }
+
+    *displayingElements() {
+        function* grandChildren(container: HTMLElement) {
+            for (const content of container.childNodes) {
+                for (const el of content.childNodes) {
+                    if (el instanceof HTMLElement) {
+                        yield el as HTMLElement;
+                    }
+                }
+            }
+        }
+
+        if (document.fullscreenElement && this.fullscreenContainerElement !== undefined) {
+            for (const el of grandChildren(this.fullscreenContainerElement)) {
+                yield el;
+            }
+        }
+
+        if (!document.fullscreenElement && this.nonFullscreenContainerElement !== undefined) {
+            for (const el of grandChildren(this.nonFullscreenContainerElement)) {
+                yield el;
+            }
+        }
     }
 
     uncacheHtml() {
@@ -404,6 +428,24 @@ export class DefaultElementOverlay implements ElementOverlay {
         this.contentPositionOffset = contentPositionOffset ?? 75;
         this.contentWidthPercentage = contentWidthPercentage;
         this.onMouseOver = onMouseOver;
+    }
+
+    *displayingElements() {
+        if (document.fullscreenElement && this.fullscreenContentElement !== undefined) {
+            for (const el of this.fullscreenContentElement.childNodes) {
+                if (el instanceof HTMLElement) {
+                    yield el;
+                }
+            }
+        }
+
+        if (!document.fullscreenElement && this.nonFullscreenContentElement !== undefined) {
+            for (const el of this.nonFullscreenContentElement.childNodes) {
+                if (el instanceof HTMLElement) {
+                    yield el;
+                }
+            }
+        }
     }
 
     uncacheHtml(): void {}
