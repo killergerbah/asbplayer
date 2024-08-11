@@ -70,7 +70,7 @@ const useStyles = makeStyles({
         paddingRight: 20,
         textAlign: 'center',
         whiteSpace: 'normal',
-        lineHeight: 'normal',
+        lineHeight: 'inherit',
     },
 });
 
