@@ -71,7 +71,8 @@ Thank you to all those who have contributed to asbplayer:
 [@bpwhelan](https://github.com/bpwhelan),
 [@pooky-programs](https://github.com/pooky-programs),
 [@m-edlund](https://github.com/m-edlund),
-[@nekorushi](https://github.com/nekorushi)
+[@nekorushi](https://github.com/nekorushi),
+[@Viterkim](https://github.com/Viterkim)
 
 Thank you to all those who have translated asbplayer:
 
