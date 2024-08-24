@@ -109,6 +109,7 @@
         "toggleAsbplayerSubtitleTrack3": "Activar/Desactivar pista de subtítulos 3 en asbplayer",
         "toggleAsbplayerSubtitleTracks": "Activar/Desactivar pista de subtítulos en asbplayer",
         "toggleAsbplayerBlurTrack": "Activar/Desactivar desenfoque de la pista de subtítulos {{trackNumber}} en asbplayer",
+        "unblurAsbplayerTrack": "Unblur subtitle track {{trackNumber}} in asbplayer",
         "toggleAutoPause": "Activar/Desactivar pausado automático",
         "toggleCondensedPlayback": "Activar/Desactivar reproducción condensada",
         "toggleFastForwardPlayback": "Activar/Desactivar reproducción acelerada",

@@ -732,16 +732,16 @@ export default function SettingsForm({
                 label: t('binds.toggleAsbplayerSubtitleTrack3')!,
                 boundViaChrome: false,
             },
-            toggleAsbplayerBlurTrack1: {
-                label: t('binds.toggleAsbplayerBlurTrack', { trackNumber: 1 })!,
+            unblurAsbplayerTrack1: {
+                label: t('binds.unblurAsbplayerTrack', { trackNumber: 1 })!,
                 boundViaChrome: false,
             },
-            toggleAsbplayerBlurTrack2: {
-                label: t('binds.toggleAsbplayerBlurTrack', { trackNumber: 2 })!,
+            unblurAsbplayerTrack2: {
+                label: t('binds.unblurAsbplayerTrack', { trackNumber: 2 })!,
                 boundViaChrome: false,
             },
-            toggleAsbplayerBlurTrack3: {
-                label: t('binds.toggleAsbplayerBlurTrack', { trackNumber: 3 })!,
+            unblurAsbplayerTrack3: {
+                label: t('binds.unblurAsbplayerTrack', { trackNumber: 3 })!,
                 boundViaChrome: false,
             },
             seekBackward: { label: t('binds.seekBackward')!, boundViaChrome: false },
