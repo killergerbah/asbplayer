@@ -1170,20 +1170,16 @@ export default function VideoPlayer({
     }, [displaySubtitles, playbackPreferences]);
 
     const handleFullscreenToggle = useCallback(() => {
-        if (popOut) {
-            setFullscreen((fullscreen) => {
-                if (fullscreen) {
-                    document.exitFullscreen();
-                } else {
-                    document.documentElement.requestFullscreen();
-                }
+        setFullscreen((fullscreen) => {
+            if (fullscreen) {
+                document.exitFullscreen();
+            } else {
+                document.documentElement.requestFullscreen();
+            }
 
-                return !fullscreen;
-            });
-        } else {
-            playerChannel.fullscreenToggle();
-        }
-    }, [playerChannel, popOut]);
+            return !fullscreen;
+        });
+    }, []);
 
     const handleVolumeChange = useCallback((volume: number) => {
         if (videoRef.current) {

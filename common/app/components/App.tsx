@@ -479,9 +479,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
         setTheaterMode(newValue);
         setVideoFullscreen(false);
     }, [playbackPreferences]);
-    const handleFullscreenToggle = useCallback(() => {
-        setVideoFullscreen((fullscreen) => !fullscreen);
-    }, []);
     useEffect(() => {
         if (videoFullscreen) {
             if (!document.fullscreenElement) {
@@ -1263,7 +1260,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                                 onAnkiDialogRequest={handleAnkiDialogRequest}
                                 onAnkiDialogRewind={handleAnkiDialogRewind}
                                 onAppBarToggle={handleAppBarToggle}
-                                onFullscreenToggle={handleFullscreenToggle}
                                 onHideSubtitlePlayer={handleHideSubtitlePlayer}
                                 onVideoPopOut={handleVideoPopOut}
                                 onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}

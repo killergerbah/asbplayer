@@ -63,7 +63,6 @@ export default class VideoChannel {
     private playModeCallbacks: ((mode: PlayMode) => void)[];
     private hideSubtitlePlayerToggleCallbacks: (() => void)[];
     private appBarToggleCallbacks: (() => void)[];
-    private fullscreenToggleCallbacks: (() => void)[];
     private ankiDialogRequestCallbacks: (() => void)[];
     private toggleSubtitleTrackInListCallbacks: ((track: number) => void)[];
 
@@ -95,7 +94,6 @@ export default class VideoChannel {
         this.playModeCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
         this.appBarToggleCallbacks = [];
-        this.fullscreenToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
 
@@ -209,11 +207,6 @@ export default class VideoChannel {
                     break;
                 case 'appBarToggle':
                     for (let callback of that.appBarToggleCallbacks) {
-                        callback();
-                    }
-                    break;
-                case 'fullscreenToggle':
-                    for (const callback of this.fullscreenToggleCallbacks) {
                         callback();
                     }
                     break;
@@ -339,11 +332,6 @@ export default class VideoChannel {
     onAppBarToggle(callback: () => void) {
         this.appBarToggleCallbacks.push(callback);
         return () => this._remove(callback, this.appBarToggleCallbacks);
-    }
-
-    onFullscreenToggle(callback: () => void) {
-        this.fullscreenToggleCallbacks.push(callback);
-        return () => this._remove(callback, this.fullscreenToggleCallbacks);
     }
 
     onAnkiDialogRequest(callback: () => void) {
@@ -621,7 +609,6 @@ export default class VideoChannel {
         this.playModeCallbacks = [];
         this.hideSubtitlePlayerToggleCallbacks = [];
         this.appBarToggleCallbacks = [];
-        this.fullscreenToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
     }

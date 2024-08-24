@@ -408,10 +408,6 @@ export default class PlayerChannel {
         this.channel?.postMessage({ command: 'appBarToggle' });
     }
 
-    fullscreenToggle() {
-        this.channel?.postMessage({ command: 'fullscreenToggle' });
-    }
-
     toggleSubtitleTrackInList(track: number) {
         const message: ToggleSubtitleTrackInListFromVideoMessage = {
             command: 'toggleSubtitleTrackInList',
