@@ -109,7 +109,7 @@
         "toggleAsbplayerSubtitleTrack3": "asbplayer の字幕トラック 3 オン/オフ",
         "toggleAsbplayerSubtitleTracks": "asbplayer の字幕トラック オン/オフ",
         "toggleAsbplayerBlurTrack": "asbplayer の字幕トラック {{trackNumber}} のぼかし オン/オフ",
-        "unblurAsbplayerTrack": "Unblur subtitle track {{trackNumber}} in asbplayer",
+        "unblurAsbplayerTrack": "asbplayer の字幕トラック {{trackNumber}} のぼかしを解除",
         "toggleAutoPause": "自動一時停止オン/オフ",
         "toggleCondensedPlayback": "短縮プレイバック",
         "toggleFastForwardPlayback": "早送りプレイバックオン/オフ",
@@ -148,7 +148,7 @@
         "downloadMinedSubsAsSrt": "マイニングした字幕を SRT 形式でダウンロードする",
         "exportToAnki": "Anki にエクスポートする",
         "miningHistoryEmpty": "マイニング履歴はありませïん",
-        "deleteAll": "Clear"
+        "deleteAll": "全てを削除"
     },
     "error": {
         "bothAudioAndVideNotAllowed": "音声と動画ファイルを同時にロードできません",
