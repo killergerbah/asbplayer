@@ -109,6 +109,7 @@
         "toggleAsbplayerSubtitleTrack3": "切换asbplayer中的字幕音轨3",
         "toggleAsbplayerSubtitleTracks": "在asbplayer中切换字幕音轨",
         "toggleAsbplayerBlurTrack": "Toggle subtitle track {{trackNumber}} blur in asbplayer",
+        "unblurAsbplayerTrack": "Unblur subtitle track {{trackNumber}} in asbplayer",
         "toggleAutoPause": "切换自动暂停",
         "toggleCondensedPlayback": "切换压缩播放",
         "toggleFastForwardPlayback": "Toggle fast forward playback",

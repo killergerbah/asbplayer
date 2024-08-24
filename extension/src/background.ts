@@ -54,7 +54,6 @@ import CurrentTabHandler from './handlers/mobile-overlay/current-tab-handler';
 import UpdateMobileOverlayModelHandler from './handlers/video/update-mobile-overlay-model-handler';
 import { isMobile } from './services/device-detection';
 import { enqueueUpdateAlert } from './services/update-alert';
-import BlurSubtitlesHandler from './handlers/video/blur-subtitles-handler';
 
 if (!isFirefoxBuild) {
     chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
@@ -120,7 +119,6 @@ const handlers: CommandHandler[] = [
     new StopRecordingMediaHandler(audioRecorder, imageCapturer, cardPublisher, settings),
     new TakeScreenshotHandler(imageCapturer, cardPublisher),
     new ToggleSubtitlesHandler(settings, tabRegistry),
-    new BlurSubtitlesHandler(settings, tabRegistry),
     new SyncHandler(tabRegistry),
     new HttpPostHandler(),
     new ToggleSidePanelHandler(tabRegistry),

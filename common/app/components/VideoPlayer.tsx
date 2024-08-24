@@ -838,7 +838,7 @@ export default function VideoPlayer({
     }, [keyBinder, playerChannel]);
 
     useEffect(() => {
-        return keyBinder.bindToggleBlurTrack(
+        return keyBinder.bindUnblurTrack(
             (event, targetTrack) => {
                 event.preventDefault();
                 let newSubtitleSettings = { ...subtitleSettings };

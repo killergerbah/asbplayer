@@ -46,6 +46,7 @@ export default class SubtitleController {
     private subtitleCollection: SubtitleCollection<SubtitleModelWithIndex>;
     private subtitlesElementOverlay: ElementOverlay;
     private notificationElementOverlay: ElementOverlay;
+    private unblurredSubtitleTracks: { [key: number]: boolean | undefined };
     disabledSubtitleTracks: { [key: number]: boolean | undefined };
     subtitleFileNames?: string[];
     _forceHideSubtitles: boolean;
@@ -77,6 +78,7 @@ export default class SubtitleController {
         this._subtitles = [];
         this.subtitleCollection = new SubtitleCollection<SubtitleModelWithIndex>([]);
         this.showingSubtitles = [];
+        this.unblurredSubtitleTracks = {};
         this.disabledSubtitleTracks = {};
         this._forceHideSubtitles = false;
         this._displaySubtitles = true;
@@ -139,6 +141,7 @@ export default class SubtitleController {
     setSubtitleSettings(newSubtitleSettings: SubtitleSettings) {
         const styles = this._computeStyles(newSubtitleSettings);
         const classes = this._computeClasses(newSubtitleSettings);
+        this.unblurredSubtitleTracks = {};
 
         if (
             this.subtitleStyles === undefined ||
@@ -340,6 +343,7 @@ export default class SubtitleController {
             if ((!showOffset && !this._displaySubtitles) || this._forceHideSubtitles) {
                 this.subtitlesElementOverlay.hide();
             } else if (subtitlesAreNew || shouldRenderOffset) {
+                this._resetUnblurState();
                 this._renderSubtitles(showingSubtitles);
 
                 if (showOffset) {
@@ -354,6 +358,22 @@ export default class SubtitleController {
 
     private _renderSubtitles(subtitles: SubtitleModelWithIndex[]) {
         this._setSubtitlesHtml(this._buildSubtitlesHtml(subtitles));
+    }
+
+    private _resetUnblurState() {
+        if (Object.keys(this.unblurredSubtitleTracks).length === 0) {
+            return;
+        }
+
+        for (const element of this.subtitlesElementOverlay.displayingElements()) {
+            const track = Number(element.dataset.track);
+
+            if (this.unblurredSubtitleTracks[track] === true) {
+                element.classList.add('asbplayer-subtitles-blurred');
+            }
+        }
+
+        this.unblurredSubtitleTracks = {};
     }
 
     private _autoCopyToClipboard(subtitles: SubtitleModel[]) {
@@ -395,7 +415,9 @@ export default class SubtitleController {
                         const width = imageScale * subtitle.textImage.image.width;
 
                         return `
-                            <div style="max-width:${width}px;margin:auto;" class="${className}"}">
+                            <div data-track="${
+                                subtitle.track ?? 0
+                            }" style="max-width:${width}px;margin:auto;" class="${className}"}">
                                 <img
                                     style="width:100%;"
                                     alt="subtitle"
@@ -413,7 +435,9 @@ export default class SubtitleController {
     }
 
     private _buildTextHtml(text: string, track?: number) {
-        return `<span class="${this._subtitleClasses(track)}" style="${this._subtitleStyles(track)}">${text}</span>`;
+        return `<span data-track="${track ?? 0}" class="${this._subtitleClasses(track)}" style="${this._subtitleStyles(
+            track
+        )}">${text}</span>`;
     }
 
     unbind() {
@@ -472,6 +496,17 @@ export default class SubtitleController {
                 this.surroundingSubtitlesTimeRadius
             ),
         ];
+    }
+
+    unblur(track: number) {
+        for (const element of this.subtitlesElementOverlay.displayingElements()) {
+            const elementTrack = Number(element.dataset.track);
+
+            if (track === elementTrack && element.classList.contains('asbplayer-subtitles-blurred')) {
+                this.unblurredSubtitleTracks[track] = true;
+                element.classList.remove('asbplayer-subtitles-blurred');
+            }
+        }
     }
 
     offset(offset: number, skipNotifyPlayer = false) {
