@@ -109,6 +109,7 @@
         "toggleAsbplayerSubtitleTrack3": "Untertitel 3 in asbplayer umschalten",
         "toggleAsbplayerSubtitleTracks": "Untertitel in absplayer umschalten",
         "toggleAsbplayerBlurTrack": "Toggle subtitle track {{trackNumber}} blur in asbplayer",
+        "unblurAsbplayerTrack": "Unblur subtitle track {{trackNumber}} in asbplayer",
         "toggleAutoPause": "Auto-Pause aktivieren / deaktivieren",
         "toggleCondensedPlayback": "Komprimiertes Audio-Playback aktivieren / deaktivieren",
         "toggleFastForwardPlayback": "Toggle fast forward playback",

@@ -109,6 +109,7 @@
         "toggleAsbplayerSubtitleTrack3": "Przełącz ścieżkę napisów 3 w asbplayer",
         "toggleAsbplayerSubtitleTracks": "Przełącz ścieżki napisów w asbplayer",
         "toggleAsbplayerBlurTrack": "Przełącz rozmycie ścieżki napisów {{trackNumber}}",
+        "unblurAsbplayerTrack": "Unblur subtitle track {{trackNumber}} in asbplayer",
         "toggleAutoPause": "Przełącz automatyczną pauzę",
         "toggleCondensedPlayback": "Przełącz odtwarzanie skondensowane",
         "toggleFastForwardPlayback": "Przełącz tryb przyspieszonego odtwarzania",
