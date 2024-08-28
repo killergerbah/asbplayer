@@ -909,41 +909,30 @@ export default function VideoPlayer({
         ) => {
             switch (postMineAction) {
                 case PostMineAction.showAnkiDialog:
-                    if (popOut) {
-                        playerChannel.copy(
-                            subtitle,
-                            surroundingSubtitles,
-                            cardTextFieldValues,
-                            videoFileName ?? '',
-                            timestamp,
-                            PostMineAction.none
-                        );
-                        onAnkiDialogRequest(
-                            videoFileUrl,
-                            videoFileName ?? '',
-                            selectedAudioTrack,
-                            playbackRate,
-                            subtitle,
-                            surroundingSubtitles,
-                            cardTextFieldValues,
-                            timestamp
-                        );
+                    playerChannel.copy(
+                        subtitle,
+                        surroundingSubtitles,
+                        cardTextFieldValues,
+                        videoFileName ?? '',
+                        timestamp,
+                        PostMineAction.none
+                    );
+                    onAnkiDialogRequest(
+                        videoFileUrl,
+                        videoFileName ?? '',
+                        selectedAudioTrack,
+                        playbackRate,
+                        subtitle,
+                        surroundingSubtitles,
+                        cardTextFieldValues,
+                        timestamp
+                    );
 
-                        if (playing()) {
-                            playerChannel.pause();
-                            setWasPlayingOnAnkiDialogRequest(true);
-                        } else {
-                            setWasPlayingOnAnkiDialogRequest(false);
-                        }
+                    if (playing()) {
+                        playerChannel.pause();
+                        setWasPlayingOnAnkiDialogRequest(true);
                     } else {
-                        playerChannel.copy(
-                            subtitle,
-                            surroundingSubtitles,
-                            cardTextFieldValues,
-                            videoFileName ?? '',
-                            timestamp,
-                            PostMineAction.showAnkiDialog
-                        );
+                        setWasPlayingOnAnkiDialogRequest(false);
                     }
                     break;
                 default:
@@ -967,7 +956,7 @@ export default function VideoPlayer({
                 timestamp,
             });
         },
-        [onAnkiDialogRequest, playerChannel, popOut]
+        [onAnkiDialogRequest, playerChannel]
     );
 
     const mineCurrentSubtitle = useCallback(
@@ -1063,7 +1052,7 @@ export default function VideoPlayer({
             (event) => {
                 event.preventDefault();
 
-                if (popOut && ankiDialogOpen) {
+                if (ankiDialogOpen) {
                     onAnkiDialogRewind();
                 } else if (lastMinedRecord) {
                     const currentTimestamp = clock.time(length);
