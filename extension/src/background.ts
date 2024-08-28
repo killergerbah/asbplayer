@@ -305,11 +305,12 @@ chrome.commands?.onCommand.addListener((command) => {
                             return undefined;
                         }
 
-                        const extensionToPlayerCommand: Command<TakeScreenshotMessage> = {
+                        const extensionToPlayerCommand: ExtensionToAsbPlayerCommand<TakeScreenshotMessage> = {
                             sender: 'asbplayer-extension-to-player',
                             message: {
                                 command: 'take-screenshot',
                             },
+                            asbplayerId: asbplayer.id,
                         };
                         return extensionToPlayerCommand;
                     },

@@ -946,25 +946,6 @@ const Player = React.memo(function Player({
         );
     }, [keyBinder, disableKeyEvents, togglePlayMode, subtitleCollection, clock]);
 
-    useEffect(() => {
-        if (!videoFileUrl) {
-            return;
-        }
-
-        return keyBinder.bindTakeScreenshot(
-            (event) => {
-                event.preventDefault();
-
-                if (ankiDialogOpen) {
-                    onAnkiDialogRewind();
-                } else {
-                    onTakeScreenshot(clock.time(calculateLength()));
-                }
-            },
-            () => false
-        );
-    }, [videoFileUrl, clock, onTakeScreenshot, onAnkiDialogRewind, keyBinder, disableKeyEvents, ankiDialogOpen]);
-
     useEffect(() => channel?.appBarToggle(appBarHidden), [channel, appBarHidden]);
     useEffect(() => channel?.fullscreenToggle(videoFullscreen), [channel, videoFullscreen]);
 
