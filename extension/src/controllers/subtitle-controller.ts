@@ -207,6 +207,7 @@ export default class SubtitleController {
 
     private _resetOverlays(alignment: SubtitleAlignment, preCacheDom: boolean, skipCacheHtml: boolean = false) {
         this.subtitlesElementOverlay.dispose();
+        this.topSubtitlesElementOverlay.dispose();
         this.notificationElementOverlay.dispose();
         const { subtitlesElementOverlay, topSubtitlesElementOverlay, notificationElementOverlay } = this._overlays(alignment, preCacheDom);
         subtitlesElementOverlay.contentPositionOffset = this.subtitlesElementOverlay.contentPositionOffset;
@@ -370,6 +371,7 @@ export default class SubtitleController {
 
             if ((!showOffset && !this._displaySubtitles) || this._forceHideSubtitles) {
                 this.subtitlesElementOverlay.hide();
+                this.topSubtitlesElementOverlay.hide();
             } else if (subtitlesAreNew || shouldRenderOffset) {
                 this._resetUnblurState();
                 const showingSubtitlesBottom = showingSubtitles.filter((s) => this.getSubtitleTrackAlignment(s.track) === 'bottom');
@@ -401,7 +403,7 @@ export default class SubtitleController {
             return;
         }
 
-        for (const element of this.subtitlesElementOverlay.displayingElements()) {
+        for (const element of [...this.subtitlesElementOverlay.displayingElements(), ...this.topSubtitlesElementOverlay.displayingElements()]) {
             const track = Number(element.dataset.track);
 
             if (this.unblurredSubtitleTracks[track] === true) {
@@ -537,7 +539,7 @@ export default class SubtitleController {
     }
 
     unblur(track: number) {
-        for (const element of this.subtitlesElementOverlay.displayingElements()) {
+        for (const element of [...this.subtitlesElementOverlay.displayingElements(), ...this.topSubtitlesElementOverlay.displayingElements()]) {
             const elementTrack = Number(element.dataset.track);
 
             if (track === elementTrack && element.classList.contains('asbplayer-subtitles-blurred')) {
