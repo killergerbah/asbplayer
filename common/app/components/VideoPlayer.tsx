@@ -350,7 +350,7 @@ export default function VideoPlayer({
     const showSubtitlesRef = useRef<IndexedSubtitleModel[]>([]);
     showSubtitlesRef.current = showSubtitles;
     const clock = useMemo<Clock>(() => new Clock(), []);
-    const mousePositionRef = useRef<Point>({ x: 0, y: 0 });
+    const mousePositionRef = useRef<Point | undefined>(undefined);
     const [showCursor, setShowCursor] = useState<boolean>(false);
     const lastMouseMovementTimestamp = useRef<number>(0);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -614,7 +614,7 @@ export default function VideoPlayer({
         }
     }, [handleSeek, seekRequest, length]);
 
-    function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         lastMouseMovementTimestamp.current = Date.now();
 
         if (!containerRef.current) {
@@ -622,9 +622,12 @@ export default function VideoPlayer({
         }
 
         var bounds = containerRef.current.getBoundingClientRect();
-        mousePositionRef.current.x = e.clientX - bounds.left;
-        mousePositionRef.current.y = e.clientY - bounds.top;
-    }
+        mousePositionRef.current = { x: e.clientX - bounds.left, y: e.clientY - bounds.top };
+    }, []);
+
+    const handleMouseLeave = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+        mousePositionRef.current = undefined;
+    }, []);
 
     const handleAudioTrackSelected = useCallback(
         (id: string) => {
@@ -1300,7 +1303,7 @@ export default function VideoPlayer({
     }
 
     return (
-        <div ref={containerRef} onMouseMove={handleMouseMove} className={classes.root}>
+        <div ref={containerRef} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} className={classes.root}>
             <Alert open={alertOpen} onClose={handleAlertClosed} autoHideDuration={3000} severity={alertSeverity}>
                 {alertMessage}
             </Alert>
