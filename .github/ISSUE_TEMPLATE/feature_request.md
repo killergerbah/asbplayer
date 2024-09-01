@@ -4,8 +4,10 @@ about: Suggest an idea for this project
 title: ''
 labels: ''
 assignees: ''
-
 ---
+
+Before submitting a feature request, please look through the asbplayer (https://github.com/killergerbah/asbplayer) and settings (https://killergerbah.github.io/asbplayer/?view=settings)
+to be sure that your feature request isn't already implemented.
 
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
