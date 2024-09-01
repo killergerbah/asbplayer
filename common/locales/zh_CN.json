@@ -317,6 +317,7 @@
         "subtitleShadowThickness": "Subtitle Shadow Thickness",
         "subtitleOutlineThicknessHelperText": "在字幕文本周围添加轮廓线。如果这会导致线条重叠，请尝试使用其他字体。",
         "subtitlePositionOffset": "字幕位置从底部偏移",
+        "topSubtitlePositionOffset": "字幕位置从顶部偏移",
         "subtitleAlignment": "字幕对齐方式",
         "subtitleAlignmentBottom": "底部",
         "subtitleAlignmentTop": "顶部",

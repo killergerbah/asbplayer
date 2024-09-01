@@ -317,6 +317,7 @@
         "subtitleShadowThickness": "Subtitle Shadow Thickness",
         "subtitleOutlineThicknessHelperText": "Adds an outline around subtitle text. If this causes overlapping lines, try using a different font.",
         "subtitlePositionOffset": "Subtitle position offset from bottom",
+        "topSubtitlePositionOffset": "Subtitle position offset from top",
         "subtitleAlignment": "Subtitle Alignment",
         "subtitleAlignmentBottom": "Bottom",
         "subtitleAlignmentTop": "Top",
