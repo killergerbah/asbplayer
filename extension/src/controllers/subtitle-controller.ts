@@ -47,9 +47,9 @@ export default class SubtitleController {
     private subtitlesElementOverlay: ElementOverlay;
     private topSubtitlesElementOverlay: ElementOverlay;
     private notificationElementOverlay: ElementOverlay;
+    private subtitleTrackAlignments: { [key: number]: SubtitleAlignment | undefined };
     private unblurredSubtitleTracks: { [key: number]: boolean | undefined };
     disabledSubtitleTracks: { [key: number]: boolean | undefined };
-    subtitleTrackAlignments: { [key: number]: SubtitleAlignment | undefined };
     subtitleFileNames?: string[];
     _forceHideSubtitles: boolean;
     _displaySubtitles: boolean;
@@ -154,9 +154,6 @@ export default class SubtitleController {
     setSubtitleSettings(newSubtitleSettings: SubtitleSettings) {
         const styles = this._computeStyles(newSubtitleSettings);
         const classes = this._computeClasses(newSubtitleSettings);
-        this.subtitleTrackAlignments = allTextSubtitleSettings(newSubtitleSettings).map((s) => s.subtitleAlignment);
-        this.unblurredSubtitleTracks = {};
-
         if (
             this.subtitleStyles === undefined ||
             !this._arrayEquals(styles, this.subtitleStyles, (a, b) => a === b) ||
@@ -167,6 +164,20 @@ export default class SubtitleController {
             this.subtitleClasses = classes;
             this.cacheHtml();
         }
+
+        const newAlignments = allTextSubtitleSettings(newSubtitleSettings).map((s) => s.subtitleAlignment);
+        if (newAlignments !== this.subtitleTrackAlignments) {
+            this.subtitleTrackAlignments = newAlignments;
+            const { subtitleOverlayParams, topSubtitleOverlayParams, notificationOverlayParams } = this._elementOverlayParams('bottom');
+            this._applyElementOverlayParams(this.subtitlesElementOverlay, subtitleOverlayParams);
+            this._applyElementOverlayParams(this.topSubtitlesElementOverlay, topSubtitleOverlayParams);
+            this._applyElementOverlayParams(this.notificationElementOverlay, notificationOverlayParams);
+            this.subtitlesElementOverlay.hide();
+            this.topSubtitlesElementOverlay.hide();
+            this.notificationElementOverlay.hide();
+        }
+
+        this.unblurredSubtitleTracks = {};
 
         this.subtitleSettings = newSubtitleSettings;
     }
@@ -212,8 +223,8 @@ export default class SubtitleController {
         const { subtitlesElementOverlay, topSubtitlesElementOverlay, notificationElementOverlay } = this._overlays(alignment, preCacheDom);
         subtitlesElementOverlay.contentPositionOffset = this.subtitlesElementOverlay.contentPositionOffset;
         subtitlesElementOverlay.contentWidthPercentage = this.subtitlesElementOverlay.contentWidthPercentage;
-        topSubtitlesElementOverlay.contentPositionOffset = this.subtitlesElementOverlay.contentPositionOffset;
-        topSubtitlesElementOverlay.contentWidthPercentage = this.subtitlesElementOverlay.contentWidthPercentage;
+        topSubtitlesElementOverlay.contentPositionOffset = this.topSubtitlesElementOverlay.contentPositionOffset;
+        topSubtitlesElementOverlay.contentWidthPercentage = this.topSubtitlesElementOverlay.contentWidthPercentage;
         notificationElementOverlay.contentPositionOffset = this.notificationElementOverlay.contentPositionOffset;
         notificationElementOverlay.contentWidthPercentage = this.notificationElementOverlay.contentWidthPercentage;
         this.subtitlesElementOverlay = subtitlesElementOverlay;
