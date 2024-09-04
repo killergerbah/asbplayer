@@ -571,11 +571,9 @@ export default function VideoPlayer({
             updatePlaybackRate(playbackRate, false);
         });
         playerChannel.onAlert((message, severity) => {
-            if (popOut) {
-                setAlertOpen(true);
-                setAlertMessage(message);
-                setAlertSeverity(severity as Color);
-            }
+            setAlertOpen(true);
+            setAlertMessage(message);
+            setAlertSeverity(severity as Color);
         });
 
         window.onbeforeunload = (e) => {
@@ -586,7 +584,7 @@ export default function VideoPlayer({
 
         setPlayerChannelSubscribed(true);
         return () => playerChannel.close();
-    }, [clock, playerChannel, updateSubtitlesWithOffset, updatePlaybackRate, popOut]);
+    }, [clock, playerChannel, updateSubtitlesWithOffset, updatePlaybackRate]);
 
     const handlePlay = useCallback(() => {
         if (videoRef.current) {

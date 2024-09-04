@@ -1088,10 +1088,11 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
     }, [searchParams]);
 
     useEffect(() => {
-        if (alertOpen && alert && alertSeverity) {
+        if (sources.videoFile && alertOpen && alert && alertSeverity) {
             videoChannelRef.current?.alert(alert, alertSeverity);
+            setAlertOpen(false);
         }
-    }, [alert, alertSeverity, alertOpen]);
+    }, [sources.videoFile, alert, alertSeverity, alertOpen]);
 
     const handleCopyToClipboard = useCallback((blob: Blob) => {
         navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]).catch(console.error);
@@ -1132,9 +1133,16 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                 onDragEnter={handleDragEnter}
                 onDragLeave={handleDragLeave}
             >
-                <Alert open={alertOpen} onClose={handleAlertClosed} autoHideDuration={3000} severity={alertSeverity}>
-                    {alert}
-                </Alert>
+                {!sources.videoFile && (
+                    <Alert
+                        open={alertOpen}
+                        onClose={handleAlertClosed}
+                        autoHideDuration={3000}
+                        severity={alertSeverity}
+                    >
+                        {alert}
+                    </Alert>
+                )}
                 {inVideoPlayer ? (
                     <>
                         <RenderVideo
