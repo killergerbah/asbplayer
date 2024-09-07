@@ -144,6 +144,10 @@ export default class Binding {
     ) => void;
     private heartbeatInterval?: NodeJS.Timeout;
 
+    // In the case of firefox, we need to avoid capturing the audio stream more than once,
+    // so we keep a reference to the first one we capture here.
+    private audioStream?: MediaStream;
+
     private readonly frameId?: string;
 
     constructor(video: HTMLMediaElement, syncAvailable: boolean, frameId?: string) {
@@ -740,13 +744,13 @@ export default class Binding {
                                 this._audioRecorder.startWithTimeout(
                                     stream,
                                     startRecordingAudioWithTimeoutMessage.timeout,
-                                    () => sendResponse(true)
+                                    () => sendResponse(true),
+                                    true
                                 )
                             )
                             .then((audioBase64) =>
                                 this._sendAudioBase64(audioBase64, startRecordingAudioWithTimeoutMessage.preferMp3)
                             )
-                            .then(() => this._resumeAudioAfterRecording())
                             .catch((e) => {
                                 console.error(e instanceof Error ? e.message : String(e));
                                 sendResponse(false);
@@ -754,9 +758,8 @@ export default class Binding {
                         return true;
                     case 'start-recording-audio':
                         this._captureStream()
-                            .then((stream) => this._audioRecorder.start(stream))
+                            .then((stream) => this._audioRecorder.start(stream, true))
                             .then(() => sendResponse(true))
-                            .then(() => this._resumeAudioAfterRecording())
                             .catch((e) => {
                                 console.error(e instanceof Error ? e.message : String(e));
                                 sendResponse(false);
@@ -765,7 +768,7 @@ export default class Binding {
                     case 'stop-recording-audio':
                         const stopRecordingAudioMessage = request.message as StopRecordingAudioMessage;
                         this._audioRecorder
-                            .stop()
+                            .stop(true)
                             .then((audioBase64) => {
                                 sendResponse(true);
                                 this._sendAudioBase64(audioBase64, stopRecordingAudioMessage.preferMp3);
@@ -1327,6 +1330,11 @@ export default class Binding {
 
     private _captureStream(): Promise<MediaStream> {
         return new Promise((resolve, reject) => {
+            if (this.audioStream !== undefined) {
+                resolve(this.audioStream);
+                return;
+            }
+
             try {
                 let stream: MediaStream | undefined;
 
@@ -1355,20 +1363,17 @@ export default class Binding {
                     }
                 }
 
+                // Ensure audio keeps playing through computer speakers
+                const output = new AudioContext();
+                const source = output.createMediaStreamSource(audioStream);
+                source.connect(output.destination);
+
+                this.audioStream = audioStream;
                 resolve(audioStream);
             } catch (e) {
                 reject(e);
             }
         });
-    }
-
-    private async _resumeAudioAfterRecording() {
-        // On Firefox the audio is muted once audio recording is stopped.
-        // Below is a hack to resume the audio.
-        const stream = await this._captureStream();
-        const output = new AudioContext();
-        const source = output.createMediaStreamSource(stream);
-        source.connect(output.destination);
     }
 
     private async _sendAudioBase64(base64: string, preferMp3: boolean) {
