@@ -57,8 +57,8 @@ export default class ControlsController {
 
     *_samplePoints() {
         const rect = this.video.getBoundingClientRect();
-        const stepX = rect.width / 25;
-        const stepY = rect.height / 25;
+        const stepX = rect.width / 12;
+        const stepY = rect.height / 12;
         const maxX = rect.width + rect.x;
         const maxY = rect.height + rect.y;
 
