@@ -30,10 +30,15 @@ import {
     ScreenshotTakenMessage,
     ShowAnkiUiAfterRerecordMessage,
     ShowAnkiUiMessage,
+    StartRecordingAudioViaCaptureStreamMessage,
     StartRecordingAudioWithTimeoutViaCaptureStreamMessage,
+    StartRecordingErrorCode,
     StartRecordingMediaMessage,
+    StartRecordingResponse,
     StopRecordingAudioMessage,
+    StopRecordingErrorCode,
     StopRecordingMediaMessage,
+    StopRecordingResponse,
     SubtitleModel,
     SubtitlesToVideoMessage,
     TakeScreenshotFromExtensionMessage,
@@ -60,7 +65,7 @@ import { MobileVideoOverlayController } from '../controllers/mobile-video-overla
 import NotificationController from '../controllers/notification-controller';
 import SubtitleController, { SubtitleModelWithIndex } from '../controllers/subtitle-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
-import AudioRecorder, { AutoRecordingInProgressError } from './audio-recorder';
+import AudioRecorder, { TimedRecordingInProgressError } from './audio-recorder';
 import { bufferToBase64 } from './base64';
 import { isMobile } from './device-detection';
 import { OffsetAnchor } from './element-overlay';
@@ -82,6 +87,23 @@ enum RecordingState {
     started,
     notRecording,
 }
+
+const startAudioRecordingErrorResponse: (e: any) => StartRecordingResponse = (e: any) => {
+    let errorCode: StartRecordingErrorCode;
+
+    if (e.name === 'NS_ERROR_FAILURE') {
+        errorCode = StartRecordingErrorCode.drmProtected;
+    } else {
+        console.error(e);
+        errorCode = StartRecordingErrorCode.other;
+    }
+
+    const errorResponse: StartRecordingResponse = {
+        started: false,
+        error: { code: errorCode, message: e.message },
+    };
+    return errorResponse;
+};
 
 export default class Binding {
     subscribed: boolean = false;
@@ -147,6 +169,7 @@ export default class Binding {
     // In the case of firefox, we need to avoid capturing the audio stream more than once,
     // so we keep a reference to the first one we capture here.
     private audioStream?: MediaStream;
+    private currentAudioRecordingRequestId?: string;
 
     private readonly frameId?: string;
 
@@ -741,28 +764,39 @@ export default class Binding {
 
                         this._captureStream()
                             .then((stream) =>
-                                this._audioRecorder.startWithTimeout(
-                                    stream,
-                                    startRecordingAudioWithTimeoutMessage.timeout,
-                                    () => sendResponse(true),
-                                    true
-                                )
+                                this._audioRecorder
+                                    .stopSafely(true)
+                                    .then(() =>
+                                        this._audioRecorder.startWithTimeout(
+                                            stream,
+                                            startRecordingAudioWithTimeoutMessage.timeout,
+                                            () => sendResponse({ started: true }),
+                                            true
+                                        )
+                                    )
                             )
                             .then((audioBase64) =>
-                                this._sendAudioBase64(audioBase64, startRecordingAudioWithTimeoutMessage.preferMp3)
+                                this._sendAudioBase64(
+                                    audioBase64,
+                                    startRecordingAudioWithTimeoutMessage.requestId,
+                                    startRecordingAudioWithTimeoutMessage.preferMp3
+                                )
                             )
                             .catch((e) => {
-                                console.error(e instanceof Error ? e.message : String(e));
-                                sendResponse(false);
+                                sendResponse(startAudioRecordingErrorResponse(e));
                             });
                         return true;
                     case 'start-recording-audio':
+                        this.currentAudioRecordingRequestId = (
+                            request.message as StartRecordingAudioViaCaptureStreamMessage
+                        ).requestId;
                         this._captureStream()
-                            .then((stream) => this._audioRecorder.start(stream, true))
-                            .then(() => sendResponse(true))
+                            .then((stream) =>
+                                this._audioRecorder.stopSafely(true).then(() => this._audioRecorder.start(stream, true))
+                            )
+                            .then(() => sendResponse({ started: true }))
                             .catch((e) => {
-                                console.error(e instanceof Error ? e.message : String(e));
-                                sendResponse(false);
+                                sendResponse(startAudioRecordingErrorResponse(e));
                             });
                         return true;
                     case 'stop-recording-audio':
@@ -770,15 +804,31 @@ export default class Binding {
                         this._audioRecorder
                             .stop(true)
                             .then((audioBase64) => {
-                                sendResponse(true);
-                                this._sendAudioBase64(audioBase64, stopRecordingAudioMessage.preferMp3);
+                                sendResponse({ stopped: true });
+                                this._sendAudioBase64(
+                                    audioBase64,
+                                    this.currentAudioRecordingRequestId!,
+                                    stopRecordingAudioMessage.preferMp3
+                                );
                             })
                             .catch((e) => {
-                                if (e instanceof AutoRecordingInProgressError) {
-                                    sendResponse(false);
+                                let errorCode: StopRecordingErrorCode;
+
+                                if (e instanceof TimedRecordingInProgressError) {
+                                    errorCode = StopRecordingErrorCode.timedAudioRecordingInProgress;
                                 } else {
                                     console.error(e);
+                                    errorCode = StopRecordingErrorCode.other;
                                 }
+
+                                const errorResponse: StopRecordingResponse = {
+                                    stopped: false,
+                                    error: {
+                                        code: errorCode,
+                                        message: e.message,
+                                    },
+                                };
+                                sendResponse(errorResponse);
                             });
                         return true;
                     case 'notification-dialog':
@@ -1376,7 +1426,7 @@ export default class Binding {
         });
     }
 
-    private async _sendAudioBase64(base64: string, preferMp3: boolean) {
+    private async _sendAudioBase64(base64: string, requestId: string, preferMp3: boolean) {
         if (preferMp3) {
             const blob = await (await fetch('data:audio/webm;base64,' + base64)).blob();
             const mp3Blob = await Mp3Encoder.encode(blob, async () => {
@@ -1391,7 +1441,8 @@ export default class Binding {
             sender: 'asbplayer-video',
             message: {
                 command: 'audio-base64',
-                base64: base64,
+                base64,
+                requestId,
             },
             src: this.video.src,
         };

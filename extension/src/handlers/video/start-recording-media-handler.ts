@@ -12,8 +12,7 @@ import {
     VideoToExtensionCommand,
 } from '@project/common';
 import { CardPublisher } from '../../services/card-publisher';
-import AudioRecorderService from '../../services/audio-recorder-service';
-import { DrmProtectedStreamError } from '../../services/audio-recorder-delegate';
+import AudioRecorderService, { DrmProtectedStreamError } from '../../services/audio-recorder-service';
 import { SettingsProvider } from '@project/common/settings';
 
 export default class StartRecordingMediaHandler {

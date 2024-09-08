@@ -11,8 +11,7 @@ import {
 import { SettingsProvider } from '@project/common/settings';
 import { mockSurroundingSubtitles } from '@project/common/util';
 import { CardPublisher } from '../../services/card-publisher';
-import AudioRecorderService from '../../services/audio-recorder-service';
-import { AutoRecordingInProgressError } from '../../services/audio-recorder-delegate';
+import AudioRecorderService, { TimedRecordingInProgressError } from '../../services/audio-recorder-service';
 
 export default class StopRecordingMediaHandler {
     private readonly _audioRecorder: AudioRecorderService;
@@ -106,7 +105,7 @@ export default class StopRecordingMediaHandler {
                 stopRecordingCommand.src
             );
         } catch (e) {
-            if (!(e instanceof AutoRecordingInProgressError)) {
+            if (!(e instanceof TimedRecordingInProgressError)) {
                 throw e;
             }
 

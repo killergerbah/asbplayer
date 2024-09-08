@@ -6,7 +6,9 @@ import {
     StartRecordingAudioViaCaptureStreamMessage,
     StartRecordingAudioWithTimeoutMessage,
     StartRecordingAudioWithTimeoutViaCaptureStreamMessage,
+    StartRecordingResponse,
     StopRecordingAudioMessage,
+    StopRecordingResponse,
 } from '@project/common';
 
 export interface Requester {
@@ -15,24 +17,17 @@ export interface Requester {
 }
 
 export interface AudioRecorderDelegate {
-    onAudioBase64: (base64: string) => void;
-    startWithTimeout: (time: number, preferMp3: boolean, { tabId, src }: Requester) => Promise<string>;
-    start: (requester: Requester) => Promise<void>;
-    stop: (preferMp3: boolean, requester: Requester) => Promise<string>;
+    startWithTimeout: (
+        time: number,
+        preferMp3: boolean,
+        requestId: string,
+        { tabId, src }: Requester
+    ) => Promise<StartRecordingResponse>;
+    start: (requestId: string, requester: Requester) => Promise<StartRecordingResponse>;
+    stop: (preferMp3: boolean, requester: Requester) => Promise<StopRecordingResponse>;
 }
 
-export class DrmProtectedStreamError extends Error {}
-
-export class AutoRecordingInProgressError extends Error {}
-
 export class OffscreenAudioRecorder implements AudioRecorderDelegate {
-    private audioBase64Resolve?: (value: string) => void;
-
-    onAudioBase64(base64: string) {
-        this.audioBase64Resolve?.(base64);
-        this.audioBase64Resolve = undefined;
-    }
-
     private async _ensureOffscreenDocument() {
         const contexts = await chrome.runtime.getContexts({
             contextTypes: [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT],
@@ -58,14 +53,15 @@ export class OffscreenAudioRecorder implements AudioRecorderDelegate {
         });
     }
 
-    async startWithTimeout(time: number, preferMp3: boolean, { tabId, src }: Requester): Promise<string> {
+    async startWithTimeout(
+        time: number,
+        preferMp3: boolean,
+        requestId: string,
+        { tabId, src }: Requester
+    ): Promise<StartRecordingResponse> {
         await this._ensureOffscreenDocument();
-        if (this.audioBase64Resolve !== undefined) {
-            throw new Error('Already recording');
-        }
 
         const streamId = await this._mediaStreamId(tabId);
-
         const command: ExtensionToOffscreenDocumentCommand<StartRecordingAudioWithTimeoutMessage> = {
             sender: 'asbplayer-extension-to-offscreen-document',
             message: {
@@ -73,26 +69,13 @@ export class OffscreenAudioRecorder implements AudioRecorderDelegate {
                 timeout: time,
                 preferMp3,
                 streamId,
+                requestId,
             },
         };
-        const started = (await chrome.runtime.sendMessage(command)) as boolean;
-
-        if (!started) {
-            if (tabId !== undefined) {
-                this._requestActiveTab(tabId, src);
-            }
-
-            throw new Error('Failed to start recording');
-        }
-
-        return await this._audioBase64();
+        return (await chrome.runtime.sendMessage(command)) as StartRecordingResponse;
     }
 
-    async start({ tabId, src }: Requester) {
-        if (this.audioBase64Resolve !== undefined) {
-            throw new Error('Already recording');
-        }
-
+    async start(requestId: string, { tabId, src }: Requester) {
         await this._ensureOffscreenDocument();
         const streamId = await this._mediaStreamId(tabId);
 
@@ -101,31 +84,13 @@ export class OffscreenAudioRecorder implements AudioRecorderDelegate {
             message: {
                 command: 'start-recording-audio',
                 streamId,
+                requestId,
             },
         };
-        const started = (await chrome.runtime.sendMessage(command)) as boolean;
-
-        if (!started) {
-            if (tabId !== undefined) {
-                this._requestActiveTab(tabId, src);
-            }
-
-            throw new Error('Failed to start recording');
-        }
+        return (await chrome.runtime.sendMessage(command)) as StartRecordingResponse;
     }
 
-    private _requestActiveTab(tabId: number, src: string) {
-        const command: ExtensionToVideoCommand<RequestActiveTabPermissionMessage> = {
-            sender: 'asbplayer-extension-to-video',
-            message: {
-                command: 'request-active-tab-permission',
-            },
-            src,
-        };
-        chrome.tabs.sendMessage(tabId, command);
-    }
-
-    async stop(preferMp3: boolean): Promise<string> {
+    async stop(preferMp3: boolean): Promise<StopRecordingResponse> {
         const command: ExtensionToOffscreenDocumentCommand<StopRecordingAudioMessage> = {
             sender: 'asbplayer-extension-to-offscreen-document',
             message: {
@@ -133,74 +98,44 @@ export class OffscreenAudioRecorder implements AudioRecorderDelegate {
                 preferMp3,
             },
         };
-        const stopped = (await chrome.runtime.sendMessage(command)) as boolean;
-
-        if (stopped === false) {
-            throw new AutoRecordingInProgressError();
-        }
-
-        return await this._audioBase64();
-    }
-
-    private _audioBase64(): Promise<string> {
-        return new Promise((resolve, reject) => {
-            this.audioBase64Resolve = resolve;
-        });
+        return (await chrome.runtime.sendMessage(command)) as StopRecordingResponse;
     }
 }
 
 export class CaptureStreamAudioRecorder implements AudioRecorderDelegate {
-    private audioBase64Resolve?: (value: string) => void;
-
-    onAudioBase64(base64: string) {
-        this.audioBase64Resolve?.(base64);
-        this.audioBase64Resolve = undefined;
-    }
-
-    async startWithTimeout(time: number, preferMp3: boolean, { tabId, src }: Requester): Promise<string> {
-        if (this.audioBase64Resolve !== undefined) {
-            throw new Error('Already recording');
-        }
-
+    async startWithTimeout(
+        time: number,
+        preferMp3: boolean,
+        requestId: string,
+        { tabId, src }: Requester
+    ): Promise<StartRecordingResponse> {
         const command: ExtensionToVideoCommand<StartRecordingAudioWithTimeoutViaCaptureStreamMessage> = {
             sender: 'asbplayer-extension-to-video',
             message: {
                 command: 'start-recording-audio-with-timeout',
                 timeout: time,
                 preferMp3,
+                requestId,
             },
             src,
         };
 
-        const started = (await chrome.tabs.sendMessage(tabId, command)) as boolean;
-
-        if (!started) {
-            throw new DrmProtectedStreamError();
-        }
-
-        return await this._audioBase64();
+        return (await chrome.tabs.sendMessage(tabId, command)) as StartRecordingResponse;
     }
 
-    async start({ tabId, src }: Requester) {
-        if (this.audioBase64Resolve !== undefined) {
-            throw new Error('Already recording');
-        }
-
+    async start(requestId: string, { tabId, src }: Requester) {
         const command: ExtensionToVideoCommand<StartRecordingAudioViaCaptureStreamMessage> = {
             sender: 'asbplayer-extension-to-video',
             message: {
                 command: 'start-recording-audio',
+                requestId,
             },
             src,
         };
-        const started = (await chrome.tabs.sendMessage(tabId, command)) as boolean;
-
-        if (!started) {
-            throw new DrmProtectedStreamError();
-        }
+        return (await chrome.tabs.sendMessage(tabId, command)) as StartRecordingResponse;
     }
 
-    async stop(preferMp3: boolean, { tabId, src }: Requester): Promise<string> {
+    async stop(preferMp3: boolean, { tabId, src }: Requester): Promise<StopRecordingResponse> {
         const command: ExtensionToVideoCommand<StopRecordingAudioMessage> = {
             sender: 'asbplayer-extension-to-video',
             message: {
@@ -209,18 +144,6 @@ export class CaptureStreamAudioRecorder implements AudioRecorderDelegate {
             },
             src,
         };
-        const stopped = (await chrome.tabs.sendMessage(tabId, command)) as boolean;
-
-        if (stopped === false) {
-            throw new AutoRecordingInProgressError();
-        }
-
-        return await this._audioBase64();
-    }
-
-    private _audioBase64(): Promise<string> {
-        return new Promise((resolve, reject) => {
-            this.audioBase64Resolve = resolve;
-        });
+        return (await chrome.tabs.sendMessage(tabId, command)) as StopRecordingResponse;
     }
 }

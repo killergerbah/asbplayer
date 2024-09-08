@@ -1,6 +1,6 @@
 import { bufferToBase64 } from './base64';
 
-export class AutoRecordingInProgressError extends Error {}
+export class TimedRecordingInProgressError extends Error {}
 
 export default class AudioRecorder {
     private recording: boolean;
@@ -80,6 +80,30 @@ export default class AudioRecorder {
         });
     }
 
+    async stopSafely(doNotManageStream: boolean = false) {
+        this.recording = false;
+        this.recorder?.stop();
+        this.recorder = null;
+
+        if (!doNotManageStream) {
+            this.stream?.getTracks()?.forEach((t) => t.stop());
+            this.stream = null;
+        }
+
+        if (this.blobPromise !== null) {
+            const blob = await this.blobPromise;
+            this.blobPromise = null;
+            const base64 = await bufferToBase64(await blob!.arrayBuffer());
+
+            if (this.timeoutId !== undefined) {
+                clearTimeout(this.timeoutId);
+                this.timeoutId = undefined;
+                this.timeoutResolve?.(base64);
+                this.timeoutResolve = undefined;
+            }
+        }
+    }
+
     async stop(doNotManageStream: boolean = false): Promise<string> {
         if (!this.recording) {
             throw new Error('Not recording, unable to stop');
@@ -103,7 +127,7 @@ export default class AudioRecorder {
             this.timeoutId = undefined;
             this.timeoutResolve?.(base64);
             this.timeoutResolve = undefined;
-            throw new AutoRecordingInProgressError();
+            throw new TimedRecordingInProgressError();
         }
 
         return base64;

@@ -13,8 +13,7 @@ import {
 } from '@project/common';
 import { SettingsProvider } from '@project/common/settings';
 import { CardPublisher } from '../../services/card-publisher';
-import AudioRecorderService from '../../services/audio-recorder-service';
-import { DrmProtectedStreamError } from '../../services/audio-recorder-delegate';
+import AudioRecorderService, { DrmProtectedStreamError } from '../../services/audio-recorder-service';
 
 export default class RecordMediaHandler {
     private readonly _audioRecorder: AudioRecorderService;
