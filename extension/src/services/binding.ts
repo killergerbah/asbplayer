@@ -1380,8 +1380,10 @@ export default class Binding {
 
     private _captureStream(): Promise<MediaStream> {
         return new Promise((resolve, reject) => {
-            if (this.audioStream !== undefined) {
-                resolve(this.audioStream);
+            const existingStream = this._existingActiveAudioStream();
+
+            if (existingStream !== undefined) {
+                resolve(existingStream);
                 return;
             }
 
@@ -1424,6 +1426,14 @@ export default class Binding {
                 reject(e);
             }
         });
+    }
+
+    private _existingActiveAudioStream() {
+        if (this.audioStream === undefined) {
+            return undefined;
+        }
+
+        return this.audioStream.active ? this.audioStream : undefined;
     }
 
     private async _sendAudioBase64(base64: string, requestId: string, preferMp3: boolean) {
