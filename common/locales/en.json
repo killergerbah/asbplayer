@@ -172,7 +172,7 @@
             "cropScreenshot": "Crop screenshot",
             "displaySubtitles": "Display subtitles",
             "dragAndDrop": "Allow subtitle file drag-and-drop",
-            "openSubtitleList": "Open subtitle list when loading subtitles",
+            "openSubtitleList": "When loading subtitles, also open subtitle list via the app in a separate tab",
             "mining": "Mining",
             "miningKeyboardShortcuts": "Mining Keyboard Shortcuts",
             "misc": "Misc",

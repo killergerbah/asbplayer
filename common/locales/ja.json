@@ -172,7 +172,7 @@
             "cropScreenshot": "スクリーンショットのクロッピング",
             "displaySubtitles": "字幕表示オン/オフ",
             "dragAndDrop": "字幕ファイルのドラッグ＆ドロップを許可",
-            "openSubtitleList": "字幕ロード時に字幕リストを開く",
+            "openSubtitleList": "字幕ロード時に、字幕リストを別のタブで開く",
             "mining": "マイニング",
             "miningKeyboardShortcuts": "マイニング関連のキーボードショートカット",
             "misc": "その他",
