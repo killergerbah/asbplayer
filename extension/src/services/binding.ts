@@ -531,7 +531,7 @@ export default class Binding {
         if (this.subSyncAvailable) {
             this.videoChangeListener = () => {
                 this.videoDataSyncController.requestSubtitles();
-                this.mobileVideoOverlayController.disposeOverlay();
+                this._resetSubtitles();
             };
             this.video.addEventListener('loadedmetadata', this.videoChangeListener);
         }
@@ -1376,6 +1376,14 @@ export default class Binding {
                 this.notificationController.updateAlert(chrome.runtime.getManifest().version);
             }
         });
+    }
+
+    private _resetSubtitles() {
+        this.subtitleController.reset();
+        this.ankiUiSavedState = undefined;
+        this._synced = false;
+        this._syncedTimestamp = undefined;
+        this.mobileVideoOverlayController.disposeOverlay();
     }
 
     private _captureStream(): Promise<MediaStream> {
