@@ -118,7 +118,7 @@ export default class SubtitleController {
     }
 
     reset() {
-        this.subtitles = []
+        this.subtitles = [];
         this.subtitleFileNames = undefined;
         this.cacheHtml();
     }
