@@ -18,47 +18,60 @@ document.addEventListener(
         }
         const deviceID = ApiClient?._deviceId;
         const apikey = ApiClient?._userAuthInfo.AccessToken;
-        await fetch('/Sessions?api_key=' + apikey + '&IsPlaying=True&DeviceId=' + deviceID)
-            .then((webResponse) => {
-                return webResponse.json();
-            })
-            .then((sessions) => {
-                var session = sessions[0];
-                var mediaID = session.PlayState.MediaSourceId;
-                var nowPlayingItem = session.NowPlayingItem;
-                response.basename = nowPlayingItem.FileName;
-                const subtitles: VideoDataSubtitleTrack[] = [];
-                nowPlayingItem.MediaStreams.filter(
-                    (stream: { IsTextSubtitleStream: any }) => stream.IsTextSubtitleStream
-                ).forEach((sub: { Codec: string; DisplayTitle: any; Language: any; Index: number }) => {
-                    var url =
-                        '/Videos/' +
-                        nowPlayingItem.Id +
-                        '/' +
-                        mediaID +
-                        '/Subtitles/' +
-                        sub.Index +
-                        '/Stream.' +
-                        sub.Codec +
-                        '?api_key=' +
-                        apikey;
-                    subtitles.push(
-                        trackFromDef({
-                            label: sub.DisplayTitle,
-                            language: sub.Language,
-                            url: url,
-                            extension: sub.Codec,
-                        })
-                    );
-                });
-                response.subtitles = subtitles;
 
-                document.dispatchEvent(
-                    new CustomEvent('asbplayer-synced-data', {
-                        detail: response,
-                    })
-                );
-            });
+        let session;
+        for (let attempt = 0; attempt < 5; attempt++) {
+            const sessions = await ApiClient.getSessions({ deviceId: deviceID });
+            session = sessions[0];
+            if (session.PlayState.MediaSourceId) {
+                break;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+
+        if (!session || !session.PlayState.MediaSourceId) {
+            response.error = 'Failed to retrieve a valid MediaSourceId after 5 attempts';
+            return document.dispatchEvent(
+                new CustomEvent('asbplayer-synced-data', {
+                    detail: response,
+                })
+            );
+        }
+
+        var mediaID = session.PlayState.MediaSourceId;
+        var nowPlayingItem = session.NowPlayingItem;
+        response.basename = nowPlayingItem.FileName;
+        const subtitles: VideoDataSubtitleTrack[] = [];
+        nowPlayingItem.MediaStreams.filter(
+            (stream: { IsTextSubtitleStream: any }) => stream.IsTextSubtitleStream
+        ).forEach((sub: { Codec: string; DisplayTitle: any; Language: any; Index: number }) => {
+            var url =
+                '/Videos/' +
+                nowPlayingItem.Id +
+                '/' +
+                mediaID +
+                '/Subtitles/' +
+                sub.Index +
+                '/Stream.' +
+                sub.Codec +
+                '?api_key=' +
+                apikey;
+            subtitles.push(
+                trackFromDef({
+                    label: sub.DisplayTitle,
+                    language: sub.Language || '',
+                    url: url,
+                    extension: sub.Codec,
+                })
+            );
+        });
+        response.subtitles = subtitles;
+
+        document.dispatchEvent(
+            new CustomEvent('asbplayer-synced-data', {
+                detail: response,
+            })
+        );
     },
     false
 );
