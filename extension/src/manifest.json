@@ -108,6 +108,7 @@
                 "pages/viki-page.js",
                 "pages/unext-page.js",
                 "pages/emby-page.js",
+                "pages/jellyfin-page.js",
                 "pages/osnplus-page.js",
                 "pages/bilibili-page.js",
                 "pages/nrk-tv-page.js",
