@@ -13,7 +13,7 @@ document.addEventListener(
             return document.dispatchEvent(
                 new CustomEvent('asbplayer-synced-data', {
                     detail: response,
-                }),
+                })
             );
         }
 
@@ -35,7 +35,7 @@ document.addEventListener(
             return document.dispatchEvent(
                 new CustomEvent('asbplayer-synced-data', {
                     detail: response,
-                }),
+                })
             );
         }
 
@@ -45,7 +45,7 @@ document.addEventListener(
 
         const subtitles: VideoDataSubtitleTrack[] = [];
         nowPlayingItem.MediaStreams.filter(
-            (stream: { IsTextSubtitleStream: any }) => stream.IsTextSubtitleStream,
+            (stream: { IsTextSubtitleStream: any }) => stream.IsTextSubtitleStream
         ).forEach((sub: { DisplayTitle: any; Language: any; Index: number; Codec: string; Path: string }) => {
             const extension = sub.Path ? sub.Path.split('.').pop() : sub.Codec;
             var url =
@@ -65,7 +65,7 @@ document.addEventListener(
                     language: sub.Language || '',
                     url: url,
                     extension,
-                }),
+                })
             );
         });
         response.subtitles = subtitles;
@@ -73,8 +73,8 @@ document.addEventListener(
         document.dispatchEvent(
             new CustomEvent('asbplayer-synced-data', {
                 detail: response,
-            }),
+            })
         );
     },
-    false,
+    false
 );
