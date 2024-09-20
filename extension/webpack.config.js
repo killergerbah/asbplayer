@@ -121,7 +121,7 @@ module.exports = (env, options) => ({
             },
         ],
     },
-    devtool: options.mode === 'development' ? 'source-map' : false,
+    devtool: 'source-map',
     resolve: {
         extensions: ['.webpack.js', '.web.js', '.ts', '.tsx', '.js'],
         fallback: {
