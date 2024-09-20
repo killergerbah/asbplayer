@@ -47,7 +47,7 @@ document.addEventListener(
         nowPlayingItem.MediaStreams.filter(
             (stream: { IsTextSubtitleStream: any }) => stream.IsTextSubtitleStream
         ).forEach((sub: { DisplayTitle: any; Language: any; Index: number; Codec: string; Path: string }) => {
-            const extension = sub.Path ? sub.Path.split('.').pop() : sub.Codec;
+            const extension = sub.Path ? sub.Path.split('.').pop()! : sub.Codec;
             var url =
                 '/Videos/' +
                 nowPlayingItem.Id +
