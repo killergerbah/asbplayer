@@ -9,6 +9,8 @@ import Typography from '@material-ui/core/Typography';
 import ChromeExtension from '../services/chrome-extension';
 import { Theme } from '@material-ui/core/styles';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
+import { VideoTabModel } from '../..';
+import VideoElementSelector from './VideoElementSelector';
 
 interface StylesProps {
     appBarHidden: boolean;
@@ -31,6 +33,12 @@ const useStyles = makeStyles<Theme, StylesProps>((theme) => ({
     browseLink: {
         cursor: 'pointer',
     },
+    videoElementSelectorContainer: {
+        position: 'absolute',
+        bottom: 0,
+        padding: theme.spacing(2),
+        width: '100%',
+    },
 }));
 
 interface Props {
@@ -40,9 +48,11 @@ interface Props {
     loading: boolean;
     dragging: boolean;
     appBarHidden: boolean;
+    videoElements: VideoTabModel[];
     onFileSelector: React.MouseEventHandler<HTMLAnchorElement> &
         React.MouseEventHandler<HTMLSpanElement> &
         React.MouseEventHandler<HTMLLabelElement>;
+    onVideoElementSelected: (videoElement: VideoTabModel) => void;
 }
 
 export default function LandingPage({
@@ -52,7 +62,9 @@ export default function LandingPage({
     loading,
     dragging,
     appBarHidden,
+    videoElements,
     onFileSelector,
+    onVideoElementSelected,
 }: Props) {
     const appBarHeight = useAppBarHeight();
     const classes = useStyles({ appBarHidden, appBarHeight });
@@ -61,40 +73,50 @@ export default function LandingPage({
     return (
         <Paper square variant="elevation" elevation={0} className={classes.background}>
             <Fade in={!loading && !dragging} timeout={500}>
-                <Typography variant="h6">
-                    <Trans i18nKey={'landing.cta'}>
-                        Drag and drop subtitle and media files, or
-                        <Link
-                            target="#"
-                            className={classes.browseLink}
-                            onClick={onFileSelector}
-                            color="secondary"
-                            component="label"
-                        >
-                            browse
-                        </Link>
-                        .
-                    </Trans>
-                    <br />
-                    {!extension.installed && (
-                        <Trans i18nKey="landing.extensionNotInstalled">
-                            Install the
-                            <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>
-                                Chrome extension
+                <>
+                    <Typography variant="h6">
+                        <Trans i18nKey={'landing.cta'}>
+                            Drag and drop subtitle and media files, or
+                            <Link
+                                target="#"
+                                className={classes.browseLink}
+                                onClick={onFileSelector}
+                                color="secondary"
+                                component="label"
+                            >
+                                browse
                             </Link>
-                            to sync subtitles with streaming video.
+                            .
                         </Trans>
+                        <br />
+                        {!extension.installed && (
+                            <Trans i18nKey="landing.extensionNotInstalled">
+                                Install the
+                                <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>
+                                    Chrome extension
+                                </Link>
+                                to sync subtitles with streaming video.
+                            </Trans>
+                        )}
+                        {extensionUpdateAvailable && (
+                            <Trans i18nKey="landing.extensionUpdateAvailable">
+                                An extension
+                                <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>
+                                    update
+                                </Link>{' '}
+                                is available.
+                            </Trans>
+                        )}
+                    </Typography>
+                    {extension.supportsLandingPageStreamingVideoElementSelector && videoElements.length > 0 && (
+                        <div className={classes.videoElementSelectorContainer}>
+                            <VideoElementSelector
+                                videoElements={videoElements}
+                                onVideoElementSelected={onVideoElementSelected}
+                            />
+                        </div>
                     )}
-                    {extensionUpdateAvailable && (
-                        <Trans i18nKey="landing.extensionUpdateAvailable">
-                            An extension
-                            <Link color="secondary" target="_blank" rel="noreferrer" href={extensionUrl}>
-                                update
-                            </Link>{' '}
-                            is available.
-                        </Trans>
-                    )}
-                </Typography>
+                </>
             </Fade>
         </Paper>
     );

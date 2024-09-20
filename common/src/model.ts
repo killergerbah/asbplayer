@@ -177,6 +177,7 @@ export interface VideoDataUiModel {
     selectedSubtitle?: string[];
     showSubSelect?: boolean;
     openReason?: VideoDataUiOpenReason;
+    openedFromAsbplayerId?: string;
     defaultCheckboxState?: boolean;
 }
 
@@ -187,6 +188,7 @@ export interface VideoTabModel {
     subscribed: boolean; // Whether the video element is subscribed to extension messages
     synced: boolean; // Whether the video element has received subtitles
     syncedTimestamp?: number;
+    faviconUrl?: string;
 }
 
 export interface Rgb {

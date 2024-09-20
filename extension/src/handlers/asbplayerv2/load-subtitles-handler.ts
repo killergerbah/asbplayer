@@ -1,5 +1,6 @@
 import {
     AsbPlayerToTabCommand,
+    AsbPlayerToVideoCommandV2,
     Command,
     ExtensionToVideoCommand,
     LoadSubtitlesMessage,
@@ -27,13 +28,32 @@ export default class LoadSubtitlesHandler {
         const loadSubtitlesCommand = command as AsbPlayerToTabCommand<LoadSubtitlesMessage>;
         const toggleVideoSelectCommand: ExtensionToVideoCommand<ToggleVideoSelectMessage> = {
             sender: 'asbplayer-extension-to-video',
+            // Target specific video element by 'src' if the command specifies a 'src'
+            src:
+                'src' in command
+                    ? ((command as AsbPlayerToVideoCommandV2<LoadSubtitlesMessage>).src as string)
+                    : undefined,
             message: {
                 command: 'toggle-video-select',
+                fromAsbplayerId: loadSubtitlesCommand.message.fromAsbplayerId,
             },
         };
-        this._tabRegistry.publishCommandToVideoElementTabs((tab) =>
-            tab.id === loadSubtitlesCommand.tabId ? toggleVideoSelectCommand : undefined
-        );
+        let published = false;
+        this._tabRegistry
+            .publishCommandToVideoElementTabs((tab) => {
+                if (tab.id === loadSubtitlesCommand.tabId) {
+                    published = true;
+                    return toggleVideoSelectCommand;
+                }
+
+                return undefined;
+            })
+            .then(() => {
+                if (published) {
+                    chrome.tabs.update(loadSubtitlesCommand.tabId, { active: true });
+                }
+            });
+
         return false;
     }
 }

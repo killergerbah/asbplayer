@@ -54,6 +54,7 @@ import CurrentTabHandler from './handlers/mobile-overlay/current-tab-handler';
 import UpdateMobileOverlayModelHandler from './handlers/video/update-mobile-overlay-model-handler';
 import { isMobile } from './services/device-detection';
 import { enqueueUpdateAlert } from './services/update-alert';
+import RequestSubtitlesHandler from './handlers/asbplayerv2/request-subtitles-handler';
 
 if (!isFirefoxBuild) {
     chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
@@ -129,6 +130,7 @@ const handlers: CommandHandler[] = [
     new RequestingActiveTabPermissionHandler(),
     new CopySubtitleHandler(tabRegistry),
     new LoadSubtitlesHandler(tabRegistry),
+    new RequestSubtitlesHandler(),
     new PublishCardHandler(cardPublisher),
     new AckMessageHandler(tabRegistry),
     new AudioBase64Handler(audioRecorder),

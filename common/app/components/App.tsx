@@ -19,6 +19,7 @@ import {
     DownloadAudioMessage,
     CardTextFieldValues,
     ImageErrorCode,
+    RequestSubtitlesResponse,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import { AsbplayerSettings, Profile } from '@project/common/settings';
@@ -53,6 +54,7 @@ import { useAppKeyBinder } from '../hooks/use-app-key-binder';
 import { useAnki } from '../hooks/use-anki';
 import { usePlaybackPreferences } from '../hooks/use-playback-preferences';
 import { MiningContext } from '../services/mining-context';
+import { timeDurationDisplay } from '../services/util';
 
 const latestExtensionVersion = '1.5.0';
 const extensionUrl =
@@ -679,7 +681,16 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                 for (let i = 0; i < availableTabs.length; ++i) {
                     const t1 = availableTabs[i];
                     const t2 = tabs[i];
-                    if (t1.id !== t2.id || t1.title !== t2.title || t1.src !== t2.src) {
+                    if (
+                        t1.id !== t2.id ||
+                        t1.title !== t2.title ||
+                        t1.src !== t2.src ||
+                        t1.faviconUrl !== t2.faviconUrl ||
+                        t1.subscribed !== t2.subscribed ||
+                        t1.synced !== t2.synced ||
+                        t1.syncedTimestamp !== t2.syncedTimestamp ||
+                        t1.faviconUrl !== t2.faviconUrl
+                    ) {
                         update = true;
                         break;
                     }
@@ -809,7 +820,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
 
     useEffect(() => {
         if (inVideoPlayer) {
-            extension.startHeartbeat({ fromVideoPlayer: true, loadedSubtitles: false });
+            extension.startHeartbeat({ fromVideoPlayer: true, loadedSubtitles: false, syncedVideoElement: undefined });
             return undefined;
         }
 
@@ -884,9 +895,13 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
         }
 
         const unsubscribe = extension.subscribe(onMessage);
-        extension.startHeartbeat({ fromVideoPlayer: false, loadedSubtitles: subtitles.length > 0 });
+        extension.startHeartbeat({
+            fromVideoPlayer: false,
+            loadedSubtitles: subtitles.length > 0,
+            syncedVideoElement: tab,
+        });
         return unsubscribe;
-    }, [extension, subtitles, inVideoPlayer, sources.videoFileUrl, handleFiles, handleAnki, handleUnloadVideo]);
+    }, [extension, subtitles, inVideoPlayer, sources.videoFileUrl, tab, handleFiles, handleAnki, handleUnloadVideo]);
 
     useEffect(() => {
         if (inVideoPlayer) {
@@ -1004,6 +1019,37 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
     }, [handleFiles]);
 
     const handleFileSelector = useCallback(() => fileInputRef.current?.click(), []);
+
+    const handleVideoElementSelected = useCallback(
+        async (videoElement: VideoTabModel) => {
+            const { id: tabId, synced, src } = videoElement;
+
+            if (synced) {
+                const response = (await extension.requestSubtitles(tabId, src)) as RequestSubtitlesResponse | undefined;
+
+                if (response !== undefined) {
+                    const { subtitles, subtitleFileNames } = response;
+
+                    if (subtitleFileNames.length > 0) {
+                        const subtitleFileName = subtitleFileNames[0];
+                        setFileName(subtitleFileName.substring(0, subtitleFileName.lastIndexOf('.')));
+                        const length = subtitles.length > 0 ? subtitles[subtitles.length - 1].end : 0;
+                        setSubtitles(
+                            subtitles.map((s, i) => ({
+                                ...s,
+                                displayTime: timeDurationDisplay(s.start, length),
+                                index: i,
+                            }))
+                        );
+                        setTab(videoElement);
+                    }
+                }
+            } else {
+                extension.loadSubtitles(tabId, src);
+            }
+        },
+        [extension]
+    );
 
     const handleDownloadSubtitleFilesAsSrt = useCallback(async () => {
         if (sources.subtitleFiles === undefined) {
@@ -1127,7 +1173,8 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
 
     const loading = loadingSources.length !== 0;
     const nothingLoaded =
-        (loading && !videoFrameRef.current) || (sources.subtitleFiles.length === 0 && !sources.videoFile);
+        tab === undefined &&
+        ((loading && !videoFrameRef.current) || (sources.subtitleFiles.length === 0 && !sources.videoFile));
     const appBarHidden = sources.videoFile !== undefined && ((theaterMode && !videoPopOut) || videoFullscreen);
     const effectiveCopyHistoryOpen = copyHistoryOpen && !videoFullscreen;
 
@@ -1251,7 +1298,9 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                                         loading={loading}
                                         dragging={dragging}
                                         appBarHidden={appBarHidden}
+                                        videoElements={availableTabs ?? []}
                                         onFileSelector={handleFileSelector}
+                                        onVideoElementSelected={handleVideoElementSelected}
                                     />
                                 )}
                                 <DragOverlay
@@ -1279,7 +1328,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                                 onVideoPopOut={handleVideoPopOut}
                                 onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
                                 onSubtitles={setSubtitles}
-                                onTakeScreenshot={handleTakeScreenshot}
                                 tab={tab}
                                 availableTabs={availableTabs ?? []}
                                 sources={sources}
@@ -1297,7 +1345,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                                 disableKeyEvents={disableKeyEvents}
                                 miningContext={miningContext}
                                 keyBinder={keyBinder}
-                                ankiDialogOpen={ankiDialogOpen}
                             />
                         </Content>
                     </Paper>

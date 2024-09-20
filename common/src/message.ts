@@ -2,8 +2,6 @@ import { AnkiSettings, AsbplayerSettings, MiscSettings, SubtitleSettings } from 
 import {
     RectModel,
     SubtitleModel,
-    ImageModel,
-    AudioModel,
     AudioTrackModel,
     AnkiUiSavedState,
     ConfirmedVideoDataSubtitleTrack,
@@ -12,6 +10,7 @@ import {
     CardModel,
     CardTextFieldValues,
     MobileOverlayModel,
+    VideoTabModel,
 } from './model';
 import { AsbPlayerToVideoCommandV2 } from './command';
 
@@ -21,15 +20,6 @@ export interface Message {
 
 export interface MessageWithId extends Message {
     readonly messageId: string;
-}
-
-export interface ActiveVideoElement {
-    id: number;
-    title?: string;
-    src: string;
-    subscribed: boolean;
-    synced: boolean;
-    syncedTimestamp?: number;
 }
 
 export interface AsbplayerInstance {
@@ -43,15 +33,16 @@ export interface AsbplayerInstance {
 export interface AsbplayerHeartbeatMessage extends Message {
     readonly command: 'heartbeat';
     readonly id: string;
-    readonly receivedTabs?: ActiveVideoElement[];
+    readonly receivedTabs?: VideoTabModel[];
     readonly videoPlayer: boolean;
     readonly sidePanel?: boolean;
     readonly loadedSubtitles?: boolean;
+    readonly syncedVideoElement?: VideoTabModel;
 }
 
 export interface TabsMessage extends Message {
     readonly command: 'tabs';
-    readonly tabs: ActiveVideoElement[];
+    readonly tabs: VideoTabModel[];
     readonly asbplayers: AsbplayerInstance[];
     readonly ackRequested: boolean;
 }
@@ -59,7 +50,7 @@ export interface TabsMessage extends Message {
 export interface AckTabsMessage extends Message {
     readonly command: 'ackTabs';
     readonly id: string;
-    readonly receivedTabs: ActiveVideoElement[];
+    readonly receivedTabs: VideoTabModel[];
     readonly sidePanel?: boolean;
 }
 
@@ -234,6 +225,7 @@ export interface ToggleRecordingMessage extends Message {
 
 export interface ToggleVideoSelectMessage extends Message {
     readonly command: 'toggle-video-select';
+    readonly fromAsbplayerId?: string;
 }
 
 export interface ShowAnkiUiAfterRerecordMessage extends Message {
@@ -261,6 +253,8 @@ export interface ExtensionSyncMessage extends Message {
     readonly command: 'sync';
     readonly subtitles: SerializedSubtitleFile[];
     readonly flatten?: boolean;
+    readonly withSyncedAsbplayerOnly: boolean;
+    readonly withAsbplayerId?: string;
 }
 
 export interface OffsetFromVideoMessage extends Message {
@@ -361,6 +355,10 @@ export interface RequestSubtitlesMessage extends Message {
     readonly command: 'request-subtitles';
 }
 
+export interface RequestSubtitlesFromAppMessage extends MessageWithId {
+    readonly command: 'request-subtitles';
+}
+
 export interface SubtitleSettingsToVideoMessage extends Message {
     readonly command: 'subtitleSettings';
     readonly value: SubtitleSettings;
@@ -423,6 +421,7 @@ export interface VideoDataUiBridgeConfirmMessage extends Message {
     readonly command: 'confirm';
     readonly data: ConfirmedVideoDataSubtitleTrack[];
     readonly shouldRememberTrackChoices: boolean;
+    readonly syncWithAsbplayerId?: string;
 }
 
 export interface VideoDataUiBridgeOpenFileMessage extends Message {
@@ -543,6 +542,7 @@ export interface CopyToClipboardMessage extends Message {
 
 export interface LoadSubtitlesMessage extends Message {
     readonly command: 'load-subtitles';
+    readonly fromAsbplayerId?: string;
 }
 
 export interface RequestActiveTabPermissionMessage extends Message {

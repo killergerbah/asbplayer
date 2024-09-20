@@ -506,7 +506,6 @@ export default function SidePanel({ settings, extension }: Props) {
                                 onVideoPopOut={noOp}
                                 onPlayModeChangedViaBind={noOp}
                                 onSubtitles={setSubtitles}
-                                onTakeScreenshot={noOp}
                                 tab={syncedVideoTab}
                                 availableTabs={emptyArray}
                                 extension={extension}
@@ -518,7 +517,6 @@ export default function SidePanel({ settings, extension }: Props) {
                                 disableKeyEvents={false}
                                 miningContext={miningContext}
                                 keyBinder={keyBinder}
-                                ankiDialogOpen={false}
                             />
                             <SidePanelTopControls
                                 ref={topControlsRef}

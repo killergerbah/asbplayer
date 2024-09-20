@@ -104,7 +104,6 @@ interface PlayerProps {
     tab?: VideoTabModel;
     availableTabs: VideoTabModel[];
     miningContext: MiningContext;
-    ankiDialogOpen: boolean;
     origin: string;
     onError: (error: any) => void;
     onUnloadVideo: (url: string) => void;
@@ -118,7 +117,6 @@ interface PlayerProps {
     onVideoPopOut: () => void;
     onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
     onSubtitles: (subtitles: DisplaySubtitleModel[]) => void;
-    onTakeScreenshot: (mediaTimestamp: number) => void;
     disableKeyEvents: boolean;
     jumpToSubtitle?: SubtitleModel;
     rewindSubtitle?: SubtitleModel;
@@ -145,7 +143,6 @@ const Player = React.memo(function Player({
     tab,
     availableTabs,
     miningContext,
-    ankiDialogOpen,
     origin,
     onError,
     onUnloadVideo,
@@ -153,13 +150,11 @@ const Player = React.memo(function Player({
     onLoaded,
     onTabSelected,
     onAnkiDialogRequest,
-    onAnkiDialogRewind,
     onAppBarToggle,
     onHideSubtitlePlayer,
     onVideoPopOut,
     onPlayModeChangedViaBind,
     onSubtitles,
-    onTakeScreenshot,
     disableKeyEvents,
     jumpToSubtitle,
     rewindSubtitle,
@@ -417,7 +412,8 @@ const Player = React.memo(function Player({
             channel === undefined ||
             subtitles === undefined ||
             subtitlesSentThroughChannel ||
-            subtitleFiles === undefined
+            subtitleFiles === undefined ||
+            subtitleFiles.length === 0
         ) {
             return;
         }

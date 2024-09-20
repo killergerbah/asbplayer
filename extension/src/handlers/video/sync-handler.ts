@@ -27,16 +27,31 @@ export default class SyncHandler {
         try {
             const extensionSyncCommand = command as VideoToExtensionCommand<ExtensionSyncMessage>;
             await this.tabRegistry.publishTabsToAsbplayers();
-            const asbplayerId = await this.tabRegistry.findAsbplayer((asbplayer) => {
-                if (asbplayer.receivedTabs === undefined || sender.tab === undefined || asbplayer.sidePanel) {
-                    return false;
-                }
+            const asbplayerId = await this.tabRegistry.findAsbplayer({
+                filter: (asbplayer) => {
+                    if (asbplayer.receivedTabs === undefined || sender.tab === undefined || asbplayer.sidePanel) {
+                        return false;
+                    }
 
-                return (
-                    asbplayer.receivedTabs.find(
-                        (tab) => tab.id === sender.tab!.id && tab.src === extensionSyncCommand.src
-                    ) !== undefined
-                );
+                    if (extensionSyncCommand.message.withSyncedAsbplayerOnly) {
+                        return (
+                            asbplayer.syncedVideoElement !== undefined &&
+                            asbplayer.syncedVideoElement.tab.id === sender.tab?.id &&
+                            asbplayer.syncedVideoElement.src === extensionSyncCommand.src
+                        );
+                    }
+
+                    if (extensionSyncCommand.message.withAsbplayerId) {
+                        return asbplayer.id === extensionSyncCommand.message.withAsbplayerId;
+                    }
+
+                    return (
+                        asbplayer.receivedTabs.find(
+                            (tab) => tab.id === sender.tab!.id && tab.src === extensionSyncCommand.src
+                        ) !== undefined
+                    );
+                },
+                allowTabCreation: !extensionSyncCommand.message.withSyncedAsbplayerOnly,
             });
 
             const playerSyncCommand: ExtensionToAsbPlayerCommand<PlayerSyncMessage> = {
@@ -50,7 +65,9 @@ export default class SyncHandler {
                 tabId: sender.tab!.id!,
             };
 
-            this.tabRegistry.publishCommandToAsbplayers({ asbplayerId, commandFactory: () => playerSyncCommand });
+            if (asbplayerId !== undefined) {
+                this.tabRegistry.publishCommandToAsbplayers({ asbplayerId, commandFactory: () => playerSyncCommand });
+            }
         } catch (error) {
             console.error(error);
         }

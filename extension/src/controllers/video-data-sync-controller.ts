@@ -40,6 +40,7 @@ async function html(lang: string) {
 
 interface ShowOptions {
     reason: VideoDataUiOpenReason;
+    fromAsbplayerId?: string;
 }
 
 const fetchDataForLanguageOnDemand = (language: string): Promise<VideoData> => {
@@ -127,11 +128,12 @@ export default class VideoDataSyncController {
         document.dispatchEvent(new CustomEvent('asbplayer-get-synced-data'));
     }
 
-    async show({ reason }: ShowOptions) {
+    async show({ reason, fromAsbplayerId }: ShowOptions) {
         const client = await this._client();
         const model = await this._buildModel({
             open: true,
             openReason: reason,
+            openedFromAsbplayerId: fromAsbplayerId,
         });
         this._prepareShow();
         client.updateState(model);
@@ -154,6 +156,7 @@ export default class VideoDataSyncController {
                   error: this._syncedData.error,
                   themeType: themeType,
                   defaultCheckboxState: defaultCheckboxState,
+                  openedFromAsbplayerId: '',
                   ...additionalFields,
               }
             : {
@@ -165,6 +168,7 @@ export default class VideoDataSyncController {
                   subtitles: subtitleTrackChoices,
                   themeType: themeType,
                   defaultCheckboxState: defaultCheckboxState,
+                  openedFromAsbplayerId: '',
                   ...additionalFields,
               };
     }
@@ -270,7 +274,7 @@ export default class VideoDataSyncController {
 
                     const data = confirmMessage.data as ConfirmedVideoDataSubtitleTrack[];
 
-                    dataWasSynced = await this._syncDataArray(data);
+                    dataWasSynced = await this._syncDataArray(data, confirmMessage.syncWithAsbplayerId);
                 } else if ('openFile' === message.command) {
                     const openFileMessage = message as VideoDataUiBridgeOpenFileMessage;
                     const subtitles = openFileMessage.subtitles as SerializedSubtitleFile[];
@@ -373,7 +377,7 @@ export default class VideoDataSyncController {
         }
     }
 
-    private async _syncDataArray(data: ConfirmedVideoDataSubtitleTrack[]) {
+    private async _syncDataArray(data: ConfirmedVideoDataSubtitleTrack[], syncWithAsbplayerId?: string) {
         try {
             let subtitles: SerializedSubtitleFile[] = [];
 
@@ -387,7 +391,8 @@ export default class VideoDataSyncController {
 
             await this._syncSubtitles(
                 subtitles,
-                data.some((track) => track.m3U8BaseUrl !== undefined)
+                data.some((track) => track.m3U8BaseUrl !== undefined),
+                syncWithAsbplayerId
             );
             return true;
         } catch (error) {
@@ -399,26 +404,17 @@ export default class VideoDataSyncController {
         }
     }
 
-    private async _syncSubtitles(serializedFiles: SerializedSubtitleFile[], flatten: boolean) {
-        if ((await this._settings.getSingle('streamingSubtitleListPreference')) === SubtitleListPreference.app) {
-            const command: VideoToExtensionCommand<ExtensionSyncMessage> = {
-                sender: 'asbplayer-video',
-                message: {
-                    command: 'sync',
-                    subtitles: serializedFiles,
-                    flatten: flatten,
-                },
-                src: this._context.video.src,
-            };
-            chrome.runtime.sendMessage(command);
-        } else {
-            const files: File[] = await Promise.all(
-                serializedFiles.map(
-                    async (f) => new File([await (await fetch('data:text/plain;base64,' + f.base64)).blob()], f.name)
-                )
-            );
-            this._context.loadSubtitles(files, flatten);
-        }
+    private async _syncSubtitles(
+        serializedFiles: SerializedSubtitleFile[],
+        flatten: boolean,
+        syncWithAsbplayerId?: string
+    ) {
+        const files: File[] = await Promise.all(
+            serializedFiles.map(
+                async (f) => new File([await (await fetch('data:text/plain;base64,' + f.base64)).blob()], f.name)
+            )
+        );
+        this._context.loadSubtitles(files, flatten, syncWithAsbplayerId);
     }
 
     private async _subtitlesForUrl(

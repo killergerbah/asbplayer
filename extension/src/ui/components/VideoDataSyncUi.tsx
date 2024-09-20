@@ -39,6 +39,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [selectedSubtitleTrackIds, setSelectedSubtitleTrackIds] = useState<string[]>(initialTrackIds);
     const [defaultCheckboxState, setDefaultCheckboxState] = useState<boolean>(false);
     const [openReason, setOpenReason] = useState<VideoDataUiOpenReason>(VideoDataUiOpenReason.userRequested);
+    const [openedFromAsbplayerId, setOpenedFromAsbplayerId] = useState<string>('');
     const [error, setError] = useState<string>('');
     const [themeType, setThemeType] = useState<string>();
 
@@ -51,10 +52,15 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const handleConfirm = useCallback(
         (data: ConfirmedVideoDataSubtitleTrack[], shouldRememberTrackChoices: boolean) => {
             setOpen(false);
-            const message: VideoDataUiBridgeConfirmMessage = { command: 'confirm', data, shouldRememberTrackChoices };
+            const message: VideoDataUiBridgeConfirmMessage = {
+                command: 'confirm',
+                data,
+                shouldRememberTrackChoices,
+                syncWithAsbplayerId: openedFromAsbplayerId.length > 0 ? openedFromAsbplayerId : undefined,
+            };
             bridge.sendMessageFromServer(message);
         },
-        [bridge]
+        [bridge, openedFromAsbplayerId]
     );
 
     useEffect(() => {
@@ -113,6 +119,10 @@ export default function VideoDataSyncUi({ bridge }: Props) {
 
             if (model.openReason !== undefined) {
                 setOpenReason(model.openReason);
+            }
+
+            if (model.openedFromAsbplayerId !== undefined) {
+                setOpenedFromAsbplayerId(model.openedFromAsbplayerId);
             }
         });
     }, [bridge, t]);

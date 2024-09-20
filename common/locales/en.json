@@ -136,7 +136,7 @@
         "playbackMode": "Playback Mode",
         "unloadVideo": "Unload Video",
         "selectAudioTrack": "Select Audio Track",
-        "selectVideoElement": "Select Video Element",
+        "selectVideoElement": "Select Streaming Video Element",
         "popOut": "Pop Out",
         "popIn": "Pop In",
         "toggleFullscreen": "Toggle Fullscreen",

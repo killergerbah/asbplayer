@@ -51,7 +51,7 @@ export default class VideoSelectController {
 
             switch (request.message.command) {
                 case 'toggle-video-select':
-                    this._trigger(false);
+                    this._trigger(false, request.message.fromAsbplayerId, request.src);
                     break;
                 case 'copy-subtitle':
                 case 'toggle-recording':
@@ -80,8 +80,14 @@ export default class VideoSelectController {
         }
     }
 
-    private async _trigger(openedFromMiningCommand: boolean) {
-        if (this._bindings.length === 1) {
+    private async _trigger(openedFromMiningCommand: boolean, fromAsbplayerId?: string, targetSrc?: string) {
+        if (targetSrc !== undefined) {
+            var binding = this._bindings.find((b) => b.video.src === targetSrc);
+
+            if (binding !== undefined && binding.subscribed) {
+                binding.showVideoDataDialog(openedFromMiningCommand, fromAsbplayerId);
+            }
+        } else if (this._bindings.length === 1) {
             const binding = this._bindings[0];
 
             if (binding.subscribed) {

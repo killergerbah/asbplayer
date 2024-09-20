@@ -1,6 +1,5 @@
 import {
     AckTabsMessage,
-    ActiveVideoElement,
     AsbplayerHeartbeatMessage,
     AsbplayerInstance,
     Command,
@@ -16,6 +15,7 @@ interface SlimTab {
     id: number;
     title: string;
     url: string;
+    faviconUrl?: string;
 }
 
 export interface Asbplayer {
@@ -23,9 +23,10 @@ export interface Asbplayer {
     tab?: SlimTab;
     sidePanel?: boolean;
     timestamp: number;
-    receivedTabs?: ActiveVideoElement[];
+    receivedTabs?: VideoTabModel[];
     videoPlayer: boolean;
     loadedSubtitles?: boolean;
+    syncedVideoElement?: VideoElement;
 }
 
 export interface VideoElement {
@@ -239,7 +240,7 @@ export default class TabRegistry {
         videoPlayer: boolean,
         sidePanel: boolean,
         loadedSubtitles: boolean,
-        receivedTabs?: ActiveVideoElement[]
+        receivedTabs?: VideoTabModel[]
     ) {
         const slimTab =
             tab === undefined || tab.id === undefined
@@ -248,6 +249,7 @@ export default class TabRegistry {
                       id: tab.id,
                       title: tab.title ?? '',
                       url: tab.url ?? '',
+                      faviconUrl: tab.favIconUrl,
                   };
         await this._asbplayers((asbplayers) => {
             asbplayers[asbplayerId] = {
@@ -265,7 +267,7 @@ export default class TabRegistry {
 
     async activeVideoElements() {
         const videoElements = await this._videoElements();
-        const activeVideoElements: ActiveVideoElement[] = [];
+        const activeVideoElements: VideoTabModel[] = [];
 
         for (const id in videoElements) {
             const videoElement = videoElements[id];
@@ -274,6 +276,7 @@ export default class TabRegistry {
                 const element: VideoTabModel = {
                     id: videoElement.tab.id,
                     title: videoElement.tab.title,
+                    faviconUrl: videoElement.tab.faviconUrl,
                     src: videoElement.src,
                     subscribed: videoElement.subscribed,
                     synced: videoElement.synced,
@@ -320,6 +323,7 @@ export default class TabRegistry {
                     id: tabId,
                     title: tab.title ?? '',
                     url: tab.url ?? '',
+                    faviconUrl: tab.favIconUrl,
                 },
                 src,
                 subscribed,
@@ -457,7 +461,13 @@ export default class TabRegistry {
         }
     }
 
-    async findAsbplayer(filter?: (asbplayer: Asbplayer) => boolean): Promise<string> {
+    async findAsbplayer({
+        filter,
+        allowTabCreation,
+    }: {
+        filter?: (asbplayer: Asbplayer) => boolean;
+        allowTabCreation: boolean;
+    }): Promise<string | undefined> {
         let chosenAsbplayerId = null;
         const now = Date.now();
         let min = null;
@@ -486,13 +496,17 @@ export default class TabRegistry {
             return chosenAsbplayerId;
         }
 
-        return new Promise(async (resolve, reject) => {
-            if (asbplayerTabCount === 0) {
-                await this._createNewTab();
-            }
+        if (allowTabCreation) {
+            return new Promise(async (resolve, reject) => {
+                if (asbplayerTabCount === 0) {
+                    await this._createNewTab();
+                }
 
-            this._anyAsbplayerTab(resolve, reject, 0, 10, filter);
-        });
+                this._anyAsbplayerTab(resolve, reject, 0, 10, filter);
+            });
+        }
+
+        return undefined;
     }
 
     async _createNewTab() {

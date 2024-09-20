@@ -2,6 +2,7 @@ import {
     AddProfileMessage,
     GetSettingsMessage,
     RemoveProfileMessage,
+    RequestSubtitlesResponse,
     SetActiveProfileMessage,
     SetSettingsMessage,
 } from '@project/common';
@@ -69,6 +70,13 @@ window.addEventListener('message', async (event) => {
                 const removeProfileMessage = command.message as RemoveProfileMessage;
                 await settingsStorage.removeProfile(removeProfileMessage.name);
                 sendMessageToPlayer({
+                    messageId: command.message.messageId,
+                });
+                break;
+            case 'request-subtitles':
+                const response = (await chrome.runtime.sendMessage(command)) as RequestSubtitlesResponse | undefined;
+                sendMessageToPlayer({
+                    response,
                     messageId: command.message.messageId,
                 });
                 break;

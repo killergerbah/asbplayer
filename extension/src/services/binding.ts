@@ -1251,9 +1251,10 @@ export default class Binding {
         this.video.pause();
     }
 
-    showVideoDataDialog(openedFromMiningCommand: boolean) {
+    showVideoDataDialog(openedFromMiningCommand: boolean, fromAsbplayerId?: string) {
         this.videoDataSyncController.show({
             reason: openedFromMiningCommand ? VideoDataUiOpenReason.miningCommand : VideoDataUiOpenReason.userRequested,
+            fromAsbplayerId,
         });
     }
 
@@ -1264,7 +1265,7 @@ export default class Binding {
         return await cropAndResize(maxWidth, maxHeight, rect, tabImageDataUrl);
     }
 
-    async loadSubtitles(files: File[], flatten: boolean) {
+    async loadSubtitles(files: File[], flatten: boolean, syncWithAsbplayerId?: string) {
         const {
             streamingSubtitleListPreference,
             subtitleRegexFilter,
@@ -1278,6 +1279,29 @@ export default class Binding {
             'rememberSubtitleOffset',
             'lastSubtitleOffset',
         ]);
+        const syncWithAsbplayerTab = async (withSyncedAsbplayerOnly: boolean, withAsbplayerId: string | undefined) => {
+            const syncMessage: VideoToExtensionCommand<ExtensionSyncMessage> = {
+                sender: 'asbplayer-video',
+                message: {
+                    command: 'sync',
+                    subtitles: await Promise.all(
+                        files.map(async (f) => {
+                            const base64 = await bufferToBase64(await f.arrayBuffer());
+
+                            return {
+                                name: f.name,
+                                base64: base64,
+                            };
+                        })
+                    ),
+                    withSyncedAsbplayerOnly,
+                    withAsbplayerId,
+                },
+                src: this.video.src,
+            };
+            chrome.runtime.sendMessage(syncMessage);
+        };
+
         switch (streamingSubtitleListPreference) {
             case SubtitleListPreference.noSubtitleList:
                 const reader = new SubtitleReader({
@@ -1304,26 +1328,13 @@ export default class Binding {
                     })),
                     files.map((f) => f.name)
                 );
+                // If target asbplayer is not specified, then sync with any already-synced asbplayer
+                // Otherwise, sync with the target asbplayer
+                const withSyncedAsbplayerOnly = syncWithAsbplayerId === undefined;
+                syncWithAsbplayerTab(withSyncedAsbplayerOnly, syncWithAsbplayerId);
                 break;
             case SubtitleListPreference.app:
-                const syncMessage: VideoToExtensionCommand<ExtensionSyncMessage> = {
-                    sender: 'asbplayer-video',
-                    message: {
-                        command: 'sync',
-                        subtitles: await Promise.all(
-                            files.map(async (f) => {
-                                const base64 = await bufferToBase64(await f.arrayBuffer());
-
-                                return {
-                                    name: f.name,
-                                    base64: base64,
-                                };
-                            })
-                        ),
-                    },
-                    src: this.video.src,
-                };
-                chrome.runtime.sendMessage(syncMessage);
+                syncWithAsbplayerTab(false, undefined);
                 break;
         }
     }
