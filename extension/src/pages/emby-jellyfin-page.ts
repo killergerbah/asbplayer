@@ -42,7 +42,6 @@ document.addEventListener(
         var nowPlayingItem = session.NowPlayingItem;
         response.basename = nowPlayingItem.FileName ?? nowPlayingItem.Name;
 
-
         const subtitles: VideoDataSubtitleTrack[] = [];
         nowPlayingItem.MediaStreams.filter(
             (stream: { IsTextSubtitleStream: any }) => stream.IsTextSubtitleStream
