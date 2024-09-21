@@ -45,23 +45,16 @@ document.addEventListener(
         const subtitles: VideoDataSubtitleTrack[] = [];
         nowPlayingItem.MediaStreams.filter(
             (stream: { IsTextSubtitleStream: any }) => stream.IsTextSubtitleStream
-        ).forEach((sub: { Codec: string; DisplayTitle: any; Language: any; Index: number, Path: string }) => {
+        ).forEach((sub: { Codec: string; DisplayTitle: any; Language: any; Index: number; Path: string }) => {
             const extension = sub.Path ? sub.Path.split('.').pop()! : sub.Codec;
             var url =
-                '/Videos/' +
-                nowPlayingItem.Id +
-                '/' +
-                mediaID +
-                '/Subtitles/' +
-                sub.Index +
-                '/Stream.' +
-                extension;
+                '/Videos/' + nowPlayingItem.Id + '/' + mediaID + '/Subtitles/' + sub.Index + '/Stream.' + extension;
             subtitles.push(
                 trackFromDef({
                     label: sub.DisplayTitle,
                     language: sub.Language || '',
                     url: url,
-                    extension
+                    extension,
                 })
             );
         });
