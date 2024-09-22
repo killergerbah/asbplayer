@@ -18,7 +18,6 @@ document.addEventListener(
         }
 
         const deviceID = ApiClient?._deviceId;
-        const apikey = ApiClient?._serverInfo.AccessToken;
 
         let session;
         for (let attempt = 0; attempt < 5; attempt++) {
@@ -39,26 +38,17 @@ document.addEventListener(
             );
         }
 
-        const mediaID = session.PlayState.MediaSourceId;
-        const nowPlayingItem = session.NowPlayingItem;
-        response.basename = nowPlayingItem.Name;
+        var mediaID = session.PlayState.MediaSourceId;
+        var nowPlayingItem = session.NowPlayingItem;
+        response.basename = nowPlayingItem.FileName ?? nowPlayingItem.Name;
 
         const subtitles: VideoDataSubtitleTrack[] = [];
         nowPlayingItem.MediaStreams.filter(
             (stream: { IsTextSubtitleStream: any }) => stream.IsTextSubtitleStream
-        ).forEach((sub: { DisplayTitle: any; Language: any; Index: number; Codec: string; Path: string }) => {
+        ).forEach((sub: { Codec: string; DisplayTitle: any; Language: any; Index: number; Path: string }) => {
             const extension = sub.Path ? sub.Path.split('.').pop()! : sub.Codec;
             var url =
-                '/Videos/' +
-                nowPlayingItem.Id +
-                '/' +
-                mediaID +
-                '/Subtitles/' +
-                sub.Index +
-                '/0/Stream.' +
-                extension +
-                '?api_key=' +
-                apikey;
+                '/Videos/' + nowPlayingItem.Id + '/' + mediaID + '/Subtitles/' + sub.Index + '/Stream.' + extension;
             subtitles.push(
                 trackFromDef({
                     label: sub.DisplayTitle,
@@ -68,6 +58,7 @@ document.addEventListener(
                 })
             );
         });
+
         response.subtitles = subtitles;
 
         document.dispatchEvent(
