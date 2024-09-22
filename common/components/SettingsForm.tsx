@@ -790,7 +790,7 @@ export default function SettingsForm({
         track3Field,
         ankiFieldSettings,
         subtitlePreview,
-        subtitlePositionOffset,
+        bottomSubtitlePositionOffset,
         topSubtitlePositionOffset,
         subtitlesWidth,
         audioPaddingStart,
@@ -1946,13 +1946,13 @@ export default function SettingsForm({
                                         color="secondary"
                                         fullWidth
                                         label={t('settings.subtitlePositionOffset')}
-                                        value={subtitlePositionOffset}
+                                        value={bottomSubtitlePositionOffset}
                                         inputProps={{
                                             min: 0,
                                             step: 1,
                                         }}
                                         onChange={(e) =>
-                                            handleSettingChanged('subtitlePositionOffset', Number(e.target.value))
+                                            handleSettingChanged('bottomSubtitlePositionOffset', Number(e.target.value))
                                         }
                                     />
                                 </div>

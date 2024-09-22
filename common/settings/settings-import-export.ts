@@ -182,7 +182,7 @@ const settingsSchema = {
         subtitlePreview: {
             type: 'string',
         },
-        subtitlePositionOffset: {
+        bottomSubtitlePositionOffset: {
             type: 'number',
         },
         topSubtitlePositionOffset: {
