@@ -129,15 +129,22 @@ export default class SubtitleController {
     }
 
     cacheHtml() {
-        if (!(this.bottomSubtitlesElementOverlay instanceof CachingElementOverlay)) {
+        if (!(this.bottomSubtitlesElementOverlay instanceof CachingElementOverlay) || !(this.topSubtitlesElementOverlay instanceof CachingElementOverlay)) {
             return;
         }
-
-        this.bottomSubtitlesElementOverlay.uncacheHtml();
         const htmls = this._buildSubtitlesHtml(this.subtitles);
 
-        for (const html of htmls) {
-            this.bottomSubtitlesElementOverlay.cacheHtml(html.key, html.html());
+        if (this.shouldRenderBottomOverlay) {
+            this.bottomSubtitlesElementOverlay.uncacheHtml();
+            for (const html of htmls) {
+                this.bottomSubtitlesElementOverlay.cacheHtml(html.key, html.html());
+            }
+        }
+        if (this.shouldRenderTopOverlay) {
+            this.topSubtitlesElementOverlay.uncacheHtml();
+            for (const html of htmls) {
+                this.topSubtitlesElementOverlay.cacheHtml(html.key, html.html());
+            }
         }
     }
 
