@@ -12,7 +12,6 @@ import {
 import { AsbplayerSettings, SettingsProvider, SubtitleListPreference } from '@project/common/settings';
 import { bufferToBase64 } from '../services/base64';
 import Binding from '../services/binding';
-import ImageElement from '../services/image-element';
 import { currentPageDelegate } from '../services/pages';
 import { Parser as m3U8Parser } from 'm3u8-parser';
 import UiFrame from '../services/ui-frame';
@@ -61,8 +60,6 @@ export default class VideoDataSyncController {
     private readonly _frame: UiFrame;
     private readonly _settings: SettingsProvider;
 
-    private _videoSelectBound?: boolean;
-    private _imageElement: ImageElement;
     private _doneListener?: () => void;
     private _autoSync?: boolean;
     private _lastLanguagesSynced: { [key: string]: string[] };
@@ -78,8 +75,6 @@ export default class VideoDataSyncController {
     constructor(context: Binding, settings: SettingsProvider) {
         this._context = context;
         this._settings = settings;
-        this._videoSelectBound = false;
-        this._imageElement = new ImageElement(context.video);
         this._doneListener;
         this._autoSync = false;
         this._lastLanguagesSynced = {};
@@ -103,24 +98,6 @@ export default class VideoDataSyncController {
         this._lastLanguagesSynced[this._domain] = value;
     }
 
-    bindVideoSelect(doneListener: () => void) {
-        if (this._videoSelectBound) {
-            throw new Error('Video select container already bound');
-        }
-
-        const image = this._imageElement.element();
-        image.classList.remove('asbplayer-hide');
-        image.classList.add('asbplayer-mouse-over-image');
-
-        image.addEventListener('click', (e) => {
-            e.preventDefault();
-            this._doneListener = doneListener;
-            this.show({ userRequested: true, openedFromMiningCommand: false });
-        });
-
-        this._videoSelectBound = true;
-    }
-
     unbind() {
         if (this._boundFunction) {
             document.removeEventListener('asbplayer-synced-data', this._boundFunction, false);
@@ -128,15 +105,6 @@ export default class VideoDataSyncController {
 
         this._boundFunction = undefined;
         this._syncedData = undefined;
-        this.unbindVideoSelect();
-    }
-
-    unbindVideoSelect() {
-        this._imageElement.remove();
-        this._frame.unbind();
-        this._wasPaused = undefined;
-        this._videoSelectBound = false;
-        this._doneListener = undefined;
     }
 
     updateSettings({ streamingAutoSync, streamingLastLanguagesSynced }: AsbplayerSettings) {

@@ -1249,14 +1249,6 @@ export default class Binding {
         this.video.pause();
     }
 
-    bindVideoSelect(doneListener: () => void) {
-        this.videoDataSyncController.bindVideoSelect(doneListener);
-    }
-
-    unbindVideoSelect() {
-        this.videoDataSyncController.unbindVideoSelect();
-    }
-
     showVideoDataDialog(openedFromMiningCommand: boolean) {
         this.videoDataSyncController.show({ userRequested: true, openedFromMiningCommand });
     }
@@ -1348,7 +1340,6 @@ export default class Binding {
             }
         }
         this.subtitleController.showLoadedMessage(nonEmptyTrackIndex);
-        this.videoDataSyncController.unbindVideoSelect();
         this.ankiUiSavedState = undefined;
         this._synced = true;
         this._syncedTimestamp = Date.now();
