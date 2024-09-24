@@ -189,6 +189,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "Пусто",
             "loadSubtitlesFirst": "Прежде чем начать майнинг, надо загрузить субтитры",
+            "failedToAutoLoad": "Could not auto-load subtitles in your preferred language.",
             "rememberTrackPreference": "Запомнить мой выбор дорожек для этого сайта",
             "selectSubtitles": "Выбрать субтитры",
             "subtitleTrack": "Выбрать дорожку субтитров",

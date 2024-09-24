@@ -189,6 +189,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "空的",
             "loadSubtitlesFirst": "必须先加载字幕，然后才能开始挖掘。",
+            "failedToAutoLoad": "Could not auto-load subtitles in your preferred language.",
             "rememberTrackPreference": "Remember these track choices for this site",
             "selectSubtitles": "选择字幕",
             "subtitleTrack": "字幕轨道",

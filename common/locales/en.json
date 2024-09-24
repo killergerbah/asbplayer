@@ -189,6 +189,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "Empty",
             "loadSubtitlesFirst": "Subtitles must be loaded before you can start mining.",
+            "failedToAutoLoad": "Could not auto-load subtitles in your preferred language.",
             "rememberTrackPreference": "Remember these track choices for this site",
             "selectSubtitles": "Select Subtitles",
             "subtitleTrack": "Subtitle Track",

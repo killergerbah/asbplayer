@@ -189,6 +189,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "Pusta",
             "loadSubtitlesFirst": "Napisy muszą być załadowane zanim zaczniesz kopać.",
+            "failedToAutoLoad": "Could not auto-load subtitles in your preferred language.",
             "rememberTrackPreference": "Zapamiętaj ustawienia ścieżek dla tej strony",
             "selectSubtitles": "Wybierz napisy",
             "subtitleTrack": "Ścieżka napisów",

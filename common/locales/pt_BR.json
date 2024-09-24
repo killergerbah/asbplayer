@@ -189,6 +189,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "Vazio",
             "loadSubtitlesFirst": "Legendas devem ser carregadas antes que você possa começar a minerar.",
+            "failedToAutoLoad": "Could not auto-load subtitles in your preferred language.",
             "rememberTrackPreference": "Lembrar dessas escolhas de faixa para este site",
             "selectSubtitles": "Selecionar legenda",
             "subtitleTrack": "Selecionar faixa",

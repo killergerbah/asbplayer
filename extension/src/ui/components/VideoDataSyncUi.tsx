@@ -13,6 +13,7 @@ import {
     VideoDataUiBridgeConfirmMessage,
     VideoDataUiBridgeOpenFileMessage,
     VideoDataUiModel,
+    VideoDataUiOpenReason,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import { PaletteType } from '@material-ui/core';
@@ -37,7 +38,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     ]);
     const [selectedSubtitleTrackIds, setSelectedSubtitleTrackIds] = useState<string[]>(initialTrackIds);
     const [defaultCheckboxState, setDefaultCheckboxState] = useState<boolean>(false);
-    const [openedFromMiningCommand, setOpenedFromMiningCommand] = useState<boolean>(false);
+    const [openReason, setOpenReason] = useState<VideoDataUiOpenReason>(VideoDataUiOpenReason.userRequested);
     const [error, setError] = useState<string>('');
     const [themeType, setThemeType] = useState<string>();
 
@@ -110,8 +111,8 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                 setThemeType(model.themeType);
             }
 
-            if (model.openedFromMiningCommand !== undefined) {
-                setOpenedFromMiningCommand(model.openedFromMiningCommand);
+            if (model.openReason !== undefined) {
+                setOpenReason(model.openReason);
             }
         });
     }, [bridge, t]);
@@ -159,7 +160,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                 subtitleTracks={subtitles}
                 selectedSubtitleTrackIds={selectedSubtitleTrackIds}
                 defaultCheckboxState={defaultCheckboxState}
-                openedFromMiningCommand={openedFromMiningCommand}
+                openReason={openReason}
                 error={error}
                 onCancel={handleCancel}
                 onOpenFile={handleOpenFile}

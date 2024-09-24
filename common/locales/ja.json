@@ -189,6 +189,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "空",
             "loadSubtitlesFirst": "マイニングを開始する前に字幕をロードしてください。",
+            "failedToAutoLoad": "Could not auto-load subtitles in your preferred language.",
             "rememberTrackPreference": "字幕トラックの選択を記憶する",
             "selectSubtitles": "字幕を選択",
             "subtitleTrack": "字幕トラック",

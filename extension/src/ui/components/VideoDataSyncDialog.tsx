@@ -14,7 +14,7 @@ import Typography from '@material-ui/core/Typography';
 import makeStyles from '@material-ui/styles/makeStyles';
 import Switch from '@material-ui/core/Switch';
 import LabelWithHoverEffect from '@project/common/components/LabelWithHoverEffect';
-import { ConfirmedVideoDataSubtitleTrack, VideoDataSubtitleTrack } from '@project/common';
+import { ConfirmedVideoDataSubtitleTrack, VideoDataSubtitleTrack, VideoDataUiOpenReason } from '@project/common';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -55,7 +55,7 @@ interface Props {
     selectedSubtitleTrackIds: string[];
     defaultCheckboxState: boolean;
     error: string;
-    openedFromMiningCommand: boolean;
+    openReason: VideoDataUiOpenReason;
     onCancel: () => void;
     onOpenFile: () => void;
     onConfirm: (track: ConfirmedVideoDataSubtitleTrack[], shouldRememberTrackChoices: boolean) => void;
@@ -71,7 +71,7 @@ export default function VideoDataSyncDialog({
     selectedSubtitleTrackIds,
     defaultCheckboxState,
     error,
-    openedFromMiningCommand,
+    openReason,
     onCancel,
     onOpenFile,
     onConfirm,
@@ -219,8 +219,11 @@ export default function VideoDataSyncDialog({
                 )}
             </Toolbar>
             <DialogContent>
-                {openedFromMiningCommand && (
+                {openReason === VideoDataUiOpenReason.miningCommand && (
                     <DialogContentText>{t('extension.videoDataSync.loadSubtitlesFirst')}</DialogContentText>
+                )}
+                {openReason === VideoDataUiOpenReason.failedToAutoLoadPreferredTrack && (
+                    <DialogContentText>{t('extension.videoDataSync.failedToAutoLoad')}</DialogContentText>
                 )}
                 <form>
                     <Grid container direction="column" spacing={2}>

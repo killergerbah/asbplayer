@@ -7,6 +7,7 @@ import {
     VideoDataUiBridgeConfirmMessage,
     VideoDataUiBridgeOpenFileMessage,
     VideoDataUiModel,
+    VideoDataUiOpenReason,
     VideoToExtensionCommand,
 } from '@project/common';
 import { AsbplayerSettings, SettingsProvider, SubtitleListPreference } from '@project/common/settings';
@@ -38,7 +39,7 @@ async function html(lang: string) {
 }
 
 interface ShowOptions {
-    openedFromMiningCommand: boolean;
+    reason: VideoDataUiOpenReason;
 }
 
 const fetchDataForLanguageOnDemand = (language: string): Promise<VideoData> => {
@@ -126,9 +127,12 @@ export default class VideoDataSyncController {
         document.dispatchEvent(new CustomEvent('asbplayer-get-synced-data'));
     }
 
-    async show({ openedFromMiningCommand }: ShowOptions) {
+    async show({ reason }: ShowOptions) {
         const client = await this._client();
-        const model = await this._buildModel({ open: true, openedFromMiningCommand });
+        const model = await this._buildModel({
+            open: true,
+            openReason: reason,
+        });
         this._prepareShow();
         client.updateState(model);
     }
@@ -227,7 +231,7 @@ export default class VideoDataSyncController {
                         this._hideAndResume();
                     }
                 } else {
-                    await this.show({ openedFromMiningCommand: false });
+                    await this.show({ reason: VideoDataUiOpenReason.failedToAutoLoadPreferredTrack });
                 }
             }
         } else if (this._frame.clientIfLoaded !== undefined) {

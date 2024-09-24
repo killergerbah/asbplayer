@@ -155,6 +155,12 @@ export interface VideoData {
     subtitles?: VideoDataSubtitleTrack[];
 }
 
+export enum VideoDataUiOpenReason {
+    miningCommand = 1,
+    failedToAutoLoadPreferredTrack = 2,
+    userRequested = 3,
+}
+
 export interface VideoDataUiModel {
     open?: boolean;
     isLoading?: boolean;
@@ -164,7 +170,7 @@ export interface VideoDataUiModel {
     themeType?: string;
     selectedSubtitle?: string[];
     showSubSelect?: boolean;
-    openedFromMiningCommand?: boolean;
+    openReason?: VideoDataUiOpenReason;
     defaultCheckboxState?: boolean;
 }
 

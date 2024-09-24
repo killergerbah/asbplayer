@@ -189,6 +189,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "En Blanco",
             "loadSubtitlesFirst": "Deben cargarse los subtítulos antes de comenzar a minar",
+            "failedToAutoLoad": "Could not auto-load subtitles in your preferred language.",
             "rememberTrackPreference": "Recordar estas opciones de pista para este sitio",
             "selectSubtitles": "Seleccionar Subtítulos",
             "subtitleTrack": "Pista de Subtítulos",

@@ -42,6 +42,7 @@ import {
     SubtitleModel,
     SubtitlesToVideoMessage,
     TakeScreenshotFromExtensionMessage,
+    VideoDataUiOpenReason,
     VideoDisappearedMessage,
     VideoHeartbeatMessage,
     VideoToExtensionCommand,
@@ -1250,7 +1251,9 @@ export default class Binding {
     }
 
     showVideoDataDialog(openedFromMiningCommand: boolean) {
-        this.videoDataSyncController.show({ openedFromMiningCommand });
+        this.videoDataSyncController.show({
+            reason: openedFromMiningCommand ? VideoDataUiOpenReason.miningCommand : VideoDataUiOpenReason.userRequested,
+        });
     }
 
     async cropAndResize(tabImageDataUrl: string): Promise<string> {
