@@ -66,7 +66,7 @@ const hasValidVideoSource = (videoElement: HTMLVideoElement, page?: PageDelegate
 const bind = () => {
     const bindings: Binding[] = [];
     const page = currentPageDelegate();
-    let subSyncAvailable = page?.config.script !== undefined;
+    let hasPageScript = page?.config.script !== undefined;
     let frameInfoListener: FrameInfoListener | undefined;
     let frameInfoBroadcaster: FrameInfoBroadcaster | undefined;
     const isParentDocument = window.self === window.top;
@@ -98,7 +98,7 @@ const bind = () => {
             const bindingExists = bindings.filter((b) => b.video.isSameNode(videoElement)).length > 0;
 
             if (!bindingExists && hasValidVideoSource(videoElement, page) && !page?.shouldIgnore(videoElement)) {
-                const b = new Binding(videoElement, subSyncAvailable, frameInfoBroadcaster?.frameId);
+                const b = new Binding(videoElement, hasPageScript, frameInfoBroadcaster?.frameId);
                 b.bind();
                 bindings.push(b);
             }

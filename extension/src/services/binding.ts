@@ -125,7 +125,7 @@ export default class Binding {
     private _speedChangeStep = 0.1;
 
     readonly video: HTMLMediaElement;
-    readonly subSyncAvailable: boolean;
+    readonly hasPageScript: boolean;
     readonly subtitleController: SubtitleController;
     readonly videoDataSyncController: VideoDataSyncController;
     readonly controlsController: ControlsController;
@@ -173,9 +173,9 @@ export default class Binding {
 
     private readonly frameId?: string;
 
-    constructor(video: HTMLMediaElement, syncAvailable: boolean, frameId?: string) {
+    constructor(video: HTMLMediaElement, hasPageScript: boolean, frameId?: string) {
         this.video = video;
-        this.subSyncAvailable = syncAvailable;
+        this.hasPageScript = hasPageScript;
         this.settings = new SettingsProvider(new ExtensionSettingsStorage());
         this.subtitleController = new SubtitleController(video, this.settings);
         this.videoDataSyncController = new VideoDataSyncController(this, this.settings);
@@ -528,7 +528,7 @@ export default class Binding {
             }
         };
 
-        if (this.subSyncAvailable) {
+        if (this.hasPageScript) {
             this.videoChangeListener = () => {
                 this.videoDataSyncController.requestSubtitles();
                 this._resetSubtitles();
@@ -1250,7 +1250,7 @@ export default class Binding {
     }
 
     showVideoDataDialog(openedFromMiningCommand: boolean) {
-        this.videoDataSyncController.show({ userRequested: true, openedFromMiningCommand });
+        this.videoDataSyncController.show({ openedFromMiningCommand });
     }
 
     async cropAndResize(tabImageDataUrl: string): Promise<string> {

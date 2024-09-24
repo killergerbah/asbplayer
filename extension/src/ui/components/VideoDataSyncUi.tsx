@@ -12,6 +12,7 @@ import {
     VideoDataSubtitleTrack,
     VideoDataUiBridgeConfirmMessage,
     VideoDataUiBridgeOpenFileMessage,
+    VideoDataUiModel,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import { PaletteType } from '@material-ui/core';
@@ -21,6 +22,8 @@ import { useTranslation } from 'react-i18next';
 interface Props {
     bridge: Bridge;
 }
+
+const initialTrackIds = ['-', '-', '-'];
 
 export default function VideoDataSyncUi({ bridge }: Props) {
     const { t } = useTranslation();
@@ -32,7 +35,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [subtitles, setSubtitles] = useState<VideoDataSubtitleTrack[]>([
         { id: '-', language: '-', url: '-', label: t('extension.videoDataSync.emptySubtitleTrack'), extension: 'srt' },
     ]);
-    const [selectedSubtitleTrackIds, setSelectedSubtitleTrackIds] = useState<string[]>(['-', '-', '-']);
+    const [selectedSubtitleTrackIds, setSelectedSubtitleTrackIds] = useState<string[]>(initialTrackIds);
     const [defaultCheckboxState, setDefaultCheckboxState] = useState<boolean>(false);
     const [openedFromMiningCommand, setOpenedFromMiningCommand] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
@@ -59,25 +62,26 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                 return;
             }
 
-            const state = (message as UpdateStateMessage).state;
+            const model = (message as UpdateStateMessage).state as VideoDataUiModel;
 
-            if (Object.prototype.hasOwnProperty.call(state, 'open')) {
-                setOpen(state.open);
+            if (model.open !== undefined) {
+                setOpen(model.open);
             }
 
-            if (Object.prototype.hasOwnProperty.call(state, 'isLoading')) {
-                setIsLoading(state.isLoading);
+            if (model.isLoading !== undefined) {
+                setIsLoading(model.isLoading);
             }
 
-            if (Object.prototype.hasOwnProperty.call(state, 'suggestedName')) {
-                setSuggestedName(state.suggestedName);
+            if (model.suggestedName !== undefined) {
+                setSuggestedName(model.suggestedName);
             }
 
-            if (Object.prototype.hasOwnProperty.call(state, 'showSubSelect')) {
-                setShowSubSelect(state.showSubSelect);
+            if (model.showSubSelect !== undefined) {
+                setShowSubSelect(model.showSubSelect);
             }
 
-            if (Object.prototype.hasOwnProperty.call(state, 'subtitles')) {
+            if (model.subtitles !== undefined) {
+                setSelectedSubtitleTrackIds(initialTrackIds);
                 setSubtitles([
                     {
                         id: '-',
@@ -86,28 +90,28 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                         label: t('extension.videoDataSync.emptySubtitleTrack'),
                         extension: 'srt',
                     },
-                    ...state.subtitles,
+                    ...model.subtitles,
                 ]);
             }
 
-            if (Object.prototype.hasOwnProperty.call(state, 'selectedSubtitle')) {
-                setSelectedSubtitleTrackIds(state.selectedSubtitle);
+            if (model.selectedSubtitle !== undefined) {
+                setSelectedSubtitleTrackIds(model.selectedSubtitle);
             }
 
-            if (Object.prototype.hasOwnProperty.call(state, 'defaultCheckboxState')) {
-                setDefaultCheckboxState(state.defaultCheckboxState);
+            if (model.defaultCheckboxState !== undefined) {
+                setDefaultCheckboxState(model.defaultCheckboxState);
             }
 
-            if (Object.prototype.hasOwnProperty.call(state, 'error')) {
-                setError(state.error);
+            if (model.error !== undefined) {
+                setError(model.error);
             }
 
-            if (Object.prototype.hasOwnProperty.call(state, 'themeType')) {
-                setThemeType(state.themeType);
+            if (model.themeType !== undefined) {
+                setThemeType(model.themeType);
             }
 
-            if (Object.prototype.hasOwnProperty.call(state, 'openedFromMiningCommand')) {
-                setOpenedFromMiningCommand(state.openedFromMiningCommand);
+            if (model.openedFromMiningCommand !== undefined) {
+                setOpenedFromMiningCommand(model.openedFromMiningCommand);
             }
         });
     }, [bridge, t]);

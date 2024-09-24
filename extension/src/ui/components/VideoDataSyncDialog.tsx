@@ -77,7 +77,7 @@ export default function VideoDataSyncDialog({
     onConfirm,
 }: Props) {
     const { t } = useTranslation();
-    const [selectedSubtitles, setSelectedSubtitles] = useState(['-', '-', '-']);
+    const [userSelectedSubtitleTrackIds, setUserSelectedSubtitleTrackIds] = useState(['-', '-', '-']);
     const [name, setName] = useState('');
     const [shouldRememberTrackChoices, setShouldRememberTrackChoices] = React.useState(false);
     const trimmedName = name.trim();
@@ -85,7 +85,7 @@ export default function VideoDataSyncDialog({
 
     useEffect(() => {
         if (open) {
-            setSelectedSubtitles(
+            setUserSelectedSubtitleTrackIds(
                 selectedSubtitleTrackIds.map((id) => {
                     return id !== undefined ? id : '-';
                 })
@@ -116,9 +116,9 @@ export default function VideoDataSyncDialog({
                 name === suggestedName ||
                 subtitleTracks.find((track) => track.url !== '-' && name === calculateName(suggestedName, track.label))
             ) {
-                const selectedTrack = subtitleTracks.find((track) => track.id === selectedSubtitles[0])!;
+                const selectedTrack = subtitleTracks.find((track) => track.id === userSelectedSubtitleTrackIds[0]);
 
-                if (selectedTrack.url === '-') {
+                if (selectedTrack === undefined || selectedTrack.url === '-') {
                     return suggestedName;
                 }
 
@@ -128,7 +128,7 @@ export default function VideoDataSyncDialog({
             // Otherwise, let the name be whatever the user set it to
             return name;
         });
-    }, [suggestedName, selectedSubtitles, subtitleTracks]);
+    }, [suggestedName, userSelectedSubtitleTrackIds, subtitleTracks]);
 
     function handleOkButtonClick() {
         const selectedSubtitleTracks: ConfirmedVideoDataSubtitleTrack[] = allSelectedSubtitleTracks();
@@ -140,7 +140,7 @@ export default function VideoDataSyncDialog({
     }
 
     function allSelectedSubtitleTracks() {
-        const selectedSubtitleTracks: ConfirmedVideoDataSubtitleTrack[] = selectedSubtitles
+        const selectedSubtitleTracks: ConfirmedVideoDataSubtitleTrack[] = userSelectedSubtitleTrackIds
             .map((selected): ConfirmedVideoDataSubtitleTrack | undefined => {
                 const subtitle = subtitleTracks.find((subtitle) => subtitle.id === selected);
                 if (subtitle) {
@@ -174,10 +174,12 @@ export default function VideoDataSyncDialog({
                             variant="filled"
                             label={`${t('extension.videoDataSync.subtitleTrack')} ${i + 1}`}
                             helperText={error || ''}
-                            value={selectedSubtitles[i]}
+                            value={
+                                subtitleTracks.find((track) => track.id === userSelectedSubtitleTrackIds[i])?.id ?? '-'
+                            }
                             disabled={isLoading || disabled}
                             onChange={(e) =>
-                                setSelectedSubtitles((prevSelectedSubtitles) => {
+                                setUserSelectedSubtitleTrackIds((prevSelectedSubtitles) => {
                                     const newSelectedSubtitles = [...prevSelectedSubtitles];
                                     newSelectedSubtitles[i] = e.target.value;
                                     return newSelectedSubtitles;

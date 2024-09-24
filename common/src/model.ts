@@ -155,7 +155,7 @@ export interface VideoData {
     subtitles?: VideoDataSubtitleTrack[];
 }
 
-export interface VideoDataUiState {
+export interface VideoDataUiModel {
     open?: boolean;
     isLoading?: boolean;
     suggestedName?: string;
