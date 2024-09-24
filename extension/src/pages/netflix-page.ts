@@ -132,7 +132,11 @@ setTimeout(() => {
         return basename;
     }
 
-    const dataForTrack = (track: any, storedTracks: Map<string, string>): VideoDataSubtitleTrack => {
+    const dataForTrack = (track: any, storedTracks: Map<string, string>): VideoDataSubtitleTrack | undefined => {
+        if (!track.bcp47) {
+            return undefined;
+        }
+
         const isClosedCaptions = 'CLOSEDCAPTIONS' === track.rawTrackType;
         const language = isClosedCaptions ? `${track.bcp47.toLowerCase()}-CC` : track.bcp47.toLowerCase();
         const label = `${track.bcp47} - ${track.displayName}${isClosedCaptions ? ' [CC]' : ''}`;
@@ -164,7 +168,8 @@ setTimeout(() => {
             .filter((track: any) => storedTracks.has(track.trackId))
             .map((track: any) => {
                 return dataForTrack(track, storedTracks);
-            });
+            })
+            .filter((data: VideoDataSubtitleTrack | undefined) => data !== undefined);
         return response;
     };
 
@@ -211,7 +216,7 @@ setTimeout(() => {
             const storedTracks = subTracks.get(np.getMovieId()) || new Map();
             const track = np
                 .getTimedTextTrackList()
-                ?.find((track: any) => dataForTrack(track, storedTracks).language === language);
+                ?.find((track: any) => dataForTrack(track, storedTracks)?.language === language);
 
             if (track === undefined) {
                 fail();
