@@ -292,7 +292,11 @@ const SubtitleRow = React.memo(function SubtitleRow({
                 </TableCell>
             )}
             <TableCell className={classes.timestamp}>
-                <div>{`\n${subtitle.displayTime}\n`}</div>
+                <div>
+                    <span style={{ display: 'none' }}>.</span>
+                    {`\n${subtitle.displayTime}\n`}
+                    <span style={{ display: 'none' }}>.</span>
+                </div>
             </TableCell>
         </TableRow>
     );
