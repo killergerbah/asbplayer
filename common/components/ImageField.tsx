@@ -6,7 +6,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import { useTranslation } from 'react-i18next';
-import { Image } from '@project/common';
+import { Image, ImageErrorCode } from '@project/common';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -24,13 +24,13 @@ const useImageHelperText = (image?: Image) => {
 
     useEffect(() => {
         if (image) {
-            const available = image.isAvailable();
-            setImageAvailable(available);
-
-            if (available) {
+            if (image.error === undefined) {
+                setImageAvailable(true);
                 setImageHelperText(undefined);
-            } else {
+            } else if (image.error === ImageErrorCode.fileLinkLost) {
                 setImageHelperText(t('ankiDialog.imageFileLinkLost')!);
+            } else if (image.error === ImageErrorCode.captureFailed) {
+                setImageHelperText(t('ankiDialog.imageCaptureFailed')!);
             }
         }
     }, [image, t]);

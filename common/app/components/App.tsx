@@ -18,6 +18,7 @@ import {
     DownloadImageMessage,
     DownloadAudioMessage,
     CardTextFieldValues,
+    ImageErrorCode,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import { AsbplayerSettings, Profile } from '@project/common/settings';
@@ -565,10 +566,12 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
             try {
                 const image = Image.fromCard(item, settings.maxImageWidth, settings.maxImageHeight)!;
 
-                if (image.isAvailable()) {
+                if (image.error === undefined) {
                     image.download();
-                } else {
+                } else if (image.error === ImageErrorCode.fileLinkLost) {
                     handleError(t('ankiDialog.imageFileLinkLost'));
+                } else if (image.error === ImageErrorCode.captureFailed) {
+                    handleError(t('ankiDialog.imageCaptureFailed'));
                 }
             } catch (e) {
                 handleError(e);

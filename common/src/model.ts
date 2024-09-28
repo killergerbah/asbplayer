@@ -59,9 +59,15 @@ export interface CopyHistoryItem extends CardModel {
     readonly timestamp: number;
 }
 
+export enum ImageErrorCode {
+    captureFailed = 1,
+    fileLinkLost = 2,
+}
+
 export interface ImageModel {
     readonly base64: string;
     readonly extension: 'jpeg';
+    readonly error?: ImageErrorCode;
 }
 
 export enum AudioErrorCode {

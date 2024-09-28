@@ -106,7 +106,7 @@ const useImageAvailability = (item: CopyHistoryItem) => {
         const image = Image.fromCard(item, 0, 0);
 
         if (image) {
-            setIsImageAvailable(image.isAvailable());
+            setIsImageAvailable(image.error === undefined);
         } else {
             setIsImageAvailable(false);
         }
@@ -264,8 +264,8 @@ export default function CopyHistoryList({
     let content;
 
     if (items.length > 0) {
-        const elements = [];
-        let lastSeenItemName = null;
+        const elements: JSX.Element[] = [];
+        let lastSeenItemName: string | null = null;
         let i = 0;
         const itemNameCounters: { [name: string]: number } = {};
         let itemsBySection: { [key: string]: CopyHistoryItem[] } = {};

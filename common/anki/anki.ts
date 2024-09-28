@@ -140,7 +140,13 @@ export async function exportCard(card: CardModel, ankiSettings: AnkiSettings, ex
         image:
             card.image === undefined
                 ? undefined
-                : Image.fromBase64(source, card.subtitle.start, card.image.base64, card.image.extension),
+                : Image.fromBase64(
+                      source,
+                      card.subtitle.start,
+                      card.image.base64,
+                      card.image.extension,
+                      card.image.error
+                  ),
         word: card.word,
         source: source,
         url: card.url,
@@ -292,7 +298,7 @@ export class Anki {
             }
         }
 
-        if (this.settingsProvider.imageField && image && image.isAvailable()) {
+        if (this.settingsProvider.imageField && image && image.error === undefined) {
             const sanitizedName = this._sanitizeFileName(image.name);
             const data = await image.base64();
 
