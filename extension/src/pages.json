@@ -92,7 +92,7 @@
         },
         {
             "host": "jellyfin*|emby*|:8096*",
-            "script": "emby-page.js",
+            "script": "emby-jellyfin-page.js",
             "hash": "#!/videoosd/videoosd.html|#/video",
             "autoSync": {
                 "enabled": true

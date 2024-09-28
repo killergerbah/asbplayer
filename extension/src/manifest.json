@@ -107,7 +107,7 @@
                 "pages/apps-disney-plus-page.js",
                 "pages/viki-page.js",
                 "pages/unext-page.js",
-                "pages/emby-page.js",
+                "pages/emby-jellyfin-page.js",
                 "pages/osnplus-page.js",
                 "pages/bilibili-page.js",
                 "pages/nrk-tv-page.js",
