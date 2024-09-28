@@ -1,0 +1,28 @@
+#!/bin/bash
+SCRIPTPATH="$(cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P)"
+CONFIGPATH=$SCRIPTPATH/../extension/src/pages.json
+PAGESCRIPTSPATH=$SCRIPTPATH/../extension/src/pages
+MANIFESTPATH=$SCRIPTPATH/../extension/src/manifest.json
+
+for page in $(jq -r ".pages[].script" $CONFIGPATH); do
+    if [[ $page = "null" ]]; then
+        continue
+    fi
+
+    page_basename="${page%.*}"
+    page_script_path="$PAGESCRIPTSPATH/$page_basename.ts"
+
+    if [ ! -f "$page_script_path" ]; then
+        echo "\"$page_script_path\" referenced by page config is missing"
+        exit 1
+    fi
+
+    page_script_relative_path="pages/$page_basename.js"
+    jq ".web_accessible_resources" $MANIFESTPATH | grep "$page_script_relative_path" >/dev/null
+
+    if [ $? -eq 1 ]; then
+        echo "$page_script_relative_path missing from extension manifest web_accessible_resources"
+        exit 1;
+    fi
+done
+
