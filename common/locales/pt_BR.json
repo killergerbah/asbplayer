@@ -50,6 +50,7 @@
         "foundDuplicateNotes": "Encontrado {{count}} nota(s) com a palavra \"{{word}}\" no campo \"{{field}}\"",
         "foundNoDuplicateNote": "Nenhuma nota encontrada com a palavra \"{{word}}\" no campo \"{{field}}\"",
         "image": "Imagem",
+        "imageCaptureFailed": "Image capture failed",
         "imageFileLinkLost": "Link de arquivo de imagem perdido devido ao recarregamento da página",
         "openInAnki": "Abrir no Anki",
         "rerecord": "Regravar",

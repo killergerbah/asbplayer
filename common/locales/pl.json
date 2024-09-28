@@ -50,6 +50,7 @@
         "foundDuplicateNotes": "Znaleziono {{count}} notatek ze słowem \"{{word}}\" w polu \"{{field}}\"",
         "foundNoDuplicateNote": "Nie znaleziono żadnych notatek ze słowem \"{{word}}\" w polu \"{{field}}\"",
         "image": "Obraz",
+        "imageCaptureFailed": "Image capture failed",
         "imageFileLinkLost": "Link do pliku obrazu utracony przez przeładowanie strony",
         "openInAnki": "Otwórz w Anki",
         "rerecord": "Nagraj ponownie",
