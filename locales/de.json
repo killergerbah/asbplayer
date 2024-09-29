@@ -50,6 +50,7 @@
         "foundDuplicateNotes": "{{count}} Notizen mit Wort \"{{word}}\" in Feld \"{{field}}\" gefunden",
         "foundNoDuplicateNote": "Nach Anki exportieren",
         "image": "Bild",
+        "imageCaptureFailed": "Image capture failed",
         "imageFileLinkLost": "Bilddatei verloren aufgrund Seitenneuladens",
         "openInAnki": "In Anki öffnen",
         "rerecord": "Neuaufnahme",
@@ -189,6 +190,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "Empty",
             "loadSubtitlesFirst": "Untertitel müssen ausgewählt werden",
+            "failedToAutoLoad": "Could not auto-load subtitles in your preferred language.",
             "rememberTrackPreference": "Remember these track choices for this site",
             "selectSubtitles": "Untertitel auswählen",
             "subtitleTrack": "Untertitelspur",

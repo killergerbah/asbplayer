@@ -50,6 +50,7 @@
         "foundDuplicateNotes": "Se encontraron {{count}} tarjetas con la palabra \"{{word}}\" en el campo \"{{field}}\"",
         "foundNoDuplicateNote": "No se encontraron tarjetas con la palabra \"{{word}}\" en el campo \"{{field}}\"",
         "image": "Imagen",
+        "imageCaptureFailed": "Image capture failed",
         "imageFileLinkLost": "Se perdió el link a la imagen al recargar la página",
         "openInAnki": "Abrir en Anki",
         "rerecord": "Regrabar",
@@ -189,6 +190,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "En Blanco",
             "loadSubtitlesFirst": "Deben cargarse los subtítulos antes de comenzar a minar",
+            "failedToAutoLoad": "Could not auto-load subtitles in your preferred language.",
             "rememberTrackPreference": "Recordar estas opciones de pista para este sitio",
             "selectSubtitles": "Seleccionar Subtítulos",
             "subtitleTrack": "Pista de Subtítulos",

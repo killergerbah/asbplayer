@@ -50,6 +50,7 @@
         "foundDuplicateNotes": "Найдено {{count}} заметка(и) со словом \"{{word}}\" в поле \"{{field}}\"",
         "foundNoDuplicateNote": "Заметок-дубликатов со словом \"{{word}}\" в поле \"{{field}}\" не найдено",
         "image": "Изображение",
+        "imageCaptureFailed": "Image capture failed",
         "imageFileLinkLost": "Ссылка на файл изображения потеряна из-за перезагрузки страницы",
         "openInAnki": "Открыть в Анки",
         "rerecord": "Перезаписать",
@@ -189,6 +190,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "Пусто",
             "loadSubtitlesFirst": "Прежде чем начать майнинг, надо загрузить субтитры",
+            "failedToAutoLoad": "Could not auto-load subtitles in your preferred language.",
             "rememberTrackPreference": "Запомнить мой выбор дорожек для этого сайта",
             "selectSubtitles": "Выбрать субтитры",
             "subtitleTrack": "Выбрать дорожку субтитров",

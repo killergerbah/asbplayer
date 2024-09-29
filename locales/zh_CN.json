@@ -50,6 +50,7 @@
         "foundDuplicateNotes": "已发现{{count}}张 {{field}} 字段中含有单词 {{word}} 的卡片",
         "foundNoDuplicateNote": "未发现 {{field}} 字段中含有单词 {{word}} 的卡片",
         "image": "图像",
+        "imageCaptureFailed": "Image capture failed",
         "imageFileLinkLost": "由于页面重新加载，图像文件链接丢失",
         "openInAnki": "在Anki中打开",
         "rerecord": "重新录制音频",
@@ -189,6 +190,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "空的",
             "loadSubtitlesFirst": "必须先加载字幕，然后才能开始挖掘。",
+            "failedToAutoLoad": "Could not auto-load subtitles in your preferred language.",
             "rememberTrackPreference": "Remember these track choices for this site",
             "selectSubtitles": "选择字幕",
             "subtitleTrack": "字幕轨道",
