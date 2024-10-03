@@ -565,7 +565,7 @@ interface ControlsProps {
     playbackRateEnabled?: boolean;
     onAudioTrackSelected: (id: string) => void;
     onSeek: (progress: number) => void;
-    mousePositionRef: MutableRefObject<Point>;
+    mousePositionRef: MutableRefObject<Point | undefined>;
     onShow?: (show: boolean) => void;
     onPause: () => void;
     onPlay: () => void;
@@ -676,7 +676,7 @@ export default function Controls({
     const [lastCommittedVolume, setLastCommittedVolume] = useState<number>(100);
     const theme = useTheme();
     const isReallySmallScreen = useMediaQuery(theme.breakpoints.down(380));
-    const lastMousePositionRef = useRef<Point>({ x: 0, y: 0 });
+    const lastMousePositionRef = useRef<Point | undefined>(undefined);
     const lastShowTimestampRef = useRef<number>(Date.now());
     const lastNumberInputChangeTimestampRef = useRef<number>(Date.now());
     const lastShowRef = useRef<boolean>(true);
@@ -731,15 +731,18 @@ export default function Controls({
             if (showOnMouseMovement) {
                 currentShow =
                     Date.now() - lastShowTimestampRef.current < 2000 ||
-                    Math.pow(mousePositionRef.current.x - lastMousePositionRef.current.x, 2) +
-                        Math.pow(mousePositionRef.current.y - lastMousePositionRef.current.y, 2) >
-                        100;
+                    (mousePositionRef.current !== undefined &&
+                        lastMousePositionRef.current !== undefined &&
+                        Math.pow(mousePositionRef.current.x - lastMousePositionRef.current.x, 2) +
+                            Math.pow(mousePositionRef.current.y - lastMousePositionRef.current.y, 2) >
+                            100);
             } else {
                 currentShow =
-                    ((containerRef.current && mousePositionRef.current.y > containerRef.current.offsetTop - 20) ||
-                        (closeButtonRef.current &&
-                            mousePositionRef.current.y < closeButtonRef.current.offsetHeight + 20)) ??
-                    false;
+                    mousePositionRef.current !== undefined &&
+                    ((containerRef.current !== null &&
+                        mousePositionRef.current.y > containerRef.current.offsetTop - 20) ||
+                        (closeButtonRef.current !== null &&
+                            mousePositionRef.current.y < closeButtonRef.current.offsetHeight + 20));
             }
 
             currentShow =
@@ -758,8 +761,7 @@ export default function Controls({
             }
 
             lastShowRef.current = currentShow;
-            lastMousePositionRef.current.x = mousePositionRef.current.x;
-            lastMousePositionRef.current.y = mousePositionRef.current.y;
+            lastMousePositionRef.current = { x: mousePositionRef.current?.x ?? 0, y: mousePositionRef.current?.y ?? 0 };
         }, 100);
         return () => clearInterval(interval);
     }, [mousePositionRef, showOnMouseMovement, playing]);

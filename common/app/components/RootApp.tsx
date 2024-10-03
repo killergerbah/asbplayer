@@ -2,21 +2,21 @@ import { Fetcher } from '@project/common';
 import { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import App from './App';
-import { useChromeExtension } from '../hooks/use-chrome-extension';
 import { AppSettingsStorage } from '../services/app-settings-storage';
 import { useSettingsProfileContext } from '../../hooks/use-settings-profile-context';
+import ChromeExtension from '../services/chrome-extension';
 
 interface Props {
     origin: string;
     logoUrl: string;
     fetcher: Fetcher;
     settingsStorage: AppSettingsStorage;
+    extension: ChromeExtension;
 }
 
-const RootApp = ({ origin, logoUrl, settingsStorage, fetcher }: Props) => {
+const RootApp = ({ extension, origin, logoUrl, settingsStorage, fetcher }: Props) => {
     const settingsProvider = useMemo(() => new SettingsProvider(settingsStorage), [settingsStorage]);
     const [settings, setSettings] = useState<AsbplayerSettings>();
-    const extension = useChromeExtension({ sidePanel: false });
 
     useEffect(() => {
         settingsProvider.getAll().then(setSettings);

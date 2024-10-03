@@ -7,6 +7,8 @@ import {
     ScreenshotTakenMessage,
     TakeScreenshotFromExtensionMessage,
     AnkiUiSavedState,
+    ImageModel,
+    ImageErrorCode,
 } from '@project/common';
 import { CardPublisher } from '../../services/card-publisher';
 
@@ -31,21 +33,33 @@ export default class TakeScreenshotHandler {
         const senderTab = sender.tab!;
         const takeScreenshotCommand = command as VideoToExtensionCommand<TakeScreenshotFromExtensionMessage>;
         const { maxWidth, maxHeight, rect, frameId } = takeScreenshotCommand.message;
-        const imageBase64 = await this._imageCapturer.capture(sender.tab!.id!, takeScreenshotCommand.src, 0, {
-            maxWidth,
-            maxHeight,
-            rect,
-            frameId,
-        });
+        let imageModel: ImageModel;
+
+        try {
+            const imageBase64 = await this._imageCapturer.capture(sender.tab!.id!, takeScreenshotCommand.src, 0, {
+                maxWidth,
+                maxHeight,
+                rect,
+                frameId,
+            });
+            imageModel = {
+                base64: imageBase64,
+                extension: 'jpeg',
+            };
+        } catch (e) {
+            console.error(e);
+            imageModel = {
+                base64: '',
+                extension: 'jpeg',
+                error: ImageErrorCode.captureFailed,
+            };
+        }
 
         let ankiUiState: AnkiUiSavedState | undefined;
 
         if (takeScreenshotCommand.message.ankiUiState) {
             ankiUiState = takeScreenshotCommand.message.ankiUiState;
-            ankiUiState.image = {
-                base64: imageBase64,
-                extension: 'jpeg',
-            };
+            ankiUiState.image = imageModel;
             this._cardPublisher.publish(
                 {
                     audio: ankiUiState.audio,

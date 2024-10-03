@@ -69,8 +69,8 @@ const useStyles = makeStyles({
         paddingLeft: 20,
         paddingRight: 20,
         textAlign: 'center',
-        whiteSpace: 'pre-wrap',
-        lineHeight: 'normal',
+        whiteSpace: 'normal',
+        lineHeight: 'inherit',
     },
 });
 
@@ -165,7 +165,12 @@ const showingSubtitleHtml = (
 `;
     }
 
-    return `<span style="${subtitleStyles}" class="${subtitleClasses}">${subtitle.text}</span>`;
+    const lines = subtitle.text.split('\n');
+    const allSubtitleClasses = subtitleClasses ? `${subtitleClasses} subtitle-line` : 'subtitle-line';
+    const wrappedText = lines
+        .map((line) => `<p class="${allSubtitleClasses}" style="${subtitleStyles}">${line}</p>`)
+        .join('');
+    return wrappedText;
 };
 
 interface ShowingSubtitleProps {
@@ -196,7 +201,12 @@ const ShowingSubtitle = ({
             />
         );
     } else {
-        content = <span style={subtitleStyles}>{subtitle.text}</span>;
+        const lines = subtitle.text.split('\n');
+        content = lines.map((line, index) => (
+            <p key={index} className="subtitle-line" style={subtitleStyles}>
+                {line}
+            </p>
+        ));
     }
 
     return (
@@ -340,7 +350,7 @@ export default function VideoPlayer({
     const showSubtitlesRef = useRef<IndexedSubtitleModel[]>([]);
     showSubtitlesRef.current = showSubtitles;
     const clock = useMemo<Clock>(() => new Clock(), []);
-    const mousePositionRef = useRef<Point>({ x: 0, y: 0 });
+    const mousePositionRef = useRef<Point | undefined>(undefined);
     const [showCursor, setShowCursor] = useState<boolean>(false);
     const lastMouseMovementTimestamp = useRef<number>(0);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -561,11 +571,9 @@ export default function VideoPlayer({
             updatePlaybackRate(playbackRate, false);
         });
         playerChannel.onAlert((message, severity) => {
-            if (popOut) {
-                setAlertOpen(true);
-                setAlertMessage(message);
-                setAlertSeverity(severity as Color);
-            }
+            setAlertOpen(true);
+            setAlertMessage(message);
+            setAlertSeverity(severity as Color);
         });
 
         window.onbeforeunload = (e) => {
@@ -576,7 +584,7 @@ export default function VideoPlayer({
 
         setPlayerChannelSubscribed(true);
         return () => playerChannel.close();
-    }, [clock, playerChannel, updateSubtitlesWithOffset, updatePlaybackRate, popOut]);
+    }, [clock, playerChannel, updateSubtitlesWithOffset, updatePlaybackRate]);
 
     const handlePlay = useCallback(() => {
         if (videoRef.current) {
@@ -604,7 +612,7 @@ export default function VideoPlayer({
         }
     }, [handleSeek, seekRequest, length]);
 
-    function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         lastMouseMovementTimestamp.current = Date.now();
 
         if (!containerRef.current) {
@@ -612,9 +620,12 @@ export default function VideoPlayer({
         }
 
         var bounds = containerRef.current.getBoundingClientRect();
-        mousePositionRef.current.x = e.clientX - bounds.left;
-        mousePositionRef.current.y = e.clientY - bounds.top;
-    }
+        mousePositionRef.current = { x: e.clientX - bounds.left, y: e.clientY - bounds.top };
+    }, []);
+
+    const handleMouseLeave = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+        mousePositionRef.current = undefined;
+    }, []);
 
     const handleAudioTrackSelected = useCallback(
         (id: string) => {
@@ -828,7 +839,7 @@ export default function VideoPlayer({
     }, [keyBinder, playerChannel]);
 
     useEffect(() => {
-        return keyBinder.bindToggleBlurTrack(
+        return keyBinder.bindUnblurTrack(
             (event, targetTrack) => {
                 event.preventDefault();
                 let newSubtitleSettings = { ...subtitleSettings };
@@ -899,41 +910,30 @@ export default function VideoPlayer({
         ) => {
             switch (postMineAction) {
                 case PostMineAction.showAnkiDialog:
-                    if (popOut) {
-                        playerChannel.copy(
-                            subtitle,
-                            surroundingSubtitles,
-                            cardTextFieldValues,
-                            videoFileName ?? '',
-                            timestamp,
-                            PostMineAction.none
-                        );
-                        onAnkiDialogRequest(
-                            videoFileUrl,
-                            videoFileName ?? '',
-                            selectedAudioTrack,
-                            playbackRate,
-                            subtitle,
-                            surroundingSubtitles,
-                            cardTextFieldValues,
-                            timestamp
-                        );
+                    playerChannel.copy(
+                        subtitle,
+                        surroundingSubtitles,
+                        cardTextFieldValues,
+                        videoFileName ?? '',
+                        timestamp,
+                        PostMineAction.none
+                    );
+                    onAnkiDialogRequest(
+                        videoFileUrl,
+                        videoFileName ?? '',
+                        selectedAudioTrack,
+                        playbackRate,
+                        subtitle,
+                        surroundingSubtitles,
+                        cardTextFieldValues,
+                        timestamp
+                    );
 
-                        if (playing()) {
-                            playerChannel.pause();
-                            setWasPlayingOnAnkiDialogRequest(true);
-                        } else {
-                            setWasPlayingOnAnkiDialogRequest(false);
-                        }
+                    if (playing()) {
+                        playerChannel.pause();
+                        setWasPlayingOnAnkiDialogRequest(true);
                     } else {
-                        playerChannel.copy(
-                            subtitle,
-                            surroundingSubtitles,
-                            cardTextFieldValues,
-                            videoFileName ?? '',
-                            timestamp,
-                            PostMineAction.showAnkiDialog
-                        );
+                        setWasPlayingOnAnkiDialogRequest(false);
                     }
                     break;
                 default:
@@ -957,7 +957,7 @@ export default function VideoPlayer({
                 timestamp,
             });
         },
-        [onAnkiDialogRequest, playerChannel, popOut]
+        [onAnkiDialogRequest, playerChannel]
     );
 
     const mineCurrentSubtitle = useCallback(
@@ -1053,7 +1053,7 @@ export default function VideoPlayer({
             (event) => {
                 event.preventDefault();
 
-                if (popOut && ankiDialogOpen) {
+                if (ankiDialogOpen) {
                     onAnkiDialogRewind();
                 } else if (lastMinedRecord) {
                     const currentTimestamp = clock.time(length);
@@ -1160,20 +1160,16 @@ export default function VideoPlayer({
     }, [displaySubtitles, playbackPreferences]);
 
     const handleFullscreenToggle = useCallback(() => {
-        if (popOut) {
-            setFullscreen((fullscreen) => {
-                if (fullscreen) {
-                    document.exitFullscreen();
-                } else {
-                    document.documentElement.requestFullscreen();
-                }
+        setFullscreen((fullscreen) => {
+            if (fullscreen) {
+                document.exitFullscreen();
+            } else {
+                document.documentElement.requestFullscreen();
+            }
 
-                return !fullscreen;
-            });
-        } else {
-            playerChannel.fullscreenToggle();
-        }
-    }, [playerChannel, popOut]);
+            return !fullscreen;
+        });
+    }, []);
 
     const handleVolumeChange = useCallback((volume: number) => {
         if (videoRef.current) {
@@ -1305,7 +1301,7 @@ export default function VideoPlayer({
     }
 
     return (
-        <div ref={containerRef} onMouseMove={handleMouseMove} className={classes.root}>
+        <div ref={containerRef} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} className={classes.root}>
             <Alert open={alertOpen} onClose={handleAlertClosed} autoHideDuration={3000} severity={alertSeverity}>
                 {alertMessage}
             </Alert>

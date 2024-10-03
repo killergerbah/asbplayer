@@ -10,11 +10,11 @@ import {
     ScreenshotTakenMessage,
     CardModel,
     AudioErrorCode,
+    ImageErrorCode,
 } from '@project/common';
 import { SettingsProvider } from '@project/common/settings';
 import { CardPublisher } from '../../services/card-publisher';
-import AudioRecorderService from '../../services/audio-recorder-service';
-import { DrmProtectedStreamError } from '../../services/audio-recorder-delegate';
+import AudioRecorderService, { DrmProtectedStreamError } from '../../services/audio-recorder-service';
 
 export default class RecordMediaHandler {
     private readonly _audioRecorder: AudioRecorderService;
@@ -78,7 +78,7 @@ export default class RecordMediaHandler {
                 Math.min(subtitle.end - subtitle.start, recordMediaCommand.message.imageDelay),
                 { maxWidth, maxHeight, rect, frameId }
             );
-            imagePromise.then(() => {
+            imagePromise.finally(() => {
                 const screenshotTakenCommand: ExtensionToVideoCommand<ScreenshotTakenMessage> = {
                     sender: 'asbplayer-extension-to-video',
                     message: {
@@ -123,13 +123,22 @@ export default class RecordMediaHandler {
         }
 
         if (imagePromise) {
-            await imagePromise;
+            try {
+                await imagePromise;
 
-            // Use the last screenshot taken to allow user to re-take screenshot while audio is recording
-            imageModel = {
-                base64: this._imageCapturer.lastImageBase64!,
-                extension: 'jpeg',
-            };
+                // Use the last screenshot taken to allow user to re-take screenshot while audio is recording
+                imageModel = {
+                    base64: this._imageCapturer.lastImageBase64!,
+                    extension: 'jpeg',
+                };
+            } catch (e) {
+                console.error(e);
+                imageModel = {
+                    base64: '',
+                    extension: 'jpeg',
+                    error: ImageErrorCode.captureFailed,
+                };
+            }
         }
 
         const card: CardModel = {

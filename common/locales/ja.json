@@ -50,6 +50,7 @@
         "foundDuplicateNotes": "フィールド「{{field}}」に単語「{{word}}」 が含まれるメモが {{count}} 件見つかりました",
         "foundNoDuplicateNote": "フィールド「{{field}}」に単語「{{word}}」 が含まれるメモはありません",
         "image": "画像",
+        "imageCaptureFailed": "画像キャプチャに失敗しました",
         "imageFileLinkLost": "ブラウザページを更新したため、画像ファイルの参照先が失われました",
         "openInAnki": "Anki で開く",
         "rerecord": "再録音",
@@ -109,6 +110,7 @@
         "toggleAsbplayerSubtitleTrack3": "asbplayer の字幕トラック 3 オン/オフ",
         "toggleAsbplayerSubtitleTracks": "asbplayer の字幕トラック オン/オフ",
         "toggleAsbplayerBlurTrack": "asbplayer の字幕トラック {{trackNumber}} のぼかし オン/オフ",
+        "unblurAsbplayerTrack": "asbplayer の字幕トラック {{trackNumber}} のぼかしを解除",
         "toggleAutoPause": "自動一時停止オン/オフ",
         "toggleCondensedPlayback": "短縮プレイバック",
         "toggleFastForwardPlayback": "早送りプレイバックオン/オフ",
@@ -147,7 +149,7 @@
         "downloadMinedSubsAsSrt": "マイニングした字幕を SRT 形式でダウンロードする",
         "exportToAnki": "Anki にエクスポートする",
         "miningHistoryEmpty": "マイニング履歴はありませïん",
-        "deleteAll": "Clear"
+        "deleteAll": "全てを削除"
     },
     "error": {
         "bothAudioAndVideNotAllowed": "音声と動画ファイルを同時にロードできません",
@@ -171,7 +173,7 @@
             "cropScreenshot": "スクリーンショットのクロッピング",
             "displaySubtitles": "字幕表示オン/オフ",
             "dragAndDrop": "字幕ファイルのドラッグ＆ドロップを許可",
-            "openSubtitleList": "字幕ロード時に字幕リストを開く",
+            "openSubtitleList": "字幕ロード時に、字幕リストを別のタブで開く",
             "mining": "マイニング",
             "miningKeyboardShortcuts": "マイニング関連のキーボードショートカット",
             "misc": "その他",
@@ -188,6 +190,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "空",
             "loadSubtitlesFirst": "マイニングを開始する前に字幕をロードしてください。",
+            "failedToAutoLoad": "ご希望の言語の字幕を自動的にロード出来ませんでした",
             "rememberTrackPreference": "字幕トラックの選択を記憶する",
             "selectSubtitles": "字幕を選択",
             "subtitleTrack": "字幕トラック",

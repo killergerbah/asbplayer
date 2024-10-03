@@ -84,6 +84,7 @@ const installListener = async (details: chrome.runtime.InstalledDetails) => {
             streamingTakeScreenshot: false, // Kiwi Browser does not support captureVisibleTab
             subtitleSize: 18,
             subtitlePositionOffset: 25,
+            subtitlesWidth: 100,
         });
     }
 
@@ -304,11 +305,12 @@ chrome.commands?.onCommand.addListener((command) => {
                             return undefined;
                         }
 
-                        const extensionToPlayerCommand: Command<TakeScreenshotMessage> = {
+                        const extensionToPlayerCommand: ExtensionToAsbPlayerCommand<TakeScreenshotMessage> = {
                             sender: 'asbplayer-extension-to-player',
                             message: {
                                 command: 'take-screenshot',
                             },
+                            asbplayerId: asbplayer.id,
                         };
                         return extensionToPlayerCommand;
                     },

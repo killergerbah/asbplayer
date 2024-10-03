@@ -4,6 +4,7 @@ import {
     AudioModel,
     Command,
     ExtensionToVideoCommand,
+    ImageErrorCode,
     ImageModel,
     Message,
     ScreenshotTakenMessage,
@@ -12,8 +13,7 @@ import {
     VideoToExtensionCommand,
 } from '@project/common';
 import { CardPublisher } from '../../services/card-publisher';
-import AudioRecorderService from '../../services/audio-recorder-service';
-import { DrmProtectedStreamError } from '../../services/audio-recorder-delegate';
+import AudioRecorderService, { DrmProtectedStreamError } from '../../services/audio-recorder-service';
 import { SettingsProvider } from '@project/common/settings';
 
 export default class StartRecordingMediaHandler {
@@ -58,26 +58,45 @@ export default class StartRecordingMediaHandler {
             }
         }
 
-        let imageBase64: string | undefined;
+        let imageModel: ImageModel | undefined;
 
         if (startRecordingCommand.message.screenshot) {
             const imageDelay = startRecordingCommand.message.record ? startRecordingCommand.message.imageDelay : 0;
             const { maxWidth, maxHeight, rect, frameId } = startRecordingCommand.message;
-            imageBase64 = await this._imageCapturer.capture(sender.tab!.id!, startRecordingCommand.src, imageDelay, {
-                maxWidth,
-                maxHeight,
-                rect,
-                frameId,
-            });
-            const screenshotTakenCommand: ExtensionToVideoCommand<ScreenshotTakenMessage> = {
-                sender: 'asbplayer-extension-to-video',
-                message: {
-                    command: 'screenshot-taken',
-                },
-                src: startRecordingCommand.src,
-            };
+            try {
+                const imageBase64 = await this._imageCapturer.capture(
+                    sender.tab!.id!,
+                    startRecordingCommand.src,
+                    imageDelay,
+                    {
+                        maxWidth,
+                        maxHeight,
+                        rect,
+                        frameId,
+                    }
+                );
+                imageModel = {
+                    base64: imageBase64,
+                    extension: 'jpeg',
+                };
+            } catch (e) {
+                console.error(e);
+                imageModel = {
+                    base64: '',
+                    extension: 'jpeg',
+                    error: ImageErrorCode.captureFailed,
+                };
+            } finally {
+                const screenshotTakenCommand: ExtensionToVideoCommand<ScreenshotTakenMessage> = {
+                    sender: 'asbplayer-extension-to-video',
+                    message: {
+                        command: 'screenshot-taken',
+                    },
+                    src: startRecordingCommand.src,
+                };
 
-            chrome.tabs.sendMessage(sender.tab!.id!, screenshotTakenCommand);
+                chrome.tabs.sendMessage(sender.tab!.id!, screenshotTakenCommand);
+            }
         }
 
         if (!startRecordingCommand.message.record || drmProtectedStreamError !== undefined) {
@@ -91,15 +110,6 @@ export default class StartRecordingMediaHandler {
                 originalEnd: mediaTimestamp,
                 track: 0,
             };
-
-            let imageModel: ImageModel | undefined = undefined;
-
-            if (imageBase64) {
-                imageModel = {
-                    base64: imageBase64,
-                    extension: 'jpeg',
-                };
-            }
 
             const preferMp3 = await this._settings.getSingle('preferMp3');
             const audioModel: AudioModel | undefined =

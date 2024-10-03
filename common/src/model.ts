@@ -59,9 +59,15 @@ export interface CopyHistoryItem extends CardModel {
     readonly timestamp: number;
 }
 
+export enum ImageErrorCode {
+    captureFailed = 1,
+    fileLinkLost = 2,
+}
+
 export interface ImageModel {
     readonly base64: string;
     readonly extension: 'jpeg';
+    readonly error?: ImageErrorCode;
 }
 
 export enum AudioErrorCode {
@@ -155,7 +161,13 @@ export interface VideoData {
     subtitles?: VideoDataSubtitleTrack[];
 }
 
-export interface VideoDataUiState {
+export enum VideoDataUiOpenReason {
+    miningCommand = 1,
+    failedToAutoLoadPreferredTrack = 2,
+    userRequested = 3,
+}
+
+export interface VideoDataUiModel {
     open?: boolean;
     isLoading?: boolean;
     suggestedName?: string;
@@ -164,7 +176,7 @@ export interface VideoDataUiState {
     themeType?: string;
     selectedSubtitle?: string[];
     showSubSelect?: boolean;
-    openedFromMiningCommand?: boolean;
+    openReason?: VideoDataUiOpenReason;
     defaultCheckboxState?: boolean;
 }
 

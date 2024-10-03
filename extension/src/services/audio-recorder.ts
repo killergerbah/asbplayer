@@ -1,6 +1,6 @@
 import { bufferToBase64 } from './base64';
 
-export class AutoRecordingInProgressError extends Error {}
+export class TimedRecordingInProgressError extends Error {}
 
 export default class AudioRecorder {
     private recording: boolean;
@@ -17,7 +17,12 @@ export default class AudioRecorder {
         this.blobPromise = null;
     }
 
-    startWithTimeout(stream: MediaStream, time: number, onStartedCallback: () => void): Promise<string> {
+    startWithTimeout(
+        stream: MediaStream,
+        time: number,
+        onStartedCallback: () => void,
+        doNotManageStream: boolean = false
+    ): Promise<string> {
         return new Promise(async (resolve, reject) => {
             try {
                 if (this.recording) {
@@ -26,12 +31,12 @@ export default class AudioRecorder {
                     return;
                 }
 
-                await this.start(stream);
+                await this.start(stream, doNotManageStream);
                 onStartedCallback();
                 this.timeoutResolve = resolve;
                 this.timeoutId = setTimeout(async () => {
                     this.timeoutId = undefined;
-                    resolve(await this.stop());
+                    resolve(await this.stop(doNotManageStream));
                 }, time);
             } catch (e) {
                 reject(e);
@@ -39,7 +44,7 @@ export default class AudioRecorder {
         });
     }
 
-    start(stream: MediaStream): Promise<void> {
+    start(stream: MediaStream, doNotManageStream: boolean = false): Promise<void> {
         return new Promise((resolve, reject) => {
             if (this.recording) {
                 reject('Already recording, cannot start');
@@ -58,9 +63,12 @@ export default class AudioRecorder {
                     };
                 });
                 recorder.start();
-                const output = new AudioContext();
-                const source = output.createMediaStreamSource(stream);
-                source.connect(output.destination);
+
+                if (!doNotManageStream) {
+                    const output = new AudioContext();
+                    const source = output.createMediaStreamSource(stream);
+                    source.connect(output.destination);
+                }
 
                 this.recorder = recorder;
                 this.recording = true;
@@ -72,7 +80,31 @@ export default class AudioRecorder {
         });
     }
 
-    async stop(): Promise<string> {
+    async stopSafely(doNotManageStream: boolean = false) {
+        this.recording = false;
+        this.recorder?.stop();
+        this.recorder = null;
+
+        if (!doNotManageStream) {
+            this.stream?.getTracks()?.forEach((t) => t.stop());
+            this.stream = null;
+        }
+
+        if (this.blobPromise !== null) {
+            const blob = await this.blobPromise;
+            this.blobPromise = null;
+            const base64 = await bufferToBase64(await blob!.arrayBuffer());
+
+            if (this.timeoutId !== undefined) {
+                clearTimeout(this.timeoutId);
+                this.timeoutId = undefined;
+                this.timeoutResolve?.(base64);
+                this.timeoutResolve = undefined;
+            }
+        }
+    }
+
+    async stop(doNotManageStream: boolean = false): Promise<string> {
         if (!this.recording) {
             throw new Error('Not recording, unable to stop');
         }
@@ -80,8 +112,12 @@ export default class AudioRecorder {
         this.recording = false;
         this.recorder?.stop();
         this.recorder = null;
-        this.stream?.getTracks()?.forEach((t) => t.stop());
-        this.stream = null;
+
+        if (!doNotManageStream) {
+            this.stream?.getTracks()?.forEach((t) => t.stop());
+            this.stream = null;
+        }
+
         const blob = await this.blobPromise;
         this.blobPromise = null;
         const base64 = await bufferToBase64(await blob!.arrayBuffer());
@@ -91,7 +127,7 @@ export default class AudioRecorder {
             this.timeoutId = undefined;
             this.timeoutResolve?.(base64);
             this.timeoutResolve = undefined;
-            throw new AutoRecordingInProgressError();
+            throw new TimedRecordingInProgressError();
         }
 
         return base64;

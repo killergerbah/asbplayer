@@ -6,13 +6,13 @@ import {
     VideoDataSubtitleTrack,
     VideoDataUiBridgeConfirmMessage,
     VideoDataUiBridgeOpenFileMessage,
-    VideoDataUiState,
+    VideoDataUiModel,
+    VideoDataUiOpenReason,
     VideoToExtensionCommand,
 } from '@project/common';
 import { AsbplayerSettings, SettingsProvider, SubtitleListPreference } from '@project/common/settings';
 import { bufferToBase64 } from '../services/base64';
 import Binding from '../services/binding';
-import ImageElement from '../services/image-element';
 import { currentPageDelegate } from '../services/pages';
 import { Parser as m3U8Parser } from 'm3u8-parser';
 import UiFrame from '../services/ui-frame';
@@ -39,8 +39,7 @@ async function html(lang: string) {
 }
 
 interface ShowOptions {
-    userRequested: boolean;
-    openedFromMiningCommand: boolean;
+    reason: VideoDataUiOpenReason;
 }
 
 const fetchDataForLanguageOnDemand = (language: string): Promise<VideoData> => {
@@ -61,26 +60,19 @@ export default class VideoDataSyncController {
     private readonly _frame: UiFrame;
     private readonly _settings: SettingsProvider;
 
-    private _videoSelectBound?: boolean;
-    private _imageElement: ImageElement;
-    private _doneListener?: () => void;
     private _autoSync?: boolean;
     private _lastLanguagesSynced: { [key: string]: string[] };
     private _emptySubtitle: VideoDataSubtitleTrack;
-    private _boundFunction?: (event: Event) => void;
     private _syncedData?: VideoData;
     private _wasPaused?: boolean;
     private _fullscreenElement?: Element;
     private _activeElement?: Element;
-    private _autoSyncing: boolean = false;
-    private _waitingForSubtitles: boolean = false;
+    private _autoSyncAttempted: boolean = false;
+    private _dataReceivedListener?: (event: Event) => void;
 
     constructor(context: Binding, settings: SettingsProvider) {
         this._context = context;
         this._settings = settings;
-        this._videoSelectBound = false;
-        this._imageElement = new ImageElement(context.video);
-        this._doneListener;
         this._autoSync = false;
         this._lastLanguagesSynced = {};
         this._emptySubtitle = {
@@ -90,7 +82,6 @@ export default class VideoDataSyncController {
             label: i18n.t('extension.videoDataSync.emptySubtitleTrack'),
             extension: 'srt',
         };
-        this._boundFunction;
         this._domain = new URL(window.location.href).host;
         this._frame = new UiFrame(html);
     }
@@ -103,40 +94,13 @@ export default class VideoDataSyncController {
         this._lastLanguagesSynced[this._domain] = value;
     }
 
-    bindVideoSelect(doneListener: () => void) {
-        if (this._videoSelectBound) {
-            throw new Error('Video select container already bound');
-        }
-
-        const image = this._imageElement.element();
-        image.classList.remove('asbplayer-hide');
-        image.classList.add('asbplayer-mouse-over-image');
-
-        image.addEventListener('click', (e) => {
-            e.preventDefault();
-            this._doneListener = doneListener;
-            this.show({ userRequested: true, openedFromMiningCommand: false });
-        });
-
-        this._videoSelectBound = true;
-    }
-
     unbind() {
-        if (this._boundFunction) {
-            document.removeEventListener('asbplayer-synced-data', this._boundFunction, false);
+        if (this._dataReceivedListener) {
+            document.removeEventListener('asbplayer-synced-data', this._dataReceivedListener, false);
         }
 
-        this._boundFunction = undefined;
+        this._dataReceivedListener = undefined;
         this._syncedData = undefined;
-        this.unbindVideoSelect();
-    }
-
-    unbindVideoSelect() {
-        this._imageElement.remove();
-        this._frame.unbind();
-        this._wasPaused = undefined;
-        this._videoSelectBound = false;
-        this._doneListener = undefined;
     }
 
     updateSettings({ streamingAutoSync, streamingLastLanguagesSynced }: AsbplayerSettings) {
@@ -145,88 +109,64 @@ export default class VideoDataSyncController {
     }
 
     requestSubtitles() {
-        if (!this._context.subSyncAvailable || !currentPageDelegate()?.isVideoPage()) {
+        if (!this._context.hasPageScript || !currentPageDelegate()?.isVideoPage()) {
             return;
         }
 
         this._syncedData = undefined;
+        this._autoSyncAttempted = false;
 
-        if (!this._boundFunction) {
-            let allowAutoSync = true;
-
-            this._boundFunction = (event: Event) => {
+        if (!this._dataReceivedListener) {
+            this._dataReceivedListener = (event: Event) => {
                 const data = (event as CustomEvent).detail as VideoData;
-                const autoSync = allowAutoSync && data.subtitles !== undefined;
-                this._waitingForSubtitles = data.subtitles === undefined;
-                this._setSyncedData(data, autoSync);
-
-                if (autoSync) {
-                    // Only attempt auto-sync on first response with subtitles received
-                    allowAutoSync = false;
-                }
+                this._setSyncedData(data);
             };
-            document.addEventListener('asbplayer-synced-data', this._boundFunction, false);
+            document.addEventListener('asbplayer-synced-data', this._dataReceivedListener, false);
         }
 
         document.dispatchEvent(new CustomEvent('asbplayer-get-synced-data'));
-        this._waitingForSubtitles = true;
     }
 
-    async show({ userRequested, openedFromMiningCommand }: ShowOptions) {
-        if (!userRequested && this._syncedData?.subtitles === undefined) {
-            // Not user-requested and subtitles track detection is not finished
-            return;
-        }
+    async show({ reason }: ShowOptions) {
+        const client = await this._client();
+        const model = await this._buildModel({
+            open: true,
+            openReason: reason,
+        });
+        this._prepareShow();
+        client.updateState(model);
+    }
 
+    private async _buildModel(additionalFields: Partial<VideoDataUiModel>) {
         const subtitleTrackChoices = this._syncedData?.subtitles ?? [];
         const subs = this._matchLastSyncedWithAvailableTracks();
-        const selectedSub: VideoDataSubtitleTrack[] = subs.autoSelectedTracks;
+        const autoSelectedTracks: VideoDataSubtitleTrack[] = subs.autoSelectedTracks;
+        const autoSelectedTrackIds = autoSelectedTracks.map((subtitle) => subtitle.id || '-');
+        const defaultCheckboxState: boolean = subs.completeMatch;
+        const themeType = await this._context.settings.getSingle('themeType');
 
-        if (subs.completeMatch && !userRequested && !this._syncedData?.error) {
-            // Instead of showing, auto-sync
-            if (!this._autoSyncing) {
-                this._autoSyncing = true;
-                try {
-                    if ((await this._syncData(selectedSub)) && this._doneListener) {
-                        this._doneListener();
-                    }
-                } finally {
-                    this._autoSyncing = false;
-                }
-            }
-        } else {
-            // Either user-requested or we couldn't auto-sync subtitles with the preferred language
-            const defaultCheckboxState: boolean = subs.completeMatch;
-            const themeType = await this._context.settings.getSingle('themeType');
-            let state: VideoDataUiState = this._syncedData
-                ? {
-                      open: true,
-                      isLoading: this._syncedData.subtitles === undefined,
-                      suggestedName: this._syncedData.basename,
-                      selectedSubtitle: ['-'],
-                      subtitles: subtitleTrackChoices,
-                      error: this._syncedData.error,
-                      themeType: themeType,
-                      openedFromMiningCommand,
-                      defaultCheckboxState: defaultCheckboxState,
-                  }
-                : {
-                      open: true,
-                      isLoading: this._context.subSyncAvailable && this._waitingForSubtitles,
-                      suggestedName: document.title,
-                      selectedSubtitle: ['-'],
-                      error: '',
-                      showSubSelect: true,
-                      subtitles: subtitleTrackChoices,
-                      themeType: themeType,
-                      openedFromMiningCommand,
-                      defaultCheckboxState: defaultCheckboxState,
-                  };
-            state.selectedSubtitle = selectedSub.map((subtitle) => subtitle.id || '-');
-            const client = await this._client();
-            this._prepareShow();
-            client.updateState(state);
-        }
+        return this._syncedData
+            ? {
+                  isLoading: this._syncedData.subtitles === undefined,
+                  suggestedName: this._syncedData.basename,
+                  selectedSubtitle: autoSelectedTrackIds,
+                  subtitles: subtitleTrackChoices,
+                  error: this._syncedData.error,
+                  themeType: themeType,
+                  defaultCheckboxState: defaultCheckboxState,
+                  ...additionalFields,
+              }
+            : {
+                  isLoading: this._context.hasPageScript,
+                  suggestedName: document.title,
+                  selectedSubtitle: autoSelectedTrackIds,
+                  error: '',
+                  showSubSelect: true,
+                  subtitles: subtitleTrackChoices,
+                  themeType: themeType,
+                  defaultCheckboxState: defaultCheckboxState,
+                  ...additionalFields,
+              };
     }
 
     private _matchLastSyncedWithAvailableTracks() {
@@ -275,11 +215,27 @@ export default class VideoDataSyncController {
         return subtitleTrack.label;
     }
 
-    private _setSyncedData(data: VideoData, autoSync: boolean) {
+    private async _setSyncedData(data: VideoData) {
         this._syncedData = data;
 
-        if (autoSync && this._canAutoSync()) {
-            this.show({ userRequested: false, openedFromMiningCommand: false });
+        if (this._syncedData?.subtitles !== undefined && this._canAutoSync()) {
+            if (!this._autoSyncAttempted) {
+                this._autoSyncAttempted = true;
+                const subs = this._matchLastSyncedWithAvailableTracks();
+
+                if (subs.completeMatch) {
+                    const autoSelectedTracks: VideoDataSubtitleTrack[] = subs.autoSelectedTracks;
+                    await this._syncData(autoSelectedTracks);
+
+                    if (!this._frame.hidden) {
+                        this._hideAndResume();
+                    }
+                } else {
+                    await this.show({ reason: VideoDataUiOpenReason.failedToAutoLoadPreferredTrack });
+                }
+            }
+        } else if (this._frame.clientIfLoaded !== undefined) {
+            this._frame.clientIfLoaded.updateState(await this._buildModel({}));
         }
     }
 
@@ -300,7 +256,7 @@ export default class VideoDataSyncController {
 
         if (isNewClient) {
             client.onMessage(async (message) => {
-                let shallUpdate = true;
+                let dataWasSynced = true;
 
                 if ('confirm' === message.command) {
                     const confirmMessage = message as VideoDataUiBridgeConfirmMessage;
@@ -314,48 +270,23 @@ export default class VideoDataSyncController {
 
                     const data = confirmMessage.data as ConfirmedVideoDataSubtitleTrack[];
 
-                    shallUpdate = await this._syncDataArray(data);
+                    dataWasSynced = await this._syncDataArray(data);
                 } else if ('openFile' === message.command) {
                     const openFileMessage = message as VideoDataUiBridgeOpenFileMessage;
                     const subtitles = openFileMessage.subtitles as SerializedSubtitleFile[];
 
                     try {
-                        this._syncSubtitles(subtitles, false);
-                        shallUpdate = true;
+                        await this._syncSubtitles(subtitles, false);
+                        dataWasSynced = true;
                     } catch (e) {
                         if (e instanceof Error) {
-                            this._reportError(e.message);
+                            await this._reportError(e.message);
                         }
                     }
                 }
 
-                if (shallUpdate) {
-                    this._context.keyBindings.bind(this._context);
-                    this._context.subtitleController.forceHideSubtitles = false;
-                    this._context.mobileVideoOverlayController.forceHide = false;
-                    this._frame?.hide();
-
-                    if (this._fullscreenElement) {
-                        this._fullscreenElement.requestFullscreen();
-                        this._fullscreenElement = undefined;
-                    }
-
-                    if (this._activeElement) {
-                        if (typeof (this._activeElement as HTMLElement).focus === 'function') {
-                            (this._activeElement as HTMLElement).focus();
-                        }
-
-                        this._activeElement = undefined;
-                    } else {
-                        window.focus();
-                    }
-
-                    if (!this._wasPaused) {
-                        this._context.play();
-                    }
-
-                    this._wasPaused = undefined;
-                    if (this._doneListener) this._doneListener();
+                if (dataWasSynced) {
+                    this._hideAndResume();
                 }
             });
         }
@@ -382,6 +313,34 @@ export default class VideoDataSyncController {
         this._context.mobileVideoOverlayController.forceHide = true;
     }
 
+    private _hideAndResume() {
+        this._context.keyBindings.bind(this._context);
+        this._context.subtitleController.forceHideSubtitles = false;
+        this._context.mobileVideoOverlayController.forceHide = false;
+        this._frame?.hide();
+
+        if (this._fullscreenElement) {
+            this._fullscreenElement.requestFullscreen();
+            this._fullscreenElement = undefined;
+        }
+
+        if (this._activeElement) {
+            if (typeof (this._activeElement as HTMLElement).focus === 'function') {
+                (this._activeElement as HTMLElement).focus();
+            }
+
+            this._activeElement = undefined;
+        } else {
+            window.focus();
+        }
+
+        if (!this._wasPaused) {
+            this._context.play();
+        }
+
+        this._wasPaused = undefined;
+    }
+
     private async _syncData(data: VideoDataSubtitleTrack[]) {
         try {
             let subtitles: SerializedSubtitleFile[] = [];
@@ -400,14 +359,14 @@ export default class VideoDataSyncController {
                 }
             }
 
-            this._syncSubtitles(
+            await this._syncSubtitles(
                 subtitles,
                 data.some((track) => track.m3U8BaseUrl !== undefined)
             );
             return true;
         } catch (error) {
             if (typeof (error as Error).message !== 'undefined') {
-                this._reportError(`Data Sync failed: ${(error as Error).message}`);
+                await this._reportError(`Data Sync failed: ${(error as Error).message}`);
             }
 
             return false;
@@ -426,14 +385,14 @@ export default class VideoDataSyncController {
                 }
             }
 
-            this._syncSubtitles(
+            await this._syncSubtitles(
                 subtitles,
                 data.some((track) => track.m3U8BaseUrl !== undefined)
             );
             return true;
         } catch (error) {
             if (typeof (error as Error).message !== 'undefined') {
-                this._reportError(`Data Sync failed: ${(error as Error).message}`);
+                await this._reportError(`Data Sync failed: ${(error as Error).message}`);
             }
 
             return false;
@@ -482,23 +441,21 @@ export default class VideoDataSyncController {
             const data = await fetchDataForLanguageOnDemand(language);
 
             if (data.error) {
-                this._reportError(data.error);
+                await this._reportError(data.error);
                 return undefined;
             }
 
             const lazilyFetchedUrl = data.subtitles?.find((t) => t.language === language)?.url;
 
             if (lazilyFetchedUrl === undefined) {
-                this._reportError('Failed to fetch subtitles for specified language');
+                await this._reportError('Failed to fetch subtitles for specified language');
                 return undefined;
             }
 
             url = lazilyFetchedUrl;
         }
 
-        const response = await fetch(url).catch((error) => {
-            this._reportError(error.message);
-        });
+        const response = await fetch(url).catch((error) => this._reportError(error.message));
 
         if (!response) {
             return undefined;

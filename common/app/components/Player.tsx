@@ -114,7 +114,6 @@ interface PlayerProps {
     onAnkiDialogRequest: () => void;
     onAnkiDialogRewind: () => void;
     onAppBarToggle: () => void;
-    onFullscreenToggle: () => void;
     onHideSubtitlePlayer: () => void;
     onVideoPopOut: () => void;
     onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
@@ -156,7 +155,6 @@ const Player = React.memo(function Player({
     onAnkiDialogRequest,
     onAnkiDialogRewind,
     onAppBarToggle,
-    onFullscreenToggle,
     onHideSubtitlePlayer,
     onVideoPopOut,
     onPlayModeChangedViaBind,
@@ -407,7 +405,6 @@ const Player = React.memo(function Player({
     useEffect(() => channel?.onPopOutToggle(() => onVideoPopOut()), [channel, onVideoPopOut]);
     useEffect(() => channel?.onHideSubtitlePlayerToggle(onHideSubtitlePlayer), [channel, onHideSubtitlePlayer]);
     useEffect(() => channel?.onAppBarToggle(onAppBarToggle), [channel, onAppBarToggle]);
-    useEffect(() => channel?.onFullscreenToggle(onFullscreenToggle), [channel, onFullscreenToggle]);
     useEffect(
         () =>
             channel?.onReady(() => {
@@ -948,25 +945,6 @@ const Player = React.memo(function Player({
             () => disableKeyEvents
         );
     }, [keyBinder, disableKeyEvents, togglePlayMode, subtitleCollection, clock]);
-
-    useEffect(() => {
-        if (!videoFileUrl) {
-            return;
-        }
-
-        return keyBinder.bindTakeScreenshot(
-            (event) => {
-                event.preventDefault();
-
-                if (ankiDialogOpen) {
-                    onAnkiDialogRewind();
-                } else {
-                    onTakeScreenshot(clock.time(calculateLength()));
-                }
-            },
-            () => false
-        );
-    }, [videoFileUrl, clock, onTakeScreenshot, onAnkiDialogRewind, keyBinder, disableKeyEvents, ankiDialogOpen]);
 
     useEffect(() => channel?.appBarToggle(appBarHidden), [channel, appBarHidden]);
     useEffect(() => channel?.fullscreenToggle(videoFullscreen), [channel, videoFullscreen]);

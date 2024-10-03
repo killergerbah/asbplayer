@@ -1,9 +1,4 @@
-export const captureVisibleTab = (tabId: number): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        chrome.tabs.get(tabId, (tab) => {
-            chrome.tabs.captureVisibleTab(tab.windowId, { format: 'jpeg', quality: 100 }, async (dataUrl) => {
-                resolve(dataUrl);
-            });
-        });
-    });
+export const captureVisibleTab = async (tabId: number): Promise<string> => {
+    const tab = await chrome.tabs.get(tabId);
+    return await chrome.tabs.captureVisibleTab(tab.windowId, { format: 'jpeg', quality: 100 });
 };

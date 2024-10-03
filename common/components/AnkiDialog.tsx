@@ -402,7 +402,7 @@ const AnkiDialog = ({
 
     const handleViewImage = useCallback(
         async (e: React.MouseEvent<HTMLDivElement>) => {
-            if (!image?.isAvailable()) {
+            if (image?.error !== undefined) {
                 return;
             }
 

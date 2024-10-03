@@ -50,6 +50,7 @@
         "foundDuplicateNotes": "已发现{{count}}张 {{field}} 字段中含有单词 {{word}} 的卡片",
         "foundNoDuplicateNote": "未发现 {{field}} 字段中含有单词 {{word}} 的卡片",
         "image": "图像",
+        "imageCaptureFailed": "Image capture failed",
         "imageFileLinkLost": "由于页面重新加载，图像文件链接丢失",
         "openInAnki": "在Anki中打开",
         "rerecord": "重新录制音频",
@@ -109,6 +110,7 @@
         "toggleAsbplayerSubtitleTrack3": "切换asbplayer中的字幕音轨3",
         "toggleAsbplayerSubtitleTracks": "在asbplayer中切换字幕音轨",
         "toggleAsbplayerBlurTrack": "Toggle subtitle track {{trackNumber}} blur in asbplayer",
+        "unblurAsbplayerTrack": "Unblur subtitle track {{trackNumber}} in asbplayer",
         "toggleAutoPause": "切换自动暂停",
         "toggleCondensedPlayback": "切换压缩播放",
         "toggleFastForwardPlayback": "Toggle fast forward playback",
@@ -188,6 +190,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "空的",
             "loadSubtitlesFirst": "必须先加载字幕，然后才能开始挖掘。",
+            "failedToAutoLoad": "Could not auto-load subtitles in your preferred language.",
             "rememberTrackPreference": "Remember these track choices for this site",
             "selectSubtitles": "选择字幕",
             "subtitleTrack": "字幕轨道",

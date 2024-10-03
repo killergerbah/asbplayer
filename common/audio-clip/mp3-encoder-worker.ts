@@ -76,14 +76,14 @@ async function encode(audioBuffer: SerializableAudioBuffer) {
     const sampleRate = wav.header.sampleRate;
     const samples = wav.samples;
 
-    let left;
-    let right = null;
+    let left: Int16Array;
+    let right: Int16Array | null = null;
 
     if (channels === 1) {
         left = new Int16Array(samples);
     } else if (channels === 2) {
-        let leftSamples = [];
-        let rightSamples = [];
+        let leftSamples: number[] = [];
+        let rightSamples: number[] = [];
 
         for (let i = 0; i < samples.length; i += 2) {
             leftSamples.push(samples[i]);
@@ -96,7 +96,7 @@ async function encode(audioBuffer: SerializableAudioBuffer) {
         throw new Error('Unsupport number of channels ' + channels);
     }
 
-    const buffer = [];
+    const buffer: Int8Array[] = [];
     const encoder = new Mp3Encoder(channels, sampleRate, bitRate);
     let remaining = samples.length;
 

@@ -117,6 +117,12 @@ export default class SubtitleController {
         this._preCacheDom = preCacheDom;
     }
 
+    reset() {
+        this.subtitles = [];
+        this.subtitleFileNames = undefined;
+        this.cacheHtml();
+    }
+
     cacheHtml() {
         if (!(this.subtitlesElementOverlay instanceof CachingElementOverlay)) {
             return;

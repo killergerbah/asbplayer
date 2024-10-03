@@ -2,6 +2,7 @@ import ImageCapturer from '../../services/image-capturer';
 import {
     AudioModel,
     Command,
+    ImageErrorCode,
     ImageModel,
     Message,
     StopRecordingMediaMessage,
@@ -11,8 +12,7 @@ import {
 import { SettingsProvider } from '@project/common/settings';
 import { mockSurroundingSubtitles } from '@project/common/util';
 import { CardPublisher } from '../../services/card-publisher';
-import AudioRecorderService from '../../services/audio-recorder-service';
-import { AutoRecordingInProgressError } from '../../services/audio-recorder-delegate';
+import AudioRecorderService, { TimedRecordingInProgressError } from '../../services/audio-recorder-service';
 
 export default class StopRecordingMediaHandler {
     private readonly _audioRecorder: AudioRecorderService;
@@ -57,22 +57,31 @@ export default class StopRecordingMediaHandler {
         let imageModel: ImageModel | undefined = undefined;
 
         if (stopRecordingCommand.message.screenshot) {
-            let lastImageBase64 = this._imageCapturer.lastImageBase64;
+            try {
+                let lastImageBase64 = this._imageCapturer.lastImageBase64;
 
-            if (lastImageBase64 === undefined) {
-                const { maxWidth, maxHeight, rect, frameId } = stopRecordingCommand.message;
-                lastImageBase64 = await this._imageCapturer.capture(sender.tab!.id!, stopRecordingCommand.src, 0, {
-                    maxWidth,
-                    maxHeight,
-                    rect,
-                    frameId,
-                });
+                if (lastImageBase64 === undefined) {
+                    const { maxWidth, maxHeight, rect, frameId } = stopRecordingCommand.message;
+                    lastImageBase64 = await this._imageCapturer.capture(sender.tab!.id!, stopRecordingCommand.src, 0, {
+                        maxWidth,
+                        maxHeight,
+                        rect,
+                        frameId,
+                    });
+                }
+
+                imageModel = {
+                    base64: lastImageBase64,
+                    extension: 'jpeg',
+                };
+            } catch (e) {
+                console.error(e);
+                imageModel = {
+                    base64: '',
+                    extension: 'jpeg',
+                    error: ImageErrorCode.captureFailed,
+                };
             }
-
-            imageModel = {
-                base64: lastImageBase64,
-                extension: 'jpeg',
-            };
         }
 
         const preferMp3 = await this._settingsProvider.getSingle('preferMp3');
@@ -106,7 +115,7 @@ export default class StopRecordingMediaHandler {
                 stopRecordingCommand.src
             );
         } catch (e) {
-            if (!(e instanceof AutoRecordingInProgressError)) {
+            if (!(e instanceof TimedRecordingInProgressError)) {
                 throw e;
             }
 

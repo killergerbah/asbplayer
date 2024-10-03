@@ -10,8 +10,7 @@ import {
 } from '@project/common';
 import { CardPublisher } from '../../services/card-publisher';
 import { SettingsProvider } from '@project/common/settings';
-import AudioRecorderService from '../../services/audio-recorder-service';
-import { DrmProtectedStreamError } from '../../services/audio-recorder-delegate';
+import AudioRecorderService, { DrmProtectedStreamError } from '../../services/audio-recorder-service';
 
 export default class RerecordMediaHandler {
     private readonly _settingsProvider: SettingsProvider;

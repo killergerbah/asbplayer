@@ -11,3 +11,10 @@
 .asbplayer-subtitles-blurred:hover {
     filter: none;
 }
+
+.subtitle-line {
+    margin: 0;
+    padding: 0;
+    display: table;
+    margin: auto;
+}

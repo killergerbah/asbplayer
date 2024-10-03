@@ -20,7 +20,7 @@ const WebsiteApp = (props: Props) => {
 
         return new LocalSettingsStorage();
     }, [extension]);
-    return <RootApp {...props} settingsStorage={settingsStorage} />;
+    return <RootApp {...props} extension={extension} settingsStorage={settingsStorage} />;
 };
 
 export default WebsiteApp;

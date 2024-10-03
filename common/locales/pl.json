@@ -50,6 +50,7 @@
         "foundDuplicateNotes": "Znaleziono {{count}} notatek ze słowem \"{{word}}\" w polu \"{{field}}\"",
         "foundNoDuplicateNote": "Nie znaleziono żadnych notatek ze słowem \"{{word}}\" w polu \"{{field}}\"",
         "image": "Obraz",
+        "imageCaptureFailed": "Image capture failed",
         "imageFileLinkLost": "Link do pliku obrazu utracony przez przeładowanie strony",
         "openInAnki": "Otwórz w Anki",
         "rerecord": "Nagraj ponownie",
@@ -109,6 +110,7 @@
         "toggleAsbplayerSubtitleTrack3": "Przełącz ścieżkę napisów 3 w asbplayer",
         "toggleAsbplayerSubtitleTracks": "Przełącz ścieżki napisów w asbplayer",
         "toggleAsbplayerBlurTrack": "Przełącz rozmycie ścieżki napisów {{trackNumber}}",
+        "unblurAsbplayerTrack": "Unblur subtitle track {{trackNumber}} in asbplayer",
         "toggleAutoPause": "Przełącz automatyczną pauzę",
         "toggleCondensedPlayback": "Przełącz odtwarzanie skondensowane",
         "toggleFastForwardPlayback": "Przełącz tryb przyspieszonego odtwarzania",
@@ -188,6 +190,7 @@
         "videoDataSync": {
             "emptySubtitleTrack": "Pusta",
             "loadSubtitlesFirst": "Napisy muszą być załadowane zanim zaczniesz kopać.",
+            "failedToAutoLoad": "Could not auto-load subtitles in your preferred language.",
             "rememberTrackPreference": "Zapamiętaj ustawienia ścieżek dla tej strony",
             "selectSubtitles": "Wybierz napisy",
             "subtitleTrack": "Ścieżka napisów",

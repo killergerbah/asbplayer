@@ -433,26 +433,57 @@ export interface StartRecordingAudioWithTimeoutMessage extends Message {
     readonly timeout: number;
     readonly preferMp3: boolean;
     readonly streamId: string;
+    readonly requestId: string;
 }
 
 export interface StartRecordingAudioWithTimeoutViaCaptureStreamMessage extends Message {
     readonly command: 'start-recording-audio-with-timeout';
     readonly timeout: number;
     readonly preferMp3: boolean;
+    readonly requestId: string;
 }
 
 export interface StartRecordingAudioMessage extends Message {
     readonly command: 'start-recording-audio';
     readonly streamId: string;
+    readonly requestId: string;
 }
 
 export interface StartRecordingAudioViaCaptureStreamMessage extends Message {
     readonly command: 'start-recording-audio';
+    readonly requestId: string;
 }
 
 export interface StopRecordingAudioMessage extends Message {
     readonly command: 'stop-recording-audio';
     readonly preferMp3: boolean;
+}
+
+export enum StartRecordingErrorCode {
+    noActiveTabPermission = 1,
+    drmProtected = 2,
+    other = 3,
+}
+
+export interface StartRecordingResponse {
+    started: boolean;
+    error?: {
+        code: StartRecordingErrorCode;
+        message: string;
+    };
+}
+
+export enum StopRecordingErrorCode {
+    timedAudioRecordingInProgress = 1,
+    other = 2,
+}
+
+export interface StopRecordingResponse {
+    stopped: boolean;
+    error?: {
+        code: StopRecordingErrorCode;
+        message: string;
+    };
 }
 
 export interface BackgroundPageReadyMessage extends Message {
@@ -462,6 +493,7 @@ export interface BackgroundPageReadyMessage extends Message {
 export interface AudioBase64Message extends Message {
     readonly command: 'audio-base64';
     readonly base64: string;
+    readonly requestId: string;
 }
 
 export interface EditKeyboardShortcutsMessage extends Message {

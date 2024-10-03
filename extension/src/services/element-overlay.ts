@@ -355,7 +355,8 @@ export class CachingElementOverlay implements ElementOverlay {
             container.style.width = '';
         } else {
             container.style.maxWidth = '';
-            container.style.width = (rect.width * this.contentWidthPercentage) / 100 + 'px';
+            container.style.width =
+                Math.min(window.innerWidth, (rect.width * this.contentWidthPercentage) / 100) + 'px';
         }
 
         const clampedY = Math.max(rect.top + window.scrollY, 0);
@@ -557,7 +558,8 @@ export class DefaultElementOverlay implements ElementOverlay {
             container.style.width = '';
         } else {
             container.style.maxWidth = '';
-            container.style.width = (rect.width * this.contentWidthPercentage) / 100 + 'px';
+            container.style.width =
+                Math.min(window.innerWidth, (rect.width * this.contentWidthPercentage) / 100) + 'px';
         }
 
         const clampedY = Math.max(rect.top + window.scrollY, 0);

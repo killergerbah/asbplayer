@@ -18,6 +18,7 @@ import {
     DownloadImageMessage,
     DownloadAudioMessage,
     CardTextFieldValues,
+    ImageErrorCode,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import { AsbplayerSettings, Profile } from '@project/common/settings';
@@ -53,7 +54,7 @@ import { useAnki } from '../hooks/use-anki';
 import { usePlaybackPreferences } from '../hooks/use-playback-preferences';
 import { MiningContext } from '../services/mining-context';
 
-const latestExtensionVersion = '1.3.2';
+const latestExtensionVersion = '1.4.2';
 const extensionUrl =
     'https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab';
 const mp3WorkerFactory = () => new Worker(new URL('../../audio-clip/mp3-encoder-worker.ts', import.meta.url));
@@ -479,9 +480,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
         setTheaterMode(newValue);
         setVideoFullscreen(false);
     }, [playbackPreferences]);
-    const handleFullscreenToggle = useCallback(() => {
-        setVideoFullscreen((fullscreen) => !fullscreen);
-    }, []);
     useEffect(() => {
         if (videoFullscreen) {
             if (!document.fullscreenElement) {
@@ -568,10 +566,12 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
             try {
                 const image = Image.fromCard(item, settings.maxImageWidth, settings.maxImageHeight)!;
 
-                if (image.isAvailable()) {
+                if (image.error === undefined) {
                     image.download();
-                } else {
+                } else if (image.error === ImageErrorCode.fileLinkLost) {
                     handleError(t('ankiDialog.imageFileLinkLost'));
+                } else if (image.error === ImageErrorCode.captureFailed) {
+                    handleError(t('ankiDialog.imageCaptureFailed'));
                 }
             } catch (e) {
                 handleError(e);
@@ -1091,10 +1091,11 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
     }, [searchParams]);
 
     useEffect(() => {
-        if (alertOpen && alert && alertSeverity) {
+        if (sources.videoFile && alertOpen && alert && alertSeverity) {
             videoChannelRef.current?.alert(alert, alertSeverity);
+            setAlertOpen(false);
         }
-    }, [alert, alertSeverity, alertOpen]);
+    }, [sources.videoFile, alert, alertSeverity, alertOpen]);
 
     const handleCopyToClipboard = useCallback((blob: Blob) => {
         navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]).catch(console.error);
@@ -1135,9 +1136,16 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                 onDragEnter={handleDragEnter}
                 onDragLeave={handleDragLeave}
             >
-                <Alert open={alertOpen} onClose={handleAlertClosed} autoHideDuration={3000} severity={alertSeverity}>
-                    {alert}
-                </Alert>
+                {!sources.videoFile && (
+                    <Alert
+                        open={alertOpen}
+                        onClose={handleAlertClosed}
+                        autoHideDuration={3000}
+                        severity={alertSeverity}
+                    >
+                        {alert}
+                    </Alert>
+                )}
                 {inVideoPlayer ? (
                     <>
                         <RenderVideo
@@ -1263,7 +1271,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                                 onAnkiDialogRequest={handleAnkiDialogRequest}
                                 onAnkiDialogRewind={handleAnkiDialogRewind}
                                 onAppBarToggle={handleAppBarToggle}
-                                onFullscreenToggle={handleFullscreenToggle}
                                 onHideSubtitlePlayer={handleHideSubtitlePlayer}
                                 onVideoPopOut={handleVideoPopOut}
                                 onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}

@@ -1,5 +1,5 @@
 import { resizeCanvas } from './image-transformer';
-import { CardModel, FileModel } from './model';
+import { CardModel, FileModel, ImageErrorCode } from './model';
 import { download } from '../util/util';
 import { isActiveBlobUrl } from '../blob-url';
 
@@ -15,13 +15,15 @@ class Base64ImageData implements ImageData {
     private readonly _name: string;
     private readonly _base64: string;
     private readonly _extension: string;
+    private readonly _error?: ImageErrorCode;
 
     private cachedBlob?: Blob;
 
-    constructor(name: string, base64: string, extension: string) {
+    constructor(name: string, base64: string, extension: string, error?: ImageErrorCode) {
         this._name = name;
         this._base64 = base64;
         this._extension = extension;
+        this._error = error;
     }
 
     get name() {
@@ -32,8 +34,8 @@ class Base64ImageData implements ImageData {
         return this._extension;
     }
 
-    isAvailable(): boolean {
-        return true;
+    get error() {
+        return this._error;
     }
 
     async base64() {
@@ -84,12 +86,12 @@ class FileImageData implements ImageData {
         return 'jpeg';
     }
 
-    isAvailable(): boolean {
+    get error(): ImageErrorCode | undefined {
         if (this._file.blobUrl) {
-            return isActiveBlobUrl(this._file.blobUrl);
+            return isActiveBlobUrl(this._file.blobUrl) ? undefined : ImageErrorCode.fileLinkLost;
         }
 
-        return false;
+        return undefined;
     }
 
     async base64(): Promise<string> {
@@ -164,45 +166,13 @@ class FileImageData implements ImageData {
     }
 }
 
-class MissingFileImageData implements ImageData {
-    private readonly _name: string;
-
-    constructor(fileName: string, timestamp: number) {
-        this._name = makeFileName(fileName, timestamp);
-    }
-
-    get name() {
-        return this._name;
-    }
-
-    get extension() {
-        return 'jpeg';
-    }
-
-    isAvailable() {
-        return false;
-    }
-
-    base64(): Promise<string> {
-        throw new Error('Not supported');
-    }
-
-    dataUrl(): Promise<string> {
-        throw new Error('Not supported');
-    }
-
-    blob(): Promise<Blob> {
-        throw new Error('Not supported');
-    }
-}
-
 interface ImageData {
     name: string;
     extension: string;
     base64: () => Promise<string>;
     dataUrl: () => Promise<string>;
     blob: () => Promise<Blob>;
-    isAvailable: () => boolean;
+    error?: ImageErrorCode;
 }
 
 export default class Image {
@@ -218,7 +188,8 @@ export default class Image {
                 card.subtitleFileName,
                 card.subtitle.start,
                 card.image.base64,
-                card.image.extension
+                card.image.extension,
+                card.image.error
             );
         }
 
@@ -229,18 +200,20 @@ export default class Image {
         return undefined;
     }
 
-    static fromBase64(subtitleFileName: string, timestamp: number, base64: string, extension: string) {
+    static fromBase64(
+        subtitleFileName: string,
+        timestamp: number,
+        base64: string,
+        extension: string,
+        error: ImageErrorCode | undefined
+    ) {
         const prefix = subtitleFileName.substring(0, subtitleFileName.lastIndexOf('.'));
         const imageName = `${makeFileName(prefix, timestamp)}.${extension}`;
-        return new Image(new Base64ImageData(imageName, base64, extension));
+        return new Image(new Base64ImageData(imageName, base64, extension, error));
     }
 
     static fromFile(file: FileModel, timestamp: number, maxWidth: number, maxHeight: number) {
         return new Image(new FileImageData(file, timestamp, maxWidth, maxHeight));
-    }
-
-    static fromMissingFile(fileName: string, timestamp: number) {
-        return new Image(new MissingFileImageData(fileName, timestamp));
     }
 
     get name() {
@@ -251,8 +224,8 @@ export default class Image {
         return this.data.extension;
     }
 
-    isAvailable() {
-        return this.data.isAvailable();
+    get error() {
+        return this.data.error;
     }
 
     async base64() {

@@ -68,6 +68,10 @@ export default class UiFrame {
         return this._frame;
     }
 
+    get clientIfLoaded() {
+        return this._client;
+    }
+
     async bind(): Promise<boolean> {
         return await this._init();
     }
