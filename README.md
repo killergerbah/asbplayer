@@ -20,7 +20,7 @@ yarn set version 3.2.0
 # Install dependencies
 yarn
 
-# Build production Firefox version of the extension to extension/dist/firefox
-# Zip package is saved to extension/dist/asbplayer-extension-<version>-firefox.zip
-yarn workspace @project/extension run packageProdFirefox
+# Build production Firefox version of the extension to extension/dist/firefoxandroid
+# Zip package is saved to extension/dist/asbplayer-extension-<version>-firefoxandroid.zip
+yarn workspace @project/extension run packageProdFirefoxAndroid
 ```
