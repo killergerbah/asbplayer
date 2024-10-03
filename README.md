@@ -56,7 +56,6 @@ Joey Potter,
 Julian,
 DanglingSabSuu
 
-
 and to those who have donated privately.
 
 Thank you to all those who have contributed to asbplayer:
@@ -228,13 +227,13 @@ The newly selected time interval can be applied to the card using the buttons av
 
 ### Other basic features
 
-#### Extension side panel UI
-
-Most of the extension features detailed above can be accessed through the extension's side panel UI. The side panel can be opened with the <kbd>\`</kbd> button or `Open Side Panel` from the extension popup.
-
 #### Keyboard shortcuts
 
 Keyboard shortcuts are customizable from the [settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts) or from accessing the extension directly. Once asbplayer has been bound to a video, you can use the keyboard shortcuts to access most of asbplayer's features.
+
+#### Extension side panel UI
+
+Most of the extension features detailed above can be accessed through the extension's side panel UI. The side panel can be opened with the <kbd>\`</kbd> button or `Open Side Panel` from the extension popup.
 
 #### Extension video overlay
 
@@ -301,6 +300,16 @@ Response:
     }
 }
 ```
+
+## Usage on Android
+
+asbplayer is best used on computers using Chromium-based browsers, but it is also usable on Android.
+
+1. Install either Kiwi Browser (preferred for DRM-protected stream audio capture) or Firefox for Android.
+2. Install the extension via the extension store for your browser: [Chrome Web Store](https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab) or [AMO](https://addons.mozilla.org/firefox/addon/asbplayer-android/).
+3. On webpages with video elements, select the asbplayer button from your browser's main menu to open the subtitle track selector.
+4. When the video is paused, use asbplayer's overlay UI to access asbplayer features.
+5. Use [AnkiConnect Android](https://github.com/KamWithK/AnkiconnectAndroid) for Anki integration.
 
 ## Common issues
 
