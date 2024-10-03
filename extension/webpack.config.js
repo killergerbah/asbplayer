@@ -18,6 +18,12 @@ const manifestModifiedForFirefoxAndroid = (manifest) => {
     return {
         ...manifestModifiedForFirefox(manifest),
         permissions: ['tabs', 'storage', 'webRequest', 'webRequestBlocking'],
+        browser_specific_settings: {
+            gecko: {
+                id: '{49de9206-c73e-4829-be4d-bda770d7f4b5}',
+            },
+            gecko_android: {},
+        },
     };
 };
 

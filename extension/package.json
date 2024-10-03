@@ -8,6 +8,7 @@
         "packageDev": "yarn buildDev && ../scripts/package chromium",
         "packageProd": "yarn buildProd && ../scripts/package chromium",
         "packageProdFirefox": "yarn buildProd --env firefox && ../scripts/package firefox",
+        "packageProdFirefoxAndroid": "yarn buildProd --env firefoxandroid && ../scripts/package firefoxandroid",
         "test": "jest"
     },
     "dependencies": {
