@@ -11,6 +11,7 @@ import {
     CardModel,
     AudioErrorCode,
     ImageErrorCode,
+    PostMineAction,
 } from '@project/common';
 import { SettingsProvider } from '@project/common/settings';
 import { CardPublisher } from '../../services/card-publisher';
@@ -58,13 +59,18 @@ export default class RecordMediaHandler {
         let imagePromise = undefined;
         let imageModel: ImageModel | undefined = undefined;
         let audioModel: AudioModel | undefined = undefined;
-        const preferMp3 = await this._settingsProvider.getSingle('preferMp3');
+        let encodeAsMp3 = false;
 
         if (recordMediaCommand.message.record) {
             const time =
                 (subtitle.end - subtitle.start) / recordMediaCommand.message.playbackRate +
                 recordMediaCommand.message.audioPaddingEnd;
-            audioPromise = this._audioRecorder.startWithTimeout(time, preferMp3, {
+
+            if (recordMediaCommand.message.postMineAction !== PostMineAction.showAnkiDialog) {
+                encodeAsMp3 = await this._settingsProvider.getSingle('preferMp3');
+            }
+
+            audioPromise = this._audioRecorder.startWithTimeout(time, encodeAsMp3, {
                 src: recordMediaCommand.src,
                 tabId: sender.tab?.id!,
             });
@@ -98,7 +104,7 @@ export default class RecordMediaHandler {
             } = recordMediaCommand.message;
             const baseAudioModel: AudioModel = {
                 base64: '',
-                extension: preferMp3 ? 'mp3' : 'webm',
+                extension: encodeAsMp3 ? 'mp3' : 'webm',
                 paddingStart,
                 paddingEnd,
                 playbackRate,

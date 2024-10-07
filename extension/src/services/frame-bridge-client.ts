@@ -12,7 +12,7 @@ export default class FrameBridgeClient {
     private frameId?: string;
     private windowMessageListener?: (event: MessageEvent) => void;
     private bindPromise?: Promise<void>;
-    private serverMessageListener?: (message: any) => void;
+    private serverMessageListener?: (message: any) => void | Promise<void>;
 
     constructor(frame: HTMLIFrameElement, fetchOptions?: FetchOptions) {
         this.frame = frame;
@@ -100,7 +100,11 @@ export default class FrameBridgeClient {
                             this._resolveHttpPost(message.message as HttpPostMessage);
                         } else {
                             if (this.serverMessageListener) {
-                                this.serverMessageListener(message.message);
+                                const result = this.serverMessageListener(message.message);
+
+                                if (result instanceof Promise) {
+                                    result.catch(console.error);
+                                }
                             }
                         }
                         break;

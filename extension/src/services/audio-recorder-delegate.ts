@@ -1,7 +1,6 @@
 import {
     ExtensionToOffscreenDocumentCommand,
     ExtensionToVideoCommand,
-    RequestActiveTabPermissionMessage,
     StartRecordingAudioMessage,
     StartRecordingAudioViaCaptureStreamMessage,
     StartRecordingAudioWithTimeoutMessage,
@@ -19,12 +18,12 @@ export interface Requester {
 export interface AudioRecorderDelegate {
     startWithTimeout: (
         time: number,
-        preferMp3: boolean,
+        encodeAsMp3: boolean,
         requestId: string,
         { tabId, src }: Requester
     ) => Promise<StartRecordingResponse>;
     start: (requestId: string, requester: Requester) => Promise<StartRecordingResponse>;
-    stop: (preferMp3: boolean, requester: Requester) => Promise<StopRecordingResponse>;
+    stop: (encodeAsMp3: boolean, requester: Requester) => Promise<StopRecordingResponse>;
 }
 
 export class OffscreenAudioRecorder implements AudioRecorderDelegate {
@@ -55,7 +54,7 @@ export class OffscreenAudioRecorder implements AudioRecorderDelegate {
 
     async startWithTimeout(
         time: number,
-        preferMp3: boolean,
+        encodeAsMp3: boolean,
         requestId: string,
         { tabId, src }: Requester
     ): Promise<StartRecordingResponse> {
@@ -67,7 +66,7 @@ export class OffscreenAudioRecorder implements AudioRecorderDelegate {
             message: {
                 command: 'start-recording-audio-with-timeout',
                 timeout: time,
-                preferMp3,
+                encodeAsMp3,
                 streamId,
                 requestId,
             },
@@ -90,12 +89,12 @@ export class OffscreenAudioRecorder implements AudioRecorderDelegate {
         return (await chrome.runtime.sendMessage(command)) as StartRecordingResponse;
     }
 
-    async stop(preferMp3: boolean): Promise<StopRecordingResponse> {
+    async stop(encodeAsMp3: boolean): Promise<StopRecordingResponse> {
         const command: ExtensionToOffscreenDocumentCommand<StopRecordingAudioMessage> = {
             sender: 'asbplayer-extension-to-offscreen-document',
             message: {
                 command: 'stop-recording-audio',
-                preferMp3,
+                encodeAsMp3,
             },
         };
         return (await chrome.runtime.sendMessage(command)) as StopRecordingResponse;
@@ -105,7 +104,7 @@ export class OffscreenAudioRecorder implements AudioRecorderDelegate {
 export class CaptureStreamAudioRecorder implements AudioRecorderDelegate {
     async startWithTimeout(
         time: number,
-        preferMp3: boolean,
+        encodeAsMp3: boolean,
         requestId: string,
         { tabId, src }: Requester
     ): Promise<StartRecordingResponse> {
@@ -114,7 +113,7 @@ export class CaptureStreamAudioRecorder implements AudioRecorderDelegate {
             message: {
                 command: 'start-recording-audio-with-timeout',
                 timeout: time,
-                preferMp3,
+                encodeAsMp3,
                 requestId,
             },
             src,
@@ -135,12 +134,12 @@ export class CaptureStreamAudioRecorder implements AudioRecorderDelegate {
         return (await chrome.tabs.sendMessage(tabId, command)) as StartRecordingResponse;
     }
 
-    async stop(preferMp3: boolean, { tabId, src }: Requester): Promise<StopRecordingResponse> {
+    async stop(encodeAsMp3: boolean, { tabId, src }: Requester): Promise<StopRecordingResponse> {
         const command: ExtensionToVideoCommand<StopRecordingAudioMessage> = {
             sender: 'asbplayer-extension-to-video',
             message: {
                 command: 'stop-recording-audio',
-                preferMp3,
+                encodeAsMp3,
             },
             src,
         };

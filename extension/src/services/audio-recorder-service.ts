@@ -46,11 +46,11 @@ export default class AudioRecorderService {
         }
     }
 
-    async startWithTimeout(time: number, preferMp3: boolean, requester: Requester): Promise<string> {
+    async startWithTimeout(time: number, encodeAsMp3: boolean, requester: Requester): Promise<string> {
         const requestId = uuidv4();
 
         try {
-            const response = await this._delegate.startWithTimeout(time, preferMp3, requestId, requester);
+            const response = await this._delegate.startWithTimeout(time, encodeAsMp3, requestId, requester);
 
             if (response.started) {
                 this._notifyRecordingStarted(requester);
@@ -109,7 +109,7 @@ export default class AudioRecorderService {
         chrome.tabs.sendMessage(tabId, command);
     }
 
-    async stop(preferMp3: boolean, requester: Requester): Promise<string> {
+    async stop(encodeAsMp3: boolean, requester: Requester): Promise<string> {
         if (this.audioBase64Promise === undefined) {
             const errorMessage = 'Cannot stop because audio recording is not in progress';
             this._notifyError(errorMessage, requester);
@@ -117,7 +117,7 @@ export default class AudioRecorderService {
             throw new Error(errorMessage);
         }
 
-        const response = await this._delegate.stop(preferMp3, requester);
+        const response = await this._delegate.stop(encodeAsMp3, requester);
 
         if (!response.stopped) {
             if (response.error!.code === StopRecordingErrorCode.timedAudioRecordingInProgress) {

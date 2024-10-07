@@ -67,13 +67,14 @@ import NotificationController from '../controllers/notification-controller';
 import SubtitleController, { SubtitleModelWithIndex } from '../controllers/subtitle-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
 import AudioRecorder, { TimedRecordingInProgressError } from './audio-recorder';
-import { bufferToBase64 } from './base64';
 import { isMobile } from './device-detection';
 import { OffsetAnchor } from './element-overlay';
 import { ExtensionSettingsStorage } from './extension-settings-storage';
 import { i18nInit } from './i18n';
 import KeyBindings from './key-bindings';
 import { shouldShowUpdateAlert } from './update-alert';
+import { mp3WorkerFactory } from './mp3-worker-factory';
+import { bufferToBase64 } from '@project/common/base64';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -780,7 +781,7 @@ export default class Binding {
                                 this._sendAudioBase64(
                                     audioBase64,
                                     startRecordingAudioWithTimeoutMessage.requestId,
-                                    startRecordingAudioWithTimeoutMessage.preferMp3
+                                    startRecordingAudioWithTimeoutMessage.encodeAsMp3
                                 )
                             )
                             .catch((e) => {
@@ -809,7 +810,7 @@ export default class Binding {
                                 this._sendAudioBase64(
                                     audioBase64,
                                     this.currentAudioRecordingRequestId!,
-                                    stopRecordingAudioMessage.preferMp3
+                                    stopRecordingAudioMessage.encodeAsMp3
                                 );
                             })
                             .catch((e) => {
@@ -1438,14 +1439,10 @@ export default class Binding {
         return this.audioStream.active ? this.audioStream : undefined;
     }
 
-    private async _sendAudioBase64(base64: string, requestId: string, preferMp3: boolean) {
-        if (preferMp3) {
+    private async _sendAudioBase64(base64: string, requestId: string, encodeAsMp3: boolean) {
+        if (encodeAsMp3) {
             const blob = await (await fetch('data:audio/webm;base64,' + base64)).blob();
-            const mp3Blob = await Mp3Encoder.encode(blob, async () => {
-                const code = await (await fetch(chrome.runtime.getURL('./mp3-encoder-worker.js'))).text();
-                const blob = new Blob([code], { type: 'application/javascript' });
-                return new Worker(URL.createObjectURL(blob));
-            });
+            const mp3Blob = await Mp3Encoder.encode(blob, mp3WorkerFactory);
             base64 = bufferToBase64(await mp3Blob.arrayBuffer());
         }
 

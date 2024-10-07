@@ -15,6 +15,7 @@ import {
     Message,
     UpdateStateMessage,
     FileModel,
+    EncodeMp3Message,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import { AnkiSettings } from '@project/common/settings';
@@ -29,10 +30,11 @@ import { PaletteType } from '@material-ui/core';
 import { AnkiDialogState } from '@project/common/components/AnkiDialog';
 import { BridgeFetcher } from '../bridge-fetcher';
 import { Anki, ExportParams } from '@project/common/anki';
+import { v4 as uuidv4 } from 'uuid';
+import { base64ToBlob, blobToBase64 } from '@project/common/base64';
 
 interface Props {
     bridge: Bridge;
-    mp3WorkerUrl: string;
 }
 
 const blobToDataUrl = async (blob: Blob): Promise<string> => {
@@ -45,7 +47,7 @@ const blobToDataUrl = async (blob: Blob): Promise<string> => {
     });
 };
 
-export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
+export default function AnkiUi({ bridge }: Props) {
     const [open, setOpen] = useState<boolean>(false);
     const [disabled, setDisabled] = useState<boolean>(false);
     const [canRerecord, setCanRerecord] = useState<boolean>(false);
@@ -150,7 +152,6 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
         });
     }, [bridge, image]);
 
-    const mp3WorkerFactory = useMemo(() => () => new Worker(mp3WorkerUrl), [mp3WorkerUrl]);
     const handleProceed = useCallback(
         async (params: ExportParams) => {
             setDisabled(true);
@@ -297,6 +298,20 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
         customFieldValues,
     ]);
 
+    const mp3Encoder = useCallback(
+        async (blob: Blob, extension: string) => {
+            const encodeMp3Message: EncodeMp3Message = {
+                command: 'encode-mp3',
+                base64: await blobToBase64(blob),
+                extension,
+                messageId: uuidv4(),
+            };
+            const { base64 } = await bridge.sendMessageFromServerAndExpectResponse(encodeMp3Message, 60_000);
+            return await base64ToBlob(base64, 'audio/mp3');
+        },
+        [bridge]
+    );
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
@@ -311,7 +326,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                 </Alert>
             </Snackbar>
             <ImageDialog open={imageDialogOpen} image={image} onClose={() => setImageDialogOpen(false)} />
-            {settingsProvider && card && anki && mp3WorkerFactory && (
+            {settingsProvider && card && anki && (
                 <AnkiDialog
                     open={open}
                     disabled={disabled}
@@ -331,7 +346,7 @@ export default function AnkiUi({ bridge, mp3WorkerUrl }: Props) {
                     lastAppliedTimestampIntervalToText={lastAppliedTimestampIntervalToText}
                     lastAppliedTimestampIntervalToAudio={lastAppliedTimestampIntervalToAudio}
                     stateRef={dialogStateRef}
-                    mp3WorkerFactory={mp3WorkerFactory}
+                    mp3Encoder={mp3Encoder}
                 />
             )}
         </ThemeProvider>

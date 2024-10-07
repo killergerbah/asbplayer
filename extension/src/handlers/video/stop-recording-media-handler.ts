@@ -5,6 +5,7 @@ import {
     ImageErrorCode,
     ImageModel,
     Message,
+    PostMineAction,
     StopRecordingMediaMessage,
     SubtitleModel,
     VideoToExtensionCommand,
@@ -84,15 +85,20 @@ export default class StopRecordingMediaHandler {
             }
         }
 
-        const preferMp3 = await this._settingsProvider.getSingle('preferMp3');
         try {
-            const audioBase64 = await this._audioRecorder.stop(preferMp3, {
+            let encodeAsMp3 = false;
+
+            if (stopRecordingCommand.message.postMineAction !== PostMineAction.showAnkiDialog) {
+                encodeAsMp3 = await this._settingsProvider.getSingle('preferMp3');
+            }
+
+            const audioBase64 = await this._audioRecorder.stop(encodeAsMp3, {
                 tabId: sender.tab!.id!,
                 src: stopRecordingCommand.src,
             });
             const audioModel: AudioModel = {
                 base64: audioBase64,
-                extension: preferMp3 ? 'mp3' : 'webm',
+                extension: encodeAsMp3 ? 'mp3' : 'webm',
                 paddingStart: 0,
                 paddingEnd: 0,
                 start: stopRecordingCommand.message.startTimestamp,

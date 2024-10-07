@@ -3,6 +3,7 @@ import Mp3Encoder from './mp3-encoder';
 import { AudioErrorCode, CardModel, FileModel } from '@project/common';
 import { download } from '@project/common/util';
 import { isActiveBlobUrl } from '../blob-url';
+import { blobToBase64 } from '../base64';
 
 const maxPrefixLength = 24;
 
@@ -450,19 +451,7 @@ class Mp3AudioData implements AudioData {
     }
 
     async base64() {
-        return new Promise<string>(async (resolve, reject) => {
-            try {
-                var reader = new FileReader();
-                reader.readAsDataURL(await this.blob());
-                reader.onloadend = () => {
-                    const result = reader.result as string;
-                    const base64 = result.substring(result.indexOf(',') + 1);
-                    resolve(base64);
-                };
-            } catch (e) {
-                reject(e);
-            }
-        });
+        return blobToBase64(await this.blob());
     }
 
     async play() {
@@ -491,6 +480,67 @@ class Mp3AudioData implements AudioData {
 
     get error() {
         return this.data.error;
+    }
+}
+
+class EncodedAudioData implements AudioData {
+    private readonly _data: AudioData;
+    private readonly _encoder: (blob: Blob, extension: string) => Promise<Blob>;
+    private readonly _extension: string;
+    private _blob?: Blob;
+
+    constructor(data: AudioData, encoder: (blob: Blob, extension: string) => Promise<Blob>, extension: string) {
+        this._data = data;
+        this._encoder = encoder;
+        this._extension = extension;
+    }
+
+    get name() {
+        return this._data.name;
+    }
+
+    get extension() {
+        return 'mp3';
+    }
+
+    get start() {
+        return this._data.start;
+    }
+
+    get end() {
+        return this._data.end;
+    }
+
+    async base64() {
+        return blobToBase64(await this.blob());
+    }
+
+    async play() {
+        await this._data.play();
+    }
+
+    stop() {
+        this._data.stop();
+    }
+
+    async blob() {
+        if (this._blob === undefined) {
+            this._blob = await this._encoder(await this._data.blob(), this._data.extension);
+        }
+
+        return this._blob;
+    }
+
+    slice(start: number, end: number) {
+        return new EncodedAudioData(this._data.slice(start, end), this._encoder, this._extension);
+    }
+
+    isSliceable() {
+        return this._data.isSliceable();
+    }
+
+    get error() {
+        return this._data.error;
     }
 }
 
@@ -599,6 +649,10 @@ export default class AudioClip {
         }
 
         return new AudioClip(new Mp3AudioData(this.data, mp3WorkerFactory));
+    }
+
+    toEncoded(encoder: (blob: Blob, extension: string) => Promise<Blob>, extension: string) {
+        return new AudioClip(new EncodedAudioData(this.data, encoder, extension));
     }
 
     slice(start: number, end: number) {

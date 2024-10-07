@@ -7,6 +7,7 @@ import {
     ImageErrorCode,
     ImageModel,
     Message,
+    PostMineAction,
     ScreenshotTakenMessage,
     StartRecordingMediaMessage,
     SubtitleModel,
@@ -111,13 +112,18 @@ export default class StartRecordingMediaHandler {
                 track: 0,
             };
 
-            const preferMp3 = await this._settings.getSingle('preferMp3');
+            let encodeAsMp3 = false;
+
+            if (startRecordingCommand.message.postMineAction !== PostMineAction.showAnkiDialog) {
+                encodeAsMp3 = await this._settings.getSingle('preferMp3');
+            }
+
             const audioModel: AudioModel | undefined =
                 drmProtectedStreamError === undefined
                     ? undefined
                     : {
                           base64: '',
-                          extension: preferMp3 ? 'mp3' : 'webm',
+                          extension: encodeAsMp3 ? 'mp3' : 'webm',
                           paddingStart: 0,
                           paddingEnd: 0,
                           start: mediaTimestamp,

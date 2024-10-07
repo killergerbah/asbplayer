@@ -10,13 +10,13 @@ import {
     StopRecordingResponse,
 } from '@project/common';
 import AudioRecorder, { TimedRecordingInProgressError } from './services/audio-recorder';
-import { bufferToBase64 } from './services/base64';
 import { Mp3Encoder } from '@project/common/audio-clip';
+import { bufferToBase64 } from '@project/common/base64';
 
 const audioRecorder = new AudioRecorder();
 
-const _sendAudioBase64 = async (base64: string, requestId: string, preferMp3: boolean) => {
-    if (preferMp3) {
+const _sendAudioBase64 = async (base64: string, requestId: string, encodeAsMp3: boolean) => {
+    if (encodeAsMp3) {
         const blob = await (await fetch('data:audio/webm;base64,' + base64)).blob();
         const mp3Blob = await Mp3Encoder.encode(
             blob,
@@ -90,7 +90,7 @@ window.onload = async () => {
                             _sendAudioBase64(
                                 audioBase64,
                                 startRecordingAudioWithTimeoutMessage.requestId,
-                                startRecordingAudioWithTimeoutMessage.preferMp3
+                                startRecordingAudioWithTimeoutMessage.encodeAsMp3
                             )
                         )
                         .catch((e) => {
@@ -119,7 +119,7 @@ window.onload = async () => {
                             };
 
                             sendResponse(successResponse);
-                            _sendAudioBase64(audioBase64, currentRequestId!, stopRecordingAudioMessage.preferMp3);
+                            _sendAudioBase64(audioBase64, currentRequestId!, stopRecordingAudioMessage.encodeAsMp3);
                         })
                         .catch((e) => {
                             let errorCode: StopRecordingErrorCode;

@@ -23,7 +23,7 @@ import {
 import { createTheme } from '@project/common/theme';
 import { AsbplayerSettings, Profile } from '@project/common/settings';
 import { humanReadableTime, download, extractText } from '@project/common/util';
-import { AudioClip } from '@project/common/audio-clip';
+import { AudioClip, Mp3Encoder } from '@project/common/audio-clip';
 import { ExportParams } from '@project/common/anki';
 import { SubtitleReader } from '@project/common/subtitle-reader';
 import { v4 as uuidv4 } from 'uuid';
@@ -1111,6 +1111,10 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
         );
     }, [extension, keyBinder, handleOpenCopyHistory, ankiDialogOpen]);
 
+    const mp3Encoder = useCallback(async (blob: Blob, extension: string) => {
+        return await Mp3Encoder.encode(blob, mp3WorkerFactory);
+    }, []);
+
     useEffect(() => {
         document.title = settings.tabName;
     }, [settings.tabName]);
@@ -1172,7 +1176,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                                 onProceed={handleAnkiDialogProceed}
                                 onViewImage={handleViewImage}
                                 onCopyToClipboard={handleCopyToClipboard}
-                                mp3WorkerFactory={mp3WorkerFactory}
+                                mp3Encoder={mp3Encoder}
                             />
                         )}
                         <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />
@@ -1204,7 +1208,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                                 onViewImage={handleViewImage}
                                 onOpenSettings={handleOpenSettings}
                                 onCopyToClipboard={handleCopyToClipboard}
-                                mp3WorkerFactory={mp3WorkerFactory}
+                                mp3Encoder={mp3Encoder}
                             />
                         )}
                         <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />

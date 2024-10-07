@@ -4,16 +4,19 @@ import {
     CopyToClipboardMessage,
     TabToExtensionCommand,
     CardModel,
+    EncodeMp3Message,
 } from '@project/common';
 import { AnkiSettings, SettingsProvider, ankiSettingsKeys } from '@project/common/settings';
 import { sourceString } from '@project/common/util';
 import UiFrame from '../services/ui-frame';
 import { fetchLocalization } from '../services/localization-fetcher';
+import { Mp3Encoder } from '@project/common/audio-clip';
+import { base64ToBlob, blobToBase64 } from '@project/common/base64';
+import { mp3WorkerFactory } from '../services/mp3-worker-factory';
 
 // We need to write the HTML into the iframe manually so that the iframe keeps it's about:blank URL.
 // Otherwise, Chrome won't insert content scripts into the iframe (e.g. Yomichan won't work).
 async function html(language: string) {
-    const mp3WorkerSource = await (await fetch(chrome.runtime.getURL('./mp3-encoder-worker.js'))).text();
     return `<!DOCTYPE html>
                 <html lang="en">
                 <head>
@@ -29,7 +32,6 @@ async function html(language: string) {
                     <script type="application/json" id="loc">${JSON.stringify(
                         await fetchLocalization(language)
                     )}</script>
-                    <script id="mp3-encoder-worker" type="javascript/worker">${mp3WorkerSource}</script>
                     <script src="${chrome.runtime.getURL('./anki-ui.js')}"></script>
                 </body>
             </html>`;
@@ -80,7 +82,7 @@ export class TabAnkiUiController {
         const client = await this._frame.client();
 
         if (isNewClient) {
-            client.onMessage((message) => {
+            client.onMessage(async (message) => {
                 switch (message.command) {
                     case 'openSettings':
                         const openSettingsCommand: TabToExtensionCommand<OpenAsbplayerSettingsMessage> = {
@@ -101,6 +103,17 @@ export class TabAnkiUiController {
                             },
                         };
                         chrome.runtime.sendMessage(copyToClipboardCommand);
+                        return;
+                    case 'encode-mp3':
+                        const { base64, messageId, extension } = message as EncodeMp3Message;
+                        const encodedBlob = await Mp3Encoder.encode(
+                            await base64ToBlob(base64, `audio/${extension}`),
+                            mp3WorkerFactory
+                        );
+                        client.sendMessage({
+                            messageId,
+                            base64: await blobToBase64(encodedBlob),
+                        });
                         return;
                     case 'resume':
                         this._frame.hide();

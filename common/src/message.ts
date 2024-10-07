@@ -82,6 +82,13 @@ export interface HttpPostMessage extends MessageWithId {
     readonly body: any;
 }
 
+export interface EncodeMp3Message extends MessageWithId {
+    readonly command: 'encode-mp3';
+    readonly messageId: string;
+    readonly base64: string;
+    readonly extension: string;
+}
+
 export interface SettingsUpdatedMessage extends Message {
     readonly command: 'settings-updated';
 }
@@ -431,16 +438,16 @@ export interface CropAndResizeMessage extends Message, ImageCaptureParams {
 export interface StartRecordingAudioWithTimeoutMessage extends Message {
     readonly command: 'start-recording-audio-with-timeout';
     readonly timeout: number;
-    readonly preferMp3: boolean;
     readonly streamId: string;
     readonly requestId: string;
+    readonly encodeAsMp3: boolean;
 }
 
 export interface StartRecordingAudioWithTimeoutViaCaptureStreamMessage extends Message {
     readonly command: 'start-recording-audio-with-timeout';
     readonly timeout: number;
-    readonly preferMp3: boolean;
     readonly requestId: string;
+    readonly encodeAsMp3: boolean;
 }
 
 export interface StartRecordingAudioMessage extends Message {
@@ -456,7 +463,7 @@ export interface StartRecordingAudioViaCaptureStreamMessage extends Message {
 
 export interface StopRecordingAudioMessage extends Message {
     readonly command: 'stop-recording-audio';
-    readonly preferMp3: boolean;
+    readonly encodeAsMp3: boolean;
 }
 
 export enum StartRecordingErrorCode {

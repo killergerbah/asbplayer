@@ -1,4 +1,4 @@
-import { bufferToBase64 } from './base64';
+import { bufferToBase64 } from '@project/common/base64';
 
 export class TimedRecordingInProgressError extends Error {}
 

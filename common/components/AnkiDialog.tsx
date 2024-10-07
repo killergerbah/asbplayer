@@ -178,7 +178,7 @@ interface AnkiDialogProps {
     lastAppliedTimestampIntervalToText?: number[];
     lastAppliedTimestampIntervalToAudio?: number[];
     stateRef?: MutableRefObject<AnkiDialogState | undefined>;
-    mp3WorkerFactory: () => Worker;
+    mp3Encoder: (blob: Blob, extension: string) => Promise<Blob>;
 }
 
 const AnkiDialog = ({
@@ -200,7 +200,7 @@ const AnkiDialog = ({
     lastAppliedTimestampIntervalToText: initialLastAppliedTimestampIntervalToText,
     lastAppliedTimestampIntervalToAudio: initialLastAppliedTimestampIntervalToAudio,
     stateRef,
-    mp3WorkerFactory,
+    mp3Encoder,
 }: AnkiDialogProps) => {
     const classes = useStyles();
     const [definition, setDefinition] = useState<string>('');
@@ -352,7 +352,7 @@ const AnkiDialog = ({
         let newAudioClip = initialAudioClip;
 
         if (settings.preferMp3) {
-            newAudioClip = newAudioClip.toMp3(mp3WorkerFactory);
+            newAudioClip = newAudioClip.toEncoded(mp3Encoder, 'mp3');
         }
 
         if (lastAppliedTimestampIntervalToAudio) {
@@ -364,7 +364,7 @@ const AnkiDialog = ({
 
         setAudioClip(newAudioClip);
     }, [
-        mp3WorkerFactory,
+        mp3Encoder,
         initialAudioClip,
         settings.preferMp3,
         lastAppliedTimestampIntervalToAudio,

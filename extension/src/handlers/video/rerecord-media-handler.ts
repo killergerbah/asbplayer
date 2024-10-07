@@ -33,10 +33,9 @@ export default class RerecordMediaHandler {
 
     async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
         const rerecordCommand = command as VideoToExtensionCommand<RerecordMediaMessage>;
-        const preferMp3 = await this._settingsProvider.getSingle('preferMp3');
         const baseAudioModel: AudioModel = {
             base64: '',
-            extension: preferMp3 ? 'mp3' : 'webm',
+            extension: 'webm',
             paddingStart: rerecordCommand.message.audioPaddingStart,
             paddingEnd: rerecordCommand.message.audioPaddingEnd,
             start: rerecordCommand.message.timestamp,
@@ -53,7 +52,7 @@ export default class RerecordMediaHandler {
                 base64: await this._audioRecorder.startWithTimeout(
                     rerecordCommand.message.duration / rerecordCommand.message.playbackRate +
                         rerecordCommand.message.audioPaddingEnd,
-                    preferMp3,
+                    false,
                     { src: rerecordCommand.src, tabId: sender.tab?.id! }
                 ),
             };

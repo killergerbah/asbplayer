@@ -41,7 +41,7 @@ export default class Bridge {
         }
     }
 
-    sendMessageFromServerAndExpectResponse(message: MessageWithId): Promise<any> {
+    sendMessageFromServerAndExpectResponse(message: MessageWithId, timeoutOverride?: number): Promise<any> {
         for (const l of this._serverMessageListeners) {
             l(message);
         }
@@ -53,7 +53,7 @@ export default class Bridge {
                     reject('Request timed out');
                     delete this._resolves[message.messageId];
                 }
-            }, 5000);
+            }, timeoutOverride ?? 5000);
         });
     }
 
