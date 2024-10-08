@@ -12,7 +12,7 @@ interface PlaybackPrefSettings {
     rememberSubtitleOffset: boolean;
     lastSubtitleOffset: number;
     subtitleAlignment: SubtitleAlignment;
-    bottomSubtitlePositionOffset: number;
+    subtitlePositionOffset: number;
     topSubtitlePositionOffset: number;
 }
 

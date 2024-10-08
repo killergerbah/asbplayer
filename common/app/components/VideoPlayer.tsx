@@ -345,7 +345,7 @@ export default function VideoPlayer({
     const [appBarHidden, setAppBarHidden] = useState<boolean>(playbackPreferences.theaterMode);
     const [subtitleAlignment, setSubtitleAlignment] = useState<SubtitleAlignment>(subtitleSettings.subtitleAlignment);
     const [bottomSubtitlePositionOffset, setBottomSubtitlePositionOffset] = useState<number>(
-        subtitleSettings.bottomSubtitlePositionOffset
+        subtitleSettings.subtitlePositionOffset
     );
     const [topSubtitlePositionOffset, setTopSubtitlePositionOffset] = useState<number>(
         subtitleSettings.topSubtitlePositionOffset
@@ -372,7 +372,7 @@ export default function VideoPlayer({
 
     useEffect(() => {
         setSubtitleAlignment(subtitleSettings.subtitleAlignment);
-        setBottomSubtitlePositionOffset(subtitleSettings.bottomSubtitlePositionOffset);
+        setBottomSubtitlePositionOffset(subtitleSettings.subtitlePositionOffset);
         setTopSubtitlePositionOffset(subtitleSettings.topSubtitlePositionOffset);
     }, [subtitleSettings]);
 

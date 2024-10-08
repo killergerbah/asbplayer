@@ -129,18 +129,15 @@ export default class SubtitleController {
     }
 
     cacheHtml() {
-        if (!(this.bottomSubtitlesElementOverlay instanceof CachingElementOverlay) || !(this.topSubtitlesElementOverlay instanceof CachingElementOverlay)) {
-            return;
-        }
         const htmls = this._buildSubtitlesHtml(this.subtitles);
 
-        if (this.shouldRenderBottomOverlay) {
+        if (this.shouldRenderBottomOverlay && this.bottomSubtitlesElementOverlay instanceof CachingElementOverlay) {
             this.bottomSubtitlesElementOverlay.uncacheHtml();
             for (const html of htmls) {
                 this.bottomSubtitlesElementOverlay.cacheHtml(html.key, html.html());
             }
         }
-        if (this.shouldRenderTopOverlay) {
+        if (this.shouldRenderTopOverlay && this.topSubtitlesElementOverlay instanceof CachingElementOverlay) {
             this.topSubtitlesElementOverlay.uncacheHtml();
             for (const html of htmls) {
                 this.topSubtitlesElementOverlay.cacheHtml(html.key, html.html());
@@ -176,7 +173,7 @@ export default class SubtitleController {
         }
 
         const newAlignments = allTextSubtitleSettings(newSubtitleSettings).map((s) => s.subtitleAlignment);
-        if (newAlignments !== this.subtitleTrackAlignments) {
+        if (!this._arrayEquals(newAlignments, Object.values(this.subtitleTrackAlignments), (a, b) => a === b)) {
             this.subtitleTrackAlignments = newAlignments;
             this.shouldRenderBottomOverlay = Object.values(this.subtitleTrackAlignments).includes('bottom' as SubtitleAlignment);
             this.shouldRenderTopOverlay = Object.values(this.subtitleTrackAlignments).includes('top' as SubtitleAlignment);
@@ -206,7 +203,7 @@ export default class SubtitleController {
         return settings.subtitleBlur ? 'asbplayer-subtitles-blurred' : '';
     }
 
-    getSubtitleTrackAlignment(trackIndex: number) {
+    private _getSubtitleTrackAlignment(trackIndex: number) {
         return this.subtitleTrackAlignments[trackIndex] || 'bottom';
     }
 
@@ -362,11 +359,11 @@ export default class SubtitleController {
             } else if (subtitlesAreNew || shouldRenderOffset) {
                 this._resetUnblurState();
                 if (this.shouldRenderBottomOverlay) {
-                    const showingSubtitlesBottom = showingSubtitles.filter((s) => this.getSubtitleTrackAlignment(s.track) === 'bottom');
+                    const showingSubtitlesBottom = showingSubtitles.filter((s) => this._getSubtitleTrackAlignment(s.track) === 'bottom');
                     this._renderSubtitles(showingSubtitlesBottom, OffsetAnchor.bottom);
                 }
                 if (this.shouldRenderTopOverlay) {
-                    const showingSubtitlesTop = showingSubtitles.filter((s) => this.getSubtitleTrackAlignment(s.track) === 'top');
+                    const showingSubtitlesTop = showingSubtitles.filter((s) => this._getSubtitleTrackAlignment(s.track) === 'top');
                     this._renderSubtitles(showingSubtitlesTop, OffsetAnchor.top);
                 }
 
@@ -479,10 +476,8 @@ export default class SubtitleController {
             this.notificationElementOverlayHideTimeout = undefined;
         }
 
-        if (this.shouldRenderBottomOverlay)
-            this.bottomSubtitlesElementOverlay.dispose();
-        if (this.shouldRenderTopOverlay)
-            this.topSubtitlesElementOverlay.dispose();
+        this.bottomSubtitlesElementOverlay.dispose();
+        this.topSubtitlesElementOverlay.dispose();
         this.notificationElementOverlay.dispose();
         this.onNextToShow = undefined;
         this.onSlice = undefined;

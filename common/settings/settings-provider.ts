@@ -59,7 +59,7 @@ export const defaultSettings: AsbplayerSettings = {
     },
     customAnkiFieldSettings: {},
     ...defaultSubtitleTextSettings,
-    bottomSubtitlePositionOffset: 75,
+    subtitlePositionOffset: 75,
     topSubtitlePositionOffset: 75,
     subtitleAlignment: 'bottom',
     subtitleTracksV2: [],

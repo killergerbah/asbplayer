@@ -150,7 +150,7 @@ const subtitleSettingsKeysObject: { [key in keyof SubtitleSettings]: boolean } =
     subtitleCustomStyles: true,
     subtitleBlur: true,
     imageBasedSubtitleScaleFactor: true,
-    bottomSubtitlePositionOffset: true,
+    subtitlePositionOffset: true, // bottom offset; name kept for backwards compatibility
     topSubtitlePositionOffset: true,
     subtitleAlignment: true,
     subtitleTracksV2: true,
@@ -188,7 +188,7 @@ export interface TextSubtitleSettings {
 
 export interface SubtitleSettings extends TextSubtitleSettings {
     readonly imageBasedSubtitleScaleFactor: number;
-    readonly bottomSubtitlePositionOffset: number;
+    readonly subtitlePositionOffset: number;
     readonly topSubtitlePositionOffset: number;
 
     // Settings for (0-based) tracks 1, 2,...

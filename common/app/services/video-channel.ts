@@ -399,7 +399,7 @@ export default class VideoChannel {
             imageBasedSubtitleScaleFactor,
             subtitleAlignment,
             subtitleTracksV2,
-            bottomSubtitlePositionOffset,
+            subtitlePositionOffset: bottomSubtitlePositionOffset,
             topSubtitlePositionOffset,
             subtitlesWidth,
         } = settings;
@@ -421,7 +421,7 @@ export default class VideoChannel {
                 imageBasedSubtitleScaleFactor,
                 subtitleAlignment,
                 subtitleTracksV2,
-                bottomSubtitlePositionOffset,
+                subtitlePositionOffset: bottomSubtitlePositionOffset,
                 topSubtitlePositionOffset,
                 subtitlesWidth,
             },
