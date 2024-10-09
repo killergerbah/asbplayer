@@ -175,9 +175,14 @@ export default class SubtitleController {
         const newAlignments = allTextSubtitleSettings(newSubtitleSettings).map((s) => s.subtitleAlignment);
         if (!this._arrayEquals(newAlignments, Object.values(this.subtitleTrackAlignments), (a, b) => a === b)) {
             this.subtitleTrackAlignments = newAlignments;
-            this.shouldRenderBottomOverlay = Object.values(this.subtitleTrackAlignments).includes('bottom' as SubtitleAlignment);
-            this.shouldRenderTopOverlay = Object.values(this.subtitleTrackAlignments).includes('top' as SubtitleAlignment);
-            const { subtitleOverlayParams, topSubtitleOverlayParams, notificationOverlayParams } = this._elementOverlayParams();
+            this.shouldRenderBottomOverlay = Object.values(this.subtitleTrackAlignments).includes(
+                'bottom' as SubtitleAlignment
+            );
+            this.shouldRenderTopOverlay = Object.values(this.subtitleTrackAlignments).includes(
+                'top' as SubtitleAlignment
+            );
+            const { subtitleOverlayParams, topSubtitleOverlayParams, notificationOverlayParams } =
+                this._elementOverlayParams();
             this._applyElementOverlayParams(this.bottomSubtitlesElementOverlay, subtitleOverlayParams);
             this._applyElementOverlayParams(this.topSubtitlesElementOverlay, topSubtitleOverlayParams);
             this._applyElementOverlayParams(this.notificationElementOverlay, notificationOverlayParams);
@@ -226,7 +231,8 @@ export default class SubtitleController {
     }
 
     private _resetOverlays(preCacheDom: boolean, skipCacheHtml: boolean = false) {
-        const { subtitlesElementOverlay, topSubtitlesElementOverlay, notificationElementOverlay } = this._overlays(preCacheDom);
+        const { subtitlesElementOverlay, topSubtitlesElementOverlay, notificationElementOverlay } =
+            this._overlays(preCacheDom);
         this.notificationElementOverlay.dispose();
         notificationElementOverlay.contentPositionOffset = this.notificationElementOverlay.contentPositionOffset;
         notificationElementOverlay.contentWidthPercentage = this.notificationElementOverlay.contentWidthPercentage;
@@ -252,7 +258,8 @@ export default class SubtitleController {
     }
 
     private _overlays(preCacheDom: boolean) {
-        const { subtitleOverlayParams, topSubtitleOverlayParams, notificationOverlayParams } = this._elementOverlayParams();
+        const { subtitleOverlayParams, topSubtitleOverlayParams, notificationOverlayParams } =
+            this._elementOverlayParams();
 
         if (preCacheDom) {
             return {
@@ -359,11 +366,15 @@ export default class SubtitleController {
             } else if (subtitlesAreNew || shouldRenderOffset) {
                 this._resetUnblurState();
                 if (this.shouldRenderBottomOverlay) {
-                    const showingSubtitlesBottom = showingSubtitles.filter((s) => this._getSubtitleTrackAlignment(s.track) === 'bottom');
+                    const showingSubtitlesBottom = showingSubtitles.filter(
+                        (s) => this._getSubtitleTrackAlignment(s.track) === 'bottom'
+                    );
                     this._renderSubtitles(showingSubtitlesBottom, OffsetAnchor.bottom);
                 }
                 if (this.shouldRenderTopOverlay) {
-                    const showingSubtitlesTop = showingSubtitles.filter((s) => this._getSubtitleTrackAlignment(s.track) === 'top');
+                    const showingSubtitlesTop = showingSubtitles.filter(
+                        (s) => this._getSubtitleTrackAlignment(s.track) === 'top'
+                    );
                     this._renderSubtitles(showingSubtitlesTop, OffsetAnchor.top);
                 }
 
@@ -390,7 +401,10 @@ export default class SubtitleController {
             return;
         }
 
-        for (const element of [...this.bottomSubtitlesElementOverlay.displayingElements(), ...this.topSubtitlesElementOverlay.displayingElements()]) {
+        for (const element of [
+            ...this.bottomSubtitlesElementOverlay.displayingElements(),
+            ...this.topSubtitlesElementOverlay.displayingElements(),
+        ]) {
             const track = Number(element.dataset.track);
 
             if (this.unblurredSubtitleTracks[track] === true) {
@@ -486,10 +500,8 @@ export default class SubtitleController {
     }
 
     refresh() {
-        if (this.shouldRenderBottomOverlay)
-            this.bottomSubtitlesElementOverlay.refresh();
-        if (this.shouldRenderTopOverlay)
-            this.topSubtitlesElementOverlay.refresh();
+        if (this.shouldRenderBottomOverlay) this.bottomSubtitlesElementOverlay.refresh();
+        if (this.shouldRenderTopOverlay) this.topSubtitlesElementOverlay.refresh();
         this.notificationElementOverlay.refresh();
     }
 
@@ -528,7 +540,10 @@ export default class SubtitleController {
     }
 
     unblur(track: number) {
-        for (const element of [...this.bottomSubtitlesElementOverlay.displayingElements(), ...this.topSubtitlesElementOverlay.displayingElements()]) {
+        for (const element of [
+            ...this.bottomSubtitlesElementOverlay.displayingElements(),
+            ...this.topSubtitlesElementOverlay.displayingElements(),
+        ]) {
             const elementTrack = Number(element.dataset.track);
 
             if (track === elementTrack && element.classList.contains('asbplayer-subtitles-blurred')) {
@@ -656,10 +671,8 @@ export default class SubtitleController {
     }
 
     private _appendSubtitlesHtml(html: string) {
-        if (this.shouldRenderBottomOverlay)
-            this.bottomSubtitlesElementOverlay.appendHtml(html);
-        if (this.shouldRenderTopOverlay)
-            this.topSubtitlesElementOverlay.appendHtml(html);
+        if (this.shouldRenderBottomOverlay) this.bottomSubtitlesElementOverlay.appendHtml(html);
+        if (this.shouldRenderTopOverlay) this.topSubtitlesElementOverlay.appendHtml(html);
     }
 
     private _subtitleClasses(track?: number) {
