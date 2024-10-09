@@ -317,6 +317,7 @@
         "subtitleShadowThickness": "Expessura da sombra da legenda",
         "subtitleOutlineThicknessHelperText": "Adiciona um contorno ao redor do texto da legenda. Se isso causar sobreposição de linhas, tente usar uma fonte diferente.",
         "subtitlePositionOffset": "Deslocamento da posição da legenda a partir da parte inferior",
+        "topSubtitlePositionOffset": "Deslocamento da posição da legenda a partir da parte superior",
         "subtitleAlignment": "Alinhamento da legenda",
         "subtitleAlignmentBottom": "Inferior",
         "subtitleAlignmentTop": "Superior",
