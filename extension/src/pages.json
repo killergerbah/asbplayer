@@ -125,6 +125,14 @@
             "autoSync": {
                 "enabled": true
             }
+        },
+        {
+            "host": "plex*|:32400*",
+            "script": "plex-page.js",
+            "path": ".*",
+            "autoSync": {
+                "enabled": true
+            }
         }
     ]
 }
