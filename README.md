@@ -54,7 +54,8 @@ Joey Potter,
 [@Venous771](https://github.com/Venous771),
 [@Viterkim](https://github.com/Viterkim),
 Julian,
-DanglingSabSuu
+DanglingSabSuu,
+[@nikkovc](https://github.com/nikkovc)
 
 and to those who have donated privately.
 
@@ -71,7 +72,10 @@ Thank you to all those who have contributed to asbplayer:
 [@pooky-programs](https://github.com/pooky-programs),
 [@m-edlund](https://github.com/m-edlund),
 [@nekorushi](https://github.com/nekorushi),
-[@Viterkim](https://github.com/Viterkim)
+[@Viterkim](https://github.com/Viterkim),
+[@s-cork](https://github.com/s-cork),
+[@shekhirin](https://github.com/shekhirin),
+[@ShanaryS](https://github.com/ShanaryS)
 
 Thank you to all those who have translated asbplayer:
 
@@ -172,6 +176,7 @@ Use <kbd>Ctrl + Shift + F</kbd> to see auto-detected subtitle tracks for streami
 -   Bandai Channel
 -   Amazon Prime (known issue: subtitles sometimes off by ~30 seconds)
 -   Emby
+-   Jellyfin
 -   Rakuten Viki
 -   osnplus
 -   BiliBili
