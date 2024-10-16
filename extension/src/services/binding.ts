@@ -879,9 +879,9 @@ export default class Binding {
         this.pauseOnHoverMode = currentSettings.pauseOnHoverMode;
 
         this.subtitleController.displaySubtitles = currentSettings.streamingDisplaySubtitles;
-        this.subtitleController.subtitlePositionOffset = currentSettings.subtitlePositionOffset;
+        this.subtitleController.bottomSubtitlePositionOffset = currentSettings.subtitlePositionOffset;
+        this.subtitleController.topSubtitlePositionOffset = currentSettings.topSubtitlePositionOffset;
         this.subtitleController.subtitlesWidth = currentSettings.subtitlesWidth;
-        this.subtitleController.subtitleAlignment = currentSettings.subtitleAlignment;
         this.subtitleController.surroundingSubtitlesCountRadius = currentSettings.surroundingSubtitlesCountRadius;
         this.subtitleController.surroundingSubtitlesTimeRadius = currentSettings.surroundingSubtitlesTimeRadius;
         this.subtitleController.autoCopyCurrentSubtitle = currentSettings.autoCopyCurrentSubtitle;

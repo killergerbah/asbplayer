@@ -185,6 +185,9 @@ const settingsSchema = {
         subtitlePositionOffset: {
             type: 'number',
         },
+        topSubtitlePositionOffset: {
+            type: 'number',
+        },
         subtitleAlignment: {
             type: 'string',
         },

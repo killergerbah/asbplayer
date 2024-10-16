@@ -344,8 +344,11 @@ export default function VideoPlayer({
     const [subtitlePlayerHidden, setSubtitlePlayerHidden] = useState<boolean>(false);
     const [appBarHidden, setAppBarHidden] = useState<boolean>(playbackPreferences.theaterMode);
     const [subtitleAlignment, setSubtitleAlignment] = useState<SubtitleAlignment>(subtitleSettings.subtitleAlignment);
-    const [subtitlePositionOffset, setSubtitlePositionOffset] = useState<number>(
+    const [bottomSubtitlePositionOffset, setBottomSubtitlePositionOffset] = useState<number>(
         subtitleSettings.subtitlePositionOffset
+    );
+    const [topSubtitlePositionOffset, setTopSubtitlePositionOffset] = useState<number>(
+        subtitleSettings.topSubtitlePositionOffset
     );
     const showSubtitlesRef = useRef<IndexedSubtitleModel[]>([]);
     showSubtitlesRef.current = showSubtitles;
@@ -369,7 +372,8 @@ export default function VideoPlayer({
 
     useEffect(() => {
         setSubtitleAlignment(subtitleSettings.subtitleAlignment);
-        setSubtitlePositionOffset(subtitleSettings.subtitlePositionOffset);
+        setBottomSubtitlePositionOffset(subtitleSettings.subtitlePositionOffset);
+        setTopSubtitlePositionOffset(subtitleSettings.topSubtitlePositionOffset);
     }, [subtitleSettings]);
 
     const autoPauseContext = useMemo(() => {
@@ -1319,8 +1323,8 @@ export default function VideoPlayer({
                 <div
                     style={{
                         ...(subtitleAlignment === 'bottom'
-                            ? { bottom: subtitlePositionOffset }
-                            : { top: subtitlePositionOffset }),
+                            ? { bottom: bottomSubtitlePositionOffset }
+                            : { top: topSubtitlePositionOffset }),
                         ...(subtitleSettings.subtitlesWidth === -1
                             ? {}
                             : { width: `${subtitleSettings.subtitlesWidth}%` }),
