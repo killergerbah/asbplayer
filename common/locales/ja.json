@@ -148,7 +148,7 @@
         "blank": "空白",
         "downloadMinedSubsAsSrt": "マイニングした字幕を SRT 形式でダウンロードする",
         "exportToAnki": "Anki にエクスポートする",
-        "miningHistoryEmpty": "マイニング履歴はありませïん",
+        "miningHistoryEmpty": "マイニング履歴はありません",
         "deleteAll": "全てを削除"
     },
     "error": {
