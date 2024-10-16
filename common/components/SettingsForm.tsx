@@ -1059,7 +1059,14 @@ export default function SettingsForm({
         settingsFileInputRef.current?.click();
     }, []);
     const handleExportSettings = useCallback(() => {
-        download(new Blob([JSON.stringify(settings)], { type: 'appliction/json' }), 'asbplayer-settings.json');
+        const now = new Date();
+        const timeString = `${now.getFullYear()}-${
+            now.getMonth() + 1
+        }-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+        download(
+            new Blob([JSON.stringify(settings)], { type: 'appliction/json' }),
+            `asbplayer-settings-${timeString}.json`
+        );
     }, [settings]);
 
     const handleAnkiFieldOrderChange = useCallback(
