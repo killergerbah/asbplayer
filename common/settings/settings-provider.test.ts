@@ -166,10 +166,11 @@ const subtitleSettings = {
     subtitleBackgroundOpacity: 0,
     subtitleFontFamily: 'ToppanBunkyuMidashiGothicStdN-ExtraBold',
     subtitleBlur: false,
+    subtitleAlignment: 'bottom' as SubtitleAlignment,
     subtitleCustomStyles: [],
     imageBasedSubtitleScaleFactor: 1,
     subtitlePositionOffset: 70,
-    subtitleAlignment: 'top' as SubtitleAlignment,
+    topSubtitlePositionOffset: 70,
     subtitlesWidth: 100,
     subtitleTracksV2: [
         {
@@ -184,6 +185,7 @@ const subtitleSettings = {
             subtitleBackgroundOpacity: 0,
             subtitleFontFamily: 'ToppanBunkyuMidashiGothicStdN-ExtraBold',
             subtitleBlur: true,
+            subtitleAlignment: 'bottom' as SubtitleAlignment,
             subtitleCustomStyles: [],
         },
     ],
@@ -206,6 +208,7 @@ it('calculates diff for text subtitle settings', () => {
                 subtitleBackgroundOpacity: 0,
                 subtitleFontFamily: 'ToppanBunkyuMidashiGothicStdN-ExtraBold',
                 subtitleBlur: true,
+                subtitleAlignment: 'bottom' as SubtitleAlignment,
                 subtitleCustomStyles: [],
             },
             {
@@ -220,6 +223,7 @@ it('calculates diff for text subtitle settings', () => {
                 subtitleBackgroundOpacity: 0,
                 subtitleFontFamily: 'ToppanBunkyuMidashiGothicStdN-ExtraBold',
                 subtitleBlur: false,
+                subtitleAlignment: 'bottom' as SubtitleAlignment,
                 subtitleCustomStyles: [{ key: 'opacity', value: '0.5' }],
             },
         ],
@@ -241,6 +245,7 @@ it('calculates diff for text subtitle settings', () => {
                 subtitleBackgroundOpacity: 0,
                 subtitleFontFamily: 'ToppanBunkyuMidashiGothicStdN-ExtraBold',
                 subtitleBlur: true,
+                subtitleAlignment: 'bottom' as SubtitleAlignment,
                 subtitleCustomStyles: [],
             },
         ],
@@ -263,6 +268,7 @@ it('targets correct values for text subtitle ', () => {
         subtitleBackgroundOpacity: 0,
         subtitleFontFamily: 'ToppanBunkyuMidashiGothicStdN-ExtraBold',
         subtitleBlur: false,
+        subtitleAlignment: 'bottom' as SubtitleAlignment,
         subtitleCustomStyles: [],
     });
     expect(textSubtitleSettingsForTrack(subtitleSettings, 1)).toEqual({
@@ -277,6 +283,7 @@ it('targets correct values for text subtitle ', () => {
         subtitleBackgroundOpacity: 0,
         subtitleFontFamily: 'ToppanBunkyuMidashiGothicStdN-ExtraBold',
         subtitleBlur: true,
+        subtitleAlignment: 'bottom' as SubtitleAlignment,
         subtitleCustomStyles: [],
     });
 });

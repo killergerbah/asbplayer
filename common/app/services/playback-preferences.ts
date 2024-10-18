@@ -13,6 +13,7 @@ interface PlaybackPrefSettings {
     lastSubtitleOffset: number;
     subtitleAlignment: SubtitleAlignment;
     subtitlePositionOffset: number;
+    topSubtitlePositionOffset: number;
 }
 
 export default class PlaybackPreferences {
