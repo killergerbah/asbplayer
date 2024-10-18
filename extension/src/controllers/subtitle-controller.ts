@@ -209,7 +209,7 @@ export default class SubtitleController {
     }
 
     private _getSubtitleTrackAlignment(trackIndex: number) {
-        return this.subtitleTrackAlignments[trackIndex] || 'bottom';
+        return this.subtitleTrackAlignments[trackIndex] || this.subtitleTrackAlignments[0];
     }
 
     private _applyElementOverlayParams(overlay: ElementOverlay, params: ElementOverlayParams) {
