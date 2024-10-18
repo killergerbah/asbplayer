@@ -23,6 +23,7 @@ import {
     changeForTextSubtitleSetting,
     textSubtitleSettingsForTrack,
     PauseOnHoverMode,
+    allTextSubtitleSettings,
 } from '@project/common/settings';
 import { surroundingSubtitles, mockSurroundingSubtitles, seekWithNudge } from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
@@ -63,14 +64,6 @@ const useStyles = makeStyles({
     },
     cursorHidden: {
         cursor: 'none',
-    },
-    subtitleContainer: {
-        position: 'absolute',
-        paddingLeft: 20,
-        paddingRight: 20,
-        textAlign: 'center',
-        whiteSpace: 'normal',
-        lineHeight: 'inherit',
     },
 });
 
@@ -248,6 +241,41 @@ const CachedShowingSubtitle = React.memo(function CachedShowingSubtitle({
     );
 });
 
+const useSubtitleContainerStyles = makeStyles({
+    subtitleContainer: {
+        position: 'absolute',
+        paddingLeft: 20,
+        paddingRight: 20,
+        textAlign: 'center',
+        whiteSpace: 'normal',
+        lineHeight: 'inherit',
+    },
+});
+
+interface SubtitleContainerProps {
+    subtitleSettings: SubtitleSettings;
+    alignment: SubtitleAlignment;
+    children: React.ReactNode;
+}
+
+const SubtitleContainer = ({ subtitleSettings, alignment, children }: SubtitleContainerProps) => {
+    const classes = useSubtitleContainerStyles();
+
+    return (
+        <div
+            className={classes.subtitleContainer}
+            style={{
+                ...(alignment === 'bottom'
+                    ? { bottom: subtitleSettings.subtitlePositionOffset }
+                    : { top: subtitleSettings.topSubtitlePositionOffset }),
+                ...(subtitleSettings.subtitlesWidth === -1 ? {} : { width: `${subtitleSettings.subtitlesWidth}%` }),
+            }}
+        >
+            {children}
+        </div>
+    );
+};
+
 export interface SeekRequest {
     timestamp: number;
 }
@@ -290,6 +318,10 @@ interface MinedRecord {
     surroundingSubtitles: SubtitleModel[];
     timestamp: number;
 }
+
+const allSubtitleAlignments = (subtitleSettings: SubtitleSettings) => {
+    return allTextSubtitleSettings(subtitleSettings).map((s) => s.subtitleAlignment);
+};
 
 export default function VideoPlayer({
     settings,
@@ -343,7 +375,9 @@ export default function VideoPlayer({
     const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
     const [subtitlePlayerHidden, setSubtitlePlayerHidden] = useState<boolean>(false);
     const [appBarHidden, setAppBarHidden] = useState<boolean>(playbackPreferences.theaterMode);
-    const [subtitleAlignment, setSubtitleAlignment] = useState<SubtitleAlignment>(subtitleSettings.subtitleAlignment);
+    const [subtitleAlignments, setSubtitleAlignments] = useState<SubtitleAlignment[]>(
+        allSubtitleAlignments(subtitleSettings)
+    );
     const [bottomSubtitlePositionOffset, setBottomSubtitlePositionOffset] = useState<number>(
         subtitleSettings.subtitlePositionOffset
     );
@@ -371,7 +405,7 @@ export default function VideoPlayer({
     }, [settings]);
 
     useEffect(() => {
-        setSubtitleAlignment(subtitleSettings.subtitleAlignment);
+        setSubtitleAlignments(allSubtitleAlignments(subtitleSettings));
         setBottomSubtitlePositionOffset(subtitleSettings.subtitlePositionOffset);
         setTopSubtitlePositionOffset(subtitleSettings.topSubtitlePositionOffset);
     }, [subtitleSettings]);
@@ -1211,10 +1245,21 @@ export default function VideoPlayer({
 
     const handleSubtitleAlignment = useCallback(
         (alignment: SubtitleAlignment) => {
-            setSubtitleAlignment(alignment);
-            onSettingsChanged({ subtitleAlignment: alignment });
+            let change: Partial<SubtitleSettings> = {};
+
+            for (let track = 0; track < subtitleAlignments.length; ++track) {
+                change = {
+                    ...change,
+                    ...changeForTextSubtitleSetting({ subtitleAlignment: alignment }, subtitleSettings, track),
+                };
+            }
+
+            const newSubtitleSettings = { ...subtitleSettings, ...change };
+            setSubtitleAlignments([alignment]);
+            onSettingsChanged(newSubtitleSettings);
+            setSubtitleSettings(newSubtitleSettings);
         },
-        [onSettingsChanged]
+        [onSettingsChanged, subtitleSettings, subtitleAlignments]
     );
 
     const handleClick = useCallback(() => {
@@ -1300,6 +1345,31 @@ export default function VideoPlayer({
         parent?.document?.body !== undefined &&
         parent.document.body.clientWidth === document.body.clientWidth;
 
+    const subtitleAlignmentForTrack = (track: number) => subtitleAlignments[track] ?? subtitleAlignments[0];
+    const elementForSubtitle = (subtitle, index) =>
+        miscSettings.preCacheSubtitleDom ? (
+            <CachedShowingSubtitle
+                key={index}
+                index={subtitle.index}
+                domCache={getSubtitleDomCache()}
+                onMouseOver={handleSubtitleMouseOver}
+            />
+        ) : (
+            <ShowingSubtitle
+                key={index}
+                subtitle={subtitle}
+                subtitleStyles={trackStyles[subtitle.track]?.styles ?? trackStyles[0].styles}
+                className={trackStyles[subtitle.track].classes}
+                videoRef={videoRef}
+                imageBasedSubtitleScaleFactor={subtitleSettings.imageBasedSubtitleScaleFactor}
+                onMouseOver={handleSubtitleMouseOver}
+            />
+        );
+    const subtitleElementsWithAlignment = (alignment: SubtitleAlignment) =>
+        showSubtitles.filter((s) => subtitleAlignmentForTrack(s.track) === alignment).map(elementForSubtitle);
+    const topSubtitleElements = displaySubtitles ? subtitleElementsWithAlignment('top') : [];
+    const bottomSubtitleElements = displaySubtitles ? subtitleElementsWithAlignment('bottom') : [];
+
     if (!playerChannelSubscribed) {
         return null;
     }
@@ -1319,44 +1389,15 @@ export default function VideoPlayer({
                 src={videoFile}
                 onMouseOver={handleVideoMouseOver}
             />
-            {displaySubtitles && (
-                <div
-                    style={{
-                        ...(subtitleAlignment === 'bottom'
-                            ? { bottom: bottomSubtitlePositionOffset }
-                            : { top: topSubtitlePositionOffset }),
-                        ...(subtitleSettings.subtitlesWidth === -1
-                            ? {}
-                            : { width: `${subtitleSettings.subtitlesWidth}%` }),
-                    }}
-                    className={classes.subtitleContainer}
-                >
-                    {showSubtitles.map((subtitle, index) => {
-                        if (miscSettings.preCacheSubtitleDom) {
-                            const domCache = getSubtitleDomCache();
-                            return (
-                                <CachedShowingSubtitle
-                                    key={index}
-                                    index={subtitle.index}
-                                    domCache={domCache}
-                                    onMouseOver={handleSubtitleMouseOver}
-                                />
-                            );
-                        }
-
-                        return (
-                            <ShowingSubtitle
-                                key={index}
-                                subtitle={subtitle}
-                                subtitleStyles={trackStyles[subtitle.track]?.styles ?? trackStyles[0].styles}
-                                className={trackStyles[subtitle.track].classes}
-                                videoRef={videoRef}
-                                imageBasedSubtitleScaleFactor={subtitleSettings.imageBasedSubtitleScaleFactor}
-                                onMouseOver={handleSubtitleMouseOver}
-                            />
-                        );
-                    })}
-                </div>
+            {topSubtitleElements.length > 0 && (
+                <SubtitleContainer alignment={'top'} subtitleSettings={subtitleSettings}>
+                    {topSubtitleElements}
+                </SubtitleContainer>
+            )}
+            {bottomSubtitleElements.length > 0 && (
+                <SubtitleContainer alignment={'bottom'} subtitleSettings={subtitleSettings}>
+                    {bottomSubtitleElements}
+                </SubtitleContainer>
             )}
             <Controls
                 mousePositionRef={mousePositionRef}
@@ -1400,8 +1441,8 @@ export default function VideoPlayer({
                 theaterModeToggleEnabled={!popOut && !fullscreen}
                 theaterModeEnabled={appBarHidden}
                 onTheaterModeToggle={handleTheaterModeToggle}
-                subtitleAlignment={subtitleAlignment}
-                subtitleAlignmentEnabled={true}
+                subtitleAlignment={subtitleAlignments[0]}
+                subtitleAlignmentEnabled={subtitleAlignments.length === 1}
                 onSubtitleAlignment={handleSubtitleAlignment}
             />
         </div>
