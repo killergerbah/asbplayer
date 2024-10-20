@@ -36,7 +36,7 @@ export default class SyncHandler {
                     if (extensionSyncCommand.message.withSyncedAsbplayerOnly) {
                         return (
                             asbplayer.syncedVideoElement !== undefined &&
-                            asbplayer.syncedVideoElement.tab.id === sender.tab?.id &&
+                            asbplayer.syncedVideoElement.id === sender.tab?.id &&
                             asbplayer.syncedVideoElement.src === extensionSyncCommand.src
                         );
                     }

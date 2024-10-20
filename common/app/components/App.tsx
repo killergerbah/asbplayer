@@ -820,7 +820,10 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
 
     useEffect(() => {
         if (inVideoPlayer) {
-            extension.startHeartbeat({ fromVideoPlayer: true, loadedSubtitles: false, syncedVideoElement: undefined });
+            extension.videoPlayer = true;
+            extension.loadedSubtitles = false;
+            extension.syncedVideoElement = undefined;
+            extension.startHeartbeat();
             return undefined;
         }
 
@@ -895,11 +898,10 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
         }
 
         const unsubscribe = extension.subscribe(onMessage);
-        extension.startHeartbeat({
-            fromVideoPlayer: false,
-            loadedSubtitles: subtitles.length > 0,
-            syncedVideoElement: tab,
-        });
+        extension.videoPlayer = false;
+        extension.loadedSubtitles = subtitles.length > 0;
+        extension.syncedVideoElement = tab;
+        extension.startHeartbeat();
         return unsubscribe;
     }, [extension, subtitles, inVideoPlayer, sources.videoFileUrl, tab, handleFiles, handleAnki, handleUnloadVideo]);
 

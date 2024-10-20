@@ -130,11 +130,16 @@ export default class VideoDataSyncController {
 
     async show({ reason, fromAsbplayerId }: ShowOptions) {
         const client = await this._client();
-        const model = await this._buildModel({
+        const additionalFields: Partial<VideoDataUiModel> = {
             open: true,
             openReason: reason,
-            openedFromAsbplayerId: fromAsbplayerId,
-        });
+        };
+
+        if (fromAsbplayerId !== undefined) {
+            additionalFields.openedFromAsbplayerId = fromAsbplayerId;
+        }
+
+        const model = await this._buildModel(additionalFields);
         this._prepareShow();
         client.updateState(model);
     }

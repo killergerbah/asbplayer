@@ -12,7 +12,7 @@ const settingsProvider = new SettingsProvider(new ExtensionSettingsStorage());
 
 const SidePanelUi = () => {
     const [settings, setSettings] = useState<AsbplayerSettings>();
-    const extension = useChromeExtension({ sidePanel: true });
+    const extension = useChromeExtension({ component: 'sidePanel' });
     const theme = useMemo(() => settings && createTheme(settings.themeType), [settings]);
 
     useEffect(() => {

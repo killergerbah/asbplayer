@@ -12,7 +12,7 @@ interface Props {
 }
 
 const WebsiteApp = (props: Props) => {
-    const extension = useChromeExtension({ sidePanel: false });
+    const extension = useChromeExtension({ component: 'application' });
     const settingsStorage = useMemo(() => {
         if (extension.supportsAppIntegration) {
             return new AppExtensionSettingsStorage(extension);

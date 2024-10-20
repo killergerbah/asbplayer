@@ -44,6 +44,9 @@ export default class ChromeExtension {
     asbplayers: AsbplayerInstance[] | undefined;
     installed: boolean;
     sidePanel: boolean;
+    videoPlayer: boolean | undefined;
+    syncedVideoElement: VideoTabModel | undefined;
+    loadedSubtitles: boolean = false;
 
     private readonly windowEventListener: (event: MessageEvent) => void;
     private readonly _responseResolves: { [key: string]: (value: any) => void } = {};
@@ -167,15 +170,7 @@ export default class ChromeExtension {
         return this.installed && gte(this.version, '0.23.0');
     }
 
-    startHeartbeat({
-        fromVideoPlayer,
-        loadedSubtitles,
-        syncedVideoElement,
-    }: {
-        fromVideoPlayer: boolean;
-        loadedSubtitles: boolean;
-        syncedVideoElement?: VideoTabModel;
-    }) {
+    startHeartbeat() {
         if (!this.installed) {
             return;
         }
@@ -185,18 +180,18 @@ export default class ChromeExtension {
             this.heartbeatInterval = undefined;
         }
 
-        if (fromVideoPlayer) {
+        if (this.videoPlayer) {
             if (gt(this.version, '0.23.0')) {
-                this._sendHeartbeat(true, loadedSubtitles, undefined);
+                this._sendHeartbeat(true, this.loadedSubtitles, undefined);
                 this.heartbeatInterval = setInterval(
-                    () => this._sendHeartbeat(true, loadedSubtitles, syncedVideoElement),
+                    () => this._sendHeartbeat(true, this.loadedSubtitles, this.syncedVideoElement),
                     1000
                 );
             }
         } else {
-            this._sendHeartbeat(false, loadedSubtitles, syncedVideoElement);
+            this._sendHeartbeat(false, this.loadedSubtitles, this.syncedVideoElement);
             this.heartbeatInterval = setInterval(
-                () => this._sendHeartbeat(false, loadedSubtitles, syncedVideoElement),
+                () => this._sendHeartbeat(false, this.loadedSubtitles, this.syncedVideoElement),
                 1000
             );
         }

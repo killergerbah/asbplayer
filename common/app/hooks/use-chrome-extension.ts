@@ -30,14 +30,16 @@ const listenForVersion = (callback: (extension: ChromeExtension) => void) => {
 };
 
 const unbindInitialListener = listenForVersion((extension) => (realExtension = extension));
+export type AsbplayerComponent = 'sidePanel' | 'videoPlayer' | 'application';
 
 export interface ChromeExtensionOptions {
-    sidePanel: boolean;
+    component: AsbplayerComponent;
 }
 
-export const useChromeExtension = ({ sidePanel }: ChromeExtensionOptions) => {
+export const useChromeExtension = ({ component }: ChromeExtensionOptions) => {
     const [extension, setExtension] = useState<ChromeExtension>(initialExtension);
-    extension.sidePanel = sidePanel;
+    extension.sidePanel = component === 'sidePanel';
+    extension.videoPlayer = component === 'videoPlayer';
 
     useEffect(() => {
         unbindInitialListener();

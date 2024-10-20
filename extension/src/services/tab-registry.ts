@@ -26,7 +26,7 @@ export interface Asbplayer {
     receivedTabs?: VideoTabModel[];
     videoPlayer: boolean;
     loadedSubtitles?: boolean;
-    syncedVideoElement?: VideoElement;
+    syncedVideoElement?: VideoTabModel;
 }
 
 export interface VideoElement {
@@ -195,7 +195,14 @@ export default class TabRegistry {
 
     async onAsbplayerHeartbeat(
         tab: chrome.tabs.Tab | undefined,
-        { id: asbplayerId, videoPlayer, sidePanel, receivedTabs, loadedSubtitles }: AsbplayerHeartbeatMessage
+        {
+            id: asbplayerId,
+            videoPlayer,
+            sidePanel,
+            receivedTabs,
+            loadedSubtitles,
+            syncedVideoElement,
+        }: AsbplayerHeartbeatMessage
     ) {
         this._updateAsbplayers(
             tab,
@@ -203,7 +210,8 @@ export default class TabRegistry {
             videoPlayer,
             sidePanel ?? false,
             loadedSubtitles ?? false,
-            receivedTabs
+            receivedTabs,
+            syncedVideoElement
         );
 
         try {
@@ -229,9 +237,17 @@ export default class TabRegistry {
 
     async onAsbplayerAckTabs(
         tab: chrome.tabs.Tab | undefined,
-        { id: asbplayerId, sidePanel, receivedTabs }: AckTabsMessage
+        { id: asbplayerId, videoPlayer, sidePanel, loadedSubtitles, receivedTabs, syncedVideoElement }: AckTabsMessage
     ) {
-        this._updateAsbplayers(tab, asbplayerId, false, sidePanel ?? false, false, receivedTabs);
+        this._updateAsbplayers(
+            tab,
+            asbplayerId,
+            videoPlayer,
+            sidePanel ?? false,
+            loadedSubtitles ?? false,
+            receivedTabs,
+            syncedVideoElement
+        );
     }
 
     private async _updateAsbplayers(
@@ -240,7 +256,8 @@ export default class TabRegistry {
         videoPlayer: boolean,
         sidePanel: boolean,
         loadedSubtitles: boolean,
-        receivedTabs?: VideoTabModel[]
+        receivedTabs: VideoTabModel[] | undefined,
+        syncedVideoElement: VideoTabModel | undefined
     ) {
         const slimTab =
             tab === undefined || tab.id === undefined
@@ -256,10 +273,11 @@ export default class TabRegistry {
                 tab: slimTab,
                 id: asbplayerId,
                 timestamp: Date.now(),
-                receivedTabs: receivedTabs,
-                sidePanel: sidePanel,
-                loadedSubtitles: loadedSubtitles,
-                videoPlayer: videoPlayer,
+                receivedTabs,
+                sidePanel,
+                loadedSubtitles,
+                videoPlayer,
+                syncedVideoElement,
             };
             return true;
         });

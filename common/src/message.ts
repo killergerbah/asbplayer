@@ -40,18 +40,21 @@ export interface AsbplayerHeartbeatMessage extends Message {
     readonly syncedVideoElement?: VideoTabModel;
 }
 
+export interface AckTabsMessage extends Message {
+    readonly command: 'ackTabs';
+    readonly id: string;
+    readonly receivedTabs: VideoTabModel[];
+    readonly videoPlayer: boolean;
+    readonly sidePanel?: boolean;
+    readonly loadedSubtitles?: boolean;
+    readonly syncedVideoElement?: VideoTabModel;
+}
+
 export interface TabsMessage extends Message {
     readonly command: 'tabs';
     readonly tabs: VideoTabModel[];
     readonly asbplayers: AsbplayerInstance[];
     readonly ackRequested: boolean;
-}
-
-export interface AckTabsMessage extends Message {
-    readonly command: 'ackTabs';
-    readonly id: string;
-    readonly receivedTabs: VideoTabModel[];
-    readonly sidePanel?: boolean;
 }
 
 export interface VideoHeartbeatMessage extends Message {

@@ -90,10 +90,8 @@ export default function SidePanel({ settings, extension }: Props) {
     const videoElementCount = useVideoElementCount({ extension, currentTabId });
 
     useEffect(() => {
-        extension.startHeartbeat({
-            fromVideoPlayer: false,
-            loadedSubtitles: subtitles !== undefined && subtitles.length > 0,
-        });
+        extension.loadedSubtitles = subtitles !== undefined && subtitles.length > 0;
+        extension.startHeartbeat();
     }, [extension, subtitles]);
 
     useEffect(() => {
