@@ -1346,7 +1346,7 @@ export default function VideoPlayer({
         parent.document.body.clientWidth === document.body.clientWidth;
 
     const subtitleAlignmentForTrack = (track: number) => subtitleAlignments[track] ?? subtitleAlignments[0];
-    const elementForSubtitle = (subtitle, index) =>
+    const elementForSubtitle = (subtitle: IndexedSubtitleModel, index: number) =>
         miscSettings.preCacheSubtitleDom ? (
             <CachedShowingSubtitle
                 key={index}
