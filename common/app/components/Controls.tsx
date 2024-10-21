@@ -37,6 +37,8 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { isMobile } from 'react-device-detect';
 import SubtitleOffsetInput from './SubtitleOffsetInput';
+import VideoElementFavicon from './VideoElementFavicon';
+
 const useControlStyles = makeStyles((theme) => ({
     container: {
         position: 'absolute',
@@ -376,7 +378,7 @@ function TabSelector({ open, anchorEl, onClose, tabs, selectedTab, onTabSelected
                 button
                 onClick={() => onTabSelected(t)}
             >
-                {t.id} {t.title} {t.src}
+                <VideoElementFavicon videoElement={t} /> {t.title}
             </ListItem>
         );
     });

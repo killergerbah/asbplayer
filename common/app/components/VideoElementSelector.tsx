@@ -3,24 +3,13 @@ import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import { useTranslation } from 'react-i18next';
 import { VideoTabModel } from '../..';
-import { useTheme } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
+import VideoElementFavicon from './VideoElementFavicon';
 
 interface Props {
     onVideoElementSelected: (element: VideoTabModel) => void;
     videoElements: VideoTabModel[];
 }
-
-const Favicon = ({ videoElement }: { videoElement: VideoTabModel }) => {
-    const theme = useTheme();
-    return (
-        <>
-            {videoElement.faviconUrl && (
-                <img src={videoElement.faviconUrl} style={{ width: 24, marginRight: theme.spacing(1) }} />
-            )}
-        </>
-    );
-};
 
 const VideoElementSelector = ({ videoElements, onVideoElementSelected }: Props) => {
     const { t } = useTranslation();
@@ -30,7 +19,7 @@ const VideoElementSelector = ({ videoElements, onVideoElementSelected }: Props) 
         const videoElement = videoElements[0];
         return (
             <Button variant="outlined" style={{ width: '100%' }} onClick={() => onVideoElementSelected(videoElement)}>
-                <Favicon videoElement={videoElement} />
+                <VideoElementFavicon videoElement={videoElement} />
                 {videoElement.title}
             </Button>
         );
@@ -58,7 +47,7 @@ const VideoElementSelector = ({ videoElements, onVideoElementSelected }: Props) 
         >
             {videoElements.map((v) => (
                 <MenuItem key={v.src} value={v.src}>
-                    <Favicon videoElement={v} />
+                    <VideoElementFavicon videoElement={v} />
                     {v.title}
                 </MenuItem>
             ))}
