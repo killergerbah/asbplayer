@@ -120,7 +120,7 @@ const MobileVideoOverlay = () => {
 
             const command: AsbPlayerToVideoCommandV2<OffsetToVideoMessage> = {
                 sender: 'asbplayerv2',
-                message: { command: 'offset', value: offset },
+                message: { command: 'offset', value: offset, echo: true },
                 tabId: location.tabId,
                 src: location.src,
             };

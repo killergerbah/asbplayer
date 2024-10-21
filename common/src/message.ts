@@ -268,6 +268,7 @@ export interface OffsetFromVideoMessage extends Message {
 export interface OffsetToVideoMessage extends Message {
     readonly command: 'offset';
     readonly value: number;
+    readonly echo?: boolean;
 }
 
 export interface PlaybackRateToVideoMessage extends Message {

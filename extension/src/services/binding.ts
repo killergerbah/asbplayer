@@ -600,7 +600,7 @@ export default class Binding {
                         break;
                     case 'offset':
                         const offsetMessage = request.message as OffsetToVideoMessage;
-                        this.subtitleController.offset(offsetMessage.value, true);
+                        this.subtitleController.offset(offsetMessage.value, !offsetMessage.echo);
                         break;
                     case 'playbackRate':
                         const playbackRateMessage = request.message as PlaybackRateToVideoMessage;
