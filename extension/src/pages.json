@@ -11,7 +11,7 @@
         {
             "host": "(m|www)\\.youtube\\.com",
             "script": "youtube-page.js",
-            "path": "watch",
+            "path": "watch|shorts",
             "autoSync": {
                 "enabled": true
             }

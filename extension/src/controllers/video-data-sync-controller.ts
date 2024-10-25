@@ -1,6 +1,5 @@
 import {
     ConfirmedVideoDataSubtitleTrack,
-    ExtensionSyncMessage,
     OpenAsbplayerSettingsMessage,
     SerializedSubtitleFile,
     VideoData,
