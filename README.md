@@ -76,6 +76,7 @@ Thank you to all those who have contributed to asbplayer:
 [@s-cork](https://github.com/s-cork),
 [@shekhirin](https://github.com/shekhirin),
 [@ShanaryS](https://github.com/ShanaryS)
+[@ganqqwerty](https://github.com/ganqqwerty)
 
 Thank you to all those who have translated asbplayer:
 
