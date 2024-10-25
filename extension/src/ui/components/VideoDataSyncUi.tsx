@@ -45,6 +45,9 @@ export default function VideoDataSyncUi({ bridge }: Props) {
 
     const theme = useMemo(() => createTheme((themeType || 'dark') as PaletteType), [themeType]);
 
+    const handleOpenSettings = useCallback(() => {
+        bridge.sendMessageFromServer({ command: 'openSettings' });
+    }, [bridge]);
     const handleCancel = useCallback(() => {
         setOpen(false);
         bridge.sendMessageFromServer({ command: 'cancel' });
@@ -174,6 +177,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                 error={error}
                 onCancel={handleCancel}
                 onOpenFile={handleOpenFile}
+                onOpenSettings={handleOpenSettings}
                 onConfirm={handleConfirm}
             />
             <input

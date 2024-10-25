@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import CloseIcon from '@material-ui/icons/Close';
+import SettingsIcon from '@material-ui/icons/Settings';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -80,6 +81,9 @@ export default function VideoSelectUi({ bridge }: Props) {
         setOpen(false);
     }, [bridge, selectedVideoElementSrc]);
 
+    const handleOpenSettings = useCallback(() => {
+        bridge.sendMessageFromServer({ command: 'openSettings' });
+    }, [bridge]);
     const handleCancel = useCallback(() => {
         const message: VideoSelectModeCancelMessage = {
             command: 'cancel',
@@ -97,6 +101,9 @@ export default function VideoSelectUi({ bridge }: Props) {
                             <Typography variant="h6" style={{ flexGrow: 1 }}>
                                 {t('extension.videoSelect.multipleVideoElements')}
                             </Typography>
+                            <IconButton edge="end" onClick={() => handleOpenSettings()}>
+                                <SettingsIcon />
+                            </IconButton>
                             <IconButton edge="end" onClick={() => handleCancel()}>
                                 <CloseIcon />
                             </IconButton>

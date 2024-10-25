@@ -1,6 +1,7 @@
 import {
     ConfirmedVideoDataSubtitleTrack,
     ExtensionSyncMessage,
+    OpenAsbplayerSettingsMessage,
     SerializedSubtitleFile,
     VideoData,
     VideoDataSubtitleTrack,
@@ -292,6 +293,16 @@ export default class VideoDataSyncController {
                             await this._reportError(e.message);
                         }
                     }
+                } else if ('openSettings' === message.command) {
+                    const openSettingsCommand: VideoToExtensionCommand<OpenAsbplayerSettingsMessage> = {
+                        sender: 'asbplayer-video',
+                        message: {
+                            command: 'open-asbplayer-settings',
+                        },
+                        src: this._context.video.src,
+                    };
+                    chrome.runtime.sendMessage(openSettingsCommand);
+                    return;
                 }
 
                 if (dataWasSynced) {

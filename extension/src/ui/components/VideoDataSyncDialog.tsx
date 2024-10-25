@@ -7,6 +7,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
+import SettingsIcon from '@material-ui/icons/Settings';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -58,6 +59,7 @@ interface Props {
     openReason: VideoDataUiOpenReason;
     onCancel: () => void;
     onOpenFile: () => void;
+    onOpenSettings: () => void;
     onConfirm: (track: ConfirmedVideoDataSubtitleTrack[], shouldRememberTrackChoices: boolean) => void;
 }
 
@@ -74,6 +76,7 @@ export default function VideoDataSyncDialog({
     openReason,
     onCancel,
     onOpenFile,
+    onOpenSettings,
     onConfirm,
 }: Props) {
     const { t } = useTranslation();
@@ -212,6 +215,11 @@ export default function VideoDataSyncDialog({
                 <Typography variant="h6" style={{ flexGrow: 1 }}>
                     {t('extension.videoDataSync.selectSubtitles')}
                 </Typography>
+                {onOpenSettings && (
+                    <IconButton edge="end" onClick={onOpenSettings}>
+                        <SettingsIcon />
+                    </IconButton>
+                )}
                 {onCancel && (
                     <IconButton edge="end" onClick={() => onCancel()}>
                         <CloseIcon />

@@ -1,4 +1,10 @@
-import { CaptureVisibleTabMessage, ForegroundToExtensionCommand, VideoSelectModeConfirmMessage } from '@project/common';
+import {
+    CaptureVisibleTabMessage,
+    ForegroundToExtensionCommand,
+    OpenAsbplayerSettingsMessage,
+    TabToExtensionCommand,
+    VideoSelectModeConfirmMessage,
+} from '@project/common';
 import { SettingsProvider } from '@project/common/settings';
 import { VideoElement } from '../ui/components/VideoSelectUi';
 import Binding from '../services/binding';
@@ -138,6 +144,14 @@ export default class VideoSelectController {
                     this._bindings
                         .find((b) => b.video.src === (message as VideoSelectModeConfirmMessage).selectedVideoElementSrc)
                         ?.showVideoDataDialog(false);
+                } else if (message.command === 'openSettings') {
+                    const openSettingsCommand: TabToExtensionCommand<OpenAsbplayerSettingsMessage> = {
+                        sender: 'asbplayer-video-tab',
+                        message: {
+                            command: 'open-asbplayer-settings',
+                        },
+                    };
+                    chrome.runtime.sendMessage(openSettingsCommand);
                 } else if (message.command === 'cancel') {
                     client.updateState({ open: false });
                     this._frame.hide();
