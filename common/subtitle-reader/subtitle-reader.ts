@@ -38,7 +38,7 @@ export default class SubtitleReader {
         let regex: RegExp | undefined;
 
         try {
-            regex = regexFilter.trim() === '' ? undefined : new RegExp(regexFilter, 'g');
+            regex = regexFilter.trim() === '' ? undefined : new RegExp(regexFilter, 'gv');
         } catch (e) {
             regex = undefined;
         }
