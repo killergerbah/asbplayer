@@ -29,6 +29,10 @@ type (
 		Action string                 `json:"action"`
 		Params map[string]interface{} `json:"params"`
 	}
+	asbplayerLoadSubtitlesRequest struct {
+		FileName string `json:"name"`
+		Base64   string `json:"base64"`
+	}
 	clientCommand struct {
 		Command   string                 `json:"command"`
 		MessageId string                 `json:"messageId"`
@@ -201,10 +205,6 @@ func (forwarder forwarder) handlePostRequest(c echo.Context) error {
 		"postMineAction": forwarder.PostMineAction,
 	}}
 
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
-
 	if forwarder.PostMineAction == 2 {
 		response := forwarder.forwardToAnkiConnect(buf, c, "POST")
 		err := forwarder.publishMessage(command)
@@ -219,27 +219,51 @@ func (forwarder forwarder) handlePostRequest(c echo.Context) error {
 	responseChannel := make(chan clientResponse)
 
 	go forwarder.publishMessageAndAwaitResponse(command, responseChannel)
-	select {
-	case response, ok := <-responseChannel:
-		if !ok {
-			return echo.NewHTTPError(http.StatusInternalServerError, nil)
-		}
-
-		mineSubtitleResponseBody := mineSubtitleResponseBody{}
-		err := json.Unmarshal(response.Body, &mineSubtitleResponseBody)
-
-		if err != nil || !mineSubtitleResponseBody.Published {
-			return forwarder.forwardToAnkiConnect(buf, c, "POST")
-		}
-
-		c.JSON(http.StatusOK, -1)
+	response, ok := <-responseChannel
+	if !ok {
+		return echo.NewHTTPError(http.StatusInternalServerError, nil)
 	}
+
+	mineSubtitleResponseBody := mineSubtitleResponseBody{}
+	err = json.Unmarshal(response.Body, &mineSubtitleResponseBody)
+
+	if err != nil || !mineSubtitleResponseBody.Published {
+		return forwarder.forwardToAnkiConnect(buf, c, "POST")
+	}
+
+	c.JSON(http.StatusOK, -1)
 
 	return nil
 }
 
 func (forwarder forwarder) handleOptionsRequest(c echo.Context) error {
 	return forwarder.forwardToAnkiConnect(new(bytes.Buffer), c, "OPTIONS")
+}
+
+func (forwarder forwarder) handleAsbplayerLoadSubtitlesRequest(c echo.Context) error {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(c.Request().Body)
+	request := asbplayerLoadSubtitlesRequest{}
+	err := json.Unmarshal(buf.Bytes(), &request)
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	command := clientCommand{Command: "load-subtitles", MessageId: uuid.NewString(), Body: map[string]interface{}{
+		"fileName": request.FileName,
+		"base64":   request.Base64,
+	}}
+	responseChannel := make(chan clientResponse)
+
+	go forwarder.publishMessageAndAwaitResponse(command, responseChannel)
+	_, ok := <-responseChannel
+	if !ok {
+		return echo.NewHTTPError(http.StatusInternalServerError, nil)
+	}
+
+	c.String(http.StatusOK, "")
+	return nil
 }
 
 func main() {
@@ -278,6 +302,7 @@ func main() {
 	e.GET("/ws", forwarder.handleWebsocketClient)
 	e.GET("/", forwarder.handleGetRequest)
 	e.POST("/", forwarder.handlePostRequest)
+	e.POST("/asbplayer/load-subtitles", forwarder.handleAsbplayerLoadSubtitlesRequest)
 	e.OPTIONS("/", forwarder.handleOptionsRequest)
 	e.Logger.Fatal(e.Start(":" + port))
 }

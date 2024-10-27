@@ -226,9 +226,15 @@ export interface ToggleRecordingMessage extends Message {
     readonly command: 'toggle-recording';
 }
 
+export interface SubtitleFile {
+    base64: string;
+    name: string;
+}
+
 export interface ToggleVideoSelectMessage extends Message {
     readonly command: 'toggle-video-select';
     readonly fromAsbplayerId?: string;
+    readonly subtitleFiles?: SubtitleFile[];
 }
 
 export interface ShowAnkiUiAfterRerecordMessage extends Message {

@@ -32,6 +32,7 @@ import { useWindowSize } from '../hooks/use-window-size';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
 import { createBlobUrl } from '../../blob-url';
 import { MiningContext } from '../services/mining-context';
+import { WebSocketClient } from '../../web-socket-client';
 
 const minVideoPlayerWidth = 300;
 
@@ -122,6 +123,7 @@ interface PlayerProps {
     rewindSubtitle?: SubtitleModel;
     hideControls?: boolean;
     forceCompressedMode?: boolean;
+    webSocketClient?: WebSocketClient;
 }
 
 const Player = React.memo(function Player({
@@ -160,6 +162,7 @@ const Player = React.memo(function Player({
     rewindSubtitle,
     hideControls,
     forceCompressedMode,
+    webSocketClient,
 }: PlayerProps) {
     const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
     const [subtitlesSentThroughChannel, setSubtitlesSentThroughChannel] = useState<boolean>();
@@ -1057,6 +1060,7 @@ const Player = React.memo(function Player({
                         autoPauseContext={autoPauseContext}
                         settings={settings}
                         keyBinder={keyBinder}
+                        webSocketClient={webSocketClient}
                     />
                 </Grid>
             </Grid>

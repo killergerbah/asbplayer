@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "usage: $0 <path/to/subtitle/file>"
+    exit 1
+fi
+
+BASE64=$(base64 -i $1)
+FILENAME=$(basename $1)
+curl -H "content-type: application/json" \
+    -X POST "http://127.0.0.1:8766/asbplayer/load-subtitles" \
+    -d '{"files": [{"name": "'$FILENAME'", "base64": "'$BASE64'"}]}'

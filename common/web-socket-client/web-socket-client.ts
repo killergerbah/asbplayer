@@ -7,11 +7,28 @@ export interface MineSubtitleCommand {
     };
 }
 
-interface MineSubtitleResponse {
+interface Response<T> {
     command: 'response';
     messageId: string;
+    body: T;
+}
+
+interface MineSubtitleResponseBody {
+    published: boolean;
+}
+
+interface LoadSubtitlesResponseBody {}
+
+export interface SubtitleFile {
+    base64: string;
+    name: string;
+}
+
+export interface LoadSubtitlesCommand {
+    command: 'load-subtitles';
+    messageId: string;
     body: {
-        published: boolean;
+        files?: SubtitleFile[];
     };
 }
 
@@ -23,6 +40,7 @@ export class WebSocketClient {
     private _pingPromises: { resolve: (value: unknown) => void; reject: (error: any) => void }[] = [];
     private _connectPromise?: { resolve: (value: unknown) => void; reject: (error: any) => void };
     onMineSubtitle?: (command: MineSubtitleCommand) => Promise<boolean>;
+    onLoadSubtitles?: (command: LoadSubtitlesCommand) => Promise<void>;
 
     get socket() {
         return this._socket;
@@ -76,7 +94,20 @@ export class WebSocketClient {
                     if (payload.command === 'mine-subtitle') {
                         const messageId = payload.messageId;
                         const published = (await this.onMineSubtitle?.(payload)) ?? false;
-                        const response: MineSubtitleResponse = { command: 'response', messageId, body: { published } };
+                        const response: Response<MineSubtitleResponseBody> = {
+                            command: 'response',
+                            messageId,
+                            body: { published },
+                        };
+                        this._socket?.send(JSON.stringify(response));
+                    } else if (payload.command === 'load-subtitles') {
+                        const messageId = payload.messageId;
+                        await this.onLoadSubtitles?.(payload);
+                        const response: Response<LoadSubtitlesResponseBody> = {
+                            command: 'response',
+                            messageId,
+                            body: {},
+                        };
                         this._socket?.send(JSON.stringify(response));
                     }
                 }

@@ -55,6 +55,8 @@ import { useAnki } from '../hooks/use-anki';
 import { usePlaybackPreferences } from '../hooks/use-playback-preferences';
 import { MiningContext } from '../services/mining-context';
 import { timeDurationDisplay } from '../services/util';
+import { useAppWebSocketClient } from '../hooks/use-app-web-socket-client';
+import { LoadSubtitlesCommand } from '../../web-socket-client';
 
 const latestExtensionVersion = '1.5.0';
 const extensionUrl =
@@ -216,6 +218,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
             pgsWorkerFactory,
         });
     }, [settings.subtitleRegexFilter, settings.subtitleRegexFilterTextReplacement]);
+    const webSocketClient = useAppWebSocketClient({ settings });
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>([]);
     const playbackPreferences = usePlaybackPreferences(settings, extension);
     const theme = useMemo<Theme>(() => createTheme(settings.themeType), [settings.themeType]);
@@ -819,6 +822,20 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
     );
 
     useEffect(() => {
+        if (!webSocketClient) {
+            return;
+        }
+
+        webSocketClient.onLoadSubtitles = async (command: LoadSubtitlesCommand) => {
+            const { files } = command.body;
+            const filePromises = (files ?? []).map(
+                async (f) => new File([await (await fetch('data:text/plain;base64,' + f.base64)).blob()], f.name)
+            );
+            handleFiles({ files: await Promise.all(filePromises) });
+        };
+    }, [webSocketClient, handleFiles]);
+
+    useEffect(() => {
         if (inVideoPlayer) {
             extension.videoPlayer = true;
             extension.loadedSubtitles = false;
@@ -1347,6 +1364,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                                 disableKeyEvents={disableKeyEvents}
                                 miningContext={miningContext}
                                 keyBinder={keyBinder}
+                                webSocketClient={webSocketClient}
                             />
                         </Content>
                     </Paper>

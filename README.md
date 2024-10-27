@@ -260,7 +260,7 @@ asbplayer can be setup to support one-click mining workflows by integrating with
 1. Install [Go](https://go.dev/doc/install).
 2. Clone this repository and start the AnkiConnect proxy server:
     ```
-    cd scripts/anki-connect-proxy
+    cd scripts/web-socket-server
     go run main.go
     ```
 3. Enable asbplayer's WebSocket client from the [settings](https://killergerbah.github.io/asbplayer?view=settings#misc-settings).
@@ -270,42 +270,75 @@ asbplayer can be setup to support one-click mining workflows by integrating with
 
 The proxy is very lightweight, so it's fine to leave it running in the background. On Windows, [RBTray](https://github.com/benbuck/rbtray) can be used to minimise it to the taskbar.
 
-See the proxy's [example configuration file](https://github.com/killergerbah/asbplayer/blob/main/scripts/anki-connect-proxy/.env.example) for how to further configure it.
+See the proxy's [example configuration file](https://github.com/killergerbah/asbplayer/blob/main/scripts/web-socket-server/.env.example) for how to further configure it.
 
 #### WebSocket interface
 
-The asbplayer website can be controlled remotely through a WebSocket connection, which enables [one-click mining flows](#one-click-mining-flow) with the right setup. Currently asbplayer responds to one type of payload:
+The asbplayer website can be controlled remotely through a WebSocket connection, which enables [one-click mining flows](#one-click-mining-flow) with the right setup. Currently asbplayer responds to two types of payloads:
 
-```javascript
-{
-    "command": "mine-subtitle",
-    // Message ID to correlate with asbplayer's response
-    "messageId": "10281760-d787-4356-8572-f698d8ff3884",
-    "body": {
-        // 0 = "None", 1 = "Show anki dialog", 2 = "Update last card", 3 = "Export card"
-        "postMineAction": 1,
-        // Key-value pairs corresponding to an Anki note type
-        "fields": {
-            "key1": "value1",
-            "key2": "value2"
+-   `mine-subtitle` request:
+
+    ```javascript
+    {
+        "command": "mine-subtitle",
+        // Message ID to correlate with asbplayer's response
+        "messageId": "10281760-d787-4356-8572-f698d8ff3884",
+        "body": {
+            // 0 = "None", 1 = "Show anki dialog", 2 = "Update last card", 3 = "Export card"
+            "postMineAction": 1,
+            // Key-value pairs corresponding to an Anki note type
+            "fields": {
+                "key1": "value1",
+                "key2": "value2"
+            }
         }
     }
-}
-```
+    ```
 
-Response:
+    `mine-subtitle` response:
 
-```javascript
-{
-    "command": "response",
-    // Same message ID received in request
-    "messageId": "10281760-d787-4356-8572-f698d8ff3884",
-    "body": {
-        // Whether the command was successfully published to the website
-        "published": true
+    ```javascript
+    {
+        "command": "response",
+        // Same message ID received in request
+        "messageId": "10281760-d787-4356-8572-f698d8ff3884",
+        "body": {
+            // Whether the command was successfully published to an asbplayer client
+            "published": true
+        }
     }
-}
-```
+    ```
+
+-   `load-subtitles` request:
+
+    ```javascript
+    {
+        "command": "load-subtitles",
+        // Message ID to correlate with asbplayer's response
+        "messageId": "3565510c-342f-4cec-ad2e-dee81af88d75",
+        "body": {
+            "files": [{
+                // Name of the file, including its extension
+                "name": "some-file.srt",
+                // Base64-encoded file contents
+                "base64": "Zm9vYmFyY..."
+            }]
+        }
+    }
+    ```
+
+    `load-subtitles` response:
+
+    ```javascript
+    {
+        "command": "response",
+        // Same message ID received in request
+        "messageId": "3565510c-342f-4cec-ad2e-dee81af88d75",
+        "body": {}
+    }
+    ```
+
+    The [Web Socket server](https://github.com/killergerbah/asbplayer/blob/main/scripts/web-socket-server) implements this protocol and can load subtitles into connected asbplayer clients through its HTTP endpoint `POST asbplayer/load-subtitles` using the `body` of the payload documented above. See the [CLI script](https://github.com/killergerbah/asbplayer/blob/main/scripts/web-socket-server/cli/load-subtitles) for an example of how this is done.
 
 ## Usage on Android
 

@@ -43,9 +43,10 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import Clock from '../services/clock';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
-import { MineSubtitleParams, useAppWebSocketClient } from '../hooks/use-app-web-socket-client';
+import { MineSubtitleParams } from '../hooks/use-app-web-socket-client';
 import { isMobile } from 'react-device-detect';
 import ChromeExtension, { ExtensionMessage } from '../services/chrome-extension';
+import { MineSubtitleCommand, WebSocketClient } from '../../web-socket-client';
 
 let lastKnownWidth: number | undefined;
 export const minSubtitlePlayerWidth = 200;
@@ -362,6 +363,7 @@ interface SubtitlePlayerProps {
     settings: AsbplayerSettings;
     keyBinder: KeyBinder;
     maxResizeWidth: number;
+    webSocketClient?: WebSocketClient;
 }
 
 export default function SubtitlePlayer({
@@ -394,6 +396,7 @@ export default function SubtitlePlayer({
     settings,
     keyBinder,
     maxResizeWidth,
+    webSocketClient,
 }: SubtitlePlayerProps) {
     const { t } = useTranslation();
     const clockRef = useRef<Clock>(clock);
@@ -828,11 +831,37 @@ export default function SubtitlePlayer({
         ]
     );
 
-    useAppWebSocketClient({
-        onMineSubtitle: copyFromWebSocketClient,
-        settings,
-        enabled: !extension.supportsWebSocketClient && subtitles !== undefined && subtitles.length > 0,
-    });
+    useEffect(() => {
+        if (!webSocketClient || extension.supportsWebSocketClient) {
+            // Do not handle mining commands here if the extension supports the web socket client.
+            // The extension will handle the commands for us.
+            return;
+        }
+
+        webSocketClient.onMineSubtitle = async ({
+            body: { fields: receivedFields, postMineAction: receivedPostMineAction },
+        }: MineSubtitleCommand) => {
+            const fields = receivedFields ?? {};
+            const word = fields[settings.wordField] || undefined;
+            const definition = fields[settings.definitionField] || undefined;
+            const text = fields[settings.sentenceField] || undefined;
+            const customFieldValues = Object.fromEntries(
+                Object.entries(settings.customAnkiFields)
+                    .map(([asbplayerFieldName, ankiFieldName]) => {
+                        const fieldValue = fields[ankiFieldName];
+
+                        if (fieldValue === undefined) {
+                            return undefined;
+                        }
+
+                        return [asbplayerFieldName, fieldValue];
+                    })
+                    .filter((entry) => entry !== undefined) as string[][]
+            );
+            const postMineAction = receivedPostMineAction ?? PostMineAction.showAnkiDialog;
+            return copyFromWebSocketClient({ postMineAction, text, word, definition, customFieldValues });
+        };
+    }, [webSocketClient, extension, settings, copyFromWebSocketClient]);
 
     useEffect(() => {
         if (extension.installed) {

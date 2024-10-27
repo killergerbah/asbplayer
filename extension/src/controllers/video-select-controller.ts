@@ -2,6 +2,7 @@ import {
     CaptureVisibleTabMessage,
     ForegroundToExtensionCommand,
     OpenAsbplayerSettingsMessage,
+    SubtitleFile,
     TabToExtensionCommand,
     VideoSelectModeConfirmMessage,
 } from '@project/common';
@@ -16,6 +17,7 @@ export default class VideoSelectController {
     private readonly _bindings: Binding[];
     private readonly _frame: UiFrame;
     private readonly _settings: SettingsProvider = new SettingsProvider(new ExtensionSettingsStorage());
+    private _subtitleFiles?: SubtitleFile[];
 
     private messageListener?: (
         request: any,
@@ -57,7 +59,7 @@ export default class VideoSelectController {
 
             switch (request.message.command) {
                 case 'toggle-video-select':
-                    this._trigger(false, request.message.fromAsbplayerId, request.src);
+                    this._trigger(false, request.message.fromAsbplayerId, request.src, request.message.subtitleFiles);
                     break;
                 case 'copy-subtitle':
                 case 'toggle-recording':
@@ -86,23 +88,37 @@ export default class VideoSelectController {
         }
     }
 
-    private async _trigger(openedFromMiningCommand: boolean, fromAsbplayerId?: string, targetSrc?: string) {
+    private async _trigger(
+        openedFromMiningCommand: boolean,
+        fromAsbplayerId?: string,
+        targetSrc?: string,
+        subtitleFiles?: SubtitleFile[]
+    ) {
         if (targetSrc !== undefined) {
             var binding = this._bindings.find((b) => b.video.src === targetSrc);
 
             if (binding !== undefined && binding.subscribed) {
-                binding.showVideoDataDialog(openedFromMiningCommand, fromAsbplayerId);
+                if (subtitleFiles !== undefined) {
+                    binding.loadSubtitles(await this._filesForSubtitleFiles(subtitleFiles), false, fromAsbplayerId);
+                } else {
+                    binding.showVideoDataDialog(openedFromMiningCommand, fromAsbplayerId);
+                }
             }
         } else if (this._bindings.length === 1) {
+            // Special case - skip video select dialog since there is only one element
             const binding = this._bindings[0];
 
             if (binding.subscribed) {
-                // Special case - show dialog for the one video element
-                binding.showVideoDataDialog(openedFromMiningCommand);
+                if (subtitleFiles !== undefined) {
+                    binding.loadSubtitles(await this._filesForSubtitleFiles(subtitleFiles), false);
+                } else {
+                    binding.showVideoDataDialog(openedFromMiningCommand);
+                }
             }
         } else if (this._bindings.length > 1) {
             // Toggle on
             this._showUi(openedFromMiningCommand);
+            this._subtitleFiles = subtitleFiles;
         }
     }
 
@@ -137,13 +153,21 @@ export default class VideoSelectController {
         const client = await this._frame.client();
 
         if (isNewClient) {
-            client.onMessage((message) => {
+            client.onMessage(async (message) => {
                 if (message.command === 'confirm') {
                     client.updateState({ open: false });
                     this._frame.hide();
-                    this._bindings
-                        .find((b) => b.video.src === (message as VideoSelectModeConfirmMessage).selectedVideoElementSrc)
-                        ?.showVideoDataDialog(false);
+                    const binding = this._bindings.find(
+                        (b) => b.video.src === (message as VideoSelectModeConfirmMessage).selectedVideoElementSrc
+                    );
+                    if (binding !== undefined) {
+                        if (this._subtitleFiles === undefined) {
+                            binding.showVideoDataDialog(false);
+                        } else {
+                            binding.loadSubtitles(await this._filesForSubtitleFiles(this._subtitleFiles), false);
+                            this._subtitleFiles = undefined;
+                        }
+                    }
                 } else if (message.command === 'openSettings') {
                     const openSettingsCommand: TabToExtensionCommand<OpenAsbplayerSettingsMessage> = {
                         sender: 'asbplayer-video-tab',
@@ -155,6 +179,7 @@ export default class VideoSelectController {
                 } else if (message.command === 'cancel') {
                     client.updateState({ open: false });
                     this._frame.hide();
+                    this._subtitleFiles = undefined;
                 }
             });
         }
@@ -171,5 +196,12 @@ export default class VideoSelectController {
         const client = await this._frame.client();
         client.updateState({ open: false });
         this._frame.hide();
+    }
+
+    private async _filesForSubtitleFiles(subtitleFiles: SubtitleFile[]) {
+        const filePromises = subtitleFiles.map(
+            async (f) => new File([await (await fetch('data:text/plain;base64,' + f.base64)).blob()], f.name)
+        );
+        return await Promise.all(filePromises);
     }
 }

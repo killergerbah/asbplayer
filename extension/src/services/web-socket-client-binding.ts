@@ -1,12 +1,14 @@
 import { SettingsProvider, ankiSettingsKeys } from '@project/common/settings';
-import { MineSubtitleCommand, WebSocketClient } from '@project/common/web-socket-client';
+import { LoadSubtitlesCommand, MineSubtitleCommand, WebSocketClient } from '@project/common/web-socket-client';
 import TabRegistry from './tab-registry';
 import {
     CopySubtitleMessage,
     CopySubtitleWithAdditionalFieldsMessage,
     ExtensionToAsbPlayerCommand,
     ExtensionToVideoCommand,
+    Message,
     PostMineAction,
+    ToggleVideoSelectMessage,
 } from '@project/common';
 import { isFirefoxBuild } from './build-flags';
 
@@ -107,6 +109,19 @@ export const bindWebSocketClient = async (settings: SettingsProvider, tabRegistr
                 await publishToAsbplayers;
                 resolve(published);
             });
+        });
+    };
+    client.onLoadSubtitles = async (command: LoadSubtitlesCommand) => {
+        const { files: subtitleFiles } = command.body;
+        const toggleVideoSelectCommand: ExtensionToVideoCommand<ToggleVideoSelectMessage> = {
+            sender: 'asbplayer-extension-to-video',
+            message: {
+                command: 'toggle-video-select',
+                subtitleFiles,
+            },
+        };
+        tabRegistry.publishCommandToVideoElementTabs((tab): ExtensionToVideoCommand<Message> | undefined => {
+            return toggleVideoSelectCommand;
         });
     };
 };
