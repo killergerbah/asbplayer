@@ -55,7 +55,8 @@ Joey Potter,
 [@Viterkim](https://github.com/Viterkim),
 Julian,
 DanglingSabSuu,
-[@nikkovc](https://github.com/nikkovc)
+[@nikkovc](https://github.com/nikkovc),
+[@ganqqwerty](https://github.com/ganqqwerty)
 
 and to those who have donated privately.
 
@@ -76,7 +77,6 @@ Thank you to all those who have contributed to asbplayer:
 [@s-cork](https://github.com/s-cork),
 [@shekhirin](https://github.com/shekhirin),
 [@ShanaryS](https://github.com/ShanaryS)
-[@ganqqwerty](https://github.com/ganqqwerty)
 
 Thank you to all those who have translated asbplayer:
 
