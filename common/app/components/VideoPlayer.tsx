@@ -43,6 +43,7 @@ import { adjacentSubtitle } from '../../key-binder';
 import { usePlaybackPreferences } from '../hooks/use-playback-preferences';
 import { MiningContext } from '../services/mining-context';
 import { useSubtitleStyles } from '../hooks/use-subtitle-styles';
+import { useFullscreen } from '../hooks/use-fullscreen';
 
 interface ExperimentalHTMLVideoElement extends HTMLVideoElement {
     readonly audioTracks: any;
@@ -348,7 +349,7 @@ export default function VideoPlayer({
     }
     const playerChannel = useMemo(() => new PlayerChannel(channel), [channel]);
     const [playerChannelSubscribed, setPlayerChannelSubscribed] = useState<boolean>(false);
-    const [fullscreen, setFullscreen] = useState<boolean>(false);
+    const { fullscreen, requestFullscreen } = useFullscreen();
     const playing = () => !videoRef.current?.paused ?? false;
     const [length, setLength] = useState<number>(0);
     const [videoFileName, setVideoFileName] = useState<string>();
@@ -600,7 +601,7 @@ export default function VideoPlayer({
         playerChannel.onPlayMode((playMode) => setPlayMode(playMode));
         playerChannel.onHideSubtitlePlayerToggle((hidden) => setSubtitlePlayerHidden(hidden));
         playerChannel.onAppBarToggle((hidden) => setAppBarHidden(hidden));
-        playerChannel.onFullscreenToggle((fullscreen) => setFullscreen(fullscreen));
+        playerChannel.onFullscreenToggle((fullscreen) => requestFullscreen(fullscreen));
         playerChannel.onSubtitleSettings(setSubtitleSettings);
         playerChannel.onMiscSettings(setMiscSettings);
         playerChannel.onAnkiSettings(setAnkiSettings);
@@ -622,7 +623,7 @@ export default function VideoPlayer({
 
         setPlayerChannelSubscribed(true);
         return () => playerChannel.close();
-    }, [clock, playerChannel, updateSubtitlesWithOffset, updatePlaybackRate]);
+    }, [clock, playerChannel, requestFullscreen, updateSubtitlesWithOffset, updatePlaybackRate]);
 
     const handlePlay = useCallback(() => {
         if (videoRef.current) {
@@ -1198,16 +1199,8 @@ export default function VideoPlayer({
     }, [displaySubtitles, playbackPreferences]);
 
     const handleFullscreenToggle = useCallback(() => {
-        setFullscreen((fullscreen) => {
-            if (fullscreen) {
-                document.exitFullscreen();
-            } else {
-                document.documentElement.requestFullscreen();
-            }
-
-            return !fullscreen;
-        });
-    }, []);
+        requestFullscreen(!fullscreen);
+    }, [fullscreen, requestFullscreen]);
 
     const handleVolumeChange = useCallback((volume: number) => {
         if (videoRef.current) {
