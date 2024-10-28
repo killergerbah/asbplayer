@@ -325,7 +325,7 @@
         "subtitleShadowColor": "Kolor cienia napisów",
         "subtitleShadowThickness": "Wielkość cienia napisów",
         "subtitleOutlineThicknessHelperText": "Dodaje obwódkę wokół napisów. Jeżeli to ustawienie powoduje nakładanie się linii tekstu, spróbuj użyć innej czcionki.",
-        "subtitlePositionOffset": "Subtitle position offset from bottom",
+        "subtitlePositionOffset": "Przesunięcie pozycji napisów",
         "topSubtitlePositionOffset": "Subtitle position offset from top",
         "subtitleAlignment": "Wyrównanie napisów",
         "subtitleAlignmentBottom": "Dół",

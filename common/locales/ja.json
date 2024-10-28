@@ -24,13 +24,13 @@
         "increaseOffsetButton": "前の字幕を現在のタイムスタンプに合わせる。長押しすると、字幕表示タイミングが100msずつ変わる。"
     },
     "about": {
-        "title": "About asbplayer",
-        "license": "License",
-        "deps": "Dependencies",
-        "depName": "Name",
-        "purpose": "Purpose",
-        "appVersion": "App version",
-        "extensionVersion": "Extension version"
+        "title": "asbplayerについて",
+        "license": "ライセンス",
+        "deps": "依存関係のあるライブラリ",
+        "depName": "プロジェクト名",
+        "purpose": "用途",
+        "appVersion": "アプリバージョン",
+        "extensionVersion": "拡張機能バージョン"
     },
     "postMineAction": {
         "none": "何もしない",
@@ -145,7 +145,7 @@
         "playbackMode": "プレイバックモード",
         "unloadVideo": "動画をアンロード",
         "selectAudioTrack": "オーディオトラックを選択",
-        "selectVideoElement": "動画埋め込み要素",
+        "selectVideoElement": "動画埋め込み要素を選択",
         "popOut": "動画をポップアウト",
         "popIn": "動画をポップイン",
         "toggleFullscreen": "フルスクリーンオン/オフ",
@@ -325,8 +325,8 @@
         "subtitleShadowColor": "字幕の影の色",
         "subtitleShadowThickness": "字幕の影の太さ",
         "subtitleOutlineThicknessHelperText": "字幕に縁取りが追加される。縁取りの線が重なっているように見える場合、別のフォントを試してみてください。",
-        "subtitlePositionOffset": "Subtitle position offset from bottom",
-        "topSubtitlePositionOffset": "Subtitle position offset from top",
+        "subtitlePositionOffset": "下部の字幕表示位置の調整",
+        "topSubtitlePositionOffset": "上部の字幕表示位置の調整",
         "subtitleAlignment": "字幕の表示位置",
         "subtitleAlignmentBottom": "下部",
         "subtitleAlignmentTop": "上部",
