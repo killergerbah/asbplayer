@@ -327,7 +327,7 @@
         "subtitleOutlineThicknessHelperText": "Agrega un contorno al texto de los subtítulos. Si esto causa líneas superpuestas, trata de usar otra fuente.",
         "subtitlePositionOffset": "Distancia de los subtítulos desde el borde inferior",
         "topSubtitlePositionOffset": "Subtitle position offset from top",
-        "subtitleAlignment": "Subtitle position offset from bottom",
+        "subtitleAlignment": "Alineación de Subtítulos",
         "subtitleAlignmentBottom": "Inferior",
         "subtitleAlignmentTop": "Superior",
         "subtitleBlur": "Desenfoque de subtítulos",
