@@ -23,6 +23,15 @@
         "decreaseOffsetButton": "Decrease offset to so that next subtitle is at current position. Hold to decrease by 100ms.",
         "increaseOffsetButton": "Increase offset to so that previous subtitle is at current position. Hold to increase by 100ms."
     },
+    "about": {
+        "title": "About asbplayer",
+        "license": "License",
+        "deps": "Dependencies",
+        "depName": "Name",
+        "purpose": "Purpose",
+        "appVersion": "App version",
+        "extensionVersion": "Extension version"
+    },
     "postMineAction": {
         "none": "Ничего",
         "showAnkiDialog": "Показать диалоговое окно Анки",
@@ -317,6 +326,7 @@
         "subtitleShadowThickness": "Толщина тени субтитров",
         "subtitleOutlineThicknessHelperText": "Добавляет контур вокруг текста субтитров. Если это приводит к перекрытию строк, попробуйте использовать другой шрифт.",
         "subtitlePositionOffset": "Отступ субтитров от нижнего края",
+        "topSubtitlePositionOffset": "Отступ субтитров от верхнего края",
         "subtitleAlignment": "Выравнивание субтитров",
         "subtitleAlignmentBottom": "По нижнему краю",
         "subtitleAlignmentTop": "По верхнему краю",

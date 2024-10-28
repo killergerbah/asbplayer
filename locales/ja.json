@@ -23,6 +23,15 @@
         "decreaseOffsetButton": "次の字幕を現在のタイムスタンプに合わせる。長押しすると、字幕表示タイミングが100msずつ変わる。",
         "increaseOffsetButton": "前の字幕を現在のタイムスタンプに合わせる。長押しすると、字幕表示タイミングが100msずつ変わる。"
     },
+    "about": {
+        "title": "About asbplayer",
+        "license": "License",
+        "deps": "Dependencies",
+        "depName": "Name",
+        "purpose": "Purpose",
+        "appVersion": "App version",
+        "extensionVersion": "Extension version"
+    },
     "postMineAction": {
         "none": "何もしない",
         "showAnkiDialog": "Anki のエクスポートウィンドウを開く",
@@ -148,7 +157,7 @@
         "blank": "空白",
         "downloadMinedSubsAsSrt": "マイニングした字幕を SRT 形式でダウンロードする",
         "exportToAnki": "Anki にエクスポートする",
-        "miningHistoryEmpty": "マイニング履歴はありませïん",
+        "miningHistoryEmpty": "マイニング履歴はありません",
         "deleteAll": "全てを削除"
     },
     "error": {
@@ -316,7 +325,8 @@
         "subtitleShadowColor": "字幕の影の色",
         "subtitleShadowThickness": "字幕の影の太さ",
         "subtitleOutlineThicknessHelperText": "字幕に縁取りが追加される。縁取りの線が重なっているように見える場合、別のフォントを試してみてください。",
-        "subtitlePositionOffset": "字幕表示位置の調整",
+        "subtitlePositionOffset": "Subtitle position offset from bottom",
+        "topSubtitlePositionOffset": "Subtitle position offset from top",
         "subtitleAlignment": "字幕の表示位置",
         "subtitleAlignmentBottom": "下部",
         "subtitleAlignmentTop": "上部",

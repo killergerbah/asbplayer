@@ -23,6 +23,15 @@
         "decreaseOffsetButton": "Decrease offset to so that next subtitle is at current position. Hold to decrease by 100ms.",
         "increaseOffsetButton": "Increase offset to so that previous subtitle is at current position. Hold to increase by 100ms."
     },
+    "about": {
+        "title": "About asbplayer",
+        "license": "License",
+        "deps": "Dependencies",
+        "depName": "Name",
+        "purpose": "Purpose",
+        "appVersion": "App version",
+        "extensionVersion": "Extension version"
+    },
     "postMineAction": {
         "none": "Nada",
         "showAnkiDialog": "Mostrar caixa de diálogo do Anki",
@@ -317,6 +326,7 @@
         "subtitleShadowThickness": "Expessura da sombra da legenda",
         "subtitleOutlineThicknessHelperText": "Adiciona um contorno ao redor do texto da legenda. Se isso causar sobreposição de linhas, tente usar uma fonte diferente.",
         "subtitlePositionOffset": "Deslocamento da posição da legenda a partir da parte inferior",
+        "topSubtitlePositionOffset": "Deslocamento da posição da legenda a partir da parte superior",
         "subtitleAlignment": "Alinhamento da legenda",
         "subtitleAlignmentBottom": "Inferior",
         "subtitleAlignmentTop": "Superior",

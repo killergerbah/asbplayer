@@ -23,6 +23,15 @@
         "decreaseOffsetButton": "Decrease offset to so that next subtitle is at current position. Hold to decrease by 100ms.",
         "increaseOffsetButton": "Increase offset to so that previous subtitle is at current position. Hold to increase by 100ms."
     },
+    "about": {
+        "title": "About asbplayer",
+        "license": "License",
+        "deps": "Dependencies",
+        "depName": "Name",
+        "purpose": "Purpose",
+        "appVersion": "App version",
+        "extensionVersion": "Extension version"
+    },
     "postMineAction": {
         "none": "None",
         "showAnkiDialog": "Show Anki dialog",
@@ -317,6 +326,7 @@
         "subtitleShadowThickness": "Subtitle Shadow Thickness",
         "subtitleOutlineThicknessHelperText": "Adds an outline around subtitle text. If this causes overlapping lines, try using a different font.",
         "subtitlePositionOffset": "Untertitelabstand vom unteren Bildschirmrand",
+        "topSubtitlePositionOffset": "Untertitelabstand vom oberer Bildschirmrand",
         "subtitleAlignment": "Untertitel-Position",
         "subtitleAlignmentBottom": "Unten",
         "subtitleAlignmentTop": "Oben",
