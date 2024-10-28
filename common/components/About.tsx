@@ -6,7 +6,7 @@ import Paper from '@material-ui/core/Paper';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableHead from '@material-ui/core/TableHead';
-import MuiTableRow from '@material-ui/core/TableRow';
+import TableRow from '@material-ui/core/TableRow';
 import MuiTableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import Typography from '@material-ui/core/Typography';
@@ -28,25 +28,16 @@ const Link = ({ children, ...props }: { children: React.ReactNode } & LinkProps)
 
 const TableCell = withStyles((theme) => ({
     head: {
-        backgroundColor: theme.palette.background.default,
-        // backgroundColor: theme.palette.common.black,
-        // color: theme.palette.common.white,
+        backgroundColor: theme.palette.action.hover,
     },
     root: {
         border: 0,
     },
-    body: {
-        fontSize: 14,
-    },
 }))(MuiTableCell);
 
-const EvenTableRow = MuiTableRow;
-
-const OddTableRow = withStyles((theme) => ({
-    root: {
-        backgroundColor: theme.palette.action.hover,
-    },
-}))(MuiTableRow);
+const BorderedTableCell = withStyles((theme) => ({
+    root: {},
+}))(MuiTableCell);
 
 type Dependency = {
     name: string;
@@ -225,18 +216,22 @@ const About = ({ appVersion, extensionVersion }: Props) => {
             <Paper variant="outlined" style={{ padding: theme.spacing(2), height: 'auto' }}>
                 <Typography variant="body2">
                     MIT License
-                    <p />
+                    <br />
+                    <br />
                     Copyright (c) 2020 R-J Lim
-                    <p />
+                    <br />
+                    <br />
                     Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
                     associated documentation files (the &quot;Software&quot;), to deal in the Software without
                     restriction, including without limitation the rights to use, copy, modify, merge, publish,
                     distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
                     Software is furnished to do so, subject to the following conditions:
-                    <p />
+                    <br />
+                    <br />
                     The above copyright notice and this permission notice shall be included in all copies or substantial
                     portions of the Software.
-                    <p />
+                    <br />
+                    <br />
                     THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
                     INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
                     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
@@ -251,16 +246,16 @@ const About = ({ appVersion, extensionVersion }: Props) => {
             <TableContainer variant="outlined" component={Paper} style={{ height: 'auto' }}>
                 <Table style={{ margin: 0, padding: 0 }}>
                     <TableHead>
-                        <EvenTableRow>
+                        <TableRow>
                             <TableCell>{t('about.depName')}</TableCell>
                             <TableCell>{t('about.license')}</TableCell>
                             <TableCell>{t('about.purpose')}</TableCell>
-                        </EvenTableRow>
+                        </TableRow>
                     </TableHead>
                     <TableBody>
                         {dependencies
                             .filter((d) => !d.extension || extensionVersion !== undefined)
-                            .map((d) => {
+                            .map((d, index) => {
                                 let alreadyRenderedPurpose: boolean;
 
                                 if (renderedPurpose[d.purpose] === undefined) {
@@ -271,22 +266,29 @@ const About = ({ appVersion, extensionVersion }: Props) => {
                                 }
 
                                 renderedPurpose[d.purpose] = true;
-                                const RowComponent = purposeIndex % 2 === 0 ? EvenTableRow : OddTableRow;
+
+                                let CellComponent = TableCell;
+                                let nextPurpose = dependencies[index + 1]?.purpose;
+
+                                if (nextPurpose !== undefined && d.purpose !== nextPurpose) {
+                                    CellComponent = BorderedTableCell;
+                                }
+
                                 return (
-                                    <RowComponent key={d.name}>
-                                        <TableCell>
+                                    <TableRow key={d.name}>
+                                        <CellComponent>
                                             {d.projectLink && <Link href={d.projectLink}>{d.name}</Link>}
                                             {!d.projectLink && d.name}
-                                        </TableCell>
-                                        <TableCell>
+                                        </CellComponent>
+                                        <CellComponent>
                                             <Link href={d.licenseLink}>{d.license}</Link>
-                                        </TableCell>
+                                        </CellComponent>
                                         {!alreadyRenderedPurpose && (
-                                            <TableCell rowSpan={dependencyPurposeCounts[d.purpose]}>
+                                            <BorderedTableCell rowSpan={dependencyPurposeCounts[d.purpose]}>
                                                 {d.purpose}
-                                            </TableCell>
+                                            </BorderedTableCell>
                                         )}
-                                    </RowComponent>
+                                    </TableRow>
                                 );
                             })}
                     </TableBody>
