@@ -29,8 +29,8 @@
     "scripts": {
         "predeploy": "npm run build",
         "deploy": "gh-pages -d build",
-        "start": "NODE_OPTIONS=--openssl-legacy-provider craco start",
-        "build": "../scripts/loc/loc-keys-match && NODE_OPTIONS=--openssl-legacy-provider craco build",
+        "start": "REACT_APP_GIT_COMMIT=$(git rev-parse --short HEAD) NODE_OPTIONS=--openssl-legacy-provider craco start",
+        "build": "REACT_APP_GIT_COMMIT=$(git rev-parse --short HEAD) ../scripts/loc/loc-keys-match && NODE_OPTIONS=--openssl-legacy-provider craco build",
         "test": "craco test",
         "eject": "react-scripts eject",
         "test:nowatch": "react-scripts test --watchAll=false"

@@ -23,6 +23,15 @@
         "decreaseOffsetButton": "Decrease offset to so that next subtitle is at current position. Hold to decrease by 100ms.",
         "increaseOffsetButton": "Increase offset to so that previous subtitle is at current position. Hold to increase by 100ms."
     },
+    "about": {
+        "title": "About asbplayer",
+        "license": "License",
+        "deps": "Dependencies",
+        "depName": "Name",
+        "purpose": "Purpose",
+        "appVersion": "App version",
+        "extensionVersion": "Extension version"
+    },
     "postMineAction": {
         "none": "Nada",
         "showAnkiDialog": "Mostrar caixa de diálogo do Anki",

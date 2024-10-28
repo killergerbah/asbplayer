@@ -2,7 +2,7 @@ import { HttpFetcher } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import React, { useCallback, useMemo } from 'react';
 import { useSettings } from '../hooks/use-settings';
-import { ThemeProvider, makeStyles, useTheme } from '@material-ui/core/styles';
+import { ThemeProvider, makeStyles } from '@material-ui/core/styles';
 import { useTranslation } from 'react-i18next';
 import Box from '@material-ui/core/Box';
 import SettingsForm from '@project/common/components/SettingsForm';
@@ -87,6 +87,7 @@ const SettingsUi = () => {
                         <SettingsForm
                             anki={anki}
                             extensionInstalled
+                            extensionVersion={chrome.runtime.getManifest().version}
                             extensionSupportsAppIntegration
                             extensionSupportsOverlay
                             extensionSupportsSidePanel={!isFirefoxBuild}

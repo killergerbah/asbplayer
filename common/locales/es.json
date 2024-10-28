@@ -23,6 +23,15 @@
         "decreaseOffsetButton": "Reducir el offset para que el siguiente subtítulo esté en la posición actual. Mantenga pulsado para disminuir en 100ms.",
         "increaseOffsetButton": "Aumentar el offset para que el siguiente subtítulo esté en la posición actual. Mantenga pulsado para disminuir en 100ms."
     },
+    "about": {
+        "title": "About asbplayer",
+        "license": "License",
+        "deps": "Dependencies",
+        "depName": "Name",
+        "purpose": "Purpose",
+        "appVersion": "App version",
+        "extensionVersion": "Extension version"
+    },
     "postMineAction": {
         "none": "Ninguna",
         "showAnkiDialog": "Mostrar ventana de Anki",
@@ -317,8 +326,8 @@
         "subtitleShadowThickness": "Grosor del Sombreado de los Subtítulos",
         "subtitleOutlineThicknessHelperText": "Agrega un contorno al texto de los subtítulos. Si esto causa líneas superpuestas, trata de usar otra fuente.",
         "subtitlePositionOffset": "Distancia de los subtítulos desde el borde inferior",
-        "subtitleAlignment": "Subtitle position offset from bottom",
         "topSubtitlePositionOffset": "Subtitle position offset from top",
+        "subtitleAlignment": "Subtitle position offset from bottom",
         "subtitleAlignmentBottom": "Inferior",
         "subtitleAlignmentTop": "Superior",
         "subtitleBlur": "Desenfoque de subtítulos",

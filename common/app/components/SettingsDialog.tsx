@@ -76,6 +76,7 @@ export default function SettingsDialog({
                 <SettingsForm
                     anki={anki}
                     extensionInstalled={extension.installed}
+                    extensionVersion={extension.installed ? extension.version : undefined}
                     extensionSupportsAppIntegration={extension.supportsAppIntegration}
                     extensionSupportsOverlay={extension.supportsStreamingVideoOverlay}
                     extensionSupportsSidePanel={extension.supportsSidePanel}
@@ -84,6 +85,7 @@ export default function SettingsDialog({
                     extensionSupportsSubtitlesWidthSetting={extension.supportsSubtitlesWidthSetting}
                     extensionSupportsPauseOnHover={extension.supportsPauseOnHover}
                     insideApp
+                    appVersion={process.env.REACT_APP_GIT_COMMIT}
                     chromeKeyBinds={extension.extensionCommands}
                     onOpenChromeExtensionShortcuts={extension.openShortcuts}
                     onSettingsChanged={onSettingsChanged}

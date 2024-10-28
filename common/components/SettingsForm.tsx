@@ -69,6 +69,7 @@ import { WebSocketClient } from '../web-socket-client/web-socket-client';
 import { isFirefox } from '@project/common/browser-detection';
 import SubtitleAppearanceTrackSelector from './SubtitleAppearanceTrackSelector';
 import SubtitlePreview from './SubtitlePreview';
+import About from './About';
 
 interface StylesProps {
     smallScreen: boolean;
@@ -632,6 +633,7 @@ type TabName =
 interface Props {
     anki: Anki;
     extensionInstalled: boolean;
+    extensionVersion?: string;
     extensionSupportsAppIntegration: boolean;
     extensionSupportsOverlay: boolean;
     extensionSupportsSidePanel: boolean;
@@ -640,6 +642,7 @@ interface Props {
     extensionSupportsSubtitlesWidthSetting: boolean;
     extensionSupportsPauseOnHover: boolean;
     insideApp?: boolean;
+    appVersion?: string;
     settings: AsbplayerSettings;
     scrollToId?: string;
     chromeKeyBinds: { [key: string]: string | undefined };
@@ -660,6 +663,7 @@ export default function SettingsForm({
     anki,
     settings,
     extensionInstalled,
+    extensionVersion,
     extensionSupportsAppIntegration,
     extensionSupportsOverlay,
     extensionSupportsSidePanel,
@@ -668,6 +672,7 @@ export default function SettingsForm({
     extensionSupportsSubtitlesWidthSetting,
     extensionSupportsPauseOnHover,
     insideApp,
+    appVersion,
     scrollToId,
     chromeKeyBinds,
     localFontsAvailable,
@@ -1019,6 +1024,7 @@ export default function SettingsForm({
             'keyboard-shortcuts',
             'streaming-video',
             'misc-settings',
+            'about',
         ];
 
         if (!extensionSupportsAppIntegration) {
@@ -1169,6 +1175,7 @@ export default function SettingsForm({
                     <Tab tabIndex={4} label={t('settings.streamingVideo')} id="streaming-video" />
                 )}
                 <Tab tabIndex={5} label={t('settings.misc')} id="misc-settings" />
+                <Tab tabIndex={6} label={t('about.title')} id="about" />
             </Tabs>
             <TabPanel value={tabIndex} index={tabIndicesById['anki-settings']}>
                 <FormGroup className={classes.formGroup}>
@@ -2615,6 +2622,12 @@ export default function SettingsForm({
                         </Button>
                     </Grid>
                 </Grid>
+            </TabPanel>
+            <TabPanel value={tabIndex} index={tabIndicesById['about']}>
+                <About
+                    appVersion={insideApp ? appVersion : undefined}
+                    extensionVersion={extensionInstalled ? extensionVersion : undefined}
+                />
             </TabPanel>
             <input
                 ref={settingsFileInputRef}

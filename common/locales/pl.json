@@ -23,6 +23,15 @@
         "decreaseOffsetButton": "Zmniejsz przesunięcie, aby następne napisy znalazły się na obecnej pozycji. Przytrzymaj, aby zmniejszyć o 100 Ms.",
         "increaseOffsetButton": "Zwiększ przesunięcie, aby poprzednie napisy znalazły się na obecnej pozycji. Przytrzymaj, aby zwiększyć o 100 Ms."
     },
+    "about": {
+        "title": "About asbplayer",
+        "license": "License",
+        "deps": "Dependencies",
+        "depName": "Name",
+        "purpose": "Purpose",
+        "appVersion": "App version",
+        "extensionVersion": "Extension version"
+    },
     "postMineAction": {
         "none": "Nic nie rób",
         "showAnkiDialog": "Pokaż okno dialogowe Anki",

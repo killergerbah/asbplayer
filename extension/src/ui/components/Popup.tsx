@@ -111,6 +111,7 @@ const Popup = ({
             >
                 <SettingsForm
                     extensionInstalled
+                    extensionVersion={chrome.runtime.getManifest().version}
                     extensionSupportsAppIntegration
                     extensionSupportsOverlay
                     extensionSupportsSidePanel={!isFirefoxBuild}

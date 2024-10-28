@@ -23,6 +23,15 @@
         "decreaseOffsetButton": "次の字幕を現在のタイムスタンプに合わせる。長押しすると、字幕表示タイミングが100msずつ変わる。",
         "increaseOffsetButton": "前の字幕を現在のタイムスタンプに合わせる。長押しすると、字幕表示タイミングが100msずつ変わる。"
     },
+    "about": {
+        "title": "About asbplayer",
+        "license": "License",
+        "deps": "Dependencies",
+        "depName": "Name",
+        "purpose": "Purpose",
+        "appVersion": "App version",
+        "extensionVersion": "Extension version"
+    },
     "postMineAction": {
         "none": "何もしない",
         "showAnkiDialog": "Anki のエクスポートウィンドウを開く",
