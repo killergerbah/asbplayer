@@ -115,7 +115,7 @@ const dependencies: Dependency[] = [
     {
         name: 'vtt.js',
         projectLink: 'https://github.com/mozilla/vtt.js',
-        license: 'Apache-2.0',
+        license: 'Apache 2.0',
         licenseLink: 'https://github.com/mozilla/vtt.js/blob/master/LICENSE',
         purpose: 'Subtitle parsing',
     },
@@ -172,7 +172,7 @@ const dependencies: Dependency[] = [
     {
         name: 'm3u8-parser',
         projectLink: 'https://github.com/videojs/m3u8-parser',
-        license: 'Apache-2.0',
+        license: 'Apache 2.0',
         licenseLink: 'https://github.com/videojs/m3u8-parser/blob/main/LICENSE',
         purpose: 'Subtitle detection',
         extension: true,
@@ -180,7 +180,7 @@ const dependencies: Dependency[] = [
     {
         name: 'mpd-parser',
         projectLink: 'https://github.com/videojs/mpd-parser',
-        license: 'Apache-2.0',
+        license: 'Apache 2.0',
         licenseLink: 'https://github.com/videojs/mpd-parser/blob/main/LICENSE',
         purpose: 'Subtitle detection',
         extension: true,
