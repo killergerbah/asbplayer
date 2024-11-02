@@ -195,7 +195,7 @@ You can replace filtered content similarly by entering a string into the "Subtit
 
 Useful examples of regular expressions:
 
--   `([(（]([^()（）]|(([(（][^()（）]+[)）])))+[)）])` : Remove names enclosed by parenthesis to indicate speakers (e.g. "**（山田）**　元気ですか？")
+-   `([\(（]([^\(\)（）]|(([\(（][^\(\)（）]+[\)）])))+[\)）])` : Remove names enclosed by parenthesis to indicate speakers (e.g. "**（山田）**　元気ですか？")
 -   `(.*)\n+(?!-)(.*)` : Some subtitles are split in several lines and this regex forces them into a single line. For this filter to work, you must also put `$1 $2` in the "Subtitle regex filter text replacement" field.
     -   **NB**: When using this regex pattern in combination with other patterns (using the `|` operator, see below), place this pattern at the end. This ensures that all other regex transformations are applied first, and then the results are finally combined into a single line.
 -   `-?\[.*\]` : Remove indications enclosed by square brackets that sound or music that is playing (e.g. "**\[PLAYFUL MUSIC]**" or "**\-[GASPS]**")
