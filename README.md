@@ -57,7 +57,8 @@ Julian,
 DanglingSabSuu,
 [@nikkovc](https://github.com/nikkovc),
 [@ganqqwerty](https://github.com/ganqqwerty),
-[@@mathiaslovnes](https://github.com/mathiaslovnes)
+[@mathiaslovnes](https://github.com/mathiaslovnes),
+[@MF-Billings](https://github.com/MF-Billings)
 
 and to those who have donated privately.
 
