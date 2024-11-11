@@ -58,7 +58,8 @@ DanglingSabSuu,
 [@nikkovc](https://github.com/nikkovc),
 [@ganqqwerty](https://github.com/ganqqwerty),
 [@mathiaslovnes](https://github.com/mathiaslovnes),
-[@MF-Billings](https://github.com/MF-Billings)
+[@MF-Billings](https://github.com/MF-Billings),
+[@festivity9139](https://github.com/festivity9139)
 
 and to those who have donated privately.
 
