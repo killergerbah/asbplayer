@@ -512,7 +512,7 @@ class EncodedAudioData implements AudioData {
     }
 
     async base64() {
-        return await this._data.base64();
+        return blobToBase64(await this.blob());
     }
 
     async play() {
