@@ -58,7 +58,7 @@ import { timeDurationDisplay } from '../services/util';
 import { useAppWebSocketClient } from '../hooks/use-app-web-socket-client';
 import { LoadSubtitlesCommand } from '../../web-socket-client';
 
-const latestExtensionVersion = '1.5.0';
+const latestExtensionVersion = '1.6.1';
 const extensionUrl =
     'https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab';
 const mp3WorkerFactory = () => new Worker(new URL('../../audio-clip/mp3-encoder-worker.ts', import.meta.url));
