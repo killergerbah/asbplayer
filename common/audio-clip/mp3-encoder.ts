@@ -19,7 +19,7 @@ export default class Mp3Encoder {
                     }
 
                     const audioBuffer = await audioContext.decodeAudioData(e.target.result as ArrayBuffer);
-                    const channels = [];
+                    const channels: Float32Array[] = [];
 
                     for (let i = 0; i < audioBuffer.numberOfChannels; ++i) {
                         channels.push(audioBuffer.getChannelData(i));
