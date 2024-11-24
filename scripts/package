@@ -15,7 +15,7 @@ PLATFORM=$1
 SCRIPTPATH="$(cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P)"
 DISTPATH=$SCRIPTPATH/../extension/dist/$PLATFORM
 
-pushd $DISTPATH
+pushd "$DISTPATH"
 
 NAME="asbplayer-extension-$(jq -r .version manifest.json)-$PLATFORM.zip"
 
