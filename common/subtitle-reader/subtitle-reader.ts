@@ -60,7 +60,7 @@ export default class SubtitleReader {
     }
 
     async _subtitles(file: File, track: number): Promise<SubtitleNode[]> {
-    if (file.name.endsWith('.srt') || file.name.endsWith('.subrip')) {
+        if (file.name.endsWith('.srt') || file.name.endsWith('.subrip')) {
             const parser = new SrtParser({ numericTimestamps: true });
             const nodes = parser.fromSrt(await file.text());
             return nodes.map((node) => {
