@@ -470,9 +470,10 @@ export default function VideoPlayer({
                 if (videoElement.readyState === 4) {
                     notifyReady(videoElement, playerChannel, setAudioTracks, setSelectedAudioTrack);
                 } else {
-                    videoElement.onloadeddata = (event) => {
+                    videoElement.onloadeddata = () =>
                         notifyReady(videoElement, playerChannel, setAudioTracks, setSelectedAudioTrack);
-                    };
+                    videoElement.ondurationchange = () =>
+                        notifyReady(videoElement, playerChannel, setAudioTracks, setSelectedAudioTrack);
                 }
 
                 videoElement.oncanplay = (event) => {
@@ -635,6 +636,10 @@ export default function VideoPlayer({
 
     const handleSeek = useCallback(
         (progress: number) => {
+            if (!Number.isFinite(length)) {
+                return;
+            }
+
             if (playing()) {
                 clock.stop();
             }

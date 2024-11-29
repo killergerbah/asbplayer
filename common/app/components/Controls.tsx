@@ -272,7 +272,8 @@ function ProgressBar({ onSeek, value }: ProgressBarProps) {
 
     const handleMouseOver = useCallback(() => setMouseOver(true), []);
     const handleMouseOut = useCallback(() => setMouseOver(false), []);
-    const progressWidth = containerRef.current ? (elementWidth(containerRef.current) * value) / 100 : 0;
+    const progressWidth =
+        Number.isFinite(value) && containerRef.current ? (elementWidth(containerRef.current) * value) / 100 : 0;
     const fillStyle = { width: progressWidth };
     const handleStyle = { marginLeft: progressWidth };
     const fillContainerClassName = mouseOver
@@ -1101,11 +1102,13 @@ export default function Controls({
                                     </Grid>
                                 </Grid>
                             )}
-                            <Grid item>
-                                <div className={classes.timeDisplay}>
-                                    {displayTime(progress * length)} / {displayTime(displayLength || length)}
-                                </div>
-                            </Grid>
+                            {Number.isFinite(length) && (
+                                <Grid item>
+                                    <div className={classes.timeDisplay}>
+                                        {displayTime(progress * length)} / {displayTime(displayLength || length)}
+                                    </div>
+                                </Grid>
+                            )}
                             {offsetEnabled && !showVolumeBar && !isReallySmallScreen && (
                                 <Tooltip title={t('controls.subtitleOffset')!}>
                                     <Grid item>

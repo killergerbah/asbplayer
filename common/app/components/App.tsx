@@ -110,6 +110,7 @@ function extractSources(files: FileList | File[]): MediaSources {
             case 'mkv':
             case 'mp4':
             case 'avi':
+            case 'webm':
                 if (videoFile) {
                     throw new LocalizedError('error.onlyOneVideoFile');
                 }
