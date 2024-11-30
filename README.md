@@ -346,6 +346,9 @@ The asbplayer website can be controlled remotely through a WebSocket connection,
 
 ## Usage on Android
 
+> [!WARNING]
+> asbplayer has a very limited feature set on Android. Most notably, you will not be able to take screenshots, use keyboard shortcuts, or use the side panel. As with the Firefox desktop browser version, the mobile version also cannot record audio from DRM-protected streams.
+
 asbplayer is best used on computers using Chromium-based browsers, but it is also usable on Android.
 
 1. Install either Kiwi Browser (preferred for DRM-protected stream audio capture) or Firefox for Android.
