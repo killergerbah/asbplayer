@@ -6,7 +6,7 @@ import NoteAddIcon from '@material-ui/icons/NoteAdd';
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
-import SubtitlesIcon from '@material-ui/icons/Subtitles';
+import LoadSubtitlesIcon from '@project/common/components/LoadSubtitlesIcon';
 import React, { useCallback, useRef } from 'react';
 import {
     AsbPlayerToVideoCommandV2,
@@ -242,7 +242,9 @@ const MobileVideoOverlay = () => {
                     <Tooltip placement={anchor} title={t('action.loadSubtitles')!}>
                         <span>
                             <IconButton disabled={model.recording} onClick={handleLoadSubtitles}>
-                                <SubtitlesIcon className={model.recording ? classes.inactiveButton : classes.button} />
+                                <LoadSubtitlesIcon
+                                    className={model.recording ? classes.inactiveButton : classes.button}
+                                />
                             </IconButton>
                         </span>
                     </Tooltip>

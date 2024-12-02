@@ -6,7 +6,7 @@ import { ChromeExtension } from '@project/common/app';
 import { useTranslation } from 'react-i18next';
 import CenteredGridItem from './CenteredGridItem';
 import CenteredGridContainer from './CenteredGridContainer';
-import SubtitlesIcon from '@material-ui/icons/Subtitles';
+import LoadSubtitlesIcon from '@project/common/components/LoadSubtitlesIcon';
 import ListIcon from '@material-ui/icons/List';
 import { ButtonGroup } from '@material-ui/core';
 
@@ -38,7 +38,11 @@ const SidePanelHome = ({ videoElementCount, onLoadSubtitles, onShowMiningHistory
             </CenteredGridItem>
             <CenteredGridItem>
                 <ButtonGroup variant="contained" color="secondary" orientation="vertical">
-                    <Button startIcon={<SubtitlesIcon />} disabled={videoElementCount === 0} onClick={onLoadSubtitles}>
+                    <Button
+                        startIcon={<LoadSubtitlesIcon />}
+                        disabled={videoElementCount === 0}
+                        onClick={onLoadSubtitles}
+                    >
                         {t('action.loadSubtitles')}
                     </Button>
                     <Button startIcon={<ListIcon />} onClick={onOpenMiningHistory}>

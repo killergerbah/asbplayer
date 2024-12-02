@@ -1,6 +1,6 @@
 import IconButton from '@material-ui/core/IconButton';
 import ListIcon from '@material-ui/icons/List';
-import SubtitlesIcon from '@material-ui/icons/Subtitles';
+import LoadSubtitlesIcon from '@project/common/components/LoadSubtitlesIcon';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
@@ -39,7 +39,7 @@ const SidePanelTopControls = React.forwardRef(function SidePanelTopControls(
                     <Grid item>
                         <Tooltip title={t('action.loadSubtitles')!}>
                             <IconButton onClick={onLoadSubtitles}>
-                                <SubtitlesIcon />
+                                <LoadSubtitlesIcon />
                             </IconButton>
                         </Tooltip>
                     </Grid>
