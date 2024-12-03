@@ -38,6 +38,7 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { isMobile } from 'react-device-detect';
 import SubtitleOffsetInput from './SubtitleOffsetInput';
 import VideoElementFavicon from './VideoElementFavicon';
+import PlayModeSelector from './PlayModeSelector';
 
 const useControlStyles = makeStyles((theme) => ({
     container: {
@@ -434,68 +435,6 @@ function MediaUnloader({ open, anchorEl, onUnload, onClose, file }: MediaUnloade
                 <List>
                     <ListItem button onClick={(e) => onUnload()}>
                         Unload {file}
-                    </ListItem>
-                </List>
-            </Popover>
-        </div>
-    );
-}
-
-interface PlayModeSelectorProps {
-    open: boolean;
-    anchorEl?: Element;
-    selectedPlayMode?: PlayMode;
-    onPlayMode: (playMode: PlayMode) => void;
-    onClose: () => void;
-}
-
-function PlayModeSelector({ open, anchorEl, selectedPlayMode, onPlayMode, onClose }: PlayModeSelectorProps) {
-    const { t } = useTranslation();
-
-    return (
-        <div>
-            <Popover
-                disableEnforceFocus={true}
-                open={open}
-                anchorEl={anchorEl}
-                onClose={onClose}
-                anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'center',
-                }}
-                transformOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'center',
-                }}
-            >
-                <List>
-                    <ListItem
-                        selected={selectedPlayMode === PlayMode.normal}
-                        button
-                        onClick={(e) => onPlayMode(PlayMode.normal)}
-                    >
-                        {t('controls.normalMode')}
-                    </ListItem>
-                    <ListItem
-                        selected={selectedPlayMode === PlayMode.condensed}
-                        button
-                        onClick={(e) => onPlayMode(PlayMode.condensed)}
-                    >
-                        {t('controls.condensedMode')}
-                    </ListItem>
-                    <ListItem
-                        selected={selectedPlayMode === PlayMode.fastForward}
-                        button
-                        onClick={(e) => onPlayMode(PlayMode.fastForward)}
-                    >
-                        {t('controls.fastForwardMode')}
-                    </ListItem>
-                    <ListItem
-                        selected={selectedPlayMode === PlayMode.autoPause}
-                        button
-                        onClick={(e) => onPlayMode(PlayMode.autoPause)}
-                    >
-                        {t('controls.autoPauseMode')}
                     </ListItem>
                 </List>
             </Popover>
