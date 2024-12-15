@@ -138,6 +138,7 @@
         "condensedMode": "Condensed",
         "fastForwardMode": "Fast-forward",
         "normalMode": "Normal",
+        "repeatMode": "Repeat",
         "playbackRate": "Playback Rate",
         "subtitleOffset": "Subtitle Offset",
         "subtitleAlignment": "Subtitle Alignment",

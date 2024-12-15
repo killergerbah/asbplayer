@@ -138,6 +138,7 @@
         "condensedMode": "Condensado",
         "fastForwardMode": "Avanço rápido",
         "normalMode": "Normal",
+        "repeatMode": "Repeat",
         "playbackRate": "Taxa de reprodução",
         "subtitleOffset": "Atraso da legenda",
         "subtitleAlignment": "Alinhamento da legenda",

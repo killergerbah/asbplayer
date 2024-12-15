@@ -138,6 +138,7 @@
         "condensedMode": "Skondensowana",
         "fastForwardMode": "Przyspieszone odtwarzanie",
         "normalMode": "Normalna",
+        "repeatMode": "Repeat",
         "playbackRate": "Prędkość odtwarzania: {{rate}}",
         "subtitleOffset": "Przesunięcie napisów",
         "subtitleAlignment": "Wyrównanie napisów",

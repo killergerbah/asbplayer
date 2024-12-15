@@ -240,4 +240,6 @@ export interface MobileOverlayModel {
     language: string;
     postMineAction: PostMineAction;
     subtitleDisplaying: boolean;
+    themeType: 'dark' | 'light';
+    playMode: PlayMode;
 }

@@ -222,16 +222,31 @@ export default class Binding {
     }
 
     set playMode(newPlayMode: PlayMode) {
-        const disableCondensedMode = () => {
-            this.subtitleController.onNextToShow = undefined;
-            this.subtitleController.notification('info.disabledCondensedPlayback');
-        };
-        const disableFastForwardMode = () => {
-            this.subtitleController.onSlice = undefined;
-            this.video.playbackRate = 1;
-            this.subtitleController.notification('info.disabledFastForwardPlayback');
-        };
+        if (this._playMode === newPlayMode) {
+            return;
+        }
 
+        // Disable old play mode
+        switch (this._playMode) {
+            case PlayMode.autoPause:
+                this.subtitleController.autoPauseContext.onStartedShowing = undefined;
+                this.subtitleController.autoPauseContext.onWillStopShowing = undefined;
+                break;
+            case PlayMode.condensed:
+                this.subtitleController.onNextToShow = undefined;
+                break;
+            case PlayMode.fastForward:
+                this.subtitleController.onSlice = undefined;
+                this.video.playbackRate = 1;
+                break;
+            case PlayMode.repeat:
+                this.subtitleController.autoPauseContext.onWillStopShowing = undefined;
+                break;
+        }
+
+        let changed = false;
+
+        // Enable new play mode
         switch (newPlayMode) {
             case PlayMode.autoPause:
                 this.subtitleController.autoPauseContext.onStartedShowing = () => {
@@ -249,11 +264,9 @@ export default class Binding {
                     this.pause();
                 };
                 this.subtitleController.notification('info.enabledAutoPause');
+                changed = true;
                 break;
             case PlayMode.condensed:
-                if (this._playMode === PlayMode.fastForward) {
-                    disableFastForwardMode();
-                }
                 let seeking = false;
                 this.subtitleController.onNextToShow = async (subtitle) => {
                     try {
@@ -276,11 +289,9 @@ export default class Binding {
                     }
                 };
                 this.subtitleController.notification('info.enabledCondensedPlayback');
+                changed = true;
                 break;
             case PlayMode.fastForward:
-                if (this._playMode === PlayMode.condensed) {
-                    disableCondensedMode();
-                }
                 this.subtitleController.onSlice = async (slice: SubtitleSlice<SubtitleModelWithIndex>) => {
                     const subtitlesAreSufficientlyOffsetFromNow = (subtitleEdgeTime: number | undefined) => {
                         return (
@@ -312,6 +323,7 @@ export default class Binding {
                     }
                 };
                 this.subtitleController.notification('info.enabledFastForwardPlayback');
+                changed = true;
                 break;
             case PlayMode.repeat:
                 const [currentSubtitle] = this.subtitleController.currentSubtitle();
@@ -320,27 +332,29 @@ export default class Binding {
                         this.seek(currentSubtitle.start / 1000);
                     };
                     this.subtitleController.notification('info.enabledRepeatPlayback');
+                    changed = true;
                 }
                 break;
             case PlayMode.normal:
                 if (this._playMode === PlayMode.repeat) {
-                    this.subtitleController.autoPauseContext.onWillStopShowing = undefined;
                     this.subtitleController.notification('info.disabledRepeatPlayback');
                 } else if (this._playMode === PlayMode.autoPause) {
-                    this.subtitleController.autoPauseContext.onStartedShowing = undefined;
-                    this.subtitleController.autoPauseContext.onWillStopShowing = undefined;
                     this.subtitleController.notification('info.disabledAutoPause');
                 } else if (this._playMode === PlayMode.condensed) {
-                    disableCondensedMode();
+                    this.subtitleController.notification('info.disabledCondensedPlayback');
                 } else if (this._playMode === PlayMode.fastForward) {
-                    disableFastForwardMode();
+                    this.subtitleController.notification('info.disabledFastForwardPlayback');
                 }
+                changed = true;
                 break;
             default:
                 console.error('Unknown play mode ' + newPlayMode);
         }
 
-        this._playMode = newPlayMode;
+        if (changed) {
+            this._playMode = newPlayMode;
+            this.mobileVideoOverlayController.updateModel();
+        }
     }
 
     subtitleFileName(track: number = 0) {

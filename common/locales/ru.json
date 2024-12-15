@@ -138,6 +138,7 @@
         "condensedMode": "Конденсированный режим",
         "fastForwardMode": "Быстрое воспроизведение",
         "normalMode": "Обычный режим",
+        "repeatMode": "Repeat",
         "playbackRate": "Скорость воспроизведения",
         "subtitleOffset": "Смещение субтитров",
         "subtitleAlignment": "Выравнивание субтитров",

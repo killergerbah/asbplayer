@@ -7,16 +7,18 @@ import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
 import LoadSubtitlesIcon from '@project/common/components/LoadSubtitlesIcon';
-import React, { useCallback, useRef } from 'react';
+import TuneIcon from '@material-ui/icons/Tune';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
     AsbPlayerToVideoCommandV2,
     CopySubtitleMessage,
     LoadSubtitlesMessage,
-    MobileOverlayCommand,
     MobileOverlayModel,
+    MobileOverlayToVideoCommand,
     OffsetToVideoMessage,
+    PlayMode,
+    PlayModeMessage,
     PostMineAction,
-    SettingsUpdatedMessage,
 } from '@project/common';
 import { SettingsProvider } from '@project/common/settings';
 import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
@@ -29,8 +31,12 @@ import { useI18n } from '../hooks/use-i18n';
 import { useTranslation } from 'react-i18next';
 import MuiTooltip, { TooltipProps } from '@material-ui/core/Tooltip';
 import LogoIcon from '@project/common/components/LogoIcon';
-import CloseIcon from '@material-ui/icons/Close';
 import HoldableIconButton from './HoldableIconButton';
+import PlayModeSelector from '@project/common/app/components/PlayModeSelector';
+import ThemeProvider from '@material-ui/styles/ThemeProvider';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import { createTheme } from '@project/common/theme';
+import type { PaletteType } from '@material-ui/core';
 
 const useStyles = makeStyles({
     button: {
@@ -47,6 +53,11 @@ const useStyles = makeStyles({
         width: 'auto',
         backgroundColor: 'rgba(0, 0, 0, .7)',
         borderRadius: 16,
+    },
+    playModePopOver: {
+        '& .MuiPopover-paper': {
+            maxHeight: 'none',
+        },
     },
 });
 const params = new URLSearchParams(location.search);
@@ -80,6 +91,18 @@ const MobileVideoOverlay = () => {
     const classes = useStyles();
     const offsetInputRef = useRef<HTMLInputElement>();
     const location = useMobileVideoOverlayLocation();
+    const [playModeSelectorOpen, setPlayModeSelectorOpen] = useState<boolean>(false);
+    const [playModeSelectorAnchorEl, setPlayModeSelectorAnchorEl] = useState<HTMLElement>();
+
+    const handleClosePlayModeSelector = useCallback(() => {
+        setPlayModeSelectorOpen(false);
+        setPlayModeSelectorAnchorEl(undefined);
+    }, []);
+
+    const handleOpenPlayModeSelector = useCallback((e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        setPlayModeSelectorAnchorEl(e.currentTarget);
+        setPlayModeSelectorOpen(true);
+    }, []);
 
     const handleMineSubtitle = useCallback(async () => {
         if (!location) {
@@ -131,6 +154,26 @@ const MobileVideoOverlay = () => {
 
     const model = useMobileVideoOverlayModel({ location });
 
+    const handlePlayModeSelected = useCallback(
+        (playMode: PlayMode) => {
+            if (!location) {
+                return;
+            }
+
+            const command: MobileOverlayToVideoCommand<PlayModeMessage> = {
+                sender: 'asbplayer-mobile-overlay-to-video',
+                message: {
+                    command: 'playMode',
+                    playMode,
+                },
+                src: location.src,
+            };
+            chrome.runtime.sendMessage(command);
+            handleClosePlayModeSelector();
+        },
+        [location, handleClosePlayModeSelector]
+    );
+
     const handleOffsetToPrevious = useCallback(() => {
         if (!model || model.previousSubtitleTimestamp === undefined) {
             return;
@@ -163,21 +206,14 @@ const MobileVideoOverlay = () => {
         handleOffset(model.offset - 100);
     }, [handleOffset, model]);
 
-    const handleDisableOverlay = useCallback(async () => {
-        await settings.set({ streamingEnableOverlay: false });
-        const command: MobileOverlayCommand<SettingsUpdatedMessage> = {
-            sender: 'asbplayer-mobile-overlay',
-            message: {
-                command: 'settings-updated',
-            },
-        };
-        chrome.runtime.sendMessage(command);
-    }, []);
-
     const { initialized: i18nInitialized } = useI18n({ language: model?.language ?? 'en' });
     const { t } = useTranslation();
+    const theme = useMemo(
+        () => (model?.themeType === undefined ? undefined : createTheme(model.themeType as PaletteType)),
+        [model?.themeType]
+    );
 
-    if (!model || !i18nInitialized) {
+    if (!model || !i18nInitialized || !theme) {
         return null;
     }
 
@@ -209,104 +245,139 @@ const MobileVideoOverlay = () => {
     }
 
     return (
-        <Fade in timeout={300}>
-            <GridContainer direction="row" wrap="nowrap" className={classes.container}>
-                <Grid item>
-                    <Box p={1.5} pl={2}>
-                        <LogoIcon />
-                    </Box>
-                </Grid>
-                <Grid item>
-                    <Tooltip placement={anchor} title={miningButtonTooltip(model)!}>
-                        {model.emptySubtitleTrack && model.recordingEnabled ? (
-                            // Wrap in span so that Tooltip doesn't complain about disabled child. Spacing also looks better.
-                            <span>
-                                <IconButton onClick={handleMineSubtitle}>
-                                    <FiberManualRecordIcon
-                                        className={model.recording ? classes.recordingButton : classes.button}
-                                    />
-                                </IconButton>
-                            </span>
-                        ) : (
-                            <span>
-                                <IconButton disabled={miningButtonDisabled} onClick={handleMineSubtitle}>
-                                    <NoteAddIcon
-                                        className={miningButtonDisabled ? classes.inactiveButton : classes.button}
-                                    />
-                                </IconButton>
-                            </span>
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <Fade in timeout={300}>
+                <>
+                    <GridContainer direction="row" wrap="nowrap" className={classes.container}>
+                        <Grid item>
+                            <Box p={1.5} pl={2}>
+                                <LogoIcon />
+                            </Box>
+                        </Grid>
+                        <Grid item>
+                            <Tooltip placement={anchor} title={miningButtonTooltip(model)!}>
+                                {model.emptySubtitleTrack && model.recordingEnabled ? (
+                                    // Wrap in span so that Tooltip doesn't complain about disabled child. Spacing also looks better.
+                                    <span>
+                                        <IconButton onClick={handleMineSubtitle}>
+                                            <FiberManualRecordIcon
+                                                className={model.recording ? classes.recordingButton : classes.button}
+                                            />
+                                        </IconButton>
+                                    </span>
+                                ) : (
+                                    <span>
+                                        <IconButton disabled={miningButtonDisabled} onClick={handleMineSubtitle}>
+                                            <NoteAddIcon
+                                                className={
+                                                    miningButtonDisabled ? classes.inactiveButton : classes.button
+                                                }
+                                            />
+                                        </IconButton>
+                                    </span>
+                                )}
+                            </Tooltip>
+                        </Grid>
+                        <Grid item>
+                            <Tooltip placement={anchor} title={t('action.loadSubtitles')!}>
+                                <span>
+                                    <IconButton disabled={model.recording} onClick={handleLoadSubtitles}>
+                                        <LoadSubtitlesIcon
+                                            className={model.recording ? classes.inactiveButton : classes.button}
+                                        />
+                                    </IconButton>
+                                </span>
+                            </Tooltip>
+                        </Grid>
+                        {!model.emptySubtitleTrack && (
+                            <>
+                                <Grid item>
+                                    <Tooltip title={t('controls.playbackMode')!}>
+                                        <span>
+                                            <IconButton onClick={handleOpenPlayModeSelector}>
+                                                <TuneIcon className={classes.button} />
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                </Grid>
+                                <Grid item>
+                                    <Tooltip placement={anchor} title={t('action.increaseOffsetButton')!}>
+                                        <span>
+                                            <HoldableIconButton
+                                                onClick={handleOffsetToPrevious}
+                                                onHold={handleIncrementOffset}
+                                                disabled={offsetToPreviousButtonDisabled}
+                                            >
+                                                <NavigateBeforeIcon
+                                                    className={
+                                                        offsetToPreviousButtonDisabled
+                                                            ? classes.inactiveButton
+                                                            : classes.button
+                                                    }
+                                                />
+                                            </HoldableIconButton>
+                                        </span>
+                                    </Tooltip>
+                                </Grid>
+                                <Tooltip placement={anchor} title={t('controls.subtitleOffset')!}>
+                                    <Grid item>
+                                        <SubtitleOffsetInput
+                                            inputRef={offsetInputRef}
+                                            offset={model.offset}
+                                            onOffset={handleOffset}
+                                        />
+                                    </Grid>
+                                </Tooltip>
+                                <Grid item>
+                                    <Tooltip placement={anchor} title={t('action.decreaseOffsetButton')!}>
+                                        <span>
+                                            <HoldableIconButton
+                                                onClick={handleOffsetToNext}
+                                                onHold={handleDecrementOffset}
+                                                disabled={offsetToNextButtonDisabled}
+                                            >
+                                                <NavigateNextIcon
+                                                    className={
+                                                        offsetToNextButtonDisabled
+                                                            ? classes.inactiveButton
+                                                            : classes.button
+                                                    }
+                                                />
+                                            </HoldableIconButton>
+                                        </span>
+                                    </Tooltip>
+                                </Grid>
+                            </>
                         )}
-                    </Tooltip>
-                </Grid>
-                <Grid item>
-                    <Tooltip placement={anchor} title={t('action.loadSubtitles')!}>
-                        <span>
-                            <IconButton disabled={model.recording} onClick={handleLoadSubtitles}>
-                                <LoadSubtitlesIcon
-                                    className={model.recording ? classes.inactiveButton : classes.button}
-                                />
-                            </IconButton>
-                        </span>
-                    </Tooltip>
-                </Grid>
-                {!model.emptySubtitleTrack && (
-                    <>
-                        <Grid item>
-                            <Tooltip placement={anchor} title={t('action.increaseOffsetButton')!}>
-                                <span>
-                                    <HoldableIconButton
-                                        onClick={handleOffsetToPrevious}
-                                        onHold={handleIncrementOffset}
-                                        disabled={offsetToPreviousButtonDisabled}
-                                    >
-                                        <NavigateBeforeIcon
-                                            className={
-                                                offsetToPreviousButtonDisabled ? classes.inactiveButton : classes.button
-                                            }
-                                        />
-                                    </HoldableIconButton>
-                                </span>
-                            </Tooltip>
-                        </Grid>
-                        <Tooltip placement={anchor} title={t('controls.subtitleOffset')!}>
-                            <Grid item>
-                                <SubtitleOffsetInput
-                                    inputRef={offsetInputRef}
-                                    offset={model.offset}
-                                    onOffset={handleOffset}
-                                />
-                            </Grid>
-                        </Tooltip>
-                        <Grid item>
-                            <Tooltip placement={anchor} title={t('action.decreaseOffsetButton')!}>
-                                <span>
-                                    <HoldableIconButton
-                                        onClick={handleOffsetToNext}
-                                        onHold={handleDecrementOffset}
-                                        disabled={offsetToNextButtonDisabled}
-                                    >
-                                        <NavigateNextIcon
-                                            className={
-                                                offsetToNextButtonDisabled ? classes.inactiveButton : classes.button
-                                            }
-                                        />
-                                    </HoldableIconButton>
-                                </span>
-                            </Tooltip>
-                        </Grid>
-                    </>
-                )}
-                <Grid item>
-                    <Tooltip placement={anchor} title={t('action.hideOverlay')!}>
-                        <span>
-                            <IconButton disabled={model.recording} onClick={handleDisableOverlay}>
-                                <CloseIcon className={classes.button} />
-                            </IconButton>
-                        </span>
-                    </Tooltip>
-                </Grid>
-            </GridContainer>
-        </Fade>
+                    </GridContainer>
+                    {playModeSelectorOpen && (
+                        <PlayModeSelector
+                            open={playModeSelectorOpen}
+                            anchorEl={playModeSelectorAnchorEl}
+                            onClose={handleClosePlayModeSelector}
+                            selectedPlayMode={model.playMode}
+                            onPlayMode={handlePlayModeSelected}
+                            listStyle={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                padding: 0,
+                                overflowX: 'auto',
+                            }}
+                            className={classes.playModePopOver}
+                            anchorOrigin={{
+                                vertical: 'center',
+                                horizontal: 'center',
+                            }}
+                            transformOrigin={{
+                                vertical: 'center',
+                                horizontal: 'center',
+                            }}
+                        />
+                    )}
+                </>
+            </Fade>
+        </ThemeProvider>
     );
 };
 

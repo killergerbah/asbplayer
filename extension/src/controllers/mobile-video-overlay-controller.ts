@@ -4,6 +4,7 @@ import {
     RequestMobileOverlayModelMessage,
     UpdateMobileOverlayModelMessage,
     VideoToExtensionCommand,
+    PlayModeMessage,
 } from '@project/common';
 import Binding from '../services/binding';
 import { CachingElementOverlay, OffsetAnchor } from '../services/element-overlay';
@@ -106,17 +107,19 @@ export class MobileVideoOverlayController {
             sender: chrome.runtime.MessageSender,
             sendResponse: (response?: any) => void
         ) => {
-            if (
-                message.sender === 'asbplayer-mobile-overlay-to-video' &&
-                message.message.command === 'request-mobile-overlay-model'
-            ) {
-                const command = message as MobileOverlayToVideoCommand<RequestMobileOverlayModelMessage>;
+            if (message.sender !== 'asbplayer-mobile-overlay-to-video' || message.src !== this._context.video.src) {
+                return;
+            }
 
-                if (command.src === this._context.video.src) {
-                    this._model().then(sendResponse);
-                    this._uiInitialized = true;
-                    return true;
-                }
+            if (message.message.command === 'request-mobile-overlay-model') {
+                this._model().then(sendResponse);
+                this._uiInitialized = true;
+                return true;
+            }
+
+            if (message.message.command === 'playMode') {
+                const command = message as MobileOverlayToVideoCommand<PlayModeMessage>;
+                this._context.playMode = command.message.playMode;
             }
         };
         chrome.runtime.onMessage.addListener(this._messageListener);
@@ -149,9 +152,10 @@ export class MobileVideoOverlayController {
         const subtitleDisplaying =
             subtitles.length > 0 && this._context.subtitleController.currentSubtitle()[0] !== null;
         const timestamp = this._context.video.currentTime * 1000;
-        const { language, clickToMineDefaultAction } = await this._context.settings.get([
+        const { language, clickToMineDefaultAction, themeType } = await this._context.settings.get([
             'language',
             'clickToMineDefaultAction',
+            'themeType',
         ]);
         const model: MobileOverlayModel = {
             offset: subtitles.length === 0 ? 0 : subtitles[0].start - subtitles[0].originalStart,
@@ -164,6 +168,8 @@ export class MobileVideoOverlayController {
             language,
             postMineAction: clickToMineDefaultAction,
             subtitleDisplaying,
+            playMode: this._context.playMode,
+            themeType,
         };
         return model;
     }
@@ -191,7 +197,8 @@ export class MobileVideoOverlayController {
 
     private _doShow() {
         const anchor = this._overlay.offsetAnchor === OffsetAnchor.bottom ? 'bottom' : 'top';
-        const smallScreen = this._context.video.getBoundingClientRect().height < smallScreenVideoHeighThreshold;
+        const videoRect = this._context.video.getBoundingClientRect();
+        const smallScreen = videoRect.height < smallScreenVideoHeighThreshold;
         const height = smallScreen ? 64 : 108;
         const tooltips = !smallScreen;
 
@@ -200,11 +207,13 @@ export class MobileVideoOverlayController {
             this._smallScreen = smallScreen;
         }
 
+        const width = Math.max(videoRect.width, 400);
+
         this._overlay.setHtml([
             {
                 key: 'ui',
                 html: () =>
-                    `<iframe style="border: 0; color-scheme: normal; width: 400px; height: ${height}px" src="${chrome.runtime.getURL(
+                    `<iframe style="border: 0; color-scheme: normal; width: ${width}px; height: ${height}px" src="${chrome.runtime.getURL(
                         'mobile-video-overlay-ui.html'
                     )}?src=${encodeURIComponent(this._context.video.src)}&anchor=${anchor}&tooltips=${tooltips}"/>`,
             },

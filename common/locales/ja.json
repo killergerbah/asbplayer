@@ -138,6 +138,7 @@
         "condensedMode": "短縮",
         "fastForwardMode": "早送り",
         "normalMode": "通常",
+        "repeatMode": "Repeat",
         "playbackRate": "再生速度",
         "subtitleOffset": "字幕表示タイミング",
         "subtitleAlignment": "字幕の表示位置",
