@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
-import MobileVideoOverlay from '../components/MobileVideoOverlay';
+import MobileVideoOverlayUi from '../components/MobileVideoOverlayUi';
 
 export async function renderMobileVideoOverlay(element: Element) {
-    createRoot(element).render(<MobileVideoOverlay />);
+    createRoot(element).render(<MobileVideoOverlayUi />);
 }
