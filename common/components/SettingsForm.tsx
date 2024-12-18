@@ -598,7 +598,7 @@ function CustomStyleSetting({ customStyle, onCustomStyle, onDelete }: CustomStyl
 
 const usePanelStyles = makeStyles<Theme>((theme) => ({
     panel: {
-        paddingLeft: theme.spacing(3),
+        paddingLeft: theme.spacing(1),
         paddingRight: theme.spacing(1),
         overflowY: 'scroll',
         maxHeight: '100%',
@@ -1165,7 +1165,11 @@ export default function SettingsForm({
                 value={tabIndex}
                 className={classes.tabs}
                 onChange={(event, index) => setTabIndex(index)}
-                style={{ maxWidth: '100vw', marginLeft: smallScreen ? 'auto' : 8 }}
+                style={{
+                    maxWidth: '100vw',
+                    marginLeft: smallScreen ? 'auto' : 8,
+                    marginRight: smallScreen ? 'auto' : 8,
+                }}
             >
                 <Tab tabIndex={0} label={t('settings.anki')} id="anki-settings" />
                 <Tab tabIndex={1} label={t('settings.mining')} id="mining-settings" />
