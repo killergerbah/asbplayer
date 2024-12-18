@@ -30,6 +30,13 @@ export const blobToBase64 = (blob: Blob) => {
     });
 };
 
-export const base64ToBlob = async (base64: string, mimeType: string) => {
-    return await (await fetch(`data:${mimeType};base64,${base64}`)).blob();
+export const base64ToBlob = (base64: string, mimeType: string) => {
+    const decoded = atob(base64);
+    const buffer = new Uint8Array(decoded.length);
+
+    for (let i = 0; i < buffer.length; ++i) {
+        buffer[i] = decoded.charCodeAt(i);
+    }
+
+    return new Blob([buffer.buffer], { type: mimeType });
 };

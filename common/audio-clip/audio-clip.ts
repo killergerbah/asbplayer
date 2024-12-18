@@ -3,7 +3,7 @@ import Mp3Encoder from './mp3-encoder';
 import { AudioErrorCode, CardModel, FileModel } from '@project/common';
 import { download } from '@project/common/util';
 import { isActiveBlobUrl } from '../blob-url';
-import { blobToBase64 } from '../base64';
+import { base64ToBlob, blobToBase64 } from '../base64';
 
 const maxPrefixLength = 24;
 
@@ -138,7 +138,7 @@ class Base64AudioData implements AudioData {
 
     async _blob() {
         if (!this.cachedBlob) {
-            this.cachedBlob = await (await fetch('data:audio/' + this.extension + ';base64,' + this._base64)).blob();
+            this.cachedBlob = base64ToBlob(this._base64, `audio/${this.extension}`);
         }
 
         return this.cachedBlob;
