@@ -295,8 +295,12 @@ const MobileVideoOverlay = () => {
                                 <Grid item>
                                     <Tooltip title={t('controls.playbackMode')!}>
                                         <span>
-                                            <IconButton onClick={handleOpenPlayModeSelector}>
-                                                <TuneIcon className={classes.button} />
+                                            <IconButton disabled={model.recording} onClick={handleOpenPlayModeSelector}>
+                                                <TuneIcon
+                                                    className={
+                                                        model.recording ? classes.inactiveButton : classes.button
+                                                    }
+                                                />
                                             </IconButton>
                                         </span>
                                     </Tooltip>
