@@ -352,26 +352,30 @@ const MobileVideoOverlay = ({
                                 )}
                             </Tooltip>
                         </Grid>
-                        <Grid item>
-                            <Tooltip {...defaultTooltipProps} title={t('binds.toggleSubtitles')!}>
-                                <span>
-                                    <IconButton disabled={model.recording} onClick={onToggleSubtitles}>
-                                        {model.subtitlesAreVisible && (
-                                            <SubtitlesOffIcon
-                                                className={model.recording ? classes.inactiveButton : classes.button}
-                                            />
-                                        )}
-                                        {!model.subtitlesAreVisible && (
-                                            <SubtitlesIcon
-                                                className={model.recording ? classes.inactiveButton : classes.button}
-                                            />
-                                        )}
-                                    </IconButton>
-                                </span>
-                            </Tooltip>
-                        </Grid>
                         {!model.emptySubtitleTrack && (
                             <>
+                                <Grid item>
+                                    <Tooltip {...defaultTooltipProps} title={t('binds.toggleSubtitles')!}>
+                                        <span>
+                                            <IconButton disabled={model.recording} onClick={onToggleSubtitles}>
+                                                {model.subtitlesAreVisible && (
+                                                    <SubtitlesOffIcon
+                                                        className={
+                                                            model.recording ? classes.inactiveButton : classes.button
+                                                        }
+                                                    />
+                                                )}
+                                                {!model.subtitlesAreVisible && (
+                                                    <SubtitlesIcon
+                                                        className={
+                                                            model.recording ? classes.inactiveButton : classes.button
+                                                        }
+                                                    />
+                                                )}
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                </Grid>
                                 <Grid item>
                                     <Tooltip {...defaultTooltipProps} title={t('controls.playbackMode')!}>
                                         <span>
