@@ -10,7 +10,7 @@ import LoadSubtitlesIcon from '@project/common/components/LoadSubtitlesIcon';
 import TuneIcon from '@material-ui/icons/Tune';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { MobileOverlayModel, PlayMode, PostMineAction } from '@project/common';
-import SubtitleOffsetInput from '@project/common/app/components/SubtitleOffsetInput';
+import SubtitleOffsetInput from '@project/common/components/SubtitleOffsetInput';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import { useTranslation } from 'react-i18next';
 import MuiTooltip, { TooltipProps } from '@material-ui/core/Tooltip';

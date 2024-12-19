@@ -7,7 +7,6 @@ import CloseIcon from '@material-ui/icons/Close';
 import Fade from '@material-ui/core/Fade';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
-import Input from '@material-ui/core/Input';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
@@ -36,9 +35,11 @@ import MenuItem from '@material-ui/core/MenuItem';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { isMobile } from 'react-device-detect';
-import SubtitleOffsetInput from './SubtitleOffsetInput';
+import SubtitleOffsetInput from '../../components/SubtitleOffsetInput';
+import PlaybackRateInput from '../../components/PlaybackRateInput';
 import VideoElementFavicon from './VideoElementFavicon';
 import PlayModeSelector from './PlayModeSelector';
+import TimeDisplay from '../../components/TimeDisplay';
 
 const useControlStyles = makeStyles((theme) => ({
     container: {
@@ -51,17 +52,6 @@ const useControlStyles = makeStyles((theme) => ({
     },
     buttonContainer: {
         flexDirection: 'row',
-    },
-    timeDisplay: {
-        color: '#fff',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        height: '100%',
-        cursor: 'default',
-        fontSize: 20,
-        marginLeft: 10,
-        whiteSpace: 'nowrap',
     },
     numberInput: {
         height: '100%',
@@ -237,13 +227,6 @@ const VolumeSlider = withStyles((theme) => ({
         color: 'white',
     },
 }))(Slider);
-
-function displayTime(milliseconds: number) {
-    const seconds = Math.floor(milliseconds / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const secondsInMinute = seconds % 60;
-    return String(minutes) + ':' + String(secondsInMinute).padStart(2, '0');
-}
 
 function elementWidth(element: HTMLElement) {
     const rect = element.getBoundingClientRect();
@@ -623,7 +606,6 @@ export default function Controls({
     const lastNumberInputChangeTimestampRef = useRef<number>(Date.now());
     const lastShowRef = useRef<boolean>(true);
     const forceShowRef = useRef<boolean>(false);
-    const [playbackRateInputWidth, setPlaybackRateInputWidth] = useState<number>(5);
     const offsetInputRef = useRef<HTMLInputElement>();
     const playbackRateInputRef = useRef<HTMLInputElement>();
     const containerRef = useRef<HTMLDivElement>(null);
@@ -710,21 +692,6 @@ export default function Controls({
 
     useEffect(() => onShow?.(show), [onShow, show]);
 
-    const updatePlaybackRate = useCallback((playbackRate: number) => {
-        if (playbackRateInputRef.current) {
-            if (playbackRate === 1) {
-                playbackRateInputRef.current.value = '';
-                setPlaybackRateInputWidth(5);
-            } else {
-                const value = '×' + String(playbackRate.toFixed(2));
-                playbackRateInputRef.current.value = value;
-                lastNumberInputChangeTimestampRef.current = Date.now();
-                setPlaybackRateInputWidth(value.length);
-            }
-            playbackRateInputRef.current.blur();
-        }
-    }, []);
-
     const handleOffsetChange = useCallback(
         (offset: number) => {
             lastNumberInputChangeTimestampRef.current = Date.now();
@@ -733,57 +700,13 @@ export default function Controls({
         [onOffsetChange]
     );
 
-    const tryApplyPlaybackRate = useCallback(
-        (revertOnFailure: boolean) => {
-            if (!playbackRateInputRef.current) {
-                return;
-            }
-            const newPlaybackRate = Number(playbackRateInputRef.current.value);
-
-            if (playbackRate === newPlaybackRate) {
-                updatePlaybackRate(playbackRate);
-                return;
-            }
-
-            if (Number.isNaN(newPlaybackRate) || newPlaybackRate < 0.1 || newPlaybackRate > 5) {
-                if (revertOnFailure) {
-                    updatePlaybackRate(playbackRate);
-                }
-
-                return;
-            }
-
-            onPlaybackRateChange(newPlaybackRate);
+    const handlePlaybackRateChange = useCallback(
+        (playbackRate: number) => {
+            lastNumberInputChangeTimestampRef.current = Date.now();
+            onPlaybackRateChange(playbackRate);
         },
-        [onPlaybackRateChange, updatePlaybackRate, playbackRate]
+        [onPlaybackRateChange]
     );
-
-    useEffect(() => {
-        if (disableKeyEvents) {
-            return;
-        }
-
-        function handleKey(event: KeyboardEvent) {
-            if (event.key === 'Enter') {
-                tryApplyPlaybackRate(false);
-            }
-        }
-
-        window.addEventListener('keydown', handleKey);
-
-        return () => {
-            window.removeEventListener('keydown', handleKey);
-        };
-    }, [tryApplyPlaybackRate, playbackRate, disableKeyEvents]);
-
-    const handleNumberInputClicked = useCallback((e: React.MouseEvent<HTMLInputElement>) => {
-        const inputElement = e.target as HTMLInputElement;
-        inputElement.setSelectionRange(0, inputElement.value?.length || 0);
-    }, []);
-
-    const handleNumberInputDeselected = useCallback(() => {
-        tryApplyPlaybackRate(true);
-    }, [tryApplyPlaybackRate]);
 
     useEffect(() => {
         clock.onEvent('settime', () => forceUpdate());
@@ -797,10 +720,6 @@ export default function Controls({
         const interval = setInterval(() => forceUpdate(), 100);
         return () => clearInterval(interval);
     }, [show, playing, forceUpdate]);
-
-    useEffect(() => {
-        updatePlaybackRate(playbackRate);
-    }, [playbackRate, updatePlaybackRate]);
 
     const handleAudioTrackSelectorClosed = useCallback(() => {
         setAudioTrackSelectorAnchorEl(undefined);
@@ -1043,9 +962,10 @@ export default function Controls({
                             )}
                             {Number.isFinite(length) && (
                                 <Grid item>
-                                    <div className={classes.timeDisplay}>
-                                        {displayTime(progress * length)} / {displayTime(displayLength || length)}
-                                    </div>
+                                    <TimeDisplay
+                                        currentMilliseconds={progress * length}
+                                        totalMilliseconds={displayLength || length}
+                                    />
                                 </Grid>
                             )}
                             {offsetEnabled && !showVolumeBar && !isReallySmallScreen && (
@@ -1063,7 +983,12 @@ export default function Controls({
                             {playbackRateEnabled && !showVolumeBar && !isReallySmallScreen && (
                                 <Grid item>
                                     <Tooltip title={t('controls.playbackRate')!}>
-                                        <Input
+                                        <PlaybackRateInput
+                                            inputRef={playbackRateInputRef}
+                                            playbackRate={playbackRate}
+                                            onPlaybackRate={handlePlaybackRateChange}
+                                        />
+                                        {/* <Input
                                             style={{
                                                 width: `${playbackRateInputWidth}ch`,
                                                 marginLeft: 4,
@@ -1077,7 +1002,7 @@ export default function Controls({
                                             onChange={(e) =>
                                                 setPlaybackRateInputWidth(Math.max(5, e.target.value.length))
                                             }
-                                        />
+                                        /> */}
                                     </Tooltip>
                                 </Grid>
                             )}

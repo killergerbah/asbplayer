@@ -1,7 +1,6 @@
-import Input from '@material-ui/core/Input';
+import Input, { InputProps } from '@material-ui/core/Input';
 import React, { MutableRefObject, useCallback, useEffect, useState } from 'react';
 import makeStyles from '@material-ui/core/styles/makeStyles';
-import { useTranslation } from 'react-i18next';
 
 const useStyles = makeStyles({
     input: {
@@ -17,75 +16,89 @@ const useStyles = makeStyles({
     },
 });
 
-interface Props {
+interface Props extends InputProps {
     inputRef: MutableRefObject<HTMLInputElement | undefined>;
-    offset: number;
-    onOffset: (offset: number) => void;
+    numberValue: number;
+    defaultNumberValue: number;
+    onNumberValue: (value: number) => void;
+    valueToPrettyString: (value: number) => string;
+    stringToValue: (stringValue: string) => number;
+    rejectValue?: (value: number) => boolean;
     disableKeyEvents?: boolean;
 }
 
-export default function SubtitleOffsetInput({ inputRef, offset, onOffset, disableKeyEvents }: Props) {
-    const { t } = useTranslation();
+export default function VideoControlInput({
+    inputRef,
+    numberValue,
+    defaultNumberValue,
+    onNumberValue,
+    valueToPrettyString,
+    stringToValue,
+    rejectValue,
+    disableKeyEvents,
+    className,
+    ...rest
+}: Props) {
     const classes = useStyles();
-    const [offsetInputWidth, setOffsetInputWidth] = useState<number>(5);
+    const [inputWidth, setInputWidth] = useState<number>(5);
     const handleNumberInputClicked = useCallback((e: React.MouseEvent<HTMLInputElement>) => {
         const inputElement = e.target as HTMLInputElement;
         inputElement.setSelectionRange(0, inputElement.value?.length || 0);
     }, []);
 
-    const updateOffset = useCallback(
-        (offset: number) => {
+    const updateValue = useCallback(
+        (value: number) => {
             if (!inputRef.current) {
                 return;
             }
 
-            if (offset === 0) {
+            if (value === defaultNumberValue) {
                 inputRef.current.value = '';
-                setOffsetInputWidth(5);
+                setInputWidth(5);
             } else {
-                const offsetSeconds = offset / 1000;
-                const value = offsetSeconds >= 0 ? '+' + offsetSeconds.toFixed(2) : String(offsetSeconds.toFixed(2));
-                inputRef.current.value = value;
-                setOffsetInputWidth(value.length);
+                onNumberValue(value);
+                const stringValue = valueToPrettyString(value);
+                inputRef.current.value = stringValue;
+                setInputWidth(stringValue.length);
             }
 
             inputRef.current.blur();
         },
-        [inputRef]
+        [inputRef, valueToPrettyString, onNumberValue, defaultNumberValue]
     );
 
-    const tryApplyOffset = useCallback(
+    const tryApplyValue = useCallback(
         (revertOnFailure: boolean) => {
             if (!inputRef.current) {
                 return;
             }
 
-            const newOffset = Number(inputRef.current.value) * 1000;
+            const newValue = stringToValue(inputRef.current.value);
 
-            if (newOffset === offset) {
-                updateOffset(offset);
+            if (newValue === numberValue) {
+                updateValue(numberValue);
                 return;
             }
 
-            if (Number.isNaN(newOffset)) {
+            if (Number.isNaN(newValue) || rejectValue?.(newValue)) {
                 if (revertOnFailure) {
-                    updateOffset(offset);
+                    updateValue(numberValue);
                 }
                 return;
             }
 
-            onOffset(newOffset);
+            onNumberValue(newValue);
         },
-        [updateOffset, onOffset, offset, inputRef]
+        [updateValue, stringToValue, onNumberValue, rejectValue, numberValue, inputRef]
     );
 
     const handleNumberInputDeselected = useCallback(() => {
-        tryApplyOffset(true);
-    }, [tryApplyOffset]);
+        tryApplyValue(true);
+    }, [tryApplyValue]);
 
     useEffect(() => {
-        updateOffset(offset);
-    }, [offset, updateOffset]);
+        updateValue(numberValue);
+    }, [numberValue, updateValue]);
 
     useEffect(() => {
         if (disableKeyEvents) {
@@ -94,7 +107,7 @@ export default function SubtitleOffsetInput({ inputRef, offset, onOffset, disabl
 
         function handleKey(event: KeyboardEvent) {
             if (event.key === 'Enter' && inputRef.current !== null && inputRef.current === document.activeElement) {
-                tryApplyOffset(false);
+                tryApplyValue(false);
             }
         }
 
@@ -103,20 +116,22 @@ export default function SubtitleOffsetInput({ inputRef, offset, onOffset, disabl
         return () => {
             window.removeEventListener('keydown', handleKey);
         };
-    }, [tryApplyOffset, disableKeyEvents, inputRef]);
+    }, [tryApplyValue, disableKeyEvents, inputRef]);
+
+    const actualClassName = className ? `${className} ${classes.input}` : classes.input;
 
     return (
         <Input
             style={{
-                width: `${offsetInputWidth}ch`,
+                width: `${inputWidth}ch`,
             }}
             inputRef={inputRef}
             disableUnderline={true}
-            className={classes.input}
-            placeholder={'±' + Number(0).toFixed(2)}
+            className={actualClassName}
             onClick={handleNumberInputClicked}
             onBlur={handleNumberInputDeselected}
-            onChange={(e) => setOffsetInputWidth(Math.max(5, e.target.value.length))}
+            onChange={(e) => setInputWidth(Math.max(5, e.target.value.length))}
+            {...rest}
         />
     );
 }
