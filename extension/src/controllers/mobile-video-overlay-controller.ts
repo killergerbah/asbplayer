@@ -1,7 +1,6 @@
 import {
     MobileOverlayToVideoCommand,
     MobileOverlayModel,
-    RequestMobileOverlayModelMessage,
     UpdateMobileOverlayModelMessage,
     VideoToExtensionCommand,
     PlayModeMessage,
@@ -159,6 +158,7 @@ export class MobileVideoOverlayController {
         ]);
         const model: MobileOverlayModel = {
             offset: subtitles.length === 0 ? 0 : subtitles[0].start - subtitles[0].originalStart,
+            playbackRate: this._context.video.playbackRate,
             emptySubtitleTrack: subtitles.length === 0,
             recordingEnabled: this._context.recordMedia,
             recording: this._context.recordingMedia,

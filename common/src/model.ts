@@ -231,6 +231,7 @@ export enum PlayMode {
 
 export interface MobileOverlayModel {
     offset: number;
+    playbackRate: number;
     emptySubtitleTrack: boolean;
     recordingEnabled: boolean;
     recording: boolean;

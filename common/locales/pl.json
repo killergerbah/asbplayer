@@ -152,7 +152,8 @@
         "toggleFullscreen": "Przełącz tryb pełnoekranowy",
         "toggleTheaterMode": "Przełącz tryb kinowy",
         "showSubtitlePlayer": "Pokaż listę napisów",
-        "hideSubtitlePlayer": "Schowaj listę napisów"
+        "hideSubtitlePlayer": "Schowaj listę napisów",
+        "currentTimestamp": "Current Timestamp"
     },
     "copyHistory": {
         "blank": "Puste",

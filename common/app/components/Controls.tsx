@@ -38,7 +38,7 @@ import { isMobile } from 'react-device-detect';
 import SubtitleOffsetInput from '../../components/SubtitleOffsetInput';
 import PlaybackRateInput from '../../components/PlaybackRateInput';
 import VideoElementFavicon from './VideoElementFavicon';
-import PlayModeSelector from './PlayModeSelector';
+import PlayModeSelector from '../../components/PlayModeSelector';
 import TimeDisplay from '../../components/TimeDisplay';
 
 const useControlStyles = makeStyles((theme) => ({
@@ -970,7 +970,7 @@ export default function Controls({
                             )}
                             {offsetEnabled && !showVolumeBar && !isReallySmallScreen && (
                                 <Tooltip title={t('controls.subtitleOffset')!}>
-                                    <Grid item>
+                                    <Grid item style={{ marginLeft: 10 }}>
                                         <SubtitleOffsetInput
                                             inputRef={offsetInputRef}
                                             offset={offset}
@@ -981,28 +981,13 @@ export default function Controls({
                                 </Tooltip>
                             )}
                             {playbackRateEnabled && !showVolumeBar && !isReallySmallScreen && (
-                                <Grid item>
+                                <Grid item style={{ marginLeft: 10 }}>
                                     <Tooltip title={t('controls.playbackRate')!}>
                                         <PlaybackRateInput
                                             inputRef={playbackRateInputRef}
                                             playbackRate={playbackRate}
                                             onPlaybackRate={handlePlaybackRateChange}
                                         />
-                                        {/* <Input
-                                            style={{
-                                                width: `${playbackRateInputWidth}ch`,
-                                                marginLeft: 4,
-                                            }}
-                                            inputRef={playbackRateInputRef}
-                                            disableUnderline={true}
-                                            className={classes.numberInput}
-                                            placeholder={'×' + Number(1).toFixed(2)}
-                                            onClick={handleNumberInputClicked}
-                                            onBlur={handleNumberInputDeselected}
-                                            onChange={(e) =>
-                                                setPlaybackRateInputWidth(Math.max(5, e.target.value.length))
-                                            }
-                                        /> */}
                                     </Tooltip>
                                 </Grid>
                             )}

@@ -1,3 +1,4 @@
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import Fade from '@material-ui/core/Fade';
 import Grid, { GridProps } from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
@@ -6,21 +7,21 @@ import NoteAddIcon from '@material-ui/icons/NoteAdd';
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
-import LoadSubtitlesIcon from '@project/common/components/LoadSubtitlesIcon';
 import TuneIcon from '@material-ui/icons/Tune';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { MobileOverlayModel, PlayMode, PostMineAction } from '@project/common';
-import SubtitleOffsetInput from '@project/common/components/SubtitleOffsetInput';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import { useTranslation } from 'react-i18next';
-import MuiTooltip, { TooltipProps } from '@material-ui/core/Tooltip';
-import LogoIcon from '@project/common/components/LogoIcon';
-import HoldableIconButton from './HoldableIconButton';
-import PlayModeSelector from '@project/common/app/components/PlayModeSelector';
+import LogoIcon from './LogoIcon';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { createTheme } from '@project/common/theme';
 import type { PaletteType } from '@material-ui/core';
+
+import LoadSubtitlesIcon from './LoadSubtitlesIcon';
+import HoldableIconButton from './HoldableIconButton';
+import PlayModeSelector from './PlayModeSelector';
+import ScrollableNumberControls, { ControlType } from './ScrollableNumberControls';
+import Tooltip from './Tooltip';
 
 type Anchor = 'top' | 'bottom';
 
@@ -61,18 +62,6 @@ const useStyles = makeStyles(({ anchor }: { anchor: Anchor }) => ({
     },
 }));
 
-interface ControllableTooltipProps extends TooltipProps {
-    disabled: boolean;
-}
-
-const Tooltip = ({ children, disabled, ...rest }: ControllableTooltipProps) => {
-    if (disabled) {
-        return children;
-    }
-
-    return <MuiTooltip {...rest}>{children}</MuiTooltip>;
-};
-
 const GridContainer = ({ children, ...props }: { children: React.ReactNode } & GridProps) => {
     return (
         <Grid container alignContent="center" justifyContent="center" {...props}>
@@ -88,7 +77,9 @@ interface Props {
     onMineSubtitle: () => void;
     onLoadSubtitles: () => void;
     onOffset: (offset: number) => void;
+    onPlaybackRate: (playbackRate: number) => void;
     onPlayModeSelected: (playMode: PlayMode) => void;
+    onSeek: (timestamp: number) => void;
 }
 
 const MobileVideoOverlay = ({
@@ -98,12 +89,16 @@ const MobileVideoOverlay = ({
     onMineSubtitle,
     onLoadSubtitles,
     onOffset,
+    onPlaybackRate,
     onPlayModeSelected,
+    onSeek,
 }: Props) => {
     const classes = useStyles({ anchor });
     const offsetInputRef = useRef<HTMLInputElement>();
+    const playbackInputRef = useRef<HTMLInputElement>();
     const [playModeSelectorOpen, setPlayModeSelectorOpen] = useState<boolean>(false);
     const [playModeSelectorAnchorEl, setPlayModeSelectorAnchorEl] = useState<HTMLElement>();
+    const [numberControlType, setNumberControlType] = useState<ControlType>(ControlType.timeDisplay);
 
     const handleClosePlayModeSelector = useCallback(() => {
         setPlayModeSelectorOpen(false);
@@ -147,18 +142,146 @@ const MobileVideoOverlay = ({
         onOffset(model.offset - 100);
     }, [onOffset, model]);
 
+    const handleDecrementPlaybackRate = useCallback(() => {
+        if (!model) {
+            return;
+        }
+
+        onPlaybackRate(Math.max(0.1, model.playbackRate - 0.1));
+    }, [onPlaybackRate, model]);
+
+    const handleIncrementPlaybackRate = useCallback(() => {
+        if (!model) {
+            return;
+        }
+
+        onPlaybackRate(Math.min(5, model.playbackRate + 0.1));
+    }, [onPlaybackRate, model]);
+
+    const handleSeekToPreviousSubtitle = useCallback(() => {
+        if (!model || model.previousSubtitleTimestamp === undefined) {
+            return;
+        }
+
+        onSeek(model.previousSubtitleTimestamp);
+    }, [onSeek, model]);
+
+    const handleSeekToNextSubtitle = useCallback(() => {
+        if (!model || model.nextSubtitleTimestamp === undefined) {
+            return;
+        }
+
+        onSeek(model.nextSubtitleTimestamp);
+    }, [onSeek, model]);
+
+    const handleLeftNumberControl = useCallback(() => {
+        switch (numberControlType) {
+            case ControlType.timeDisplay:
+                handleSeekToPreviousSubtitle();
+                break;
+            case ControlType.subtitleOffset:
+                handleOffsetToPrevious();
+                break;
+            case ControlType.playbackRate:
+                handleDecrementPlaybackRate();
+                break;
+        }
+    }, [numberControlType, handleSeekToPreviousSubtitle, handleOffsetToPrevious, handleDecrementPlaybackRate]);
+
+    const handleRightNumberControl = useCallback(() => {
+        switch (numberControlType) {
+            case ControlType.timeDisplay:
+                handleSeekToNextSubtitle();
+                break;
+            case ControlType.subtitleOffset:
+                handleOffsetToNext();
+                break;
+            case ControlType.playbackRate:
+                handleIncrementPlaybackRate();
+                break;
+        }
+    }, [numberControlType, handleSeekToNextSubtitle, handleOffsetToNext, handleIncrementPlaybackRate]);
+
+    const handleHoldLeftNumberControl = useCallback(() => {
+        switch (numberControlType) {
+            case ControlType.timeDisplay:
+                // ignore
+                break;
+            case ControlType.subtitleOffset:
+                handleIncrementOffset();
+                break;
+            case ControlType.playbackRate:
+                handleDecrementPlaybackRate();
+                break;
+        }
+    }, [numberControlType, handleIncrementOffset, handleDecrementPlaybackRate]);
+
+    const handleHoldRightNumberControl = useCallback(() => {
+        switch (numberControlType) {
+            case ControlType.timeDisplay:
+                // ignore
+                break;
+            case ControlType.subtitleOffset:
+                handleDecrementOffset();
+                break;
+            case ControlType.playbackRate:
+                handleIncrementPlaybackRate();
+                break;
+        }
+    }, [numberControlType, handleDecrementOffset, handleIncrementPlaybackRate]);
+
     const { t } = useTranslation();
     const theme = useMemo(
         () => (model?.themeType === undefined ? undefined : createTheme(model.themeType as PaletteType)),
         [model?.themeType]
     );
 
+    const { leftNumberControlTitle, numberControlTitle, rightNumberControlTitle } = useMemo(() => {
+        switch (numberControlType) {
+            case ControlType.timeDisplay:
+                return {
+                    leftNumberControlTitle: t('binds.seekToPreviousSubtitle'),
+                    numberControlTitle: t('controls.currentTimestamp'),
+                    rightNumberControlTitle: t('binds.seekToNextSubtitle'),
+                };
+            case ControlType.subtitleOffset:
+                return {
+                    leftNumberControlTitle: t('action.increaseOffsetButton'),
+                    numberControlTitle: t('controls.subtitleOffset'),
+                    rightNumberControlTitle: t('action.decreaseOffsetButton'),
+                };
+
+            case ControlType.playbackRate:
+                return {
+                    leftNumberControlTitle: t('binds.decreasePlaybackRate'),
+                    numberControlTitle: t('controls.playbackRate'),
+                    rightNumberControlTitle: t('binds.increasePlaybackRate'),
+                };
+        }
+    }, [numberControlType, t]);
+
     if (!model || !theme) {
         return null;
     }
 
-    const offsetToPreviousButtonDisabled = model.previousSubtitleTimestamp === undefined || model.recording;
-    const offsetToNextButtonDisabled = model.nextSubtitleTimestamp === undefined || model.recording;
+    let rightNumberControlDisabled: boolean;
+    let leftNumberControlDisabled: boolean;
+
+    switch (numberControlType) {
+        case ControlType.timeDisplay:
+            rightNumberControlDisabled = model.nextSubtitleTimestamp === undefined || model.recording;
+            leftNumberControlDisabled = model.previousSubtitleTimestamp === undefined || model.recording;
+            break;
+        case ControlType.subtitleOffset:
+            rightNumberControlDisabled = model.nextSubtitleTimestamp === undefined || model.recording;
+            leftNumberControlDisabled = model.previousSubtitleTimestamp === undefined || model.recording;
+            break;
+        case ControlType.playbackRate:
+            rightNumberControlDisabled = model.playbackRate >= 5 || model.recording;
+            leftNumberControlDisabled = model.playbackRate <= 0.1 || model.recording;
+            break;
+    }
+
     const miningButtonDisabled = (!model.emptySubtitleTrack && !model.subtitleDisplaying) || model.recording;
 
     function miningButtonTooltip(model: MobileOverlayModel) {
@@ -252,16 +375,16 @@ const MobileVideoOverlay = ({
                                     </Tooltip>
                                 </Grid>
                                 <Grid item>
-                                    <Tooltip {...defaultTooltipProps} title={t('action.increaseOffsetButton')!}>
+                                    <Tooltip {...defaultTooltipProps} title={leftNumberControlTitle}>
                                         <span>
                                             <HoldableIconButton
-                                                onClick={handleOffsetToPrevious}
-                                                onHold={handleIncrementOffset}
-                                                disabled={offsetToPreviousButtonDisabled}
+                                                onClick={handleLeftNumberControl}
+                                                onHold={handleHoldLeftNumberControl}
+                                                disabled={leftNumberControlDisabled}
                                             >
                                                 <NavigateBeforeIcon
                                                     className={
-                                                        offsetToPreviousButtonDisabled
+                                                        leftNumberControlDisabled
                                                             ? classes.inactiveButton
                                                             : classes.button
                                                     }
@@ -270,26 +393,31 @@ const MobileVideoOverlay = ({
                                         </span>
                                     </Tooltip>
                                 </Grid>
-                                <Tooltip {...defaultTooltipProps} title={t('controls.subtitleOffset')!}>
+                                <Tooltip {...defaultTooltipProps} title={numberControlTitle}>
                                     <Grid item>
-                                        <SubtitleOffsetInput
-                                            inputRef={offsetInputRef}
+                                        <ScrollableNumberControls
+                                            offsetInputRef={offsetInputRef}
+                                            playbackRateInputRef={playbackInputRef}
                                             offset={model.offset}
                                             onOffset={onOffset}
+                                            playbackRate={model.playbackRate}
+                                            onPlaybackRate={onPlaybackRate}
+                                            onScrollTo={setNumberControlType}
+                                            currentMilliseconds={model.currentTimestamp}
                                         />
                                     </Grid>
                                 </Tooltip>
                                 <Grid item>
-                                    <Tooltip {...defaultTooltipProps} title={t('action.decreaseOffsetButton')!}>
+                                    <Tooltip {...defaultTooltipProps} title={rightNumberControlTitle}>
                                         <span>
                                             <HoldableIconButton
-                                                onClick={handleOffsetToNext}
-                                                onHold={handleDecrementOffset}
-                                                disabled={offsetToNextButtonDisabled}
+                                                onClick={handleRightNumberControl}
+                                                onHold={handleHoldRightNumberControl}
+                                                disabled={rightNumberControlDisabled}
                                             >
                                                 <NavigateNextIcon
                                                     className={
-                                                        offsetToNextButtonDisabled
+                                                        rightNumberControlDisabled
                                                             ? classes.inactiveButton
                                                             : classes.button
                                                     }

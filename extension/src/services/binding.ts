@@ -522,6 +522,7 @@ export default class Binding {
                     rate: this.video.playbackRate.toFixed(1),
                 });
             }
+            this.mobileVideoOverlayController.updateModel();
         };
 
         this.mouseOverListener = () => {

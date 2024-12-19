@@ -1,9 +1,11 @@
 import {
     AsbPlayerToVideoCommandV2,
     CopySubtitleMessage,
+    CurrentTimeToVideoMessage,
     LoadSubtitlesMessage,
     MobileOverlayToVideoCommand,
     OffsetToVideoMessage,
+    PlaybackRateToVideoMessage,
     PlayMode,
     PlayModeMessage,
 } from '@project/common';
@@ -71,6 +73,40 @@ const MobileVideoOverlayUi = () => {
         [location]
     );
 
+    const handleSeek = useCallback(
+        (timestampMs: number) => {
+            if (!location) {
+                return;
+            }
+
+            const command: AsbPlayerToVideoCommandV2<CurrentTimeToVideoMessage> = {
+                sender: 'asbplayerv2',
+                message: { command: 'currentTime', value: timestampMs / 1000 },
+                tabId: location.tabId,
+                src: location.src,
+            };
+            chrome.runtime.sendMessage(command);
+        },
+        [location]
+    );
+
+    const handlePlaybackRate = useCallback(
+        (playbackRate: number) => {
+            if (!location) {
+                return;
+            }
+
+            const command: AsbPlayerToVideoCommandV2<PlaybackRateToVideoMessage> = {
+                sender: 'asbplayerv2',
+                message: { command: 'playbackRate', value: playbackRate },
+                tabId: location.tabId,
+                src: location.src,
+            };
+            chrome.runtime.sendMessage(command);
+        },
+        [location]
+    );
+
     const model = useMobileVideoOverlayModel({ location });
 
     const handlePlayModeSelected = useCallback(
@@ -106,6 +142,8 @@ const MobileVideoOverlayUi = () => {
             onMineSubtitle={handleMineSubtitle}
             onLoadSubtitles={handleLoadSubtitles}
             onOffset={handleOffset}
+            onSeek={handleSeek}
+            onPlaybackRate={handlePlaybackRate}
             onPlayModeSelected={handlePlayModeSelected}
         />
     );

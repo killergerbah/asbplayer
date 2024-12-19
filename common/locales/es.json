@@ -152,7 +152,8 @@
         "toggleFullscreen": "Pantalla Completa",
         "toggleTheaterMode": "Modo Cine",
         "showSubtitlePlayer": "Mostrar Lista de Subtítulos",
-        "hideSubtitlePlayer": "Ocultar Lista de Subtítulos"
+        "hideSubtitlePlayer": "Ocultar Lista de Subtítulos",
+        "currentTimestamp": "Current Timestamp"
     },
     "copyHistory": {
         "blank": "En Blanco",

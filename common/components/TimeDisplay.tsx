@@ -16,22 +16,25 @@ const useStyles = makeStyles({
         height: '100%',
         cursor: 'default',
         fontSize: 20,
-        marginLeft: 10,
         whiteSpace: 'nowrap',
     },
 });
 
-interface Props {
+interface Props extends React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement> {
     currentMilliseconds: number;
-    totalMilliseconds: number;
+    totalMilliseconds?: number;
 }
 
-const TimeDisplay = ({ currentMilliseconds, totalMilliseconds }: Props) => {
+const TimeDisplay = ({ currentMilliseconds, totalMilliseconds, className, ...rest }: Props) => {
     const classes = useStyles();
-
+    const actualClassName = className ? `${className} ${classes.timeDisplay}` : classes.timeDisplay;
+    const content =
+        totalMilliseconds === undefined
+            ? displayTime(currentMilliseconds)
+            : `${displayTime(currentMilliseconds)} / ${displayTime(totalMilliseconds)}`;
     return (
-        <div className={classes.timeDisplay}>
-            {displayTime(currentMilliseconds)} / {displayTime(totalMilliseconds)}
+        <div className={actualClassName} {...rest}>
+            {content}
         </div>
     );
 };

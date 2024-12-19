@@ -152,7 +152,8 @@
         "toggleFullscreen": "Включить/выключить полноэкранный режим",
         "toggleTheaterMode": "Включить/выключить театральный режим",
         "showSubtitlePlayer": "Показать панель списка субтитров",
-        "hideSubtitlePlayer": "Скрыть панель списка субтитров"
+        "hideSubtitlePlayer": "Скрыть панель списка субтитров",
+        "currentTimestamp": "Current Timestamp"
     },
     "copyHistory": {
         "blank": "Пусто",

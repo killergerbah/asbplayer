@@ -152,7 +152,8 @@
         "toggleFullscreen": "Alternar tela cheia",
         "toggleTheaterMode": "Alternar modo teatro",
         "showSubtitlePlayer": "Mostrar lista de legendas",
-        "hideSubtitlePlayer": "Ocultar lista de legendas"
+        "hideSubtitlePlayer": "Ocultar lista de legendas",
+        "currentTimestamp": "Current Timestamp"
     },
     "copyHistory": {
         "blank": "Em branco",

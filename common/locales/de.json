@@ -152,7 +152,8 @@
         "toggleFullscreen": "Toggle Fullscreen",
         "toggleTheaterMode": "Toggle Theater Mode",
         "showSubtitlePlayer": "Show Subtitle List",
-        "hideSubtitlePlayer": "Hide Subtitle List"
+        "hideSubtitlePlayer": "Hide Subtitle List",
+        "currentTimestamp": "Current Timestamp"
     },
     "copyHistory": {
         "blank": "Leer",

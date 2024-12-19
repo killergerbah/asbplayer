@@ -9,7 +9,6 @@ const useStyles = makeStyles({
         flexDirection: 'column',
         justifyContent: 'center',
         fontSize: 20,
-        marginLeft: 10,
         width: 100,
         color: '#fff',
         pointerEvents: 'auto',
@@ -27,18 +26,21 @@ interface Props extends InputProps {
     disableKeyEvents?: boolean;
 }
 
-export default function VideoControlInput({
-    inputRef,
-    numberValue,
-    defaultNumberValue,
-    onNumberValue,
-    valueToPrettyString,
-    stringToValue,
-    rejectValue,
-    disableKeyEvents,
-    className,
-    ...rest
-}: Props) {
+export default React.forwardRef(function VideoControlInput(
+    {
+        inputRef,
+        numberValue,
+        defaultNumberValue,
+        onNumberValue,
+        valueToPrettyString,
+        stringToValue,
+        rejectValue,
+        disableKeyEvents,
+        className,
+        ...rest
+    }: Props,
+    ref
+) {
     const classes = useStyles();
     const [inputWidth, setInputWidth] = useState<number>(5);
     const handleNumberInputClicked = useCallback((e: React.MouseEvent<HTMLInputElement>) => {
@@ -125,6 +127,7 @@ export default function VideoControlInput({
             style={{
                 width: `${inputWidth}ch`,
             }}
+            ref={ref}
             inputRef={inputRef}
             disableUnderline={true}
             className={actualClassName}
@@ -134,4 +137,4 @@ export default function VideoControlInput({
             {...rest}
         />
     );
-}
+});
