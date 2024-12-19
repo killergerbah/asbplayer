@@ -160,6 +160,7 @@ export default class Binding {
     private seekedListener?: EventListener;
     private playbackRateListener?: EventListener;
     private videoChangeListener?: EventListener;
+    private canPlayListener?: EventListener;
     private mouseOverListener?: EventListener;
     private listener?: (
         message: any,
@@ -384,7 +385,7 @@ export default class Binding {
             this._bind();
             bound = true;
         } else {
-            this.video.addEventListener('canplay', (event) => {
+            this.canPlayListener = (event) => {
                 if (!bound) {
                     this._bind();
                     bound = true;
@@ -400,7 +401,8 @@ export default class Binding {
                 };
 
                 chrome.runtime.sendMessage(command);
-            });
+            };
+            this.video.addEventListener('canplay', this.canPlayListener);
         }
     }
 
@@ -928,6 +930,11 @@ export default class Binding {
     }
 
     unbind() {
+        if (this.canPlayListener) {
+            this.video.removeEventListener('canplay', this.canPlayListener);
+            this.canPlayListener = undefined;
+        }
+
         if (this.playListener) {
             this.video.removeEventListener('play', this.playListener);
             this.playListener = undefined;
