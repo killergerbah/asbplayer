@@ -8,6 +8,7 @@ import {
     PlaybackRateToVideoMessage,
     PlayMode,
     PlayModeMessage,
+    ToggleSubtitlesMessage,
 } from '@project/common';
 import { useCallback } from 'react';
 import { useMobileVideoOverlayModel } from '../hooks/use-mobile-video-overlay-model';
@@ -128,6 +129,21 @@ const MobileVideoOverlayUi = () => {
         [location]
     );
 
+    const handleToggleSubtitles = useCallback(() => {
+        if (!location) {
+            return;
+        }
+
+        const command: MobileOverlayToVideoCommand<ToggleSubtitlesMessage> = {
+            sender: 'asbplayer-mobile-overlay-to-video',
+            message: {
+                command: 'toggle-subtitles',
+            },
+            src: location.src,
+        };
+        chrome.runtime.sendMessage(command);
+    }, [location]);
+
     const { initialized: i18nInitialized } = useI18n({ language: model?.language ?? 'en' });
 
     if (!i18nInitialized) {
@@ -145,6 +161,7 @@ const MobileVideoOverlayUi = () => {
             onSeek={handleSeek}
             onPlaybackRate={handlePlaybackRate}
             onPlayModeSelected={handlePlayModeSelected}
+            onToggleSubtitles={handleToggleSubtitles}
         />
     );
 };

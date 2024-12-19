@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import Fade from '@material-ui/core/Fade';
 import Grid, { GridProps } from '@material-ui/core/Grid';
-import Box from '@material-ui/core/Box';
 import IconButton from '@material-ui/core/IconButton';
 import NoteAddIcon from '@material-ui/icons/NoteAdd';
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
@@ -17,7 +16,8 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import { createTheme } from '@project/common/theme';
 import type { PaletteType } from '@material-ui/core';
 
-import LoadSubtitlesIcon from './LoadSubtitlesIcon';
+import SubtitlesIcon from '@material-ui/icons/Subtitles';
+import SubtitlesOffIcon from './SubtitlesOffIcon';
 import HoldableIconButton from './HoldableIconButton';
 import PlayModeSelector from './PlayModeSelector';
 import ScrollableNumberControls, { ControlType } from './ScrollableNumberControls';
@@ -80,6 +80,7 @@ interface Props {
     onPlaybackRate: (playbackRate: number) => void;
     onPlayModeSelected: (playMode: PlayMode) => void;
     onSeek: (timestamp: number) => void;
+    onToggleSubtitles: () => void;
 }
 
 const MobileVideoOverlay = ({
@@ -92,6 +93,7 @@ const MobileVideoOverlay = ({
     onPlaybackRate,
     onPlayModeSelected,
     onSeek,
+    onToggleSubtitles,
 }: Props) => {
     const classes = useStyles({ anchor });
     const offsetInputRef = useRef<HTMLInputElement>();
@@ -320,9 +322,11 @@ const MobileVideoOverlay = ({
                 <>
                     <GridContainer direction="row" wrap="nowrap" className={classes.container}>
                         <Grid item>
-                            <Box p={1.5} pl={2}>
-                                <LogoIcon />
-                            </Box>
+                            <Tooltip {...defaultTooltipProps} title={t('action.loadSubtitles')!}>
+                                <IconButton disabled={model.recording} onClick={onLoadSubtitles}>
+                                    <LogoIcon className={model.recording ? classes.inactiveButton : classes.button} />
+                                </IconButton>
+                            </Tooltip>
                         </Grid>
                         <Grid item>
                             <Tooltip {...defaultTooltipProps} title={miningButtonTooltip(model)!}>
@@ -349,12 +353,19 @@ const MobileVideoOverlay = ({
                             </Tooltip>
                         </Grid>
                         <Grid item>
-                            <Tooltip {...defaultTooltipProps} title={t('action.loadSubtitles')!}>
+                            <Tooltip {...defaultTooltipProps} title={t('binds.toggleSubtitles')!}>
                                 <span>
-                                    <IconButton disabled={model.recording} onClick={onLoadSubtitles}>
-                                        <LoadSubtitlesIcon
-                                            className={model.recording ? classes.inactiveButton : classes.button}
-                                        />
+                                    <IconButton disabled={model.recording} onClick={onToggleSubtitles}>
+                                        {model.subtitlesAreVisible && (
+                                            <SubtitlesOffIcon
+                                                className={model.recording ? classes.inactiveButton : classes.button}
+                                            />
+                                        )}
+                                        {!model.subtitlesAreVisible && (
+                                            <SubtitlesIcon
+                                                className={model.recording ? classes.inactiveButton : classes.button}
+                                            />
+                                        )}
                                     </IconButton>
                                 </span>
                             </Tooltip>

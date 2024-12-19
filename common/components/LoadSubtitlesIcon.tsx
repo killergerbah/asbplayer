@@ -1,6 +1,8 @@
 import React from 'react';
 import SvgIcon, { SvgIconProps } from '@material-ui/core/SvgIcon';
 
+// This icon is a derivative of Material Icons: https://github.com/mui/material-ui/tree/master/packages/mui-icons-material
+
 const LoadSubtitlesIcon = (props: SvgIconProps) => {
     return (
         <SvgIcon {...props}>

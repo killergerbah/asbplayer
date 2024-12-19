@@ -241,6 +241,7 @@ export interface MobileOverlayModel {
     language: string;
     postMineAction: PostMineAction;
     subtitleDisplaying: boolean;
+    subtitlesAreVisible: boolean;
     themeType: 'dark' | 'light';
     playMode: PlayMode;
 }
