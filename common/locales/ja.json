@@ -138,7 +138,7 @@
         "condensedMode": "短縮",
         "fastForwardMode": "早送り",
         "normalMode": "通常",
-        "repeatMode": "Repeat",
+        "repeatMode": "リピート",
         "playbackRate": "再生速度",
         "subtitleOffset": "字幕表示タイミング",
         "subtitleAlignment": "字幕の表示位置",
@@ -153,7 +153,7 @@
         "toggleTheaterMode": "シアターモードオン/オフ",
         "showSubtitlePlayer": "字幕リストを表示",
         "hideSubtitlePlayer": "字幕リストを非表示",
-        "currentTimestamp": "Current Timestamp"
+        "currentTimestamp": "タイムスタンプ"
     },
     "copyHistory": {
         "blank": "空白",
