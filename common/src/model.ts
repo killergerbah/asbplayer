@@ -238,10 +238,11 @@ export interface MobileOverlayModel {
     previousSubtitleTimestamp?: number;
     nextSubtitleTimestamp?: number;
     currentTimestamp: number;
-    language: string;
+    language?: string;
     postMineAction: PostMineAction;
     subtitleDisplaying: boolean;
     subtitlesAreVisible: boolean;
     themeType: 'dark' | 'light';
     playMode: PlayMode;
+    manualRecordingDisabled?: boolean;
 }

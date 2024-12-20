@@ -72,10 +72,11 @@ const GridContainer = ({ children, ...props }: { children: React.ReactNode } & G
 
 interface Props {
     model?: MobileOverlayModel;
+    className?: string;
     anchor: Anchor;
     tooltipsEnabled: boolean;
     onMineSubtitle: () => void;
-    onLoadSubtitles: () => void;
+    onLoadSubtitles?: () => void;
     onOffset: (offset: number) => void;
     onPlaybackRate: (playbackRate: number) => void;
     onPlayModeSelected: (playMode: PlayMode) => void;
@@ -85,6 +86,7 @@ interface Props {
 
 const MobileVideoOverlay = ({
     model,
+    className,
     anchor,
     tooltipsEnabled,
     onMineSubtitle,
@@ -168,6 +170,14 @@ const MobileVideoOverlay = ({
         onSeek(model.previousSubtitleTimestamp);
     }, [onSeek, model]);
 
+    const handleSeekBackwards = useCallback(() => {
+        if (!model) {
+            return;
+        }
+
+        onSeek(Math.max(0, model.currentTimestamp - 10000));
+    }, [onSeek, model]);
+
     const handleSeekToNextSubtitle = useCallback(() => {
         if (!model || model.nextSubtitleTimestamp === undefined) {
             return;
@@ -176,10 +186,22 @@ const MobileVideoOverlay = ({
         onSeek(model.nextSubtitleTimestamp);
     }, [onSeek, model]);
 
+    const handleSeekForwards = useCallback(() => {
+        if (!model) {
+            return;
+        }
+
+        onSeek(model.currentTimestamp + 10000);
+    }, [onSeek, model]);
+
     const handleLeftNumberControl = useCallback(() => {
         switch (numberControlType) {
             case ControlType.timeDisplay:
-                handleSeekToPreviousSubtitle();
+                if (model?.emptySubtitleTrack) {
+                    handleSeekBackwards();
+                } else {
+                    handleSeekToPreviousSubtitle();
+                }
                 break;
             case ControlType.subtitleOffset:
                 handleOffsetToPrevious();
@@ -188,12 +210,23 @@ const MobileVideoOverlay = ({
                 handleDecrementPlaybackRate();
                 break;
         }
-    }, [numberControlType, handleSeekToPreviousSubtitle, handleOffsetToPrevious, handleDecrementPlaybackRate]);
+    }, [
+        numberControlType,
+        model?.emptySubtitleTrack,
+        handleSeekBackwards,
+        handleSeekToPreviousSubtitle,
+        handleOffsetToPrevious,
+        handleDecrementPlaybackRate,
+    ]);
 
     const handleRightNumberControl = useCallback(() => {
         switch (numberControlType) {
             case ControlType.timeDisplay:
-                handleSeekToNextSubtitle();
+                if (model?.emptySubtitleTrack) {
+                    handleSeekForwards();
+                } else {
+                    handleSeekToNextSubtitle();
+                }
                 break;
             case ControlType.subtitleOffset:
                 handleOffsetToNext();
@@ -202,7 +235,14 @@ const MobileVideoOverlay = ({
                 handleIncrementPlaybackRate();
                 break;
         }
-    }, [numberControlType, handleSeekToNextSubtitle, handleOffsetToNext, handleIncrementPlaybackRate]);
+    }, [
+        numberControlType,
+        model?.emptySubtitleTrack,
+        handleSeekForwards,
+        handleSeekToNextSubtitle,
+        handleOffsetToNext,
+        handleIncrementPlaybackRate,
+    ]);
 
     const handleHoldLeftNumberControl = useCallback(() => {
         switch (numberControlType) {
@@ -242,9 +282,13 @@ const MobileVideoOverlay = ({
         switch (numberControlType) {
             case ControlType.timeDisplay:
                 return {
-                    leftNumberControlTitle: t('binds.seekToPreviousSubtitle'),
+                    leftNumberControlTitle: model?.emptySubtitleTrack
+                        ? t('binds.seekBackward')
+                        : t('binds.seekToPreviousSubtitle'),
                     numberControlTitle: t('controls.currentTimestamp'),
-                    rightNumberControlTitle: t('binds.seekToNextSubtitle'),
+                    rightNumberControlTitle: model?.emptySubtitleTrack
+                        ? t('binds.seekForward')
+                        : t('binds.seekToNextSubtitle'),
                 };
             case ControlType.subtitleOffset:
                 return {
@@ -260,7 +304,7 @@ const MobileVideoOverlay = ({
                     rightNumberControlTitle: t('binds.increasePlaybackRate'),
                 };
         }
-    }, [numberControlType, t]);
+    }, [numberControlType, model, t]);
 
     if (!model || !theme) {
         return null;
@@ -271,8 +315,12 @@ const MobileVideoOverlay = ({
 
     switch (numberControlType) {
         case ControlType.timeDisplay:
-            rightNumberControlDisabled = model.nextSubtitleTimestamp === undefined || model.recording;
-            leftNumberControlDisabled = model.previousSubtitleTimestamp === undefined || model.recording;
+            rightNumberControlDisabled =
+                (!model.emptySubtitleTrack && model.nextSubtitleTimestamp === undefined) || model.recording;
+            leftNumberControlDisabled =
+                (!model.emptySubtitleTrack && model.previousSubtitleTimestamp === undefined) ||
+                model.recording ||
+                model.currentTimestamp === 0;
             break;
         case ControlType.subtitleOffset:
             rightNumberControlDisabled = model.nextSubtitleTimestamp === undefined || model.recording;
@@ -315,22 +363,29 @@ const MobileVideoOverlay = ({
         disabled: !tooltipsEnabled,
     };
 
+    const containerClassName = className === undefined ? classes.container : `${className} ${classes.container}`;
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <Fade in timeout={300}>
                 <>
-                    <GridContainer direction="row" wrap="nowrap" className={classes.container}>
-                        <Grid item>
-                            <Tooltip {...defaultTooltipProps} title={t('action.loadSubtitles')!}>
-                                <IconButton disabled={model.recording} onClick={onLoadSubtitles}>
-                                    <LogoIcon className={model.recording ? classes.inactiveButton : classes.button} />
-                                </IconButton>
-                            </Tooltip>
-                        </Grid>
+                    <GridContainer direction="row" wrap="nowrap" className={containerClassName}>
+                        {onLoadSubtitles && (
+                            <Grid item>
+                                <Tooltip {...defaultTooltipProps} title={t('action.loadSubtitles')!}>
+                                    <IconButton disabled={model.recording} onClick={onLoadSubtitles}>
+                                        <LogoIcon
+                                            className={model.recording ? classes.inactiveButton : classes.button}
+                                        />
+                                    </IconButton>
+                                </Tooltip>
+                            </Grid>
+                        )}
                         <Grid item>
                             <Tooltip {...defaultTooltipProps} title={miningButtonTooltip(model)!}>
-                                {model.emptySubtitleTrack && model.recordingEnabled ? (
+                                {model.emptySubtitleTrack &&
+                                model.recordingEnabled &&
+                                !model.manualRecordingDisabled ? (
                                     // Wrap in span so that Tooltip doesn't complain about disabled child. Spacing also looks better.
                                     <span>
                                         <IconButton onClick={onMineSubtitle}>
@@ -353,96 +408,90 @@ const MobileVideoOverlay = ({
                             </Tooltip>
                         </Grid>
                         {!model.emptySubtitleTrack && (
-                            <>
-                                <Grid item>
-                                    <Tooltip {...defaultTooltipProps} title={t('binds.toggleSubtitles')!}>
-                                        <span>
-                                            <IconButton disabled={model.recording} onClick={onToggleSubtitles}>
-                                                {model.subtitlesAreVisible && (
-                                                    <SubtitlesOffIcon
-                                                        className={
-                                                            model.recording ? classes.inactiveButton : classes.button
-                                                        }
-                                                    />
-                                                )}
-                                                {!model.subtitlesAreVisible && (
-                                                    <SubtitlesIcon
-                                                        className={
-                                                            model.recording ? classes.inactiveButton : classes.button
-                                                        }
-                                                    />
-                                                )}
-                                            </IconButton>
-                                        </span>
-                                    </Tooltip>
-                                </Grid>
-                                <Grid item>
-                                    <Tooltip {...defaultTooltipProps} title={t('controls.playbackMode')!}>
-                                        <span>
-                                            <IconButton disabled={model.recording} onClick={handleOpenPlayModeSelector}>
-                                                <TuneIcon
+                            <Grid item>
+                                <Tooltip {...defaultTooltipProps} title={t('binds.toggleSubtitles')!}>
+                                    <span>
+                                        <IconButton disabled={model.recording} onClick={onToggleSubtitles}>
+                                            {model.subtitlesAreVisible && (
+                                                <SubtitlesOffIcon
                                                     className={
                                                         model.recording ? classes.inactiveButton : classes.button
                                                     }
                                                 />
-                                            </IconButton>
-                                        </span>
-                                    </Tooltip>
-                                </Grid>
-                                <Grid item>
-                                    <Tooltip {...defaultTooltipProps} title={leftNumberControlTitle}>
-                                        <span>
-                                            <HoldableIconButton
-                                                onClick={handleLeftNumberControl}
-                                                onHold={handleHoldLeftNumberControl}
-                                                disabled={leftNumberControlDisabled}
-                                            >
-                                                <NavigateBeforeIcon
+                                            )}
+                                            {!model.subtitlesAreVisible && (
+                                                <SubtitlesIcon
                                                     className={
-                                                        leftNumberControlDisabled
-                                                            ? classes.inactiveButton
-                                                            : classes.button
+                                                        model.recording ? classes.inactiveButton : classes.button
                                                     }
                                                 />
-                                            </HoldableIconButton>
-                                        </span>
-                                    </Tooltip>
-                                </Grid>
-                                <Tooltip {...defaultTooltipProps} title={numberControlTitle}>
-                                    <Grid item>
-                                        <ScrollableNumberControls
-                                            offsetInputRef={offsetInputRef}
-                                            playbackRateInputRef={playbackInputRef}
-                                            offset={model.offset}
-                                            onOffset={onOffset}
-                                            playbackRate={model.playbackRate}
-                                            onPlaybackRate={onPlaybackRate}
-                                            onScrollTo={setNumberControlType}
-                                            currentMilliseconds={model.currentTimestamp}
-                                        />
-                                    </Grid>
+                                            )}
+                                        </IconButton>
+                                    </span>
                                 </Tooltip>
-                                <Grid item>
-                                    <Tooltip {...defaultTooltipProps} title={rightNumberControlTitle}>
-                                        <span>
-                                            <HoldableIconButton
-                                                onClick={handleRightNumberControl}
-                                                onHold={handleHoldRightNumberControl}
-                                                disabled={rightNumberControlDisabled}
-                                            >
-                                                <NavigateNextIcon
-                                                    className={
-                                                        rightNumberControlDisabled
-                                                            ? classes.inactiveButton
-                                                            : classes.button
-                                                    }
-                                                />
-                                            </HoldableIconButton>
-                                        </span>
-                                    </Tooltip>
-                                </Grid>
-                            </>
+                            </Grid>
                         )}
+                        {!model.emptySubtitleTrack && (
+                            <Grid item>
+                                <Tooltip {...defaultTooltipProps} title={t('controls.playbackMode')!}>
+                                    <span>
+                                        <IconButton disabled={model.recording} onClick={handleOpenPlayModeSelector}>
+                                            <TuneIcon
+                                                className={model.recording ? classes.inactiveButton : classes.button}
+                                            />
+                                        </IconButton>
+                                    </span>
+                                </Tooltip>
+                            </Grid>
+                        )}
+                        <Grid item>
+                            <Tooltip {...defaultTooltipProps} title={leftNumberControlTitle}>
+                                <span>
+                                    <HoldableIconButton
+                                        onClick={handleLeftNumberControl}
+                                        onHold={handleHoldLeftNumberControl}
+                                        disabled={leftNumberControlDisabled}
+                                    >
+                                        <NavigateBeforeIcon
+                                            className={
+                                                leftNumberControlDisabled ? classes.inactiveButton : classes.button
+                                            }
+                                        />
+                                    </HoldableIconButton>
+                                </span>
+                            </Tooltip>
+                        </Grid>
+                        <Tooltip {...defaultTooltipProps} title={numberControlTitle}>
+                            <Grid item>
+                                <ScrollableNumberControls
+                                    offsetInputRef={offsetInputRef}
+                                    playbackRateInputRef={playbackInputRef}
+                                    offset={model.offset}
+                                    onOffset={onOffset}
+                                    playbackRate={model.playbackRate}
+                                    onPlaybackRate={onPlaybackRate}
+                                    onScrollTo={setNumberControlType}
+                                    currentMilliseconds={model.currentTimestamp}
+                                />
+                            </Grid>
+                        </Tooltip>
+                        <Grid item>
+                            <Tooltip {...defaultTooltipProps} title={rightNumberControlTitle}>
+                                <span>
+                                    <HoldableIconButton
+                                        onClick={handleRightNumberControl}
+                                        onHold={handleHoldRightNumberControl}
+                                        disabled={rightNumberControlDisabled}
+                                    >
+                                        <NavigateNextIcon
+                                            className={
+                                                rightNumberControlDisabled ? classes.inactiveButton : classes.button
+                                            }
+                                        />
+                                    </HoldableIconButton>
+                                </span>
+                            </Tooltip>
+                        </Grid>
                     </GridContainer>
                     {playModeSelectorOpen && (
                         <PlayModeSelector

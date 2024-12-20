@@ -531,6 +531,7 @@ interface ControlsProps {
     subtitleAlignmentEnabled?: boolean;
     subtitleAlignment?: SubtitleAlignment;
     onSubtitleAlignment?: (alignment: SubtitleAlignment) => void;
+    hideToolbar?: boolean;
 }
 
 export default function Controls({
@@ -584,6 +585,7 @@ export default function Controls({
     subtitleAlignment,
     subtitleAlignmentEnabled,
     onSubtitleAlignment,
+    hideToolbar,
 }: ControlsProps) {
     const classes = useControlStyles();
     const { t } = useTranslation();
@@ -907,167 +909,173 @@ export default function Controls({
                 <Fade in={show} timeout={200}>
                     <div className={classes.subContainer}>
                         <ProgressBar onSeek={handleSeek} value={progress * 100} />
-                        <Grid container className={classes.gridContainer} direction="row" wrap="nowrap">
-                            <Grid item>
-                                <IconButton color="inherit" onClick={() => (playing ? onPause() : onPlay())}>
-                                    {playing ? (
-                                        <PauseIcon className={classes.button} />
-                                    ) : (
-                                        <PlayArrowIcon className={classes.button} />
-                                    )}
-                                </IconButton>
-                            </Grid>
-                            {volumeEnabled && (
-                                <Grid
-                                    item
-                                    onMouseOver={handleVolumeMouseOver}
-                                    onMouseOut={handleVolumeMouseOut}
-                                    className={
-                                        showVolumeBar
-                                            ? classes.volumeInputContainerShown
-                                            : classes.volumeInputContainerHidden
-                                    }
-                                >
-                                    <Grid container spacing={0} direction="row" wrap="nowrap">
-                                        <Grid item>
-                                            <IconButton color="inherit" onClick={handleVolumeToggle}>
-                                                {volume === 0 ? <VolumeOffIcon /> : <VolumeUpIcon />}
-                                            </IconButton>
-                                        </Grid>
-                                        <Grid
-                                            item
-                                            style={{
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                justifyContent: 'center',
-                                            }}
-                                        >
-                                            <VolumeSlider
-                                                onChange={handleVolumeChange}
-                                                onChangeCommitted={handleVolumeChangeCommitted}
-                                                value={volume}
-                                                defaultValue={100}
-                                                classes={{
-                                                    root: showVolumeBar
-                                                        ? classes.volumeInputShown
-                                                        : classes.volumeInputHidden,
-                                                    thumb: showVolumeBar
-                                                        ? classes.volumeInputThumbShown
-                                                        : classes.volumeInputThumbHidden,
-                                                }}
-                                            />
-                                        </Grid>
-                                    </Grid>
-                                </Grid>
-                            )}
-                            {Number.isFinite(length) && (
+                        {!hideToolbar && (
+                            <Grid container className={classes.gridContainer} direction="row" wrap="nowrap">
                                 <Grid item>
-                                    <TimeDisplay
-                                        currentMilliseconds={progress * length}
-                                        totalMilliseconds={displayLength || length}
-                                    />
+                                    <IconButton color="inherit" onClick={() => (playing ? onPause() : onPlay())}>
+                                        {playing ? (
+                                            <PauseIcon className={classes.button} />
+                                        ) : (
+                                            <PlayArrowIcon className={classes.button} />
+                                        )}
+                                    </IconButton>
                                 </Grid>
-                            )}
-                            {offsetEnabled && !showVolumeBar && !isReallySmallScreen && (
-                                <Tooltip title={t('controls.subtitleOffset')!}>
+                                {volumeEnabled && (
+                                    <Grid
+                                        item
+                                        onMouseOver={handleVolumeMouseOver}
+                                        onMouseOut={handleVolumeMouseOut}
+                                        className={
+                                            showVolumeBar
+                                                ? classes.volumeInputContainerShown
+                                                : classes.volumeInputContainerHidden
+                                        }
+                                    >
+                                        <Grid container spacing={0} direction="row" wrap="nowrap">
+                                            <Grid item>
+                                                <IconButton color="inherit" onClick={handleVolumeToggle}>
+                                                    {volume === 0 ? <VolumeOffIcon /> : <VolumeUpIcon />}
+                                                </IconButton>
+                                            </Grid>
+                                            <Grid
+                                                item
+                                                style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    justifyContent: 'center',
+                                                }}
+                                            >
+                                                <VolumeSlider
+                                                    onChange={handleVolumeChange}
+                                                    onChangeCommitted={handleVolumeChangeCommitted}
+                                                    value={volume}
+                                                    defaultValue={100}
+                                                    classes={{
+                                                        root: showVolumeBar
+                                                            ? classes.volumeInputShown
+                                                            : classes.volumeInputHidden,
+                                                        thumb: showVolumeBar
+                                                            ? classes.volumeInputThumbShown
+                                                            : classes.volumeInputThumbHidden,
+                                                    }}
+                                                />
+                                            </Grid>
+                                        </Grid>
+                                    </Grid>
+                                )}
+                                {Number.isFinite(length) && (
                                     <Grid item style={{ marginLeft: 10 }}>
-                                        <SubtitleOffsetInput
-                                            inputRef={offsetInputRef}
-                                            offset={offset}
-                                            onOffset={handleOffsetChange}
-                                            disableKeyEvents={disableKeyEvents}
+                                        <TimeDisplay
+                                            currentMilliseconds={progress * length}
+                                            totalMilliseconds={displayLength || length}
                                         />
                                     </Grid>
-                                </Tooltip>
-                            )}
-                            {playbackRateEnabled && !showVolumeBar && !isReallySmallScreen && (
-                                <Grid item style={{ marginLeft: 10 }}>
-                                    <Tooltip title={t('controls.playbackRate')!}>
-                                        <PlaybackRateInput
-                                            inputRef={playbackRateInputRef}
-                                            playbackRate={playbackRate}
-                                            onPlaybackRate={handlePlaybackRateChange}
-                                        />
-                                    </Tooltip>
-                                </Grid>
-                            )}
-                            <Grid item style={{ flexGrow: 1 }}></Grid>
-                            <ResponsiveButtonGroup>
-                                {subtitleAlignmentEnabled && subtitleAlignment !== undefined && (
-                                    <Tooltip title={t('controls.subtitleAlignment')!}>
-                                        <IconButton color="inherit" onClick={handleSubtitleAlignment}>
-                                            {subtitleAlignment === 'top' ? (
-                                                <VerticalAlignTopIcon />
-                                            ) : (
-                                                <VerticalAlignBottomIcon />
-                                            )}
-                                        </IconButton>
-                                    </Tooltip>
                                 )}
-                                {subtitlesToggle && (
-                                    <Tooltip title={t('controls.toggleSubtitles')!}>
-                                        <IconButton color="inherit" onClick={onSubtitlesToggle}>
-                                            <SubtitlesIcon
-                                                className={subtitlesEnabled ? classes.button : classes.inactiveButton}
+                                {offsetEnabled && !showVolumeBar && !isReallySmallScreen && (
+                                    <Tooltip title={t('controls.subtitleOffset')!}>
+                                        <Grid item style={{ marginLeft: 10 }}>
+                                            <SubtitleOffsetInput
+                                                inputRef={offsetInputRef}
+                                                offset={offset}
+                                                onOffset={handleOffsetChange}
+                                                disableKeyEvents={disableKeyEvents}
                                             />
-                                        </IconButton>
+                                        </Grid>
                                     </Tooltip>
                                 )}
-                                {videoFile && (
-                                    <Tooltip title={t('controls.unloadVideo')!}>
-                                        <IconButton color="inherit" onClick={handleVideoUnloaderOpened}>
-                                            <VideocamIcon className={classes.button} />
-                                        </IconButton>
-                                    </Tooltip>
-                                )}
-                                {audioTracks && audioTracks.length > 1 && (
-                                    <Tooltip title={t('controls.selectAudioTrack')!}>
-                                        <IconButton color="inherit" onClick={handleAudioTrackSelectorOpened}>
-                                            <QueueMusicIcon className={classes.button} />
-                                        </IconButton>
-                                    </Tooltip>
-                                )}
-                                {tabs && tabs.length > 0 && (
-                                    <Tooltip title={t('controls.selectVideoElement')!}>
-                                        <IconButton color="inherit" onClick={handleTabSelectorOpened}>
-                                            <VideocamIcon
-                                                className={selectedTab ? classes.button : classes.inactiveButton}
+                                {playbackRateEnabled && !showVolumeBar && !isReallySmallScreen && (
+                                    <Grid item style={{ marginLeft: 10 }}>
+                                        <Tooltip title={t('controls.playbackRate')!}>
+                                            <PlaybackRateInput
+                                                inputRef={playbackRateInputRef}
+                                                playbackRate={playbackRate}
+                                                onPlaybackRate={handlePlaybackRateChange}
                                             />
-                                        </IconButton>
-                                    </Tooltip>
+                                        </Tooltip>
+                                    </Grid>
                                 )}
-                                {playModeEnabled && (
-                                    <Tooltip title={t('controls.playbackMode')!}>
-                                        <IconButton color="inherit" onClick={handlePlayModeSelectorOpened}>
-                                            <TuneIcon
-                                                className={playModeEnabled ? classes.button : classes.inactiveButton}
-                                            />
-                                        </IconButton>
-                                    </Tooltip>
-                                )}
-                                {popOutEnabled && (
-                                    <Tooltip title={popOut ? t('controls.popIn')! : t('controls.popOut')!}>
-                                        <IconButton color="inherit" onClick={onPopOutToggle}>
-                                            <OpenInNewIcon
-                                                className={classes.button}
-                                                style={popOut ? { transform: 'rotateX(180deg)' } : {}}
-                                            />
-                                        </IconButton>
-                                    </Tooltip>
-                                )}
-                                {fullscreenEnabled && (
-                                    <Tooltip title={t('controls.toggleFullscreen')!}>
-                                        <IconButton color="inherit" onClick={onFullscreenToggle}>
-                                            {fullscreen ? (
-                                                <FullscreenExitIcon className={classes.button} />
-                                            ) : (
-                                                <FullscreenIcon className={classes.button} />
-                                            )}
-                                        </IconButton>
-                                    </Tooltip>
-                                )}
-                            </ResponsiveButtonGroup>
-                        </Grid>
+                                <Grid item style={{ flexGrow: 1 }}></Grid>
+                                <ResponsiveButtonGroup>
+                                    {subtitleAlignmentEnabled && subtitleAlignment !== undefined && (
+                                        <Tooltip title={t('controls.subtitleAlignment')!}>
+                                            <IconButton color="inherit" onClick={handleSubtitleAlignment}>
+                                                {subtitleAlignment === 'top' ? (
+                                                    <VerticalAlignTopIcon />
+                                                ) : (
+                                                    <VerticalAlignBottomIcon />
+                                                )}
+                                            </IconButton>
+                                        </Tooltip>
+                                    )}
+                                    {subtitlesToggle && (
+                                        <Tooltip title={t('controls.toggleSubtitles')!}>
+                                            <IconButton color="inherit" onClick={onSubtitlesToggle}>
+                                                <SubtitlesIcon
+                                                    className={
+                                                        subtitlesEnabled ? classes.button : classes.inactiveButton
+                                                    }
+                                                />
+                                            </IconButton>
+                                        </Tooltip>
+                                    )}
+                                    {videoFile && (
+                                        <Tooltip title={t('controls.unloadVideo')!}>
+                                            <IconButton color="inherit" onClick={handleVideoUnloaderOpened}>
+                                                <VideocamIcon className={classes.button} />
+                                            </IconButton>
+                                        </Tooltip>
+                                    )}
+                                    {audioTracks && audioTracks.length > 1 && (
+                                        <Tooltip title={t('controls.selectAudioTrack')!}>
+                                            <IconButton color="inherit" onClick={handleAudioTrackSelectorOpened}>
+                                                <QueueMusicIcon className={classes.button} />
+                                            </IconButton>
+                                        </Tooltip>
+                                    )}
+                                    {tabs && tabs.length > 0 && (
+                                        <Tooltip title={t('controls.selectVideoElement')!}>
+                                            <IconButton color="inherit" onClick={handleTabSelectorOpened}>
+                                                <VideocamIcon
+                                                    className={selectedTab ? classes.button : classes.inactiveButton}
+                                                />
+                                            </IconButton>
+                                        </Tooltip>
+                                    )}
+                                    {playModeEnabled && (
+                                        <Tooltip title={t('controls.playbackMode')!}>
+                                            <IconButton color="inherit" onClick={handlePlayModeSelectorOpened}>
+                                                <TuneIcon
+                                                    className={
+                                                        playModeEnabled ? classes.button : classes.inactiveButton
+                                                    }
+                                                />
+                                            </IconButton>
+                                        </Tooltip>
+                                    )}
+                                    {popOutEnabled && (
+                                        <Tooltip title={popOut ? t('controls.popIn')! : t('controls.popOut')!}>
+                                            <IconButton color="inherit" onClick={onPopOutToggle}>
+                                                <OpenInNewIcon
+                                                    className={classes.button}
+                                                    style={popOut ? { transform: 'rotateX(180deg)' } : {}}
+                                                />
+                                            </IconButton>
+                                        </Tooltip>
+                                    )}
+                                    {fullscreenEnabled && (
+                                        <Tooltip title={t('controls.toggleFullscreen')!}>
+                                            <IconButton color="inherit" onClick={onFullscreenToggle}>
+                                                {fullscreen ? (
+                                                    <FullscreenExitIcon className={classes.button} />
+                                                ) : (
+                                                    <FullscreenIcon className={classes.button} />
+                                                )}
+                                            </IconButton>
+                                        </Tooltip>
+                                    )}
+                                </ResponsiveButtonGroup>
+                            </Grid>
+                        )}
                     </div>
                 </Fade>
                 <TabSelector

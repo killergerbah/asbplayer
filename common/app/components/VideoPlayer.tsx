@@ -44,12 +44,13 @@ import { usePlaybackPreferences } from '../hooks/use-playback-preferences';
 import { MiningContext } from '../services/mining-context';
 import { useSubtitleStyles } from '../hooks/use-subtitle-styles';
 import { useFullscreen } from '../hooks/use-fullscreen';
+import MobileVideoOverlay from '@project/common/components/MobileVideoOverlay';
 
 interface ExperimentalHTMLVideoElement extends HTMLVideoElement {
     readonly audioTracks: any;
 }
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
     root: {
         position: 'relative',
         backgroundColor: 'black',
@@ -66,7 +67,12 @@ const useStyles = makeStyles({
     cursorHidden: {
         cursor: 'none',
     },
-});
+    mobileOverlay: {
+        position: 'absolute',
+        zIndex: 10,
+        bottom: theme.spacing(1.5),
+    },
+}));
 
 function notifyReady(
     element: ExperimentalHTMLVideoElement,
@@ -490,6 +496,11 @@ export default function VideoPlayer({
                 videoElement.onpause = updatePlayerState;
                 videoElement.onratechange = updatePlayerState;
                 videoElement.onseeked = updatePlayerState;
+
+                if (isMobile) {
+                    // Force volume to 1 on mobile - users can control device volume
+                    videoRef.current.volume = 1;
+                }
             }
         },
         [clock, playerChannel, updatePlayerState]
@@ -648,6 +659,13 @@ export default function VideoPlayer({
             playerChannel.currentTime(time / 1000);
         },
         [length, clock, playerChannel]
+    );
+
+    const handleSeekByTimestamp = useCallback(
+        (timestampMs: number) => {
+            playerChannel.currentTime(timestampMs / 1000);
+        },
+        [playerChannel]
     );
 
     useEffect(() => {
@@ -1367,6 +1385,30 @@ export default function VideoPlayer({
         showSubtitles.filter((s) => subtitleAlignmentForTrack(s.track) === alignment).map(elementForSubtitle);
     const topSubtitleElements = displaySubtitles ? subtitleElementsWithAlignment('top') : [];
     const bottomSubtitleElements = displaySubtitles ? subtitleElementsWithAlignment('bottom') : [];
+    const mobileOverlayModel = () => {
+        if (playing() || !isMobile) {
+            return undefined;
+        }
+
+        const timestamp = clock.time(length);
+
+        return {
+            offset,
+            playbackRate: videoRef.current?.playbackRate ?? 1,
+            emptySubtitleTrack: subtitles.length === 0,
+            recordingEnabled: true,
+            recording: false,
+            previousSubtitleTimestamp: adjacentSubtitle(false, timestamp, subtitles)?.originalStart ?? undefined,
+            nextSubtitleTimestamp: adjacentSubtitle(true, timestamp, subtitles)?.originalStart ?? undefined,
+            currentTimestamp: timestamp,
+            postMineAction: settings.clickToMineDefaultAction,
+            subtitleDisplaying: showSubtitles.length > 0,
+            subtitlesAreVisible: displaySubtitles,
+            playMode,
+            themeType: settings.themeType,
+            manualRecordingDisabled: true,
+        };
+    };
 
     if (!playerChannelSubscribed) {
         return null;
@@ -1377,6 +1419,18 @@ export default function VideoPlayer({
             <Alert open={alertOpen} onClose={handleAlertClosed} autoHideDuration={3000} severity={alertSeverity}>
                 {alertMessage}
             </Alert>
+            <MobileVideoOverlay
+                model={mobileOverlayModel()}
+                className={classes.mobileOverlay}
+                anchor={'top'}
+                tooltipsEnabled={true}
+                onMineSubtitle={() => mineCurrentSubtitle(settings.clickToMineDefaultAction)}
+                onOffset={handleOffsetChange}
+                onPlaybackRate={handlePlaybackRateChange}
+                onPlayModeSelected={handlePlayMode}
+                onSeek={handleSeekByTimestamp}
+                onToggleSubtitles={handleSubtitlesToggle}
+            />
             <video
                 preload="auto"
                 controls={false}
@@ -1442,6 +1496,7 @@ export default function VideoPlayer({
                 subtitleAlignment={subtitleAlignments[0]}
                 subtitleAlignmentEnabled={subtitleAlignments.length === 1}
                 onSubtitleAlignment={handleSubtitleAlignment}
+                hideToolbar={isMobile}
             />
         </div>
     );
