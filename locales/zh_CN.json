@@ -138,6 +138,7 @@
         "condensedMode": "冷凝",
         "fastForwardMode": "Fast-forward",
         "normalMode": "典型的",
+        "repeatMode": "Repeat",
         "playbackRate": "播放速率",
         "subtitleOffset": "字幕偏移",
         "subtitleAlignment": "Subtitle Alignment",
@@ -151,7 +152,8 @@
         "toggleFullscreen": "Toggle Fullscreen",
         "toggleTheaterMode": "Toggle Theater Mode",
         "showSubtitlePlayer": "Show Subtitle List",
-        "hideSubtitlePlayer": "Hide Subtitle List"
+        "hideSubtitlePlayer": "Hide Subtitle List",
+        "currentTimestamp": "Current Timestamp"
     },
     "copyHistory": {
         "blank": "空白的",

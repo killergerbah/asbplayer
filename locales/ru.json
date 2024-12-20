@@ -19,34 +19,34 @@
         "stopRecording": "Остановить запись",
         "importSettings": "Импортировать настройки",
         "exportSettings": "Экспортировать настройки",
-        "hideOverlay": "Hide Overlay",
-        "decreaseOffsetButton": "Decrease offset to so that next subtitle is at current position. Hold to decrease by 100ms.",
-        "increaseOffsetButton": "Increase offset to so that previous subtitle is at current position. Hold to increase by 100ms."
+        "hideOverlay": "Скрыть оверлей",
+        "decreaseOffsetButton": "Уменьшить смещение, ближе к следующему субтитру. Удерживайте для уменьшения на 100 мс.",
+        "increaseOffsetButton": "Увеличить смещение, ближе к предыдущему субтитру. Удерживайте для увеличения на 100 мс."
     },
     "about": {
-        "title": "About asbplayer",
-        "license": "License",
-        "deps": "Dependencies",
-        "depName": "Name",
-        "purpose": "Purpose",
-        "appVersion": "App version",
-        "extensionVersion": "Extension version"
+        "title": "О asbplayer",
+        "license": "Лицензия",
+        "deps": "Зависимости",
+        "depName": "Название",
+        "purpose": "Цель",
+        "appVersion": "Версия",
+        "extensionVersion": "Версия расширения"
     },
     "postMineAction": {
         "none": "Ничего",
         "showAnkiDialog": "Показать диалоговое окно Анки",
         "updateLastCard": "Обновить последнюю карточку",
-        "exportCard": "Export card"
+        "exportCard": "Экспорт карточки"
     },
     "postMinePlayback": {
-        "remember": "Keep previous state (as before mining)",
-        "play": "Always play",
-        "pause": "Always pause"
+        "remember": "Оставить предыдущее состояние (до майнинга)",
+        "play": "Всегда проигрывать",
+        "pause": "Всегда приостанавливать"
     },
     "pauseOnHoverMode": {
-        "disabled": "Disabled",
-        "inNotOut": "Enabled",
-        "inAndOut": "Enabled with auto-resume"
+        "disabled": "Выкл",
+        "inNotOut": "Включено",
+        "inAndOut": "Включено с автовозобновлением"
     },
     "ankiDialog": {
         "applySelection": "Применить выбор",
@@ -59,7 +59,7 @@
         "foundDuplicateNotes": "Найдено {{count}} заметка(и) со словом \"{{word}}\" в поле \"{{field}}\"",
         "foundNoDuplicateNote": "Заметок-дубликатов со словом \"{{word}}\" в поле \"{{field}}\" не найдено",
         "image": "Изображение",
-        "imageCaptureFailed": "Image capture failed",
+        "imageCaptureFailed": "Ошибка захвата изображения",
         "imageFileLinkLost": "Ссылка на файл изображения потеряна из-за перезагрузки страницы",
         "openInAnki": "Открыть в Анки",
         "rerecord": "Перезаписать",
@@ -68,9 +68,9 @@
         "searchInAnki": "Искать в Анки",
         "sentence": "Предложение",
         "source": "Источник",
-        "track1": "Subtitle Track 1",
-        "track2": "Subtitle Track 2",
-        "track3": "Subtitle Track 3",
+        "track1": "Дорожка субтитров 1",
+        "track2": "Дорожка субтитров 2",
+        "track3": "Дорожка субтитров 3",
         "tagList": "\"Список тегов, разделенных запятыми\"",
         "title": "Экспорт в Анки",
         "updateLastCard": "Обновить последнюю карточку",
@@ -109,7 +109,7 @@
         "seekBackwardOrForward": "Перемотать назад/вперед на 10 секунд",
         "seekForward": "Перемотать вперед на 10 секунд",
         "seekToBeginningOfCurrentSubtitle": "Перейти к началу текущего субтитра",
-        "seekToBeginningOfCurrentOrPreviousSubtitle": "Seek to beginning of current/previous subtitle",
+        "seekToBeginningOfCurrentOrPreviousSubtitle": "Перейти к началу текущего/предыдущего субтитра",
         "seekToNextSubtitle": "Перейти к следующему субтитру",
         "seekToPreviousSubtitle": "Перейти к предыдущему субтитру",
         "seekToSubtitle": "Перейти к предыдущему/следующему субтитру",
@@ -131,13 +131,14 @@
         "toggleVideoSubtitleTracks": "Включить/выключить дорожку субтитров в видео",
         "updateLastCard": "Обновить последнюю карточку в Анки с захваченным скриншотом, аудио и т.д. из asbplayer.",
         "toggleSidePanel": "Включить/выключить боковую панель",
-        "toggleRepeat": "Toggle repeat mode"
+        "toggleRepeat": "Переключить режим повтора"
     },
     "controls": {
         "autoPauseMode": "Режим с автоматической паузой",
         "condensedMode": "Конденсированный режим",
         "fastForwardMode": "Быстрое воспроизведение",
         "normalMode": "Обычный режим",
+        "repeatMode": "Repeat",
         "playbackRate": "Скорость воспроизведения",
         "subtitleOffset": "Смещение субтитров",
         "subtitleAlignment": "Выравнивание субтитров",
@@ -145,20 +146,21 @@
         "playbackMode": "Режим воспроизведения",
         "unloadVideo": "Выгрузить видео",
         "selectAudioTrack": "Выбрать аудиодорожку",
-        "selectVideoElement": "Выбрать видеоэлемент",
+        "selectVideoElement": "Выбрать Streaming Video Element",
         "popOut": "Видео в отдельном окне",
         "popIn": "Вернуть видео обратно в приложение",
         "toggleFullscreen": "Включить/выключить полноэкранный режим",
         "toggleTheaterMode": "Включить/выключить театральный режим",
         "showSubtitlePlayer": "Показать панель списка субтитров",
-        "hideSubtitlePlayer": "Скрыть панель списка субтитров"
+        "hideSubtitlePlayer": "Скрыть панель списка субтитров",
+        "currentTimestamp": "Current Timestamp"
     },
     "copyHistory": {
         "blank": "Пусто",
         "downloadMinedSubsAsSrt": "Скачать смайненные субтитры в формате SRT",
         "exportToAnki": "Экспортировать в Анки",
         "miningHistoryEmpty": "История майнинга пуста.",
-        "deleteAll": "Clear"
+        "deleteAll": "Очистить"
     },
     "error": {
         "bothAudioAndVideNotAllowed": "Невозможно одновременно загрузить аудиофайл и видеофайл",
@@ -182,7 +184,7 @@
             "cropScreenshot": "Обрезать скриншот",
             "displaySubtitles": "Отображать субтитры",
             "dragAndDrop": "Разрешить перетаскивание для файлов субтитров",
-            "openSubtitleList": "Открыть список субтитров при загрузке субтитров",
+            "openSubtitleList": "При загрузке субтитров, также открывать список субтитров через приложение в отдельной вкладке",
             "mining": "Майнинг",
             "miningKeyboardShortcuts": "Горячие клавиши для майнинга",
             "misc": "Разное",
@@ -194,12 +196,12 @@
             "syncing": "Синхронизация",
             "takeScreenshot": "Сделать скриншот",
             "updateAvailable": "Доступно обновление",
-            "enableOverlay": "Enable controls overlay"
+            "enableOverlay": "Включить оверлей"
         },
         "videoDataSync": {
             "emptySubtitleTrack": "Пусто",
             "loadSubtitlesFirst": "Прежде чем начать майнинг, надо загрузить субтитры",
-            "failedToAutoLoad": "Could not auto-load subtitles in your preferred language.",
+            "failedToAutoLoad": "Не удалось автоматически загрузить субтитры на вашем языке.",
             "rememberTrackPreference": "Запомнить мой выбор дорожек для этого сайта",
             "selectSubtitles": "Выбрать субтитры",
             "subtitleTrack": "Выбрать дорожку субтитров",
@@ -217,13 +219,13 @@
         "welcomeBody": "Прочтите руководство пользователя чтобы начать."
     },
     "update": {
-        "heading": "asbplayer just updated to version {{version}}.",
-        "body": "Check out the release notes <0>here</0>.",
-        "alert": "asbplayer updated to version {{version}}. Check out the <0>release notes</0>."
+        "heading": "asbplayer только что обновился до версии {{version}}.",
+        "body": "Посмотрите примечания к выпуску <0>здесь</0>.",
+        "alert": "asbplayer обновился до версии {{version}}. Посмотрите <0>примечания к выпуску</0>."
     },
     "info": {
         "copiedSubtitle": "Скопировано: {{text}}",
-        "copiedSubtitle2": "Copied: {{result}}",
+        "copiedSubtitle2": "Скопировано: {{result}}",
         "disabledAutoPause": "Автоматическая пауза: Выкл",
         "disabledCondensedPlayback": "Сжатое воспроизведение: Выкл",
         "disabledFastForwardPlayback": "Ускоренное воспроизведение: Выкл",
@@ -234,13 +236,13 @@
         "playbackRate": "Скорость воспроизведения: {{rate}}",
         "savedTimestamp": "Сохранено: {{timestamp}}",
         "updatedCard": "Карточка обновлена: {{result}}",
-        "enabledRepeatPlayback": "Repeat playback: On",
-        "disabledRepeatPlayback": "Repeat playback: Off",
-        "connectionSucceeded": "Connection succeeded",
-        "connectionFailed": "Connection failed",
-        "error": "Error: {{message}}",
-        "errorNoMessage": "Error",
-        "toggleSubtitlesShortcut": "Press \"{{keys}}\" to toggle subtitle display"
+        "enabledRepeatPlayback": "Повтор воспроизведения: Вкл",
+        "disabledRepeatPlayback": "Повтор воспроизведения: Выкл",
+        "connectionSucceeded": "Подключено",
+        "connectionFailed": "Ошибка подключения",
+        "error": "Ошибка: {{message}}",
+        "errorNoMessage": "Ошибка",
+        "toggleSubtitlesShortcut": "Нажмите \"{{keys}}\" для переключения отображения субтитров"
     },
     "landing": {
         "cta": "Перетащите медиафайлы и файлы субтитров или <1>выберите</1> их.",
@@ -257,18 +259,18 @@
         "grantedPrompt": "Запись аудио разрешена для этой вкладки. Теперь вы можете приступить к майнингу."
     },
     "audioCaptureFailed": {
-        "message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer."
+        "message": "Защищенное DRM аудио не может быть захвачено на Firefox версии asbplayer."
     },
     "settings": {
-        "activeProfile": "Profile",
-        "defaultProfile": "Default",
-        "newProfile": "Add New Profile...",
-        "profileName": "Profile Name",
-        "enterProfileName": "Enter profile name",
-        "profileLimitReached": "Profile limit reached",
+        "activeProfile": "Профиль",
+        "defaultProfile": "Стандартный",
+        "newProfile": "Добавить новый профиль...",
+        "profileName": "Имя профиля",
+        "enterProfileName": "Введите имя профиля",
+        "profileLimitReached": "Достигнут лимит профилей",
         "addCustomCss": "Добавить пользовательские CSS стили",
         "addCustomField": "Добавить пользовательское поле",
-        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current/previous subtitle'",
+        "alwaysPlayOnSubtitleRepeat": "Всегда воспроизводить после вызова 'Перемотать к началу текущего/предыдущего субтитра'",
         "anki": "Анки",
         "ankiConnectUrl": "URL Anki Connect",
         "audioField": "Поле аудио",
@@ -279,7 +281,7 @@
         "autoPauseAtSubtitleStart": "В начале субтитра",
         "autoPausePreference": "Настройки автоматической паузы",
         "autoPausePreferenceHelperText": "Не включает автоматическую паузу. Определяет предпочтения паузы, когда автоматическая пауза включена.",
-        "speedChangeStep": "Шаг регулировки скорости воспроизведения (при использовании соответствующих горячих клавиш)",
+        "speedChangeStep": "Шаг регулировки скорости воспроизведения (при использовании горячих клавиш)",
         "fastForwardModePlaybackRate": "Скорость воспроизведения в режиме быстрого воспроизведения",
         "copyOnMine": "Копировать смайненные субтитры в буфер обмена",
         "corsHelperText": "Убедитесь, что {{origin}} находится в списке webCorsOriginList в настройках AnkiConnect, как в этом <0>видео</0>.",
@@ -291,8 +293,8 @@
         "imageBasedSubtitleScaleFactor": "Коэффициент масштабирования для субтитров на основе изображений",
         "imageField": "Поле изображения",
         "keyboardShortcuts": "Горячие клавиши",
-        "hideInCardCreator": "Hide in card creator",
-        "showInCardCreator": "Show in card creator",
+        "hideInCardCreator": "Скрывать в мастере карточек",
+        "showInCardCreator": "Показывать в мастере карточек",
         "language": "Язык",
         "maxImageHeight": "Максимальная высота изображения",
         "maxImageWidth": "Максимальная ширина изображения",
@@ -306,15 +308,15 @@
         "preCacheSubtitleDomHelperText": "При включении asbplayer предварительно рендерит элементы текста субтитров вне экрана, повторно используя эти элементы для отображения субтитров. Это позволяет вносить постоянные изменения в текст субтитров с помощью внешнего кода перед их отображением.",
         "recordingBind": "Запись",
         "rememberSubtitleOffset": "Запомнить смещение субтитров",
-        "sentenceField": "Поле фразы субтитра",
+        "sentenceField": "Поле предложения (все дорожки)",
         "streamingVideo": "Потоковое видео",
         "styleKey": "Ключ стиля",
         "styleValue": "Значение стиля",
         "sourceField": "Поле источника",
-        "track1Field": "Subtitle Track 1 Field",
-        "track2Field": "Subtitle Track 2 Field",
-        "track3Field": "Subtitle Track 3 Field",
-        "reset": "Reset",
+        "track1Field": "Субтитры 1",
+        "track2Field": "Субтитры 2",
+        "track3Field": "Субтитры 3",
+        "reset": "Сбросить",
         "subtitleAppearance": "Внешний вид субтитров",
         "subtitleBackgroundColor": "Цвет фона субтитров",
         "subtitleBackgroundOpacity": "Прозрачность фона субтитров",
@@ -330,19 +332,19 @@
         "subtitleAlignment": "Выравнивание субтитров",
         "subtitleAlignmentBottom": "По нижнему краю",
         "subtitleAlignmentTop": "По верхнему краю",
-        "subtitleBlur": "Subtitle blur",
-        "subtitleTrack": "Subtitle Track",
-        "allSubtitleTracks": "All",
-        "subtitleTrackChoice": "Track {{trackNumber}}",
-        "subtitleTrackSelectorHelper": "Changes settings for ALL tracks. Settings that already have track-specific values are hidden.",
-        "subtitleBlurEntryLabel": "Track {{trackNumber}}",
-        "subtitleBlurDescription": "Hides selected subtitle tracks by blurring them. Can be un-blurred on mouse hover.",
+        "subtitleBlur": "Размытие субтитров",
+        "subtitleTrack": "Дорожка субтитров",
+        "allSubtitleTracks": "Все",
+        "subtitleTrackChoice": "Дорожка {{trackNumber}}",
+        "subtitleTrackSelectorHelper": "Изменение настроек для ВСЕХ треков. Настройки у которых уже есть специфичные для трека значения, будут скрыты.",
+        "subtitleBlurEntryLabel": "Дорожка {{trackNumber}}",
+        "subtitleBlurDescription": "Скрывает выбранные дорожки субтитров, размывая их. Показывается обратно при наведении мыши.",
         "tabName": "название вкладки",
         "subtitleRegexFilter": "Пропускать субтитры через фильтр с регулярным выражением",
         "subtitleRegexFilterTextReplacement": "Замена текста для фильтра регулярных выражений для субтитров",
         "subtitleSize": "Размер субтитров",
         "subtitleThickness": "Толщина шрифта субтитров",
-        "subtitlesWidth": "Subtitles Width",
+        "subtitlesWidth": "Ширина субтитров",
         "surroundingSubtitlesCountRadius": "Радиус количества окружающих субтитров",
         "surroundingSubtitlesTimeRadius": "Временной радиус окружающих субтитров",
         "tags": "Теги",
@@ -355,11 +357,11 @@
         "unboundBind": "Не привязано",
         "urlField": "Поле URL-адреса",
         "wordField": "Поле слова",
-        "webSocketClientEnabled": "Enable WebSocket client",
-        "webSocketServerUrl": "WebSocket Server URL",
-        "firefoxExtensionShortcutHelp": "Edit this shortcut from the Plugin manager at about:addons.",
-        "postMinePlayback": "Post-mining playback state",
-        "pauseOnHoverMode": "Auto-pause when mousing over subtitles"
+        "webSocketClientEnabled": "Включить WebSocket клиент",
+        "webSocketServerUrl": "URL сервера WebSocket",
+        "firefoxExtensionShortcutHelp": "Редактируйте этот ярлык в менеджере плагинов по адресу about:addons.",
+        "postMinePlayback": "Настройка воспроизведения после майнинга",
+        "pauseOnHoverMode": "Пауза при наведении на субтитры"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Нажмите, удерживайте и перетащите, чтобы смайнить несколько субтитров"

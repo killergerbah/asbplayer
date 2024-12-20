@@ -138,6 +138,7 @@
         "condensedMode": "Condensado",
         "fastForwardMode": "Avanço rápido",
         "normalMode": "Normal",
+        "repeatMode": "Repeat",
         "playbackRate": "Taxa de reprodução",
         "subtitleOffset": "Atraso da legenda",
         "subtitleAlignment": "Alinhamento da legenda",
@@ -151,7 +152,8 @@
         "toggleFullscreen": "Alternar tela cheia",
         "toggleTheaterMode": "Alternar modo teatro",
         "showSubtitlePlayer": "Mostrar lista de legendas",
-        "hideSubtitlePlayer": "Ocultar lista de legendas"
+        "hideSubtitlePlayer": "Ocultar lista de legendas",
+        "currentTimestamp": "Current Timestamp"
     },
     "copyHistory": {
         "blank": "Em branco",

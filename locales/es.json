@@ -138,6 +138,7 @@
         "condensedMode": "Condensado",
         "fastForwardMode": "Acelerado",
         "normalMode": "Normal",
+        "repeatMode": "Repeat",
         "playbackRate": "Velocidad de Reproducción",
         "subtitleOffset": "Offset de Subtítulos",
         "subtitleAlignment": "Alineación de Subtítulos",
@@ -151,7 +152,8 @@
         "toggleFullscreen": "Pantalla Completa",
         "toggleTheaterMode": "Modo Cine",
         "showSubtitlePlayer": "Mostrar Lista de Subtítulos",
-        "hideSubtitlePlayer": "Ocultar Lista de Subtítulos"
+        "hideSubtitlePlayer": "Ocultar Lista de Subtítulos",
+        "currentTimestamp": "Current Timestamp"
     },
     "copyHistory": {
         "blank": "En Blanco",
