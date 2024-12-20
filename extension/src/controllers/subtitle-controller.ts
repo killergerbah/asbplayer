@@ -71,12 +71,6 @@ export default class SubtitleController {
         this.video = video;
         this.settings = settings;
         this._preCacheDom = false;
-        const { subtitlesElementOverlay, topSubtitlesElementOverlay, notificationElementOverlay } = this._overlays(
-            this._preCacheDom
-        );
-        this.bottomSubtitlesElementOverlay = subtitlesElementOverlay;
-        this.topSubtitlesElementOverlay = topSubtitlesElementOverlay;
-        this.notificationElementOverlay = notificationElementOverlay;
         this._subtitles = [];
         this.subtitleCollection = new SubtitleCollection<SubtitleModelWithIndex>([]);
         this.showingSubtitles = [];
@@ -84,7 +78,7 @@ export default class SubtitleController {
         this.shouldRenderTopOverlay = false;
         this.unblurredSubtitleTracks = {};
         this.disabledSubtitleTracks = {};
-        this.subtitleTrackAlignments = {};
+        this.subtitleTrackAlignments = { 0: 'bottom' };
         this._forceHideSubtitles = false;
         this._displaySubtitles = true;
         this.lastLoadedMessageTimestamp = 0;
@@ -94,6 +88,12 @@ export default class SubtitleController {
         this.surroundingSubtitlesTimeRadius = 5000;
         this.showingLoadedMessage = false;
         this.autoCopyCurrentSubtitle = false;
+        const { subtitlesElementOverlay, topSubtitlesElementOverlay, notificationElementOverlay } = this._overlays(
+            this._preCacheDom
+        );
+        this.bottomSubtitlesElementOverlay = subtitlesElementOverlay;
+        this.topSubtitlesElementOverlay = topSubtitlesElementOverlay;
+        this.notificationElementOverlay = notificationElementOverlay;
     }
 
     get subtitles() {
@@ -297,16 +297,28 @@ export default class SubtitleController {
             contentWidthPercentage: -1,
             onMouseOver: (event: MouseEvent) => this.onMouseOver?.(event),
         };
-        const notificationOverlayParams: ElementOverlayParams = {
-            targetElement: this.video,
-            nonFullscreenContainerClassName: 'asbplayer-notification-container-top',
-            nonFullscreenContentClassName: 'asbplayer-notification',
-            fullscreenContainerClassName: 'asbplayer-notification-container-top',
-            fullscreenContentClassName: 'asbplayer-notification',
-            offsetAnchor: OffsetAnchor.top,
-            contentWidthPercentage: -1,
-            onMouseOver: (event: MouseEvent) => this.onMouseOver?.(event),
-        };
+        const notificationOverlayParams: ElementOverlayParams =
+            this._getSubtitleTrackAlignment(0) === 'bottom'
+                ? {
+                      targetElement: this.video,
+                      nonFullscreenContainerClassName: 'asbplayer-notification-container-top',
+                      nonFullscreenContentClassName: 'asbplayer-notification',
+                      fullscreenContainerClassName: 'asbplayer-notification-container-top',
+                      fullscreenContentClassName: 'asbplayer-notification',
+                      offsetAnchor: OffsetAnchor.top,
+                      contentWidthPercentage: -1,
+                      onMouseOver: (event: MouseEvent) => this.onMouseOver?.(event),
+                  }
+                : {
+                      targetElement: this.video,
+                      nonFullscreenContainerClassName: 'asbplayer-notification-container-bottom',
+                      nonFullscreenContentClassName: 'asbplayer-notification',
+                      fullscreenContainerClassName: 'asbplayer-notification-container-bottom',
+                      fullscreenContentClassName: 'asbplayer-notification',
+                      offsetAnchor: OffsetAnchor.bottom,
+                      contentWidthPercentage: -1,
+                      onMouseOver: (event: MouseEvent) => this.onMouseOver?.(event),
+                  };
 
         return { subtitleOverlayParams, topSubtitleOverlayParams, notificationOverlayParams };
     }
