@@ -21,6 +21,40 @@ export interface TextFilter {
     replacement: string;
 }
 
+const sortVttCue = (a: VTTCue, b: VTTCue) => {
+    if (typeof a.line === 'number' && typeof b.line === 'number') {
+        if (a.line < b.line) {
+            return -1;
+        }
+
+        if (a.line > b.line) {
+            return 1;
+        }
+
+        if (typeof a.position === 'number' && typeof b.position === 'number') {
+            if (a.position < b.position) {
+                return -1;
+            }
+
+            if (a.position > b.position) {
+                return 1;
+            }
+
+            return 0;
+        }
+    }
+
+    return 0;
+};
+
+const sortVttCues = (list: VTTCue[]) => {
+    if (list.length <= 1) {
+        return list;
+    }
+
+    return list.sort(sortVttCue);
+};
+
 export default class SubtitleReader {
     private readonly _textFilter?: TextFilter;
     private readonly _pgsWorkerFactory: () => Promise<Worker>;
@@ -77,8 +111,11 @@ export default class SubtitleReader {
             return new Promise(async (resolve, reject) => {
                 const isFromNetflix = file.name.endsWith('.nfvtt');
                 const parser = new WebVTT.Parser(window, WebVTT.StringDecoder());
-                const cues: any[] = [];
-                parser.oncue = (c: any) => {
+                const allBuffers: VTTCue[][] = [];
+                let lastTimestamp: number | undefined = undefined;
+                let buffer: VTTCue[] = [];
+
+                parser.oncue = (c: VTTCue) => {
                     c.text = this._filterText(c.text.replaceAll(vttClassRegex, ''), true);
 
                     if (isFromNetflix) {
@@ -88,20 +125,39 @@ export default class SubtitleReader {
                         for (const line of lines) {
                             newLines.push(this._fixRTL(line));
                         }
-
                         c.text = newLines.join('\n');
                     }
-                    cues.push(c);
+
+                    const startTime = Math.floor(c.startTime * 1000);
+
+                    if (lastTimestamp === undefined || lastTimestamp === startTime) {
+                        buffer.push(c);
+                    } else {
+                        buffer = sortVttCues(buffer);
+                        allBuffers.push(buffer);
+                        buffer = [c];
+                    }
+
+                    lastTimestamp = startTime;
                 };
-                parser.onflush = () =>
-                    resolve(
-                        cues.map((c) => ({
-                            start: Math.floor(c.startTime * 1000),
-                            end: Math.floor(c.endTime * 1000),
-                            text: c.text as string,
-                            track: track,
-                        }))
-                    );
+                parser.onflush = () => {
+                    buffer = sortVttCues(buffer);
+                    allBuffers.push(buffer);
+                    const nodes: SubtitleNode[] = [];
+
+                    for (const buffer of allBuffers) {
+                        for (const c of buffer) {
+                            nodes.push({
+                                start: Math.floor(c.startTime * 1000),
+                                end: Math.floor(c.endTime * 1000),
+                                text: c.text,
+                                track: track,
+                            });
+                        }
+                    }
+
+                    resolve(nodes);
+                };
                 parser.parse(await file.text());
                 parser.flush();
             });
