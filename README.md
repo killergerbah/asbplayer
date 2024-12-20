@@ -91,7 +91,9 @@ Thank you to all those who have translated asbplayer:
 **NeverWinterSwor** (Simplified Chinese),
 **Yagxter** (Brazilian Portuguese),
 **Leo Gonzalez** (Spanish),
-**Yuri (ganqqwerty)** (Russian)
+**Yuri (ganqqwerty)** (Russian),
+**Kellen (kputuhuk)** (Russian),
+**Vladislav Kochetkov (vakochetkov)** (Russian)
 
 If you are a non-English native, and would like to help translate asbplayer, join the [Crowdin project](https://crowdin.com/project/asbplayer). If your language isn't there, feel free to create an issue to add it on the [issues page](https://github.com/killergerbah/asbplayer/issues).
 
