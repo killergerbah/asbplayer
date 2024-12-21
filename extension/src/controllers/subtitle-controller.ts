@@ -656,7 +656,11 @@ export default class SubtitleController {
             }
         }
 
-        this._setSubtitlesHtml(this.bottomSubtitlesElementOverlay, [
+        const overlay =
+            this._getSubtitleTrackAlignment(0) === 'bottom'
+                ? this.bottomSubtitlesElementOverlay
+                : this.topSubtitlesElementOverlay;
+        this._setSubtitlesHtml(overlay, [
             {
                 html: () => {
                     return this._buildTextHtml(loadedMessage);
