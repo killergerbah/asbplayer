@@ -34,7 +34,7 @@ const TimeDisplay = ({ currentMilliseconds, totalMilliseconds, className, ...res
             : `${displayTime(currentMilliseconds)} / ${displayTime(totalMilliseconds)}`;
     return (
         <div className={actualClassName} {...rest}>
-            {content}
+            {`\n\n${content}\n\n`}
         </div>
     );
 };
