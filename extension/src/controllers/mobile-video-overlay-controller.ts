@@ -119,6 +119,8 @@ export class MobileVideoOverlayController {
             if (message.message.command === 'playMode') {
                 const command = message as MobileOverlayToVideoCommand<PlayModeMessage>;
                 this._context.playMode = command.message.playMode;
+            } else if (message.message.command === 'hidden') {
+                this._doHide();
             }
         };
         chrome.runtime.onMessage.addListener(this._messageListener);

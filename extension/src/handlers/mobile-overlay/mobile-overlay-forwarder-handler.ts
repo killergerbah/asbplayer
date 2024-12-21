@@ -1,12 +1,12 @@
 import { Command, Message } from '@project/common';
 
-export default class PlayModeHandler {
+export default class MobileOverlayForwarderHandler {
     get sender() {
         return 'asbplayer-mobile-overlay-to-video';
     }
 
     get command() {
-        return 'playMode';
+        return null;
     }
 
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) {

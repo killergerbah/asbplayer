@@ -2,6 +2,7 @@ import {
     AsbPlayerToVideoCommandV2,
     CopySubtitleMessage,
     CurrentTimeToVideoMessage,
+    HiddenMessage,
     LoadSubtitlesMessage,
     MobileOverlayToVideoCommand,
     OffsetToVideoMessage,
@@ -10,7 +11,7 @@ import {
     PlayModeMessage,
     ToggleSubtitlesMessage,
 } from '@project/common';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useMobileVideoOverlayModel } from '../hooks/use-mobile-video-overlay-model';
 import { useMobileVideoOverlayLocation } from '../hooks/use-mobile-video-overlay-location';
 import { SettingsProvider } from '@project/common/settings';
@@ -22,9 +23,12 @@ const settings = new SettingsProvider(new ExtensionSettingsStorage());
 const params = new URLSearchParams(location.search);
 const anchor = params.get('anchor') as 'top' | 'bottom';
 const tooltipsEnabled = params.get('tooltips') === 'true';
+const containerHeight = 48;
+const scrollBufferHeight = 100;
 
 const MobileVideoOverlayUi = () => {
     const location = useMobileVideoOverlayLocation();
+    const hiddenRef = useRef<boolean>(false);
 
     const handleMineSubtitle = useCallback(async () => {
         if (!location) {
@@ -143,6 +147,46 @@ const MobileVideoOverlayUi = () => {
         };
         chrome.runtime.sendMessage(command);
     }, [location]);
+
+    useEffect(() => {
+        const scrollListener = () => {
+            if (!location) {
+                return;
+            }
+
+            if (!hiddenRef.current) {
+                if (
+                    (anchor === 'top' && document.body.scrollTop >= containerHeight) ||
+                    (anchor === 'bottom' && document.body.scrollTop <= scrollBufferHeight)
+                ) {
+                    const command: MobileOverlayToVideoCommand<HiddenMessage> = {
+                        sender: 'asbplayer-mobile-overlay-to-video',
+                        message: {
+                            command: 'hidden',
+                        },
+                        src: location.src,
+                    };
+                    chrome.runtime.sendMessage(command);
+                    hiddenRef.current = true;
+                }
+            }
+        };
+
+        document.body.addEventListener('scrollend', scrollListener);
+        return () => document.body.removeEventListener('scrollend', scrollListener);
+    }, [location]);
+
+    useEffect(() => {
+        // Depending on anchor, the mobile overlay will be at the bottom or top of the scrolling buffer
+        // We need to make sure the iframe is scrolled to the right place so that the overlay shows
+        if (anchor === 'top') {
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+        } else {
+            document.documentElement.scrollTop = document.documentElement.scrollHeight;
+            document.body.scrollTop = document.body.scrollHeight;
+        }
+    }, []);
 
     const { initialized: i18nInitialized } = useI18n({ language: model?.language ?? 'en' });
 

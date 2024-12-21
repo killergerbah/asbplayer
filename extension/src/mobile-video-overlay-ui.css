@@ -1,0 +1,28 @@
+html {
+    overflow: auto;
+}
+
+#root {
+    min-height: 48px;
+}
+
+.asbplayer-mobile-video-overlay-inner-container {
+    height: 100px;
+    width: 100%;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    text-align: center;
+    scroll-snap-type: y mandatory;
+}
+
+.asbplayer-mobile-video-overlay-inner-container::-webkit-scrollbar {
+    display: none;
+}
+
+.asbplayer-mobile-video-overlay-inner-container div {
+    scroll-snap-align: center;
+}
+
+.asbplayer-mobile-video-overlay-scroll-buffer {
+    height: 200px;
+}

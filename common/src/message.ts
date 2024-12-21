@@ -665,3 +665,7 @@ export interface NotificationDialogMessage extends Message {
     readonly titleLocKey: string;
     readonly messageLocKey: string;
 }
+
+export interface HiddenMessage extends Message {
+    readonly command: 'hidden';
+}
