@@ -49,7 +49,7 @@ export default React.forwardRef(function VideoControlInput(
     }, []);
 
     const updateValue = useCallback(
-        (value: number) => {
+        (value: number, publish: boolean) => {
             if (!inputRef.current) {
                 return;
             }
@@ -58,7 +58,10 @@ export default React.forwardRef(function VideoControlInput(
                 inputRef.current.value = '';
                 setInputWidth(5);
             } else {
-                onNumberValue(value);
+                if (publish) {
+                    onNumberValue(value);
+                }
+
                 const stringValue = valueToPrettyString(value);
                 inputRef.current.value = stringValue;
                 setInputWidth(stringValue.length);
@@ -78,13 +81,13 @@ export default React.forwardRef(function VideoControlInput(
             const newValue = stringToValue(inputRef.current.value);
 
             if (newValue === numberValue) {
-                updateValue(numberValue);
+                updateValue(numberValue, true);
                 return;
             }
 
             if (Number.isNaN(newValue) || rejectValue?.(newValue)) {
                 if (revertOnFailure) {
-                    updateValue(numberValue);
+                    updateValue(numberValue, true);
                 }
                 return;
             }
@@ -99,7 +102,7 @@ export default React.forwardRef(function VideoControlInput(
     }, [tryApplyValue]);
 
     useEffect(() => {
-        updateValue(numberValue);
+        updateValue(numberValue, false);
     }, [numberValue, updateValue]);
 
     useEffect(() => {
