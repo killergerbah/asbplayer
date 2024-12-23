@@ -4,6 +4,7 @@ import { makeStyles, withStyles, useTheme } from '@material-ui/core/styles';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import CloseIcon from '@material-ui/icons/Close';
+import FolderIcon from '@material-ui/icons/Folder';
 import Fade from '@material-ui/core/Fade';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
@@ -532,6 +533,7 @@ interface ControlsProps {
     subtitleAlignment?: SubtitleAlignment;
     onSubtitleAlignment?: (alignment: SubtitleAlignment) => void;
     hideToolbar?: boolean;
+    onLoadFiles?: () => void;
 }
 
 export default function Controls({
@@ -586,6 +588,7 @@ export default function Controls({
     subtitleAlignmentEnabled,
     onSubtitleAlignment,
     hideToolbar,
+    onLoadFiles,
 }: ControlsProps) {
     const classes = useControlStyles();
     const { t } = useTranslation();
@@ -848,7 +851,7 @@ export default function Controls({
         <React.Fragment>
             <Fade in={show} timeout={200}>
                 <Grid container style={{ position: 'absolute', top: 0 }}>
-                    <Grid item style={{ flexGrow: 1 }}>
+                    <Grid item>
                         {closeEnabled && (
                             <Tooltip title={t('controls.unloadVideo')!}>
                                 <IconButton
@@ -864,6 +867,20 @@ export default function Controls({
                             </Tooltip>
                         )}
                     </Grid>
+                    {onLoadFiles && (
+                        <Grid item>
+                            <IconButton
+                                color="inherit"
+                                className={classes.topButton}
+                                onClick={onLoadFiles}
+                                onMouseOver={handleMouseOver}
+                                onMouseOut={handleMouseOut}
+                            >
+                                <FolderIcon />
+                            </IconButton>
+                        </Grid>
+                    )}
+                    <Grid item style={{ flexGrow: 1 }} />
                     <Grid item>
                         {theaterModeToggleEnabled && (
                             <Tooltip title={t('controls.toggleTheaterMode')!}>

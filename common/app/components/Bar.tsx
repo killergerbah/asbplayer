@@ -21,7 +21,7 @@ interface BarProps {
     hidden: boolean;
     title: string;
     subtitleFiles?: File[];
-    onFileSelector: () => void;
+    onFileSelector?: () => void;
     onDownloadSubtitleFilesAsSrt: () => void;
     onOpenSettings: () => void;
     onOpenCopyHistory: () => void;
@@ -110,12 +110,6 @@ export default function Bar({
     const canSaveAsSrt =
         subtitleFiles !== undefined && subtitleFiles.find((f) => !f.name.endsWith('.sup')) !== undefined;
     const { t } = useTranslation();
-    const handleFileAction = useCallback(
-        (event: React.MouseEvent<HTMLButtonElement>) => {
-            onFileSelector();
-        },
-        [onFileSelector]
-    );
 
     const handleDownloadSubtitleFilesAsSrt = useCallback(() => {
         onDownloadSubtitleFilesAsSrt();
@@ -132,16 +126,18 @@ export default function Bar({
                 })}
             >
                 <Toolbar>
-                    <Tooltip title={t('action.openFiles')!}>
-                        <IconButton
-                            edge="start"
-                            color="inherit"
-                            className={classes.leftButton}
-                            onClick={handleFileAction}
-                        >
-                            <FolderIcon />
-                        </IconButton>
-                    </Tooltip>
+                    {onFileSelector && (
+                        <Tooltip title={t('action.openFiles')!}>
+                            <IconButton
+                                edge="start"
+                                color="inherit"
+                                className={classes.leftButton}
+                                onClick={onFileSelector}
+                            >
+                                <FolderIcon />
+                            </IconButton>
+                        </Tooltip>
+                    )}
                     {canSaveAsSrt && (
                         <Tooltip title={t('action.downloadSubtitlesAsSrt')!}>
                             <IconButton

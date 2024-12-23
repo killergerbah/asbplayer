@@ -356,7 +356,7 @@ export default function VideoPlayer({
     const playerChannel = useMemo(() => new PlayerChannel(channel), [channel]);
     const [playerChannelSubscribed, setPlayerChannelSubscribed] = useState<boolean>(false);
     const { fullscreen, requestFullscreen } = useFullscreen();
-    const playing = () => !videoRef.current?.paused ?? false;
+    const playing = () => !videoRef.current?.paused || false;
     const [length, setLength] = useState<number>(0);
     const [videoFileName, setVideoFileName] = useState<string>();
     const [offset, setOffset] = useState<number>(0);
@@ -385,12 +385,8 @@ export default function VideoPlayer({
     const [subtitleAlignments, setSubtitleAlignments] = useState<SubtitleAlignment[]>(
         allSubtitleAlignments(subtitleSettings)
     );
-    const [bottomSubtitlePositionOffset, setBottomSubtitlePositionOffset] = useState<number>(
-        subtitleSettings.subtitlePositionOffset
-    );
-    const [topSubtitlePositionOffset, setTopSubtitlePositionOffset] = useState<number>(
-        subtitleSettings.topSubtitlePositionOffset
-    );
+    const [, setBottomSubtitlePositionOffset] = useState<number>(subtitleSettings.subtitlePositionOffset);
+    const [, setTopSubtitlePositionOffset] = useState<number>(subtitleSettings.topSubtitlePositionOffset);
     const showSubtitlesRef = useRef<IndexedSubtitleModel[]>([]);
     showSubtitlesRef.current = showSubtitles;
     const clock = useMemo<Clock>(() => new Clock(), []);
@@ -703,6 +699,10 @@ export default function VideoPlayer({
         },
         [playerChannel, clock]
     );
+
+    const handleLoadFiles = useCallback(() => {
+        playerChannel.loadFiles();
+    }, [playerChannel]);
 
     useEffect(() => {
         if (!subtitles || subtitles.length === 0) {
@@ -1497,6 +1497,7 @@ export default function VideoPlayer({
                 subtitleAlignmentEnabled={subtitleAlignments.length === 1}
                 onSubtitleAlignment={handleSubtitleAlignment}
                 hideToolbar={isMobile}
+                onLoadFiles={handleLoadFiles}
             />
         </div>
     );

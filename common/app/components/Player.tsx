@@ -118,6 +118,7 @@ interface PlayerProps {
     onVideoPopOut: () => void;
     onPlayModeChangedViaBind: (oldPlayMode: PlayMode, newPlayMode: PlayMode) => void;
     onSubtitles: (subtitles: DisplaySubtitleModel[]) => void;
+    onLoadFiles?: () => void;
     disableKeyEvents: boolean;
     jumpToSubtitle?: SubtitleModel;
     rewindSubtitle?: SubtitleModel;
@@ -157,6 +158,7 @@ const Player = React.memo(function Player({
     onVideoPopOut,
     onPlayModeChangedViaBind,
     onSubtitles,
+    onLoadFiles,
     disableKeyEvents,
     jumpToSubtitle,
     rewindSubtitle,
@@ -479,7 +481,7 @@ const Player = React.memo(function Player({
         [channel, mediaAdapter, clock]
     );
     useEffect(() => {
-        return channel?.onOffset((offset) => applyOffset(Math.max(-calculateLength() ?? 0, offset), false));
+        return channel?.onOffset((offset) => applyOffset(Math.max(-calculateLength() || 0, offset), false));
     }, [channel, applyOffset]);
     useEffect(() => channel?.onPlaybackRate(updatePlaybackRate), [channel, updatePlaybackRate]);
     useEffect(
@@ -576,6 +578,7 @@ const Player = React.memo(function Player({
             ),
         [channel]
     );
+    useEffect(() => channel?.onLoadFiles(() => onLoadFiles?.()), [channel, onLoadFiles]);
     function play(clock: Clock, mediaAdapter: MediaAdapter, forwardToMedia: boolean) {
         clock.start();
 
@@ -804,7 +807,7 @@ const Player = React.memo(function Player({
     const handleOffsetChange = useCallback(
         (offset: number) => {
             const length = calculateLength();
-            applyOffset(Math.max(-length ?? 0, offset), true);
+            applyOffset(Math.max(-length || 0, offset), true);
         },
         [applyOffset]
     );

@@ -416,6 +416,10 @@ export default class PlayerChannel {
         this.channel?.postMessage(message);
     }
 
+    loadFiles() {
+        this.channel?.postMessage({ command: 'loadFiles' });
+    }
+
     close() {
         if (this.channel) {
             this.channel.postMessage({ command: 'exit' });

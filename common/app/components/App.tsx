@@ -1307,7 +1307,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                             onOpenCopyHistory={handleOpenCopyHistory}
                             onDownloadSubtitleFilesAsSrt={handleDownloadSubtitleFilesAsSrt}
                             onOpenSettings={handleOpenSettings}
-                            onFileSelector={handleFileSelector}
+                            onFileSelector={sources.videoFile === undefined ? handleFileSelector : undefined}
                         />
                         <input
                             ref={fileInputRef}
@@ -1357,6 +1357,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                                 onVideoPopOut={handleVideoPopOut}
                                 onPlayModeChangedViaBind={handleAutoPauseModeChangedViaBind}
                                 onSubtitles={setSubtitles}
+                                onLoadFiles={handleFileSelector}
                                 tab={tab}
                                 availableTabs={availableTabs ?? []}
                                 sources={sources}

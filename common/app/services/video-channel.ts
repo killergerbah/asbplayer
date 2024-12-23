@@ -65,6 +65,7 @@ export default class VideoChannel {
     private appBarToggleCallbacks: (() => void)[];
     private ankiDialogRequestCallbacks: (() => void)[];
     private toggleSubtitleTrackInListCallbacks: ((track: number) => void)[];
+    private loadFilesCallbacks: (() => void)[];
 
     readyState: number;
     oncanplay: ((ev: Event) => void) | null = null;
@@ -96,6 +97,7 @@ export default class VideoChannel {
         this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
+        this.loadFilesCallbacks = [];
 
         const that = this;
 
@@ -228,6 +230,11 @@ export default class VideoChannel {
                         callback(toggleSubtitleTrackInListMessage.track);
                     }
                     break;
+                case 'loadFiles':
+                    for (const callback of that.loadFilesCallbacks) {
+                        callback();
+                    }
+                    break;
                 default:
                     console.error('Unrecognized event ' + event.data.command);
             }
@@ -342,6 +349,11 @@ export default class VideoChannel {
     onToggleSubtitleTrackInList(callback: (track: number) => void) {
         this.toggleSubtitleTrackInListCallbacks.push(callback);
         return () => this._remove(callback, this.toggleSubtitleTrackInListCallbacks);
+    }
+
+    onLoadFiles(callback: () => void) {
+        this.loadFilesCallbacks.push(callback);
+        return () => this._remove(callback, this.loadFilesCallbacks);
     }
 
     ready(duration: number, videoFileName?: string) {
@@ -613,6 +625,7 @@ export default class VideoChannel {
         this.appBarToggleCallbacks = [];
         this.ankiDialogRequestCallbacks = [];
         this.toggleSubtitleTrackInListCallbacks = [];
+        this.loadFilesCallbacks = [];
     }
 
     _remove(callback: Function, callbacks: Function[]) {
