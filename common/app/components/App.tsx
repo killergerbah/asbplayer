@@ -420,7 +420,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                 id: id || uuidv4(),
             };
 
-            if (extension.supportsAppIntegration) {
+            if (extension.supportsSidePanel) {
                 extension.publishCard(newCard);
             } else {
                 saveCopyHistoryItem(newCard);
