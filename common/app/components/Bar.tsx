@@ -7,7 +7,7 @@ import FavoriteIcon from '@material-ui/icons/Favorite';
 import HelpIcon from '@material-ui/icons/Help';
 import FolderIcon from '@material-ui/icons/Folder';
 import IconButton from '@material-ui/core/IconButton';
-import ListIcon from '@material-ui/icons/List';
+import HistoryIcon from '@material-ui/icons/History';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import SettingsIcon from '@material-ui/icons/Settings';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -208,7 +208,7 @@ export default function Bar({
                             })}
                             onClick={onOpenCopyHistory}
                         >
-                            <ListIcon />
+                            <HistoryIcon />
                         </IconButton>
                     </CopyHistoryTooltip>
                 </Toolbar>

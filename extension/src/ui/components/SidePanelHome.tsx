@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import CenteredGridItem from './CenteredGridItem';
 import CenteredGridContainer from './CenteredGridContainer';
 import LoadSubtitlesIcon from '@project/common/components/LoadSubtitlesIcon';
-import ListIcon from '@material-ui/icons/List';
+import HistoryIcon from '@material-ui/icons/History';
 import { ButtonGroup } from '@material-ui/core';
 
 interface Props {
@@ -45,7 +45,7 @@ const SidePanelHome = ({ videoElementCount, onLoadSubtitles, onShowMiningHistory
                     >
                         {t('action.loadSubtitles')}
                     </Button>
-                    <Button startIcon={<ListIcon />} onClick={onOpenMiningHistory}>
+                    <Button startIcon={<HistoryIcon />} onClick={onOpenMiningHistory}>
                         {t('bar.miningHistory')}
                     </Button>
                 </ButtonGroup>

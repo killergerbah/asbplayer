@@ -1,5 +1,5 @@
 import IconButton from '@material-ui/core/IconButton';
-import ListIcon from '@material-ui/icons/List';
+import HistoryIcon from '@material-ui/icons/History';
 import LoadSubtitlesIcon from '@project/common/components/LoadSubtitlesIcon';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
 import Grid from '@material-ui/core/Grid';
@@ -55,7 +55,7 @@ const SidePanelTopControls = React.forwardRef(function SidePanelTopControls(
                     <Grid item>
                         <IconButton onClick={onShowMiningHistory}>
                             <Tooltip title={t('bar.miningHistory')!}>
-                                <ListIcon />
+                                <HistoryIcon />
                             </Tooltip>
                         </IconButton>
                     </Grid>
