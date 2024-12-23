@@ -57,6 +57,8 @@ import { MiningContext } from '../services/mining-context';
 import { timeDurationDisplay } from '../services/util';
 import { useAppWebSocketClient } from '../hooks/use-app-web-socket-client';
 import { LoadSubtitlesCommand } from '../../web-socket-client';
+import { ExtensionBridgedCopyHistoryRepository } from '../services/extension-bridged-copy-history-repository';
+import { IndexedDBCopyHistoryRepository } from '../../copy-history';
 
 const latestExtensionVersion = '1.6.1';
 const extensionUrl =
@@ -235,13 +237,20 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
     const drawerRatio = videoFrameRef.current ? 0.2 : 0.3;
     const minDrawerSize = videoFrameRef.current ? 150 : 300;
     const drawerWidth = Math.max(minDrawerSize, width * drawerRatio);
+    const copyHistoryRepository = useMemo(() => {
+        if (extension.supportsCopyHistoryRequest) {
+            return new ExtensionBridgedCopyHistoryRepository(extension);
+        }
+
+        return new IndexedDBCopyHistoryRepository(settings.miningHistoryStorageLimit);
+    }, [extension, settings.miningHistoryStorageLimit]);
     const {
         copyHistoryItems,
         refreshCopyHistory,
         deleteCopyHistoryItem,
         saveCopyHistoryItem,
         deleteAllCopyHistoryItems,
-    } = useCopyHistory(settings.miningHistoryStorageLimit);
+    } = useCopyHistory(settings.miningHistoryStorageLimit, copyHistoryRepository);
     const copyHistoryItemsRef = useRef<CopyHistoryItem[]>([]);
     copyHistoryItemsRef.current = copyHistoryItems;
     const [copyHistoryOpen, setCopyHistoryOpen] = useState<boolean>(false);

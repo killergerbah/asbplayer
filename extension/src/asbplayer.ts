@@ -1,8 +1,11 @@
-import {
+import type {
     AddProfileMessage,
     GetSettingsMessage,
     RemoveProfileMessage,
+    RequestCopyHistoryMessage,
+    RequestCopyHistoryResponse,
     RequestSubtitlesResponse,
+    SaveCopyHistoryMessage,
     SetActiveProfileMessage,
     SetSettingsMessage,
 } from '@project/common';
@@ -74,9 +77,34 @@ window.addEventListener('message', async (event) => {
                 });
                 break;
             case 'request-subtitles':
-                const response = (await chrome.runtime.sendMessage(command)) as RequestSubtitlesResponse | undefined;
                 sendMessageToPlayer({
-                    response,
+                    response: (await chrome.runtime.sendMessage(command)) as RequestSubtitlesResponse | undefined,
+                    messageId: command.message.messageId,
+                });
+                break;
+            case 'request-copy-history':
+                const requestCopyHistoryRequest = command.message as RequestCopyHistoryMessage;
+                sendMessageToPlayer({
+                    response: (await chrome.runtime.sendMessage(command)) as RequestCopyHistoryResponse | undefined,
+                    messageId: requestCopyHistoryRequest.messageId,
+                    count: requestCopyHistoryRequest.count,
+                });
+                break;
+            case 'save-copy-history':
+                await chrome.runtime.sendMessage(command);
+                sendMessageToPlayer({
+                    messageId: command.message.messageId,
+                });
+                break;
+            case 'delete-copy-history':
+                await chrome.runtime.sendMessage(command);
+                sendMessageToPlayer({
+                    messageId: command.message.messageId,
+                });
+                break;
+            case 'clear-copy-history':
+                await chrome.runtime.sendMessage(command);
+                sendMessageToPlayer({
                     messageId: command.message.messageId,
                 });
                 break;

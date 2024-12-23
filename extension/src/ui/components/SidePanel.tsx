@@ -44,6 +44,7 @@ import CopyHistoryList from '@project/common/app/components/CopyHistoryList';
 import { useAppKeyBinder } from '@project/common/app/hooks/use-app-key-binder';
 import { download } from '@project/common/util';
 import { MiningContext } from '@project/common/app/services/mining-context';
+import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
 
 const mp3WorkerFactory = () =>
     new Worker(new URL('../../../../common/audio-clip/mp3-encoder-worker.ts', import.meta.url));
@@ -291,8 +292,13 @@ export default function SidePanel({ settings, extension }: Props) {
         [showTopControls]
     );
 
+    const copyHistoryRepository = useMemo(
+        () => new IndexedDBCopyHistoryRepository(settings.miningHistoryStorageLimit),
+        [settings.miningHistoryStorageLimit]
+    );
     const { copyHistoryItems, refreshCopyHistory, deleteCopyHistoryItem, deleteAllCopyHistoryItems } = useCopyHistory(
-        settings.miningHistoryStorageLimit
+        settings.miningHistoryStorageLimit,
+        copyHistoryRepository
     );
     useEffect(() => {
         if (viewingAsbplayer) {

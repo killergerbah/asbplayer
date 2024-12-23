@@ -12,7 +12,7 @@ import { humanReadableTime } from '@project/common/util';
 import { AnkiSettings, ankiSettingsKeys, SettingsProvider } from '@project/common/settings';
 import { v4 as uuidv4 } from 'uuid';
 import { exportCard } from '@project/common/anki';
-import { CopyHistoryRepository } from '@project/common/copy-history';
+import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
 
 export class CardPublisher {
     private readonly _settingsProvider: SettingsProvider;
@@ -113,7 +113,7 @@ export class CardPublisher {
     private async _saveCardToRepository(id: string, card: CardModel) {
         try {
             const storageLimit = await this._settingsProvider.getSingle('miningHistoryStorageLimit');
-            new CopyHistoryRepository(storageLimit).save({
+            new IndexedDBCopyHistoryRepository(storageLimit).save({
                 ...card,
                 id: card.id ?? id,
                 timestamp: Date.now(),

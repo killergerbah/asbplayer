@@ -11,6 +11,7 @@ import {
     CardTextFieldValues,
     MobileOverlayModel,
     VideoTabModel,
+    CopyHistoryItem,
 } from './model';
 import { AsbPlayerToVideoCommandV2 } from './command';
 
@@ -668,4 +669,27 @@ export interface NotificationDialogMessage extends Message {
 
 export interface HiddenMessage extends Message {
     readonly command: 'hidden';
+}
+
+export interface RequestCopyHistoryMessage extends MessageWithId {
+    readonly command: 'request-copy-history';
+    readonly count: number;
+}
+
+export interface RequestCopyHistoryResponse {
+    readonly copyHistoryItems: CopyHistoryItem[];
+}
+
+export interface SaveCopyHistoryMessage extends MessageWithId {
+    readonly command: 'save-copy-history';
+    readonly copyHistoryItems: CopyHistoryItem[];
+}
+
+export interface DeleteCopyHistoryMessage extends MessageWithId {
+    readonly command: 'delete-copy-history';
+    readonly ids: string[];
+}
+
+export interface ClearCopyHistoryMessage extends MessageWithId {
+    readonly command: 'clear-copy-history';
 }

@@ -59,7 +59,15 @@ interface CopyHistoryRecord extends CopyHistoryItem {
     index?: number;
 }
 
-export class CopyHistoryRepository {
+export interface CopyHistoryRepository {
+    clear: () => Promise<void>;
+    fetch: (count: number) => Promise<CopyHistoryItem[]>;
+    liveFetch: (count: number, callback: (items: CopyHistoryItem[]) => void) => () => void;
+    save: (item: CopyHistoryItem) => Promise<void>;
+    delete: (id: string) => Promise<void>;
+}
+
+export class IndexedDBCopyHistoryRepository implements CopyHistoryRepository {
     private readonly _db = new CopyHistoryDatabase();
     private _limit: number;
 
@@ -85,10 +93,12 @@ export class CopyHistoryRepository {
         return result;
     }
 
-    liveFetch(count: number): Observable<CopyHistoryItem[]> {
-        return liveQuery(() => {
+    liveFetch(count: number, callback: (items: CopyHistoryItem[]) => void): () => void {
+        const observable = liveQuery(() => {
             return this.fetch(count);
         });
+        const subscription = observable.subscribe(callback);
+        return () => subscription.unsubscribe();
     }
 
     async save(item: CopyHistoryItem) {

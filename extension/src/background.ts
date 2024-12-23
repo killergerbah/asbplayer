@@ -56,6 +56,10 @@ import { isMobile } from './services/device-detection';
 import { enqueueUpdateAlert } from './services/update-alert';
 import RequestSubtitlesHandler from './handlers/asbplayerv2/request-subtitles-handler';
 import MobileOverlayForwarderHandler from './handlers/mobile-overlay/mobile-overlay-forwarder-handler';
+import RequestCopyHistoryHandler from './handlers/asbplayerv2/request-copy-history-handler';
+import DeleteCopyHistoryHandler from './handlers/asbplayerv2/delete-copy-history-handler';
+import ClearCopyHistoryHandler from './handlers/asbplayerv2/clear-copy-history-handler';
+import SaveCopyHistoryHandler from './handlers/asbplayerv2/save-copy-history-handler';
 
 if (!isFirefoxBuild) {
     chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
@@ -132,6 +136,10 @@ const handlers: CommandHandler[] = [
     new CopySubtitleHandler(tabRegistry),
     new LoadSubtitlesHandler(tabRegistry),
     new RequestSubtitlesHandler(),
+    new RequestCopyHistoryHandler(),
+    new SaveCopyHistoryHandler(settings),
+    new DeleteCopyHistoryHandler(settings),
+    new ClearCopyHistoryHandler(settings),
     new PublishCardHandler(cardPublisher),
     new AckMessageHandler(tabRegistry),
     new AudioBase64Handler(audioRecorder),

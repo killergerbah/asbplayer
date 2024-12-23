@@ -21,12 +21,19 @@ import {
     RemoveProfileMessage,
     RequestSubtitlesFromAppMessage,
     LoadSubtitlesMessage,
+    RequestCopyHistoryMessage,
+    RequestCopyHistoryResponse,
+    DeleteCopyHistoryMessage,
+    CopyHistoryItem,
+    SaveCopyHistoryMessage,
+    ClearCopyHistoryMessage,
 } from '@project/common';
 import { AsbplayerSettings, Profile } from '@project/common/settings';
 import { v4 as uuidv4 } from 'uuid';
 import gte from 'semver/functions/gte';
 import gt from 'semver/functions/gt';
 import { isFirefox } from '../../browser-detection';
+import { isMobile } from 'react-device-detect';
 
 export interface ExtensionMessage {
     data: Message;
@@ -118,6 +125,10 @@ export default class ChromeExtension {
         window.addEventListener('message', this.windowEventListener);
     }
 
+    get supportsCopyHistoryRequest() {
+        return this.installed && gte(this.version, '1.7.0');
+    }
+
     get supportsLandingPageStreamingVideoElementSelector() {
         return this.installed && gte(this.version, '1.6.0');
     }
@@ -147,7 +158,7 @@ export default class ChromeExtension {
     }
 
     get supportsSidePanel() {
-        return this.installed && !isFirefox && gte(this.version, '1.0.0');
+        return this.installed && !isFirefox && !isMobile && gte(this.version, '1.0.0');
     }
 
     get supportsAppIntegration() {
@@ -295,6 +306,61 @@ export default class ChromeExtension {
         };
         window.postMessage(command);
         return this._createResponsePromise(messageId);
+    }
+
+    requestCopyHistory(count: number) {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<RequestCopyHistoryMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'request-copy-history',
+                count,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId) as Promise<RequestCopyHistoryResponse>;
+    }
+
+    deleteCopyHistory(id: string) {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<DeleteCopyHistoryMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'delete-copy-history',
+                ids: [id],
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId) as Promise<void>;
+    }
+
+    saveCopyHistory(copyHistoryItem: CopyHistoryItem) {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<SaveCopyHistoryMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'save-copy-history',
+                copyHistoryItems: [copyHistoryItem],
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId) as Promise<void>;
+    }
+
+    clearCopyHistory() {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<ClearCopyHistoryMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'clear-copy-history',
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId) as Promise<void>;
     }
 
     loadSubtitles(tabId: number, src: string) {
