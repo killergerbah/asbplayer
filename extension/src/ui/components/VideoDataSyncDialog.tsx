@@ -16,7 +16,7 @@ import makeStyles from '@material-ui/styles/makeStyles';
 import Switch from '@material-ui/core/Switch';
 import LabelWithHoverEffect from '@project/common/components/LabelWithHoverEffect';
 import { ConfirmedVideoDataSubtitleTrack, VideoDataSubtitleTrack, VideoDataUiOpenReason } from '@project/common';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const createClasses = makeStyles((theme) => ({
@@ -209,8 +209,16 @@ export default function VideoDataSyncDialog({
 
     const threeSubtitleTrackSelectors = generateSubtitleTrackSelectors(3);
 
+    const okButtonRef = useRef<HTMLButtonElement | null>(null);
+
+    useEffect(() => {
+        if (open && trimmedName && !disabled) {
+            okButtonRef.current?.focus();
+        }
+    }, [open, trimmedName, disabled]);
+
     return (
-        <Dialog disableEnforceFocus fullWidth maxWidth="sm" open={open} onClose={onCancel}>
+        <Dialog disableRestoreFocus disableEnforceFocus fullWidth maxWidth="sm" open={open} onClose={onCancel}>
             <Toolbar>
                 <Typography variant="h6" style={{ flexGrow: 1 }}>
                     {t('extension.videoDataSync.selectSubtitles')}
@@ -274,7 +282,7 @@ export default function VideoDataSyncDialog({
                 <Button disabled={disabled} onClick={() => onOpenFile()}>
                     {t('action.openFiles')}
                 </Button>
-                <Button disabled={!trimmedName || disabled} onClick={handleOkButtonClick}>
+                <Button ref={okButtonRef} disabled={!trimmedName || disabled} onClick={handleOkButtonClick}>
                     {t('action.ok')}
                 </Button>
             </DialogActions>
