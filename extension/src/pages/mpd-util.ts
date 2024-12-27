@@ -1,5 +1,5 @@
 import { VideoDataSubtitleTrack, VideoDataSubtitleTrackDef } from '@project/common';
-import { extractExtension, inferTracks, trackId } from './util';
+import { inferTracks, trackId } from './util';
 import { parse } from 'mpd-parser';
 
 export interface Playlist {

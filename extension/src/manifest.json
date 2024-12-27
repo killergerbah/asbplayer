@@ -112,6 +112,7 @@
                 "pages/bilibili-page.js",
                 "pages/nrk-tv-page.js",
                 "pages/plex-page.js",
+                "pages/areena-yle-page.js",
                 "anki-ui.js",
                 "mp3-encoder-worker.js",
                 "pgs-parser-worker.js",

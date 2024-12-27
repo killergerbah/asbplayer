@@ -57,7 +57,7 @@ export const trackFromDef = (def: VideoDataSubtitleTrackDef) => {
 };
 
 export const trackId = (def: VideoDataSubtitleTrackDef) => {
-    return `${def.language}:${def.label}:${def.url}:${def.m3U8BaseUrl ?? ''}`;
+    return `${def.language}:${def.label}:${def.url}`;
 };
 
 export function inferTracks({ onJson, onRequest, waitForBasename }: InferHooks) {

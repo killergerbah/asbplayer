@@ -133,6 +133,14 @@
             "autoSync": {
                 "enabled": true
             }
+        },
+        {
+            "host": "areena.yle.fi",
+            "script": "areena-yle-page.js",
+            "path": ".*",
+            "autoSync": {
+                "enabled": true
+            }
         }
     ]
 }

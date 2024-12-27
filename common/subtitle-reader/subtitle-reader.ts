@@ -87,10 +87,36 @@ export default class SubtitleReader {
     }
 
     async subtitles(files: File[], flatten?: boolean) {
-        return (await Promise.all(files.map((f, i) => this._subtitles(f, flatten === true ? 0 : i))))
+        const allNodes = (await Promise.all(files.map((f, i) => this._subtitles(f, flatten === true ? 0 : i))))
             .flatMap((nodes) => nodes)
             .filter((node) => node.textImage !== undefined || node.text !== '')
             .sort((n1, n2) => n1.start - n2.start);
+
+        if (flatten) {
+            return this._deduplicate(allNodes);
+        }
+
+        return allNodes;
+    }
+
+    private _deduplicate(nodes: SubtitleNode[]) {
+        const deduplicated: SubtitleNode[] = [];
+
+        for (const node of nodes) {
+            if (deduplicated.length == 0 || !this._isSame(node, deduplicated[deduplicated.length - 1])) {
+                deduplicated.push(node);
+            }
+        }
+
+        return deduplicated;
+    }
+
+    private _isSame(a: SubtitleNode, b: SubtitleNode) {
+        if (a.textImage || b.textImage) {
+            return false;
+        }
+
+        return a.start === b.start && a.end === b.end && a.text === b.text;
     }
 
     async _subtitles(file: File, track: number): Promise<SubtitleNode[]> {

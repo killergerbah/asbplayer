@@ -143,7 +143,6 @@ export interface VideoDataSubtitleTrackDef {
     label: string;
     language: string;
     url: string;
-    m3U8BaseUrl?: string;
     extension: string;
 }
 

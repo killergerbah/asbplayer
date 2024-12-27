@@ -11,7 +11,7 @@ import {
     VideoToExtensionCommand,
 } from '@project/common';
 import { AsbplayerSettings, SettingsProvider, SubtitleListPreference } from '@project/common/settings';
-import { bufferToBase64 } from '@project/common/base64';
+import { base64ToBlob, bufferToBase64 } from '@project/common/base64';
 import Binding from '../services/binding';
 import { currentPageDelegate } from '../services/pages';
 import { Parser as m3U8Parser } from 'm3u8-parser';
@@ -365,13 +365,12 @@ export default class VideoDataSyncController {
             let subtitles: SerializedSubtitleFile[] = [];
 
             for (let i = 0; i < data.length; i++) {
-                const { extension, url, m3U8BaseUrl, language } = data[i];
+                const { extension, url, language } = data[i];
                 const subtitleFiles = await this._subtitlesForUrl(
                     this._defaultVideoName(this._syncedData?.basename, data[i]),
                     language,
                     extension,
-                    url,
-                    m3U8BaseUrl
+                    url
                 );
                 if (subtitleFiles !== undefined) {
                     subtitles.push(...subtitleFiles);
@@ -380,7 +379,7 @@ export default class VideoDataSyncController {
 
             await this._syncSubtitles(
                 subtitles,
-                data.some((track) => track.m3U8BaseUrl !== undefined)
+                data.some((track) => track.extension === 'm3u8')
             );
             return true;
         } catch (error) {
@@ -397,8 +396,8 @@ export default class VideoDataSyncController {
             let subtitles: SerializedSubtitleFile[] = [];
 
             for (let i = 0; i < data.length; i++) {
-                const { name, language, extension, url, m3U8BaseUrl } = data[i];
-                const subtitleFiles = await this._subtitlesForUrl(name, language, extension, url, m3U8BaseUrl);
+                const { name, language, extension, url } = data[i];
+                const subtitleFiles = await this._subtitlesForUrl(name, language, extension, url);
                 if (subtitleFiles !== undefined) {
                     subtitles.push(...subtitleFiles);
                 }
@@ -406,7 +405,7 @@ export default class VideoDataSyncController {
 
             await this._syncSubtitles(
                 subtitles,
-                data.some((track) => track.m3U8BaseUrl !== undefined),
+                data.some((track) => track.extension === 'm3u8'),
                 syncWithAsbplayerId
             );
             return true;
@@ -425,9 +424,7 @@ export default class VideoDataSyncController {
         syncWithAsbplayerId?: string
     ) {
         const files: File[] = await Promise.all(
-            serializedFiles.map(
-                async (f) => new File([await (await fetch('data:text/plain;base64,' + f.base64)).blob()], f.name)
-            )
+            serializedFiles.map(async (f) => new File([base64ToBlob(f.base64, 'text/plain')], f.name))
         );
         this._context.loadSubtitles(files, flatten, syncWithAsbplayerId);
     }
@@ -436,8 +433,7 @@ export default class VideoDataSyncController {
         name: string,
         language: string,
         extension: string,
-        url: string,
-        m3U8BaseUrl?: string
+        url: string
     ): Promise<SerializedSubtitleFile[] | undefined> {
         if (url === '-') {
             return [
@@ -484,10 +480,14 @@ export default class VideoDataSyncController {
 
             const firstUri = parser.manifest.segments[0].uri;
             const partExtension = firstUri.substring(firstUri.lastIndexOf('.') + 1);
+            const m3U8BaseUrl = url.substring(0, url.lastIndexOf('/'));
+            const fileName = `${name}.${partExtension}`;
             const promises = parser.manifest.segments
                 .filter((s: any) => !s.discontinuity && s.uri)
                 .map((s: any) => fetch(`${m3U8BaseUrl}/${s.uri}`));
             const tracks = [];
+            let totalPromises = promises.length;
+            let finishedPromises = 0;
 
             for (const p of promises) {
                 const response = await p;
@@ -498,8 +498,13 @@ export default class VideoDataSyncController {
                     );
                 }
 
+                ++finishedPromises;
+                this._context.subtitleController.notification(
+                    `${fileName} (${Math.floor((finishedPromises / totalPromises) * 100)}%)`
+                );
+
                 tracks.push({
-                    name: `${name}.${partExtension}`,
+                    name: fileName,
                     base64: bufferToBase64(await response.arrayBuffer()),
                 });
             }
