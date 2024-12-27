@@ -1,53 +1,11 @@
 import { VideoDataSubtitleTrack } from '@project/common';
 import { Parser } from 'm3u8-parser';
-import { trackFromDef } from './util';
+import { inferTracks, trackFromDef } from './util';
 
 setTimeout(() => {
-    function basenameFromDOM(): string {
-        const titleElements = document.getElementsByClassName('title-field');
-        const subtitleElements = document.getElementsByClassName('subtitle-field');
-        let title: string | null = null;
-        let subtitle: string | null = null;
-
-        if (titleElements.length > 0) {
-            title = titleElements[0].textContent;
-        }
-
-        if (subtitleElements.length > 0) {
-            subtitle = subtitleElements[0].textContent;
-        }
-
-        if (title === null) {
-            return '';
-        }
-
-        if (subtitle === null) {
-            return title;
-        }
-
-        return `${title} ${subtitle}`;
-    }
-
-    async function basenameFromDOMWithRetries(retries: number) {
-        const basename = basenameFromDOM();
-
-        if (retries === 0) {
-            return basename;
-        }
-
-        if (basename === '') {
-            return new Promise((resolve, reject) => {
-                setTimeout(async () => resolve(await basenameFromDOMWithRetries(retries - 1)), 1000);
-            });
-        }
-
-        return basename;
-    }
-
     function baseUrlForUrl(url: string) {
         return url.substring(0, url.lastIndexOf('/'));
     }
-
     function m3U8(url: string): Promise<any> {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
@@ -106,8 +64,48 @@ setTimeout(() => {
             }, 0);
         });
     }
+    function basenameFromDOM(): string {
+        const titleElements = document.getElementsByClassName('title-field');
+        const subtitleElements = document.getElementsByClassName('subtitle-field');
+        let title: string | null = null;
+        let subtitle: string | null = null;
 
-    let subtitlesPromise: Promise<VideoDataSubtitleTrack[]> | undefined;
+        if (titleElements.length > 0) {
+            title = titleElements[0].textContent;
+        }
+
+        if (subtitleElements.length > 0) {
+            subtitle = subtitleElements[0].textContent;
+        }
+
+        if (title === null) {
+            return '';
+        }
+
+        if (subtitle === null) {
+            return title;
+        }
+
+        return `${title} ${subtitle}`;
+    }
+
+    async function basenameFromDOMWithRetries(retries: number): Promise<string | undefined> {
+        const basename = basenameFromDOM();
+
+        if (retries === 0) {
+            return basename;
+        }
+
+        if (basename === '') {
+            return new Promise((resolve, reject) => {
+                setTimeout(async () => resolve(await basenameFromDOMWithRetries(retries - 1)), 1000);
+            });
+        }
+
+        return undefined;
+    }
+
+    let lastM3U8Url: string | undefined = undefined;
 
     const originalParse = JSON.parse;
     JSON.parse = function () {
@@ -117,66 +115,24 @@ setTimeout(() => {
             const url = value.stream.sources[0].complete?.url;
 
             if (url) {
-                subtitlesPromise = completeM3U8(url);
+                lastM3U8Url = url;
             }
         }
 
         return value;
     };
+    inferTracks({
+        onRequest: async (addTrack, setBasename) => {
+            setBasename((await basenameFromDOMWithRetries(10)) ?? '');
 
-    document.addEventListener(
-        'asbplayer-get-synced-data',
-        async () => {
-            if (!subtitlesPromise) {
-                document.dispatchEvent(
-                    new CustomEvent('asbplayer-synced-data', {
-                        detail: {
-                            error: 'Could not extract subtitle track information.',
-                            basename: '',
-                            subtitles: [],
-                        },
-                    })
-                );
-                return;
-            }
+            if (lastM3U8Url !== undefined) {
+                const tracks = await completeM3U8(lastM3U8Url);
 
-            try {
-                const subtitles = await subtitlesPromise;
-                subtitlesPromise = undefined;
-                subtitles.sort((a, b) => {
-                    if (a.label < b.label) {
-                        return -1;
-                    }
-
-                    if (a.label > b.label) {
-                        return 1;
-                    }
-
-                    return 0;
-                });
-                document.dispatchEvent(
-                    new CustomEvent('asbplayer-synced-data', {
-                        detail: {
-                            error: '',
-                            basename: (await basenameFromDOMWithRetries(10)) ?? '',
-                            extension: 'm3u8',
-                            subtitles: subtitles,
-                        },
-                    })
-                );
-            } catch (e) {
-                document.dispatchEvent(
-                    new CustomEvent('asbplayer-synced-data', {
-                        detail: {
-                            error: e instanceof Error ? e.message : String(e),
-                            basename: '',
-                            extension: 'm3u8',
-                            subtitles: [],
-                        },
-                    })
-                );
+                for (const track of tracks) {
+                    addTrack(track);
+                }
             }
         },
-        false
-    );
+        waitForBasename: false,
+    });
 }, 0);
