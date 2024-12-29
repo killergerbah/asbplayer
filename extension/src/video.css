@@ -99,6 +99,7 @@
     height: auto !important;
     z-index: 2147483647 !important;
     border: 0 !important;
+    pointer-events: auto !important;
 }
 
 .asbplayer-hide {
@@ -172,6 +173,7 @@
     display: inline-block !important;
     z-index: 2147483647 !important;
     text-align: center !important;
+    pointer-events: auto !important;
 }
 
 .asbplayer-mobile-video-overlay-container-bottom {
@@ -180,6 +182,7 @@
     display: inline-block !important;
     z-index: 2147483647 !important;
     text-align: center !important;
+    pointer-events: auto !important;
 }
 
 .asbplayer-mobile-video-overlay {
