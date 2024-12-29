@@ -1,5 +1,5 @@
-import { VideoDataSubtitleTrack, VideoDataSubtitleTrackDef } from '@project/common';
-import { extractExtension, inferTracks, trackFromDef, trackId } from './util';
+import { VideoDataSubtitleTrack } from '@project/common';
+import { extractExtension, inferTracks, trackFromDef } from './util';
 import { Parser } from 'm3u8-parser';
 
 export interface Playlist {
