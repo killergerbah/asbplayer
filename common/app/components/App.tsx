@@ -60,7 +60,7 @@ import { LoadSubtitlesCommand } from '../../web-socket-client';
 import { ExtensionBridgedCopyHistoryRepository } from '../services/extension-bridged-copy-history-repository';
 import { IndexedDBCopyHistoryRepository } from '../../copy-history';
 
-const latestExtensionVersion = '1.6.1';
+const latestExtensionVersion = '1.7.0';
 const extensionUrl =
     'https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab';
 const mp3WorkerFactory = () => new Worker(new URL('../../audio-clip/mp3-encoder-worker.ts', import.meta.url));
