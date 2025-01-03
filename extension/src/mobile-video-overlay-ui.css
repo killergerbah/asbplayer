@@ -19,7 +19,7 @@ html {
     display: none;
 }
 
-.asbplayer-mobile-video-overlay-inner-container div {
+.asbplayer-mobile-video-overlay-inner-container > div {
     scroll-snap-align: center;
 }
 
