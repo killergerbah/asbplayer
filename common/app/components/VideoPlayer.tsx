@@ -39,6 +39,7 @@ import { useAppKeyBinder } from '../hooks/use-app-key-binder';
 import { Direction, useSwipe } from '../hooks/use-swipe';
 import './video-player.css';
 import i18n from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { adjacentSubtitle } from '../../key-binder';
 import { usePlaybackPreferences } from '../hooks/use-playback-preferences';
 import { MiningContext } from '../services/mining-context';
@@ -346,6 +347,7 @@ export default function VideoPlayer({
     onSettingsChanged,
 }: Props) {
     const classes = useStyles();
+    const { t } = useTranslation();
     const poppingInRef = useRef<boolean>();
     const videoRef = useRef<ExperimentalHTMLVideoElement>();
     const [windowWidth, windowHeight] = useWindowSize(true);
@@ -397,9 +399,11 @@ export default function VideoPlayer({
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
     const [alertMessage, setAlertMessage] = useState<string>('');
     const [alertSeverity, setAlertSeverity] = useState<Color>('info');
+    const [alertDisableAutoHide, setAlertDisableAutoHide] = useState<boolean>(false);
     const [lastMinedRecord, setLastMinedRecord] = useState<MinedRecord>();
     const [trackCount, setTrackCount] = useState<number>(0);
     const [, forceRender] = useState<any>();
+    const [mineIntervalStartTimestamp, setMineIntervalStartTimestamp] = useState<number>();
 
     useEffect(() => {
         setMiscSettings(settings);
@@ -1066,20 +1070,102 @@ export default function VideoPlayer({
         [mineSubtitle, extractSubtitles, clock, length, selectedAudioTrack, videoFile, videoFileName]
     );
 
+    const toggleSelectMiningInterval = useCallback(
+        (postMineAction: PostMineAction, cardTextFieldValues?: CardTextFieldValues) => {
+            if (mineIntervalStartTimestamp === undefined) {
+                setMineIntervalStartTimestamp(clock.time(length));
+
+                if (!playing()) {
+                    playerChannel.play();
+                }
+
+                if (!isMobile) {
+                    setAlertSeverity('info');
+                    setAlertMessage(t('info.manualMiningIntervalPrompt')!);
+                    setAlertDisableAutoHide(true);
+                    setAlertOpen(true);
+                }
+            } else {
+                setAlertDisableAutoHide(false);
+                setAlertOpen(false);
+                const video = videoRef.current;
+
+                if (!video) {
+                    return;
+                }
+
+                const endTimestamp = clock.time(length);
+
+                if (endTimestamp > mineIntervalStartTimestamp) {
+                    const currentSubtitle = {
+                        text: '',
+                        start: mineIntervalStartTimestamp,
+                        originalStart: mineIntervalStartTimestamp,
+                        end: endTimestamp,
+                        originalEnd: endTimestamp,
+                        track: 0,
+                    };
+
+                    const surroundingSubtitles = mockSurroundingSubtitles(currentSubtitle, length, 5000);
+                    mineSubtitle(
+                        postMineAction,
+                        videoFile,
+                        videoFileName ?? '',
+                        selectedAudioTrack,
+                        video.playbackRate,
+                        currentSubtitle,
+                        surroundingSubtitles,
+                        cardTextFieldValues ?? {},
+                        mineIntervalStartTimestamp
+                    );
+                }
+
+                setMineIntervalStartTimestamp(undefined);
+            }
+        },
+        [
+            t,
+            mineSubtitle,
+            playerChannel,
+            mineIntervalStartTimestamp,
+            clock,
+            length,
+            selectedAudioTrack,
+            videoFile,
+            videoFileName,
+        ]
+    );
+
+    const inferAndExecuteMiningBehavior = useCallback(
+        (
+            postMineAction: PostMineAction,
+            subtitle?: SubtitleModel,
+            surroundingSubtitles?: SubtitleModel[],
+            cardTextFieldValues?: CardTextFieldValues
+        ) => {
+            if (!subtitle && !surroundingSubtitles && subtitles.length === 0) {
+                toggleSelectMiningInterval(postMineAction, cardTextFieldValues);
+            } else {
+                mineCurrentSubtitle(postMineAction, subtitle, surroundingSubtitles, cardTextFieldValues);
+            }
+        },
+        [mineCurrentSubtitle, toggleSelectMiningInterval, subtitles]
+    );
+
     useEffect(() => {
-        return playerChannel.onCopy(mineCurrentSubtitle);
-    }, [playerChannel, mineCurrentSubtitle]);
+        return playerChannel.onCopy(inferAndExecuteMiningBehavior);
+    }, [playerChannel, inferAndExecuteMiningBehavior]);
 
     useEffect(() => {
         return keyBinder.bindAnkiExport(
             (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                mineCurrentSubtitle(PostMineAction.showAnkiDialog);
+                inferAndExecuteMiningBehavior(PostMineAction.showAnkiDialog);
             },
             () => false
         );
-    }, [mineCurrentSubtitle, keyBinder]);
+    }, [inferAndExecuteMiningBehavior, keyBinder]);
 
     useEffect(() => {
         return miningContext.onEvent('stopped-mining', () => {
@@ -1104,11 +1190,11 @@ export default function VideoPlayer({
             (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                mineCurrentSubtitle(PostMineAction.updateLastCard);
+                inferAndExecuteMiningBehavior(PostMineAction.updateLastCard);
             },
             () => false
         );
-    }, [mineCurrentSubtitle, keyBinder]);
+    }, [inferAndExecuteMiningBehavior, keyBinder]);
 
     useEffect(() => {
         return keyBinder.bindTakeScreenshot(
@@ -1140,7 +1226,7 @@ export default function VideoPlayer({
         return keyBinder.bindCopy(
             (event, subtitle) => {
                 event.preventDefault();
-                mineCurrentSubtitle(PostMineAction.none);
+                inferAndExecuteMiningBehavior(PostMineAction.none);
             },
             () => false,
             () => {
@@ -1153,7 +1239,7 @@ export default function VideoPlayer({
                 return extracted.currentSubtitle;
             }
         );
-    }, [extractSubtitles, mineCurrentSubtitle, keyBinder]);
+    }, [extractSubtitles, inferAndExecuteMiningBehavior, keyBinder]);
 
     useEffect(() => {
         return keyBinder.bindPlay(
@@ -1302,7 +1388,10 @@ export default function VideoPlayer({
         return () => clearInterval(interval);
     }, [showCursor]);
 
-    const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
+    const handleAlertClosed = useCallback(() => {
+        setAlertDisableAutoHide(true);
+        setAlertOpen(false);
+    }, []);
     const trackStyles = useSubtitleStyles(subtitleSettings, trackCount ?? 1);
     const { getSubtitleDomCache } = useSubtitleDomCache(
         subtitles,
@@ -1386,7 +1475,7 @@ export default function VideoPlayer({
     const topSubtitleElements = displaySubtitles ? subtitleElementsWithAlignment('top') : [];
     const bottomSubtitleElements = displaySubtitles ? subtitleElementsWithAlignment('bottom') : [];
     const mobileOverlayModel = () => {
-        if (playing() || !isMobile) {
+        if (!isMobile || (playing() && mineIntervalStartTimestamp === undefined)) {
             return undefined;
         }
 
@@ -1397,7 +1486,7 @@ export default function VideoPlayer({
             playbackRate: videoRef.current?.playbackRate ?? 1,
             emptySubtitleTrack: subtitles.length === 0,
             recordingEnabled: true,
-            recording: false,
+            recording: mineIntervalStartTimestamp !== undefined,
             previousSubtitleTimestamp: adjacentSubtitle(false, timestamp, subtitles)?.originalStart ?? undefined,
             nextSubtitleTimestamp: adjacentSubtitle(true, timestamp, subtitles)?.originalStart ?? undefined,
             currentTimestamp: timestamp,
@@ -1406,7 +1495,6 @@ export default function VideoPlayer({
             subtitlesAreVisible: displaySubtitles,
             playMode,
             themeType: settings.themeType,
-            manualRecordingDisabled: true,
         };
     };
 
@@ -1416,15 +1504,21 @@ export default function VideoPlayer({
 
     return (
         <div ref={containerRef} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} className={classes.root}>
-            <Alert open={alertOpen} onClose={handleAlertClosed} autoHideDuration={3000} severity={alertSeverity}>
+            <Alert
+                open={alertOpen}
+                disableAutoHide={alertDisableAutoHide}
+                onClose={handleAlertClosed}
+                autoHideDuration={3000}
+                severity={alertSeverity}
+            >
                 {alertMessage}
             </Alert>
             <MobileVideoOverlay
                 model={mobileOverlayModel()}
                 className={classes.mobileOverlay}
-                anchor={'top'}
+                anchor={'bottom'}
                 tooltipsEnabled={true}
-                onMineSubtitle={() => mineCurrentSubtitle(settings.clickToMineDefaultAction)}
+                onMineSubtitle={() => inferAndExecuteMiningBehavior(settings.clickToMineDefaultAction)}
                 onOffset={handleOffsetChange}
                 onPlaybackRate={handlePlaybackRateChange}
                 onPlayModeSelected={handlePlayMode}

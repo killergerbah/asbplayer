@@ -380,7 +380,7 @@ const MobileVideoOverlay = ({
                 )}
                 <Grid item>
                     <Tooltip {...defaultTooltipProps} title={miningButtonTooltip(model)!}>
-                        {model.emptySubtitleTrack && model.recordingEnabled && !model.manualRecordingDisabled ? (
+                        {model.emptySubtitleTrack && model.recordingEnabled ? (
                             // Wrap in span so that Tooltip doesn't complain about disabled child. Spacing also looks better.
                             <span>
                                 <IconButton onClick={onMineSubtitle}>
@@ -431,50 +431,58 @@ const MobileVideoOverlay = ({
                         </Tooltip>
                     </Grid>
                 )}
-                <Grid item>
-                    <Tooltip {...defaultTooltipProps} title={leftNumberControlTitle}>
-                        <span>
-                            <HoldableIconButton
-                                onClick={handleLeftNumberControl}
-                                onHold={handleHoldLeftNumberControl}
-                                disabled={leftNumberControlDisabled}
-                            >
-                                <NavigateBeforeIcon
-                                    className={leftNumberControlDisabled ? classes.inactiveButton : classes.button}
+                {!model.recording && (
+                    <>
+                        <Grid item>
+                            <Tooltip {...defaultTooltipProps} title={leftNumberControlTitle}>
+                                <span>
+                                    <HoldableIconButton
+                                        onClick={handleLeftNumberControl}
+                                        onHold={handleHoldLeftNumberControl}
+                                        disabled={leftNumberControlDisabled}
+                                    >
+                                        <NavigateBeforeIcon
+                                            className={
+                                                leftNumberControlDisabled ? classes.inactiveButton : classes.button
+                                            }
+                                        />
+                                    </HoldableIconButton>
+                                </span>
+                            </Tooltip>
+                        </Grid>
+                        <Tooltip {...defaultTooltipProps} title={numberControlTitle}>
+                            <Grid item>
+                                <ScrollableNumberControls
+                                    offsetInputRef={offsetInputRef}
+                                    playbackRateInputRef={playbackInputRef}
+                                    offset={model.offset}
+                                    onOffset={onOffset}
+                                    playbackRate={model.playbackRate}
+                                    onPlaybackRate={onPlaybackRate}
+                                    onScrollTo={setNumberControlType}
+                                    currentMilliseconds={model.currentTimestamp}
                                 />
-                            </HoldableIconButton>
-                        </span>
-                    </Tooltip>
-                </Grid>
-                <Tooltip {...defaultTooltipProps} title={numberControlTitle}>
-                    <Grid item>
-                        <ScrollableNumberControls
-                            offsetInputRef={offsetInputRef}
-                            playbackRateInputRef={playbackInputRef}
-                            offset={model.offset}
-                            onOffset={onOffset}
-                            playbackRate={model.playbackRate}
-                            onPlaybackRate={onPlaybackRate}
-                            onScrollTo={setNumberControlType}
-                            currentMilliseconds={model.currentTimestamp}
-                        />
-                    </Grid>
-                </Tooltip>
-                <Grid item>
-                    <Tooltip {...defaultTooltipProps} title={rightNumberControlTitle}>
-                        <span>
-                            <HoldableIconButton
-                                onClick={handleRightNumberControl}
-                                onHold={handleHoldRightNumberControl}
-                                disabled={rightNumberControlDisabled}
-                            >
-                                <NavigateNextIcon
-                                    className={rightNumberControlDisabled ? classes.inactiveButton : classes.button}
-                                />
-                            </HoldableIconButton>
-                        </span>
-                    </Tooltip>
-                </Grid>
+                            </Grid>
+                        </Tooltip>
+                        <Grid item>
+                            <Tooltip {...defaultTooltipProps} title={rightNumberControlTitle}>
+                                <span>
+                                    <HoldableIconButton
+                                        onClick={handleRightNumberControl}
+                                        onHold={handleHoldRightNumberControl}
+                                        disabled={rightNumberControlDisabled}
+                                    >
+                                        <NavigateNextIcon
+                                            className={
+                                                rightNumberControlDisabled ? classes.inactiveButton : classes.button
+                                            }
+                                        />
+                                    </HoldableIconButton>
+                                </span>
+                            </Tooltip>
+                        </Grid>
+                    </>
+                )}
             </GridContainer>
             {playModeSelectorOpen && (
                 <PlayModeSelector

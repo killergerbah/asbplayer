@@ -8,7 +8,7 @@ const useAlertStyles = makeStyles({
         display: 'flex',
         justifyContent: 'center',
         position: 'fixed',
-        top: 80,
+        top: '10vh',
         width: '100%',
         pointerEvents: 'none',
         zIndex: 2000,
@@ -20,6 +20,7 @@ interface Props {
     autoHideDuration: number;
     onClose: () => void;
     severity: Color | undefined;
+    disableAutoHide: boolean;
     children: React.ReactNode;
 }
 
@@ -27,11 +28,11 @@ export default function Alert(props: Props) {
     const classes = useAlertStyles();
 
     useEffect(() => {
-        if (props.open) {
+        if (props.open && !props.disableAutoHide) {
             const timeout = setTimeout(props.onClose, props.autoHideDuration);
             return () => clearTimeout(timeout);
         }
-    }, [props.open, props.autoHideDuration, props.onClose]);
+    }, [props.open, props.autoHideDuration, props.disableAutoHide, props.onClose]);
 
     return (
         <div className={classes.root}>

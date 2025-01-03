@@ -242,7 +242,8 @@
         "connectionFailed": "Ошибка подключения",
         "error": "Ошибка: {{message}}",
         "errorNoMessage": "Ошибка",
-        "toggleSubtitlesShortcut": "Нажмите \"{{keys}}\" для переключения отображения субтитров"
+        "toggleSubtitlesShortcut": "Нажмите \"{{keys}}\" для переключения отображения субтитров",
+        "manualMiningIntervalPrompt": "Use mining shortcut again to select time range"
     },
     "landing": {
         "cta": "Перетащите медиафайлы и файлы субтитров или <1>выберите</1> их.",

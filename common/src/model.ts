@@ -243,5 +243,4 @@ export interface MobileOverlayModel {
     subtitlesAreVisible: boolean;
     themeType: 'dark' | 'light';
     playMode: PlayMode;
-    manualRecordingDisabled?: boolean;
 }
