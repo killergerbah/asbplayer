@@ -373,11 +373,13 @@ const MobileVideoOverlay = ({
                         {onLoadSubtitles && (
                             <Grid item>
                                 <Tooltip {...defaultTooltipProps} title={t('action.loadSubtitles')!}>
-                                    <IconButton disabled={model.recording} onClick={onLoadSubtitles}>
-                                        <LogoIcon
-                                            className={model.recording ? classes.inactiveButton : classes.button}
-                                        />
-                                    </IconButton>
+                                    <span>
+                                        <IconButton disabled={model.recording} onClick={onLoadSubtitles}>
+                                            <LogoIcon
+                                                className={model.recording ? classes.inactiveButton : classes.button}
+                                            />
+                                        </IconButton>
+                                    </span>
                                 </Tooltip>
                             </Grid>
                         )}
