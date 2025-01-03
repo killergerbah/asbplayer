@@ -242,7 +242,8 @@
         "connectionFailed": "Connection failed",
         "error": "Error: {{message}}",
         "errorNoMessage": "Error",
-        "toggleSubtitlesShortcut": "Press \"{{keys}}\" to toggle subtitle display"
+        "toggleSubtitlesShortcut": "Press \"{{keys}}\" to toggle subtitle display",
+        "manualMiningIntervalPrompt": "Use mining shortcut again to select time range"
     },
     "landing": {
         "cta": "拖放字幕和媒体文件，或<1>浏览</1>。",

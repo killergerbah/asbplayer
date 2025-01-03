@@ -242,7 +242,8 @@
         "connectionFailed": "Connection failed",
         "error": "Error: {{message}}",
         "errorNoMessage": "Error",
-        "toggleSubtitlesShortcut": "Press \"{{keys}}\" to toggle subtitle display"
+        "toggleSubtitlesShortcut": "Press \"{{keys}}\" to toggle subtitle display",
+        "manualMiningIntervalPrompt": "Use mining shortcut again to select time range"
     },
     "landing": {
         "cta": "Untertitel und Medien hierher ziehen oder <1>suchen</1>",

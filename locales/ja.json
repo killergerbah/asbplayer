@@ -242,7 +242,8 @@
         "connectionFailed": "接続に失敗しました",
         "error": "エラー：{{message}}",
         "errorNoMessage": "エラー",
-        "toggleSubtitlesShortcut": "字幕を表示するには 「{{keys}}」 を押してください"
+        "toggleSubtitlesShortcut": "字幕を表示するには 「{{keys}}」 を押してください",
+        "manualMiningIntervalPrompt": "マイニングショートカットを再度使用してください"
     },
     "landing": {
         "cta": "字幕やメディアファイルをドラッグ＆ドロップ、または<1>ファイルを選択</1>してください。",
