@@ -161,7 +161,7 @@ export class CachingElementOverlay implements ElementOverlay {
 
         const toggle = () => {
             if (document.fullscreenElement) {
-                container.style.display = 'none';
+                container.style.setProperty('display', 'none', 'important');
             } else {
                 container.style.display = '';
 
@@ -190,7 +190,7 @@ export class CachingElementOverlay implements ElementOverlay {
         container.onmouseover = this.onMouseOver;
         this._applyContainerStyles(container);
         this._findFullscreenParentElement(container).appendChild(container);
-        container.style.display = 'none';
+        container.style.setProperty('display', 'none', 'important');
         const that = this;
 
         const toggle = () => {
@@ -205,7 +205,7 @@ export class CachingElementOverlay implements ElementOverlay {
                     this._transferChildren(this.nonFullscreenContainerElement, container);
                 }
             } else if (!document.fullscreenElement) {
-                container.style.display = 'none';
+                container.style.setProperty('display', 'none', 'important');
             }
         };
 
@@ -532,7 +532,7 @@ export class DefaultElementOverlay implements ElementOverlay {
 
         function toggle() {
             if (document.fullscreenElement) {
-                container.style.display = 'none';
+                container.style.setProperty('display', 'none', 'important');
             } else {
                 container.style.display = '';
             }
@@ -587,7 +587,7 @@ export class DefaultElementOverlay implements ElementOverlay {
         div.className = this.fullscreenContentClassName;
         this._applyContainerStyles(container);
         this._findFullscreenParentElement(container).appendChild(container);
-        container.style.display = 'none';
+        container.style.setProperty('display', 'none', 'important');
         const that = this;
 
         function toggle() {
@@ -596,7 +596,7 @@ export class DefaultElementOverlay implements ElementOverlay {
                 container.remove();
                 that._findFullscreenParentElement(container).appendChild(container);
             } else if (!document.fullscreenElement) {
-                container.style.display = 'none';
+                container.style.setProperty('display', 'none', 'important');
             }
         }
 
