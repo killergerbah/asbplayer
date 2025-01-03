@@ -16,7 +16,6 @@ const useStyles = makeStyles({
             display: 'none',
         },
         textAlign: 'center',
-        scrollBehavior: 'smooth',
     },
     child: {
         scrollbarWidth: 'none',
