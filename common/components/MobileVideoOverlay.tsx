@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import Fade from '@material-ui/core/Fade';
 import Grid, { GridProps } from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import NoteAddIcon from '@material-ui/icons/NoteAdd';
@@ -367,160 +366,140 @@ const MobileVideoOverlay = ({
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-            <Fade in timeout={300}>
-                <>
-                    <GridContainer direction="row" wrap="nowrap" className={containerClassName}>
-                        {onLoadSubtitles && (
-                            <Grid item>
-                                <Tooltip {...defaultTooltipProps} title={t('action.loadSubtitles')!}>
-                                    <span>
-                                        <IconButton disabled={model.recording} onClick={onLoadSubtitles}>
-                                            <LogoIcon
-                                                className={model.recording ? classes.inactiveButton : classes.button}
-                                            />
-                                        </IconButton>
-                                    </span>
-                                </Tooltip>
-                            </Grid>
-                        )}
-                        <Grid item>
-                            <Tooltip {...defaultTooltipProps} title={miningButtonTooltip(model)!}>
-                                {model.emptySubtitleTrack &&
-                                model.recordingEnabled &&
-                                !model.manualRecordingDisabled ? (
-                                    // Wrap in span so that Tooltip doesn't complain about disabled child. Spacing also looks better.
-                                    <span>
-                                        <IconButton onClick={onMineSubtitle}>
-                                            <FiberManualRecordIcon
-                                                className={model.recording ? classes.recordingButton : classes.button}
-                                            />
-                                        </IconButton>
-                                    </span>
-                                ) : (
-                                    <span>
-                                        <IconButton disabled={miningButtonDisabled} onClick={onMineSubtitle}>
-                                            <NoteAddIcon
-                                                className={
-                                                    miningButtonDisabled ? classes.inactiveButton : classes.button
-                                                }
-                                            />
-                                        </IconButton>
-                                    </span>
-                                )}
-                            </Tooltip>
-                        </Grid>
-                        {!model.emptySubtitleTrack && (
-                            <Grid item>
-                                <Tooltip {...defaultTooltipProps} title={t('binds.toggleSubtitles')!}>
-                                    <span>
-                                        <IconButton disabled={model.recording} onClick={onToggleSubtitles}>
-                                            {model.subtitlesAreVisible && (
-                                                <SubtitlesOffIcon
-                                                    className={
-                                                        model.recording ? classes.inactiveButton : classes.button
-                                                    }
-                                                />
-                                            )}
-                                            {!model.subtitlesAreVisible && (
-                                                <SubtitlesIcon
-                                                    className={
-                                                        model.recording ? classes.inactiveButton : classes.button
-                                                    }
-                                                />
-                                            )}
-                                        </IconButton>
-                                    </span>
-                                </Tooltip>
-                            </Grid>
-                        )}
-                        {!model.emptySubtitleTrack && (
-                            <Grid item>
-                                <Tooltip {...defaultTooltipProps} title={t('controls.playbackMode')!}>
-                                    <span>
-                                        <IconButton disabled={model.recording} onClick={handleOpenPlayModeSelector}>
-                                            <TuneIcon
-                                                className={model.recording ? classes.inactiveButton : classes.button}
-                                            />
-                                        </IconButton>
-                                    </span>
-                                </Tooltip>
-                            </Grid>
-                        )}
-                        <Grid item>
-                            <Tooltip {...defaultTooltipProps} title={leftNumberControlTitle}>
-                                <span>
-                                    <HoldableIconButton
-                                        onClick={handleLeftNumberControl}
-                                        onHold={handleHoldLeftNumberControl}
-                                        disabled={leftNumberControlDisabled}
-                                    >
-                                        <NavigateBeforeIcon
-                                            className={
-                                                leftNumberControlDisabled ? classes.inactiveButton : classes.button
-                                            }
-                                        />
-                                    </HoldableIconButton>
-                                </span>
-                            </Tooltip>
-                        </Grid>
-                        <Tooltip {...defaultTooltipProps} title={numberControlTitle}>
-                            <Grid item>
-                                <ScrollableNumberControls
-                                    offsetInputRef={offsetInputRef}
-                                    playbackRateInputRef={playbackInputRef}
-                                    offset={model.offset}
-                                    onOffset={onOffset}
-                                    playbackRate={model.playbackRate}
-                                    onPlaybackRate={onPlaybackRate}
-                                    onScrollTo={setNumberControlType}
-                                    currentMilliseconds={model.currentTimestamp}
-                                />
-                            </Grid>
+            <GridContainer direction="row" wrap="nowrap" className={containerClassName}>
+                {onLoadSubtitles && (
+                    <Grid item>
+                        <Tooltip {...defaultTooltipProps} title={t('action.loadSubtitles')!}>
+                            <span>
+                                <IconButton disabled={model.recording} onClick={onLoadSubtitles}>
+                                    <LogoIcon className={model.recording ? classes.inactiveButton : classes.button} />
+                                </IconButton>
+                            </span>
                         </Tooltip>
-                        <Grid item>
-                            <Tooltip {...defaultTooltipProps} title={rightNumberControlTitle}>
-                                <span>
-                                    <HoldableIconButton
-                                        onClick={handleRightNumberControl}
-                                        onHold={handleHoldRightNumberControl}
-                                        disabled={rightNumberControlDisabled}
-                                    >
-                                        <NavigateNextIcon
-                                            className={
-                                                rightNumberControlDisabled ? classes.inactiveButton : classes.button
-                                            }
+                    </Grid>
+                )}
+                <Grid item>
+                    <Tooltip {...defaultTooltipProps} title={miningButtonTooltip(model)!}>
+                        {model.emptySubtitleTrack && model.recordingEnabled && !model.manualRecordingDisabled ? (
+                            // Wrap in span so that Tooltip doesn't complain about disabled child. Spacing also looks better.
+                            <span>
+                                <IconButton onClick={onMineSubtitle}>
+                                    <FiberManualRecordIcon
+                                        className={model.recording ? classes.recordingButton : classes.button}
+                                    />
+                                </IconButton>
+                            </span>
+                        ) : (
+                            <span>
+                                <IconButton disabled={miningButtonDisabled} onClick={onMineSubtitle}>
+                                    <NoteAddIcon
+                                        className={miningButtonDisabled ? classes.inactiveButton : classes.button}
+                                    />
+                                </IconButton>
+                            </span>
+                        )}
+                    </Tooltip>
+                </Grid>
+                {!model.emptySubtitleTrack && (
+                    <Grid item>
+                        <Tooltip {...defaultTooltipProps} title={t('binds.toggleSubtitles')!}>
+                            <span>
+                                <IconButton disabled={model.recording} onClick={onToggleSubtitles}>
+                                    {model.subtitlesAreVisible && (
+                                        <SubtitlesOffIcon
+                                            className={model.recording ? classes.inactiveButton : classes.button}
                                         />
-                                    </HoldableIconButton>
-                                </span>
-                            </Tooltip>
-                        </Grid>
-                    </GridContainer>
-                    {playModeSelectorOpen && (
-                        <PlayModeSelector
-                            open={playModeSelectorOpen}
-                            anchorEl={playModeSelectorAnchorEl}
-                            onClose={handleClosePlayModeSelector}
-                            selectedPlayMode={model.playMode}
-                            onPlayMode={onPlayModeSelected}
-                            listStyle={{
-                                display: 'flex',
-                                flexDirection: 'row',
-                                padding: 0,
-                                overflowX: 'auto',
-                            }}
-                            className={classes.playModePopOver}
-                            anchorOrigin={{
-                                vertical: 'center',
-                                horizontal: 'center',
-                            }}
-                            transformOrigin={{
-                                vertical: 'center',
-                                horizontal: 'center',
-                            }}
+                                    )}
+                                    {!model.subtitlesAreVisible && (
+                                        <SubtitlesIcon
+                                            className={model.recording ? classes.inactiveButton : classes.button}
+                                        />
+                                    )}
+                                </IconButton>
+                            </span>
+                        </Tooltip>
+                    </Grid>
+                )}
+                {!model.emptySubtitleTrack && (
+                    <Grid item>
+                        <Tooltip {...defaultTooltipProps} title={t('controls.playbackMode')!}>
+                            <span>
+                                <IconButton disabled={model.recording} onClick={handleOpenPlayModeSelector}>
+                                    <TuneIcon className={model.recording ? classes.inactiveButton : classes.button} />
+                                </IconButton>
+                            </span>
+                        </Tooltip>
+                    </Grid>
+                )}
+                <Grid item>
+                    <Tooltip {...defaultTooltipProps} title={leftNumberControlTitle}>
+                        <span>
+                            <HoldableIconButton
+                                onClick={handleLeftNumberControl}
+                                onHold={handleHoldLeftNumberControl}
+                                disabled={leftNumberControlDisabled}
+                            >
+                                <NavigateBeforeIcon
+                                    className={leftNumberControlDisabled ? classes.inactiveButton : classes.button}
+                                />
+                            </HoldableIconButton>
+                        </span>
+                    </Tooltip>
+                </Grid>
+                <Tooltip {...defaultTooltipProps} title={numberControlTitle}>
+                    <Grid item>
+                        <ScrollableNumberControls
+                            offsetInputRef={offsetInputRef}
+                            playbackRateInputRef={playbackInputRef}
+                            offset={model.offset}
+                            onOffset={onOffset}
+                            playbackRate={model.playbackRate}
+                            onPlaybackRate={onPlaybackRate}
+                            onScrollTo={setNumberControlType}
+                            currentMilliseconds={model.currentTimestamp}
                         />
-                    )}
-                </>
-            </Fade>
+                    </Grid>
+                </Tooltip>
+                <Grid item>
+                    <Tooltip {...defaultTooltipProps} title={rightNumberControlTitle}>
+                        <span>
+                            <HoldableIconButton
+                                onClick={handleRightNumberControl}
+                                onHold={handleHoldRightNumberControl}
+                                disabled={rightNumberControlDisabled}
+                            >
+                                <NavigateNextIcon
+                                    className={rightNumberControlDisabled ? classes.inactiveButton : classes.button}
+                                />
+                            </HoldableIconButton>
+                        </span>
+                    </Tooltip>
+                </Grid>
+            </GridContainer>
+            {playModeSelectorOpen && (
+                <PlayModeSelector
+                    open={playModeSelectorOpen}
+                    anchorEl={playModeSelectorAnchorEl}
+                    onClose={handleClosePlayModeSelector}
+                    selectedPlayMode={model.playMode}
+                    onPlayMode={onPlayModeSelected}
+                    listStyle={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        padding: 0,
+                        overflowX: 'auto',
+                    }}
+                    className={classes.playModePopOver}
+                    anchorOrigin={{
+                        vertical: 'center',
+                        horizontal: 'center',
+                    }}
+                    transformOrigin={{
+                        vertical: 'center',
+                        horizontal: 'center',
+                    }}
+                />
+            )}
         </ThemeProvider>
     );
 };
