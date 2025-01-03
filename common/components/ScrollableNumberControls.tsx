@@ -16,6 +16,7 @@ const useStyles = makeStyles({
             display: 'none',
         },
         textAlign: 'center',
+        scrollBehavior: 'smooth',
     },
     child: {
         scrollbarWidth: 'none',
@@ -23,6 +24,7 @@ const useStyles = makeStyles({
         '&::-webkit-scrollbar': {
             display: 'none',
         },
+        scrollSnapStop: 'always',
     },
 });
 
