@@ -61,7 +61,8 @@ DanglingSabSuu,
 [@MF-Billings](https://github.com/MF-Billings),
 [@festivity9139](https://github.com/festivity9139),
 Phos,
-AstralDice
+AstralDice,
+[@east825](https://github.com/east825)
 
 and to those who have donated privately.
 
