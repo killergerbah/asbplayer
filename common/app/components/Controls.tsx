@@ -895,6 +895,17 @@ export default function Controls({
                                 </IconButton>
                             </Tooltip>
                         )}
+                        {fullscreenEnabled && (
+                            <Tooltip title={t('controls.toggleFullscreen')!}>
+                                <IconButton color="inherit" onClick={onFullscreenToggle}>
+                                    {fullscreen ? (
+                                        <FullscreenExitIcon className={classes.button} />
+                                    ) : (
+                                        <FullscreenIcon className={classes.button} />
+                                    )}
+                                </IconButton>
+                            </Tooltip>
+                        )}
                         {hideSubtitlePlayerToggleEnabled && (
                             <Tooltip
                                 title={
@@ -1076,17 +1087,6 @@ export default function Controls({
                                                     className={classes.button}
                                                     style={popOut ? { transform: 'rotateX(180deg)' } : {}}
                                                 />
-                                            </IconButton>
-                                        </Tooltip>
-                                    )}
-                                    {fullscreenEnabled && (
-                                        <Tooltip title={t('controls.toggleFullscreen')!}>
-                                            <IconButton color="inherit" onClick={onFullscreenToggle}>
-                                                {fullscreen ? (
-                                                    <FullscreenExitIcon className={classes.button} />
-                                                ) : (
-                                                    <FullscreenIcon className={classes.button} />
-                                                )}
                                             </IconButton>
                                         </Tooltip>
                                     )}
