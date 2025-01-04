@@ -383,27 +383,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
         [anki, miningContext, handleError, t]
     );
 
-    const handleTakeScreenshot = useCallback(
-        (mediaTimestamp: number) => {
-            if (sources.videoFile === undefined || copyHistoryItems.length === 0) {
-                return;
-            }
-
-            const lastCopyHistoryItem = copyHistoryItems[copyHistoryItems.length - 1];
-            const newCopyHistoryItem = {
-                ...lastCopyHistoryItem,
-                id: uuidv4(),
-                image: undefined,
-                videoFile: sources.videoFile,
-                mediaTimestamp,
-            };
-
-            saveCopyHistoryItem(newCopyHistoryItem);
-            handleAnkiDialogRequest(newCopyHistoryItem);
-        },
-        [sources.videoFile, copyHistoryItems, handleAnkiDialogRequest, saveCopyHistoryItem]
-    );
-
     // Avoid unnecessary re-renders by having handleCopy operate on a ref to settings
     const settingsRef = useRef(settings);
     settingsRef.current = settings;
