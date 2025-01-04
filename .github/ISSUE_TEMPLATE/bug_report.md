@@ -9,7 +9,7 @@ assignees: ''
 **Before submitting an issue check out the common issues section of the README:**
 https://github.com/killergerbah/asbplayer?tab=readme-ov-file#common-issues
 
-**What is the issue and how what do you do to make it happen**
+**What is the issue and what do you do to make it happen**
 
 **What browser?**
 
