@@ -45,19 +45,22 @@ const appendTranslatedTracks = (tracks: any, tlang: string) => {
     for (const track of tracks) {
         // Ignore subtitles that are already in the target language
         if (track.languageCode !== tlang) {
-            const translatedTrack = { 
+            const translatedTrack = {
                 ...track,
-                languageCode:`${track.languageCode} >> ${tlang}`,
-                baseUrl: `${track.baseUrl}&tlang=${tlang}` // YouTube API param for translation
+                name: {
+                    simpleText: `${track.name?.simpleText} >> ${tlang}`,
+                    runs: track.name?.runs?.map((run: any) => ({ ...run, text: `${run.text} >> ${tlang}` })),
+                },
+                languageCode: tlang,
+                baseUrl: `${track.baseUrl}&tlang=${tlang}`, // YouTube API param for translation
             };
 
             translatedTracks.push(translatedTrack);
         }
     }
-    
 
     return translatedTracks;
-}
+};
 
 document.addEventListener(
     'asbplayer-get-synced-data',
@@ -111,9 +114,10 @@ document.addEventListener(
             }
 
             response.basename = playerContext.videoDetails?.title || document.title;
-            response.subtitles = appendTranslatedTracks(playerContext?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [], TLANG).map(
-                adaptYtTrack
-            );
+            response.subtitles = appendTranslatedTracks(
+                playerContext?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [],
+                TLANG
+            ).map(adaptYtTrack);
         } catch (error) {
             if (error instanceof Error) {
                 response.error = error.message;
