@@ -89,6 +89,7 @@ it('validates exported settings', () => {
             seekToNextSubtitle: { keys: 'right' },
             seekToPreviousSubtitle: { keys: 'left' },
             takeScreenshot: { keys: '⇧+⌃+V' },
+            toggleRecording: { keys: '⇧+⌃+R' },
             toggleAsbplayerSubtitleTrack1: { keys: 'W+1' },
             toggleAsbplayerSubtitleTrack2: { keys: 'W+2' },
             unblurAsbplayerTrack1: { keys: 'B+1' },

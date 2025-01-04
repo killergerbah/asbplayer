@@ -344,6 +344,22 @@ chrome.commands?.onCommand.addListener((command) => {
                     };
                     return extensionToVideoCommand;
                 });
+                tabRegistry.publishCommandToAsbplayers({
+                    commandFactory: (asbplayer) => {
+                        if (!validAsbplayer(asbplayer)) {
+                            return undefined;
+                        }
+
+                        const extensionToPlayerCommand: ExtensionToAsbPlayerCommand<ToggleRecordingMessage> = {
+                            sender: 'asbplayer-extension-to-player',
+                            message: {
+                                command: 'toggle-recording',
+                            },
+                            asbplayerId: asbplayer.id,
+                        };
+                        return extensionToPlayerCommand;
+                    },
+                });
                 break;
             default:
                 throw new Error('Unknown command ' + command);

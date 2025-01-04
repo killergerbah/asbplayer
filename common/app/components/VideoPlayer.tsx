@@ -25,7 +25,12 @@ import {
     PauseOnHoverMode,
     allTextSubtitleSettings,
 } from '@project/common/settings';
-import { surroundingSubtitles, mockSurroundingSubtitles, seekWithNudge } from '@project/common/util';
+import {
+    surroundingSubtitles,
+    mockSurroundingSubtitles,
+    seekWithNudge,
+    surroundingSubtitlesAroundInterval,
+} from '@project/common/util';
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import SubtitleTextImage from '@project/common/components/SubtitleTextImage';
 import Clock from '../services/clock';
@@ -1097,7 +1102,7 @@ export default function VideoPlayer({
                 const endTimestamp = clock.time(length);
 
                 if (endTimestamp > mineIntervalStartTimestamp) {
-                    const currentSubtitle = {
+                    let currentSubtitle: SubtitleModel = {
                         text: '',
                         start: mineIntervalStartTimestamp,
                         originalStart: mineIntervalStartTimestamp,
@@ -1105,8 +1110,25 @@ export default function VideoPlayer({
                         originalEnd: endTimestamp,
                         track: 0,
                     };
+                    let surroundingSubtitles: SubtitleModel[];
 
-                    const surroundingSubtitles = mockSurroundingSubtitles(currentSubtitle, length, 5000);
+                    if (subtitles.length === 0) {
+                        surroundingSubtitles = mockSurroundingSubtitles(currentSubtitle, length, 5000);
+                    } else {
+                        const calculated = surroundingSubtitlesAroundInterval(
+                            subtitles,
+                            mineIntervalStartTimestamp,
+                            endTimestamp,
+                            settings.surroundingSubtitlesCountRadius,
+                            settings.surroundingSubtitlesTimeRadius
+                        );
+                        currentSubtitle = {
+                            ...currentSubtitle,
+                            text: calculated.subtitle?.text ?? '',
+                        };
+                        surroundingSubtitles = calculated.surroundingSubtitles ?? [];
+                    }
+
                     mineSubtitle(
                         postMineAction,
                         videoFile,
@@ -1133,6 +1155,9 @@ export default function VideoPlayer({
             selectedAudioTrack,
             videoFile,
             videoFileName,
+            subtitles,
+            settings.surroundingSubtitlesCountRadius,
+            settings.surroundingSubtitlesTimeRadius,
         ]
     );
 
@@ -1146,10 +1171,18 @@ export default function VideoPlayer({
             if (!subtitle && !surroundingSubtitles && subtitles.length === 0) {
                 toggleSelectMiningInterval(postMineAction, cardTextFieldValues);
             } else {
+                if (mineIntervalStartTimestamp !== undefined) {
+                    // Edge case: user started manually recording but are now using an "automatic" mining shortcut
+                    // Cancel the "recording" operation
+                    setAlertDisableAutoHide(false);
+                    setAlertOpen(false);
+                    setMineIntervalStartTimestamp(undefined);
+                }
+
                 mineCurrentSubtitle(postMineAction, subtitle, surroundingSubtitles, cardTextFieldValues);
             }
         },
-        [mineCurrentSubtitle, toggleSelectMiningInterval, subtitles]
+        [mineCurrentSubtitle, toggleSelectMiningInterval, mineIntervalStartTimestamp, subtitles]
     );
 
     useEffect(() => {
@@ -1221,6 +1254,16 @@ export default function VideoPlayer({
             () => false
         );
     }, [clock, length, keyBinder, lastMinedRecord, mineSubtitle, popOut, ankiDialogOpen, onAnkiDialogRewind]);
+
+    useEffect(() => {
+        return keyBinder.bindToggleRecording(
+            (event) => {
+                event.preventDefault();
+                toggleSelectMiningInterval(PostMineAction.showAnkiDialog);
+            },
+            () => false
+        );
+    }, [keyBinder, toggleSelectMiningInterval]);
 
     useEffect(() => {
         return keyBinder.bindCopy(

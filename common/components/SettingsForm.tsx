@@ -309,7 +309,7 @@ function SelectableSetting({
     );
 }
 
-type AllKeyNames = KeyBindName | 'toggleRecording' | 'selectSubtitleTrack';
+type AllKeyNames = KeyBindName | 'selectSubtitleTrack';
 
 interface KeyBindProperties {
     label: string;
@@ -709,7 +709,6 @@ export default function SettingsForm({
             toggleRecording: {
                 label: t('binds.extensionToggleRecording')!,
                 boundViaChrome: true,
-                hide: !extensionInstalled,
             },
             selectSubtitleTrack: {
                 label: t('binds.extensionSelectSubtitleTrack')!,

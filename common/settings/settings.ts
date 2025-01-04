@@ -239,6 +239,7 @@ export interface KeyBindSet {
     readonly ankiExport: KeyBind;
     readonly updateLastCard: KeyBind;
     readonly takeScreenshot: KeyBind;
+    readonly toggleRecording: KeyBind;
 }
 
 export interface WebSocketClientSettings {

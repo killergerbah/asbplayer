@@ -9,6 +9,7 @@ export default class AppKeyBinder implements KeyBinder {
     private readonly ankiExportHandlers: ((event: KeyboardEvent) => void)[] = [];
     private readonly updateLastCardHandlers: ((event: KeyboardEvent) => void)[] = [];
     private readonly takeScreenshotHandlers: ((event: KeyboardEvent) => void)[] = [];
+    private readonly toggleRecordingHandlers: ((event: KeyboardEvent) => void)[] = [];
     private _unsubscribeExtension?: () => void;
 
     constructor(keyBinder: DefaultKeyBinder, extension: ChromeExtension) {
@@ -36,6 +37,8 @@ export default class AppKeyBinder implements KeyBinder {
                     }
                 } else if (message.data.command === 'take-screenshot') {
                     handlers = this.takeScreenshotHandlers;
+                } else if (message.data.command === 'toggle-recording') {
+                    handlers = this.toggleRecordingHandlers;
                 }
 
                 if (handlers !== undefined) {
@@ -111,6 +114,22 @@ export default class AppKeyBinder implements KeyBinder {
         }
 
         return this.defaultKeyBinder.bindTakeScreenshot(onTakeScreenshot, disabledGetter, useCapture);
+    }
+
+    bindToggleRecording(
+        onToggleRecording: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        useCapture?: boolean | undefined
+    ): () => void {
+        if (this.extension.installed) {
+            const handler = this.defaultKeyBinder.toggleRecordingHandler(onToggleRecording, disabledGetter);
+            this.toggleRecordingHandlers.push(handler);
+            return () => {
+                this._remove(handler, this.toggleRecordingHandlers);
+            };
+        }
+
+        return this.defaultKeyBinder.bindToggleRecording(onToggleRecording, disabledGetter, useCapture);
     }
 
     private _remove(callback: (event: KeyboardEvent) => void, list: ((event: KeyboardEvent) => void)[]) {

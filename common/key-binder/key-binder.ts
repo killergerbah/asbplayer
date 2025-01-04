@@ -141,6 +141,11 @@ export interface KeyBinder {
         disabledGetter: () => boolean,
         capture?: boolean
     ): () => void;
+    bindToggleRecording(
+        onToggleRecording: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        capture?: boolean
+    ): () => void;
 }
 
 export class DefaultKeyBinder implements KeyBinder {
@@ -256,6 +261,32 @@ export class DefaultKeyBinder implements KeyBinder {
             }
 
             onTakeScreenshot(event);
+            return true;
+        };
+    }
+
+    bindToggleRecording(
+        onToggleRecording: (event: KeyboardEvent) => void,
+        disabledGetter: () => boolean,
+        capture = false
+    ) {
+        const shortcut = this.keyBindSet.toggleRecording.keys;
+
+        if (!shortcut) {
+            return () => {};
+        }
+
+        const handler = this.takeScreenshotHandler(onToggleRecording, disabledGetter);
+        return this._bind(shortcut, capture, handler);
+    }
+
+    toggleRecordingHandler(onToggleRecording: (event: KeyboardEvent) => void, disabledGetter: () => boolean) {
+        return (event: KeyboardEvent) => {
+            if (disabledGetter()) {
+                return false;
+            }
+
+            onToggleRecording(event);
             return true;
         };
     }
