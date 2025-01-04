@@ -20,7 +20,7 @@ interface Props {
     autoHideDuration: number;
     onClose: () => void;
     severity: Color | undefined;
-    disableAutoHide: boolean;
+    disableAutoHide?: boolean;
     children: React.ReactNode;
 }
 
