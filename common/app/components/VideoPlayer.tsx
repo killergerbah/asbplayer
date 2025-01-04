@@ -52,6 +52,8 @@ import { useSubtitleStyles } from '../hooks/use-subtitle-styles';
 import { useFullscreen } from '../hooks/use-fullscreen';
 import MobileVideoOverlay from '@project/common/components/MobileVideoOverlay';
 
+const overlayContainerHeight = 48;
+
 interface ExperimentalHTMLVideoElement extends HTMLVideoElement {
     readonly audioTracks: any;
 }
@@ -268,10 +270,11 @@ const useSubtitleContainerStyles = makeStyles({
 interface SubtitleContainerProps {
     subtitleSettings: SubtitleSettings;
     alignment: SubtitleAlignment;
+    baseOffset: number;
     children: React.ReactNode;
 }
 
-const SubtitleContainer = ({ subtitleSettings, alignment, children }: SubtitleContainerProps) => {
+const SubtitleContainer = ({ subtitleSettings, alignment, baseOffset, children }: SubtitleContainerProps) => {
     const classes = useSubtitleContainerStyles();
 
     return (
@@ -279,8 +282,8 @@ const SubtitleContainer = ({ subtitleSettings, alignment, children }: SubtitleCo
             className={classes.subtitleContainer}
             style={{
                 ...(alignment === 'bottom'
-                    ? { bottom: subtitleSettings.subtitlePositionOffset }
-                    : { top: subtitleSettings.topSubtitlePositionOffset }),
+                    ? { bottom: subtitleSettings.subtitlePositionOffset + baseOffset }
+                    : { top: subtitleSettings.topSubtitlePositionOffset + baseOffset }),
                 ...(subtitleSettings.subtitlesWidth === -1 ? {} : { width: `${subtitleSettings.subtitlesWidth}%` }),
             }}
         >
@@ -1540,6 +1543,7 @@ export default function VideoPlayer({
             themeType: settings.themeType,
         };
     };
+    const baseBottomSubtitleOffset = !playing() && isMobile ? overlayContainerHeight : 0;
 
     if (!playerChannelSubscribed) {
         return null;
@@ -1579,12 +1583,16 @@ export default function VideoPlayer({
                 onMouseOver={handleVideoMouseOver}
             />
             {topSubtitleElements.length > 0 && (
-                <SubtitleContainer alignment={'top'} subtitleSettings={subtitleSettings}>
+                <SubtitleContainer alignment={'top'} subtitleSettings={subtitleSettings} baseOffset={0}>
                     {topSubtitleElements}
                 </SubtitleContainer>
             )}
             {bottomSubtitleElements.length > 0 && (
-                <SubtitleContainer alignment={'bottom'} subtitleSettings={subtitleSettings}>
+                <SubtitleContainer
+                    alignment={'bottom'}
+                    subtitleSettings={subtitleSettings}
+                    baseOffset={baseBottomSubtitleOffset}
+                >
                     {bottomSubtitleElements}
                 </SubtitleContainer>
             )}
