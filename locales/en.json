@@ -243,7 +243,7 @@
         "error": "Error: {{message}}",
         "errorNoMessage": "Error",
         "toggleSubtitlesShortcut": "Press \"{{keys}}\" to toggle subtitle display",
-        "manualMiningIntervalPrompt": "Use mining shortcut again to select time range"
+        "manualMiningIntervalPrompt": "Use mining shortcut again"
     },
     "landing": {
         "cta": "Drag and drop subtitle and media files, or <1>browse</1>.",
