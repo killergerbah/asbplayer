@@ -1,6 +1,8 @@
 import { VideoData } from '@project/common';
 import { trackFromDef } from './util';
 
+const TLANG = 'ja';
+
 declare global {
     interface Window {
         trustedTypes?: any;
@@ -36,6 +38,26 @@ const adaptYtTrack = (track: any) => {
         extension: 'ytxml',
     });
 };
+
+const appendTranslatedTracks = (tracks: any, tlang: string) => {
+    const translatedTracks = [...tracks];
+
+    for (const track of tracks) {
+        // Ignore subtitles that are already in the target language
+        if (track.languageCode !== tlang) {
+            const translatedTrack = { 
+                ...track,
+                languageCode:`${track.languageCode} >> ${tlang}`,
+                baseUrl: `${track.baseUrl}&tlang=${tlang}` // YouTube API param for translation
+            };
+
+            translatedTracks.push(translatedTrack);
+        }
+    }
+    
+
+    return translatedTracks;
+}
 
 document.addEventListener(
     'asbplayer-get-synced-data',
@@ -89,7 +111,7 @@ document.addEventListener(
             }
 
             response.basename = playerContext.videoDetails?.title || document.title;
-            response.subtitles = (playerContext?.captions?.playerCaptionsTracklistRenderer?.captionTracks || []).map(
+            response.subtitles = appendTranslatedTracks(playerContext?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [], TLANG).map(
                 adaptYtTrack
             );
         } catch (error) {
@@ -137,7 +159,7 @@ JSON.parse = function () {
 
     if (typeof tracks === 'object' && Array.isArray(tracks) && typeof value?.videoDetails?.videoId === 'string') {
         const videoId = value.videoDetails.videoId;
-        const subtitles = tracks.map(adaptYtTrack);
+        const subtitles = appendTranslatedTracks(tracks, TLANG).map(adaptYtTrack);
         const basename = value.videoDetails?.title || document.title;
         dataByVideoId[videoId] = {
             subtitles,
