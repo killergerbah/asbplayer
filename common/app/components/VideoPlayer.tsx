@@ -1389,7 +1389,7 @@ export default function VideoPlayer({
     }, [showCursor]);
 
     const handleAlertClosed = useCallback(() => {
-        setAlertDisableAutoHide(true);
+        setAlertDisableAutoHide(false);
         setAlertOpen(false);
     }, []);
     const trackStyles = useSubtitleStyles(subtitleSettings, trackCount ?? 1);
