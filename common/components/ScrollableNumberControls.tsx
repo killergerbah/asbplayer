@@ -5,6 +5,7 @@ import TimeDisplay from './TimeDisplay';
 import { MutableRefObject, useCallback, useRef, useState } from 'react';
 
 const containerHeight = 48;
+const scrollThreshold = containerHeight / 2 + 1;
 
 const useStyles = makeStyles({
     container: {
@@ -60,6 +61,10 @@ const ScrollableNumberControls = ({
     const [controlType, setControlType] = useState<ControlType>(ControlType.timeDisplay);
     const lastScrollTop = useRef<number>(0);
     const [initialScroll, setInitialScrolll] = useState<boolean>(false);
+    const containerRef = useRef<HTMLDivElement>();
+    const programmaticallyScrollingTimeoutRef = useRef<NodeJS.Timeout>();
+    const controlTypeRef = useRef<number>(controlType);
+    controlTypeRef.current = controlType;
 
     const handleScroll = useCallback(
         (e: React.UIEvent<HTMLDivElement>) => {
@@ -79,6 +84,44 @@ const ScrollableNumberControls = ({
         [onScrollTo, controlType]
     );
 
+    const handleWheel = useCallback((e: WheelEvent) => {
+        if (programmaticallyScrollingTimeoutRef.current !== undefined) {
+            // Programmatic scroll already started
+            e.preventDefault();
+            return;
+        }
+
+        if (Number.isInteger(e.deltaY) || e.deltaX !== 0 || Math.abs(e.deltaY) < 1) {
+            // Probably from a touchpad, let this through
+            return;
+        }
+
+        // Only allow programmatic scroll to the next control
+        e.preventDefault();
+
+        const goingDown = e.deltaY > 0;
+        let didProgrammaticallyScroll = false;
+
+        if (goingDown && controlTypeRef.current < 2) {
+            containerRef.current?.scrollBy({ top: scrollThreshold, behavior: 'smooth' });
+            didProgrammaticallyScroll = true;
+        } else if (!goingDown && controlTypeRef.current > 0) {
+            containerRef.current?.scrollBy({ top: -scrollThreshold, behavior: 'smooth' });
+            didProgrammaticallyScroll = true;
+        }
+
+        if (didProgrammaticallyScroll) {
+            if (programmaticallyScrollingTimeoutRef.current !== undefined) {
+                clearTimeout(programmaticallyScrollingTimeoutRef.current);
+            }
+
+            // Ensure the scrolling flag is reset so that we don't block all wheel operations
+            programmaticallyScrollingTimeoutRef.current = setTimeout(() => {
+                programmaticallyScrollingTimeoutRef.current = undefined;
+            }, 500);
+        }
+    }, []);
+
     const handleDivRef = useCallback(
         (div: HTMLDivElement) => {
             if (initialScroll) {
@@ -91,9 +134,14 @@ const ScrollableNumberControls = ({
                     div.scroll({ top: 0, behavior: 'smooth' });
                     setInitialScrolll(true);
                 }, 0);
+                div.addEventListener('wheel', handleWheel, { passive: false });
+                div.addEventListener('scrollend', () => {
+                    programmaticallyScrollingTimeoutRef.current = undefined;
+                });
+                containerRef.current = div;
             }
         },
-        [initialScroll]
+        [initialScroll, handleWheel]
     );
 
     return (
