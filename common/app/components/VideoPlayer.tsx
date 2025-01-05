@@ -1544,6 +1544,7 @@ export default function VideoPlayer({
         };
     };
     const baseBottomSubtitleOffset = !playing() && isMobile ? overlayContainerHeight : 0;
+    const alertAnchor = subtitleAlignments[0] === 'top' ? 'bottom' : 'top';
 
     if (!playerChannelSubscribed) {
         return null;
@@ -1557,6 +1558,7 @@ export default function VideoPlayer({
                 onClose={handleAlertClosed}
                 autoHideDuration={3000}
                 severity={alertSeverity}
+                anchor={alertAnchor}
             >
                 {alertMessage}
             </Alert>

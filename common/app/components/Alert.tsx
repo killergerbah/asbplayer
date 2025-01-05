@@ -8,10 +8,15 @@ const useAlertStyles = makeStyles({
         display: 'flex',
         justifyContent: 'center',
         position: 'fixed',
-        top: '10vh',
         width: '100%',
         pointerEvents: 'none',
         zIndex: 2000,
+    },
+    bottom: {
+        bottom: '10vh',
+    },
+    top: {
+        top: '10vh',
     },
 });
 
@@ -21,6 +26,7 @@ interface Props {
     onClose: () => void;
     severity: Color | undefined;
     disableAutoHide?: boolean;
+    anchor?: 'top' | 'bottom';
     children: React.ReactNode;
 }
 
@@ -33,9 +39,9 @@ export default function Alert(props: Props) {
             return () => clearTimeout(timeout);
         }
     }, [props.open, props.autoHideDuration, props.disableAutoHide, props.onClose]);
-
+    const anchorClass = props.anchor === 'bottom' ? classes.bottom : classes.top;
     return (
-        <div className={classes.root}>
+        <div className={`${classes.root} ${anchorClass}`}>
             <Grow in={props.open}>
                 <MuiAlert severity={props.severity}>{props.children}</MuiAlert>
             </Grow>
