@@ -9,7 +9,15 @@ import Binding from '../services/binding';
 import { CachingElementOverlay, OffsetAnchor } from '../services/element-overlay';
 import { adjacentSubtitle } from '@project/common/key-binder';
 
-const smallScreenVideoHeighThreshold = 300;
+const smallScreenVideoHeightThreshold = 300;
+
+interface FrameParams {
+    width: number;
+    height: number;
+    anchor: 'bottom' | 'top';
+    src: string;
+    tooltips: boolean;
+}
 
 export class MobileVideoOverlayController {
     private readonly _context: Binding;
@@ -26,7 +34,7 @@ export class MobileVideoOverlayController {
         sendResponse: (response?: any) => void
     ) => void;
     private _bound = false;
-    private _smallScreen = false;
+    private _frameParams?: FrameParams;
 
     constructor(context: Binding, offsetAnchor: OffsetAnchor) {
         this._context = context;
@@ -201,18 +209,12 @@ export class MobileVideoOverlayController {
     }
 
     private _doShow() {
-        const anchor = this._overlay.offsetAnchor === OffsetAnchor.bottom ? 'bottom' : 'top';
-        const videoRect = this._context.video.getBoundingClientRect();
-        const smallScreen = videoRect.height < smallScreenVideoHeighThreshold;
-        const height = smallScreen ? 64 : 108;
-        const tooltips = !smallScreen;
+        const frameParams = this._getFrameParams();
+        const { width, height, anchor, src, tooltips } = frameParams;
 
-        if (smallScreen !== this._smallScreen) {
+        if (this._frameParams !== undefined && this._differentFrameParams(frameParams, this._frameParams)) {
             this._overlay.uncacheHtml();
-            this._smallScreen = smallScreen;
         }
-
-        const width = Math.max(videoRect.width, 400);
 
         this._overlay.setHtml([
             {
@@ -220,11 +222,48 @@ export class MobileVideoOverlayController {
                 html: () =>
                     `<iframe style="border: 0; color-scheme: normal; width: ${width}px; height: ${height}px" src="${chrome.runtime.getURL(
                         'mobile-video-overlay-ui.html'
-                    )}?src=${encodeURIComponent(this._context.video.src)}&anchor=${anchor}&tooltips=${tooltips}"/>`,
+                    )}?src=${src}&anchor=${anchor}&tooltips=${tooltips}"/>`,
             },
         ]);
 
+        this._frameParams = frameParams;
         this._showing = true;
+    }
+
+    private _getFrameParams(): FrameParams {
+        const anchor = this._overlay.offsetAnchor === OffsetAnchor.bottom ? 'bottom' : 'top';
+        const videoRect = this._context.video.getBoundingClientRect();
+        const smallScreen = videoRect.height < smallScreenVideoHeightThreshold;
+        const height = smallScreen ? 64 : 108;
+        const tooltips = !smallScreen;
+        const width = Math.max(videoRect.width, 400);
+        const src = encodeURIComponent(this._context.video.src);
+
+        return { width, height, anchor, src, tooltips };
+    }
+
+    private _differentFrameParams(a: FrameParams, b: FrameParams) {
+        if (a.width !== b.width) {
+            return true;
+        }
+
+        if (a.height !== b.height) {
+            return true;
+        }
+
+        if (a.anchor !== b.anchor) {
+            return true;
+        }
+
+        if (a.src !== b.src) {
+            return true;
+        }
+
+        if (a.tooltips !== b.tooltips) {
+            return true;
+        }
+
+        return false;
     }
 
     hide() {
