@@ -1642,7 +1642,7 @@ export default function VideoPlayer({
                 subtitleAlignmentEnabled={subtitleAlignments.length === 1}
                 onSubtitleAlignment={handleSubtitleAlignment}
                 hideToolbar={isMobile}
-                onLoadFiles={handleLoadFiles}
+                onLoadFiles={popOut ? undefined : handleLoadFiles}
             />
         </div>
     );
