@@ -2,17 +2,18 @@ import React, { useCallback } from 'react';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import { useTranslation } from 'react-i18next';
 import Box from '@material-ui/core/Box';
-import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
 import ChromeExtension from '../services/chrome-extension';
 import SettingsForm from '../../components/SettingsForm';
 import { useLocalFontFamilies } from '../../hooks';
 import { Anki } from '../../anki';
 import { AsbplayerSettings, Profile, supportedLanguages } from '../../settings';
 import SettingsProfileSelectMenu from '../../components/SettingsProfileSelectMenu';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -26,6 +27,10 @@ const useStyles = makeStyles((theme) => ({
     profilesContainer: {
         paddingLeft: theme.spacing(4),
         paddingRight: theme.spacing(4),
+        paddingBottom: theme.spacing(2),
+    },
+    title: {
+        flexGrow: 1,
     },
 }));
 
@@ -71,7 +76,14 @@ export default function SettingsDialog({
 
     return (
         <Dialog open={open} maxWidth="md" fullWidth className={classes.root} onClose={onClose}>
-            <DialogTitle>{t('settings.title')}</DialogTitle>
+            <Toolbar>
+                <Typography variant="h6" className={classes.title}>
+                    {t('settings.title')}
+                </Typography>
+                <IconButton edge="end" onClick={onClose}>
+                    <CloseIcon />
+                </IconButton>
+            </Toolbar>
             <DialogContent className={classes.content}>
                 <SettingsForm
                     anki={anki}
@@ -103,9 +115,6 @@ export default function SettingsDialog({
                     <SettingsProfileSelectMenu {...profilesContext} />
                 </Box>
             )}
-            <DialogActions>
-                <Button onClick={onClose}>{t('action.ok')}</Button>
-            </DialogActions>
         </Dialog>
     );
 }
