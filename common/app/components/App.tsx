@@ -421,7 +421,8 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                     let audioClip = AudioClip.fromCard(
                         newCard,
                         settingsRef.current.audioPaddingStart,
-                        settingsRef.current.audioPaddingEnd
+                        settingsRef.current.audioPaddingEnd,
+                        true
                     );
 
                     if (audioClip && settingsRef.current.preferMp3) {
@@ -530,10 +531,10 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
         [sources]
     );
 
-    const handleClipAudio = useCallback(
+    const handleDownloadAudio = useCallback(
         async (card: CardModel) => {
             try {
-                const clip = AudioClip.fromCard(card, settings.audioPaddingStart, settings.audioPaddingEnd);
+                const clip = AudioClip.fromCard(card, settings.audioPaddingStart, settings.audioPaddingEnd, false);
 
                 if (clip?.error === undefined) {
                     if (settings.preferMp3) {
@@ -934,10 +935,10 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
 
         return extension.subscribe((message: ExtensionMessage) => {
             if (message.data.command === 'download-audio') {
-                handleClipAudio(message.data as DownloadAudioMessage);
+                handleDownloadAudio(message.data as DownloadAudioMessage);
             }
         });
-    }, [extension, inVideoPlayer, handleClipAudio]);
+    }, [extension, inVideoPlayer, handleDownloadAudio]);
 
     const handleAutoPauseModeChangedViaBind = useCallback(
         (oldPlayMode: PlayMode, newPlayMode: PlayMode) => {
@@ -1234,7 +1235,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                             onClose={handleCloseCopyHistory}
                             onDelete={deleteCopyHistoryItem}
                             onDeleteAll={deleteAllCopyHistoryItems}
-                            onClipAudio={handleClipAudio}
+                            onClipAudio={handleDownloadAudio}
                             onDownloadImage={handleDownloadImage}
                             onDownloadSectionAsSrt={handleDownloadCopyHistorySectionAsSrt}
                             onSelect={handleSelectCopyHistoryItem}

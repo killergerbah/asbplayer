@@ -325,7 +325,7 @@ export default function SidePanel({ settings, extension }: Props) {
                     chrome.tabs.sendMessage(currentTabId, downloadAudioCommand);
                 }
             } else {
-                const clip = AudioClip.fromCard(item, settings.audioPaddingStart, settings.audioPaddingEnd);
+                const clip = AudioClip.fromCard(item, settings.audioPaddingStart, settings.audioPaddingEnd, false);
 
                 if (clip) {
                     if (settings.preferMp3) {

@@ -87,7 +87,7 @@ const useAudioAvailability = (item: CopyHistoryItem) => {
     const [isAudioAvailable, setIsAudioAvailable] = useState<boolean>();
 
     useEffect(() => {
-        const clip = AudioClip.fromCard(item, 0, 0);
+        const clip = AudioClip.fromCard(item, 0, 0, false);
 
         if (clip) {
             setIsAudioAvailable(clip.error === undefined);
