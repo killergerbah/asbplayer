@@ -48,8 +48,10 @@ const useImageHelperText = (image?: Image) => {
                 setImageAvailable(true);
                 setImageHelperText(undefined);
             } else if (image.error === ImageErrorCode.fileLinkLost) {
+                setImageAvailable(false);
                 setImageHelperText(t('ankiDialog.imageFileLinkLost')!);
             } else if (image.error === ImageErrorCode.captureFailed) {
+                setImageAvailable(false);
                 setImageHelperText(t('ankiDialog.imageCaptureFailed')!);
             }
         }
