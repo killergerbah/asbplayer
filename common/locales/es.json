@@ -77,7 +77,8 @@
         "url": "URL",
         "word": "Palabra",
         "zoomIn": "Aumentar Zoom",
-        "zoomOut": "Reducir Zoom"
+        "zoomOut": "Reducir Zoom",
+        "imagePreview": "Click to preview/edit"
     },
     "bar": {
         "donate": "Donar",

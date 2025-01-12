@@ -2,18 +2,38 @@ import React, { useState, useEffect } from 'react';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
-import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import { useTranslation } from 'react-i18next';
 import { Image, ImageErrorCode } from '@project/common';
+import { Theme } from '@material-ui/core/styles';
+import { useImageData } from '../hooks/use-image-data';
+import Tooltip from './Tooltip';
 
-const useStyles = makeStyles((theme) => ({
+interface StyleProps {
+    dataUrl: string;
+    width: number;
+    height: number;
+}
+
+const useStyles = makeStyles<Theme, StyleProps>((theme) => ({
     root: {
         cursor: 'pointer',
         '& input': {
             cursor: 'pointer',
         },
+    },
+    imagePreview: ({ dataUrl, width, height }) => {
+        if (dataUrl) {
+            return {
+                position: 'relative',
+                top: 8,
+                borderRadius: 2,
+                marginRight: 8,
+            };
+        }
+
+        return {};
     },
 }));
 
@@ -47,33 +67,48 @@ interface Props {
 
 export default function ImageField({ image, onViewImage, onCopyImageToClipboard, copyEnabled }: Props) {
     const { t } = useTranslation();
-    const classes = useStyles();
+    const { dataUrl, width, height } = useImageData({ image, smoothTransition: false });
+    const classes = useStyles({ dataUrl, width, height });
     const { imageHelperText, imageAvailable } = useImageHelperText(image);
-
+    const resizeRatio = height === 0 ? 0 : 20 / height;
     return (
-        <div className={classes.root} onClick={onViewImage}>
-            <TextField
-                variant="filled"
-                color="secondary"
-                fullWidth
-                value={image.name}
-                label={t('ankiDialog.image')}
-                helperText={imageHelperText}
-                disabled={!imageAvailable}
-                InputProps={{
-                    endAdornment: copyEnabled && (
-                        <InputAdornment position="end">
-                            <Tooltip title={t('ankiDialog.copyToClipboard')!}>
-                                <span>
-                                    <IconButton disabled={!imageAvailable} onClick={onCopyImageToClipboard} edge="end">
-                                        <FileCopyIcon />
-                                    </IconButton>
-                                </span>
-                            </Tooltip>
-                        </InputAdornment>
-                    ),
-                }}
-            />
-        </div>
+        <Tooltip disabled={!image.canChangeTimestamp} title={t('ankiDialog.imagePreview')!}>
+            <div className={classes.root} onClick={onViewImage}>
+                <TextField
+                    variant="filled"
+                    color="secondary"
+                    fullWidth
+                    value={image.name}
+                    label={t('ankiDialog.image')}
+                    helperText={imageHelperText}
+                    disabled={!imageAvailable}
+                    InputProps={{
+                        startAdornment: dataUrl && width > 0 && height > 0 && (
+                            <img
+                                src={dataUrl}
+                                width={width * resizeRatio}
+                                height={height * resizeRatio}
+                                className={classes.imagePreview}
+                            />
+                        ),
+                        endAdornment: copyEnabled && (
+                            <InputAdornment position="end">
+                                <Tooltip disabled={false} title={t('ankiDialog.copyToClipboard')!}>
+                                    <span>
+                                        <IconButton
+                                            disabled={!imageAvailable}
+                                            onClick={onCopyImageToClipboard}
+                                            edge="end"
+                                        >
+                                            <FileCopyIcon />
+                                        </IconButton>
+                                    </span>
+                                </Tooltip>
+                            </InputAdornment>
+                        ),
+                    }}
+                />
+            </div>
+        </Tooltip>
     );
 }

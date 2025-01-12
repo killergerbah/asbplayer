@@ -77,7 +77,8 @@
         "url": "URL",
         "word": "Wort",
         "zoomIn": "Hereinzoomen",
-        "zoomOut": "Herauszoomen"
+        "zoomOut": "Herauszoomen",
+        "imagePreview": "Click to preview/edit"
     },
     "bar": {
         "donate": "Spenden",

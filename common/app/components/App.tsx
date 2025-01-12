@@ -31,7 +31,6 @@ import { v4 as uuidv4 } from 'uuid';
 import clsx from 'clsx';
 import Alert from './Alert';
 import AnkiDialog from '@project/common/components/AnkiDialog';
-import ImageDialog from '@project/common/components/ImageDialog';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Paper from '@material-ui/core/Paper';
 import DragOverlay from './DragOverlay';
@@ -273,9 +272,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
     const miningContext = useMemo(() => new MiningContext(), []);
     const [settingsDialogOpen, setSettingsDialogOpen] = useState<boolean>(false);
     const [settingsDialogScrollToId, setSettingsDialogScrollToId] = useState<string>();
-    const [imageDialogOpen, setImageDialogOpen] = useState<boolean>(false);
     const [disableKeyEvents, setDisableKeyEvents] = useState<boolean>(false);
-    const [image, setImage] = useState<Image>();
     const [tab, setTab] = useState<VideoTabModel>();
     const [availableTabs, setAvailableTabs] = useState<VideoTabModel[]>();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -504,7 +501,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
         setSettingsDialogOpen(true);
     }, []);
     const handleAlertClosed = useCallback(() => setAlertOpen(false), []);
-    const handleImageDialogClosed = useCallback(() => setImageDialogOpen(false), []);
     const handleCloseSettings = useCallback(() => {
         setSettingsDialogOpen(false);
         setSettingsDialogScrollToId(undefined);
@@ -657,11 +653,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
         setVideoPlayerSeekRequest({ timestamp: ankiDialogCard.subtitle.start });
         handleAnkiDialogCancel();
     }, [ankiDialogCard, handleAnkiDialogCancel]);
-
-    const handleViewImage = useCallback((image: Image) => {
-        setImage(image);
-        setImageDialogOpen(true);
-    }, []);
 
     useEffect(() => {
         function onTabs(tabs: VideoTabModel[]) {
@@ -1229,12 +1220,10 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                                 settings={settings}
                                 onCancel={handleAnkiDialogCancel}
                                 onProceed={handleAnkiDialogProceed}
-                                onViewImage={handleViewImage}
                                 onCopyToClipboard={handleCopyToClipboard}
                                 mp3Encoder={mp3Encoder}
                             />
                         )}
-                        <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />
                     </>
                 ) : (
                     <Paper square>
@@ -1260,13 +1249,11 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                                 settings={settings}
                                 onCancel={handleAnkiDialogCancel}
                                 onProceed={handleAnkiDialogProceed}
-                                onViewImage={handleViewImage}
                                 onOpenSettings={handleOpenSettings}
                                 onCopyToClipboard={handleCopyToClipboard}
                                 mp3Encoder={mp3Encoder}
                             />
                         )}
-                        <ImageDialog open={imageDialogOpen} image={image} onClose={handleImageDialogClosed} />
                         <SettingsDialog
                             anki={anki}
                             extension={extension}

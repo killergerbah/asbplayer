@@ -13,14 +13,16 @@ const makeFileName = (prefix: string, timestamp: number) => {
 
 class Base64ImageData implements ImageData {
     private readonly _name: string;
+    private readonly _timestamp: number;
     private readonly _base64: string;
     private readonly _extension: string;
     private readonly _error?: ImageErrorCode;
 
     private cachedBlob?: Blob;
 
-    constructor(name: string, base64: string, extension: string, error?: ImageErrorCode) {
+    constructor(name: string, timestamp: number, base64: string, extension: string, error?: ImageErrorCode) {
         this._name = name;
+        this._timestamp = timestamp;
         this._base64 = base64;
         this._extension = extension;
         this._error = error;
@@ -30,12 +32,24 @@ class Base64ImageData implements ImageData {
         return this._name;
     }
 
+    get timestamp() {
+        return this._timestamp;
+    }
+
     get extension() {
         return this._extension;
     }
 
     get error() {
         return this._error;
+    }
+
+    atTimestamp(timestamp: number) {
+        return this;
+    }
+
+    get canChangeTimestamp() {
+        return false;
     }
 
     async base64() {
@@ -58,10 +72,14 @@ class Base64ImageData implements ImageData {
         return this._dataUrl();
     }
 
-    _dataUrl() {
+    private _dataUrl() {
         return 'data:image/' + this.extension + ';base64,' + this._base64;
     }
+
+    dispose() {}
 }
+
+export class CancelledImageDataRenderingError extends Error {}
 
 class FileImageData implements ImageData {
     private readonly _file: FileModel;
@@ -69,17 +87,34 @@ class FileImageData implements ImageData {
     private readonly _maxWidth: number;
     private readonly _maxHeight: number;
     private readonly _name: string;
+    private _video?: HTMLVideoElement;
+    private _canvas?: HTMLCanvasElement;
+    private _canvasPromise?: Promise<HTMLCanvasElement>;
+    private _canvasPromiseReject?: (error: Error) => void;
 
-    constructor(file: FileModel, timestamp: number, maxWidth: number, maxHeight: number) {
+    constructor(
+        file: FileModel,
+        timestamp: number,
+        maxWidth: number,
+        maxHeight: number,
+        video?: HTMLVideoElement,
+        canvas?: HTMLCanvasElement
+    ) {
         this._file = file;
         this._name = `${makeFileName(file.name, timestamp)}.jpeg`;
         this._timestamp = timestamp;
         this._maxWidth = maxWidth;
         this._maxHeight = maxHeight;
+        this._video = video;
+        this._canvas = canvas;
     }
 
     get name() {
         return this._name;
+    }
+
+    get timestamp() {
+        return this._timestamp;
     }
 
     get extension() {
@@ -94,9 +129,22 @@ class FileImageData implements ImageData {
         return undefined;
     }
 
+    atTimestamp(timestamp: number) {
+        if (timestamp === this._timestamp) {
+            return this;
+        }
+
+        this._canvasPromiseReject?.(new CancelledImageDataRenderingError());
+        return new FileImageData(this._file, timestamp, this._maxWidth, this._maxHeight, this._video, this._canvas);
+    }
+
+    get canChangeTimestamp() {
+        return true;
+    }
+
     async base64(): Promise<string> {
         return new Promise((resolve, reject) => {
-            this._canvas()
+            this._getCanvas()
                 .then((canvas) => {
                     const dataUrl = canvas.toDataURL('image/jpeg');
                     resolve(dataUrl.substring(dataUrl.indexOf(',') + 1));
@@ -107,7 +155,7 @@ class FileImageData implements ImageData {
 
     async blob(): Promise<Blob> {
         return new Promise((resolve, reject) => {
-            this._canvas()
+            this._getCanvas()
                 .then((canvas) => {
                     canvas.toBlob((blob) => {
                         if (blob === null) {
@@ -122,25 +170,43 @@ class FileImageData implements ImageData {
     }
 
     async dataUrl() {
-        const canvas = await this._canvas();
+        const canvas = await this._getCanvas();
         return canvas.toDataURL();
     }
 
-    async _canvas(): Promise<HTMLCanvasElement> {
-        return new Promise(async (resolve, reject) => {
-            const video = this._videoElement(this._file);
+    async _getCanvas(): Promise<HTMLCanvasElement> {
+        if (this._canvasPromise) {
+            return this._canvasPromise;
+        }
 
-            video.oncanplay = async (e) => {
-                const canvas = document.createElement('canvas');
+        this._canvasPromise = new Promise(async (resolve, reject) => {
+            this._canvasPromiseReject = reject;
+            const video = this._videoElement(this._file);
+            const calculateCurrentTime = () => Math.max(0, Math.min(video.duration, this._timestamp / 1000));
+
+            if (Number.isFinite(video.duration)) {
+                video.currentTime = calculateCurrentTime();
+            } else {
+                video.onloadedmetadata = () => {
+                    video.currentTime = calculateCurrentTime();
+                    video.onloadedmetadata = null;
+                };
+            }
+
+            video.onseeked = async (e) => {
+                this._canvasPromiseReject = undefined;
+
+                if (!this._canvas) {
+                    this._canvas = document.createElement('canvas');
+                }
+
+                const canvas = this._canvas;
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 const ctx = canvas.getContext('2d');
-                await video.play();
                 ctx!.drawImage(video, 0, 0, canvas.width, canvas.height);
-                await video.pause();
-                video.removeAttribute('src');
-                video.load();
-                video.remove();
+                video.onseeked = null;
+
                 if (this._maxWidth > 0 || this._maxHeight > 0) {
                     await resizeCanvas(canvas, ctx!, this._maxWidth, this._maxHeight);
                     resolve(canvas);
@@ -153,26 +219,50 @@ class FileImageData implements ImageData {
                 reject(video.error?.message ?? 'Could not load video to obtain screenshot');
             };
         });
+
+        return this._canvasPromise;
     }
 
-    _videoElement(file: FileModel) {
+    private _videoElement(file: FileModel) {
+        if (this._video) {
+            return this._video;
+        }
+
         const video = document.createElement('video');
         video.src = file.blobUrl;
         video.preload = 'metadata';
+        video.autoplay = false;
         video.volume = 0;
-        video.currentTime = this._timestamp / 1000;
-
+        video.controls = false;
+        video.pause();
+        this._video = video;
         return video;
+    }
+
+    dispose() {
+        if (!this._video) {
+            return;
+        }
+
+        this._video.removeAttribute('src');
+        this._video.load();
+        this._video.remove();
+        this._video = undefined;
+        this._canvas?.remove();
     }
 }
 
 interface ImageData {
     name: string;
     extension: string;
+    timestamp: number;
     base64: () => Promise<string>;
     dataUrl: () => Promise<string>;
     blob: () => Promise<Blob>;
+    atTimestamp: (timestamp: number) => ImageData;
+    canChangeTimestamp: boolean;
     error?: ImageErrorCode;
+    dispose: () => void;
 }
 
 export default class Image {
@@ -209,7 +299,7 @@ export default class Image {
     ) {
         const prefix = subtitleFileName.substring(0, subtitleFileName.lastIndexOf('.'));
         const imageName = `${makeFileName(prefix, timestamp)}.${extension}`;
-        return new Image(new Base64ImageData(imageName, base64, extension, error));
+        return new Image(new Base64ImageData(imageName, timestamp, base64, extension, error));
     }
 
     static fromFile(file: FileModel, timestamp: number, maxWidth: number, maxHeight: number) {
@@ -218,6 +308,10 @@ export default class Image {
 
     get name() {
         return this.data.name;
+    }
+
+    get timestamp() {
+        return this.data.timestamp;
     }
 
     get extension() {
@@ -260,6 +354,18 @@ export default class Image {
                 reject(e);
             }
         });
+    }
+
+    atTimestamp(timestamp: number) {
+        return new Image(this.data.atTimestamp(timestamp));
+    }
+
+    get canChangeTimestamp() {
+        return this.data.canChangeTimestamp;
+    }
+
+    dispose() {
+        return this.data.dispose();
     }
 
     async download() {

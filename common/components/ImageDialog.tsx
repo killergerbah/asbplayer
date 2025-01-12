@@ -1,16 +1,20 @@
-import React, { useEffect, useState, useLayoutEffect } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import makeStyles from '@material-ui/styles/makeStyles';
 import Card from '@material-ui/core/Card';
 import CardMedia from '@material-ui/core/CardMedia';
-import Dialog from '@material-ui/core/Dialog';
 import { Image as CommonImage } from '@project/common';
+import { useImageData } from '../hooks/use-image-data';
+import Slider from '@material-ui/core/Slider';
+import Modal from '@material-ui/core/Modal';
+import { humanReadableTime } from '../util';
+import Tooltip from '@material-ui/core/Tooltip';
 
 interface ImageDimensions {
     width: number;
     height: number;
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
     image: ({ width, height }: ImageDimensions) => ({
         width: width,
         height: height,
@@ -39,13 +43,27 @@ function useWindowSize() {
 interface Props {
     open: boolean;
     image?: CommonImage;
+    interval?: number[];
     onClose: () => void;
+    onTimestampChange: (timestamp: number) => void;
 }
 
-export default function ImageDialog({ open, image, onClose }: Props) {
-    const [dataUrl, setDataUrl] = useState<string>();
-    const [width, setWidth] = useState<number>(0);
-    const [height, setHeight] = useState<number>(0);
+interface ValueLabelComponentProps {
+    children: React.ReactElement;
+    open: boolean;
+    value: number;
+}
+
+const ValueLabelComponent = ({ children, open, value }: ValueLabelComponentProps) => {
+    return (
+        <Tooltip open={open} enterTouchDelay={0} placement="bottom" title={value}>
+            {children}
+        </Tooltip>
+    );
+};
+
+export default function ImageDialog({ open, image, interval, onClose, onTimestampChange }: Props) {
+    const { width, height, dataUrl } = useImageData({ image, smoothTransition: true });
     const [windowWidth, windowHeight] = useWindowSize();
 
     let resizeRatio;
@@ -58,40 +76,44 @@ export default function ImageDialog({ open, image, onClose }: Props) {
 
     const classes = useStyles({ width: width * resizeRatio, height: height * resizeRatio });
 
-    useEffect(() => {
-        setDataUrl(undefined);
-        async function fetchImage() {
-            if (!image) {
-                return;
-            }
-
-            const dataUrl = await image.dataUrl();
-            const img = new Image();
-            img.onload = () => {
-                setWidth(img.width);
-                setHeight(img.height);
-                setDataUrl(dataUrl);
-            };
-            img.src = dataUrl;
-        }
-
-        fetchImage();
-    }, [image]);
-
-    if (!image || !dataUrl) {
+    if (!image || !dataUrl || !open) {
         return null;
     }
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="lg">
-            <Card>
-                <CardMedia
-                    className={classes.image}
-                    image={dataUrl}
-                    title={image.name}
-                    style={{ width: width * resizeRatio, height: height * resizeRatio }}
-                />
-            </Card>
-        </Dialog>
+        <div>
+            <Modal style={{ width: '100vw', height: '100vh' }} open={open} onClose={onClose}>
+                <div
+                    style={{
+                        position: 'absolute',
+                        width: width * resizeRatio,
+                        height: height * resizeRatio,
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                    }}
+                >
+                    <Card>
+                        <CardMedia className={classes.image} image={dataUrl} title={image.name} style={{}} />
+                    </Card>
+                    {interval && image.canChangeTimestamp && (
+                        <Slider
+                            color="secondary"
+                            value={image.timestamp}
+                            min={interval[0]}
+                            max={interval[1]}
+                            onChange={(e: React.ChangeEvent<{}>, newValue: number | number[]) => {
+                                const duration = interval[1] - interval[0];
+                                onTimestampChange(((newValue as number) / duration) * duration);
+                            }}
+                            valueLabelFormat={(v) => humanReadableTime(v, true)}
+                            valueLabelDisplay="on"
+                            ValueLabelComponent={ValueLabelComponent}
+                            track={false}
+                        />
+                    )}
+                </div>
+            </Modal>
+        </div>
     );
 }

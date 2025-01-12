@@ -23,7 +23,6 @@ import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import Alert, { Color } from '@material-ui/lab/Alert';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import AnkiDialog from '@project/common/components/AnkiDialog';
-import ImageDialog from '@project/common/components/ImageDialog';
 import Snackbar from '@material-ui/core/Snackbar';
 import Bridge from '../bridge';
 import { PaletteType } from '@material-ui/core';
@@ -58,7 +57,6 @@ export default function AnkiUi({ bridge }: Props) {
     const [image, setImage] = useState<Image>();
     const [serializedImage, setSerializedImage] = useState<ImageModel>();
     const [file, setFile] = useState<FileModel>();
-    const [imageDialogOpen, setImageDialogOpen] = useState<boolean>(false);
     const [source, setSource] = useState<string>('');
     const [url, setUrl] = useState<string>('');
     const [definition, setDefinition] = useState('');
@@ -143,7 +141,6 @@ export default function AnkiUi({ bridge }: Props) {
             setSerializedAudio(s.audio);
             setSerializedImage(s.image);
             setFile(s.file);
-            setImageDialogOpen(false);
             setDisabled(false);
             setSettingsProvider(s.settingsProvider);
             setImage(image);
@@ -161,7 +158,6 @@ export default function AnkiUi({ bridge }: Props) {
 
                 if (params.mode !== 'gui') {
                     setOpen(false);
-                    setImageDialogOpen(false);
                     const message: AnkiUiBridgeResumeMessage = {
                         command: 'resume',
                         uiState: savedState(),
@@ -189,26 +185,18 @@ export default function AnkiUi({ bridge }: Props) {
 
     const handleCancel = useCallback(() => {
         setOpen(false);
-        setImageDialogOpen(false);
         const message: AnkiUiBridgeResumeMessage = { command: 'resume', uiState: savedState(), cardExported: false };
         bridge.sendMessageFromServer(message);
     }, [bridge, savedState]);
 
     const handleRewind = useCallback(() => {
         setOpen(false);
-        setImageDialogOpen(false);
         const message: AnkiUiBridgeRewindMessage = { command: 'rewind', uiState: savedState() };
         bridge.sendMessageFromServer(message);
     }, [bridge, savedState]);
 
-    const handleViewImage = useCallback((image: Image) => {
-        setImage(image);
-        setImageDialogOpen(true);
-    }, []);
-
     const handleRerecord = useCallback(() => {
         setOpen(false);
-        setImageDialogOpen(false);
 
         const state = savedState();
         const message: AnkiUiBridgeRerecordMessage = {
@@ -325,7 +313,6 @@ export default function AnkiUi({ bridge }: Props) {
                     {alert}
                 </Alert>
             </Snackbar>
-            <ImageDialog open={imageDialogOpen} image={image} onClose={() => setImageDialogOpen(false)} />
             {settingsProvider && card && anki && (
                 <AnkiDialog
                     open={open}
@@ -336,7 +323,6 @@ export default function AnkiUi({ bridge }: Props) {
                     onProceed={handleProceed}
                     onRerecord={canRerecord ? handleRerecord : undefined}
                     onCancel={handleCancel}
-                    onViewImage={handleViewImage}
                     onOpenSettings={handleOpenSettings}
                     onCopyToClipboard={handleCopyToClipboard}
                     source={source}

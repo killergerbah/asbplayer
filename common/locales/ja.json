@@ -77,7 +77,8 @@
         "url": "URL",
         "word": "単語",
         "zoomIn": "ズームイン",
-        "zoomOut": "ズームアウト"
+        "zoomOut": "ズームアウト",
+        "imagePreview": "Click to preview/edit"
     },
     "bar": {
         "donate": "寄付",

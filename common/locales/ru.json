@@ -77,7 +77,8 @@
         "url": "URL",
         "word": "Слово",
         "zoomIn": "Увеличить",
-        "zoomOut": "Уменьшить"
+        "zoomOut": "Уменьшить",
+        "imagePreview": "Click to preview/edit"
     },
     "bar": {
         "donate": "Пожертвовать",
