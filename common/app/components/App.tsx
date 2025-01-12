@@ -1286,7 +1286,6 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                             onOpenCopyHistory={handleOpenCopyHistory}
                             onDownloadSubtitleFilesAsSrt={handleDownloadSubtitleFilesAsSrt}
                             onOpenSettings={handleOpenSettings}
-                            onFileSelector={sources.videoFile === undefined ? handleFileSelector : undefined}
                         />
                         <input
                             ref={fileInputRef}

@@ -5,7 +5,6 @@ import AppBar from '@material-ui/core/AppBar';
 import BugReportIcon from '@material-ui/icons/BugReport';
 import FavoriteIcon from '@material-ui/icons/Favorite';
 import HelpIcon from '@material-ui/icons/Help';
-import FolderIcon from '@material-ui/icons/Folder';
 import IconButton from '@material-ui/core/IconButton';
 import HistoryIcon from '@material-ui/icons/History';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
@@ -13,7 +12,14 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import Toolbar from '@material-ui/core/Toolbar';
 import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
+import GitHubIcon from '@material-ui/icons/GitHub';
+import List from '@material-ui/core/List';
+import MuiLink, { LinkProps as MuiLinkProps } from '@material-ui/core/Link';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import Popover from '@material-ui/core/Popover';
 
 interface BarProps {
     drawerWidth: number;
@@ -74,6 +80,11 @@ const useStyles = makeStyles<Theme, StyleProps, string>((theme) => ({
     hide: {
         display: 'none',
     },
+    menu: {
+        '&:hover .MuiLink-root': {
+            textDecoration: 'none',
+        },
+    },
 }));
 
 interface CopyHistoryTooltipStylesProps {
@@ -95,6 +106,13 @@ function CopyHistoryTooltip({ show, ...toolTipProps }: CopyHistoryTooltipProps) 
     return <Tooltip classes={classes} {...toolTipProps} />;
 }
 
+const Link = ({ children, ...props }: MuiLinkProps) => {
+    return (
+        <MuiLink component="a" target="_blank" rel="noreferrer" color="inherit" {...props}>
+            {children}
+        </MuiLink>
+    );
+};
 export default function Bar({
     drawerWidth,
     drawerOpen,
@@ -103,7 +121,6 @@ export default function Bar({
     subtitleFiles,
     onOpenSettings,
     onOpenCopyHistory,
-    onFileSelector,
     onDownloadSubtitleFilesAsSrt,
 }: BarProps) {
     const classes = useStyles({ drawerWidth });
@@ -114,6 +131,16 @@ export default function Bar({
     const handleDownloadSubtitleFilesAsSrt = useCallback(() => {
         onDownloadSubtitleFilesAsSrt();
     }, [onDownloadSubtitleFilesAsSrt]);
+
+    const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement>();
+    const [menuOpen, setMenuOpen] = useState<boolean>(false);
+    const handleMenuClose = useCallback(() => {
+        setMenuOpen(false);
+    }, []);
+    const handleMenuOpen = useCallback((e: React.UIEvent) => {
+        setMenuAnchorEl(e.currentTarget as HTMLElement);
+        setMenuOpen(true);
+    }, []);
 
     return (
         <>
@@ -126,18 +153,6 @@ export default function Bar({
                 })}
             >
                 <Toolbar>
-                    {onFileSelector && (
-                        <Tooltip title={t('action.openFiles')!}>
-                            <IconButton
-                                edge="start"
-                                color="inherit"
-                                className={classes.leftButton}
-                                onClick={onFileSelector}
-                            >
-                                <FolderIcon />
-                            </IconButton>
-                        </Tooltip>
-                    )}
                     {canSaveAsSrt && (
                         <Tooltip title={t('action.downloadSubtitlesAsSrt')!}>
                             <IconButton
@@ -153,42 +168,9 @@ export default function Bar({
                     <Typography variant="h6" noWrap className={classes.title}>
                         {title}
                     </Typography>
-                    <Tooltip title={t('bar.donate')!}>
-                        <IconButton
-                            edge="end"
-                            color="inherit"
-                            component="a"
-                            href="https://github.com/killergerbah/asbplayer#donations"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            <FavoriteIcon />
-                        </IconButton>
-                    </Tooltip>
-                    <Tooltip title={t('bar.submitIssue')!}>
-                        <IconButton
-                            edge="end"
-                            color="inherit"
-                            component="a"
-                            href="https://github.com/killergerbah/asbplayer/issues"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            <BugReportIcon />
-                        </IconButton>
-                    </Tooltip>
-                    <Tooltip title={t('bar.help')!}>
-                        <IconButton
-                            edge="end"
-                            color="inherit"
-                            component="a"
-                            href="https://github.com/killergerbah/asbplayer#detailed-usage"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            <HelpIcon />
-                        </IconButton>
-                    </Tooltip>
+                    <IconButton edge="end" onClick={handleMenuOpen}>
+                        <GitHubIcon />
+                    </IconButton>
                     <Tooltip title={t('bar.settings')!}>
                         <IconButton edge="end" color="inherit" onClick={onOpenSettings}>
                             <SettingsIcon />
@@ -209,6 +191,47 @@ export default function Bar({
                     </CopyHistoryTooltip>
                 </Toolbar>
             </AppBar>
+            <Popover
+                disableEnforceFocus={true}
+                open={menuOpen}
+                anchorEl={menuAnchorEl}
+                onClose={handleMenuClose}
+                anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                }}
+                transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                }}
+            >
+                <List className={classes.menu} onMouseLeave={handleMenuClose} dense>
+                    <Link href="https://github.com/killergerbah/asbplayer#detailed-usage">
+                        <ListItem button>
+                            <ListItemIcon>
+                                <HelpIcon />
+                            </ListItemIcon>
+                            <ListItemText primary={t('bar.help')!} />
+                        </ListItem>
+                    </Link>
+                    <Link href="https://github.com/killergerbah/asbplayer/issues">
+                        <ListItem button>
+                            <ListItemIcon>
+                                <BugReportIcon />
+                            </ListItemIcon>
+                            <ListItemText primary={t('bar.submitIssue')!} />
+                        </ListItem>
+                    </Link>
+                    <Link href="https://github.com/killergerbah/asbplayer#donations">
+                        <ListItem button>
+                            <ListItemIcon>
+                                <FavoriteIcon />
+                            </ListItemIcon>
+                            <ListItemText primary={t('bar.donate')!} />
+                        </ListItem>
+                    </Link>
+                </List>
+            </Popover>
         </>
     );
 }
