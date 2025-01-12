@@ -168,7 +168,7 @@ export default function Bar({
                     <Typography variant="h6" noWrap className={classes.title}>
                         {title}
                     </Typography>
-                    <IconButton edge="end" onClick={handleMenuOpen}>
+                    <IconButton edge="end" color="inherit" onClick={handleMenuOpen}>
                         <GitHubIcon />
                     </IconButton>
                     <Tooltip title={t('bar.settings')!}>
