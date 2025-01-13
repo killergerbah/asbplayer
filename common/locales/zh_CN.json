@@ -63,6 +63,7 @@
         "imageFileLinkLost": "由于页面重新加载，图像文件链接丢失",
         "openInAnki": "在Anki中打开",
         "rerecord": "重新录制音频",
+        "rerecordAndApplySelection": "Record selected time range",
         "resetSlider": "重置",
         "rewind": "倒带",
         "searchInAnki": "在Anki中搜索",

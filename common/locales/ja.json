@@ -63,6 +63,7 @@
         "imageFileLinkLost": "ブラウザページを更新したため、画像ファイルの参照先が失われました",
         "openInAnki": "Anki で開く",
         "rerecord": "再録音",
+        "rerecordAndApplySelection": "Record selected time range",
         "resetSlider": "リセット",
         "rewind": "巻き戻し",
         "searchInAnki": "Anki で検索する",

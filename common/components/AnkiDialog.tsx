@@ -651,6 +651,10 @@ const AnkiDialog = ({
                                     {audioClip && !model.custom && model.key === 'audio' && model.field.display && (
                                         <AudioField
                                             audioClip={audioClip}
+                                            timestampIntervalSelectionNotApplied={
+                                                timestampInterval?.[0] !== lastAppliedTimestampIntervalToAudio?.[0] ||
+                                                timestampInterval?.[1] !== lastAppliedTimestampIntervalToAudio?.[1]
+                                            }
                                             onRerecord={onRerecord}
                                             onPlayAudio={handlePlayAudio}
                                         />

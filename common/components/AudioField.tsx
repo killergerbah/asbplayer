@@ -7,6 +7,7 @@ import IconButton from '@material-ui/core/IconButton';
 import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
 import { AudioClip } from '../audio-clip';
 import { useTranslation } from 'react-i18next';
+import Badge from '@material-ui/core/Badge';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -19,6 +20,7 @@ const useStyles = makeStyles((theme) => ({
 
 interface Props {
     audioClip: AudioClip;
+    timestampIntervalSelectionNotApplied: boolean;
     onPlayAudio: (e: React.MouseEvent<HTMLDivElement>) => void;
     onRerecord?: () => void;
 }
@@ -48,25 +50,38 @@ const useAudioHelperText = (audioClip?: AudioClip, onRerecord?: () => void) => {
     return { audioHelperText, audioClipPlayable };
 };
 
-export default function AudioField({ audioClip, onPlayAudio, onRerecord }: Props) {
+export default function AudioField({
+    audioClip,
+    timestampIntervalSelectionNotApplied,
+    onPlayAudio,
+    onRerecord,
+}: Props) {
     const classes = useStyles();
     const { t } = useTranslation();
     let audioActionElement: JSX.Element | undefined = undefined;
 
     if (onRerecord !== undefined) {
         audioActionElement = (
-            <Tooltip title={t('ankiDialog.rerecord')!}>
+            <Tooltip
+                title={
+                    timestampIntervalSelectionNotApplied
+                        ? t('ankiDialog.rerecordAndApplySelection')!
+                        : t('ankiDialog.rerecord')!
+                }
+            >
                 <span>
-                    <IconButton
-                        disabled={audioClip?.error !== undefined}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onRerecord();
-                        }}
-                        edge="end"
-                    >
-                        <FiberManualRecordIcon />
-                    </IconButton>
+                    <Badge invisible={!timestampIntervalSelectionNotApplied} badgeContent="!" color="error">
+                        <IconButton
+                            disabled={audioClip?.error !== undefined}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onRerecord?.();
+                            }}
+                            edge="end"
+                        >
+                            <FiberManualRecordIcon />
+                        </IconButton>
+                    </Badge>
                 </span>
             </Tooltip>
         );
