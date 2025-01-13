@@ -63,6 +63,7 @@
         "imageFileLinkLost": "Link do pliku obrazu utracony przez przeładowanie strony",
         "openInAnki": "Otwórz w Anki",
         "rerecord": "Nagraj ponownie",
+        "rerecordAndApplySelection": "Record selected time range",
         "resetSlider": "Resetuj",
         "rewind": "Przewiń",
         "searchInAnki": "Szukaj w Anki",

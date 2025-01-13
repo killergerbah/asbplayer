@@ -63,6 +63,7 @@
         "imageFileLinkLost": "Image file link lost because of page reload",
         "openInAnki": "Open in Anki",
         "rerecord": "Rerecord",
+        "rerecordAndApplySelection": "Record selected time range",
         "resetSlider": "Reset",
         "rewind": "Rewind",
         "searchInAnki": "Search in Anki",

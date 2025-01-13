@@ -63,6 +63,7 @@
         "imageFileLinkLost": "Ссылка на файл изображения потеряна из-за перезагрузки страницы",
         "openInAnki": "Открыть в Анки",
         "rerecord": "Перезаписать",
+        "rerecordAndApplySelection": "Record selected time range",
         "resetSlider": "Сбросить ползунок",
         "rewind": "Перемотать назад",
         "searchInAnki": "Искать в Анки",
