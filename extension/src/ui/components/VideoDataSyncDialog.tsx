@@ -18,6 +18,8 @@ import LabelWithHoverEffect from '@project/common/components/LabelWithHoverEffec
 import { ConfirmedVideoDataSubtitleTrack, VideoDataSubtitleTrack, VideoDataUiOpenReason } from '@project/common';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import MiniProfileSelector from '@project/common/components/MiniProfileSelector';
+import type { Profile } from '@project/common/settings';
 
 const createClasses = makeStyles((theme) => ({
     relative: {
@@ -57,10 +59,13 @@ interface Props {
     defaultCheckboxState: boolean;
     error: string;
     openReason: VideoDataUiOpenReason;
+    profiles: Profile[];
+    activeProfile?: string;
     onCancel: () => void;
     onOpenFile: () => void;
     onOpenSettings: () => void;
     onConfirm: (track: ConfirmedVideoDataSubtitleTrack[], shouldRememberTrackChoices: boolean) => void;
+    onSetActiveProfile: (profile: string | undefined) => void;
 }
 
 export default function VideoDataSyncDialog({
@@ -74,10 +79,13 @@ export default function VideoDataSyncDialog({
     defaultCheckboxState,
     error,
     openReason,
+    profiles,
+    activeProfile,
     onCancel,
     onOpenFile,
     onOpenSettings,
     onConfirm,
+    onSetActiveProfile,
 }: Props) {
     const { t } = useTranslation();
     const [userSelectedSubtitleTrackIds, setUserSelectedSubtitleTrackIds] = useState(['-', '-', '-']);
@@ -223,6 +231,11 @@ export default function VideoDataSyncDialog({
                 <Typography variant="h6" style={{ flexGrow: 1 }}>
                     {t('extension.videoDataSync.selectSubtitles')}
                 </Typography>
+                <MiniProfileSelector
+                    profiles={profiles}
+                    activeProfile={activeProfile}
+                    onSetActiveProfile={onSetActiveProfile}
+                />
                 {onOpenSettings && (
                     <IconButton edge="end" onClick={onOpenSettings}>
                         <SettingsIcon />

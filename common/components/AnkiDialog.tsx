@@ -2,7 +2,7 @@ import React, { MutableRefObject, useCallback, useState, useEffect, useMemo } fr
 import { useTranslation } from 'react-i18next';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import { Image, SubtitleModel, CardModel } from '@project/common';
-import { AnkiSettings, sortedAnkiFieldModels } from '@project/common/settings';
+import { AnkiSettings, Profile, sortedAnkiFieldModels } from '@project/common/settings';
 import {
     humanReadableTime,
     surroundingSubtitlesAroundInterval,
@@ -39,6 +39,7 @@ import CustomField from './CustomField';
 import AudioField from './AudioField';
 import ImageField from './ImageField';
 import ImageDialog from './ImageDialog';
+import MiniProfileSelector from './MiniProfileSelector';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -179,6 +180,9 @@ interface AnkiDialogProps {
     lastAppliedTimestampIntervalToAudio?: number[];
     stateRef?: MutableRefObject<AnkiDialogState | undefined>;
     mp3Encoder: (blob: Blob, extension: string) => Promise<Blob>;
+    profiles?: Profile[];
+    activeProfile?: string;
+    onSetActiveProfile?: (profile: string | undefined) => void;
 }
 
 const AnkiDialog = ({
@@ -200,6 +204,9 @@ const AnkiDialog = ({
     lastAppliedTimestampIntervalToAudio: initialLastAppliedTimestampIntervalToAudio,
     stateRef,
     mp3Encoder,
+    profiles,
+    activeProfile,
+    onSetActiveProfile,
 }: AnkiDialogProps) => {
     const classes = useStyles();
     const [definition, setDefinition] = useState<string>('');
@@ -599,6 +606,13 @@ const AnkiDialog = ({
                     <Typography variant="h6" className={classes.title}>
                         {t('ankiDialog.title')}
                     </Typography>
+                    {profiles !== undefined && onSetActiveProfile && (
+                        <MiniProfileSelector
+                            profiles={profiles}
+                            activeProfile={activeProfile}
+                            onSetActiveProfile={onSetActiveProfile}
+                        />
+                    )}
                     {onOpenSettings && (
                         <IconButton edge="end" onClick={() => onOpenSettings()}>
                             <Badge invisible={ankiIsAvailable} badgeContent={'!'} color="error">

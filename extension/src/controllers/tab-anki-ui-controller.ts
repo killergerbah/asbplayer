@@ -5,6 +5,9 @@ import {
     TabToExtensionCommand,
     CardModel,
     EncodeMp3Message,
+    AnkiDialogSettingsMessage,
+    ActiveProfileMessage,
+    SettingsUpdatedMessage,
 } from '@project/common';
 import { AnkiSettings, SettingsProvider, ankiSettingsKeys } from '@project/common/settings';
 import { sourceString } from '@project/common/util';
@@ -47,29 +50,43 @@ export class TabAnkiUiController {
     }
 
     async show(card: CardModel) {
-        const { themeType, language, ...ankiSettings } = await this._settings.get([
+        const { language, ...ankiDialogSettings } = await this._settings.get([
             'themeType',
             'language',
             ...ankiSettingsKeys,
         ]);
-        const client = await this._client(language, ankiSettings);
+        const profilesPromise = this._settings.profiles();
+        const activeProfilePromise = this._settings.activeProfile();
+        const client = await this._client(language, ankiDialogSettings);
         const state: AnkiUiInitialState = {
             type: 'initial',
             open: true,
             canRerecord: false,
-            settingsProvider: ankiSettings,
+            settings: ankiDialogSettings,
             source: sourceString(card.subtitleFileName, card.mediaTimestamp ?? 0),
-            themeType,
             dialogRequestedTimestamp: 0,
             ...card,
+            profiles: await profilesPromise,
+            activeProfile: (await activeProfilePromise)?.name,
         };
         client.updateState(state);
     }
 
     async updateSettings() {
-        const ankiSettings = await this._settings.get([...ankiSettingsKeys]);
+        const ankiDialogSettings = await this._settings.get(['themeType', ...ankiSettingsKeys]);
+
         if (this._frame.bound) {
-            this._frame.client().then((client) => client.sendMessage({ command: 'ankiSettings', value: ankiSettings }));
+            this._frame.client().then(async (client) => {
+                const profilesPromise = this._settings.profiles();
+                const activeProfilePromise = this._settings.activeProfile();
+                const message: AnkiDialogSettingsMessage = {
+                    command: 'settings',
+                    settings: ankiDialogSettings,
+                    profiles: await profilesPromise,
+                    activeProfile: (await activeProfilePromise)?.name,
+                };
+                client.sendMessage(message);
+            });
         }
     }
 
@@ -117,6 +134,18 @@ export class TabAnkiUiController {
                         return;
                     case 'resume':
                         this._frame.hide();
+                        return;
+                    case 'activeProfile':
+                        const activeProfileMessage = message as ActiveProfileMessage;
+                        this._settings.setActiveProfile(activeProfileMessage.profile).then(() => {
+                            const settingsUpdatedCommand: TabToExtensionCommand<SettingsUpdatedMessage> = {
+                                sender: 'asbplayer-video-tab',
+                                message: {
+                                    command: 'settings-updated',
+                                },
+                            };
+                            chrome.runtime.sendMessage(settingsUpdatedCommand);
+                        });
                         return;
                 }
             });

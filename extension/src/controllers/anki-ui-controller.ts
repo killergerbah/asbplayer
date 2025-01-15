@@ -1,4 +1,7 @@
 import {
+    ActiveProfileMessage,
+    AnkiDialogSettings,
+    AnkiDialogSettingsMessage,
     AnkiUiBridgeRerecordMessage,
     AnkiUiBridgeResumeMessage,
     AnkiUiBridgeRewindMessage,
@@ -9,10 +12,11 @@ import {
     EncodeMp3Message,
     OpenAsbplayerSettingsMessage,
     PostMinePlayback,
+    SettingsUpdatedMessage,
     ShowAnkiUiMessage,
     VideoToExtensionCommand,
 } from '@project/common';
-import { AnkiSettings } from '@project/common/settings';
+import { AnkiSettings, SettingsProvider } from '@project/common/settings';
 import { sourceString } from '@project/common/util';
 import Binding from '../services/binding';
 import { fetchLocalization } from '../services/localization-fetcher';
@@ -24,7 +28,6 @@ import { mp3WorkerFactory } from '../services/mp3-worker-factory';
 // We need to write the HTML into the iframe manually so that the iframe keeps it's about:blank URL.
 // Otherwise, Chrome won't insert content scripts into the iframe (e.g. Yomichan won't work).
 async function html(language: string) {
-    const mp3WorkerSource = await (await fetch(chrome.runtime.getURL('./mp3-encoder-worker.js'))).text();
     return `<!DOCTYPE html>
                 <html lang="en">
                 <head>
@@ -51,21 +54,31 @@ export default class AnkiUiController {
     private fullscreenElement?: Element;
     private activeElement?: Element;
     private focusInListener?: (event: FocusEvent) => void;
-    private _ankiSettings?: AnkiSettings;
+    private _settings?: AnkiDialogSettings;
 
     constructor() {
         this.frame = new UiFrame(html);
     }
 
-    get ankiSettings() {
-        return this._ankiSettings;
+    get settings() {
+        return this._settings;
     }
 
-    set ankiSettings(value) {
-        this._ankiSettings = value;
+    updateSettings(settings: AnkiDialogSettings, settingsProvider: SettingsProvider) {
+        this._settings = settings;
 
         if (this.frame?.bound) {
-            this.frame.client().then((client) => client.sendMessage({ command: 'ankiSettings', value }));
+            this.frame.client().then(async (client) => {
+                const profilesPromise = settingsProvider.profiles();
+                const activeProfilePromise = settingsProvider.activeProfile();
+                const message: AnkiDialogSettingsMessage = {
+                    command: 'settings',
+                    settings,
+                    profiles: await profilesPromise,
+                    activeProfile: (await activeProfilePromise)?.name,
+                };
+                client.sendMessage(message);
+            });
         }
     }
 
@@ -77,7 +90,7 @@ export default class AnkiUiController {
         context: Binding,
         { subtitle, surroundingSubtitles, image, audio, text, definition, word, customFieldValues }: ShowAnkiUiMessage
     ) {
-        if (!this._ankiSettings) {
+        if (!this._settings) {
             throw new Error('Unable to show Anki UI because settings are missing.');
         }
 
@@ -90,60 +103,56 @@ export default class AnkiUiController {
             type: 'initial',
             open: true,
             canRerecord: true,
-            settingsProvider: this._ankiSettings,
+            settings: this._settings,
             source: sourceString(context.subtitleFileName(), subtitle.start),
             url: url,
             subtitle: subtitle,
             surroundingSubtitles: surroundingSubtitles,
             image: image,
             audio: audio,
-            themeType: themeType,
             dialogRequestedTimestamp: context.video.currentTime * 1000,
             text,
             word,
             definition,
             customFieldValues,
+            ...(await this._profileInfo(context)),
         };
         client.updateState(state);
     }
 
     async showAfterRerecord(context: Binding, uiState: AnkiUiSavedState) {
-        if (!this._ankiSettings) {
+        if (!this._settings) {
             throw new Error('Unable to show Anki UI after rerecording because anki settings are undefined');
         }
 
         this._prepareShow(context);
         const client = await this._client(context);
-
-        const themeType = await context.settings.getSingle('themeType');
         const state: AnkiUiResumeState = {
             ...uiState,
             type: 'resume',
             open: true,
             canRerecord: true,
-            settingsProvider: this._ankiSettings,
-            themeType: themeType,
+            settings: this._settings,
             dialogRequestedTimestamp: context.video.currentTime * 1000,
+            ...(await this._profileInfo(context)),
         };
         client.updateState(state);
     }
 
     async showAfterRetakingScreenshot(context: Binding, uiState: AnkiUiSavedState) {
-        if (!this._ankiSettings) {
+        if (!this._settings) {
             throw new Error('Unable to show Anki UI after retaking screenshot because anki settings are undefined');
         }
 
         this._prepareShow(context);
         const client = await this._client(context);
-
-        const themeType = await context.settings.getSingle('themeType');
         const state: AnkiUiResumeState = {
             ...uiState,
             type: 'resume',
             open: true,
             canRerecord: true,
-            settingsProvider: this._ankiSettings,
-            themeType: themeType,
+            settings: this._settings,
+            ...(await this._profileInfo(context)),
         };
         client.updateState(state);
     }
@@ -173,7 +182,7 @@ export default class AnkiUiController {
     private async _client(context: Binding) {
         this.frame.fetchOptions = {
             videoSrc: context.video.src,
-            allowedFetchUrl: this._ankiSettings!.ankiConnectUrl,
+            allowedFetchUrl: this._settings!.ankiConnectUrl,
         };
         this.frame.language = await context.settings.getSingle('language');
         const isNewClient = await this.frame.bind();
@@ -224,6 +233,19 @@ export default class AnkiUiController {
                         client.sendMessage({
                             messageId,
                             base64: await blobToBase64(encodedBlob),
+                        });
+                        return;
+                    case 'activeProfile':
+                        const activeProfileMessage = message as ActiveProfileMessage;
+                        context.settings.setActiveProfile(activeProfileMessage.profile).then(() => {
+                            const settingsUpdatedCommand: VideoToExtensionCommand<SettingsUpdatedMessage> = {
+                                sender: 'asbplayer-video',
+                                message: {
+                                    command: 'settings-updated',
+                                },
+                                src: context.video.src,
+                            };
+                            chrome.runtime.sendMessage(settingsUpdatedCommand);
                         });
                         return;
                 }
@@ -299,6 +321,15 @@ export default class AnkiUiController {
 
         this.frame.show();
         return client;
+    }
+
+    private async _profileInfo(context: Binding) {
+        const profilesPromise = context.settings.profiles();
+        const activeProfilePromise = context.settings.activeProfile();
+        return {
+            profiles: await profilesPromise,
+            activeProfile: (await activeProfilePromise)?.name,
+        };
     }
 
     unbind() {

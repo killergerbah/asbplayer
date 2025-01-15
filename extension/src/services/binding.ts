@@ -907,7 +907,10 @@ export default class Binding {
         this.subtitleController.refresh();
 
         this.videoDataSyncController.updateSettings(currentSettings);
-        this.ankiUiController.ankiSettings = extractAnkiSettings(currentSettings);
+        this.ankiUiController.updateSettings(
+            { ...extractAnkiSettings(currentSettings), themeType: currentSettings.themeType },
+            this.settings
+        );
         this.postMinePlayback = currentSettings.postMiningPlaybackState;
         this.keyBindings.setKeyBindSet(this, currentSettings.keyBindSet);
 
@@ -1157,8 +1160,8 @@ export default class Binding {
             this.subtitleController.subtitles,
             start,
             end,
-            this.ankiUiController.ankiSettings!.surroundingSubtitlesCountRadius,
-            this.ankiUiController.ankiSettings!.surroundingSubtitlesTimeRadius
+            this.ankiUiController.settings!.surroundingSubtitlesCountRadius,
+            this.ankiUiController.settings!.surroundingSubtitlesTimeRadius
         );
     }
 

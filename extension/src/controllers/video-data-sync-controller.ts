@@ -1,7 +1,9 @@
 import {
+    ActiveProfileMessage,
     ConfirmedVideoDataSubtitleTrack,
     OpenAsbplayerSettingsMessage,
     SerializedSubtitleFile,
+    SettingsUpdatedMessage,
     VideoData,
     VideoDataSubtitleTrack,
     VideoDataUiBridgeConfirmMessage,
@@ -107,6 +109,22 @@ export default class VideoDataSyncController {
     updateSettings({ streamingAutoSync, streamingLastLanguagesSynced }: AsbplayerSettings) {
         this._autoSync = streamingAutoSync;
         this._lastLanguagesSynced = streamingLastLanguagesSynced;
+
+        if (this._frame.clientIfLoaded !== undefined) {
+            this._context.settings.getSingle('themeType').then((themeType) => {
+                const profilesPromise = this._context.settings.profiles();
+                const activeProfilePromise = this._context.settings.activeProfile();
+                Promise.all([profilesPromise, activeProfilePromise]).then(([profiles, activeProfile]) => {
+                    this._frame.clientIfLoaded?.updateState({
+                        settings: {
+                            themeType,
+                            profiles,
+                            activeProfile: activeProfile?.name,
+                        },
+                    });
+                });
+            });
+        }
     }
 
     requestSubtitles() {
@@ -151,6 +169,8 @@ export default class VideoDataSyncController {
         const autoSelectedTrackIds = autoSelectedTracks.map((subtitle) => subtitle.id || '-');
         const defaultCheckboxState: boolean = subs.completeMatch;
         const themeType = await this._context.settings.getSingle('themeType');
+        const profilesPromise = this._context.settings.profiles();
+        const activeProfilePromise = this._context.settings.activeProfile();
 
         return this._syncedData
             ? {
@@ -159,9 +179,13 @@ export default class VideoDataSyncController {
                   selectedSubtitle: autoSelectedTrackIds,
                   subtitles: subtitleTrackChoices,
                   error: this._syncedData.error,
-                  themeType: themeType,
                   defaultCheckboxState: defaultCheckboxState,
                   openedFromAsbplayerId: '',
+                  settings: {
+                      themeType: themeType,
+                      profiles: await profilesPromise,
+                      activeProfile: (await activeProfilePromise)?.name,
+                  },
                   ...additionalFields,
               }
             : {
@@ -171,9 +195,13 @@ export default class VideoDataSyncController {
                   error: '',
                   showSubSelect: true,
                   subtitles: subtitleTrackChoices,
-                  themeType: themeType,
                   defaultCheckboxState: defaultCheckboxState,
                   openedFromAsbplayerId: '',
+                  settings: {
+                      themeType: themeType,
+                      profiles: await profilesPromise,
+                      activeProfile: (await activeProfilePromise)?.name,
+                  },
                   ...additionalFields,
               };
     }
@@ -265,6 +293,32 @@ export default class VideoDataSyncController {
 
         if (isNewClient) {
             client.onMessage(async (message) => {
+                if ('openSettings' === message.command) {
+                    const openSettingsCommand: VideoToExtensionCommand<OpenAsbplayerSettingsMessage> = {
+                        sender: 'asbplayer-video',
+                        message: {
+                            command: 'open-asbplayer-settings',
+                        },
+                        src: this._context.video.src,
+                    };
+                    chrome.runtime.sendMessage(openSettingsCommand);
+                    return;
+                }
+
+                if ('activeProfile' === message.command) {
+                    const activeProfileMessage = message as ActiveProfileMessage;
+                    await this._context.settings.setActiveProfile(activeProfileMessage.profile);
+                    const settingsUpdatedCommand: VideoToExtensionCommand<SettingsUpdatedMessage> = {
+                        sender: 'asbplayer-video',
+                        message: {
+                            command: 'settings-updated',
+                        },
+                        src: this._context.video.src,
+                    };
+                    chrome.runtime.sendMessage(settingsUpdatedCommand);
+                    return;
+                }
+
                 let dataWasSynced = true;
 
                 if ('confirm' === message.command) {
@@ -292,16 +346,6 @@ export default class VideoDataSyncController {
                             await this._reportError(e.message);
                         }
                     }
-                } else if ('openSettings' === message.command) {
-                    const openSettingsCommand: VideoToExtensionCommand<OpenAsbplayerSettingsMessage> = {
-                        sender: 'asbplayer-video',
-                        message: {
-                            command: 'open-asbplayer-settings',
-                        },
-                        src: this._context.video.src,
-                    };
-                    chrome.runtime.sendMessage(openSettingsCommand);
-                    return;
                 }
 
                 if (dataWasSynced) {

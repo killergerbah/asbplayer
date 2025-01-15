@@ -12,6 +12,7 @@ import {
     MobileOverlayModel,
     VideoTabModel,
     CopyHistoryItem,
+    AnkiDialogSettings,
 } from './model';
 import { AsbPlayerToVideoCommandV2 } from './command';
 
@@ -403,6 +404,18 @@ export interface FinishedAnkiDialogRequestToVideoMessage extends Message {
 export interface AnkiSettingsToVideoMessage extends Message {
     readonly command: 'ankiSettings';
     readonly value: AnkiSettings;
+}
+
+export interface AnkiDialogSettingsMessage extends Message {
+    readonly command: 'settings';
+    readonly settings: AnkiDialogSettings;
+    readonly activeProfile?: string;
+    readonly profiles?: { name: string }[];
+}
+
+export interface ActiveProfileMessage extends Message {
+    readonly command: 'activeProfile';
+    readonly profile?: string;
 }
 
 export interface MiscSettingsToVideoMessage extends Message {

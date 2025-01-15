@@ -11,21 +11,23 @@ import {
     AnkiUiBridgeResumeMessage,
     AnkiUiBridgeRewindMessage,
     CopyToClipboardMessage,
-    AnkiSettingsToVideoMessage,
     Message,
     UpdateStateMessage,
     FileModel,
     EncodeMp3Message,
+    AnkiDialogSettingsMessage,
+    ActiveProfileMessage,
+    AnkiDialogSettings,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
-import { AnkiSettings } from '@project/common/settings';
+import type { Profile } from '@project/common/settings';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import Alert, { Color } from '@material-ui/lab/Alert';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import AnkiDialog from '@project/common/components/AnkiDialog';
 import Snackbar from '@material-ui/core/Snackbar';
 import Bridge from '../bridge';
-import { PaletteType } from '@material-ui/core';
+import type { PaletteType } from '@material-ui/core';
 import { AnkiDialogState } from '@project/common/components/AnkiDialog';
 import { BridgeFetcher } from '../bridge-fetcher';
 import { Anki, ExportParams } from '@project/common/anki';
@@ -67,17 +69,18 @@ export default function AnkiUi({ bridge }: Props) {
     const [timestampBoundaryInterval, setTimestampBoundaryInterval] = useState<number[]>();
     const [lastAppliedTimestampIntervalToText, setLastAppliedTimestampIntervalToText] = useState<number[]>();
     const [lastAppliedTimestampIntervalToAudio, setLastAppliedTimestampIntervalToAudio] = useState<number[]>();
-    const [settingsProvider, setSettingsProvider] = useState<AnkiSettings>();
+    const [settings, setSettings] = useState<AnkiDialogSettings>();
     const [alertSeverity, setAlertSeverity] = useState<Color>('error');
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
     const [alert, setAlert] = useState<string>('');
-    const [themeType, setThemeType] = useState<string>('dark');
     const [dialogRequestedTimestamp, setDialogRequestedTimestamp] = useState<number>(0);
+    const [profiles, setProfiles] = useState<Profile[]>();
+    const [activeProfile, setActiveProfile] = useState<string>();
 
-    const theme = useMemo(() => createTheme(themeType as PaletteType), [themeType]);
+    const theme = useMemo(() => createTheme((settings?.themeType ?? 'dark') as PaletteType), [settings?.themeType]);
     const anki = useMemo(
-        () => (settingsProvider ? new Anki(settingsProvider, new BridgeFetcher(bridge)) : undefined),
-        [settingsProvider, bridge]
+        () => (settings ? new Anki(settings, new BridgeFetcher(bridge)) : undefined),
+        [settings, bridge]
     );
     const dialogStateRef = useRef<AnkiDialogState>();
 
@@ -142,9 +145,10 @@ export default function AnkiUi({ bridge }: Props) {
             setSerializedImage(s.image);
             setFile(s.file);
             setDisabled(false);
-            setSettingsProvider(s.settingsProvider);
+            setSettings(s.settings);
+            setActiveProfile(s.activeProfile);
+            setProfiles(s.profiles);
             setImage(image);
-            setThemeType(s.themeType || 'dark');
             setOpen(s.open);
         });
     }, [bridge, image]);
@@ -213,6 +217,14 @@ export default function AnkiUi({ bridge }: Props) {
         bridge.sendMessageFromServer({ command: 'openSettings' });
     }, [bridge]);
 
+    const handleSetActiveProfile = useCallback(
+        (profile: string | undefined) => {
+            const message: ActiveProfileMessage = { command: 'activeProfile', profile: profile };
+            bridge.sendMessageFromServer(message);
+        },
+        [bridge]
+    );
+
     const lastFocusOutRef = useRef<HTMLElement>();
 
     const handleFocusOut = useCallback((event: FocusEvent) => {
@@ -236,8 +248,11 @@ export default function AnkiUi({ bridge }: Props) {
         return bridge.addClientMessageListener((message) => {
             if (message.command === 'focus') {
                 lastFocusOutRef.current?.focus();
-            } else if (message.command === 'ankiSettings') {
-                setSettingsProvider((message as AnkiSettingsToVideoMessage).value);
+            } else if (message.command === 'settings') {
+                const settingsMessage = message as AnkiDialogSettingsMessage;
+                setSettings(settingsMessage.settings);
+                setProfiles(settingsMessage.profiles);
+                setActiveProfile(settingsMessage.activeProfile);
             } else if (message.command === 'rewind') {
                 handleRewind();
             }
@@ -313,12 +328,15 @@ export default function AnkiUi({ bridge }: Props) {
                     {alert}
                 </Alert>
             </Snackbar>
-            {settingsProvider && card && anki && (
+            {settings && card && anki && (
                 <AnkiDialog
                     open={open}
                     disabled={disabled}
                     card={card}
-                    settings={settingsProvider}
+                    settings={settings}
+                    profiles={profiles}
+                    activeProfile={activeProfile}
+                    onSetActiveProfile={handleSetActiveProfile}
                     anki={anki}
                     onProceed={handleProceed}
                     onRerecord={canRerecord ? handleRerecord : undefined}

@@ -14,11 +14,13 @@ import {
     VideoDataUiBridgeOpenFileMessage,
     VideoDataUiModel,
     VideoDataUiOpenReason,
+    ActiveProfileMessage,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import { PaletteType } from '@material-ui/core';
 import { bufferToBase64 } from '@project/common/base64';
 import { useTranslation } from 'react-i18next';
+import type { Profile } from '@project/common/settings';
 
 interface Props {
     bridge: Bridge;
@@ -42,6 +44,8 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [openedFromAsbplayerId, setOpenedFromAsbplayerId] = useState<string>('');
     const [error, setError] = useState<string>('');
     const [themeType, setThemeType] = useState<string>();
+    const [profiles, setProfiles] = useState<Profile[]>([]);
+    const [activeProfile, setActiveProfile] = useState<string>();
 
     const theme = useMemo(() => createTheme((themeType || 'dark') as PaletteType), [themeType]);
 
@@ -116,16 +120,18 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                 setError(model.error);
             }
 
-            if (model.themeType !== undefined) {
-                setThemeType(model.themeType);
-            }
-
             if (model.openReason !== undefined) {
                 setOpenReason(model.openReason);
             }
 
             if (model.openedFromAsbplayerId !== undefined) {
                 setOpenedFromAsbplayerId(model.openedFromAsbplayerId);
+            }
+
+            if (model.settings !== undefined) {
+                setThemeType(model.settings.themeType);
+                setProfiles(model.settings.profiles);
+                setActiveProfile(model.settings.activeProfile);
             }
         });
     }, [bridge, t]);
@@ -161,6 +167,14 @@ export default function VideoDataSyncUi({ bridge }: Props) {
 
     const handleOpenFile = useCallback(() => fileInputRef.current?.click(), []);
 
+    const handleSetActiveProfile = useCallback(
+        (profile: string | undefined) => {
+            const message: ActiveProfileMessage = { command: 'activeProfile', profile: profile };
+            bridge.sendMessageFromServer(message);
+        },
+        [bridge]
+    );
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
@@ -175,10 +189,13 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                 defaultCheckboxState={defaultCheckboxState}
                 openReason={openReason}
                 error={error}
+                profiles={profiles}
+                activeProfile={activeProfile}
                 onCancel={handleCancel}
                 onOpenFile={handleOpenFile}
                 onOpenSettings={handleOpenSettings}
                 onConfirm={handleConfirm}
+                onSetActiveProfile={handleSetActiveProfile}
             />
             <input
                 ref={fileInputRef}

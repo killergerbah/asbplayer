@@ -1,4 +1,6 @@
-import { AnkiSettings } from '../settings/settings';
+import type { AnkiSettings } from '../settings/settings';
+
+type Profile = { name: string };
 
 export interface RectModel {
     readonly left: number;
@@ -86,11 +88,17 @@ export interface AudioModel {
     readonly error?: AudioErrorCode;
 }
 
+export interface AnkiDialogSettings extends AnkiSettings {
+    themeType: string;
+}
+
 export interface AnkiUiState extends CardTextFieldValues {
     readonly type: 'initial' | 'resume';
     readonly open: boolean;
     readonly canRerecord: boolean;
-    readonly settingsProvider: AnkiSettings;
+    readonly settings: AnkiDialogSettings;
+    readonly profiles: Profile[];
+    readonly activeProfile?: string;
     readonly subtitle: SubtitleModel;
     readonly surroundingSubtitles: SubtitleModel[];
     readonly url?: string;
@@ -98,7 +106,6 @@ export interface AnkiUiState extends CardTextFieldValues {
     readonly image?: ImageModel;
     readonly audio?: AudioModel;
     readonly file?: FileModel;
-    readonly themeType: string;
     readonly dialogRequestedTimestamp: number;
 }
 
@@ -166,18 +173,24 @@ export enum VideoDataUiOpenReason {
     userRequested = 3,
 }
 
+export interface VideoDataUiSettings {
+    themeType?: string;
+    profiles: Profile[];
+    activeProfile?: string;
+}
+
 export interface VideoDataUiModel {
     open?: boolean;
     isLoading?: boolean;
     suggestedName?: string;
     subtitles?: VideoDataSubtitleTrack[];
     error?: string;
-    themeType?: string;
     selectedSubtitle?: string[];
     showSubSelect?: boolean;
     openReason?: VideoDataUiOpenReason;
     openedFromAsbplayerId?: string;
     defaultCheckboxState?: boolean;
+    settings: VideoDataUiSettings;
 }
 
 export interface VideoTabModel {

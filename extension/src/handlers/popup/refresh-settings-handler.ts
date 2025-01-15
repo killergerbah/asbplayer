@@ -19,7 +19,13 @@ export default class RefreshSettingsHandler {
     }
 
     get sender() {
-        return ['asbplayer-popup', 'asbplayer-settings', 'asbplayer-mobile-overlay'];
+        return [
+            'asbplayer-popup',
+            'asbplayer-settings',
+            'asbplayer-mobile-overlay',
+            'asbplayer-video',
+            'asbplayer-video-tab',
+        ];
     }
 
     get command() {

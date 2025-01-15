@@ -1223,6 +1223,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                                 onProceed={handleAnkiDialogProceed}
                                 onCopyToClipboard={handleCopyToClipboard}
                                 mp3Encoder={mp3Encoder}
+                                {...profilesContext}
                             />
                         )}
                     </>
@@ -1253,6 +1254,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                                 onOpenSettings={handleOpenSettings}
                                 onCopyToClipboard={handleCopyToClipboard}
                                 mp3Encoder={mp3Encoder}
+                                {...profilesContext}
                             />
                         )}
                         <SettingsDialog
