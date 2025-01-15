@@ -65,6 +65,17 @@ export default class RefreshSettingsHandler {
                 return settingsUpdatedCommand;
             },
         });
+        chrome.tabs.query({ url: `${chrome.runtime.getURL('settings-ui.html')}` }).then((tabs) => {
+            for (const t of tabs) {
+                if (t.id !== undefined) {
+                    chrome.tabs.sendMessage(t.id, {
+                        message: {
+                            command: 'settings-updated',
+                        },
+                    });
+                }
+            }
+        });
         return false;
     }
 }

@@ -15,29 +15,35 @@ export const useSettings = () => {
 
     useEffect(() => {
         chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-            if (request.command === 'settings-updated') {
+            if (request.message?.command === 'settings-updated') {
                 settingsProvider.getAll().then(setSettings);
             }
         });
     }, [settingsProvider]);
 
+    const notifySettingsUpdated = useCallback(() => {
+        const command: Command<SettingsUpdatedMessage> = {
+            sender: 'asbplayer-settings',
+            message: {
+                command: 'settings-updated',
+            },
+        };
+        chrome.runtime.sendMessage(command);
+    }, []);
+
     const onSettingsChanged = useCallback(
         (settings: Partial<AsbplayerSettings>) => {
             setSettings((s) => ({ ...s!, ...settings }));
-
-            settingsProvider.set(settings).then(() => {
-                const command: Command<SettingsUpdatedMessage> = {
-                    sender: 'asbplayer-settings',
-                    message: {
-                        command: 'settings-updated',
-                    },
-                };
-                chrome.runtime.sendMessage(command);
-            });
+            settingsProvider.set(settings).then(() => notifySettingsUpdated());
         },
-        [settingsProvider]
+        [settingsProvider, notifySettingsUpdated]
     );
 
-    const profileContext = useSettingsProfileContext({ settingsProvider, onProfileChanged: refreshSettings });
+    const handleProfileChanged = useCallback(() => {
+        refreshSettings();
+        notifySettingsUpdated();
+    }, [refreshSettings, notifySettingsUpdated]);
+
+    const profileContext = useSettingsProfileContext({ settingsProvider, onProfileChanged: handleProfileChanged });
     return { settings, onSettingsChanged, profileContext };
 };
