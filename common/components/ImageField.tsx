@@ -9,6 +9,7 @@ import { Image, ImageErrorCode } from '@project/common';
 import { Theme } from '@material-ui/core/styles';
 import { useImageData } from '../hooks/use-image-data';
 import Tooltip from './Tooltip';
+import ImageIcon from '@material-ui/icons/Image';
 
 interface StyleProps {
     dataUrl: string;
@@ -74,28 +75,38 @@ export default function ImageField({ image, onViewImage, onCopyImageToClipboard,
     const { imageHelperText, imageAvailable } = useImageHelperText(image);
     const resizeRatio = height === 0 ? 0 : 20 / height;
     return (
-        <Tooltip disabled={!image.canChangeTimestamp} title={t('ankiDialog.imagePreview')!}>
-            <div className={classes.root} onClick={onViewImage}>
-                <TextField
-                    variant="filled"
-                    color="secondary"
-                    fullWidth
-                    value={image.name}
-                    label={t('ankiDialog.image')}
-                    helperText={imageHelperText}
-                    disabled={!imageAvailable}
-                    InputProps={{
-                        startAdornment: dataUrl && width > 0 && height > 0 && (
-                            <img
-                                src={dataUrl}
-                                width={width * resizeRatio}
-                                height={height * resizeRatio}
-                                className={classes.imagePreview}
-                            />
-                        ),
-                        endAdornment: copyEnabled && (
-                            <InputAdornment position="end">
-                                <Tooltip disabled={false} title={t('ankiDialog.copyToClipboard')!}>
+        <div className={classes.root} onClick={onViewImage}>
+            <TextField
+                variant="filled"
+                color="secondary"
+                fullWidth
+                value={image.name}
+                label={t('ankiDialog.image')}
+                helperText={imageHelperText}
+                disabled={!imageAvailable}
+                InputProps={{
+                    startAdornment: dataUrl && width > 0 && height > 0 && (
+                        <img
+                            src={dataUrl}
+                            width={width * resizeRatio}
+                            height={height * resizeRatio}
+                            className={classes.imagePreview}
+                        />
+                    ),
+                    endAdornment: copyEnabled && (
+                        <InputAdornment position="end">
+                            <>
+                                <Tooltip
+                                    disabled={!image.canChangeTimestamp || !imageAvailable}
+                                    title={t('ankiDialog.imagePreview')!}
+                                >
+                                    <span>
+                                        <IconButton disabled={!imageAvailable} onClick={() => {}} edge="end">
+                                            <ImageIcon />
+                                        </IconButton>
+                                    </span>
+                                </Tooltip>
+                                <Tooltip disabled={!imageAvailable} title={t('ankiDialog.copyToClipboard')!}>
                                     <span>
                                         <IconButton
                                             disabled={!imageAvailable}
@@ -106,11 +117,11 @@ export default function ImageField({ image, onViewImage, onCopyImageToClipboard,
                                         </IconButton>
                                     </span>
                                 </Tooltip>
-                            </InputAdornment>
-                        ),
-                    }}
-                />
-            </div>
-        </Tooltip>
+                            </>
+                        </InputAdornment>
+                    ),
+                }}
+            />
+        </div>
     );
 }
