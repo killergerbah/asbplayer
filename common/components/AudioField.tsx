@@ -5,6 +5,8 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
+import PlayArrowIcon from '@material-ui/icons/PlayArrow';
+import PauseIcon from '@material-ui/icons/Pause';
 import { AudioClip } from '../audio-clip';
 import { useTranslation } from 'react-i18next';
 import Badge from '@material-ui/core/Badge';
@@ -58,34 +60,45 @@ export default function AudioField({
 }: Props) {
     const classes = useStyles();
     const { t } = useTranslation();
+    const [playing, setPlaying] = useState<boolean>(false);
     let audioActionElement: JSX.Element | undefined = undefined;
 
-    if (onRerecord !== undefined) {
-        audioActionElement = (
-            <Tooltip
-                title={
-                    timestampIntervalSelectionNotApplied
-                        ? t('ankiDialog.rerecordAndApplySelection')!
-                        : t('ankiDialog.rerecord')!
-                }
-            >
-                <span>
-                    <Badge invisible={!timestampIntervalSelectionNotApplied} badgeContent="!" color="error">
-                        <IconButton
-                            disabled={audioClip?.error !== undefined}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onRerecord?.();
-                            }}
-                            edge="end"
-                        >
-                            <FiberManualRecordIcon />
-                        </IconButton>
-                    </Badge>
-                </span>
-            </Tooltip>
-        );
-    }
+    useEffect(() => setPlaying(audioClip.playing), [audioClip]);
+    useEffect(() => audioClip.onEvent('play', () => setPlaying(true)), [audioClip]);
+    useEffect(() => audioClip.onEvent('pause', () => setPlaying(false)), [audioClip]);
+
+    audioActionElement = (
+        <>
+            <IconButton disabled={audioClip?.error !== undefined} onClick={() => {}} edge="end">
+                {playing && <PauseIcon />}
+                {!playing && <PlayArrowIcon />}
+            </IconButton>
+            {onRerecord !== undefined && (
+                <Tooltip
+                    title={
+                        timestampIntervalSelectionNotApplied
+                            ? t('ankiDialog.rerecordAndApplySelection')!
+                            : t('ankiDialog.rerecord')!
+                    }
+                >
+                    <span>
+                        <Badge invisible={!timestampIntervalSelectionNotApplied} badgeContent="!" color="error">
+                            <IconButton
+                                disabled={audioClip?.error !== undefined}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onRerecord?.();
+                                }}
+                                edge="end"
+                            >
+                                <FiberManualRecordIcon />
+                            </IconButton>
+                        </Badge>
+                    </span>
+                </Tooltip>
+            )}
+        </>
+    );
 
     const { audioHelperText, audioClipPlayable } = useAudioHelperText(audioClip, onRerecord);
 
