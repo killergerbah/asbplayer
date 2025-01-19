@@ -93,7 +93,7 @@ export default function ImageField({ image, onViewImage, onCopyImageToClipboard,
                             className={classes.imagePreview}
                         />
                     ),
-                    endAdornment: copyEnabled && (
+                    endAdornment: (
                         <InputAdornment position="end">
                             <>
                                 <Tooltip
@@ -106,17 +106,19 @@ export default function ImageField({ image, onViewImage, onCopyImageToClipboard,
                                         </IconButton>
                                     </span>
                                 </Tooltip>
-                                <Tooltip disabled={!imageAvailable} title={t('ankiDialog.copyToClipboard')!}>
-                                    <span>
-                                        <IconButton
-                                            disabled={!imageAvailable}
-                                            onClick={onCopyImageToClipboard}
-                                            edge="end"
-                                        >
-                                            <FileCopyIcon />
-                                        </IconButton>
-                                    </span>
-                                </Tooltip>
+                                {copyEnabled && (
+                                    <Tooltip disabled={!imageAvailable} title={t('ankiDialog.copyToClipboard')!}>
+                                        <span>
+                                            <IconButton
+                                                disabled={!imageAvailable}
+                                                onClick={onCopyImageToClipboard}
+                                                edge="end"
+                                            >
+                                                <FileCopyIcon />
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                )}
                             </>
                         </InputAdornment>
                     ),
