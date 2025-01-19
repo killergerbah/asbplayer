@@ -6,7 +6,7 @@ import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
 import TuneIcon from '@material-ui/icons/Tune';
-import { MobileOverlayModel, PlayMode, PostMineAction } from '@project/common';
+import { ControlType, MobileOverlayModel, PlayMode, PostMineAction } from '@project/common';
 import makeStyles from '@material-ui/core/styles/makeStyles';
 import { useTranslation } from 'react-i18next';
 import LogoIcon from './LogoIcon';
@@ -19,7 +19,7 @@ import SubtitlesIcon from '@material-ui/icons/Subtitles';
 import SubtitlesOffIcon from './SubtitlesOffIcon';
 import HoldableIconButton from './HoldableIconButton';
 import PlayModeSelector from './PlayModeSelector';
-import ScrollableNumberControls, { ControlType } from './ScrollableNumberControls';
+import ScrollableNumberControls from './ScrollableNumberControls';
 import Tooltip from './Tooltip';
 
 type Anchor = 'top' | 'bottom';
@@ -74,6 +74,8 @@ interface Props {
     className?: string;
     anchor: Anchor;
     tooltipsEnabled: boolean;
+    initialControlType: ControlType;
+    onScrollToControlType: (controlType: ControlType) => void;
     onMineSubtitle: () => void;
     onLoadSubtitles?: () => void;
     onOffset: (offset: number) => void;
@@ -88,6 +90,8 @@ const MobileVideoOverlay = ({
     className,
     anchor,
     tooltipsEnabled,
+    initialControlType,
+    onScrollToControlType,
     onMineSubtitle,
     onLoadSubtitles,
     onOffset,
@@ -102,6 +106,14 @@ const MobileVideoOverlay = ({
     const [playModeSelectorOpen, setPlayModeSelectorOpen] = useState<boolean>(false);
     const [playModeSelectorAnchorEl, setPlayModeSelectorAnchorEl] = useState<HTMLElement>();
     const [numberControlType, setNumberControlType] = useState<ControlType>(ControlType.timeDisplay);
+
+    const handleScrollToControlType = useCallback(
+        (controlType: ControlType) => {
+            setNumberControlType(controlType);
+            onScrollToControlType(controlType);
+        },
+        [onScrollToControlType]
+    );
 
     const handleClosePlayModeSelector = useCallback(() => {
         setPlayModeSelectorOpen(false);
@@ -459,7 +471,8 @@ const MobileVideoOverlay = ({
                                     onOffset={onOffset}
                                     playbackRate={model.playbackRate}
                                     onPlaybackRate={onPlaybackRate}
-                                    onScrollTo={setNumberControlType}
+                                    initialControlType={initialControlType}
+                                    onScrollTo={handleScrollToControlType}
                                     currentMilliseconds={model.currentTimestamp}
                                 />
                             </Grid>

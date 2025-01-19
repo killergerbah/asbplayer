@@ -3,6 +3,7 @@ import PlaybackRateInput from './PlaybackRateInput';
 import SubtitleOffsetInput from './SubtitleOffsetInput';
 import TimeDisplay from './TimeDisplay';
 import { MutableRefObject, useCallback, useRef, useState } from 'react';
+import { ControlType } from '..';
 
 const containerHeight = 48;
 const scrollThreshold = containerHeight / 2 + 1;
@@ -28,12 +29,6 @@ const useStyles = makeStyles({
     },
 });
 
-export enum ControlType {
-    timeDisplay = 0,
-    subtitleOffset = 1,
-    playbackRate = 2,
-}
-
 interface Props {
     offset: number;
     currentMilliseconds: number;
@@ -43,6 +38,7 @@ interface Props {
     onOffset: (offset: number) => void;
     playbackRateInputRef: MutableRefObject<HTMLInputElement | undefined>;
     onPlaybackRate: (playbackRate: number) => void;
+    initialControlType?: ControlType;
     onScrollTo: (controlType: ControlType) => void;
 }
 
@@ -55,12 +51,13 @@ const ScrollableNumberControls = ({
     playbackRate,
     playbackRateInputRef,
     onPlaybackRate,
+    initialControlType,
     onScrollTo,
 }: Props) => {
     const classes = useStyles();
     const [controlType, setControlType] = useState<ControlType>(ControlType.timeDisplay);
     const lastScrollTop = useRef<number>(0);
-    const [initialScroll, setInitialScrolll] = useState<boolean>(false);
+    const [initialScroll, setInitialScroll] = useState<boolean>(false);
     const containerRef = useRef<HTMLDivElement>();
     const programmaticallyScrollingTimeoutRef = useRef<NodeJS.Timeout>();
     const controlTypeRef = useRef<number>(controlType);
@@ -129,11 +126,22 @@ const ScrollableNumberControls = ({
             }
 
             if (div) {
-                setTimeout(() => {
-                    div.scrollTop = containerHeight * 2;
-                    div.scroll({ top: 0, behavior: 'smooth' });
-                    setInitialScrolll(true);
-                }, 0);
+                if (initialControlType === undefined) {
+                    setInitialScroll(true);
+                } else {
+                    setTimeout(() => {
+                        div.scrollTop = containerHeight * 2;
+
+                        if (initialControlType === 1) {
+                            div.scroll({ top: containerHeight + 1, behavior: 'smooth' });
+                        } else if (initialControlType === 0) {
+                            div.scroll({ top: 0, behavior: 'smooth' });
+                        }
+
+                        setInitialScroll(true);
+                    }, 0);
+                }
+
                 div.addEventListener('wheel', handleWheel, { passive: false });
                 div.addEventListener('scrollend', () => {
                     programmaticallyScrollingTimeoutRef.current = undefined;
@@ -141,7 +149,7 @@ const ScrollableNumberControls = ({
                 containerRef.current = div;
             }
         },
-        [initialScroll, handleWheel]
+        [initialScroll, initialControlType, handleWheel]
     );
 
     return (

@@ -13,6 +13,7 @@ import {
     OffscreenDomCache,
     CardTextFieldValues,
     PostMinePlayback,
+    ControlType,
 } from '@project/common';
 import {
     MiscSettings,
@@ -51,6 +52,8 @@ import { MiningContext } from '../services/mining-context';
 import { useSubtitleStyles } from '../hooks/use-subtitle-styles';
 import { useFullscreen } from '../hooks/use-fullscreen';
 import MobileVideoOverlay from '@project/common/components/MobileVideoOverlay';
+import { CachedLocalStorage } from '../services/cached-local-storage';
+import useLastScrollableControlType from '../../hooks/use-last-scrollable-control-type';
 
 const overlayContainerHeight = 48;
 
@@ -337,6 +340,23 @@ interface MinedRecord {
 
 const allSubtitleAlignments = (subtitleSettings: SubtitleSettings) => {
     return allTextSubtitleSettings(subtitleSettings).map((s) => s.subtitleAlignment);
+};
+
+const lastControlTypeKey = 'lastScrollableControlType';
+const storage = new CachedLocalStorage();
+
+const fetchLastControlType = async (): Promise<ControlType | undefined> => {
+    const val = storage.get(lastControlTypeKey);
+
+    if (val == null) {
+        return undefined;
+    }
+
+    return parseInt(val) as ControlType;
+};
+
+const saveLastControlType = (controlType: ControlType): void => {
+    storage.set(lastControlTypeKey, String(controlType));
 };
 
 export default function VideoPlayer({
@@ -1487,6 +1507,12 @@ export default function VideoPlayer({
         isPausedDueToHoverRef.current = false;
     }, [miscSettings.pauseOnHoverMode, playerChannel]);
 
+    const { lastControlType, setLastControlType } = useLastScrollableControlType({
+        isMobile,
+        fetchLastControlType,
+        saveLastControlType,
+    });
+
     // If the video player is taking up the entire screen, then the subtitle player isn't showing
     // This code assumes some behavior in Player, namely that the subtitle player is automatically hidden
     // (and therefore the VideoPlayer takes up all the space) when there isn't enough room for the subtitle player
@@ -1546,7 +1572,7 @@ export default function VideoPlayer({
     const baseBottomSubtitleOffset = !playing() && isMobile ? overlayContainerHeight : 0;
     const alertAnchor = subtitleAlignments[0] === 'top' ? 'bottom' : 'top';
 
-    if (!playerChannelSubscribed) {
+    if (!playerChannelSubscribed || lastControlType === undefined) {
         return null;
     }
 
@@ -1567,6 +1593,8 @@ export default function VideoPlayer({
                 className={classes.mobileOverlay}
                 anchor={'bottom'}
                 tooltipsEnabled={true}
+                initialControlType={lastControlType}
+                onScrollToControlType={setLastControlType}
                 onMineSubtitle={() => inferAndExecuteMiningBehavior(settings.clickToMineDefaultAction)}
                 onOffset={handleOffsetChange}
                 onPlaybackRate={handlePlaybackRateChange}

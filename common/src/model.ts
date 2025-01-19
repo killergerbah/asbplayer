@@ -257,3 +257,9 @@ export interface MobileOverlayModel {
     themeType: 'dark' | 'light';
     playMode: PlayMode;
 }
+
+export enum ControlType {
+    timeDisplay = 0,
+    subtitleOffset = 1,
+    playbackRate = 2,
+}

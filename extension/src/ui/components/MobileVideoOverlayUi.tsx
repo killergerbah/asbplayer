@@ -1,5 +1,6 @@
 import {
     AsbPlayerToVideoCommandV2,
+    ControlType,
     CopySubtitleMessage,
     CurrentTimeToVideoMessage,
     HiddenMessage,
@@ -18,6 +19,8 @@ import { SettingsProvider } from '@project/common/settings';
 import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
 import MobileVideoOverlay from '@project/common/components/MobileVideoOverlay';
 import { useI18n } from '../hooks/use-i18n';
+import { isMobile } from '../../services/device-detection';
+import useLastScrollableControlType from '@project/common/hooks/use-last-scrollable-control-type';
 
 const settings = new SettingsProvider(new ExtensionSettingsStorage());
 const params = new URLSearchParams(location.search);
@@ -25,6 +28,15 @@ const anchor = params.get('anchor') as 'top' | 'bottom';
 const tooltipsEnabled = params.get('tooltips') === 'true';
 const containerHeight = 48;
 const scrollBufferHeight = 100;
+const lastControlTypeKey = 'lastScrollableControlType';
+
+const fetchLastControlType = async (): Promise<ControlType | undefined> => {
+    return (await chrome.storage.local.get(lastControlTypeKey))[lastControlTypeKey];
+};
+
+const saveLastControlType = async (controlType: ControlType): Promise<void> => {
+    await chrome.storage.local.set({ [lastControlTypeKey]: controlType });
+};
 
 const MobileVideoOverlayUi = () => {
     const location = useMobileVideoOverlayLocation();
@@ -189,8 +201,13 @@ const MobileVideoOverlayUi = () => {
     }, []);
 
     const { initialized: i18nInitialized } = useI18n({ language: model?.language ?? 'en' });
+    const { lastControlType, setLastControlType } = useLastScrollableControlType({
+        isMobile,
+        saveLastControlType,
+        fetchLastControlType,
+    });
 
-    if (!i18nInitialized) {
+    if (!i18nInitialized || lastControlType === undefined) {
         return null;
     }
 
@@ -199,6 +216,8 @@ const MobileVideoOverlayUi = () => {
             model={model}
             anchor={anchor}
             tooltipsEnabled={tooltipsEnabled}
+            initialControlType={lastControlType}
+            onScrollToControlType={setLastControlType}
             onMineSubtitle={handleMineSubtitle}
             onLoadSubtitles={handleLoadSubtitles}
             onOffset={handleOffset}
