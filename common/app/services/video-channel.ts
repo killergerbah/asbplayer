@@ -553,6 +553,7 @@ export default class VideoChannel {
             lastSubtitleOffset,
             tabName,
             pauseOnHoverMode,
+            lastSelectedAnkiExportMode,
         } = settings;
         const message: MiscSettingsToVideoMessage = {
             command: 'miscSettings',
@@ -576,6 +577,7 @@ export default class VideoChannel {
                 lastSubtitleOffset,
                 tabName,
                 pauseOnHoverMode,
+                lastSelectedAnkiExportMode,
             },
         };
         this.protocol.postMessage(message);

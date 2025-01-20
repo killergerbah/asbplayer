@@ -2,6 +2,7 @@ import {
     ActiveProfileMessage,
     AnkiDialogSettings,
     AnkiDialogSettingsMessage,
+    AnkiUiBridgeExportedMessage,
     AnkiUiBridgeRerecordMessage,
     AnkiUiBridgeResumeMessage,
     AnkiUiBridgeRewindMessage,
@@ -97,7 +98,6 @@ export default class AnkiUiController {
         this._prepareShow(context);
         const client = await this._client(context);
         const url = context.url(subtitle.start, subtitle.end);
-        const themeType = await context.settings.getSingle('themeType');
 
         const state: AnkiUiInitialState = {
             type: 'initial',
@@ -238,6 +238,19 @@ export default class AnkiUiController {
                     case 'activeProfile':
                         const activeProfileMessage = message as ActiveProfileMessage;
                         context.settings.setActiveProfile(activeProfileMessage.profile).then(() => {
+                            const settingsUpdatedCommand: VideoToExtensionCommand<SettingsUpdatedMessage> = {
+                                sender: 'asbplayer-video',
+                                message: {
+                                    command: 'settings-updated',
+                                },
+                                src: context.video.src,
+                            };
+                            chrome.runtime.sendMessage(settingsUpdatedCommand);
+                        });
+                        return;
+                    case 'exported':
+                        const exportedMessage = message as AnkiUiBridgeExportedMessage;
+                        context.settings.set({ lastSelectedAnkiExportMode: exportedMessage.mode }).then(() => {
                             const settingsUpdatedCommand: VideoToExtensionCommand<SettingsUpdatedMessage> = {
                                 sender: 'asbplayer-video',
                                 message: {

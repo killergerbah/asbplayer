@@ -136,5 +136,6 @@ it('validates exported settings', () => {
         streamingScreenshotDelay: 1000,
         streamingSubtitleListPreference: 'app',
         pauseOnHoverMode: PauseOnHoverMode.disabled,
+        lastSelectedAnkiExportMode: 'gui',
     });
 });

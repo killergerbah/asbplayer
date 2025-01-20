@@ -370,6 +370,10 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                         miningContext.stopped();
                     }
                 }
+
+                if (settings.lastSelectedAnkiExportMode !== params.mode) {
+                    onSettingsChanged({ lastSelectedAnkiExportMode: params.mode });
+                }
             } catch (e) {
                 handleError(e);
             } finally {
@@ -377,7 +381,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                 setDisableKeyEvents(false);
             }
         },
-        [anki, miningContext, handleError, t]
+        [anki, miningContext, settings.lastSelectedAnkiExportMode, onSettingsChanged, handleError, t]
     );
 
     // Avoid unnecessary re-renders by having handleCopy operate on a ref to settings
@@ -1177,7 +1181,10 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
         ((loading && !videoFrameRef.current) || (sources.subtitleFiles.length === 0 && !sources.videoFile));
     const appBarHidden = sources.videoFile !== undefined && ((theaterMode && !videoPopOut) || videoFullscreen);
     const effectiveCopyHistoryOpen = copyHistoryOpen && !videoFullscreen;
-
+    const lastSelectedAnkiExportMode =
+        !extension.installed || extension.supportsLastSelectedAnkiExportModeSetting
+            ? settings.lastSelectedAnkiExportMode
+            : undefined;
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
@@ -1219,6 +1226,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                                 card={ankiDialogCard}
                                 anki={anki}
                                 settings={settings}
+                                lastSelectedExportMode={lastSelectedAnkiExportMode}
                                 onCancel={handleAnkiDialogCancel}
                                 onProceed={handleAnkiDialogProceed}
                                 onCopyToClipboard={handleCopyToClipboard}
@@ -1249,6 +1257,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                                 card={ankiDialogCard}
                                 anki={anki}
                                 settings={settings}
+                                lastSelectedExportMode={lastSelectedAnkiExportMode}
                                 onCancel={handleAnkiDialogCancel}
                                 onProceed={handleAnkiDialogProceed}
                                 onOpenSettings={handleOpenSettings}

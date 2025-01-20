@@ -1,7 +1,7 @@
-import React, { MutableRefObject, useCallback, useState, useEffect, useMemo } from 'react';
+import React, { MutableRefObject, useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import makeStyles from '@material-ui/core/styles/makeStyles';
-import { Image, SubtitleModel, CardModel } from '@project/common';
+import { Image, SubtitleModel, CardModel, AnkiExportMode } from '@project/common';
 import { AnkiSettings, Profile, sortedAnkiFieldModels } from '@project/common/settings';
 import {
     humanReadableTime,
@@ -40,6 +40,7 @@ import AudioField from './AudioField';
 import ImageField from './ImageField';
 import ImageDialog from './ImageDialog';
 import MiniProfileSelector from './MiniProfileSelector';
+import { ButtonBaseActions } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -183,6 +184,7 @@ interface AnkiDialogProps {
     profiles?: Profile[];
     activeProfile?: string;
     onSetActiveProfile?: (profile: string | undefined) => void;
+    lastSelectedExportMode?: AnkiExportMode;
 }
 
 const AnkiDialog = ({
@@ -207,6 +209,7 @@ const AnkiDialog = ({
     profiles,
     activeProfile,
     onSetActiveProfile,
+    lastSelectedExportMode,
 }: AnkiDialogProps) => {
     const classes = useStyles();
     const [definition, setDefinition] = useState<string>('');
@@ -599,9 +602,89 @@ const AnkiDialog = ({
         setLastAppliedTimestampIntervalToText(undefined);
     }, []);
 
+    const updateLastButtonActionRef = useRef<ButtonBaseActions>(null);
+    const openInAnkiButtonActionRef = useRef<ButtonBaseActions>(null);
+    const exportButtonActionRef = useRef<ButtonBaseActions>(null);
+    const lastSelectedExportModeRef = useRef<AnkiExportMode>();
+    lastSelectedExportModeRef.current = lastSelectedExportMode;
+
+    const focusOnAction = useCallback(() => {
+        const preferredExportMode = lastSelectedExportModeRef.current;
+
+        if (preferredExportMode === undefined) {
+            return;
+        }
+
+        let actionRef: React.RefObject<ButtonBaseActions | null>;
+
+        switch (preferredExportMode) {
+            case 'default':
+                actionRef = exportButtonActionRef;
+                break;
+            case 'gui':
+                actionRef = openInAnkiButtonActionRef;
+                break;
+            case 'updateLast':
+                actionRef = updateLastButtonActionRef;
+                break;
+        }
+
+        if (!actionRef.current) {
+            const timeout = setTimeout(() => actionRef.current?.focusVisible(), 10);
+            return () => clearTimeout(timeout);
+        }
+
+        actionRef.current.focusVisible();
+    }, []);
+
+    useEffect(() => {
+        if (open && !disabled) {
+            focusOnAction();
+        }
+    }, [open, disabled, focusOnAction]);
+
+    const handleProceed = useCallback(
+        (mode: AnkiExportMode) => {
+            onProceed({
+                text,
+                track1,
+                track2,
+                track3,
+                definition,
+                audioClip,
+                image,
+                word,
+                source,
+                url,
+                customFieldValues,
+                tags,
+                mode,
+            });
+        },
+        [
+            text,
+            track1,
+            track2,
+            track3,
+            definition,
+            audioClip,
+            image,
+            word,
+            source,
+            url,
+            customFieldValues,
+            tags,
+            onProceed,
+        ]
+    );
+
+    const handleOpenInAnki = useCallback(() => handleProceed('gui'), [handleProceed]);
+    const handleUpdateLastCard = useCallback(() => handleProceed('updateLast'), [handleProceed]);
+    const handleExport = useCallback(() => handleProceed('default'), [handleProceed]);
+
     return (
         <>
-            <Dialog open={open} disableEnforceFocus fullWidth maxWidth="sm" onClose={onCancel}>
+            <Dialog open={open} disableRestoreFocus disableEnforceFocus fullWidth maxWidth="sm" onClose={onCancel}>
                 <Toolbar>
                     <Typography variant="h6" className={classes.title}>
                         {t('ankiDialog.title')}
@@ -614,14 +697,14 @@ const AnkiDialog = ({
                         />
                     )}
                     {onOpenSettings && (
-                        <IconButton edge="end" onClick={() => onOpenSettings()}>
+                        <IconButton edge="end" onClick={onOpenSettings}>
                             <Badge invisible={ankiIsAvailable} badgeContent={'!'} color="error">
                                 <SettingsIcon />
                             </Badge>
                         </IconButton>
                     )}
                     {onCancel && (
-                        <IconButton edge="end" onClick={() => onCancel()}>
+                        <IconButton edge="end" onClick={onCancel}>
                             <CloseIcon />
                         </IconButton>
                     )}
@@ -822,70 +905,13 @@ const AnkiDialog = ({
                     </form>
                 </DialogContent>
                 <DialogActions>
-                    <Button
-                        disabled={disabled}
-                        onClick={() =>
-                            onProceed({
-                                text,
-                                track1,
-                                track2,
-                                track3,
-                                definition,
-                                audioClip,
-                                image,
-                                word,
-                                source,
-                                url,
-                                customFieldValues,
-                                tags,
-                                mode: 'gui',
-                            })
-                        }
-                    >
+                    <Button action={openInAnkiButtonActionRef} disabled={disabled} onClick={handleOpenInAnki}>
                         {t('ankiDialog.openInAnki')}
                     </Button>
-                    <Button
-                        disabled={disabled}
-                        onClick={() =>
-                            onProceed({
-                                text,
-                                track1,
-                                track2,
-                                track3,
-                                definition,
-                                audioClip,
-                                image,
-                                word,
-                                source,
-                                url,
-                                customFieldValues,
-                                tags,
-                                mode: 'updateLast',
-                            })
-                        }
-                    >
+                    <Button action={updateLastButtonActionRef} disabled={disabled} onClick={handleUpdateLastCard}>
                         {t('ankiDialog.updateLastCard')}
                     </Button>
-                    <Button
-                        disabled={disabled}
-                        onClick={() =>
-                            onProceed({
-                                text,
-                                track1,
-                                track2,
-                                track3,
-                                definition,
-                                audioClip,
-                                image,
-                                word,
-                                source,
-                                url,
-                                customFieldValues,
-                                tags,
-                                mode: 'default',
-                            })
-                        }
-                    >
+                    <Button action={exportButtonActionRef} disabled={disabled} onClick={handleExport}>
                         {t('ankiDialog.export')}
                     </Button>
                 </DialogActions>

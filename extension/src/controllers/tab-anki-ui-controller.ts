@@ -8,6 +8,7 @@ import {
     AnkiDialogSettingsMessage,
     ActiveProfileMessage,
     SettingsUpdatedMessage,
+    AnkiUiBridgeExportedMessage,
 } from '@project/common';
 import { AnkiSettings, SettingsProvider, ankiSettingsKeys } from '@project/common/settings';
 import { sourceString } from '@project/common/util';
@@ -51,8 +52,9 @@ export class TabAnkiUiController {
 
     async show(card: CardModel) {
         const { language, ...ankiDialogSettings } = await this._settings.get([
-            'themeType',
             'language',
+            'themeType',
+            'lastSelectedAnkiExportMode',
             ...ankiSettingsKeys,
         ]);
         const profilesPromise = this._settings.profiles();
@@ -73,7 +75,11 @@ export class TabAnkiUiController {
     }
 
     async updateSettings() {
-        const ankiDialogSettings = await this._settings.get(['themeType', ...ankiSettingsKeys]);
+        const ankiDialogSettings = await this._settings.get([
+            'themeType',
+            'lastSelectedAnkiExportMode',
+            ...ankiSettingsKeys,
+        ]);
 
         if (this._frame.bound) {
             this._frame.client().then(async (client) => {
@@ -138,6 +144,18 @@ export class TabAnkiUiController {
                     case 'activeProfile':
                         const activeProfileMessage = message as ActiveProfileMessage;
                         this._settings.setActiveProfile(activeProfileMessage.profile).then(() => {
+                            const settingsUpdatedCommand: TabToExtensionCommand<SettingsUpdatedMessage> = {
+                                sender: 'asbplayer-video-tab',
+                                message: {
+                                    command: 'settings-updated',
+                                },
+                            };
+                            chrome.runtime.sendMessage(settingsUpdatedCommand);
+                        });
+                        return;
+                    case 'exported':
+                        const exportedMessage = message as AnkiUiBridgeExportedMessage;
+                        this._settings.set({ lastSelectedAnkiExportMode: exportedMessage.mode }).then(() => {
                             const settingsUpdatedCommand: TabToExtensionCommand<SettingsUpdatedMessage> = {
                                 sender: 'asbplayer-video-tab',
                                 message: {

@@ -1,5 +1,5 @@
 import { AudioClip } from '@project/common/audio-clip';
-import { CardModel, Image } from '@project/common';
+import { AnkiExportMode, CardModel, Image } from '@project/common';
 import { HttpFetcher, Fetcher } from '@project/common';
 import { AnkiSettings, AnkiSettingsFieldKey } from '@project/common/settings';
 import sanitize from 'sanitize-filename';
@@ -94,8 +94,6 @@ export const inheritHtmlMarkup = (original: string, markedUp: string) => {
 
     return inherited;
 };
-
-export type AnkiExportMode = 'gui' | 'updateLast' | 'default';
 
 export interface ExportParams {
     text: string | undefined;

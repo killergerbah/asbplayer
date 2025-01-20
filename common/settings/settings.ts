@@ -1,4 +1,4 @@
-import { AutoPausePreference, PostMineAction, PostMinePlayback } from '../src/model';
+import { AnkiExportMode, AutoPausePreference, PostMineAction, PostMinePlayback } from '../src/model';
 
 export enum PauseOnHoverMode {
     disabled = 0,
@@ -24,6 +24,7 @@ export interface MiscSettings {
     readonly clickToMineDefaultAction: PostMineAction;
     readonly postMiningPlaybackState: PostMinePlayback;
     readonly lastSubtitleOffset: number;
+    readonly lastSelectedAnkiExportMode: AnkiExportMode;
     readonly tabName: string;
     readonly pauseOnHoverMode: PauseOnHoverMode;
 }

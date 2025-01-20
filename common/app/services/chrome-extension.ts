@@ -125,6 +125,10 @@ export default class ChromeExtension {
         window.addEventListener('message', this.windowEventListener);
     }
 
+    get supportsLastSelectedAnkiExportModeSetting() {
+        return this.installed && gte(this.version, '1.9.0');
+    }
+
     get supportsCopyHistoryRequest() {
         return this.installed && gte(this.version, '1.7.0');
     }

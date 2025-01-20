@@ -393,6 +393,9 @@ const settingsSchema = {
         pauseOnHoverMode: {
             type: 'number',
         },
+        lastSelectedAnkiExportMode: {
+            type: 'string',
+        },
         _schema: {
             type: 'number',
         },

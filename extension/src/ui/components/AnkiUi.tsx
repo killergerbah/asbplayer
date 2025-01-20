@@ -18,6 +18,7 @@ import {
     AnkiDialogSettingsMessage,
     ActiveProfileMessage,
     AnkiDialogSettings,
+    AnkiUiBridgeExportedMessage,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import type { Profile } from '@project/common/settings';
@@ -159,6 +160,12 @@ export default function AnkiUi({ bridge }: Props) {
 
             try {
                 await anki!.export(params);
+
+                const message: AnkiUiBridgeExportedMessage = {
+                    command: 'exported',
+                    mode: params.mode,
+                };
+                bridge.sendMessageFromServer(message);
 
                 if (params.mode !== 'gui') {
                     setOpen(false);
@@ -351,6 +358,7 @@ export default function AnkiUi({ bridge }: Props) {
                     lastAppliedTimestampIntervalToAudio={lastAppliedTimestampIntervalToAudio}
                     stateRef={dialogStateRef}
                     mp3Encoder={mp3Encoder}
+                    lastSelectedExportMode={settings.lastSelectedAnkiExportMode}
                 />
             )}
         </ThemeProvider>

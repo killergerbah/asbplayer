@@ -13,6 +13,7 @@ import {
     VideoTabModel,
     CopyHistoryItem,
     AnkiDialogSettings,
+    AnkiExportMode,
 } from './model';
 import { AsbPlayerToVideoCommandV2 } from './command';
 
@@ -439,6 +440,11 @@ export interface AnkiUiBridgeRerecordMessage extends Message {
     readonly uiState: AnkiUiSavedState;
     readonly recordStart: number;
     readonly recordEnd: number;
+}
+
+export interface AnkiUiBridgeExportedMessage extends Message {
+    readonly command: 'exported';
+    readonly mode: AnkiExportMode;
 }
 
 export interface VideoDataUiBridgeConfirmMessage extends Message {

@@ -908,7 +908,11 @@ export default class Binding {
 
         this.videoDataSyncController.updateSettings(currentSettings);
         this.ankiUiController.updateSettings(
-            { ...extractAnkiSettings(currentSettings), themeType: currentSettings.themeType },
+            {
+                ...extractAnkiSettings(currentSettings),
+                themeType: currentSettings.themeType,
+                lastSelectedAnkiExportMode: currentSettings.lastSelectedAnkiExportMode,
+            },
             this.settings
         );
         this.postMinePlayback = currentSettings.postMiningPlaybackState;

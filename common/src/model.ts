@@ -88,8 +88,11 @@ export interface AudioModel {
     readonly error?: AudioErrorCode;
 }
 
+export type AnkiExportMode = 'gui' | 'updateLast' | 'default';
+
 export interface AnkiDialogSettings extends AnkiSettings {
     themeType: string;
+    lastSelectedAnkiExportMode: AnkiExportMode;
 }
 
 export interface AnkiUiState extends CardTextFieldValues {
