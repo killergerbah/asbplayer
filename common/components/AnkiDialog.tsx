@@ -602,7 +602,8 @@ const AnkiDialog = ({
     const handleTrack3TextChange = useCallback((text: string) => {
         setTrack3(text);
         setLastAppliedTimestampIntervalToText(undefined);
-    }, []);    
+    }, []);   
+     
     const updateLastButtonRef = useRef<HTMLButtonElement>(null);
     const openInAnkiButtonRef = useRef<HTMLButtonElement>(null);
     const exportButtonRef = useRef<HTMLButtonElement>(null);
