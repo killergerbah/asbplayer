@@ -62,7 +62,10 @@ DanglingSabSuu,
 [@festivity9139](https://github.com/festivity9139),
 Phos,
 AstralDice,
-[@east825](https://github.com/east825)
+[@east825](https://github.com/east825),
+[@Astr0ddity](https://github.com/Astr0ddity),
+[@NirDafnai](https://github.com/NirDafnai),
+[@henryfl](https://github.com/henryfl)
 
 and to those who have donated privately.
 
