@@ -1184,7 +1184,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
     const lastSelectedAnkiExportMode =
         !extension.installed || extension.supportsLastSelectedAnkiExportModeSetting
             ? settings.lastSelectedAnkiExportMode
-            : undefined;
+            : 'default';
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
