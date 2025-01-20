@@ -42,6 +42,12 @@ interface Props {
     onScrollTo: (controlType: ControlType) => void;
 }
 
+enum InitialScrollState {
+    notStarted = 0,
+    started = 1,
+    ended = 2,
+}
+
 const ScrollableNumberControls = ({
     currentMilliseconds,
     totalMilliseconds,
@@ -57,10 +63,12 @@ const ScrollableNumberControls = ({
     const classes = useStyles();
     const [controlType, setControlType] = useState<ControlType>(ControlType.timeDisplay);
     const lastScrollTop = useRef<number>(0);
-    const [initialScroll, setInitialScroll] = useState<boolean>(false);
+    const [initialScroll, setInitialScroll] = useState<InitialScrollState>(InitialScrollState.notStarted);
     const containerRef = useRef<HTMLDivElement>();
     const programmaticallyScrollingTimeoutRef = useRef<NodeJS.Timeout>();
     const controlTypeRef = useRef<number>(controlType);
+    const onScrollToRef = useRef<(controlType: ControlType) => void>();
+    onScrollToRef.current = onScrollTo;
     controlTypeRef.current = controlType;
 
     const handleScroll = useCallback(
@@ -71,14 +79,14 @@ const ScrollableNumberControls = ({
                 ? Math.ceil(Math.floor(currentScrollTop) / containerHeight)
                 : Math.floor(currentScrollTop / containerHeight);
 
-            if (newControlType !== controlType) {
+            if (initialScroll === InitialScrollState.ended && newControlType !== controlType) {
                 onScrollTo(newControlType);
                 setControlType(newControlType);
             }
 
             lastScrollTop.current = currentScrollTop;
         },
-        [onScrollTo, controlType]
+        [onScrollTo, initialScroll, controlType]
     );
 
     const handleWheel = useCallback((e: WheelEvent) => {
@@ -121,24 +129,46 @@ const ScrollableNumberControls = ({
 
     const handleDivRef = useCallback(
         (div: HTMLDivElement) => {
-            if (initialScroll) {
+            if (initialScroll > InitialScrollState.notStarted) {
                 return;
             }
 
             if (div) {
                 if (initialControlType === undefined) {
-                    setInitialScroll(true);
+                    setInitialScroll(InitialScrollState.ended);
                 } else {
                     setTimeout(() => {
                         div.scrollTop = containerHeight * 2;
+                        const transitionThroughScroll = (top: number, destinationControlType: ControlType) => {
+                            div.scroll({ top, behavior: 'smooth' });
+                            div.addEventListener('scrollend', (e: Event) => {
+                                if ((e.currentTarget as HTMLDivElement)?.scrollTop >= containerHeight * 2) {
+                                    // This is a result of the initial scrollTop = containerHeight * 2
+                                    // to begin  the initial scroll - do not transition yet
+                                    return;
+                                }
+
+                                // We can transition now that we are actually coming out of the initial scroll
+                                setInitialScroll((s) => {
+                                    if (s === InitialScrollState.started) {
+                                        onScrollToRef.current?.(destinationControlType);
+                                        setControlType(destinationControlType);
+                                        return InitialScrollState.ended;
+                                    }
+
+                                    return s;
+                                });
+                            });
+                            setInitialScroll(InitialScrollState.started);
+                        };
 
                         if (initialControlType === 1) {
-                            div.scroll({ top: containerHeight + 1, behavior: 'smooth' });
+                            transitionThroughScroll(containerHeight + 1, initialControlType);
                         } else if (initialControlType === 0) {
-                            div.scroll({ top: 0, behavior: 'smooth' });
+                            transitionThroughScroll(0, initialControlType);
+                        } else {
+                            setInitialScroll(InitialScrollState.ended);
                         }
-
-                        setInitialScroll(true);
                     }, 0);
                 }
 
