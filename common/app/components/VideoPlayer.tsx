@@ -54,6 +54,7 @@ import { useFullscreen } from '../hooks/use-fullscreen';
 import MobileVideoOverlay from '@project/common/components/MobileVideoOverlay';
 import { CachedLocalStorage } from '../services/cached-local-storage';
 import useLastScrollableControlType from '../../hooks/use-last-scrollable-control-type';
+import { useDoubleTouch } from '../hooks/use-double-touch';
 
 const overlayContainerHeight = 48;
 
@@ -1488,6 +1489,24 @@ export default function VideoPlayer({
         onSwipe: handleSwipe,
         distance: 50,
         ms: 500,
+    });
+
+    const handleDoubleTouch = useCallback(
+        (section: 'left' | 'right') => {
+            const timestamp = clock.time(length);
+
+            if (section === 'right') {
+                playerChannel.currentTime(Math.min(length / 1000, (timestamp + 10000) / 1000));
+            } else {
+                playerChannel.currentTime(Math.max(0, (timestamp - 10000) / 1000));
+            }
+        },
+        [clock, playerChannel, length]
+    );
+
+    useDoubleTouch({
+        onDoubleTouch: handleDoubleTouch,
+        rect: document.body.getBoundingClientRect(),
     });
 
     const isPausedDueToHoverRef = useRef<boolean>();
