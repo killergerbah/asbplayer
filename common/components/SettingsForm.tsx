@@ -809,6 +809,7 @@ export default function SettingsForm({
         keyBindSet,
         clickToMineDefaultAction,
         postMiningPlaybackState,
+        recordWithAudioPlayback,
         preferMp3,
         miningHistoryStorageLimit,
         preCacheSubtitleDom,
@@ -1526,6 +1527,17 @@ export default function SettingsForm({
                     />
                 </RadioGroup>
                 <FormGroup className={classes.formGroup}>
+                <LabelWithHoverEffect
+                        control={
+                            <Switch
+                                checked={recordWithAudioPlayback}
+                                onChange={(event) => handleSettingChanged('recordWithAudioPlayback', event.target.checked)}
+                            />
+                        }
+                        label={t('settings.recordWithAudioPlayback')}
+                        labelPlacement="start"
+                        className={classes.switchLabel}
+                    />
                     <LabelWithHoverEffect
                         control={
                             <Switch

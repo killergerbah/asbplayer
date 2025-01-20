@@ -352,7 +352,7 @@ const AnkiDialog = ({
     ]);
 
     const initialAudioClip = useMemo(
-        () => AudioClip.fromCard(card, settings.audioPaddingStart, settings.audioPaddingEnd, false),
+        () => AudioClip.fromCard(card, settings.audioPaddingStart, settings.audioPaddingEnd, settings.recordWithAudioPlayback),
         [card, settings.audioPaddingStart, settings.audioPaddingEnd]
     );
 
@@ -603,7 +603,7 @@ const AnkiDialog = ({
         setTrack3(text);
         setLastAppliedTimestampIntervalToText(undefined);
     }, []);
-
+    
     const updateLastButtonRef = useRef<HTMLButtonElement>(null);
     const openInAnkiButtonRef = useRef<HTMLButtonElement>(null);
     const exportButtonRef = useRef<HTMLButtonElement>(null);
@@ -938,7 +938,7 @@ const AnkiDialog = ({
                     </form>
                 </DialogContent>
                 <DialogActions>
-                    <Button
+                <Button
                         ref={openInAnkiButtonRef}
                         action={openInAnkiButtonActionRef}
                         disabled={disabled}

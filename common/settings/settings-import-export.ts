@@ -262,6 +262,9 @@ const settingsSchema = {
                 toggleRepeat: { $ref: '/KeyBind' },
             },
         },
+        recordWithAudioPlayback: {
+            type: 'boolean',
+        },
         preferMp3: {
             type: 'boolean',
         },
