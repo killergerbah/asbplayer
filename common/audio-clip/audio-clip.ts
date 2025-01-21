@@ -299,15 +299,10 @@ class FileAudioClipper {
                         source.connect(destination);
                     }
 
-                    // Some users are on browsers where `play` does not return a Promise
-                    const promise = audio.play() as Promise<void> | undefined;
+                    await audio.play();
 
                     if (audible) {
-                        if (promise) {
-                            promise.then(() => invokeCallbacks('play', this._callbacks));
-                        } else {
-                            invokeCallbacks('play', this._callbacks);
-                        }
+                        invokeCallbacks('play', this._callbacks);
                     }
 
                     const stream = this._captureStream(audio);
