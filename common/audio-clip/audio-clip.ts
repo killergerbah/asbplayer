@@ -291,6 +291,8 @@ class FileAudioClipper {
             try {
                 const audio = await this._audioElement(this._file.blobUrl, true);
                 audio.oncanplay = async (e) => {
+                    audio.oncanplay = null;
+
                     if (!audible) {
                         // Direct audio to destination other than speakers
                         const audioContext = new AudioContext();
@@ -337,7 +339,6 @@ class FileAudioClipper {
                             track.stop();
                         }
                     }, (this._end - this._start) / this._playbackRate + 100);
-                    audio.oncanplay = null;
                 };
             } catch (e) {
                 reject(e);
