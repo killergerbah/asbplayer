@@ -299,11 +299,16 @@ class FileAudioClipper {
                         source.connect(destination);
                     }
 
-                    audio.play().then(() => {
-                        if (audible) {
+                    // Some users are on browsers where `play` does not return a Promise
+                    const promise = audio.play() as Promise<void> | undefined;
+
+                    if (audible) {
+                        if (promise) {
+                            promise.then(() => invokeCallbacks('play', this._callbacks));
+                        } else {
                             invokeCallbacks('play', this._callbacks);
                         }
-                    });
+                    }
 
                     const stream = this._captureStream(audio);
                     const recorder = new MediaRecorder(stream, { mimeType: this._recorderMimeType });
