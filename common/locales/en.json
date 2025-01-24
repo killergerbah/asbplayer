@@ -310,7 +310,7 @@
         "preCacheSubtitleDom": "Pre-cache Subtitle DOM",
         "preCacheSubtitleDomHelperText": "If enabled, asbplayer will pre-render subtitle text elements in an offscreen element, and re-use those elements for subtitle display. This allows external code to persistently modify subtitle text before it is displayed.",
         "recordingBind": "Recording",
-        "recordWithAudioPlayback": "Record with audio playback",
+        "recordWithAudioPlayback": "Play audio while recording from local video",
         "rememberSubtitleOffset": "Remember subtitle offset",
         "sentenceField": "Sentence Field (all tracks)",
         "streamingVideo": "Streaming Video",

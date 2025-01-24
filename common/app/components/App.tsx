@@ -426,7 +426,7 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                         newCard,
                         settingsRef.current.audioPaddingStart,
                         settingsRef.current.audioPaddingEnd,
-                        true
+                        settings.recordWithAudioPlayback
                     );
 
                     if (audioClip && settingsRef.current.preferMp3) {
