@@ -1527,11 +1527,13 @@ export default function SettingsForm({
                     />
                 </RadioGroup>
                 <FormGroup className={classes.formGroup}>
-                <LabelWithHoverEffect
+                    <LabelWithHoverEffect
                         control={
                             <Switch
                                 checked={recordWithAudioPlayback}
-                                onChange={(event) => handleSettingChanged('recordWithAudioPlayback', event.target.checked)}
+                                onChange={(event) =>
+                                    handleSettingChanged('recordWithAudioPlayback', event.target.checked)
+                                }
                             />
                         }
                         label={t('settings.recordWithAudioPlayback')}

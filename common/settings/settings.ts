@@ -57,7 +57,7 @@ export interface AnkiSettings {
     readonly track3Field: string;
     readonly customAnkiFields: { [key: string]: string };
     readonly tags: string[];
-    readonly recordWithAudioPlayback: boolean,
+    readonly recordWithAudioPlayback: boolean;
     readonly preferMp3: boolean;
     readonly audioPaddingStart: number;
     readonly audioPaddingEnd: number;
