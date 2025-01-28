@@ -406,7 +406,7 @@ Chrome does not allow other extension scripts to be injected into extension UI, 
 
 ### asbplayer isn't including audio/screenshot in flashcards.
 
--   If you're mining streaming video via the Chrome extension, make sure that the streaming video tab is selected and in the foreground when you use a mining keyboard shortcut
+If you're mining streaming video via the Chrome extension, make sure that the streaming video tab is selected and in the foreground when you use a mining keyboard shortcut
 
 ### asbplayer isn't properly cropping screenshots from streaming video.
 
