@@ -324,10 +324,11 @@ setTimeout(() => {
         },
     });
 
-    document.addEventListener('asbplayer-query-netflix', () => {
+    document.addEventListener('asbplayer-query-netflix', async () => {
+        const apiAvailable = await poll(() => getVideoPlayer() !== undefined, 10000);
         document.dispatchEvent(
             new CustomEvent('asbplayer-netflix-enabled', {
-                detail: getVideoPlayer() !== undefined,
+                detail: apiAvailable,
             })
         );
     });
