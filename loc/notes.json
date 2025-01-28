@@ -238,6 +238,7 @@
         "settings.preCacheSubtitleDom": "Label for setting that determines whether to pre-cache subtitle DOM.",
         "settings.preCacheSubtitleDomHelperText": "Helper text explaining what the 'pre-cache subtitle DOM' setting does.",
         "settings.recordingBind": "Text that is shown when the user is defining a new keyboard shortcut, and asbplayer is \"recording\" the key presses of the user.",
+        "settings.recordWithAudioPlayback": "When recording audio, should there be audio playback. If this setting is disabled, audio recording will be silent.",
         "settings.rememberSubtitleOffset": "If this setting is enabled, the currently-applied subtitle offset will be retained even if a new subtitle file is loaded.",
         "settings.sentenceField": "The field of the Anki card that will be populated with the sentence, or subtitle.",
         "settings.sourceField": "The field of the Anki card that will be populated with the \"source\" of the sentence. This is usually the subtitle file, but could be the video name, or an arbitrary string provided by the user.",

@@ -105,6 +105,7 @@ it('validates exported settings', () => {
             toggleVideoSubtitleTrack2: { keys: '2' },
             updateLastCard: { keys: '⇧+⌃+U' },
         },
+        recordWithAudioPlayback: true,
         preferMp3: true,
         tabName: 'asbplayer',
         miningHistoryStorageLimit: 25,

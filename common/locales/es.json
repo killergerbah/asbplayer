@@ -310,6 +310,7 @@
         "preCacheSubtitleDom": "Precargar DOM de Subtítulos",
         "preCacheSubtitleDomHelperText": "Si está activado, asbplayer renderizará los elementos de texto del subtítulo en un elemento fuera de pantalla, y reusará estos elementos para mostrar los subtítulos. Esto permite a código externo modifique persistentemente el texto del subtítulo antes de que se muestre.",
         "recordingBind": "Grabando",
+        "recordWithAudioPlayback": "Grabar con reproducción de audio",
         "rememberSubtitleOffset": "Recordar offset de subtítulos",
         "sentenceField": "Campo de Oración",
         "streamingVideo": "Streaming de Video",

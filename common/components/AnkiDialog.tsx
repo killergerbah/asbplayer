@@ -352,8 +352,14 @@ const AnkiDialog = ({
     ]);
 
     const initialAudioClip = useMemo(
-        () => AudioClip.fromCard(card, settings.audioPaddingStart, settings.audioPaddingEnd, false),
-        [card, settings.audioPaddingStart, settings.audioPaddingEnd]
+        () =>
+            AudioClip.fromCard(
+                card,
+                settings.audioPaddingStart,
+                settings.audioPaddingEnd,
+                settings.recordWithAudioPlayback
+            ),
+        [card, settings.audioPaddingStart, settings.audioPaddingEnd, settings.recordWithAudioPlayback]
     );
 
     useEffect(() => {

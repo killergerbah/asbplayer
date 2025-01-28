@@ -108,6 +108,7 @@ export const defaultSettings: AsbplayerSettings = {
         toggleSidePanel: { keys: '`' },
         toggleRepeat: { keys: isMacOs ? '⇧+R' : 'shift+R' },
     },
+    recordWithAudioPlayback: true,
     preferMp3: true,
     tabName: 'asbplayer',
     miningHistoryStorageLimit: 25,

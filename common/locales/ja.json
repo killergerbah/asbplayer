@@ -310,6 +310,7 @@
         "preCacheSubtitleDom": "字幕DOMをキャッシュ",
         "preCacheSubtitleDomHelperText": "この設定をオンにすると、asbplayer は隠れたDOM要素に字幕をレンダリングし、字幕が表示される際には既存の要素を再利用します。そのため、字幕のテキストは外部のコードによって永続的に変更可能となります。",
         "recordingBind": "記録中",
+        "recordWithAudioPlayback": "オーディオ再生しながら録音",
         "rememberSubtitleOffset": "字幕の表示タイミングを記憶する",
         "sentenceField": "文（全トラックを含む）",
         "streamingVideo": "ストリーミングビデオ",
