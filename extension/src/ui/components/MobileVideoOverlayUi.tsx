@@ -19,7 +19,7 @@ import { SettingsProvider } from '@project/common/settings';
 import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
 import MobileVideoOverlay from '@project/common/components/MobileVideoOverlay';
 import { useI18n } from '../hooks/use-i18n';
-import { isMobile } from '../../services/device-detection';
+import { isMobile } from '@project/common/device-detection/mobile';
 import useLastScrollableControlType from '@project/common/hooks/use-last-scrollable-control-type';
 
 const settings = new SettingsProvider(new ExtensionSettingsStorage());

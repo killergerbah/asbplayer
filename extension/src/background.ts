@@ -52,7 +52,7 @@ import { CaptureStreamAudioRecorder, OffscreenAudioRecorder } from './services/a
 import RequestModelHandler from './handlers/mobile-overlay/request-model-handler';
 import CurrentTabHandler from './handlers/mobile-overlay/current-tab-handler';
 import UpdateMobileOverlayModelHandler from './handlers/video/update-mobile-overlay-model-handler';
-import { isMobile } from './services/device-detection';
+import { isMobile } from '@project/common/device-detection/mobile';
 import { enqueueUpdateAlert } from './services/update-alert';
 import RequestSubtitlesHandler from './handlers/asbplayerv2/request-subtitles-handler';
 import MobileOverlayForwarderHandler from './handlers/mobile-overlay/mobile-overlay-forwarder-handler';

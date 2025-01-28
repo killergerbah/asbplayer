@@ -17,6 +17,9 @@ import { fetchLocalization } from '../services/localization-fetcher';
 import { Mp3Encoder } from '@project/common/audio-clip';
 import { base64ToBlob, blobToBase64 } from '@project/common/base64';
 import { mp3WorkerFactory } from '../services/mp3-worker-factory';
+import { ExtensionGlobalStateProvider } from '../services/extension-global-state-provider';
+
+const globalStateProvider = new ExtensionGlobalStateProvider();
 
 // We need to write the HTML into the iframe manually so that the iframe keeps it's about:blank URL.
 // Otherwise, Chrome won't insert content scripts into the iframe (e.g. Yomichan won't work).
@@ -59,6 +62,7 @@ export class TabAnkiUiController {
         ]);
         const profilesPromise = this._settings.profiles();
         const activeProfilePromise = this._settings.activeProfile();
+        const globalStatePromise = globalStateProvider.getAll();
         const client = await this._client(language, ankiDialogSettings);
         const state: AnkiUiInitialState = {
             type: 'initial',
@@ -70,6 +74,7 @@ export class TabAnkiUiController {
             ...card,
             profiles: await profilesPromise,
             activeProfile: (await activeProfilePromise)?.name,
+            ftueHasSeenAnkiDialogQuickSelect: (await globalStatePromise).ftueHasSeenAnkiDialogQuickSelect,
         };
         client.updateState(state);
     }
@@ -152,6 +157,9 @@ export class TabAnkiUiController {
                             };
                             chrome.runtime.sendMessage(settingsUpdatedCommand);
                         });
+                        return;
+                    case 'dismissedQuickSelectFtue':
+                        globalStateProvider.set({ ftueHasSeenAnkiDialogQuickSelect: true }).catch(console.error);
                         return;
                     case 'exported':
                         const exportedMessage = message as AnkiUiBridgeExportedMessage;

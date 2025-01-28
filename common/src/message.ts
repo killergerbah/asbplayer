@@ -1,4 +1,5 @@
-import { AnkiSettings, AsbplayerSettings, MiscSettings, SubtitleSettings } from '../settings/settings';
+import type { AnkiSettings, AsbplayerSettings, MiscSettings, SubtitleSettings } from '../settings/settings';
+import type { GlobalState } from '../global-state';
 import {
     RectModel,
     SubtitleModel,
@@ -419,6 +420,10 @@ export interface ActiveProfileMessage extends Message {
     readonly profile?: string;
 }
 
+export interface AnkiDialogDismissedQuickSelectFtueMessage extends Message {
+    readonly command: 'dismissedQuickSelectFtue';
+}
+
 export interface MiscSettingsToVideoMessage extends Message {
     readonly command: 'miscSettings';
     readonly value: MiscSettings;
@@ -627,6 +632,16 @@ export interface AddProfileMessage extends MessageWithId {
 export interface RemoveProfileMessage extends MessageWithId {
     readonly command: 'remove-profile';
     readonly name: string;
+}
+
+export interface GetGlobalStateMessage extends MessageWithId {
+    readonly command: 'get-global-state';
+    readonly keys?: (keyof GlobalState)[];
+}
+
+export interface SetGlobalStateMessage extends MessageWithId {
+    readonly command: 'set-global-state';
+    readonly state: Partial<GlobalState>;
 }
 
 export interface ForwardCommandMessage extends Message {

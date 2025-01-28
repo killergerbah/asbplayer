@@ -41,6 +41,10 @@ import ImageField from './ImageField';
 import ImageDialog from './ImageDialog';
 import MiniProfileSelector from './MiniProfileSelector';
 import type { ButtonBaseActions } from '@material-ui/core';
+import Alert from '@material-ui/lab/Alert';
+import { isMacOs } from '../device-detection/mac';
+
+const quickSelectShortcut = isMacOs ? '⌘+⇧' : 'Alt+Shift';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -185,6 +189,8 @@ interface AnkiDialogProps {
     activeProfile?: string;
     onSetActiveProfile?: (profile: string | undefined) => void;
     lastSelectedExportMode?: AnkiExportMode;
+    showQuickSelectFtue?: boolean;
+    onDismissShowQuickSelectFtue?: () => void;
 }
 
 const AnkiDialog = ({
@@ -210,6 +216,8 @@ const AnkiDialog = ({
     activeProfile,
     onSetActiveProfile,
     lastSelectedExportMode,
+    showQuickSelectFtue,
+    onDismissShowQuickSelectFtue,
 }: AnkiDialogProps) => {
     const classes = useStyles();
     const [definition, setDefinition] = useState<string>('');
@@ -942,6 +950,18 @@ const AnkiDialog = ({
                             </Grid>
                         )}
                     </form>
+                    {showQuickSelectFtue && lastSelectedExportMode !== undefined && (
+                        <Alert
+                            severity="info"
+                            action={
+                                <Button onClick={onDismissShowQuickSelectFtue} size="small">
+                                    {t('action.ok')}
+                                </Button>
+                            }
+                        >
+                            {t('ankiDialog.quickSelectFtue', { shortcut: quickSelectShortcut })}
+                        </Alert>
+                    )}
                 </DialogContent>
                 <DialogActions>
                     <Button

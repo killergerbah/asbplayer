@@ -27,8 +27,11 @@ import {
     CopyHistoryItem,
     SaveCopyHistoryMessage,
     ClearCopyHistoryMessage,
+    SetGlobalStateMessage,
+    GetGlobalStateMessage,
 } from '@project/common';
 import { AsbplayerSettings, Profile } from '@project/common/settings';
+import { GlobalState } from '@project/common/global-state';
 import { v4 as uuidv4 } from 'uuid';
 import gte from 'semver/functions/gte';
 import gt from 'semver/functions/gt';
@@ -123,6 +126,10 @@ export default class ChromeExtension {
         };
 
         window.addEventListener('message', this.windowEventListener);
+    }
+
+    get supportsGlobalState() {
+        return this.installed && gte(this.version, '1.9.0');
     }
 
     get supportsLastSelectedAnkiExportModeSetting() {
@@ -403,6 +410,47 @@ export default class ChromeExtension {
         };
         window.postMessage(command);
         return this._createResponsePromise(messageId).then(() => this.notifySettingsUpdated());
+    }
+
+    getGlobalState(): Promise<GlobalState> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<GetGlobalStateMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'get-global-state',
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId);
+    }
+
+    getSomeGlobalState<K extends keyof GlobalState>(keys: K[]): Promise<Pick<GlobalState, K>> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<GetGlobalStateMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'get-global-state',
+                keys,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId);
+    }
+
+    setGlobalState(state: Partial<GlobalState>): Promise<void> {
+        const messageId = uuidv4();
+        const command: AsbPlayerCommand<SetGlobalStateMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'set-global-state',
+                state,
+                messageId,
+            },
+        };
+        window.postMessage(command);
+        return this._createResponsePromise(messageId);
     }
 
     activeSettingsProfile(): Promise<Profile | undefined> {

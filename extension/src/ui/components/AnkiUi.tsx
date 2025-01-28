@@ -19,6 +19,7 @@ import {
     ActiveProfileMessage,
     AnkiDialogSettings,
     AnkiUiBridgeExportedMessage,
+    AnkiDialogDismissedQuickSelectFtueMessage,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import type { Profile } from '@project/common/settings';
@@ -34,6 +35,8 @@ import { BridgeFetcher } from '../bridge-fetcher';
 import { Anki, ExportParams } from '@project/common/anki';
 import { v4 as uuidv4 } from 'uuid';
 import { base64ToBlob, blobToBase64 } from '@project/common/base64';
+import { GlobalState } from '@project/common/global-state';
+import { isMobile } from '@project/common/device-detection/mobile';
 
 interface Props {
     bridge: Bridge;
@@ -77,6 +80,7 @@ export default function AnkiUi({ bridge }: Props) {
     const [dialogRequestedTimestamp, setDialogRequestedTimestamp] = useState<number>(0);
     const [profiles, setProfiles] = useState<Profile[]>();
     const [activeProfile, setActiveProfile] = useState<string>();
+    const [globalState, setGlobalState] = useState<GlobalState>();
 
     const theme = useMemo(() => createTheme((settings?.themeType ?? 'dark') as PaletteType), [settings?.themeType]);
     const anki = useMemo(
@@ -232,6 +236,13 @@ export default function AnkiUi({ bridge }: Props) {
         [bridge]
     );
 
+    const handleDismissShowQuickSelectFtue = useCallback(() => {
+        const message: AnkiDialogDismissedQuickSelectFtueMessage = {
+            command: 'dismissedQuickSelectFtue',
+        };
+        bridge.sendMessageFromServer(message);
+    }, [bridge]);
+
     const lastFocusOutRef = useRef<HTMLElement>();
 
     const handleFocusOut = useCallback((event: FocusEvent) => {
@@ -322,6 +333,8 @@ export default function AnkiUi({ bridge }: Props) {
         [bridge]
     );
 
+    const showAnkiDialogQuickSelectFtue = !isMobile && globalState?.ftueHasSeenAnkiDialogQuickSelect === false;
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
@@ -356,6 +369,8 @@ export default function AnkiUi({ bridge }: Props) {
                     timestampInterval={timestampInterval}
                     lastAppliedTimestampIntervalToText={lastAppliedTimestampIntervalToText}
                     lastAppliedTimestampIntervalToAudio={lastAppliedTimestampIntervalToAudio}
+                    showQuickSelectFtue={showAnkiDialogQuickSelectFtue}
+                    onDismissShowQuickSelectFtue={handleDismissShowQuickSelectFtue}
                     stateRef={dialogStateRef}
                     mp3Encoder={mp3Encoder}
                     lastSelectedExportMode={settings.lastSelectedAnkiExportMode}

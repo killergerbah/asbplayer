@@ -5,18 +5,21 @@ import App from './App';
 import { AppSettingsStorage } from '../services/app-settings-storage';
 import { useSettingsProfileContext } from '../../hooks/use-settings-profile-context';
 import ChromeExtension from '../services/chrome-extension';
+import { GlobalState, GlobalStateProvider } from '../../global-state';
 
 interface Props {
     origin: string;
     logoUrl: string;
     fetcher: Fetcher;
     settingsStorage: AppSettingsStorage;
+    globalStateProvider: GlobalStateProvider;
     extension: ChromeExtension;
 }
 
-const RootApp = ({ extension, origin, logoUrl, settingsStorage, fetcher }: Props) => {
+const RootApp = ({ extension, origin, logoUrl, settingsStorage, globalStateProvider, fetcher }: Props) => {
     const settingsProvider = useMemo(() => new SettingsProvider(settingsStorage), [settingsStorage]);
     const [settings, setSettings] = useState<AsbplayerSettings>();
+    const [globalState, setGlobalState] = useState<GlobalState>();
 
     useEffect(() => {
         settingsProvider.getAll().then(setSettings);
@@ -46,6 +49,24 @@ const RootApp = ({ extension, origin, logoUrl, settingsStorage, fetcher }: Props
         });
     }, [extension, settingsProvider, settingsStorage, refreshProfileContext]);
 
+    useEffect(() => {
+        globalStateProvider.getAll().then(setGlobalState);
+    }, [globalStateProvider]);
+
+    const handleGlobalStateChanged = useCallback(
+        (state: Partial<GlobalState>) => {
+            setGlobalState((s) => {
+                if (s === undefined) {
+                    return undefined;
+                }
+
+                return { ...s, ...state };
+            });
+            globalStateProvider.set(state);
+        },
+        [globalStateProvider]
+    );
+
     if (settings === undefined) {
         return null;
     }
@@ -55,9 +76,11 @@ const RootApp = ({ extension, origin, logoUrl, settingsStorage, fetcher }: Props
             origin={origin}
             logoUrl={logoUrl}
             settings={settings}
+            globalState={globalState}
             extension={extension}
             fetcher={fetcher}
             onSettingsChanged={handleSettingsChanged}
+            onGlobalStateChanged={handleGlobalStateChanged}
             {...profilesContext}
         />
     );

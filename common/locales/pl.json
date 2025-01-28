@@ -79,7 +79,8 @@
         "word": "Słowo",
         "zoomIn": "Przybliż",
         "zoomOut": "Oddal",
-        "imagePreview": "Click to preview/edit"
+        "imagePreview": "Click to preview/edit",
+        "quickSelectFtue": "{{shortcut}} selects the last-used action."
     },
     "bar": {
         "donate": "Wesprzyj",

@@ -67,7 +67,7 @@ import NotificationController from '../controllers/notification-controller';
 import SubtitleController, { SubtitleModelWithIndex } from '../controllers/subtitle-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
 import AudioRecorder, { TimedRecordingInProgressError } from './audio-recorder';
-import { isMobile } from './device-detection';
+import { isMobile } from '@project/common/device-detection/mobile';
 import { OffsetAnchor } from './element-overlay';
 import { ExtensionSettingsStorage } from './extension-settings-storage';
 import { i18nInit } from './i18n';

@@ -79,7 +79,8 @@
         "word": "单词",
         "zoomIn": "缩小",
         "zoomOut": "放大",
-        "imagePreview": "Click to preview/edit"
+        "imagePreview": "Click to preview/edit",
+        "quickSelectFtue": "{{shortcut}} selects the last-used action."
     },
     "bar": {
         "donate": "捐赠作者",

@@ -58,6 +58,8 @@ import { useAppWebSocketClient } from '../hooks/use-app-web-socket-client';
 import { LoadSubtitlesCommand } from '../../web-socket-client';
 import { ExtensionBridgedCopyHistoryRepository } from '../services/extension-bridged-copy-history-repository';
 import { IndexedDBCopyHistoryRepository } from '../../copy-history';
+import { isMobile } from 'react-device-detect';
+import { GlobalState } from '../../global-state';
 
 const latestExtensionVersion = '1.8.0';
 const extensionUrl =
@@ -201,6 +203,7 @@ interface Props {
     origin: string;
     logoUrl: string;
     settings: AsbplayerSettings;
+    globalState?: GlobalState;
     extension: ChromeExtension;
     fetcher: Fetcher;
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
@@ -209,9 +212,20 @@ interface Props {
     onNewProfile: (name: string) => void;
     onRemoveProfile: (name: string) => void;
     onSetActiveProfile: (name: string | undefined) => void;
+    onGlobalStateChanged: (globalState: Partial<GlobalState>) => void;
 }
 
-function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged, ...profilesContext }: Props) {
+function App({
+    origin,
+    logoUrl,
+    settings,
+    globalState,
+    extension,
+    fetcher,
+    onSettingsChanged,
+    onGlobalStateChanged,
+    ...profilesContext
+}: Props) {
     const { t } = useTranslation();
     const subtitleReader = useMemo<SubtitleReader>(() => {
         return new SubtitleReader({
@@ -1171,6 +1185,12 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
 
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
 
+    const handleDismissShowAnkiDialogQuickSelectFtue = useCallback(() => {
+        onGlobalStateChanged({ ftueHasSeenAnkiDialogQuickSelect: true });
+    }, [onGlobalStateChanged]);
+
+    const showAnkiDialogQuickSelectFtue = !isMobile && globalState?.ftueHasSeenAnkiDialogQuickSelect === false;
+
     if (!i18nInitialized) {
         return null;
     }
@@ -1231,6 +1251,8 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                                 onProceed={handleAnkiDialogProceed}
                                 onCopyToClipboard={handleCopyToClipboard}
                                 mp3Encoder={mp3Encoder}
+                                showQuickSelectFtue={showAnkiDialogQuickSelectFtue}
+                                onDismissShowQuickSelectFtue={handleDismissShowAnkiDialogQuickSelectFtue}
                                 {...profilesContext}
                             />
                         )}
@@ -1263,6 +1285,8 @@ function App({ origin, logoUrl, settings, extension, fetcher, onSettingsChanged,
                                 onOpenSettings={handleOpenSettings}
                                 onCopyToClipboard={handleCopyToClipboard}
                                 mp3Encoder={mp3Encoder}
+                                showQuickSelectFtue={showAnkiDialogQuickSelectFtue}
+                                onDismissShowQuickSelectFtue={handleDismissShowAnkiDialogQuickSelectFtue}
                                 {...profilesContext}
                             />
                         )}

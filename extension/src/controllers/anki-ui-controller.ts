@@ -17,7 +17,7 @@ import {
     ShowAnkiUiMessage,
     VideoToExtensionCommand,
 } from '@project/common';
-import { AnkiSettings, SettingsProvider } from '@project/common/settings';
+import { SettingsProvider } from '@project/common/settings';
 import { sourceString } from '@project/common/util';
 import Binding from '../services/binding';
 import { fetchLocalization } from '../services/localization-fetcher';
@@ -25,6 +25,7 @@ import UiFrame from '../services/ui-frame';
 import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
 import { base64ToBlob, blobToBase64 } from '@project/common/base64';
 import { mp3WorkerFactory } from '../services/mp3-worker-factory';
+import { ExtensionGlobalStateProvider } from '../services/extension-global-state-provider';
 
 // We need to write the HTML into the iframe manually so that the iframe keeps it's about:blank URL.
 // Otherwise, Chrome won't insert content scripts into the iframe (e.g. Yomichan won't work).
@@ -48,6 +49,8 @@ async function html(language: string) {
                 </body>
             </html>`;
 }
+
+const globalStateProvider = new ExtensionGlobalStateProvider();
 
 export default class AnkiUiController {
     private readonly frame: UiFrame;
@@ -115,7 +118,7 @@ export default class AnkiUiController {
             word,
             definition,
             customFieldValues,
-            ...(await this._profileInfo(context)),
+            ...(await this._additionalUiState(context)),
         };
         client.updateState(state);
     }
@@ -134,7 +137,7 @@ export default class AnkiUiController {
             canRerecord: true,
             settings: this._settings,
             dialogRequestedTimestamp: context.video.currentTime * 1000,
-            ...(await this._profileInfo(context)),
+            ...(await this._additionalUiState(context)),
         };
         client.updateState(state);
     }
@@ -152,7 +155,7 @@ export default class AnkiUiController {
             open: true,
             canRerecord: true,
             settings: this._settings,
-            ...(await this._profileInfo(context)),
+            ...(await this._additionalUiState(context)),
         };
         client.updateState(state);
     }
@@ -248,6 +251,9 @@ export default class AnkiUiController {
                             chrome.runtime.sendMessage(settingsUpdatedCommand);
                         });
                         return;
+                    case 'dismissedQuickSelectFtue':
+                        globalStateProvider.set({ ftueHasSeenAnkiDialogQuickSelect: true }).catch(console.error);
+                        return;
                     case 'exported':
                         const exportedMessage = message as AnkiUiBridgeExportedMessage;
                         context.settings.set({ lastSelectedAnkiExportMode: exportedMessage.mode }).then(() => {
@@ -336,12 +342,14 @@ export default class AnkiUiController {
         return client;
     }
 
-    private async _profileInfo(context: Binding) {
+    private async _additionalUiState(context: Binding) {
         const profilesPromise = context.settings.profiles();
         const activeProfilePromise = context.settings.activeProfile();
+        const globalStatePromise = globalStateProvider.getAll();
         return {
             profiles: await profilesPromise,
             activeProfile: (await activeProfilePromise)?.name,
+            ftueHasSeenAnkiDialogQuickSelect: (await globalStatePromise).ftueHasSeenAnkiDialogQuickSelect,
         };
     }
 

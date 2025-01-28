@@ -2,7 +2,8 @@ import { Fetcher } from '@project/common';
 import { useChromeExtension } from '@project/common/app';
 import RootApp from '@project/common/app/components/RootApp';
 import { useMemo } from 'react';
-import { AppExtensionSettingsStorage } from '../app-extension-settings-storage';
+import { AppExtensionSettingsStorage } from '@project/common/app/services/app-extension-settings-storage';
+import { AppExtensionGlobalStateProvider } from '@project/common/app/services/app-extension-global-state-provider';
 import { LocalSettingsStorage } from '../local-settings-storage';
 
 interface Props {
@@ -20,7 +21,15 @@ const WebsiteApp = (props: Props) => {
 
         return new LocalSettingsStorage();
     }, [extension]);
-    return <RootApp {...props} extension={extension} settingsStorage={settingsStorage} />;
+    const globalStateProvider = useMemo(() => new AppExtensionGlobalStateProvider(extension), [extension]);
+    return (
+        <RootApp
+            {...props}
+            extension={extension}
+            settingsStorage={settingsStorage}
+            globalStateProvider={globalStateProvider}
+        />
+    );
 };
 
 export default WebsiteApp;

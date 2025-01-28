@@ -102,6 +102,7 @@ export interface AnkiUiState extends CardTextFieldValues {
     readonly settings: AnkiDialogSettings;
     readonly profiles: Profile[];
     readonly activeProfile?: string;
+    readonly ftueHasSeenAnkiDialogQuickSelect: boolean;
     readonly subtitle: SubtitleModel;
     readonly surroundingSubtitles: SubtitleModel[];
     readonly url?: string;

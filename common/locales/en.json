@@ -79,7 +79,8 @@
         "word": "Word",
         "zoomIn": "Zoom In",
         "zoomOut": "Zoom Out",
-        "imagePreview": "Click to preview/edit"
+        "imagePreview": "Preview/edit",
+        "quickSelectFtue": "{{shortcut}} selects the last-used action."
     },
     "bar": {
         "donate": "Donate",

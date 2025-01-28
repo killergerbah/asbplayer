@@ -1,15 +1,17 @@
 import type {
     AddProfileMessage,
+    GetGlobalStateMessage,
     GetSettingsMessage,
     RemoveProfileMessage,
     RequestCopyHistoryMessage,
     RequestCopyHistoryResponse,
     RequestSubtitlesResponse,
-    SaveCopyHistoryMessage,
     SetActiveProfileMessage,
+    SetGlobalStateMessage,
     SetSettingsMessage,
 } from '@project/common';
 import { ExtensionSettingsStorage } from './services/extension-settings-storage';
+import { ExtensionGlobalStateProvider } from './services/extension-global-state-provider';
 
 const sendMessageToPlayer = (message: any) => {
     window.postMessage({
@@ -19,6 +21,7 @@ const sendMessageToPlayer = (message: any) => {
 };
 
 const settingsStorage = new ExtensionSettingsStorage();
+const globalStateProvider = new ExtensionGlobalStateProvider();
 
 window.addEventListener('message', async (event) => {
     if (event.source !== window) {
@@ -104,6 +107,22 @@ window.addEventListener('message', async (event) => {
                 break;
             case 'clear-copy-history':
                 await chrome.runtime.sendMessage(command);
+                sendMessageToPlayer({
+                    messageId: command.message.messageId,
+                });
+                break;
+            case 'get-global-state':
+                const getGlobalStateMessage = command.message as GetGlobalStateMessage;
+                const { keys } = getGlobalStateMessage;
+                sendMessageToPlayer({
+                    response:
+                        keys === undefined ? await globalStateProvider.getAll() : await globalStateProvider.get(keys),
+                    messageId: command.message.messageId,
+                });
+                break;
+            case 'set-global-state':
+                const setGlobalStateMessage = command.message as SetGlobalStateMessage;
+                await globalStateProvider.set(setGlobalStateMessage.state);
                 sendMessageToPlayer({
                     messageId: command.message.messageId,
                 });

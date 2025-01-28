@@ -79,7 +79,8 @@
         "word": "単語",
         "zoomIn": "ズームイン",
         "zoomOut": "ズームアウト",
-        "imagePreview": "Click to preview/edit"
+        "imagePreview": "Click to preview/edit",
+        "quickSelectFtue": "{{shortcut}} selects the last-used action."
     },
     "bar": {
         "donate": "寄付",
