@@ -380,15 +380,15 @@ asbplayer is best used on computers using Chromium-based browsers, but it is als
 
 ### When using the 'update last card' feature, the card does not update in Anki.
 
--   Make sure Anki's card browser is closed when using 'update last card.' There is a [known issue](https://github.com/FooSoft/anki-connect/issues/82) with AnkiConnect where cards will not appear to update when the card browser is open.
+Make sure Anki's card browser is closed when using 'update last card.' There is a [known issue](https://github.com/FooSoft/anki-connect/issues/82) with AnkiConnect where cards will not appear to update when the card browser is open.
 
 ### When loading a local file asbplayer either shows a black screen, or doesn't play audio.
 
--   See the [Browser Compatibility](#browser-compatibility) section.
+See the [Browser Compatibility](#browser-compatibility) section.
 
 ### My popup dictionary extension (e.g. Yomitan) doesn't work on the side panel
 
--   Chrome does not allow other extension scripts to be injected into extension UI, so there is no fix for this. If you want to scan text with other extensions then you will need to do it from the subtitles displayed inside the video element, or from the subtitle list on the asbplayer website.
+Chrome does not allow other extension scripts to be injected into extension UI, so there is no fix for this. If you want to scan text with other extensions then you will need to do it from the subtitles displayed inside the video element, or from the subtitle list on the asbplayer website.
 
 ### asbplayer isn't detecting streaming video.
 
@@ -412,6 +412,10 @@ asbplayer is best used on computers using Chromium-based browsers, but it is als
 
 -   Make sure the browser zoom setting is at 100%.
 -   You can disable cropping altogether using the extension settings menu.
+
+### I'm having trouble creating cards using JP mining note.
+
+See this [issue](https://github.com/killergerbah/asbplayer/issues/220#issuecomment-1501124166).
 
 ## Browser compatibility
 
