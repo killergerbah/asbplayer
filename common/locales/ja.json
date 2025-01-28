@@ -63,7 +63,7 @@
         "imageFileLinkLost": "ブラウザページを更新したため、画像ファイルの参照先が失われました",
         "openInAnki": "Anki で開く",
         "rerecord": "再録音",
-        "rerecordAndApplySelection": "Record selected time range",
+        "rerecordAndApplySelection": "選択した時間範囲を録音",
         "resetSlider": "リセット",
         "rewind": "巻き戻し",
         "searchInAnki": "Anki で検索する",
@@ -79,8 +79,8 @@
         "word": "単語",
         "zoomIn": "ズームイン",
         "zoomOut": "ズームアウト",
-        "imagePreview": "Click to preview/edit",
-        "quickSelectFtue": "{{shortcut}} selects the last-used action."
+        "imagePreview": "プレビュー・編集",
+        "quickSelectFtue": "{{shortcut}}は最後に使用したアクションを選択します"
     },
     "bar": {
         "donate": "寄付",
@@ -311,7 +311,7 @@
         "preCacheSubtitleDom": "字幕DOMをキャッシュ",
         "preCacheSubtitleDomHelperText": "この設定をオンにすると、asbplayer は隠れたDOM要素に字幕をレンダリングし、字幕が表示される際には既存の要素を再利用します。そのため、字幕のテキストは外部のコードによって永続的に変更可能となります。",
         "recordingBind": "記録中",
-        "recordWithAudioPlayback": "オーディオ再生しながら録音",
+        "recordWithAudioPlayback": "ローカルビデオから録音の際、音声を再生",
         "rememberSubtitleOffset": "字幕の表示タイミングを記憶する",
         "sentenceField": "文（全トラックを含む）",
         "streamingVideo": "ストリーミングビデオ",
