@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/asbplayer/static/css/main.c8faec56.css",
-    "main.js": "/asbplayer/static/js/main.58ed1c26.js",
+    "main.js": "/asbplayer/static/js/main.3e1d0ce8.js",
     "static/js/952.c01a84bd.chunk.js": "/asbplayer/static/js/952.c01a84bd.chunk.js",
     "static/js/958.9e8e0c75.chunk.js": "/asbplayer/static/js/958.9e8e0c75.chunk.js",
-    "static/js/572.1aaecbb7.chunk.js": "/asbplayer/static/js/572.1aaecbb7.chunk.js",
-    "static/js/311.c810b558.chunk.js": "/asbplayer/static/js/311.c810b558.chunk.js",
-    "static/js/76.35ac0d22.chunk.js": "/asbplayer/static/js/76.35ac0d22.chunk.js",
-    "static/js/154.471f67e5.chunk.js": "/asbplayer/static/js/154.471f67e5.chunk.js",
-    "static/js/922.49e3f4a2.chunk.js": "/asbplayer/static/js/922.49e3f4a2.chunk.js",
-    "static/js/748.349b0b4f.chunk.js": "/asbplayer/static/js/748.349b0b4f.chunk.js",
-    "static/js/741.06ec00ae.chunk.js": "/asbplayer/static/js/741.06ec00ae.chunk.js",
-    "static/js/778.0eff557d.chunk.js": "/asbplayer/static/js/778.0eff557d.chunk.js",
+    "static/js/572.afb2f9cc.chunk.js": "/asbplayer/static/js/572.afb2f9cc.chunk.js",
+    "static/js/311.771d0a55.chunk.js": "/asbplayer/static/js/311.771d0a55.chunk.js",
+    "static/js/76.95329de3.chunk.js": "/asbplayer/static/js/76.95329de3.chunk.js",
+    "static/js/154.4c2e4d5c.chunk.js": "/asbplayer/static/js/154.4c2e4d5c.chunk.js",
+    "static/js/922.cbe673ef.chunk.js": "/asbplayer/static/js/922.cbe673ef.chunk.js",
+    "static/js/748.2cba7a9d.chunk.js": "/asbplayer/static/js/748.2cba7a9d.chunk.js",
+    "static/js/741.efd5a4e4.chunk.js": "/asbplayer/static/js/741.efd5a4e4.chunk.js",
+    "static/js/778.e258c879.chunk.js": "/asbplayer/static/js/778.e258c879.chunk.js",
     "static/js/347.2371fb9e.chunk.js": "/asbplayer/static/js/347.2371fb9e.chunk.js",
     "static/js/583.9c155296.chunk.js": "/asbplayer/static/js/583.9c155296.chunk.js",
     "static/media/roboto-latin-500-normal.woff2": "/asbplayer/static/media/roboto-latin-500-normal.f25d774ecfe0996f8eb5.woff2",
@@ -72,7 +72,7 @@
     "static/media/roboto-greek-ext-700-normal.woff": "/asbplayer/static/media/roboto-greek-ext-700-normal.249853776d22a271b2b5.woff",
     "index.html": "/asbplayer/index.html",
     "main.c8faec56.css.map": "/asbplayer/static/css/main.c8faec56.css.map",
-    "main.58ed1c26.js.map": "/asbplayer/static/js/main.58ed1c26.js.map",
+    "main.3e1d0ce8.js.map": "/asbplayer/static/js/main.3e1d0ce8.js.map",
     "952.c01a84bd.chunk.js.map": "/asbplayer/static/js/952.c01a84bd.chunk.js.map",
     "958.9e8e0c75.chunk.js.map": "/asbplayer/static/js/958.9e8e0c75.chunk.js.map",
     "347.2371fb9e.chunk.js.map": "/asbplayer/static/js/347.2371fb9e.chunk.js.map",
@@ -80,6 +80,6 @@
   },
   "entrypoints": [
     "static/css/main.c8faec56.css",
-    "static/js/main.58ed1c26.js"
+    "static/js/main.3e1d0ce8.js"
   ]
 }

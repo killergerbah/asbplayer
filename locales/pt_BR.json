@@ -79,7 +79,8 @@
         "word": "Palavra",
         "zoomIn": "Ampliar",
         "zoomOut": "Reduzir",
-        "imagePreview": "Click to preview/edit"
+        "imagePreview": "Click to preview/edit",
+        "quickSelectFtue": "{{shortcut}} selects the last-used action."
     },
     "bar": {
         "donate": "Doar",
@@ -310,6 +311,7 @@
         "preCacheSubtitleDom": "Pré-carregar DOM de Legenda",
         "preCacheSubtitleDomHelperText": "Ao ser habilitado, o asbplayer antecipa a renderização de elementos de texto de legendas em uma área fora da tela, reutilizando esses elementos para a exibição de legendas. Essa abordagem possibilita a modificação persistente do texto da legenda por meio de código externo antes de sua apresentação.",
         "recordingBind": "Gravando",
+        "recordWithAudioPlayback": "Gravar com reprodução de áudio",
         "rememberSubtitleOffset": "Lembrar do atraso da legenda",
         "sentenceField": "Campo da sentença",
         "streamingVideo": "Streaming de vídeo",

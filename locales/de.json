@@ -79,7 +79,8 @@
         "word": "Wort",
         "zoomIn": "Hereinzoomen",
         "zoomOut": "Herauszoomen",
-        "imagePreview": "Click to preview/edit"
+        "imagePreview": "Click to preview/edit",
+        "quickSelectFtue": "{{shortcut}} selects the last-used action."
     },
     "bar": {
         "donate": "Spenden",
@@ -310,6 +311,7 @@
         "preCacheSubtitleDom": "Pre-cache Subtitle DOM",
         "preCacheSubtitleDomHelperText": "If enabled, asbplayer will pre-render subtitle text elements in an offscreen document, and re-use those elements for subtitle display. This allows external code to persistently modify subtitle text before it is displayed.",
         "recordingBind": "Aufnahme...",
+        "recordWithAudioPlayback": "Audiowiedergabe während der Aufnahme von lokalem Video",
         "rememberSubtitleOffset": "Untertiteloffset merken",
         "sentenceField": "Satz-Feld",
         "streamingVideo": "Streaming Video",
