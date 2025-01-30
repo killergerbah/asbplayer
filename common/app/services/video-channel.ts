@@ -499,6 +499,7 @@ export default class VideoChannel {
             surroundingSubtitlesTimeRadius,
             ankiFieldSettings,
             customAnkiFieldSettings,
+            recordWithAudioPlayback,
         } = settings;
         const message: AnkiSettingsToVideoMessage = {
             command: 'ankiSettings',
@@ -527,6 +528,7 @@ export default class VideoChannel {
                 surroundingSubtitlesTimeRadius,
                 ankiFieldSettings,
                 customAnkiFieldSettings,
+                recordWithAudioPlayback,
             },
         };
         this.protocol.postMessage(message);
