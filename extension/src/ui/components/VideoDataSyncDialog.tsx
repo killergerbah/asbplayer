@@ -36,22 +36,25 @@ const createClasses = makeStyles((theme) => ({
     },
 }));
 
-function calculateName(suggestedName: string, label: string) {
-    if (suggestedName === '' && label) {
+// An auto-calculated video name based on selected track
+function calculateVideoName(baseName: string, label: string, localFile: boolean | undefined) {
+    if (baseName === '' && label) {
         return label;
     }
 
-    if (label) {
-        return `${suggestedName} - ${label}`;
+    if (label && localFile !== true) {
+        return `${baseName} - ${label}`;
     }
 
-    return suggestedName;
+    return baseName;
 }
 
 interface Props {
     open: boolean;
     disabled: boolean;
     isLoading: boolean;
+    // The video name automatically supplied by asbplayer's content script
+    // Not to be confused with the auto-calculated video name when user selects a subtitle track
     suggestedName: string;
     showSubSelect: boolean;
     subtitleTracks: VideoDataSubtitleTrack[];
@@ -62,7 +65,7 @@ interface Props {
     profiles: Profile[];
     activeProfile?: string;
     onCancel: () => void;
-    onOpenFile: () => void;
+    onOpenFile: (track?: number) => void;
     onOpenSettings: () => void;
     onConfirm: (track: ConfirmedVideoDataSubtitleTrack[], shouldRememberTrackChoices: boolean) => void;
     onSetActiveProfile: (profile: string | undefined) => void;
@@ -125,7 +128,10 @@ export default function VideoDataSyncDialog({
             if (
                 !name ||
                 name === suggestedName ||
-                subtitleTracks.find((track) => track.url !== '-' && name === calculateName(suggestedName, track.label))
+                subtitleTracks.find(
+                    (track) =>
+                        track.url !== '-' && name === calculateVideoName(suggestedName, track.label, track.localFile)
+                )
             ) {
                 const selectedTrack = subtitleTracks.find((track) => track.id === userSelectedSubtitleTrackIds[0]);
 
@@ -133,7 +139,7 @@ export default function VideoDataSyncDialog({
                     return suggestedName;
                 }
 
-                return calculateName(suggestedName, selectedTrack.label);
+                return calculateVideoName(suggestedName, selectedTrack.label, selectedTrack.localFile);
             }
 
             // Otherwise, let the name be whatever the user set it to
@@ -155,17 +161,19 @@ export default function VideoDataSyncDialog({
             .map((selected): ConfirmedVideoDataSubtitleTrack | undefined => {
                 const subtitle = subtitleTracks.find((subtitle) => subtitle.id === selected);
                 if (subtitle) {
-                    const { language } = subtitle;
+                    const { localFile, label } = subtitle;
+                    const trackName = localFile
+                        ? // Remove extension. The content script will add it back when rendering the file name on top of the video.
+                          label.substring(0, label.lastIndexOf('.'))
+                        : calculateVideoName(trimmedName, label, localFile);
+
                     return {
-                        name: suggestedName.trim() + language.trim(),
+                        name: trackName,
                         ...subtitle,
                     };
                 }
             })
             .filter((track): track is ConfirmedVideoDataSubtitleTrack => track !== undefined);
-
-        // Give the first track the trimmed name from the name field in case it has been changed by the user
-        selectedSubtitleTracks[0].name = trimmedName;
 
         return selectedSubtitleTracks;
     }
@@ -174,7 +182,7 @@ export default function VideoDataSyncDialog({
         const subtitleTrackSelectors = [];
         for (let i = 0; i < numberOfSubtitleTrackSelectors; i++) {
             subtitleTrackSelectors.push(
-                <Grid item key={i}>
+                <Grid item key={i} style={{ width: '100%' }}>
                     <div className={`${classes.relative}${!showSubSelect ? ` ${classes.hide}` : ''}`}>
                         <TextField
                             select
@@ -202,6 +210,7 @@ export default function VideoDataSyncDialog({
                                     {subtitle.label}
                                 </MenuItem>
                             ))}
+                            <MenuItem onClick={() => onOpenFile(i)}>{t('action.openFiles')}</MenuItem>
                         </TextField>
                         {isLoading && (
                             <span className={classes.spinner}>

@@ -12,7 +12,7 @@ import {
     VideoDataUiOpenReason,
     VideoToExtensionCommand,
 } from '@project/common';
-import { AsbplayerSettings, SettingsProvider, SubtitleListPreference } from '@project/common/settings';
+import { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
 import { base64ToBlob, bufferToBase64 } from '@project/common/base64';
 import Binding from '../services/binding';
 import { currentPageDelegate } from '../services/pages';
@@ -89,11 +89,11 @@ export default class VideoDataSyncController {
         this._frame = new UiFrame(html);
     }
 
-    private get lastLanguageSynced(): string[] {
+    private get lastLanguagesSynced(): string[] {
         return this._lastLanguagesSynced[this._domain] ?? [];
     }
 
-    private set lastLanguageSynced(value: string[]) {
+    private set lastLanguagesSynced(value: string[]) {
         this._lastLanguagesSynced[this._domain] = value;
     }
 
@@ -213,14 +213,14 @@ export default class VideoDataSyncController {
             completeMatch: false,
         };
 
-        const emptyChoice = this.lastLanguageSynced.some((lang) => lang !== '-') === undefined;
+        const emptyChoice = this.lastLanguagesSynced.some((lang) => lang !== '-') === undefined;
 
         if (!subtitleTrackChoices.length && emptyChoice) {
             tracks.completeMatch = true;
         } else {
             let matches: number = 0;
-            for (let i = 0; i < this.lastLanguageSynced.length; i++) {
-                const language = this.lastLanguageSynced[i];
+            for (let i = 0; i < this.lastLanguagesSynced.length; i++) {
+                const language = this.lastLanguagesSynced[i];
                 for (let j = 0; j < subtitleTrackChoices.length; j++) {
                     if (language === '-') {
                         matches++;
@@ -232,7 +232,7 @@ export default class VideoDataSyncController {
                     }
                 }
             }
-            if (matches === this.lastLanguageSynced.length) {
+            if (matches === this.lastLanguagesSynced.length) {
                 tracks.completeMatch = true;
             }
         }
@@ -325,7 +325,9 @@ export default class VideoDataSyncController {
                     const confirmMessage = message as VideoDataUiBridgeConfirmMessage;
 
                     if (confirmMessage.shouldRememberTrackChoices) {
-                        this.lastLanguageSynced = confirmMessage.data.map((track) => track.language);
+                        this.lastLanguagesSynced = confirmMessage.data
+                            .map((track) => track.language)
+                            .filter((language) => language !== undefined) as string[];
                         await this._context.settings
                             .set({ streamingLastLanguagesSynced: this._lastLanguagesSynced })
                             .catch(() => {});
@@ -409,12 +411,13 @@ export default class VideoDataSyncController {
             let subtitles: SerializedSubtitleFile[] = [];
 
             for (let i = 0; i < data.length; i++) {
-                const { extension, url, language } = data[i];
+                const { extension, url, language, localFile } = data[i];
                 const subtitleFiles = await this._subtitlesForUrl(
                     this._defaultVideoName(this._syncedData?.basename, data[i]),
                     language,
                     extension,
-                    url
+                    url,
+                    localFile
                 );
                 if (subtitleFiles !== undefined) {
                     subtitles.push(...subtitleFiles);
@@ -440,8 +443,8 @@ export default class VideoDataSyncController {
             let subtitles: SerializedSubtitleFile[] = [];
 
             for (let i = 0; i < data.length; i++) {
-                const { name, language, extension, url } = data[i];
-                const subtitleFiles = await this._subtitlesForUrl(name, language, extension, url);
+                const { name, language, extension, url, localFile } = data[i];
+                const subtitleFiles = await this._subtitlesForUrl(name, language, extension, url, localFile);
                 if (subtitleFiles !== undefined) {
                     subtitles.push(...subtitleFiles);
                 }
@@ -475,9 +478,10 @@ export default class VideoDataSyncController {
 
     private async _subtitlesForUrl(
         name: string,
-        language: string,
+        language: string | undefined,
         extension: string,
-        url: string
+        url: string,
+        localFile: boolean | undefined
     ): Promise<SerializedSubtitleFile[] | undefined> {
         if (url === '-') {
             return [
@@ -489,6 +493,11 @@ export default class VideoDataSyncController {
         }
 
         if (url === 'lazy') {
+            if (language === undefined) {
+                await this._reportError('Unable to determine language');
+                return undefined;
+            }
+
             const data = await fetchDataForLanguageOnDemand(language);
 
             if (data.error) {
@@ -506,7 +515,13 @@ export default class VideoDataSyncController {
             url = lazilyFetchedUrl;
         }
 
-        const response = await fetch(url).catch((error) => this._reportError(error.message));
+        const response = await fetch(url)
+            .catch((error) => this._reportError(error.message))
+            .finally(() => {
+                if (localFile) {
+                    URL.revokeObjectURL(url);
+                }
+            });
 
         if (!response) {
             return undefined;

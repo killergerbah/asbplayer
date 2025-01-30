@@ -46,6 +46,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [themeType, setThemeType] = useState<string>();
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [activeProfile, setActiveProfile] = useState<string>();
+    const [fileInputTrackNumber, setFileInputTrackNumber] = useState<number>();
 
     const theme = useMemo(() => createTheme((themeType || 'dark') as PaletteType), [themeType]);
 
@@ -144,28 +145,59 @@ export default function VideoDataSyncUi({ bridge }: Props) {
         if (files && files.length > 0) {
             try {
                 setDisabled(true);
-                const subtitles: SerializedSubtitleFile[] = [];
 
-                for (let i = 0; i < files.length; ++i) {
-                    const f = files[i];
-                    const base64 = await bufferToBase64(await f.arrayBuffer());
+                if (fileInputTrackNumber === undefined) {
+                    const subtitles: SerializedSubtitleFile[] = [];
 
-                    subtitles.push({
-                        name: f.name,
-                        base64: base64,
+                    for (let i = 0; i < files.length; ++i) {
+                        const f = files[i];
+                        const base64 = await bufferToBase64(await f.arrayBuffer());
+
+                        subtitles.push({
+                            name: f.name,
+                            base64: base64,
+                        });
+                    }
+
+                    setOpen(false);
+                    const message: VideoDataUiBridgeOpenFileMessage = { command: 'openFile', subtitles };
+                    bridge.sendMessageFromServer(message);
+                } else {
+                    const fileTracks: VideoDataSubtitleTrack[] = [...files].map((f) => {
+                        const url = URL.createObjectURL(f);
+                        const extension = f.name.substring(f.name.lastIndexOf('.') + 1, f.name.length);
+                        return {
+                            label: f.name,
+                            id: url,
+                            url,
+                            extension,
+                            localFile: true,
+                        };
                     });
-                }
 
-                setOpen(false);
-                const message: VideoDataUiBridgeOpenFileMessage = { command: 'openFile', subtitles };
-                bridge.sendMessageFromServer(message);
+                    if (fileTracks.length > 0) {
+                        setSubtitles((s) => [...s, ...fileTracks]);
+                        setSelectedSubtitleTrackIds((s) => {
+                            const selectedIdsByTrackNumber = [...s];
+                            selectedIdsByTrackNumber[fileInputTrackNumber] = fileTracks[0].id;
+                            return selectedIdsByTrackNumber;
+                        });
+                    }
+                }
             } finally {
                 setDisabled(false);
+
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
             }
         }
-    }, [bridge]);
+    }, [bridge, fileInputTrackNumber]);
 
-    const handleOpenFile = useCallback(() => fileInputRef.current?.click(), []);
+    const handleOpenFile = useCallback((track?: number) => {
+        setFileInputTrackNumber(track);
+        fileInputRef.current?.click();
+    }, []);
 
     const handleSetActiveProfile = useCallback(
         (profile: string | undefined) => {
