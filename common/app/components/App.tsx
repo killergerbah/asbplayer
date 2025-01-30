@@ -61,7 +61,7 @@ import { IndexedDBCopyHistoryRepository } from '../../copy-history';
 import { isMobile } from 'react-device-detect';
 import { GlobalState } from '../../global-state';
 
-const latestExtensionVersion = '1.8.0';
+const latestExtensionVersion = '1.8.1';
 const extensionUrl =
     'https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab';
 const mp3WorkerFactory = () => new Worker(new URL('../../audio-clip/mp3-encoder-worker.ts', import.meta.url));
