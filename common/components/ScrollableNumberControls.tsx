@@ -64,6 +64,8 @@ const ScrollableNumberControls = ({
     const [controlType, setControlType] = useState<ControlType>(ControlType.timeDisplay);
     const lastScrollTop = useRef<number>(0);
     const [initialScroll, setInitialScroll] = useState<InitialScrollState>(InitialScrollState.notStarted);
+    const initialScrollRef = useRef<InitialScrollState>();
+    initialScrollRef.current = initialScroll;
     const containerRef = useRef<HTMLDivElement>();
     const programmaticallyScrollingTimeoutRef = useRef<NodeJS.Timeout>();
     const controlTypeRef = useRef<number>(controlType);
@@ -149,15 +151,11 @@ const ScrollableNumberControls = ({
                                 }
 
                                 // We can transition now that we are actually coming out of the initial scroll
-                                setInitialScroll((s) => {
-                                    if (s === InitialScrollState.started) {
-                                        onScrollToRef.current?.(destinationControlType);
-                                        setControlType(destinationControlType);
-                                        return InitialScrollState.ended;
-                                    }
-
-                                    return s;
-                                });
+                                if (initialScrollRef.current === InitialScrollState.started) {
+                                    onScrollToRef.current?.(destinationControlType);
+                                    setControlType(destinationControlType);
+                                    setInitialScroll(InitialScrollState.ended);
+                                }
                             });
                             setInitialScroll(InitialScrollState.started);
                         };
