@@ -1,48 +1,48 @@
 {
     "latest": {
-        "version": "1.8.0",
-        "url": "https://github.com/killergerbah/asbplayer/releases/tag/v1.8.0"
+        "version": "1.8.1",
+        "url": "https://github.com/killergerbah/asbplayer/releases/tag/v1.8.1"
     },
     "languages": [
         {
             "code": "en",
             "url": "/locales/en.json",
-            "version": 8
+            "version": 9
         },
         {
             "code": "es",
             "url": "/locales/es.json",
-            "version": 7
+            "version": 8
         },
         {
             "code": "ja",
             "url": "/locales/ja.json",
-            "version": 11
+            "version": 12
         },
         {
             "code": "de",
             "url": "/locales/de.json",
-            "version": 8
+            "version": 9
         },
         {
             "code": "pl",
             "url": "/locales/pl.json",
-            "version": 8
+            "version": 9
         },
         {
             "code": "pt_BR",
             "url": "/locales/pt_BR.json",
-            "version": 7
+            "version": 8
         },
         {
             "code": "zh_CN",
             "url": "/locales/zh_CN.json",
-            "version": 7
+            "version": 8
         },
         {
             "code": "ru",
             "url": "/locales/ru.json",
-            "version": 6
+            "version": 7
         }
     ]
 }
