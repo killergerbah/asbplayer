@@ -35,7 +35,6 @@ import { BridgeFetcher } from '../bridge-fetcher';
 import { Anki, ExportParams } from '@project/common/anki';
 import { v4 as uuidv4 } from 'uuid';
 import { base64ToBlob, blobToBase64 } from '@project/common/base64';
-import { GlobalState } from '@project/common/global-state';
 import { isMobile } from '@project/common/device-detection/mobile';
 
 interface Props {
@@ -80,7 +79,7 @@ export default function AnkiUi({ bridge }: Props) {
     const [dialogRequestedTimestamp, setDialogRequestedTimestamp] = useState<number>(0);
     const [profiles, setProfiles] = useState<Profile[]>();
     const [activeProfile, setActiveProfile] = useState<string>();
-    const [globalState, setGlobalState] = useState<GlobalState>();
+    const [ftueHasSeenAnkiDialogQuickSelect, setFtueHasSeenAnkiDialogQuickSelect] = useState<boolean>();
 
     const theme = useMemo(() => createTheme((settings?.themeType ?? 'dark') as PaletteType), [settings?.themeType]);
     const anki = useMemo(
@@ -155,6 +154,7 @@ export default function AnkiUi({ bridge }: Props) {
             setProfiles(s.profiles);
             setImage(image);
             setOpen(s.open);
+            setFtueHasSeenAnkiDialogQuickSelect(s.ftueHasSeenAnkiDialogQuickSelect);
         });
     }, [bridge, image]);
 
@@ -237,6 +237,7 @@ export default function AnkiUi({ bridge }: Props) {
     );
 
     const handleDismissShowQuickSelectFtue = useCallback(() => {
+        setFtueHasSeenAnkiDialogQuickSelect(true);
         const message: AnkiDialogDismissedQuickSelectFtueMessage = {
             command: 'dismissedQuickSelectFtue',
         };
@@ -333,7 +334,7 @@ export default function AnkiUi({ bridge }: Props) {
         [bridge]
     );
 
-    const showAnkiDialogQuickSelectFtue = !isMobile && globalState?.ftueHasSeenAnkiDialogQuickSelect === false;
+    const showAnkiDialogQuickSelectFtue = !isMobile && ftueHasSeenAnkiDialogQuickSelect === false;
 
     return (
         <ThemeProvider theme={theme}>
