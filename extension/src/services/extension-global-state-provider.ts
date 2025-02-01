@@ -1,8 +1,15 @@
 import { GlobalState, GlobalStateProvider, initialGlobalState } from '@project/common/global-state';
+import { StorageArea } from './extension-settings-storage';
 
 export class ExtensionGlobalStateProvider implements GlobalStateProvider {
+    private readonly _storage;
+
+    constructor(storage?: StorageArea) {
+        this._storage = storage ?? chrome.storage.local;
+    }
+
     async getAll() {
-        return (await chrome.storage.local.get(initialGlobalState)) as GlobalState;
+        return (await this._storage.get(initialGlobalState)) as GlobalState;
     }
 
     async get<K extends keyof GlobalState>(keys: K[]) {
@@ -12,10 +19,10 @@ export class ExtensionGlobalStateProvider implements GlobalStateProvider {
             partialInitialGlobalState[key] = initialGlobalState[key];
         }
 
-        return (await chrome.storage.local.get(partialInitialGlobalState)) as Pick<GlobalState, K>;
+        return (await this._storage.get(partialInitialGlobalState)) as Pick<GlobalState, K>;
     }
 
     async set(state: Partial<GlobalState>) {
-        await chrome.storage.local.set(state);
+        await this._storage.set(state);
     }
 }
