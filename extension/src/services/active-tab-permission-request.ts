@@ -32,5 +32,5 @@ export const setRequestingActiveTabPermission = async (tabId: number, src: strin
 };
 
 const tabInfo = async (tabId: number) => {
-    return (await chrome.tabs.query({})).find((t) => t.id === tabId);
+    return await chrome.tabs.get(tabId);
 };

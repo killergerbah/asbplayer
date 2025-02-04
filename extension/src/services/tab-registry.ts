@@ -41,7 +41,6 @@ export interface VideoElement {
 
 export default class TabRegistry {
     private readonly _settings: SettingsProvider;
-    private _onNoSyncedElementsCallbacks: (() => void)[] = [];
     private _onSyncedElementCallbacks: (() => void)[] = [];
     private _onAsbplayerInstanceCallbacks: (() => void)[] = [];
 
@@ -51,38 +50,23 @@ export default class TabRegistry {
         // Update video element state on tab changes
         // Triggers events for when synced video elements appear/disappear
         chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
-            this._videoElements();
+            this._removeVideoElementsInTab(tabId);
+            this._removeAsbplayersInTab(tabId);
         });
-        chrome.tabs.onUpdated.addListener((tabId, removeInfo) => {
-            if (removeInfo.status === 'loading' && removeInfo.url === undefined) {
+        chrome.tabs.onUpdated.addListener((tabId, updateInfo) => {
+            let shouldGarbageCollect = false;
+
+            if (updateInfo.status === 'loading' && updateInfo.url === undefined) {
                 // New tab, or tab was refreshed
+                shouldGarbageCollect = true;
+            } else if (updateInfo.url !== undefined) {
+                // Navigated to different URL
+                shouldGarbageCollect = true;
+            }
 
-                this._videoElements((videoElements) => {
-                    let changed = false;
-
-                    for (const [k, v] of Object.entries(videoElements)) {
-                        if (v.tab.id === tabId) {
-                            delete videoElements[k];
-                            changed = true;
-                        }
-                    }
-
-                    return changed;
-                });
-                this._asbplayers((asbplayers) => {
-                    let changed = false;
-
-                    for (const [k, v] of Object.entries(asbplayers)) {
-                        if (v.tab?.id === tabId) {
-                            delete asbplayers[k];
-                            changed = true;
-                        }
-                    }
-
-                    return changed;
-                });
-            } else {
-                this._videoElements();
+            if (shouldGarbageCollect) {
+                this._removeVideoElementsInTab(tabId);
+                this._removeAsbplayersInTab(tabId);
             }
         });
     }
@@ -99,23 +83,26 @@ export default class TabRegistry {
         await chrome.storage.session.set({ tabRegistryVideoElements: state });
     }
 
+    private async _removeVideoElementsInTab(tabId: number) {
+        await this._videoElements((videoElements) => {
+            let changed = false;
+
+            for (const [k, v] of Object.entries(videoElements)) {
+                if (v.tab.id === tabId) {
+                    delete videoElements[k];
+                    changed = true;
+                }
+            }
+
+            return changed;
+        });
+    }
+
     private async _videoElements(mutator?: (videoElements: { [key: string]: VideoElement }) => boolean) {
-        const tabs = await chrome.tabs.query({});
         const videoElements = await this._fetchVideoElementState();
         const oldVideoElements = { ...videoElements };
 
         let changed = false;
-
-        for (const id in videoElements) {
-            const videoElement = videoElements[id];
-            const disappeared =
-                tabs.find((t) => t.id === videoElement.tab.id && t.url === videoElement.tab.url) === undefined;
-
-            if (disappeared) {
-                changed = true;
-                delete videoElements[id];
-            }
-        }
 
         if (mutator !== undefined) {
             changed = mutator(videoElements) || changed;
@@ -128,11 +115,7 @@ export default class TabRegistry {
         const oldSyncedElementExists = Object.values(oldVideoElements).find((v) => v.synced) !== undefined;
         const syncedElementExists = Object.values(videoElements).find((v) => v.synced) !== undefined;
 
-        if (this._onNoSyncedElementsCallbacks.length > 0 && oldSyncedElementExists && !syncedElementExists) {
-            for (const c of this._onNoSyncedElementsCallbacks) {
-                c();
-            }
-        } else if (this._onSyncedElementCallbacks.length > 0 && !oldSyncedElementExists && syncedElementExists) {
+        if (this._onSyncedElementCallbacks.length > 0 && !oldSyncedElementExists && syncedElementExists) {
             for (const c of this._onSyncedElementCallbacks) {
                 c();
             }
@@ -153,19 +136,30 @@ export default class TabRegistry {
         await chrome.storage.session.set({ tabRegistryAsbplayers: state });
     }
 
+    private async _removeAsbplayersInTab(tabId: number) {
+        await this._asbplayers((asbplayers) => {
+            let changed = false;
+
+            for (const [k, v] of Object.entries(asbplayers)) {
+                if (v.tab?.id === tabId) {
+                    delete asbplayers[k];
+                    changed = true;
+                }
+            }
+
+            return changed;
+        });
+    }
+
     private async _asbplayers(mutator?: (asbplayers: { [key: string]: Asbplayer }) => boolean) {
-        const tabs = await chrome.tabs.query({});
         const asbplayers = await this._fetchAsbplayerState();
         const oldAsbplayers = { ...asbplayers };
-        const now = Date.now();
         let changed = false;
+        const now = Date.now();
 
         for (const id in asbplayers) {
             const asbplayer = asbplayers[id];
-            const disappeared =
-                (asbplayer.sidePanel && now - asbplayer.timestamp >= 5000) ||
-                (asbplayer.tab !== undefined &&
-                    tabs.find((t) => t.id === asbplayer.tab?.id && t.url === asbplayer.tab?.url) === undefined);
+            const disappeared = asbplayer.sidePanel && now - asbplayer.timestamp >= 5000;
 
             if (disappeared) {
                 changed = true;
@@ -365,10 +359,6 @@ export default class TabRegistry {
 
             return false;
         });
-    }
-
-    onNoSyncedElements(callback: () => void) {
-        this._onNoSyncedElementsCallbacks.push(callback);
     }
 
     onSyncedElement(callback: () => void) {
