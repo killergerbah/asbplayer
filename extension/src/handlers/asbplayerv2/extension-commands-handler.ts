@@ -10,6 +10,11 @@ export default class ExtensionCommandsHandler {
     }
 
     handle(command: Command<Message>, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) {
+        if (chrome.commands === undefined) {
+            sendResponse({});
+            return false;
+        }
+
         chrome.commands.getAll((commands) => {
             const commandsObj: any = {};
 
