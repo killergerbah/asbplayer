@@ -65,7 +65,8 @@ const latestExtensionVersion = '1.9.0';
 const extensionUrl =
     'https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab';
 const mp3WorkerFactory = () => new Worker(new URL('../../audio-clip/mp3-encoder-worker.ts', import.meta.url));
-const pgsWorkerFactory = async () => new Worker(new URL('../../subtitle-reader/pgs-parser-worker.ts', import.meta.url));
+const pgsParserWorkerFactory = async () =>
+    new Worker(new URL('../../subtitle-reader/pgs-parser-worker.ts', import.meta.url));
 const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
     content: {
         flexGrow: 1,
@@ -232,7 +233,7 @@ function App({
         return new SubtitleReader({
             regexFilter: settings.subtitleRegexFilter,
             regexFilterTextReplacement: settings.subtitleRegexFilterTextReplacement,
-            pgsWorkerFactory,
+            pgsParserWorkerFactory: pgsParserWorkerFactory,
         });
     }, [settings.subtitleRegexFilter, settings.subtitleRegexFilterTextReplacement]);
     const webSocketClient = useAppWebSocketClient({ settings });

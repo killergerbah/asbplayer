@@ -63,11 +63,11 @@ export default class SubtitleReader {
     constructor({
         regexFilter,
         regexFilterTextReplacement,
-        pgsWorkerFactory,
+        pgsParserWorkerFactory: pgsWorkerFactory,
     }: {
         regexFilter: string;
         regexFilterTextReplacement: string;
-        pgsWorkerFactory: () => Promise<Worker>;
+        pgsParserWorkerFactory: () => Promise<Worker>;
     }) {
         let regex: RegExp | undefined;
 

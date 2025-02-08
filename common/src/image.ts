@@ -44,7 +44,7 @@ class Base64ImageData implements ImageData {
         return this._error;
     }
 
-    atTimestamp(timestamp: number) {
+    atTimestamp(_: number) {
         return this;
     }
 
@@ -193,7 +193,7 @@ class FileImageData implements ImageData {
                 };
             }
 
-            video.onseeked = async (e) => {
+            video.onseeked = async () => {
                 this._canvasPromiseReject = undefined;
 
                 if (!this._canvas) {

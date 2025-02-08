@@ -75,6 +75,7 @@ import KeyBindings from './key-bindings';
 import { shouldShowUpdateAlert } from './update-alert';
 import { mp3WorkerFactory } from './mp3-worker-factory';
 import { bufferToBase64 } from '@project/common/base64';
+import { pgsParserWorkerFactory } from './pgs-parser-worker-factory';
 
 let netflix = false;
 document.addEventListener('asbplayer-netflix-enabled', (e) => {
@@ -1336,11 +1337,7 @@ export default class Binding {
                 const reader = new SubtitleReader({
                     regexFilter: subtitleRegexFilter,
                     regexFilterTextReplacement: subtitleRegexFilterTextReplacement,
-                    pgsWorkerFactory: async () => {
-                        const code = await (await fetch(chrome.runtime.getURL('./pgs-parser-worker.js'))).text();
-                        const blob = new Blob([code], { type: 'application/javascript' });
-                        return new Worker(URL.createObjectURL(blob));
-                    },
+                    pgsParserWorkerFactory: pgsParserWorkerFactory,
                 });
                 const offset = rememberSubtitleOffset ? lastSubtitleOffset : 0;
                 const subtitles = await reader.subtitles(files, flatten);

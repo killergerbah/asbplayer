@@ -2100,7 +2100,7 @@ export default function SettingsForm({
                                 label={properties.label}
                                 keys={
                                     extensionInstalled && properties.boundViaChrome
-                                        ? chromeKeyBinds[keyBindName] ?? ''
+                                        ? (chromeKeyBinds[keyBindName] ?? '')
                                         : keyBindSet[keyBindName].keys
                                 }
                                 boundViaChrome={extensionInstalled && properties.boundViaChrome}

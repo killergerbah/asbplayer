@@ -4,13 +4,23 @@
         "allowJs": true,
         "lib": ["dom", "DOM.Iterable", "ES2021"],
         "target": "ES2020",
-        "module": "ES2020",
+        "module": "ESNext",
         "jsx": "react-jsx",
         "esModuleInterop": true,
-        "strict": true,
         "downlevelIteration": true,
         "resolveJsonModule": true,
-        "moduleResolution": "Node"
+        "useDefineForClassFields": true,
+        "skipLibCheck": true,
+        "moduleResolution": "bundler",
+        "allowImportingTsExtensions": true,
+        "isolatedModules": true,
+        "moduleDetection": "force",
+        "noEmit": true,
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true,
+        "noUncheckedSideEffectImports": true
     },
-    "include": ["./src/**/*", "decs.d.ts"]
+    "include": ["./src/**/*", "decs.d.ts", "vite-env.d.ts"]
 }

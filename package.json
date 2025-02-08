@@ -13,7 +13,7 @@
         "eslint": "^8.54.0",
         "eslint-plugin-react": "^7.33.2",
         "eslint-plugin-react-hooks": "^4.6.0",
-        "prettier": "2.4.1"
+        "prettier": "^3.4.2"
     },
     "scripts": {
         "verify": "scripts/loc/loc-keys-match && scripts/loc/loc-files-are-web-accessible && scripts/loc/loc-codes-in-extension-config && scripts/page-file-references-are-correct && yarn workspace @project/common run test && yarn workspace @project/client run test:nowatch && yarn workspace @project/extension run test && yarn run eslint common extension/src && yarn run pretty:check",

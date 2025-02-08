@@ -502,7 +502,7 @@ const Player = React.memo(function Player({
                         {
                             subtitle,
                             surroundingSubtitles,
-                            subtitleFileName: subtitle ? subtitleFiles?.[subtitle.track]?.name ?? '' : '',
+                            subtitleFileName: subtitle ? (subtitleFiles?.[subtitle.track]?.name ?? '') : '',
                             ...cardTextFieldValues,
                             mediaTimestamp: mediaTimestamp ?? 0,
                             file: videoFile

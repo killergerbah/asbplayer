@@ -461,7 +461,7 @@ export default function SubtitlePlayer({
             const timestamp = clock.time(lengthRef.current);
 
             let slice = subtitleCollectionRef.current.subtitlesAt(timestamp);
-            const showing = slice.showing.length === 0 ? slice.lastShown ?? [] : slice.showing;
+            const showing = slice.showing.length === 0 ? (slice.lastShown ?? []) : slice.showing;
             let smallestIndex: number | undefined;
 
             for (const s of showing) {
