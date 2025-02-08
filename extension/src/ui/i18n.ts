@@ -6,7 +6,7 @@ export const i18nInit = (lang: string, locStrings: any) => {
         resources: { [lang]: { translation: locStrings } },
         lng: lang,
         fallbackLng: lang,
-        debug: process.env.NODE_ENV === 'development',
+        debug: import.meta.env.NODE_ENV === 'development',
         ns: 'translation',
         defaultNS: 'translation',
         interpolation: {

@@ -97,7 +97,7 @@ export default function SettingsDialog({
                     extensionSupportsSubtitlesWidthSetting={extension.supportsSubtitlesWidthSetting}
                     extensionSupportsPauseOnHover={extension.supportsPauseOnHover}
                     insideApp
-                    appVersion={process.env.REACT_APP_GIT_COMMIT}
+                    appVersion={import.meta.env.VITE_APP_GIT_COMMIT}
                     chromeKeyBinds={extension.extensionCommands}
                     onOpenChromeExtensionShortcuts={extension.openShortcuts}
                     onSettingsChanged={onSettingsChanged}

@@ -33,7 +33,7 @@ export const i18nInit = async (lang: string) => {
                 resources: { [loc.lang]: { translation: loc.strings } },
                 lng: loc.lang,
                 fallbackLng: loc.lang,
-                debug: process.env.NODE_ENV === 'development',
+                debug: import.meta.env.NODE_ENV === 'development',
                 ns: 'translation',
                 defaultNS: 'translation',
                 interpolation: {

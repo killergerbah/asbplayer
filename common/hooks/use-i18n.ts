@@ -10,7 +10,7 @@ let init: Promise<any> = i18n
         partialBundledLanguages: true,
         resources: {},
         fallbackLng: 'en',
-        debug: process.env.NODE_ENV === 'development',
+        debug: import.meta.env.NODE_ENV === 'development',
         ns: 'translation',
         defaultNS: 'translation',
         interpolation: {
