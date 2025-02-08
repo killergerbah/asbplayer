@@ -40,9 +40,9 @@ import AudioField from './AudioField';
 import ImageField from './ImageField';
 import ImageDialog from './ImageDialog';
 import MiniProfileSelector from './MiniProfileSelector';
-import type { ButtonBaseActions } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import { isMacOs } from '../device-detection/mac';
+import AnkiDialogButton from './AnkiDialogButton';
 
 const quickSelectShortcut = isMacOs ? '⌘+⇧' : 'Alt+Shift';
 
@@ -618,14 +618,12 @@ const AnkiDialog = ({
         setLastAppliedTimestampIntervalToText(undefined);
     }, []);
 
-    const updateLastButtonRef = useRef<HTMLButtonElement>(null);
-    const openInAnkiButtonRef = useRef<HTMLButtonElement>(null);
-    const exportButtonRef = useRef<HTMLButtonElement>(null);
-    const updateLastButtonActionRef = useRef<ButtonBaseActions>(null);
-    const openInAnkiButtonActionRef = useRef<ButtonBaseActions>(null);
-    const exportButtonActionRef = useRef<ButtonBaseActions>(null);
+    const updateLastButtonRef = useRef<HTMLButtonElement | null>(null);
+    const openInAnkiButtonRef = useRef<HTMLButtonElement | null>(null);
+    const exportButtonRef = useRef<HTMLButtonElement | null>(null);
     const lastSelectedExportModeRef = useRef<AnkiExportMode>();
     lastSelectedExportModeRef.current = lastSelectedExportMode;
+    const [focusedAction, setFocusedAction] = useState<AnkiExportMode>();
 
     const focusOnPreferredAction = useCallback(() => {
         const preferredExportMode = lastSelectedExportModeRef.current;
@@ -634,26 +632,7 @@ const AnkiDialog = ({
             return;
         }
 
-        let actionRef: React.RefObject<ButtonBaseActions | null>;
-
-        switch (preferredExportMode) {
-            case 'default':
-                actionRef = exportButtonActionRef;
-                break;
-            case 'gui':
-                actionRef = openInAnkiButtonActionRef;
-                break;
-            case 'updateLast':
-                actionRef = updateLastButtonActionRef;
-                break;
-        }
-
-        if (!actionRef.current) {
-            const timeout = setTimeout(() => actionRef.current?.focusVisible(), 10);
-            return () => clearTimeout(timeout);
-        }
-
-        actionRef.current.focusVisible();
+        setFocusedAction(preferredExportMode);
     }, []);
 
     const doFocusedAction = useCallback(() => {
@@ -669,6 +648,8 @@ const AnkiDialog = ({
             }
         }
     }, []);
+
+    const handleActionBlur = useCallback(() => setFocusedAction(undefined), []);
 
     useEffect(() => {
         if (open && !disabled) {
@@ -964,30 +945,33 @@ const AnkiDialog = ({
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <Button
+                    <AnkiDialogButton
                         ref={openInAnkiButtonRef}
-                        action={openInAnkiButtonActionRef}
                         disabled={disabled}
+                        focusVisible={focusedAction === 'gui'}
+                        onBlurVisible={handleActionBlur}
                         onClick={handleOpenInAnki}
                     >
                         {t('ankiDialog.openInAnki')}
-                    </Button>
-                    <Button
+                    </AnkiDialogButton>
+                    <AnkiDialogButton
                         ref={updateLastButtonRef}
-                        action={updateLastButtonActionRef}
                         disabled={disabled}
+                        focusVisible={focusedAction === 'updateLast'}
+                        onBlurVisible={handleActionBlur}
                         onClick={handleUpdateLastCard}
                     >
                         {t('ankiDialog.updateLastCard')}
-                    </Button>
-                    <Button
+                    </AnkiDialogButton>
+                    <AnkiDialogButton
                         ref={exportButtonRef}
-                        action={exportButtonActionRef}
                         disabled={disabled}
+                        focusVisible={focusedAction === 'default'}
+                        onBlurVisible={handleActionBlur}
                         onClick={handleExport}
                     >
                         {t('ankiDialog.export')}
-                    </Button>
+                    </AnkiDialogButton>
                 </DialogActions>
             </Dialog>
             <ImageDialog
