@@ -4,11 +4,11 @@
 // not be affected by settings profiles. For example: FTUE state.
 
 export const initialGlobalState: GlobalState = {
-    ftueHasSeenAnkiDialogQuickSelect: false,
+    ftueHasSeenAnkiDialogQuickSelectV2: false,
 };
 
 export interface GlobalState {
-    ftueHasSeenAnkiDialogQuickSelect: boolean;
+    ftueHasSeenAnkiDialogQuickSelectV2: boolean;
 }
 
 export interface GlobalStateProvider {

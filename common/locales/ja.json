@@ -80,7 +80,7 @@
         "zoomIn": "ズームイン",
         "zoomOut": "ズームアウト",
         "imagePreview": "プレビュー・編集",
-        "quickSelectFtue": "{{shortcut}}は最後に使用したアクションを選択します"
+        "quickSelectFtue": "{{shortcut}}は最後に使用したアクションを選択/実行します。"
     },
     "bar": {
         "donate": "寄付",

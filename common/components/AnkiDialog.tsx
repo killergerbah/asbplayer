@@ -44,7 +44,7 @@ import Alert from '@material-ui/lab/Alert';
 import { isMacOs } from '../device-detection/mac';
 import AnkiDialogButton from './AnkiDialogButton';
 
-const quickSelectShortcut = isMacOs ? '⌘+⇧' : 'Alt+Shift';
+const quickSelectShortcut = isMacOs ? '⌘+⇧+Enter' : 'Alt+Shift+Enter';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -625,6 +625,22 @@ const AnkiDialog = ({
     lastSelectedExportModeRef.current = lastSelectedExportMode;
     const [focusedAction, setFocusedAction] = useState<AnkiExportMode>();
 
+    const focusedButton = () => {
+        const activeElement = document.activeElement;
+
+        if (!activeElement) {
+            return undefined;
+        }
+
+        for (const buttonRef of [exportButtonRef, openInAnkiButtonRef, updateLastButtonRef]) {
+            if (buttonRef.current === activeElement) {
+                return buttonRef.current;
+            }
+        }
+
+        return undefined;
+    };
+
     const focusOnPreferredAction = useCallback(() => {
         const preferredExportMode = lastSelectedExportModeRef.current;
 
@@ -633,20 +649,6 @@ const AnkiDialog = ({
         }
 
         setFocusedAction(preferredExportMode);
-    }, []);
-
-    const doFocusedAction = useCallback(() => {
-        const activeElement = document.activeElement;
-
-        if (!activeElement) {
-            return;
-        }
-
-        for (const buttonRef of [exportButtonRef, openInAnkiButtonRef, updateLastButtonRef]) {
-            if (buttonRef.current === activeElement) {
-                buttonRef.current.click();
-            }
-        }
     }, []);
 
     const handleActionBlur = useCallback(() => setFocusedAction(undefined), []);
@@ -700,15 +702,18 @@ const AnkiDialog = ({
         const listener = (e: KeyboardEvent) => {
             if ((e.metaKey || e.altKey) && e.shiftKey) {
                 if (e.key === 'Enter') {
-                    doFocusedAction();
-                } else {
-                    focusOnPreferredAction();
+                    const focused = focusedButton();
+                    if (focused === undefined) {
+                        focusOnPreferredAction();
+                    } else {
+                        focused?.click();
+                    }
                 }
             }
         };
         document.addEventListener('keydown', listener);
         return () => document.removeEventListener('keydown', listener);
-    }, [doFocusedAction, focusOnPreferredAction]);
+    }, [focusOnPreferredAction]);
 
     return (
         <>
