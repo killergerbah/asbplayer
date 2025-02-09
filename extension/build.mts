@@ -35,6 +35,7 @@ const manifestModifiedForFirefox = (manifest) => {
         permissions: ['tabs', 'storage', 'contextMenus', 'webRequest', 'webRequestBlocking'],
         background: {
             scripts: ['background.js'],
+            type: 'module',
         },
         browser_specific_settings: {
             gecko: {
