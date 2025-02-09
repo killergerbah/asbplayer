@@ -1186,10 +1186,10 @@ function App({
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
 
     const handleDismissShowAnkiDialogQuickSelectFtue = useCallback(() => {
-        onGlobalStateChanged({ ftueHasSeenAnkiDialogQuickSelect: true });
+        onGlobalStateChanged({ ftueHasSeenAnkiDialogQuickSelectV2: true });
     }, [onGlobalStateChanged]);
 
-    const showAnkiDialogQuickSelectFtue = !isMobile && globalState?.ftueHasSeenAnkiDialogQuickSelect === false;
+    const showAnkiDialogQuickSelectFtue = !isMobile && globalState?.ftueHasSeenAnkiDialogQuickSelectV2 === false;
 
     if (!i18nInitialized) {
         return null;

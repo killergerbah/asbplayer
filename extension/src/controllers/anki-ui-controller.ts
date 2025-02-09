@@ -252,7 +252,7 @@ export default class AnkiUiController {
                         });
                         return;
                     case 'dismissedQuickSelectFtue':
-                        globalStateProvider.set({ ftueHasSeenAnkiDialogQuickSelect: true }).catch(console.error);
+                        globalStateProvider.set({ ftueHasSeenAnkiDialogQuickSelectV2: true }).catch(console.error);
                         return;
                     case 'exported':
                         const exportedMessage = message as AnkiUiBridgeExportedMessage;
@@ -349,7 +349,7 @@ export default class AnkiUiController {
         return {
             profiles: await profilesPromise,
             activeProfile: (await activeProfilePromise)?.name,
-            ftueHasSeenAnkiDialogQuickSelect: (await globalStatePromise).ftueHasSeenAnkiDialogQuickSelect,
+            ftueHasSeenAnkiDialogQuickSelect: (await globalStatePromise).ftueHasSeenAnkiDialogQuickSelectV2,
         };
     }
 
