@@ -9,9 +9,5 @@ import WebsiteApp from './components/WebsiteApp';
 const fetcher = new HttpFetcher();
 
 createRoot(document.querySelector('#root')!).render(
-    <WebsiteApp
-        origin={import.meta.env.PUBLIC_URL}
-        logoUrl={`${import.meta.env.PUBLIC_URL}/background-colored.png`}
-        fetcher={fetcher}
-    />
+    <WebsiteApp origin={location.pathname} logoUrl={`${location.pathname}/background-colored.png`} fetcher={fetcher} />
 );
