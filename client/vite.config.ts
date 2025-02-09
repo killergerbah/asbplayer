@@ -6,7 +6,7 @@ import { createHtmlPlugin } from 'vite-plugin-html';
 export default defineConfig(({ mode }) => {
     return {
         // depending on your application, base can also be "/"
-        base: '',
+        base: '/',
         plugins: [
             react(),
             viteTsconfigPaths(),
