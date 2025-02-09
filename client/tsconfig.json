@@ -15,7 +15,7 @@
         "isolatedModules": true,
         "noEmit": true,
         "jsx": "react-jsx",
-        "types": ["vite/client", "@types/jest"]
+        "types": ["vite/client", "@types/jest", "node"]
     },
     "include": ["src", "decs.d.ts", "vite-env.d.ts"]
 }
