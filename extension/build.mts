@@ -67,7 +67,7 @@ const mode: string = process.argv[2] || 'development';
 const env = loadEnv(mode, process.cwd());
 const target = env.VITE_BUILD_TARGET || 'chromium';
 
-const configForEntryPoint = (name: string, path: string, index: number): UserConfig => {
+const configForNonModuleEntryPoint = (name: string, path: string, index: number): UserConfig => {
     const config: UserConfig = {
         mode,
         build: {
@@ -120,17 +120,28 @@ const configForEntryPoint = (name: string, path: string, index: number): UserCon
     return config;
 };
 
-const entryPoints = {
-    ...Object.fromEntries(
-        glob
-            .sync('./src/pages/*.ts')
-            .filter((p) => p !== './src/pages/util.ts')
-            .map((filePath) => [filePath.substring(filePath.lastIndexOf('/pages') + 1, filePath.length - 3), filePath])
-    ),
-    'mp3-encoder-worker': '../common/audio-clip/mp3-encoder-worker.ts',
-    'pgs-parser-worker': '../common/subtitle-reader/pgs-parser-worker.ts',
-    video: './src/video.ts',
-    page: './src/page.ts',
+const configForModuleEntryPoints = (entryPonts: { [name: string]: string }): UserConfig => {
+    return {
+        mode,
+        build: {
+            outDir: `dist/${target}`,
+            emptyOutDir: false,
+            minify: mode === 'production',
+            sourcemap: true,
+            rollupOptions: {
+                output: {
+                    entryFileNames: '[name].js',
+                    chunkFileNames: 'chunks/[name].js',
+                    assetFileNames: 'assets/[name].[ext]',
+                    format: 'es',
+                },
+                input: entryPonts,
+            },
+        },
+    };
+};
+
+const moduleEntryPoints = {
     background: './src/background.ts',
     'side-panel': './src/side-panel.ts',
     'settings-ui': './src/settings-ui.ts',
@@ -141,23 +152,37 @@ const entryPoints = {
     'ftue-ui': './src/ftue-ui.ts',
     'mobile-video-overlay-ui': './src/mobile-video-overlay-ui.ts',
     'notification-ui': './src/notification-ui.ts',
-    asbplayer: './src/asbplayer.ts',
     'offscreen-audio-recorder': './src/offscreen-audio-recorder.ts',
 };
 
-const entries = Object.entries(entryPoints);
+const nonModuleEntryPoints = {
+    ...Object.fromEntries(
+        glob
+            .sync('./src/pages/*.ts')
+            .filter((p) => p !== './src/pages/util.ts')
+            .map((filePath) => [filePath.substring(filePath.lastIndexOf('/pages') + 1, filePath.length - 3), filePath])
+    ),
+    'mp3-encoder-worker': '../common/audio-clip/mp3-encoder-worker.ts',
+    'pgs-parser-worker': '../common/subtitle-reader/pgs-parser-worker.ts',
+    video: './src/video.ts',
+    page: './src/page.ts',
+    asbplayer: './src/asbplayer.ts',
+};
+
+const entries = Object.entries(nonModuleEntryPoints);
 const firstEntry = entries[0];
 
-// Build first entry-point synchronously so that dist is cleaned out completely
-await build(configForEntryPoint(firstEntry[0], firstEntry[1], 0));
+// Build first entry-point synchronously so that dist/ is cleaned out completely
+await build(configForNonModuleEntryPoint(firstEntry[0], firstEntry[1], 0));
 
 // Build the rest
-let index = 1;
 const promises: Promise<any>[] = [];
 
-for (; index < entries.length; ++index) {
+for (let index = 1; index < entries.length; ++index) {
     const [name, path] = entries[index];
-    promises.push(build(configForEntryPoint(name, path, index)));
+    promises.push(build(configForNonModuleEntryPoint(name, path, index)));
 }
 
+// Build module entry points in single batch
+promises.push(build(configForModuleEntryPoints(moduleEntryPoints)));
 await Promise.all(promises);

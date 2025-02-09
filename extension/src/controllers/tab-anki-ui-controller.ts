@@ -39,7 +39,7 @@ async function html(language: string) {
                     <script type="application/json" id="loc">${JSON.stringify(
                         await fetchLocalization(language)
                     )}</script>
-                    <script src="${chrome.runtime.getURL('./anki-ui.js')}"></script>
+                    <script type="module" src="${chrome.runtime.getURL('./anki-ui.js')}"></script>
                 </body>
             </html>`;
 }

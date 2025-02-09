@@ -29,7 +29,7 @@ export default class NotificationController {
                         <script type="application/json" id="loc">${JSON.stringify(
                             await fetchLocalization(lang)
                         )}</script>
-                        <script src="${chrome.runtime.getURL('./notification-ui.js')}"></script>
+                        <script type="module" src="${chrome.runtime.getURL('./notification-ui.js')}"></script>
                     </body>
                 </html>`
         );
