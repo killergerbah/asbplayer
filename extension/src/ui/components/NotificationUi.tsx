@@ -47,11 +47,11 @@ const NotificationUi = ({ bridge }: Props) => {
             }
 
             if (state.titleLocKey !== undefined) {
-                setTitle(state.titleLocKey === '' ? '' : t(state.titleLocKey) ?? '');
+                setTitle(state.titleLocKey === '' ? '' : (t(state.titleLocKey) ?? ''));
             }
 
             if (state.messageLocKey !== undefined) {
-                setMessage(state.messageLocKey === '' ? '' : t(state.messageLocKey) ?? '');
+                setMessage(state.messageLocKey === '' ? '' : (t(state.messageLocKey) ?? ''));
             }
 
             if (state.newVersion !== undefined) {

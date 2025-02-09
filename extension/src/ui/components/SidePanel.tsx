@@ -45,11 +45,8 @@ import { useAppKeyBinder } from '@project/common/app/hooks/use-app-key-binder';
 import { download } from '@project/common/util';
 import { MiningContext } from '@project/common/app/services/mining-context';
 import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
-
-const mp3WorkerFactory = () =>
-    new Worker(new URL('../../../../common/audio-clip/mp3-encoder-worker.ts', import.meta.url));
-const pgsWorkerFactory = async () =>
-    new Worker(new URL('../../../../common/subtitle-reader/pgs-parser-worker.ts', import.meta.url));
+import { mp3WorkerFactory } from '../../services/mp3-worker-factory';
+import { pgsParserWorkerFactory } from '../../services/pgs-parser-worker-factory';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -71,7 +68,7 @@ export default function SidePanel({ settings, extension }: Props) {
             new SubtitleReader({
                 regexFilter: settings.subtitleRegexFilter,
                 regexFilterTextReplacement: settings.subtitleRegexFilterTextReplacement,
-                pgsWorkerFactory,
+                pgsParserWorkerFactory,
             }),
         [settings]
     );
@@ -140,7 +137,11 @@ export default function SidePanel({ settings, extension }: Props) {
                         const length = subs.length > 0 ? subs[subs.length - 1].end : 0;
                         setSyncedVideoElement(lastSyncedVideoTab);
                         setSubtitles(
-                            subs.map((s, index) => ({ ...s, index, displayTime: timeDurationDisplay(s.start, length) }))
+                            subs.map((s, index) => ({
+                                ...s,
+                                index,
+                                displayTime: timeDurationDisplay(s.start, length),
+                            }))
                         );
                         setSubtitleFileNames(response.subtitleFileNames);
                     }
@@ -312,7 +313,7 @@ export default function SidePanel({ settings, extension }: Props) {
     }, [refreshCopyHistory]);
     const handleCloseCopyHistory = useCallback(() => setShowCopyHistory(false), []);
     const handleClipAudio = useCallback(
-        (item: CopyHistoryItem) => {
+        async (item: CopyHistoryItem) => {
             if (viewingAsbplayer) {
                 if (currentTabId) {
                     const downloadAudioCommand: ExtensionToAsbPlayerCommand<DownloadAudioMessage> = {
@@ -329,7 +330,8 @@ export default function SidePanel({ settings, extension }: Props) {
 
                 if (clip) {
                     if (settings.preferMp3) {
-                        clip.toMp3(mp3WorkerFactory).download();
+                        const worker = await mp3WorkerFactory();
+                        clip.toMp3(() => worker).download();
                     } else {
                         clip.download();
                     }

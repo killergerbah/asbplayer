@@ -278,9 +278,8 @@ export function computeStyles({
     }
 
     if (subtitleShadowThickness > 0) {
-        styles[
-            'textShadow'
-        ] = `0 0 ${subtitleShadowThickness}px ${subtitleShadowColor}, 0 0 ${subtitleShadowThickness}px ${subtitleShadowColor}, 0 0 ${subtitleShadowThickness}px ${subtitleShadowColor}, 0 0 ${subtitleShadowThickness}px ${subtitleShadowColor}`;
+        styles['textShadow'] =
+            `0 0 ${subtitleShadowThickness}px ${subtitleShadowColor}, 0 0 ${subtitleShadowThickness}px ${subtitleShadowColor}, 0 0 ${subtitleShadowThickness}px ${subtitleShadowColor}, 0 0 ${subtitleShadowThickness}px ${subtitleShadowColor}`;
     }
 
     if (subtitleBackgroundOpacity > 0) {

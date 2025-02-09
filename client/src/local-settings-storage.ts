@@ -1,4 +1,4 @@
-import { CachedLocalStorage } from '@project/common/app';
+import { CachedLocalStorage } from '@project/common/app/services/cached-local-storage';
 import { AppSettingsStorage } from '@project/common/app/services/app-settings-storage';
 import {
     AsbplayerSettings,

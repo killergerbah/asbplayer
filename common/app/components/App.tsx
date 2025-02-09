@@ -60,12 +60,12 @@ import { ExtensionBridgedCopyHistoryRepository } from '../services/extension-bri
 import { IndexedDBCopyHistoryRepository } from '../../copy-history';
 import { isMobile } from 'react-device-detect';
 import { GlobalState } from '../../global-state';
+import mp3WorkerFactory from '../../audio-clip/mp3-encoder-worker.ts?worker';
+import pgsParserWorkerFactory from '../../subtitle-reader/pgs-parser-worker.ts?worker';
 
 const latestExtensionVersion = '1.9.0';
 const extensionUrl =
     'https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab';
-const mp3WorkerFactory = () => new Worker(new URL('../../audio-clip/mp3-encoder-worker.ts', import.meta.url));
-const pgsWorkerFactory = async () => new Worker(new URL('../../subtitle-reader/pgs-parser-worker.ts', import.meta.url));
 const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
     content: {
         flexGrow: 1,
@@ -232,7 +232,7 @@ function App({
         return new SubtitleReader({
             regexFilter: settings.subtitleRegexFilter,
             regexFilterTextReplacement: settings.subtitleRegexFilterTextReplacement,
-            pgsWorkerFactory,
+            pgsParserWorkerFactory: async () => new pgsParserWorkerFactory(),
         });
     }, [settings.subtitleRegexFilter, settings.subtitleRegexFilterTextReplacement]);
     const webSocketClient = useAppWebSocketClient({ settings });
@@ -445,7 +445,7 @@ function App({
                     );
 
                     if (audioClip && settingsRef.current.preferMp3) {
-                        audioClip = audioClip.toMp3(mp3WorkerFactory);
+                        audioClip = audioClip.toMp3(() => new mp3WorkerFactory());
                     }
 
                     handleAnkiDialogProceed({
@@ -557,7 +557,7 @@ function App({
 
                 if (clip?.error === undefined) {
                     if (settings.preferMp3) {
-                        clip!.toMp3(mp3WorkerFactory).download();
+                        clip!.toMp3(() => new mp3WorkerFactory()).download();
                     } else {
                         clip!.download();
                     }
@@ -1177,7 +1177,7 @@ function App({
     }, [extension, keyBinder, handleOpenCopyHistory, ankiDialogOpen]);
 
     const mp3Encoder = useCallback(async (blob: Blob, extension: string) => {
-        return await Mp3Encoder.encode(blob, mp3WorkerFactory);
+        return await Mp3Encoder.encode(blob, () => new mp3WorkerFactory());
     }, []);
 
     useEffect(() => {

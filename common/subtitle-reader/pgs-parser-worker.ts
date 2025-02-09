@@ -40,9 +40,7 @@ function parse(fileStream: ReadableStream, canvas: OffscreenCanvas) {
                         command: 'subtitle',
                         imageBlob: await canvas.convertToBlob({ type: 'image/png' }),
                         subtitle: {
-                            start:
-                                currentImageDisplaySet.objectDefinitionSegments[0].header.presentationTimestamp / 90 ??
-                                0,
+                            start: currentImageDisplaySet.objectDefinitionSegments[0].header.presentationTimestamp / 90,
                             end: displaySet.endDefinitionSegment.header.presentationTimestamp / 90,
                             text: '',
                             textImage: {

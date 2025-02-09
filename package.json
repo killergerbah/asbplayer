@@ -13,12 +13,15 @@
         "eslint": "^8.54.0",
         "eslint-plugin-react": "^7.33.2",
         "eslint-plugin-react-hooks": "^4.6.0",
-        "prettier": "2.4.1"
+        "prettier": "^3.4.2"
     },
     "scripts": {
-        "verify": "scripts/loc/loc-keys-match && scripts/loc/loc-files-are-web-accessible && scripts/loc/loc-codes-in-extension-config && scripts/page-file-references-are-correct && yarn workspace @project/common run test && yarn workspace @project/client run test:nowatch && yarn workspace @project/extension run test && yarn run eslint common extension/src && yarn run pretty:check",
+        "verify": "scripts/loc/loc-keys-match && scripts/loc/loc-files-are-web-accessible && scripts/loc/loc-codes-in-extension-config && scripts/page-file-references-are-correct && yarn workspace @project/common run test && yarn workspace @project/client run test && yarn workspace @project/extension run test && yarn run eslint common extension/src && yarn run pretty:check",
         "pretty": "yarn prettier --write './(client|common|extension)/**/*.(js|ts|tsx|css)'",
         "pretty:check": "yarn prettier --check './(client|common|extension)/**/*.(js|ts|tsx|css)'"
     },
-    "packageManager": "yarn@3.2.0"
+    "packageManager": "yarn@3.2.0",
+    "resolutions": {
+        "lamejs@1.2.0": "patch:lamejs@npm:1.2.0#.yarn/patches/lamejs-npm-1.2.0-b0315d05aa.patch"
+    }
 }

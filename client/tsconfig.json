@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "target": "es5",
+        "target": "ESNext",
         "lib": ["dom", "dom.iterable", "esnext"],
         "allowJs": true,
         "skipLibCheck": true,
@@ -14,7 +14,8 @@
         "resolveJsonModule": true,
         "isolatedModules": true,
         "noEmit": true,
-        "jsx": "react-jsx"
+        "jsx": "react-jsx",
+        "types": ["vite/client", "@types/jest", "node"]
     },
-    "include": ["src", "decs.d.ts"]
+    "include": ["src", "decs.d.ts", "vite-env.d.ts"]
 }

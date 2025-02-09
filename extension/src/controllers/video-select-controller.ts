@@ -41,7 +41,7 @@ export default class VideoSelectController {
                 <body>
                     <div id="root" style="width:100%;height:100vh;"></div>
                     <script type="application/json" id="loc">${JSON.stringify(await fetchLocalization(lang))}</script>
-                    <script src="${chrome.runtime.getURL('./video-select-ui.js')}"></script>
+                    <script type="module" src="${chrome.runtime.getURL('./video-select-ui.js')}"></script>
                 </body>
             </html>`
         );

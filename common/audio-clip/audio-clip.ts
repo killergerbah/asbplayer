@@ -144,12 +144,15 @@ class Base64AudioData implements AudioData {
         await audio.play();
         invokeCallbacks('play', this._callbacks);
 
-        this.stopAudioTimeout = setTimeout(() => {
-            this.stopAudio(audio);
-            this.playingAudio = undefined;
-            this.stopAudioTimeout = undefined;
-            invokeCallbacks('pause', this._callbacks);
-        }, (this._end - this._start) / this.playbackRate + 100);
+        this.stopAudioTimeout = setTimeout(
+            () => {
+                this.stopAudio(audio);
+                this.playingAudio = undefined;
+                this.stopAudioTimeout = undefined;
+                invokeCallbacks('pause', this._callbacks);
+            },
+            (this._end - this._start) / this.playbackRate + 100
+        );
     }
 
     stop() {
@@ -273,15 +276,18 @@ class FileAudioClipper {
             this._playingAudioElement = audio;
         }
 
-        this._stopAudioTimeout = setTimeout(() => {
-            if (this._playingAudioElement !== undefined) {
-                this._stopAudio(this._playingAudioElement, true);
-                invokeCallbacks('pause', this._callbacks);
-                this._playingAudioElement = undefined;
-            }
+        this._stopAudioTimeout = setTimeout(
+            () => {
+                if (this._playingAudioElement !== undefined) {
+                    this._stopAudio(this._playingAudioElement, true);
+                    invokeCallbacks('pause', this._callbacks);
+                    this._playingAudioElement = undefined;
+                }
 
-            this._stopAudioTimeout = undefined;
-        }, (this._end - this._start) / this._playbackRate + 100);
+                this._stopAudioTimeout = undefined;
+            },
+            (this._end - this._start) / this._playbackRate + 100
+        );
     }
 
     async clip(audible: boolean): Promise<Blob> {
@@ -328,17 +334,20 @@ class FileAudioClipper {
 
                     this._clippingAudioReject = reject;
                     this._clippingAudioElement = audio;
-                    this._stopClippingTimeout = setTimeout(() => {
-                        this._stopAudio(audio, false);
-                        this._clippingAudioElement = undefined;
-                        this._stopClippingTimeout = undefined;
-                        this._clippingAudioReject = undefined;
-                        finished = true;
-                        recorder.stop();
-                        for (const track of stream.getAudioTracks()) {
-                            track.stop();
-                        }
-                    }, (this._end - this._start) / this._playbackRate + 100);
+                    this._stopClippingTimeout = setTimeout(
+                        () => {
+                            this._stopAudio(audio, false);
+                            this._clippingAudioElement = undefined;
+                            this._stopClippingTimeout = undefined;
+                            this._clippingAudioReject = undefined;
+                            finished = true;
+                            recorder.stop();
+                            for (const track of stream.getAudioTracks()) {
+                                track.stop();
+                            }
+                        },
+                        (this._end - this._start) / this._playbackRate + 100
+                    );
                 };
             } catch (e) {
                 reject(e);

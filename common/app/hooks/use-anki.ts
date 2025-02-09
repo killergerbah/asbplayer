@@ -85,6 +85,9 @@ class SettingsAccessor {
     get surroundingSubtitlesTimeRadius() {
         return this.settings.surroundingSubtitlesTimeRadius;
     }
+    get recordWithAudioPlayback() {
+        return this.settings.recordWithAudioPlayback;
+    }
 }
 
 const settingsAccessor = new SettingsAccessor();

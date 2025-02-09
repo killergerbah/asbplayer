@@ -20,7 +20,8 @@
         "open_in_tab": true
     },
     "background": {
-        "service_worker": "background.js"
+        "service_worker": "background.js",
+        "type": "module"
     },
     "side_panel": {
         "default_path": "side-panel.html"
@@ -87,6 +88,7 @@
     "web_accessible_resources": [
         {
             "resources": [
+                "chunks/*",
                 "assets/image.png",
                 "assets/fonts.css",
                 "assets/Roboto-Bold.woff2",
