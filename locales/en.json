@@ -80,7 +80,7 @@
         "zoomIn": "Zoom In",
         "zoomOut": "Zoom Out",
         "imagePreview": "Preview/edit",
-        "quickSelectFtue": "{{shortcut}} selects the last-used action."
+        "quickSelectFtue": "{{shortcut}} selects/executes the last-used action."
     },
     "bar": {
         "donate": "Donate",
