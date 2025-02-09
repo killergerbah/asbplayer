@@ -20,5 +20,8 @@
         "pretty": "yarn prettier --write './(client|common|extension)/**/*.(js|ts|tsx|css)'",
         "pretty:check": "yarn prettier --check './(client|common|extension)/**/*.(js|ts|tsx|css)'"
     },
-    "packageManager": "yarn@3.2.0"
+    "packageManager": "yarn@3.2.0",
+    "resolutions": {
+        "lamejs@1.2.0": "patch:lamejs@npm:1.2.0#.yarn/patches/lamejs-npm-1.2.0-b0315d05aa.patch"
+    }
 }

@@ -14,7 +14,7 @@
         "i18next-browser-languagedetector": "^7.0.1",
         "i18next-resources-to-backend": "^1.2.1",
         "jsonschema": "^1.4.1",
-        "lamejs": "github:zhuker/lamejs",
+        "lamejs": "1.2.0",
         "pgs-parser": "0.1.0",
         "sanitize-filename": "^1.6.3",
         "semver": "^7.3.7",

@@ -1709,7 +1709,7 @@ __metadata:
     i18next-resources-to-backend: ^1.2.1
     jest: ^26.6.0
     jsonschema: ^1.4.1
-    lamejs: "github:zhuker/lamejs"
+    lamejs: 1.2.0
     pgs-parser: 0.1.0
     sanitize-filename: ^1.6.3
     semver: ^7.3.7
@@ -6939,12 +6939,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lamejs@github:zhuker/lamejs":
-  version: 1.2.1
-  resolution: "lamejs@https://github.com/zhuker/lamejs.git#commit=582bbba6a12f981b984d8fb9e1874499fed85675"
+"lamejs@npm:1.2.0":
+  version: 1.2.0
+  resolution: "lamejs@npm:1.2.0"
   dependencies:
     use-strict: 1.0.1
-  checksum: ed7f6f1c9629b53c17023eb04b4fc5a222e9c34fcb4a2f61214488fc64e5cfea825e4588d959c5fb20f3a91f0120103fa60307dd43df995d498ff5ddb6200cd9
+  checksum: 893b8d97ceac5a4b803cdda6fbe26c22602e6cc3b4156485cbe439809725b5a74867c6d148b26fb6fd21db20161c6ff42022763533c404ee4486b9a89243cfa6
+  languageName: node
+  linkType: hard
+
+"lamejs@patch:lamejs@npm:1.2.0#.yarn/patches/lamejs-npm-1.2.0-b0315d05aa.patch::locator=root%40workspace%3A.":
+  version: 1.2.0
+  resolution: "lamejs@patch:lamejs@npm%3A1.2.0#.yarn/patches/lamejs-npm-1.2.0-b0315d05aa.patch::version=1.2.0&hash=c64a15&locator=root%40workspace%3A."
+  dependencies:
+    use-strict: 1.0.1
+  checksum: b6a29aaa46fce4b942554a566c3f64c1918d75072117bb7d8f70a99cd837951159c4724f00792341185f244e3e967b846bbf619a14745ffa9323157023add095
   languageName: node
   linkType: hard
 
