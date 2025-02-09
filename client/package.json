@@ -24,9 +24,9 @@
     "homepage": "https://killergerbah.github.io/asbplayer",
     "scripts": {
         "start": "VITE_APP_GIT_COMMIT=$(git rev-parse --short HEAD) vite",
-        "verify": "../scripts/loc/loc-keys-match && VITE_APP_GIT_COMMIT=$(git rev-parse --short HEAD) && tsc && jest",
-        "build": "yarn run verify && VITE_APP_BASE_PATH=\"/asbplayer\" vite build",
-        "buildStaging": "yarn run verify && VITE_APP_BASE_PATH=\"/asbplayer-staging\" vite build",
+        "verify": "../scripts/loc/loc-keys-match && tsc && jest",
+        "build": "yarn run verify && VITE_APP_GIT_COMMIT=$(git rev-parse --short HEAD) VITE_APP_BASE_PATH=\"/asbplayer\" vite build",
+        "buildStaging": "yarn run verify && VITE_APP_GIT_COMMIT=$(git rev-parse --short HEAD) VITE_APP_BASE_PATH=\"/asbplayer-staging\" vite build",
         "preview": "vite preview",
         "deploy": "gh-pages -d dist",
         "test": "jest"
