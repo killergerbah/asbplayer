@@ -1315,7 +1315,7 @@ function App({
                             ref={fileInputRef}
                             onChange={handleFileInputChange}
                             type="file"
-                            accept=".srt,.ass,.vtt,.sup,.mp3,.m4a,.aac,.flac,.ogg,.wav,.opus,.mkv,.mp4,.m4v,.avi"
+                            accept=".srt,.ass,.vtt,.sup,.mp3,.m4a,.aac,.flac,.ogg,.wav,.opus,.mkv,.mp4,.avi,.m4v"
                             multiple
                             hidden
                         />
