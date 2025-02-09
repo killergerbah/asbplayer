@@ -23,4 +23,4 @@ jobs:
             - run: npm install --global yarn
             - run: yarn set version 3.2.0
             - run: yarn install
-            - run: yarn run verify
+            - run: yarn workspace @project/extension run packageProd
