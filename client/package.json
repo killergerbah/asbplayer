@@ -28,7 +28,7 @@
         "build": "yarn run verify && VITE_APP_BASE_PATH=\"/asbplayer\" vite build",
         "buildStaging": "yarn run verify && VITE_APP_BASE_PATH=\"/asbplayer-staging\" vite build",
         "preview": "vite preview",
-        "deploy": "gh-pages -d build",
+        "deploy": "gh-pages -d dist",
         "test": "jest"
     },
     "eslintConfig": {
