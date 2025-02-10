@@ -1,13 +1,12 @@
-import React from 'react';
-import { makeStyles } from '@material-ui/core';
-import Box from '@material-ui/core/Box';
-import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
+import { makeStyles } from '@mui/styles';
+import Box from '@mui/material/Box';
+import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 
 interface Props {
     show: boolean;
 }
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
     icon: {
         animation: `$blink infinite 1s`,
     },
@@ -15,7 +14,7 @@ const useStyles = makeStyles({
         '0%': { opacity: 1 },
         '100%': { opacity: 0 },
     },
-});
+}));
 
 const SidePanelRecordingOverlay = ({ show }: Props) => {
     const classes = useStyles();

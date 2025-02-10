@@ -1,6 +1,6 @@
-import CssBaseline from '@material-ui/core/CssBaseline';
-import Paper from '@material-ui/core/Paper';
-import { ThemeProvider } from '@material-ui/core/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import Paper from '@mui/material/Paper';
+import ThemeProvider from '@mui/material/styles/ThemeProvider';
 import { createTheme } from '@project/common/theme';
 import { useI18n } from '../hooks/use-i18n';
 import CenteredGridContainer from './CenteredGridContainer';

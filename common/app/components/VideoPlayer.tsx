@@ -1,6 +1,6 @@
 import React, { MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { isMobile } from 'react-device-detect';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@mui/styles';
 import { useWindowSize } from '../hooks/use-window-size';
 import { arrayEquals } from '../services/util';
 import {
@@ -38,7 +38,7 @@ import Clock from '../services/clock';
 import Controls, { Point } from './Controls';
 import PlayerChannel from '../services/player-channel';
 import ChromeExtension from '../services/chrome-extension';
-import { Color } from '@material-ui/lab/Alert';
+import { type AlertColor } from '@mui/material/Alert';
 import Alert from './Alert';
 import { useSubtitleDomCache } from '../hooks/use-subtitle-dom-cache';
 import { useAppKeyBinder } from '../hooks/use-app-key-binder';
@@ -54,6 +54,7 @@ import { useFullscreen } from '../hooks/use-fullscreen';
 import MobileVideoOverlay from '@project/common/components/MobileVideoOverlay';
 import { CachedLocalStorage } from '../services/cached-local-storage';
 import useLastScrollableControlType from '../../hooks/use-last-scrollable-control-type';
+import { type Theme } from '@mui/material/styles';
 
 const overlayContainerHeight = 48;
 
@@ -61,7 +62,7 @@ interface ExperimentalHTMLVideoElement extends HTMLVideoElement {
     readonly audioTracks: any;
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles<Theme>((theme) => ({
     root: {
         position: 'relative',
         backgroundColor: 'black',
@@ -259,7 +260,7 @@ const CachedShowingSubtitle = React.memo(function CachedShowingSubtitle({
     );
 });
 
-const useSubtitleContainerStyles = makeStyles({
+const useSubtitleContainerStyles = makeStyles(() => ({
     subtitleContainer: {
         position: 'absolute',
         paddingLeft: 20,
@@ -268,7 +269,7 @@ const useSubtitleContainerStyles = makeStyles({
         whiteSpace: 'normal',
         lineHeight: 'inherit',
     },
-});
+}));
 
 interface SubtitleContainerProps {
     subtitleSettings: SubtitleSettings;
@@ -426,7 +427,7 @@ export default function VideoPlayer({
     const containerRef = useRef<HTMLDivElement>(null);
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
     const [alertMessage, setAlertMessage] = useState<string>('');
-    const [alertSeverity, setAlertSeverity] = useState<Color>('info');
+    const [alertSeverity, setAlertSeverity] = useState<AlertColor>('info');
     const [alertDisableAutoHide, setAlertDisableAutoHide] = useState<boolean>(false);
     const [lastMinedRecord, setLastMinedRecord] = useState<MinedRecord>();
     const [trackCount, setTrackCount] = useState<number>(0);
@@ -652,7 +653,7 @@ export default function VideoPlayer({
         playerChannel.onAlert((message, severity) => {
             setAlertOpen(true);
             setAlertMessage(message);
-            setAlertSeverity(severity as Color);
+            setAlertSeverity(severity as AlertColor);
         });
 
         window.onbeforeunload = (e) => {

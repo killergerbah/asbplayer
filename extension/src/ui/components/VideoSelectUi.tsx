@@ -1,20 +1,20 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import CloseIcon from '@material-ui/icons/Close';
-import SettingsIcon from '@material-ui/icons/Settings';
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
-import ThemeProvider from '@material-ui/styles/ThemeProvider';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
+import CssBaseline from '@mui/material/CssBaseline';
+import CloseIcon from '@mui/icons-material/Close';
+import SettingsIcon from '@mui/icons-material/Settings';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
+import ThemeProvider from '@mui/material/styles/ThemeProvider';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
 import Bridge from '../bridge';
 import {
     Message,
@@ -23,7 +23,7 @@ import {
     VideoSelectModeConfirmMessage,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
-import { PaletteType } from '@material-ui/core';
+import { PaletteMode } from '@mui/material/styles';
 
 interface Props {
     bridge: Bridge;
@@ -42,7 +42,7 @@ export default function VideoSelectUi({ bridge }: Props) {
     const [openedFromMiningCommand, setOpenedFromMiningCommand] = useState<boolean>(false);
     const { t } = useTranslation();
 
-    const theme = useMemo(() => createTheme(themeType as PaletteType), [themeType]);
+    const theme = useMemo(() => createTheme(themeType as PaletteMode), [themeType]);
 
     useEffect(() => {
         return bridge.addClientMessageListener((message: Message) => {
@@ -119,7 +119,7 @@ export default function VideoSelectUi({ bridge }: Props) {
                                     <TextField
                                         select
                                         fullWidth
-                                        color="secondary"
+                                        color="primary"
                                         variant="filled"
                                         label={t('extension.videoSelect.videoElement')}
                                         value={selectedVideoElementSrc}

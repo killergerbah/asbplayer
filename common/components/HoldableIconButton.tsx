@@ -1,4 +1,4 @@
-import IconButton, { IconButtonProps } from '@material-ui/core/IconButton';
+import IconButton, { IconButtonProps } from '@mui/material/IconButton';
 import React, { useEffect, useCallback, useState } from 'react';
 import { isMobile } from 'react-device-detect';
 
@@ -20,7 +20,7 @@ const HoldableIconButton = ({ onHold, onClick, children, ...rest }: Props) => {
         return holdTime / 250;
     }, [startTime]);
 
-    const handleMouseUp = (event: any) => {
+    const handleMouseUp = () => {
         const reps = repetitions();
 
         if (reps !== undefined && reps < 1) {
@@ -30,7 +30,7 @@ const HoldableIconButton = ({ onHold, onClick, children, ...rest }: Props) => {
         setStartTime(undefined);
     };
 
-    const handleMouseDown = (event: any) => {
+    const handleMouseDown = () => {
         setStartTime(Date.now());
     };
 

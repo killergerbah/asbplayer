@@ -1,19 +1,19 @@
-import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import CloseIcon from '@material-ui/icons/Close';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import SettingsIcon from '@material-ui/icons/Settings';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import makeStyles from '@material-ui/styles/makeStyles';
-import Switch from '@material-ui/core/Switch';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+import CloseIcon from '@mui/icons-material/Close';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import SettingsIcon from '@mui/icons-material/Settings';
+import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import makeStyles from '@mui/styles/makeStyles';
+import Switch from '@mui/material/Switch';
 import LabelWithHoverEffect from '@project/common/components/LabelWithHoverEffect';
 import { ConfirmedVideoDataSubtitleTrack, VideoDataSubtitleTrack, VideoDataUiOpenReason } from '@project/common';
 import React, { useEffect, useRef, useState } from 'react';
@@ -189,7 +189,7 @@ export default function VideoDataSyncDialog({
                             fullWidth
                             key={i}
                             error={!!error}
-                            color="secondary"
+                            color="primary"
                             variant="filled"
                             label={`${t('extension.videoDataSync.subtitleTrack')} ${i + 1}`}
                             helperText={error || ''}
@@ -214,7 +214,7 @@ export default function VideoDataSyncDialog({
                         </TextField>
                         {isLoading && (
                             <span className={classes.spinner}>
-                                <CircularProgress size={20} color="secondary" />
+                                <CircularProgress size={20} color="primary" />
                             </span>
                         )}
                     </div>
@@ -269,7 +269,7 @@ export default function VideoDataSyncDialog({
                             <TextField
                                 fullWidth
                                 multiline
-                                color="secondary"
+                                color="primary"
                                 variant="filled"
                                 label={t('extension.videoDataSync.videoName')}
                                 value={name}
@@ -284,7 +284,7 @@ export default function VideoDataSyncDialog({
                                     <Switch
                                         checked={shouldRememberTrackChoices}
                                         onChange={handleRememberTrackChoices}
-                                        color="secondary"
+                                        color="primary"
                                     />
                                 }
                                 label={t('extension.videoDataSync.rememberTrackPreference')}
