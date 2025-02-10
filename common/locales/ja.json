@@ -299,6 +299,8 @@
         "keyboardShortcuts": "キーボードショートカット",
         "hideInCardCreator": "カード作成ウィンドウで非表示",
         "showInCardCreator": "カード作成ウィンドウで表示",
+        "moveUpInCardCreator": "上に移動",
+        "moveDownInCardCreator": "下に移動",
         "language": "言語",
         "maxImageHeight": "画像の高さの最大値",
         "maxImageWidth": "画像の幅の最大値",

@@ -24,10 +24,10 @@ import { SubtitleReader } from '@project/common/subtitle-reader';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Player from '@project/common/app/components/Player';
 import { PlaybackPreferences } from '@project/common/app';
-import { Color } from '@material-ui/lab';
+import { AlertColor } from '@mui/material/Alert';
+import Alert from '@project/common/app/components/Alert';
 import { LocalizedError } from '@project/common/app';
 import { useTranslation } from 'react-i18next';
-import Alert from '@project/common/app/components/Alert';
 import SidePanelHome from './SidePanelHome';
 import { DisplaySubtitleModel } from '@project/common/app/components/SubtitlePlayer';
 import { useCurrentTabId } from '../hooks/use-current-tab-id';
@@ -35,7 +35,7 @@ import { timeDurationDisplay } from '@project/common/app/services/util';
 import { useVideoElementCount } from '../hooks/use-video-element-count';
 import CenteredGridContainer from './CenteredGridContainer';
 import CenteredGridItem from './CenteredGridItem';
-import CircularProgress from '@material-ui/core/CircularProgress';
+import CircularProgress from '@mui/material/CircularProgress';
 import SidePanelBottomControls from './SidePanelBottomControls';
 import SidePanelRecordingOverlay from './SidePanelRecordingOverlay';
 import SidePanelTopControls from './SidePanelTopControls';
@@ -77,7 +77,7 @@ export default function SidePanel({ settings, extension }: Props) {
     const [canDownloadSubtitles, setCanDownloadSubtitles] = useState<boolean>(true);
     const [alert, setAlert] = useState<string>();
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
-    const [alertSeverity, setAlertSeverity] = useState<Color>();
+    const [alertSeverity, setAlertSeverity] = useState<AlertColor>();
     const [initializing, setInitializing] = useState<boolean>(true);
     const [syncedVideoTab, setSyncedVideoElement] = useState<VideoTabModel>();
     const [recordingAudio, setRecordingAudio] = useState<boolean>(false);
@@ -445,7 +445,7 @@ export default function SidePanel({ settings, extension }: Props) {
         return (
             <CenteredGridContainer>
                 <CenteredGridItem>
-                    <CircularProgress color="secondary" />
+                    <CircularProgress color="primary" />
                 </CenteredGridItem>
             </CenteredGridContainer>
         );

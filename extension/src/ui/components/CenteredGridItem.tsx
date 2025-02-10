@@ -1,4 +1,4 @@
-import Grid, { GridProps } from '@material-ui/core/Grid';
+import Grid, { GridProps } from '@mui/material/Grid';
 
 import React from 'react';
 

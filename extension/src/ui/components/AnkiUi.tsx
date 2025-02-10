@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Image,
     ImageModel,
@@ -23,26 +23,27 @@ import {
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import type { Profile } from '@project/common/settings';
-import ThemeProvider from '@material-ui/styles/ThemeProvider';
-import Alert, { Color } from '@material-ui/lab/Alert';
-import CssBaseline from '@material-ui/core/CssBaseline';
+import ThemeProvider from '@mui/material/styles/ThemeProvider';
+import Alert, { AlertColor } from '@mui/material/Alert';
+import CssBaseline from '@mui/material/CssBaseline';
 import AnkiDialog from '@project/common/components/AnkiDialog';
-import Snackbar from '@material-ui/core/Snackbar';
+import Snackbar from '@mui/material/Snackbar';
 import Bridge from '../bridge';
-import type { PaletteType } from '@material-ui/core';
+import type { PaletteMode } from '@mui/material/styles';
 import { AnkiDialogState } from '@project/common/components/AnkiDialog';
 import { BridgeFetcher } from '../bridge-fetcher';
 import { Anki, ExportParams } from '@project/common/anki';
 import { v4 as uuidv4 } from 'uuid';
 import { base64ToBlob, blobToBase64 } from '@project/common/base64';
 import { isMobile } from '@project/common/device-detection/mobile';
+import { StyledEngineProvider } from '@mui/material/styles';
 
 interface Props {
     bridge: Bridge;
 }
 
 const blobToDataUrl = async (blob: Blob): Promise<string> => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         var reader = new FileReader();
         reader.onload = () => {
             resolve(reader.result as string);
@@ -73,7 +74,7 @@ export default function AnkiUi({ bridge }: Props) {
     const [lastAppliedTimestampIntervalToText, setLastAppliedTimestampIntervalToText] = useState<number[]>();
     const [lastAppliedTimestampIntervalToAudio, setLastAppliedTimestampIntervalToAudio] = useState<number[]>();
     const [settings, setSettings] = useState<AnkiDialogSettings>();
-    const [alertSeverity, setAlertSeverity] = useState<Color>('error');
+    const [alertSeverity, setAlertSeverity] = useState<AlertColor>('error');
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
     const [alert, setAlert] = useState<string>('');
     const [dialogRequestedTimestamp, setDialogRequestedTimestamp] = useState<number>(0);
@@ -81,7 +82,7 @@ export default function AnkiUi({ bridge }: Props) {
     const [activeProfile, setActiveProfile] = useState<string>();
     const [ftueHasSeenAnkiDialogQuickSelect, setFtueHasSeenAnkiDialogQuickSelect] = useState<boolean>();
 
-    const theme = useMemo(() => createTheme((settings?.themeType ?? 'dark') as PaletteType), [settings?.themeType]);
+    const theme = useMemo(() => createTheme((settings?.themeType ?? 'dark') as PaletteMode), [settings?.themeType]);
     const anki = useMemo(
         () => (settings ? new Anki(settings, new BridgeFetcher(bridge)) : undefined),
         [settings, bridge]
@@ -337,46 +338,48 @@ export default function AnkiUi({ bridge }: Props) {
     const showAnkiDialogQuickSelectFtue = !isMobile && ftueHasSeenAnkiDialogQuickSelect === false;
 
     return (
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <Snackbar
-                anchorOrigin={{ horizontal: 'center', vertical: 'top' }}
-                open={alertOpen}
-                autoHideDuration={5000}
-                onClose={() => setAlertOpen(false)}
-            >
-                <Alert onClose={() => setAlertOpen(false)} severity={alertSeverity}>
-                    {alert}
-                </Alert>
-            </Snackbar>
-            {settings && card && anki && (
-                <AnkiDialog
-                    open={open}
-                    disabled={disabled}
-                    card={card}
-                    settings={settings}
-                    profiles={profiles}
-                    activeProfile={activeProfile}
-                    onSetActiveProfile={handleSetActiveProfile}
-                    anki={anki}
-                    onProceed={handleProceed}
-                    onRerecord={canRerecord ? handleRerecord : undefined}
-                    onCancel={handleCancel}
-                    onOpenSettings={handleOpenSettings}
-                    onCopyToClipboard={handleCopyToClipboard}
-                    source={source}
-                    initialTimestampInterval={initialTimestampInterval}
-                    timestampBoundaryInterval={timestampBoundaryInterval}
-                    timestampInterval={timestampInterval}
-                    lastAppliedTimestampIntervalToText={lastAppliedTimestampIntervalToText}
-                    lastAppliedTimestampIntervalToAudio={lastAppliedTimestampIntervalToAudio}
-                    showQuickSelectFtue={showAnkiDialogQuickSelectFtue}
-                    onDismissShowQuickSelectFtue={handleDismissShowQuickSelectFtue}
-                    stateRef={dialogStateRef}
-                    mp3Encoder={mp3Encoder}
-                    lastSelectedExportMode={settings.lastSelectedAnkiExportMode}
-                />
-            )}
-        </ThemeProvider>
+        <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={theme}>
+                <CssBaseline />
+                <Snackbar
+                    anchorOrigin={{ horizontal: 'center', vertical: 'top' }}
+                    open={alertOpen}
+                    autoHideDuration={5000}
+                    onClose={() => setAlertOpen(false)}
+                >
+                    <Alert onClose={() => setAlertOpen(false)} severity={alertSeverity}>
+                        {alert}
+                    </Alert>
+                </Snackbar>
+                {settings && card && anki && (
+                    <AnkiDialog
+                        open={open}
+                        disabled={disabled}
+                        card={card}
+                        settings={settings}
+                        profiles={profiles}
+                        activeProfile={activeProfile}
+                        onSetActiveProfile={handleSetActiveProfile}
+                        anki={anki}
+                        onProceed={handleProceed}
+                        onRerecord={canRerecord ? handleRerecord : undefined}
+                        onCancel={handleCancel}
+                        onOpenSettings={handleOpenSettings}
+                        onCopyToClipboard={handleCopyToClipboard}
+                        source={source}
+                        initialTimestampInterval={initialTimestampInterval}
+                        timestampBoundaryInterval={timestampBoundaryInterval}
+                        timestampInterval={timestampInterval}
+                        lastAppliedTimestampIntervalToText={lastAppliedTimestampIntervalToText}
+                        lastAppliedTimestampIntervalToAudio={lastAppliedTimestampIntervalToAudio}
+                        showQuickSelectFtue={showAnkiDialogQuickSelectFtue}
+                        onDismissShowQuickSelectFtue={handleDismissShowQuickSelectFtue}
+                        stateRef={dialogStateRef}
+                        mp3Encoder={mp3Encoder}
+                        lastSelectedExportMode={settings.lastSelectedAnkiExportMode}
+                    />
+                )}
+            </ThemeProvider>
+        </StyledEngineProvider>
     );
 }

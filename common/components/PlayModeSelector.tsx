@@ -1,10 +1,12 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import Popover from '@material-ui/core/Popover';
-import type { PopoverProps } from '@material-ui/core/Popover';
+import List from '@mui/material/List';
+import MuiListItem, { ListItemProps } from '@mui/material/ListItem';
+import MuiListItemButton, { ListItemButtonProps } from '@mui/material/ListItemButton';
+import Popover from '@mui/material/Popover';
+import type { PopoverProps } from '@mui/material/Popover';
 import { PlayMode } from '@project/common';
+import ListItemText from '@mui/material/ListItemText';
 
 interface Props extends PopoverProps {
     open: boolean;
@@ -14,6 +16,22 @@ interface Props extends PopoverProps {
     onPlayMode: (playMode: PlayMode) => void;
     onClose: () => void;
 }
+
+const ListItem = ({ children, ...props }: ListItemProps) => {
+    return (
+        <MuiListItem disablePadding dense {...props}>
+            {children}
+        </MuiListItem>
+    );
+};
+
+const ListItemButton = ({ children, ...props }: ListItemButtonProps) => {
+    return (
+        <MuiListItemButton dense {...props}>
+            {children}
+        </MuiListItemButton>
+    );
+};
 
 export default function PlayModeSelector({
     listStyle,
@@ -41,46 +59,31 @@ export default function PlayModeSelector({
             }}
             {...restOfPopoverProps}
         >
-            <List style={listStyle}>
-                <ListItem
-                    dense
-                    selected={selectedPlayMode === PlayMode.normal}
-                    button
-                    onClick={(e) => onPlayMode(PlayMode.normal)}
-                >
-                    {t('controls.normalMode')}
+            <List disablePadding dense style={listStyle}>
+                <ListItem onClick={() => onPlayMode(PlayMode.normal)}>
+                    <ListItemButton selected={selectedPlayMode === PlayMode.normal}>
+                        <ListItemText>{t('controls.normalMode')}</ListItemText>
+                    </ListItemButton>
                 </ListItem>
-                <ListItem
-                    dense
-                    selected={selectedPlayMode === PlayMode.condensed}
-                    button
-                    onClick={(e) => onPlayMode(PlayMode.condensed)}
-                >
-                    {t('controls.condensedMode')}
+                <ListItem onClick={() => onPlayMode(PlayMode.condensed)}>
+                    <ListItemButton dense selected={selectedPlayMode === PlayMode.condensed}>
+                        <ListItemText>{t('controls.condensedMode')}</ListItemText>
+                    </ListItemButton>
                 </ListItem>
-                <ListItem
-                    dense
-                    selected={selectedPlayMode === PlayMode.fastForward}
-                    button
-                    onClick={(e) => onPlayMode(PlayMode.fastForward)}
-                >
-                    {t('controls.fastForwardMode')}
+                <ListItem onClick={() => onPlayMode(PlayMode.fastForward)}>
+                    <ListItemButton selected={selectedPlayMode === PlayMode.fastForward}>
+                        <ListItemText>{t('controls.fastForwardMode')}</ListItemText>
+                    </ListItemButton>
                 </ListItem>
-                <ListItem
-                    dense
-                    selected={selectedPlayMode === PlayMode.autoPause}
-                    button
-                    onClick={(e) => onPlayMode(PlayMode.autoPause)}
-                >
-                    {t('controls.autoPauseMode')}
+                <ListItem onClick={() => onPlayMode(PlayMode.autoPause)}>
+                    <ListItemButton selected={selectedPlayMode === PlayMode.autoPause}>
+                        <ListItemText>{t('controls.autoPauseMode')}</ListItemText>
+                    </ListItemButton>
                 </ListItem>
-                <ListItem
-                    dense
-                    selected={selectedPlayMode === PlayMode.repeat}
-                    button
-                    onClick={(e) => onPlayMode(PlayMode.repeat)}
-                >
-                    {t('controls.repeatMode')}
+                <ListItem onClick={() => onPlayMode(PlayMode.repeat)}>
+                    <ListItemButton selected={selectedPlayMode === PlayMode.repeat}>
+                        <ListItemText>{t('controls.repeatMode')}</ListItemText>
+                    </ListItemButton>
                 </ListItem>
             </List>
         </Popover>

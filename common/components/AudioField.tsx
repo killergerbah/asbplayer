@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import makeStyles from '@material-ui/core/styles/makeStyles';
-import TextField from '@material-ui/core/TextField';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import Tooltip from '@material-ui/core/Tooltip';
-import IconButton from '@material-ui/core/IconButton';
-import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
-import PlayArrowIcon from '@material-ui/icons/PlayArrow';
-import PauseIcon from '@material-ui/icons/Pause';
+import makeStyles from '@mui/styles/makeStyles';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import Tooltip from './Tooltip';
+import IconButton from '@mui/material/IconButton';
+import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PauseIcon from '@mui/icons-material/Pause';
 import { AudioClip } from '../audio-clip';
 import { useTranslation } from 'react-i18next';
-import Badge from '@material-ui/core/Badge';
+import Badge from '@mui/material/Badge';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
     root: {
         cursor: 'pointer',
         '& input': {
@@ -106,7 +106,7 @@ export default function AudioField({
         <div className={classes.root} onClick={onPlayAudio}>
             <TextField
                 variant="filled"
-                color="secondary"
+                color="primary"
                 fullWidth
                 value={audioClip.name}
                 label={t('ankiDialog.audio')}

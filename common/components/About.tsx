@@ -1,16 +1,17 @@
 import React from 'react';
-import Box from '@material-ui/core/Box';
-import MuiLink, { LinkProps } from '@material-ui/core/Link';
+import Box from '@mui/material/Box';
+import MuiLink, { LinkProps } from '@mui/material/Link';
 import LogoIcon from './LogoIcon';
-import Paper from '@material-ui/core/Paper';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import MuiTableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import Typography from '@material-ui/core/Typography';
-import { useTheme, withStyles, Theme } from '@material-ui/core/styles';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import MuiTableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import Typography from '@mui/material/Typography';
+import { useTheme, withStyles } from '@mui/styles';
+import { type Theme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
 interface Props {
@@ -292,6 +293,8 @@ const About = ({ appVersion, extensionVersion }: Props) => {
                                     CellComponent = BorderedTableCell;
                                 }
 
+                                const isLastPurposeCell = d.purpose === dependencies[dependencies.length - 1].purpose;
+
                                 return (
                                     <TableRow key={d.name}>
                                         <CellComponent>
@@ -302,7 +305,10 @@ const About = ({ appVersion, extensionVersion }: Props) => {
                                             <Link href={d.licenseLink}>{d.license}</Link>
                                         </CellComponent>
                                         {!alreadyRenderedPurpose && (
-                                            <BorderedTableCell rowSpan={dependencyPurposeCounts[d.purpose]}>
+                                            <BorderedTableCell
+                                                style={!isLastPurposeCell ? {} : { borderBottom: 0 }}
+                                                rowSpan={dependencyPurposeCounts[d.purpose]}
+                                            >
                                                 {d.purpose}
                                             </BorderedTableCell>
                                         )}

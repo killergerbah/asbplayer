@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import ThemeProvider from '@material-ui/styles/ThemeProvider';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import CssBaseline from '@mui/material/CssBaseline';
+import ThemeProvider from '@mui/material/styles/ThemeProvider';
 import {
     ExtensionToVideoCommand,
     GrantedActiveTabPermissionMessage,
@@ -9,14 +9,15 @@ import {
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
 import { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
-import Box from '@material-ui/core/Box';
-import Paper from '@material-ui/core/Paper';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
 import { ExtensionSettingsStorage } from '../../services/extension-settings-storage';
 import Popup from './Popup';
 import { useRequestingActiveTabPermission } from '../hooks/use-requesting-active-tab-permission';
 import { isMobile } from 'react-device-detect';
-import Link from '@material-ui/core/Link';
+import Link from '@mui/material/Link';
 import { useSettingsProfileContext } from '@project/common/hooks/use-settings-profile-context';
+import { StyledEngineProvider } from '@mui/material/styles';
 
 interface Props {
     commands: any;
@@ -94,37 +95,33 @@ export function PopupUi({ commands }: Props) {
         return null;
     }
 
-    const version = chrome.runtime.getManifest().version;
-
     return (
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <Paper square elevation={0} style={{ width: isMobile ? '100%' : 600 }}>
-                <Box>
-                    <Popup
-                        commands={commands}
-                        settings={settings}
-                        onSettingsChanged={handleSettingsChanged}
-                        onOpenApp={handleOpenApp}
-                        onOpenSidePanel={handleOpenSidePanel}
-                        onOpenExtensionShortcuts={handleOpenExtensionShortcuts}
-                        {...profilesContext}
-                    />
-                </Box>
-                <Box p={0.5} textAlign="right">
-                    <Link
-                        target="_blank"
-                        rel="noreferrer"
-                        href={`https://github.com/killergerbah/asbplayer/releases/tag/v${version}`}
-                        variant="caption"
-                        align="right"
-                        color="textSecondary"
-                        underline="always"
-                    >
-                        {`v${version}`}
-                    </Link>
-                </Box>
-            </Paper>
-        </ThemeProvider>
+        <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={theme}>
+                <CssBaseline />
+                <Paper
+                    square
+                    style={{
+                        backgroundImage:
+                            settings.themeType === 'dark'
+                                ? 'linear-gradient(rgba(255, 255, 255, 0.165), rgba(255, 255, 255, 0.165))'
+                                : 'none',
+                        width: isMobile ? '100%' : 600,
+                    }}
+                >
+                    <Box>
+                        <Popup
+                            commands={commands}
+                            settings={settings}
+                            onSettingsChanged={handleSettingsChanged}
+                            onOpenApp={handleOpenApp}
+                            onOpenSidePanel={handleOpenSidePanel}
+                            onOpenExtensionShortcuts={handleOpenExtensionShortcuts}
+                            {...profilesContext}
+                        />
+                    </Box>
+                </Paper>
+            </ThemeProvider>
+        </StyledEngineProvider>
     );
 }

@@ -1,4 +1,4 @@
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@mui/styles';
 
 function displayTime(milliseconds: number) {
     const seconds = Math.floor(milliseconds / 1000);
@@ -7,7 +7,7 @@ function displayTime(milliseconds: number) {
     return String(minutes) + ':' + String(secondsInMinute).padStart(2, '0');
 }
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
     timeDisplay: {
         color: '#fff',
         display: 'flex',
@@ -18,7 +18,7 @@ const useStyles = makeStyles({
         fontSize: 20,
         whiteSpace: 'nowrap',
     },
-});
+}));
 
 interface Props extends React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement> {
     currentMilliseconds: number;

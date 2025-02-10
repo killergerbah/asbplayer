@@ -1,21 +1,16 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import Grid, { GridProps } from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import NoteAddIcon from '@material-ui/icons/NoteAdd';
-import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
-import NavigateNextIcon from '@material-ui/icons/NavigateNext';
-import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
-import TuneIcon from '@material-ui/icons/Tune';
+import Grid, { GridProps } from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import NoteAddIcon from '@mui/icons-material/NoteAdd';
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import TuneIcon from '@mui/icons-material/Tune';
 import { ControlType, MobileOverlayModel, PlayMode, PostMineAction } from '@project/common';
-import makeStyles from '@material-ui/core/styles/makeStyles';
+import { makeStyles } from '@mui/styles';
 import { useTranslation } from 'react-i18next';
 import LogoIcon from './LogoIcon';
-import ThemeProvider from '@material-ui/styles/ThemeProvider';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import { createTheme } from '@project/common/theme';
-import type { PaletteType } from '@material-ui/core';
-
-import SubtitlesIcon from '@material-ui/icons/Subtitles';
+import SubtitlesIcon from '@mui/icons-material/Subtitles';
 import SubtitlesOffIcon from './SubtitlesOffIcon';
 import HoldableIconButton from './HoldableIconButton';
 import PlayModeSelector from './PlayModeSelector';
@@ -284,11 +279,6 @@ const MobileVideoOverlay = ({
     }, [numberControlType, handleDecrementOffset, handleIncrementPlaybackRate]);
 
     const { t } = useTranslation();
-    const theme = useMemo(
-        () => (model?.themeType === undefined ? undefined : createTheme(model.themeType as PaletteType)),
-        [model?.themeType]
-    );
-
     const { leftNumberControlTitle, numberControlTitle, rightNumberControlTitle } = useMemo(() => {
         switch (numberControlType) {
             case ControlType.timeDisplay:
@@ -317,7 +307,7 @@ const MobileVideoOverlay = ({
         }
     }, [numberControlType, model, t]);
 
-    if (!model || !theme) {
+    if (!model) {
         return null;
     }
 
@@ -376,8 +366,7 @@ const MobileVideoOverlay = ({
 
     const containerClassName = className === undefined ? classes.container : `${className} ${classes.container}`;
     return (
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
+        <>
             <GridContainer direction="row" wrap="nowrap" className={containerClassName}>
                 {onLoadSubtitles && (
                     <Grid item>
@@ -521,7 +510,7 @@ const MobileVideoOverlay = ({
                     }}
                 />
             )}
-        </ThemeProvider>
+        </>
     );
 };
 

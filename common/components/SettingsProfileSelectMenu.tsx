@@ -1,15 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react';
-import TextField from '@material-ui/core/TextField';
-import MenuItem from '@material-ui/core/MenuItem';
+import { useEffect, useRef, useState } from 'react';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
 import { useTranslation } from 'react-i18next';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import IconButton from '@material-ui/core/IconButton';
-import CheckIcon from '@material-ui/icons/Check';
-import ClearIcon from '@material-ui/icons/Clear';
-import DeleteIcon from '@material-ui/icons/Delete';
-import { makeStyles, Theme } from '@material-ui/core/styles';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import CheckIcon from '@mui/icons-material/Check';
+import ClearIcon from '@mui/icons-material/Clear';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { makeStyles } from '@mui/styles';
+import { type Theme } from '@mui/material';
 import { Profile } from '../settings';
-import { TFunction } from 'i18next';
+import type { TFunction } from 'i18next';
 
 const maxProfileNameLength = 16;
 const maxProfiles = 5;
@@ -22,7 +23,7 @@ interface Props {
     onSetActiveProfile: (name: string | undefined) => void;
 }
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
     newProfileTextField: {
         '& .MuiInputBase-root': {
             paddingRight: 0,
@@ -33,7 +34,7 @@ const useStyles = makeStyles({
             padding: 0,
         },
     },
-});
+}));
 
 interface ProfileMenuStyleProps {
     collapsed: boolean;
@@ -85,10 +86,10 @@ function renderMenuItem({
                 {profile?.name ?? t('settings.defaultProfile')}
             </div>
 
-            {profile !== undefined && (
+            {profile !== undefined && !collapsed && (
                 <IconButton
                     onMouseDown={(e) => e.stopPropagation()}
-                    onClick={(e) => {
+                    onClick={() => {
                         onRemoveProfile(profile.name);
                     }}
                     style={{ padding: 4, marginRight: collapsed ? 16 : 0 }}
@@ -154,8 +155,7 @@ export default function SettingsProfileSelectMenu({
                     }}
                     className={classes.newProfileTextField}
                     fullWidth
-                    size="small"
-                    color="secondary"
+                    color="primary"
                     variant="outlined"
                     style={{ paddingRight: 0 }}
                     label={t('settings.profileName')}
@@ -195,7 +195,7 @@ export default function SettingsProfileSelectMenu({
                     fullWidth
                     className={classes.menu}
                     size="small"
-                    color="secondary"
+                    color="primary"
                     variant="outlined"
                     label={t('settings.activeProfile')}
                     value={activeProfile ?? '-'}

@@ -1,7 +1,7 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/styles';
-import Fade from '@material-ui/core/Fade';
-import { Theme } from '@material-ui/core';
+import { makeStyles } from '@mui/styles';
+import Fade from '@mui/material/Fade';
+import { type Theme } from '@mui/material';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
 
 interface StylesProps {

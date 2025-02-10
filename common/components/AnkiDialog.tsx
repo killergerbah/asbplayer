@@ -1,6 +1,6 @@
 import React, { MutableRefObject, useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import makeStyles from '@material-ui/core/styles/makeStyles';
+import makeStyles from '@mui/styles/makeStyles';
 import { Image, SubtitleModel, CardModel, AnkiExportMode } from '@project/common';
 import { AnkiSettings, Profile, sortedAnkiFieldModels } from '@project/common/settings';
 import {
@@ -11,24 +11,24 @@ import {
     extractText,
 } from '@project/common/util';
 import { AudioClip } from '@project/common/audio-clip';
-import Badge from '@material-ui/core/Badge';
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import RestoreIcon from '@material-ui/icons/Restore';
-import SettingsIcon from '@material-ui/icons/Settings';
-import CloseIcon from '@material-ui/icons/Close';
-import Slider, { Mark } from '@material-ui/core/Slider';
-import Toolbar from '@material-ui/core/Toolbar';
-import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
-import ZoomInIcon from '@material-ui/icons/ZoomIn';
-import ZoomOutIcon from '@material-ui/icons/ZoomOut';
-import DoneIcon from '@material-ui/icons/Done';
+import Badge from '@mui/material/Badge';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import RestoreIcon from '@mui/icons-material/Restore';
+import SettingsIcon from '@mui/icons-material/Settings';
+import CloseIcon from '@mui/icons-material/Close';
+import Slider from '@mui/material/Slider';
+import Toolbar from '@mui/material/Toolbar';
+import Tooltip from './Tooltip';
+import Typography from '@mui/material/Typography';
+import ZoomInIcon from '@mui/icons-material/ZoomIn';
+import ZoomOutIcon from '@mui/icons-material/ZoomOut';
+import DoneIcon from '@mui/icons-material/Done';
 import TagsTextField from './TagsTextField';
 import { Anki, ExportParams } from '../anki';
 import { isFirefox } from '../browser-detection';
@@ -40,13 +40,14 @@ import AudioField from './AudioField';
 import ImageField from './ImageField';
 import ImageDialog from './ImageDialog';
 import MiniProfileSelector from './MiniProfileSelector';
-import Alert from '@material-ui/lab/Alert';
+import Alert from '@mui/material/Alert';
 import { isMacOs } from '../device-detection/mac';
 import AnkiDialogButton from './AnkiDialogButton';
+import { type Theme } from '@mui/material';
 
 const quickSelectShortcut = isMacOs ? '⌘+⇧+Enter' : 'Alt+Shift+Enter';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles<Theme>((theme) => ({
     root: {
         '& .MuiTextField-root': {
             marginBottom: theme.spacing(1),
@@ -64,7 +65,7 @@ const useStyles = makeStyles((theme) => ({
     rangeSelectSlider: {
         '& .MuiSlider-markLabel': {
             transform: 'translateX(-3%)',
-            background: theme.palette.type === 'dark' ? '#222' : '#ddd',
+            background: theme.palette.mode === 'dark' ? '#222' : '#ddd',
             borderRadius: theme.spacing(1),
             paddingLeft: theme.spacing(1),
             paddingRight: theme.spacing(1),
@@ -106,6 +107,11 @@ const boundaryIntervalFromCard = (subtitle: SubtitleModel, theSurroundingSubtitl
     }
 
     return min !== null && max !== null && [min, max];
+};
+
+type Mark = {
+    value: number;
+    label: string;
 };
 
 const sliderMarksFromCard = (surroundingSubtitles: SubtitleModel[], boundary: number[]): Mark[] => {
@@ -499,7 +505,7 @@ const AnkiDialog = ({
     }, [applyTimestampIntervalToAllTracks, timestampInterval]);
 
     const handleTimestampIntervalChange = useCallback(
-        (e: React.ChangeEvent<{}>, newValue: number | number[]) => {
+        (_: unknown, newValue: number | number[]) => {
             const newTimestampInterval = newValue as number[];
             setTimestampInterval(newTimestampInterval);
             const selectedSubtitles = card.surroundingSubtitles.filter((s) =>
@@ -792,7 +798,7 @@ const AnkiDialog = ({
                                     {!model.custom && model.key === 'source' && model.field.display && (
                                         <TextField
                                             variant="filled"
-                                            color="secondary"
+                                            color="primary"
                                             fullWidth
                                             label={t('ankiDialog.source')}
                                             value={source}
@@ -802,7 +808,7 @@ const AnkiDialog = ({
                                     {!model.custom && model.key === 'url' && model.field.display && card.url && (
                                         <TextField
                                             variant="filled"
-                                            color="secondary"
+                                            color="primary"
                                             fullWidth
                                             label={t('ankiDialog.url')}
                                             value={url}
@@ -851,7 +857,7 @@ const AnkiDialog = ({
                             label="Tags"
                             helperText={t('ankiDialog.tagList')}
                             fullWidth
-                            color="secondary"
+                            color="primary"
                             tags={tags}
                             onTagsChange={(newTags) => setTags(newTags)}
                         />
@@ -859,7 +865,7 @@ const AnkiDialog = ({
                             <Grid container direction="row">
                                 <Grid item style={{ flexGrow: 1 }}>
                                     <Slider
-                                        ValueLabelComponent={ValueLabelComponent}
+                                        slots={{ valueLabel: ValueLabelComponent }}
                                         value={timestampInterval}
                                         valueLabelFormat={sliderValueLabelFormat}
                                         onChange={handleTimestampIntervalChange}
@@ -869,7 +875,7 @@ const AnkiDialog = ({
                                         step={1}
                                         valueLabelDisplay="auto"
                                         className={classes.rangeSelectSlider}
-                                        color="secondary"
+                                        color="primary"
                                     />
                                 </Grid>
                                 <Grid item>
@@ -877,7 +883,7 @@ const AnkiDialog = ({
                                         <span>
                                             <IconButton
                                                 edge="end"
-                                                style={{ marginTop: -8 }}
+                                                style={{ marginTop: -4 }}
                                                 onClick={handleResetTimestampInterval}
                                             >
                                                 <RestoreIcon fontSize="small" />
@@ -890,7 +896,7 @@ const AnkiDialog = ({
                                         <span>
                                             <IconButton
                                                 edge="end"
-                                                style={{ marginTop: -8 }}
+                                                style={{ marginTop: -4 }}
                                                 onClick={handleZoomInTimestampInterval}
                                             >
                                                 <ZoomInIcon fontSize="small" />
@@ -903,7 +909,7 @@ const AnkiDialog = ({
                                         <span>
                                             <IconButton
                                                 edge="end"
-                                                style={{ marginTop: -8 }}
+                                                style={{ marginTop: -4 }}
                                                 onClick={handleZoomOutTimestampInterval}
                                             >
                                                 <ZoomOutIcon fontSize="small" />
@@ -916,7 +922,7 @@ const AnkiDialog = ({
                                         <span>
                                             <IconButton
                                                 edge="end"
-                                                style={{ marginTop: -8 }}
+                                                style={{ marginTop: -4 }}
                                                 disabled={
                                                     !timestampInterval ||
                                                     (lastAppliedTimestampIntervalToText !== undefined &&

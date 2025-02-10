@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import MuiAlert, { Color } from '@material-ui/lab/Alert';
-import Grow from '@material-ui/core/Grow';
+import { makeStyles } from '@mui/styles';
+import MuiAlert, { type AlertColor } from '@mui/material/Alert';
+import Grow from '@mui/material/Grow';
 
-const useAlertStyles = makeStyles({
+const useAlertStyles = makeStyles(() => ({
     root: {
         display: 'flex',
         justifyContent: 'center',
@@ -18,13 +18,13 @@ const useAlertStyles = makeStyles({
     top: {
         top: '10vh',
     },
-});
+}));
 
 interface Props {
     open: boolean;
     autoHideDuration: number;
     onClose: () => void;
-    severity: Color | undefined;
+    severity: AlertColor | undefined;
     disableAutoHide?: boolean;
     anchor?: 'top' | 'bottom';
     children: React.ReactNode;

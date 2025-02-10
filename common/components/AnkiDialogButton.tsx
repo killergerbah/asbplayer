@@ -1,5 +1,5 @@
-import type { ButtonBaseActions } from '@material-ui/core';
-import Button, { ButtonProps } from '@material-ui/core/Button';
+import type { ButtonBaseActions } from '@mui/material';
+import Button, { ButtonProps } from '@mui/material/Button';
 import React, { ForwardedRef, useCallback, useEffect, useRef, useState } from 'react';
 
 interface Props extends ButtonProps {
@@ -16,55 +16,14 @@ export default React.forwardRef(function AnkiDialogButton(
     const [rendered, setRendered] = useState<boolean>(false);
 
     const focusOnButton = useCallback(() => {
-        // There's a bug in MUIv4 where focusVisible can throw an exception if called too early.
-        // To ensure this doesn't happen we make sure the touch ripple element exists before calling it.
-        if (buttonRef.current?.querySelector('.MuiTouchRipple-root')) {
-            actionRef.current?.focusVisible();
-            return true;
-        }
-
-        return false;
+        actionRef.current?.focusVisible();
     }, []);
-
-    const focusOnButtonEventually = useCallback(() => {
-        if (!buttonRef.current) {
-            return () => {};
-        }
-
-        if (focusOnButton()) {
-            return () => {};
-        }
-
-        let disconnected = false;
-
-        const observer = new MutationObserver((mutations) => {
-            const touchRipple = mutations
-                .filter((m) => m.type === 'childList')
-                .flatMap((m) => [...m.addedNodes])
-                .filter((n) => n instanceof HTMLElement)
-                .find((n) => (n as HTMLElement).classList.contains('MuiTouchRipple-root'));
-
-            if (touchRipple) {
-                observer.disconnect();
-                disconnected = true;
-                focusOnButton();
-            }
-        });
-
-        observer.observe(buttonRef.current, { childList: true });
-
-        return () => {
-            if (!disconnected) {
-                observer.disconnect();
-            }
-        };
-    }, [focusOnButton]);
 
     useEffect(() => {
         if (focusVisible && rendered) {
-            focusOnButtonEventually();
+            focusOnButton();
         }
-    }, [focusVisible, focusOnButtonEventually, rendered]);
+    }, [focusVisible, focusOnButton, rendered]);
 
     const refCallback = useCallback(
         (element: HTMLButtonElement | null) => {

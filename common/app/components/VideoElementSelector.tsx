@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
 import { useTranslation } from 'react-i18next';
 import { VideoTabModel } from '../..';
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import VideoElementFavicon from './VideoElementFavicon';
 
 interface Props {
@@ -30,7 +30,7 @@ const VideoElementSelector = ({ videoElements, onVideoElementSelected }: Props) 
             select
             variant="outlined"
             size="small"
-            color="secondary"
+            color="primary"
             style={{ width: '100%' }}
             value={selectedVideoElement?.src ?? ''}
             onChange={(e) => {

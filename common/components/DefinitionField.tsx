@@ -1,5 +1,4 @@
-import React from 'react';
-import TextField from '@material-ui/core/TextField';
+import TextField from '@mui/material/TextField';
 import { useTranslation } from 'react-i18next';
 
 interface Props {
@@ -12,7 +11,7 @@ export default function DefinitionField({ text, onTextChange }: Props) {
     return (
         <TextField
             variant="filled"
-            color="secondary"
+            color="primary"
             multiline
             maxRows={8}
             fullWidth

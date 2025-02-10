@@ -1,5 +1,4 @@
-import React from 'react';
-import TextField from '@material-ui/core/TextField';
+import TextField from '@mui/material/TextField';
 
 interface Props {
     name: string;
@@ -12,7 +11,7 @@ export default function CustomField({ name, text, onTextChange }: Props) {
         <TextField
             key={name}
             variant="filled"
-            color="secondary"
+            color="primary"
             fullWidth
             multiline
             maxRows={8}

@@ -1,5 +1,4 @@
-import React from 'react';
-import SvgIcon, { SvgIconProps } from '@material-ui/core/SvgIcon';
+import SvgIcon, { SvgIconProps } from '@mui/material/SvgIcon';
 
 // This icon is a derivative of Material Icons: https://github.com/mui/material-ui/tree/master/packages/mui-icons-material
 

@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import TextField from '@material-ui/core/TextField';
+import { useEffect, useState } from 'react';
+import TextField from '@mui/material/TextField';
 import { useTranslation } from 'react-i18next';
 import { Anki } from '../anki';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import IconButton from '@material-ui/core/IconButton';
-import SearchIcon from '@material-ui/icons/Search';
-import Tooltip from '@material-ui/core/Tooltip';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import SearchIcon from '@mui/icons-material/Search';
+import Tooltip from './Tooltip';
 
 interface Props {
     anki: Anki;
@@ -65,7 +65,7 @@ export default function WordField({ anki, disabled, text, onText, wordField }: P
     return (
         <TextField
             variant="filled"
-            color="secondary"
+            color="primary"
             fullWidth
             label={t('ankiDialog.word')}
             value={text}

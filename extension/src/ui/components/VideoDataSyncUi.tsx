@@ -1,6 +1,6 @@
-import CssBaseline from '@material-ui/core/CssBaseline';
-import ThemeProvider from '@material-ui/styles/ThemeProvider';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import CssBaseline from '@mui/material/CssBaseline';
+import ThemeProvider from '@mui/material/styles/ThemeProvider';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import VideoDataSyncDialog from './VideoDataSyncDialog';
 import Bridge from '../bridge';
@@ -17,10 +17,11 @@ import {
     ActiveProfileMessage,
 } from '@project/common';
 import { createTheme } from '@project/common/theme';
-import { PaletteType } from '@material-ui/core';
+import { type PaletteMode } from '@mui/material/styles';
 import { bufferToBase64 } from '@project/common/base64';
 import { useTranslation } from 'react-i18next';
 import type { Profile } from '@project/common/settings';
+import { StyledEngineProvider } from '@mui/material/styles';
 
 interface Props {
     bridge: Bridge;
@@ -48,7 +49,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [activeProfile, setActiveProfile] = useState<string>();
     const [fileInputTrackNumber, setFileInputTrackNumber] = useState<number>();
 
-    const theme = useMemo(() => createTheme((themeType || 'dark') as PaletteType), [themeType]);
+    const theme = useMemo(() => createTheme((themeType || 'dark') as PaletteMode), [themeType]);
 
     const handleOpenSettings = useCallback(() => {
         bridge.sendMessageFromServer({ command: 'openSettings' });
@@ -208,35 +209,37 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     );
 
     return (
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <VideoDataSyncDialog
-                open={open}
-                disabled={disabled}
-                isLoading={isLoading}
-                suggestedName={suggestedName}
-                showSubSelect={showSubSelect}
-                subtitleTracks={subtitles}
-                selectedSubtitleTrackIds={selectedSubtitleTrackIds}
-                defaultCheckboxState={defaultCheckboxState}
-                openReason={openReason}
-                error={error}
-                profiles={profiles}
-                activeProfile={activeProfile}
-                onCancel={handleCancel}
-                onOpenFile={handleOpenFile}
-                onOpenSettings={handleOpenSettings}
-                onConfirm={handleConfirm}
-                onSetActiveProfile={handleSetActiveProfile}
-            />
-            <input
-                ref={fileInputRef}
-                onChange={handleFileInputChange}
-                type="file"
-                accept=".srt,.ass,.vtt,.sup,.dfxp,.ttml2"
-                multiple
-                hidden
-            />
-        </ThemeProvider>
+        <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={theme}>
+                <CssBaseline />
+                <VideoDataSyncDialog
+                    open={open}
+                    disabled={disabled}
+                    isLoading={isLoading}
+                    suggestedName={suggestedName}
+                    showSubSelect={showSubSelect}
+                    subtitleTracks={subtitles}
+                    selectedSubtitleTrackIds={selectedSubtitleTrackIds}
+                    defaultCheckboxState={defaultCheckboxState}
+                    openReason={openReason}
+                    error={error}
+                    profiles={profiles}
+                    activeProfile={activeProfile}
+                    onCancel={handleCancel}
+                    onOpenFile={handleOpenFile}
+                    onOpenSettings={handleOpenSettings}
+                    onConfirm={handleConfirm}
+                    onSetActiveProfile={handleSetActiveProfile}
+                />
+                <input
+                    ref={fileInputRef}
+                    onChange={handleFileInputChange}
+                    type="file"
+                    accept=".srt,.ass,.vtt,.sup,.dfxp,.ttml2"
+                    multiple
+                    hidden
+                />
+            </ThemeProvider>
+        </StyledEngineProvider>
     );
 }

@@ -1,8 +1,8 @@
-import Input, { InputProps } from '@material-ui/core/Input';
+import Input, { InputProps } from '@mui/material/Input';
 import React, { MutableRefObject, useCallback, useEffect, useState } from 'react';
-import makeStyles from '@material-ui/core/styles/makeStyles';
+import { makeStyles } from '@mui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(() => ({
     input: {
         height: '100%',
         display: 'flex',
@@ -13,7 +13,7 @@ const useStyles = makeStyles({
         color: '#fff',
         pointerEvents: 'auto',
     },
-});
+}));
 
 interface Props extends InputProps {
     inputRef: MutableRefObject<HTMLInputElement | undefined>;

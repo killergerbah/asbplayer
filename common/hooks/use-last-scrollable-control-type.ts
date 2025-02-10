@@ -8,11 +8,11 @@ interface Params {
 }
 
 export const useLastScrollableControlType = ({ isMobile, fetchLastControlType, saveLastControlType }: Params) => {
-    const [lastControlType, setLastControlType] = useState<ControlType>();
     const defaultControlType = useMemo(
         () => (isMobile ? ControlType.timeDisplay : ControlType.subtitleOffset),
         [isMobile]
     );
+    const [lastControlType, setLastControlType] = useState<ControlType>(defaultControlType);
 
     useEffect(() => {
         fetchLastControlType().then((controlType) => {
