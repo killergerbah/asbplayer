@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef, MutableRefObject } from 'react';
-import { makeStyles, Theme } from '@material-ui/core/styles';
+import { makeStyles } from '@mui/styles';
+import { type Theme } from '@mui/material';
 import { v4 as uuidv4 } from 'uuid';
 import {
     AudioTrackModel,
@@ -22,7 +23,7 @@ import BroadcastChannelVideoProtocol from '../services/broadcast-channel-video-p
 import ChromeTabVideoProtocol from '../services/chrome-tab-video-protocol';
 import Clock from '../services/clock';
 import Controls, { Point } from './Controls';
-import Grid from '@material-ui/core/Grid';
+import Grid from '@mui/material/Grid';
 import MediaAdapter, { MediaElement } from '../services/media-adapter';
 import SubtitlePlayer, { DisplaySubtitleModel, minSubtitlePlayerWidth } from './SubtitlePlayer';
 import VideoChannel from '../services/video-channel';
@@ -1011,7 +1012,6 @@ const Player = React.memo(function Player({
                             selectedAudioTrack={selectedAudioTrack}
                             tabs={(!videoFileUrl && availableTabs) || undefined}
                             selectedTab={tab}
-                            videoFile={videoFile?.name}
                             offsetEnabled={true}
                             offset={offset}
                             playbackRate={playbackRate}

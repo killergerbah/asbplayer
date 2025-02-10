@@ -1,21 +1,22 @@
-import React, { useCallback } from 'react';
-import makeStyles from '@material-ui/core/styles/makeStyles';
+import { useCallback } from 'react';
+import makeStyles from '@mui/styles/makeStyles';
 import { useTranslation } from 'react-i18next';
-import Box from '@material-ui/core/Box';
-import Dialog from '@material-ui/core/Dialog';
-import DialogContent from '@material-ui/core/DialogContent';
+import Box from '@mui/material/Box';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
 import ChromeExtension from '../services/chrome-extension';
 import SettingsForm from '../../components/SettingsForm';
 import { useLocalFontFamilies } from '../../hooks';
 import { Anki } from '../../anki';
 import { AsbplayerSettings, Profile, supportedLanguages } from '../../settings';
 import SettingsProfileSelectMenu from '../../components/SettingsProfileSelectMenu';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import IconButton from '@material-ui/core/IconButton';
-import CloseIcon from '@material-ui/icons/Close';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import { type Theme } from '@mui/material';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles<Theme>((theme) => ({
     root: {
         '& .MuiPaper-root': {
             height: '100vh',

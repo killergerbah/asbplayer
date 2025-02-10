@@ -1,30 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import makeStyles from '@material-ui/core/styles/makeStyles';
-import TextField from '@material-ui/core/TextField';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import IconButton from '@material-ui/core/IconButton';
-import FileCopyIcon from '@material-ui/icons/FileCopy';
+import makeStyles from '@mui/styles/makeStyles';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import FileCopyIcon from '@mui/icons-material/FileCopy';
 import { useTranslation } from 'react-i18next';
 import { Image, ImageErrorCode } from '@project/common';
-import { Theme } from '@material-ui/core/styles';
+import { type Theme } from '@mui/material';
 import { useImageData } from '../hooks/use-image-data';
 import Tooltip from './Tooltip';
-import ImageIcon from '@material-ui/icons/Image';
+import ImageIcon from '@mui/icons-material/Image';
 
 interface StyleProps {
     dataUrl: string;
-    width: number;
-    height: number;
 }
 
-const useStyles = makeStyles<Theme, StyleProps>((theme) => ({
+const useStyles = makeStyles<Theme, StyleProps>(() => ({
     root: {
         cursor: 'pointer',
         '& input': {
             cursor: 'pointer',
         },
     },
-    imagePreview: ({ dataUrl, width, height }) => {
+    imagePreview: ({ dataUrl }) => {
         if (dataUrl) {
             return {
                 position: 'relative',
@@ -71,14 +69,14 @@ interface Props {
 export default function ImageField({ image, onViewImage, onCopyImageToClipboard, copyEnabled }: Props) {
     const { t } = useTranslation();
     const { dataUrl, width, height } = useImageData({ image, smoothTransition: false });
-    const classes = useStyles({ dataUrl, width, height });
+    const classes = useStyles({ dataUrl });
     const { imageHelperText, imageAvailable } = useImageHelperText(image);
     const resizeRatio = height === 0 ? 0 : 20 / height;
     return (
         <div className={classes.root} onClick={onViewImage}>
             <TextField
                 variant="filled"
-                color="secondary"
+                color="primary"
                 fullWidth
                 value={image.name}
                 label={t('ankiDialog.image')}

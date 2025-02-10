@@ -1,20 +1,20 @@
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import Bridge from '../bridge';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import Button from '@material-ui/core/Button';
-import ThemeProvider from '@material-ui/styles/ThemeProvider';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import { PaletteType } from '@material-ui/core';
+import Button from '@mui/material/Button';
+import ThemeProvider from '@mui/material/styles/ThemeProvider';
+import CssBaseline from '@mui/material/CssBaseline';
+import { PaletteMode } from '@mui/material/styles';
 import { Message, UpdateStateMessage } from '@project/common';
 import { createTheme } from '@project/common/theme';
-import Snackbar from '@material-ui/core/Snackbar';
-import Alert from '@material-ui/lab/Alert';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import LogoIcon from '@project/common/components/LogoIcon';
-import Link from '@material-ui/core/Link';
+import Link from '@mui/material/Link';
 
 interface Props {
     bridge: Bridge;
@@ -60,7 +60,7 @@ const NotificationUi = ({ bridge }: Props) => {
             }
         });
     }, [bridge, t]);
-    const [themeType, setThemeType] = useState<PaletteType>('dark');
+    const [themeType, setThemeType] = useState<PaletteMode>('dark');
     const theme = useMemo(() => createTheme(themeType), [themeType]);
 
     return (
@@ -84,7 +84,7 @@ const NotificationUi = ({ bridge }: Props) => {
                             components={[
                                 <Link
                                     key={0}
-                                    color="secondary"
+                                    color="primary"
                                     target="_blank"
                                     rel="noreferrer"
                                     href={`https://github.com/killergerbah/asbplayer/releases/tag/v${newVersion}`}

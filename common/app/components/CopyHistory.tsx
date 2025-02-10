@@ -1,12 +1,11 @@
-import { makeStyles } from '@material-ui/core/styles';
-import { Theme } from '@material-ui/core';
-import Divider from '@material-ui/core/Divider';
-import Drawer from '@material-ui/core/Drawer';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import IconButton from '@material-ui/core/IconButton';
+import { makeStyles } from '@mui/styles';
+import { Theme } from '@mui/material';
+import Divider from '@mui/material/Divider';
+import Drawer from '@mui/material/Drawer';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import IconButton from '@mui/material/IconButton';
 import { CopyHistoryItem } from '@project/common';
 import CopyHistoryList from './CopyHistoryList';
-import React from 'react';
 
 interface CopyHistoryProps {
     open: boolean;

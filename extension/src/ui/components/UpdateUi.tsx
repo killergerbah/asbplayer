@@ -1,5 +1,5 @@
-import Link from '@material-ui/core/Link';
-import Typography from '@material-ui/core/Typography';
+import Link from '@mui/material/Link';
+import Typography from '@mui/material/Typography';
 import { Trans, useTranslation } from 'react-i18next';
 import InstallUi from './InstallUi';
 
@@ -17,7 +17,7 @@ const UpdateUi = () => {
                         components={[
                             <Link
                                 key={0}
-                                color="secondary"
+                                color="primary"
                                 target="_blank"
                                 rel="noreferrer"
                                 href={`https://github.com/killergerbah/asbplayer/releases/tag/v${version}`}

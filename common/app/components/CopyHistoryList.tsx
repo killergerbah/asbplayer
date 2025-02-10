@@ -1,22 +1,24 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@mui/styles';
 import { timeDurationDisplay } from '../services/util';
-import Button from '@material-ui/core/Button';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import Popover from '@material-ui/core/Popover';
-import DeleteIcon from '@material-ui/icons/Delete';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
-import NoteAddIcon from '@material-ui/icons/NoteAdd';
-import SaveAltIcon from '@material-ui/icons/SaveAlt';
-import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
+import Button from '@mui/material/Button';
+import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemText from '@mui/material/ListItemText';
+import Popover from '@mui/material/Popover';
+import DeleteIcon from '@mui/icons-material/Delete';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import NoteAddIcon from '@mui/icons-material/NoteAdd';
+import SaveAltIcon from '@mui/icons-material/SaveAlt';
+import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
+import { type Theme } from '@mui/material';
 import { CopyHistoryItem } from '../..';
 import { AudioClip } from '../../audio-clip';
 import { Image } from '../..';
@@ -35,7 +37,7 @@ interface CopyHistoryListProps {
     onDownloadSectionAsSrt?: (name: string, items: CopyHistoryItem[]) => void;
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles<Theme>((theme) => ({
     listContainer: {
         display: 'flex',
         height: '100%',
@@ -187,32 +189,42 @@ function Menu({
             }}
         >
             <List>
-                <ListItem button onClick={handleCopy}>
-                    <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary={t('action.copy')} />
+                <ListItem onClick={handleCopy}>
+                    <ListItemButton>
+                        <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary={t('action.copy')} />
+                    </ListItemButton>
                 </ListItem>
                 {onSelect && (
-                    <ListItem button onClick={handleJumpTo}>
-                        <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary={t('action.jumpTo')} />
+                    <ListItem onClick={handleJumpTo}>
+                        <ListItemButton>
+                            <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary={t('action.jumpTo')} />
+                        </ListItemButton>
                     </ListItem>
                 )}
                 {(isAudioAvailable || forceShowDownloadOptions) && (
-                    <ListItem button onClick={handleClipAudio}>
-                        <ListItemText
-                            primaryTypographyProps={{ variant: 'body2' }}
-                            primary={t('action.downloadAudio')}
-                        />
+                    <ListItem onClick={handleClipAudio}>
+                        <ListItemButton>
+                            <ListItemText
+                                primaryTypographyProps={{ variant: 'body2' }}
+                                primary={t('action.downloadAudio')}
+                            />
+                        </ListItemButton>
                     </ListItem>
                 )}
                 {(isImageAvailable || forceShowDownloadOptions) && (
-                    <ListItem button onClick={handleDownloadImage}>
-                        <ListItemText
-                            primaryTypographyProps={{ variant: 'body2' }}
-                            primary={t('action.downloadImage')}
-                        />
+                    <ListItem onClick={handleDownloadImage}>
+                        <ListItemButton>
+                            <ListItemText
+                                primaryTypographyProps={{ variant: 'body2' }}
+                                primary={t('action.downloadImage')}
+                            />
+                        </ListItemButton>
                     </ListItem>
                 )}
-                <ListItem button onClick={handleDelete}>
-                    <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary={t('action.delete')} />
+                <ListItem onClick={handleDelete}>
+                    <ListItemButton>
+                        <ListItemText primaryTypographyProps={{ variant: 'body2' }} primary={t('action.delete')} />
+                    </ListItemButton>
                 </ListItem>
             </List>
         </Popover>
@@ -350,7 +362,7 @@ export default function CopyHistoryList({
                 <List className={classes.list}>{elements}</List>
                 <Button
                     variant="contained"
-                    color="secondary"
+                    color="primary"
                     className={classes.clearButton}
                     startIcon={<DeleteIcon />}
                     onClick={onDeleteAll}

@@ -1,4 +1,3 @@
-import React from 'react';
 import { SubtitleModel } from '..';
 
 interface Props {

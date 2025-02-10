@@ -1,5 +1,4 @@
-import MuiTooltip, { TooltipProps } from '@material-ui/core/Tooltip';
-import React from 'react';
+import MuiTooltip, { TooltipProps } from '@mui/material/Tooltip';
 
 interface ControllableTooltipProps extends TooltipProps {
     disabled: boolean;

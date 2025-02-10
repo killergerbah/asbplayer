@@ -1,4 +1,4 @@
-import type { InputProps } from '@material-ui/core/Input';
+import type { InputProps } from '@mui/material/Input';
 import React, { MutableRefObject } from 'react';
 import VideoControlInput from './VideoControlInput';
 

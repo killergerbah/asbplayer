@@ -1,6 +1,5 @@
-import React from 'react';
 import { VideoTabModel } from '../..';
-import { useTheme } from '@material-ui/core/styles';
+import { useTheme } from '@mui/material/styles';
 
 const VideoElementFavicon = ({ videoElement }: { videoElement: VideoTabModel }) => {
     const theme = useTheme();
