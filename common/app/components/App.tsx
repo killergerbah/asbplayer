@@ -63,7 +63,7 @@ import { GlobalState } from '../../global-state';
 import mp3WorkerFactory from '../../audio-clip/mp3-encoder-worker.ts?worker';
 import pgsParserWorkerFactory from '../../subtitle-reader/pgs-parser-worker.ts?worker';
 
-const latestExtensionVersion = '1.9.0';
+const latestExtensionVersion = '1.9.1';
 const extensionUrl =
     'https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab';
 const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({
