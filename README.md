@@ -66,7 +66,8 @@ AstralDice,
 [@Astr0ddity](https://github.com/Astr0ddity),
 [@NirDafnai](https://github.com/NirDafnai),
 [@henryfl](https://github.com/henryfl),
-トム
+トム,
+Peter
 
 and to those who have donated privately.
 
