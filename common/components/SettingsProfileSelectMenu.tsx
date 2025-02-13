@@ -50,7 +50,7 @@ interface ProfileMenuItemProps {
     className: string;
 }
 
-const useMenuItemStyles = makeStyles<Theme, ProfileMenuStyleProps>({
+const useMenuItemStyles = makeStyles<Theme, ProfileMenuStyleProps>(() => ({
     root: ({ collapsed }) =>
         collapsed
             ? {
@@ -60,7 +60,7 @@ const useMenuItemStyles = makeStyles<Theme, ProfileMenuStyleProps>({
                   margin: 0,
               }
             : { margin: 0 },
-});
+}));
 
 // MUI requires <MenuItem> to be a direct descendent of the parent select menu.
 // So this function is not itself a component, but returns the <MenuItem> component instead.

@@ -42,7 +42,7 @@ interface StylesProps {
     appBarHeight: number;
 }
 
-const useStyles = makeStyles<Theme, StylesProps>({
+const useStyles = makeStyles<Theme, StylesProps>(() => ({
     root: ({ appBarHidden, appBarHeight }) => ({
         height: appBarHidden ? '100vh' : `calc(100vh - ${appBarHeight}px)`,
         position: 'relative',
@@ -58,7 +58,7 @@ const useStyles = makeStyles<Theme, StylesProps>({
         border: 0,
         display: 'block',
     },
-});
+}));
 
 function trackLength(
     video: MediaElement | undefined,
