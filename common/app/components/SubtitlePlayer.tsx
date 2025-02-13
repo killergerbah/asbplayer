@@ -277,6 +277,7 @@ const SubtitleRow = React.memo(function SubtitleRow({
         >
             {selectionState === undefined && (
                 <Tooltip
+                    disabled={!showCopyButton}
                     enterDelay={1500}
                     enterNextDelay={1500}
                     title={t('subtitlePlayer.multiSubtitleSelectHelp')!}
