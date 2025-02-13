@@ -299,6 +299,8 @@
         "keyboardShortcuts": "Tastatürkürzel",
         "hideInCardCreator": "Hide in card creator",
         "showInCardCreator": "Show in card creator",
+        "moveUpInCardCreator": "Move up",
+        "moveDownInCardCreator": "Move down",
         "language": "Sprache",
         "maxImageHeight": "Maximale Bild-Höhe",
         "maxImageWidth": "Maximale Bild-Breite",

@@ -299,6 +299,8 @@
         "keyboardShortcuts": "键盘快捷键",
         "hideInCardCreator": "Hide in card creator",
         "showInCardCreator": "Show in card creator",
+        "moveUpInCardCreator": "Move up",
+        "moveDownInCardCreator": "Move down",
         "language": "语言",
         "maxImageHeight": "最大图像高度",
         "maxImageWidth": "最大图像宽度",

@@ -299,6 +299,8 @@
         "keyboardShortcuts": "Горячие клавиши",
         "hideInCardCreator": "Скрывать в мастере карточек",
         "showInCardCreator": "Показывать в мастере карточек",
+        "moveUpInCardCreator": "Move up",
+        "moveDownInCardCreator": "Move down",
         "language": "Язык",
         "maxImageHeight": "Максимальная высота изображения",
         "maxImageWidth": "Максимальная ширина изображения",
