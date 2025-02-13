@@ -1,6 +1,6 @@
 import React from 'react';
-import MenuItem from '@material-ui/core/MenuItem';
-import TextField from '@material-ui/core/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
 import { useTranslation } from 'react-i18next';
 
 const maxTracks = 3;
@@ -20,7 +20,7 @@ export default function SubtitleAppearanceTrackSelector({ track, onTrackSelected
             <TextField
                 select
                 fullWidth
-                color="secondary"
+                color="primary"
                 variant="outlined"
                 size="small"
                 label={t('settings.subtitleTrack')!}

@@ -1,12 +1,11 @@
-import React from 'react';
-import Grid from '@material-ui/core/Grid';
+import Grid from '@mui/material/Grid';
 import { HttpPostMessage, PopupToExtensionCommand } from '@project/common';
 import { AsbplayerSettings, Profile, chromeCommandBindsToKeyBinds } from '@project/common/settings';
 import SettingsForm from '@project/common/components/SettingsForm';
 import PanelIcon from '@project/common/components/PanelIcon';
-import LaunchIcon from '@material-ui/icons/Launch';
+import LaunchIcon from '@mui/icons-material/Launch';
 import { useCallback, useMemo } from 'react';
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import { useTranslation } from 'react-i18next';
 import { Fetcher } from '@project/common/src/fetcher';
 import { useLocalFontFamilies } from '@project/common/hooks';
@@ -15,7 +14,7 @@ import { useSupportedLanguages } from '../hooks/use-supported-languages';
 import { useI18n } from '../hooks/use-i18n';
 import { isMobile } from 'react-device-detect';
 import { isFirefoxBuild } from '../../services/build-flags';
-import { useTheme } from '@material-ui/core';
+import { useTheme } from '@mui/material/styles';
 import SettingsProfileSelectMenu from '@project/common/components/SettingsProfileSelectMenu';
 
 interface Props {
@@ -81,7 +80,7 @@ const Popup = ({
             >
                 <Button
                     variant="contained"
-                    color="secondary"
+                    color="primary"
                     startIcon={<LaunchIcon />}
                     onClick={onOpenApp}
                     style={{ width: '100%' }}
@@ -96,7 +95,7 @@ const Popup = ({
                 >
                     <Button
                         variant="contained"
-                        color="secondary"
+                        color="primary"
                         startIcon={<PanelIcon />}
                         onClick={onOpenSidePanel}
                         style={{ width: '100%' }}
@@ -107,7 +106,12 @@ const Popup = ({
             )}
             <Grid
                 item
-                style={{ height: isMobile ? 'auto' : 400, marginTop: theme.spacing(1), marginRight: theme.spacing(1) }}
+                style={{
+                    height: isMobile ? 'auto' : 390,
+                    marginLeft: theme.spacing(1),
+                    marginTop: theme.spacing(1),
+                    marginRight: theme.spacing(1),
+                }}
             >
                 <SettingsForm
                     extensionInstalled
@@ -138,7 +142,7 @@ const Popup = ({
                     marginLeft: theme.spacing(2),
                     marginTop: theme.spacing(1),
                     marginRight: theme.spacing(2),
-                    marginBottom: theme.spacing(1),
+                    marginBottom: theme.spacing(2),
                 }}
             >
                 <SettingsProfileSelectMenu {...profilesContext} />

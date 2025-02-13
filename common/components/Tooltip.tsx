@@ -1,8 +1,7 @@
-import MuiTooltip, { TooltipProps } from '@material-ui/core/Tooltip';
-import React from 'react';
+import MuiTooltip, { TooltipProps } from '@mui/material/Tooltip';
 
 interface ControllableTooltipProps extends TooltipProps {
-    disabled: boolean;
+    disabled?: boolean;
 }
 
 const Tooltip = ({ children, disabled, ...rest }: ControllableTooltipProps) => {
@@ -10,7 +9,11 @@ const Tooltip = ({ children, disabled, ...rest }: ControllableTooltipProps) => {
         return children;
     }
 
-    return <MuiTooltip {...rest}>{children}</MuiTooltip>;
+    return (
+        <MuiTooltip disableInteractive={true} {...rest}>
+            {children}
+        </MuiTooltip>
+    );
 };
 
 export default Tooltip;

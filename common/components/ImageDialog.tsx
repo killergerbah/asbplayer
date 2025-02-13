@@ -1,13 +1,13 @@
 import React, { useState, useLayoutEffect } from 'react';
-import makeStyles from '@material-ui/styles/makeStyles';
-import Card from '@material-ui/core/Card';
-import CardMedia from '@material-ui/core/CardMedia';
+import makeStyles from '@mui/styles/makeStyles';
+import Card from '@mui/material/Card';
+import CardMedia from '@mui/material/CardMedia';
 import { Image as CommonImage } from '@project/common';
 import { useImageData } from '../hooks/use-image-data';
-import Slider from '@material-ui/core/Slider';
-import Modal from '@material-ui/core/Modal';
+import Slider from '@mui/material/Slider';
+import Modal from '@mui/material/Modal';
 import { humanReadableTime } from '../util';
-import Tooltip from '@material-ui/core/Tooltip';
+import Tooltip from './Tooltip';
 
 interface ImageDimensions {
     width: number;
@@ -98,17 +98,17 @@ export default function ImageDialog({ open, image, interval, onClose, onTimestam
                     </Card>
                     {interval && image.canChangeTimestamp && (
                         <Slider
-                            color="secondary"
+                            slots={{ valueLabel: ValueLabelComponent }}
+                            color="primary"
                             value={image.timestamp}
                             min={interval[0]}
                             max={interval[1]}
-                            onChange={(e: React.ChangeEvent<{}>, newValue: number | number[]) => {
+                            onChange={(_: unknown, newValue: number | number[]) => {
                                 const duration = interval[1] - interval[0];
                                 onTimestampChange(((newValue as number) / duration) * duration);
                             }}
                             valueLabelFormat={(v) => humanReadableTime(v, true)}
                             valueLabelDisplay="on"
-                            ValueLabelComponent={ValueLabelComponent}
                             track={false}
                         />
                     )}

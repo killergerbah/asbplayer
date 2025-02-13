@@ -1,40 +1,44 @@
 import React, { useCallback, useEffect, useState, useRef, MutableRefObject } from 'react';
 import { useTranslation } from 'react-i18next';
-import { makeStyles, withStyles, useTheme } from '@material-ui/core/styles';
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
-import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
-import CloseIcon from '@material-ui/icons/Close';
-import FolderIcon from '@material-ui/icons/Folder';
-import Fade from '@material-ui/core/Fade';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import OpenInNewIcon from '@material-ui/icons/OpenInNew';
-import Popover from '@material-ui/core/Popover';
-import FullscreenIcon from '@material-ui/icons/Fullscreen';
-import AspectRatioIcon from '@material-ui/icons/AspectRatio';
-import FullscreenExitIcon from '@material-ui/icons/FullscreenExit';
-import PauseIcon from '@material-ui/icons/Pause';
-import PlayArrowIcon from '@material-ui/icons/PlayArrow';
-import QueueMusicIcon from '@material-ui/icons/QueueMusic';
-import Slider from '@material-ui/core/Slider';
-import TuneIcon from '@material-ui/icons/Tune';
-import SubtitlesIcon from '@material-ui/icons/Subtitles';
-import VerticalAlignTopIcon from '@material-ui/icons/VerticalAlignTop';
-import VerticalAlignBottomIcon from '@material-ui/icons/VerticalAlignBottom';
-import VideocamIcon from '@material-ui/icons/Videocam';
-import VolumeOffIcon from '@material-ui/icons/VolumeOff';
-import VolumeUpIcon from '@material-ui/icons/VolumeUp';
+import { makeStyles, withStyles } from '@mui/styles';
+import { useTheme } from '@mui/material/styles';
+import { type Theme } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import CloseIcon from '@mui/icons-material/Close';
+import FolderIcon from '@mui/icons-material/Folder';
+import Fade from '@mui/material/Fade';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemText from '@mui/material/ListItemText';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import Popover from '@mui/material/Popover';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import AspectRatioIcon from '@mui/icons-material/AspectRatio';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
+import PauseIcon from '@mui/icons-material/Pause';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import QueueMusicIcon from '@mui/icons-material/QueueMusic';
+import Slider from '@mui/material/Slider';
+import TuneIcon from '@mui/icons-material/Tune';
+import SubtitlesIcon from '@mui/icons-material/Subtitles';
+import VerticalAlignTopIcon from '@mui/icons-material/VerticalAlignTop';
+import VerticalAlignBottomIcon from '@mui/icons-material/VerticalAlignBottom';
+import VideocamIcon from '@mui/icons-material/Videocam';
+import VolumeOffIcon from '@mui/icons-material/VolumeOff';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { AudioTrackModel, PlayMode, VideoTabModel } from '@project/common';
 import { SubtitleAlignment } from '@project/common/settings';
 import Clock from '../services/clock';
 import PlaybackPreferences from '../services/playback-preferences';
-import Tooltip from '@material-ui/core/Tooltip';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
+import Tooltip from '../../components/Tooltip';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { isMobile } from 'react-device-detect';
 import SubtitleOffsetInput from '../../components/SubtitleOffsetInput';
 import PlaybackRateInput from '../../components/PlaybackRateInput';
@@ -42,7 +46,7 @@ import VideoElementFavicon from './VideoElementFavicon';
 import PlayModeSelector from '../../components/PlayModeSelector';
 import TimeDisplay from '../../components/TimeDisplay';
 
-const useControlStyles = makeStyles((theme) => ({
+const useControlStyles = makeStyles<Theme>((theme) => ({
     container: {
         position: 'absolute',
         left: '50%',
@@ -87,6 +91,7 @@ const useControlStyles = makeStyles((theme) => ({
             duration: theme.transitions.duration.short,
         }),
         width: 0,
+        opacity: 0,
         pointerEvents: 'auto',
     },
     volumeInputShown: {
@@ -95,6 +100,7 @@ const useControlStyles = makeStyles((theme) => ({
             duration: theme.transitions.duration.short,
         }),
         width: 100,
+        opacity: 1,
         pointerEvents: 'auto',
     },
     volumeInputThumbHidden: {
@@ -106,6 +112,22 @@ const useControlStyles = makeStyles((theme) => ({
         pointerEvents: 'auto',
     },
     volumeInputThumbShown: {
+        transition: theme.transitions.create('visibility', {
+            easing: theme.transitions.easing.easeOut,
+            duration: theme.transitions.duration.short,
+        }),
+        opacity: 1,
+        pointerEvents: 'auto',
+    },
+    volumeInputRailHidden: {
+        transition: theme.transitions.create('visibility', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.short,
+        }),
+        opacity: 0,
+        pointerEvents: 'auto',
+    },
+    volumeInputRailShown: {
         transition: theme.transitions.create('visibility', {
             easing: theme.transitions.easing.easeOut,
             duration: theme.transitions.duration.short,
@@ -144,7 +166,7 @@ const useControlStyles = makeStyles((theme) => ({
     },
 }));
 
-const useProgressBarStyles = makeStyles((theme) => ({
+const useProgressBarStyles = makeStyles<Theme>((theme) => ({
     root: {
         height: 10,
     },
@@ -309,13 +331,12 @@ function AudioTrackSelector({
 
     const list = audioTracks.map((t) => {
         return (
-            <ListItem
-                key={t.id}
-                selected={t.id === selectedAudioTrack}
-                button
-                onClick={() => onAudioTrackSelected(t.id)}
-            >
-                {t.language} {t.label}
+            <ListItem key={t.id} onClick={() => onAudioTrackSelected(t.id)}>
+                <ListItemButton selected={t.id === selectedAudioTrack}>
+                    <ListItemText>
+                        {t.language} {t.label}
+                    </ListItemText>
+                </ListItemButton>
             </ListItem>
         );
     });
@@ -358,13 +379,10 @@ function TabSelector({ open, anchorEl, onClose, tabs, selectedTab, onTabSelected
 
     const list = tabs.map((t) => {
         return (
-            <ListItem
-                key={`${t.id}:${t.src}`}
-                selected={selectedTab && t.id === selectedTab.id && t.src === selectedTab.src}
-                button
-                onClick={() => onTabSelected(t)}
-            >
-                <VideoElementFavicon videoElement={t} /> {t.title}
+            <ListItem key={`${t.id}:${t.src}`} onClick={() => onTabSelected(t)}>
+                <ListItemButton selected={selectedTab && t.id === selectedTab.id && t.src === selectedTab.src}>
+                    <VideoElementFavicon videoElement={t} /> {t.title}
+                </ListItemButton>
             </ListItem>
         );
     });
@@ -397,33 +415,6 @@ interface MediaUnloaderProps {
     file?: string;
     onUnload: () => void;
     onClose: () => void;
-}
-
-function MediaUnloader({ open, anchorEl, onUnload, onClose, file }: MediaUnloaderProps) {
-    return (
-        <div>
-            <Popover
-                disableEnforceFocus={true}
-                open={open}
-                anchorEl={anchorEl}
-                onClose={onClose}
-                anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'center',
-                }}
-                transformOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'center',
-                }}
-            >
-                <List>
-                    <ListItem button onClick={(e) => onUnload()}>
-                        Unload {file}
-                    </ListItem>
-                </List>
-            </Popover>
-        </div>
-    );
 }
 
 interface ResponsiveButtonGroupProps {
@@ -511,7 +502,6 @@ interface ControlsProps {
     subtitlesEnabled?: boolean;
     subtitlesToggle?: boolean;
     onSubtitlesToggle?: () => void;
-    videoFile?: string;
     audioTracks?: AudioTrackModel[];
     selectedAudioTrack?: string;
     tabs?: VideoTabModel[];
@@ -566,7 +556,6 @@ export default function Controls({
     subtitlesEnabled,
     subtitlesToggle,
     onSubtitlesToggle,
-    videoFile,
     audioTracks,
     selectedAudioTrack,
     tabs,
@@ -597,8 +586,6 @@ export default function Controls({
     const [audioTrackSelectorAnchorEl, setAudioTrackSelectorAnchorEl] = useState<Element>();
     const [tabSelectorOpen, setTabSelectorOpen] = useState<boolean>(false);
     const [tabSelectorAnchorEl, setTabSelectorAnchorEl] = useState<Element>();
-    const [videoUnloaderOpen, setVideoUnloaderOpen] = useState<boolean>(false);
-    const [videoUnloaderAnchorEl, setVideoUnloaderAnchorEl] = useState<Element>();
     const [playModeSelectorOpen, setPlayModeSelectorOpen] = useState<boolean>(false);
     const [playModeSelectorAnchorEl, setPlayModeSelectorAnchorEl] = useState<Element>();
     const [showVolumeBar, setShowVolumeBar] = useState<boolean>(false);
@@ -614,7 +601,6 @@ export default function Controls({
     const offsetInputRef = useRef<HTMLInputElement>();
     const playbackRateInputRef = useRef<HTMLInputElement>();
     const containerRef = useRef<HTMLDivElement>(null);
-    const closeButtonRef = useRef<HTMLButtonElement>(null);
     const [, updateState] = useState<any>();
     const forceUpdate = useCallback(() => updateState({}), []);
 
@@ -670,8 +656,7 @@ export default function Controls({
                     mousePositionRef.current !== undefined &&
                     ((containerRef.current !== null &&
                         mousePositionRef.current.y > containerRef.current.offsetTop - 20) ||
-                        (closeButtonRef.current !== null &&
-                            mousePositionRef.current.y < closeButtonRef.current.offsetHeight + 20));
+                        mousePositionRef.current.y < 70);
             }
 
             currentShow =
@@ -764,21 +749,6 @@ export default function Controls({
         [onTabSelected]
     );
 
-    const handleVideoUnloaderClosed = useCallback(() => {
-        setVideoUnloaderAnchorEl(undefined);
-        setVideoUnloaderOpen(false);
-    }, []);
-
-    const handleVideoUnloaderOpened = useCallback((e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        setVideoUnloaderAnchorEl(e.currentTarget);
-        setVideoUnloaderOpen(true);
-    }, []);
-
-    const handleUnloadVideo = useCallback(() => {
-        onUnloadVideo?.();
-        setVideoUnloaderOpen(false);
-    }, [onUnloadVideo]);
-
     const handlePlayModeSelectorClosed = useCallback(() => {
         setPlayModeSelectorAnchorEl(undefined);
         setPlayModeSelectorOpen(false);
@@ -855,7 +825,6 @@ export default function Controls({
                         {closeEnabled && (
                             <Tooltip title={t('controls.unloadVideo')!}>
                                 <IconButton
-                                    ref={closeButtonRef}
                                     color="inherit"
                                     className={classes.topButton}
                                     onClick={onClose}
@@ -899,9 +868,9 @@ export default function Controls({
                             <Tooltip title={t('controls.toggleFullscreen')!}>
                                 <IconButton color="inherit" onClick={onFullscreenToggle}>
                                     {fullscreen ? (
-                                        <FullscreenExitIcon className={classes.button} />
+                                        <FullscreenExitIcon className={classes.topButton} />
                                     ) : (
-                                        <FullscreenIcon className={classes.button} />
+                                        <FullscreenIcon className={classes.topButton} />
                                     )}
                                 </IconButton>
                             </Tooltip>
@@ -1046,13 +1015,6 @@ export default function Controls({
                                             </IconButton>
                                         </Tooltip>
                                     )}
-                                    {videoFile && (
-                                        <Tooltip title={t('controls.unloadVideo')!}>
-                                            <IconButton color="inherit" onClick={handleVideoUnloaderOpened}>
-                                                <VideocamIcon className={classes.button} />
-                                            </IconButton>
-                                        </Tooltip>
-                                    )}
                                     {audioTracks && audioTracks.length > 1 && (
                                         <Tooltip title={t('controls.selectAudioTrack')!}>
                                             <IconButton color="inherit" onClick={handleAudioTrackSelectorOpened}>
@@ -1110,13 +1072,6 @@ export default function Controls({
                     selectedAudioTrack={selectedAudioTrack}
                     onClose={handleAudioTrackSelectorClosed}
                     onAudioTrackSelected={handleAudioTrackSelected}
-                />
-                <MediaUnloader
-                    open={videoUnloaderOpen}
-                    anchorEl={videoUnloaderAnchorEl}
-                    file={videoFile}
-                    onClose={handleVideoUnloaderClosed}
-                    onUnload={handleUnloadVideo}
                 />
                 <PlayModeSelector
                     open={playModeSelectorOpen && show}

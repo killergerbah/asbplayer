@@ -1,32 +1,34 @@
-import makeStyles from '@material-ui/core/styles/makeStyles';
+import { makeStyles } from '@mui/styles';
 import PlaybackRateInput from './PlaybackRateInput';
 import SubtitleOffsetInput from './SubtitleOffsetInput';
 import TimeDisplay from './TimeDisplay';
 import { MutableRefObject, useCallback, useRef, useState } from 'react';
 import { ControlType } from '..';
 
-const containerHeight = 48;
+const containerHeight = 40;
 const scrollThreshold = containerHeight / 2 + 1;
 
-const useStyles = makeStyles({
-    container: {
-        height: containerHeight,
-        overflowY: 'scroll',
-        scrollSnapType: 'y mandatory',
-        scrollbarWidth: 'none',
-        '&::-webkit-scrollbar': {
-            display: 'none',
+const useStyles = makeStyles(() => {
+    return {
+        container: {
+            height: containerHeight,
+            overflowY: 'scroll',
+            scrollSnapType: 'y mandatory',
+            scrollbarWidth: 'none',
+            '&::-webkit-scrollbar': {
+                display: 'none',
+            },
+            textAlign: 'center',
         },
-        textAlign: 'center',
-    },
-    child: {
-        scrollbarWidth: 'none',
-        scrollSnapAlign: 'center',
-        '&::-webkit-scrollbar': {
-            display: 'none',
+        child: {
+            scrollbarWidth: 'none',
+            scrollSnapAlign: 'center',
+            '&::-webkit-scrollbar': {
+                display: 'none',
+            },
+            scrollSnapStop: 'always',
         },
-        scrollSnapStop: 'always',
-    },
+    };
 });
 
 interface Props {

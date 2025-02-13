@@ -1,33 +1,34 @@
 import React, { useCallback, useState, useEffect, useMemo, ChangeEvent, ReactNode, useRef } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { makeStyles, useTheme } from '@material-ui/core/styles';
-import AddIcon from '@material-ui/icons/Add';
-import LockIcon from '@material-ui/icons/Lock';
-import Box from '@material-ui/core/Box';
-import ClearIcon from '@material-ui/icons/Clear';
-import EditIcon from '@material-ui/icons/Edit';
-import InfoIcon from '@material-ui/icons/Info';
-import UndoIcon from '@material-ui/icons/Undo';
-import FormControl from '@material-ui/core/FormControl';
-import FormGroup from '@material-ui/core/FormGroup';
-import FormLabel from '@material-ui/core/FormLabel';
-import Grid from '@material-ui/core/Grid';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import IconButton from '@material-ui/core/IconButton';
-import InputLabel from '@material-ui/core/InputLabel';
+import { makeStyles } from '@mui/styles';
+import { useTheme } from '@mui/material/styles';
+import AddIcon from '@mui/icons-material/Add';
+import LockIcon from '@mui/icons-material/Lock';
+import Box from '@mui/material/Box';
+import ClearIcon from '@mui/icons-material/Clear';
+import EditIcon from '@mui/icons-material/Edit';
+import InfoIcon from '@mui/icons-material/Info';
+import UndoIcon from '@mui/icons-material/Undo';
+import FormControl from '@mui/material/FormControl';
+import FormGroup from '@mui/material/FormGroup';
+import FormLabel from '@mui/material/FormLabel';
+import Grid from '@mui/material/Grid';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import InputLabel from '@mui/material/InputLabel';
 import LabelWithHoverEffect from './LabelWithHoverEffect';
-import MenuItem from '@material-ui/core/MenuItem';
-import DeleteIcon from '@material-ui/icons/Delete';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
-import Radio from '@material-ui/core/Radio';
-import RefreshIcon from '@material-ui/icons/Refresh';
-import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
-import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
-import VisibilityIcon from '@material-ui/icons/Visibility';
-import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
-import Select from '@material-ui/core/Select';
-import TextField from '@material-ui/core/TextField';
-import { Theme } from '@material-ui/core/styles';
+import MenuItem from '@mui/material/MenuItem';
+import DeleteIcon from '@mui/icons-material/Delete';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import Radio from '@mui/material/Radio';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+import TextField from '@mui/material/TextField';
+import { type Theme } from '@mui/material';
 import { AutoPausePreference, PostMineAction, PostMinePlayback } from '@project/common';
 import {
     AnkiFieldSettings,
@@ -48,23 +49,26 @@ import { CustomStyle, validateSettings } from '@project/common/settings';
 import { useOutsideClickListener } from '@project/common/hooks';
 import TagsTextField from './TagsTextField';
 import hotkeys from 'hotkeys-js';
-import Typography from '@material-ui/core/Typography';
+import Typography from '@mui/material/Typography';
 import { isMacOs } from 'react-device-detect';
-import Switch from '@material-ui/core/Switch';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import Tooltip from '@material-ui/core/Tooltip';
-import Autocomplete from '@material-ui/lab/Autocomplete';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import Popover from '@material-ui/core/Popover';
-import Slider from '@material-ui/core/Slider';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
-import FormHelperText from '@material-ui/core/FormHelperText';
-import Link from '@material-ui/core/Link';
-import Button from '@material-ui/core/Button';
+import Switch from '@mui/material/Switch';
+import RadioGroup from '@mui/material/RadioGroup';
+import Tooltip from './Tooltip';
+import Autocomplete from '@mui/material/Autocomplete';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Popover from '@mui/material/Popover';
+import Slider from '@mui/material/Slider';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
+import FormHelperText from '@mui/material/FormHelperText';
+import Link from '@mui/material/Link';
+import Button from '@mui/material/Button';
 import { Anki } from '../anki';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { WebSocketClient } from '../web-socket-client/web-socket-client';
 import { isFirefox } from '@project/common/browser-detection';
 import SubtitleAppearanceTrackSelector from './SubtitleAppearanceTrackSelector';
@@ -78,7 +82,6 @@ interface StylesProps {
 const useStyles = makeStyles<Theme, StylesProps>((theme) => ({
     root: ({ smallScreen }) => {
         let styles: any = {
-            backgroundColor: theme.palette.background.paper,
             maxHeight: '100%',
             height: 'calc(100% - 48px)',
         };
@@ -190,7 +193,7 @@ interface SelectableSettingProps {
     display?: boolean;
     onDisplayChange?: (displaying: boolean) => void;
     onChange: (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;
-    onSelectionChange: (event: ChangeEvent<{ name?: string | undefined; value: unknown }>, child: ReactNode) => void;
+    onSelectionChange: (event: SelectChangeEvent<string>, child: ReactNode) => void;
     disabledDirection?: Direction;
     onOrderChange?: (direction: Direction) => void;
     onRemoval?: () => void;
@@ -227,7 +230,7 @@ function SelectableSetting({
                 value={value}
                 onChange={onChange}
                 fullWidth
-                color="secondary"
+                color="primary"
                 InputProps={{
                     endAdornment: (removable || onOrderChange) && (
                         <InputAdornment position="end">
@@ -249,7 +252,7 @@ function SelectableSetting({
                 <Select
                     value={selections?.find((v) => v === value) === undefined ? '' : value}
                     disabled={!selections}
-                    color="secondary"
+                    color="primary"
                     onChange={onSelectionChange}
                 >
                     {selections &&
@@ -278,28 +281,46 @@ function SelectableSetting({
                 >
                     <List>
                         {disabledDirection !== Direction.up && onOrderChange !== undefined && (
-                            <ListItem button onClick={() => handleOrderChange(Direction.up)}>
-                                <ArrowUpwardIcon fontSize="small" />
+                            <ListItem disablePadding onClick={() => handleOrderChange(Direction.up)}>
+                                <ListItemButton>
+                                    <ListItemIcon>
+                                        <ArrowUpwardIcon fontSize="small" />
+                                    </ListItemIcon>
+                                    <ListItemText>{t('settings.moveUpInCardCreator')}</ListItemText>
+                                </ListItemButton>
                             </ListItem>
                         )}
                         {display !== undefined && onDisplayChange !== undefined && (
-                            <Tooltip
-                                title={(display ? t('settings.hideInCardCreator') : t('settings.showInCardCreator'))!}
-                            >
-                                <ListItem button onClick={() => onDisplayChange(!display)}>
-                                    {display === false && <VisibilityOffIcon fontSize="small" />}
-                                    {display === true && <VisibilityIcon fontSize="small" />}
-                                </ListItem>
-                            </Tooltip>
+                            <ListItem disablePadding onClick={() => onDisplayChange(!display)}>
+                                <ListItemButton>
+                                    <ListItemIcon>
+                                        {display === false && <VisibilityOffIcon fontSize="small" />}
+                                        {display === true && <VisibilityIcon fontSize="small" />}
+                                    </ListItemIcon>
+                                    <ListItemText>
+                                        {(display ? t('settings.hideInCardCreator') : t('settings.showInCardCreator'))!}
+                                    </ListItemText>
+                                </ListItemButton>
+                            </ListItem>
                         )}
                         {disabledDirection !== Direction.down && onOrderChange !== undefined && (
-                            <ListItem button onClick={() => handleOrderChange(Direction.down)}>
-                                <ArrowDownwardIcon fontSize="small" />
+                            <ListItem disablePadding onClick={() => handleOrderChange(Direction.down)}>
+                                <ListItemButton>
+                                    <ListItemIcon>
+                                        <ArrowDownwardIcon fontSize="small" />
+                                    </ListItemIcon>
+                                    <ListItemText>{t('settings.moveDownInCardCreator')}</ListItemText>
+                                </ListItemButton>
                             </ListItem>
                         )}
                         {removable && (
-                            <ListItem button onClick={(e) => onRemoval?.()}>
-                                <DeleteIcon fontSize="small" />
+                            <ListItem disablePadding onClick={() => onRemoval?.()}>
+                                <ListItemButton>
+                                    <ListItemIcon>
+                                        <DeleteIcon fontSize="small" />
+                                    </ListItemIcon>
+                                    <ListItemText>{t('action.delete')}</ListItemText>
+                                </ListItemButton>
                             </ListItem>
                         )}
                     </List>
@@ -457,7 +478,7 @@ function KeyBindField({ label, keys, boundViaChrome, onKeysChange, onOpenExtensi
                     disabled={boundViaChrome}
                     helperText={boundViaChrome ? t('settings.extensionShortcut') : undefined}
                     value={currentKeyString}
-                    color="secondary"
+                    color="primary"
                     InputProps={{
                         endAdornment: (
                             <InputAdornment position="end">
@@ -497,7 +518,7 @@ function AddCustomField({ onAddCustomField }: AddCustomFieldProps) {
             label={t('settings.addCustomField')}
             fullWidth
             value={fieldName}
-            color="secondary"
+            color="primary"
             onChange={(e) => setFieldName(e.target.value)}
             InputProps={{
                 endAdornment: (
@@ -543,7 +564,7 @@ function AddCustomStyle({ styleKey, onStyleKey, onAddCustomStyle }: AddCustomSty
                 <TextField
                     placeholder={t('settings.styleKey')!}
                     label={t('settings.addCustomCss')}
-                    color="secondary"
+                    color="primary"
                     {...params}
                     InputProps={{
                         ...params.InputProps,
@@ -578,7 +599,7 @@ function CustomStyleSetting({ customStyle, onCustomStyle, onDelete }: CustomStyl
 
     return (
         <TextField
-            color="secondary"
+            color="primary"
             label={t('settings.customCssField', { styleKey: customStyle.key })}
             placeholder={t('settings.styleValue')!}
             value={customStyle.value}
@@ -685,7 +706,7 @@ export default function SettingsForm({
     onUnlockLocalFonts,
 }: Props) {
     const theme = useTheme();
-    const smallScreen = useMediaQuery(theme.breakpoints.down('xs')) && !forceVerticalTabs;
+    const smallScreen = useMediaQuery(theme.breakpoints.down('sm')) && !forceVerticalTabs;
     const classes = useStyles({ smallScreen });
     const handleSettingChanged = useCallback(
         async <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => {
@@ -1188,7 +1209,7 @@ export default function SettingsForm({
                         value={ankiConnectUrl}
                         error={Boolean(ankiConnectUrlError)}
                         helperText={ankiConnectUrlError}
-                        color="secondary"
+                        color="primary"
                         onChange={(event) => handleSettingChanged('ankiConnectUrl', event.target.value)}
                         InputProps={{
                             endAdornment: (
@@ -1208,7 +1229,7 @@ export default function SettingsForm({
                                 components={[
                                     <Link
                                         key={0}
-                                        color="secondary"
+                                        color="primary"
                                         target="_blank"
                                         rel="noreferrer"
                                         href="https://youtu.be/Mv7fEVb6PHo?t=44"
@@ -1418,7 +1439,7 @@ export default function SettingsForm({
                         label={t('settings.tags')}
                         helperText={t('settings.tagsHelperText')}
                         fullWidth
-                        color="secondary"
+                        color="primary"
                         tags={tags}
                         onTagsChange={(tags) => handleSettingChanged('tags', tags)}
                     />
@@ -1569,7 +1590,7 @@ export default function SettingsForm({
                         label={t('settings.audioPaddingStart')}
                         fullWidth
                         value={audioPaddingStart}
-                        color="secondary"
+                        color="primary"
                         onChange={(event) => handleSettingChanged('audioPaddingStart', Number(event.target.value))}
                         inputProps={{
                             min: 0,
@@ -1584,7 +1605,7 @@ export default function SettingsForm({
                         label={t('settings.audioPaddingEnd')}
                         fullWidth
                         value={audioPaddingEnd}
-                        color="secondary"
+                        color="primary"
                         onChange={(event) => handleSettingChanged('audioPaddingEnd', Number(event.target.value))}
                         inputProps={{
                             min: 0,
@@ -1599,7 +1620,7 @@ export default function SettingsForm({
                         label={t('settings.maxImageWidth')}
                         fullWidth
                         value={maxImageWidth}
-                        color="secondary"
+                        color="primary"
                         onChange={(event) => handleSettingChanged('maxImageWidth', Number(event.target.value))}
                         inputProps={{
                             min: 0,
@@ -1611,7 +1632,7 @@ export default function SettingsForm({
                         label={t('settings.maxImageHeight')}
                         fullWidth
                         value={maxImageHeight}
-                        color="secondary"
+                        color="primary"
                         onChange={(event) => handleSettingChanged('maxImageHeight', Number(event.target.value))}
                         inputProps={{
                             min: 0,
@@ -1623,7 +1644,7 @@ export default function SettingsForm({
                         label={t('settings.surroundingSubtitlesCountRadius')}
                         fullWidth
                         value={surroundingSubtitlesCountRadius}
-                        color="secondary"
+                        color="primary"
                         onChange={(event) =>
                             handleSettingChanged('surroundingSubtitlesCountRadius', Number(event.target.value))
                         }
@@ -1637,7 +1658,7 @@ export default function SettingsForm({
                         label={t('settings.surroundingSubtitlesTimeRadius')}
                         fullWidth
                         value={surroundingSubtitlesTimeRadius}
-                        color="secondary"
+                        color="primary"
                         onChange={(event) =>
                             handleSettingChanged('surroundingSubtitlesTimeRadius', Number(event.target.value))
                         }
@@ -1690,7 +1711,7 @@ export default function SettingsForm({
                                     label={t('settings.subtitleColor')}
                                     fullWidth
                                     value={subtitleColor}
-                                    color="secondary"
+                                    color="primary"
                                     onChange={(event) =>
                                         handleSubtitleTextSettingChanged('subtitleColor', event.target.value)
                                     }
@@ -1704,7 +1725,7 @@ export default function SettingsForm({
                                     label={t('settings.subtitleSize')}
                                     fullWidth
                                     value={subtitleSize}
-                                    color="secondary"
+                                    color="primary"
                                     onChange={(event) =>
                                         handleSubtitleTextSettingChanged('subtitleSize', Number(event.target.value))
                                     }
@@ -1721,7 +1742,7 @@ export default function SettingsForm({
                                     {t('settings.subtitleThickness')}
                                 </Typography>
                                 <Slider
-                                    color="secondary"
+                                    color="primary"
                                     value={subtitleThickness}
                                     onChange={(event, value) =>
                                         handleSubtitleTextSettingChanged('subtitleThickness', value as number)
@@ -1741,7 +1762,7 @@ export default function SettingsForm({
                                     label={t('settings.subtitleOutlineColor')}
                                     fullWidth
                                     value={subtitleOutlineColor}
-                                    color="secondary"
+                                    color="primary"
                                     onChange={(event) =>
                                         handleSubtitleTextSettingChanged('subtitleOutlineColor', event.target.value)
                                     }
@@ -1766,7 +1787,7 @@ export default function SettingsForm({
                                         min: 0,
                                         step: 0.1,
                                     }}
-                                    color="secondary"
+                                    color="primary"
                                 />
                             </div>
                         )}
@@ -1777,7 +1798,7 @@ export default function SettingsForm({
                                     label={t('settings.subtitleShadowColor')}
                                     fullWidth
                                     value={subtitleShadowColor}
-                                    color="secondary"
+                                    color="primary"
                                     onChange={(event) =>
                                         handleSubtitleTextSettingChanged('subtitleShadowColor', event.target.value)
                                     }
@@ -1801,7 +1822,7 @@ export default function SettingsForm({
                                         min: 0,
                                         step: 0.1,
                                     }}
-                                    color="secondary"
+                                    color="primary"
                                 />
                             </div>
                         )}
@@ -1812,7 +1833,7 @@ export default function SettingsForm({
                                     label={t('settings.subtitleBackgroundColor')}
                                     fullWidth
                                     value={subtitleBackgroundColor}
-                                    color="secondary"
+                                    color="primary"
                                     onChange={(event) =>
                                         handleSubtitleTextSettingChanged('subtitleBackgroundColor', event.target.value)
                                     }
@@ -1831,7 +1852,7 @@ export default function SettingsForm({
                                         step: 0.1,
                                     }}
                                     value={subtitleBackgroundOpacity}
-                                    color="secondary"
+                                    color="primary"
                                     onChange={(event) =>
                                         handleSubtitleTextSettingChanged(
                                             'subtitleBackgroundOpacity',
@@ -1849,7 +1870,7 @@ export default function SettingsForm({
                                     label={t('settings.subtitleFontFamily')}
                                     fullWidth
                                     value={subtitleFontFamily}
-                                    color="secondary"
+                                    color="primary"
                                     onChange={(event) =>
                                         handleSubtitleTextSettingChanged('subtitleFontFamily', event.target.value)
                                     }
@@ -1974,7 +1995,7 @@ export default function SettingsForm({
                                     <TextField
                                         className={classes.textField}
                                         type="number"
-                                        color="secondary"
+                                        color="primary"
                                         fullWidth
                                         label={t('settings.subtitlePositionOffset')}
                                         value={subtitlePositionOffset}
@@ -1991,7 +2012,7 @@ export default function SettingsForm({
                                     <TextField
                                         className={classes.textField}
                                         type="number"
-                                        color="secondary"
+                                        color="primary"
                                         fullWidth
                                         label={t('settings.topSubtitlePositionOffset')}
                                         value={topSubtitlePositionOffset}
@@ -2008,7 +2029,7 @@ export default function SettingsForm({
                                     <div className={classes.subtitleSetting}>
                                         <TextField
                                             className={classes.textField}
-                                            color="secondary"
+                                            color="primary"
                                             fullWidth
                                             label={t('settings.subtitlesWidth')}
                                             disabled={subtitlesWidth === -1}
@@ -2070,7 +2091,7 @@ export default function SettingsForm({
                                             step: 0.1,
                                         }}
                                         value={imageBasedSubtitleScaleFactor}
-                                        color="secondary"
+                                        color="primary"
                                         onChange={(event) =>
                                             handleSettingChanged(
                                                 'imageBasedSubtitleScaleFactor',
@@ -2217,7 +2238,7 @@ export default function SettingsForm({
                             <TextField
                                 className={classes.textField}
                                 type="number"
-                                color="secondary"
+                                color="primary"
                                 fullWidth
                                 label={t('extension.settings.screenshotCaptureDelay')}
                                 value={streamingScreenshotDelay}
@@ -2267,7 +2288,7 @@ export default function SettingsForm({
                             <TextField
                                 className={classes.textField}
                                 type="number"
-                                color="secondary"
+                                color="primary"
                                 fullWidth
                                 label={t('extension.settings.condensedPlaybackMinSkipInterval')}
                                 value={streamingCondensedPlaybackMinimumSkipIntervalMs}
@@ -2292,7 +2313,7 @@ export default function SettingsForm({
                             {!insideApp && (
                                 <TextField
                                     className={classes.textField}
-                                    color="secondary"
+                                    color="primary"
                                     fullWidth
                                     label={t('extension.settings.asbplayerUrl')}
                                     value={streamingAppUrl}
@@ -2380,7 +2401,7 @@ export default function SettingsForm({
                                 label={t('settings.miningHistoryStorageLimit')}
                                 fullWidth
                                 value={miningHistoryStorageLimit}
-                                color="secondary"
+                                color="primary"
                                 onChange={(event) =>
                                     handleSettingChanged('miningHistoryStorageLimit', Number(event.target.value))
                                 }
@@ -2394,7 +2415,7 @@ export default function SettingsForm({
                                     label={t('settings.tabName')}
                                     fullWidth
                                     value={tabName}
-                                    color="secondary"
+                                    color="primary"
                                     onChange={(event) => handleSettingChanged('tabName', event.target.value)}
                                 />
                             )}
@@ -2402,7 +2423,7 @@ export default function SettingsForm({
                                 label={t('settings.subtitleRegexFilter')}
                                 fullWidth
                                 value={subtitleRegexFilter}
-                                color="secondary"
+                                color="primary"
                                 error={!validRegex}
                                 helperText={validRegex ? undefined : 'Invalid regular expression'}
                                 onChange={(event) => handleSettingChanged('subtitleRegexFilter', event.target.value)}
@@ -2411,7 +2432,7 @@ export default function SettingsForm({
                                 label={t('settings.subtitleRegexFilterTextReplacement')}
                                 fullWidth
                                 value={subtitleRegexFilterTextReplacement}
-                                color="secondary"
+                                color="primary"
                                 onChange={(event) =>
                                     handleSettingChanged('subtitleRegexFilterTextReplacement', event.target.value)
                                 }
@@ -2420,7 +2441,7 @@ export default function SettingsForm({
                                 select
                                 label={t('settings.language')}
                                 value={language}
-                                color="secondary"
+                                color="primary"
                                 onChange={(event) => handleSettingChanged('language', event.target.value)}
                             >
                                 {supportedLanguages.map((s) => (
@@ -2520,36 +2541,38 @@ export default function SettingsForm({
                         </Grid>
                     )}
                     <Grid item>
-                        <TextField
-                            type="number"
-                            label={t('settings.speedChangeStep')}
-                            fullWidth
-                            value={speedChangeStep}
-                            color="secondary"
-                            onChange={(event) => handleSettingChanged('speedChangeStep', Number(event.target.value))}
-                            inputProps={{
-                                min: 0.1,
-                                max: 1,
-                                step: 0.1,
-                            }}
-                        />
-                    </Grid>
-                    <Grid item>
-                        <TextField
-                            type="number"
-                            label={t('settings.fastForwardModePlaybackRate')}
-                            fullWidth
-                            value={fastForwardModePlaybackRate}
-                            color="secondary"
-                            onChange={(event) =>
-                                handleSettingChanged('fastForwardModePlaybackRate', Number(event.target.value))
-                            }
-                            inputProps={{
-                                min: 0.1,
-                                max: 5,
-                                step: 0.1,
-                            }}
-                        />
+                        <FormGroup className={classes.formGroup}>
+                            <TextField
+                                type="number"
+                                label={t('settings.speedChangeStep')}
+                                fullWidth
+                                value={speedChangeStep}
+                                color="primary"
+                                onChange={(event) =>
+                                    handleSettingChanged('speedChangeStep', Number(event.target.value))
+                                }
+                                inputProps={{
+                                    min: 0.1,
+                                    max: 1,
+                                    step: 0.1,
+                                }}
+                            />
+                            <TextField
+                                type="number"
+                                label={t('settings.fastForwardModePlaybackRate')}
+                                fullWidth
+                                value={fastForwardModePlaybackRate}
+                                color="primary"
+                                onChange={(event) =>
+                                    handleSettingChanged('fastForwardModePlaybackRate', Number(event.target.value))
+                                }
+                                inputProps={{
+                                    min: 0.1,
+                                    max: 5,
+                                    step: 0.1,
+                                }}
+                            />
+                        </FormGroup>
                     </Grid>
                     <Grid item>
                         <LabelWithHoverEffect
@@ -2597,7 +2620,7 @@ export default function SettingsForm({
                             <Grid item>
                                 <TextField
                                     className={classes.textField}
-                                    color="secondary"
+                                    color="primary"
                                     fullWidth
                                     label={t('settings.webSocketServerUrl')}
                                     value={webSocketServerUrl}
@@ -2621,7 +2644,7 @@ export default function SettingsForm({
                     <Grid item>
                         <Button
                             variant="contained"
-                            color="secondary"
+                            color="primary"
                             style={{ width: '100%' }}
                             onClick={handleImportSettings}
                         >
@@ -2631,7 +2654,7 @@ export default function SettingsForm({
                     <Grid item>
                         <Button
                             variant="contained"
-                            color="secondary"
+                            color="primary"
                             style={{ width: '100%' }}
                             onClick={handleExportSettings}
                         >

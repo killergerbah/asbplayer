@@ -1,25 +1,28 @@
-import { makeStyles, Theme } from '@material-ui/core/styles';
+import { makeStyles } from '@mui/styles';
+import { type Theme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import AppBar from '@material-ui/core/AppBar';
-import BugReportIcon from '@material-ui/icons/BugReport';
-import FavoriteIcon from '@material-ui/icons/Favorite';
-import HelpIcon from '@material-ui/icons/Help';
-import IconButton from '@material-ui/core/IconButton';
-import HistoryIcon from '@material-ui/icons/History';
-import SaveAltIcon from '@material-ui/icons/SaveAlt';
-import SettingsIcon from '@material-ui/icons/Settings';
-import Toolbar from '@material-ui/core/Toolbar';
-import Tooltip, { TooltipProps } from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
+import AppBar from '@mui/material/AppBar';
+import BugReportIcon from '@mui/icons-material/BugReport';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import HelpIcon from '@mui/icons-material/Help';
+import IconButton from '@mui/material/IconButton';
+import HistoryIcon from '@mui/icons-material/History';
+import SaveAltIcon from '@mui/icons-material/SaveAlt';
+import SettingsIcon from '@mui/icons-material/Settings';
+import Toolbar from '@mui/material/Toolbar';
+import type { TooltipProps } from '@mui/material/Tooltip';
+import Tooltip from '../../components/Tooltip';
+import Typography from '@mui/material/Typography';
 import React, { useCallback, useState } from 'react';
-import GitHubIcon from '@material-ui/icons/GitHub';
-import List from '@material-ui/core/List';
-import MuiLink, { LinkProps as MuiLinkProps } from '@material-ui/core/Link';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import Popover from '@material-ui/core/Popover';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import List from '@mui/material/List';
+import ListItemButton from '@mui/material/ListItemButton';
+import MuiLink, { LinkProps as MuiLinkProps } from '@mui/material/Link';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import Popover from '@mui/material/Popover';
 
 interface BarProps {
     drawerWidth: number;
@@ -81,7 +84,7 @@ const useStyles = makeStyles<Theme, StyleProps, string>((theme) => ({
         display: 'none',
     },
     menu: {
-        '&:hover .MuiLink-root': {
+        '& .MuiLink-root': {
             textDecoration: 'none',
         },
     },
@@ -146,7 +149,6 @@ export default function Bar({
         <>
             <AppBar
                 position="static"
-                elevation={0}
                 className={clsx(classes.appBar, {
                     [classes.appBarShift]: drawerOpen,
                     [classes.hide]: hidden,
@@ -207,27 +209,33 @@ export default function Bar({
             >
                 <List className={classes.menu} onMouseLeave={handleMenuClose} dense>
                     <Link href="https://github.com/killergerbah/asbplayer#detailed-usage">
-                        <ListItem button>
-                            <ListItemIcon>
-                                <HelpIcon />
-                            </ListItemIcon>
-                            <ListItemText primary={t('bar.help')!} />
+                        <ListItem disablePadding>
+                            <ListItemButton>
+                                <ListItemIcon>
+                                    <HelpIcon />
+                                </ListItemIcon>
+                                <ListItemText primary={t('bar.help')!} />
+                            </ListItemButton>
                         </ListItem>
                     </Link>
                     <Link href="https://github.com/killergerbah/asbplayer/issues">
-                        <ListItem button>
-                            <ListItemIcon>
-                                <BugReportIcon />
-                            </ListItemIcon>
-                            <ListItemText primary={t('bar.submitIssue')!} />
+                        <ListItem disablePadding>
+                            <ListItemButton>
+                                <ListItemIcon>
+                                    <BugReportIcon />
+                                </ListItemIcon>
+                                <ListItemText primary={t('bar.submitIssue')!} />
+                            </ListItemButton>
                         </ListItem>
                     </Link>
                     <Link href="https://github.com/killergerbah/asbplayer#donations">
-                        <ListItem button>
-                            <ListItemIcon>
-                                <FavoriteIcon />
-                            </ListItemIcon>
-                            <ListItemText primary={t('bar.donate')!} />
+                        <ListItem disablePadding>
+                            <ListItemButton>
+                                <ListItemIcon>
+                                    <FavoriteIcon />
+                                </ListItemIcon>
+                                <ListItemText primary={t('bar.donate')!} />
+                            </ListItemButton>
                         </ListItem>
                     </Link>
                 </List>

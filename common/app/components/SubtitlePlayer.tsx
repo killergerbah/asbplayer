@@ -9,7 +9,8 @@ import React, {
     RefObject,
     ReactNode,
 } from 'react';
-import { makeStyles, Theme } from '@material-ui/core/styles';
+import { makeStyles } from '@mui/styles';
+import { type Theme } from '@mui/material';
 import { keysAreEqual } from '../services/util';
 import { useResize } from '../hooks/use-resize';
 import { ScreenLocation, useDragging } from '../hooks/use-dragging';
@@ -31,16 +32,16 @@ import {
 import { SubtitleCollection } from '@project/common/subtitle-collection';
 import { KeyBinder } from '@project/common/key-binder';
 import SubtitleTextImage from '@project/common/components/SubtitleTextImage';
-import NoteAddIcon from '@material-ui/icons/NoteAdd';
-import IconButton from '@material-ui/core/IconButton';
-import Paper from '@material-ui/core/Paper';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableRow, { TableRowProps } from '@material-ui/core/TableRow';
-import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
+import NoteAddIcon from '@mui/icons-material/NoteAdd';
+import IconButton from '@mui/material/IconButton';
+import Paper from '@mui/material/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableRow, { TableRowProps } from '@mui/material/TableRow';
+import Tooltip from '../../components/Tooltip';
+import Typography from '@mui/material/Typography';
 import Clock from '../services/clock';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
 import { MineSubtitleParams } from '../hooks/use-app-web-socket-client';
@@ -133,7 +134,7 @@ const useSubtitlePlayerStyles = makeStyles<Theme, StylesProps, string>((theme) =
     },
 }));
 
-const useSubtitleRowStyles = makeStyles((theme) => ({
+const useSubtitleRowStyles = makeStyles<Theme>((theme) => ({
     subtitleRow: {
         '&:hover': {
             backgroundColor: theme.palette.action.hover,
@@ -427,7 +428,7 @@ export default function SubtitlePlayer({
     hiddenRef.current = hidden;
     const lastScrollTimestampRef = useRef<number>(0);
     const requestAnimationRef = useRef<number>();
-    const containerRef = useRef<HTMLElement>();
+    const containerRef = useRef<HTMLDivElement>(null);
     const drawerOpenRef = useRef<boolean>();
     drawerOpenRef.current = drawerOpen;
     const appBarHeight = useAppBarHeight();
@@ -1151,13 +1152,7 @@ export default function SubtitlePlayer({
     }
 
     return (
-        <Paper
-            square
-            elevation={0}
-            ref={containerRef}
-            className={classes.container}
-            style={{ width: resizable ? width : 'auto' }}
-        >
+        <Paper square ref={containerRef} className={classes.container} style={{ width: resizable ? width : 'auto' }}>
             {subtitleTable}
             {resizable && (
                 <ResizeHandle

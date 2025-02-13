@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { TextFieldProps } from '@material-ui/core';
-import TextField from '@material-ui/core/TextField';
+import { type TextFieldProps } from '@mui/material';
+import TextField from '@mui/material/TextField';
 
 function extractTagsFromString(value: string) {
     const splitTags = value.split(' ').join('').split(',');

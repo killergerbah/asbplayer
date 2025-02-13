@@ -1,13 +1,13 @@
-import IconButton from '@material-ui/core/IconButton';
-import HistoryIcon from '@material-ui/icons/History';
+import IconButton from '@mui/material/IconButton';
+import HistoryIcon from '@mui/icons-material/History';
 import LoadSubtitlesIcon from '@project/common/components/LoadSubtitlesIcon';
-import SaveAltIcon from '@material-ui/icons/SaveAlt';
-import Grid from '@material-ui/core/Grid';
-import Box from '@material-ui/core/Box';
-import Fade from '@material-ui/core/Fade';
+import SaveAltIcon from '@mui/icons-material/SaveAlt';
+import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
+import Fade from '@mui/material/Fade';
 import { ForwardedRef, useEffect, useState } from 'react';
 import React from 'react';
-import { Tooltip } from '@material-ui/core';
+import Tooltip from '@project/common/components/Tooltip';
 import { useTranslation } from 'react-i18next';
 
 interface Props {

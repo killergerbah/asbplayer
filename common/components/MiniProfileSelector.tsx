@@ -1,7 +1,8 @@
-import Button from '@material-ui/core/Button';
-import Popover from '@material-ui/core/Popover';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
+import Button from '@mui/material/Button';
+import Popover from '@mui/material/Popover';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
 import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Profile } from '../settings';
@@ -36,22 +37,19 @@ const MiniProfileSelector = ({ profiles, activeProfile, onSetActiveProfile }: Pr
         <>
             <Popover open={open} anchorEl={anchorEl} onClose={handleClose}>
                 <List>
-                    <ListItem button selected={activeProfile === undefined} onClick={() => handleSelect(undefined)}>
-                        {t('settings.defaultProfile')}
+                    <ListItem disablePadding onClick={() => handleSelect(undefined)}>
+                        <ListItemButton selected={activeProfile === undefined}>
+                            {t('settings.defaultProfile')}
+                        </ListItemButton>
                     </ListItem>
                     {profiles.map((p) => (
-                        <ListItem
-                            key={p.name}
-                            button
-                            selected={p.name === activeProfile}
-                            onClick={() => handleSelect(p)}
-                        >
-                            {p.name}
+                        <ListItem disablePadding key={p.name} onClick={() => handleSelect(p)}>
+                            <ListItemButton selected={p.name === activeProfile}>{p.name}</ListItemButton>
                         </ListItem>
                     ))}
                 </List>
             </Popover>
-            <Button variant="outlined" onClick={handleOpen}>
+            <Button color="inherit" variant="outlined" onClick={handleOpen}>
                 {activeProfile ?? t('settings.defaultProfile')}
             </Button>
         </>

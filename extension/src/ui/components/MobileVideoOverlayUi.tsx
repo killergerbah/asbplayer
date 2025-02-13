@@ -12,7 +12,9 @@ import {
     PlayModeMessage,
     ToggleSubtitlesMessage,
 } from '@project/common';
-import { useCallback, useEffect, useRef } from 'react';
+import ThemeProvider from '@mui/material/styles/ThemeProvider';
+import CssBaseline from '@mui/material/CssBaseline';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useMobileVideoOverlayModel } from '../hooks/use-mobile-video-overlay-model';
 import { useMobileVideoOverlayLocation } from '../hooks/use-mobile-video-overlay-location';
 import { SettingsProvider } from '@project/common/settings';
@@ -21,6 +23,9 @@ import MobileVideoOverlay from '@project/common/components/MobileVideoOverlay';
 import { useI18n } from '../hooks/use-i18n';
 import { isMobile } from '@project/common/device-detection/mobile';
 import useLastScrollableControlType from '@project/common/hooks/use-last-scrollable-control-type';
+import { createTheme } from '@project/common/theme';
+import type { PaletteMode } from '@mui/material/styles';
+import { StyledEngineProvider } from '@mui/material/styles';
 
 const settings = new SettingsProvider(new ExtensionSettingsStorage());
 const params = new URLSearchParams(location.search);
@@ -206,26 +211,35 @@ const MobileVideoOverlayUi = () => {
         saveLastControlType,
         fetchLastControlType,
     });
+    const theme = useMemo(
+        () => (model?.themeType === undefined ? undefined : createTheme(model?.themeType as PaletteMode)),
+        [model?.themeType]
+    );
 
-    if (!i18nInitialized || lastControlType === undefined) {
+    if (!i18nInitialized || lastControlType === undefined || !theme) {
         return null;
     }
 
     return (
-        <MobileVideoOverlay
-            model={model}
-            anchor={anchor}
-            tooltipsEnabled={tooltipsEnabled}
-            initialControlType={lastControlType}
-            onScrollToControlType={setLastControlType}
-            onMineSubtitle={handleMineSubtitle}
-            onLoadSubtitles={handleLoadSubtitles}
-            onOffset={handleOffset}
-            onSeek={handleSeek}
-            onPlaybackRate={handlePlaybackRate}
-            onPlayModeSelected={handlePlayModeSelected}
-            onToggleSubtitles={handleToggleSubtitles}
-        />
+        <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={theme}>
+                <CssBaseline />
+                <MobileVideoOverlay
+                    model={model}
+                    anchor={anchor}
+                    tooltipsEnabled={tooltipsEnabled}
+                    initialControlType={lastControlType}
+                    onScrollToControlType={setLastControlType}
+                    onMineSubtitle={handleMineSubtitle}
+                    onLoadSubtitles={handleLoadSubtitles}
+                    onOffset={handleOffset}
+                    onSeek={handleSeek}
+                    onPlaybackRate={handlePlaybackRate}
+                    onPlayModeSelected={handlePlayModeSelected}
+                    onToggleSubtitles={handleToggleSubtitles}
+                />
+            </ThemeProvider>
+        </StyledEngineProvider>
     );
 };
 

@@ -299,6 +299,8 @@
         "keyboardShortcuts": "Atalhos de teclado",
         "hideInCardCreator": "Hide in card creator",
         "showInCardCreator": "Show in card creator",
+        "moveUpInCardCreator": "Move up",
+        "moveDownInCardCreator": "Move down",
         "language": "Idioma",
         "maxImageHeight": "Altura máxima da imagem",
         "maxImageWidth": "Largura máxima da Imagem",
