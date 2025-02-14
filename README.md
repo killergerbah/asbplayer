@@ -398,7 +398,7 @@ Chrome does not allow other extension scripts to be injected into extension UI, 
 
 ### Keyboard shortcuts aren't working.
 
--   Check the the [keyboard shortcut settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts).
+-   Check the [keyboard shortcut settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts).
 -   If you are using the extension:
     -   Check `chrome://extensions/shortcuts`.
     -   Try refreshing the page and loading subtitles again.
