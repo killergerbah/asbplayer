@@ -364,6 +364,8 @@
         "unboundBind": "キーバインドなし",
         "urlField": "URL フィールド",
         "wordField": "単語フィールド",
+        "customFieldName": "フィールド名",
+        "missingFieldError": "フィールド \"{{field}}\" がノートタイプに見つかりません",
         "webSocketClientEnabled": "WebSocketクライアントを有効",
         "webSocketServerUrl": "WebSocketサーバーのURL",
         "firefoxExtensionShortcutHelp": "ショートカットの編集はプラグイン管理 （about:addons）で行えます。",
