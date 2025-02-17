@@ -331,7 +331,7 @@ function AudioTrackSelector({
 
     const list = audioTracks.map((t) => {
         return (
-            <ListItem key={t.id} onClick={() => onAudioTrackSelected(t.id)}>
+            <ListItem key={t.id} disablePadding onClick={() => onAudioTrackSelected(t.id)}>
                 <ListItemButton selected={t.id === selectedAudioTrack}>
                     <ListItemText>
                         {t.language} {t.label}
@@ -379,7 +379,7 @@ function TabSelector({ open, anchorEl, onClose, tabs, selectedTab, onTabSelected
 
     const list = tabs.map((t) => {
         return (
-            <ListItem key={`${t.id}:${t.src}`} onClick={() => onTabSelected(t)}>
+            <ListItem key={`${t.id}:${t.src}`} disablePadding onClick={() => onTabSelected(t)}>
                 <ListItemButton selected={selectedTab && t.id === selectedTab.id && t.src === selectedTab.src}>
                     <VideoElementFavicon videoElement={t} /> {t.title}
                 </ListItemButton>
