@@ -19,7 +19,6 @@ export interface MiscSettings {
     readonly subtitleRegexFilter: string;
     readonly subtitleRegexFilterTextReplacement: string;
     readonly miningHistoryStorageLimit: number;
-    readonly preCacheSubtitleDom: boolean;
     readonly language: string;
     readonly clickToMineDefaultAction: PostMineAction;
     readonly postMiningPlaybackState: PostMinePlayback;

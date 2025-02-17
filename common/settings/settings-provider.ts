@@ -112,7 +112,6 @@ export const defaultSettings: AsbplayerSettings = {
     preferMp3: true,
     tabName: 'asbplayer',
     miningHistoryStorageLimit: 25,
-    preCacheSubtitleDom: true,
     clickToMineDefaultAction: PostMineAction.showAnkiDialog,
     postMiningPlaybackState: PostMinePlayback.remember,
     themeType: 'dark',

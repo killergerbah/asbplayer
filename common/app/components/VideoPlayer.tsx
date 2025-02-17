@@ -1524,25 +1524,15 @@ export default function VideoPlayer({
         parent.document.body.clientWidth === document.body.clientWidth;
 
     const subtitleAlignmentForTrack = (track: number) => subtitleAlignments[track] ?? subtitleAlignments[0];
-    const elementForSubtitle = (subtitle: IndexedSubtitleModel, index: number) =>
-        miscSettings.preCacheSubtitleDom ? (
-            <CachedShowingSubtitle
-                key={index}
-                index={subtitle.index}
-                domCache={getSubtitleDomCache()}
-                onMouseOver={handleSubtitleMouseOver}
-            />
-        ) : (
-            <ShowingSubtitle
-                key={index}
-                subtitle={subtitle}
-                subtitleStyles={trackStyles[subtitle.track]?.styles ?? trackStyles[0].styles}
-                className={trackStyles[subtitle.track].classes}
-                videoRef={videoRef}
-                imageBasedSubtitleScaleFactor={subtitleSettings.imageBasedSubtitleScaleFactor}
-                onMouseOver={handleSubtitleMouseOver}
-            />
-        );
+    const elementForSubtitle = (subtitle: IndexedSubtitleModel, index: number) => (
+        <CachedShowingSubtitle
+            key={index}
+            index={subtitle.index}
+            domCache={getSubtitleDomCache()}
+            onMouseOver={handleSubtitleMouseOver}
+        />
+    );
+
     const subtitleElementsWithAlignment = (alignment: SubtitleAlignment) =>
         showSubtitles.filter((s) => subtitleAlignmentForTrack(s.track) === alignment).map(elementForSubtitle);
     const topSubtitleElements = displaySubtitles ? subtitleElementsWithAlignment('top') : [];

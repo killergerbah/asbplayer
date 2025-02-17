@@ -17,7 +17,6 @@ import { computeStyleString, surroundingSubtitles } from '@project/common/util';
 import i18n from 'i18next';
 import {
     CachingElementOverlay,
-    DefaultElementOverlay,
     ElementOverlay,
     ElementOverlayParams,
     KeyedHtml,
@@ -100,9 +99,7 @@ export default class SubtitleController {
         this.surroundingSubtitlesTimeRadius = 5000;
         this.showingLoadedMessage = false;
         this.autoCopyCurrentSubtitle = false;
-        const { subtitlesElementOverlay, topSubtitlesElementOverlay, notificationElementOverlay } = this._overlays(
-            this._preCacheDom
-        );
+        const { subtitlesElementOverlay, topSubtitlesElementOverlay, notificationElementOverlay } = this._overlays();
         this.bottomSubtitlesElementOverlay = subtitlesElementOverlay;
         this.topSubtitlesElementOverlay = topSubtitlesElementOverlay;
         this.notificationElementOverlay = notificationElementOverlay;
@@ -119,19 +116,6 @@ export default class SubtitleController {
             returnNextToShow: true,
         });
         this.autoPauseContext.clear();
-    }
-
-    get preCacheDom() {
-        return this._preCacheDom;
-    }
-
-    set preCacheDom(preCacheDom) {
-        if (this._preCacheDom === preCacheDom) {
-            return;
-        }
-
-        this._resetOverlays(preCacheDom);
-        this._preCacheDom = preCacheDom;
     }
 
     reset() {
@@ -242,49 +226,14 @@ export default class SubtitleController {
         this.showingSubtitles = undefined;
     }
 
-    private _resetOverlays(preCacheDom: boolean, skipCacheHtml: boolean = false) {
-        const { subtitlesElementOverlay, topSubtitlesElementOverlay, notificationElementOverlay } =
-            this._overlays(preCacheDom);
-        this.notificationElementOverlay.dispose();
-        notificationElementOverlay.contentPositionOffset = this.notificationElementOverlay.contentPositionOffset;
-        notificationElementOverlay.contentWidthPercentage = this.notificationElementOverlay.contentWidthPercentage;
-        this.notificationElementOverlay = notificationElementOverlay;
-
-        if (this.shouldRenderBottomOverlay) {
-            this.bottomSubtitlesElementOverlay.dispose();
-            subtitlesElementOverlay.contentPositionOffset = this.bottomSubtitlesElementOverlay.contentPositionOffset;
-            subtitlesElementOverlay.contentWidthPercentage = this.bottomSubtitlesElementOverlay.contentWidthPercentage;
-            this.bottomSubtitlesElementOverlay = subtitlesElementOverlay;
-        }
-
-        if (this.shouldRenderTopOverlay) {
-            this.topSubtitlesElementOverlay.dispose();
-            topSubtitlesElementOverlay.contentPositionOffset = this.topSubtitlesElementOverlay.contentPositionOffset;
-            topSubtitlesElementOverlay.contentWidthPercentage = this.topSubtitlesElementOverlay.contentWidthPercentage;
-            this.topSubtitlesElementOverlay = topSubtitlesElementOverlay;
-        }
-
-        if (!skipCacheHtml) {
-            this.cacheHtml();
-        }
-    }
-
-    private _overlays(preCacheDom: boolean) {
+    private _overlays() {
         const { subtitleOverlayParams, topSubtitleOverlayParams, notificationOverlayParams } =
             this._elementOverlayParams();
 
-        if (preCacheDom) {
-            return {
-                subtitlesElementOverlay: new CachingElementOverlay(subtitleOverlayParams),
-                topSubtitlesElementOverlay: new CachingElementOverlay(topSubtitleOverlayParams),
-                notificationElementOverlay: new CachingElementOverlay(notificationOverlayParams),
-            };
-        }
-
         return {
-            subtitlesElementOverlay: new DefaultElementOverlay(subtitleOverlayParams),
-            topSubtitlesElementOverlay: new DefaultElementOverlay(topSubtitleOverlayParams),
-            notificationElementOverlay: new DefaultElementOverlay(notificationOverlayParams),
+            subtitlesElementOverlay: new CachingElementOverlay(subtitleOverlayParams),
+            topSubtitlesElementOverlay: new CachingElementOverlay(topSubtitleOverlayParams),
+            notificationElementOverlay: new CachingElementOverlay(notificationOverlayParams),
         };
     }
 

@@ -833,7 +833,6 @@ export default function SettingsForm({
         recordWithAudioPlayback,
         preferMp3,
         miningHistoryStorageLimit,
-        preCacheSubtitleDom,
         themeType,
         copyToClipboardOnMine,
         rememberSubtitleOffset,
@@ -2573,32 +2572,6 @@ export default function SettingsForm({
                                 }}
                             />
                         </FormGroup>
-                    </Grid>
-                    <Grid item>
-                        <LabelWithHoverEffect
-                            control={
-                                <Switch
-                                    checked={preCacheSubtitleDom}
-                                    onChange={(event) =>
-                                        handleSettingChanged('preCacheSubtitleDom', event.target.checked)
-                                    }
-                                />
-                            }
-                            label={
-                                <Grid container direction="row" spacing={1}>
-                                    <Grid item className={classes.verticallyCentered}>
-                                        {t('settings.preCacheSubtitleDom')}
-                                    </Grid>
-                                    <Grid item className={classes.verticallyCentered}>
-                                        <Tooltip title={t('settings.preCacheSubtitleDomHelperText')!} placement="top">
-                                            <InfoIcon />
-                                        </Tooltip>
-                                    </Grid>
-                                </Grid>
-                            }
-                            labelPlacement="start"
-                            className={classes.switchLabel}
-                        />
                     </Grid>
                     {!isFirefox && (
                         <>

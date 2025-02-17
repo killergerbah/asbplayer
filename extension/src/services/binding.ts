@@ -917,7 +917,6 @@ export default class Binding {
         this.subtitleController.surroundingSubtitlesCountRadius = currentSettings.surroundingSubtitlesCountRadius;
         this.subtitleController.surroundingSubtitlesTimeRadius = currentSettings.surroundingSubtitlesTimeRadius;
         this.subtitleController.autoCopyCurrentSubtitle = currentSettings.autoCopyCurrentSubtitle;
-        this.subtitleController.preCacheDom = currentSettings.preCacheSubtitleDom;
         this.subtitleController.setSubtitleSettings(currentSettings);
         this.subtitleController.refresh();
 
