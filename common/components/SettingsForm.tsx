@@ -15,7 +15,8 @@ import FormLabel from '@mui/material/FormLabel';
 import Grid from '@mui/material/Grid';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
-import InputLabel from '@mui/material/InputLabel';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import LabelWithHoverEffect from './LabelWithHoverEffect';
 import MenuItem from '@mui/material/MenuItem';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -26,7 +27,6 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
 import { type Theme } from '@mui/material';
 import { AutoPausePreference, PostMineAction, PostMinePlayback } from '@project/common';
@@ -192,8 +192,7 @@ interface SelectableSettingProps {
     removable?: boolean;
     display?: boolean;
     onDisplayChange?: (displaying: boolean) => void;
-    onChange: (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;
-    onSelectionChange: (event: SelectChangeEvent<string>, child: ReactNode) => void;
+    onChange: (value: string) => void;
     disabledDirection?: Direction;
     onOrderChange?: (direction: Direction) => void;
     onRemoval?: () => void;
@@ -208,7 +207,6 @@ function SelectableSetting({
     onDisplayChange,
     disabledDirection,
     onChange,
-    onSelectionChange,
     onOrderChange,
     onRemoval,
 }: SelectableSettingProps) {
@@ -216,54 +214,94 @@ function SelectableSetting({
     const { t } = useTranslation();
     const [optionsMenuOpen, setOptionsMenuOpen] = useState<boolean>(false);
     const [optionsMenuAnchorEl, setOptionsMenuAnchorEl] = useState<Element>();
+    const [selectionMenuOpen, setSelectionMenuOpen] = useState<boolean>(false);
+    const [selectionMenuAnchorEl, setSelectionMenuAnchorEl] = useState<Element>();
     const handleOrderChange = (direction: Direction) => {
         setOptionsMenuOpen(false);
         onOrderChange?.(direction);
     };
+    const handleOpenSelectionMenu = (element: HTMLElement) => {
+        if (selections === undefined) {
+            return;
+        }
+
+        setSelectionMenuAnchorEl(element);
+        setSelectionMenuOpen(true);
+    };
 
     const className = display === false ? `${classes.root} ${classes.hidden}` : classes.root;
+    const error = selections !== undefined && value !== '' && !selections.includes(value);
 
     return (
         <div className={className}>
             <TextField
                 label={label}
                 value={value}
-                onChange={onChange}
+                onClick={(e) => handleOpenSelectionMenu(e.currentTarget)}
+                onChange={(e) => onChange(e.target.value)}
                 fullWidth
+                error={error}
+                helperText={error ? t('settings.missingFieldError', { field: value }) : ''}
                 color="primary"
                 InputProps={{
-                    endAdornment: (removable || onOrderChange) && (
-                        <InputAdornment position="end">
-                            <IconButton
-                                style={{ marginRight: 0 }}
-                                onClick={(e) => {
-                                    setOptionsMenuAnchorEl(e.currentTarget);
-                                    setOptionsMenuOpen(true);
-                                }}
-                            >
-                                <MoreVertIcon fontSize="small" />
+                    endAdornment: (
+                        <InputAdornment style={{ marginRight: -12 }} position="end">
+                            {(removable || onOrderChange) && (
+                                <IconButton
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOptionsMenuAnchorEl(e.currentTarget);
+                                        setOptionsMenuOpen(true);
+                                    }}
+                                >
+                                    <MoreVertIcon fontSize="small" />
+                                </IconButton>
+                            )}
+                            <IconButton onClick={(e) => handleOpenSelectionMenu(e.currentTarget)}>
+                                {selectionMenuOpen && <ArrowDropUpIcon fontSize="small" />}
+                                {!selectionMenuOpen && <ArrowDropDownIcon fontSize="small" />}
                             </IconButton>
                         </InputAdornment>
                     ),
                 }}
-            />
-            <FormControl className={classes.formControl}>
-                <InputLabel></InputLabel>
-                <Select
-                    value={selections?.find((v) => v === value) === undefined ? '' : value}
-                    disabled={!selections}
-                    color="primary"
-                    onChange={onSelectionChange}
-                >
+            >
+                {selections &&
+                    ['', ...selections].map((s) => (
+                        <MenuItem key={s} value={s}>
+                            {s === '' ? ' ' : s}
+                        </MenuItem>
+                    ))}
+            </TextField>
+            <Popover
+                disableEnforceFocus={true}
+                open={selections !== undefined && selectionMenuOpen}
+                anchorEl={selectionMenuAnchorEl}
+                onClose={() => setSelectionMenuOpen(false)}
+                anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'center',
+                }}
+                transformOrigin={{
+                    vertical: 'center',
+                    horizontal: 'center',
+                }}
+            >
+                <List>
                     {selections &&
                         ['', ...selections].map((s) => (
-                            <MenuItem key={s} value={s}>
-                                {s === '' ? ' ' : s}
-                            </MenuItem>
+                            <ListItem disablePadding key={s}>
+                                <ListItemButton
+                                    onClick={() => {
+                                        onChange(s);
+                                        setSelectionMenuOpen(false);
+                                    }}
+                                >
+                                    {s === '' ? ' ' : s}
+                                </ListItemButton>
+                            </ListItem>
                         ))}
-                </Select>
-            </FormControl>
-
+                </List>
+            </Popover>
             {optionsMenuOpen && (
                 <Popover
                     disableEnforceFocus={true}
@@ -516,6 +554,7 @@ function AddCustomField({ onAddCustomField }: AddCustomFieldProps) {
     return (
         <TextField
             label={t('settings.addCustomField')}
+            placeholder={t('settings.customFieldName')!}
             fullWidth
             value={fieldName}
             color="primary"
@@ -1244,15 +1283,13 @@ export default function SettingsForm({
                         label={t('settings.deck')}
                         value={deck}
                         selections={deckNames}
-                        onChange={(event) => handleSettingChanged('deck', event.target.value)}
-                        onSelectionChange={(event) => handleSettingChanged('deck', event.target.value as string)}
+                        onChange={(value) => handleSettingChanged('deck', value)}
                     />
                     <SelectableSetting
                         label={t('settings.noteType')}
                         value={noteType}
                         selections={modelNames}
-                        onChange={(event) => handleSettingChanged('noteType', event.target.value)}
-                        onSelectionChange={(event) => handleSettingChanged('noteType', event.target.value as string)}
+                        onChange={(value) => handleSettingChanged('noteType', value)}
                     />
                     {ankiFieldModels.map((model, index) => {
                         const key = model.custom ? `custom_${model.key}` : `standard_${model.key}`;
@@ -1287,10 +1324,7 @@ export default function SettingsForm({
                                         label={t('settings.sentenceField')}
                                         value={sentenceField}
                                         selections={fieldNames}
-                                        onChange={(event) => handleSettingChanged('sentenceField', event.target.value)}
-                                        onSelectionChange={(event) =>
-                                            handleSettingChanged('sentenceField', event.target.value as string)
-                                        }
+                                        onChange={(value) => handleSettingChanged('sentenceField', value)}
                                         {...rest}
                                     />
                                 )}
@@ -1299,12 +1333,7 @@ export default function SettingsForm({
                                         label={t('settings.definitionField')}
                                         value={definitionField}
                                         selections={fieldNames}
-                                        onChange={(event) =>
-                                            handleSettingChanged('definitionField', event.target.value)
-                                        }
-                                        onSelectionChange={(event) =>
-                                            handleSettingChanged('definitionField', event.target.value as string)
-                                        }
+                                        onChange={(value) => handleSettingChanged('definitionField', value)}
                                         {...rest}
                                     />
                                 )}
@@ -1313,10 +1342,7 @@ export default function SettingsForm({
                                         label={t('settings.wordField')}
                                         value={wordField}
                                         selections={fieldNames}
-                                        onChange={(event) => handleSettingChanged('wordField', event.target.value)}
-                                        onSelectionChange={(event) =>
-                                            handleSettingChanged('wordField', event.target.value as string)
-                                        }
+                                        onChange={(value) => handleSettingChanged('wordField', value)}
                                         {...rest}
                                     />
                                 )}
@@ -1325,10 +1351,7 @@ export default function SettingsForm({
                                         label={t('settings.audioField')}
                                         value={audioField}
                                         selections={fieldNames}
-                                        onChange={(event) => handleSettingChanged('audioField', event.target.value)}
-                                        onSelectionChange={(event) =>
-                                            handleSettingChanged('audioField', event.target.value as string)
-                                        }
+                                        onChange={(value) => handleSettingChanged('audioField', value)}
                                         {...rest}
                                     />
                                 )}
@@ -1337,10 +1360,7 @@ export default function SettingsForm({
                                         label={t('settings.imageField')}
                                         value={imageField}
                                         selections={fieldNames}
-                                        onChange={(event) => handleSettingChanged('imageField', event.target.value)}
-                                        onSelectionChange={(event) =>
-                                            handleSettingChanged('imageField', event.target.value as string)
-                                        }
+                                        onChange={(value) => handleSettingChanged('imageField', value)}
                                         {...rest}
                                     />
                                 )}
@@ -1349,10 +1369,7 @@ export default function SettingsForm({
                                         label={t('settings.sourceField')}
                                         value={sourceField}
                                         selections={fieldNames}
-                                        onChange={(event) => handleSettingChanged('sourceField', event.target.value)}
-                                        onSelectionChange={(event) =>
-                                            handleSettingChanged('sourceField', event.target.value as string)
-                                        }
+                                        onChange={(value) => handleSettingChanged('sourceField', value)}
                                         {...rest}
                                     />
                                 )}
@@ -1361,10 +1378,7 @@ export default function SettingsForm({
                                         label={t('settings.urlField')}
                                         value={urlField}
                                         selections={fieldNames}
-                                        onChange={(event) => handleSettingChanged('urlField', event.target.value)}
-                                        onSelectionChange={(event) =>
-                                            handleSettingChanged('urlField', event.target.value as string)
-                                        }
+                                        onChange={(value) => handleSettingChanged('urlField', value)}
                                         {...rest}
                                     />
                                 )}
@@ -1375,12 +1389,7 @@ export default function SettingsForm({
                                             label={t('settings.track1Field')}
                                             value={track1Field}
                                             selections={fieldNames}
-                                            onChange={(event) =>
-                                                handleSettingChanged('track1Field', event.target.value)
-                                            }
-                                            onSelectionChange={(event) =>
-                                                handleSettingChanged('track1Field', event.target.value as string)
-                                            }
+                                            onChange={(value) => handleSettingChanged('track1Field', value)}
                                             {...rest}
                                         />
                                     )}
@@ -1391,12 +1400,7 @@ export default function SettingsForm({
                                             label={t('settings.track2Field')}
                                             value={track2Field}
                                             selections={fieldNames}
-                                            onChange={(event) =>
-                                                handleSettingChanged('track2Field', event.target.value)
-                                            }
-                                            onSelectionChange={(event) =>
-                                                handleSettingChanged('track2Field', event.target.value as string)
-                                            }
+                                            onChange={(value) => handleSettingChanged('track2Field', value)}
                                             {...rest}
                                         />
                                     )}
@@ -1407,12 +1411,7 @@ export default function SettingsForm({
                                             label={t('settings.track3Field')}
                                             value={track3Field}
                                             selections={fieldNames}
-                                            onChange={(event) =>
-                                                handleSettingChanged('track3Field', event.target.value)
-                                            }
-                                            onSelectionChange={(event) =>
-                                                handleSettingChanged('track3Field', event.target.value as string)
-                                            }
+                                            onChange={(value) => handleSettingChanged('track3Field', value)}
                                             {...rest}
                                         />
                                     )}
@@ -1421,10 +1420,7 @@ export default function SettingsForm({
                                         label={`${model.key}`}
                                         value={customAnkiFields[model.key]}
                                         selections={fieldNames!}
-                                        onChange={(e) => handleCustomFieldChange(model.key, e.target.value)}
-                                        onSelectionChange={(e) =>
-                                            handleCustomFieldChange(model.key, e.target.value as string)
-                                        }
+                                        onChange={(value) => handleCustomFieldChange(model.key, value)}
                                         onRemoval={() => handleCustomFieldRemoval(model.key)}
                                         removable={true}
                                         {...rest}

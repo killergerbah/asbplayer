@@ -364,6 +364,8 @@
         "unboundBind": "Не привязано",
         "urlField": "Поле URL-адреса",
         "wordField": "Поле слова",
+        "customFieldName": "Field name",
+        "missingFieldError": "Field \"{{field}}\" not found in note type",
         "webSocketClientEnabled": "Включить WebSocket клиент",
         "webSocketServerUrl": "URL сервера WebSocket",
         "firefoxExtensionShortcutHelp": "Редактируйте этот ярлык в менеджере плагинов по адресу about:addons.",

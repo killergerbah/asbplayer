@@ -364,6 +364,8 @@
         "unboundBind": "Nieprzypisane",
         "urlField": "Pole na URL",
         "wordField": "Pole na słowo",
+        "customFieldName": "Field name",
+        "missingFieldError": "Field \"{{field}}\" not found in note type",
         "webSocketClientEnabled": "Włącz klienta WebSocket",
         "webSocketServerUrl": "Adres URL serwera WebSocket",
         "firefoxExtensionShortcutHelp": "Edytuj ten skrót z poziomu menedżera wtyczek na about:addons.",

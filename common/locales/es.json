@@ -364,6 +364,8 @@
         "unboundBind": "Sin Asignar",
         "urlField": "Campo de URL",
         "wordField": "Campo de Palabra",
+        "customFieldName": "Field name",
+        "missingFieldError": "Field \"{{field}}\" not found in note type",
         "webSocketClientEnabled": "Habilitar cliente WebSocket",
         "webSocketServerUrl": "URL del servidor WebSocket",
         "firefoxExtensionShortcutHelp": "Edita este acceso directo desde el gestor de plugins en about:addons.",
