@@ -24,6 +24,18 @@ import {
     OffsetAnchor,
 } from '../services/element-overlay';
 
+const boundingBoxPadding = 25;
+
+const _intersects = (clientX: number, clientY: number, element: HTMLElement): boolean => {
+    const rect = element.getBoundingClientRect();
+    return (
+        clientX >= rect.x - boundingBoxPadding &&
+        clientX <= rect.x + rect.width + boundingBoxPadding &&
+        clientY >= rect.y - boundingBoxPadding &&
+        clientY <= rect.y + rect.height + boundingBoxPadding
+    );
+};
+
 export interface SubtitleModelWithIndex extends SubtitleModel {
     index: number;
 }
@@ -723,5 +735,21 @@ export default class SubtitleController {
         }
 
         return true;
+    }
+
+    intersects(clientX: number, clientY: number): boolean {
+        const bottomContainer = this.bottomSubtitlesElementOverlay.containerElement;
+
+        if (bottomContainer !== undefined && _intersects(clientX, clientY, bottomContainer)) {
+            return true;
+        }
+
+        const topContainer = this.topSubtitlesElementOverlay.containerElement;
+
+        if (topContainer !== undefined && _intersects(clientX, clientY, topContainer)) {
+            return true;
+        }
+
+        return false;
     }
 }

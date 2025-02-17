@@ -162,7 +162,7 @@ export default class Binding {
     private playbackRateListener?: EventListener;
     private videoChangeListener?: EventListener;
     private canPlayListener?: EventListener;
-    private mouseOverListener?: EventListener;
+    private mouseMoveListener?: (event: MouseEvent) => void;
     private listener?: (
         message: any,
         sender: chrome.runtime.MessageSender,
@@ -379,6 +379,10 @@ export default class Binding {
         };
     }
 
+    private get _shouldAutoResumeOnSubtitlesMouseOut() {
+        return this.pauseOnHoverMode === PauseOnHoverMode.inAndOut && this.pausedDueToHover && this.video.paused;
+    }
+
     bind() {
         let bound = false;
 
@@ -463,6 +467,7 @@ export default class Binding {
             };
 
             chrome.runtime.sendMessage(command);
+            this.pausedDueToHover = false;
         };
 
         this.pauseListener = (event) => {
@@ -528,23 +533,32 @@ export default class Binding {
             this.mobileVideoOverlayController.updateModel();
         };
 
-        this.mouseOverListener = () => {
-            if (this.pauseOnHoverMode === PauseOnHoverMode.inAndOut && this.pausedDueToHover && this.video.paused) {
-                this.play();
-            }
-            this.pausedDueToHover = false;
-        };
-
         this.video.addEventListener('play', this.playListener);
         this.video.addEventListener('pause', this.pauseListener);
         this.video.addEventListener('seeked', this.seekedListener);
         this.video.addEventListener('ratechange', this.playbackRateListener);
-        this.video.addEventListener('mouseover', this.mouseOverListener);
 
         this.subtitleController.onMouseOver = () => {
             if (this.pauseOnHoverMode !== PauseOnHoverMode.disabled && !this.video.paused) {
                 this.video.pause();
                 this.pausedDueToHover = true;
+
+                if (this.mouseMoveListener) {
+                    document.removeEventListener('mousemove', this.mouseMoveListener);
+                    this.mouseMoveListener = undefined;
+                }
+
+                this.mouseMoveListener = (e: MouseEvent) => {
+                    if (
+                        this._shouldAutoResumeOnSubtitlesMouseOut &&
+                        !this.subtitleController.intersects(e.clientX, e.clientY)
+                    ) {
+                        this.play();
+                        this.pausedDueToHover = false;
+                    }
+                };
+
+                document.addEventListener('mousemove', this.mouseMoveListener);
             }
         };
 
@@ -968,9 +982,9 @@ export default class Binding {
             this.videoChangeListener = undefined;
         }
 
-        if (this.mouseOverListener) {
-            this.video.removeEventListener('mouseover', this.mouseOverListener);
-            this.mouseOverListener = undefined;
+        if (this.mouseMoveListener) {
+            document.removeEventListener('mousemove', this.mouseMoveListener);
+            this.mouseMoveListener = undefined;
         }
 
         if (this.heartbeatInterval) {

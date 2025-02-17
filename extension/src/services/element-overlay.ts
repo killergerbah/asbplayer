@@ -36,6 +36,7 @@ export interface ElementOverlay {
     contentPositionOffset: number;
     contentWidthPercentage: number;
     displayingElements: () => Iterable<HTMLElement>;
+    containerElement: HTMLElement | undefined;
 }
 
 export class CachingElementOverlay implements ElementOverlay {
@@ -95,17 +96,23 @@ export class CachingElementOverlay implements ElementOverlay {
             }
         }
 
-        if (document.fullscreenElement && this.fullscreenContainerElement !== undefined) {
-            for (const el of grandChildren(this.fullscreenContainerElement)) {
+        const container = this.containerElement;
+
+        if (container !== undefined) {
+            for (const el of grandChildren(container)) {
                 yield el;
             }
+        }
+    }
+
+    get containerElement() {
+        if (document.fullscreenElement && this.fullscreenContainerElement !== undefined) {
+            return this.fullscreenContainerElement;
+        } else if (!document.fullscreenElement && this.nonFullscreenContainerElement !== undefined) {
+            return this.nonFullscreenContainerElement;
         }
 
-        if (!document.fullscreenElement && this.nonFullscreenContainerElement !== undefined) {
-            for (const el of grandChildren(this.nonFullscreenContainerElement)) {
-                yield el;
-            }
-        }
+        return undefined;
     }
 
     uncacheHtml() {
@@ -432,21 +439,24 @@ export class DefaultElementOverlay implements ElementOverlay {
     }
 
     *displayingElements() {
-        if (document.fullscreenElement && this.fullscreenContentElement !== undefined) {
-            for (const el of this.fullscreenContentElement.childNodes) {
+        const container = this.containerElement;
+        if (container !== undefined) {
+            for (const el of container.childNodes) {
                 if (el instanceof HTMLElement) {
                     yield el;
                 }
             }
+        }
+    }
+
+    get containerElement() {
+        if (document.fullscreenElement && this.fullscreenContainerElement !== undefined) {
+            return this.fullscreenContainerElement;
+        } else if (!document.fullscreenElement && this.nonFullscreenContainerElement !== undefined) {
+            return this.nonFullscreenContainerElement;
         }
 
-        if (!document.fullscreenElement && this.nonFullscreenContentElement !== undefined) {
-            for (const el of this.nonFullscreenContentElement.childNodes) {
-                if (el instanceof HTMLElement) {
-                    yield el;
-                }
-            }
-        }
+        return undefined;
     }
 
     uncacheHtml(): void {}
