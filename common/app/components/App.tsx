@@ -64,6 +64,8 @@ import mp3WorkerFactory from '../../audio-clip/mp3-encoder-worker.ts?worker';
 import pgsParserWorkerFactory from '../../subtitle-reader/pgs-parser-worker.ts?worker';
 import CssBaseline from '@mui/material/CssBaseline';
 import { StyledEngineProvider } from '@mui/material/styles';
+import { useServiceWorker } from '../hooks/use-service-worker';
+import NeedRefreshDialog from './NeedRefreshDialog';
 
 const latestExtensionVersion = '1.9.1';
 const extensionUrl =
@@ -1194,6 +1196,15 @@ function App({
 
     const showAnkiDialogQuickSelectFtue = !isMobile && globalState?.ftueHasSeenAnkiDialogQuickSelectV2 === false;
 
+    const [needRefreshDialogOpen, setNeedRefreshDialogOpen] = useState<boolean>(false);
+    const handleOpenNeedRefreshDialog = useCallback(() => setNeedRefreshDialogOpen(true), []);
+    const handleCloseNeedRefreshDialog = useCallback(() => setNeedRefreshDialogOpen(false), []);
+    const handleOfflineReady = useCallback(() => {}, []);
+    const { doUpdate: updateFromServiceWorker } = useServiceWorker({
+        onNeedRefresh: handleOpenNeedRefreshDialog,
+        onOfflineReady: handleOfflineReady,
+    });
+
     if (!i18nInitialized) {
         return null;
     }
@@ -1303,6 +1314,11 @@ function App({
                                 settings={settings}
                                 scrollToId={settingsDialogScrollToId}
                                 {...profilesContext}
+                            />
+                            <NeedRefreshDialog
+                                open={needRefreshDialogOpen}
+                                onRefresh={updateFromServiceWorker}
+                                onClose={handleCloseNeedRefreshDialog}
                             />
                             <Bar
                                 title={fileName || 'asbplayer'}

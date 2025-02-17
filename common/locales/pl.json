@@ -374,5 +374,9 @@
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Kliknij, przytrzymaj i przeciągnij, aby wykopać więcej linii napisów"
+    },
+    "app": {
+        "pwaUpdatePromptTitle": "App update",
+        "pwaUpdatePromptBody": "Click \"OK\" to complete update."
     }
 }

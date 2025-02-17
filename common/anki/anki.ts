@@ -5,12 +5,6 @@ import { AnkiSettings, AnkiSettingsFieldKey } from '@project/common/settings';
 import sanitize from 'sanitize-filename';
 import { extractText, sourceString } from '@project/common/util';
 
-declare global {
-    interface String {
-        toWellFormed?: () => string;
-    }
-}
-
 const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
 const alphaNumericCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 

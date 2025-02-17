@@ -3,4 +3,5 @@ export default {
     transform: {
         '^.+\\.ts?$': 'ts-jest',
     },
+    testEnvironment: 'jsdom',
 };

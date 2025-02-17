@@ -368,6 +368,10 @@ asbplayer is best used on computers using Chromium-based browsers, but it is als
 4. When the video is paused, use asbplayer's overlay UI to access asbplayer features.
 5. Use [AnkiConnect Android](https://github.com/KamWithK/AnkiconnectAndroid) for Anki integration.
 
+## Offline usage
+
+The asbplayer website can be used offline thanks to offline PWA support provided by [vite-pwa](https://vite-pwa-org.netlify.app/). Updates will be fetched the next time you use the website with an Internet connection.
+
 ## Common issues
 
 ### asbplayer can't connect to Anki. It shows an error message e.g. 'Failed to fetch.'
