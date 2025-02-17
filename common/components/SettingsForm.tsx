@@ -144,9 +144,6 @@ const useStyles = makeStyles<Theme, StylesProps>((theme) => ({
         marginLeft: 0,
         marginRight: -8,
     },
-    top: {
-        marginTop: theme.spacing(1),
-    },
     verticallyCentered: {
         display: 'flex',
         flexDirection: 'column',
@@ -389,10 +386,11 @@ const modifierKeys = ['⌃', '⇧', '⌥', 'ctrl', 'shift', 'alt', 'option', 'co
 
 const useKeyBindFieldStyles = makeStyles<Theme>((theme) => ({
     container: {
-        marginTop: theme.spacing(1),
         marginBottom: theme.spacing(1),
     },
-    labelItem: {},
+    labelItem: {
+        marginTop: theme.spacing(1),
+    },
 }));
 
 interface KeyBindFieldProps {
@@ -656,25 +654,32 @@ function CustomStyleSetting({ customStyle, onCustomStyle, onDelete }: CustomStyl
     );
 }
 
-const usePanelStyles = makeStyles<Theme>((theme) => ({
-    panel: {
+type TabsOrientation = 'horizontal' | 'vertical';
+interface PanelStyleProps {
+    tabsOrientation: TabsOrientation;
+}
+
+const usePanelStyles = makeStyles<Theme, PanelStyleProps>((theme: Theme) => ({
+    panel: ({ tabsOrientation }) => ({
         paddingLeft: theme.spacing(1),
         paddingRight: theme.spacing(1),
+        paddingTop: tabsOrientation === 'horizontal' ? theme.spacing(1) : 0,
         overflowY: 'scroll',
         maxHeight: '100%',
         height: '100%',
         width: '100%',
-    },
+    }),
 }));
 
 interface TabPanelProps {
     children?: React.ReactNode;
     index: any;
     value: any;
+    tabsOrientation: TabsOrientation;
 }
 
-function TabPanel({ children, value, index, ...other }: TabPanelProps) {
-    const classes = usePanelStyles();
+function TabPanel({ children, value, index, tabsOrientation, ...other }: TabPanelProps) {
+    const classes = usePanelStyles({ tabsOrientation });
     return (
         <Box className={classes.panel} hidden={value !== index} {...other}>
             {value === index && children}
@@ -1215,11 +1220,11 @@ export default function SettingsForm({
     const selectedSubtitleAppearanceTrackIsDirty =
         selectedSubtitleAppearanceTrack !== undefined &&
         textSubtitleSettingsAreDirty(settings, selectedSubtitleAppearanceTrack);
-
+    const tabsOrientation = smallScreen ? 'horizontal' : 'vertical';
     return (
         <div className={classes.root}>
             <Tabs
-                orientation={smallScreen ? 'horizontal' : 'vertical'}
+                orientation={tabsOrientation}
                 variant="scrollable"
                 value={tabIndex}
                 className={classes.tabs}
@@ -1240,7 +1245,7 @@ export default function SettingsForm({
                 <Tab tabIndex={5} label={t('settings.misc')} id="misc-settings" />
                 <Tab tabIndex={6} label={t('about.title')} id="about" />
             </Tabs>
-            <TabPanel value={tabIndex} index={tabIndicesById['anki-settings']}>
+            <TabPanel value={tabIndex} index={tabIndicesById['anki-settings']} tabsOrientation={tabsOrientation}>
                 <FormGroup className={classes.formGroup}>
                     <TextField
                         label={t('settings.ankiConnectUrl')}
@@ -1440,10 +1445,8 @@ export default function SettingsForm({
                     />
                 </FormGroup>
             </TabPanel>
-            <TabPanel value={tabIndex} index={tabIndicesById['mining-settings']}>
-                <FormLabel className={classes.top} component="legend">
-                    {t('settings.clickToMineDefaultAction')}
-                </FormLabel>
+            <TabPanel value={tabIndex} index={tabIndicesById['mining-settings']} tabsOrientation={tabsOrientation}>
+                <FormLabel component="legend">{t('settings.clickToMineDefaultAction')}</FormLabel>
                 <RadioGroup row={false}>
                     <LabelWithHoverEffect
                         control={
@@ -1498,9 +1501,7 @@ export default function SettingsForm({
                         label={t('postMineAction.none')}
                     />
                 </RadioGroup>
-                <FormLabel className={classes.top} component="legend">
-                    {t('settings.postMinePlayback')}
-                </FormLabel>
+                <FormLabel component="legend">{t('settings.postMinePlayback')}</FormLabel>
                 <RadioGroup row={false}>
                     <LabelWithHoverEffect
                         control={
@@ -1667,7 +1668,7 @@ export default function SettingsForm({
                     />
                 </FormGroup>
             </TabPanel>
-            <TabPanel value={tabIndex} index={tabIndicesById['subtitle-appearance']}>
+            <TabPanel value={tabIndex} index={tabIndicesById['subtitle-appearance']} tabsOrientation={tabsOrientation}>
                 <Grid item>
                     <FormGroup className={classes.formGroup}>
                         {(!extensionInstalled || extensionSupportsTrackSpecificSettings) && (
@@ -1913,9 +1914,7 @@ export default function SettingsForm({
 
                         {subtitleAlignment !== undefined && (
                             <>
-                                <FormLabel className={classes.top} component="legend">
-                                    {t('settings.subtitleAlignment')}
-                                </FormLabel>
+                                <FormLabel component="legend">{t('settings.subtitleAlignment')}</FormLabel>
                                 <RadioGroup row>
                                     <LabelWithHoverEffect
                                         control={
@@ -2100,7 +2099,7 @@ export default function SettingsForm({
                     </FormGroup>
                 </Grid>
             </TabPanel>
-            <TabPanel value={tabIndex} index={tabIndicesById['keyboard-shortcuts']}>
+            <TabPanel value={tabIndex} index={tabIndicesById['keyboard-shortcuts']} tabsOrientation={tabsOrientation}>
                 <FormGroup className={classes.formGroup}>
                     {Object.keys(keyBindProperties).map((key) => {
                         const keyBindName = key as KeyBindName;
@@ -2127,7 +2126,7 @@ export default function SettingsForm({
                     })}
                 </FormGroup>
             </TabPanel>
-            <TabPanel value={tabIndex} index={tabIndicesById['streaming-video']}>
+            <TabPanel value={tabIndex} index={tabIndicesById['streaming-video']} tabsOrientation={tabsOrientation}>
                 <Grid container direction="column" spacing={1}>
                     <Grid item>
                         <FormGroup className={classes.formGroup}>
@@ -2319,11 +2318,11 @@ export default function SettingsForm({
                     </Grid>
                 </Grid>
             </TabPanel>
-            <TabPanel value={tabIndex} index={tabIndicesById['misc-settings']}>
+            <TabPanel value={tabIndex} index={tabIndicesById['misc-settings']} tabsOrientation={tabsOrientation}>
                 <Grid container spacing={1} direction="column">
                     <Grid item>
                         <FormControl>
-                            <FormLabel className={classes.top}>{t('settings.theme')}</FormLabel>
+                            <FormLabel>{t('settings.theme')}</FormLabel>
                             <RadioGroup row>
                                 <LabelWithHoverEffect
                                     control={
@@ -2489,9 +2488,7 @@ export default function SettingsForm({
                     </Grid>
                     {(!extensionInstalled || extensionSupportsPauseOnHover) && (
                         <Grid item>
-                            <FormLabel className={classes.top} component="legend">
-                                {t('settings.pauseOnHoverMode')}
-                            </FormLabel>
+                            <FormLabel component="legend">{t('settings.pauseOnHoverMode')}</FormLabel>
                             <RadioGroup row={false}>
                                 <LabelWithHoverEffect
                                     control={
@@ -2632,7 +2629,7 @@ export default function SettingsForm({
                     </Grid>
                 </Grid>
             </TabPanel>
-            <TabPanel value={tabIndex} index={tabIndicesById['about']}>
+            <TabPanel value={tabIndex} index={tabIndicesById['about']} tabsOrientation={tabsOrientation}>
                 <About
                     appVersion={insideApp ? appVersion : undefined}
                     extensionVersion={extensionInstalled ? extensionVersion : undefined}
