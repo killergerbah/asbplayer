@@ -254,7 +254,10 @@ function SelectableSetting({
                                     <MoreVertIcon fontSize="small" />
                                 </IconButton>
                             )}
-                            <IconButton onClick={(e) => handleOpenSelectionMenu(e.currentTarget)}>
+                            <IconButton
+                                disabled={!selections}
+                                onClick={(e) => handleOpenSelectionMenu(e.currentTarget)}
+                            >
                                 {selectionMenuOpen && <ArrowDropUpIcon fontSize="small" />}
                                 {!selectionMenuOpen && <ArrowDropDownIcon fontSize="small" />}
                             </IconButton>
