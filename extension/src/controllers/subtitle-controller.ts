@@ -47,12 +47,12 @@ export default class SubtitleController {
     private lastLoadedMessageTimestamp: number;
     private lastOffsetChangeTimestamp: number;
     private showingOffset?: number;
-    private subtitlesInterval?: NodeJS.Timer;
+    private subtitlesInterval?: NodeJS.Timeout;
     private showingLoadedMessage: boolean;
     private subtitleSettings?: SubtitleSettings;
     private subtitleStyles?: string[];
     private subtitleClasses?: string[];
-    private notificationElementOverlayHideTimeout?: NodeJS.Timer;
+    private notificationElementOverlayHideTimeout?: NodeJS.Timeout;
     private _subtitles: SubtitleModelWithIndex[];
     private subtitleCollection: SubtitleCollection<SubtitleModelWithIndex>;
     private bottomSubtitlesElementOverlay: ElementOverlay;

@@ -48,11 +48,11 @@ export class CachingElementOverlay implements ElementOverlay {
     private defaultContentElement?: HTMLElement;
     private nonFullscreenContainerElement?: HTMLElement;
     private nonFullscreenElementFullscreenChangeListener?: (this: any, event: Event) => any;
-    private nonFullscreenStylesInterval?: NodeJS.Timer;
-    private nonFullscreenElementFullscreenPollingInterval?: NodeJS.Timer;
+    private nonFullscreenStylesInterval?: NodeJS.Timeout;
+    private nonFullscreenElementFullscreenPollingInterval?: NodeJS.Timeout;
     private fullscreenElementFullscreenChangeListener?: (this: any, event: Event) => any;
-    private fullscreenElementFullscreenPollingInterval?: NodeJS.Timer;
-    private fullscreenStylesInterval?: NodeJS.Timer;
+    private fullscreenElementFullscreenPollingInterval?: NodeJS.Timeout;
+    private fullscreenStylesInterval?: NodeJS.Timeout;
     private onMouseOver: (event: MouseEvent) => void;
 
     nonFullscreenContainerClassName: string;
