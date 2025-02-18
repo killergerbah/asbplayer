@@ -374,5 +374,9 @@
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"
+    },
+    "app": {
+        "pwaUpdatePromptTitle": "App update",
+        "pwaUpdatePromptBody": "Click \"OK\" to complete update."
     }
 }

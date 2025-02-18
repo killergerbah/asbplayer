@@ -374,5 +374,9 @@
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Нажмите, удерживайте и перетащите, чтобы смайнить несколько субтитров"
+    },
+    "app": {
+        "pwaUpdatePromptTitle": "App update",
+        "pwaUpdatePromptBody": "Click \"OK\" to complete update."
     }
 }

@@ -374,5 +374,9 @@
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Clique, segure e arraste para minerar múltiplas legendas"
+    },
+    "app": {
+        "pwaUpdatePromptTitle": "App update",
+        "pwaUpdatePromptBody": "Click \"OK\" to complete update."
     }
 }
