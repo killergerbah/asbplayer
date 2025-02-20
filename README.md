@@ -9,6 +9,7 @@
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/killergerbah)](https://github.com/sponsors/killergerbah)
 [![Static Badge](https://img.shields.io/badge/donate-ko--fi-ed6760?label=donate)](https://ko-fi.com/killergerbah)
 [![GitHub License](https://img.shields.io/github/license/killergerbah/asbplayer)](https://github.com/killergerbah/asbplayer?tab=MIT-1-ov-file)
+[![Discord](https://img.shields.io/discord/962412001810849814?color=%237785cc)](https://discord.gg/ad7VAQru7m)
 
 </div>
 
