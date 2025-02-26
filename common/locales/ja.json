@@ -182,9 +182,9 @@
         "settings": {
             "asbplayerUrl": "アプリのURL",
             "autoLoadDetectedSubs": "字幕を探知したら自動的にロードする",
-            "cleanScreenshot": "オーバーレイ非表示スクリーンショット",
+            "cleanScreenshot": "マイニング時のスクリーンショットを綺麗にする",
             "condensedPlaybackMinSkipInterval": "短縮プレイバックでスキップする時間の最小値",
-            "cropScreenshot": "スクリーンショットのクロッピング",
+            "cropScreenshot": "マイニング時のスクリーンショットをクロッピングする",
             "displaySubtitles": "字幕表示オン/オフ",
             "dragAndDrop": "字幕ファイルのドラッグ＆ドロップを許可",
             "openSubtitleList": "字幕ロード時に、字幕リストを別のタブで開く",
@@ -193,11 +193,11 @@
             "misc": "その他",
             "playback": "プレイバック",
             "playbackKeyboardShortcuts": "再生関連のキーボードショートカット",
-            "recordAudio": "音声を記録する",
+            "recordAudio": "マイニング時に音声を録音する",
             "screenshotCaptureDelay": "スクリーンショットの撮影タイミング",
             "subtitles": "字幕",
             "syncing": "同期",
-            "takeScreenshot": "スクリーンショットを撮る",
+            "takeScreenshot": "マイニング時にスクリーンショットを撮る",
             "updateAvailable": "アップデートがあります",
             "enableOverlay": "コントロールオーバーレイを表示"
         },
@@ -376,7 +376,7 @@
         "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"
     },
     "app": {
-        "pwaUpdatePromptTitle": "App update",
-        "pwaUpdatePromptBody": "Click \"OK\" to complete update."
+        "pwaUpdatePromptTitle": "アプリ更新",
+        "pwaUpdatePromptBody": "「OK」をクリックすると更新が完了します。"
     }
 }
