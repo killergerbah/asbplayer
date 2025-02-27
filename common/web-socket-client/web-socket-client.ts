@@ -32,6 +32,14 @@ export interface LoadSubtitlesCommand {
     };
 }
 
+export interface SyncTimestampCommand {
+    command: 'sync-timestamp';
+    messageId: string;
+    body: {
+        timestamp: number;
+    };
+}
+
 export class WebSocketClient {
     private _socket?: WebSocket;
     private _pingInterval?: NodeJS.Timeout;
@@ -41,6 +49,7 @@ export class WebSocketClient {
     private _connectPromise?: { resolve: (value: unknown) => void; reject: (error: any) => void };
     onMineSubtitle?: (command: MineSubtitleCommand) => Promise<boolean>;
     onLoadSubtitles?: (command: LoadSubtitlesCommand) => Promise<void>;
+    onSyncTimestamp?: (command: SyncTimestampCommand) => Promise<void>;
 
     get socket() {
         return this._socket;
@@ -104,6 +113,15 @@ export class WebSocketClient {
                         const messageId = payload.messageId;
                         await this.onLoadSubtitles?.(payload);
                         const response: Response<LoadSubtitlesResponseBody> = {
+                            command: 'response',
+                            messageId,
+                            body: {},
+                        };
+                        this._socket?.send(JSON.stringify(response));
+                    } else if (payload.command === 'sync-timestamp') {
+                        const messageId = payload.messageId;
+                        await this.onSyncTimestamp?.(payload);
+                        const response: Response<{}> = {
                             command: 'response',
                             messageId,
                             body: {},
@@ -176,5 +194,7 @@ export class WebSocketClient {
         this._connectPromise?.reject('Disconnecting');
         this._connectPromise = undefined;
         this.onMineSubtitle = undefined;
+        this.onSyncTimestamp = undefined;
+        this.onLoadSubtitles = undefined;
     }
 }
