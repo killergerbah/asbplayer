@@ -1,5 +1,5 @@
 import { SettingsProvider, ankiSettingsKeys } from '@project/common/settings';
-import { LoadSubtitlesCommand, MineSubtitleCommand, SyncTimestampCommand, WebSocketClient } from '@project/common/web-socket-client';
+import { LoadSubtitlesCommand, MineSubtitleCommand, SeekTimestampCommand, WebSocketClient } from '@project/common/web-socket-client';
 import TabRegistry from './tab-registry';
 import {
     CurrentTimeToVideoMessage,
@@ -125,7 +125,7 @@ export const bindWebSocketClient = async (settings: SettingsProvider, tabRegistr
             return toggleVideoSelectCommand;
         });
     };
-    client.onSyncTimestamp = async ({ body: { timestamp } }: SyncTimestampCommand) => {
+    client.onSeekTimestamp = async ({ body: { timestamp } }: SeekTimestampCommand) => {
         return new Promise<void>((resolve) => {
             // Publish the command to all active video elements
             tabRegistry.publishCommandToVideoElements((videoElement) => {

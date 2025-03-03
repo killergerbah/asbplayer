@@ -32,8 +32,8 @@ export interface LoadSubtitlesCommand {
     };
 }
 
-export interface SyncTimestampCommand {
-    command: 'sync-timestamp';
+export interface SeekTimestampCommand {
+    command: 'seek-timestamp';
     messageId: string;
     body: {
         timestamp: number;
@@ -49,7 +49,7 @@ export class WebSocketClient {
     private _connectPromise?: { resolve: (value: unknown) => void; reject: (error: any) => void };
     onMineSubtitle?: (command: MineSubtitleCommand) => Promise<boolean>;
     onLoadSubtitles?: (command: LoadSubtitlesCommand) => Promise<void>;
-    onSyncTimestamp?: (command: SyncTimestampCommand) => Promise<void>;
+    onSeekTimestamp?: (command: SeekTimestampCommand) => Promise<void>;
 
     get socket() {
         return this._socket;
@@ -118,9 +118,9 @@ export class WebSocketClient {
                             body: {},
                         };
                         this._socket?.send(JSON.stringify(response));
-                    } else if (payload.command === 'sync-timestamp') {
+                    } else if (payload.command === 'seek-timestamp') {
                         const messageId = payload.messageId;
-                        await this.onSyncTimestamp?.(payload);
+                        await this.onSeekTimestamp?.(payload);
                         const response: Response<{}> = {
                             command: 'response',
                             messageId,
@@ -194,7 +194,7 @@ export class WebSocketClient {
         this._connectPromise?.reject('Disconnecting');
         this._connectPromise = undefined;
         this.onMineSubtitle = undefined;
-        this.onSyncTimestamp = undefined;
+        this.onSeekTimestamp = undefined;
         this.onLoadSubtitles = undefined;
     }
 }
