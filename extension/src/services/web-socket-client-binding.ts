@@ -1,5 +1,10 @@
 import { SettingsProvider, ankiSettingsKeys } from '@project/common/settings';
-import { LoadSubtitlesCommand, MineSubtitleCommand, SeekTimestampCommand, WebSocketClient } from '@project/common/web-socket-client';
+import {
+    LoadSubtitlesCommand,
+    MineSubtitleCommand,
+    SeekTimestampCommand,
+    WebSocketClient,
+} from '@project/common/web-socket-client';
 import TabRegistry from './tab-registry';
 import {
     CurrentTimeToVideoMessage,
@@ -135,7 +140,7 @@ export const bindWebSocketClient = async (settings: SettingsProvider, tabRegistr
                         command: 'currentTime',
                         value: timestamp,
                     },
-                    src: videoElement.src
+                    src: videoElement.src,
                 };
             });
 
