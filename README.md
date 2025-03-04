@@ -290,7 +290,7 @@ See the proxy's [example configuration file](https://github.com/killergerbah/asb
 
 #### WebSocket interface
 
-The asbplayer website can be controlled remotely through a WebSocket connection, which enables [one-click mining flows](#one-click-mining-flow) with the right setup. Currently asbplayer responds to two types of payloads:
+The asbplayer website can be controlled remotely through a WebSocket connection, which enables [one-click mining flows](#one-click-mining-flow) with the right setup. Currently asbplayer responds to three types of payloads:
 
 -   `mine-subtitle` request:
 
@@ -350,6 +350,31 @@ The asbplayer website can be controlled remotely through a WebSocket connection,
         "command": "response",
         // Same message ID received in request
         "messageId": "3565510c-342f-4cec-ad2e-dee81af88d75",
+        "body": {}
+    }
+    ```
+
+-   `seek-timestamp` request:
+
+    ```javascript
+    {
+        "command": "seek-timestamp",
+        // Message ID to correlate with asbplayer's response
+        "messageId": "6e4b2d8f-3a1c-4d9e-8f7b-2c0a9d5e1f3b",
+        "body": {
+            //The timestamp to seek in seconds
+            "timestamp": 30.5,
+        }
+    }
+    ```
+
+    `seek-timestamp` response:
+
+    ```javascript
+    {
+        "command": "response",
+        // Same message ID received in request
+        "messageId": "6e4b2d8f-3a1c-4d9e-8f7b-2c0a9d5e1f3b",
         "body": {}
     }
     ```
