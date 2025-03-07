@@ -1,7 +1,13 @@
 import { SettingsProvider, ankiSettingsKeys } from '@project/common/settings';
-import { LoadSubtitlesCommand, MineSubtitleCommand, WebSocketClient } from '@project/common/web-socket-client';
+import {
+    LoadSubtitlesCommand,
+    MineSubtitleCommand,
+    SeekTimestampCommand,
+    WebSocketClient,
+} from '@project/common/web-socket-client';
 import TabRegistry from './tab-registry';
 import {
+    CurrentTimeToVideoMessage,
     CopySubtitleMessage,
     CopySubtitleWithAdditionalFieldsMessage,
     ExtensionToAsbPlayerCommand,
@@ -122,6 +128,23 @@ export const bindWebSocketClient = async (settings: SettingsProvider, tabRegistr
         };
         tabRegistry.publishCommandToVideoElementTabs((tab): ExtensionToVideoCommand<Message> | undefined => {
             return toggleVideoSelectCommand;
+        });
+    };
+    client.onSeekTimestamp = async ({ body: { timestamp } }: SeekTimestampCommand) => {
+        return new Promise<void>((resolve) => {
+            // Publish the command to all active video elements
+            tabRegistry.publishCommandToVideoElements((videoElement) => {
+                return {
+                    sender: 'asbplayer-extension-to-video',
+                    message: {
+                        command: 'currentTime',
+                        value: timestamp,
+                    },
+                    src: videoElement.src,
+                };
+            });
+
+            resolve();
         });
     };
 };
