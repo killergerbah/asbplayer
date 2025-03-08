@@ -382,7 +382,10 @@ The asbplayer website can be controlled remotely through a WebSocket connection,
     }
     ```
 
-    The [Web Socket server](https://github.com/killergerbah/asbplayer/blob/main/scripts/web-socket-server) implements this protocol and can load subtitles into connected asbplayer clients through its HTTP endpoint `POST asbplayer/load-subtitles` using the `body` of the payload documented above. See the [CLI script](https://github.com/killergerbah/asbplayer/blob/main/scripts/web-socket-server/cli/load-subtitles) for an example of how this is done.
+    The [Web Socket server](https://github.com/killergerbah/asbplayer/blob/main/scripts/web-socket-server) implements this protocol and also implements an HTTP interface that can trigger these commands:
+
+    - `POST asbplayer/load-subtitles` ([script](https://github.com/killergerbah/asbplayer/blob/main/scripts/web-socket-server/cli/load-subtitles))
+    - `POST asbplayer/seek` ([script](https://github.com/killergerbah/asbplayer/blob/main/scripts/web-socket-server/cli/seek))
 
 ## Usage on Android
 

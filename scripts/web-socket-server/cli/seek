@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "usage: $0 <timestamp>"
+    exit 1
+fi
+
+curl -H "content-type: application/json" \
+    -X POST "http://127.0.0.1:8766/asbplayer/seek" \
+    -d '{"timestamp": '$1'}'

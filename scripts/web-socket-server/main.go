@@ -36,6 +36,9 @@ type (
 	asbplayerLoadSubtitlesRequest struct {
 		Files []subtitleFile `json:"files"`
 	}
+	asbplayerSeekRequest struct {
+		Timestamp int64 `json:"timestamp"`
+	}
 	clientCommand struct {
 		Command   string                 `json:"command"`
 		MessageId string                 `json:"messageId"`
@@ -268,6 +271,31 @@ func (forwarder forwarder) handleAsbplayerLoadSubtitlesRequest(c echo.Context) e
 	return nil
 }
 
+func (forwarder forwarder) handleAsbplayerSeekRequest(c echo.Context) error {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(c.Request().Body)
+	request := asbplayerSeekRequest{}
+	err := json.Unmarshal(buf.Bytes(), &request)
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	command := clientCommand{Command: "seek-timestamp", MessageId: uuid.NewString(), Body: map[string]interface{}{
+		"timestamp": request.Timestamp,
+	}}
+	responseChannel := make(chan clientResponse)
+
+	go forwarder.publishMessageAndAwaitResponse(command, responseChannel)
+	_, ok := <-responseChannel
+	if !ok {
+		return echo.NewHTTPError(http.StatusInternalServerError, nil)
+	}
+
+	c.String(http.StatusOK, "")
+	return nil
+}
+
 func main() {
 	port := getenv("PORT", "8766")
 	ankiConnectUrl := getenv("ANKI_CONNECT_URL", "http://127.0.0.1:8765")
@@ -305,6 +333,7 @@ func main() {
 	e.GET("/", forwarder.handleGetRequest)
 	e.POST("/", forwarder.handlePostRequest)
 	e.POST("/asbplayer/load-subtitles", forwarder.handleAsbplayerLoadSubtitlesRequest)
+	e.POST("/asbplayer/seek", forwarder.handleAsbplayerSeekRequest)
 	e.OPTIONS("/", forwarder.handleOptionsRequest)
 	e.Logger.Fatal(e.Start(":" + port))
 }
