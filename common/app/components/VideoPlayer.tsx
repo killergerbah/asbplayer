@@ -185,49 +185,6 @@ const showingSubtitleHtml = (
     return wrappedText;
 };
 
-interface ShowingSubtitleProps {
-    subtitle: IndexedSubtitleModel;
-    videoRef: MutableRefObject<ExperimentalHTMLVideoElement | undefined>;
-    subtitleStyles: any;
-    imageBasedSubtitleScaleFactor: number;
-    className?: string;
-    onMouseOver: React.MouseEventHandler<HTMLDivElement>;
-}
-
-const ShowingSubtitle = ({
-    subtitle,
-    videoRef,
-    subtitleStyles,
-    imageBasedSubtitleScaleFactor,
-    className,
-    onMouseOver,
-}: ShowingSubtitleProps) => {
-    let content;
-
-    if (subtitle.textImage) {
-        content = (
-            <SubtitleTextImage
-                availableWidth={videoRef.current?.width ?? window.screen.availWidth}
-                subtitle={subtitle}
-                scale={imageBasedSubtitleScaleFactor}
-            />
-        );
-    } else {
-        const lines = subtitle.text.split('\n');
-        content = lines.map((line, index) => (
-            <p key={index} className="subtitle-line" style={subtitleStyles}>
-                {line}
-            </p>
-        ));
-    }
-
-    return (
-        <div className={className ? className : ''} onMouseOver={onMouseOver}>
-            {content}
-        </div>
-    );
-};
-
 interface CachedShowingSubtitleProps {
     index: number;
     domCache: OffscreenDomCache;
