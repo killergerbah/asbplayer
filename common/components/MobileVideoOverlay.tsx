@@ -56,13 +56,20 @@ const useStyles = makeStyles(({ anchor }: { anchor: Anchor }) => ({
     },
 }));
 
-const GridContainer = ({ children, ...props }: { children: React.ReactNode } & GridProps) => {
+interface GridContainerProps extends GridProps {
+    children: React.ReactNode;
+}
+
+const GridContainer = React.forwardRef<HTMLDivElement, GridContainerProps>(function GridContainer(
+    { children, ...props }: GridContainerProps,
+    ref
+) {
     return (
-        <Grid container alignContent="center" justifyContent="center" {...props}>
+        <Grid ref={ref} container alignContent="center" justifyContent="center" {...props}>
             {children}
         </Grid>
     );
-};
+});
 
 interface Props {
     model?: MobileOverlayModel;
@@ -80,21 +87,24 @@ interface Props {
     onToggleSubtitles: () => void;
 }
 
-const MobileVideoOverlay = ({
-    model,
-    className,
-    anchor,
-    tooltipsEnabled,
-    initialControlType,
-    onScrollToControlType,
-    onMineSubtitle,
-    onLoadSubtitles,
-    onOffset,
-    onPlaybackRate,
-    onPlayModeSelected,
-    onSeek,
-    onToggleSubtitles,
-}: Props) => {
+const MobileVideoOverlay = React.forwardRef<HTMLDivElement, Props>(function MobileVideoOverlay(
+    {
+        model,
+        className,
+        anchor,
+        tooltipsEnabled,
+        initialControlType,
+        onScrollToControlType,
+        onMineSubtitle,
+        onLoadSubtitles,
+        onOffset,
+        onPlaybackRate,
+        onPlayModeSelected,
+        onSeek,
+        onToggleSubtitles,
+    }: Props,
+    ref
+) {
     const classes = useStyles({ anchor });
     const offsetInputRef = useRef<HTMLInputElement>();
     const playbackInputRef = useRef<HTMLInputElement>();
@@ -367,7 +377,7 @@ const MobileVideoOverlay = ({
     const containerClassName = className === undefined ? classes.container : `${className} ${classes.container}`;
     return (
         <>
-            <GridContainer direction="row" wrap="nowrap" className={containerClassName}>
+            <GridContainer ref={ref} direction="row" wrap="nowrap" className={containerClassName}>
                 {onLoadSubtitles && (
                     <Grid item>
                         <Tooltip {...defaultTooltipProps} title={t('action.loadSubtitles')!}>
@@ -512,6 +522,6 @@ const MobileVideoOverlay = ({
             )}
         </>
     );
-};
+});
 
 export default MobileVideoOverlay;
