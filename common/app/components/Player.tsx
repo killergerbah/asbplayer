@@ -33,7 +33,7 @@ import { useWindowSize } from '../hooks/use-window-size';
 import { useAppBarHeight } from '../hooks/use-app-bar-height';
 import { createBlobUrl } from '../../blob-url';
 import { MiningContext } from '../services/mining-context';
-import { WebSocketClient } from '../../web-socket-client';
+import { SeekTimestampCommand, WebSocketClient } from '../../web-socket-client';
 
 const minVideoPlayerWidth = 300;
 
@@ -960,6 +960,19 @@ const Player = React.memo(function Player({
         pause(clock, mediaAdapter, true);
         seek(rewindSubtitle.start, clock, true);
     }, [clock, rewindSubtitle?.start, mediaAdapter, seek]);
+
+    useEffect(() => {
+        if (!webSocketClient || extension.supportsWebSocketClient) {
+            // Do not handle mining commands here if the extension supports the web socket client.
+            // The extension will handle the commands for us.
+            return;
+        }
+
+        webSocketClient.onSeekTimestamp = async ({ body: { timestamp } }: SeekTimestampCommand) => {
+            seek(timestamp * 1000, clock, true);
+        };
+    }, [webSocketClient, extension, seek, clock]);
+
     const [windowWidth] = useWindowSize(true);
 
     const loaded = videoFileUrl || subtitles;
