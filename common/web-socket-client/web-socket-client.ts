@@ -61,7 +61,10 @@ export class WebSocketClient {
         }
 
         this._pingInterval = setInterval(() => {
-            if (this._lastPingTimestampMs !== undefined && !this._pongReceived) {
+            if (
+                (this._lastPingTimestampMs !== undefined && !this._pongReceived) ||
+                (this._socket && this._socket.readyState !== this._socket?.OPEN)
+            ) {
                 console.log('Did not receive pong - reconnecting');
 
                 for (const r of this._pingPromises) {
