@@ -37,7 +37,7 @@ type (
 		Files []subtitleFile `json:"files"`
 	}
 	asbplayerSeekRequest struct {
-		Timestamp int64 `json:"timestamp"`
+		Timestamp float64 `json:"timestamp"`
 	}
 	clientCommand struct {
 		Command   string                 `json:"command"`
