@@ -368,9 +368,6 @@
         "missingFieldError": "Field \"{{field}}\" not found in note type",
         "webSocketClientEnabled": "Включить WebSocket клиент",
         "webSocketServerUrl": "URL сервера WebSocket",
-        "webSocketReconnectDelayMs": "WebSocket reconnect delay",
-        "webSocketMaxReconnectAttempts": "Maximum reconnection attempts",
-        "webSocketMaxReconnectAttemptsHelp": "Use 0 for unlimited reconnection attempts",
         "firefoxExtensionShortcutHelp": "Редактируйте этот ярлык в менеджере плагинов по адресу about:addons.",
         "postMinePlayback": "Настройка воспроизведения после майнинга",
         "pauseOnHoverMode": "Пауза при наведении на субтитры"

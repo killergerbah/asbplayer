@@ -368,9 +368,6 @@
         "missingFieldError": "フィールド \"{{field}}\" がノートタイプに見つかりません",
         "webSocketClientEnabled": "WebSocketクライアントを有効",
         "webSocketServerUrl": "WebSocketサーバーのURL",
-        "webSocketReconnectDelayMs": "WebSocket reconnect delay",
-        "webSocketMaxReconnectAttempts": "Maximum reconnection attempts",
-        "webSocketMaxReconnectAttemptsHelp": "Use 0 for unlimited reconnection attempts",
         "firefoxExtensionShortcutHelp": "ショートカットの編集はプラグイン管理 （about:addons）で行えます。",
         "postMinePlayback": "マイニング後のプレイバック状態",
         "pauseOnHoverMode": "マウスカーソルを字幕に重ねると自動一時停止"
