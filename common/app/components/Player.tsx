@@ -964,16 +964,12 @@ const Player = React.memo(function Player({
     useEffect(() => {
         // Return early if:
         // 1. No WebSocket client, OR
-        // 2. Extension supports WebSocket clients AND this is NOT a local video
+        // 2. Extension supports WebSocket clients AND this is NOT a local video (otherwise the extension will handle it)
         const isLocalVideoFile = Boolean(videoFileUrl);
-        console.log("Video file: " + videoFile);
         if (!webSocketClient || (extension.supportsWebSocketClient && !isLocalVideoFile)) {
             return;
         }
-        
-        // Handle WebSocket commands ourselves when:
-        // - Extension doesn't support WebSocket clients, OR
-        // - We're playing a local video file
+
         webSocketClient.onSeekTimestamp = async ({ body: { timestamp } }: SeekTimestampCommand) => {
             seek(timestamp * 1000, clock, true);
         };
