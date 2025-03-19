@@ -43,10 +43,16 @@ export interface SeekTimestampCommand {
 export class WebSocketClient {
     private _socket?: WebSocket;
     private _pingInterval?: NodeJS.Timeout;
+    private _reconnectTimeout?: NodeJS.Timeout;
     private _lastPingTimestampMs?: number;
     private _pongReceived: boolean = false;
     private _pingPromises: { resolve: (value: unknown) => void; reject: (error: any) => void }[] = [];
     private _connectPromise?: { resolve: (value: unknown) => void; reject: (error: any) => void };
+    private _url?: string;
+    private _isReconnecting: boolean = false;
+    private _reconnectAttempts: number = 0;
+    private _reconnectDelayMs: number = 10000;
+    private _maxReconnectAttempts: number = 5; // 0 means unlimited
     onMineSubtitle?: (command: MineSubtitleCommand) => Promise<boolean>;
     onLoadSubtitles?: (command: LoadSubtitlesCommand) => Promise<void>;
     onSeekTimestamp?: (command: SeekTimestampCommand) => Promise<void>;
@@ -55,9 +61,21 @@ export class WebSocketClient {
         return this._socket;
     }
 
-    async bind(url: string) {
+    async bind(url: string, reconnectSettings?: { reconnectDelayMs?: number, maxReconnectAttempts?: number }) {
         if (this._pingInterval) {
             clearInterval(this._pingInterval);
+        }
+        
+        // Reset reconnection state
+        this._reconnectAttempts = 0;
+        
+        // Set reconnection parameters if provided
+        if (reconnectSettings?.reconnectDelayMs !== undefined) {
+            this._reconnectDelayMs = reconnectSettings.reconnectDelayMs;
+        }
+        
+        if (reconnectSettings?.maxReconnectAttempts !== undefined) {
+            this._maxReconnectAttempts = reconnectSettings.maxReconnectAttempts;
         }
 
         this._pingInterval = setInterval(() => {
@@ -82,6 +100,8 @@ export class WebSocketClient {
     }
 
     private async _connect(url: string) {
+        // Store URL for auto-reconnection
+        this._url = url;
         this._disconnect();
 
         if (!url) {
@@ -137,20 +157,69 @@ export class WebSocketClient {
                 console.log(`Socket closed - reason: ${event.reason}`);
                 this._connectPromise?.reject('Socket closed');
                 this._connectPromise = undefined;
+                
+                // Auto-reconnect when socket is closed unexpectedly
+                this._scheduleReconnect();
             };
             socket.onerror = () => {
                 console.log('Socket error');
                 this._connectPromise?.reject('Socket error');
                 this._connectPromise = undefined;
+                
+                // Auto-reconnect on error
+                this._scheduleReconnect();
             };
             socket.onopen = () => {
                 this.ping().catch(console.error);
                 this._connectPromise?.resolve(undefined);
                 this._connectPromise = undefined;
+                
+                // Clear any pending reconnect timeouts when successfully connected
+                if (this._reconnectTimeout) {
+                    clearTimeout(this._reconnectTimeout);
+                    this._reconnectTimeout = undefined;
+                }
+                this._isReconnecting = false;
             };
 
             this._socket = socket;
         });
+    }
+    
+    private _scheduleReconnect() {
+        // Avoid multiple reconnection attempts
+        if (this._isReconnecting || !this._url) {
+            return;
+        }
+        
+        // Check if we've reached the maximum number of reconnection attempts
+        if (this._maxReconnectAttempts > 0 && this._reconnectAttempts >= this._maxReconnectAttempts) {
+            console.log(`Maximum reconnection attempts (${this._maxReconnectAttempts}) reached, giving up.`);
+            return;
+        }
+        
+        this._isReconnecting = true;
+        
+        // Clear any existing reconnect timeout
+        if (this._reconnectTimeout) {
+            clearTimeout(this._reconnectTimeout);
+        }
+        
+        // Increment reconnection attempt counter
+        this._reconnectAttempts++;
+        
+        // Attempt to reconnect after the specified delay
+        this._reconnectTimeout = setTimeout(() => {
+            console.log(`Attempting to reconnect to WebSocket server... (Attempt ${this._reconnectAttempts}${this._maxReconnectAttempts > 0 ? '/' + this._maxReconnectAttempts : ''})`);
+            if (this._url) {
+                this._connect(this._url).catch(err => {
+                    console.log('Reconnection attempt failed:', err);
+                    // If reconnection fails, schedule another attempt
+                    this._isReconnecting = false;
+                    this._scheduleReconnect();
+                });
+            }
+        }, this._reconnectDelayMs);
     }
 
     async ping() {
@@ -186,6 +255,15 @@ export class WebSocketClient {
             clearInterval(this._pingInterval);
             this._pingInterval = undefined;
         }
+        
+        // Clear reconnect timeout if it exists
+        if (this._reconnectTimeout) {
+            clearTimeout(this._reconnectTimeout);
+            this._reconnectTimeout = undefined;
+        }
+        
+        this._isReconnecting = false;
+        this._url = undefined;
 
         for (const p of this._pingPromises) {
             p.reject('Disconnecting');

@@ -247,6 +247,8 @@ export interface KeyBindSet {
 export interface WebSocketClientSettings {
     readonly webSocketServerUrl: string;
     readonly webSocketClientEnabled: boolean;
+    readonly webSocketReconnectDelayMs: number;
+    readonly webSocketMaxReconnectAttempts: number;
 }
 
 export type ChromeBoundKeyBindName = 'copySubtitle' | 'ankiExport' | 'updateLastCard' | 'takeScreenshot';

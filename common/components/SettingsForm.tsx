@@ -907,6 +907,8 @@ export default function SettingsForm({
         streamingEnableOverlay,
         webSocketClientEnabled,
         webSocketServerUrl,
+        webSocketReconnectDelayMs,
+        webSocketMaxReconnectAttempts,
         pauseOnHoverMode,
     } = settings;
 
@@ -2606,6 +2608,46 @@ export default function SettingsForm({
                                             </InputAdornment>
                                         ),
                                     }}
+                                />
+                            </Grid>
+                            <Grid item>
+                                <TextField
+                                    className={classes.textField}
+                                    type="number"
+                                    color="primary"
+                                    fullWidth
+                                    label={t('settings.webSocketReconnectDelayMs')}
+                                    value={webSocketReconnectDelayMs}
+                                    disabled={!webSocketClientEnabled}
+                                    onChange={(e) => 
+                                        handleSettingChanged('webSocketReconnectDelayMs', Number(e.target.value))
+                                    }
+                                    inputProps={{
+                                        min: 1000,
+                                        step: 1000,
+                                    }}
+                                    InputProps={{
+                                        endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item>
+                                <TextField
+                                    className={classes.textField}
+                                    type="number"
+                                    color="primary"
+                                    fullWidth
+                                    label={t('settings.webSocketMaxReconnectAttempts')}
+                                    value={webSocketMaxReconnectAttempts}
+                                    disabled={!webSocketClientEnabled}
+                                    onChange={(e) => 
+                                        handleSettingChanged('webSocketMaxReconnectAttempts', Number(e.target.value))
+                                    }
+                                    inputProps={{
+                                        min: 0,
+                                        step: 1,
+                                    }}
+                                    helperText={t('settings.webSocketMaxReconnectAttemptsHelp')}
                                 />
                             </Grid>
                         </>
