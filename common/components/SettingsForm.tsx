@@ -2619,7 +2619,7 @@ export default function SettingsForm({
                                     label={t('settings.webSocketReconnectDelayMs')}
                                     value={webSocketReconnectDelayMs}
                                     disabled={!webSocketClientEnabled}
-                                    onChange={(e) => 
+                                    onChange={(e) =>
                                         handleSettingChanged('webSocketReconnectDelayMs', Number(e.target.value))
                                     }
                                     inputProps={{
@@ -2640,7 +2640,7 @@ export default function SettingsForm({
                                     label={t('settings.webSocketMaxReconnectAttempts')}
                                     value={webSocketMaxReconnectAttempts}
                                     disabled={!webSocketClientEnabled}
-                                    onChange={(e) => 
+                                    onChange={(e) =>
                                         handleSettingChanged('webSocketMaxReconnectAttempts', Number(e.target.value))
                                     }
                                     inputProps={{
