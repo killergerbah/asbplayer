@@ -969,7 +969,7 @@ const Player = React.memo(function Player({
         webSocketClient.onSeekTimestamp = async ({ body: { timestamp } }: SeekTimestampCommand) => {
             seek(timestamp * 1000, clock, true);
         };
-    }, [webSocketClient, extension, seek, clock, videoFileUrl]);
+    }, [webSocketClient, extension, seek, clock]);
 
     const [windowWidth] = useWindowSize(true);
 
