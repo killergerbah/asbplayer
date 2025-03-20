@@ -43,6 +43,11 @@
             "code": "ru",
             "url": "/locales/ru.json",
             "version": 7
+        },
+        {
+            "code": "fi",
+            "url": "/locales/fi.json",
+            "version": 1
         }
     ]
 }

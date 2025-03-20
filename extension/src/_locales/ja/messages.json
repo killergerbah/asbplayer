@@ -25,5 +25,8 @@
     },
     "contextMenuLoadSubtitles": {
         "message": "字幕ファイルをロードする"
+    },
+    "shortcutExportCardDescription": {
+        "message": "直接カードをAnkiにエクスポート。"
     }
 }

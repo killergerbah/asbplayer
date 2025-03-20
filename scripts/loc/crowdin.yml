@@ -1,0 +1,26 @@
+'project_id': '674706'
+'base_path': '.'
+'base_url': 'https://api.crowdin.com'
+'preserve_hierarchy': true
+
+files:
+    [
+        {
+            'source': '/xliff/en/*.xliff',
+            'translation': '/xliff/%locale%/%original_file_name%',
+            'languages_mapping':
+                {
+                    'locale':
+                        {
+                            'de': 'de',
+                            'es-ES': 'es',
+                            'ja': 'ja',
+                            'pl': 'pl',
+                            'pt-BR': 'pt_BR',
+                            'ru': 'ru',
+                            'zh-CN': 'zh_CN',
+                            'fi-FI': 'fi',
+                        },
+                },
+        },
+    ]

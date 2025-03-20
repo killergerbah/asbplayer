@@ -1,0 +1,29 @@
+{
+    "extensionDescription": {
+        "message": "Parannetaan suoratoistovideota kielten oppimiseen."
+    },
+    "shortcutMineSubtitleDescription": {
+        "message": "Lähetä nykyinen tekstitys. Kun video on synkronoitu ilman tekstitystiedostoa, käynnistää/pysäyttää äänen tallentamisen."
+    },
+    "shortcutMineSubtitleAndOpenDialogDescription": {
+        "message": "Lähetä nykyinen tekstitys Anki-valintaikkunaan. Kun video on synkronoitu ilman tekstitystiedostoa, käynnistää/pysäyttää äänen tallentamisen."
+    },
+    "shortcutUpdateLastCardDescription": {
+        "message": "Päivitä viime luotu Anki-kortti asbplayer-kaappauksella. Kun video synkronoidaan ilman tekstitystiedostoa, alkaa / pysäyttää äänen tallentamisen."
+    },
+    "shortcutTakeScreenshotDescription": {
+        "message": "Ota kuvakaappaus manuaalisesti, ohittaa se, joka otetaan automaattisesti kaivostoiminnassa."
+    },
+    "shortcutToggleRecordingDescription": {
+        "message": "Käynnistä tai lopeta äänen tallennus manuaalisesti, vaikka tekstitystiedosto ladataan."
+    },
+    "shortcutSelectSubtitleTrackDescription": {
+        "message": "Valitse ladattava tekstitys"
+    },
+    "contextMenuMineSubtitle": {
+        "message": "Lähetä tekstitykset Ankin"
+    },
+    "contextMenuLoadSubtitles": {
+        "message": "Avaa tekstitys"
+    }
+}
