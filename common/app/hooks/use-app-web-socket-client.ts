@@ -13,23 +13,13 @@ export const useAppWebSocketClient = ({ settings }: { settings: WebSocketClientS
     useEffect(() => {
         if (settings.webSocketClientEnabled && settings.webSocketServerUrl) {
             const client = new WebSocketClient();
-            client
-                .bind(settings.webSocketServerUrl, {
-                    reconnectDelayMs: settings.webSocketReconnectDelayMs,
-                    maxReconnectAttempts: settings.webSocketMaxReconnectAttempts,
-                })
-                .catch(console.error);
+            client.bind(settings.webSocketServerUrl).catch(console.error);
             setClient(client);
             return () => client.unbind();
         }
 
         setClient(undefined);
-    }, [
-        settings.webSocketServerUrl,
-        settings.webSocketClientEnabled,
-        settings.webSocketReconnectDelayMs,
-        settings.webSocketMaxReconnectAttempts,
-    ]);
+    }, [settings.webSocketServerUrl, settings.webSocketClientEnabled]);
 
     return client;
 };

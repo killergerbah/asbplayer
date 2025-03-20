@@ -141,8 +141,6 @@ export const defaultSettings: AsbplayerSettings = {
     streamingEnableOverlay: true,
     webSocketClientEnabled: false,
     webSocketServerUrl: 'ws://127.0.0.1:8766/ws',
-    webSocketReconnectDelayMs: 10000,
-    webSocketMaxReconnectAttempts: 5,
     pauseOnHoverMode: 0,
     lastSelectedAnkiExportMode: 'default',
 };
