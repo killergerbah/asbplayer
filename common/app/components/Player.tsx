@@ -962,11 +962,7 @@ const Player = React.memo(function Player({
     }, [clock, rewindSubtitle?.start, mediaAdapter, seek]);
 
     useEffect(() => {
-        // Return early if:
-        // 1. No WebSocket client, OR
-        // 2. Extension supports WebSocket clients AND this is NOT a local video (otherwise the extension will handle it)
-        const isLocalVideoFile = Boolean(videoFileUrl);
-        if (!webSocketClient || (extension.supportsWebSocketClient && !isLocalVideoFile)) {
+        if (!webSocketClient) {
             return;
         }
 
