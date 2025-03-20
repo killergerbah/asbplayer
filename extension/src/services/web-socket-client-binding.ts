@@ -35,9 +35,7 @@ export const bindWebSocketClient = async (settings: SettingsProvider, tabRegistr
     }
 
     client = new WebSocketClient();
-    const reconnectDelayMs = await settings.getSingle('webSocketReconnectDelayMs');
-    const maxReconnectAttempts = await settings.getSingle('webSocketMaxReconnectAttempts');
-    client.bind(url, { reconnectDelayMs, maxReconnectAttempts });
+    client.bind(url);
     client.onMineSubtitle = async ({
         body: { fields: receivedFields, postMineAction: receivedPostMineAction },
     }: MineSubtitleCommand) => {
