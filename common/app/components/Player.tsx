@@ -962,9 +962,7 @@ const Player = React.memo(function Player({
     }, [clock, rewindSubtitle?.start, mediaAdapter, seek]);
 
     useEffect(() => {
-        if (!webSocketClient || extension.supportsWebSocketClient) {
-            // Do not handle mining commands here if the extension supports the web socket client.
-            // The extension will handle the commands for us.
+        if (!webSocketClient) {
             return;
         }
 
