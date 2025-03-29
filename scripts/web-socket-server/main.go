@@ -85,11 +85,8 @@ func (forwarder forwarder) handleWebsocketClient(c echo.Context) error {
 			err := websocket.Message.Receive(ws, &msg)
 
 			if err != nil {
-				if err.Error() == "EOF" {
-					break
-				}
-
 				c.Logger().Error(err)
+				break
 			} else {
 				if msg == "PING" {
 					websocket.Message.Send(ws, "PONG")
@@ -296,6 +293,17 @@ func (forwarder forwarder) handleAsbplayerSeekRequest(c echo.Context) error {
 	return nil
 }
 
+func (forwarder forwarder) disconnectWebsocketClients(c echo.Context) error {
+	forwarder.Mutex.Lock()
+	defer forwarder.Mutex.Unlock()
+	for ws, _ := range forwarder.WebsocketClients {
+		ws.Close()
+		delete(forwarder.WebsocketClients, ws)
+		fmt.Printf("Forcefully disconnected client: %s\n", ws.RemoteAddr())
+	}
+	return nil
+}
+
 func main() {
 	port := getenv("PORT", "8766")
 	ankiConnectUrl := getenv("ANKI_CONNECT_URL", "http://127.0.0.1:8765")
@@ -330,6 +338,7 @@ func main() {
 		AnkiConnectUrl:   ankiConnectUrl,
 		PostMineAction:   postMineAction}
 	e.GET("/ws", forwarder.handleWebsocketClient)
+	e.POST("/disconnect-ws-clients", forwarder.disconnectWebsocketClients)
 	e.GET("/", forwarder.handleGetRequest)
 	e.POST("/", forwarder.handlePostRequest)
 	e.POST("/asbplayer/load-subtitles", forwarder.handleAsbplayerLoadSubtitlesRequest)
