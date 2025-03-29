@@ -10,7 +10,7 @@ import {
     TextSubtitleSettings,
     textSubtitleSettingsKeys,
 } from '.';
-import { AutoPausePreference, PostMineAction, PostMinePlayback } from '..';
+import { AutoPausePreference, PostMineAction, PostMinePlayback, SubtitleHtml } from '..';
 
 // @ts-ignore
 const isMacOs = (navigator.userAgentData?.platform ?? navigator.platform)?.toUpperCase()?.indexOf('MAC') > -1;
@@ -71,6 +71,7 @@ export const defaultSettings: AsbplayerSettings = {
     surroundingSubtitlesCountRadius: 2,
     surroundingSubtitlesTimeRadius: 10000,
     autoPausePreference: AutoPausePreference.atEnd,
+    subtitleHtml: SubtitleHtml.remove,
     speedChangeStep: 0.1,
     fastForwardModePlaybackRate: 2.7,
     keyBindSet: {

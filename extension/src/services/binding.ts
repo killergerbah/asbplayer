@@ -1315,12 +1315,14 @@ export default class Binding {
             subtitleRegexFilterTextReplacement,
             rememberSubtitleOffset,
             lastSubtitleOffset,
+            subtitleHtml,
         } = await this.settings.get([
             'streamingSubtitleListPreference',
             'subtitleRegexFilter',
             'subtitleRegexFilterTextReplacement',
             'rememberSubtitleOffset',
             'lastSubtitleOffset',
+            'subtitleHtml',
         ]);
         const syncWithAsbplayerTab = async (withSyncedAsbplayerOnly: boolean, withAsbplayerId: string | undefined) => {
             const syncMessage: VideoToExtensionCommand<ExtensionSyncMessage> = {
@@ -1350,6 +1352,7 @@ export default class Binding {
                 const reader = new SubtitleReader({
                     regexFilter: subtitleRegexFilter,
                     regexFilterTextReplacement: subtitleRegexFilterTextReplacement,
+                    subtitleHtml: subtitleHtml,
                     pgsParserWorkerFactory: pgsParserWorkerFactory,
                 });
                 const offset = rememberSubtitleOffset ? lastSubtitleOffset : 0;

@@ -68,6 +68,7 @@ export default function SidePanel({ settings, extension }: Props) {
             new SubtitleReader({
                 regexFilter: settings.subtitleRegexFilter,
                 regexFilterTextReplacement: settings.subtitleRegexFilterTextReplacement,
+                subtitleHtml: settings.subtitleHtml,
                 pgsParserWorkerFactory,
             }),
         [settings]

@@ -253,9 +253,7 @@ const SubtitleRow = React.memo(function SubtitleRow({
     const content = subtitle.textImage ? (
         <SubtitleTextImage availableWidth={window.screen.availWidth / 2} subtitle={subtitle} scale={1} />
     ) : (
-        <span ref={textRef} className={disabledClassName}>
-            {subtitle.text}
-        </span>
+        <span ref={textRef} className={disabledClassName} dangerouslySetInnerHTML={{ __html: subtitle.text }} />
     );
 
     let rowClassName: string;

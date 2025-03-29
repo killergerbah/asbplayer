@@ -218,6 +218,9 @@ const settingsSchema = {
         autoPausePreference: {
             type: 'number',
         },
+        subtitleHtml: {
+            type: 'number',
+        },
         speedChangeStep: {
             type: 'number',
         },

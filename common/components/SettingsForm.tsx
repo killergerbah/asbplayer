@@ -29,7 +29,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import TextField from '@mui/material/TextField';
 import { type Theme } from '@mui/material';
-import { AutoPausePreference, PostMineAction, PostMinePlayback } from '@project/common';
+import { AutoPausePreference, PostMineAction, PostMinePlayback, SubtitleHtml } from '@project/common';
 import {
     AnkiFieldSettings,
     AnkiFieldUiModel,
@@ -888,6 +888,7 @@ export default function SettingsForm({
         tabName,
         subtitleRegexFilter,
         subtitleRegexFilterTextReplacement,
+        subtitleHtml,
         language,
         customAnkiFields,
         customAnkiFieldSettings,
@@ -2434,6 +2435,37 @@ export default function SettingsForm({
                                     handleSettingChanged('subtitleRegexFilterTextReplacement', event.target.value)
                                 }
                             />
+                            <FormControl>
+                                <FormLabel>{t('settings.subtitleHtml')}</FormLabel>
+                                <RadioGroup row>
+                                    <LabelWithHoverEffect
+                                        control={
+                                            <Radio
+                                                checked={subtitleHtml === SubtitleHtml.remove}
+                                                value={SubtitleHtml.remove}
+                                                onChange={(event) =>
+                                                    event.target.checked &&
+                                                    handleSettingChanged('subtitleHtml', SubtitleHtml.remove)
+                                                }
+                                            />
+                                        }
+                                        label={t('settings.subtitleHtmlRemove')}
+                                    />
+                                    <LabelWithHoverEffect
+                                        control={
+                                            <Radio
+                                                checked={subtitleHtml === SubtitleHtml.render}
+                                                value={SubtitleHtml.render}
+                                                onChange={(event) =>
+                                                    event.target.checked &&
+                                                    handleSettingChanged('subtitleHtml', SubtitleHtml.render)
+                                                }
+                                            />
+                                        }
+                                        label={t('settings.subtitleHtmlRender')}
+                                    />
+                                </RadioGroup>
+                            </FormControl>
                             <TextField
                                 select
                                 label={t('settings.language')}
