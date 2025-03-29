@@ -1365,7 +1365,7 @@ export default class Binding {
                         originalStart: s.start,
                         originalEnd: s.end,
                     })),
-                    files.map((f) => f.name)
+                    flatten ? [files[0].name] : files.map((f) => f.name)
                 );
                 // If target asbplayer is not specified, then sync with any already-synced asbplayer
                 // Otherwise, sync with the target asbplayer

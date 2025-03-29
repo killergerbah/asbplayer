@@ -16,7 +16,6 @@ import { AsbplayerSettings, SettingsProvider } from '@project/common/settings';
 import { base64ToBlob, bufferToBase64 } from '@project/common/base64';
 import Binding from '../services/binding';
 import { currentPageDelegate } from '../services/pages';
-import { Parser as m3U8Parser } from 'm3u8-parser';
 import UiFrame from '../services/ui-frame';
 import { fetchLocalization } from '../services/localization-fetcher';
 import i18n from 'i18next';
@@ -426,7 +425,7 @@ export default class VideoDataSyncController {
 
             await this._syncSubtitles(
                 subtitles,
-                data.some((track) => track.extension === 'm3u8')
+                data.some((track) => typeof track.url === 'object')
             );
             return true;
         } catch (error) {
@@ -452,7 +451,7 @@ export default class VideoDataSyncController {
 
             await this._syncSubtitles(
                 subtitles,
-                data.some((track) => track.extension === 'm3u8'),
+                data.some((track) => typeof track.url === 'object'),
                 syncWithAsbplayerId
             );
             return true;
@@ -480,7 +479,7 @@ export default class VideoDataSyncController {
         name: string,
         language: string | undefined,
         extension: string,
-        url: string,
+        url: string | string[],
         localFile: boolean | undefined
     ): Promise<SerializedSubtitleFile[] | undefined> {
         if (url === '-') {
@@ -515,72 +514,60 @@ export default class VideoDataSyncController {
             url = lazilyFetchedUrl;
         }
 
-        const response = await fetch(url)
-            .catch((error) => this._reportError(error.message))
-            .finally(() => {
-                if (localFile) {
-                    URL.revokeObjectURL(url);
-                }
-            });
+        if (typeof url === 'string') {
+            const response = await fetch(url)
+                .catch((error) => this._reportError(error.message))
+                .finally(() => {
+                    if (localFile) {
+                        URL.revokeObjectURL(url);
+                    }
+                });
 
-        if (!response) {
-            return undefined;
-        }
-
-        if (extension === 'm3u8') {
-            const m3U8Response = await fetch(url);
-            const parser = new m3U8Parser();
-            parser.push(await m3U8Response.text());
-            parser.end();
-
-            if (!parser.manifest.segments || parser.manifest.segments.length === 0) {
+            if (!response) {
                 return undefined;
             }
 
-            const firstUri = parser.manifest.segments[0].uri;
-            const partExtension = firstUri.substring(firstUri.lastIndexOf('.') + 1);
-            const m3U8BaseUrl = url.substring(0, url.lastIndexOf('/'));
-            const fileName = `${name}.${partExtension}`;
-            const promises = parser.manifest.segments
-                .filter((s: any) => !s.discontinuity && s.uri)
-                .map((s: any) => fetch(`${m3U8BaseUrl}/${s.uri}`));
-            const tracks = [];
-            let totalPromises = promises.length;
-            let finishedPromises = 0;
-
-            for (const p of promises) {
-                const response = await p;
-
-                if (!response.ok) {
-                    throw new Error(
-                        `Subtitle Retrieval failed with Status ${response.status}/${response.statusText}...`
-                    );
-                }
-
-                ++finishedPromises;
-                this._context.subtitleController.notification(
-                    `${fileName} (${Math.floor((finishedPromises / totalPromises) * 100)}%)`
-                );
-
-                tracks.push({
-                    name: fileName,
-                    base64: bufferToBase64(await response.arrayBuffer()),
-                });
+            if (!response.ok) {
+                throw new Error(`Subtitle Retrieval failed with Status ${response.status}/${response.statusText}...`);
             }
 
-            return tracks;
+            return [
+                {
+                    name: `${name}.${extension}`,
+                    base64: response ? bufferToBase64(await response.arrayBuffer()) : '',
+                },
+            ];
         }
 
-        if (!response.ok) {
-            throw new Error(`Subtitle Retrieval failed with Status ${response.status}/${response.statusText}...`);
+        // `url` is an array
+
+        const firstUri = url[0];
+        const partExtension = firstUri.substring(firstUri.lastIndexOf('.') + 1);
+        const fileName = `${name}.${partExtension}`;
+        const promises = url.map((u) => fetch(u));
+        const tracks = [];
+        let totalPromises = promises.length;
+        let finishedPromises = 0;
+
+        for (const p of promises) {
+            const response = await p;
+
+            if (!response.ok) {
+                throw new Error(`Subtitle Retrieval failed with Status ${response.status}/${response.statusText}...`);
+            }
+
+            ++finishedPromises;
+            this._context.subtitleController.notification(
+                `${fileName} (${Math.floor((finishedPromises / totalPromises) * 100)}%)`
+            );
+
+            tracks.push({
+                name: fileName,
+                base64: bufferToBase64(await response.arrayBuffer()),
+            });
         }
 
-        return [
-            {
-                name: `${name}.${extension}`,
-                base64: response ? bufferToBase64(await response.arrayBuffer()) : '',
-            },
-        ];
+        return tracks;
     }
 
     private async _reportError(error: string) {

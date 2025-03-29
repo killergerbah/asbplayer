@@ -1,6 +1,7 @@
 import { VideoDataSubtitleTrack } from '@project/common';
 import { Parser } from 'm3u8-parser';
 import { inferTracks, trackFromDef } from './util';
+import { Parser as m3U8Parser } from 'm3u8-parser';
 
 setTimeout(() => {
     function baseUrlForUrl(url: string) {
@@ -42,11 +43,21 @@ setTimeout(() => {
                                 if (track && typeof track.language === 'string' && typeof track.uri === 'string') {
                                     const baseUrl = baseUrlForUrl(url);
                                     const subtitleM3U8Url = `${baseUrl}/${track.uri}`;
+                                    const m3U8Response = await fetch(subtitleM3U8Url);
+                                    const parser = new m3U8Parser();
+                                    parser.push(await m3U8Response.text());
+                                    parser.end();
+                                    const firstUri = parser.manifest.segments[0].uri;
+                                    const extension = firstUri.substring(firstUri.lastIndexOf('.') + 1);
+                                    const subtitleBaseUrl = baseUrlForUrl(subtitleM3U8Url);
+                                    const urls = parser.manifest.segments
+                                        .filter((s: any) => !s.discontinuity && s.uri)
+                                        .map((s: any) => `${subtitleBaseUrl}/${s.uri}`);
                                     const def = {
                                         label: label,
                                         language: track.language,
-                                        url: subtitleM3U8Url,
-                                        extension: 'm3u8',
+                                        url: urls,
+                                        extension: extension,
                                     };
                                     subtitles.push(trackFromDef(def));
                                 }
@@ -121,18 +132,21 @@ setTimeout(() => {
 
         return value;
     };
-    inferTracks({
-        onRequest: async (addTrack, setBasename) => {
-            setBasename((await basenameFromDOMWithRetries(10)) ?? '');
+    inferTracks(
+        {
+            onRequest: async (addTrack, setBasename) => {
+                setBasename((await basenameFromDOMWithRetries(10)) ?? '');
 
-            if (lastM3U8Url !== undefined) {
-                const tracks = await completeM3U8(lastM3U8Url);
+                if (lastM3U8Url !== undefined) {
+                    const tracks = await completeM3U8(lastM3U8Url);
 
-                for (const track of tracks) {
-                    addTrack(track);
+                    for (const track of tracks) {
+                        addTrack(track);
+                    }
                 }
-            }
+            },
+            waitForBasename: false,
         },
-        waitForBasename: false,
-    });
+        60_000
+    );
 }, 0);

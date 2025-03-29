@@ -153,7 +153,7 @@ export interface AnkiUiSavedState {
 export interface VideoDataSubtitleTrackDef {
     label: string;
     language?: string;
-    url: string;
+    url: string | string[];
     extension: string;
     localFile?: boolean;
 }

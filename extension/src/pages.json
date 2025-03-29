@@ -141,6 +141,14 @@
             "autoSync": {
                 "enabled": true
             }
+        },
+        {
+            "host": "play.max.com",
+            "script": "hbo-go-page.js",
+            "path": "watch",
+            "autoSync": {
+                "enabled": true
+            }
         }
     ]
 }

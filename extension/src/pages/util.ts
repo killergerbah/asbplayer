@@ -60,7 +60,7 @@ export const trackId = (def: VideoDataSubtitleTrackDef) => {
     return `${def.language}:${def.label}:${def.url}`;
 };
 
-export function inferTracks({ onJson, onRequest, waitForBasename }: InferHooks) {
+export function inferTracks({ onJson, onRequest, waitForBasename }: InferHooks, timeout?: number) {
     setTimeout(() => {
         const subtitlesByPath: SubtitlesByPath = {};
         let basename = '';
@@ -160,7 +160,7 @@ export function inferTracks({ onJson, onRequest, waitForBasename }: InferHooks) 
                     (!waitForBasename || basename !== '') && window.location.pathname in subtitlesByPath;
 
                 if (!ready()) {
-                    await poll(ready);
+                    await poll(ready, timeout);
                 }
 
                 document.dispatchEvent(
