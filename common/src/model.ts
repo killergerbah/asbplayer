@@ -238,6 +238,11 @@ export enum AutoPausePreference {
     atEnd = 2,
 }
 
+export enum SubtitleHtml {
+    remove = 0,
+    render = 1,
+}
+
 export enum PlayMode {
     normal = 1,
     condensed = 2,
