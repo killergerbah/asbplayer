@@ -115,7 +115,7 @@
                 "pages/nrk-tv-page.js",
                 "pages/plex-page.js",
                 "pages/areena-yle-page.js",
-                "pages/hbo-go-page.js",
+                "pages/hbo-max-page.js",
                 "anki-ui.js",
                 "mp3-encoder-worker.js",
                 "pgs-parser-worker.js",

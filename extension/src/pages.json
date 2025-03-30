@@ -144,7 +144,7 @@
         },
         {
             "host": "play.max.com",
-            "script": "hbo-go-page.js",
+            "script": "hbo-max-page.js",
             "path": "watch",
             "autoSync": {
                 "enabled": true
