@@ -1,80 +1,7 @@
-import { VideoDataSubtitleTrack } from '@project/common';
-import { Parser } from 'm3u8-parser';
-import { inferTracks, trackFromDef } from './util';
-import { Parser as m3U8Parser } from 'm3u8-parser';
+import { inferTracks } from './util';
+import { subtitleTrackSegmentsFromM3U8 } from './m3u8-util';
 
 setTimeout(() => {
-    function baseUrlForUrl(url: string) {
-        return url.substring(0, url.lastIndexOf('/'));
-    }
-    function m3U8(url: string): Promise<any> {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                // Bypass cache since Chrome might try to use a cached response that doesn't have appropriate CORS headers
-                fetch(url, { cache: 'no-store' })
-                    .then((response) => response.text())
-                    .then((text) => {
-                        const parser = new Parser();
-                        parser.push(text);
-                        parser.end();
-                        resolve(parser.manifest);
-                    })
-                    .catch(reject);
-            }, 0);
-        });
-    }
-
-    function completeM3U8(url: string): Promise<VideoDataSubtitleTrack[]> {
-        return new Promise((resolve, reject) => {
-            setTimeout(async () => {
-                try {
-                    const manifest = await m3U8(url);
-
-                    if (manifest.playlists instanceof Array && manifest.playlists.length > 0) {
-                        const subtitleGroup = manifest.mediaGroups?.SUBTITLES;
-
-                        if (subtitleGroup && subtitleGroup['sub-main']) {
-                            const tracks = subtitleGroup['sub-main'];
-                            const subtitles: VideoDataSubtitleTrack[] = [];
-
-                            for (const label of Object.keys(tracks)) {
-                                const track = tracks[label];
-
-                                if (track && typeof track.language === 'string' && typeof track.uri === 'string') {
-                                    const baseUrl = baseUrlForUrl(url);
-                                    const subtitleM3U8Url = `${baseUrl}/${track.uri}`;
-                                    const m3U8Response = await fetch(subtitleM3U8Url);
-                                    const parser = new m3U8Parser();
-                                    parser.push(await m3U8Response.text());
-                                    parser.end();
-                                    const firstUri = parser.manifest.segments[0].uri;
-                                    const extension = firstUri.substring(firstUri.lastIndexOf('.') + 1);
-                                    const subtitleBaseUrl = baseUrlForUrl(subtitleM3U8Url);
-                                    const urls = parser.manifest.segments
-                                        .filter((s: any) => !s.discontinuity && s.uri)
-                                        .map((s: any) => `${subtitleBaseUrl}/${s.uri}`);
-                                    const def = {
-                                        label: label,
-                                        language: track.language,
-                                        url: urls,
-                                        extension: extension,
-                                    };
-                                    subtitles.push(trackFromDef(def));
-                                }
-                            }
-
-                            resolve(subtitles);
-                            return;
-                        }
-                    }
-
-                    reject(new Error('Subtitles not found.'));
-                } catch (e) {
-                    reject(e);
-                }
-            }, 0);
-        });
-    }
     function basenameFromDOM(): string {
         const titleElements = document.getElementsByClassName('title-field');
         const subtitleElements = document.getElementsByClassName('subtitle-field');
@@ -138,7 +65,7 @@ setTimeout(() => {
                 setBasename((await basenameFromDOMWithRetries(10)) ?? '');
 
                 if (lastM3U8Url !== undefined) {
-                    const tracks = await completeM3U8(lastM3U8Url);
+                    const tracks = await subtitleTrackSegmentsFromM3U8(lastM3U8Url);
 
                     for (const track of tracks) {
                         addTrack(track);
