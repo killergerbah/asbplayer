@@ -38,6 +38,13 @@ export function subtitleTrackSegmentsFromM3U8(url: string): Promise<VideoDataSub
                         const promises: Promise<VideoDataSubtitleTrack>[] = [];
 
                         for (const label of Object.keys(tracks)) {
+                            if (label.includes('--forced--')) {
+                                // These tracks are not for the main content and duplicate the language code
+                                // so let's exclude them
+                                // Unfortunately could not find a better way to distinguish them from the real subtitle content
+                                continue;
+                            }
+
                             const track = tracks[label];
 
                             if (track && typeof track.language === 'string' && typeof track.uri === 'string') {
