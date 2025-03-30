@@ -17,15 +17,15 @@
 
 **asbplayer** is a browser-based media player and Chrome extension developed for language learners who learn their target language through subtitled media. With asbplayer, you can:
 
--   **Easily create high-quality, multimedia flashcards** out of subtitled videos.
--   **Load text-selectable subtitles onto most video sources**, including streaming sources.
--   **Extract subtitles from popular streaming services** like Netflix and YouTube.
--   **Seek through subtitles** using a **navigable subtitle list**.
--   **Optimize language-learning efficiency** using subtitled videos with **playback modes** like:
-    -   **Condensed playback**: Only play subtitled sections of a video.
-    -   **Fast-forward playback**: Fast-forward through unsubtitled sections of video.
-    -   **Auto-pause**: Automatically pause at the beginning or end of every subtitle.
--   **Use customizable keyboard shortcuts** to access most of asbplayer's features.
+- **Easily create high-quality, multimedia flashcards** out of subtitled videos.
+- **Load text-selectable subtitles onto most video sources**, including streaming sources.
+- **Extract subtitles from popular streaming services** like Netflix and YouTube.
+- **Seek through subtitles** using a **navigable subtitle list**.
+- **Optimize language-learning efficiency** using subtitled videos with **playback modes** like:
+    - **Condensed playback**: Only play subtitled sections of a video.
+    - **Fast-forward playback**: Fast-forward through unsubtitled sections of video.
+    - **Auto-pause**: Automatically pause at the beginning or end of every subtitle.
+- **Use customizable keyboard shortcuts** to access most of asbplayer's features.
 
 ## Thanks
 
@@ -68,7 +68,8 @@ AstralDice,
 [@NirDafnai](https://github.com/NirDafnai),
 [@henryfl](https://github.com/henryfl),
 トム,
-Peter
+Peter,
+[825i](https://github.com/825i)
 
 and to those who have donated privately.
 
@@ -135,21 +136,21 @@ Otherwise, the following steps for setting up automated Anki flashcards should w
 
 Text guides:
 
--   [Shiki's Lazy Sentence Mining Workflow (Japanese)](https://docs.google.com/document/d/e/2PACX-1vQuEAoZFoJbULZzCJ3_tW7ayT_DcQl9eDlrXMnuPGTwDk62r5fQrXak3ayxBsEgkL85_Z-YY5W4yUom/pub)
--   [Sentence mining from Netflix and YouTube with asbplayer (Japanese)](https://soyuz18.notion.site/Sentence-mining-from-Netflix-and-YouTube-with-asbplayer-83a03590cd8349ba81ca10340645b565)
--   [Refold's Anki guide](https://refold.la/roadmap/stage-1/a/anki-setup)
+- [Shiki's Lazy Sentence Mining Workflow (Japanese)](https://docs.google.com/document/d/e/2PACX-1vQuEAoZFoJbULZzCJ3_tW7ayT_DcQl9eDlrXMnuPGTwDk62r5fQrXak3ayxBsEgkL85_Z-YY5W4yUom/pub)
+- [Sentence mining from Netflix and YouTube with asbplayer (Japanese)](https://soyuz18.notion.site/Sentence-mining-from-Netflix-and-YouTube-with-asbplayer-83a03590cd8349ba81ca10340645b565)
+- [Refold's Anki guide](https://refold.la/roadmap/stage-1/a/anki-setup)
 
 Video guides:
 
--   [Refold's installation and basic usage guide](https://www.youtube.com/watch?v=GYsf-NOVoYc)
--   [Refold's sentence mining guide (European languages)](https://youtu.be/jXO4gmCmcNE?si=u-8F7L7PWgdsXK5t&t=678)
--   [Sentence Mining: Learning Japanese From Anime (Japanese)](https://www.youtube.com/watch?v=B60cj69MSmA)
--   [How to Setup and Use ASBPlayer for Vocab Mining (Japanese)](https://www.youtube.com/watch?v=D1tlb7zo8Og&ab_channel=pooks_)
+- [Refold's installation and basic usage guide](https://www.youtube.com/watch?v=GYsf-NOVoYc)
+- [Refold's sentence mining guide (European languages)](https://youtu.be/jXO4gmCmcNE?si=u-8F7L7PWgdsXK5t&t=678)
+- [Sentence Mining: Learning Japanese From Anime (Japanese)](https://www.youtube.com/watch?v=B60cj69MSmA)
+- [How to Setup and Use ASBPlayer for Vocab Mining (Japanese)](https://www.youtube.com/watch?v=D1tlb7zo8Og&ab_channel=pooks_)
 
 ## Demos
 
--   [3 ways to mine streaming video with asbplayer](https://www.youtube.com/watch?v=HrIJZ6cUMFw)
--   [Sentence mining a video file with asbplayer](https://www.youtube.com/watch?v=BSr_JusW8E8)
+- [3 ways to mine streaming video with asbplayer](https://www.youtube.com/watch?v=HrIJZ6cUMFw)
+- [Sentence mining a video file with asbplayer](https://www.youtube.com/watch?v=BSr_JusW8E8)
 
 ## Detailed usage
 
@@ -187,19 +188,19 @@ If you are using the asblayer website, you can also use the `Subtitle Offset` te
 
 Use <kbd>Ctrl + Shift + F</kbd> to see auto-detected subtitle tracks for streaming video. Below are the sites where automatic subtitle detection is supported:
 
--   Netflix
--   Youtube
--   Disney Plus (known issues: flakey video detection, subtitles sometimes off by ~5 seconds)
--   Hulu
--   TVer
--   Bandai Channel
--   Amazon Prime (known issue: subtitles sometimes off by ~30 seconds)
--   Emby
--   Jellyfin
--   Rakuten Viki
--   osnplus
--   BiliBili
--   Yle Areena
+- Netflix
+- Youtube
+- Disney Plus (known issues: flakey video detection, subtitles sometimes off by ~5 seconds)
+- Hulu
+- TVer
+- Bandai Channel
+- Amazon Prime (known issue: subtitles sometimes off by ~30 seconds)
+- Emby
+- Jellyfin
+- Rakuten Viki
+- osnplus
+- BiliBili
+- Yle Areena
 
 <kbd>Ctrl + Shift + F</kbd> also allows you to load an empty subtitle track so that you can extract audio and screenshots from streaming video without loading subtitles.
 
@@ -212,12 +213,12 @@ You can replace filtered content similarly by entering a string into the "Subtit
 
 Useful examples of regular expressions:
 
--   `([\(（]([^\(\)（）]|(([\(（][^\(\)（）]+[\)）])))+[\)）])` : Remove names enclosed by parenthesis to indicate speakers (e.g. "**（山田）**　元気ですか？")
--   `(.*)\n+(?!-)(.*)` : Some subtitles are split in several lines and this regex forces them into a single line. For this filter to work, you must also put `$1 $2` in the "Subtitle regex filter text replacement" field.
-    -   **NB**: When using this regex pattern in combination with other patterns (using the `|` operator, see below), place this pattern at the end. This ensures that all other regex transformations are applied first, and then the results are finally combined into a single line.
--   `-?\[.*\]` : Remove indications enclosed by square brackets that sound or music that is playing (e.g. "**\[PLAYFUL MUSIC]**" or "**\-[GASPS]**")
-    -   `^[\-\(\)\.\s\p{Lu}]+$` : As an alternative to the above, filter out descriptions written in capital letters, but without the square brackets (e.g. "**PLAYFUL MUSIC**"). If your language has additional letters with diacritics, you feel free to add them to this list.
--   `[♪♬#～〜]+` : Any combination of symbols on their own that represent playing music (e.g. `♪♬♪`)
+- `([\(（]([^\(\)（）]|(([\(（][^\(\)（）]+[\)）])))+[\)）])` : Remove names enclosed by parenthesis to indicate speakers (e.g. "**（山田）**　元気ですか？")
+- `(.*)\n+(?!-)(.*)` : Some subtitles are split in several lines and this regex forces them into a single line. For this filter to work, you must also put `$1 $2` in the "Subtitle regex filter text replacement" field.
+    - **NB**: When using this regex pattern in combination with other patterns (using the `|` operator, see below), place this pattern at the end. This ensures that all other regex transformations are applied first, and then the results are finally combined into a single line.
+- `-?\[.*\]` : Remove indications enclosed by square brackets that sound or music that is playing (e.g. "**\[PLAYFUL MUSIC]**" or "**\-[GASPS]**")
+    - `^[\-\(\)\.\s\p{Lu}]+$` : As an alternative to the above, filter out descriptions written in capital letters, but without the square brackets (e.g. "**PLAYFUL MUSIC**"). If your language has additional letters with diacritics, you feel free to add them to this list.
+- `[♪♬#～〜]+` : Any combination of symbols on their own that represent playing music (e.g. `♪♬♪`)
 
 Regular expressions can be combined with the character `|` (no spaces needed inbetween). E.g., if you want to use the 2 last regexes from this list, you can use `-?\[.*\]|[♪♬#～〜]+`. You can combine as many regexes as you wish this way.
 
@@ -295,7 +296,7 @@ See the proxy's [example configuration file](https://github.com/killergerbah/asb
 
 The asbplayer website can be controlled remotely through a WebSocket connection, which enables [one-click mining flows](#one-click-mining-flow) with the right setup. Currently asbplayer responds to three types of payloads:
 
--   `mine-subtitle` request:
+- `mine-subtitle` request:
 
     ```javascript
     {
@@ -328,7 +329,7 @@ The asbplayer website can be controlled remotely through a WebSocket connection,
     }
     ```
 
--   `load-subtitles` request:
+- `load-subtitles` request:
 
     ```javascript
     {
@@ -357,7 +358,7 @@ The asbplayer website can be controlled remotely through a WebSocket connection,
     }
     ```
 
--   `seek-timestamp` request:
+- `seek-timestamp` request:
 
     ```javascript
     {
@@ -408,12 +409,12 @@ The asbplayer website can be used offline thanks to offline PWA support provided
 
 ### asbplayer can't connect to Anki. It shows an error message e.g. 'Failed to fetch.'
 
--   If you're using Brave, make sure asbplayer isn't being blocked by Shield.
--   Make sure that asbplayer is allowed by AnkiConnect, as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
--   Make sure that the origin you add to the AnkiConnect settings is exactly `https://killergerbah.github.io` with no slash at the end (and not `https://killergerbah.github.io/asbplayer`).
--   Check that your browser or an ad blocker isn't blocking the request. A good place to start is by opening your browser's developer console and looking for errors.
--   As of this writing enabling experimental web platform features is known to cause this issue. Try disabling this flag from `chrome://flags`.
--   On later versions of macOS, AnkiConnect will not respond when Anki is backgrounded. See "Notes for MacOS Users" on the [AnkiConnect developer's website](https://foosoft.net/projects/anki-connect/).
+- If you're using Brave, make sure asbplayer isn't being blocked by Shield.
+- Make sure that asbplayer is allowed by AnkiConnect, as in this [video](https://youtu.be/Mv7fEVb6PHo?t=44).
+- Make sure that the origin you add to the AnkiConnect settings is exactly `https://killergerbah.github.io` with no slash at the end (and not `https://killergerbah.github.io/asbplayer`).
+- Check that your browser or an ad blocker isn't blocking the request. A good place to start is by opening your browser's developer console and looking for errors.
+- As of this writing enabling experimental web platform features is known to cause this issue. Try disabling this flag from `chrome://flags`.
+- On later versions of macOS, AnkiConnect will not respond when Anki is backgrounded. See "Notes for MacOS Users" on the [AnkiConnect developer's website](https://foosoft.net/projects/anki-connect/).
 
 ### When using the 'update last card' feature, the card does not update in Anki.
 
@@ -429,17 +430,17 @@ Chrome does not allow other extension scripts to be injected into extension UI, 
 
 ### asbplayer isn't detecting streaming video.
 
--   Try refreshing both the asbplayer tab and the video in the other tab.
--   Make sure that in the extension details, the extension has access to all sites.
+- Try refreshing both the asbplayer tab and the video in the other tab.
+- Make sure that in the extension details, the extension has access to all sites.
 
 ### Keyboard shortcuts aren't working.
 
--   Check the [keyboard shortcut settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts).
--   If you are using the extension:
-    -   Check `chrome://extensions/shortcuts`.
-    -   Try refreshing the page and loading subtitles again.
-    -   Try uninstalling and reinstalling the extension, and restarting Chrome.
-    -   Make sure the extension isn't installed twice.
+- Check the [keyboard shortcut settings](https://killergerbah.github.io/asbplayer/?view=settings#keyboard-shortcuts).
+- If you are using the extension:
+    - Check `chrome://extensions/shortcuts`.
+    - Try refreshing the page and loading subtitles again.
+    - Try uninstalling and reinstalling the extension, and restarting Chrome.
+    - Make sure the extension isn't installed twice.
 
 ### asbplayer isn't including audio/screenshot in flashcards.
 
@@ -447,8 +448,8 @@ If you're mining streaming video via the Chrome extension, make sure that the st
 
 ### asbplayer isn't properly cropping screenshots from streaming video.
 
--   Make sure the browser zoom setting is at 100%.
--   You can disable cropping altogether using the extension settings menu.
+- Make sure the browser zoom setting is at 100%.
+- You can disable cropping altogether using the extension settings menu.
 
 ### I'm having trouble creating cards using JP mining note.
 
