@@ -15,7 +15,7 @@ const manifestModifiedForFirefoxAndroid = (manifest) => {
     delete manifest['commands'];
     return {
         ...manifestModifiedForFirefox(manifest),
-        permissions: ['tabs', 'storage', 'webRequest', 'webRequestBlocking'],
+        permissions: ['tabs', 'storage', 'webRequest', 'webRequestBlocking', 'clipboardWrite'],
         browser_specific_settings: {
             gecko: {
                 id: '{49de9206-c73e-4829-be4d-bda770d7f4b5}',
@@ -32,7 +32,7 @@ const manifestModifiedForFirefox = (manifest) => {
     return {
         ...manifest,
         host_permissions: ['<all_urls>'],
-        permissions: ['tabs', 'storage', 'contextMenus', 'webRequest', 'webRequestBlocking'],
+        permissions: ['tabs', 'storage', 'contextMenus', 'webRequest', 'webRequestBlocking', 'clipboardWrite'],
         background: {
             scripts: ['background.js'],
             type: 'module',
