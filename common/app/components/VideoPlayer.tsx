@@ -1468,13 +1468,14 @@ export default function VideoPlayer({
     }, [miscSettings.pauseOnHoverMode, playerChannel]);
 
     const inBetweenMobileOverlayAndBottomSubtitles = (e: React.MouseEvent<HTMLVideoElement>) => {
-        if (!mobileOverlayRef.current || !bottomSubtitleContainerRef.current) {
+        if (!mobileOverlayRef.current || !bottomSubtitleContainerRef.current || !videoRef.current) {
             return;
         }
 
         const mobileOverlayRect = mobileOverlayRef.current.getBoundingClientRect();
         const subtitleContainerRect = bottomSubtitleContainerRef.current.getBoundingClientRect();
-        const bottom = mobileOverlayRect.y + mobileOverlayRect.height;
+        const videoRect = videoRef.current.getBoundingClientRect();
+        const bottom = videoRect.height + videoRect.y;
         const top = subtitleContainerRect.y;
         const left = Math.min(subtitleContainerRect.x, mobileOverlayRect.x);
         const right = Math.max(
