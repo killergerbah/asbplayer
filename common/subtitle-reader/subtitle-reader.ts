@@ -2,7 +2,7 @@ import { compile as parseAss } from 'ass-compiler';
 import SrtParser from '@qgustavor/srt-parser';
 import { WebVTT } from 'vtt.js';
 import { XMLParser } from 'fast-xml-parser';
-import { SubtitleTextImage } from '@project/common';
+import { SubtitleHtml, SubtitleTextImage } from '@project/common';
 
 const vttClassRegex = /<(\/)?c(\.[^>]*)?>/g;
 const assNewLineRegex = RegExp(/\\[nN]/, 'ig');
@@ -57,16 +57,19 @@ const sortVttCues = (list: VTTCue[]) => {
 
 export default class SubtitleReader {
     private readonly _textFilter?: TextFilter;
+    private readonly _removeXml: boolean;
     private readonly _pgsWorkerFactory: () => Promise<Worker>;
     private xmlParser?: XMLParser;
 
     constructor({
         regexFilter,
         regexFilterTextReplacement,
+        subtitleHtml,
         pgsParserWorkerFactory: pgsWorkerFactory,
     }: {
         regexFilter: string;
         regexFilterTextReplacement: string;
+        subtitleHtml: SubtitleHtml;
         pgsParserWorkerFactory: () => Promise<Worker>;
     }) {
         let regex: RegExp | undefined;
@@ -82,6 +85,8 @@ export default class SubtitleReader {
         } else {
             this._textFilter = { regex, replacement: regexFilterTextReplacement };
         }
+
+        this._removeXml = subtitleHtml === SubtitleHtml.remove;
 
         this._pgsWorkerFactory = pgsWorkerFactory;
     }
@@ -127,7 +132,7 @@ export default class SubtitleReader {
                 return {
                     start: Math.floor((node.startTime as number) * 1000),
                     end: Math.floor((node.endTime as number) * 1000),
-                    text: this._filterText(node.text, true),
+                    text: this._filterText(node.text),
                     track: track,
                 };
             });
@@ -142,7 +147,7 @@ export default class SubtitleReader {
                 let buffer: VTTCue[] = [];
 
                 parser.oncue = (c: VTTCue) => {
-                    c.text = this._filterText(c.text.replaceAll(vttClassRegex, ''), true);
+                    c.text = this._filterText(c.text.replaceAll(vttClassRegex, ''));
 
                     if (isFromNetflix) {
                         const lines = c.text.split('\n');
@@ -196,8 +201,7 @@ export default class SubtitleReader {
                     start: Math.round(dialogue.start * 1000),
                     end: Math.round(dialogue.end * 1000),
                     text: this._filterText(
-                        dialogue.slices.flatMap((slice) => slice.fragments.map((fragment) => fragment.text)).join(''),
-                        false
+                        dialogue.slices.flatMap((slice) => slice.fragments.map((fragment) => fragment.text)).join('')
                     ).replace(assNewLineRegex, '\n'),
                     track: track,
                 };
@@ -228,7 +232,7 @@ export default class SubtitleReader {
                 const subtitle = {
                     start: Math.floor(start * 1000),
                     end: Math.floor((start + parseFloat(elm['@_dur'])) * 1000),
-                    text: this._filterText(this._decodeHTML(String(elm['#text'])), true),
+                    text: this._filterText(this._decodeHTML(String(elm['#text']))),
                     track,
                 };
 
@@ -281,7 +285,7 @@ export default class SubtitleReader {
 
                 const text = this._decodeHTML(elm.innerHTML.replaceAll(/<br(\s[^\s]+)?(\/)?>/g, '\n'));
                 subtitles.push({
-                    text: this._filterText(text, false),
+                    text: this._filterText(text),
                     start: this._parseTtmlTimestamp(beginAttribute),
                     end: this._parseTtmlTimestamp(endAttribute),
                     track,
@@ -414,11 +418,13 @@ export default class SubtitleReader {
     private _decodeHTML(text: string): string {
         helperElement.innerHTML = text;
 
+        // Remove <rt> element content
         const rubyTextElements = [...helperElement.getElementsByTagName('rt')];
         for (const rubyTextElement of rubyTextElements) {
             rubyTextElement.remove();
         }
 
+        // Remove all HTML tags
         return helperElement.textContent ?? helperElement.innerText;
     }
 
@@ -432,13 +438,13 @@ export default class SubtitleReader {
         return this.xmlParser;
     }
 
-    private _filterText(text: string, removeXml: boolean): string {
+    private _filterText(text: string): string {
         text =
             this._textFilter === undefined
                 ? text
                 : text.replace(this._textFilter.regex, this._textFilter.replacement).trim();
 
-        if (removeXml) {
+        if (this._removeXml) {
             text = this._decodeHTML(text);
         }
 

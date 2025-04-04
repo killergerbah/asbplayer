@@ -236,9 +236,10 @@ function App({
         return new SubtitleReader({
             regexFilter: settings.subtitleRegexFilter,
             regexFilterTextReplacement: settings.subtitleRegexFilterTextReplacement,
+            subtitleHtml: settings.subtitleHtml,
             pgsParserWorkerFactory: async () => new pgsParserWorkerFactory(),
         });
-    }, [settings.subtitleRegexFilter, settings.subtitleRegexFilterTextReplacement]);
+    }, [settings.subtitleRegexFilter, settings.subtitleRegexFilterTextReplacement, settings.subtitleHtml]);
     const webSocketClient = useAppWebSocketClient({ settings });
     const [subtitles, setSubtitles] = useState<DisplaySubtitleModel[]>([]);
     const playbackPreferences = usePlaybackPreferences(settings, extension);

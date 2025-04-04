@@ -1,4 +1,4 @@
-import { AnkiExportMode, AutoPausePreference, PostMineAction, PostMinePlayback } from '../src/model';
+import { AnkiExportMode, AutoPausePreference, PostMineAction, PostMinePlayback, SubtitleHtml } from '../src/model';
 
 export enum PauseOnHoverMode {
     disabled = 0,
@@ -16,6 +16,7 @@ export interface MiscSettings {
     readonly rememberSubtitleOffset: boolean;
     readonly autoCopyCurrentSubtitle: boolean;
     readonly alwaysPlayOnSubtitleRepeat: boolean;
+    readonly subtitleHtml: SubtitleHtml;
     readonly subtitleRegexFilter: string;
     readonly subtitleRegexFilterTextReplacement: string;
     readonly miningHistoryStorageLimit: number;
