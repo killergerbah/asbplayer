@@ -429,8 +429,12 @@ const AnkiDialog = ({
     );
 
     useEffect(() => {
+        if (!open) {
+            return;
+        }
+
         setImage(Image.fromCard(card, settings.maxImageWidth, settings.maxImageHeight));
-    }, [card, settings.maxImageWidth, settings.maxImageHeight]);
+    }, [card, open, settings.maxImageWidth, settings.maxImageHeight]);
 
     useEffect(() => {
         if (!open && image) {
