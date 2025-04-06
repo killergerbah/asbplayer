@@ -23,6 +23,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import Popover from '@mui/material/Popover';
+import ErrorIcon from '@mui/icons-material/Error';
 
 interface BarProps {
     drawerWidth: number;
@@ -30,10 +31,12 @@ interface BarProps {
     hidden: boolean;
     title: string;
     subtitleFiles?: File[];
+    lastError?: any;
     onFileSelector?: () => void;
     onDownloadSubtitleFilesAsSrt: () => void;
     onOpenSettings: () => void;
     onOpenCopyHistory: () => void;
+    onCopyLastError: (error: string) => void;
 }
 
 interface StyleProps {
@@ -122,9 +125,11 @@ export default function Bar({
     hidden,
     title,
     subtitleFiles,
+    lastError,
     onOpenSettings,
     onOpenCopyHistory,
     onDownloadSubtitleFilesAsSrt,
+    onCopyLastError,
 }: BarProps) {
     const classes = useStyles({ drawerWidth });
     const canSaveAsSrt =
@@ -144,6 +149,22 @@ export default function Bar({
         setMenuAnchorEl(e.currentTarget as HTMLElement);
         setMenuOpen(true);
     }, []);
+    const handleCopyLastError = useCallback(async () => {
+        if (!lastError) {
+            return;
+        }
+
+        let errorString: string;
+
+        if (lastError instanceof Error) {
+            errorString = `${lastError.message}\n${lastError.stack}`;
+        } else {
+            errorString = String(lastError);
+        }
+
+        await navigator.clipboard.writeText(errorString);
+        onCopyLastError(errorString);
+    }, [lastError, onCopyLastError]);
 
     return (
         <>
@@ -228,6 +249,16 @@ export default function Bar({
                             </ListItemButton>
                         </ListItem>
                     </Link>
+                    {lastError && (
+                        <ListItem disablePadding>
+                            <ListItemButton onClick={handleCopyLastError}>
+                                <ListItemIcon>
+                                    <ErrorIcon />
+                                </ListItemIcon>
+                                <ListItemText primary={t('bar.copyLastError')!} />
+                            </ListItemButton>
+                        </ListItem>
+                    )}
                     <Link href="https://github.com/killergerbah/asbplayer#donations">
                         <ListItem disablePadding>
                             <ListItemButton>

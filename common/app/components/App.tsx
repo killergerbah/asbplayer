@@ -294,13 +294,14 @@ function App({
     const [disableKeyEvents, setDisableKeyEvents] = useState<boolean>(false);
     const [tab, setTab] = useState<VideoTabModel>();
     const [availableTabs, setAvailableTabs] = useState<VideoTabModel[]>();
+    const [lastError, setLastError] = useState<any>();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { subtitleFiles } = sources;
 
     const handleError = useCallback(
         (message: any) => {
             console.error(message);
-
+            setLastError(message);
             setAlertSeverity('error');
 
             if (message instanceof LocalizedError) {
@@ -313,6 +314,25 @@ function App({
                 setAlert(String(message));
             }
 
+            setAlertOpen(true);
+        },
+        [t]
+    );
+
+    const handleCopyLastError = useCallback(
+        (error: string) => {
+            setAlertSeverity('info');
+
+            let truncatedError: string;
+            const maxErrorLength = 32;
+
+            if (error.length >= maxErrorLength) {
+                truncatedError = `${error.substring(0, maxErrorLength)}...`;
+            } else {
+                truncatedError = error;
+            }
+
+            setAlert(t('info.copiedSubtitle', { text: truncatedError })!);
             setAlertOpen(true);
         },
         [t]
@@ -1329,6 +1349,8 @@ function App({
                                 onOpenCopyHistory={handleOpenCopyHistory}
                                 onDownloadSubtitleFilesAsSrt={handleDownloadSubtitleFilesAsSrt}
                                 onOpenSettings={handleOpenSettings}
+                                lastError={lastError}
+                                onCopyLastError={handleCopyLastError}
                             />
                             <input
                                 ref={fileInputRef}

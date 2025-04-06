@@ -87,7 +87,8 @@
         "help": "Pomoc",
         "miningHistory": "Historia kopania",
         "settings": "Ustawienia",
-        "submitIssue": "Zgłoś problem"
+        "submitIssue": "Zgłoś problem",
+        "copyLastError": "Copy Last Error"
     },
     "binds": {
         "adjustOffset": "Przestaw przesunięcie napisów o ±100ms",

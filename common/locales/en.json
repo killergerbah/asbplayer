@@ -87,7 +87,8 @@
         "help": "Help",
         "miningHistory": "Mining History",
         "settings": "Settings",
-        "submitIssue": "Submit Issue"
+        "submitIssue": "Submit Issue",
+        "copyLastError": "Copy Last Error"
     },
     "binds": {
         "adjustOffset": "Adjust subtitle offset by ±100 ms",

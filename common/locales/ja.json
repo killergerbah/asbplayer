@@ -87,7 +87,8 @@
         "help": "ヘルプ",
         "miningHistory": "マイニング履歴",
         "settings": "設定",
-        "submitIssue": "不具合の報告"
+        "submitIssue": "不具合の報告",
+        "copyLastError": "Copy Last Error"
     },
     "binds": {
         "adjustOffset": "字幕の表示タイミング ±100ms",
