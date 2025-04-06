@@ -1,4 +1,6 @@
 import { Validator } from 'jsonschema';
+import { AsbplayerSettings } from './settings';
+import { ensureConsistencyOnRead } from './settings-provider';
 
 const keyBindSchema = {
     id: '/KeyBind',
@@ -416,6 +418,8 @@ export const validateSettings = (settings: any) => {
     if (!result.valid) {
         throw new Error('Settings validation failed: ' + JSON.stringify(result.errors));
     }
+
+    return ensureConsistencyOnRead(settings as AsbplayerSettings);
 };
 
 const validateAllKnownKeys = (object: any, path: string[]) => {

@@ -361,6 +361,49 @@ const deepEquals = (a: any, b: any) => {
     return true;
 };
 
+export const ensureConsistencyOnRead = (settings: Partial<AsbplayerSettings>) => {
+    let keyBindSetModified = false;
+    let newKeyBindSet: any = {};
+    let ankiFieldSettingsModified = false;
+    let newAnkiFieldSettings: any = {};
+
+    if (settings.keyBindSet !== undefined) {
+        const keyBindSet = settings.keyBindSet;
+
+        for (const key of Object.keys(defaultSettings.keyBindSet)) {
+            const keyBindName = key as KeyBindName;
+
+            if (keyBindSet[keyBindName] === undefined) {
+                newKeyBindSet[keyBindName] = defaultSettings.keyBindSet[keyBindName];
+                keyBindSetModified = true;
+            } else {
+                newKeyBindSet[keyBindName] = keyBindSet[keyBindName];
+            }
+        }
+    }
+
+    if (settings.ankiFieldSettings !== undefined) {
+        const ankiFieldSettings = settings.ankiFieldSettings;
+
+        for (const key of Object.keys(defaultSettings.ankiFieldSettings)) {
+            const fieldName = key as keyof AnkiFieldSettings;
+
+            if (ankiFieldSettings[fieldName] === undefined) {
+                newAnkiFieldSettings[fieldName] = defaultSettings.ankiFieldSettings[fieldName];
+                ankiFieldSettingsModified = true;
+            } else {
+                newAnkiFieldSettings[fieldName] = ankiFieldSettings[fieldName];
+            }
+        }
+    }
+
+    if (!ankiFieldSettingsModified && !keyBindSetModified) {
+        return settings;
+    }
+
+    return { ...settings, ...{ ankiFieldSettings: newAnkiFieldSettings }, ...{ keyBindSet: newKeyBindSet } };
+};
+
 type SettingsKey = keyof AsbplayerSettings;
 
 const complexValuedKeys = Object.fromEntries(
@@ -414,50 +457,7 @@ export class SettingsProvider {
             }
         }
 
-        return this._ensureConsistencyOnRead(result) as Pick<AsbplayerSettings, K>;
-    }
-
-    private _ensureConsistencyOnRead(settings: Partial<AsbplayerSettings>) {
-        let keyBindSetModified = false;
-        let newKeyBindSet: any = {};
-        let ankiFieldSettingsModified = false;
-        let newAnkiFieldSettings: any = {};
-
-        if (settings.keyBindSet !== undefined) {
-            const keyBindSet = settings.keyBindSet;
-
-            for (const key of Object.keys(defaultSettings.keyBindSet)) {
-                const keyBindName = key as KeyBindName;
-
-                if (keyBindSet[keyBindName] === undefined) {
-                    newKeyBindSet[keyBindName] = defaultSettings.keyBindSet[keyBindName];
-                    keyBindSetModified = true;
-                } else {
-                    newKeyBindSet[keyBindName] = keyBindSet[keyBindName];
-                }
-            }
-        }
-
-        if (settings.ankiFieldSettings !== undefined) {
-            const ankiFieldSettings = settings.ankiFieldSettings;
-
-            for (const key of Object.keys(defaultSettings.ankiFieldSettings)) {
-                const fieldName = key as keyof AnkiFieldSettings;
-
-                if (ankiFieldSettings[fieldName] === undefined) {
-                    newAnkiFieldSettings[fieldName] = defaultSettings.ankiFieldSettings[fieldName];
-                    ankiFieldSettingsModified = true;
-                } else {
-                    newAnkiFieldSettings[fieldName] = ankiFieldSettings[fieldName];
-                }
-            }
-        }
-
-        if (!ankiFieldSettingsModified && !keyBindSetModified) {
-            return settings;
-        }
-
-        return { ...settings, ...{ ankiFieldSettings: newAnkiFieldSettings }, ...{ keyBindSet: newKeyBindSet } };
+        return ensureConsistencyOnRead(result) as Pick<AsbplayerSettings, K>;
     }
 
     async set(settings: Partial<AsbplayerSettings>): Promise<void> {

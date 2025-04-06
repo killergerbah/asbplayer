@@ -1123,8 +1123,8 @@ export default function SettingsForm({
             }
 
             const importedSettings = JSON.parse(await file.text());
-            validateSettings(importedSettings);
-            onSettingsChanged(importedSettings as AsbplayerSettings);
+            const validatedSettings = validateSettings(importedSettings);
+            onSettingsChanged(validatedSettings);
         } catch (e) {
             console.error(e);
         }
@@ -1224,6 +1224,7 @@ export default function SettingsForm({
         selectedSubtitleAppearanceTrack !== undefined &&
         textSubtitleSettingsAreDirty(settings, selectedSubtitleAppearanceTrack);
     const tabsOrientation = smallScreen ? 'horizontal' : 'vertical';
+
     return (
         <div className={classes.root}>
             <Tabs
