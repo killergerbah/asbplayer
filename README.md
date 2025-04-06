@@ -69,7 +69,8 @@ AstralDice,
 [@henryfl](https://github.com/henryfl),
 トム,
 Peter,
-[@825i](https://github.com/825i)
+[@825i](https://github.com/825i),
+ags
 
 and to those who have donated privately.
 
