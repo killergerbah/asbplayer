@@ -87,7 +87,8 @@
         "help": "帮助",
         "miningHistory": "词汇挖矿历史",
         "settings": "设置",
-        "submitIssue": "提交问题（github)"
+        "submitIssue": "提交问题（github)",
+        "copyLastError": "Copy Last Error"
     },
     "binds": {
         "adjustOffset": "调整字幕偏移量（±100ms）",

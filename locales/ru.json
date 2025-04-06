@@ -87,7 +87,8 @@
         "help": "Помощь",
         "miningHistory": "История майнинга",
         "settings": "Настройки",
-        "submitIssue": "Сообщить о проблеме"
+        "submitIssue": "Сообщить о проблеме",
+        "copyLastError": "Copy Last Error"
     },
     "binds": {
         "adjustOffset": "Настроить задержку субтитров на ±100 мс",

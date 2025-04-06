@@ -87,7 +87,8 @@
         "help": "Hilfe",
         "miningHistory": "Extraktions-Historie",
         "settings": "Einstellungen",
-        "submitIssue": "Fehler melden"
+        "submitIssue": "Fehler melden",
+        "copyLastError": "Copy Last Error"
     },
     "binds": {
         "adjustOffset": "Untertiteloffset ±100ms",

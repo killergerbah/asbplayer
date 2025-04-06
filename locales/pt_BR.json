@@ -87,7 +87,8 @@
         "help": "Ajuda",
         "miningHistory": "Histórico de mineração",
         "settings": "Configurações",
-        "submitIssue": "Reportar problemas"
+        "submitIssue": "Reportar problemas",
+        "copyLastError": "Copy Last Error"
     },
     "binds": {
         "adjustOffset": "Ajuste o atraso da legenda em  ±100 ms",

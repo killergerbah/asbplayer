@@ -87,7 +87,8 @@
         "help": "Ayuda",
         "miningHistory": "Historial de Minado",
         "settings": "Ajustes",
-        "submitIssue": "Reportar Problema"
+        "submitIssue": "Reportar Problema",
+        "copyLastError": "Copy Last Error"
     },
     "binds": {
         "adjustOffset": "Ajustar offset de los subtítulos en ±100 ms",
