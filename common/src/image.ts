@@ -194,24 +194,28 @@ class FileImageData implements ImageData {
             }
 
             video.onseeked = async () => {
-                this._canvasPromiseReject = undefined;
+                try {
+                    this._canvasPromiseReject = undefined;
 
-                if (!this._canvas) {
-                    this._canvas = document.createElement('canvas');
-                }
+                    if (!this._canvas) {
+                        this._canvas = document.createElement('canvas');
+                    }
 
-                const canvas = this._canvas;
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const ctx = canvas.getContext('2d');
-                ctx!.drawImage(video, 0, 0, canvas.width, canvas.height);
-                video.onseeked = null;
+                    const canvas = this._canvas;
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx!.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    video.onseeked = null;
 
-                if (this._maxWidth > 0 || this._maxHeight > 0) {
-                    await resizeCanvas(canvas, ctx!, this._maxWidth, this._maxHeight);
-                    resolve(canvas);
-                } else {
-                    resolve(canvas);
+                    if (this._maxWidth > 0 || this._maxHeight > 0) {
+                        await resizeCanvas(canvas, ctx!, this._maxWidth, this._maxHeight);
+                        resolve(canvas);
+                    } else {
+                        resolve(canvas);
+                    }
+                } catch (e) {
+                    reject(e);
                 }
             };
 
