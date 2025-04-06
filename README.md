@@ -95,7 +95,8 @@ Thank you to all those who have contributed to asbplayer:
 [@eltociear](https://github.com/eltociear),
 [@MarvNC](https://github.com/MarvNC),
 [@mcgrizzz](https://github.com/mcgrizzz),
-[@mwojick](https://github.com/mwojick)
+[@mwojick](https://github.com/mwojick),
+[@kowasaur](https://github.com/kowasaur)
 
 Thank you to all those who have translated asbplayer:
 
