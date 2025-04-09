@@ -41,7 +41,7 @@ export const useImageData = ({ image, smoothTransition }: { image?: CommonImage;
                 })
                 .catch((e) => {
                     if (!(e instanceof CancelledImageDataRenderingError)) {
-                        throw e;
+                        console.error(e);
                     }
                 });
         }
