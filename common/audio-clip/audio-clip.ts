@@ -395,26 +395,31 @@ class FileAudioClipper {
 
     private _audioElement(blobUrl: string, selectTrack: boolean): Promise<ExperimentalAudioElement> {
         const audio = new Audio() as ExperimentalAudioElement;
-        audio.preload = 'metadata';
+        audio.preload = 'auto';
         audio.src = blobUrl;
 
         return new Promise((resolve, reject) => {
-            audio.onloadedmetadata = () => {
-                if (selectTrack && this._trackId && audio.audioTracks && audio.audioTracks.length > 0) {
-                    // @ts-ignore
-                    for (const t of audio.audioTracks) {
-                        t.enabled = this._trackId === t.id;
+            const t0 = Date.now();
+            const interval = setInterval(() => {
+                if (
+                    (audio.seekable.length > 0 && audio.seekable.end(0) === audio.duration) ||
+                    Date.now() - t0 >= 5_000
+                ) {
+                    if (selectTrack && this._trackId && audio.audioTracks && audio.audioTracks.length > 0) {
+                        // @ts-ignore
+                        for (const t of audio.audioTracks) {
+                            t.enabled = this._trackId === t.id;
+                        }
                     }
+                    audio.onerror = () => {
+                        reject(audio.error?.message ?? 'Could not load audio');
+                    };
+                    audio.currentTime = this._start / 1000;
+                    audio.playbackRate = this._playbackRate;
+                    clearInterval(interval);
+                    resolve(audio);
                 }
-
-                audio.currentTime = this._start / 1000;
-                audio.playbackRate = this._playbackRate;
-                resolve(audio);
-            };
-
-            audio.onerror = () => {
-                reject(audio.error?.message ?? 'Could not load audio');
-            };
+            }, 100);
         });
     }
 

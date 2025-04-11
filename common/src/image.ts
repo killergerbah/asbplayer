@@ -181,7 +181,7 @@ class FileImageData implements ImageData {
 
         this._canvasPromise = new Promise(async (resolve, reject) => {
             this._canvasPromiseReject = reject;
-            const video = this._videoElement(this._file);
+            const video = await this._videoElement(this._file);
             const calculateCurrentTime = () => Math.max(0, Math.min(video.duration, this._timestamp / 1000));
 
             if (Number.isFinite(video.duration)) {
@@ -227,20 +227,31 @@ class FileImageData implements ImageData {
         return this._canvasPromise;
     }
 
-    private _videoElement(file: FileModel) {
+    private async _videoElement(file: FileModel): Promise<HTMLVideoElement> {
         if (this._video) {
             return this._video;
         }
 
-        const video = document.createElement('video');
-        video.src = file.blobUrl;
-        video.preload = 'metadata';
-        video.autoplay = false;
-        video.volume = 0;
-        video.controls = false;
-        video.pause();
-        this._video = video;
-        return video;
+        return new Promise((resolve, reject) => {
+            const video = document.createElement('video');
+            video.src = file.blobUrl;
+            video.preload = 'auto';
+            video.autoplay = false;
+            video.volume = 0;
+            video.controls = false;
+            video.pause();
+            const t0 = Date.now();
+            const interval = setInterval(() => {
+                if (
+                    (video.seekable.length > 0 && video.seekable.end(0) === video.duration) ||
+                    Date.now() - t0 >= 5_000
+                ) {
+                    this._video = video;
+                    clearInterval(interval);
+                    resolve(video);
+                }
+            }, 100);
+        });
     }
 
     dispose() {
