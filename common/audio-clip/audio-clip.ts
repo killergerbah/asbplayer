@@ -5,7 +5,6 @@ import { download } from '@project/common/util';
 import { isActiveBlobUrl } from '../blob-url';
 import { base64ToBlob, blobToBase64 } from '../base64';
 import { isFirefox } from '../browser-detection';
-import { mediaElementAtApproximateTimestamp } from '../src/media-element';
 
 const maxPrefixLength = 24;
 
@@ -308,8 +307,6 @@ class FileAudioClipper {
                         source.connect(destination);
                     }
 
-                    const effectiveStart = audio.currentTime * 1000;
-
                     await audio.play();
 
                     if (audible) {
@@ -349,7 +346,7 @@ class FileAudioClipper {
                                 track.stop();
                             }
                         },
-                        (this._end - effectiveStart) / this._playbackRate + 100
+                        (this._end - this._start) / this._playbackRate + 100
                     );
                 };
             } catch (e) {
@@ -397,19 +394,28 @@ class FileAudioClipper {
     }
 
     private _audioElement(blobUrl: string, selectTrack: boolean): Promise<ExperimentalAudioElement> {
-        return mediaElementAtApproximateTimestamp(
-            blobUrl,
-            this._start,
-            () => new Audio() as ExperimentalAudioElement,
-            (elm) => {
-                if (selectTrack && this._trackId && elm.audioTracks && elm.audioTracks.length > 0) {
+        const audio = new Audio() as ExperimentalAudioElement;
+        audio.preload = 'metadata';
+        audio.src = blobUrl;
+
+        return new Promise((resolve, reject) => {
+            audio.onloadedmetadata = () => {
+                if (selectTrack && this._trackId && audio.audioTracks && audio.audioTracks.length > 0) {
                     // @ts-ignore
-                    for (const t of elm.audioTracks) {
+                    for (const t of audio.audioTracks) {
                         t.enabled = this._trackId === t.id;
                     }
                 }
-            }
-        );
+
+                audio.currentTime = this._start / 1000;
+                audio.playbackRate = this._playbackRate;
+                resolve(audio);
+            };
+
+            audio.onerror = () => {
+                reject(audio.error?.message ?? 'Could not load audio');
+            };
+        });
     }
 
     private _stopAudio(audio: HTMLAudioElement, revokeBlobUrl: boolean) {

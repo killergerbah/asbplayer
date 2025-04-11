@@ -2,7 +2,6 @@ import { resizeCanvas } from './image-transformer';
 import { CardModel, FileModel, ImageErrorCode } from './model';
 import { download } from '../util/util';
 import { isActiveBlobUrl } from '../blob-url';
-import { mediaElementAtApproximateTimestamp } from './media-element';
 
 const maxPrefixLength = 24;
 
@@ -136,8 +135,7 @@ class FileImageData implements ImageData {
         }
 
         this._canvasPromiseReject?.(new CancelledImageDataRenderingError());
-        this.dispose();
-        return new FileImageData(this._file, timestamp, this._maxWidth, this._maxHeight, undefined, this._canvas);
+        return new FileImageData(this._file, timestamp, this._maxWidth, this._maxHeight, this._video, this._canvas);
     }
 
     get canChangeTimestamp() {
@@ -183,46 +181,66 @@ class FileImageData implements ImageData {
 
         this._canvasPromise = new Promise(async (resolve, reject) => {
             this._canvasPromiseReject = reject;
+            const video = this._videoElement(this._file);
+            const calculateCurrentTime = () => Math.max(0, Math.min(video.duration, this._timestamp / 1000));
 
-            try {
-                const video = await this._videoElement(this._file);
-                this._canvasPromiseReject = undefined;
-
-                if (!this._canvas) {
-                    this._canvas = document.createElement('canvas');
-                }
-
-                const canvas = this._canvas;
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const ctx = canvas.getContext('2d');
-                ctx!.drawImage(video, 0, 0, canvas.width, canvas.height);
-                video.onseeked = null;
-
-                if (this._maxWidth > 0 || this._maxHeight > 0) {
-                    await resizeCanvas(canvas, ctx!, this._maxWidth, this._maxHeight);
-                    resolve(canvas);
-                } else {
-                    resolve(canvas);
-                }
-            } catch (e) {
-                reject(e);
+            if (Number.isFinite(video.duration)) {
+                video.currentTime = calculateCurrentTime();
+            } else {
+                video.onloadedmetadata = () => {
+                    video.currentTime = calculateCurrentTime();
+                    video.onloadedmetadata = null;
+                };
             }
+
+            video.onseeked = async () => {
+                try {
+                    this._canvasPromiseReject = undefined;
+
+                    if (!this._canvas) {
+                        this._canvas = document.createElement('canvas');
+                    }
+
+                    const canvas = this._canvas;
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx!.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    video.onseeked = null;
+
+                    if (this._maxWidth > 0 || this._maxHeight > 0) {
+                        await resizeCanvas(canvas, ctx!, this._maxWidth, this._maxHeight);
+                        resolve(canvas);
+                    } else {
+                        resolve(canvas);
+                    }
+                } catch (e) {
+                    reject(e);
+                }
+            };
+
+            video.onerror = () => {
+                reject(video.error?.message ?? 'Could not load video to obtain screenshot');
+            };
         });
 
         return this._canvasPromise;
     }
 
-    private async _videoElement(file: FileModel) {
-        if (!this._video) {
-            this._video = await mediaElementAtApproximateTimestamp(file.blobUrl, this._timestamp, () => {
-                const vid = document.createElement('video');
-                vid.volume = 0;
-                return vid;
-            });
+    private _videoElement(file: FileModel) {
+        if (this._video) {
+            return this._video;
         }
 
-        return this._video;
+        const video = document.createElement('video');
+        video.src = file.blobUrl;
+        video.preload = 'metadata';
+        video.autoplay = false;
+        video.volume = 0;
+        video.controls = false;
+        video.pause();
+        this._video = video;
+        return video;
     }
 
     dispose() {
