@@ -134,6 +134,7 @@
         "toggleVideoSubtitleTrack3": "Включить/выключить дорожку субтитров 3 в видео",
         "toggleVideoSubtitleTracks": "Включить/выключить дорожку субтитров в видео",
         "updateLastCard": "Обновить последнюю карточку в Анки с захваченным скриншотом, аудио и т.д. из asbplayer.",
+        "exportCard": "Export card to Anki, bypassing dialog.",
         "toggleSidePanel": "Включить/выключить боковую панель",
         "toggleRepeat": "Переключить режим повтора"
     },

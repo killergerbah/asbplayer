@@ -709,6 +709,7 @@ interface Props {
     extensionSupportsTrackSpecificSettings: boolean;
     extensionSupportsSubtitlesWidthSetting: boolean;
     extensionSupportsPauseOnHover: boolean;
+    extensionSupportsExportCardBind: boolean;
     insideApp?: boolean;
     appVersion?: string;
     settings: AsbplayerSettings;
@@ -739,6 +740,7 @@ export default function SettingsForm({
     extensionSupportsTrackSpecificSettings,
     extensionSupportsSubtitlesWidthSetting,
     extensionSupportsPauseOnHover,
+    extensionSupportsExportCardBind,
     insideApp,
     appVersion,
     scrollToId,
@@ -769,6 +771,11 @@ export default function SettingsForm({
             updateLastCard: {
                 label: t('binds.updateLastCard')!,
                 boundViaChrome: true,
+            },
+            exportCard: {
+                label: t('binds.exportCard')!,
+                boundViaChrome: true,
+                hide: extensionInstalled && !extensionSupportsExportCardBind,
             },
             takeScreenshot: {
                 label: t('binds.takeScreenshot')!,
@@ -843,7 +850,7 @@ export default function SettingsForm({
                 hide: !extensionInstalled || !extensionSupportsSidePanel,
             },
         }),
-        [t, extensionInstalled, extensionSupportsSidePanel]
+        [t, extensionInstalled, extensionSupportsSidePanel, extensionSupportsExportCardBind]
     );
 
     const {

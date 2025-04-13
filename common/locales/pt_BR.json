@@ -134,6 +134,7 @@
         "toggleVideoSubtitleTrack3": "Alternar faixa de legenda 3 no vídeo",
         "toggleVideoSubtitleTracks": "Alterne a faixa de legenda no vídeo",
         "updateLastCard": "Atualiza o último cartão criado no Anki com captura de tela, áudio, etc. do asbplayer.",
+        "exportCard": "Export card to Anki, bypassing dialog.",
         "toggleSidePanel": "Alternar painel lateral",
         "toggleRepeat": "Toggle repeat mode"
     },

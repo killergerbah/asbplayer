@@ -887,52 +887,39 @@ export default function SubtitlePlayer({
         );
     }, [keyBinder, disableKeyEvents, onToggleSubtitleTrack]);
 
+    const mineCard = useCallback(
+        (event: KeyboardEvent, postMineAction: PostMineAction) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const currentSubtitle = calculateCurrentSubtitle();
+
+            if (currentSubtitle) {
+                onCopy(currentSubtitle, calculateSurroundingSubtitles(), postMineAction);
+            }
+        },
+        [onCopy, calculateCurrentSubtitle, calculateSurroundingSubtitles]
+    );
+
     useEffect(() => {
         return keyBinder.bindAnkiExport(
-            (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-
-                const currentSubtitle = calculateCurrentSubtitle();
-
-                if (currentSubtitle) {
-                    onCopy(currentSubtitle, calculateSurroundingSubtitles(), PostMineAction.showAnkiDialog);
-                }
-            },
+            (event) => mineCard(event, PostMineAction.showAnkiDialog),
             () => disableKeyEvents || disableMiningBinds
         );
-    }, [
-        keyBinder,
-        onCopy,
-        disableKeyEvents,
-        disableMiningBinds,
-        subtitles,
-        calculateCurrentSubtitle,
-        calculateSurroundingSubtitles,
-    ]);
+    }, [mineCard, keyBinder, disableKeyEvents, disableMiningBinds]);
 
     useEffect(() => {
         return keyBinder.bindUpdateLastCard(
-            (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                const currentSubtitle = calculateCurrentSubtitle();
-
-                if (currentSubtitle) {
-                    onCopy(currentSubtitle, calculateSurroundingSubtitles(), PostMineAction.updateLastCard);
-                }
-            },
+            (event) => mineCard(event, PostMineAction.updateLastCard),
             () => disableKeyEvents || disableMiningBinds
         );
-    }, [
-        keyBinder,
-        onCopy,
-        disableKeyEvents,
-        disableMiningBinds,
-        subtitles,
-        calculateCurrentSubtitle,
-        calculateSurroundingSubtitles,
-    ]);
+    }, [mineCard, keyBinder, disableKeyEvents, disableMiningBinds]);
+
+    useEffect(() => {
+        return keyBinder.bindExportCard(
+            (event) => mineCard(event, PostMineAction.exportCard),
+            () => disableKeyEvents || disableMiningBinds
+        );
+    }, [mineCard, keyBinder, disableKeyEvents, disableMiningBinds]);
 
     const handleClick = useCallback(
         (index: number) => {

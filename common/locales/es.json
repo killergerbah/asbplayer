@@ -134,6 +134,7 @@
         "toggleVideoSubtitleTrack3": "Activar/Desactivar pista de subtítulos 3 en el video",
         "toggleVideoSubtitleTracks": "Activar/Desactivar pista de subtítulos en el video",
         "updateLastCard": "Actualizar la última tarjeta de Anki creada con captura de pantalla, audio, etc. capturado por asbplayer",
+        "exportCard": "Export card to Anki, bypassing dialog.",
         "toggleSidePanel": "Abrir/Cerrar Panel Lateral",
         "toggleRepeat": "Activar/Desactivar modo de repetición"
     },

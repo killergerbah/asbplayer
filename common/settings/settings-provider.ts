@@ -102,6 +102,7 @@ export const defaultSettings: AsbplayerSettings = {
         copySubtitle: { keys: isMacOs ? '⇧+⌃+Z' : 'ctrl+shift+Z' },
         ankiExport: { keys: isMacOs ? '⇧+⌃+X' : 'ctrl+shift+X' },
         updateLastCard: { keys: isMacOs ? '⇧+⌃+U' : 'ctrl+shift+U' },
+        exportCard: { keys: '' },
         takeScreenshot: { keys: isMacOs ? '⇧+⌃+V' : 'ctrl+shift+V' },
         toggleRecording: { keys: isMacOs ? '⇧+⌃+R' : 'ctrl+shift+R' },
         decreasePlaybackRate: { keys: isMacOs ? '⇧+⌃+[' : 'ctrl+shift+[' },

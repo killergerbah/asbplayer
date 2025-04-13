@@ -128,6 +128,10 @@ export default class ChromeExtension {
         window.addEventListener('message', this.windowEventListener);
     }
 
+    get supportsExportCardBind() {
+        return this.installed && gte(this.version, '1.10.0');
+    }
+
     get supportsGlobalState() {
         return this.installed && gte(this.version, '1.9.0');
     }

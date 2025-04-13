@@ -134,6 +134,7 @@
         "toggleVideoSubtitleTrack3": "動画の字幕トラック 3 オン/オフ",
         "toggleVideoSubtitleTracks": "動画の字幕トラック オン/オフ",
         "updateLastCard": "asbplayer でキャプチャしたスクリーンショットや音声を、最後に作成した Anki カードに添付して更新する",
+        "exportCard": "Export card to Anki, bypassing dialog.",
         "toggleSidePanel": "サイドパネルを開く/閉じる",
         "toggleRepeat": "リピートプレイバックオン/オフ"
     },

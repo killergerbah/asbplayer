@@ -247,6 +247,7 @@ chrome.commands?.onCommand.addListener((command) => {
         switch (command) {
             case 'copy-subtitle':
             case 'update-last-card':
+            case 'export-card':
             case 'copy-subtitle-with-dialog':
                 const postMineAction = postMineActionFromCommand(command);
                 tabRegistry.publishCommandToVideoElements((videoElement) => {
@@ -375,6 +376,8 @@ function postMineActionFromCommand(command: string) {
             return PostMineAction.showAnkiDialog;
         case 'update-last-card':
             return PostMineAction.updateLastCard;
+        case 'export-card':
+            return PostMineAction.exportCard;
         default:
             throw new Error('Cannot determine post mine action for unknown command ' + command);
     }

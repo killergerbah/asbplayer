@@ -11,6 +11,9 @@
     "shortcutUpdateLastCardDescription": {
         "message": "Update last-created Anki card with asbplayer-captured media. When video is synced without a subtitle file, starts/stops recording audio."
     },
+    "shortcutExportCardDescription": {
+        "message": "Export card directly to Anki, bypassing dialog."
+    },
     "shortcutTakeScreenshotDescription": {
         "message": "Manually take screenshot, overriding the one that is automatically taken when mining."
     },

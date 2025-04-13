@@ -1,6 +1,7 @@
 import { Validator } from 'jsonschema';
 import { AsbplayerSettings } from './settings';
 import { ensureConsistencyOnRead } from './settings-provider';
+import { exportCard } from '../anki';
 
 const keyBindSchema = {
     id: '/KeyBind',
@@ -259,6 +260,7 @@ const settingsSchema = {
                 copySubtitle: { $ref: '/KeyBind' },
                 ankiExport: { $ref: '/KeyBind' },
                 updateLastCard: { $ref: '/KeyBind' },
+                exportCard: { $ref: '/KeyBind' },
                 takeScreenshot: { $ref: '/KeyBind' },
                 toggleRecording: { $ref: '/KeyBind' },
                 decreasePlaybackRate: { $ref: '/KeyBind' },

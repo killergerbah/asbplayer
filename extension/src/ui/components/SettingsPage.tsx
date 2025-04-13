@@ -100,6 +100,7 @@ const SettingsPage = ({ settings, onSettingsChanged, ...profileContext }: Props)
                         extensionSupportsTrackSpecificSettings
                         extensionSupportsSubtitlesWidthSetting
                         extensionSupportsPauseOnHover
+                        extensionSupportsExportCardBind
                         chromeKeyBinds={commands}
                         onOpenChromeExtensionShortcuts={handleOpenExtensionShortcuts}
                         onSettingsChanged={onSettingsChanged}

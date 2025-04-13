@@ -123,6 +123,7 @@ const Popup = ({
                     extensionSupportsTrackSpecificSettings
                     extensionSupportsSubtitlesWidthSetting
                     extensionSupportsPauseOnHover
+                    extensionSupportsExportCardBind
                     forceVerticalTabs={false}
                     anki={anki}
                     chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}
