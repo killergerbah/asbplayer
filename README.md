@@ -195,7 +195,7 @@ Use <kbd>Ctrl + Shift + F</kbd> to see auto-detected subtitle tracks for streami
 
 - Netflix
 - Youtube
-- Disney Plus (known issues: seeking/syncing broken)
+- Disney Plus (known issues: seeking/syncing broken, see [issue](https://github.com/killergerbah/asbplayer/issues/576))
 - Hulu
 - TVer
 - Bandai Channel
