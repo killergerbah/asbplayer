@@ -383,7 +383,7 @@ export default function VideoPlayer({
     showSubtitlesRef.current = showSubtitles;
     const clock = useMemo<Clock>(() => new Clock(), []);
     const mousePositionRef = useRef<Point | undefined>(undefined);
-    const [showCursor, setShowCursor] = useState<boolean>(false);
+    const [showCursor, setShowCursor] = useState<boolean>(isMobile);
     const lastMouseMovementTimestamp = useRef<number>(0);
     const containerRef = useRef<HTMLDivElement>(null);
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
@@ -1420,6 +1420,10 @@ export default function VideoPlayer({
     const handleDoubleClick = useCallback(() => handleFullscreenToggle(), [handleFullscreenToggle]);
 
     useEffect(() => {
+        if (isMobile) {
+            return;
+        }
+
         const interval = setInterval(() => {
             if (Date.now() - lastMouseMovementTimestamp.current > 300) {
                 if (showCursor) {
