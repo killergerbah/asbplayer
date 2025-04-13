@@ -134,6 +134,7 @@
         "toggleVideoSubtitleTrack3": "Untertitel 3 in Video umschalten",
         "toggleVideoSubtitleTracks": "Untertitel in Video umschalten",
         "updateLastCard": "Zuletzt erstellte Anki-Karte mit aufgezeichnetem Untertitel",
+        "exportCard": "Export card to Anki, bypassing dialog.",
         "toggleSidePanel": "Toggle side panel",
         "toggleRepeat": "Toggle repeat mode"
     },

@@ -88,7 +88,7 @@
         "miningHistory": "マイニング履歴",
         "settings": "設定",
         "submitIssue": "不具合の報告",
-        "copyLastError": "Copy Last Error"
+        "copyLastError": "最後のエラーをコピー"
     },
     "binds": {
         "adjustOffset": "字幕の表示タイミング ±100ms",
@@ -134,6 +134,7 @@
         "toggleVideoSubtitleTrack3": "動画の字幕トラック 3 オン/オフ",
         "toggleVideoSubtitleTracks": "動画の字幕トラック オン/オフ",
         "updateLastCard": "asbplayer でキャプチャしたスクリーンショットや音声を、最後に作成した Anki カードに添付して更新する",
+        "exportCard": "直接カードをAnkiにエクスポート。",
         "toggleSidePanel": "サイドパネルを開く/閉じる",
         "toggleRepeat": "リピートプレイバックオン/オフ"
     },
@@ -350,9 +351,9 @@
         "tabName": "タブ名",
         "subtitleRegexFilter": "字幕の正規表現フィルタ",
         "subtitleRegexFilterTextReplacement": "字幕の正規表現フィルタの置き換えテキスト",
-        "subtitleHtml": "Subtitle HTML",
-        "subtitleHtmlRemove": "Remove",
-        "subtitleHtmlRender": "Render",
+        "subtitleHtml": "字幕に含まれるHTML",
+        "subtitleHtmlRemove": "削除する",
+        "subtitleHtmlRender": "レンダリングする",
         "subtitleSize": "字幕のサイズ",
         "subtitleThickness": "字幕のフォントの太さ",
         "subtitlesWidth": "字幕の幅",

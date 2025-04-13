@@ -134,6 +134,7 @@
         "toggleVideoSubtitleTrack3": "Przełącz ścieżkę napisów 3 w wideo",
         "toggleVideoSubtitleTracks": "Przełącz ścieżki napisów w wideo",
         "updateLastCard": "Zaktualizuj ostatnio zapisaną kartę Anki o zrzuty ekranu",
+        "exportCard": "Export card to Anki, bypassing dialog.",
         "toggleSidePanel": "Przełącz panel boczny",
         "toggleRepeat": "Przełącz tryb zapętlenia"
     },
