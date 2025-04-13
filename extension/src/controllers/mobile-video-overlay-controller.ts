@@ -236,7 +236,7 @@ export class MobileVideoOverlayController {
         const smallScreen = videoRect.height < smallScreenVideoHeightThreshold;
         const height = smallScreen ? 64 : 108;
         const tooltips = !smallScreen;
-        const width = Math.max(videoRect.width, 400);
+        const width = 410;
         const src = encodeURIComponent(this._context.video.src);
 
         return { width, height, anchor, src, tooltips };
