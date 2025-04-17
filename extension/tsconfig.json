@@ -1,26 +1,16 @@
 {
+    "extends": "./.wxt/tsconfig.json",
     "compilerOptions": {
-        "outDir": "./dist",
-        "allowJs": true,
         "lib": ["dom", "DOM.Iterable", "ESNext"],
-        "target": "ES2020",
-        "module": "ESNext",
         "jsx": "react-jsx",
-        "esModuleInterop": true,
         "downlevelIteration": true,
-        "resolveJsonModule": true,
         "useDefineForClassFields": true,
-        "skipLibCheck": true,
-        "moduleResolution": "bundler",
         "allowImportingTsExtensions": true,
         "isolatedModules": true,
         "moduleDetection": "force",
-        "noEmit": true,
-        "strict": true,
         "noUnusedLocals": false,
         "noUnusedParameters": false,
         "noFallthroughCasesInSwitch": true,
         "noUncheckedSideEffectImports": true
-    },
-    "include": ["./src/**/*", "decs.d.ts", "vite-env.d.ts"]
+    }
 }
