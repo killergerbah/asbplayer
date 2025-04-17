@@ -12,16 +12,14 @@ import {
 import AudioRecorder, { TimedRecordingInProgressError } from './services/audio-recorder';
 import { Mp3Encoder } from '@project/common/audio-clip';
 import { bufferToBase64 } from '@project/common/base64';
+import { mp3WorkerFactory } from './services/mp3-worker-factory';
 
 const audioRecorder = new AudioRecorder();
 
 const _sendAudioBase64 = async (base64: string, requestId: string, encodeAsMp3: boolean) => {
     if (encodeAsMp3) {
         const blob = await (await fetch('data:audio/webm;base64,' + base64)).blob();
-        const mp3Blob = await Mp3Encoder.encode(
-            blob,
-            () => new Worker(chrome.runtime.getURL('./mp3-encoder-worker.js'))
-        );
+        const mp3Blob = await Mp3Encoder.encode(blob, mp3WorkerFactory);
         base64 = bufferToBase64(await mp3Blob.arrayBuffer());
     }
 

@@ -474,7 +474,7 @@ The extension is compatible with most Chromium-based browsers. It is also compat
 
 Pull requests are welcome! However, to reduce back-and-forth during review ideally consult with me on the corresponding issue or on [Discord](https://discord.gg/ad7VAQru7m) before attempting changes to UI/UX. When making changes, format code according to the Prettier config and attempt to match the style of surrounding code.
 
-## Building and running
+## Development
 
 ```
 # Install yarn
@@ -489,14 +489,14 @@ yarn
 # Starts the development server for the website
 yarn workspace @project/client run start
 
-# Build the Chromium version of the extension to extension/dist/chromium
-yarn workspace @project/extension buildDev
+# Starts the dev server for the Chromium version of the extension to extension/.output/chrome-mv3-dev
+yarn workspace @project/extension dev
 
-# Build the Firefox version of the extension to extension/dist/firefox
-yarn workspace @project/extension buildDevFirefox
+# Starts the dev server for the Firefox version of the extension to extension/.output/firefox-mv2-dev
+yarn workspace @project/extension dev:firefox
 
-# Build the Firefox for Android version of the extension to extension/dist/firefoxandroid
-yarn workspace @project/extension buildDevFirefoxAndroid
+# Starts the dev server for the Firefox for Android version of the extension to extension/.output/firefox-android-mv2-dev
+yarn workspace @project/extension dev:firefox-android
 ```
 
 If you have problems building try deleting `node_modules` and re-running `yarn`.
