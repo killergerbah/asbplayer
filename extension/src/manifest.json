@@ -6,9 +6,9 @@
     "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxmdAa3ymqAjLms43ympXqtyuJnC2bSYh70+5ZZmtyx/MsnGhTEdfbqtsp3BKxHbv0rPd49+Joacm1Shik5/mCppZ0h4I4ISMm983X01H6p/hfAzQYAcnvw/ZQNHAv1QgY9JiuyTBirCDoYB50Fxol/kI/0EviYXuX83KoYpjB0VGP/ssY9ocT//fQUbRmeLDJnciry8y6MduWXHzseOP99axQIjeVsNTE30L4fRN+ppX3aOkG/RFJNx0eI02qbLul3qw5dUuBK5GgMbYftwjHnDoOegnZYFr1sxRO1zsgmxdp/6du75RiDPRJOkPCz2GTrw4CX2FCywbDZlqaIpwqQIDAQAB",
     "default_locale": "en",
     "icons": {
-        "16": "assets/icon16.png",
-        "48": "assets/icon48.png",
-        "128": "assets/icon128.png"
+        "16": "icon/icon16.png",
+        "48": "icon/icon48.png",
+        "128": "icon/icon128.png"
     },
     "minimum_chrome_version": "116",
     "permissions": ["tabs", "tabCapture", "activeTab", "storage", "contextMenus", "sidePanel", "offscreen"],
@@ -92,16 +92,8 @@
         {
             "resources": [
                 "chunks/*",
-                "assets/image.png",
-                "assets/fonts.css",
-                "assets/Roboto-Bold.woff2",
-                "assets/Roboto-Light.woff2",
-                "assets/Roboto-Medium.woff2",
-                "assets/Roboto-Regular.woff2",
-                "assets/Roboto-BoldItalic.woff2",
-                "assets/Roboto-LightItalic.woff2",
-                "assets/Roboto-MediumItalic.woff2",
-                "assets/Roboto-Italic.woff2",
+                "fonts/*",
+                "icon/image.png",
                 "pages/netflix-page.js",
                 "pages/youtube-page.js",
                 "pages/tver-page.js",

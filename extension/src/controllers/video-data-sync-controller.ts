@@ -28,7 +28,7 @@ async function html(lang: string) {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <title>asbplayer - Video Data Sync</title>
                 <style>
-                    @import url(${chrome.runtime.getURL('./assets/fonts.css')});
+                    @import url(${chrome.runtime.getURL('./fonts/fonts.css')});
                 </style>
             </head>
             <body>
