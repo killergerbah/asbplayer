@@ -1,3 +1,20 @@
-import { currentPageDelegate } from './services/pages';
+import { currentPageDelegate } from '@/services/pages';
+import { ContentScriptContext } from 'wxt/utils/content-script-context';
 
-currentPageDelegate()?.loadScripts();
+const excludeGlobs = ['*://killergerbah.github.io/asbplayer*'];
+
+if (import.meta.env.DEV) {
+    excludeGlobs.push('*://localhost:3000/*');
+}
+
+export default defineContentScript({
+    // Set manifest options
+    matches: ['<all_urls>'],
+    excludeGlobs,
+    allFrames: true,
+    runAt: 'document_start',
+
+    main(ctx: ContentScriptContext) {
+        currentPageDelegate()?.loadScripts();
+    },
+});
