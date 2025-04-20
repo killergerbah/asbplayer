@@ -51,7 +51,8 @@ export class ExtensionSettingsStorage implements SettingsStorage {
     }
 
     async activeProfile(): Promise<Profile | undefined> {
-        const name = (await this._storage.get(activeProfileKey))[activeProfileKey];
+        const result = await this._storage.get(activeProfileKey);
+        const name = result && result[activeProfileKey];
 
         if (name === undefined) {
             return undefined;

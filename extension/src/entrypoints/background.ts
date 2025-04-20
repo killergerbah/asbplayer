@@ -398,6 +398,8 @@ export default defineBackground(() => {
     tabRegistry.onAsbplayerInstance(updateWebSocketClientState);
     tabRegistry.onSyncedElement(updateWebSocketClientState);
 
+    const action = browser.action || browser.browserAction;
+
     const defaultAction = (tab: chrome.tabs.Tab) => {
         if (isMobile) {
             if (tab.id !== undefined) {
@@ -407,36 +409,36 @@ export default defineBackground(() => {
                         command: 'toggle-video-select',
                     },
                 };
-                chrome.tabs.sendMessage(tab.id, extensionToVideoCommand);
+                browser.tabs.sendMessage(tab.id, extensionToVideoCommand);
             }
         } else {
-            chrome.action.openPopup();
+            action.openPopup();
         }
     };
 
     if (isFirefoxBuild) {
         let hasHostPermission = true;
 
-        chrome.permissions.contains({ origins: ['<all_urls>'] }).then((result) => {
+        browser.permissions.contains({ origins: ['<all_urls>'] }, (result) => {
             hasHostPermission = result;
 
             if (hasHostPermission && !isMobile) {
-                chrome.action.setPopup({
+                action.setPopup({
                     popup: 'popup-ui.html',
                 });
             }
         });
 
-        chrome.action.onClicked.addListener(async (tab) => {
+        action.onClicked.addListener(async (tab) => {
             if (hasHostPermission) {
                 defaultAction(tab);
             } else {
                 try {
-                    const obtainedHostPermission = await chrome.permissions.request({ origins: ['<all_urls>'] });
+                    const obtainedHostPermission = await browser.permissions.request({ origins: ['<all_urls>'] });
 
                     if (obtainedHostPermission) {
                         hasHostPermission = true;
-                        chrome.runtime.reload();
+                        browser.runtime.reload();
                     }
                 } catch (e) {
                     console.error(e);
@@ -445,12 +447,12 @@ export default defineBackground(() => {
         });
     } else {
         if (!isMobile) {
-            chrome.action.setPopup({
+            action.setPopup({
                 popup: 'popup-ui.html',
             });
         }
 
-        chrome.action.onClicked.addListener(defaultAction);
+        action.onClicked.addListener(defaultAction);
     }
 
     if (isFirefoxBuild) {
@@ -459,7 +461,7 @@ export default defineBackground(() => {
         // However, such an iframe inherits the content security directives of the parent document,
         // which may prevent loading of extension scripts into the iframe.
         // Because of this, we modify CSP headers below to explicitly allow access to extension-packaged resources.
-        chrome.webRequest.onHeadersReceived.addListener(
+        browser.webRequest.onHeadersReceived.addListener(
             (details) => {
                 const responseHeaders = details.responseHeaders;
 
@@ -470,7 +472,7 @@ export default defineBackground(() => {
                 for (const header of responseHeaders) {
                     if (header.name.toLowerCase() === 'content-security-policy') {
                         let cspValue = header.value;
-                        cspValue += ` ; script-src moz-extension://${chrome.runtime.id}`;
+                        cspValue += ` ; script-src moz-extension://${browser.runtime.id}`;
                     }
                 }
 

@@ -72,11 +72,8 @@ export default class TabRegistry {
     }
 
     private async _fetchVideoElementState(): Promise<{ [key: string]: VideoElement }> {
-        return (
-            ((await chrome.storage.session.get('tabRegistryVideoElements')).tabRegistryVideoElements as {
-                [key: string]: VideoElement;
-            }) ?? {}
-        );
+        const result = await chrome.storage.session.get('tabRegistryVideoElements');
+        return (result && (result.tabRegistryVideoElements as { [key: string]: VideoElement })) ?? {};
     }
 
     private async _saveVideoElementState(state: { [key: string]: VideoElement }) {
@@ -125,11 +122,8 @@ export default class TabRegistry {
     }
 
     private async _fetchAsbplayerState(): Promise<{ [key: string]: Asbplayer }> {
-        return (
-            ((await chrome.storage.session.get('tabRegistryAsbplayers')).tabRegistryAsbplayers as {
-                [key: string]: Asbplayer;
-            }) ?? {}
-        );
+        const result = await chrome.storage.session.get('tabRegistryAsbplayers');
+        return (result && (result.tabRegistryAsbplayers as { [key: string]: Asbplayer })) ?? {};
     }
 
     private async _saveAsbplayerState(state: { [key: string]: Asbplayer }) {

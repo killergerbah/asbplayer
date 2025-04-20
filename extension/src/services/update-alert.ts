@@ -2,7 +2,8 @@ const shouldShowKey = 'shouldShowUpdateAlert';
 const lastUpdateAlertVersionKey = 'lastUpdateAlertVersion';
 
 export const enqueueUpdateAlert = async () => {
-    const lastUpdateVersion = (await chrome.storage.local.get(lastUpdateAlertVersionKey))[lastUpdateAlertVersionKey];
+    const result = await chrome.storage.local.get(lastUpdateAlertVersionKey);
+    const lastUpdateVersion = result && result[lastUpdateAlertVersionKey];
 
     if (lastUpdateVersion === chrome.runtime.getManifest().version) {
         return;

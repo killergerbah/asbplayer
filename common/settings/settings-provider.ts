@@ -443,7 +443,7 @@ export class SettingsProvider {
         const result: any = {};
 
         for (const key in parameters) {
-            const value = data[key as SettingsKey] ?? defaultSettings[key as SettingsKey];
+            const value = (data && data[key as SettingsKey]) ?? defaultSettings[key as SettingsKey];
 
             if (complexValuedKeys[key]) {
                 const lastValue = this._complexValues[key as SettingsKey];
