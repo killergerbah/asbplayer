@@ -1,5 +1,5 @@
-import { renderFtueUi } from './ui/ftue';
-import { renderUpdateUi } from './ui/update';
+import { renderFtueUi } from '@/ui/ftue';
+import { renderUpdateUi } from '@/ui/update';
 
 window.addEventListener('load', () => {
     const root = document.getElementById('root')!;

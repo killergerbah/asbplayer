@@ -9,10 +9,10 @@ import {
     StopRecordingErrorCode,
     StopRecordingResponse,
 } from '@project/common';
-import AudioRecorder, { TimedRecordingInProgressError } from './services/audio-recorder';
+import AudioRecorder, { TimedRecordingInProgressError } from '@/services/audio-recorder';
 import { Mp3Encoder } from '@project/common/audio-clip';
 import { bufferToBase64 } from '@project/common/base64';
-import { mp3WorkerFactory } from './services/mp3-worker-factory';
+import { mp3WorkerFactory } from '@/services/mp3-worker-factory';
 
 const audioRecorder = new AudioRecorder();
 

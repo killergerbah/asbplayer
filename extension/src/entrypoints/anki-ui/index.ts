@@ -1,14 +1,16 @@
-import { renderAnkiUi } from './ui/anki';
-import FrameBridgeServer from './services/frame-bridge-server';
+import { renderAnkiUi } from '@/ui/anki';
+import FrameBridgeServer from '@/services/frame-bridge-server';
 
-window.addEventListener('load', (e) => {
-    const root = document.getElementById('root')!;
-    const loc = JSON.parse(document.getElementById('loc')!.innerHTML!);
-    const bridge = renderAnkiUi(root, loc.lang, loc.strings);
-    const listener = new FrameBridgeServer(bridge);
-    listener.bind();
+export default defineUnlistedScript(() => {
+    window.addEventListener('load', (e) => {
+        const root = document.getElementById('root')!;
+        const loc = JSON.parse(document.getElementById('loc')!.innerHTML!);
+        const bridge = renderAnkiUi(root, loc.lang, loc.strings);
+        const listener = new FrameBridgeServer(bridge);
+        listener.bind();
 
-    window.addEventListener('unload', (e) => {
-        listener.unbind();
+        window.addEventListener('unload', (e) => {
+            listener.unbind();
+        });
     });
 });
