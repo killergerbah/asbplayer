@@ -63,7 +63,11 @@ function parse(fileStream: ReadableStream, canvas: OffscreenCanvas) {
     );
 }
 
-onmessage = async (e: MessageEvent) => {
-    const { fileStream, canvas } = e.data;
-    parse(fileStream, canvas);
-};
+export function onMessage() {
+    onmessage = async (e: MessageEvent) => {
+        const { fileStream, canvas } = e.data;
+        parse(fileStream, canvas);
+    };
+}
+
+onMessage();
