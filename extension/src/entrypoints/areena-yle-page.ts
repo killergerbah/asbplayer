@@ -80,4 +80,6 @@ export const inferTracksFromInterceptedM3u8 = (urlRegex: RegExp) => {
     });
 };
 
-inferTracksFromInterceptedM3u8(/https:\/\/.+\.m3u8.+/);
+export default defineUnlistedScript(() => {
+    inferTracksFromInterceptedM3u8(/https:\/\/.+\.m3u8.+/);
+});
