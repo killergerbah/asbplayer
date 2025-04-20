@@ -93,6 +93,7 @@
             "resources": [
                 "chunks/*",
                 "fonts/*",
+                "asbplayer-locales/*",
                 "icon/image.png",
                 "pages/netflix-page.js",
                 "pages/youtube-page.js",
@@ -116,18 +117,8 @@
                 "pgs-parser-worker.js",
                 "video-data-sync-ui.js",
                 "video-select-ui.js",
-                "mobile-video-overlay-ui.html",
-                "mobile-video-overlay-ui.js",
                 "notification-ui.js",
-                "asbplayer-locales/de.json",
-                "asbplayer-locales/en.json",
-                "asbplayer-locales/es.json",
-                "asbplayer-locales/ja.json",
-                "asbplayer-locales/pl.json",
-                "asbplayer-locales/zh_CN.json",
-                "asbplayer-locales/pt_BR.json",
-                "asbplayer-locales/ru.json",
-                "asbplayer-locales/fi.json"
+                "mobile-video-overlay-ui.html"
             ],
             "matches": ["<all_urls>"]
         }
