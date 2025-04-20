@@ -3092,7 +3092,7 @@ __metadata:
     ts-jest: ^29.2.5
     typescript: ~5.7.2
     uuid: 8.3.2
-    wxt: ^0.20.0
+    wxt: ^0.20.3
   languageName: unknown
   linkType: soft
 
@@ -14865,9 +14865,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wxt@npm:^0.20.0":
-  version: 0.20.1
-  resolution: "wxt@npm:0.20.1"
+"wxt@npm:^0.20.3":
+  version: 0.20.3
+  resolution: "wxt@npm:0.20.3"
   dependencies:
     "@1natsu/wait-element": ^4.1.2
     "@aklinker1/rollup-plugin-visualizer": 5.12.0
@@ -14917,7 +14917,7 @@ __metadata:
   bin:
     wxt: bin/wxt.mjs
     wxt-publish-extension: bin/wxt-publish-extension.cjs
-  checksum: 88b473daa6b848788a7e622c36503584e80463c533b9d304d215ee0de24b0f5077070b0754a4a4e70eb395752cd19300e0ade22f248c313a6e19493e2c8e62c2
+  checksum: 466d5af2ee618aef72203fbc7fc62e22c93c846a5c26a0735a0aae63f48e5426a51c2ee602a9e479290f201c0e588026e6bcf2cfe01938f8b4661c7057d3bc7e
   languageName: node
   linkType: hard
 
