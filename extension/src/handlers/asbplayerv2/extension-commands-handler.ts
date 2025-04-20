@@ -9,7 +9,7 @@ export default class ExtensionCommandsHandler {
         return 'extension-commands';
     }
 
-    handle(command: Command<Message>, sender: browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
         if (browser.commands === undefined) {
             sendResponse({});
             return false;

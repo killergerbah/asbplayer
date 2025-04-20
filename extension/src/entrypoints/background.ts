@@ -72,7 +72,7 @@ export default defineBackground(() => {
         primeLocalization(await settings.getSingle('language'));
     };
 
-    const installListener = async (details: browser.runtime.InstalledDetails) => {
+    const installListener = async (details: Browser.runtime.InstalledDetails) => {
         if (details.reason !== browser.runtime.OnInstalledReason.INSTALL) {
             return;
         }
@@ -99,7 +99,7 @@ export default defineBackground(() => {
         browser.tabs.create({ url: browser.runtime.getURL('ftue-ui.html'), active: true });
     };
 
-    const updateListener = async (details: browser.runtime.InstalledDetails) => {
+    const updateListener = async (details: Browser.runtime.InstalledDetails) => {
         if (details.reason !== browser.runtime.OnInstalledReason.UPDATE) {
             return;
         }
@@ -400,7 +400,7 @@ export default defineBackground(() => {
 
     const action = browser.action || browser.browserAction;
 
-    const defaultAction = (tab: browser.tabs.Tab) => {
+    const defaultAction = (tab: Browser.tabs.Tab) => {
         if (isMobile) {
             if (tab.id !== undefined) {
                 const extensionToVideoCommand: ExtensionToVideoCommand<ToggleVideoSelectMessage> = {

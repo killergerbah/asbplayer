@@ -65,7 +65,7 @@ const errorResponseForError = (e: any) => {
 };
 
 window.onload = async () => {
-    const listener = (request: any, sender: browser.runtime.MessageSender, sendResponse: (response?: any) => void) => {
+    const listener = (request: any, sender: Browser.runtime.MessageSender, sendResponse: (response?: any) => void) => {
         if (request.sender === 'asbplayer-extension-to-offscreen-document') {
             switch (request.message.command) {
                 case 'start-recording-audio-with-timeout':

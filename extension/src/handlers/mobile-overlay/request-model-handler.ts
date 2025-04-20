@@ -9,7 +9,7 @@ export default class RequestModelHandler {
         return 'request-mobile-overlay-model';
     }
 
-    handle(command: Command<Message>, sender: browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
         if (sender.tab?.id === undefined) {
             return;
         }

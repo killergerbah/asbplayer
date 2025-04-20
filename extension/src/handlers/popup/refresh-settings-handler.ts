@@ -32,7 +32,7 @@ export default class RefreshSettingsHandler {
         return 'settings-updated';
     }
 
-    handle(command: Command<Message>, sender: browser.runtime.MessageSender) {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         this._settingsProvider
             .get(['language', 'webSocketClientEnabled'])
             .then(({ language, webSocketClientEnabled }) => {

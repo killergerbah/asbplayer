@@ -16,7 +16,7 @@ export default class VideoHeartbeatHandler {
         return 'heartbeat';
     }
 
-    handle(command: Command<Message>, sender: browser.runtime.MessageSender): boolean {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender): boolean {
         const videoToExtensionCommand = command as VideoToExtensionCommand<VideoHeartbeatMessage>;
 
         if (sender.tab) {

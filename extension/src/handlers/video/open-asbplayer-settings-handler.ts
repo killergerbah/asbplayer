@@ -9,7 +9,7 @@ export default class OpenAsbplayerSettingsHandler {
         return 'open-asbplayer-settings';
     }
 
-    async handle(command: Command<Message>, sender: browser.runtime.MessageSender) {
+    async handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         browser.runtime.openOptionsPage();
     }
 }

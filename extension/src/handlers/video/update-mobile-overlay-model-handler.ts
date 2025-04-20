@@ -9,7 +9,7 @@ export default class UpdateMobileOverlayModelHandler {
         return 'update-mobile-overlay-model';
     }
 
-    async handle(command: Command<Message>, sender: browser.runtime.MessageSender) {
+    async handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         if (sender.tab?.id === undefined) {
             return;
         }

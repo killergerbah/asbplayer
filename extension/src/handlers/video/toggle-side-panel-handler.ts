@@ -15,7 +15,7 @@ export default class ToggleSidePanelHandler {
         return 'toggle-side-panel';
     }
 
-    handle(command: Command<Message>, sender: browser.runtime.MessageSender) {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         let sidePanelOpen = false;
         this._tabRegistry.publishCommandToAsbplayers({
             commandFactory: (asbplayer) => {

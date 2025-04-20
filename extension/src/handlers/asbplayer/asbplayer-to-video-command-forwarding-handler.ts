@@ -9,7 +9,7 @@ export default class AsbplayerToVideoCommandForwardingHandler {
         return null;
     }
 
-    handle(command: Command<Message>, sender: browser.runtime.MessageSender) {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         const asbplayerToVideoCommand = command as AsbPlayerToVideoCommand<Message>;
         const extensionToVideoCommand: ExtensionToVideoCommand<Message> = {
             sender: 'asbplayer-extension-to-video',

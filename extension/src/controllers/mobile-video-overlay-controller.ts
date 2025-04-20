@@ -30,7 +30,7 @@ export class MobileVideoOverlayController {
     private _uiInitialized: boolean = false;
     private _messageListener?: (
         message: any,
-        sender: browser.runtime.MessageSender,
+        sender: Browser.runtime.MessageSender,
         sendResponse: (response?: any) => void
     ) => void;
     private _bound = false;
@@ -111,7 +111,7 @@ export class MobileVideoOverlayController {
         this._context.video.addEventListener('seeked', this._seekedListener);
         this._messageListener = (
             message: any,
-            sender: browser.runtime.MessageSender,
+            sender: Browser.runtime.MessageSender,
             sendResponse: (response?: any) => void
         ) => {
             if (message.sender !== 'asbplayer-mobile-overlay-to-video' || message.src !== this._context.video.src) {

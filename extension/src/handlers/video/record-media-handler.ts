@@ -43,7 +43,7 @@ export default class RecordMediaHandler {
         return 'record-media-and-forward-subtitle';
     }
 
-    async handle(command: Command<Message>, sender: browser.runtime.MessageSender) {
+    async handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         const senderTab = sender.tab!;
         const recordMediaCommand = command as VideoToExtensionCommand<RecordMediaAndForwardSubtitleMessage>;
         await this._recordAndForward(recordMediaCommand, sender, senderTab);
@@ -51,8 +51,8 @@ export default class RecordMediaHandler {
 
     private async _recordAndForward(
         recordMediaCommand: VideoToExtensionCommand<RecordMediaAndForwardSubtitleMessage>,
-        sender: browser.runtime.MessageSender,
-        senderTab: browser.tabs.Tab
+        sender: Browser.runtime.MessageSender,
+        senderTab: Browser.tabs.Tab
     ) {
         const subtitle = recordMediaCommand.message.subtitle;
         let audioPromise = undefined;

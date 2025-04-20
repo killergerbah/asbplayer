@@ -11,7 +11,7 @@ export default class CopyToClipboardHandler {
         return 'copy-to-clipboard';
     }
 
-    handle(command: Command<Message>, sender: browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
         const tabId = sender.tab?.id;
 
         if (tabId === undefined) {

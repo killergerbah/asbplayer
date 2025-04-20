@@ -29,7 +29,7 @@ export default class TakeScreenshotHandler {
         return 'take-screenshot';
     }
 
-    async handle(command: Command<Message>, sender: browser.runtime.MessageSender) {
+    async handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         const senderTab = sender.tab!;
         const takeScreenshotCommand = command as VideoToExtensionCommand<TakeScreenshotFromExtensionMessage>;
         const { maxWidth, maxHeight, rect, frameId } = takeScreenshotCommand.message;

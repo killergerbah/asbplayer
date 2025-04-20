@@ -43,7 +43,7 @@ export default class StartRecordingMediaHandler {
         return 'start-recording-media';
     }
 
-    async handle(command: Command<Message>, sender: browser.runtime.MessageSender) {
+    async handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         const startRecordingCommand = command as VideoToExtensionCommand<StartRecordingMediaMessage>;
         let drmProtectedStreamError: DrmProtectedStreamError | undefined;
 

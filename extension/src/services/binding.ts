@@ -165,7 +165,7 @@ export default class Binding {
     private mouseMoveListener?: (event: MouseEvent) => void;
     private listener?: (
         message: any,
-        sender: browser.runtime.MessageSender,
+        sender: Browser.runtime.MessageSender,
         sendResponse: (response?: any) => void
     ) => void;
     private heartbeatInterval?: NodeJS.Timeout;

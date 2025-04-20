@@ -168,7 +168,7 @@ export default defineContentScript({
 
             const messageListener = (
                 request: any,
-                sender: browser.runtime.MessageSender,
+                sender: Browser.runtime.MessageSender,
                 sendResponse: (response?: any) => void
             ) => {
                 if (!isParentDocument) {

@@ -29,7 +29,7 @@ export default class HttpPostHandler {
         return 'http-post';
     }
 
-    handle(command: Command<Message>, sender: browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
         const message = command.message as HttpPostMessage;
 
         if (!this._validateBody(message.body)) {

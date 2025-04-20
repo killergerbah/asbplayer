@@ -9,7 +9,7 @@ export default class CurrentTabHandler {
         return 'current-tab';
     }
 
-    handle(command: Command<Message>, sender: browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
         sendResponse(sender.tab?.id);
         return false;
     }

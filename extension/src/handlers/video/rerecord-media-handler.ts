@@ -31,7 +31,7 @@ export default class RerecordMediaHandler {
         return 'rerecord-media';
     }
 
-    async handle(command: Command<Message>, sender: browser.runtime.MessageSender) {
+    async handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         const rerecordCommand = command as VideoToExtensionCommand<RerecordMediaMessage>;
         const baseAudioModel: AudioModel = {
             base64: '',

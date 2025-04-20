@@ -15,7 +15,7 @@ export default class RequestSubtitlesHandler {
         return 'request-subtitles';
     }
 
-    handle(command: Command<Message>, sender: browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
         const { tabId, src } = command as AsbPlayerToVideoCommandV2<RequestSubtitlesMessage>;
         const requestSubtitlesFromTabCommand: ExtensionToVideoCommand<RequestSubtitlesMessage> = {
             sender: 'asbplayer-extension-to-video',

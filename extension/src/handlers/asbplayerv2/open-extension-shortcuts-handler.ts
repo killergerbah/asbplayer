@@ -9,7 +9,7 @@ export default class OpenExtensionShortcutsHandler {
         return 'open-extension-shortcuts';
     }
 
-    handle(command: Command<Message>, sender: browser.runtime.MessageSender) {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         browser.tabs.create({ active: true, url: 'chrome://extensions/shortcuts' });
         return false;
     }
