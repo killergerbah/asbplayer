@@ -1,4 +1,4 @@
-import { extractExtension, inferTracks, poll } from './util';
+import { extractExtension, inferTracks, poll } from '@/pages/util';
 
 function basenameFromDOM() {
     const seriesElement = document.getElementById('bch-series-title');

@@ -1,5 +1,5 @@
 import { VideoData } from '@project/common';
-import { trackFromDef } from './util';
+import { trackFromDef } from '@/pages/util';
 
 declare global {
     interface Window {

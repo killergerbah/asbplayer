@@ -1,5 +1,5 @@
-import { extractExtension } from './util';
-import { inferTracksFromInterceptedMpdViaXMLHTTPRequest } from './mpd-util';
+import { extractExtension } from '@/pages/util';
+import { inferTracksFromInterceptedMpdViaXMLHTTPRequest } from '@/pages/mpd-util';
 
 const deduplication: { [key: string]: number } = {};
 

@@ -1,5 +1,5 @@
-import { inferTracksFromInterceptedMpd } from './mpd-util';
-import { extractExtension } from './util';
+import { inferTracksFromInterceptedMpd } from '@/pages/mpd-util';
+import { extractExtension } from '@/pages/util';
 
 inferTracksFromInterceptedMpd(/https:\/\/.+\.apps\.disneyplus\..+\.mpd/, (playlist, language: string) => {
     const name = playlist.attributes?.NAME as string | undefined;

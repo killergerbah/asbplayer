@@ -1,6 +1,6 @@
 import { VideoDataSubtitleTrack } from '@project/common';
 import { VideoData } from '@project/common';
-import { trackFromDef } from './util';
+import { trackFromDef } from '@/pages/util';
 
 declare const ApiClient: any | undefined;
 

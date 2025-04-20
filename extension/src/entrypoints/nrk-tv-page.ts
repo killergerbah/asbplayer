@@ -1,4 +1,4 @@
-import { inferTracks } from './util';
+import { inferTracks } from '@/pages/util';
 
 const originalFetch = window.fetch;
 let lastMetadataUrl: string | undefined;

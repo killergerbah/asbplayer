@@ -1,5 +1,5 @@
 import { VideoData, VideoDataSubtitleTrack } from '@project/common';
-import { poll, trackFromDef } from './util';
+import { poll, trackFromDef } from '@/pages/util';
 
 declare const netflix: any | undefined;
 

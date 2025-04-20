@@ -1,6 +1,6 @@
 import { VideoDataSubtitleTrack } from '@project/common';
 import { VideoData } from '@project/common';
-import { trackFromDef } from './util';
+import { trackFromDef } from '@/pages/util';
 
 let serverUrl: string | undefined;
 let plexToken: string | undefined;

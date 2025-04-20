@@ -1,5 +1,5 @@
-import { inferTracksFromInterceptedMpd } from './mpd-util';
-import { extractExtension } from './util';
+import { inferTracksFromInterceptedMpd } from '@/pages/mpd-util';
+import { extractExtension } from '@/pages/util';
 
 inferTracksFromInterceptedMpd(/https:\/\/.+\.viki\..+manifest\.mpd/, (playlist, language) => {
     const name = playlist.attributes?.NAME;

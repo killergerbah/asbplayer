@@ -1,5 +1,5 @@
-import { inferTracks } from './util';
-import { subtitleTrackSegmentsFromM3U8 } from './m3u8-util';
+import { inferTracks } from '@/pages/util';
+import { subtitleTrackSegmentsFromM3U8 } from '@/pages/m3u8-util';
 
 setTimeout(() => {
     let lastM3U8Url: string | undefined = undefined;

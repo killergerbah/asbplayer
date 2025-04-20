@@ -1,5 +1,5 @@
 import { VideoData, VideoDataSubtitleTrack, VideoDataSubtitleTrackDef } from '@project/common';
-import { extractExtension, poll, trackId } from './util';
+import { extractExtension, poll, trackId } from '@/pages/util';
 
 interface MetadataUrls {
     vodPlaybackResourcesUrl?: string;

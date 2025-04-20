@@ -1,4 +1,4 @@
-import { extractExtension, inferTracks } from './util';
+import { extractExtension, inferTracks } from '@/pages/util';
 
 inferTracks({
     onJson: (value, addTrack) => {

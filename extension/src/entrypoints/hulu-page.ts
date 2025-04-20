@@ -1,5 +1,5 @@
 import { VideoDataSubtitleTrack } from '@project/common';
-import { extractExtension, trackFromDef } from './util';
+import { extractExtension, trackFromDef } from '@/pages/util';
 
 setTimeout(() => {
     function isObject(val: any) {

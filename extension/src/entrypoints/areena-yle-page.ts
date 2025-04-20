@@ -1,7 +1,7 @@
 import { VideoDataSubtitleTrack } from '@project/common';
-import { inferTracks } from './util';
+import { inferTracks } from '@/pages/util';
 import { Parser } from 'm3u8-parser';
-import { subtitleTrackSegmentsFromM3U8 } from './m3u8-util';
+import { subtitleTrackSegmentsFromM3U8 } from '@/pages/m3u8-util';
 
 export interface Playlist {
     language: string;
