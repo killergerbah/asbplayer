@@ -23,7 +23,7 @@ export default class SyncHandler {
         return 'sync';
     }
 
-    async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
+    async handle(command: Command<Message>, sender: browser.runtime.MessageSender) {
         try {
             const extensionSyncCommand = command as VideoToExtensionCommand<ExtensionSyncMessage>;
             await this.tabRegistry.publishTabsToAsbplayers();

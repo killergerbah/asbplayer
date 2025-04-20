@@ -118,7 +118,7 @@ export default class ImageCapturer {
                     src: src,
                 };
 
-                const response = await chrome.tabs.sendMessage(tabId, cropAndResizeCommand);
+                const response = await browser.tabs.sendMessage(tabId, cropAndResizeCommand);
                 resolve(response.dataUrl);
             } catch (e) {
                 reject(e);

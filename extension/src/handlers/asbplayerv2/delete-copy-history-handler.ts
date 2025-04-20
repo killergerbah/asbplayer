@@ -16,7 +16,7 @@ export default class DeleteCopyHistoryHandler {
         return 'delete-copy-history';
     }
 
-    handle(command: Command<Message>, sender: chrome.runtime.MessageSender, sendResponse: (r?: any) => void) {
+    handle(command: Command<Message>, sender: browser.runtime.MessageSender, sendResponse: (r?: any) => void) {
         const message = command.message as DeleteCopyHistoryMessage;
         this._settings
             .getSingle('miningHistoryStorageLimit')

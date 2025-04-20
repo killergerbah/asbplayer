@@ -16,7 +16,7 @@ export default class AsbplayerHeartbeatHandler {
         return 'heartbeat';
     }
 
-    handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
+    handle(command: Command<Message>, sender: browser.runtime.MessageSender) {
         const message = command.message as AsbplayerHeartbeatMessage;
         this.tabRegistry.onAsbplayerHeartbeat(sender.tab, message);
         return false;

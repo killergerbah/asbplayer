@@ -5,7 +5,7 @@ export interface CommandHandler {
     command: string | null;
     handle: (
         command: Command<Message>,
-        sender: chrome.runtime.MessageSender,
+        sender: browser.runtime.MessageSender,
         sendResponse: (response?: any) => void
     ) => boolean | undefined | Promise<unknown>;
 }

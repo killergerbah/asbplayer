@@ -10,7 +10,7 @@ export default class RequestCopyHistoryHandler {
         return 'request-copy-history';
     }
 
-    handle(command: Command<Message>, sender: chrome.runtime.MessageSender, sendResponse: (r?: any) => void) {
+    handle(command: Command<Message>, sender: browser.runtime.MessageSender, sendResponse: (r?: any) => void) {
         const message = command.message as RequestCopyHistoryMessage;
         new IndexedDBCopyHistoryRepository(message.count).fetch(message.count).then((copyHistoryItems) => {
             const response: RequestCopyHistoryResponse = {

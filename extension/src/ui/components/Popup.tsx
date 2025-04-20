@@ -42,7 +42,7 @@ class ExtensionFetcher implements Fetcher {
                 messageId: '',
             },
         };
-        return chrome.runtime.sendMessage(httpPostCommand);
+        return browser.runtime.sendMessage(httpPostCommand);
     }
 }
 
@@ -59,8 +59,8 @@ const Popup = ({
     const { initialized: i18nInitialized } = useI18n({ language: settings.language });
     const anki = useMemo(() => new Anki(settings, new ExtensionFetcher()), [settings]);
     const handleUnlockLocalFonts = useCallback(() => {
-        chrome.tabs.create({
-            url: `${chrome.runtime.getURL('options.html')}#subtitle-appearance`,
+        browser.tabs.create({
+            url: `${browser.runtime.getURL('options.html')}#subtitle-appearance`,
             active: true,
         });
     }, []);
@@ -115,7 +115,7 @@ const Popup = ({
             >
                 <SettingsForm
                     extensionInstalled
-                    extensionVersion={chrome.runtime.getManifest().version}
+                    extensionVersion={browser.runtime.getManifest().version}
                     extensionSupportsAppIntegration
                     extensionSupportsOverlay
                     extensionSupportsSidePanel={!isFirefoxBuild}

@@ -155,10 +155,10 @@ export default class FrameBridgeClient {
             };
         }
 
-        chrome.runtime.sendMessage(httpPostCommand, (postResponse) => {
+        browser.runtime.sendMessage(httpPostCommand, (postResponse) => {
             const response = postResponse
                 ? { ...postResponse, messageId: message.messageId }
-                : { error: chrome.runtime.lastError?.message, messageId: message.messageId };
+                : { error: browser.runtime.lastError?.message, messageId: message.messageId };
             this.frame.contentWindow?.postMessage(
                 {
                     sender: 'asbplayer-video',

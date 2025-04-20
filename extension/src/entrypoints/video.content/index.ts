@@ -52,7 +52,7 @@ export default defineContentScript({
                                 command: 'toggle-side-panel',
                             },
                         };
-                        chrome.runtime.sendMessage(command);
+                        browser.runtime.sendMessage(command);
                     },
                     () => false,
                     true
@@ -168,7 +168,7 @@ export default defineContentScript({
 
             const messageListener = (
                 request: any,
-                sender: chrome.runtime.MessageSender,
+                sender: browser.runtime.MessageSender,
                 sendResponse: (response?: any) => void
             ) => {
                 if (!isParentDocument) {
@@ -241,7 +241,7 @@ export default defineContentScript({
                 }
             };
 
-            chrome.runtime.onMessage.addListener(messageListener);
+            browser.runtime.onMessage.addListener(messageListener);
 
             window.addEventListener('beforeunload', (event) => {
                 for (let b of bindings) {
@@ -260,7 +260,7 @@ export default defineContentScript({
                 frameInfoListener?.unbind();
                 frameInfoBroadcaster?.unbind();
                 unbindToggleSidePanel?.();
-                chrome.runtime.onMessage.removeListener(messageListener);
+                browser.runtime.onMessage.removeListener(messageListener);
             });
         };
 

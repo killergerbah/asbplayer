@@ -15,7 +15,7 @@ export default class ToggleSidePanelHandler {
         return 'toggle-side-panel';
     }
 
-    handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
+    handle(command: Command<Message>, sender: browser.runtime.MessageSender) {
         let sidePanelOpen = false;
         this._tabRegistry.publishCommandToAsbplayers({
             commandFactory: (asbplayer) => {
@@ -36,9 +36,9 @@ export default class ToggleSidePanelHandler {
         });
 
         if (!sidePanelOpen) {
-            chrome.windows
+            browser.windows
                 // @ts-ignore
-                .getLastFocused((window) => chrome.sidePanel.open({ windowId: window.id }));
+                .getLastFocused((window) => browser.sidePanel.open({ windowId: window.id }));
         }
 
         return false;

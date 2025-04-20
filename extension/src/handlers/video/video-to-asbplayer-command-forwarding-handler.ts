@@ -16,7 +16,7 @@ export default class VideoToAsbplayerCommandForwardingHandler {
         return null;
     }
 
-    handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
+    handle(command: Command<Message>, sender: browser.runtime.MessageSender) {
         const videoToExtensionCommand = command as VideoToExtensionCommand<Message>;
 
         if (typeof sender.tab?.id !== 'undefined') {

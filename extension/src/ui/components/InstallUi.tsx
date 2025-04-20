@@ -12,7 +12,7 @@ interface Props {
 }
 const InstallUi = ({ heading, body }: Props) => {
     const theme = createTheme('dark');
-    const { initialized: i18Initialized } = useI18n({ language: chrome.i18n.getUILanguage() });
+    const { initialized: i18Initialized } = useI18n({ language: browser.i18n.getUILanguage() });
 
     if (!i18Initialized) {
         return null;
@@ -24,7 +24,7 @@ const InstallUi = ({ heading, body }: Props) => {
             <Paper style={{ width: '100vw', height: '100vh' }} square>
                 <CenteredGridContainer direction="column">
                     <CenteredGridItem>
-                        <img style={{ width: 75 }} src={chrome.runtime.getURL('icon/image.png')} />
+                        <img style={{ width: 75 }} src={browser.runtime.getURL('icon/image.png')} />
                     </CenteredGridItem>
                     <CenteredGridItem>{heading}</CenteredGridItem>
                     <CenteredGridItem>{body}</CenteredGridItem>

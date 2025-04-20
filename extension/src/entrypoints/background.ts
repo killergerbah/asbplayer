@@ -63,7 +63,7 @@ import SaveCopyHistoryHandler from '@/handlers/asbplayerv2/save-copy-history-han
 
 export default defineBackground(() => {
     if (!isFirefoxBuild) {
-        chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
+        browser.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
     }
 
     const settings = new SettingsProvider(new ExtensionSettingsStorage());
@@ -72,12 +72,12 @@ export default defineBackground(() => {
         primeLocalization(await settings.getSingle('language'));
     };
 
-    const installListener = async (details: chrome.runtime.InstalledDetails) => {
-        if (details.reason !== chrome.runtime.OnInstalledReason.INSTALL) {
+    const installListener = async (details: browser.runtime.InstalledDetails) => {
+        if (details.reason !== browser.runtime.OnInstalledReason.INSTALL) {
             return;
         }
 
-        const defaultUiLanguage = chrome.i18n.getUILanguage();
+        const defaultUiLanguage = browser.i18n.getUILanguage();
         const supportedLanguages = await fetchSupportedLanguages();
 
         if (supportedLanguages.includes(defaultUiLanguage)) {
@@ -96,20 +96,20 @@ export default defineBackground(() => {
             });
         }
 
-        chrome.tabs.create({ url: chrome.runtime.getURL('ftue-ui.html'), active: true });
+        browser.tabs.create({ url: browser.runtime.getURL('ftue-ui.html'), active: true });
     };
 
-    const updateListener = async (details: chrome.runtime.InstalledDetails) => {
-        if (details.reason !== chrome.runtime.OnInstalledReason.UPDATE) {
+    const updateListener = async (details: browser.runtime.InstalledDetails) => {
+        if (details.reason !== browser.runtime.OnInstalledReason.UPDATE) {
             return;
         }
 
         enqueueUpdateAlert();
     };
 
-    chrome.runtime.onInstalled.addListener(installListener);
-    chrome.runtime.onInstalled.addListener(updateListener);
-    chrome.runtime.onStartup.addListener(startListener);
+    browser.runtime.onInstalled.addListener(installListener);
+    browser.runtime.onInstalled.addListener(updateListener);
+    browser.runtime.onStartup.addListener(startListener);
 
     const tabRegistry = new TabRegistry(settings);
     const audioRecorder = new AudioRecorderService(
@@ -160,7 +160,7 @@ export default defineBackground(() => {
         new MobileOverlayForwarderHandler(),
     ];
 
-    chrome.runtime.onMessage.addListener((request: Command<Message>, sender, sendResponse) => {
+    browser.runtime.onMessage.addListener((request: Command<Message>, sender, sendResponse) => {
         for (const handler of handlers) {
             if (
                 (typeof handler.sender === 'string' && handler.sender === request.sender) ||
@@ -177,21 +177,21 @@ export default defineBackground(() => {
         }
     });
 
-    chrome.runtime.onInstalled.addListener(() => {
-        chrome.contextMenus?.create({
+    browser.runtime.onInstalled.addListener(() => {
+        browser.contextMenus?.create({
             id: 'load-subtitles',
-            title: chrome.i18n.getMessage('contextMenuLoadSubtitles'),
+            title: browser.i18n.getMessage('contextMenuLoadSubtitles'),
             contexts: ['page', 'video'],
         });
 
-        chrome.contextMenus?.create({
+        browser.contextMenus?.create({
             id: 'mine-subtitle',
-            title: chrome.i18n.getMessage('contextMenuMineSubtitle'),
+            title: browser.i18n.getMessage('contextMenuMineSubtitle'),
             contexts: ['page', 'video'],
         });
     });
 
-    chrome.contextMenus?.onClicked.addListener((info) => {
+    browser.contextMenus?.onClicked.addListener((info) => {
         if (info.menuItemId === 'load-subtitles') {
             const toggleVideoSelectCommand: ExtensionToVideoCommand<ToggleVideoSelectMessage> = {
                 sender: 'asbplayer-extension-to-video',
@@ -229,8 +229,8 @@ export default defineBackground(() => {
         }
     });
 
-    chrome.commands?.onCommand.addListener((command) => {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    browser.commands?.onCommand.addListener((command) => {
+        browser.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             const validAsbplayer = (asbplayer: Asbplayer) => {
                 if (asbplayer.sidePanel) {
                     return false;
@@ -294,7 +294,7 @@ export default defineBackground(() => {
                                     command: 'toggle-video-select',
                                 },
                             };
-                            chrome.tabs.sendMessage(tab.id, extensionToVideoCommand);
+                            browser.tabs.sendMessage(tab.id, extensionToVideoCommand);
                         }
                     }
                     break;
@@ -400,7 +400,7 @@ export default defineBackground(() => {
 
     const action = browser.action || browser.browserAction;
 
-    const defaultAction = (tab: chrome.tabs.Tab) => {
+    const defaultAction = (tab: browser.tabs.Tab) => {
         if (isMobile) {
             if (tab.id !== undefined) {
                 const extensionToVideoCommand: ExtensionToVideoCommand<ToggleVideoSelectMessage> = {

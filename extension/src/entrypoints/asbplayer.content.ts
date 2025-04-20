@@ -95,7 +95,7 @@ export default defineContentScript({
                         break;
                     case 'request-subtitles':
                         sendMessageToPlayer({
-                            response: (await chrome.runtime.sendMessage(command)) as
+                            response: (await browser.runtime.sendMessage(command)) as
                                 | RequestSubtitlesResponse
                                 | undefined,
                             messageId: command.message.messageId,
@@ -104,7 +104,7 @@ export default defineContentScript({
                     case 'request-copy-history':
                         const requestCopyHistoryRequest = command.message as RequestCopyHistoryMessage;
                         sendMessageToPlayer({
-                            response: (await chrome.runtime.sendMessage(command)) as
+                            response: (await browser.runtime.sendMessage(command)) as
                                 | RequestCopyHistoryResponse
                                 | undefined,
                             messageId: requestCopyHistoryRequest.messageId,
@@ -112,19 +112,19 @@ export default defineContentScript({
                         });
                         break;
                     case 'save-copy-history':
-                        await chrome.runtime.sendMessage(command);
+                        await browser.runtime.sendMessage(command);
                         sendMessageToPlayer({
                             messageId: command.message.messageId,
                         });
                         break;
                     case 'delete-copy-history':
-                        await chrome.runtime.sendMessage(command);
+                        await browser.runtime.sendMessage(command);
                         sendMessageToPlayer({
                             messageId: command.message.messageId,
                         });
                         break;
                     case 'clear-copy-history':
-                        await chrome.runtime.sendMessage(command);
+                        await browser.runtime.sendMessage(command);
                         sendMessageToPlayer({
                             messageId: command.message.messageId,
                         });
@@ -148,22 +148,22 @@ export default defineContentScript({
                         });
                         break;
                     default:
-                        chrome.runtime.sendMessage(command);
+                        browser.runtime.sendMessage(command);
                         break;
                 }
             }
         });
 
-        chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
             if (request.sender === 'asbplayer-extension-to-player') {
                 window.postMessage(request);
             }
         });
 
-        const manifest = chrome.runtime.getManifest();
+        const manifest = browser.runtime.getManifest();
 
         window.addEventListener('DOMContentLoaded', async (e) => {
-            const extensionCommands = await chrome.runtime.sendMessage({
+            const extensionCommands = await browser.runtime.sendMessage({
                 sender: 'asbplayerv2',
                 message: {
                     command: 'extension-commands',

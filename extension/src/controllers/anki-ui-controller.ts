@@ -37,7 +37,7 @@ async function html(language: string) {
                     <meta name="viewport" content="width=device-width, initial-scale=1" />
                     <title>asbplayer - Anki</title>
                     <style>
-                        @import url(${chrome.runtime.getURL('./fonts/fonts.css')});
+                        @import url(${browser.runtime.getURL('./fonts/fonts.css')});
                     </style>
                 </head>
                 <body>
@@ -45,7 +45,7 @@ async function html(language: string) {
                     <script type="application/json" id="loc">${JSON.stringify(
                         await fetchLocalization(language)
                     )}</script>
-                    <script type="module" src="${chrome.runtime.getURL('./anki-ui.js')}"></script>
+                    <script type="module" src="${browser.runtime.getURL('./anki-ui.js')}"></script>
                 </body>
             </html>`;
 }
@@ -213,7 +213,7 @@ export default class AnkiUiController {
                             },
                             src: context.video.src,
                         };
-                        chrome.runtime.sendMessage(openSettingsCommand);
+                        browser.runtime.sendMessage(openSettingsCommand);
                         return;
                     case 'copy-to-clipboard':
                         const copyToClipboardMessage = message as CopyToClipboardMessage;
@@ -225,7 +225,7 @@ export default class AnkiUiController {
                             },
                             src: context.video.src,
                         };
-                        chrome.runtime.sendMessage(copyToClipboardCommand);
+                        browser.runtime.sendMessage(copyToClipboardCommand);
                         return;
                     case 'encode-mp3':
                         const { base64, messageId, extension } = message as EncodeMp3Message;
@@ -248,7 +248,7 @@ export default class AnkiUiController {
                                 },
                                 src: context.video.src,
                             };
-                            chrome.runtime.sendMessage(settingsUpdatedCommand);
+                            browser.runtime.sendMessage(settingsUpdatedCommand);
                         });
                         return;
                     case 'dismissedQuickSelectFtue':
@@ -264,7 +264,7 @@ export default class AnkiUiController {
                                 },
                                 src: context.video.src,
                             };
-                            chrome.runtime.sendMessage(settingsUpdatedCommand);
+                            browser.runtime.sendMessage(settingsUpdatedCommand);
                         });
                         return;
                 }

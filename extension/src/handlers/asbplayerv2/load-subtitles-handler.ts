@@ -24,7 +24,7 @@ export default class LoadSubtitlesHandler {
         return 'load-subtitles';
     }
 
-    handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
+    handle(command: Command<Message>, sender: browser.runtime.MessageSender) {
         const loadSubtitlesCommand = command as AsbPlayerToTabCommand<LoadSubtitlesMessage>;
         const toggleVideoSelectCommand: ExtensionToVideoCommand<ToggleVideoSelectMessage> = {
             sender: 'asbplayer-extension-to-video',
@@ -50,7 +50,7 @@ export default class LoadSubtitlesHandler {
             })
             .then(() => {
                 if (published) {
-                    chrome.tabs.update(loadSubtitlesCommand.tabId, { active: true });
+                    browser.tabs.update(loadSubtitlesCommand.tabId, { active: true });
                 }
             });
 

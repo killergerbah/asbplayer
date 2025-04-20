@@ -5,7 +5,7 @@ export class ExtensionGlobalStateProvider implements GlobalStateProvider {
     private readonly _storage;
 
     constructor(storage?: StorageArea) {
-        this._storage = storage ?? chrome.storage.local;
+        this._storage = storage ?? browser.storage.local;
     }
 
     async getAll() {

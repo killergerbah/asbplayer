@@ -19,7 +19,7 @@ export default class ToggleSubtitlesHandler {
         return 'toggle-subtitles';
     }
 
-    async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
+    async handle(command: Command<Message>, sender: browser.runtime.MessageSender) {
         const displaySubtitles = await this.settings.getSingle('streamingDisplaySubtitles');
         await this.settings.set({ streamingDisplaySubtitles: !displaySubtitles });
 

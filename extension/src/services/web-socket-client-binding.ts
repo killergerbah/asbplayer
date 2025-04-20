@@ -40,7 +40,7 @@ export const bindWebSocketClient = async (settings: SettingsProvider, tabRegistr
         body: { fields: receivedFields, postMineAction: receivedPostMineAction },
     }: MineSubtitleCommand) => {
         return new Promise((resolve, reject) => {
-            chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+            browser.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
                 const ankiSettings = await settings.get(ankiSettingsKeys);
                 const fields = receivedFields ?? {};
                 const word = fields[ankiSettings.wordField] || undefined;

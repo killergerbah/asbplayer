@@ -29,7 +29,7 @@ export const useMobileVideoOverlayModel = ({ location }: Params) => {
                 },
                 src: location.src,
             };
-            const initialModel = await chrome.runtime.sendMessage(command);
+            const initialModel = await browser.runtime.sendMessage(command);
             setModel(initialModel);
         };
 
@@ -70,7 +70,7 @@ export const useMobileVideoOverlayModel = ({ location }: Params) => {
 
         const listener = (
             message: any,
-            sender: chrome.runtime.MessageSender,
+            sender: browser.runtime.MessageSender,
             sendResponse?: (message: any) => void
         ) => {
             if (message.sender !== 'asbplayer-video-to-mobile-overlay' || message.src !== location.src) {
@@ -80,8 +80,8 @@ export const useMobileVideoOverlayModel = ({ location }: Params) => {
             const command = message as VideoToMobileOverlayCommand<UpdateMobileOverlayModelMessage>;
             setModel(command.message.model);
         };
-        chrome.runtime.onMessage.addListener(listener);
-        return () => chrome.runtime.onMessage.removeListener(listener);
+        browser.runtime.onMessage.addListener(listener);
+        return () => browser.runtime.onMessage.removeListener(listener);
     }, [location]);
     return model;
 };

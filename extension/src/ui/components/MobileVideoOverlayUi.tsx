@@ -36,12 +36,12 @@ const scrollBufferHeight = 100;
 const lastControlTypeKey = 'lastScrollableControlType';
 
 const fetchLastControlType = async (): Promise<ControlType | undefined> => {
-    const result = await chrome.storage.local.get(lastControlTypeKey);
+    const result = await browser.storage.local.get(lastControlTypeKey);
     return result ? result[lastControlTypeKey] : undefined;
 };
 
 const saveLastControlType = async (controlType: ControlType): Promise<void> => {
-    await chrome.storage.local.set({ [lastControlTypeKey]: controlType });
+    await browser.storage.local.set({ [lastControlTypeKey]: controlType });
 };
 
 const MobileVideoOverlayUi = () => {
@@ -62,7 +62,7 @@ const MobileVideoOverlayUi = () => {
             tabId: location.tabId,
             src: location.src,
         };
-        chrome.runtime.sendMessage(command);
+        browser.runtime.sendMessage(command);
     }, [location]);
 
     const handleLoadSubtitles = useCallback(() => {
@@ -76,7 +76,7 @@ const MobileVideoOverlayUi = () => {
             tabId: location.tabId,
             src: location.src,
         };
-        chrome.runtime.sendMessage(command);
+        browser.runtime.sendMessage(command);
     }, [location]);
 
     const handleOffset = useCallback(
@@ -91,7 +91,7 @@ const MobileVideoOverlayUi = () => {
                 tabId: location.tabId,
                 src: location.src,
             };
-            chrome.runtime.sendMessage(command);
+            browser.runtime.sendMessage(command);
         },
         [location]
     );
@@ -108,7 +108,7 @@ const MobileVideoOverlayUi = () => {
                 tabId: location.tabId,
                 src: location.src,
             };
-            chrome.runtime.sendMessage(command);
+            browser.runtime.sendMessage(command);
         },
         [location]
     );
@@ -125,7 +125,7 @@ const MobileVideoOverlayUi = () => {
                 tabId: location.tabId,
                 src: location.src,
             };
-            chrome.runtime.sendMessage(command);
+            browser.runtime.sendMessage(command);
         },
         [location]
     );
@@ -146,7 +146,7 @@ const MobileVideoOverlayUi = () => {
                 },
                 src: location.src,
             };
-            chrome.runtime.sendMessage(command);
+            browser.runtime.sendMessage(command);
         },
         [location]
     );
@@ -163,7 +163,7 @@ const MobileVideoOverlayUi = () => {
             },
             src: location.src,
         };
-        chrome.runtime.sendMessage(command);
+        browser.runtime.sendMessage(command);
     }, [location]);
 
     useEffect(() => {
@@ -184,7 +184,7 @@ const MobileVideoOverlayUi = () => {
                         },
                         src: location.src,
                     };
-                    chrome.runtime.sendMessage(command);
+                    browser.runtime.sendMessage(command);
                     hiddenRef.current = true;
                 }
             }

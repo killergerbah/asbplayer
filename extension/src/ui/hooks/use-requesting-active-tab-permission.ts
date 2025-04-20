@@ -16,7 +16,7 @@ export const useRequestingActiveTabPermission = () => {
             if (tabRequestingActiveTabPermission === undefined) {
                 setRequestingActiveTabPermission(false);
             } else {
-                const currentTabs = await chrome.tabs.query({ active: true, currentWindow: true });
+                const currentTabs = await browser.tabs.query({ active: true, currentWindow: true });
 
                 if (currentTabs.length > 0 && currentTabs[0].id === tabRequestingActiveTabPermission.tabId) {
                     setRequestingActiveTabPermission(true);

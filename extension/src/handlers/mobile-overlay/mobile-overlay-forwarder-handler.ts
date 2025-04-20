@@ -9,12 +9,12 @@ export default class MobileOverlayForwarderHandler {
         return null;
     }
 
-    handle(command: Command<Message>, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) {
+    handle(command: Command<Message>, sender: browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
         if (sender.tab?.id === undefined) {
             return;
         }
 
-        chrome.tabs.sendMessage(sender.tab.id, command);
+        browser.tabs.sendMessage(sender.tab.id, command);
         return false;
     }
 }

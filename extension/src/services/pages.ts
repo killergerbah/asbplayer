@@ -67,7 +67,7 @@ export class PageDelegate {
         }
 
         const s = document.createElement('script');
-        s.src = chrome.runtime.getURL(`${this.config.script}`);
+        s.src = browser.runtime.getURL(`${this.config.script}`);
         s.onload = () => s.remove();
         (document.head || document.documentElement).appendChild(s);
     }

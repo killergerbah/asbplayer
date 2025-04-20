@@ -21,7 +21,7 @@ export default class VideoSelectController {
 
     private messageListener?: (
         request: any,
-        sender: chrome.runtime.MessageSender,
+        sender: browser.runtime.MessageSender,
         sendResponse: (response?: any) => void
     ) => void;
 
@@ -35,13 +35,13 @@ export default class VideoSelectController {
                     <meta name="viewport" content="width=device-width, initial-scale=1" />
                     <title>asbplayer - Video Select</title>
                     <style>
-                        @import url(${chrome.runtime.getURL('./fonts/fonts.css')});
+                        @import url(${browser.runtime.getURL('./fonts/fonts.css')});
                     </style>
                 </head>
                 <body>
                     <div id="root" style="width:100%;height:100vh;"></div>
                     <script type="application/json" id="loc">${JSON.stringify(await fetchLocalization(lang))}</script>
-                    <script type="module" src="${chrome.runtime.getURL('./video-select-ui.js')}"></script>
+                    <script type="module" src="${browser.runtime.getURL('./video-select-ui.js')}"></script>
                 </body>
             </html>`
         );
@@ -50,7 +50,7 @@ export default class VideoSelectController {
     bind() {
         this.messageListener = (
             request: any,
-            sender: chrome.runtime.MessageSender,
+            sender: browser.runtime.MessageSender,
             sendResponse: (response?: any) => void
         ) => {
             if (request.sender !== 'asbplayer-extension-to-video') {
@@ -76,14 +76,14 @@ export default class VideoSelectController {
             }
         };
 
-        chrome.runtime.onMessage.addListener(this.messageListener);
+        browser.runtime.onMessage.addListener(this.messageListener);
     }
 
     unbind() {
         this._frame.unbind();
 
         if (this.messageListener) {
-            chrome.runtime.onMessage.removeListener(this.messageListener);
+            browser.runtime.onMessage.removeListener(this.messageListener);
             this.messageListener = undefined;
         }
     }
@@ -128,7 +128,7 @@ export default class VideoSelectController {
             message: { command: 'capture-visible-tab' },
         };
 
-        const tabImageDataUrl = (await chrome.runtime.sendMessage(captureVisibleTabCommand)) as string;
+        const tabImageDataUrl = (await browser.runtime.sendMessage(captureVisibleTabCommand)) as string;
         const videoElementPromises: Promise<VideoElement>[] = this._bindings.map(async (b) => {
             return {
                 src: b.video.src,
@@ -175,7 +175,7 @@ export default class VideoSelectController {
                             command: 'open-asbplayer-settings',
                         },
                     };
-                    chrome.runtime.sendMessage(openSettingsCommand);
+                    browser.runtime.sendMessage(openSettingsCommand);
                 } else if (message.command === 'cancel') {
                     client.updateState({ open: false });
                     this._frame.hide();

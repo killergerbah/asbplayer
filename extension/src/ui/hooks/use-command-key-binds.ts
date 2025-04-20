@@ -4,12 +4,12 @@ import { useEffect, useState } from 'react';
 export const useCommandKeyBinds = () => {
     const [commands, setCommands] = useState<{ [key: string]: string | undefined }>();
     useEffect(() => {
-        if (chrome.commands === undefined) {
+        if (browser.commands === undefined) {
             setCommands({});
             return;
         }
 
-        chrome.commands.getAll().then((commands) => {
+        browser.commands.getAll().then((commands) => {
             const commandsObj: any = {};
 
             for (const c of commands) {
