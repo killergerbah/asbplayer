@@ -13,7 +13,8 @@ export const enqueueUpdateAlert = async () => {
 };
 
 export const shouldShowUpdateAlert = async () => {
-    const shouldShow = (await chrome.storage.local.get({ [shouldShowKey]: false }))[shouldShowKey];
+    const result = await chrome.storage.local.get({ [shouldShowKey]: false });
+    const shouldShow = result ? result[shouldShowKey] : false;
 
     if (shouldShow) {
         await chrome.storage.local.remove(shouldShowKey);

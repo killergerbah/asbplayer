@@ -78,7 +78,8 @@ export class ExtensionSettingsStorage implements SettingsStorage {
     }
 
     async profiles(): Promise<Profile[]> {
-        return (await this._storage.get({ [profilesKey]: [] }))[profilesKey] ?? [];
+        const result = await this._storage.get({ [profilesKey]: [] });
+        return result ? (result[profilesKey] ?? []) : [];
     }
 
     async addProfile(name: string): Promise<void> {

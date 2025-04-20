@@ -1,7 +1,8 @@
 const key = 'tabRequestingActiveTabPermission';
 
 export const getTabRequestingActiveTabPermission = async () => {
-    const savedTab = (await chrome.storage.session.get(key))[key];
+    const result = await chrome.storage.session.get(key);
+    const savedTab = result ? result[key] : undefined;
 
     if (savedTab === undefined) {
         return undefined;

@@ -46,7 +46,8 @@ export const primeLocalization = async (lang: string): Promise<void> => {
         }
 
         const versionKey = versionKeyForLang(lang);
-        const version = (await chrome.storage.local.get(versionKey))[versionKey] as number | undefined;
+        const result = await chrome.storage.local.get(versionKey);
+        const version = result ? (result[versionKey] as number | undefined) : undefined;
 
         if (version === undefined || version < langConfig.version) {
             await fetchAndCache(langConfig);
@@ -87,7 +88,8 @@ const bundledStringsForLang = async (lang: string): Promise<Localization | undef
 
 const cachedStringsForLang = async (lang: string): Promise<Localization | undefined> => {
     const stringsKey = stringsKeyForLang(lang);
-    const strings = (await chrome.storage.local.get(stringsKey))[stringsKey];
+    const result = await chrome.storage.local.get(stringsKey);
+    const strings = result ? result[stringsKey] : undefined;
 
     if (strings === undefined) {
         return undefined;

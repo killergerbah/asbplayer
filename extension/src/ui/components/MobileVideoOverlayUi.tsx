@@ -36,7 +36,8 @@ const scrollBufferHeight = 100;
 const lastControlTypeKey = 'lastScrollableControlType';
 
 const fetchLastControlType = async (): Promise<ControlType | undefined> => {
-    return (await chrome.storage.local.get(lastControlTypeKey))[lastControlTypeKey];
+    const result = await chrome.storage.local.get(lastControlTypeKey);
+    return result ? result[lastControlTypeKey] : undefined;
 };
 
 const saveLastControlType = async (controlType: ControlType): Promise<void> => {
