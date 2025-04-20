@@ -493,7 +493,7 @@ export default function SidePanel({ settings, extension }: Props) {
                         <>
                             <SidePanelRecordingOverlay show={recordingAudio} />
                             <Player
-                                origin={chrome.runtime.getURL('side-panel.html')}
+                                origin={chrome.runtime.getURL('sidepanel.html')}
                                 subtitles={subtitles}
                                 hideControls={true}
                                 showCopyButton={true}
