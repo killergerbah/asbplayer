@@ -1,5 +1,5 @@
 import { currentPageDelegate } from '@/services/pages';
-import { ContentScriptContext } from 'wxt/utils/content-script-context';
+import type { ContentScriptContext } from 'wxt/utils/content-script-context';
 
 const excludeGlobs = ['*://killergerbah.github.io/asbplayer*'];
 
