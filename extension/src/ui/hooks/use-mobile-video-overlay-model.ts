@@ -70,7 +70,7 @@ export const useMobileVideoOverlayModel = ({ location }: Params) => {
 
         const listener = (
             message: any,
-            sender: browser.runtime.MessageSender,
+            sender: Browser.runtime.MessageSender,
             sendResponse?: (message: any) => void
         ) => {
             if (message.sender !== 'asbplayer-video-to-mobile-overlay' || message.src !== location.src) {

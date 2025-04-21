@@ -182,7 +182,7 @@ export default class TabRegistry {
     }
 
     async onAsbplayerHeartbeat(
-        tab: browser.tabs.Tab | undefined,
+        tab: Browser.tabs.Tab | undefined,
         {
             id: asbplayerId,
             videoPlayer,
@@ -224,7 +224,7 @@ export default class TabRegistry {
     }
 
     async onAsbplayerAckTabs(
-        tab: browser.tabs.Tab | undefined,
+        tab: Browser.tabs.Tab | undefined,
         { id: asbplayerId, videoPlayer, sidePanel, loadedSubtitles, receivedTabs, syncedVideoElement }: AckTabsMessage
     ) {
         this._updateAsbplayers(
@@ -239,7 +239,7 @@ export default class TabRegistry {
     }
 
     private async _updateAsbplayers(
-        tab: browser.tabs.Tab | undefined,
+        tab: Browser.tabs.Tab | undefined,
         asbplayerId: string,
         videoPlayer: boolean,
         sidePanel: boolean,
@@ -313,7 +313,7 @@ export default class TabRegistry {
     }
 
     async onVideoElementHeartbeat(
-        tab: browser.tabs.Tab,
+        tab: Browser.tabs.Tab,
         src: string,
         { subscribed, synced, syncedTimestamp, loadedSubtitles }: VideoHeartbeatMessage
     ) {
@@ -342,7 +342,7 @@ export default class TabRegistry {
         });
     }
 
-    async onVideoElementDisappeared(tab: browser.tabs.Tab, src: string) {
+    async onVideoElementDisappeared(tab: Browser.tabs.Tab, src: string) {
         await this._videoElements((videoElements) => {
             const key = `${tab.id}:${src}`;
 

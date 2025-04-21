@@ -592,7 +592,7 @@ export default class Binding {
 
         this.listener = (
             request: any,
-            sender: browser.runtime.MessageSender,
+            sender: Browser.runtime.MessageSender,
             sendResponse: (response?: any) => void
         ) => {
             if (request.sender === 'asbplayer-extension-to-video' && request.src === this.video.src) {

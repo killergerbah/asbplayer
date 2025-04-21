@@ -1,4 +1,5 @@
 import pagesConfig from '../pages.json';
+import type { PublicPath } from 'wxt/browser';
 
 interface PageConfig {
     // Regex for URLs where script should be loaded
@@ -67,7 +68,7 @@ export class PageDelegate {
         }
 
         const s = document.createElement('script');
-        s.src = browser.runtime.getURL(`${this.config.script}`);
+        s.src = browser.runtime.getURL(`${this.config.script}` as PublicPath);
         s.onload = () => s.remove();
         (document.head || document.documentElement).appendChild(s);
     }
