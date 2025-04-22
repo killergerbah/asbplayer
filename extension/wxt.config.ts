@@ -5,11 +5,11 @@ import type { UserManifest } from 'wxt';
 export default defineConfig({
     modules: ['@wxt-dev/module-react'],
     srcDir: 'src',
-    manifest: ({ browser }) => {
+    manifest: ({ browser, mode }) => {
         let manifest: UserManifest = {
             name: 'asbplayer: Language-learning with subtitles',
             description: '__MSG_extensionDescription__',
-            version: '1.10.0',
+            version: '2.0.0',
             action: { default_title: 'asbplayer' },
             default_locale: 'en',
             icons: {
@@ -54,7 +54,7 @@ export default defineConfig({
             ],
         };
 
-        let commands = {
+        let commands: Browser.runtime.Manifest['commands'] = {
             'copy-subtitle': {
                 description: '__MSG_shortcutMineSubtitleDescription__',
             },
@@ -93,6 +93,15 @@ export default defineConfig({
                 description: '__MSG_shortcutToggleRecordingDescription__',
             },
         };
+
+        if (mode === 'development') {
+            commands['wxt:reload-extension'] = {
+                description: 'Reload the extension during development',
+                suggested_key: {
+                    default: 'Alt+R',
+                },
+            };
+        }
 
         let permissions = ['tabs', 'storage'];
 
