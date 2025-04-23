@@ -97,9 +97,10 @@ export default defineConfig({
         if (mode === 'development') {
             commands['wxt:reload-extension'] = {
                 description: 'Reload the extension during development',
-                suggested_key: {
-                    default: 'Alt+R',
-                },
+                // Normally there is a suggested key for this, but Chrome only supports up to 4 suggested keys.
+                // suggested_key: {
+                //     default: 'Alt+R',
+                // },
             };
         }
 
