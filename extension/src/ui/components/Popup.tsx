@@ -60,7 +60,7 @@ const Popup = ({
     const anki = useMemo(() => new Anki(settings, new ExtensionFetcher()), [settings]);
     const handleUnlockLocalFonts = useCallback(() => {
         browser.tabs.create({
-            url: `${browser.runtime.getURL('options.html')}#subtitle-appearance`,
+            url: `${browser.runtime.getURL('/options.html')}#subtitle-appearance`,
             active: true,
         });
     }, []);

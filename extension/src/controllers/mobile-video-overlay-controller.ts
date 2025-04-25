@@ -221,7 +221,7 @@ export class MobileVideoOverlayController {
                 key: 'ui',
                 html: () =>
                     `<iframe style="border: 0; color-scheme: normal; width: ${width}px; height: ${height}px" src="${browser.runtime.getURL(
-                        'mobile-video-overlay-ui.html'
+                        '/mobile-video-overlay-ui.html'
                     )}?src=${src}&anchor=${anchor}&tooltips=${tooltips}"/>`,
             },
         ]);

@@ -35,13 +35,13 @@ export default class VideoSelectController {
                     <meta name="viewport" content="width=device-width, initial-scale=1" />
                     <title>asbplayer - Video Select</title>
                     <style>
-                        @import url(${browser.runtime.getURL('./fonts/fonts.css')});
+                        @import url(${browser.runtime.getURL('/fonts/fonts.css')});
                     </style>
                 </head>
                 <body>
                     <div id="root" style="width:100%;height:100vh;"></div>
                     <script type="application/json" id="loc">${JSON.stringify(await fetchLocalization(lang))}</script>
-                    <script type="module" src="${browser.runtime.getURL('./video-select-ui.js')}"></script>
+                    <script type="module" src="${browser.runtime.getURL('/video-select-ui.js')}"></script>
                 </body>
             </html>`
         );

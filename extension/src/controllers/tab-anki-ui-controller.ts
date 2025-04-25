@@ -31,7 +31,7 @@ async function html(language: string) {
                     <meta name="viewport" content="width=device-width, initial-scale=1" />
                     <title>asbplayer - Anki</title>
                     <style>
-                        @import url(${browser.runtime.getURL('./fonts/fonts.css')});
+                        @import url(${browser.runtime.getURL('/fonts/fonts.css')});
                     </style>
                 </head>
                 <body>
@@ -39,7 +39,7 @@ async function html(language: string) {
                     <script type="application/json" id="loc">${JSON.stringify(
                         await fetchLocalization(language)
                     )}</script>
-                    <script type="module" src="${browser.runtime.getURL('./anki-ui.js')}"></script>
+                    <script type="module" src="${browser.runtime.getURL('/anki-ui.js')}"></script>
                 </body>
             </html>`;
 }

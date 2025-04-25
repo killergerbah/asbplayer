@@ -1,6 +1,7 @@
 import { LocalizationConfig, fetchExtensionConfig } from './extension-config';
 import { SettingsProvider, supportedLanguages as defaultSupportedLanguages } from '@project/common/settings';
 import { ExtensionSettingsStorage } from './extension-settings-storage';
+import type { PublicPath } from 'wxt/browser';
 
 const stringsKeyForLang = (lang: string) => `locStrings-${lang}`;
 const versionKeyForLang = (lang: string) => `locVersion-${lang}`;
@@ -78,7 +79,9 @@ const bundledStringsForLang = async (lang: string): Promise<Localization | undef
         if (lang === defaultLang) {
             return {
                 lang,
-                strings: await (await fetch(browser.runtime.getURL(`asbplayer-locales/${lang}.json`))).json(),
+                strings: await (
+                    await fetch(browser.runtime.getURL(`/asbplayer-locales/${lang}.json` as PublicPath))
+                ).json(),
             };
         }
     }

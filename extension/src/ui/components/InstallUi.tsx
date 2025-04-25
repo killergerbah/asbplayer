@@ -24,7 +24,7 @@ const InstallUi = ({ heading, body }: Props) => {
             <Paper style={{ width: '100vw', height: '100vh' }} square>
                 <CenteredGridContainer direction="column">
                     <CenteredGridItem>
-                        <img style={{ width: 75 }} src={browser.runtime.getURL('icon/image.png')} />
+                        <img style={{ width: 75 }} src={browser.runtime.getURL('/icon/image.png')} />
                     </CenteredGridItem>
                     <CenteredGridItem>{heading}</CenteredGridItem>
                     <CenteredGridItem>{body}</CenteredGridItem>

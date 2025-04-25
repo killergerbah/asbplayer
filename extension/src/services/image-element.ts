@@ -21,7 +21,7 @@ export default class ImageElement {
 
         const image = document.createElement('img');
         image.classList.add('asbplayer-image');
-        image.src = browser.runtime.getURL('icon/image.png');
+        image.src = browser.runtime.getURL('/icon/image.png');
 
         this._applyImageContainerStyles(image, container);
 

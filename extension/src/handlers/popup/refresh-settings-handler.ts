@@ -65,7 +65,7 @@ export default class RefreshSettingsHandler {
                 return settingsUpdatedCommand;
             },
         });
-        browser.tabs.query({ url: `${browser.runtime.getURL('options.html')}` }).then((tabs) => {
+        browser.tabs.query({ url: `${browser.runtime.getURL('/options.html')}` }).then((tabs) => {
             for (const t of tabs) {
                 if (t.id !== undefined) {
                     browser.tabs.sendMessage(t.id, {

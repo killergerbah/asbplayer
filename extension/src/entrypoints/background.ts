@@ -96,7 +96,7 @@ export default defineBackground(() => {
             });
         }
 
-        browser.tabs.create({ url: browser.runtime.getURL('ftue-ui.html'), active: true });
+        browser.tabs.create({ url: browser.runtime.getURL('/ftue-ui.html'), active: true });
     };
 
     const updateListener = async (details: Browser.runtime.InstalledDetails) => {

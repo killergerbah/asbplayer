@@ -512,7 +512,7 @@ export default class TabRegistry {
     }
 
     async _createNewTab() {
-        return new Promise<browser.tabs.Tab>(async (resolve, reject) => {
+        return new Promise<Browser.tabs.Tab>(async (resolve, reject) => {
             const activeTabs = await browser.tabs.query({ active: true });
             const activeTabIndex = !activeTabs || activeTabs.length === 0 ? undefined : activeTabs[0].index + 1;
             browser.tabs.create(
