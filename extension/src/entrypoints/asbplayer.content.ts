@@ -12,7 +12,7 @@ import type {
 } from '@project/common';
 import { ExtensionSettingsStorage } from '@/services/extension-settings-storage';
 import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
-import type { ContentScriptContext } from 'wxt/utils/content-script-context';
+import type { ContentScriptContext } from '#imports';
 
 const matches = ['*://killergerbah.github.io/asbplayer*'];
 
