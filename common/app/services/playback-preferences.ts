@@ -6,6 +6,7 @@ const volumeKey = 'volume';
 const theaterModeKey = 'theaterMode';
 const offsetKey = 'offset';
 const displaySubtitlesKey = 'displaySubtitles';
+const hideSubtitleListKey = 'hideSubtitleList';
 const defaultVolume = 100;
 
 interface PlaybackPrefSettings {
@@ -24,6 +25,14 @@ export default class PlaybackPreferences {
     constructor(settings: PlaybackPrefSettings, extension: ChromeExtension) {
         this._settings = settings;
         this._extension = extension;
+    }
+
+    get hideSubtitleList() {
+        return this._storage.get(hideSubtitleListKey) === 'true';
+    }
+
+    set hideSubtitleList(value: boolean) {
+        this._storage.set(hideSubtitleListKey, String(value));
     }
 
     get volume() {

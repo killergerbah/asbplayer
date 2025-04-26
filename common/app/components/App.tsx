@@ -274,7 +274,7 @@ function App({
     copyHistoryItemsRef.current = copyHistoryItems;
     const [copyHistoryOpen, setCopyHistoryOpen] = useState<boolean>(false);
     const [theaterMode, setTheaterMode] = useState<boolean>(playbackPreferences.theaterMode);
-    const [hideSubtitlePlayer, setHideSubtitlePlayer] = useState<boolean>(false);
+    const [hideSubtitlePlayer, setHideSubtitlePlayer] = useState<boolean>(playbackPreferences.hideSubtitleList);
     const [videoPopOut, setVideoPopOut] = useState<boolean>(false);
     const [alert, setAlert] = useState<string>();
     const [alertOpen, setAlertOpen] = useState<boolean>(false);
@@ -535,8 +535,9 @@ function App({
         return () => document.removeEventListener('fullscreenchange', listener);
     }, []);
     const handleHideSubtitlePlayer = useCallback(() => {
-        setHideSubtitlePlayer((hidden) => !hidden);
-    }, []);
+        playbackPreferences.hideSubtitleList = !hideSubtitlePlayer;
+        setHideSubtitlePlayer(!hideSubtitlePlayer);
+    }, [hideSubtitlePlayer, playbackPreferences]);
     const handleVideoPopOut = useCallback(() => {
         setVideoPopOut((videoPopOut) => !videoPopOut);
         setHideSubtitlePlayer(false);
