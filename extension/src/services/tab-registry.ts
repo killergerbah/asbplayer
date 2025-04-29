@@ -49,11 +49,11 @@ export default class TabRegistry {
 
         // Update video element state on tab changes
         // Triggers events for when synced video elements appear/disappear
-        chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
+        browser.tabs.onRemoved.addListener((tabId, removeInfo) => {
             this._removeVideoElementsInTab(tabId);
             this._removeAsbplayersInTab(tabId);
         });
-        chrome.tabs.onUpdated.addListener((tabId, updateInfo) => {
+        browser.tabs.onUpdated.addListener((tabId, updateInfo) => {
             let shouldGarbageCollect = false;
 
             if (updateInfo.status === 'loading' && updateInfo.url === undefined) {
@@ -72,15 +72,12 @@ export default class TabRegistry {
     }
 
     private async _fetchVideoElementState(): Promise<{ [key: string]: VideoElement }> {
-        return (
-            ((await chrome.storage.session.get('tabRegistryVideoElements')).tabRegistryVideoElements as {
-                [key: string]: VideoElement;
-            }) ?? {}
-        );
+        const result = await browser.storage.session.get('tabRegistryVideoElements');
+        return (result && (result.tabRegistryVideoElements as { [key: string]: VideoElement })) ?? {};
     }
 
     private async _saveVideoElementState(state: { [key: string]: VideoElement }) {
-        await chrome.storage.session.set({ tabRegistryVideoElements: state });
+        await browser.storage.session.set({ tabRegistryVideoElements: state });
     }
 
     private async _removeVideoElementsInTab(tabId: number) {
@@ -125,15 +122,12 @@ export default class TabRegistry {
     }
 
     private async _fetchAsbplayerState(): Promise<{ [key: string]: Asbplayer }> {
-        return (
-            ((await chrome.storage.session.get('tabRegistryAsbplayers')).tabRegistryAsbplayers as {
-                [key: string]: Asbplayer;
-            }) ?? {}
-        );
+        const result = await browser.storage.session.get('tabRegistryAsbplayers');
+        return (result && (result.tabRegistryAsbplayers as { [key: string]: Asbplayer })) ?? {};
     }
 
     private async _saveAsbplayerState(state: { [key: string]: Asbplayer }) {
-        await chrome.storage.session.set({ tabRegistryAsbplayers: state });
+        await browser.storage.session.set({ tabRegistryAsbplayers: state });
     }
 
     private async _removeAsbplayersInTab(tabId: number) {
@@ -188,7 +182,7 @@ export default class TabRegistry {
     }
 
     async onAsbplayerHeartbeat(
-        tab: chrome.tabs.Tab | undefined,
+        tab: Browser.tabs.Tab | undefined,
         {
             id: asbplayerId,
             videoPlayer,
@@ -220,9 +214,9 @@ export default class TabRegistry {
             };
 
             if (tab?.id) {
-                await chrome.tabs.sendMessage(tab.id, command);
+                await browser.tabs.sendMessage(tab.id, command);
             } else {
-                await chrome.runtime.sendMessage(command);
+                await browser.runtime.sendMessage(command);
             }
         } catch (e) {
             // Swallow
@@ -230,7 +224,7 @@ export default class TabRegistry {
     }
 
     async onAsbplayerAckTabs(
-        tab: chrome.tabs.Tab | undefined,
+        tab: Browser.tabs.Tab | undefined,
         { id: asbplayerId, videoPlayer, sidePanel, loadedSubtitles, receivedTabs, syncedVideoElement }: AckTabsMessage
     ) {
         this._updateAsbplayers(
@@ -245,7 +239,7 @@ export default class TabRegistry {
     }
 
     private async _updateAsbplayers(
-        tab: chrome.tabs.Tab | undefined,
+        tab: Browser.tabs.Tab | undefined,
         asbplayerId: string,
         videoPlayer: boolean,
         sidePanel: boolean,
@@ -319,7 +313,7 @@ export default class TabRegistry {
     }
 
     async onVideoElementHeartbeat(
-        tab: chrome.tabs.Tab,
+        tab: Browser.tabs.Tab,
         src: string,
         { subscribed, synced, syncedTimestamp, loadedSubtitles }: VideoHeartbeatMessage
     ) {
@@ -348,7 +342,7 @@ export default class TabRegistry {
         });
     }
 
-    async onVideoElementDisappeared(tab: chrome.tabs.Tab, src: string) {
+    async onVideoElementDisappeared(tab: Browser.tabs.Tab, src: string) {
         await this._videoElements((videoElements) => {
             const key = `${tab.id}:${src}`;
 
@@ -418,9 +412,9 @@ export default class TabRegistry {
     private async _sendCommand<T extends Message>(asbplayer: Asbplayer, command: Command<T>) {
         try {
             if (asbplayer.tab?.id !== undefined) {
-                await chrome.tabs.sendMessage(asbplayer.tab.id, command);
+                await browser.tabs.sendMessage(asbplayer.tab.id, command);
             } else if (asbplayer.sidePanel) {
-                await chrome.runtime.sendMessage(command);
+                await browser.runtime.sendMessage(command);
             }
         } catch (e) {
             // Swallow as this usually only indicates that the tab is not an asbplayer tab
@@ -440,7 +434,7 @@ export default class TabRegistry {
                 const command = commandFactory(videoElement);
 
                 if (command !== undefined) {
-                    chrome.tabs.sendMessage(tabId, command);
+                    browser.tabs.sendMessage(tabId, command);
                 }
             }
         }
@@ -463,7 +457,7 @@ export default class TabRegistry {
                 const command = commandFactory(tab);
 
                 if (command !== undefined) {
-                    chrome.tabs.sendMessage(tab.id, command);
+                    browser.tabs.sendMessage(tab.id, command);
                 }
             }
         }
@@ -518,10 +512,10 @@ export default class TabRegistry {
     }
 
     async _createNewTab() {
-        return new Promise<chrome.tabs.Tab>(async (resolve, reject) => {
-            const activeTabs = await chrome.tabs.query({ active: true });
+        return new Promise<Browser.tabs.Tab>(async (resolve, reject) => {
+            const activeTabs = await browser.tabs.query({ active: true });
             const activeTabIndex = !activeTabs || activeTabs.length === 0 ? undefined : activeTabs[0].index + 1;
-            chrome.tabs.create(
+            browser.tabs.create(
                 {
                     active: false,
                     url: await this._settings.getSingle('streamingAppUrl'),

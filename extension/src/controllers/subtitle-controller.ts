@@ -405,7 +405,7 @@ export default class SubtitleController {
                     src: this.video.src,
                 };
 
-                chrome.runtime.sendMessage(command);
+                browser.runtime.sendMessage(command);
             }
         }
     }
@@ -554,7 +554,7 @@ export default class SubtitleController {
                 src: this.video.src,
             };
 
-            chrome.runtime.sendMessage(command);
+            browser.runtime.sendMessage(command);
         }
 
         this.onOffsetChange?.();

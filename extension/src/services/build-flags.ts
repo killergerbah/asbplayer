@@ -1,3 +1,1 @@
-// @ts-ignore
-export const isFirefoxBuild =
-    import.meta.env.VITE_BUILD_TARGET === 'firefox' || import.meta.env.VITE_BUILD_TARGET === 'firefoxandroid';
+export const isFirefoxBuild = import.meta.env.BROWSER === 'firefox' || import.meta.env.BROWSER === 'firefox-android';

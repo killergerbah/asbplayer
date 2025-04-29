@@ -18,7 +18,7 @@ export const useMobileVideoOverlayLocation = () => {
                 },
             };
 
-            const tabId = (await chrome.runtime.sendMessage(command)) as number | undefined;
+            const tabId = (await browser.runtime.sendMessage(command)) as number | undefined;
 
             if (tabId === undefined) {
                 return;

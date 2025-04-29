@@ -166,7 +166,7 @@ export default class KeyBindings {
                     src: context.video.src,
                 };
 
-                chrome.runtime.sendMessage(toggleSubtitlesCommand);
+                browser.runtime.sendMessage(toggleSubtitlesCommand);
             },
             () => context.subtitleController.subtitles.length === 0,
             true
@@ -205,7 +205,7 @@ export default class KeyBindings {
                     },
                     src: context.video.src,
                 };
-                chrome.runtime.sendMessage(command);
+                browser.runtime.sendMessage(command);
             },
             () => context.subtitleController.subtitles.length === 0,
             true

@@ -32,7 +32,7 @@ export default class RefreshSettingsHandler {
         return 'settings-updated';
     }
 
-    handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         this._settingsProvider
             .get(['language', 'webSocketClientEnabled'])
             .then(({ language, webSocketClientEnabled }) => {
@@ -65,10 +65,10 @@ export default class RefreshSettingsHandler {
                 return settingsUpdatedCommand;
             },
         });
-        chrome.tabs.query({ url: `${chrome.runtime.getURL('settings-ui.html')}` }).then((tabs) => {
+        browser.tabs.query({ url: `${browser.runtime.getURL('/options.html')}` }).then((tabs) => {
             for (const t of tabs) {
                 if (t.id !== undefined) {
-                    chrome.tabs.sendMessage(t.id, {
+                    browser.tabs.sendMessage(t.id, {
                         message: {
                             command: 'settings-updated',
                         },

@@ -16,7 +16,7 @@ export default class ClearCopyHistoryHandler {
         return 'clear-copy-history';
     }
 
-    handle(command: Command<Message>, sender: chrome.runtime.MessageSender, sendResponse: (r?: any) => void) {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender, sendResponse: (r?: any) => void) {
         this._settings
             .getSingle('miningHistoryStorageLimit')
             .then((limit) => new IndexedDBCopyHistoryRepository(limit))

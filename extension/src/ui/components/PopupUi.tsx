@@ -30,7 +30,7 @@ const notifySettingsUpdated = () => {
             command: 'settings-updated',
         },
     };
-    chrome.runtime.sendMessage(settingsUpdatedCommand);
+    browser.runtime.sendMessage(settingsUpdatedCommand);
 };
 
 export function PopupUi({ commands }: Props) {
@@ -52,18 +52,18 @@ export function PopupUi({ commands }: Props) {
     );
 
     const handleOpenExtensionShortcuts = useCallback(() => {
-        chrome.tabs.create({ active: true, url: 'chrome://extensions/shortcuts' });
+        browser.tabs.create({ active: true, url: 'chrome://extensions/shortcuts' });
     }, []);
 
     const handleOpenApp = useCallback(async () => {
         if (settings?.streamingAppUrl) {
-            chrome.tabs.create({ active: true, url: settings.streamingAppUrl });
+            browser.tabs.create({ active: true, url: settings.streamingAppUrl });
         }
     }, [settings]);
 
     const handleOpenSidePanel = useCallback(async () => {
         // @ts-ignore
-        chrome.sidePanel.open({ windowId: (await chrome.windows.getLastFocused()).id });
+        browser.sidePanel.open({ windowId: (await browser.windows.getLastFocused()).id });
     }, []);
 
     const { requestingActiveTabPermission, tabRequestingActiveTabPermission } = useRequestingActiveTabPermission();
@@ -80,7 +80,7 @@ export function PopupUi({ commands }: Props) {
             },
             src: tabRequestingActiveTabPermission.src,
         };
-        chrome.tabs.sendMessage(tabRequestingActiveTabPermission.tabId, command);
+        browser.tabs.sendMessage(tabRequestingActiveTabPermission.tabId, command);
         window.close();
     }, [requestingActiveTabPermission, tabRequestingActiveTabPermission]);
 

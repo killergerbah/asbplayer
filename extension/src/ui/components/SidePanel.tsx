@@ -129,7 +129,7 @@ export default function SidePanel({ settings, extension }: Props) {
                         },
                         src: lastSyncedVideoTab.src,
                     };
-                    const response = (await chrome.tabs.sendMessage(lastSyncedVideoTab.id, message)) as
+                    const response = (await browser.tabs.sendMessage(lastSyncedVideoTab.id, message)) as
                         | RequestSubtitlesResponse
                         | undefined;
 
@@ -240,7 +240,7 @@ export default function SidePanel({ settings, extension }: Props) {
             tabId: syncedVideoTab.id,
             src: syncedVideoTab.src,
         };
-        chrome.runtime.sendMessage(message);
+        browser.runtime.sendMessage(message);
     }, [syncedVideoTab, settings.clickToMineDefaultAction]);
 
     const handleLoadSubtitles = useCallback(() => {
@@ -253,7 +253,7 @@ export default function SidePanel({ settings, extension }: Props) {
             message: { command: 'load-subtitles' },
             tabId: currentTabId,
         };
-        chrome.runtime.sendMessage(message);
+        browser.runtime.sendMessage(message);
     }, [currentTabId]);
 
     const handleDownloadSubtitles = useCallback(() => {
@@ -324,7 +324,7 @@ export default function SidePanel({ settings, extension }: Props) {
                             ...item,
                         },
                     };
-                    chrome.tabs.sendMessage(currentTabId, downloadAudioCommand);
+                    browser.tabs.sendMessage(currentTabId, downloadAudioCommand);
                 }
             } else {
                 const clip = AudioClip.fromCard(item, settings.audioPaddingStart, settings.audioPaddingEnd, false);
@@ -352,7 +352,7 @@ export default function SidePanel({ settings, extension }: Props) {
                             ...item,
                         },
                     };
-                    chrome.tabs.sendMessage(currentTabId, downloadImageCommand);
+                    browser.tabs.sendMessage(currentTabId, downloadImageCommand);
                 }
             } else {
                 const image = Image.fromCard(item, settings.maxImageWidth, settings.maxImageHeight);
@@ -378,7 +378,7 @@ export default function SidePanel({ settings, extension }: Props) {
                     subtitleFileName: card.subtitleFileName,
                 },
             };
-            chrome.tabs.sendMessage(currentTabId, asbplayerCommand);
+            browser.tabs.sendMessage(currentTabId, asbplayerCommand);
         },
         [currentTabId, viewingAsbplayer]
     );
@@ -400,8 +400,8 @@ export default function SidePanel({ settings, extension }: Props) {
                 sender: 'asbplayer-extension-to-player',
                 message,
             };
-            chrome.tabs.sendMessage(currentTabId, videoCommand);
-            chrome.tabs.sendMessage(currentTabId, asbplayerCommand);
+            browser.tabs.sendMessage(currentTabId, videoCommand);
+            browser.tabs.sendMessage(currentTabId, asbplayerCommand);
         },
         [currentTabId]
     );
@@ -430,7 +430,7 @@ export default function SidePanel({ settings, extension }: Props) {
                 tabId: syncedVideoTab.id,
                 src: syncedVideoTab.src,
             };
-            chrome.runtime.sendMessage(message);
+            browser.runtime.sendMessage(message);
         },
         [syncedVideoTab, settings.clickToMineDefaultAction, currentTabId]
     );
@@ -493,7 +493,7 @@ export default function SidePanel({ settings, extension }: Props) {
                         <>
                             <SidePanelRecordingOverlay show={recordingAudio} />
                             <Player
-                                origin={chrome.runtime.getURL('side-panel.html')}
+                                origin={browser.runtime.getURL('/sidepanel.html')}
                                 subtitles={subtitles}
                                 hideControls={true}
                                 showCopyButton={true}

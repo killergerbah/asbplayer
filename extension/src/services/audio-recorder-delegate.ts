@@ -28,14 +28,14 @@ export interface AudioRecorderDelegate {
 
 export class OffscreenAudioRecorder implements AudioRecorderDelegate {
     private async _ensureOffscreenDocument() {
-        const contexts = await chrome.runtime.getContexts({
-            contextTypes: [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT],
+        const contexts = await browser.runtime.getContexts({
+            contextTypes: [browser.runtime.ContextType.OFFSCREEN_DOCUMENT],
         });
 
         if (contexts.length === 0) {
-            await chrome.offscreen.createDocument({
+            await browser.offscreen.createDocument({
                 url: 'offscreen-audio-recorder.html',
-                reasons: [chrome.offscreen.Reason.USER_MEDIA],
+                reasons: [browser.offscreen.Reason.USER_MEDIA],
                 justification: 'Audio recording',
             });
         }
@@ -43,7 +43,7 @@ export class OffscreenAudioRecorder implements AudioRecorderDelegate {
 
     private _mediaStreamId(tabId: number): Promise<string> {
         return new Promise((resolve, reject) => {
-            chrome.tabCapture.getMediaStreamId(
+            browser.tabCapture.getMediaStreamId(
                 {
                     targetTabId: tabId,
                 },
@@ -71,7 +71,7 @@ export class OffscreenAudioRecorder implements AudioRecorderDelegate {
                 requestId,
             },
         };
-        return (await chrome.runtime.sendMessage(command)) as StartRecordingResponse;
+        return (await browser.runtime.sendMessage(command)) as StartRecordingResponse;
     }
 
     async start(requestId: string, { tabId, src }: Requester) {
@@ -86,7 +86,7 @@ export class OffscreenAudioRecorder implements AudioRecorderDelegate {
                 requestId,
             },
         };
-        return (await chrome.runtime.sendMessage(command)) as StartRecordingResponse;
+        return (await browser.runtime.sendMessage(command)) as StartRecordingResponse;
     }
 
     async stop(encodeAsMp3: boolean): Promise<StopRecordingResponse> {
@@ -97,7 +97,7 @@ export class OffscreenAudioRecorder implements AudioRecorderDelegate {
                 encodeAsMp3,
             },
         };
-        return (await chrome.runtime.sendMessage(command)) as StopRecordingResponse;
+        return (await browser.runtime.sendMessage(command)) as StopRecordingResponse;
     }
 }
 
@@ -119,7 +119,7 @@ export class CaptureStreamAudioRecorder implements AudioRecorderDelegate {
             src,
         };
 
-        return (await chrome.tabs.sendMessage(tabId, command)) as StartRecordingResponse;
+        return (await browser.tabs.sendMessage(tabId, command)) as StartRecordingResponse;
     }
 
     async start(requestId: string, { tabId, src }: Requester) {
@@ -131,7 +131,7 @@ export class CaptureStreamAudioRecorder implements AudioRecorderDelegate {
             },
             src,
         };
-        return (await chrome.tabs.sendMessage(tabId, command)) as StartRecordingResponse;
+        return (await browser.tabs.sendMessage(tabId, command)) as StartRecordingResponse;
     }
 
     async stop(encodeAsMp3: boolean, { tabId, src }: Requester): Promise<StopRecordingResponse> {
@@ -143,6 +143,6 @@ export class CaptureStreamAudioRecorder implements AudioRecorderDelegate {
             },
             src,
         };
-        return (await chrome.tabs.sendMessage(tabId, command)) as StopRecordingResponse;
+        return (await browser.tabs.sendMessage(tabId, command)) as StopRecordingResponse;
     }
 }

@@ -1,10 +1,9 @@
 {
     "compilerOptions": {
         "outDir": "./dist",
-        "lib": ["dom", "DOM.iterable", "ESNext"],
-        "allowJs": true,
-        "target": "ES2020",
-        "module": "ES2020",
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "target": "ESNext",
+        "module": "ESNext",
         "jsx": "react-jsx",
         "esModuleInterop": true,
         "strict": true,
