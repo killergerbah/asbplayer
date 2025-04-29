@@ -70,7 +70,8 @@ AstralDice,
 トム,
 Peter,
 [@825i](https://github.com/825i),
-ags
+ags,
+Vannde3
 
 and to those who have donated privately.
 
