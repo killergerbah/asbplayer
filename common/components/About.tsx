@@ -186,6 +186,14 @@ const dependencies: Dependency[] = [
         purpose: 'Subtitle detection',
         extension: true,
     },
+    {
+        name: 'YouTube.js',
+        projectLink: 'https://ytjs.dev',
+        license: 'MIT',
+        licenseLink: 'https://github.com/LuanRT/YouTube.js/blob/main/LICENSE',
+        purpose: 'YouTube subtitle extraction',
+        extension: true,
+    },
 ];
 
 const dependencyPurposeCounts: { [key: string]: number } = {};

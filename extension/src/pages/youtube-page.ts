@@ -1,162 +1,204 @@
 import { VideoData } from '@project/common';
-import { trackFromDef } from './util';
+import { trackId } from './util';
+import { Innertube } from 'youtubei.js';
+import SrtParser from '@qgustavor/srt-parser';
+import { bufferToBase64 } from '@project/common/base64';
 
-declare global {
-    interface Window {
-        trustedTypes?: any;
+type TranscriptInfo = Awaited<ReturnType<Awaited<ReturnType<Innertube['getInfo']>>['getTranscript']>>;
+
+const stringToArrayBuffer = (str: string) => {
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(str);
+    return bytes.buffer;
+};
+
+const inferVideoId = () => {
+    const pathname = window.location.pathname;
+
+    if (pathname) {
+        const pathVideoId = /\/(shorts|embed)\/(.*)/.exec(pathname)?.[2];
+
+        if (pathVideoId) {
+            return pathVideoId;
+        }
     }
-}
 
-let trustedPolicy: any = undefined;
+    const params = new URLSearchParams(window.location.search);
+    return params.get('v') ?? undefined;
+};
 
-if (window.trustedTypes !== undefined) {
-    // YouTube doesn't define a default policy
-    // we create a default policy to avoid errors that seem to be caused by chrome not supporting trustedScripts in Function sinks
-    // If YT enforce a strict default policy in the future, we may need to revisit this
-    // hopefully by then chrome will have fixed the issue: https://wpt.fyi/results/trusted-types/eval-function-constructor.html
-    // (in chrome 127 the final test was failing)
-    if (window.trustedTypes.defaultPolicy === null) {
-        window.trustedTypes.createPolicy('default', {
-            createHTML: (s: string) => s,
-            createScript: (s: string) => s,
-            createScriptURL: (s: string) => s,
-        });
+const defaultTranscript = async () => {
+    const videoId = inferVideoId();
+
+    if (!videoId) {
+        throw new Error('Unable to infer video ID');
     }
-    trustedPolicy = window.trustedTypes.createPolicy('passThrough', {
-        createHTML: (s: string) => s,
-        createScript: (s: string) => s,
+
+    return defaultTranscriptForVideoId(videoId);
+};
+
+const defaultTranscriptForVideoId = async (videoId: string) => {
+    const mobileYoutube = location.host === 'm.youtube.com';
+    const innertube = await Innertube.create({
+        retrieve_player: false,
+        // Ensure fetch's `this` does not change
+        fetch: (...args) => {
+            if (!mobileYoutube) {
+                return window.fetch(...args);
+            }
+
+            // Hack: Replace URL to support mobile website m.youtube.com
+            const arg = args[0];
+            const toMobileUrl = (url: string) => {
+                return url.replace('www.youtube.com', 'm.youtube.com');
+            };
+
+            if (arg instanceof URL) {
+                args[0] = new URL(toMobileUrl(arg.toString()));
+            } else if (arg instanceof Request) {
+                const req = arg as Request;
+                const newReq = new Request(toMobileUrl(req.url), req);
+                args[0] = newReq;
+            }
+
+            return window.fetch(...args);
+        },
+        retrieve_innertube_config: false,
     });
-}
+    const info = await innertube.getInfo(videoId);
+    try {
+        const transcript = await info.getTranscript();
+        return { info, transcript };
+    } catch (e) {
+        if (e instanceof Error && e.message.includes('Transcript panel not found.')) {
+            return { info };
+        }
 
-const adaptYtTrack = (track: any) => {
-    return trackFromDef({
-        label: `${track.languageCode} - ${track.name?.simpleText ?? track.name?.runs?.[0]?.text}`,
-        language: track.languageCode.toLowerCase(),
-        url: track.baseUrl,
-        extension: 'ytxml',
+        throw e;
+    }
+};
+
+const lazyTracksForTranscript = (transcript: TranscriptInfo) => {
+    return transcript.languages.map((lang) => {
+        const def = {
+            label: lang,
+            language: lang,
+            // As of this writing there is no known reliable way to obtain static URLs to fetch YT subtitles.
+            // So we indicate with the 'lazy' sentinel value that the subtitles should be fetched lazily using InnerTube's API.
+            url: 'lazy',
+            extension: 'srt',
+        };
+        return {
+            id: trackId(def),
+            ...def,
+        };
     });
 };
 
+const publishCurrentLazyTracks = async () => {
+    const response: VideoData = { error: '', basename: '', subtitles: [] };
+    let videoId: string | undefined;
+
+    try {
+        videoId = inferVideoId();
+        const { info, transcript } = await defaultTranscript();
+        response.basename = info.basic_info.title ?? document.title;
+        response.subtitles = transcript === undefined ? [] : lazyTracksForTranscript(transcript);
+        return info.basic_info.id;
+    } catch (error) {
+        if (error instanceof Error) {
+            response.error = error.message;
+        } else {
+            response.error = String(error);
+        }
+    } finally {
+        // Do not publish subs if the video ID changed during track extraction - e.g. likely to happen on Shorts
+        if (videoId === inferVideoId()) {
+            document.dispatchEvent(
+                new CustomEvent('asbplayer-synced-data', {
+                    detail: response,
+                })
+            );
+        }
+    }
+};
+
+let lastVideoIdDispatched: string | undefined;
+
 document.addEventListener(
     'asbplayer-get-synced-data',
-    async () => {
+    async (e) => {
+        lastVideoIdDispatched = await publishCurrentLazyTracks();
+    },
+    false
+);
+
+document.addEventListener(
+    'asbplayer-get-synced-language-data',
+    // Resolve lazily fetched subtitles for specific language
+    async (e) => {
         const response: VideoData = { error: '', basename: '', subtitles: [] };
-        const initialHref = window.location.href;
 
         try {
-            const playerContext = await fetch(window.location.href)
-                .then((webResponse) => {
-                    if (!webResponse.ok) {
-                        throw new Error(
-                            `YT Context Retrieval failed with Status ${webResponse.status}/${webResponse.statusText}...`
-                        );
-                    }
-                    return webResponse.text();
-                })
-                .then((pageString) => {
-                    if (trustedPolicy !== undefined) {
-                        pageString = trustedPolicy.createHTML(pageString);
-                    }
+            const { info, transcript } = await defaultTranscript();
+            const event = e as CustomEvent;
+            const language = event.detail as string;
 
-                    return new window.DOMParser().parseFromString(pageString, 'text/html');
-                })
-                .then((page) => {
-                    const scriptElements = page.body.querySelectorAll('script');
-
-                    for (let i = 0; i < scriptElements.length; ++i) {
-                        const elm = scriptElements[i];
-
-                        if (elm.textContent?.includes('ytInitialPlayerResponse')) {
-                            let scriptString = `${elm.textContent}; return ytInitialPlayerResponse;`;
-
-                            if (trustedPolicy !== undefined) {
-                                scriptString = trustedPolicy.createScript(scriptString);
-                            }
-
-                            const context = new Function(scriptString)();
-
-                            if (context) {
-                                return context;
-                            }
-                        }
-                    }
-
-                    return undefined;
-                });
-
-            if (!playerContext) {
-                throw new Error('YT Player Context not found...');
+            if (!transcript) {
+                return;
             }
 
-            response.basename = playerContext.videoDetails?.title || document.title;
-            response.subtitles = (playerContext?.captions?.playerCaptionsTracklistRenderer?.captionTracks || []).map(
-                adaptYtTrack
-            );
-        } catch (error) {
-            if (error instanceof Error) {
-                response.error = error.message;
-            } else {
-                response.error = String(error);
-            }
+            const transcriptForLanguage = await transcript.selectLanguage(language);
+            const nodes =
+                transcriptForLanguage.transcript.content?.body?.initial_segments?.map((seg, i) => {
+                    return {
+                        id: String(i),
+                        startTime: Number(seg.start_ms),
+                        endTime: Number(seg.end_ms),
+                        text: seg.snippet.text ?? '',
+                    };
+                }) ?? [];
+            const parser = new SrtParser({ numericTimestamps: true });
+            const serializedSrt = bufferToBase64(stringToArrayBuffer(parser.toSrt(nodes)));
+            const trackDef = {
+                label: transcriptForLanguage.selectedLanguage,
+                language: transcriptForLanguage.selectedLanguage,
+                // Current data structure only supports URLs for effectively transferring a string pointer to the subtitle data.
+                // Hack: use data URL to transfer a base64-encoded SRT of the transcript.
+                url: `data:text/plain;base64,${serializedSrt}`,
+                extension: 'srt',
+            };
+            response.basename = info.basic_info.title ?? document.title;
+            response.subtitles = [
+                {
+                    id: trackId(trackDef),
+                    ...trackDef,
+                },
+            ];
+        } catch (e) {
+            response.error = e instanceof Error ? e.message : String(e);
         } finally {
-            if (initialHref === window.location.href) {
-                document.dispatchEvent(
-                    new CustomEvent('asbplayer-synced-data', {
-                        detail: response,
-                    })
-                );
-            }
+            document.dispatchEvent(new CustomEvent('asbplayer-synced-language-data', { detail: response }));
         }
     },
     false
 );
 
-const dataByVideoId: { [key: string]: VideoData } = {};
-let lastVideoIdDispatched: string | undefined;
+let publishing = false;
 
-setInterval(() => {
-    for (const videoId of Object.keys(dataByVideoId)) {
-        if (lastVideoIdDispatched !== videoId && window.location.pathname.includes(videoId)) {
-            document.dispatchEvent(
-                new CustomEvent('asbplayer-synced-data', {
-                    detail: dataByVideoId[videoId],
-                })
-            );
-            lastVideoIdDispatched = videoId;
+// Handle YT shorts: Publish subtitle tracks according to current video ID
+setInterval(async () => {
+    if (publishing) {
+        return;
+    }
+
+    try {
+        publishing = true;
+        const videoId = inferVideoId();
+        if (lastVideoIdDispatched && videoId && lastVideoIdDispatched !== videoId) {
+            lastVideoIdDispatched = await publishCurrentLazyTracks();
         }
+    } finally {
+        publishing = false;
     }
 }, 500);
-
-const originalParse = JSON.parse;
-
-// Hijack JSON in order to detect subtitle changes delivered asynchronously
-JSON.parse = function () {
-    // @ts-ignore
-    const value = originalParse.apply(this, arguments);
-    const tracks = value?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-
-    if (typeof tracks === 'object' && Array.isArray(tracks) && typeof value?.videoDetails?.videoId === 'string') {
-        const videoId = value.videoDetails.videoId;
-        const subtitles = tracks.map(adaptYtTrack);
-        const basename = value.videoDetails?.title || document.title;
-        dataByVideoId[videoId] = {
-            subtitles,
-            basename,
-            error: '',
-        };
-
-        if (location.pathname.includes(videoId)) {
-            document.dispatchEvent(
-                new CustomEvent('asbplayer-synced-data', {
-                    detail: {
-                        subtitles,
-                        basename,
-                        error: '',
-                    },
-                })
-            );
-        }
-    }
-
-    return value;
-};

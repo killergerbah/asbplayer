@@ -1694,6 +1694,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bufbuild/protobuf@npm:^2.0.0":
+  version: 2.4.0
+  resolution: "@bufbuild/protobuf@npm:2.4.0"
+  checksum: 2fe978d0914a6a95136efa8081125aa5c95741f1c96bb4f8f499a336f1aead13ca06f9daee99175778ef04f62deb4d0c68f35f1664d7c46293b90d6e40b6f9aa
+  languageName: node
+  linkType: hard
+
 "@emotion/babel-plugin@npm:^11.13.5":
   version: 11.13.5
   resolution: "@emotion/babel-plugin@npm:11.13.5"
@@ -2222,6 +2229,13 @@ __metadata:
   version: 8.54.0
   resolution: "@eslint/js@npm:8.54.0"
   checksum: 6d88a6f711ef0133566b5340e3178a178fbb297585766460f195d0a9db85688f1e5cf8559fd5748aeb3131e2096c66595b323d8edab22df015acda68f1ebde92
+  languageName: node
+  linkType: hard
+
+"@fastify/busboy@npm:^2.0.0":
+  version: 2.1.1
+  resolution: "@fastify/busboy@npm:2.1.1"
+  checksum: 42c32ef75e906c9a4809c1e1930a5ca6d4ddc8d138e1a8c8ba5ea07f997db32210617d23b2e4a85fe376316a41a1a0439fc6ff2dedf5126d96f45a9d80754fb2
   languageName: node
   linkType: hard
 
@@ -2963,6 +2977,7 @@ __metadata:
     uuid: 8.3.2
     vite: ^6.1.0
     vite-plugin-static-copy: ^2.2.0
+    youtubei.js: latest
   languageName: unknown
   linkType: soft
 
@@ -3704,6 +3719,15 @@ __metadata:
   bin:
     acorn: bin/acorn
   checksum: 8755074ba55fff94e84e81c72f1013c2d9c78e973c31231c8ae505a5f966859baf654bddd75046bffd73ce816b149298977fff5077a3033dedba0ae2aad152d4
+  languageName: node
+  linkType: hard
+
+"acorn@npm:^8.8.0":
+  version: 8.14.1
+  resolution: "acorn@npm:8.14.1"
+  bin:
+    acorn: bin/acorn
+  checksum: 260d9bb6017a1b6e42d31364687f0258f78eb20210b36ef2baad38fd619d78d4e95ff7dde9b3dbe0d81f137f79a8d651a845363a26e6985997f7b71145dc5e94
   languageName: node
   linkType: hard
 
@@ -7933,6 +7957,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jintr@npm:^3.3.1":
+  version: 3.3.1
+  resolution: "jintr@npm:3.3.1"
+  dependencies:
+    acorn: ^8.8.0
+  checksum: 490a6802af3c07a789c350442236c7a8933911fded66f0343177db2f805fb7fee2e6c185c59a032d50a487763a12118d7cce355eb05c41989a0ca2412685cf1d
+  languageName: node
+  linkType: hard
+
 "js-tokens@npm:^3.0.0 || ^4.0.0, js-tokens@npm:^4.0.0":
   version: 4.0.0
   resolution: "js-tokens@npm:4.0.0"
@@ -10716,7 +10749,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.0.3":
+"tslib@npm:^2.0.3, tslib@npm:^2.5.0":
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: e4aba30e632b8c8902b47587fd13345e2827fa639e7c3121074d5ee0880723282411a8838f830b55100cbe4517672f84a2472667d355b81e8af165a55dc6203a
@@ -10951,6 +10984,15 @@ __metadata:
   version: 6.20.0
   resolution: "undici-types@npm:6.20.0"
   checksum: b7bc50f012dc6afbcce56c9fd62d7e86b20a62ff21f12b7b5cbf1973b9578d90f22a9c7fe50e638e96905d33893bf2f9f16d98929c4673c2480de05c6c96ea8b
+  languageName: node
+  linkType: hard
+
+"undici@npm:^5.19.1":
+  version: 5.29.0
+  resolution: "undici@npm:5.29.0"
+  dependencies:
+    "@fastify/busboy": ^2.0.0
+  checksum: a25b5462c1b6ffb974f5ffc492ffd64146a9983aad0cbda6fde65e2b22f6f1acd43f09beacc66cc47624a113bd0c684ffc60366102b6a21b038fbfafb7d75195
   languageName: node
   linkType: hard
 
@@ -11796,5 +11838,17 @@ __metadata:
   version: 0.1.0
   resolution: "yocto-queue@npm:0.1.0"
   checksum: f77b3d8d00310def622123df93d4ee654fc6a0096182af8bd60679ddcdfb3474c56c6c7190817c84a2785648cdee9d721c0154eb45698c62176c322fb46fc700
+  languageName: node
+  linkType: hard
+
+"youtubei.js@npm:latest":
+  version: 13.4.0
+  resolution: "youtubei.js@npm:13.4.0"
+  dependencies:
+    "@bufbuild/protobuf": ^2.0.0
+    jintr: ^3.3.1
+    tslib: ^2.5.0
+    undici: ^5.19.1
+  checksum: 15e1e8dccd9f0e2f3b90b0e33144d2753cbc322162192ac140adc2b9b7b1075de9a7fdc0cf907e74c9fbd70d01b42c47990ab46602b5584c4819a78d6096366c
   languageName: node
   linkType: hard
