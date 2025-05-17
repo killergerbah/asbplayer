@@ -38,7 +38,8 @@
         "regenerator-runtime": "^0.13.7",
         "semver": "^7.3.7",
         "typescript": "~5.7.2",
-        "uuid": "8.3.2"
+        "uuid": "8.3.2",
+        "youtubei.js": "latest"
     },
     "devDependencies": {
         "@types/jest": "^29.5.14",

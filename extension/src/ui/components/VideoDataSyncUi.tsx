@@ -97,8 +97,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
             }
 
             if (model.subtitles !== undefined) {
-                setSelectedSubtitleTrackIds(initialTrackIds);
-                setSubtitles([
+                const newSubtitles = [
                     {
                         id: '-',
                         language: '-',
@@ -107,7 +106,19 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                         extension: 'srt',
                     },
                     ...model.subtitles,
-                ]);
+                ];
+                setSelectedSubtitleTrackIds((currentSelectedTrackIds) => {
+                    return currentSelectedTrackIds.map((currentSelectedTrackId) => {
+                        const stillSelected = newSubtitles.find((t) => t.id === currentSelectedTrackId);
+
+                        if (stillSelected) {
+                            return currentSelectedTrackId;
+                        }
+
+                        return '-';
+                    });
+                });
+                setSubtitles(newSubtitles);
             }
 
             if (model.selectedSubtitle !== undefined) {
