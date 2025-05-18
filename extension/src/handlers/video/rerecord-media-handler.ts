@@ -31,7 +31,7 @@ export default class RerecordMediaHandler {
         return 'rerecord-media';
     }
 
-    async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
+    async handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         const rerecordCommand = command as VideoToExtensionCommand<RerecordMediaMessage>;
         const baseAudioModel: AudioModel = {
             base64: '',
@@ -97,6 +97,6 @@ export default class RerecordMediaHandler {
             src: rerecordCommand.src,
         };
 
-        chrome.tabs.sendMessage(sender.tab!.id!, showAnkiUiAfterRerecordCommand);
+        browser.tabs.sendMessage(sender.tab!.id!, showAnkiUiAfterRerecordCommand);
     }
 }

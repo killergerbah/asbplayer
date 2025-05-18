@@ -120,9 +120,13 @@ async function encode(audioBuffer: SerializableAudioBuffer) {
     return buffer;
 }
 
-onmessage = async (e) => {
-    postMessage({
-        command: 'finished',
-        buffer: await encode(e.data.audioBuffer),
-    });
-};
+export function onMessage() {
+    onmessage = async (e) => {
+        postMessage({
+            command: 'finished',
+            buffer: await encode(e.data.audioBuffer),
+        });
+    };
+}
+
+onMessage();

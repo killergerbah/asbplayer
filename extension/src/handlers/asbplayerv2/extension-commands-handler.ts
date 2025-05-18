@@ -9,13 +9,13 @@ export default class ExtensionCommandsHandler {
         return 'extension-commands';
     }
 
-    handle(command: Command<Message>, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) {
-        if (chrome.commands === undefined) {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
+        if (browser.commands === undefined) {
             sendResponse({});
             return false;
         }
 
-        chrome.commands.getAll((commands) => {
+        browser.commands.getAll((commands) => {
             const commandsObj: any = {};
 
             for (const c of commands) {

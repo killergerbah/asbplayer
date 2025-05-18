@@ -16,7 +16,7 @@ export default class SaveCopyHistoryHandler {
         return 'save-copy-history';
     }
 
-    handle(command: Command<Message>, sender: chrome.runtime.MessageSender, sendResponse: (r?: any) => void) {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender, sendResponse: (r?: any) => void) {
         const message = command.message as SaveCopyHistoryMessage;
 
         this._settings

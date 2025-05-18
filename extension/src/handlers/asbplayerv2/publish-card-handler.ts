@@ -16,7 +16,7 @@ export default class PublishCardHandler {
         return 'publish-card';
     }
 
-    handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         const message = command.message as PublishCardMessage;
         this._cardPublisher.publish(message);
         return false;

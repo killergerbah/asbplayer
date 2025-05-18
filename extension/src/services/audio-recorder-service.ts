@@ -106,7 +106,7 @@ export default class AudioRecorderService {
             },
             src,
         };
-        chrome.tabs.sendMessage(tabId, command);
+        browser.tabs.sendMessage(tabId, command);
     }
 
     async stop(encodeAsMp3: boolean, requester: Requester): Promise<string> {
@@ -150,7 +150,7 @@ export default class AudioRecorderService {
             },
             src,
         };
-        chrome.tabs.sendMessage(tabId, videoCommand);
+        browser.tabs.sendMessage(tabId, videoCommand);
     }
 
     private _notifyRecordingFinished({ tabId, src }: Requester) {
@@ -170,7 +170,7 @@ export default class AudioRecorderService {
             },
             src,
         };
-        chrome.tabs.sendMessage(tabId, videoCommand);
+        browser.tabs.sendMessage(tabId, videoCommand);
     }
 
     private _prepareForAudioDataResponse(requestId: string): Promise<string> {
@@ -201,6 +201,6 @@ export default class AudioRecorderService {
             },
             src,
         };
-        chrome.tabs.sendMessage(tabId, notifyErrorCommand);
+        browser.tabs.sendMessage(tabId, notifyErrorCommand);
     }
 }

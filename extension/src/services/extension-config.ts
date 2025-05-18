@@ -20,12 +20,13 @@ const settings = new SettingsProvider(new ExtensionSettingsStorage());
 
 // As of this writing, session storage is not accessible to content scripts on Firefox so we use local storage instead.
 // Since unlike session storage, local storage is not automatically cleared, we clear it manually once a day.
-const storage = isFirefoxBuild ? chrome.storage.local : chrome.storage.session;
+const storage = isFirefoxBuild ? browser.storage.local : browser.storage.session;
 const firefoxTtl = 3600 * 24 * 1000; // 1 day
 
 export const fetchExtensionConfig = async (noCache = false): Promise<ExtensionConfig | undefined> => {
     if (!noCache) {
-        const cachedConfig = (await storage.get(['config'])).config;
+        const result = await storage.get(['config']);
+        const cachedConfig = result ? result.config : undefined;
 
         if (cachedConfig === '-') {
             return undefined;

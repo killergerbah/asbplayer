@@ -5,7 +5,7 @@ import InstallUi from './InstallUi';
 
 const UpdateUi = () => {
     const { t } = useTranslation();
-    const version = chrome.runtime.getManifest().version;
+    const version = browser.runtime.getManifest().version;
 
     return (
         <InstallUi

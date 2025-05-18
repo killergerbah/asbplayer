@@ -14,7 +14,7 @@ export const useSettings = () => {
     }, [refreshSettings]);
 
     useEffect(() => {
-        chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
             if (request.message?.command === 'settings-updated') {
                 settingsProvider.getAll().then(setSettings);
             }
@@ -28,7 +28,7 @@ export const useSettings = () => {
                 command: 'settings-updated',
             },
         };
-        chrome.runtime.sendMessage(command);
+        browser.runtime.sendMessage(command);
     }, []);
 
     const onSettingsChanged = useCallback(
