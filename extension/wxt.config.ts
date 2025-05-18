@@ -9,7 +9,7 @@ export default defineConfig({
         let manifest: UserManifest = {
             name: 'asbplayer: Language-learning with subtitles',
             description: '__MSG_extensionDescription__',
-            version: '2.0.0',
+            version: '1.11.0',
             action: { default_title: 'asbplayer' },
             default_locale: 'en',
             icons: {
