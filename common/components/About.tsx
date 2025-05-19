@@ -1,6 +1,6 @@
 import React from 'react';
 import Box from '@mui/material/Box';
-import MuiLink, { LinkProps } from '@mui/material/Link';
+import MuiLink, { type LinkProps } from '@mui/material/Link';
 import LogoIcon from './LogoIcon';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
@@ -10,6 +10,7 @@ import TableRow from '@mui/material/TableRow';
 import MuiTableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
 import { useTheme, withStyles } from '@mui/styles';
 import { type Theme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 interface Props {
     appVersion?: string;
     extensionVersion?: string;
+    insideExtension?: boolean;
 }
 
 const Link = ({ children, ...props }: { children: React.ReactNode } & LinkProps) => {

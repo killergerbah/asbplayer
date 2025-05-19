@@ -18,6 +18,7 @@ import { Mp3Encoder } from '@project/common/audio-clip';
 import { base64ToBlob, blobToBase64 } from '@project/common/base64';
 import { mp3WorkerFactory } from '../services/mp3-worker-factory';
 import { ExtensionGlobalStateProvider } from '../services/extension-global-state-provider';
+import { isOnTutorialPage } from '@/services/tutorial';
 
 const globalStateProvider = new ExtensionGlobalStateProvider();
 
@@ -47,6 +48,7 @@ async function html(language: string) {
 export class TabAnkiUiController {
     private readonly _frame: UiFrame;
     private readonly _settings: SettingsProvider;
+    private readonly _inTutorial = isOnTutorialPage();
 
     constructor(settings: SettingsProvider) {
         this._frame = new UiFrame(html);
@@ -75,6 +77,7 @@ export class TabAnkiUiController {
             profiles: await profilesPromise,
             activeProfile: (await activeProfilePromise)?.name,
             ftueHasSeenAnkiDialogQuickSelect: (await globalStatePromise).ftueHasSeenAnkiDialogQuickSelectV2,
+            inTutorial: this._inTutorial,
         };
         client.updateState(state);
     }

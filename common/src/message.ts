@@ -543,6 +543,7 @@ export interface EditKeyboardShortcutsMessage extends Message {
 
 export interface OpenAsbplayerSettingsMessage extends Message {
     readonly command: 'open-asbplayer-settings';
+    readonly tutorial?: boolean;
 }
 
 export interface ExtensionVersionMessage extends Message {

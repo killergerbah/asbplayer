@@ -20,8 +20,10 @@
         "importSettings": "Импортировать настройки",
         "exportSettings": "Экспортировать настройки",
         "hideOverlay": "Скрыть оверлей",
+        "openTutorial": "Open Tutorial",
         "decreaseOffsetButton": "Уменьшить смещение, ближе к следующему субтитру. Удерживайте для уменьшения на 100 мс.",
-        "increaseOffsetButton": "Увеличить смещение, ближе к предыдущему субтитру. Удерживайте для увеличения на 100 мс."
+        "increaseOffsetButton": "Увеличить смещение, ближе к предыдущему субтитру. Удерживайте для увеличения на 100 мс.",
+        "gotIt": "Got it"
     },
     "about": {
         "title": "О asbplayer",
@@ -210,7 +212,8 @@
             "rememberTrackPreference": "Запомнить мой выбор дорожек для этого сайта",
             "selectSubtitles": "Выбрать субтитры",
             "subtitleTrack": "Выбрать дорожку субтитров",
-            "videoName": "Название видео"
+            "videoName": "Название видео",
+            "ftue": "Auto-detected subtitle tracks can be selected here. asbplayer does not know how to detect subtitles on every site. You can always load your own subtitle files."
         },
         "videoSelect": {
             "multipleVideoElements": "Обнаружено несколько видеоэлементов",
@@ -221,7 +224,30 @@
     },
     "ftue": {
         "welcome": "Добро пожаловать в asbplayer!",
-        "welcomeBody": "Прочтите руководство пользователя чтобы начать."
+        "welcomeBody": "Прочтите руководство пользователя чтобы начать.",
+        "welcomeBody2": "Scroll down for a quick intro, or check out the <0>user guide</0>.",
+        "toolbar": "Click the 🧩 icon in the toolbar, and select <0>asbplayer</0> to open the asbplayer <1>Popup</1>.<2/>Use the 📌 button to pin asbplayer to the toolbar for easy access.",
+        "sidePanel": "Use the <0>Side Panel</0> to <1>navigate</1> between subtitles, <2>mine</2> subtitles, and more.",
+        "overlayScroll": "<0>Scroll</0> the rightmost control to switch between <1>subtitle navigation</1>, <2>subtitle offset</2>, and <3>playback rate</3> controls.",
+        "overlay": "Use the <0>Video Overlay</0> to <1>mine</1> and <2>toggle</2> subtitles, <3>switch playback modes</3>, and more.",
+        "congrats": "That's it for the basics! Feel free to play around on this page.",
+        "loadSubtitles": "The first step to using asbplayer is always to load subtitles onto a video. Use the <0>Side Panel</0> to load subtitles onto the video on this page.<1/>Hint: The <2>Side Panel</2> can be accessed through the <3>Popup</3>.",
+        "loadSubtitlesFirefox": "The first step to using asbplayer is always to load subtitles onto a video. <0>Right-click</0> on the video and find the asbplayer <1>context menu</1> to load subtitles.",
+        "loadSubtitlesMobile": "The first step to using asbplayer is always to load subtitles onto a video. Open the track selector by selecting <0>asbplayer</0> in the <1>extensions</1> menu.",
+        "ankiConnect": "<0>AnkiConnect</0> allows asbplayer to connect to <1>Anki</1>.",
+        "ankiConnectError": "Once you've opened Anki and installed AnkiConnect, clicking the ⟳ button should make the error go away.",
+        "deck": "Select the <0>Deck</0> where you want your cards to go.",
+        "defaultDeck": "If you don't have any decks yet, you can <0>create the default one</0>.",
+        "anki": "<0>Anki</0> is the most popular flashcard program in the world. It uses an algorithm called <1>SRS</1> to make learning information very efficient.",
+        "ankiDialog": "Use the <0>Anki Export Dialog</0> to create Anki flashcards. In most cases, asbplayer can fill out <1>sentence</1>, <2>image</2>, and <3>audio</3> automatically.",
+        "whatsAnki": "What's Anki?",
+        "configureAnki": "Click here to configure asbplayer's integration with Anki.",
+        "ankiDialogDefinition": "Put any details you want to remember about the sentence in the <0>Definition Field</0>.",
+        "ankiDialogDefinitionHint": "Hint: A dictionary extension like <0>Yomitan</0> makes this really easy.",
+        "noteType": "Select the <0>Note Type</0> for your cards. The <1>Note Type</1> determines how the front and back of your cards will look.",
+        "defaultNoteType": "If you don't have any note types yet, you can <0>create the default one</0>.",
+        "ankiFields": "The rest of the drop-downs configure how content gets mapped into fields of your card.",
+        "testCard": "When ready, you can create a test card to see how it looks."
     },
     "update": {
         "heading": "asbplayer только что обновился до версии {{version}}.",
@@ -375,7 +401,8 @@
         "webSocketServerUrl": "URL сервера WebSocket",
         "firefoxExtensionShortcutHelp": "Редактируйте этот ярлык в менеджере плагинов по адресу about:addons.",
         "postMinePlayback": "Настройка воспроизведения после майнинга",
-        "pauseOnHoverMode": "Пауза при наведении на субтитры"
+        "pauseOnHoverMode": "Пауза при наведении на субтитры",
+        "createTestCard": "Create Test Card"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "Нажмите, удерживайте и перетащите, чтобы смайнить несколько субтитров"

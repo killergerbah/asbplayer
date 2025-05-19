@@ -4,6 +4,9 @@ import { useTranslation } from 'react-i18next';
 interface Props {
     text: string;
     onTextChange: (text: string) => void;
+    disableTutorial?: boolean;
+    showTutorial?: boolean;
+    onConfirmTutorial?: () => void;
 }
 export default function DefinitionField({ text, onTextChange }: Props) {
     const { t } = useTranslation();

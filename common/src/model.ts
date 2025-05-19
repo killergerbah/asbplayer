@@ -111,6 +111,7 @@ export interface AnkiUiState extends CardTextFieldValues {
     readonly audio?: AudioModel;
     readonly file?: FileModel;
     readonly dialogRequestedTimestamp: number;
+    readonly inTutorial: boolean;
 }
 
 export interface AnkiUiInitialState extends AnkiUiState {
@@ -196,6 +197,8 @@ export interface VideoDataUiModel {
     openedFromAsbplayerId?: string;
     defaultCheckboxState?: boolean;
     settings: VideoDataUiSettings;
+    hasSeenFtue: boolean;
+    hideRememberTrackPreferenceToggle: boolean;
 }
 
 export interface VideoTabModel {

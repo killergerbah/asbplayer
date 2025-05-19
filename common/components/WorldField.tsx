@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import TextField from '@mui/material/TextField';
-import { useTranslation } from 'react-i18next';
+import Link from '@mui/material/Link';
+import { useTranslation, Trans } from 'react-i18next';
 import { Anki } from '../anki';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
 import Tooltip from './Tooltip';
+import TutorialBubble from './TutorialBubble';
 
 interface Props {
     anki: Anki;
@@ -13,9 +15,21 @@ interface Props {
     text: string;
     onText: (text: string) => void;
     wordField: string;
+    disableTutorial?: boolean;
+    showTutorial?: boolean;
+    onConfirmTutorial?: () => void;
 }
 
-export default function WordField({ anki, disabled, text, onText, wordField }: Props) {
+export default function WordField({
+    anki,
+    disabled,
+    text,
+    onText,
+    wordField,
+    disableTutorial,
+    showTutorial,
+    onConfirmTutorial,
+}: Props) {
     const { t } = useTranslation();
     const [lastSearchedWord, setLastSearchedWord] = useState<string>();
     const [duplicateNotes, setDuplicateNotes] = useState<string[]>([]);
@@ -63,31 +77,55 @@ export default function WordField({ anki, disabled, text, onText, wordField }: P
     }
 
     return (
-        <TextField
-            variant="filled"
-            color="primary"
-            fullWidth
-            label={t('ankiDialog.word')}
-            value={text}
-            onChange={(e) => onText(e.target.value)}
-            helperText={wordHelperText}
-            InputProps={{
-                endAdornment: (
-                    <InputAdornment position="end">
-                        <Tooltip title={t('ankiDialog.searchInAnki')!}>
-                            <span>
-                                <IconButton
-                                    disabled={disabled || !wordField || !text || text.trim() === ''}
-                                    onClick={() => anki.findNotesWithWordGui(text.trim())}
-                                    edge="end"
-                                >
-                                    <SearchIcon />
-                                </IconButton>
-                            </span>
-                        </Tooltip>
-                    </InputAdornment>
-                ),
-            }}
-        />
+        <TutorialBubble
+            disabled={disableTutorial}
+            placement="bottom"
+            text={
+                <>
+                    <Trans
+                        i18nKey="ftue.ankiDialogDefinition"
+                        components={[<b key={0}>Definition Field</b>, <b key={1}>Word Field</b>]}
+                    />
+                    <p />
+                    <Trans
+                        i18nKey="ftue.ankiDialogDefinitionHint"
+                        components={[
+                            <Link key={0} href="https://yomitan.wiki/" target="_blank">
+                                Yomitan
+                            </Link>,
+                        ]}
+                    />
+                </>
+            }
+            show={showTutorial}
+            onConfirm={() => onConfirmTutorial?.()}
+        >
+            <TextField
+                variant="filled"
+                color="primary"
+                fullWidth
+                label={t('ankiDialog.word')}
+                value={text}
+                onChange={(e) => onText(e.target.value)}
+                helperText={wordHelperText}
+                InputProps={{
+                    endAdornment: (
+                        <InputAdornment position="end">
+                            <Tooltip title={t('ankiDialog.searchInAnki')!}>
+                                <span>
+                                    <IconButton
+                                        disabled={disabled || !wordField || !text || text.trim() === ''}
+                                        onClick={() => anki.findNotesWithWordGui(text.trim())}
+                                        edge="end"
+                                    >
+                                        <SearchIcon />
+                                    </IconButton>
+                                </span>
+                            </Tooltip>
+                        </InputAdornment>
+                    ),
+                }}
+            />
+        </TutorialBubble>
     );
 }

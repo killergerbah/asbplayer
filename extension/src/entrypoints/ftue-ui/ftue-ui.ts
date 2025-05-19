@@ -1,13 +1,9 @@
 import { renderFtueUi } from '@/ui/ftue';
-import { renderUpdateUi } from '@/ui/update';
+import '../video.content/video.css';
+import { currentPageDelegate } from '@/services/pages';
 
 window.addEventListener('load', () => {
+    currentPageDelegate()?.loadScripts();
     const root = document.getElementById('root')!;
-    const params = new URLSearchParams(location.search);
-
-    if (params.get('update') === 'true') {
-        renderUpdateUi(root);
-    } else {
-        renderFtueUi(root);
-    }
+    renderFtueUi(root);
 });

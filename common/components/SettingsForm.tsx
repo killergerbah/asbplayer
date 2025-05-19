@@ -29,7 +29,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import TextField from '@mui/material/TextField';
 import { type Theme } from '@mui/material';
-import { AutoPausePreference, PostMineAction, PostMinePlayback, SubtitleHtml } from '@project/common';
+import { AutoPausePreference, CardModel, PostMineAction, PostMinePlayback, SubtitleHtml } from '@project/common';
 import {
     AnkiFieldSettings,
     AnkiFieldUiModel,
@@ -50,7 +50,7 @@ import { useOutsideClickListener } from '@project/common/hooks';
 import TagsTextField from './TagsTextField';
 import hotkeys from 'hotkeys-js';
 import Typography from '@mui/material/Typography';
-import { isMacOs } from 'react-device-detect';
+import { isMacOs, isMobile } from 'react-device-detect';
 import Switch from '@mui/material/Switch';
 import RadioGroup from '@mui/material/RadioGroup';
 import Tooltip from './Tooltip';
@@ -67,13 +67,62 @@ import Tabs from '@mui/material/Tabs';
 import FormHelperText from '@mui/material/FormHelperText';
 import Link from '@mui/material/Link';
 import Button from '@mui/material/Button';
-import { Anki } from '../anki';
+import { Anki, exportCard } from '../anki';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { WebSocketClient } from '../web-socket-client/web-socket-client';
 import { isFirefox } from '@project/common/browser-detection';
 import SubtitleAppearanceTrackSelector from './SubtitleAppearanceTrackSelector';
 import SubtitlePreview from './SubtitlePreview';
 import About from './About';
+import TutorialBubble from './TutorialBubble';
+import AnkiConnectTutorialBubble from './AnkiConnectTutorialBubble';
+import DeckFieldTutorialBubble from './DeckFieldTutorialBubble';
+import NoteTypeTutorialBubble from './NoteTypeTutorialBubble';
+
+const defaultDeckName = 'Sentences';
+
+const defaultNoteType = {
+    modelName: 'Sentence Card',
+    inOrderFields: ['Sentence', 'Word', 'Definition', 'Image', 'Audio', 'Source', 'URL'],
+    css: `.card {
+  font-family: arial;
+  font-size: 20px;
+  text-align: center;
+  color: white;
+  background-color: black;
+}
+
+.image {
+  width: auto;
+  height: auto;
+  max-width: 500px;
+  max-height: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.front {
+  font-size: 30px;
+}`,
+    cardTemplates: [
+        {
+            Front: `<div class="front">{{Sentence}}</div>`,
+            Back: `<div class="front">{{Sentence}}</div>
+<hr/>
+{{Definition}}
+<p/>
+<div class="image">
+{{Image}}
+</div>
+<p/>
+{{Audio}}
+<p/>
+{{Source}}
+<p/>
+{{URL}}`,
+        },
+    ],
+};
 
 interface StylesProps {
     smallScreen: boolean;
@@ -182,31 +231,37 @@ enum Direction {
     down = 2,
 }
 
-interface SelectableSettingProps {
+interface SelectableSettingProps extends React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement> {
     label: string;
     value: string;
     selections?: string[];
     removable?: boolean;
     display?: boolean;
     onDisplayChange?: (displaying: boolean) => void;
-    onChange: (value: string) => void;
+    onValueChange: (value: string) => void;
     disabledDirection?: Direction;
     onOrderChange?: (direction: Direction) => void;
     onRemoval?: () => void;
+    onOpen?: () => void;
 }
 
-function SelectableSetting({
-    label,
-    value,
-    selections,
-    removable,
-    display,
-    onDisplayChange,
-    disabledDirection,
-    onChange,
-    onOrderChange,
-    onRemoval,
-}: SelectableSettingProps) {
+const SelectableSetting = React.forwardRef<HTMLDivElement, SelectableSettingProps>(function SelectableSetting(
+    {
+        label,
+        value,
+        selections,
+        removable,
+        display,
+        onDisplayChange,
+        disabledDirection,
+        onValueChange,
+        onOrderChange,
+        onRemoval,
+        onOpen,
+        ...props
+    },
+    ref
+) {
     const classes = useSelectableSettingStyles();
     const { t } = useTranslation();
     const [optionsMenuOpen, setOptionsMenuOpen] = useState<boolean>(false);
@@ -224,18 +279,19 @@ function SelectableSetting({
 
         setSelectionMenuAnchorEl(element);
         setSelectionMenuOpen(true);
+        onOpen?.();
     };
 
     const className = display === false ? `${classes.root} ${classes.hidden}` : classes.root;
     const error = selections !== undefined && value !== '' && !selections.includes(value);
 
     return (
-        <div className={className}>
+        <div ref={ref} className={className} {...props}>
             <TextField
                 label={label}
                 value={value}
                 onClick={(e) => handleOpenSelectionMenu(e.currentTarget)}
-                onChange={(e) => onChange(e.target.value)}
+                onChange={(e) => onValueChange(e.target.value)}
                 fullWidth
                 error={error}
                 helperText={error ? t('settings.missingFieldError', { field: value }) : ''}
@@ -292,7 +348,7 @@ function SelectableSetting({
                             <ListItem disablePadding key={s}>
                                 <ListItemButton
                                     onClick={() => {
-                                        onChange(s);
+                                        onValueChange(s);
                                         setSelectionMenuOpen(false);
                                     }}
                                 >
@@ -366,7 +422,7 @@ function SelectableSetting({
             )}
         </div>
     );
-}
+});
 
 type AllKeyNames = KeyBindName | 'selectSubtitleTrack';
 
@@ -657,6 +713,15 @@ function CustomStyleSetting({ customStyle, onCustomStyle, onDelete }: CustomStyl
     );
 }
 
+enum TutorialStep {
+    ankiConnect = 1,
+    deck = 2,
+    noteType = 3,
+    ankiFields = 4,
+    testCard = 5,
+    done,
+}
+
 type TabsOrientation = 'horizontal' | 'vertical';
 interface PanelStyleProps {
     tabsOrientation: TabsOrientation;
@@ -681,14 +746,17 @@ interface TabPanelProps {
     tabsOrientation: TabsOrientation;
 }
 
-function TabPanel({ children, value, index, tabsOrientation, ...other }: TabPanelProps) {
+const TabPanel = React.forwardRef<HTMLDivElement, TabPanelProps>(function TabPanel(
+    { children, value, index, tabsOrientation, ...other }: TabPanelProps,
+    ref
+) {
     const classes = usePanelStyles({ tabsOrientation });
     return (
-        <Box className={classes.panel} hidden={value !== index} {...other}>
+        <Box ref={ref} className={classes.panel} hidden={value !== index} {...other}>
             {value === index && children}
         </Box>
     );
-}
+});
 
 type TabName =
     | 'anki-settings'
@@ -720,6 +788,8 @@ interface Props {
     localFontFamilies: string[];
     supportedLanguages: string[];
     forceVerticalTabs?: boolean;
+    inTutorial?: boolean;
+    testCard?: () => Promise<CardModel>;
     onSettingsChanged: (settings: Partial<AsbplayerSettings>) => void;
     onOpenChromeExtensionShortcuts: () => void;
     onUnlockLocalFonts: () => void;
@@ -750,6 +820,8 @@ export default function SettingsForm({
     localFontFamilies,
     supportedLanguages,
     forceVerticalTabs,
+    inTutorial,
+    testCard,
     onSettingsChanged,
     onOpenChromeExtensionShortcuts,
     onUnlockLocalFonts,
@@ -1232,6 +1304,67 @@ export default function SettingsForm({
         selectedSubtitleAppearanceTrack !== undefined &&
         textSubtitleSettingsAreDirty(settings, selectedSubtitleAppearanceTrack);
     const tabsOrientation = smallScreen ? 'horizontal' : 'vertical';
+    const [tutorialStep, setTutorialStep] = useState<TutorialStep>(TutorialStep.ankiConnect);
+
+    const handleCreateDefaultDeck = useCallback(() => {
+        anki.createDeck(defaultDeckName)
+            .then(() => requestAnkiConnect())
+            .then(() => handleSettingChanged('deck', defaultDeckName))
+            .catch(console.error);
+    }, [anki, requestAnkiConnect, handleSettingChanged]);
+
+    useEffect(() => {
+        if (tutorialStep === TutorialStep.deck && deck) {
+            setTutorialStep(TutorialStep.noteType);
+        }
+    }, [tutorialStep, deck]);
+
+    const handleCreateDefaultNoteType = useCallback(() => {
+        anki.createModel(defaultNoteType)
+            .then(() => requestAnkiConnect())
+            .then(() => handleSettingChanged('noteType', defaultNoteType.modelName))
+            .then(() =>
+                Promise.all([
+                    handleSettingChanged('sentenceField', 'Sentence'),
+                    handleSettingChanged('definitionField', 'Definition'),
+                    handleSettingChanged('wordField', 'Word'),
+                    handleSettingChanged('audioField', 'Audio'),
+                    handleSettingChanged('imageField', 'Image'),
+                    handleSettingChanged('sourceField', 'Source'),
+                    handleSettingChanged('urlField', 'URL'),
+                ])
+            )
+            .catch(console.error);
+        if (tutorialStep === TutorialStep.ankiFields) {
+            setTutorialStep(TutorialStep.testCard);
+        }
+    }, [anki, tutorialStep, requestAnkiConnect, handleSettingChanged]);
+
+    useEffect(() => {
+        if (tutorialStep === TutorialStep.noteType && noteType) {
+            setTutorialStep(TutorialStep.ankiFields);
+        }
+    }, [tutorialStep, noteType]);
+
+    const ankiPanelRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (tutorialStep === TutorialStep.testCard) {
+            ankiPanelRef.current?.scrollBy({ behavior: 'smooth', top: 100000 });
+        }
+    }, [tutorialStep]);
+
+    const handleCreateTestCard = useCallback(async () => {
+        if (testCard === undefined) {
+            return;
+        }
+
+        if (tutorialStep === TutorialStep.testCard) {
+            setTutorialStep(TutorialStep.done);
+        }
+
+        await exportCard(await testCard(), settings, isMobile ? 'default' : 'gui');
+    }, [tutorialStep, settings, testCard]);
 
     return (
         <div className={classes.root}>
@@ -1257,25 +1390,39 @@ export default function SettingsForm({
                 <Tab tabIndex={5} label={t('settings.misc')} id="misc-settings" />
                 <Tab tabIndex={6} label={t('about.title')} id="about" />
             </Tabs>
-            <TabPanel value={tabIndex} index={tabIndicesById['anki-settings']} tabsOrientation={tabsOrientation}>
+            <TabPanel
+                ref={ankiPanelRef}
+                value={tabIndex}
+                index={tabIndicesById['anki-settings']}
+                tabsOrientation={tabsOrientation}
+            >
                 <FormGroup className={classes.formGroup}>
-                    <TextField
-                        label={t('settings.ankiConnectUrl')}
-                        value={ankiConnectUrl}
-                        error={Boolean(ankiConnectUrlError)}
-                        helperText={ankiConnectUrlError}
-                        color="primary"
-                        onChange={(event) => handleSettingChanged('ankiConnectUrl', event.target.value)}
-                        InputProps={{
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <IconButton onClick={requestAnkiConnect}>
-                                        <RefreshIcon />
-                                    </IconButton>
-                                </InputAdornment>
-                            ),
+                    <AnkiConnectTutorialBubble
+                        show={tutorialStep === TutorialStep.ankiConnect}
+                        disabled={!inTutorial}
+                        ankiConnectUrlError={Boolean(ankiConnectUrlError)}
+                        onConfirm={() => {
+                            setTutorialStep(TutorialStep.deck);
                         }}
-                    />
+                    >
+                        <TextField
+                            label={t('settings.ankiConnectUrl')}
+                            value={ankiConnectUrl}
+                            error={Boolean(ankiConnectUrlError)}
+                            helperText={ankiConnectUrlError}
+                            color="primary"
+                            onChange={(event) => handleSettingChanged('ankiConnectUrl', event.target.value)}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={requestAnkiConnect}>
+                                            <RefreshIcon />
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            }}
+                        />
+                    </AnkiConnectTutorialBubble>
                     {insideApp && (
                         <FormHelperText>
                             <Trans
@@ -1295,19 +1442,42 @@ export default function SettingsForm({
                             />
                         </FormHelperText>
                     )}
-
-                    <SelectableSetting
-                        label={t('settings.deck')}
-                        value={deck}
-                        selections={deckNames}
-                        onChange={(value) => handleSettingChanged('deck', value)}
-                    />
-                    <SelectableSetting
-                        label={t('settings.noteType')}
-                        value={noteType}
-                        selections={modelNames}
-                        onChange={(value) => handleSettingChanged('noteType', value)}
-                    />
+                    <DeckFieldTutorialBubble
+                        show={tutorialStep === TutorialStep.deck && !ankiConnectUrlError && !deck}
+                        disabled={!inTutorial}
+                        noDecks={deckNames === undefined || deckNames.length === 0}
+                        onCreateDefaultDeck={handleCreateDefaultDeck}
+                    >
+                        <SelectableSetting
+                            label={t('settings.deck')}
+                            value={deck}
+                            selections={deckNames}
+                            onValueChange={(value) => handleSettingChanged('deck', value)}
+                            onOpen={() => {
+                                if (tutorialStep === TutorialStep.deck) {
+                                    setTutorialStep(TutorialStep.noteType);
+                                }
+                            }}
+                        />
+                    </DeckFieldTutorialBubble>
+                    <NoteTypeTutorialBubble
+                        show={tutorialStep === TutorialStep.noteType && Boolean(deck) && !noteType}
+                        disabled={!inTutorial}
+                        noNoteTypes={modelNames === undefined || modelNames.length === 0}
+                        onCreateDefaultNoteType={handleCreateDefaultNoteType}
+                    >
+                        <SelectableSetting
+                            label={t('settings.noteType')}
+                            value={noteType}
+                            selections={modelNames}
+                            onValueChange={(value) => handleSettingChanged('noteType', value)}
+                            onOpen={() => {
+                                if (tutorialStep === TutorialStep.noteType) {
+                                    setTutorialStep(TutorialStep.ankiFields);
+                                }
+                            }}
+                        />
+                    </NoteTypeTutorialBubble>
                     {ankiFieldModels.map((model, index) => {
                         const key = model.custom ? `custom_${model.key}` : `standard_${model.key}`;
                         const handleOrderChange =
@@ -1337,20 +1507,33 @@ export default function SettingsForm({
                         return (
                             <React.Fragment key={key}>
                                 {!model.custom && model.key === 'sentence' && (
-                                    <SelectableSetting
-                                        label={t('settings.sentenceField')}
-                                        value={sentenceField}
-                                        selections={fieldNames}
-                                        onChange={(value) => handleSettingChanged('sentenceField', value)}
-                                        {...rest}
-                                    />
+                                    <TutorialBubble
+                                        placement="bottom"
+                                        disabled={!inTutorial}
+                                        show={
+                                            tutorialStep === TutorialStep.ankiFields &&
+                                            Boolean(deck) &&
+                                            Boolean(noteType)
+                                        }
+                                        disableArrow
+                                        text={t('ftue.ankiFields')!}
+                                        onConfirm={() => setTutorialStep(TutorialStep.testCard)}
+                                    >
+                                        <SelectableSetting
+                                            label={t('settings.sentenceField')}
+                                            value={sentenceField}
+                                            selections={fieldNames}
+                                            onValueChange={(value) => handleSettingChanged('sentenceField', value)}
+                                            {...rest}
+                                        />
+                                    </TutorialBubble>
                                 )}
                                 {!model.custom && model.key === 'definition' && (
                                     <SelectableSetting
                                         label={t('settings.definitionField')}
                                         value={definitionField}
                                         selections={fieldNames}
-                                        onChange={(value) => handleSettingChanged('definitionField', value)}
+                                        onValueChange={(value) => handleSettingChanged('definitionField', value)}
                                         {...rest}
                                     />
                                 )}
@@ -1359,7 +1542,7 @@ export default function SettingsForm({
                                         label={t('settings.wordField')}
                                         value={wordField}
                                         selections={fieldNames}
-                                        onChange={(value) => handleSettingChanged('wordField', value)}
+                                        onValueChange={(value) => handleSettingChanged('wordField', value)}
                                         {...rest}
                                     />
                                 )}
@@ -1368,7 +1551,7 @@ export default function SettingsForm({
                                         label={t('settings.audioField')}
                                         value={audioField}
                                         selections={fieldNames}
-                                        onChange={(value) => handleSettingChanged('audioField', value)}
+                                        onValueChange={(value) => handleSettingChanged('audioField', value)}
                                         {...rest}
                                     />
                                 )}
@@ -1377,7 +1560,7 @@ export default function SettingsForm({
                                         label={t('settings.imageField')}
                                         value={imageField}
                                         selections={fieldNames}
-                                        onChange={(value) => handleSettingChanged('imageField', value)}
+                                        onValueChange={(value) => handleSettingChanged('imageField', value)}
                                         {...rest}
                                     />
                                 )}
@@ -1386,7 +1569,7 @@ export default function SettingsForm({
                                         label={t('settings.sourceField')}
                                         value={sourceField}
                                         selections={fieldNames}
-                                        onChange={(value) => handleSettingChanged('sourceField', value)}
+                                        onValueChange={(value) => handleSettingChanged('sourceField', value)}
                                         {...rest}
                                     />
                                 )}
@@ -1395,7 +1578,7 @@ export default function SettingsForm({
                                         label={t('settings.urlField')}
                                         value={urlField}
                                         selections={fieldNames}
-                                        onChange={(value) => handleSettingChanged('urlField', value)}
+                                        onValueChange={(value) => handleSettingChanged('urlField', value)}
                                         {...rest}
                                     />
                                 )}
@@ -1406,7 +1589,7 @@ export default function SettingsForm({
                                             label={t('settings.track1Field')}
                                             value={track1Field}
                                             selections={fieldNames}
-                                            onChange={(value) => handleSettingChanged('track1Field', value)}
+                                            onValueChange={(value) => handleSettingChanged('track1Field', value)}
                                             {...rest}
                                         />
                                     )}
@@ -1417,7 +1600,7 @@ export default function SettingsForm({
                                             label={t('settings.track2Field')}
                                             value={track2Field}
                                             selections={fieldNames}
-                                            onChange={(value) => handleSettingChanged('track2Field', value)}
+                                            onValueChange={(value) => handleSettingChanged('track2Field', value)}
                                             {...rest}
                                         />
                                     )}
@@ -1428,7 +1611,7 @@ export default function SettingsForm({
                                             label={t('settings.track3Field')}
                                             value={track3Field}
                                             selections={fieldNames}
-                                            onChange={(value) => handleSettingChanged('track3Field', value)}
+                                            onValueChange={(value) => handleSettingChanged('track3Field', value)}
                                             {...rest}
                                         />
                                     )}
@@ -1437,7 +1620,7 @@ export default function SettingsForm({
                                         label={`${model.key}`}
                                         value={customAnkiFields[model.key]}
                                         selections={fieldNames!}
-                                        onChange={(value) => handleCustomFieldChange(model.key, value)}
+                                        onValueChange={(value) => handleCustomFieldChange(model.key, value)}
                                         onRemoval={() => handleCustomFieldRemoval(model.key)}
                                         removable={true}
                                         {...rest}
@@ -1455,6 +1638,19 @@ export default function SettingsForm({
                         tags={tags}
                         onTagsChange={(tags) => handleSettingChanged('tags', tags)}
                     />
+                    {testCard && (
+                        <TutorialBubble
+                            placement="top"
+                            disabled={!inTutorial}
+                            show={tutorialStep === TutorialStep.testCard}
+                            text={t('ftue.testCard')!}
+                            onConfirm={() => setTutorialStep(TutorialStep.done)}
+                        >
+                            <Button variant="contained" onClick={handleCreateTestCard}>
+                                {t('settings.createTestCard')}
+                            </Button>
+                        </TutorialBubble>
+                    )}
                 </FormGroup>
             </TabPanel>
             <TabPanel value={tabIndex} index={tabIndicesById['mining-settings']} tabsOrientation={tabsOrientation}>

@@ -19,6 +19,8 @@ import { currentPageDelegate } from '../services/pages';
 import UiFrame from '../services/ui-frame';
 import { fetchLocalization } from '../services/localization-fetcher';
 import i18n from 'i18next';
+import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
+import { isOnTutorialPage } from '@/services/tutorial';
 
 async function html(lang: string) {
     return `<!DOCTYPE html>
@@ -56,6 +58,8 @@ const fetchDataForLanguageOnDemand = (language: string): Promise<VideoData> => {
     });
 };
 
+const globalStateProvider = new ExtensionGlobalStateProvider();
+
 export default class VideoDataSyncController {
     private readonly _context: Binding;
     private readonly _domain: string;
@@ -71,6 +75,7 @@ export default class VideoDataSyncController {
     private _activeElement?: Element;
     private _autoSyncAttempted: boolean = false;
     private _dataReceivedListener?: (event: Event) => void;
+    private _isTutorial: boolean;
 
     constructor(context: Binding, settings: SettingsProvider) {
         this._context = context;
@@ -86,6 +91,7 @@ export default class VideoDataSyncController {
         };
         this._domain = new URL(window.location.href).host;
         this._frame = new UiFrame(html);
+        this._isTutorial = isOnTutorialPage();
     }
 
     private get lastLanguagesSynced(): string[] {
@@ -165,12 +171,17 @@ export default class VideoDataSyncController {
         const subtitleTrackChoices = this._syncedData?.subtitles ?? [];
         const subs = this._matchLastSyncedWithAvailableTracks();
         const autoSelectedTracks: VideoDataSubtitleTrack[] = subs.autoSelectedTracks;
-        const autoSelectedTrackIds = autoSelectedTracks.map((subtitle) => subtitle.id || '-');
-        const defaultCheckboxState: boolean = subs.completeMatch;
+        const autoSelectedTrackIds = this._isTutorial
+            ? // '1' is the ID of the non-empty track in the tutorial
+              // See asbplayer-tutorial-page.ts
+              ['1', '-', '-']
+            : autoSelectedTracks.map((subtitle) => subtitle.id || '-');
+        const defaultCheckboxState = !this._isTutorial && subs.completeMatch;
         const themeType = await this._context.settings.getSingle('themeType');
         const profilesPromise = this._context.settings.profiles();
         const activeProfilePromise = this._context.settings.activeProfile();
-
+        const hasSeenFtue = (await globalStateProvider.get(['ftueHasSeenSubtitleTrackSelector']))
+            .ftueHasSeenSubtitleTrackSelector;
         return this._syncedData
             ? {
                   isLoading: this._syncedData.subtitles === undefined,
@@ -185,6 +196,8 @@ export default class VideoDataSyncController {
                       profiles: await profilesPromise,
                       activeProfile: (await activeProfilePromise)?.name,
                   },
+                  hasSeenFtue,
+                  hideRememberTrackPreferenceToggle: this._isTutorial,
                   ...additionalFields,
               }
             : {
@@ -201,6 +214,8 @@ export default class VideoDataSyncController {
                       profiles: await profilesPromise,
                       activeProfile: (await activeProfilePromise)?.name,
                   },
+                  hasSeenFtue,
+                  hideRememberTrackPreferenceToggle: this._isTutorial,
                   ...additionalFields,
               };
     }
@@ -315,6 +330,11 @@ export default class VideoDataSyncController {
                         src: this._context.video.src,
                     };
                     browser.runtime.sendMessage(settingsUpdatedCommand);
+                    return;
+                }
+
+                if ('dismissFtue' === message.command) {
+                    globalStateProvider.set({ ftueHasSeenSubtitleTrackSelector: true }).catch(console.error);
                     return;
                 }
 

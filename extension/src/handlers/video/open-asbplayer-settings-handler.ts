@@ -1,4 +1,4 @@
-import { Command, Message } from '@project/common';
+import { Command, Message, OpenAsbplayerSettingsMessage } from '@project/common';
 
 export default class OpenAsbplayerSettingsHandler {
     get sender() {
@@ -10,6 +10,12 @@ export default class OpenAsbplayerSettingsHandler {
     }
 
     async handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
-        browser.runtime.openOptionsPage();
+        const tutorial = (command.message as OpenAsbplayerSettingsMessage).tutorial;
+
+        if (tutorial) {
+            browser.tabs.create({ active: true, url: browser.runtime.getURL('/options.html?tutorial=true') });
+        } else {
+            browser.runtime.openOptionsPage();
+        }
     }
 }

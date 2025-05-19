@@ -44,6 +44,8 @@ import Alert from '@mui/material/Alert';
 import { isMacOs } from '../device-detection/mac';
 import AnkiDialogButton from './AnkiDialogButton';
 import { type Theme } from '@mui/material';
+import TutorialBubble from './TutorialBubble';
+import AnkiDialogTutorialBubble from './AnkiDialogTutorialBubble';
 
 const quickSelectShortcut = isMacOs ? '⌘+⇧+Enter' : 'Alt+Shift+Enter';
 
@@ -153,6 +155,13 @@ const ValueLabelComponent = ({ children, open, value }: ValueLabelComponentProps
     );
 };
 
+enum TutorialStep {
+    dialog = 1,
+    wordField = 2,
+    configure = 3,
+    export = 4,
+}
+
 export interface AnkiDialogState {
     text: string;
     subtitle: SubtitleModel;
@@ -197,6 +206,7 @@ interface AnkiDialogProps {
     lastSelectedExportMode?: AnkiExportMode;
     showQuickSelectFtue?: boolean;
     onDismissShowQuickSelectFtue?: () => void;
+    inTutorial?: boolean;
 }
 
 const AnkiDialog = ({
@@ -224,6 +234,7 @@ const AnkiDialog = ({
     lastSelectedExportMode,
     showQuickSelectFtue,
     onDismissShowQuickSelectFtue,
+    inTutorial,
 }: AnkiDialogProps) => {
     const classes = useStyles();
     const [definition, setDefinition] = useState<string>('');
@@ -725,13 +736,21 @@ const AnkiDialog = ({
         return () => document.removeEventListener('keydown', listener);
     }, [focusOnPreferredAction]);
 
+    const [tutorialStep, setTutorialStep] = useState<TutorialStep>(TutorialStep.dialog);
+
     return (
         <>
             <Dialog open={open} disableRestoreFocus disableEnforceFocus fullWidth maxWidth="sm" onClose={onCancel}>
                 <Toolbar>
-                    <Typography variant="h6" className={classes.title}>
-                        {t('ankiDialog.title')}
-                    </Typography>
+                    <AnkiDialogTutorialBubble
+                        disabled={!inTutorial}
+                        onConfirm={() => setTutorialStep(TutorialStep.wordField)}
+                        show={tutorialStep === TutorialStep.dialog}
+                    >
+                        <Typography variant="h6" className={classes.title}>
+                            {t('ankiDialog.title')}
+                        </Typography>
+                    </AnkiDialogTutorialBubble>
                     {profiles !== undefined && onSetActiveProfile && (
                         <MiniProfileSelector
                             profiles={profiles}
@@ -740,11 +759,28 @@ const AnkiDialog = ({
                         />
                     )}
                     {onOpenSettings && (
-                        <IconButton edge="end" onClick={onOpenSettings}>
-                            <Badge invisible={ankiIsAvailable} badgeContent={'!'} color="error">
-                                <SettingsIcon />
-                            </Badge>
-                        </IconButton>
+                        <TutorialBubble
+                            placement="bottom"
+                            disabled={!inTutorial}
+                            show={tutorialStep === TutorialStep.configure}
+                            text={t('ftue.configureAnki')!}
+                            onConfirm={() => setTutorialStep(TutorialStep.export)}
+                        >
+                            <IconButton
+                                edge="end"
+                                onClick={() => {
+                                    if (tutorialStep === TutorialStep.configure) {
+                                        setTutorialStep(TutorialStep.export);
+                                    }
+
+                                    onOpenSettings();
+                                }}
+                            >
+                                <Badge invisible={ankiIsAvailable} badgeContent={'!'} color="error">
+                                    <SettingsIcon />
+                                </Badge>
+                            </IconButton>
+                        </TutorialBubble>
                     )}
                     {onCancel && (
                         <IconButton edge="end" onClick={onCancel}>
@@ -778,6 +814,9 @@ const AnkiDialog = ({
                                             text={word}
                                             onText={setWord}
                                             wordField={settings.wordField}
+                                            disableTutorial={!inTutorial}
+                                            showTutorial={tutorialStep === TutorialStep.wordField}
+                                            onConfirmTutorial={() => setTutorialStep(TutorialStep.configure)}
                                         />
                                     )}
                                     {image && !model.custom && model.key === 'image' && model.field.display && (

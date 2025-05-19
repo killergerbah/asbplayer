@@ -19,5 +19,8 @@ it('can retrieve 0 keys', async () => {
 
 it('can retrieve all keys', async () => {
     const provider = new ExtensionGlobalStateProvider(new MockStorageArea());
-    expect(await provider.getAll()).toEqual({ ftueHasSeenAnkiDialogQuickSelectV2: false });
+    expect(await provider.getAll()).toEqual({
+        ftueHasSeenAnkiDialogQuickSelectV2: false,
+        ftueHasSeenSubtitleTrackSelector: false,
+    });
 });
