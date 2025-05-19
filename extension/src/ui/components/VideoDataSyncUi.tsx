@@ -48,6 +48,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [activeProfile, setActiveProfile] = useState<string>();
     const [fileInputTrackNumber, setFileInputTrackNumber] = useState<number>();
+    const [hasSeenFtue, setHasSeenFtue] = useState<boolean>();
 
     const theme = useMemo(() => createTheme((themeType || 'dark') as PaletteMode), [themeType]);
 
@@ -146,6 +147,10 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                 setProfiles(model.settings.profiles);
                 setActiveProfile(model.settings.activeProfile);
             }
+
+            if (model.hasSeenFtue !== undefined) {
+                setHasSeenFtue(model.hasSeenFtue);
+            }
         });
     }, [bridge, t]);
 
@@ -219,6 +224,11 @@ export default function VideoDataSyncUi({ bridge }: Props) {
         [bridge]
     );
 
+    const handleDismissFtue = useCallback(() => {
+        setHasSeenFtue(true);
+        bridge.sendMessageFromServer({ command: 'dismissFtue' });
+    }, [bridge]);
+
     return (
         <StyledEngineProvider injectFirst>
             <ThemeProvider theme={theme}>
@@ -236,11 +246,13 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                     error={error}
                     profiles={profiles}
                     activeProfile={activeProfile}
+                    hasSeenFtue={hasSeenFtue}
                     onCancel={handleCancel}
                     onOpenFile={handleOpenFile}
                     onOpenSettings={handleOpenSettings}
                     onConfirm={handleConfirm}
                     onSetActiveProfile={handleSetActiveProfile}
+                    onDismissFtue={handleDismissFtue}
                 />
                 <input
                     ref={fileInputRef}

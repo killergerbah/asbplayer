@@ -1,6 +1,6 @@
 import React from 'react';
 import Box from '@mui/material/Box';
-import MuiLink, { LinkProps } from '@mui/material/Link';
+import MuiLink, { type LinkProps } from '@mui/material/Link';
 import LogoIcon from './LogoIcon';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
@@ -10,6 +10,7 @@ import TableRow from '@mui/material/TableRow';
 import MuiTableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
 import { useTheme, withStyles } from '@mui/styles';
 import { type Theme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 interface Props {
     appVersion?: string;
     extensionVersion?: string;
+    insideExtension?: boolean;
 }
 
 const Link = ({ children, ...props }: { children: React.ReactNode } & LinkProps) => {
@@ -203,11 +205,17 @@ for (const dep of dependencies) {
     dependencyPurposeCounts[dep.purpose] = count + 1;
 }
 
-const About = ({ appVersion, extensionVersion }: Props) => {
+const About = ({ appVersion, extensionVersion, insideExtension }: Props) => {
     const theme = useTheme<Theme>();
     const { t } = useTranslation();
     const renderedPurpose: { [key: string]: boolean } = {};
     let purposeIndex = 0;
+    const openTutorial = () => {
+        browser.tabs.create({
+            url: browser.runtime.getURL('/tutorial-ui.html'),
+            active: true,
+        });
+    };
     return (
         <Box p={1} style={{ width: '100%' }}>
             <Box style={{ width: '100%', textAlign: 'center' }}>
@@ -326,6 +334,14 @@ const About = ({ appVersion, extensionVersion }: Props) => {
                     </TableBody>
                 </Table>
             </TableContainer>
+            {insideExtension && (
+                <>
+                    <p />
+                    <Button onClick={openTutorial} fullWidth variant="contained">
+                        {t('action.openTutorial')!}
+                    </Button>
+                </>
+            )}
         </Box>
     );
 };

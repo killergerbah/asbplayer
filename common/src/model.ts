@@ -196,6 +196,7 @@ export interface VideoDataUiModel {
     openedFromAsbplayerId?: string;
     defaultCheckboxState?: boolean;
     settings: VideoDataUiSettings;
+    hasSeenFtue: boolean;
 }
 
 export interface VideoTabModel {

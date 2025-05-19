@@ -130,6 +130,14 @@ const MobileVideoOverlay = React.forwardRef<HTMLDivElement, Props>(function Mobi
         setPlayModeSelectorOpen(true);
     }, []);
 
+    const handlePlayModeSelected = useCallback(
+        (playMode: PlayMode) => {
+            onPlayModeSelected(playMode);
+            setPlayModeSelectorOpen(false);
+        },
+        [onPlayModeSelected]
+    );
+
     const handleOffsetToPrevious = useCallback(() => {
         if (!model || model.previousSubtitleTimestamp === undefined) {
             return;
@@ -502,7 +510,7 @@ const MobileVideoOverlay = React.forwardRef<HTMLDivElement, Props>(function Mobi
                     anchorEl={playModeSelectorAnchorEl}
                     onClose={handleClosePlayModeSelector}
                     selectedPlayMode={model.playMode}
-                    onPlayMode={onPlayModeSelected}
+                    onPlayMode={handlePlayModeSelected}
                     listStyle={{
                         display: 'flex',
                         flexDirection: 'row',

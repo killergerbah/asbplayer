@@ -221,7 +221,8 @@
     },
     "ftue": {
         "welcome": "asbplayer へようこそ。",
-        "welcomeBody": "asbplayer の使い方は<0>readme</0>をご参考ください。"
+        "welcomeBody": "asbplayer の使い方は<0>readme</0>をご参考ください。",
+        "toolbar": "ツールバーにある🧩のアイコンをクリックし、<0>asbplayer</0>を選択するとasbplayerの<1>Popup</1>が開かれます。<2/>📌 のアイコンをクリックすると、asbplayerがツールバーに固定されます。"
     },
     "update": {
         "heading": "asbplayer が新しいバージョン{{version}}にアップデートされました。",

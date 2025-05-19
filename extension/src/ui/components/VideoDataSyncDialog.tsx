@@ -20,6 +20,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import MiniProfileSelector from '@project/common/components/MiniProfileSelector';
 import type { Profile } from '@project/common/settings';
+import Alert from '@mui/material/Alert';
 
 const createClasses = makeStyles((theme) => ({
     relative: {
@@ -64,11 +65,13 @@ interface Props {
     openReason: VideoDataUiOpenReason;
     profiles: Profile[];
     activeProfile?: string;
+    hasSeenFtue?: boolean;
     onCancel: () => void;
     onOpenFile: (track?: number) => void;
     onOpenSettings: () => void;
     onConfirm: (track: ConfirmedVideoDataSubtitleTrack[], shouldRememberTrackChoices: boolean) => void;
     onSetActiveProfile: (profile: string | undefined) => void;
+    onDismissFtue: () => void;
 }
 
 export default function VideoDataSyncDialog({
@@ -84,11 +87,13 @@ export default function VideoDataSyncDialog({
     openReason,
     profiles,
     activeProfile,
+    hasSeenFtue,
     onCancel,
     onOpenFile,
     onOpenSettings,
     onConfirm,
     onSetActiveProfile,
+    onDismissFtue,
 }: Props) {
     const { t } = useTranslation();
     const [userSelectedSubtitleTrackIds, setUserSelectedSubtitleTrackIds] = useState(['-', '-', '-']);
@@ -265,6 +270,20 @@ export default function VideoDataSyncDialog({
                 )}
                 <form>
                     <Grid container direction="column" spacing={2}>
+                        {!hasSeenFtue && (
+                            <Grid item>
+                                <Alert
+                                    severity="info"
+                                    action={
+                                        <Button onClick={onDismissFtue} size="small">
+                                            {t('action.ok')}
+                                        </Button>
+                                    }
+                                >
+                                    {t('extension.videoDataSync.ftue')}
+                                </Alert>
+                            </Grid>
+                        )}
                         <Grid item>
                             <TextField
                                 fullWidth

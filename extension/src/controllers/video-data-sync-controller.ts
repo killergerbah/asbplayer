@@ -19,6 +19,7 @@ import { currentPageDelegate } from '../services/pages';
 import UiFrame from '../services/ui-frame';
 import { fetchLocalization } from '../services/localization-fetcher';
 import i18n from 'i18next';
+import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
 
 async function html(lang: string) {
     return `<!DOCTYPE html>
@@ -55,6 +56,8 @@ const fetchDataForLanguageOnDemand = (language: string): Promise<VideoData> => {
         document.dispatchEvent(new CustomEvent('asbplayer-get-synced-language-data', { detail: language }));
     });
 };
+
+const globalStateProvider = new ExtensionGlobalStateProvider();
 
 export default class VideoDataSyncController {
     private readonly _context: Binding;
@@ -170,7 +173,8 @@ export default class VideoDataSyncController {
         const themeType = await this._context.settings.getSingle('themeType');
         const profilesPromise = this._context.settings.profiles();
         const activeProfilePromise = this._context.settings.activeProfile();
-
+        const hasSeenFtue = (await globalStateProvider.get(['ftueHasSeenSubtitleTrackSelector']))
+            .ftueHasSeenSubtitleTrackSelector;
         return this._syncedData
             ? {
                   isLoading: this._syncedData.subtitles === undefined,
@@ -185,6 +189,7 @@ export default class VideoDataSyncController {
                       profiles: await profilesPromise,
                       activeProfile: (await activeProfilePromise)?.name,
                   },
+                  hasSeenFtue,
                   ...additionalFields,
               }
             : {
@@ -201,6 +206,7 @@ export default class VideoDataSyncController {
                       profiles: await profilesPromise,
                       activeProfile: (await activeProfilePromise)?.name,
                   },
+                  hasSeenFtue,
                   ...additionalFields,
               };
     }
@@ -315,6 +321,11 @@ export default class VideoDataSyncController {
                         src: this._context.video.src,
                     };
                     browser.runtime.sendMessage(settingsUpdatedCommand);
+                    return;
+                }
+
+                if ('dismissFtue' === message.command) {
+                    globalStateProvider.set({ ftueHasSeenSubtitleTrackSelector: true }).catch(console.error);
                     return;
                 }
 

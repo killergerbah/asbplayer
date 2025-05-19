@@ -13,6 +13,10 @@ export interface Localization {
 }
 
 export const fetchLocalization = async (lang: string): Promise<Localization> => {
+    if (import.meta.env.MODE === 'development') {
+        return (await bundledStringsForLang(lang)) ?? (await bundledStringsForLang('en'))!;
+    }
+
     return (
         (await cachedStringsForLang(lang)) ??
         (await bundledStringsForLang(lang)) ??

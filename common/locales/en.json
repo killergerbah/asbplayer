@@ -20,6 +20,7 @@
         "importSettings": "Import Settings",
         "exportSettings": "Export Settings",
         "hideOverlay": "Hide Overlay",
+        "openTutorial": "Open Tutorial",
         "decreaseOffsetButton": "Decrease offset to so that next subtitle is at current position. Hold to decrease by 100ms.",
         "increaseOffsetButton": "Increase offset to so that previous subtitle is at current position. Hold to increase by 100ms."
     },
@@ -210,7 +211,8 @@
             "rememberTrackPreference": "Remember these track choices for this site",
             "selectSubtitles": "Select Subtitles",
             "subtitleTrack": "Subtitle Track",
-            "videoName": "Video Name"
+            "videoName": "Video Name",
+            "ftue": "Auto-detected subtitle tracks can be selected here. asbplayer does not know how to detect subtitles on every site. You can always load your own subtitle files."
         },
         "videoSelect": {
             "multipleVideoElements": "Multiple Video Elements Detected",
@@ -221,7 +223,15 @@
     },
     "ftue": {
         "welcome": "Welcome to asbplayer.",
-        "welcomeBody": "Check out the <0>readme</0> to see how to get started."
+        "welcomeBody": "Check out the <0>readme</0> to see how to get started.",
+        "welcomeBody2": "Scroll down for a quick intro, or check out the <0>user guide</0>.",
+        "toolbar": "Click the 🧩 icon in the toolbar, and select <0>asbplayer</0> to open the asbplayer <1>Popup</1>.<2/>Use the 📌 button to pin asbplayer to the toolbar for easy access.",
+        "sidePanel": "Use the <0>Side Panel</0> to <1>navigate</1> between subtitles, <2>mine</2> subtitles, and more.",
+        "overlayScroll": "<0>Scroll</0> the rightmost control to switch between <1>subtitle navigation</1>, <2>subtitle offset</2>, and <3>playback rate</3> controls.",
+        "overlay": "Use the <0>Video Overlay</0> to <1>mine</1> and <2>toggle</2> subtitles, <3>switch playback modes</3>, and more.",
+        "congrats": "That's it for the basics! Feel free to play around on this page. You can always redo the tutorial from the <0>Settings</0>.<1/>Interested in sentence mining? Head over to the <2>user guide</2> to learn how to set up Anki and Anki Connect.",
+        "loadSubtitles": "The first step to using asbplayer is always to load subtitles onto a video. Use the <0>Side Panel</0> to load subtitles onto the video on this page.<1/>Hint: The <2>Side Panel</2> can be accessed through the <3>Popup</3>.",
+        "loadSubtitlesMobile": "The first step to using asbplayer is always to load subtitles onto a video. Open the track selector by selecting <0>asbplayer</0> in the <1>extensions</1> menu."
     },
     "update": {
         "heading": "asbplayer just updated to version {{version}}.",
