@@ -148,6 +148,13 @@ export async function exportCard(card: CardModel, ankiSettings: AnkiSettings, ex
     });
 }
 
+export interface CreateModelParams {
+    modelName: string;
+    inOrderFields: string[];
+    css: string;
+    cardTemplates: { Front: string; Back: string }[];
+}
+
 export class Anki {
     private readonly settingsProvider: AnkiSettings;
     private readonly fetcher: Fetcher;
@@ -187,6 +194,16 @@ export class Anki {
             { query: this.settingsProvider.wordField + ':' + this._escapeQuery(word) },
             ankiConnectUrl
         );
+        return response.result;
+    }
+
+    async createDeck(name: string, ankiConnectUrl?: string) {
+        const response = await this._executeAction('createDeck', { deck: name }, ankiConnectUrl);
+        return response.result;
+    }
+
+    async createModel(params: CreateModelParams, ankiConnectUrl?: string) {
+        const response = await this._executeAction('createModel', params, ankiConnectUrl);
         return response.result;
     }
 

@@ -45,6 +45,7 @@ import { isMacOs } from '../device-detection/mac';
 import AnkiDialogButton from './AnkiDialogButton';
 import { type Theme } from '@mui/material';
 import TutorialBubble from './TutorialBubble';
+import AnkiDialogTutorialBubble from './AnkiDialogTutorialBubble';
 
 const quickSelectShortcut = isMacOs ? '⌘+⇧+Enter' : 'Alt+Shift+Enter';
 
@@ -153,6 +154,14 @@ const ValueLabelComponent = ({ children, open, value }: ValueLabelComponentProps
         </Tooltip>
     );
 };
+
+enum TutorialStep {
+    dialog = 1,
+    definitionField = 2,
+    wordField = 3,
+    configure = 4,
+    export = 5,
+}
 
 export interface AnkiDialogState {
     text: string;
@@ -728,20 +737,21 @@ const AnkiDialog = ({
         return () => document.removeEventListener('keydown', listener);
     }, [focusOnPreferredAction]);
 
+    const [tutorialStep, setTutorialStep] = useState<TutorialStep>(TutorialStep.dialog);
+
     return (
         <>
             <Dialog open={open} disableRestoreFocus disableEnforceFocus fullWidth maxWidth="sm" onClose={onCancel}>
                 <Toolbar>
-                    <TutorialBubble
-                        placement="bottom"
-                        text="Create Anki flashcards from this dialog."
-                        onConfirm={() => {}}
-                        show={false}
+                    <AnkiDialogTutorialBubble
+                        disabled={!inTutorial}
+                        onConfirm={() => setTutorialStep(TutorialStep.definitionField)}
+                        show={tutorialStep === TutorialStep.dialog}
                     >
                         <Typography variant="h6" className={classes.title}>
                             {t('ankiDialog.title')}
                         </Typography>
-                    </TutorialBubble>
+                    </AnkiDialogTutorialBubble>
                     {profiles !== undefined && onSetActiveProfile && (
                         <MiniProfileSelector
                             profiles={profiles}
@@ -750,11 +760,28 @@ const AnkiDialog = ({
                         />
                     )}
                     {onOpenSettings && (
-                        <IconButton edge="end" onClick={onOpenSettings}>
-                            <Badge invisible={ankiIsAvailable} badgeContent={'!'} color="error">
-                                <SettingsIcon />
-                            </Badge>
-                        </IconButton>
+                        <TutorialBubble
+                            placement="bottom"
+                            disabled={!inTutorial}
+                            show={tutorialStep === TutorialStep.configure}
+                            text={<>Click here to configure asbplayer's integration with Anki.</>}
+                            onConfirm={() => setTutorialStep(TutorialStep.export)}
+                        >
+                            <IconButton
+                                edge="end"
+                                onClick={() => {
+                                    if (tutorialStep === TutorialStep.configure) {
+                                        setTutorialStep(TutorialStep.export);
+                                    }
+
+                                    onOpenSettings();
+                                }}
+                            >
+                                <Badge invisible={ankiIsAvailable} badgeContent={'!'} color="error">
+                                    <SettingsIcon />
+                                </Badge>
+                            </IconButton>
+                        </TutorialBubble>
                     )}
                     {onCancel && (
                         <IconButton edge="end" onClick={onCancel}>
@@ -779,7 +806,13 @@ const AnkiDialog = ({
                                         />
                                     )}
                                     {!model.custom && model.key === 'definition' && model.field.display && (
-                                        <DefinitionField text={definition} onTextChange={setDefinition} />
+                                        <DefinitionField
+                                            text={definition}
+                                            onTextChange={setDefinition}
+                                            disableTutorial={!inTutorial}
+                                            showTutorial={tutorialStep === TutorialStep.definitionField}
+                                            onConfirmTutorial={() => setTutorialStep(TutorialStep.wordField)}
+                                        />
                                     )}
                                     {!model.custom && model.key === 'word' && model.field.display && (
                                         <WordField
@@ -788,6 +821,9 @@ const AnkiDialog = ({
                                             text={word}
                                             onText={setWord}
                                             wordField={settings.wordField}
+                                            disableTutorial={!inTutorial}
+                                            showTutorial={tutorialStep === TutorialStep.wordField}
+                                            onConfirmTutorial={() => setTutorialStep(TutorialStep.configure)}
                                         />
                                     )}
                                     {image && !model.custom && model.key === 'image' && model.field.display && (

@@ -26,6 +26,7 @@ import Mp3Encoder from '@project/common/audio-clip/mp3-encoder';
 import { base64ToBlob, blobToBase64 } from '@project/common/base64';
 import { mp3WorkerFactory } from '../services/mp3-worker-factory';
 import { ExtensionGlobalStateProvider } from '../services/extension-global-state-provider';
+import { isOnTutorialPage } from '@/services/tutorial';
 
 // We need to write the HTML into the iframe manually so that the iframe keeps it's about:blank URL.
 // Otherwise, Chrome won't insert content scripts into the iframe (e.g. Yomichan won't work).
@@ -59,9 +60,11 @@ export default class AnkiUiController {
     private activeElement?: Element;
     private focusInListener?: (event: FocusEvent) => void;
     private _settings?: AnkiDialogSettings;
+    private _inTutorial: boolean;
 
     constructor() {
         this.frame = new UiFrame(html);
+        this._inTutorial = isOnTutorialPage();
     }
 
     get settings() {
@@ -118,6 +121,7 @@ export default class AnkiUiController {
             word,
             definition,
             customFieldValues,
+            inTutorial: this._inTutorial,
             ...(await this._additionalUiState(context)),
         };
         client.updateState(state);
@@ -137,6 +141,7 @@ export default class AnkiUiController {
             canRerecord: true,
             settings: this._settings,
             dialogRequestedTimestamp: context.video.currentTime * 1000,
+            inTutorial: this._inTutorial,
             ...(await this._additionalUiState(context)),
         };
         client.updateState(state);
@@ -155,6 +160,7 @@ export default class AnkiUiController {
             open: true,
             canRerecord: true,
             settings: this._settings,
+            inTutorial: this._inTutorial,
             ...(await this._additionalUiState(context)),
         };
         client.updateState(state);
@@ -210,6 +216,7 @@ export default class AnkiUiController {
                             sender: 'asbplayer-video',
                             message: {
                                 command: 'open-asbplayer-settings',
+                                tutorial: this._inTutorial,
                             },
                             src: context.video.src,
                         };

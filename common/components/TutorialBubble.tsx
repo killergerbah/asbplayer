@@ -3,18 +3,29 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Tooltip from '@project/common/components/Tooltip';
 
-interface BubbleProps {
-    placement: 'left' | 'right' | 'top' | 'bottom';
+export interface TutorialBubbleProps {
+    placement: 'left' | 'right' | 'top' | 'bottom' | 'bottom-start';
+    disableArrow?: boolean;
     text: React.ReactElement | string;
     show?: boolean;
     children: React.ReactElement;
+    disabled?: boolean;
     onConfirm?: () => void;
 }
 
-const TutorialBubble: React.FC<BubbleProps> = ({ placement, show, onConfirm, text, children }) => {
+const TutorialBubble: React.FC<TutorialBubbleProps> = ({
+    disabled,
+    placement,
+    disableArrow,
+    show,
+    onConfirm,
+    text,
+    children,
+}) => {
     return (
         <Tooltip
-            arrow
+            disabled={disabled}
+            arrow={disableArrow !== true}
             placement={placement}
             open={show}
             slotProps={{

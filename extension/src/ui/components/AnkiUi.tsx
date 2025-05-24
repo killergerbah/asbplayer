@@ -81,6 +81,7 @@ export default function AnkiUi({ bridge }: Props) {
     const [profiles, setProfiles] = useState<Profile[]>();
     const [activeProfile, setActiveProfile] = useState<string>();
     const [ftueHasSeenAnkiDialogQuickSelect, setFtueHasSeenAnkiDialogQuickSelect] = useState<boolean>();
+    const [inTutorial, setInTutorial] = useState<boolean>(false);
 
     const theme = useMemo(() => createTheme((settings?.themeType ?? 'dark') as PaletteMode), [settings?.themeType]);
     const anki = useMemo(
@@ -156,6 +157,7 @@ export default function AnkiUi({ bridge }: Props) {
             setImage(image);
             setOpen(s.open);
             setFtueHasSeenAnkiDialogQuickSelect(s.ftueHasSeenAnkiDialogQuickSelect);
+            setInTutorial(s.inTutorial);
         });
     }, [bridge, image]);
 
@@ -377,6 +379,7 @@ export default function AnkiUi({ bridge }: Props) {
                         stateRef={dialogStateRef}
                         mp3Encoder={mp3Encoder}
                         lastSelectedExportMode={settings.lastSelectedAnkiExportMode}
+                        inTutorial={inTutorial}
                     />
                 )}
             </ThemeProvider>

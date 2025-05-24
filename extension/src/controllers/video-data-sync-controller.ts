@@ -20,6 +20,7 @@ import UiFrame from '../services/ui-frame';
 import { fetchLocalization } from '../services/localization-fetcher';
 import i18n from 'i18next';
 import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
+import { isOnTutorialPage } from '@/services/tutorial';
 
 async function html(lang: string) {
     return `<!DOCTYPE html>
@@ -58,7 +59,6 @@ const fetchDataForLanguageOnDemand = (language: string): Promise<VideoData> => {
 };
 
 const globalStateProvider = new ExtensionGlobalStateProvider();
-const tutorialUrls = [browser.runtime.getURL('/ftue-ui.html'), browser.runtime.getURL('/tutorial-ui.html')];
 
 export default class VideoDataSyncController {
     private readonly _context: Binding;
@@ -91,7 +91,7 @@ export default class VideoDataSyncController {
         };
         this._domain = new URL(window.location.href).host;
         this._frame = new UiFrame(html);
-        this._isTutorial = tutorialUrls.includes(location.href);
+        this._isTutorial = isOnTutorialPage();
     }
 
     private get lastLanguagesSynced(): string[] {

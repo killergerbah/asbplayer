@@ -6,6 +6,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
 import Tooltip from './Tooltip';
+import TutorialBubble from './TutorialBubble';
 
 interface Props {
     anki: Anki;
@@ -13,9 +14,21 @@ interface Props {
     text: string;
     onText: (text: string) => void;
     wordField: string;
+    disableTutorial?: boolean;
+    showTutorial?: boolean;
+    onConfirmTutorial?: () => void;
 }
 
-export default function WordField({ anki, disabled, text, onText, wordField }: Props) {
+export default function WordField({
+    anki,
+    disabled,
+    text,
+    onText,
+    wordField,
+    disableTutorial,
+    showTutorial,
+    onConfirmTutorial,
+}: Props) {
     const { t } = useTranslation();
     const [lastSearchedWord, setLastSearchedWord] = useState<string>();
     const [duplicateNotes, setDuplicateNotes] = useState<string[]>([]);
@@ -63,31 +76,43 @@ export default function WordField({ anki, disabled, text, onText, wordField }: P
     }
 
     return (
-        <TextField
-            variant="filled"
-            color="primary"
-            fullWidth
-            label={t('ankiDialog.word')}
-            value={text}
-            onChange={(e) => onText(e.target.value)}
-            helperText={wordHelperText}
-            InputProps={{
-                endAdornment: (
-                    <InputAdornment position="end">
-                        <Tooltip title={t('ankiDialog.searchInAnki')!}>
-                            <span>
-                                <IconButton
-                                    disabled={disabled || !wordField || !text || text.trim() === ''}
-                                    onClick={() => anki.findNotesWithWordGui(text.trim())}
-                                    edge="end"
-                                >
-                                    <SearchIcon />
-                                </IconButton>
-                            </span>
-                        </Tooltip>
-                    </InputAdornment>
-                ),
-            }}
-        />
+        <TutorialBubble
+            placement="bottom"
+            text={
+                <>
+                    Put specific unknown words or phrases in the <b>Word Field</b>.
+                </>
+            }
+            disabled={disableTutorial}
+            show={showTutorial}
+            onConfirm={() => onConfirmTutorial?.()}
+        >
+            <TextField
+                variant="filled"
+                color="primary"
+                fullWidth
+                label={t('ankiDialog.word')}
+                value={text}
+                onChange={(e) => onText(e.target.value)}
+                helperText={wordHelperText}
+                InputProps={{
+                    endAdornment: (
+                        <InputAdornment position="end">
+                            <Tooltip title={t('ankiDialog.searchInAnki')!}>
+                                <span>
+                                    <IconButton
+                                        disabled={disabled || !wordField || !text || text.trim() === ''}
+                                        onClick={() => anki.findNotesWithWordGui(text.trim())}
+                                        edge="end"
+                                    >
+                                        <SearchIcon />
+                                    </IconButton>
+                                </span>
+                            </Tooltip>
+                        </InputAdornment>
+                    ),
+                }}
+            />
+        </TutorialBubble>
     );
 }

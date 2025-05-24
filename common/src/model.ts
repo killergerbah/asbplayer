@@ -111,6 +111,7 @@ export interface AnkiUiState extends CardTextFieldValues {
     readonly audio?: AudioModel;
     readonly file?: FileModel;
     readonly dialogRequestedTimestamp: number;
+    readonly inTutorial: boolean;
 }
 
 export interface AnkiUiInitialState extends AnkiUiState {

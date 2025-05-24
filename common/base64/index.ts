@@ -10,8 +10,8 @@ export function bufferToBase64(buffer: ArrayBufferLike): string {
     return window.btoa(binary);
 }
 
-export async function fileUrlToBase64(fileUrl: string): Promise<string> {
-    return bufferToBase64(await (await fetch(fileUrl)).arrayBuffer());
+export async function urlToBase64(url: string): Promise<string> {
+    return bufferToBase64(await (await fetch(url)).arrayBuffer());
 }
 
 export const blobToBase64 = (blob: Blob) => {
