@@ -1,5 +1,6 @@
 import pagesConfig from '../pages.json';
 import type { PublicPath } from 'wxt/browser';
+import { isOnTutorialPage } from './tutorial';
 
 interface PageConfig {
     // Regex for URLs where script should be loaded
@@ -48,6 +49,20 @@ export function currentPageDelegate(): PageDelegate | undefined {
         if (regex.test(urlObj.host)) {
             return new PageDelegate(page, urlObj);
         }
+    }
+
+    if (isOnTutorialPage()) {
+        return new PageDelegate(
+            {
+                host: window.location.host,
+                script: 'asbplayer-tutorial-page.js',
+                path: '.*',
+                autoSync: {
+                    enabled: false,
+                },
+            },
+            urlObj
+        );
     }
 
     return undefined;

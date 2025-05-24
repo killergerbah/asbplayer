@@ -4,7 +4,6 @@ import Paper from '@mui/material/Paper';
 import React from 'react';
 import Fade from '@mui/material/Fade';
 import Button from '@mui/material/Button';
-import videoUrl from '/assets/tutorial.mp4';
 import TabRegistry from '@/services/tab-registry';
 import { SettingsProvider } from '@project/common/settings';
 import { ExtensionSettingsStorage } from '@/services/extension-settings-storage';
@@ -20,6 +19,7 @@ import Link from '@mui/material/Link';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { AsbPlayerToVideoCommandV2, RequestSubtitlesMessage, RequestSubtitlesResponse } from '@project/common';
 import TutorialBubble from '@project/common/components/TutorialBubble';
+import { isFirefox } from '@project/common/browser-detection';
 
 const settingsProvider = new SettingsProvider(new ExtensionSettingsStorage());
 const tabRegistry = new TabRegistry(settingsProvider);
@@ -85,20 +85,25 @@ const ToolbarBubble: React.FC<{ show: boolean; onConfirm: () => void }> = ({ sho
                 <Trans
                     i18nKey="ftue.toolbar"
                     components={[<b key={0}>asbplayer</b>, <b key={1}>Popup</b>, <p key={2} />]}
+                    values={{ pin: isFirefox ? '⚙' : '📌' }}
                 />
             }
             onConfirm={onConfirm}
         >
-            <div style={{ position: 'fixed', right: 185, top: 5 }} />
+            <div style={{ position: 'fixed', right: isFirefox ? 60 : 185, top: 5 }} />
         </TutorialBubble>
     );
 };
 
-const LoadSubtitlesDialog: React.FC<{ open: boolean; count?: number }> = ({ open, count }) => {
+const LoadSubtitlesDialog: React.FC<{ open: boolean; count?: number; onClose: () => void }> = ({
+    open,
+    count,
+    onClose,
+}) => {
     return (
         <Dialog style={{ zIndex: zIndexTop }} open={open}>
             <DialogContent>
-                {count === undefined && !isMobile && (
+                {count === undefined && !isMobile && !isFirefox && (
                     <Trans
                         i18nKey="ftue.loadSubtitles"
                         components={[
@@ -109,6 +114,12 @@ const LoadSubtitlesDialog: React.FC<{ open: boolean; count?: number }> = ({ open
                         ]}
                     />
                 )}
+                {count === undefined && !isMobile && isFirefox && (
+                    <Trans
+                        i18nKey="ftue.loadSubtitlesFirefox"
+                        components={[<b key={0}>Right-click</b>, <b key={2}>context menu</b>]}
+                    />
+                )}
                 {count === undefined && isMobile && (
                     <Trans
                         i18nKey="ftue.loadSubtitlesMobile"
@@ -116,6 +127,13 @@ const LoadSubtitlesDialog: React.FC<{ open: boolean; count?: number }> = ({ open
                     />
                 )}
             </DialogContent>
+            {isFirefox && (
+                <DialogActions>
+                    <Button onClick={onClose}>
+                        <Trans i18nKey="action.ok" />
+                    </Button>
+                </DialogActions>
+            )}
         </Dialog>
     );
 };
@@ -257,7 +275,7 @@ const Tutorial: React.FC<{ className: string; show: boolean }> = ({ className, s
     }, [step]);
 
     const [playing, setPlaying] = useState<boolean>(false);
-    const videoRef = useRef<HTMLVideoElement>(null);
+    const videoRef = useRef<HTMLVideoElement | null>();
 
     const handleVideoClick = () => {
         if (playing) {
@@ -269,6 +287,7 @@ const Tutorial: React.FC<{ className: string; show: boolean }> = ({ className, s
 
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+    const [showLoadSubtitles, setShowLoadSubtitles] = useState<boolean>(true);
 
     return (
         <Paper square sx={{ position: 'relative' }} className={className}>
@@ -287,11 +306,17 @@ const Tutorial: React.FC<{ className: string; show: boolean }> = ({ className, s
                         <div style={{ width: isSmallScreen ? '100%' : '80%' }}>
                             <div style={{ position: 'relative' }}>
                                 <video
-                                    ref={videoRef}
+                                    ref={(elm) => {
+                                        videoRef.current = elm;
+
+                                        if (elm) {
+                                            elm.volume = Math.min(elm.volume, 0.5);
+                                        }
+                                    }}
                                     onPlay={() => setPlaying(true)}
                                     onPause={() => setPlaying(false)}
                                     style={{ width: '100%' }}
-                                    src={videoUrl}
+                                    src={browser.runtime.getURL('/assets/tutorial.mp4')}
                                     onClick={handleVideoClick}
                                 />
                                 <div
@@ -323,7 +348,11 @@ const Tutorial: React.FC<{ className: string; show: boolean }> = ({ className, s
             )}
             <ToolbarBubble show={show && step === Step.toolbar} onConfirm={() => setStep(Step.loadSubtitles)} />
             <SidePanelBubble show={show && step === Step.sidePanel} onConfirm={() => setStep(Step.overlay)} />
-            <LoadSubtitlesDialog open={show && step === Step.loadSubtitles} count={loadedSubtitlesCount} />
+            <LoadSubtitlesDialog
+                open={show && step === Step.loadSubtitles && showLoadSubtitles}
+                count={loadedSubtitlesCount}
+                onClose={() => setShowLoadSubtitles(false)}
+            />
             <FinishedDialog open={show && step === Step.almostDone} onClose={() => setStep(Step.done)} />
         </Paper>
     );

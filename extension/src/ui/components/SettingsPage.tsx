@@ -48,14 +48,14 @@ interface Props {
 const testCard: () => Promise<CardModel> = async () => {
     return {
         subtitle: {
-            text: 'So therefore the way to work towards perfection is simply to keep going, to enjoy the language.',
+            text: 'So therefore the way to work towards perfection is simply to keep going, to enjoy the language.\n-Steve Kaufmann',
             start: 288925,
             end: 294695,
             originalStart: 288925,
             originalEnd: 294695,
             track: 0,
         },
-        text: 'So therefore the way to work towards perfection is simply to keep going, to enjoy the language.',
+        text: 'So therefore the way to work towards perfection is simply to keep going, to enjoy the language.\n-Steve Kaufmann',
         word: 'enjoy',
         definition: 'take delight or pleasure in (an activity or occasion).',
         surroundingSubtitles: [],

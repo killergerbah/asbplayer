@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import TextField from '@mui/material/TextField';
+import Link from '@mui/material/Link';
 import { useTranslation, Trans } from 'react-i18next';
 import { Anki } from '../anki';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -77,9 +78,25 @@ export default function WordField({
 
     return (
         <TutorialBubble
-            placement="bottom"
-            text={<Trans i18nKey="ftue.wordField" components={[<b key={0}>Word Field</b>]} />}
             disabled={disableTutorial}
+            placement="bottom"
+            text={
+                <>
+                    <Trans
+                        i18nKey="ftue.ankiDialogDefinition"
+                        components={[<b key={0}>Definition Field</b>, <b key={1}>Word Field</b>]}
+                    />
+                    <p />
+                    <Trans
+                        i18nKey="ftue.ankiDialogDefinitionHint"
+                        components={[
+                            <Link key={0} href="https://yomitan.wiki/" target="_blank">
+                                Yomitan
+                            </Link>,
+                        ]}
+                    />
+                </>
+            }
             show={showTutorial}
             onConfirm={() => onConfirmTutorial?.()}
         >

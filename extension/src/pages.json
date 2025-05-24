@@ -149,14 +149,6 @@
             "autoSync": {
                 "enabled": true
             }
-        },
-        {
-            "host": "hkledmpjpaehamkiehglnbelcpdflcab",
-            "script": "asbplayer-tutorial-page.js",
-            "path": ".*",
-            "autoSync": {
-                "enabled": false
-            }
         }
     ]
 }

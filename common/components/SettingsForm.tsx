@@ -82,10 +82,9 @@ import NoteTypeTutorialBubble from './NoteTypeTutorialBubble';
 const defaultDeckName = 'Sentences';
 
 const defaultNoteType = {
-    modelName: 'Test Sentence 2',
+    modelName: 'Sentence Card',
     inOrderFields: ['Sentence', 'Word', 'Definition', 'Image', 'Audio', 'Source', 'URL'],
-    css: `
-.card {
+    css: `.card {
   font-family: arial;
   font-size: 20px;
   text-align: center;
@@ -108,8 +107,7 @@ const defaultNoteType = {
     cardTemplates: [
         {
             Front: `<div class="front">{{Sentence}}</div>`,
-            Back: `
-<div class="front">{{Sentence}}</div>
+            Back: `<div class="front">{{Sentence}}</div>
 <hr/>
 {{Definition}}
 <p/>
@@ -121,8 +119,7 @@ const defaultNoteType = {
 <p/>
 {{Source}}
 <p/>
-{{URL}}
-        `,
+{{URL}}`,
         },
     ],
 };

@@ -157,10 +157,9 @@ const ValueLabelComponent = ({ children, open, value }: ValueLabelComponentProps
 
 enum TutorialStep {
     dialog = 1,
-    definitionField = 2,
-    wordField = 3,
-    configure = 4,
-    export = 5,
+    wordField = 2,
+    configure = 3,
+    export = 4,
 }
 
 export interface AnkiDialogState {
@@ -745,7 +744,7 @@ const AnkiDialog = ({
                 <Toolbar>
                     <AnkiDialogTutorialBubble
                         disabled={!inTutorial}
-                        onConfirm={() => setTutorialStep(TutorialStep.definitionField)}
+                        onConfirm={() => setTutorialStep(TutorialStep.wordField)}
                         show={tutorialStep === TutorialStep.dialog}
                     >
                         <Typography variant="h6" className={classes.title}>
@@ -806,13 +805,7 @@ const AnkiDialog = ({
                                         />
                                     )}
                                     {!model.custom && model.key === 'definition' && model.field.display && (
-                                        <DefinitionField
-                                            text={definition}
-                                            onTextChange={setDefinition}
-                                            disableTutorial={!inTutorial}
-                                            showTutorial={tutorialStep === TutorialStep.definitionField}
-                                            onConfirmTutorial={() => setTutorialStep(TutorialStep.wordField)}
-                                        />
+                                        <DefinitionField text={definition} onTextChange={setDefinition} />
                                     )}
                                     {!model.custom && model.key === 'word' && model.field.display && (
                                         <WordField
