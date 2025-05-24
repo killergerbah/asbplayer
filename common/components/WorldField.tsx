@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import TextField from '@mui/material/TextField';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { Anki } from '../anki';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
@@ -78,11 +78,7 @@ export default function WordField({
     return (
         <TutorialBubble
             placement="bottom"
-            text={
-                <>
-                    Put specific unknown words or phrases in the <b>Word Field</b>.
-                </>
-            }
+            text={<Trans i18nKey="ftue.wordField" components={[<b key={0}>Word Field</b>]} />}
             disabled={disableTutorial}
             show={showTutorial}
             onConfirm={() => onConfirmTutorial?.()}

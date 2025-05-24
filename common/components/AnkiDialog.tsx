@@ -764,7 +764,7 @@ const AnkiDialog = ({
                             placement="bottom"
                             disabled={!inTutorial}
                             show={tutorialStep === TutorialStep.configure}
-                            text={<>Click here to configure asbplayer's integration with Anki.</>}
+                            text={t('ftue.configureAnki')!}
                             onConfirm={() => setTutorialStep(TutorialStep.export)}
                         >
                             <IconButton

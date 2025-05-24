@@ -29,7 +29,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import TextField from '@mui/material/TextField';
 import { type Theme } from '@mui/material';
-import { AutoPausePreference, CardModel, Image, PostMineAction, PostMinePlayback, SubtitleHtml } from '@project/common';
+import { AutoPausePreference, CardModel, PostMineAction, PostMinePlayback, SubtitleHtml } from '@project/common';
 import {
     AnkiFieldSettings,
     AnkiFieldUiModel,
@@ -50,7 +50,7 @@ import { useOutsideClickListener } from '@project/common/hooks';
 import TagsTextField from './TagsTextField';
 import hotkeys from 'hotkeys-js';
 import Typography from '@mui/material/Typography';
-import { isMacOs } from 'react-device-detect';
+import { isMacOs, isMobile } from 'react-device-detect';
 import Switch from '@mui/material/Switch';
 import RadioGroup from '@mui/material/RadioGroup';
 import Tooltip from './Tooltip';
@@ -76,6 +76,8 @@ import SubtitlePreview from './SubtitlePreview';
 import About from './About';
 import TutorialBubble from './TutorialBubble';
 import AnkiConnectTutorialBubble from './AnkiConnectTutorialBubble';
+import DeckFieldTutorialBubble from './DeckFieldTutorialBubble';
+import NoteTypeTutorialBubble from './NoteTypeTutorialBubble';
 
 const defaultDeckName = 'Sentences';
 
@@ -1369,7 +1371,7 @@ export default function SettingsForm({
             setTutorialStep(TutorialStep.done);
         }
 
-        await exportCard(await testCard(), settings, 'gui');
+        await exportCard(await testCard(), settings, isMobile ? 'default' : 'gui');
     }, [tutorialStep, anki, settings]);
 
     return (
@@ -1448,26 +1450,11 @@ export default function SettingsForm({
                             />
                         </FormHelperText>
                     )}
-                    <TutorialBubble
+                    <DeckFieldTutorialBubble
                         show={tutorialStep === TutorialStep.deck && !ankiConnectUrlError && !deck}
-                        placement="bottom"
                         disabled={!inTutorial}
-                        text={
-                            <>
-                                Select the <b>Deck</b> where you want your cards to go.
-                                {deckNames === undefined ||
-                                    (deckNames.length === 0 && (
-                                        <>
-                                            <p />
-                                            If you don't have any decks yet, you can{' '}
-                                            <Link href={'#'} onClick={handleCreateDefaultDeck}>
-                                                create the default one
-                                            </Link>
-                                            .
-                                        </>
-                                    ))}
-                            </>
-                        }
+                        noDecks={deckNames === undefined || deckNames.length === 0}
+                        onCreateDefaultDeck={handleCreateDefaultDeck}
                     >
                         <SelectableSetting
                             label={t('settings.deck')}
@@ -1480,28 +1467,12 @@ export default function SettingsForm({
                                 }
                             }}
                         />
-                    </TutorialBubble>
-                    <TutorialBubble
+                    </DeckFieldTutorialBubble>
+                    <NoteTypeTutorialBubble
                         show={tutorialStep === TutorialStep.noteType && Boolean(deck) && !noteType}
-                        placement="bottom"
                         disabled={!inTutorial}
-                        text={
-                            <>
-                                Select the <b>Note Type</b> for your cards. The <b>Note Type</b> determines how the
-                                front and back of your cards will look.
-                                {modelNames === undefined ||
-                                    (modelNames.length === 0 && (
-                                        <>
-                                            <p />
-                                            If you don't have any note types yet, you can{' '}
-                                            <Link href={'#'} onClick={handleCreateDefaultNoteType}>
-                                                create the default one
-                                            </Link>
-                                            .
-                                        </>
-                                    ))}
-                            </>
-                        }
+                        noNoteTypes={modelNames === undefined || modelNames.length === 0}
+                        onCreateDefaultNoteType={handleCreateDefaultNoteType}
                     >
                         <SelectableSetting
                             label={t('settings.noteType')}
@@ -1514,7 +1485,7 @@ export default function SettingsForm({
                                 }
                             }}
                         />
-                    </TutorialBubble>
+                    </NoteTypeTutorialBubble>
                     {ankiFieldModels.map((model, index) => {
                         const key = model.custom ? `custom_${model.key}` : `standard_${model.key}`;
                         const handleOrderChange =
@@ -1553,12 +1524,7 @@ export default function SettingsForm({
                                             Boolean(noteType)
                                         }
                                         disableArrow
-                                        text={
-                                            <>
-                                                The rest of the drop-downs configure how content gets mapped into fields
-                                                of your card.
-                                            </>
-                                        }
+                                        text={t('ftue.ankiFields')!}
                                         onConfirm={() => setTutorialStep(TutorialStep.testCard)}
                                     >
                                         <SelectableSetting
@@ -1683,12 +1649,13 @@ export default function SettingsForm({
                     {testCard && (
                         <TutorialBubble
                             placement="top"
+                            disabled={!inTutorial}
                             show={tutorialStep === TutorialStep.testCard}
-                            text={<>When ready, you can create a test card to see how it looks.</>}
+                            text={t('ftue.testCard')!}
                             onConfirm={() => setTutorialStep(TutorialStep.done)}
                         >
                             <Button variant="contained" onClick={handleCreateTestCard}>
-                                Create Test Card
+                                {t('settings.createTestCard')}
                             </Button>
                         </TutorialBubble>
                     )}

@@ -2,6 +2,7 @@ import TutorialBubble from './TutorialBubble';
 import Button from '@mui/material/Button';
 import Link from '@mui/material/Link';
 import { useState } from 'react';
+import { Trans } from 'react-i18next';
 
 const AnkiDialogTutorialBubble: React.FC<{
     disabled: boolean;
@@ -17,20 +18,29 @@ const AnkiDialogTutorialBubble: React.FC<{
             disableArrow
             text={
                 showAnkiExplanation ? (
-                    <>
-                        <Link href="https://apps.ankiweb.net/" target="_blank">
-                            Anki
-                        </Link>{' '}
-                        is the most popular flashcard program in the world. It uses an algorithm called <b>SRS</b> to
-                        make learning information very efficient.
-                    </>
+                    <Trans
+                        i18nKey="ftue.anki"
+                        components={[
+                            <Link key={0} href="https://apps.ankiweb.net/" target="_blank">
+                                Anki
+                            </Link>,
+                            <b key={1}>SRS</b>,
+                        ]}
+                    />
                 ) : (
                     <>
-                        Use the <b>Anki Export Dialog</b> to create Anki flashcards. In most cases, asbplayer can fill
-                        out <b>sentence</b>, <b>image</b>, and <b>audio</b> automatically.
+                        <Trans
+                            i18nKey="ftue.ankiDialog"
+                            components={[
+                                <b key={0}>Anki Export Dialog</b>,
+                                <b key={1}>sentence</b>,
+                                <b key={2}>image</b>,
+                                <b key={3}>audio</b>,
+                            ]}
+                        />
                         <p />
                         <Button onClick={() => setShowAnkiExplanation(true)} variant="contained" fullWidth>
-                            What's Anki?
+                            <Trans i18nKey="ftue.whatsAnki" />
                         </Button>
                     </>
                 )

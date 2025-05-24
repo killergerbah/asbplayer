@@ -1,8 +1,7 @@
 import TextField from '@mui/material/TextField';
 import Link from '@mui/material/Link';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import TutorialBubble from './TutorialBubble';
-
 interface Props {
     text: string;
     onTextChange: (text: string) => void;
@@ -25,13 +24,16 @@ export default function DefinitionField({
             placement="bottom"
             text={
                 <>
-                    Put any details you want to remember about the sentence in the <b>Definition Field</b>.
+                    <Trans i18nKey="ftue.ankiDialogDefinition" components={[<b key={0}>Definition Field</b>]} />
                     <p />
-                    Hint: A dictionary extension like{' '}
-                    <Link href="https://yomitan.wiki/" target="_blank">
-                        Yomitan
-                    </Link>{' '}
-                    makes this really easy.
+                    <Trans
+                        i18nKey="ftue.ankiDialogDefinitionHint"
+                        components={[
+                            <Link key={0} href="https://yomitan.wiki/" target="_blank">
+                                Yomitan
+                            </Link>,
+                        ]}
+                    />
                 </>
             }
             show={showTutorial}

@@ -115,12 +115,6 @@ const LoadSubtitlesDialog: React.FC<{ open: boolean; count?: number }> = ({ open
                         components={[<b key={0}>asbplayer</b>, <b key={1}>extensions</b>]}
                     />
                 )}
-                {count === 0 && (
-                    <>
-                        You loaded an <b>empty</b> subtitle track. The controls available to you will be a bit
-                        different.
-                    </>
-                )}
             </DialogContent>
         </Dialog>
     );
