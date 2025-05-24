@@ -1,12 +1,9 @@
-import { makeStyles } from '@mui/styles';
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import React from 'react';
-import Typography from '@mui/material/Typography';
 import Fade from '@mui/material/Fade';
 import Button from '@mui/material/Button';
-import Stack from '@mui/material/Stack';
 import videoUrl from '/assets/tutorial.mp4';
 import TabRegistry from '@/services/tab-registry';
 import { SettingsProvider } from '@project/common/settings';
@@ -15,92 +12,22 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import { isMobile } from 'react-device-detect';
 import DialogContent from '@mui/material/DialogContent';
-import { DialogActions, IconButton, useMediaQuery } from '@mui/material';
-import { Trans, useTranslation } from 'react-i18next';
+import DialogActions from '@mui/material/DialogActions';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import IconButton from '@mui/material/IconButton';
+import { Trans } from 'react-i18next';
 import Link from '@mui/material/Link';
-import { PlayArrow } from '@mui/icons-material';
-
-const useBubbleStyles = makeStyles({
-    all: { background: 'rgba(70, 70, 70, 1)' },
-});
-
-interface BubbleProps extends React.HTMLProps<HTMLDivElement> {
-    tailSide: 'top' | 'right';
-    tailRight?: number | string;
-    tailLeft?: number | string;
-    tailTop?: number | string;
-    tailBottom?: number | string;
-    show: boolean;
-    onConfirm?: () => void;
-}
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import { AsbPlayerToVideoCommandV2, RequestSubtitlesMessage, RequestSubtitlesResponse } from '@project/common';
+import TutorialBubble from '@project/common/components/TutorialBubble';
 
 const settingsProvider = new SettingsProvider(new ExtensionSettingsStorage());
 const tabRegistry = new TabRegistry(settingsProvider);
 const zIndexTop = 2147483648;
 
-const Bubble = React.forwardRef<HTMLDivElement, BubbleProps>(
-    ({ tailSide, tailRight, tailLeft, tailTop, tailBottom, show, onConfirm, style, children }: BubbleProps, ref) => {
-        const classes = useBubbleStyles();
-        let tailPosition: React.CSSProperties = {};
-
-        if (tailSide === 'top') {
-            tailPosition = {
-                top: 11,
-                right: tailRight,
-                left: tailLeft,
-                transform: 'rotate(30deg) skewY(30deg)',
-            };
-        } else if (tailSide === 'right') {
-            tailPosition = {
-                right: -5,
-                top: tailTop,
-                bottom: tailBottom,
-                transform: 'rotate(120deg) skewY(30deg)',
-            };
-        }
-        return (
-            <Fade in={show}>
-                <div ref={ref} style={{ zIndex: zIndexTop, ...style }}>
-                    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                        <div
-                            className={classes.all}
-                            style={{
-                                position: 'absolute',
-                                aspectRatio: '1',
-                                width: 20,
-                                ...tailPosition,
-                            }}
-                        />
-                        <Box
-                            className={classes.all}
-                            p={2}
-                            sx={{
-                                position: 'absolute',
-                                top: 20,
-                                left: 0,
-                                maxWidth: '100%',
-                                borderRadius: '16px',
-                            }}
-                        >
-                            <Stack spacing={1}>
-                                <Typography variant="subtitle1">{children}</Typography>
-                                {onConfirm && (
-                                    <Button variant="contained" onClick={onConfirm} fullWidth>
-                                        Got it
-                                    </Button>
-                                )}
-                            </Stack>
-                        </Box>
-                    </div>
-                </div>
-            </Fade>
-        );
-    }
-);
-
 const useExtensionState = () => {
     const [sidePanelOpen, setSidePanelOpen] = useState<boolean>();
-    const [loadedSubtitles, setLoadedSubtitles] = useState<boolean>();
+    const [loadedSubtitlesCount, setLoadedSubtitlesCount] = useState<number>();
     const [currentTabId, setCurrentTabId] = useState<number>();
     useEffect(() => {
         browser.tabs.getCurrent().then((t) => setCurrentTabId(t?.id));
@@ -114,14 +41,29 @@ const useExtensionState = () => {
                 })
                 .then((asbplayer) => setSidePanelOpen(asbplayer !== undefined));
 
-            tabRegistry.activeVideoElements().then((elems) => {
-                const currentElemIsSynced = elems.find((elem) => elem.id === currentTabId && elem.synced) !== undefined;
-                setLoadedSubtitles(currentElemIsSynced);
+            tabRegistry.activeVideoElements().then(async (elems) => {
+                const currentElem = elems.find((elem) => elem.id === currentTabId && elem.synced);
+
+                if (currentElem !== undefined) {
+                    const message: AsbPlayerToVideoCommandV2<RequestSubtitlesMessage> = {
+                        sender: 'asbplayerv2',
+                        message: {
+                            command: 'request-subtitles',
+                        },
+                        tabId: currentElem.id,
+                        src: currentElem.src,
+                    };
+                    const response = (await browser.runtime.sendMessage(message)) as
+                        | RequestSubtitlesResponse
+                        | undefined;
+
+                    setLoadedSubtitlesCount(response?.subtitles?.length);
+                }
             });
         }, 1000);
         return () => clearInterval(interval);
     }, [currentTabId]);
-    return { sidePanelOpen, loadedSubtitles };
+    return { sidePanelOpen, loadedSubtitlesCount };
 };
 
 enum Step {
@@ -134,12 +76,29 @@ enum Step {
     done = 7,
 }
 
-const LoadSubtitlesDialog: React.FC<{ open: boolean }> = ({ open }) => {
+const ToolbarBubble: React.FC<{ show: boolean; onConfirm: () => void }> = ({ show, onConfirm }) => {
     return (
-        <Dialog open={open}>
-            <DialogTitle>Load subtitles</DialogTitle>
+        <TutorialBubble
+            show={show}
+            placement="bottom"
+            text={
+                <Trans
+                    i18nKey="ftue.toolbar"
+                    components={[<b key={0}>asbplayer</b>, <b key={1}>Popup</b>, <p key={2} />]}
+                />
+            }
+            onConfirm={onConfirm}
+        >
+            <div style={{ position: 'fixed', right: 185, top: 5 }} />
+        </TutorialBubble>
+    );
+};
+
+const LoadSubtitlesDialog: React.FC<{ open: boolean; count?: number }> = ({ open, count }) => {
+    return (
+        <Dialog style={{ zIndex: zIndexTop }} open={open}>
             <DialogContent>
-                {!isMobile && (
+                {count === undefined && !isMobile && (
                     <Trans
                         i18nKey="ftue.loadSubtitles"
                         components={[
@@ -150,14 +109,98 @@ const LoadSubtitlesDialog: React.FC<{ open: boolean }> = ({ open }) => {
                         ]}
                     />
                 )}
-                {isMobile && (
+                {count === undefined && isMobile && (
                     <Trans
                         i18nKey="ftue.loadSubtitlesMobile"
                         components={[<b key={0}>asbplayer</b>, <b key={1}>extensions</b>]}
                     />
                 )}
+                {count === 0 && (
+                    <>
+                        You loaded an <b>empty</b> subtitle track. The controls available to you will be a bit
+                        different.
+                    </>
+                )}
             </DialogContent>
         </Dialog>
+    );
+};
+
+const SidePanelBubble: React.FC<{ show: boolean; onConfirm: () => void }> = ({ show, onConfirm }) => {
+    return (
+        <TutorialBubble
+            show={show}
+            placement="left"
+            text={
+                <Trans
+                    i18nKey="ftue.sidePanel"
+                    components={[<b key={0}>Side Panel</b>, <b key={1}>navigate</b>, <b key={2}>mine</b>]}
+                />
+            }
+            onConfirm={onConfirm}
+        >
+            <div style={{ position: 'absolute', right: 0, top: '10%' }} />
+        </TutorialBubble>
+    );
+};
+
+const OverlayBubble: React.FC<{ show: boolean; onConfirm: () => void }> = ({ show, onConfirm }) => {
+    return (
+        <TutorialBubble
+            show={show}
+            placement="bottom"
+            text={
+                <Trans
+                    i18nKey="ftue.overlay"
+                    components={[
+                        <b key={0}>Video Overlay</b>,
+                        <b key={1}>toggle</b>,
+                        <b key={2}>mine</b>,
+                        <b key={3}>switch playback modes</b>,
+                    ]}
+                />
+            }
+            onConfirm={onConfirm}
+        >
+            <div
+                style={{
+                    position: 'absolute',
+                    top: 55,
+                    left: '50%',
+                    transform: 'translateX(calc(-50% - 85px))',
+                }}
+            />
+        </TutorialBubble>
+    );
+};
+
+const OverlayScrollBubble: React.FC<{ show: boolean; onConfirm: () => void }> = ({ show, onConfirm }) => {
+    return (
+        <TutorialBubble
+            show={show}
+            placement="bottom"
+            text={
+                <Trans
+                    i18nKey={'ftue.overlayScroll'}
+                    components={[
+                        <b key={0}>Scroll</b>,
+                        <b key={1}>subtitle navigation</b>,
+                        <b key={2}>subtitle offset</b>,
+                        <b key={3}>playback rate</b>,
+                    ]}
+                />
+            }
+            onConfirm={onConfirm}
+        >
+            <div
+                style={{
+                    position: 'absolute',
+                    top: 55,
+                    left: '50%',
+                    transform: 'translateX(calc(-50% + 80px))',
+                }}
+            />
+        </TutorialBubble>
     );
 };
 
@@ -192,7 +235,7 @@ const FinishedDialog: React.FC<{ open: boolean; onClose: () => void }> = ({ open
 };
 
 const Tutorial: React.FC<{ className: string; show: boolean }> = ({ className, show }) => {
-    const { sidePanelOpen, loadedSubtitles } = useExtensionState();
+    const { sidePanelOpen, loadedSubtitlesCount } = useExtensionState();
     const [step, setStep] = useState<Step>(Step.toolbar);
 
     useEffect(() => {
@@ -202,10 +245,10 @@ const Tutorial: React.FC<{ className: string; show: boolean }> = ({ className, s
     }, [step]);
 
     useEffect(() => {
-        if (step === Step.loadSubtitles && loadedSubtitles) {
+        if (step === Step.loadSubtitles && loadedSubtitlesCount !== undefined && loadedSubtitlesCount > 0) {
             setStep(sidePanelOpen ? Step.sidePanel : Step.overlay);
         }
-    }, [step, loadedSubtitles]);
+    }, [step, loadedSubtitlesCount]);
 
     useEffect(() => {
         if (step == Step.overlay) {
@@ -267,87 +310,26 @@ const Tutorial: React.FC<{ className: string; show: boolean }> = ({ className, s
                                 >
                                     {!playing && (
                                         <IconButton onClick={() => videoRef.current?.play()}>
-                                            <PlayArrow />
+                                            <PlayArrowIcon />
                                         </IconButton>
                                     )}
                                 </div>
-                                <Bubble
+                                <OverlayBubble
                                     show={show && step === Step.overlay}
-                                    tailSide="top"
-                                    tailLeft="25%"
-                                    style={{
-                                        position: 'absolute',
-                                        top: 55,
-                                        left: '50%',
-                                        transform: 'translateX(-50%)',
-                                        width: 250,
-                                    }}
                                     onConfirm={() => setStep(Step.overlayScrollControl)}
-                                >
-                                    <Trans
-                                        i18nKey="ftue.overlay"
-                                        components={[
-                                            <b key={0}>Video Overlay</b>,
-                                            <b key={1}>toggle</b>,
-                                            <b key={2}>mine</b>,
-                                            <b key={3}>switch playback modes</b>,
-                                        ]}
-                                    />
-                                </Bubble>
-                                <Bubble
+                                />
+                                <OverlayScrollBubble
                                     show={show && step === Step.overlayScrollControl}
-                                    tailSide="top"
-                                    tailRight="15%"
-                                    style={{
-                                        position: 'absolute',
-                                        top: 55,
-                                        left: '50%',
-                                        transform: 'translateX(-50%)',
-                                        width: 250,
-                                    }}
                                     onConfirm={() => setStep(Step.almostDone)}
-                                >
-                                    <Trans
-                                        i18nKey={'ftue.overlayScroll'}
-                                        components={[
-                                            <b key={0}>Scroll</b>,
-                                            <b key={1}>subtitle navigation</b>,
-                                            <b key={2}>subtitle offset</b>,
-                                            <b key={3}>playback rate</b>,
-                                        ]}
-                                    />
-                                </Bubble>
+                                />
                             </div>
                         </div>
                     </Box>
                 </Fade>
             )}
-            <Bubble
-                show={show && step === Step.toolbar}
-                tailSide="top"
-                tailRight={70}
-                style={{ position: 'absolute', right: 30, top: 5, width: 250 }}
-                onConfirm={() => setStep(Step.loadSubtitles)}
-            >
-                <Trans
-                    i18nKey="ftue.toolbar"
-                    components={[<b key={0}>asbplayer</b>, <b key={1}>Popup</b>, <p key={2} />]}
-                />
-            </Bubble>
-            <Bubble
-                show={show && step === Step.sidePanel}
-                tailSide="right"
-                tailTop={50}
-                style={{ position: 'absolute', right: 30, top: '10%', width: 250 }}
-                onConfirm={() => setStep(Step.overlay)}
-            >
-                <Trans
-                    i18nKey="ftue.sidePanel"
-                    components={[<b key={0}>Side Panel</b>, <b key={1}>navigate</b>, <b key={2}>mine</b>]}
-                />
-            </Bubble>
-
-            <LoadSubtitlesDialog open={show && step === Step.loadSubtitles} />
+            <ToolbarBubble show={show && step === Step.toolbar} onConfirm={() => setStep(Step.loadSubtitles)} />
+            <SidePanelBubble show={show && step === Step.sidePanel} onConfirm={() => setStep(Step.overlay)} />
+            <LoadSubtitlesDialog open={show && step === Step.loadSubtitles} count={loadedSubtitlesCount} />
             <FinishedDialog open={show && step === Step.almostDone} onClose={() => setStep(Step.done)} />
         </Paper>
     );

@@ -44,6 +44,7 @@ import Alert from '@mui/material/Alert';
 import { isMacOs } from '../device-detection/mac';
 import AnkiDialogButton from './AnkiDialogButton';
 import { type Theme } from '@mui/material';
+import TutorialBubble from './TutorialBubble';
 
 const quickSelectShortcut = isMacOs ? '⌘+⇧+Enter' : 'Alt+Shift+Enter';
 
@@ -197,6 +198,7 @@ interface AnkiDialogProps {
     lastSelectedExportMode?: AnkiExportMode;
     showQuickSelectFtue?: boolean;
     onDismissShowQuickSelectFtue?: () => void;
+    inTutorial?: boolean;
 }
 
 const AnkiDialog = ({
@@ -224,6 +226,7 @@ const AnkiDialog = ({
     lastSelectedExportMode,
     showQuickSelectFtue,
     onDismissShowQuickSelectFtue,
+    inTutorial,
 }: AnkiDialogProps) => {
     const classes = useStyles();
     const [definition, setDefinition] = useState<string>('');
@@ -729,9 +732,16 @@ const AnkiDialog = ({
         <>
             <Dialog open={open} disableRestoreFocus disableEnforceFocus fullWidth maxWidth="sm" onClose={onCancel}>
                 <Toolbar>
-                    <Typography variant="h6" className={classes.title}>
-                        {t('ankiDialog.title')}
-                    </Typography>
+                    <TutorialBubble
+                        placement="bottom"
+                        text="Create Anki flashcards from this dialog."
+                        onConfirm={() => {}}
+                        show={false}
+                    >
+                        <Typography variant="h6" className={classes.title}>
+                            {t('ankiDialog.title')}
+                        </Typography>
+                    </TutorialBubble>
                     {profiles !== undefined && onSetActiveProfile && (
                         <MiniProfileSelector
                             profiles={profiles}

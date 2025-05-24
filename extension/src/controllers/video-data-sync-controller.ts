@@ -58,6 +58,7 @@ const fetchDataForLanguageOnDemand = (language: string): Promise<VideoData> => {
 };
 
 const globalStateProvider = new ExtensionGlobalStateProvider();
+const tutorialUrls = [browser.runtime.getURL('/ftue-ui.html'), browser.runtime.getURL('/tutorial-ui.html')];
 
 export default class VideoDataSyncController {
     private readonly _context: Binding;
@@ -74,6 +75,7 @@ export default class VideoDataSyncController {
     private _activeElement?: Element;
     private _autoSyncAttempted: boolean = false;
     private _dataReceivedListener?: (event: Event) => void;
+    private _isTutorial: boolean;
 
     constructor(context: Binding, settings: SettingsProvider) {
         this._context = context;
@@ -89,6 +91,7 @@ export default class VideoDataSyncController {
         };
         this._domain = new URL(window.location.href).host;
         this._frame = new UiFrame(html);
+        this._isTutorial = tutorialUrls.includes(location.href);
     }
 
     private get lastLanguagesSynced(): string[] {
@@ -168,8 +171,12 @@ export default class VideoDataSyncController {
         const subtitleTrackChoices = this._syncedData?.subtitles ?? [];
         const subs = this._matchLastSyncedWithAvailableTracks();
         const autoSelectedTracks: VideoDataSubtitleTrack[] = subs.autoSelectedTracks;
-        const autoSelectedTrackIds = autoSelectedTracks.map((subtitle) => subtitle.id || '-');
-        const defaultCheckboxState: boolean = subs.completeMatch;
+        const autoSelectedTrackIds = this._isTutorial
+            ? // '1' is the ID of the non-empty track in the tutorial
+              // See asbplayer-tutorial-page.ts
+              ['1', '-', '-']
+            : autoSelectedTracks.map((subtitle) => subtitle.id || '-');
+        const defaultCheckboxState = !this._isTutorial && subs.completeMatch;
         const themeType = await this._context.settings.getSingle('themeType');
         const profilesPromise = this._context.settings.profiles();
         const activeProfilePromise = this._context.settings.activeProfile();
@@ -190,6 +197,7 @@ export default class VideoDataSyncController {
                       activeProfile: (await activeProfilePromise)?.name,
                   },
                   hasSeenFtue,
+                  hideRememberTrackPreferenceToggle: this._isTutorial,
                   ...additionalFields,
               }
             : {
@@ -207,6 +215,7 @@ export default class VideoDataSyncController {
                       activeProfile: (await activeProfilePromise)?.name,
                   },
                   hasSeenFtue,
+                  hideRememberTrackPreferenceToggle: this._isTutorial,
                   ...additionalFields,
               };
     }

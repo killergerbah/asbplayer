@@ -15,7 +15,6 @@ import { ExtensionSettingsStorage } from '../../services/extension-settings-stor
 import Popup from './Popup';
 import { useRequestingActiveTabPermission } from '../hooks/use-requesting-active-tab-permission';
 import { isMobile } from 'react-device-detect';
-import Link from '@mui/material/Link';
 import { useSettingsProfileContext } from '@project/common/hooks/use-settings-profile-context';
 import { StyledEngineProvider } from '@mui/material/styles';
 

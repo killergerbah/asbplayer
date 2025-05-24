@@ -197,6 +197,7 @@ export interface VideoDataUiModel {
     defaultCheckboxState?: boolean;
     settings: VideoDataUiSettings;
     hasSeenFtue: boolean;
+    hideRememberTrackPreferenceToggle: boolean;
 }
 
 export interface VideoTabModel {

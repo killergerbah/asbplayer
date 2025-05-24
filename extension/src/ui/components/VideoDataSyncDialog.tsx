@@ -66,6 +66,7 @@ interface Props {
     profiles: Profile[];
     activeProfile?: string;
     hasSeenFtue?: boolean;
+    hideRememberTrackPreferenceToggle?: boolean;
     onCancel: () => void;
     onOpenFile: (track?: number) => void;
     onOpenSettings: () => void;
@@ -88,6 +89,7 @@ export default function VideoDataSyncDialog({
     profiles,
     activeProfile,
     hasSeenFtue,
+    hideRememberTrackPreferenceToggle,
     onCancel,
     onOpenFile,
     onOpenSettings,
@@ -297,25 +299,27 @@ export default function VideoDataSyncDialog({
                             />
                         </Grid>
                         {threeSubtitleTrackSelectors}
-                        <Grid item>
-                            <LabelWithHoverEffect
-                                control={
-                                    <Switch
-                                        checked={shouldRememberTrackChoices}
-                                        onChange={handleRememberTrackChoices}
-                                        color="primary"
-                                    />
-                                }
-                                label={t('extension.videoDataSync.rememberTrackPreference')}
-                                labelPlacement="start"
-                                style={{
-                                    display: 'flex',
-                                    marginLeft: 'auto',
-                                    marginRight: '-13px',
-                                    width: 'fit-content',
-                                }}
-                            />
-                        </Grid>
+                        {!hideRememberTrackPreferenceToggle && (
+                            <Grid item>
+                                <LabelWithHoverEffect
+                                    control={
+                                        <Switch
+                                            checked={shouldRememberTrackChoices}
+                                            onChange={handleRememberTrackChoices}
+                                            color="primary"
+                                        />
+                                    }
+                                    label={t('extension.videoDataSync.rememberTrackPreference')}
+                                    labelPlacement="start"
+                                    style={{
+                                        display: 'flex',
+                                        marginLeft: 'auto',
+                                        marginRight: '-13px',
+                                        width: 'fit-content',
+                                    }}
+                                />
+                            </Grid>
+                        )}
                     </Grid>
                 </form>
             </DialogContent>

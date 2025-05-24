@@ -2676,7 +2676,6 @@ export default function SettingsForm({
                 <About
                     appVersion={insideApp ? appVersion : undefined}
                     extensionVersion={extensionInstalled ? extensionVersion : undefined}
-                    insideExtension={!insideApp}
                 />
             </TabPanel>
             <input
