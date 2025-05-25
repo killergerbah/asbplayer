@@ -219,7 +219,6 @@ const OverlayScrollBubble: React.FC<{ show: boolean; onConfirm: () => void }> = 
 const FinishedDialog: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) => {
     return (
         <Dialog open={open} style={{ zIndex: zIndexTop }}>
-            <DialogTitle>Congratulations</DialogTitle>
             <DialogContent>
                 <Trans
                     i18nKey={'ftue.congrats'}

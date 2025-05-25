@@ -20,10 +20,10 @@
         "importSettings": "設定をインポートする",
         "exportSettings": "設定をエクスポートする",
         "hideOverlay": "オーバーレイを非表示",
-        "openTutorial": "Open Tutorial",
+        "openTutorial": "チュートリアルを開く",
         "decreaseOffsetButton": "次の字幕を現在のタイムスタンプに合わせる。長押しすると、字幕表示タイミングが100msずつ変わる。",
         "increaseOffsetButton": "前の字幕を現在のタイムスタンプに合わせる。長押しすると、字幕表示タイミングが100msずつ変わる。",
-        "gotIt": "Got it"
+        "gotIt": "分かった"
     },
     "about": {
         "title": "asbplayerについて",
@@ -213,7 +213,7 @@
             "selectSubtitles": "字幕を選択",
             "subtitleTrack": "字幕トラック",
             "videoName": "動画ファイル名",
-            "ftue": "Auto-detected subtitle tracks can be selected here. asbplayer does not know how to detect subtitles on every site. You can always load your own subtitle files."
+            "ftue": "自動検出された字幕トラックはここで選択できます。asbplayerはすべてのサイトで字幕トラックを検出できるわけではありません。自分の字幕ファイルはいつでもロードすることができます。"
         },
         "videoSelect": {
             "multipleVideoElements": "複数の動画を探知しました",
@@ -225,29 +225,29 @@
     "ftue": {
         "welcome": "asbplayer へようこそ。",
         "welcomeBody": "asbplayer の使い方は<0>readme</0>をご参考ください。",
-        "welcomeBody2": "Scroll down for a quick intro, or check out the <0>user guide</0>.",
-        "toolbar": "ツールバーにある🧩のアイコンをクリックし、<0>asbplayer</0>を選択するとasbplayerの<1>Popup</1>が開かれます。<2/>📌 のアイコンをクリックすると、asbplayerがツールバーに固定されます。",
-        "sidePanel": "Use the <0>Side Panel</0> to <1>navigate</1> between subtitles, <2>mine</2> subtitles, and more.",
-        "overlayScroll": "<0>Scroll</0> the rightmost control to switch between <1>subtitle navigation</1>, <2>subtitle offset</2>, and <3>playback rate</3> controls.",
-        "overlay": "Use the <0>Video Overlay</0> to <1>mine</1> and <2>toggle</2> subtitles, <3>switch playback modes</3>, and more.",
-        "congrats": "That's it for the basics! Feel free to play around on this page.",
-        "loadSubtitles": "The first step to using asbplayer is always to load subtitles onto a video. Use the <0>Side Panel</0> to load subtitles onto the video on this page.<1/>Hint: The <2>Side Panel</2> can be accessed through the <3>Popup</3>.",
-        "loadSubtitlesFirefox": "The first step to using asbplayer is always to load subtitles onto a video. <0>Right-click</0> on the video and find the asbplayer <1>context menu</1> to load subtitles.",
-        "loadSubtitlesMobile": "The first step to using asbplayer is always to load subtitles onto a video. Open the track selector by selecting <0>asbplayer</0> in the <1>extensions</1> menu.",
-        "ankiConnect": "<0>AnkiConnect</0> allows asbplayer to connect to <1>Anki</1>.",
-        "ankiConnectError": "Once you've opened Anki and installed AnkiConnect, clicking the ⟳ button should make the error go away.",
-        "deck": "Select the <0>Deck</0> where you want your cards to go.",
-        "defaultDeck": "If you don't have any decks yet, you can <0>create the default one</0>.",
-        "anki": "<0>Anki</0> is the most popular flashcard program in the world. It uses an algorithm called <1>SRS</1> to make learning information very efficient.",
-        "ankiDialog": "Use the <0>Anki Export Dialog</0> to create Anki flashcards. In most cases, asbplayer can fill out <1>sentence</1>, <2>image</2>, and <3>audio</3> automatically.",
-        "whatsAnki": "What's Anki?",
-        "configureAnki": "Click here to configure asbplayer's integration with Anki.",
-        "ankiDialogDefinition": "Put any details you want to remember about the sentence in the <0>Definition Field</0>.",
-        "ankiDialogDefinitionHint": "Hint: A dictionary extension like <0>Yomitan</0> makes this really easy.",
-        "noteType": "Select the <0>Note Type</0> for your cards. The <1>Note Type</1> determines how the front and back of your cards will look.",
-        "defaultNoteType": "If you don't have any note types yet, you can <0>create the default one</0>.",
-        "ankiFields": "The rest of the drop-downs configure how content gets mapped into fields of your card.",
-        "testCard": "When ready, you can create a test card to see how it looks."
+        "welcomeBody2": "下にスクロールすると簡単な紹介があります。詳しくは<0>ユーザーガイド</0>をご覧ください。",
+        "toolbar": "asbplayerの <1>ポップアップ</1>を開くには、🧩のアイコンをクリックし、<0>asbplayer</0>を選択してください。<2/>{{pin}}のボタンを押すと、asbplayerをツールバーに固定でき、簡単にアクセスできるようになります。",
+        "sidePanel": "<0>サイドパネル</0>では、<1>字幕へシーク</1>したり、<2>字幕をマイニング</2>したりすることができます。",
+        "overlayScroll": "一番右側のコントロールを<0>スクロール</0>すると、<1>シーク</1>、<2>字幕タイミングの調整</2>、<3>再生速度</3>のコントロールを切り替えることができます。",
+        "overlay": "<0>コントロールオーバーレイ</0>では、<1>字幕をマイニング</1>したり、<2>字幕の表示を切り替えたり</2>、<3>プレイバックモードを切り替えたり</3>することができます。",
+        "congrats": "asbplayerの基本的な使い方はそんなところです！このページで自分でいろいろ試してみてくださいね。",
+        "loadSubtitles": "asbplayerを使い始めるには、まず字幕をロードすることが第一歩です。<0>サイドパネル</0>を使って、このページの動画に字幕をロードしてみてください。<1/>ヒント：<2>サイドパネル</2>は<3>ポップアップ</3>を通じて開くことができます。",
+        "loadSubtitlesFirefox": "sasbplayerを使い始めるには、まず字幕をロードすることが第一歩です。動画を<0>右クリック</0>し、asbplayerの<1>コンテキストメニュー</1>で字幕をロードしてみてください。",
+        "loadSubtitlesMobile": "asbplayerを使い始めるには、まず字幕をロードすることが第一歩です。<1>拡張機能メニュー</1>で<0>asbplayer</0>をクリックし、字幕トラックの選択ダイアログを開いてみてください。",
+        "ankiConnect": "<0>AnkiConnect</0>は<1>Anki</1>と連携するためのAnkiアドオンです。",
+        "ankiConnectError": "Ankiを開いてAnkiConnectをインストールし、⟳のボタンを押すとエラーが消えます。",
+        "deck": "フラッシュカードが保存される<0>デッキ</0>を選択してください。",
+        "defaultDeck": "まだデッキを作成していない場合は、<0>デフォルトのデッキを作成する</0>ことができます。",
+        "anki": "<0>Anki</0>は世界でもっとも人気のフラッシュカードソフトウェアで、<1>間隔反復アルゴリズム</1>によって学習効率を高めます。",
+        "ankiDialog": "<0>Anki エクスポートのダイアログ</0>では、Ankiのフラッシュカードを作成できます。<1>文章</1>・<2>画像</2>・<3>音声</3>はほとんどの場合、asbplayerが自動で入力してくれます。",
+        "whatsAnki": "Anki とは何ですか？",
+        "configureAnki": "Ankiとの連携の設定はこちらです。",
+        "ankiDialogDefinition": "基本的には、<0>詳細フィールド</0>と<1>単語フィールド</1>は自分で入力します。",
+        "ankiDialogDefinitionHint": "ヒント：単語の意味を調べるには<0>Yomitan</0>のような拡張機能を使うと簡単です。",
+        "noteType": "フラッシュカードの<0>ノートタイプ</0>を選択してください。<1>ノートタイプ</1>とは、フラッシュカードの表と裏の見た目や構造を決めるものです。",
+        "defaultNoteType": "ノートタイプをまだ作成していない場合は、<0>デフォルトのノートタイプを作成する</0>ことができます。",
+        "ankiFields": "残りのドロップダウンで、各情報をどのフラッシュカードのフィールドに割り当るのかを設定できます。",
+        "testCard": "準備ができたら、テストカードを作成し、設定の効果を確認ができます。"
     },
     "update": {
         "heading": "asbplayer が新しいバージョン{{version}}にアップデートされました。",
@@ -402,7 +402,7 @@
         "firefoxExtensionShortcutHelp": "ショートカットの編集はプラグイン管理 （about:addons）で行えます。",
         "postMinePlayback": "マイニング後のプレイバック状態",
         "pauseOnHoverMode": "マウスカーソルを字幕に重ねると自動一時停止",
-        "createTestCard": "Create Test Card"
+        "createTestCard": "テストカードを作成"
     },
     "subtitlePlayer": {
         "multiSubtitleSelectHelp": "複数の字幕をマイニングするには、クリックし、押し続け、ドラッグしてください"
