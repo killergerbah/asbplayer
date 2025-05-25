@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import MiniProfileSelector from '@project/common/components/MiniProfileSelector';
 import type { Profile } from '@project/common/settings';
 import Alert from '@mui/material/Alert';
+import { type ButtonBaseActions } from '@mui/material';
 
 const createClasses = makeStyles((theme) => ({
     relative: {
@@ -232,12 +233,12 @@ export default function VideoDataSyncDialog({
     }
 
     const threeSubtitleTrackSelectors = generateSubtitleTrackSelectors(3);
-
-    const okButtonRef = useRef<HTMLButtonElement | null>(null);
+    const okActionRef = useRef<ButtonBaseActions | null>(null);
+    const videoNameRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (open && trimmedName && !disabled) {
-            okButtonRef.current?.focus();
+        if (open && trimmedName && !videoNameRef.current?.contains(document.activeElement) && !disabled) {
+            okActionRef.current?.focusVisible();
         }
     }, [open, trimmedName, disabled]);
 
@@ -288,6 +289,7 @@ export default function VideoDataSyncDialog({
                         )}
                         <Grid item>
                             <TextField
+                                ref={videoNameRef}
                                 fullWidth
                                 multiline
                                 color="primary"
@@ -327,7 +329,7 @@ export default function VideoDataSyncDialog({
                 <Button disabled={disabled} onClick={() => onOpenFile()}>
                     {t('action.openFiles')}
                 </Button>
-                <Button ref={okButtonRef} disabled={!trimmedName || disabled} onClick={handleOkButtonClick}>
+                <Button action={okActionRef} disabled={!trimmedName || disabled} onClick={handleOkButtonClick}>
                     {t('action.ok')}
                 </Button>
             </DialogActions>
