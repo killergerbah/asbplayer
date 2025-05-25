@@ -5,7 +5,7 @@ import { flatten, unflatten } from 'flat';
 
 const dirname = fileURLToPath(new URL('.', import.meta.url));
 const commonLocalesPath = join(dirname, '../../common/locales');
-const extensionLocalesPath = join(dirname, '../../extension/src/_locales');
+const extensionLocalesPath = join(dirname, '../../extension/public/_locales');
 const externalLocalesPath = join(dirname, '../../loc/external');
 const untranslatedPath = join(dirname, '../../loc/untranslated');
 const notesPath = join(dirname, '../../loc/notes.json');
