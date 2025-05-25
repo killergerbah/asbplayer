@@ -67,7 +67,7 @@ const SettingsPage = ({ settings, onSettingsChanged, ...profileContext }: Props)
     const commands = useCommandKeyBinds();
 
     const handleOpenExtensionShortcuts = useCallback(() => {
-        chrome.tabs.create({ active: true, url: 'chrome://extensions/shortcuts' });
+        browser.tabs.create({ active: true, url: 'chrome://extensions/shortcuts' });
     }, []);
 
     const { initialized: i18nInitialized } = useI18n({ language: settings?.language ?? 'en' });
@@ -92,7 +92,7 @@ const SettingsPage = ({ settings, onSettingsChanged, ...profileContext }: Props)
                     <SettingsForm
                         anki={anki}
                         extensionInstalled
-                        extensionVersion={chrome.runtime.getManifest().version}
+                        extensionVersion={browser.runtime.getManifest().version}
                         extensionSupportsAppIntegration
                         extensionSupportsOverlay
                         extensionSupportsSidePanel={!isFirefoxBuild}

@@ -1,14 +1,17 @@
 #!/bin/bash
 
-DEVICE=$(adb devices | awk '{print $1}' | grep -v List  | grep -Ex "([a-zA-Z0-9]+)")
+DEVICE=$(adb devices | awk '{print $1}' | grep -v List | grep -Ex "([a-zA-Z0-9]+)")
 
 if [ "$?" -eq 1 ]; then
     echo "Could not determine device"
     exit 1
 fi
 
-SCRIPTPATH="$(cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P)"
+SCRIPTPATH="$(
+    cd -- "$(dirname "$0")" >/dev/null 2>&1
+    pwd -P
+)"
 
-pushd $SCRIPTPATH/../extension/dist/firefoxandroid
+pushd $SCRIPTPATH/../extension/.output/firefox-android-mv2
 web-ext run -t firefox-android --adb-device $DEVICE --firefox-apk org.mozilla.fenix
 popd

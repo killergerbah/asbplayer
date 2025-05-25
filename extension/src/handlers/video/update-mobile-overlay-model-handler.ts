@@ -9,13 +9,13 @@ export default class UpdateMobileOverlayModelHandler {
         return 'update-mobile-overlay-model';
     }
 
-    async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
+    async handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         if (sender.tab?.id === undefined) {
             return;
         }
 
         // Need to send this back to the tab so that the overlay (inside an iframe) can receive the message.
         // Otherwise, the message is not received (on Firefox).
-        chrome.tabs.sendMessage(sender.tab.id, { ...command, sender: 'asbplayer-video-to-mobile-overlay' });
+        browser.tabs.sendMessage(sender.tab.id, { ...command, sender: 'asbplayer-video-to-mobile-overlay' });
     }
 }

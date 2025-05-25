@@ -57,7 +57,7 @@ export class CardPublisher {
                     src: src,
                 };
 
-                chrome.tabs.sendMessage(tabId, cardSavedCommand);
+                browser.tabs.sendMessage(tabId, cardSavedCommand);
             }
         });
     }
@@ -76,7 +76,7 @@ export class CardPublisher {
             src,
         };
 
-        chrome.tabs.sendMessage(tabId, cardExportedCommand);
+        browser.tabs.sendMessage(tabId, cardExportedCommand);
     }
 
     private async _updateLastCard(card: CardModel, src: string | undefined, tabId: number) {
@@ -93,7 +93,7 @@ export class CardPublisher {
             src,
         };
 
-        chrome.tabs.sendMessage(tabId, cardUpdatedCommand);
+        browser.tabs.sendMessage(tabId, cardUpdatedCommand);
     }
 
     private _showAnkiDialog(card: CardModel, id: string, src: string | undefined, tabId: number) {
@@ -107,7 +107,7 @@ export class CardPublisher {
             src,
         };
 
-        chrome.tabs.sendMessage(tabId, showAnkiUiCommand);
+        browser.tabs.sendMessage(tabId, showAnkiUiCommand);
     }
 
     private async _saveCardToRepository(id: string, card: CardModel) {
@@ -144,6 +144,6 @@ export class CardPublisher {
             },
             src,
         };
-        chrome.tabs.sendMessage(tabId, notifyErrorCommand);
+        browser.tabs.sendMessage(tabId, notifyErrorCommand);
     }
 }

@@ -41,7 +41,7 @@ export default class StopRecordingMediaHandler {
         return 'stop-recording-media';
     }
 
-    async handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
+    async handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         const stopRecordingCommand = command as VideoToExtensionCommand<StopRecordingMediaMessage>;
         const subtitle: SubtitleModel = stopRecordingCommand.message.subtitle ?? {
             text: '',

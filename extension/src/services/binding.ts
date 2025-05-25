@@ -165,7 +165,7 @@ export default class Binding {
     private mouseMoveListener?: (event: MouseEvent) => void;
     private listener?: (
         message: any,
-        sender: chrome.runtime.MessageSender,
+        sender: Browser.runtime.MessageSender,
         sendResponse: (response?: any) => void
     ) => void;
     private heartbeatInterval?: NodeJS.Timeout;
@@ -405,7 +405,7 @@ export default class Binding {
                     src: this.video.src,
                 };
 
-                chrome.runtime.sendMessage(command);
+                browser.runtime.sendMessage(command);
             };
             this.video.addEventListener('canplay', this.canPlayListener);
         }
@@ -452,7 +452,7 @@ export default class Binding {
             src: this.video.src,
         };
 
-        chrome.runtime.sendMessage(command);
+        browser.runtime.sendMessage(command);
     }
 
     _subscribe() {
@@ -466,7 +466,7 @@ export default class Binding {
                 src: this.video.src,
             };
 
-            chrome.runtime.sendMessage(command);
+            browser.runtime.sendMessage(command);
             this.pausedDueToHover = false;
         };
 
@@ -480,7 +480,7 @@ export default class Binding {
                 src: this.video.src,
             };
 
-            chrome.runtime.sendMessage(command);
+            browser.runtime.sendMessage(command);
 
             if (this.recordingMedia && this.recordingPostMineAction !== undefined) {
                 this._toggleRecordingMedia(this.recordingPostMineAction);
@@ -506,8 +506,8 @@ export default class Binding {
                 src: this.video.src,
             };
 
-            chrome.runtime.sendMessage(currentTimeCommand);
-            chrome.runtime.sendMessage(readyStateCommand);
+            browser.runtime.sendMessage(currentTimeCommand);
+            browser.runtime.sendMessage(readyStateCommand);
 
             this.subtitleController.autoPauseContext.clear();
         };
@@ -523,7 +523,7 @@ export default class Binding {
                 src: this.video.src,
             };
 
-            chrome.runtime.sendMessage(command);
+            browser.runtime.sendMessage(command);
 
             if (this._synced && this._playMode !== PlayMode.fastForward) {
                 this.subtitleController.notification('info.playbackRate', {
@@ -583,7 +583,7 @@ export default class Binding {
                 src: this.video.src,
             };
 
-            chrome.runtime.sendMessage(command);
+            browser.runtime.sendMessage(command);
         }, 1000);
 
         window.addEventListener('beforeunload', (event) => {
@@ -592,7 +592,7 @@ export default class Binding {
 
         this.listener = (
             request: any,
-            sender: chrome.runtime.MessageSender,
+            sender: Browser.runtime.MessageSender,
             sendResponse: (response?: any) => void
         ) => {
             if (request.sender === 'asbplayer-extension-to-video' && request.src === this.video.src) {
@@ -883,12 +883,12 @@ export default class Binding {
                         },
                         src: this.video.src,
                     };
-                    chrome.runtime.sendMessage(ackCommand);
+                    browser.runtime.sendMessage(ackCommand);
                 }
             }
         };
 
-        chrome.runtime.onMessage.addListener(this.listener);
+        browser.runtime.onMessage.addListener(this.listener);
         this.subscribed = true;
     }
 
@@ -992,7 +992,7 @@ export default class Binding {
         }
 
         if (this.listener) {
-            chrome.runtime.onMessage.removeListener(this.listener);
+            browser.runtime.onMessage.removeListener(this.listener);
             this.listener = undefined;
         }
 
@@ -1012,7 +1012,7 @@ export default class Binding {
             },
             src: this.video.src,
         };
-        chrome.runtime.sendMessage(command);
+        browser.runtime.sendMessage(command);
     }
 
     async _takeScreenshot() {
@@ -1034,7 +1034,7 @@ export default class Binding {
             src: this.video.src,
         };
 
-        chrome.runtime.sendMessage(command);
+        browser.runtime.sendMessage(command);
         this.ankiUiSavedState = undefined;
     }
 
@@ -1103,7 +1103,7 @@ export default class Binding {
             src: this.video.src,
         };
 
-        chrome.runtime.sendMessage(command);
+        browser.runtime.sendMessage(command);
     }
 
     async _toggleRecordingMedia(postMineAction: PostMineAction) {
@@ -1131,7 +1131,7 @@ export default class Binding {
                 src: this.video.src,
             };
 
-            chrome.runtime.sendMessage(command);
+            browser.runtime.sendMessage(command);
         } else {
             this.ankiUiSavedState = undefined;
 
@@ -1169,7 +1169,7 @@ export default class Binding {
                 src: this.video.src,
             };
 
-            chrome.runtime.sendMessage(command);
+            browser.runtime.sendMessage(command);
         }
     }
 
@@ -1220,7 +1220,7 @@ export default class Binding {
             src: this.video.src,
         };
 
-        chrome.runtime.sendMessage(command);
+        browser.runtime.sendMessage(command);
     }
 
     seek(timestamp: number) {
@@ -1344,7 +1344,7 @@ export default class Binding {
                 },
                 src: this.video.src,
             };
-            chrome.runtime.sendMessage(syncMessage);
+            browser.runtime.sendMessage(syncMessage);
         };
 
         switch (streamingSubtitleListPreference) {
@@ -1421,7 +1421,7 @@ export default class Binding {
 
         shouldShowUpdateAlert().then((shouldShowUpdateAlert) => {
             if (shouldShowUpdateAlert) {
-                this.notificationController.updateAlert(chrome.runtime.getManifest().version);
+                this.notificationController.updateAlert(browser.runtime.getManifest().version);
             }
         });
     }
@@ -1509,7 +1509,7 @@ export default class Binding {
             src: this.video.src,
         };
 
-        chrome.runtime.sendMessage(command);
+        browser.runtime.sendMessage(command);
     }
 
     private _notifyRequestingActiveTabPermission(requesting: boolean) {
@@ -1522,7 +1522,7 @@ export default class Binding {
             src: this.video.src,
         };
 
-        chrome.runtime.sendMessage(command);
+        browser.runtime.sendMessage(command);
     }
 
     url(start: number, end?: number) {

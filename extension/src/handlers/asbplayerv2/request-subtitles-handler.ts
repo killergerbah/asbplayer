@@ -15,7 +15,7 @@ export default class RequestSubtitlesHandler {
         return 'request-subtitles';
     }
 
-    handle(command: Command<Message>, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender, sendResponse: (response?: any) => void) {
         const { tabId, src } = command as AsbPlayerToVideoCommandV2<RequestSubtitlesMessage>;
         const requestSubtitlesFromTabCommand: ExtensionToVideoCommand<RequestSubtitlesMessage> = {
             sender: 'asbplayer-extension-to-video',
@@ -24,7 +24,7 @@ export default class RequestSubtitlesHandler {
                 command: 'request-subtitles',
             },
         };
-        chrome.tabs.sendMessage(tabId, requestSubtitlesFromTabCommand).then((response) => {
+        browser.tabs.sendMessage(tabId, requestSubtitlesFromTabCommand).then((response) => {
             sendResponse(response);
         });
         return true;

@@ -21,7 +21,7 @@ export default class NotificationController {
                         <meta name="viewport" content="width=device-width, initial-scale=1" />
                         <title>asbplayer</title>
                         <style>
-                        @import url(${chrome.runtime.getURL('./assets/fonts.css')});
+                        @import url(${browser.runtime.getURL('/fonts/fonts.css')});
                         </style>
                     </head>
                     <body>
@@ -29,7 +29,7 @@ export default class NotificationController {
                         <script type="application/json" id="loc">${JSON.stringify(
                             await fetchLocalization(lang)
                         )}</script>
-                        <script type="module" src="${chrome.runtime.getURL('./notification-ui.js')}"></script>
+                        <script type="module" src="${browser.runtime.getURL('/notification-ui.js')}"></script>
                     </body>
                 </html>`
         );

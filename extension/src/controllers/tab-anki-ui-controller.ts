@@ -31,7 +31,7 @@ async function html(language: string) {
                     <meta name="viewport" content="width=device-width, initial-scale=1" />
                     <title>asbplayer - Anki</title>
                     <style>
-                        @import url(${chrome.runtime.getURL('./assets/fonts.css')});
+                        @import url(${browser.runtime.getURL('/fonts/fonts.css')});
                     </style>
                 </head>
                 <body>
@@ -39,7 +39,7 @@ async function html(language: string) {
                     <script type="application/json" id="loc">${JSON.stringify(
                         await fetchLocalization(language)
                     )}</script>
-                    <script type="module" src="${chrome.runtime.getURL('./anki-ui.js')}"></script>
+                    <script type="module" src="${browser.runtime.getURL('/anki-ui.js')}"></script>
                 </body>
             </html>`;
 }
@@ -119,7 +119,7 @@ export class TabAnkiUiController {
                                 command: 'open-asbplayer-settings',
                             },
                         };
-                        chrome.runtime.sendMessage(openSettingsCommand);
+                        browser.runtime.sendMessage(openSettingsCommand);
                         return;
                     case 'copy-to-clipboard':
                         const copyToClipboardMessage = message as CopyToClipboardMessage;
@@ -130,7 +130,7 @@ export class TabAnkiUiController {
                                 dataUrl: copyToClipboardMessage.dataUrl,
                             },
                         };
-                        chrome.runtime.sendMessage(copyToClipboardCommand);
+                        browser.runtime.sendMessage(copyToClipboardCommand);
                         return;
                     case 'encode-mp3':
                         const { base64, messageId, extension } = message as EncodeMp3Message;
@@ -155,7 +155,7 @@ export class TabAnkiUiController {
                                     command: 'settings-updated',
                                 },
                             };
-                            chrome.runtime.sendMessage(settingsUpdatedCommand);
+                            browser.runtime.sendMessage(settingsUpdatedCommand);
                         });
                         return;
                     case 'dismissedQuickSelectFtue':
@@ -170,7 +170,7 @@ export class TabAnkiUiController {
                                     command: 'settings-updated',
                                 },
                             };
-                            chrome.runtime.sendMessage(settingsUpdatedCommand);
+                            browser.runtime.sendMessage(settingsUpdatedCommand);
                         });
                         return;
                 }

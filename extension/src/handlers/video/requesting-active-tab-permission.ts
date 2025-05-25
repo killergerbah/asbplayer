@@ -10,7 +10,7 @@ export class RequestingActiveTabPermissionHandler {
         return 'requesting-active-tab-permission';
     }
 
-    handle(command: Command<Message>, sender: chrome.runtime.MessageSender) {
+    handle(command: Command<Message>, sender: Browser.runtime.MessageSender) {
         const requestingActiveTabPermissionCommand =
             command as VideoToExtensionCommand<RequestingActiveTabPermsisionMessage>;
 

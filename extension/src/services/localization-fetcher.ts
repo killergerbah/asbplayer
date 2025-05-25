@@ -1,6 +1,7 @@
 import { LocalizationConfig, fetchExtensionConfig } from './extension-config';
 import { SettingsProvider, supportedLanguages as defaultSupportedLanguages } from '@project/common/settings';
 import { ExtensionSettingsStorage } from './extension-settings-storage';
+import type { PublicPath } from 'wxt/browser';
 
 const stringsKeyForLang = (lang: string) => `locStrings-${lang}`;
 const versionKeyForLang = (lang: string) => `locVersion-${lang}`;
@@ -46,7 +47,8 @@ export const primeLocalization = async (lang: string): Promise<void> => {
         }
 
         const versionKey = versionKeyForLang(lang);
-        const version = (await chrome.storage.local.get(versionKey))[versionKey] as number | undefined;
+        const result = await browser.storage.local.get(versionKey);
+        const version = result ? (result[versionKey] as number | undefined) : undefined;
 
         if (version === undefined || version < langConfig.version) {
             await fetchAndCache(langConfig);
@@ -65,7 +67,7 @@ const fetchAndCache = async ({ code, url, version }: LocalizationConfig): Promis
         if (typeof strings === 'object') {
             const versionKey = versionKeyForLang(code);
             const stringsKey = stringsKeyForLang(code);
-            await chrome.storage.local.set({ [stringsKey]: strings, [versionKey]: version });
+            await browser.storage.local.set({ [stringsKey]: strings, [versionKey]: version });
         }
     } catch (e) {
         console.error(e);
@@ -77,7 +79,9 @@ const bundledStringsForLang = async (lang: string): Promise<Localization | undef
         if (lang === defaultLang) {
             return {
                 lang,
-                strings: await (await fetch(chrome.runtime.getURL(`asbplayer-locales/${lang}.json`))).json(),
+                strings: await (
+                    await fetch(browser.runtime.getURL(`/asbplayer-locales/${lang}.json` as PublicPath))
+                ).json(),
             };
         }
     }
@@ -87,7 +91,8 @@ const bundledStringsForLang = async (lang: string): Promise<Localization | undef
 
 const cachedStringsForLang = async (lang: string): Promise<Localization | undefined> => {
     const stringsKey = stringsKeyForLang(lang);
-    const strings = (await chrome.storage.local.get(stringsKey))[stringsKey];
+    const result = await browser.storage.local.get(stringsKey);
+    const strings = result ? result[stringsKey] : undefined;
 
     if (strings === undefined) {
         return undefined;

@@ -30,7 +30,7 @@ export class MobileVideoOverlayController {
     private _uiInitialized: boolean = false;
     private _messageListener?: (
         message: any,
-        sender: chrome.runtime.MessageSender,
+        sender: Browser.runtime.MessageSender,
         sendResponse: (response?: any) => void
     ) => void;
     private _bound = false;
@@ -111,7 +111,7 @@ export class MobileVideoOverlayController {
         this._context.video.addEventListener('seeked', this._seekedListener);
         this._messageListener = (
             message: any,
-            sender: chrome.runtime.MessageSender,
+            sender: Browser.runtime.MessageSender,
             sendResponse: (response?: any) => void
         ) => {
             if (message.sender !== 'asbplayer-mobile-overlay-to-video' || message.src !== this._context.video.src) {
@@ -131,7 +131,7 @@ export class MobileVideoOverlayController {
                 this._doHide();
             }
         };
-        chrome.runtime.onMessage.addListener(this._messageListener);
+        browser.runtime.onMessage.addListener(this._messageListener);
         this._bound = true;
 
         if (this._context.video.paused) {
@@ -153,7 +153,7 @@ export class MobileVideoOverlayController {
             },
             src: this._context.video.src,
         };
-        chrome.runtime.sendMessage(command);
+        browser.runtime.sendMessage(command);
     }
 
     private async _model() {
@@ -220,8 +220,8 @@ export class MobileVideoOverlayController {
             {
                 key: 'ui',
                 html: () =>
-                    `<iframe style="border: 0; color-scheme: normal; width: ${width}px; height: ${height}px" src="${chrome.runtime.getURL(
-                        'mobile-video-overlay-ui.html'
+                    `<iframe style="border: 0; color-scheme: normal; width: ${width}px; height: ${height}px" src="${browser.runtime.getURL(
+                        '/mobile-video-overlay-ui.html'
                     )}?src=${src}&anchor=${anchor}&tooltips=${tooltips}"/>`,
             },
         ]);
@@ -304,7 +304,7 @@ export class MobileVideoOverlayController {
         }
 
         if (this._messageListener) {
-            chrome.runtime.onMessage.removeListener(this._messageListener);
+            browser.runtime.onMessage.removeListener(this._messageListener);
             this._messageListener = undefined;
         }
 
