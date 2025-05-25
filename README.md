@@ -99,7 +99,8 @@ Thank you to all those who have contributed to asbplayer:
 [@mwojick](https://github.com/mwojick),
 [@kowasaur](https://github.com/kowasaur),
 [@NirDafnai](https://github.com/NirDafnai),
-[@miroshQa](https://github.com/miroshQa)
+[@miroshQa](https://github.com/miroshQa),
+[@mwojick](https://github.com/mwojick)
 
 Thank you to all those who have translated asbplayer:
 
