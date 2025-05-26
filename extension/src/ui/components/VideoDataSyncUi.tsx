@@ -252,7 +252,7 @@ export default function VideoDataSyncUi({ bridge }: Props) {
                     profiles={profiles}
                     activeProfile={activeProfile}
                     hasSeenFtue={hasSeenFtue}
-                    hideRememberTrackPreferenceToggle
+                    hideRememberTrackPreferenceToggle={hideRememberTrackPreferenceToggle}
                     onCancel={handleCancel}
                     onOpenFile={handleOpenFile}
                     onOpenSettings={handleOpenSettings}
