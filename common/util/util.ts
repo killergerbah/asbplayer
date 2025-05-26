@@ -275,6 +275,7 @@ export function computeStyles({
         const thickness = subtitleOutlineThickness;
         const color = subtitleOutlineColor;
         styles['WebkitTextStroke'] = `${color} ${thickness}px`;
+        styles['paintOrder'] = `stroke fill`;
     }
 
     if (subtitleShadowThickness > 0) {
