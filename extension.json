@@ -1,13 +1,13 @@
 {
     "latest": {
-        "version": "1.10.0",
-        "url": "https://github.com/killergerbah/asbplayer/releases/tag/v1.10.0"
+        "version": "1.10.1",
+        "url": "https://github.com/killergerbah/asbplayer/releases/tag/v1.10.1"
     },
     "languages": [
         {
             "code": "en",
             "url": "/locales/en.json",
-            "version": 11
+            "version": 12
         },
         {
             "code": "es",
@@ -17,7 +17,7 @@
         {
             "code": "ja",
             "url": "/locales/ja.json",
-            "version": 14
+            "version": 15
         },
         {
             "code": "de",
