@@ -7,7 +7,7 @@
         {
             "code": "en",
             "url": "/locales/en.json",
-            "version": 11
+            "version": 12
         },
         {
             "code": "es",
@@ -17,7 +17,7 @@
         {
             "code": "ja",
             "url": "/locales/ja.json",
-            "version": 14
+            "version": 15
         },
         {
             "code": "de",
