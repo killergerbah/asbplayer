@@ -108,7 +108,7 @@ const defaultNoteType = {
         {
             Front: `<div class="front">{{Sentence}}</div>`,
             Back: `<div class="front">{{Sentence}}</div>
-<hr/>
+<hr id=answer>
 {{Definition}}
 <p/>
 <div class="image">
