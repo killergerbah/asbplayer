@@ -47,7 +47,7 @@ const WelcomeMessage: React.FC<{ className: string }> = ({ className }) => {
                                 color="primary"
                                 target="_blank"
                                 rel="noreferrer"
-                                href={'https://github.com/killergerbah/asbplayer?tab=readme-ov-file#getting-started'}
+                                href={'https://docs.asbplayer.dev/docs/intro/'}
                             >
                                 readme
                             </Link>,

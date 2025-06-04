@@ -228,7 +228,7 @@ const FinishedDialog: React.FC<{ open: boolean; onClose: () => void }> = ({ open
                         </Link>,
                         <p key={1} />,
                         <Link
-                            href="https://github.com/killergerbah/asbplayer?tab=readme-ov-file#getting-started"
+                            href="https://docs.asbplayer.dev/docs/intro/"
                             target="_blank"
                             rel="noreferrer"
                             key={2}
