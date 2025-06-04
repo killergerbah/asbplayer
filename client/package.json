@@ -28,7 +28,7 @@
     "scripts": {
         "start": "VITE_APP_GIT_COMMIT=$(git rev-parse --short HEAD) vite",
         "verify": "../scripts/loc/loc-keys-match && tsc && jest",
-        "build": "yarn run verify && VITE_APP_GIT_COMMIT=$(git rev-parse --short HEAD) VITE_APP_BASE_PATH=\"/asbplayer\" vite build",
+        "build": "yarn run verify && VITE_APP_GIT_COMMIT=$(git rev-parse --short HEAD) vite build",
         "buildFast": "VITE_APP_BASE_PATH=\"/asbplayer\" vite build",
         "buildStaging": "yarn run verify && VITE_APP_GIT_COMMIT=$(git rev-parse --short HEAD) VITE_APP_BASE_PATH=\"/asbplayer-staging\" vite build",
         "preview": "vite preview",
