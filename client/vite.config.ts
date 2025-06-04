@@ -6,6 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd());
+    const domain = env.VITE_APP_DOMAIN || 'killergerbah.github.io';
     return {
         base: env.VITE_APP_BASE_PATH || '/asbplayer',
         plugins: [
@@ -16,7 +17,7 @@ export default defineConfig(({ mode }) => {
                     data: {
                         plausible:
                             mode === 'production'
-                                ? '<script defer data-domain="killergerbah.github.io" src="https://plausible.io/js/script.js"></script>'
+                                ? `<script defer data-domain="${domain}" src="https://plausible.io/js/script.js"></script>`
                                 : '',
                     },
                 },
