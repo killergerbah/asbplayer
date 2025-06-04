@@ -120,7 +120,7 @@ If you are a non-English native, and would like to help translate asbplayer, joi
 
 ## Documentation
 
-asbplayer's complete documentation is [here](https://killergerbah.github.io/asbplayer-docs/docs/intro).
+asbplayer's complete documentation is [here](https://docs.asbplayer.dev/docs/intro).
 
 ## Getting Started
 
