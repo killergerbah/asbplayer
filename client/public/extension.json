@@ -48,6 +48,11 @@
             "code": "fi",
             "url": "/locales/fi.json",
             "version": 1
+        },
+        {
+            "code": "fr",
+            "url": "/locales/fr.json",
+            "version": 1
         }
     ]
 }
