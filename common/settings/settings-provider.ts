@@ -128,7 +128,7 @@ export const defaultSettings: AsbplayerSettings = {
     customAnkiFields: {},
     tags: [],
     imageBasedSubtitleScaleFactor: 1,
-    streamingAppUrl: 'https://killergerbah.github.io/asbplayer',
+    streamingAppUrl: 'https://app.asbplayer.dev',
     streamingDisplaySubtitles: true,
     streamingRecordMedia: true,
     streamingTakeScreenshot: true,

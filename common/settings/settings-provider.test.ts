@@ -121,7 +121,7 @@ it('changes different keys for different profiles', async () => {
     await storage.addProfile('profile');
     await storage.setActiveProfile('profile');
     const profileValue = await provider.getSingle('streamingAppUrl');
-    expect(profileValue).toEqual('https://killergerbah.github.io/asbplayer');
+    expect(profileValue).toEqual('https://app.asbplayer.dev');
 });
 
 it('provides default values for unpopulated, nested settings', async () => {
