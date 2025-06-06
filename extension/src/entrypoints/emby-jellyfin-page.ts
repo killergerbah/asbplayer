@@ -39,9 +39,10 @@ export default defineUnlistedScript(() => {
                 );
             }
 
-            var mediaID = session.PlayState.MediaSourceId;
-            var nowPlayingItem = session.NowPlayingItem;
-            response.basename = nowPlayingItem.FileName ?? nowPlayingItem.Name;
+            const mediaID = session.PlayState.MediaSourceId;
+            const nowPlayingItem = session.NowPlayingItem;
+            response.basename =
+                `${nowPlayingItem.SeriesName} - S${nowPlayingItem.ParentIndexNumber}E${nowPlayingItem.IndexNumber} - ${nowPlayingItem.Name} - ${nowPlayingItem.Id}`.trim();
 
             const subtitles: VideoDataSubtitleTrack[] = [];
             nowPlayingItem.MediaStreams.filter(
