@@ -136,7 +136,7 @@ asbplayer's complete user guide is [here](https://docs.asbplayer.dev/docs/intro)
     - **For streaming video:** After installing the [browser extension](https://github.com/killergerbah/asbplayer/releases/latest), drag-and-drop a subtitle file into the streaming video you want to mine.
     - **For local files:** Drag-and-drop media/subtitle files into the [asbplayer website](https://killergerbah.github.io/asbplayer).
 
-    You may have to [adjust the subtitle offset](#adjusting-subtitle-offset) to get the subtitles in sync.
+    You may have to [adjust the subtitle offset](https://docs.asbplayer.dev/docs/guides/subtitle-timing) to get the subtitles in sync.
 
 6. When a subtitle appears that you want to mine, use <kbd>Ctrl + Shift + X</kbd> to open the flashcard creator.
 7. Fill in the definition and word fields and then export the card. To fill in the definition field you may use the dictionary you installed in step 1.
