@@ -91,7 +91,7 @@
             }
         },
         {
-            "host": "jellyfin*|emby*|:8096*",
+            "host": "jellyfin.*|emby.*|:8096$",
             "script": "emby-jellyfin-page.js",
             "hash": "#!/videoosd/videoosd.html|#/video",
             "autoSync": {
