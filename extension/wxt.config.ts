@@ -1,10 +1,24 @@
 import { defineConfig } from 'wxt';
-import type { UserManifest } from 'wxt';
+import type { ResolvedPublicFile, UserManifest, Wxt } from 'wxt';
+import fs from 'node:fs';
+import path from 'node:path';
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
     modules: ['@wxt-dev/module-react'],
     srcDir: 'src',
+    hooks: {
+        'build:publicAssets': (wxt: Wxt, files: ResolvedPublicFile[]) => {
+            const localesDir = path.resolve(__dirname, '../common/locales');
+            const localesFiles = fs.readdirSync(localesDir);
+            for (const file of localesFiles) {
+                files.push({
+                    absoluteSrc: path.resolve(localesDir, file) as string,
+                    relativeDest: `asbplayer-locales/${file}`,
+                });
+            }
+        },
+    },
     manifest: ({ browser, mode }) => {
         let manifest: UserManifest = {
             name: 'asbplayer: Language-learning with subtitles',
