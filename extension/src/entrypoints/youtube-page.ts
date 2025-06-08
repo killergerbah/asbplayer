@@ -56,7 +56,23 @@ const defaultTranscriptForVideoId = async (videoId: string) => {
                 args[0] = new URL(toMobileUrl(arg.toString()));
             } else if (arg instanceof Request) {
                 const req = arg as Request;
-                const newReq = new Request(toMobileUrl(req.url), req);
+                const reqInit: RequestInit = {
+                    method: req.method,
+                    keepalive: req.keepalive,
+                    headers: req.headers,
+                    body: req.body,
+                    redirect: req.redirect,
+                    integrity: req.integrity,
+                    signal: req.signal,
+                    credentials: req.credentials,
+                    mode: req.mode,
+                    referrer: req.referrer,
+                    referrerPolicy: req.referrerPolicy,
+                    // https://developer.chrome.com/docs/capabilities/web-apis/fetch-streaming-requests
+                    // @ts-ignore
+                    duplex: req.body instanceof ReadableStream ? 'half' : undefined,
+                };
+                const newReq = new Request(toMobileUrl(req.url), reqInit);
                 args[0] = newReq;
             }
 
