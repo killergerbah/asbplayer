@@ -114,7 +114,7 @@ Thank you to all those who have translated asbplayer:
 **Kellen (kputuhuk)** (Russian),
 **Vladislav Kochetkov (vakochetkov)** (Russian),
 **825i** (Finnish),
-**Jaybird** (French)
+**Jaybird1291** (French)
 
 If you are a non-English native, and would like to help translate asbplayer, join the [Crowdin project](https://crowdin.com/project/asbplayer). If your language isn't there, feel free to create an issue to add it on the [issues page](https://github.com/killergerbah/asbplayer/issues).
 
