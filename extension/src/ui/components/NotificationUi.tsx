@@ -76,7 +76,11 @@ const NotificationUi = ({ bridge }: Props) => {
                 </Dialog>
             )}
             {newVersion && (
-                <Snackbar open={showAlert} onClose={handleClose}>
+                <Snackbar
+                    open={showAlert}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                    onClose={handleClose}
+                >
                     <Alert icon={<LogoIcon />} severity="info" onClose={handleClose}>
                         <Trans
                             i18nKey="update.alert"

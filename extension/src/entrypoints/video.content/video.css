@@ -99,8 +99,7 @@
 .asbplayer-alert {
     position: fixed !important;
     bottom: 8px !important;
-    width: 50% !important;
-    transform: translate(50%) !important;
+    width: 100dvw !important;
     visibility: visible !important;
     height: auto !important;
     z-index: 2147483647 !important;
