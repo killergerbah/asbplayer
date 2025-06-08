@@ -41,7 +41,7 @@ export default defineUnlistedScript(() => {
             const mediaID = session.PlayState.MediaSourceId;
             const nowPlayingItem = session.NowPlayingItem;
             const path = nowPlayingItem.Path;
-            response.basename = path ? path.split(/[\\/]/).pop() : (nowPlayingItem.FileName ?? nowPlayingItem.Name);
+            response.basename = nowPlayingItem.FileName ?? (path ? path.split(/[\\/]/).pop() : nowPlayingItem.Name);
 
             const subtitles: VideoDataSubtitleTrack[] = [];
             nowPlayingItem.MediaStreams.filter(
