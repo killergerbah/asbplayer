@@ -229,7 +229,7 @@ export default function Bar({
                 }}
             >
                 <List className={classes.menu} onMouseLeave={handleMenuClose} dense>
-                    <Link href="https://github.com/killergerbah/asbplayer#detailed-usage">
+                    <Link href="https://docs.asbplayer.dev/docs/intro">
                         <ListItem disablePadding>
                             <ListItemButton>
                                 <ListItemIcon>
