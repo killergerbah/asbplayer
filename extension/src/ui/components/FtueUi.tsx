@@ -64,12 +64,19 @@ const FtueUi = () => {
     const { initialized: i18Initialized } = useI18n({ language: browser.i18n.getUILanguage() });
     const classes = useStyles();
     const [showTutorial, setShowTutorial] = useState<boolean>(false);
-    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-        if (e.currentTarget.scrollTop > (window.innerHeight * 3) / 4) {
-            setShowTutorial(true);
-        } else {
-            setShowTutorial(false);
+    const [hideWelcomePanel, setHideWelcomePanel] = useState<boolean>(false);
+
+    const handleContainerRef = (elm: HTMLDivElement | null) => {
+        if (!elm) {
+            return;
         }
+
+        elm.onscrollend = () => {
+            if (elm.scrollTop > (window.innerHeight * 3) / 4) {
+                setHideWelcomePanel(true);
+                setShowTutorial(true);
+            }
+        };
     };
 
     if (!i18Initialized) {
@@ -79,8 +86,8 @@ const FtueUi = () => {
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
-            <Paper onScroll={handleScroll} className={classes.container} square>
-                <WelcomeMessage className={classes.child} />
+            <Paper ref={handleContainerRef} className={classes.container} square>
+                {!hideWelcomePanel && <WelcomeMessage className={classes.child} />}
                 <Tutorial show={showTutorial} className={classes.child} />
             </Paper>
         </ThemeProvider>
