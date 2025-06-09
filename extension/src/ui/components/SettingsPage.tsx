@@ -15,9 +15,8 @@ import { Anki } from '@project/common/anki';
 import { useSupportedLanguages } from '../hooks/use-supported-languages';
 import { isFirefoxBuild } from '../../services/build-flags';
 import SettingsProfileSelectMenu from '@project/common/components/SettingsProfileSelectMenu';
-import { AsbplayerSettings, Profile } from '@project/common/settings';
+import { AsbplayerSettings, Profile, testCard } from '@project/common/settings';
 import { useTheme, type Theme } from '@mui/material/styles';
-import { urlToBase64 } from '@project/common/base64';
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
@@ -45,34 +44,11 @@ interface Props {
     onSetActiveProfile: (name: string | undefined) => void;
 }
 
-const testCard: () => Promise<CardModel> = async () => {
-    return {
-        subtitle: {
-            text: 'So therefore the way to work towards perfection is simply to keep going, to enjoy the language.\n-Steve Kaufmann',
-            start: 288925,
-            end: 294695,
-            originalStart: 288925,
-            originalEnd: 294695,
-            track: 0,
-        },
-        text: 'So therefore the way to work towards perfection is simply to keep going, to enjoy the language.\n-Steve Kaufmann',
-        word: 'enjoy',
-        definition: 'take delight or pleasure in (an activity or occasion).',
-        surroundingSubtitles: [],
-        subtitleFileName: "You Don't Have to Be Perfect to Become Fluent.srt",
-        url: 'https://www.youtube.com/watch?v=eO4d6iueGzY',
-        image: {
-            base64: await urlToBase64(browser.runtime.getURL('/assets/test-card.jpeg')),
-            extension: 'jpeg',
-        },
-        audio: {
-            base64: await urlToBase64(browser.runtime.getURL('/assets/test-card.mp3')),
-            extension: 'mp3',
-            paddingStart: 0,
-            paddingEnd: 1000,
-        },
-        mediaTimestamp: 288925,
-    };
+const extensionTestCard: () => Promise<CardModel> = () => {
+    return testCard({
+        imageUrl: browser.runtime.getURL('/assets/test-card.jpeg'),
+        audioUrl: browser.runtime.getURL('/assets/test-card.mp3'),
+    });
 };
 
 const SettingsPage = ({ settings, inTutorial, onSettingsChanged, ...profileContext }: Props) => {
@@ -144,7 +120,7 @@ const SettingsPage = ({ settings, inTutorial, onSettingsChanged, ...profileConte
                         onUnlockLocalFonts={handleUnlockLocalFonts}
                         scrollToId={section}
                         inTutorial={inTutorial}
-                        testCard={testCard}
+                        testCard={extensionTestCard}
                     />
                 </DialogContent>
                 <Box style={{ marginBottom: theme.spacing(2) }} className={classes.profilesContainer}>

@@ -3,19 +3,42 @@ import type { ResolvedPublicFile, UserManifest, Wxt } from 'wxt';
 import fs from 'node:fs';
 import path from 'node:path';
 
+const commonAssets = [
+    { srcDir: path.resolve(__dirname, '../common/locales'), destDir: 'asbplayer-locales' },
+    { srcDir: path.resolve(__dirname, '../common/assets'), destDir: 'assets' },
+];
+
+const moveToPublicAssets = (srcPath: string, destPath: string, files: ResolvedPublicFile[]) => {
+    const srcFiles = fs.readdirSync(srcPath);
+    for (const file of srcFiles) {
+        files.push({
+            absoluteSrc: path.resolve(srcPath, file) as string,
+            relativeDest: `${destPath}/${file}`,
+        });
+    }
+};
+
+const addToPublicPathsType = (srcPath: string, destPath: string, paths: string[]) => {
+    const srcFiles = fs.readdirSync(srcPath);
+    for (const file of srcFiles) {
+        paths.push(`${destPath}/${file}`);
+    }
+};
+
 // See https://wxt.dev/api/config.html
 export default defineConfig({
     modules: ['@wxt-dev/module-react'],
     srcDir: 'src',
     hooks: {
         'build:publicAssets': (wxt: Wxt, files: ResolvedPublicFile[]) => {
-            const localesDir = path.resolve(__dirname, '../common/locales');
-            const localesFiles = fs.readdirSync(localesDir);
-            for (const file of localesFiles) {
-                files.push({
-                    absoluteSrc: path.resolve(localesDir, file) as string,
-                    relativeDest: `asbplayer-locales/${file}`,
-                });
+            for (const { srcDir, destDir } of commonAssets) {
+                moveToPublicAssets(srcDir, destDir, files);
+                moveToPublicAssets(srcDir, destDir, files);
+            }
+        },
+        'prepare:publicPaths': (wxt: Wxt, paths: string[]) => {
+            for (const { srcDir, destDir } of commonAssets) {
+                addToPublicPathsType(srcDir, destDir, paths);
             }
         },
     },

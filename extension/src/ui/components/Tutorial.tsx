@@ -1,7 +1,7 @@
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Fade from '@mui/material/Fade';
 import Button from '@mui/material/Button';
 import TabRegistry from '@/services/tab-registry';

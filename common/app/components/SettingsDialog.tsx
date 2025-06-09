@@ -8,13 +8,18 @@ import ChromeExtension from '../services/chrome-extension';
 import SettingsForm from '../../components/SettingsForm';
 import { useLocalFontFamilies } from '../../hooks';
 import { Anki } from '../../anki';
-import { AsbplayerSettings, Profile, supportedLanguages } from '../../settings';
+import { AsbplayerSettings, Profile, supportedLanguages, testCard } from '../../settings';
 import SettingsProfileSelectMenu from '../../components/SettingsProfileSelectMenu';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { type Theme } from '@mui/material';
+
+const appTestCard = () => {
+    const basePath = window.location.pathname === '/' ? '' : window.location.pathname;
+    return testCard({ imageUrl: `${basePath}/assets/test-card.jpeg`, audioUrl: `${basePath}/assets/test-card.mp3` });
+};
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
@@ -109,6 +114,7 @@ export default function SettingsDialog({
                     localFontsPermission={localFontsPermission}
                     localFontFamilies={localFontFamilies}
                     supportedLanguages={supportedLanguages}
+                    testCard={appTestCard}
                     onUnlockLocalFonts={handleUnlockLocalFonts}
                 />
             </DialogContent>

@@ -4,7 +4,6 @@ import viteTsconfigPaths from 'vite-tsconfig-paths';
 import { createHtmlPlugin } from 'vite-plugin-html';
 import { VitePWA } from 'vite-plugin-pwa';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
-import path from 'node:path';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd());
@@ -30,6 +29,10 @@ export default defineConfig(({ mode }) => {
                 targets: [
                     {
                         src: '../common/locales',
+                        dest: '',
+                    },
+                    {
+                        src: '../common/assets',
                         dest: '',
                     },
                 ],
