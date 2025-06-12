@@ -79,6 +79,14 @@ import AnkiConnectTutorialBubble from './AnkiConnectTutorialBubble';
 import DeckFieldTutorialBubble from './DeckFieldTutorialBubble';
 import NoteTypeTutorialBubble from './NoteTypeTutorialBubble';
 
+const regexPresetsList = [
+    { name: 'No preset', regex: '' },
+    { name: 'Enclosed name', regex: '([\(（]([^\(\)（）]|(([\(（][^\(\)（）]+[\)）])))+[\)）])' },
+    { name: 'Enclosed indications', regex: '-?\[.*\]' },
+    { name: 'Descriptions in caps', regex: '^[\-\(\)\.\s\p{Lu}]+$' },
+    { name: 'Sound effects', regex: '^-?[.+]$|^[♪♬#～〜]+$' },
+];
+
 const defaultDeckName = 'Sentences';
 
 const defaultNoteType = {
@@ -965,6 +973,7 @@ export default function SettingsForm({
         autoCopyCurrentSubtitle,
         alwaysPlayOnSubtitleRepeat,
         tabName,
+        regexPreset,
         subtitleRegexFilter,
         subtitleRegexFilterTextReplacement,
         subtitleHtml,
@@ -2622,13 +2631,35 @@ export default function SettingsForm({
                                 />
                             )}
                             <TextField
+                                select
+                                label={t('settings.regexPreset')}
+                                value={regexPreset}
+                                color="primary"
+                                onChange={(event) => {
+                                    let presetSelected = regexPresetsList.find((x) => x.name === event.target.value);
+                                    handleSettingChanged('regexPreset', presetSelected!.name);
+                                    handleSettingChanged('subtitleRegexFilter', presetSelected!.regex);
+                                }}
+                            >
+                                {regexPresetsList.map((s) => (
+                                    <MenuItem key={s.name} value={s.name}>
+                                        {s.name}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                            <TextField
                                 label={t('settings.subtitleRegexFilter')}
                                 fullWidth
                                 value={subtitleRegexFilter}
                                 color="primary"
                                 error={!validRegex}
                                 helperText={validRegex ? undefined : 'Invalid regular expression'}
-                                onChange={(event) => handleSettingChanged('subtitleRegexFilter', event.target.value)}
+                                onChange={(event) => {
+                                    handleSettingChanged('subtitleRegexFilter', event.target.value);
+                                    if (regexPreset !== regexPresetsList[0].name) {
+                                        handleSettingChanged('regexPreset', regexPresetsList[0].name);
+                                    }
+                                }}
                             />
                             <TextField
                                 label={t('settings.subtitleRegexFilterTextReplacement')}
