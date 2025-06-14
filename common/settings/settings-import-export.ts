@@ -373,6 +373,9 @@ const settingsSchema = {
         streamingAutoSync: {
             type: 'boolean',
         },
+        streamingAutoSyncPromptOnFailure: {
+            type: 'boolean',
+        },
         streamingLastLanguagesSynced: {
             type: 'object',
             additionalProperties: {

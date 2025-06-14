@@ -186,6 +186,7 @@
         "settings": {
             "asbplayerUrl": "Sovelluksen URL",
             "autoLoadDetectedSubs": "Lataa automaattisesti havaitut tekstitykset",
+            "autoLoadDetectedSubsFailure": "Prompt on failure to auto-load subtitles",
             "cleanScreenshot": "Puhdista kuvakaappaus louhinnassa",
             "condensedPlaybackMinSkipInterval": "Tiivistetty toiston minimiaika väliin",
             "cropScreenshot": "Rajaa kuvakaappausta louhimassa",

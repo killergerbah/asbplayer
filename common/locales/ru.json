@@ -186,6 +186,7 @@
         "settings": {
             "asbplayerUrl": "URL приложения",
             "autoLoadDetectedSubs": "Автоматически загружать обнаруженные субтитры",
+            "autoLoadDetectedSubsFailure": "Prompt on failure to auto-load subtitles",
             "cleanScreenshot": "Создать чистый скриншот",
             "condensedPlaybackMinSkipInterval": "Минимальный интервал пропуска для сжатого воспроизведения",
             "cropScreenshot": "Обрезать скриншот",

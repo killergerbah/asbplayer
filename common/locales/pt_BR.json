@@ -186,6 +186,7 @@
         "settings": {
             "asbplayerUrl": "URL do aplicativo",
             "autoLoadDetectedSubs": "Carregar automaticamente legendas detectadas",
+            "autoLoadDetectedSubsFailure": "Prompt on failure to auto-load subtitles",
             "cleanScreenshot": "Capturar tela limpa",
             "condensedPlaybackMinSkipInterval": "Intervalo mínimo de salto para reprodução condensada",
             "cropScreenshot": "Recortar captura de tela",

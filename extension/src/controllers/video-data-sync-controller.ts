@@ -282,7 +282,11 @@ export default class VideoDataSyncController {
                         this._hideAndResume();
                     }
                 } else {
-                    await this.show({ reason: VideoDataUiOpenReason.failedToAutoLoadPreferredTrack });
+                    const shouldPrompt = await this._settings.getSingle('streamingAutoSyncPromptOnFailure');
+
+                    if (shouldPrompt) {
+                        await this.show({ reason: VideoDataUiOpenReason.failedToAutoLoadPreferredTrack });
+                    }
                 }
             }
         } else if (this._frame.clientIfLoaded !== undefined) {
