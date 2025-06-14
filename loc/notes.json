@@ -260,6 +260,7 @@
         "settings.subtitleOutlineThickness": "Setting that controls the outline thickness in pixels of the subtitle.",
         "settings.subtitleOutlineThicknessHelperText": "Helper text for subtitle outline thickness setting.",
         "settings.subtitlePositionOffset": "Label for setting that controls subtitle position offset.",
+        "settings.regexPreset": "This setting allow to choose between multiples regex presets.",
         "settings.subtitleRegexFilter": "This setting defines a regular expression used to filter text of a subtitle file.",
         "settings.subtitleRegexFilterTextReplacement": "This setting defines the text with which to replace strings matched by the above regular expression.",
         "settings.subtitleShadowColor": "Label for setting that controls subtitle shadow color.",
