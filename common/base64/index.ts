@@ -1,4 +1,27 @@
-export function bufferToBase64(buffer: ArrayBufferLike): string {
+export function encodeBase64(str: string) {
+  // Browser environment
+  if (typeof TextEncoder !== 'undefined') {
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(str);
+    const binString = String.fromCharCode(...bytes);
+    return btoa(binString);
+  }
+  
+  // Fallback for legacy browsers
+  return btoa(unescape(encodeURIComponent(str)));
+}
+
+export function base64ToBuffer(base64: string): Uint8Array {
+  const str = atob(base64);
+  const len = str.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = str.charCodeAt(i);
+  }
+  return bytes;
+}
+
+export function bufferToBase64(buffer: ArrayBufferLike, urlSafe: boolean = false): string {
     let binary = '';
     const bytes = new Uint8Array(buffer);
     const length = bytes.byteLength;
@@ -7,7 +30,9 @@ export function bufferToBase64(buffer: ArrayBufferLike): string {
         binary += String.fromCharCode(bytes[i]);
     }
 
-    return window.btoa(binary);
+    const base64 = window.btoa(binary);
+
+    return urlSafe ? base64.replace(/\//g, "_").replace(/\+/g, "-") : base64;
 }
 
 export async function urlToBase64(url: string): Promise<string> {

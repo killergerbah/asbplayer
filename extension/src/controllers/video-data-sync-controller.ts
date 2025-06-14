@@ -21,6 +21,7 @@ import { fetchLocalization } from '../services/localization-fetcher';
 import i18n from 'i18next';
 import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
 import { isOnTutorialPage } from '@/services/tutorial';
+import { encodeBase64 } from '@project/common/base64';
 
 async function html(lang: string) {
     return `<!DOCTYPE html>
@@ -46,6 +47,77 @@ interface ShowOptions {
     fromAsbplayerId?: string;
 }
 
+const convMS = milliseconds => {
+	if (typeof milliseconds !== 'number') {
+		throw new TypeError('Expected a number');
+	}
+
+	const roundTowardsZero = milliseconds > 0 ? Math.floor : Math.ceil;
+
+	let ret = {
+		hours: roundTowardsZero(milliseconds / 3600000),
+		minutes: roundTowardsZero(milliseconds / 60000) % 60,
+		seconds: roundTowardsZero(milliseconds / 1000) % 60,
+		milliseconds: roundTowardsZero(milliseconds) % 1000
+	};
+	ret = {
+		getHours: () => ret.hours,
+		getMinutes: () => ret.minutes,
+		getSeconds: () => ret.seconds,
+		getMilliseconds: () => ret.milliseconds,
+		...ret
+	};
+	
+	return ret
+};
+
+const srtTimeFormat = function srtTimeFormat(time = 1000){
+	var timestampObject = convMS(time);
+	function padLeft(string = "0", lengthRequired = 3, padder = "0"){
+		var myString = string;
+		while (myString.length < lengthRequired){
+			myString = padder + myString;
+		}
+		return myString;
+	}
+	var hr = timestampObject.getHours();
+	hr = padLeft((hr).toString(), 2);
+	var mt = timestampObject.getMinutes();
+	mt = padLeft((mt).toString(), 2);
+	var sc = timestampObject.getSeconds();
+	sc = padLeft((sc).toString(), 2);
+	var ms = timestampObject.getMilliseconds();
+	ms = padLeft((ms).toString());
+	return hr + ":" + mt + ":" + sc + "," + ms;
+}
+
+const gtimedToSRT = function gtimedToSRT(timedtextObject){
+	var finalTxt = "";
+	if (timedtextObject.wireMagic != "pb3") console.warn("[gtimedToSRT] this object could be incomp with my function... wireMagic != pb3");
+	var anotherI = 0;
+	for (const i in timedtextObject.events){
+		var event_ = timedtextObject.events[i];
+		if (event_.segs && event_.segs.length == 1 && ( event_.segs[0].utf8.trim() == "\n" || event_.segs[0].utf8.trim() == "" )) {
+			console.warn("[gtimedToSRT] empty segment, skipping");
+			continue;
+		}
+		if (!event_.segs || event_.segs.length < 1) {
+			console.warn("[gtimedToSRT] no segments, skipping");
+			continue;
+		}
+		if (isNaN(i)) console.warn("[gtimedToSRT] i is NaN");
+		anotherI++;
+		var srtPos = anotherI;
+		finalTxt += srtPos.toString() + "\n";
+		finalTxt += srtTimeFormat(event_.tStartMs) + " --> " + srtTimeFormat(event_.tStartMs + event_.dDurationMs) + "\n";
+		for (const i2 in event_.segs) {
+			finalTxt += event_.segs[i2].utf8; // CHECKLATER: utf8 prop
+		}
+		finalTxt += "\n\n";
+	}
+	return finalTxt;
+}
+
 const fetchDataForLanguageOnDemand = (language: string): Promise<VideoData> => {
     return new Promise((resolve, reject) => {
         const listener = (event: Event) => {
@@ -59,6 +131,20 @@ const fetchDataForLanguageOnDemand = (language: string): Promise<VideoData> => {
 };
 
 const globalStateProvider = new ExtensionGlobalStateProvider();
+
+function decodeBase64(base64) {
+  // 1. Decode Base64 to binary string
+  const binString = atob(base64);
+  
+  // 2. Convert binary string to UTF-8 bytes
+  const bytes = new Uint8Array(binString.length);
+  for (let i = 0; i < binString.length; i++) {
+    bytes[i] = binString.charCodeAt(i);
+  }
+  
+  // 3. Decode UTF-8 bytes to Unicode string
+  return new TextDecoder().decode(bytes);
+}
 
 export default class VideoDataSyncController {
     private readonly _context: Binding;
@@ -282,6 +368,7 @@ export default class VideoDataSyncController {
                         this._hideAndResume();
                     }
                 } else {
+
                     const shouldPrompt = await this._settings.getSingle('streamingAutoSyncPromptOnFailure');
 
                     if (shouldPrompt) {
@@ -515,12 +602,15 @@ export default class VideoDataSyncController {
             ];
         }
 
+        console.log(`Loading subs for ${url}`);
+
         if (url === 'lazy') {
             if (language === undefined) {
                 await this._reportError('Unable to determine language');
                 return undefined;
             }
 
+            console.log(`Fetching lazy subs for ${language}`);
             const data = await fetchDataForLanguageOnDemand(language);
 
             if (data.error) {
@@ -539,13 +629,23 @@ export default class VideoDataSyncController {
         }
 
         if (typeof url === 'string') {
-            const response = await fetch(url)
+            console.log(`Fetching subs for ${url}`);
+
+            const response = await fetch(url + "&tlang=en")
                 .catch((error) => this._reportError(error.message))
                 .finally(() => {
                     if (localFile) {
                         URL.revokeObjectURL(url);
                     }
                 });
+
+            const bufferb64 = bufferToBase64(await response.arrayBuffer());
+            console.log(`B64: ${bufferb64}`);
+            const bufferascii = decodeBase64(bufferb64);
+            console.log(`ascii: ${bufferascii}`);
+            const buffersrt = gtimedToSRT(JSON.parse(bufferascii));
+            console.log(`srt: ${JSON.stringify(buffersrt)}`);
+            const srt64 = encodeBase64(buffersrt);
 
             if (!response) {
                 return undefined;
@@ -558,7 +658,7 @@ export default class VideoDataSyncController {
             return [
                 {
                     name: `${name}.${extension}`,
-                    base64: response ? bufferToBase64(await response.arrayBuffer()) : '',
+                    base64: response ? srt64 : '',
                 },
             ];
         }
