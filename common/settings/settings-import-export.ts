@@ -308,9 +308,6 @@ const settingsSchema = {
         alwaysPlayOnSubtitleRepeat: {
             type: 'boolean',
         },
-        regexPreset: {
-            type: 'string',
-        },
         subtitleRegexFilter: {
             type: 'string',
         },

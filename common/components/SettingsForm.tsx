@@ -79,13 +79,6 @@ import AnkiConnectTutorialBubble from './AnkiConnectTutorialBubble';
 import DeckFieldTutorialBubble from './DeckFieldTutorialBubble';
 import NoteTypeTutorialBubble from './NoteTypeTutorialBubble';
 
-const regexPresetsList = [
-    { name: 'No preset', regex: '' },
-    { name: 'Enclosed name', regex: '([\(（]([^\(\)（）]|(([\(（][^\(\)（）]+[\)）])))+[\)）])' },
-    { name: 'Enclosed indications', regex: '-?\[.*\]' },
-    { name: 'Descriptions in caps', regex: '^[\-\(\)\.\s\p{Lu}]+$' },
-    { name: 'Sound effects', regex: '^-?[.+]$|^[♪♬#～〜]+$' },
-];
 
 const defaultDeckName = 'Sentences';
 
@@ -973,7 +966,6 @@ export default function SettingsForm({
         autoCopyCurrentSubtitle,
         alwaysPlayOnSubtitleRepeat,
         tabName,
-        regexPreset,
         subtitleRegexFilter,
         subtitleRegexFilterTextReplacement,
         subtitleHtml,
@@ -999,6 +991,15 @@ export default function SettingsForm({
         webSocketServerUrl,
         pauseOnHoverMode,
     } = settings;
+
+    const regexPresetsList = [
+        { name: t('settings.regexPresets.noPreset'), regex: '' },
+        { name: t('settings.regexPresets.enclosedName'), regex: '([\(（]([^\(\)（）]|(([\(（][^\(\)（）]+[\)）])))+[\)）])' },
+        { name: t('settings.regexPresets.enclosedIndications'), regex: '-?\[.*\]' },
+        { name: t('settings.regexPresets.desCaps'), regex: '^[\-\(\)\.\s\p{Lu}]+$' },
+        { name: t('settings.regexPresets.soundEffects'), regex: '^-?[.+]$|^[♪♬#～〜]+$' },
+    ];
+    const [selectedRegexPresetName, setSelectedRegexPresetName] = useState<string>(regexPresetsList[0].name);
 
     const [selectedSubtitleAppearanceTrack, setSelectedSubtitleAppearanceTrack] = useState<number>();
     const {
@@ -2647,11 +2648,11 @@ export default function SettingsForm({
                             <TextField
                                 select
                                 label={t('settings.regexPreset')}
-                                value={regexPreset}
+                                value={selectedRegexPresetName}
                                 color="primary"
                                 onChange={(event) => {
                                     let presetSelected = regexPresetsList.find((x) => x.name === event.target.value);
-                                    handleSettingChanged('regexPreset', presetSelected!.name);
+                                    setSelectedRegexPresetName(presetSelected!.name);
                                     handleSettingChanged('subtitleRegexFilter', presetSelected!.regex);
                                 }}
                             >
@@ -2670,8 +2671,8 @@ export default function SettingsForm({
                                 helperText={validRegex ? undefined : 'Invalid regular expression'}
                                 onChange={(event) => {
                                     handleSettingChanged('subtitleRegexFilter', event.target.value);
-                                    if (regexPreset !== regexPresetsList[0].name) {
-                                        handleSettingChanged('regexPreset', regexPresetsList[0].name);
+                                    if (selectedRegexPresetName !== regexPresetsList[0].name) {
+                                        setSelectedRegexPresetName(regexPresetsList[0].name);
                                     }
                                 }}
                             />

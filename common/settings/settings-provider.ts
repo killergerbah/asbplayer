@@ -122,7 +122,6 @@ export const defaultSettings: AsbplayerSettings = {
     lastSubtitleOffset: 0,
     autoCopyCurrentSubtitle: false,
     alwaysPlayOnSubtitleRepeat: true,
-    regexPreset: 'No preset',
     subtitleRegexFilter: '',
     subtitleRegexFilterTextReplacement: '',
     language: 'en',

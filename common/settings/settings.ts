@@ -17,7 +17,6 @@ export interface MiscSettings {
     readonly autoCopyCurrentSubtitle: boolean;
     readonly alwaysPlayOnSubtitleRepeat: boolean;
     readonly subtitleHtml: SubtitleHtml;
-    readonly regexPreset: string;
     readonly subtitleRegexFilter: string;
     readonly subtitleRegexFilterTextReplacement: string;
     readonly miningHistoryStorageLimit: number;

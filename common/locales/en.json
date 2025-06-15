@@ -377,6 +377,13 @@
         "subtitleBlurDescription": "Hides selected subtitle tracks by blurring them. Can be un-blurred on mouse hover.",
         "tabName": "Name of the tab",
         "regexPreset": "Subtitle regex preset",
+        "regexPresets": {
+            "noPreset" :"No preset",
+            "enclosedName" :"Remove enclosed names",
+            "enclosedIndications" :"Remove enclosed indications",
+            "desCaps" :"Remove descriptions in caps",
+            "soundEffects" :"Remove sound effect symbols"
+        },
         "subtitleRegexFilter": "Subtitle regex filter",
         "subtitleRegexFilterTextReplacement": "Subtitle regex filter text replacement",
         "subtitleHtml": "Subtitle HTML",
