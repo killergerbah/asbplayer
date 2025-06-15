@@ -990,6 +990,7 @@ export default function SettingsForm({
         streamingCropScreenshot,
         streamingSubsDragAndDrop,
         streamingAutoSync,
+        streamingAutoSyncPromptOnFailure,
         streamingCondensedPlaybackMinimumSkipIntervalMs,
         streamingScreenshotDelay,
         streamingSubtitleListPreference,
@@ -2490,6 +2491,19 @@ export default function SettingsForm({
                                     />
                                 }
                                 label={t('extension.settings.autoLoadDetectedSubs')}
+                                labelPlacement="start"
+                            />
+                            <LabelWithHoverEffect
+                                className={classes.switchLabel}
+                                control={
+                                    <Switch
+                                        checked={streamingAutoSyncPromptOnFailure}
+                                        onChange={(e) =>
+                                            handleSettingChanged('streamingAutoSyncPromptOnFailure', e.target.checked)
+                                        }
+                                    />
+                                }
+                                label={t('extension.settings.autoLoadDetectedSubsFailure')}
                                 labelPlacement="start"
                             />
                         </FormGroup>

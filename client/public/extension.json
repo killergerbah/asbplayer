@@ -53,6 +53,11 @@
             "code": "fr",
             "url": "/locales/fr.json",
             "version": 1
+        },
+        {
+            "code": "ko",
+            "url": "/locales/ko.json",
+            "version": 1
         }
     ]
 }

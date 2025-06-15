@@ -137,6 +137,7 @@ export const defaultSettings: AsbplayerSettings = {
     streamingCropScreenshot: true,
     streamingSubsDragAndDrop: true,
     streamingAutoSync: false,
+    streamingAutoSyncPromptOnFailure: false,
     streamingLastLanguagesSynced: {},
     streamingCondensedPlaybackMinimumSkipIntervalMs: 1000,
     streamingScreenshotDelay: 1000,

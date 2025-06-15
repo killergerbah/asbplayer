@@ -8,7 +8,6 @@ import TabRegistry from '@/services/tab-registry';
 import { SettingsProvider } from '@project/common/settings';
 import { ExtensionSettingsStorage } from '@/services/extension-settings-storage';
 import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
 import { isMobile } from 'react-device-detect';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
@@ -251,7 +250,7 @@ const Tutorial: React.FC<{ className: string; show: boolean }> = ({ className, s
     }, [step]);
 
     useEffect(() => {
-        if (step === Step.loadSubtitles && loadedSubtitlesCount !== undefined && loadedSubtitlesCount > 0) {
+        if (step === Step.loadSubtitles && loadedSubtitlesCount !== undefined) {
             setStep(sidePanelOpen ? Step.sidePanel : Step.overlay);
         }
     }, [step, sidePanelOpen, loadedSubtitlesCount]);

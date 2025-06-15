@@ -1,5 +1,4 @@
-import { VideoDataSubtitleTrack } from '@project/common';
-import { VideoData } from '@project/common';
+import { VideoData, VideoDataSubtitleTrack } from '@project/common';
 import { trackFromDef } from '@/pages/util';
 
 declare const ApiClient: any | undefined;
@@ -39,9 +38,10 @@ export default defineUnlistedScript(() => {
                 );
             }
 
-            var mediaID = session.PlayState.MediaSourceId;
-            var nowPlayingItem = session.NowPlayingItem;
-            response.basename = nowPlayingItem.FileName ?? nowPlayingItem.Name;
+            const mediaID = session.PlayState.MediaSourceId;
+            const nowPlayingItem = session.NowPlayingItem;
+            const path = nowPlayingItem.Path;
+            response.basename = nowPlayingItem.FileName ?? (path ? path.split(/[\\/]/).pop() : nowPlayingItem.Name);
 
             const subtitles: VideoDataSubtitleTrack[] = [];
             nowPlayingItem.MediaStreams.filter(

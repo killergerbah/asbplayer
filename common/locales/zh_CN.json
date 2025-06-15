@@ -186,6 +186,7 @@
         "settings": {
             "asbplayerUrl": "asbplayerURL",
             "autoLoadDetectedSubs": "自动加载检测到的字幕",
+            "autoLoadDetectedSubsFailure": "Prompt on failure to auto-load subtitles",
             "cleanScreenshot": "干净的屏幕截图",
             "condensedPlaybackMinSkipInterval": "压缩播放最小跳过间隔",
             "cropScreenshot": "裁剪屏幕截图",

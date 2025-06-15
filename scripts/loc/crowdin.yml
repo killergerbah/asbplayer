@@ -21,6 +21,7 @@ files:
                             'zh-CN': 'zh_CN',
                             'fi-FI': 'fi',
                             'fr': 'fr',
+                            'ko': 'ko',
                         },
                 },
         },
