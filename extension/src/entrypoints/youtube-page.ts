@@ -3,7 +3,95 @@ import { trackId } from '@/pages/util';
 import { Innertube } from 'youtubei.js';
 import type { YT } from 'youtubei.js';
 import SrtParser from '@qgustavor/srt-parser';
-import { bufferToBase64 } from '@project/common/base64';
+import { bufferToBase64, base64ToBuffer } from '@project/common/base64';
+
+const computeHash = (input: string, start: int = 0, end: int = input.length) => {
+  let hash = 0;
+  for (let i = start; i < end; i++) {
+    const code = typeof input === "string" ? input.charCodeAt(i) : input[i];
+    hash = Math.imul(31, hash) + code | 0;
+  }
+  return hash;
+}
+
+const generateKeyPair = (keyMaterial: string) => {
+  const mid = keyMaterial.length >> 1;
+  return [
+    computeHash(keyMaterial, 0, mid),
+    computeHash(keyMaterial, mid)
+  ];
+}
+
+const transformData = (data: Uint8Array, keyMaterial: int[]) => {
+  const [key1, key2] = generateKeyPair(keyMaterial);
+  const data32 = new Uint32Array(data.buffer);
+  const firstWord = data32[0];
+
+  for (let i = 1; i < data32.length; i += 2) {
+    let a = firstWord;
+    let b = i;
+    let c = key1;
+    let d = key2;
+
+    for (let round = 0; round < 22; round++) {
+      b = ((b >>> 8) | (b << 24)) + a;
+      b ^= c + 38293;
+      a = ((a << 3) | (a >>> 29)) ^ b;
+
+      d = ((d >>> 8) | (d << 24)) + c;
+      d ^= round + 38293;
+      c = ((c << 3) | (c >>> 29)) ^ d;
+    }
+
+    data32[i] ^= a;
+    if (i + 1 < data32.length) {
+      data32[i + 1] ^= b;
+    }
+  }
+}
+
+const decodeCachedPoToken = (identifier: string, encodedPoToken: string) => {
+  const data = base64ToBuffer(encodedPoToken);
+  transformData(data, identifier);
+
+  let index = 4;
+  while (index < 7 && data[index] === 0) index++;
+
+  // Not sure if these ever change, they're hardcoded in the original code. It's obviously for some kind of validation.
+  const VALIDATION_BYTES = [196, 200, 224, 18];
+
+  for (let i = 0; i < VALIDATION_BYTES.length; i++) {
+    if (data[index++] !== VALIDATION_BYTES[i])
+      throw new Error('Validation failed');
+  }
+
+  const timestamp = new DataView(data.buffer).getUint32(index);
+  index += 4;
+
+  const poToken = bufferToBase64(new Uint8Array(data.buffer, index), true);
+
+  return {
+    expires: new Date(timestamp * 1000),
+    poToken
+  };
+}
+
+const getPoToken = (id: int) => {
+    console.log(`video-id: ${id}`);
+    const contentBinding = id // window.yt.config_["DATASYNC_ID"] || window.yt.config["VISITORDATA"];
+    const potKey = window.sessionStorage.getItem("iU5q-!O9@$"); // this is somehow hardcoded into base.js, maybe grep for it using regex if unstable.
+    const ids = (potKey ?? "").split(",");
+    
+    let sessionPoToken;
+    
+    for (const id of ids) {
+      try {
+        sessionPoToken = decodeCachedPoToken(contentBinding, window.sessionStorage.getItem(id));
+      } catch (e) { /** no-op */ }
+    }
+    
+    return sessionPoToken;
+}
 
 const stringToArrayBuffer = (str: string) => {
     const encoder = new TextEncoder();
@@ -13,6 +101,7 @@ const stringToArrayBuffer = (str: string) => {
 
 const inferVideoId = () => {
     const pathname = window.location.pathname;
+
 
     if (pathname) {
         const pathVideoId = /\/(shorts|embed)\/(.*)/.exec(pathname)?.[2];
@@ -38,6 +127,7 @@ const defaultTranscript = async () => {
 
 const defaultTranscriptForVideoId = async (videoId: string) => {
     const mobileYoutube = location.host === 'm.youtube.com';
+
     const innertube = await Innertube.create({
         retrieve_player: false,
         // Ensure fetch's `this` does not change
@@ -93,6 +183,26 @@ const defaultTranscriptForVideoId = async (videoId: string) => {
     }
 };
 
+const captionsForInfo = (info: YT.VideoInfo) => {
+    return info.captions.caption_tracks.map((track) => {
+        const token = getPoToken(info.basic_info.id).poToken;
+        const url = track.base_url + "&pot=" + token + "&fmt=json3&cbr=Chrome&c=WEB";
+
+        console.log(`poToken: ${token}`);
+
+        const def = {
+            label: track.name.text,
+            language: track.language_code,
+            url: url,
+            extension: 'srt',
+        };
+        return {
+            id: trackId(def),
+            ...def,
+        };
+    });
+};
+
 const lazyTracksForTranscript = (transcript: YT.TranscriptInfo) => {
     return transcript.languages.map((lang) => {
         const def = {
@@ -118,7 +228,13 @@ const publishCurrentLazyTracks = async () => {
         videoId = inferVideoId();
         const { info, transcript } = await defaultTranscript();
         response.basename = info.basic_info.title ?? document.title;
-        response.subtitles = transcript === undefined ? [] : lazyTracksForTranscript(transcript);
+
+        console.log(`info: ${JSON.stringify(info)}`);
+        const captions = captionsForInfo(info);
+        console.log(`captions: ${JSON.stringify(captions)}`);
+
+        // response.subtitles = transcript === undefined ? [] : lazyTracksForTranscript(transcript);
+        response.subtitles = transcript === undefined ? [] : captionsForInfo(info);
         return info.basic_info.id;
     } catch (error) {
         if (error instanceof Error) {
