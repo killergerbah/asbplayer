@@ -79,7 +79,6 @@ import AnkiConnectTutorialBubble from './AnkiConnectTutorialBubble';
 import DeckFieldTutorialBubble from './DeckFieldTutorialBubble';
 import NoteTypeTutorialBubble from './NoteTypeTutorialBubble';
 
-
 const defaultDeckName = 'Sentences';
 
 const defaultNoteType = {
@@ -994,7 +993,10 @@ export default function SettingsForm({
 
     const regexPresetsList = [
         { name: t('settings.regexPresets.noPreset'), regex: '' },
-        { name: t('settings.regexPresets.enclosedName'), regex: '([\(（]([^\(\)（）]|(([\(（][^\(\)（）]+[\)）])))+[\)）])' },
+        {
+            name: t('settings.regexPresets.enclosedName'),
+            regex: '([\(（]([^\(\)（）]|(([\(（][^\(\)（）]+[\)）])))+[\)）])',
+        },
         { name: t('settings.regexPresets.enclosedIndications'), regex: '-?\[.*\]' },
         { name: t('settings.regexPresets.desCaps'), regex: '^[\-\(\)\.\s\p{Lu}]+$' },
         { name: t('settings.regexPresets.soundEffects'), regex: '^-?[.+]$|^[♪♬#～〜]+$' },
