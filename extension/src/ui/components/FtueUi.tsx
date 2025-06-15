@@ -59,9 +59,16 @@ const WelcomeMessage: React.FC<{ className: string }> = ({ className }) => {
     );
 };
 
+const useLangParam = () => {
+    const [lang, setLang] = useState<string>();
+    useEffect(() => setLang(new URLSearchParams(window.location.search).get('lang') ?? undefined));
+    return lang;
+};
+
 const FtueUi = () => {
     const theme = createTheme('dark');
-    const { initialized: i18Initialized } = useI18n({ language: browser.i18n.getUILanguage() });
+    const langParam = useLangParam();
+    const { initialized: i18Initialized } = useI18n({ language: langParam ?? browser.i18n.getUILanguage() });
     const classes = useStyles();
     const [showTutorial, setShowTutorial] = useState<boolean>(false);
     const [hideWelcomePanel, setHideWelcomePanel] = useState<boolean>(false);
