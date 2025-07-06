@@ -61,7 +61,7 @@ const WelcomeMessage: React.FC<{ className: string }> = ({ className }) => {
 
 const useLangParam = () => {
     const [lang, setLang] = useState<string>();
-    useEffect(() => setLang(new URLSearchParams(window.location.search).get('lang') ?? undefined));
+    useEffect(() => setLang(new URLSearchParams(window.location.search).get('lang') ?? undefined), []);
     return lang;
 };
 
