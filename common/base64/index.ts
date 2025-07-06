@@ -1,6 +1,10 @@
 export function bufferToBase64(buffer: ArrayBufferLike): string {
-    let binary = '';
     const bytes = new Uint8Array(buffer);
+    return uint8ArrayToBase64(bytes);
+}
+
+export function uint8ArrayToBase64(bytes: Uint8Array): string {
+    let binary = '';
     const length = bytes.byteLength;
 
     for (let i = 0; i < length; ++i) {
@@ -30,7 +34,7 @@ export const blobToBase64 = (blob: Blob) => {
     });
 };
 
-export const base64ToBlob = (base64: string, mimeType: string) => {
+export const base64ToBuffer = (base64: string) => {
     const decoded = atob(base64);
     const buffer = new Uint8Array(decoded.length);
 
@@ -38,5 +42,10 @@ export const base64ToBlob = (base64: string, mimeType: string) => {
         buffer[i] = decoded.charCodeAt(i);
     }
 
+    return buffer;
+};
+
+export const base64ToBlob = (base64: string, mimeType: string) => {
+    const buffer = base64ToBuffer(base64);
     return new Blob([buffer.buffer], { type: mimeType });
 };

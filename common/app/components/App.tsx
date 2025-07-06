@@ -109,6 +109,7 @@ function extractSources(files: FileList | File[]): MediaSources {
             case 'nfvtt':
             case 'sup':
             case 'ytxml':
+            case 'ytsrv3':
             case 'dfxp':
             case 'ttml2':
             case 'bbjson':

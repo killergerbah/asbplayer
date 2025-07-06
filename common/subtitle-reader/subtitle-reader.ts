@@ -208,6 +208,76 @@ export default class SubtitleReader {
             });
         }
 
+        if (file.name.endsWith('.ytsrv3')) {
+            const text = await file.text();
+            const xml = this._xmlParser().parse(text);
+            const subtitleRows = xml['timedtext']['body']['p'];
+            const subtitles: SubtitleNode[] = [];
+
+            for (let i = 0; i < subtitleRows.length; i++) {
+                const row = subtitleRows[i];
+
+                if (typeof row['@_t'] !== 'string' || typeof row['@_d'] !== 'string') {
+                    continue;
+                }
+
+                const start = Number(row['@_t']);
+                let duration = Number(row['@_d']);
+
+                if (Number.isNaN(start) || Number.isNaN(duration)) {
+                    continue;
+                }
+
+                let parts = [];
+
+                if (typeof row['#text'] === 'string') {
+                    parts.push(row['#text']);
+                }
+
+                const words = row['s'];
+
+                if (words !== undefined) {
+                    if (typeof words === 'object' && Array.isArray(words)) {
+                        for (const word of row['s']) {
+                            if (typeof word === 'string') {
+                                parts.push(word);
+                            } else if (typeof word['#text'] === 'string') {
+                                parts.push(word['#text']);
+                            }
+                        }
+                    } else if (typeof words['#text'] === 'string') {
+                        parts.push(words['#text']);
+                    }
+                }
+
+                const text = parts.join('').trim();
+
+                if (text) {
+                    let nextRow = subtitleRows[i + 1];
+
+                    // Prevent subtitle from overlapping with next one by reading ahead to see where the next one starts.
+                    // Usually text rows are separated by empty newline rows.
+
+                    if (nextRow?.['#text'] === '\n' && typeof nextRow['@_t'] === 'string') {
+                        const nextStart = Number(nextRow['@_t']);
+
+                        if (!Number.isNaN(nextStart)) {
+                            duration = Math.min(duration, nextStart - start);
+                        }
+                    }
+
+                    subtitles.push({
+                        start,
+                        end: start + duration,
+                        text: this._filterText(text),
+                        track,
+                    });
+                }
+            }
+
+            return subtitles;
+        }
+
         if (file.name.endsWith('.ytxml')) {
             const text = await file.text();
             const xml = this._xmlParser().parse(text);
@@ -432,6 +502,7 @@ export default class SubtitleReader {
         if (this.xmlParser === undefined) {
             this.xmlParser = new XMLParser({
                 ignoreAttributes: false,
+                trimValues: false,
             });
         }
 
