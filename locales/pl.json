@@ -186,6 +186,7 @@
         "settings": {
             "asbplayerUrl": "URL asbplayer",
             "autoLoadDetectedSubs": "Automatyczne ładowanie wykrytych napisów",
+            "autoLoadDetectedSubsFailure": "Prompt on failure to auto-load subtitles",
             "cleanScreenshot": "Czyść zrzut ekranu",
             "condensedPlaybackMinSkipInterval": "Minimalny interwał pominięcia odtwarzania skondensowanego",
             "cropScreenshot": "Przycinaj zrzut ekranu",

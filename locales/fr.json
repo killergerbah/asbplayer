@@ -186,6 +186,7 @@
         "settings": {
             "asbplayerUrl": "URL de l’app",
             "autoLoadDetectedSubs": "Chargement automatique des sous-titres détectés",
+            "autoLoadDetectedSubsFailure": "Prompt on failure to auto-load subtitles",
             "cleanScreenshot": "Nettoyer la capture d’écran lors de l’extraction",
             "condensedPlaybackMinSkipInterval": "Intervalle de saut minimal en lecture condensée",
             "cropScreenshot": "Rogner la capture d’écran lors de l’extraction",

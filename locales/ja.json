@@ -186,6 +186,7 @@
         "settings": {
             "asbplayerUrl": "アプリのURL",
             "autoLoadDetectedSubs": "字幕を探知したら自動的にロードする",
+            "autoLoadDetectedSubsFailure": "字幕の自動ロードに失敗した時、字幕トラックウィンドウを表示",
             "cleanScreenshot": "マイニング時のスクリーンショットを綺麗にする",
             "condensedPlaybackMinSkipInterval": "短縮プレイバックでスキップする時間の最小値",
             "cropScreenshot": "マイニング時のスクリーンショットをクロッピングする",
