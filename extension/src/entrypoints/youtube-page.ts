@@ -126,7 +126,7 @@ const publishCurrentTracks = async () => {
             const timedTextUsingPotInfo = await timedTextTracksUsingPot(videoId);
 
             if (timedTextUsingPotInfo) {
-                basename = basename || androidInnerTubeInfo?.basename;
+                basename = basename || timedTextUsingPotInfo?.basename;
                 subtitles = subtitles ?? timedTextUsingPotInfo?.subtitles;
             }
         }
