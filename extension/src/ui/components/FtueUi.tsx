@@ -9,7 +9,7 @@ import { createTheme } from '@project/common/theme';
 import { makeStyles } from '@mui/styles';
 import CenteredGridContainer from './CenteredGridContainer';
 import CenteredGridItem from './CenteredGridItem';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Tutorial from './Tutorial';
 
 const useStyles = makeStyles({
