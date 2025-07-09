@@ -2,13 +2,18 @@ name: Release Firefox Build
 
 on:
     workflow_dispatch:
-
+        inputs:
+            releaseTag:
+                description: 'Release tag'
+                required: true
+                type: string
 jobs:
     submit:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
-
+              with:
+                  ref: ${{ inputs.releaseTag }}
             - uses: pnpm/action-setup@v4
 
             - uses: actions/setup-node@v4
