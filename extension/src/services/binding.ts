@@ -125,7 +125,7 @@ export default class Binding {
     private recordingMediaWithScreenshot: boolean;
     private pausedDueToHover = false;
     private _playMode: PlayMode = PlayMode.normal;
-    private _seekDuration = 3; 
+    private _seekDuration = 3;
     private _speedChangeStep = 0.1;
 
     readonly video: HTMLMediaElement;
