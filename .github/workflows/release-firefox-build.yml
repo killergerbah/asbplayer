@@ -15,22 +15,17 @@ jobs:
               with:
                   ref: ${{ inputs.releaseTag }}
             - uses: pnpm/action-setup@v4
-
             - uses: actions/setup-node@v4
               with:
-                  node-version: 20
-                  cache: 'pnpm'
-
-            - name: Install dependencies
-              run: pnpm install
-
-            - name: Zip extensions
-              run: |
-                  pnpm zip:firefox
-
+                  node-version: 18
+                  cache: 'npm'
+            - run: npm install --global yarn
+            - run: yarn set version 3.2.0
+            - run: yarn install
+            - run: yarn workspace @project/extension run zip:firefox
             - name: Submit to stores
               run: |
-                  pnpm wxt submit \
+                  yarn workspace @project/extension run wxt submit \
                     --firefox-zip .output/*-firefox.zip --firefox-sources-zip .output/*-sources.zip
               env:
                   FIREFOX_EXTENSION_ID: '{e4b27483-2e73-4762-b2ec-8d988a143a40}'
