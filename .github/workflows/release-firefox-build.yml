@@ -23,9 +23,10 @@ jobs:
             - run: yarn install
             - run: yarn workspace @project/extension run zip:firefox
             - name: Submit to stores
+              working-directory: ./extension
               run: |
-                  yarn workspace @project/extension run wxt submit \
-                    --firefox-zip extension/.output/*-firefox.zip --firefox-sources-zip extension/.output/*-sources.zip
+                  yarn run wxt submit \
+                    --firefox-zip .output/*-firefox.zip --firefox-sources-zip .output/*-sources.zip
               env:
                   FIREFOX_EXTENSION_ID: '{e4b27483-2e73-4762-b2ec-8d988a143a40}'
                   FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
