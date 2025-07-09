@@ -811,7 +811,7 @@ export default function VideoPlayer({
             },
             () => !videoRef.current
         );
-    }, [keyBinder, playerChannel, length, clock]);
+    }, [keyBinder, playerChannel, length, clock, miscSettings]);
 
     const calculateSurroundingSubtitles = useCallback(
         (index: number) => {

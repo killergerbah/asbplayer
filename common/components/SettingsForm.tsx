@@ -2794,9 +2794,7 @@ export default function SettingsForm({
                                 fullWidth
                                 value={seekDuration}
                                 color="primary"
-                                onChange={(event) =>
-                                    handleSettingChanged('seekDuration', Number(event.target.value))
-                                }
+                                onChange={(event) => handleSettingChanged('seekDuration', Number(event.target.value))}
                                 inputProps={{
                                     min: 1,
                                     max: 60,
