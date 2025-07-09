@@ -314,6 +314,7 @@
         "autoPauseAtSubtitleStart": "Tekstityksen Alussa",
         "autoPausePreference": "Pysäytä asetus",
         "autoPausePreferenceHelperText": "Ei ota käyttöön automaattista taukoa. Asettaa asetuksen, kun tauko on otettu käyttöön.",
+        "seekDuration": "Amount of seconds to skip fowards / backwards when seeking with respective shortcuts",
         "speedChangeStep": "Toiston nopeussäädön vaihe (kun käytetään vastaavia pikakuvakkeita)",
         "fastForwardModePlaybackRate": "Nopea tilan toistotaajuus",
         "copyOnMine": "Kopioi louhitut tekstitykset leikepöydälle",

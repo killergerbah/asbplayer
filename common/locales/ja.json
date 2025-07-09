@@ -314,6 +314,7 @@
         "autoPauseAtSubtitleStart": "字幕の開始時",
         "autoPausePreference": "自動一時停止の設定",
         "autoPausePreferenceHelperText": "自動一時停止を有効化する項目ではなく、自動一時停止がオンになっている時に一時停止するタイミングを設定する。",
+        "seekDuration": "Amount of seconds to skip fowards / backwards when seeking with respective shortcuts",
         "speedChangeStep": "キーボードショートカット使用時の再生速度調整刻み値",
         "fastForwardModePlaybackRate": "早送りモードの再生速度",
         "copyOnMine": "マイニングした字幕をクリップボードにコピー",

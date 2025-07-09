@@ -314,6 +314,7 @@
         "autoPauseAtSubtitleStart": "Al Inicio del Subtítulo",
         "autoPausePreference": "Preferencia para el pausado automático",
         "autoPausePreferenceHelperText": "No activa el pausado automático. Establece cuando pausar si el pausado automático está activado.",
+        "seekDuration": "Amount of seconds to skip fowards / backwards when seeking with respective shortcuts",
         "speedChangeStep": "Magnitud del ajuste de velocidad de reproducción (al usar los atajos correspondientes)",
         "fastForwardModePlaybackRate": "Velocidad de la Reproducción Acelerada",
         "copyOnMine": "Copiar subtítulos minados al portapapeles",

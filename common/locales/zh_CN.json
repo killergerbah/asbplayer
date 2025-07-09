@@ -314,6 +314,7 @@
         "autoPauseAtSubtitleStart": "在字幕开头",
         "autoPausePreference": "自动暂停首选项",
         "autoPausePreferenceHelperText": "不启用自动暂停。设置启用自动暂停时暂停的首选项。",
+        "seekDuration": "Amount of seconds to skip fowards / backwards when seeking with respective shortcuts",
         "speedChangeStep": "Playback speed adjust step (when using respective shortcuts)",
         "fastForwardModePlaybackRate": "Fast-forward Mode Playback Rate",
         "copyOnMine": "将挖掘的字幕复制到剪贴板",
