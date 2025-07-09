@@ -15,7 +15,7 @@
         "message": "手動でスクリーンショットを撮影しマイニング時に自動的に撮影されたものを上書きする。"
     },
     "shortcutToggleRecordingDescription": {
-        "message": "字幕ファイルがロードされていても手動で録音を開始/終了する。"
+        "message": "字幕がロードされていても手動で録音を開始/終了する。"
     },
     "shortcutUpdateLastCardDescription": {
         "message": "最後に作成した Anki カードに asbplayer でキャプチャしたメディアを添付して更新する。動画が字幕ファイルなしで同期されている場合、録音を開始/停止する。"

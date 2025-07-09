@@ -18,7 +18,7 @@
         "message": "Manually take screenshot, overriding the one that is automatically taken when mining."
     },
     "shortcutToggleRecordingDescription": {
-        "message": "Manually start/stop audio recording, even when a subtitle file is loaded."
+        "message": "Manually start/stop audio recording, even when subtitles are loaded."
     },
     "shortcutSelectSubtitleTrackDescription": {
         "message": "Select subtitle tracks to load."
