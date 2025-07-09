@@ -1,0 +1,33 @@
+name: Release Firefox Build
+
+on:
+    workflow_dispatch:
+
+jobs:
+    submit:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: 'pnpm'
+
+            - name: Install dependencies
+              run: pnpm install
+
+            - name: Zip extensions
+              run: |
+                  pnpm zip:firefox
+
+            - name: Submit to stores
+              run: |
+                  pnpm wxt submit \
+                    --firefox-zip .output/*-firefox.zip --firefox-sources-zip .output/*-sources.zip
+              env:
+                  FIREFOX_EXTENSION_ID: '{e4b27483-2e73-4762-b2ec-8d988a143a40}'
+                  FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
+                  FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
