@@ -951,6 +951,7 @@ export default function SettingsForm({
         surroundingSubtitlesCountRadius,
         surroundingSubtitlesTimeRadius,
         autoPausePreference,
+        seekDuration,
         speedChangeStep,
         fastForwardModePlaybackRate,
         keyBindSet,
@@ -2787,6 +2788,21 @@ export default function SettingsForm({
                     )}
                     <Grid item>
                         <FormGroup className={classes.formGroup}>
+                            <TextField
+                                type="number"
+                                label={t('settings.seekDuration')}
+                                fullWidth
+                                value={seekDuration}
+                                color="primary"
+                                onChange={(event) =>
+                                    handleSettingChanged('seekDuration', Number(event.target.value))
+                                }
+                                inputProps={{
+                                    min: 1,
+                                    max: 60,
+                                    step: 1,
+                                }}
+                            />
                             <TextField
                                 type="number"
                                 label={t('settings.speedChangeStep')}
