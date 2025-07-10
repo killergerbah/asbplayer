@@ -106,7 +106,7 @@
         "extensionCopySubtitle": "現在の字幕をマイニングする。動画が字幕ファイルなしで同期されている場合、録音を開始/停止する。",
         "extensionSelectSubtitleTrack": "ロードする字幕ファイルを選択する。",
         "extensionTakeScreenshot": "手動でスクリーンショットを撮影しマイニング時に自動的に撮影されたものを上書きする。",
-        "extensionToggleRecording": "字幕ファイルがロードされていても手動で録音を開始/終了する。",
+        "extensionToggleRecording": "字幕がロードされていても手動で録音を開始/終了する。",
         "extensionUpdateLastCard": "最後に作成した Anki カードに asbplayer でキャプチャしたメディアを添付して更新する。動画が字幕ファイルなしで同期されている場合、録音を開始/停止する。",
         "increaseOffset": "字幕の表示タイミング +100ms",
         "increasePlaybackRate": "再生速度を上げる",

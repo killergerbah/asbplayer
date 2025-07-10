@@ -106,7 +106,7 @@
         "extensionCopySubtitle": "Mine current subtitle. When video is synced without a subtitle file, starts/stops recording audio.",
         "extensionSelectSubtitleTrack": "Select subtitle tracks to load.",
         "extensionTakeScreenshot": "Manually take screenshot, overriding the one that is automatically taken when mining.",
-        "extensionToggleRecording": "Manually start/stop audio recording, even when a subtitle file is loaded.",
+        "extensionToggleRecording": "Manually start/stop audio recording, even when subtitles are loaded.",
         "extensionUpdateLastCard": "Update last-created Anki card with asbplayer-captured media. When video is synced without a subtitle file, starts/stops recording audio.",
         "increaseOffset": "Adjust subtitle offset by +100ms",
         "increasePlaybackRate": "Increase playback rate",
