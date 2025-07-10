@@ -67,7 +67,7 @@ import { StyledEngineProvider } from '@mui/material/styles';
 import { useServiceWorker } from '../hooks/use-service-worker';
 import NeedRefreshDialog from './NeedRefreshDialog';
 
-const latestExtensionVersion = '1.10.1';
+const latestExtensionVersion = '1.11.0';
 const extensionUrl =
     'https://chromewebstore.google.com/detail/asbplayer-language-learni/hkledmpjpaehamkiehglnbelcpdflcab';
 const useContentStyles = makeStyles<Theme, ContentProps>((theme) => ({

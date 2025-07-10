@@ -49,6 +49,10 @@
                 {
                     "version": "1.10.1",
                     "update_link": "https://github.com/killergerbah/asbplayer/releases/download/v1.10.1/asbplayer-extension-1.10.1-firefox.xpi"
+                },
+                {
+                    "version": "1.11.0",
+                    "update_link": "https://github.com/killergerbah/asbplayer/releases/download/v1.11.0/asbplayer-extension-1.11.0-firefox.xpi"
                 }
             ]
         }
