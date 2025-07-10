@@ -26,7 +26,8 @@ jobs:
               working-directory: ./extension
               run: |
                   yarn run wxt submit \
-                    --firefox-zip .output/*-firefox.zip --firefox-sources-zip .output/*-sources.zip
+                    --firefox-zip .output/*-firefox.zip --firefox-sources-zip .output/*-sources.zip \
+                    --firefox-channel unlisted
               env:
                   FIREFOX_EXTENSION_ID: e4b27483-2e73-4762-b2ec-8d988a143a40
                   FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
