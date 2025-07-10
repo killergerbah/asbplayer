@@ -150,3 +150,31 @@ Submit bugs or feature requests from the [issues page](https://github.com/killer
 ## Donations
 
 If you've benefited from asbplayer, please consider supporting my work via [Github Sponsors](https://github.com/sponsors/killergerbah?frequency=one-time) or [Ko-fi](https://ko-fi.com/killergerbah).
+
+## Notes for AMO source code reviewers
+
+## Building
+
+Environment:
+
+```
+node 18.x
+yarn 3.2.0
+```
+
+```
+# Install yarn
+npm install --global yarn
+
+# Make sure you're on yarn 3
+yarn set version 3.2.0
+
+# Install dependencies
+yarn
+
+# Builds Firefox extension to extension/.output/projectextension-<version>-firefox.zip
+yarn workspace @project/extension run wxt zip -b firefox
+
+# Builds Firefox for Android extension to extension/.output/projectextension-<version>-firefox-android.zip
+yarn workspace @project/extension run wxt zip -b firefox-android --mv2
+```

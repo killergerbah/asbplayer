@@ -29,6 +29,10 @@ const addToPublicPathsType = (srcPath: string, destPath: string, paths: string[]
 export default defineConfig({
     modules: ['@wxt-dev/module-react'],
     srcDir: 'src',
+    zip: {
+        sourcesRoot: '..',
+        includeSources: ['.yarn/patches/**'],
+    },
     hooks: {
         'build:publicAssets': (wxt: Wxt, files: ResolvedPublicFile[]) => {
             for (const { srcDir, destDir } of commonAssets) {
