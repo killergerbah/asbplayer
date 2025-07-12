@@ -28,7 +28,6 @@ const NoteTypeTutorialBubble: React.FC<{
                                     </Link>,
                                 ]}
                             />
-                            .
                         </>
                     )}
                 </>
