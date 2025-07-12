@@ -10,7 +10,6 @@ import TableRow from '@mui/material/TableRow';
 import MuiTableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
 import { useTheme, withStyles } from '@mui/styles';
 import { type Theme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
@@ -239,7 +238,7 @@ const About = ({ appVersion, extensionVersion }: Props) => {
                     MIT License
                     <br />
                     <br />
-                    Copyright (c) 2020 R-J Lim
+                    Copyright (c) 2020-2025 asbplayer authors
                     <br />
                     <br />
                     Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
