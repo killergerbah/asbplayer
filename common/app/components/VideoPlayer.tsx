@@ -801,16 +801,17 @@ export default function VideoPlayer({
             (event, forward) => {
                 event.preventDefault();
                 const timestamp = clock.time(length);
+                const seekDuration = miscSettings.seekDuration * 1000;
 
                 if (forward) {
-                    playerChannel.currentTime(Math.min(length / 1000, (timestamp + 10000) / 1000));
+                    playerChannel.currentTime(Math.min(length / 1000, (timestamp + seekDuration) / 1000));
                 } else {
-                    playerChannel.currentTime(Math.max(0, (timestamp - 10000) / 1000));
+                    playerChannel.currentTime(Math.max(0, (timestamp - seekDuration) / 1000));
                 }
             },
             () => !videoRef.current
         );
-    }, [keyBinder, playerChannel, length, clock]);
+    }, [keyBinder, playerChannel, length, clock, miscSettings]);
 
     const calculateSurroundingSubtitles = useCallback(
         (index: number) => {
