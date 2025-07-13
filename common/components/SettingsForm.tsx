@@ -991,6 +991,18 @@ export default function SettingsForm({
         pauseOnHoverMode,
     } = settings;
 
+    const regexPresetsList = [
+        { name: t('settings.regexPresets.noPreset'), regex: '' },
+        {
+            name: t('settings.regexPresets.enclosedName'),
+            regex: '([\(（]([^\(\)（）]|(([\(（][^\(\)（）]+[\)）])))+[\)）])',
+        },
+        { name: t('settings.regexPresets.enclosedIndications'), regex: '-?\[.*\]' },
+        { name: t('settings.regexPresets.desCaps'), regex: '^[\-\(\)\.\s\p{Lu}]+$' },
+        { name: t('settings.regexPresets.soundEffects'), regex: '^-?[.+]$|^[♪♬#～〜]+$' },
+    ];
+    const [selectedRegexPresetName, setSelectedRegexPresetName] = useState<string>(regexPresetsList[0].name);
+
     const [selectedSubtitleAppearanceTrack, setSelectedSubtitleAppearanceTrack] = useState<number>();
     const {
         subtitleSize,
@@ -2636,13 +2648,35 @@ export default function SettingsForm({
                                 />
                             )}
                             <TextField
+                                select
+                                label={t('settings.regexPreset')}
+                                value={selectedRegexPresetName}
+                                color="primary"
+                                onChange={(event) => {
+                                    let presetSelected = regexPresetsList.find((x) => x.name === event.target.value);
+                                    setSelectedRegexPresetName(presetSelected!.name);
+                                    handleSettingChanged('subtitleRegexFilter', presetSelected!.regex);
+                                }}
+                            >
+                                {regexPresetsList.map((s) => (
+                                    <MenuItem key={s.name} value={s.name}>
+                                        {s.name}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                            <TextField
                                 label={t('settings.subtitleRegexFilter')}
                                 fullWidth
                                 value={subtitleRegexFilter}
                                 color="primary"
                                 error={!validRegex}
                                 helperText={validRegex ? undefined : 'Invalid regular expression'}
-                                onChange={(event) => handleSettingChanged('subtitleRegexFilter', event.target.value)}
+                                onChange={(event) => {
+                                    handleSettingChanged('subtitleRegexFilter', event.target.value);
+                                    if (selectedRegexPresetName !== regexPresetsList[0].name) {
+                                        setSelectedRegexPresetName(regexPresetsList[0].name);
+                                    }
+                                }}
                             />
                             <TextField
                                 label={t('settings.subtitleRegexFilterTextReplacement')}

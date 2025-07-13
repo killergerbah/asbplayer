@@ -376,6 +376,14 @@
         "subtitleBlurEntryLabel": "Piste {{trackNumber}}",
         "subtitleBlurDescription": "Masque les pistes de sous-titres sélectionnées en les floutant. Le flou est supprimé au survol de la souris.",
         "tabName": "Nom de l'onglet",
+        "regexPreset": "Pré-réglage regex de sous-titres",
+        "regexPresets": {
+            "noPreset" :"Aucun pré-réglage",
+            "enclosedName" :"Enlever noms entre crochets",
+            "enclosedIndications" :"Enlever indications entre crochets",
+            "desCaps" :"Enlever descriptions en majuscules",
+            "soundEffects" :"Enlever symboles d'effets sonores"
+        },
         "subtitleRegexFilter": "Filtre regex des sous-titres",
         "subtitleRegexFilterTextReplacement": "Remplacement de texte pour le filtre regex des sous-titres",
         "subtitleHtml": "Sous-titres HTML",
