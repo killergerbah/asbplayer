@@ -430,6 +430,7 @@ interface KeyBindProperties {
     label: string;
     boundViaChrome: boolean;
     hide?: boolean;
+    additionalControl?: React.ReactNode;
 }
 
 // hotkeys only returns strings for a Mac while requiring the OS-specific keys for the actual binds
@@ -836,94 +837,6 @@ export default function SettingsForm({
         [onSettingsChanged]
     );
     const { t } = useTranslation();
-    const keyBindProperties = useMemo<{ [key in AllKeyNames]: KeyBindProperties }>(
-        () => ({
-            copySubtitle: { label: t('binds.copySubtitle')!, boundViaChrome: true },
-            ankiExport: { label: t('binds.ankiExport')!, boundViaChrome: true },
-            updateLastCard: {
-                label: t('binds.updateLastCard')!,
-                boundViaChrome: true,
-            },
-            exportCard: {
-                label: t('binds.exportCard')!,
-                boundViaChrome: true,
-                hide: extensionInstalled && !extensionSupportsExportCardBind,
-            },
-            takeScreenshot: {
-                label: t('binds.takeScreenshot')!,
-                boundViaChrome: true,
-            },
-            toggleRecording: {
-                label: t('binds.extensionToggleRecording')!,
-                boundViaChrome: true,
-            },
-            selectSubtitleTrack: {
-                label: t('binds.extensionSelectSubtitleTrack')!,
-                boundViaChrome: true,
-                hide: !extensionInstalled,
-            },
-            togglePlay: { label: t('binds.togglePlay')!, boundViaChrome: false },
-            toggleAutoPause: { label: t('binds.toggleAutoPause')!, boundViaChrome: false },
-            toggleCondensedPlayback: { label: t('binds.toggleCondensedPlayback')!, boundViaChrome: false },
-            toggleFastForwardPlayback: { label: t('binds.toggleFastForwardPlayback')!, boundViaChrome: false },
-            toggleRepeat: { label: t('binds.toggleRepeat')!, boundViaChrome: false },
-            toggleSubtitles: { label: t('binds.toggleSubtitles')!, boundViaChrome: false },
-            toggleVideoSubtitleTrack1: { label: t('binds.toggleVideoSubtitleTrack1')!, boundViaChrome: false },
-            toggleVideoSubtitleTrack2: { label: t('binds.toggleVideoSubtitleTrack2')!, boundViaChrome: false },
-            toggleVideoSubtitleTrack3: { label: t('binds.toggleVideoSubtitleTrack3')!, boundViaChrome: false },
-            toggleAsbplayerSubtitleTrack1: {
-                label: t('binds.toggleAsbplayerSubtitleTrack1')!,
-                boundViaChrome: false,
-            },
-            toggleAsbplayerSubtitleTrack2: {
-                label: t('binds.toggleAsbplayerSubtitleTrack2')!,
-                boundViaChrome: false,
-            },
-            toggleAsbplayerSubtitleTrack3: {
-                label: t('binds.toggleAsbplayerSubtitleTrack3')!,
-                boundViaChrome: false,
-            },
-            unblurAsbplayerTrack1: {
-                label: t('binds.unblurAsbplayerTrack', { trackNumber: 1 })!,
-                boundViaChrome: false,
-            },
-            unblurAsbplayerTrack2: {
-                label: t('binds.unblurAsbplayerTrack', { trackNumber: 2 })!,
-                boundViaChrome: false,
-            },
-            unblurAsbplayerTrack3: {
-                label: t('binds.unblurAsbplayerTrack', { trackNumber: 3 })!,
-                boundViaChrome: false,
-            },
-            seekBackward: { label: t('binds.seekBackward')!, boundViaChrome: false },
-            seekForward: { label: t('binds.seekForward')!, boundViaChrome: false },
-            seekToPreviousSubtitle: { label: t('binds.seekToPreviousSubtitle')!, boundViaChrome: false },
-            seekToNextSubtitle: { label: t('binds.seekToNextSubtitle')!, boundViaChrome: false },
-            seekToBeginningOfCurrentSubtitle: {
-                label: t('binds.seekToBeginningOfCurrentOrPreviousSubtitle')!,
-                boundViaChrome: false,
-            },
-            adjustOffsetToPreviousSubtitle: {
-                label: t('binds.adjustOffsetToPreviousSubtitle')!,
-                boundViaChrome: false,
-            },
-            adjustOffsetToNextSubtitle: {
-                label: t('binds.adjustOffsetToNextSubtitle')!,
-                boundViaChrome: false,
-            },
-            increaseOffset: { label: t('binds.increaseOffset')!, boundViaChrome: false },
-            decreaseOffset: { label: t('binds.decreaseOffset')!, boundViaChrome: false },
-            resetOffset: { label: t('binds.resetOffset')!, boundViaChrome: false },
-            increasePlaybackRate: { label: t('binds.increasePlaybackRate')!, boundViaChrome: false },
-            decreasePlaybackRate: { label: t('binds.decreasePlaybackRate')!, boundViaChrome: false },
-            toggleSidePanel: {
-                label: t('binds.toggleSidePanel')!,
-                boundViaChrome: false,
-                hide: !extensionInstalled || !extensionSupportsSidePanel,
-            },
-        }),
-        [t, extensionInstalled, extensionSupportsSidePanel, extensionSupportsExportCardBind]
-    );
 
     const {
         ankiConnectUrl,
@@ -991,6 +904,109 @@ export default function SettingsForm({
         webSocketServerUrl,
         pauseOnHoverMode,
     } = settings;
+
+    const keyBindProperties = useMemo<{ [key in AllKeyNames]: KeyBindProperties }>(
+        () => ({
+            copySubtitle: { label: t('binds.copySubtitle')!, boundViaChrome: true },
+            ankiExport: { label: t('binds.ankiExport')!, boundViaChrome: true },
+            updateLastCard: {
+                label: t('binds.updateLastCard')!,
+                boundViaChrome: true,
+            },
+            exportCard: {
+                label: t('binds.exportCard')!,
+                boundViaChrome: true,
+                hide: extensionInstalled && !extensionSupportsExportCardBind,
+            },
+            takeScreenshot: {
+                label: t('binds.takeScreenshot')!,
+                boundViaChrome: true,
+            },
+            toggleRecording: {
+                label: t('binds.extensionToggleRecording')!,
+                boundViaChrome: true,
+            },
+            selectSubtitleTrack: {
+                label: t('binds.extensionSelectSubtitleTrack')!,
+                boundViaChrome: true,
+                hide: !extensionInstalled,
+            },
+            togglePlay: { label: t('binds.togglePlay')!, boundViaChrome: false },
+            toggleAutoPause: { label: t('binds.toggleAutoPause')!, boundViaChrome: false },
+            toggleCondensedPlayback: { label: t('binds.toggleCondensedPlayback')!, boundViaChrome: false },
+            toggleFastForwardPlayback: { label: t('binds.toggleFastForwardPlayback')!, boundViaChrome: false },
+            toggleRepeat: { label: t('binds.toggleRepeat')!, boundViaChrome: false },
+            toggleSubtitles: { label: t('binds.toggleSubtitles')!, boundViaChrome: false },
+            toggleVideoSubtitleTrack1: { label: t('binds.toggleVideoSubtitleTrack1')!, boundViaChrome: false },
+            toggleVideoSubtitleTrack2: { label: t('binds.toggleVideoSubtitleTrack2')!, boundViaChrome: false },
+            toggleVideoSubtitleTrack3: { label: t('binds.toggleVideoSubtitleTrack3')!, boundViaChrome: false },
+            toggleAsbplayerSubtitleTrack1: {
+                label: t('binds.toggleAsbplayerSubtitleTrack1')!,
+                boundViaChrome: false,
+            },
+            toggleAsbplayerSubtitleTrack2: {
+                label: t('binds.toggleAsbplayerSubtitleTrack2')!,
+                boundViaChrome: false,
+            },
+            toggleAsbplayerSubtitleTrack3: {
+                label: t('binds.toggleAsbplayerSubtitleTrack3')!,
+                boundViaChrome: false,
+            },
+            unblurAsbplayerTrack1: {
+                label: t('binds.unblurAsbplayerTrack', { trackNumber: 1 })!,
+                boundViaChrome: false,
+            },
+            unblurAsbplayerTrack2: {
+                label: t('binds.unblurAsbplayerTrack', { trackNumber: 2 })!,
+                boundViaChrome: false,
+            },
+            unblurAsbplayerTrack3: {
+                label: t('binds.unblurAsbplayerTrack', { trackNumber: 3 })!,
+                boundViaChrome: false,
+            },
+            seekBackward: { label: t('binds.seekBackward')!, boundViaChrome: false },
+            seekForward: { label: t('binds.seekForward')!, boundViaChrome: false, additionalControl: (
+                <TextField
+                    type="number"
+                    label={t('settings.seekDuration')}
+                    fullWidth
+                    value={seekDuration}
+                    color="primary"
+                    onChange={(event) => handleSettingChanged('seekDuration', Number(event.target.value))}
+                    inputProps={{
+                        min: 1,
+                        max: 60,
+                        step: 1,
+                    }}
+                />)
+            },
+            seekToPreviousSubtitle: { label: t('binds.seekToPreviousSubtitle')!, boundViaChrome: false },
+            seekToNextSubtitle: { label: t('binds.seekToNextSubtitle')!, boundViaChrome: false },
+            seekToBeginningOfCurrentSubtitle: {
+                label: t('binds.seekToBeginningOfCurrentOrPreviousSubtitle')!,
+                boundViaChrome: false,
+            },
+            adjustOffsetToPreviousSubtitle: {
+                label: t('binds.adjustOffsetToPreviousSubtitle')!,
+                boundViaChrome: false,
+            },
+            adjustOffsetToNextSubtitle: {
+                label: t('binds.adjustOffsetToNextSubtitle')!,
+                boundViaChrome: false,
+            },
+            increaseOffset: { label: t('binds.increaseOffset')!, boundViaChrome: false },
+            decreaseOffset: { label: t('binds.decreaseOffset')!, boundViaChrome: false },
+            resetOffset: { label: t('binds.resetOffset')!, boundViaChrome: false },
+            increasePlaybackRate: { label: t('binds.increasePlaybackRate')!, boundViaChrome: false },
+            decreasePlaybackRate: { label: t('binds.decreasePlaybackRate')!, boundViaChrome: false },
+            toggleSidePanel: {
+                label: t('binds.toggleSidePanel')!,
+                boundViaChrome: false,
+                hide: !extensionInstalled || !extensionSupportsSidePanel,
+            },
+        }),
+        [t, extensionInstalled, extensionSupportsSidePanel, extensionSupportsExportCardBind, seekDuration]
+    );
 
     const [selectedSubtitleAppearanceTrack, setSelectedSubtitleAppearanceTrack] = useState<number>();
     const {
@@ -2320,18 +2336,21 @@ export default function SettingsForm({
                         }
 
                         return (
-                            <KeyBindField
-                                key={key}
-                                label={properties.label}
-                                keys={
-                                    extensionInstalled && properties.boundViaChrome
-                                        ? (chromeKeyBinds[keyBindName] ?? '')
-                                        : keyBindSet[keyBindName].keys
-                                }
-                                boundViaChrome={extensionInstalled && properties.boundViaChrome}
-                                onKeysChange={(keys) => handleKeysChange(keys, keyBindName)}
-                                onOpenExtensionShortcuts={onOpenChromeExtensionShortcuts}
-                            />
+                            <div>
+                                <KeyBindField
+                                    key={key}
+                                    label={properties.label}
+                                    keys={
+                                        extensionInstalled && properties.boundViaChrome
+                                            ? (chromeKeyBinds[keyBindName] ?? '')
+                                            : keyBindSet[keyBindName].keys
+                                    }
+                                    boundViaChrome={extensionInstalled && properties.boundViaChrome}
+                                    onKeysChange={(keys) => handleKeysChange(keys, keyBindName)}
+                                    onOpenExtensionShortcuts={onOpenChromeExtensionShortcuts}
+                                />
+                                {properties.additionalControl}
+                            </div>
                         );
                     })}
                 </FormGroup>
@@ -2788,19 +2807,6 @@ export default function SettingsForm({
                     )}
                     <Grid item>
                         <FormGroup className={classes.formGroup}>
-                            <TextField
-                                type="number"
-                                label={t('settings.seekDuration')}
-                                fullWidth
-                                value={seekDuration}
-                                color="primary"
-                                onChange={(event) => handleSettingChanged('seekDuration', Number(event.target.value))}
-                                inputProps={{
-                                    min: 1,
-                                    max: 60,
-                                    step: 1,
-                                }}
-                            />
                             <TextField
                                 type="number"
                                 label={t('settings.speedChangeStep')}
