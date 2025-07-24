@@ -2615,6 +2615,19 @@ export default function SettingsForm({
                             </RadioGroup>
                         </FormControl>
                         <FormGroup className={classes.formGroup}>
+                            <TextField
+                                select
+                                label={t('settings.language')}
+                                value={language}
+                                color="primary"
+                                onChange={(event) => handleSettingChanged('language', event.target.value)}
+                            >
+                                {supportedLanguages.map((s) => (
+                                    <MenuItem key={s} value={s}>
+                                        {s}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
                             <LabelWithHoverEffect
                                 control={
                                     <Switch
@@ -2713,19 +2726,6 @@ export default function SettingsForm({
                                     />
                                 </RadioGroup>
                             </FormControl>
-                            <TextField
-                                select
-                                label={t('settings.language')}
-                                value={language}
-                                color="primary"
-                                onChange={(event) => handleSettingChanged('language', event.target.value)}
-                            >
-                                {supportedLanguages.map((s) => (
-                                    <MenuItem key={s} value={s}>
-                                        {s}
-                                    </MenuItem>
-                                ))}
-                            </TextField>
                         </FormGroup>
                     </Grid>
                     <Grid item>
