@@ -313,7 +313,6 @@
         "autoPauseAtSubtitleEnd": "在字幕末尾",
         "autoPauseAtSubtitleStart": "在字幕开头",
         "autoPausePreference": "自动暂停首选项",
-        "autoPausePreferenceHelperText": "不启用自动暂停。设置启用自动暂停时暂停的首选项。",
         "seekDuration": "Seek interval (seconds)",
         "speedChangeStep": "Playback speed adjust step (when using respective shortcuts)",
         "fastForwardModePlaybackRate": "Fast-forward Mode Playback Rate",

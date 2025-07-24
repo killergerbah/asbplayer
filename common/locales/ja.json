@@ -313,7 +313,6 @@
         "autoPauseAtSubtitleEnd": "字幕の終了時",
         "autoPauseAtSubtitleStart": "字幕の開始時",
         "autoPausePreference": "自動一時停止の設定",
-        "autoPausePreferenceHelperText": "自動一時停止を有効化する項目ではなく、自動一時停止がオンになっている時に一時停止するタイミングを設定する。",
         "seekDuration": "Seek interval (seconds)",
         "speedChangeStep": "キーボードショートカット使用時の再生速度調整刻み値",
         "fastForwardModePlaybackRate": "早送りモードの再生速度",

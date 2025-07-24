@@ -7,7 +7,6 @@ import LockIcon from '@mui/icons-material/Lock';
 import Box from '@mui/material/Box';
 import ClearIcon from '@mui/icons-material/Clear';
 import EditIcon from '@mui/icons-material/Edit';
-import InfoIcon from '@mui/icons-material/Info';
 import UndoIcon from '@mui/icons-material/Undo';
 import FormControl from '@mui/material/FormControl';
 import FormGroup from '@mui/material/FormGroup';
@@ -933,7 +932,45 @@ export default function SettingsForm({
                 hide: !extensionInstalled,
             },
             togglePlay: { label: t('binds.togglePlay')!, boundViaChrome: false },
-            toggleAutoPause: { label: t('binds.toggleAutoPause')!, boundViaChrome: false },
+            toggleAutoPause: {
+                label: t('binds.toggleAutoPause')!, boundViaChrome: false, additionalControl: (
+                    <Grid item>
+                        <Grid container direction="row" spacing={1}>
+                            <Grid item>
+                                <FormLabel>{t('settings.autoPausePreference')}</FormLabel>
+                            </Grid>
+                        </Grid>
+                        <RadioGroup row>
+                            <LabelWithHoverEffect
+                                control={
+                                    <Radio
+                                        checked={autoPausePreference === AutoPausePreference.atStart}
+                                        value={AutoPausePreference.atStart}
+                                        onChange={(event) =>
+                                            event.target.checked &&
+                                            handleSettingChanged('autoPausePreference', AutoPausePreference.atStart)
+                                        }
+                                    />
+                                }
+                                label={t('settings.autoPauseAtSubtitleStart')}
+                            />
+                            <LabelWithHoverEffect
+                                control={
+                                    <Radio
+                                        checked={autoPausePreference === AutoPausePreference.atEnd}
+                                        value={AutoPausePreference.atEnd}
+                                        onChange={(event) =>
+                                            event.target.checked &&
+                                            handleSettingChanged('autoPausePreference', AutoPausePreference.atEnd)
+                                        }
+                                    />
+                                }
+                                label={t('settings.autoPauseAtSubtitleEnd')}
+                            />
+                        </RadioGroup>
+                    </Grid>
+                )
+            },
             toggleCondensedPlayback: { label: t('binds.toggleCondensedPlayback')!, boundViaChrome: false },
             toggleFastForwardPlayback: { label: t('binds.toggleFastForwardPlayback')!, boundViaChrome: false },
             toggleRepeat: { label: t('binds.toggleRepeat')!, boundViaChrome: false },
@@ -1027,7 +1064,7 @@ export default function SettingsForm({
                 hide: !extensionInstalled || !extensionSupportsSidePanel,
             },
         }),
-        [t, extensionInstalled, extensionSupportsSidePanel, extensionSupportsExportCardBind, handleSettingChanged, seekDuration, alwaysPlayOnSubtitleRepeat]
+        [t, extensionInstalled, extensionSupportsSidePanel, extensionSupportsExportCardBind, handleSettingChanged, seekDuration, alwaysPlayOnSubtitleRepeat, autoPausePreference]
     );
 
     const [selectedSubtitleAppearanceTrack, setSelectedSubtitleAppearanceTrack] = useState<number>();
@@ -2727,46 +2764,6 @@ export default function SettingsForm({
                                 </RadioGroup>
                             </FormControl>
                         </FormGroup>
-                    </Grid>
-                    <Grid item>
-                        <Grid container direction="row" spacing={1}>
-                            <Grid item>
-                                <FormLabel>{t('settings.autoPausePreference')}</FormLabel>
-                            </Grid>
-                            <Grid item>
-                                <Tooltip title={t('settings.autoPausePreferenceHelperText')!} placement="top">
-                                    <InfoIcon fontSize="small" />
-                                </Tooltip>
-                            </Grid>
-                        </Grid>
-                        <RadioGroup row>
-                            <LabelWithHoverEffect
-                                control={
-                                    <Radio
-                                        checked={autoPausePreference === AutoPausePreference.atStart}
-                                        value={AutoPausePreference.atStart}
-                                        onChange={(event) =>
-                                            event.target.checked &&
-                                            handleSettingChanged('autoPausePreference', AutoPausePreference.atStart)
-                                        }
-                                    />
-                                }
-                                label={t('settings.autoPauseAtSubtitleStart')}
-                            />
-                            <LabelWithHoverEffect
-                                control={
-                                    <Radio
-                                        checked={autoPausePreference === AutoPausePreference.atEnd}
-                                        value={AutoPausePreference.atEnd}
-                                        onChange={(event) =>
-                                            event.target.checked &&
-                                            handleSettingChanged('autoPausePreference', AutoPausePreference.atEnd)
-                                        }
-                                    />
-                                }
-                                label={t('settings.autoPauseAtSubtitleEnd')}
-                            />
-                        </RadioGroup>
                     </Grid>
                     {(!extensionInstalled || extensionSupportsPauseOnHover) && (
                         <Grid item>

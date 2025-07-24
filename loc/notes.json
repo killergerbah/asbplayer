@@ -211,7 +211,6 @@
         "settings.autoPauseAtSubtitleEnd": "If this option is chosen, asbplayer will pause at the end of every subtitle when the auto-pause playback mode is on.",
         "settings.autoPauseAtSubtitleStart": "If this option is chosen, asbplayer will pause at the beginning of every subtitle when the auto-pause playback mode is on.",
         "settings.autoPausePreference": "Whether to pause at the start or end of a subtitle.",
-        "settings.autoPausePreferenceHelperText": "Supplementary text explaining the \"auto-pause preference.\"",
         "settings.clickToMineDefaultAction": "Label for setting that controls the default mining action when using the 'mine' button.",
         "settings.copyOnMine": "Setting that causes the mined subtitle to be copied to clipboard anytime the user issues a mining command.",
         "settings.corsHelperText": "\"webCorsOriginList\" is the specific name of a piece of data that should not be translated. ",
