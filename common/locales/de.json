@@ -303,7 +303,7 @@
         "profileLimitReached": "Profile limit reached",
         "addCustomCss": "Add Custom CSS",
         "addCustomField": "Eigenes Feld hinzufügen",
-        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current/previous subtitle'",
+        "alwaysPlayOnSubtitleRepeat": "Always play (unpause) after invoking above shortcut",
         "anki": "Anki",
         "ankiConnectUrl": "Anki-Connect-URL",
         "audioField": "Audio-Feld",

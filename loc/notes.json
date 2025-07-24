@@ -201,7 +201,7 @@
         "postMinePlayback.remember": "Setting that indicates after mining, restore playback state (playing/paused) from prior to mining.",
         "settings.addCustomCss": "Label for setting button for adding a custom CSS style to subtitles.",
         "settings.addCustomField": "\"Field\" refers to an Anki card field.",
-        "settings.alwaysPlayOnSubtitleRepeat": "Label for setting that indicates whether asbplayer should always automatically play after using the shortcut which seeks to the beginning of the current or last subtitle.",
+        "settings.alwaysPlayOnSubtitleRepeat": "Label for setting that indicates whether asbplayer should always automatically play (i.e. unpause if paused) after using the shortcut which seeks to the beginning of the current or last subtitle.",
         "settings.anki": "Section heading for Anki-related settings.",
         "settings.ankiConnectUrl": "The URL that is used to contact Anki Connect. Anki Connect is an Anki add-on that allows asbplayer to communicate with Anki to create and manipulate flashcards.",
         "settings.audioField": "The field of the Anki card that will be populated with audio extracted from the video.",

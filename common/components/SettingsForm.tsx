@@ -994,6 +994,19 @@ export default function SettingsForm({
             seekToBeginningOfCurrentSubtitle: {
                 label: t('binds.seekToBeginningOfCurrentOrPreviousSubtitle')!,
                 boundViaChrome: false,
+                additionalControl: (
+                    <KeyBindRelatedSetting
+                        label={t('settings.alwaysPlayOnSubtitleRepeat')}
+                        control={
+                            <Switch
+                                checked={alwaysPlayOnSubtitleRepeat}
+                                onChange={(event) =>
+                                    handleSettingChanged('alwaysPlayOnSubtitleRepeat', event.target.checked)
+                                }
+                            />
+                        }
+                    />
+                )
             },
             adjustOffsetToPreviousSubtitle: {
                 label: t('binds.adjustOffsetToPreviousSubtitle')!,
@@ -1014,7 +1027,7 @@ export default function SettingsForm({
                 hide: !extensionInstalled || !extensionSupportsSidePanel,
             },
         }),
-        [t, extensionInstalled, extensionSupportsSidePanel, extensionSupportsExportCardBind, seekDuration, handleSettingChanged]
+        [t, extensionInstalled, extensionSupportsSidePanel, extensionSupportsExportCardBind, handleSettingChanged, seekDuration, alwaysPlayOnSubtitleRepeat]
     );
 
     const [selectedSubtitleAppearanceTrack, setSelectedSubtitleAppearanceTrack] = useState<number>();
@@ -2625,19 +2638,6 @@ export default function SettingsForm({
                                     />
                                 }
                                 label={t('settings.autoCopy')}
-                                labelPlacement="start"
-                                className={classes.switchLabel}
-                            />
-                            <LabelWithHoverEffect
-                                control={
-                                    <Switch
-                                        checked={alwaysPlayOnSubtitleRepeat}
-                                        onChange={(event) =>
-                                            handleSettingChanged('alwaysPlayOnSubtitleRepeat', event.target.checked)
-                                        }
-                                    />
-                                }
-                                label={t('settings.alwaysPlayOnSubtitleRepeat')}
                                 labelPlacement="start"
                                 className={classes.switchLabel}
                             />

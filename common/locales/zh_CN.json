@@ -303,7 +303,7 @@
         "profileLimitReached": "Profile limit reached",
         "addCustomCss": "添加自定义CSS",
         "addCustomField": "添加自定义字段",
-        "alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current/previous subtitle'",
+        "alwaysPlayOnSubtitleRepeat": "Always play (unpause) after invoking above shortcut",
         "anki": "Anki",
         "ankiConnectUrl": "Anki连接URL",
         "audioField": "音频字段",

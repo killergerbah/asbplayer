@@ -92,7 +92,7 @@
         "activeTabPermissionRequest.grantedPrompt": "Audio recording has been enabled for this tab. You can now begin mining.",
         "audioCaptureFailed.message": "DRM-protected audio cannot be captured on the Firefox version of asbplayer.",
         "settings.addCustomCss": "Add Custom CSS",
-        "settings.alwaysPlayOnSubtitleRepeat": "Always play after invoking 'Seek to beginning of current/previous subtitle'",
+        "settings.alwaysPlayOnSubtitleRepeat": "Always play (unpause) after invoking above shortcut",
         "settings.fastForwardModePlaybackRate": "Fast-forward Mode Playback Rate",
         "settings.customCssField": "CSS: {{styleKey}}",
         "settings.clickToMineDefaultAction": "Mining button default action",
