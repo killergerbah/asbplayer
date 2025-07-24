@@ -314,7 +314,7 @@
         "autoPauseAtSubtitleStart": "在字幕开头",
         "autoPausePreference": "自动暂停首选项",
         "seekDuration": "Seek interval (seconds)",
-        "speedChangeStep": "Playback speed adjust step (when using respective shortcuts)",
+        "speedChangeStep": "Playback speed adjust step",
         "fastForwardModePlaybackRate": "Fast-forward Mode Playback Rate",
         "copyOnMine": "将挖掘的字幕复制到剪贴板",
         "corsHelperText": "请确保{{origin}}在您的AnkiConnect设置中的webCorsOriginalList中，如此<0>video</0>中所示。",

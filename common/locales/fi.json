@@ -314,7 +314,7 @@
         "autoPauseAtSubtitleStart": "Tekstityksen Alussa",
         "autoPausePreference": "Pysäytä asetus",
         "seekDuration": "Seek interval (seconds)",
-        "speedChangeStep": "Toiston nopeussäädön vaihe (kun käytetään vastaavia pikakuvakkeita)",
+        "speedChangeStep": "Toiston nopeussäädön vaihe",
         "fastForwardModePlaybackRate": "Nopea tilan toistotaajuus",
         "copyOnMine": "Kopioi louhitut tekstitykset leikepöydälle",
         "corsHelperText": "Varmista, että {{origin}} on WebCorsOriginList teidän AnkiConnect asetukset kuten tässä <0>video</0>.",

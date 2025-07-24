@@ -934,41 +934,41 @@ export default function SettingsForm({
             togglePlay: { label: t('binds.togglePlay')!, boundViaChrome: false },
             toggleAutoPause: {
                 label: t('binds.toggleAutoPause')!, boundViaChrome: false, additionalControl: (
-                    <Grid item>
-                        <Grid container direction="row" spacing={1}>
+                    <KeyBindRelatedSetting
+                        label={t('settings.autoPausePreference')}
+                        control={
                             <Grid item>
-                                <FormLabel>{t('settings.autoPausePreference')}</FormLabel>
+                                <RadioGroup row>
+                                    <LabelWithHoverEffect
+                                        control={
+                                            <Radio
+                                                checked={autoPausePreference === AutoPausePreference.atStart}
+                                                value={AutoPausePreference.atStart}
+                                                onChange={(event) =>
+                                                    event.target.checked &&
+                                                    handleSettingChanged('autoPausePreference', AutoPausePreference.atStart)
+                                                }
+                                            />
+                                        }
+                                        label={t('settings.autoPauseAtSubtitleStart')}
+                                    />
+                                    <LabelWithHoverEffect
+                                        control={
+                                            <Radio
+                                                checked={autoPausePreference === AutoPausePreference.atEnd}
+                                                value={AutoPausePreference.atEnd}
+                                                onChange={(event) =>
+                                                    event.target.checked &&
+                                                    handleSettingChanged('autoPausePreference', AutoPausePreference.atEnd)
+                                                }
+                                            />
+                                        }
+                                        label={t('settings.autoPauseAtSubtitleEnd')}
+                                    />
+                                </RadioGroup>
                             </Grid>
-                        </Grid>
-                        <RadioGroup row>
-                            <LabelWithHoverEffect
-                                control={
-                                    <Radio
-                                        checked={autoPausePreference === AutoPausePreference.atStart}
-                                        value={AutoPausePreference.atStart}
-                                        onChange={(event) =>
-                                            event.target.checked &&
-                                            handleSettingChanged('autoPausePreference', AutoPausePreference.atStart)
-                                        }
-                                    />
-                                }
-                                label={t('settings.autoPauseAtSubtitleStart')}
-                            />
-                            <LabelWithHoverEffect
-                                control={
-                                    <Radio
-                                        checked={autoPausePreference === AutoPausePreference.atEnd}
-                                        value={AutoPausePreference.atEnd}
-                                        onChange={(event) =>
-                                            event.target.checked &&
-                                            handleSettingChanged('autoPausePreference', AutoPausePreference.atEnd)
-                                        }
-                                    />
-                                }
-                                label={t('settings.autoPauseAtSubtitleEnd')}
-                            />
-                        </RadioGroup>
-                    </Grid>
+                        }
+                    />
                 )
             },
             toggleCondensedPlayback: { label: t('binds.toggleCondensedPlayback')!, boundViaChrome: false },
@@ -1057,14 +1057,37 @@ export default function SettingsForm({
             decreaseOffset: { label: t('binds.decreaseOffset')!, boundViaChrome: false },
             resetOffset: { label: t('binds.resetOffset')!, boundViaChrome: false },
             increasePlaybackRate: { label: t('binds.increasePlaybackRate')!, boundViaChrome: false },
-            decreasePlaybackRate: { label: t('binds.decreasePlaybackRate')!, boundViaChrome: false },
+            decreasePlaybackRate: {
+                label: t('binds.decreasePlaybackRate')!, boundViaChrome: false, additionalControl: (
+                    <KeyBindRelatedSetting
+                        label={t('settings.speedChangeStep')}
+                        control={
+                            <TextField
+                                type="number"
+                                fullWidth
+                                value={speedChangeStep}
+                                color="primary"
+                                onChange={(event) =>
+                                    handleSettingChanged('speedChangeStep', Number(event.target.value))
+                                }
+                                slotProps={{
+                                    htmlInput: {
+                                        min: 0.1,
+                                        max: 1,
+                                        step: 0.1,
+                                    }
+                                }}
+                            />
+                        }
+                    />
+            ) },
             toggleSidePanel: {
                 label: t('binds.toggleSidePanel')!,
                 boundViaChrome: false,
                 hide: !extensionInstalled || !extensionSupportsSidePanel,
             },
         }),
-        [t, extensionInstalled, extensionSupportsSidePanel, extensionSupportsExportCardBind, handleSettingChanged, seekDuration, alwaysPlayOnSubtitleRepeat, autoPausePreference]
+        [t, extensionInstalled, extensionSupportsSidePanel, extensionSupportsExportCardBind, handleSettingChanged, seekDuration, alwaysPlayOnSubtitleRepeat, autoPausePreference, speedChangeStep]
     );
 
     const [selectedSubtitleAppearanceTrack, setSelectedSubtitleAppearanceTrack] = useState<number>();
@@ -2813,21 +2836,6 @@ export default function SettingsForm({
                     )}
                     <Grid item>
                         <FormGroup className={classes.formGroup}>
-                            <TextField
-                                type="number"
-                                label={t('settings.speedChangeStep')}
-                                fullWidth
-                                value={speedChangeStep}
-                                color="primary"
-                                onChange={(event) =>
-                                    handleSettingChanged('speedChangeStep', Number(event.target.value))
-                                }
-                                inputProps={{
-                                    min: 0.1,
-                                    max: 1,
-                                    step: 0.1,
-                                }}
-                            />
                             <TextField
                                 type="number"
                                 label={t('settings.fastForwardModePlaybackRate')}

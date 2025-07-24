@@ -314,7 +314,7 @@
         "autoPauseAtSubtitleStart": "Na początku napisu",
         "autoPausePreference": "Preferencja automatycznej pauzy",
         "seekDuration": "Interwał wyszukiwania (sekundy)",
-        "speedChangeStep": "Stopień zmiany prędkości odtwarzania (przy częstym użyciu skrótu klawiszowego)",
+        "speedChangeStep": "Stopień zmiany prędkości odtwarzania",
         "fastForwardModePlaybackRate": "Prędkość trybu przyspieszonego odtwarzania",
         "copyOnMine": "Skopiuj wykopane napisy do schowka",
         "corsHelperText": "Upewnij się że {{origin}} jest w liście webCorsOriginList w twoich ustawieniach AnkiConnect tak",

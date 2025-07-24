@@ -314,7 +314,7 @@
         "autoPauseAtSubtitleStart": "At Subtitle Start",
         "autoPausePreference": "Auto-pause preference",
         "seekDuration": "Seek interval (seconds)",
-        "speedChangeStep": "Playback speed adjust step (when using respective shortcuts)",
+        "speedChangeStep": "Playback speed adjust step",
         "fastForwardModePlaybackRate": "Fast-forward Mode Playback Rate",
         "copyOnMine": "Copy mined subtitles to clipboard",
         "corsHelperText": "Ensure that {{origin}} is in the webCorsOriginList in your AnkiConnect settings as in this <0>video</0>.",
