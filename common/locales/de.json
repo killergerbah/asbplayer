@@ -314,7 +314,7 @@
         "autoPauseAtSubtitleStart": "Am Anfang des Untertitels",
         "autoPausePreference": "Auto-Pause",
         "autoPausePreferenceHelperText": "Aktiviert keine Auto-Pause",
-        "seekDuration": "Amount of seconds to skip fowards / backwards when seeking with respective shortcuts",
+        "seekDuration": "Suchintervall (Sekunden)",
         "speedChangeStep": "Playback speed adjust step (when using respective shortcuts)",
         "fastForwardModePlaybackRate": "Fast-forward Mode Playback Rate",
         "copyOnMine": "Extrahierte Untertitel in die Zwischenablage kopieren",

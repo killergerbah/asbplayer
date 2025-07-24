@@ -78,6 +78,7 @@ import TutorialBubble from './TutorialBubble';
 import AnkiConnectTutorialBubble from './AnkiConnectTutorialBubble';
 import DeckFieldTutorialBubble from './DeckFieldTutorialBubble';
 import NoteTypeTutorialBubble from './NoteTypeTutorialBubble';
+import KeyBindRelatedSetting from './KeyBindRelatedSetting';
 
 const defaultDeckName = 'Sentences';
 
@@ -966,19 +967,27 @@ export default function SettingsForm({
             },
             seekBackward: { label: t('binds.seekBackward')!, boundViaChrome: false },
             seekForward: { label: t('binds.seekForward')!, boundViaChrome: false, additionalControl: (
-                <TextField
-                    type="number"
-                    label={t('settings.seekDuration')}
-                    fullWidth
-                    value={seekDuration}
-                    color="primary"
-                    onChange={(event) => handleSettingChanged('seekDuration', Number(event.target.value))}
-                    inputProps={{
-                        min: 1,
-                        max: 60,
-                        step: 1,
-                    }}
-                />)
+                    <KeyBindRelatedSetting
+                        label={t('settings.seekDuration')}
+                        control={
+                            <TextField
+                                type="number"
+                                size="small"
+                                fullWidth
+                                value={seekDuration}
+                                color="primary"
+                                onChange={(event) => handleSettingChanged('seekDuration', Number(event.target.value))}
+                                slotProps={{
+                                    htmlInput: {
+                                        min: 1,
+                                        max: 60,
+                                        step: 1,
+                                    }
+                                }}
+                            />
+                        }
+                    />
+                )
             },
             seekToPreviousSubtitle: { label: t('binds.seekToPreviousSubtitle')!, boundViaChrome: false },
             seekToNextSubtitle: { label: t('binds.seekToNextSubtitle')!, boundViaChrome: false },
@@ -1005,7 +1014,7 @@ export default function SettingsForm({
                 hide: !extensionInstalled || !extensionSupportsSidePanel,
             },
         }),
-        [t, extensionInstalled, extensionSupportsSidePanel, extensionSupportsExportCardBind, seekDuration]
+        [t, extensionInstalled, extensionSupportsSidePanel, extensionSupportsExportCardBind, seekDuration, handleSettingChanged]
     );
 
     const [selectedSubtitleAppearanceTrack, setSelectedSubtitleAppearanceTrack] = useState<number>();
@@ -2336,7 +2345,7 @@ export default function SettingsForm({
                         }
 
                         return (
-                            <div>
+                            <div key={key}>
                                 <KeyBindField
                                     key={key}
                                     label={properties.label}

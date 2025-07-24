@@ -314,7 +314,7 @@
         "autoPauseAtSubtitleStart": "At Subtitle Start",
         "autoPausePreference": "Auto-pause Preference",
         "autoPausePreferenceHelperText": "Does not enable auto-pause. Sets the preference for when to pause when auto-pause is enabled.",
-        "seekDuration": "Amount of seconds to skip fowards / backwards when seeking with respective shortcuts",
+        "seekDuration": "Seek interval (seconds)",
         "speedChangeStep": "Playback speed adjust step (when using respective shortcuts)",
         "fastForwardModePlaybackRate": "Fast-forward Mode Playback Rate",
         "copyOnMine": "Copy mined subtitles to clipboard",

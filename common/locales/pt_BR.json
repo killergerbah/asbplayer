@@ -314,7 +314,7 @@
         "autoPauseAtSubtitleStart": "No início da legenda",
         "autoPausePreference": "Preferência de pausa automática",
         "autoPausePreferenceHelperText": "Não habilita a pausa automática. Define a preferência de quando pausar quando a pausa automática estiver habilitada.",
-        "seekDuration": "Quantidade de segundos para pular para frente/trás ao buscar com os respectivos atalhos",
+        "seekDuration": "Intervalo de busca (segundos)",
         "speedChangeStep": "Passo de ajuste da velocidade de reprodução (ao utilizar os respectivos atalhos)",
         "fastForwardModePlaybackRate": "Taxa de reprodução no modo de avanço rápido",
         "copyOnMine": "Copiar legenda minerada para a área de transferência",

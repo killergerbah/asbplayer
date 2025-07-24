@@ -314,7 +314,7 @@
         "autoPauseAtSubtitleStart": "자막 시작점",
         "autoPausePreference": "자동 일시정지 설정",
         "autoPausePreferenceHelperText": "자동 일시정지를 직접 활성화하지는 않으며, 자동 일시정지가 켜져 있을 때 언제 일시정지할지를 설정합니다.",
-        "seekDuration": "Amount of seconds to skip fowards / backwards when seeking with respective shortcuts",
+        "seekDuration": "Seek interval (seconds)",
         "speedChangeStep": "단축키 사용 시 재생 속도 조절 단위",
         "fastForwardModePlaybackRate": "빠른 재생 모드 속도",
         "copyOnMine": "추출한 자막을 클립보드에 복사",
