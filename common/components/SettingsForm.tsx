@@ -933,7 +933,9 @@ export default function SettingsForm({
             },
             togglePlay: { label: t('binds.togglePlay')!, boundViaChrome: false },
             toggleAutoPause: {
-                label: t('binds.toggleAutoPause')!, boundViaChrome: false, additionalControl: (
+                label: t('binds.toggleAutoPause')!,
+                boundViaChrome: false,
+                additionalControl: (
                     <KeyBindRelatedSetting
                         label={t('settings.autoPausePreference')}
                         control={
@@ -946,7 +948,10 @@ export default function SettingsForm({
                                                 value={AutoPausePreference.atStart}
                                                 onChange={(event) =>
                                                     event.target.checked &&
-                                                    handleSettingChanged('autoPausePreference', AutoPausePreference.atStart)
+                                                    handleSettingChanged(
+                                                        'autoPausePreference',
+                                                        AutoPausePreference.atStart
+                                                    )
                                                 }
                                             />
                                         }
@@ -959,7 +964,10 @@ export default function SettingsForm({
                                                 value={AutoPausePreference.atEnd}
                                                 onChange={(event) =>
                                                     event.target.checked &&
-                                                    handleSettingChanged('autoPausePreference', AutoPausePreference.atEnd)
+                                                    handleSettingChanged(
+                                                        'autoPausePreference',
+                                                        AutoPausePreference.atEnd
+                                                    )
                                                 }
                                             />
                                         }
@@ -969,11 +977,13 @@ export default function SettingsForm({
                             </Grid>
                         }
                     />
-                )
+                ),
             },
             toggleCondensedPlayback: { label: t('binds.toggleCondensedPlayback')!, boundViaChrome: false },
             toggleFastForwardPlayback: {
-                label: t('binds.toggleFastForwardPlayback')!, boundViaChrome: false, additionalControl: (
+                label: t('binds.toggleFastForwardPlayback')!,
+                boundViaChrome: false,
+                additionalControl: (
                     <KeyBindRelatedSetting
                         label={t('settings.fastForwardModePlaybackRate')}
                         control={
@@ -990,12 +1000,13 @@ export default function SettingsForm({
                                         min: 0.1,
                                         max: 5,
                                         step: 0.1,
-                                    }
+                                    },
                                 }}
                             />
                         }
                     />
-            ) },
+                ),
+            },
             toggleRepeat: { label: t('binds.toggleRepeat')!, boundViaChrome: false },
             toggleSubtitles: { label: t('binds.toggleSubtitles')!, boundViaChrome: false },
             toggleVideoSubtitleTrack1: { label: t('binds.toggleVideoSubtitleTrack1')!, boundViaChrome: false },
@@ -1026,7 +1037,10 @@ export default function SettingsForm({
                 boundViaChrome: false,
             },
             seekBackward: { label: t('binds.seekBackward')!, boundViaChrome: false },
-            seekForward: { label: t('binds.seekForward')!, boundViaChrome: false, additionalControl: (
+            seekForward: {
+                label: t('binds.seekForward')!,
+                boundViaChrome: false,
+                additionalControl: (
                     <KeyBindRelatedSetting
                         label={t('settings.seekDuration')}
                         control={
@@ -1042,12 +1056,12 @@ export default function SettingsForm({
                                         min: 1,
                                         max: 60,
                                         step: 1,
-                                    }
+                                    },
                                 }}
                             />
                         }
                     />
-                )
+                ),
             },
             seekToPreviousSubtitle: { label: t('binds.seekToPreviousSubtitle')!, boundViaChrome: false },
             seekToNextSubtitle: { label: t('binds.seekToNextSubtitle')!, boundViaChrome: false },
@@ -1066,7 +1080,7 @@ export default function SettingsForm({
                             />
                         }
                     />
-                )
+                ),
             },
             adjustOffsetToPreviousSubtitle: {
                 label: t('binds.adjustOffsetToPreviousSubtitle')!,
@@ -1081,7 +1095,9 @@ export default function SettingsForm({
             resetOffset: { label: t('binds.resetOffset')!, boundViaChrome: false },
             increasePlaybackRate: { label: t('binds.increasePlaybackRate')!, boundViaChrome: false },
             decreasePlaybackRate: {
-                label: t('binds.decreasePlaybackRate')!, boundViaChrome: false, additionalControl: (
+                label: t('binds.decreasePlaybackRate')!,
+                boundViaChrome: false,
+                additionalControl: (
                     <KeyBindRelatedSetting
                         label={t('settings.speedChangeStep')}
                         control={
@@ -1098,19 +1114,31 @@ export default function SettingsForm({
                                         min: 0.1,
                                         max: 1,
                                         step: 0.1,
-                                    }
+                                    },
                                 }}
                             />
                         }
                     />
-            ) },
+                ),
+            },
             toggleSidePanel: {
                 label: t('binds.toggleSidePanel')!,
                 boundViaChrome: false,
                 hide: !extensionInstalled || !extensionSupportsSidePanel,
             },
         }),
-        [t, extensionInstalled, extensionSupportsSidePanel, extensionSupportsExportCardBind, handleSettingChanged, seekDuration, alwaysPlayOnSubtitleRepeat, autoPausePreference, speedChangeStep, fastForwardModePlaybackRate]
+        [
+            t,
+            extensionInstalled,
+            extensionSupportsSidePanel,
+            extensionSupportsExportCardBind,
+            handleSettingChanged,
+            seekDuration,
+            alwaysPlayOnSubtitleRepeat,
+            autoPausePreference,
+            speedChangeStep,
+            fastForwardModePlaybackRate,
+        ]
     );
 
     const [selectedSubtitleAppearanceTrack, setSelectedSubtitleAppearanceTrack] = useState<number>();
