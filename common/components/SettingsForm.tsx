@@ -972,7 +972,30 @@ export default function SettingsForm({
                 )
             },
             toggleCondensedPlayback: { label: t('binds.toggleCondensedPlayback')!, boundViaChrome: false },
-            toggleFastForwardPlayback: { label: t('binds.toggleFastForwardPlayback')!, boundViaChrome: false },
+            toggleFastForwardPlayback: {
+                label: t('binds.toggleFastForwardPlayback')!, boundViaChrome: false, additionalControl: (
+                    <KeyBindRelatedSetting
+                        label={t('settings.fastForwardModePlaybackRate')}
+                        control={
+                            <TextField
+                                type="number"
+                                fullWidth
+                                value={fastForwardModePlaybackRate}
+                                color="primary"
+                                onChange={(event) =>
+                                    handleSettingChanged('fastForwardModePlaybackRate', Number(event.target.value))
+                                }
+                                slotProps={{
+                                    htmlInput: {
+                                        min: 0.1,
+                                        max: 5,
+                                        step: 0.1,
+                                    }
+                                }}
+                            />
+                        }
+                    />
+            ) },
             toggleRepeat: { label: t('binds.toggleRepeat')!, boundViaChrome: false },
             toggleSubtitles: { label: t('binds.toggleSubtitles')!, boundViaChrome: false },
             toggleVideoSubtitleTrack1: { label: t('binds.toggleVideoSubtitleTrack1')!, boundViaChrome: false },
@@ -1087,7 +1110,7 @@ export default function SettingsForm({
                 hide: !extensionInstalled || !extensionSupportsSidePanel,
             },
         }),
-        [t, extensionInstalled, extensionSupportsSidePanel, extensionSupportsExportCardBind, handleSettingChanged, seekDuration, alwaysPlayOnSubtitleRepeat, autoPausePreference, speedChangeStep]
+        [t, extensionInstalled, extensionSupportsSidePanel, extensionSupportsExportCardBind, handleSettingChanged, seekDuration, alwaysPlayOnSubtitleRepeat, autoPausePreference, speedChangeStep, fastForwardModePlaybackRate]
     );
 
     const [selectedSubtitleAppearanceTrack, setSelectedSubtitleAppearanceTrack] = useState<number>();
@@ -2834,25 +2857,6 @@ export default function SettingsForm({
                             </RadioGroup>
                         </Grid>
                     )}
-                    <Grid item>
-                        <FormGroup className={classes.formGroup}>
-                            <TextField
-                                type="number"
-                                label={t('settings.fastForwardModePlaybackRate')}
-                                fullWidth
-                                value={fastForwardModePlaybackRate}
-                                color="primary"
-                                onChange={(event) =>
-                                    handleSettingChanged('fastForwardModePlaybackRate', Number(event.target.value))
-                                }
-                                inputProps={{
-                                    min: 0.1,
-                                    max: 5,
-                                    step: 0.1,
-                                }}
-                            />
-                        </FormGroup>
-                    </Grid>
                     {!isFirefox && (
                         <>
                             <Grid item>

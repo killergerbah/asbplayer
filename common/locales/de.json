@@ -315,7 +315,7 @@
         "autoPausePreference": "Auto-Pause",
         "seekDuration": "Suchintervall (Sekunden)",
         "speedChangeStep": "Playback speed adjust step",
-        "fastForwardModePlaybackRate": "Fast-forward Mode Playback Rate",
+        "fastForwardModePlaybackRate": "Fast-forward mode playback rate",
         "copyOnMine": "Extrahierte Untertitel in die Zwischenablage kopieren",
         "corsHelperText": "Stelle sicher das {{origin}} in der webCorsOriginList innerhalb der AnkiConnect-Einstellungen steht (Siehe <0>video</0>).",
         "customCssField": "CSS: {{styleKey}}",
