@@ -313,6 +313,7 @@
         "autoPauseAtSubtitleEnd": "Am Ende des Untertitels",
         "autoPauseAtSubtitleStart": "Am Anfang des Untertitels",
         "autoPausePreference": "Auto-Pause",
+        "autoPausePreferenceHelperText": "Aktiviert keine Auto-Pause",
         "seekDuration": "Suchintervall (Sekunden)",
         "speedChangeStep": "Playback speed adjust step",
         "fastForwardModePlaybackRate": "Fast-forward mode playback rate",

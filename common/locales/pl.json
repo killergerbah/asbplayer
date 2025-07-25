@@ -313,6 +313,7 @@
         "autoPauseAtSubtitleEnd": "Na końcu napisu",
         "autoPauseAtSubtitleStart": "Na początku napisu",
         "autoPausePreference": "Preferencja automatycznej pauzy",
+        "autoPausePreferenceHelperText": "Nie włącza automatycznej pauzy. Ustawia preferencję kiedy się zatrzymać gdy automatyczna pauza jest włączona.",
         "seekDuration": "Interwał wyszukiwania (sekundy)",
         "speedChangeStep": "Stopień zmiany prędkości odtwarzania",
         "fastForwardModePlaybackRate": "Prędkość trybu przyspieszonego odtwarzania",

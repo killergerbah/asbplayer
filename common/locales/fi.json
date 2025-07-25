@@ -313,6 +313,7 @@
         "autoPauseAtSubtitleEnd": "Tekstityksen Päättyessä",
         "autoPauseAtSubtitleStart": "Tekstityksen Alussa",
         "autoPausePreference": "Pysäytä asetus",
+        "autoPausePreferenceHelperText": "Ei ota käyttöön automaattista taukoa. Asettaa asetuksen, kun tauko on otettu käyttöön.",
         "seekDuration": "Seek interval (seconds)",
         "speedChangeStep": "Toiston nopeussäädön vaihe",
         "fastForwardModePlaybackRate": "Nopea tilan toistotaajuus",

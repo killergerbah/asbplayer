@@ -313,6 +313,7 @@
         "autoPauseAtSubtitleEnd": "No final da legenda",
         "autoPauseAtSubtitleStart": "No início da legenda",
         "autoPausePreference": "Preferência de pausa automática",
+        "autoPausePreferenceHelperText": "Não habilita a pausa automática. Define a preferência de quando pausar quando a pausa automática estiver habilitada.",
         "seekDuration": "Intervalo de busca (segundos)",
         "speedChangeStep": "Passo de ajuste da velocidade de reprodução",
         "fastForwardModePlaybackRate": "Taxa de reprodução no modo de avanço rápido",

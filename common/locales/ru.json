@@ -313,6 +313,7 @@
         "autoPauseAtSubtitleEnd": "В конце субтитра",
         "autoPauseAtSubtitleStart": "В начале субтитра",
         "autoPausePreference": "Настройки автоматической паузы",
+        "autoPausePreferenceHelperText": "Не включает автоматическую паузу. Определяет предпочтения паузы, когда автоматическая пауза включена.",
         "seekDuration": "Интервал перемотки (в секундах)",
         "speedChangeStep": "Шаг регулировки скорости воспроизведения",
         "fastForwardModePlaybackRate": "Скорость воспроизведения в режиме быстрого воспроизведения",
