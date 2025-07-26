@@ -1060,7 +1060,7 @@ function App({
 
         if (files && files.length > 0) {
             handleFiles({ files });
-            fileInputRef.current.value = '';
+            fileInputRef.current!.value = '';
         }
     }, [handleFiles]);
 

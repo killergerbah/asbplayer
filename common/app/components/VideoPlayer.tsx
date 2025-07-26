@@ -338,8 +338,8 @@ export default function VideoPlayer({
 }: Props) {
     const classes = useStyles();
     const { t } = useTranslation();
-    const poppingInRef = useRef<boolean>();
-    const videoRef = useRef<ExperimentalHTMLVideoElement>();
+    const poppingInRef = useRef<boolean>(undefined);
+    const videoRef = useRef<ExperimentalHTMLVideoElement>(undefined);
     const [windowWidth, windowHeight] = useWindowSize(true);
     if (videoRef.current) {
         videoRef.current.width = windowWidth;
@@ -427,7 +427,7 @@ export default function VideoPlayer({
         };
         return context;
     }, [playerChannel, miscSettings, playMode]);
-    const autoPauseContextRef = useRef<AutoPauseContext>();
+    const autoPauseContextRef = useRef<AutoPauseContext>(undefined);
     autoPauseContextRef.current = autoPauseContext;
 
     const keyBinder = useAppKeyBinder(miscSettings.keyBindSet, extension);
@@ -1474,7 +1474,7 @@ export default function VideoPlayer({
         ms: 500,
     });
 
-    const isPausedDueToHoverRef = useRef<boolean>();
+    const isPausedDueToHoverRef = useRef<boolean>(undefined);
 
     const handleSubtitleMouseOver = useCallback(() => {
         if (miscSettings.pauseOnHoverMode !== PauseOnHoverMode.disabled && videoRef.current?.paused === false) {
