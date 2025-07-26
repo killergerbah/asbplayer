@@ -1,3 +1,4 @@
+import 'core-js/stable/structured-clone'; // fake-indexeddb requires structured clone polyfill
 import 'fake-indexeddb/auto';
 import { IndexedDBCopyHistoryRepository } from './copy-history-repository';
 

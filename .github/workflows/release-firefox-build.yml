@@ -16,7 +16,7 @@ jobs:
                   ref: ${{ inputs.releaseTag }}
             - uses: actions/setup-node@v3
               with:
-                  node-version: 18
+                  node-version: 22
                   cache: 'npm'
             - run: npm install --global yarn
             - run: yarn set version 3.2.0

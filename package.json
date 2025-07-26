@@ -9,11 +9,12 @@
         ]
     },
     "devDependencies": {
-        "@typescript-eslint/parser": "^6.12.0",
-        "eslint": "^8.54.0",
-        "eslint-plugin-react": "^7.33.2",
-        "eslint-plugin-react-hooks": "^4.6.0",
-        "prettier": "^3.4.2"
+        "@typescript-eslint/parser": "^8.38.0",
+        "eslint": "^9.32.0",
+        "eslint-plugin-react": "^7.37.5",
+        "eslint-plugin-react-hooks": "^5.2.0",
+        "prettier": "^3.6.2",
+        "yarn-upgrade-all": "^0.7.5"
     },
     "scripts": {
         "verify": "scripts/loc/loc-keys-match && scripts/loc/loc-codes-in-extension-config && scripts/page-file-references-are-correct && yarn workspace @project/common run test && yarn workspace @project/client run test && yarn workspace @project/extension run test && yarn run eslint common extension/src && yarn run pretty:check",

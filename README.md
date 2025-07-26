@@ -134,7 +134,6 @@ asbplayer's complete user guide is [here](https://docs.asbplayer.dev/docs/intro)
 3. Install the [AnkiConnect](https://ankiweb.net/shared/info/2055492159) plugin for Anki.
 4. [Configure](https://killergerbah.github.io/asbplayer/?view=settings) asbplayer to create cards via AnkiConnect using your deck and note type.
 5. Enhance a video using asbplayer and subtitle files.
-
     - **For streaming video:** After installing the [browser extension](https://github.com/killergerbah/asbplayer/releases/latest), drag-and-drop a subtitle file into the streaming video you want to mine.
     - **For local files:** Drag-and-drop media/subtitle files into the [asbplayer website](https://killergerbah.github.io/asbplayer).
 
@@ -153,22 +152,16 @@ If you've benefited from asbplayer, please consider supporting my work via [Gith
 
 ## Notes for AMO source code reviewers
 
-## Building
-
-Environment:
+### Environment
 
 ```
-node 18.x
+node 22.17.1
 yarn 3.2.0
 ```
 
+### Building
+
 ```
-# Install yarn
-npm install --global yarn
-
-# Make sure you're on yarn 3
-yarn set version 3.2.0
-
 # Install dependencies
 yarn
 
