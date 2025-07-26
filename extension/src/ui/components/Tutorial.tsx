@@ -268,7 +268,7 @@ const Tutorial: React.FC<{ className: string; show: boolean }> = ({ className, s
     }, [step]);
 
     const [playing, setPlaying] = useState<boolean>(false);
-    const videoRef = useRef<HTMLVideoElement | null>();
+    const videoRef = useRef<HTMLVideoElement | null>(undefined);
 
     const handleVideoClick = () => {
         if (playing) {

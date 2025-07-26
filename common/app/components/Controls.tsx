@@ -598,8 +598,8 @@ export default function Controls({
     const lastNumberInputChangeTimestampRef = useRef<number>(Date.now());
     const lastShowRef = useRef<boolean>(true);
     const forceShowRef = useRef<boolean>(false);
-    const offsetInputRef = useRef<HTMLInputElement>();
-    const playbackRateInputRef = useRef<HTMLInputElement>();
+    const offsetInputRef = useRef<HTMLInputElement>(undefined);
+    const playbackRateInputRef = useRef<HTMLInputElement>(undefined);
     const containerRef = useRef<HTMLDivElement>(null);
     const [, updateState] = useState<any>();
     const forceUpdate = useCallback(() => updateState({}), []);
@@ -772,7 +772,7 @@ export default function Controls({
     const handleVolumeMouseOver = useCallback(() => setShowVolumeBar(true), []);
 
     const handleVolumeChange = useCallback(
-        (e: React.ChangeEvent<{}>, value: number | number[]) => {
+        (_: Event, value: number | number[]) => {
             if (typeof value !== 'number') {
                 return;
             }
@@ -784,7 +784,7 @@ export default function Controls({
     );
 
     const handleVolumeChangeCommitted = useCallback(
-        (e: React.ChangeEvent<{}>, value: number | number[]) => {
+        (_: Event | React.SyntheticEvent, value: number | number[]) => {
             if (typeof value !== 'number') {
                 return;
             }

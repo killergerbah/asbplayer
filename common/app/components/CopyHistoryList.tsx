@@ -277,7 +277,7 @@ export default function CopyHistoryList({
     let content;
 
     if (items.length > 0) {
-        const elements: JSX.Element[] = [];
+        const elements: React.JSX.Element[] = [];
         let lastSeenItemName: string | null = null;
         let i = 0;
         const itemNameCounters: { [name: string]: number } = {};

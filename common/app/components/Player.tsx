@@ -169,7 +169,7 @@ const Player = React.memo(function Player({
 }: PlayerProps) {
     const [playMode, setPlayMode] = useState<PlayMode>(PlayMode.normal);
     const [subtitlesSentThroughChannel, setSubtitlesSentThroughChannel] = useState<boolean>();
-    const subtitlesRef = useRef<DisplaySubtitleModel[]>();
+    const subtitlesRef = useRef<DisplaySubtitleModel[]>(undefined);
     subtitlesRef.current = subtitles;
     const subtitleCollection = useMemo<SubtitleCollection<DisplaySubtitleModel>>(
         () =>
@@ -194,12 +194,12 @@ const Player = React.memo(function Player({
     const [selectedAudioTrack, setSelectedAudioTrack] = useState<string>();
     const [channelId, setChannelId] = useState<string>();
     const [channel, setChannel] = useState<VideoChannel>();
-    const channelRef = useRef<VideoChannel>();
+    const channelRef = useRef<VideoChannel>(undefined);
     channelRef.current = channel;
-    const playbackPreferencesRef = useRef<PlaybackPreferences>();
+    const playbackPreferencesRef = useRef<PlaybackPreferences>(undefined);
     playbackPreferencesRef.current = playbackPreferences;
     const [wasPlayingWhenMiningStarted, setWasPlayingWhenMiningStarted] = useState<boolean>();
-    const hideSubtitlePlayerRef = useRef<boolean>();
+    const hideSubtitlePlayerRef = useRef<boolean>(undefined);
     hideSubtitlePlayerRef.current = hideSubtitlePlayer;
     const [disabledSubtitleTracks, setDisabledSubtitleTracks] = useState<{ [track: number]: boolean }>({});
     const mousePositionRef = useRef<Point>({ x: 0, y: 0 });
@@ -208,7 +208,7 @@ const Player = React.memo(function Player({
             return new MediaAdapter({ current: channel });
         }
 
-        return new MediaAdapter({ current: null });
+        return new MediaAdapter({ current: undefined });
     }, [channel, videoFileUrl, tab]);
     const clock = useMemo<Clock>(() => new Clock(), []);
     const appBarHeight = useAppBarHeight();
@@ -266,7 +266,7 @@ const Player = React.memo(function Player({
         context.onWillStopShowing = handleOnWillStopShowingSubtitle;
         return context;
     }, [handleOnStartedShowingSubtitle, handleOnWillStopShowingSubtitle]);
-    const autoPauseContextRef = useRef<AutoPauseContext>();
+    const autoPauseContextRef = useRef<AutoPauseContext>(undefined);
     autoPauseContextRef.current = autoPauseContext;
 
     const updatePlaybackRate = useCallback(

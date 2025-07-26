@@ -106,8 +106,8 @@ const MobileVideoOverlay = React.forwardRef<HTMLDivElement, Props>(function Mobi
     ref
 ) {
     const classes = useStyles({ anchor });
-    const offsetInputRef = useRef<HTMLInputElement>();
-    const playbackInputRef = useRef<HTMLInputElement>();
+    const offsetInputRef = useRef<HTMLInputElement>(undefined);
+    const playbackInputRef = useRef<HTMLInputElement>(undefined);
     const [playModeSelectorOpen, setPlayModeSelectorOpen] = useState<boolean>(false);
     const [playModeSelectorAnchorEl, setPlayModeSelectorAnchorEl] = useState<HTMLElement>();
     const [numberControlType, setNumberControlType] = useState<ControlType>(ControlType.timeDisplay);

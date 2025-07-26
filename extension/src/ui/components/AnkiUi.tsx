@@ -88,7 +88,7 @@ export default function AnkiUi({ bridge }: Props) {
         () => (settings ? new Anki(settings, new BridgeFetcher(bridge)) : undefined),
         [settings, bridge]
     );
-    const dialogStateRef = useRef<AnkiDialogState>();
+    const dialogStateRef = useRef<AnkiDialogState>(undefined);
 
     const savedState = useCallback(() => {
         const dialogState = dialogStateRef.current!;
@@ -247,7 +247,7 @@ export default function AnkiUi({ bridge }: Props) {
         bridge.sendMessageFromServer(message);
     }, [bridge]);
 
-    const lastFocusOutRef = useRef<HTMLElement>();
+    const lastFocusOutRef = useRef<HTMLElement>(undefined);
 
     const handleFocusOut = useCallback((event: FocusEvent) => {
         if (event.target instanceof HTMLElement) {

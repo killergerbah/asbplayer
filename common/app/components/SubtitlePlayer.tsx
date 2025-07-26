@@ -68,7 +68,7 @@ const lineIntersects = (a1: number, b1: number, a2: number, b2: number) => {
 const intersects = (
     startLocation: ScreenLocation,
     endLocation: ScreenLocation,
-    tableRow: React.RefObject<HTMLElement>
+    tableRow: React.RefObject<HTMLElement | null>
 ) => {
     const element = tableRow.current;
 
@@ -216,7 +216,7 @@ interface SubtitleRowProps extends TableRowProps {
     disabled: boolean;
     subtitle: DisplaySubtitleModel;
     showCopyButton: boolean;
-    subtitleRef: RefObject<HTMLTableRowElement>;
+    subtitleRef: RefObject<HTMLTableRowElement | null>;
     onClickSubtitle: (index: number) => void;
     onCopySubtitle: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => void;
 }
@@ -401,9 +401,9 @@ export default function SubtitlePlayer({
     const { t } = useTranslation();
     const clockRef = useRef<Clock>(clock);
     clockRef.current = clock;
-    const subtitleListRef = useRef<DisplaySubtitleModel[]>();
+    const subtitleListRef = useRef<DisplaySubtitleModel[]>(undefined);
     subtitleListRef.current = subtitles;
-    const subtitleRefs = useMemo<RefObject<HTMLTableRowElement>[]>(
+    const subtitleRefs = useMemo<RefObject<HTMLTableRowElement | null>[]>(
         () =>
             subtitles
                 ? Array(subtitles.length)
@@ -416,7 +416,7 @@ export default function SubtitlePlayer({
         SubtitleCollection.empty<DisplaySubtitleModel>()
     );
     subtitleCollectionRef.current = subtitleCollection ?? SubtitleCollection.empty<DisplaySubtitleModel>();
-    const subtitleRefsRef = useRef<RefObject<HTMLTableRowElement>[]>([]);
+    const subtitleRefsRef = useRef<RefObject<HTMLTableRowElement | null>[]>([]);
     subtitleRefsRef.current = subtitleRefs;
     const highlightedSubtitleIndexesRef = useRef<{ [index: number]: boolean }>({});
     const [selectedSubtitleIndexes, setSelectedSubtitleIndexes] = useState<boolean[]>();
@@ -426,15 +426,15 @@ export default function SubtitlePlayer({
     const hiddenRef = useRef<boolean>(false);
     hiddenRef.current = hidden;
     const lastScrollTimestampRef = useRef<number>(0);
-    const requestAnimationRef = useRef<number>();
+    const requestAnimationRef = useRef<number>(undefined);
     const containerRef = useRef<HTMLDivElement>(null);
-    const drawerOpenRef = useRef<boolean>();
+    const drawerOpenRef = useRef<boolean>(undefined);
     drawerOpenRef.current = drawerOpen;
     const appBarHeight = useAppBarHeight();
     const classes = useSubtitlePlayerStyles({ resizable, appBarHidden, appBarHeight });
-    const autoPauseContextRef = useRef<AutoPauseContext>();
+    const autoPauseContextRef = useRef<AutoPauseContext>(undefined);
     autoPauseContextRef.current = autoPauseContext;
-    const onSubtitlesHighlightedRef = useRef<(subtitles: SubtitleModel[]) => void>();
+    const onSubtitlesHighlightedRef = useRef<(subtitles: SubtitleModel[]) => void>(undefined);
     onSubtitlesHighlightedRef.current = onSubtitlesHighlighted;
 
     // Performance optimization: Set highlight style via refs rather than React state to avoid re-renders

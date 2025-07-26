@@ -465,9 +465,9 @@ function KeyBindField({ label, keys, boundViaChrome, onKeysChange, onOpenExtensi
     const { t } = useTranslation();
     const classes = useKeyBindFieldStyles();
     const [currentKeyString, setCurrentKeyString] = useState<string>(keys);
-    const currentKeyStringRef = useRef<string>();
+    const currentKeyStringRef = useRef<string>(undefined);
     currentKeyStringRef.current = currentKeyString;
-    const onKeysChangeRef = useRef<(keys: string) => void>();
+    const onKeysChangeRef = useRef<(keys: string) => void>(undefined);
     onKeysChangeRef.current = onKeysChange;
     const [editing, setEditing] = useState<boolean>(false);
 

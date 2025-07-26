@@ -114,7 +114,7 @@ export default function SettingsProfileSelectMenu({
     const expandedMenuItemStyles = useMenuItemStyles({ collapsed: false });
 
     const [addingNewProfile, setAddingNewProfile] = useState<boolean>(false);
-    const newProfileInput = useRef<HTMLInputElement>();
+    const newProfileInput = useRef<HTMLInputElement>(undefined);
     const [newProfile, setNewProfile] = useState<string>('');
     const trimmed = newProfile.trim();
     const validNewProfile =

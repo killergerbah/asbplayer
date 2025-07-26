@@ -61,7 +61,7 @@ export default function AudioField({
     const classes = useStyles();
     const { t } = useTranslation();
     const [playing, setPlaying] = useState<boolean>(false);
-    let audioActionElement: JSX.Element | undefined = undefined;
+    let audioActionElement: React.JSX.Element | undefined = undefined;
 
     useEffect(() => setPlaying(audioClip.playing), [audioClip]);
     useEffect(() => audioClip.onEvent('play', () => setPlaying(true)), [audioClip]);

@@ -260,7 +260,7 @@ const AnkiDialog = ({
     const [ankiIsAvailable, setAnkiIsAvailable] = useState<boolean>(true);
     const [imageDialogOpen, setImageDialogOpen] = useState<boolean>(false);
     const [image, setImage] = useState<Image>();
-    const dialogRef = useRef<HTMLDivElement>();
+    const dialogRef = useRef<HTMLDivElement>(undefined);
     const dialogRefCallback = useCallback((element: HTMLDivElement) => {
         dialogRef.current = element;
         setWidth(element?.getBoundingClientRect().width ?? 0);
@@ -642,7 +642,7 @@ const AnkiDialog = ({
     const updateLastButtonRef = useRef<HTMLButtonElement | null>(null);
     const openInAnkiButtonRef = useRef<HTMLButtonElement | null>(null);
     const exportButtonRef = useRef<HTMLButtonElement | null>(null);
-    const lastSelectedExportModeRef = useRef<AnkiExportMode>();
+    const lastSelectedExportModeRef = useRef<AnkiExportMode>(undefined);
     lastSelectedExportModeRef.current = lastSelectedExportMode;
     const [focusedAction, setFocusedAction] = useState<AnkiExportMode>();
 
