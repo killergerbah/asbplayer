@@ -72,6 +72,7 @@ export const defaultSettings: AsbplayerSettings = {
     surroundingSubtitlesTimeRadius: 10000,
     autoPausePreference: AutoPausePreference.atEnd,
     subtitleHtml: SubtitleHtml.remove,
+    seekDuration: 3,
     speedChangeStep: 0.1,
     fastForwardModePlaybackRate: 2.7,
     keyBindSet: {

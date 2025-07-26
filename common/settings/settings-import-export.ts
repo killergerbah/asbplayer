@@ -224,6 +224,9 @@ const settingsSchema = {
         subtitleHtml: {
             type: 'number',
         },
+        seekDuration: {
+            type: 'number',
+        },
         speedChangeStep: {
             type: 'number',
         },

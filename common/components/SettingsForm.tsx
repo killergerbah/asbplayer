@@ -7,7 +7,6 @@ import LockIcon from '@mui/icons-material/Lock';
 import Box from '@mui/material/Box';
 import ClearIcon from '@mui/icons-material/Clear';
 import EditIcon from '@mui/icons-material/Edit';
-import InfoIcon from '@mui/icons-material/Info';
 import UndoIcon from '@mui/icons-material/Undo';
 import FormControl from '@mui/material/FormControl';
 import FormGroup from '@mui/material/FormGroup';
@@ -78,6 +77,7 @@ import TutorialBubble from './TutorialBubble';
 import AnkiConnectTutorialBubble from './AnkiConnectTutorialBubble';
 import DeckFieldTutorialBubble from './DeckFieldTutorialBubble';
 import NoteTypeTutorialBubble from './NoteTypeTutorialBubble';
+import KeyBindRelatedSetting from './KeyBindRelatedSetting';
 
 const defaultDeckName = 'Sentences';
 
@@ -430,6 +430,7 @@ interface KeyBindProperties {
     label: string;
     boundViaChrome: boolean;
     hide?: boolean;
+    additionalControl?: React.ReactNode;
 }
 
 // hotkeys only returns strings for a Mac while requiring the OS-specific keys for the actual binds
@@ -836,94 +837,6 @@ export default function SettingsForm({
         [onSettingsChanged]
     );
     const { t } = useTranslation();
-    const keyBindProperties = useMemo<{ [key in AllKeyNames]: KeyBindProperties }>(
-        () => ({
-            copySubtitle: { label: t('binds.copySubtitle')!, boundViaChrome: true },
-            ankiExport: { label: t('binds.ankiExport')!, boundViaChrome: true },
-            updateLastCard: {
-                label: t('binds.updateLastCard')!,
-                boundViaChrome: true,
-            },
-            exportCard: {
-                label: t('binds.exportCard')!,
-                boundViaChrome: true,
-                hide: extensionInstalled && !extensionSupportsExportCardBind,
-            },
-            takeScreenshot: {
-                label: t('binds.takeScreenshot')!,
-                boundViaChrome: true,
-            },
-            toggleRecording: {
-                label: t('binds.extensionToggleRecording')!,
-                boundViaChrome: true,
-            },
-            selectSubtitleTrack: {
-                label: t('binds.extensionSelectSubtitleTrack')!,
-                boundViaChrome: true,
-                hide: !extensionInstalled,
-            },
-            togglePlay: { label: t('binds.togglePlay')!, boundViaChrome: false },
-            toggleAutoPause: { label: t('binds.toggleAutoPause')!, boundViaChrome: false },
-            toggleCondensedPlayback: { label: t('binds.toggleCondensedPlayback')!, boundViaChrome: false },
-            toggleFastForwardPlayback: { label: t('binds.toggleFastForwardPlayback')!, boundViaChrome: false },
-            toggleRepeat: { label: t('binds.toggleRepeat')!, boundViaChrome: false },
-            toggleSubtitles: { label: t('binds.toggleSubtitles')!, boundViaChrome: false },
-            toggleVideoSubtitleTrack1: { label: t('binds.toggleVideoSubtitleTrack1')!, boundViaChrome: false },
-            toggleVideoSubtitleTrack2: { label: t('binds.toggleVideoSubtitleTrack2')!, boundViaChrome: false },
-            toggleVideoSubtitleTrack3: { label: t('binds.toggleVideoSubtitleTrack3')!, boundViaChrome: false },
-            toggleAsbplayerSubtitleTrack1: {
-                label: t('binds.toggleAsbplayerSubtitleTrack1')!,
-                boundViaChrome: false,
-            },
-            toggleAsbplayerSubtitleTrack2: {
-                label: t('binds.toggleAsbplayerSubtitleTrack2')!,
-                boundViaChrome: false,
-            },
-            toggleAsbplayerSubtitleTrack3: {
-                label: t('binds.toggleAsbplayerSubtitleTrack3')!,
-                boundViaChrome: false,
-            },
-            unblurAsbplayerTrack1: {
-                label: t('binds.unblurAsbplayerTrack', { trackNumber: 1 })!,
-                boundViaChrome: false,
-            },
-            unblurAsbplayerTrack2: {
-                label: t('binds.unblurAsbplayerTrack', { trackNumber: 2 })!,
-                boundViaChrome: false,
-            },
-            unblurAsbplayerTrack3: {
-                label: t('binds.unblurAsbplayerTrack', { trackNumber: 3 })!,
-                boundViaChrome: false,
-            },
-            seekBackward: { label: t('binds.seekBackward')!, boundViaChrome: false },
-            seekForward: { label: t('binds.seekForward')!, boundViaChrome: false },
-            seekToPreviousSubtitle: { label: t('binds.seekToPreviousSubtitle')!, boundViaChrome: false },
-            seekToNextSubtitle: { label: t('binds.seekToNextSubtitle')!, boundViaChrome: false },
-            seekToBeginningOfCurrentSubtitle: {
-                label: t('binds.seekToBeginningOfCurrentOrPreviousSubtitle')!,
-                boundViaChrome: false,
-            },
-            adjustOffsetToPreviousSubtitle: {
-                label: t('binds.adjustOffsetToPreviousSubtitle')!,
-                boundViaChrome: false,
-            },
-            adjustOffsetToNextSubtitle: {
-                label: t('binds.adjustOffsetToNextSubtitle')!,
-                boundViaChrome: false,
-            },
-            increaseOffset: { label: t('binds.increaseOffset')!, boundViaChrome: false },
-            decreaseOffset: { label: t('binds.decreaseOffset')!, boundViaChrome: false },
-            resetOffset: { label: t('binds.resetOffset')!, boundViaChrome: false },
-            increasePlaybackRate: { label: t('binds.increasePlaybackRate')!, boundViaChrome: false },
-            decreasePlaybackRate: { label: t('binds.decreasePlaybackRate')!, boundViaChrome: false },
-            toggleSidePanel: {
-                label: t('binds.toggleSidePanel')!,
-                boundViaChrome: false,
-                hide: !extensionInstalled || !extensionSupportsSidePanel,
-            },
-        }),
-        [t, extensionInstalled, extensionSupportsSidePanel, extensionSupportsExportCardBind]
-    );
 
     const {
         ankiConnectUrl,
@@ -951,6 +864,7 @@ export default function SettingsForm({
         surroundingSubtitlesCountRadius,
         surroundingSubtitlesTimeRadius,
         autoPausePreference,
+        seekDuration,
         speedChangeStep,
         fastForwardModePlaybackRate,
         keyBindSet,
@@ -990,6 +904,242 @@ export default function SettingsForm({
         webSocketServerUrl,
         pauseOnHoverMode,
     } = settings;
+
+    const keyBindProperties = useMemo<{ [key in AllKeyNames]: KeyBindProperties }>(
+        () => ({
+            copySubtitle: { label: t('binds.copySubtitle')!, boundViaChrome: true },
+            ankiExport: { label: t('binds.ankiExport')!, boundViaChrome: true },
+            updateLastCard: {
+                label: t('binds.updateLastCard')!,
+                boundViaChrome: true,
+            },
+            exportCard: {
+                label: t('binds.exportCard')!,
+                boundViaChrome: true,
+                hide: extensionInstalled && !extensionSupportsExportCardBind,
+            },
+            takeScreenshot: {
+                label: t('binds.takeScreenshot')!,
+                boundViaChrome: true,
+            },
+            toggleRecording: {
+                label: t('binds.extensionToggleRecording')!,
+                boundViaChrome: true,
+            },
+            selectSubtitleTrack: {
+                label: t('binds.extensionSelectSubtitleTrack')!,
+                boundViaChrome: true,
+                hide: !extensionInstalled,
+            },
+            togglePlay: { label: t('binds.togglePlay')!, boundViaChrome: false },
+            toggleAutoPause: {
+                label: t('binds.toggleAutoPause')!,
+                boundViaChrome: false,
+                additionalControl: (
+                    <KeyBindRelatedSetting
+                        label={t('settings.autoPausePreference')}
+                        control={
+                            <Grid item>
+                                <RadioGroup row>
+                                    <LabelWithHoverEffect
+                                        control={
+                                            <Radio
+                                                checked={autoPausePreference === AutoPausePreference.atStart}
+                                                value={AutoPausePreference.atStart}
+                                                onChange={(event) =>
+                                                    event.target.checked &&
+                                                    handleSettingChanged(
+                                                        'autoPausePreference',
+                                                        AutoPausePreference.atStart
+                                                    )
+                                                }
+                                            />
+                                        }
+                                        label={t('settings.autoPauseAtSubtitleStart')}
+                                    />
+                                    <LabelWithHoverEffect
+                                        control={
+                                            <Radio
+                                                checked={autoPausePreference === AutoPausePreference.atEnd}
+                                                value={AutoPausePreference.atEnd}
+                                                onChange={(event) =>
+                                                    event.target.checked &&
+                                                    handleSettingChanged(
+                                                        'autoPausePreference',
+                                                        AutoPausePreference.atEnd
+                                                    )
+                                                }
+                                            />
+                                        }
+                                        label={t('settings.autoPauseAtSubtitleEnd')}
+                                    />
+                                </RadioGroup>
+                            </Grid>
+                        }
+                    />
+                ),
+            },
+            toggleCondensedPlayback: { label: t('binds.toggleCondensedPlayback')!, boundViaChrome: false },
+            toggleFastForwardPlayback: {
+                label: t('binds.toggleFastForwardPlayback')!,
+                boundViaChrome: false,
+                additionalControl: (
+                    <KeyBindRelatedSetting
+                        label={t('settings.fastForwardModePlaybackRate')}
+                        control={
+                            <TextField
+                                type="number"
+                                fullWidth
+                                value={fastForwardModePlaybackRate}
+                                color="primary"
+                                onChange={(event) =>
+                                    handleSettingChanged('fastForwardModePlaybackRate', Number(event.target.value))
+                                }
+                                slotProps={{
+                                    htmlInput: {
+                                        min: 0.1,
+                                        max: 5,
+                                        step: 0.1,
+                                    },
+                                }}
+                            />
+                        }
+                    />
+                ),
+            },
+            toggleRepeat: { label: t('binds.toggleRepeat')!, boundViaChrome: false },
+            toggleSubtitles: { label: t('binds.toggleSubtitles')!, boundViaChrome: false },
+            toggleVideoSubtitleTrack1: { label: t('binds.toggleVideoSubtitleTrack1')!, boundViaChrome: false },
+            toggleVideoSubtitleTrack2: { label: t('binds.toggleVideoSubtitleTrack2')!, boundViaChrome: false },
+            toggleVideoSubtitleTrack3: { label: t('binds.toggleVideoSubtitleTrack3')!, boundViaChrome: false },
+            toggleAsbplayerSubtitleTrack1: {
+                label: t('binds.toggleAsbplayerSubtitleTrack1')!,
+                boundViaChrome: false,
+            },
+            toggleAsbplayerSubtitleTrack2: {
+                label: t('binds.toggleAsbplayerSubtitleTrack2')!,
+                boundViaChrome: false,
+            },
+            toggleAsbplayerSubtitleTrack3: {
+                label: t('binds.toggleAsbplayerSubtitleTrack3')!,
+                boundViaChrome: false,
+            },
+            unblurAsbplayerTrack1: {
+                label: t('binds.unblurAsbplayerTrack', { trackNumber: 1 })!,
+                boundViaChrome: false,
+            },
+            unblurAsbplayerTrack2: {
+                label: t('binds.unblurAsbplayerTrack', { trackNumber: 2 })!,
+                boundViaChrome: false,
+            },
+            unblurAsbplayerTrack3: {
+                label: t('binds.unblurAsbplayerTrack', { trackNumber: 3 })!,
+                boundViaChrome: false,
+            },
+            seekBackward: { label: t('binds.seekBackward')!, boundViaChrome: false },
+            seekForward: {
+                label: t('binds.seekForward')!,
+                boundViaChrome: false,
+                additionalControl: (
+                    <KeyBindRelatedSetting
+                        label={t('settings.seekDuration')}
+                        control={
+                            <TextField
+                                type="number"
+                                size="small"
+                                fullWidth
+                                value={seekDuration}
+                                color="primary"
+                                onChange={(event) => handleSettingChanged('seekDuration', Number(event.target.value))}
+                                slotProps={{
+                                    htmlInput: {
+                                        min: 1,
+                                        max: 60,
+                                        step: 1,
+                                    },
+                                }}
+                            />
+                        }
+                    />
+                ),
+            },
+            seekToPreviousSubtitle: { label: t('binds.seekToPreviousSubtitle')!, boundViaChrome: false },
+            seekToNextSubtitle: { label: t('binds.seekToNextSubtitle')!, boundViaChrome: false },
+            seekToBeginningOfCurrentSubtitle: {
+                label: t('binds.seekToBeginningOfCurrentOrPreviousSubtitle')!,
+                boundViaChrome: false,
+                additionalControl: (
+                    <KeyBindRelatedSetting
+                        label={t('settings.alwaysPlayOnSubtitleRepeat')}
+                        control={
+                            <Switch
+                                checked={alwaysPlayOnSubtitleRepeat}
+                                onChange={(event) =>
+                                    handleSettingChanged('alwaysPlayOnSubtitleRepeat', event.target.checked)
+                                }
+                            />
+                        }
+                    />
+                ),
+            },
+            adjustOffsetToPreviousSubtitle: {
+                label: t('binds.adjustOffsetToPreviousSubtitle')!,
+                boundViaChrome: false,
+            },
+            adjustOffsetToNextSubtitle: {
+                label: t('binds.adjustOffsetToNextSubtitle')!,
+                boundViaChrome: false,
+            },
+            increaseOffset: { label: t('binds.increaseOffset')!, boundViaChrome: false },
+            decreaseOffset: { label: t('binds.decreaseOffset')!, boundViaChrome: false },
+            resetOffset: { label: t('binds.resetOffset')!, boundViaChrome: false },
+            increasePlaybackRate: { label: t('binds.increasePlaybackRate')!, boundViaChrome: false },
+            decreasePlaybackRate: {
+                label: t('binds.decreasePlaybackRate')!,
+                boundViaChrome: false,
+                additionalControl: (
+                    <KeyBindRelatedSetting
+                        label={t('settings.speedChangeStep')}
+                        control={
+                            <TextField
+                                type="number"
+                                fullWidth
+                                value={speedChangeStep}
+                                color="primary"
+                                onChange={(event) =>
+                                    handleSettingChanged('speedChangeStep', Number(event.target.value))
+                                }
+                                slotProps={{
+                                    htmlInput: {
+                                        min: 0.1,
+                                        max: 1,
+                                        step: 0.1,
+                                    },
+                                }}
+                            />
+                        }
+                    />
+                ),
+            },
+            toggleSidePanel: {
+                label: t('binds.toggleSidePanel')!,
+                boundViaChrome: false,
+                hide: !extensionInstalled || !extensionSupportsSidePanel,
+            },
+        }),
+        [
+            t,
+            extensionInstalled,
+            extensionSupportsSidePanel,
+            extensionSupportsExportCardBind,
+            handleSettingChanged,
+            seekDuration,
+            alwaysPlayOnSubtitleRepeat,
+            autoPausePreference,
+            speedChangeStep,
+            fastForwardModePlaybackRate,
+        ]
+    );
 
     const [selectedSubtitleAppearanceTrack, setSelectedSubtitleAppearanceTrack] = useState<number>();
     const {
@@ -2319,18 +2469,21 @@ export default function SettingsForm({
                         }
 
                         return (
-                            <KeyBindField
-                                key={key}
-                                label={properties.label}
-                                keys={
-                                    extensionInstalled && properties.boundViaChrome
-                                        ? (chromeKeyBinds[keyBindName] ?? '')
-                                        : keyBindSet[keyBindName].keys
-                                }
-                                boundViaChrome={extensionInstalled && properties.boundViaChrome}
-                                onKeysChange={(keys) => handleKeysChange(keys, keyBindName)}
-                                onOpenExtensionShortcuts={onOpenChromeExtensionShortcuts}
-                            />
+                            <div key={key}>
+                                <KeyBindField
+                                    key={key}
+                                    label={properties.label}
+                                    keys={
+                                        extensionInstalled && properties.boundViaChrome
+                                            ? (chromeKeyBinds[keyBindName] ?? '')
+                                            : keyBindSet[keyBindName].keys
+                                    }
+                                    boundViaChrome={extensionInstalled && properties.boundViaChrome}
+                                    onKeysChange={(keys) => handleKeysChange(keys, keyBindName)}
+                                    onOpenExtensionShortcuts={onOpenChromeExtensionShortcuts}
+                                />
+                                {properties.additionalControl}
+                            </div>
                         );
                     })}
                 </FormGroup>
@@ -2573,6 +2726,19 @@ export default function SettingsForm({
                             </RadioGroup>
                         </FormControl>
                         <FormGroup className={classes.formGroup}>
+                            <TextField
+                                select
+                                label={t('settings.language')}
+                                value={language}
+                                color="primary"
+                                onChange={(event) => handleSettingChanged('language', event.target.value)}
+                            >
+                                {supportedLanguages.map((s) => (
+                                    <MenuItem key={s} value={s}>
+                                        {s}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
                             <LabelWithHoverEffect
                                 control={
                                     <Switch
@@ -2596,19 +2762,6 @@ export default function SettingsForm({
                                     />
                                 }
                                 label={t('settings.autoCopy')}
-                                labelPlacement="start"
-                                className={classes.switchLabel}
-                            />
-                            <LabelWithHoverEffect
-                                control={
-                                    <Switch
-                                        checked={alwaysPlayOnSubtitleRepeat}
-                                        onChange={(event) =>
-                                            handleSettingChanged('alwaysPlayOnSubtitleRepeat', event.target.checked)
-                                        }
-                                    />
-                                }
-                                label={t('settings.alwaysPlayOnSubtitleRepeat')}
                                 labelPlacement="start"
                                 className={classes.switchLabel}
                             />
@@ -2684,60 +2837,7 @@ export default function SettingsForm({
                                     />
                                 </RadioGroup>
                             </FormControl>
-                            <TextField
-                                select
-                                label={t('settings.language')}
-                                value={language}
-                                color="primary"
-                                onChange={(event) => handleSettingChanged('language', event.target.value)}
-                            >
-                                {supportedLanguages.map((s) => (
-                                    <MenuItem key={s} value={s}>
-                                        {s}
-                                    </MenuItem>
-                                ))}
-                            </TextField>
                         </FormGroup>
-                    </Grid>
-                    <Grid item>
-                        <Grid container direction="row" spacing={1}>
-                            <Grid item>
-                                <FormLabel>{t('settings.autoPausePreference')}</FormLabel>
-                            </Grid>
-                            <Grid item>
-                                <Tooltip title={t('settings.autoPausePreferenceHelperText')!} placement="top">
-                                    <InfoIcon fontSize="small" />
-                                </Tooltip>
-                            </Grid>
-                        </Grid>
-                        <RadioGroup row>
-                            <LabelWithHoverEffect
-                                control={
-                                    <Radio
-                                        checked={autoPausePreference === AutoPausePreference.atStart}
-                                        value={AutoPausePreference.atStart}
-                                        onChange={(event) =>
-                                            event.target.checked &&
-                                            handleSettingChanged('autoPausePreference', AutoPausePreference.atStart)
-                                        }
-                                    />
-                                }
-                                label={t('settings.autoPauseAtSubtitleStart')}
-                            />
-                            <LabelWithHoverEffect
-                                control={
-                                    <Radio
-                                        checked={autoPausePreference === AutoPausePreference.atEnd}
-                                        value={AutoPausePreference.atEnd}
-                                        onChange={(event) =>
-                                            event.target.checked &&
-                                            handleSettingChanged('autoPausePreference', AutoPausePreference.atEnd)
-                                        }
-                                    />
-                                }
-                                label={t('settings.autoPauseAtSubtitleEnd')}
-                            />
-                        </RadioGroup>
                     </Grid>
                     {(!extensionInstalled || extensionSupportsPauseOnHover) && (
                         <Grid item>
@@ -2785,40 +2885,6 @@ export default function SettingsForm({
                             </RadioGroup>
                         </Grid>
                     )}
-                    <Grid item>
-                        <FormGroup className={classes.formGroup}>
-                            <TextField
-                                type="number"
-                                label={t('settings.speedChangeStep')}
-                                fullWidth
-                                value={speedChangeStep}
-                                color="primary"
-                                onChange={(event) =>
-                                    handleSettingChanged('speedChangeStep', Number(event.target.value))
-                                }
-                                inputProps={{
-                                    min: 0.1,
-                                    max: 1,
-                                    step: 0.1,
-                                }}
-                            />
-                            <TextField
-                                type="number"
-                                label={t('settings.fastForwardModePlaybackRate')}
-                                fullWidth
-                                value={fastForwardModePlaybackRate}
-                                color="primary"
-                                onChange={(event) =>
-                                    handleSettingChanged('fastForwardModePlaybackRate', Number(event.target.value))
-                                }
-                                inputProps={{
-                                    min: 0.1,
-                                    max: 5,
-                                    step: 0.1,
-                                }}
-                            />
-                        </FormGroup>
-                    </Grid>
                     {!isFirefox && (
                         <>
                             <Grid item>

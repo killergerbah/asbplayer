@@ -131,9 +131,9 @@ export default class KeyBindings {
                 event.stopImmediatePropagation();
 
                 if (forward) {
-                    context.seek(Math.min(context.video.duration, context.video.currentTime + 10));
+                    context.seek(Math.min(context.video.duration, context.video.currentTime + context.seekDuration));
                 } else {
-                    context.seek(Math.max(0, context.video.currentTime - 10));
+                    context.seek(Math.max(0, context.video.currentTime - context.seekDuration));
                 }
             },
             () => !context.synced,
