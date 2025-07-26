@@ -16,7 +16,7 @@ import makeStyles from '@mui/styles/makeStyles';
 import Switch from '@mui/material/Switch';
 import LabelWithHoverEffect from '@project/common/components/LabelWithHoverEffect';
 import { ConfirmedVideoDataSubtitleTrack, VideoDataSubtitleTrack, VideoDataUiOpenReason } from '@project/common';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import MiniProfileSelector from '@project/common/components/MiniProfileSelector';
 import type { Profile } from '@project/common/settings';
@@ -101,7 +101,7 @@ export default function VideoDataSyncDialog({
     const { t } = useTranslation();
     const [userSelectedSubtitleTrackIds, setUserSelectedSubtitleTrackIds] = useState(['-', '-', '-']);
     const [name, setName] = useState('');
-    const [shouldRememberTrackChoices, setShouldRememberTrackChoices] = React.useState(false);
+    const [shouldRememberTrackChoices, setShouldRememberTrackChoices] = useState(false);
     const trimmedName = name.trim();
     const classes = createClasses();
 
