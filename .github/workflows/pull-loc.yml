@@ -1,10 +1,10 @@
-name: Push loc
+name: Pull loc
 
 on:
     workflow_dispatch:
 
 jobs:
-    cli:
+    pull-loc:
         runs-on: ubuntu-latest
         permissions:
             contents: write
@@ -28,8 +28,11 @@ jobs:
 
             - name: Create pull request
               uses: peter-evans/create-pull-request@v7
+              with:
+                commit-message: |
+                  Pulled latest loc strings
+                branch: loc-$(date +'%Y-%m-%d-%H-%M-%S')
             - name: Check outputs
               if: ${{ steps.cpr.outputs.pull-request-number }}
               run: |
-                  echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
                   echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
