@@ -108,22 +108,24 @@ export default function WordField({
                 value={text}
                 onChange={(e) => onText(e.target.value)}
                 helperText={wordHelperText}
-                InputProps={{
-                    endAdornment: (
-                        <InputAdornment position="end">
-                            <Tooltip title={t('ankiDialog.searchInAnki')!}>
-                                <span>
-                                    <IconButton
-                                        disabled={disabled || !wordField || !text || text.trim() === ''}
-                                        onClick={() => anki.findNotesWithWordGui(text.trim())}
-                                        edge="end"
-                                    >
-                                        <SearchIcon />
-                                    </IconButton>
-                                </span>
-                            </Tooltip>
-                        </InputAdornment>
-                    ),
+                slotProps={{
+                    input: {
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <Tooltip title={t('ankiDialog.searchInAnki')!}>
+                                    <span>
+                                        <IconButton
+                                            disabled={disabled || !wordField || !text || text.trim() === ''}
+                                            onClick={() => anki.findNotesWithWordGui(text.trim())}
+                                            edge="end"
+                                        >
+                                            <SearchIcon />
+                                        </IconButton>
+                                    </span>
+                                </Tooltip>
+                            </InputAdornment>
+                        ),
+                    },
                 }}
             />
         </TutorialBubble>

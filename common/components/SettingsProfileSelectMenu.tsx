@@ -164,28 +164,32 @@ export default function SettingsProfileSelectMenu({
                     onChange={(e) => {
                         setNewProfile(e.target.value);
                     }}
-                    inputProps={{ maxLength: maxProfileNameLength }}
-                    InputProps={{
-                        endAdornment: (
-                            <InputAdornment position="end">
-                                <IconButton
-                                    onClick={() => {
-                                        setAddingNewProfile(false);
-                                    }}
-                                >
-                                    <ClearIcon fontSize="small" />
-                                </IconButton>
-                                <IconButton
-                                    disabled={!validNewProfile}
-                                    onClick={() => {
-                                        setAddingNewProfile(false);
-                                        onNewProfile(newProfile.trim());
-                                    }}
-                                >
-                                    <CheckIcon fontSize="small" />
-                                </IconButton>
-                            </InputAdornment>
-                        ),
+                    slotProps={{
+                        htmlInput: {
+                            maxLength: maxProfileNameLength,
+                        },
+                        input: {
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        onClick={() => {
+                                            setAddingNewProfile(false);
+                                        }}
+                                    >
+                                        <ClearIcon fontSize="small" />
+                                    </IconButton>
+                                    <IconButton
+                                        disabled={!validNewProfile}
+                                        onClick={() => {
+                                            setAddingNewProfile(false);
+                                            onNewProfile(newProfile.trim());
+                                        }}
+                                    >
+                                        <CheckIcon fontSize="small" />
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                        },
                     }}
                 />
             )}
