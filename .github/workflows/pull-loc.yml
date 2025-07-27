@@ -25,13 +25,14 @@ jobs:
               env:
                   CROWDIN_API_TOKEN: ${{ secrets.CROWDIN_API_TOKEN }}
               run: ./pull
-
+            - name: Create branch name
+              run: echo "LOC_BRANCH=loc-$(date +'%Y-%m-%d-%H-%M-%S')" >> $GITHUB_ENV
             - name: Create pull request
               uses: peter-evans/create-pull-request@v7
               with:
                 commit-message: |
                   Pulled latest loc strings
-                branch: loc-$(date +'%Y-%m-%d-%H-%M-%S')
+                branch: ${{ env.LOC_BRANCH }}
             - name: Check outputs
               if: ${{ steps.cpr.outputs.pull-request-number }}
               run: |
