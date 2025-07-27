@@ -5,6 +5,7 @@ if [ -z $CROWDIN_API_TOKEN ]; then
     exit 1
 fi
 
-crowdin pull -T $CROWDIN_API_TOKEN
+node loc-xliff.js
+crowdin --verbose pull -T $CROWDIN_API_TOKEN
 node xliff-loc.js
 
