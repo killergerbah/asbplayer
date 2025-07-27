@@ -1,0 +1,35 @@
+name: Push loc
+
+on:
+    workflow_dispatch:
+
+jobs:
+    cli:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            pull-requests: write
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Install loc dependencies
+              working-directory: ./scripts/loc
+              run: npm install
+
+            - name: Install Crowdin CLI
+              run: npm i -g @crowdin/cli
+
+            - name: Pull loc
+              working-directory: ./scripts/loc
+              env:
+                  CROWDIN_API_TOKEN: ${{ secrets.CROWDIN_API_TOKEN }}
+              run: ./pull
+
+            - name: Create pull request
+              uses: peter-evans/create-pull-request@v7
+            - name: Check outputs
+              if: ${{ steps.cpr.outputs.pull-request-number }}
+              run: |
+                  echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+                  echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
