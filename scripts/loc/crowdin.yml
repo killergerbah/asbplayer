@@ -19,7 +19,7 @@ files:
                             'pt-BR': 'pt_BR',
                             'ru': 'ru',
                             'zh-CN': 'zh_CN',
-                            'fi-FI': 'fi',
+                            'fi': 'fi',
                             'fr': 'fr',
                             'ko': 'ko',
                         },
