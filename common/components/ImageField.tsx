@@ -82,44 +82,46 @@ export default function ImageField({ image, onViewImage, onCopyImageToClipboard,
                 label={t('ankiDialog.image')}
                 helperText={imageHelperText}
                 disabled={!imageAvailable}
-                InputProps={{
-                    startAdornment: dataUrl && width > 0 && height > 0 && (
-                        <img
-                            src={dataUrl}
-                            width={width * resizeRatio}
-                            height={height * resizeRatio}
-                            className={classes.imagePreview}
-                        />
-                    ),
-                    endAdornment: (
-                        <InputAdornment position="end">
-                            <>
-                                <Tooltip
-                                    disabled={!image.canChangeTimestamp || !imageAvailable}
-                                    title={t('ankiDialog.imagePreview')!}
-                                >
-                                    <span>
-                                        <IconButton disabled={!imageAvailable} onClick={() => {}} edge="end">
-                                            <ImageIcon />
-                                        </IconButton>
-                                    </span>
-                                </Tooltip>
-                                {copyEnabled && (
-                                    <Tooltip disabled={!imageAvailable} title={t('ankiDialog.copyToClipboard')!}>
+                slotProps={{
+                    input: {
+                        startAdornment: dataUrl && width > 0 && height > 0 && (
+                            <img
+                                src={dataUrl}
+                                width={width * resizeRatio}
+                                height={height * resizeRatio}
+                                className={classes.imagePreview}
+                            />
+                        ),
+                        endAdornment: (
+                            <InputAdornment position="end">
+                                <>
+                                    <Tooltip
+                                        disabled={!image.canChangeTimestamp || !imageAvailable}
+                                        title={t('ankiDialog.imagePreview')!}
+                                    >
                                         <span>
-                                            <IconButton
-                                                disabled={!imageAvailable}
-                                                onClick={onCopyImageToClipboard}
-                                                edge="end"
-                                            >
-                                                <FileCopyIcon />
+                                            <IconButton disabled={!imageAvailable} onClick={() => {}} edge="end">
+                                                <ImageIcon />
                                             </IconButton>
                                         </span>
                                     </Tooltip>
-                                )}
-                            </>
-                        </InputAdornment>
-                    ),
+                                    {copyEnabled && (
+                                        <Tooltip disabled={!imageAvailable} title={t('ankiDialog.copyToClipboard')!}>
+                                            <span>
+                                                <IconButton
+                                                    disabled={!imageAvailable}
+                                                    onClick={onCopyImageToClipboard}
+                                                    edge="end"
+                                                >
+                                                    <FileCopyIcon />
+                                                </IconButton>
+                                            </span>
+                                        </Tooltip>
+                                    )}
+                                </>
+                            </InputAdornment>
+                        ),
+                    },
                 }}
             />
         </div>

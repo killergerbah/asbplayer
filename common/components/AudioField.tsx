@@ -112,10 +112,12 @@ export default function AudioField({
                 label={t('ankiDialog.audio')}
                 helperText={audioHelperText}
                 disabled={!audioClipPlayable}
-                InputProps={{
-                    endAdornment: audioActionElement && (
-                        <InputAdornment position="end">{audioActionElement}</InputAdornment>
-                    ),
+                slotProps={{
+                    input: {
+                        endAdornment: audioActionElement && (
+                            <InputAdornment position="end">{audioActionElement}</InputAdornment>
+                        ),
+                    },
                 }}
             />
         </div>

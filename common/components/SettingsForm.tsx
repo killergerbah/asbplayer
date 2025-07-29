@@ -296,29 +296,31 @@ const SelectableSetting = React.forwardRef<HTMLDivElement, SelectableSettingProp
                 error={error}
                 helperText={error ? t('settings.missingFieldError', { field: value }) : ''}
                 color="primary"
-                InputProps={{
-                    endAdornment: (
-                        <InputAdornment style={{ marginRight: -12 }} position="end">
-                            {(removable || onOrderChange) && (
+                slotProps={{
+                    input: {
+                        endAdornment: (
+                            <InputAdornment style={{ marginRight: -12 }} position="end">
+                                {(removable || onOrderChange) && (
+                                    <IconButton
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setOptionsMenuAnchorEl(e.currentTarget);
+                                            setOptionsMenuOpen(true);
+                                        }}
+                                    >
+                                        <MoreVertIcon fontSize="small" />
+                                    </IconButton>
+                                )}
                                 <IconButton
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setOptionsMenuAnchorEl(e.currentTarget);
-                                        setOptionsMenuOpen(true);
-                                    }}
+                                    disabled={!selections}
+                                    onClick={(e) => handleOpenSelectionMenu(e.currentTarget)}
                                 >
-                                    <MoreVertIcon fontSize="small" />
+                                    {selectionMenuOpen && <ArrowDropUpIcon fontSize="small" />}
+                                    {!selectionMenuOpen && <ArrowDropDownIcon fontSize="small" />}
                                 </IconButton>
-                            )}
-                            <IconButton
-                                disabled={!selections}
-                                onClick={(e) => handleOpenSelectionMenu(e.currentTarget)}
-                            >
-                                {selectionMenuOpen && <ArrowDropUpIcon fontSize="small" />}
-                                {!selectionMenuOpen && <ArrowDropDownIcon fontSize="small" />}
-                            </IconButton>
-                        </InputAdornment>
-                    ),
+                            </InputAdornment>
+                        ),
+                    },
                 }}
             >
                 {selections &&
@@ -575,25 +577,27 @@ function KeyBindField({ label, keys, boundViaChrome, onKeysChange, onOpenExtensi
                     helperText={boundViaChrome ? t('settings.extensionShortcut') : undefined}
                     value={currentKeyString}
                     color="primary"
-                    InputProps={{
-                        endAdornment: (
-                            <InputAdornment position="end">
-                                {!firefoxExtensionShortcut && (
-                                    <IconButton ref={ref} onClick={handleEditKeyBinding}>
-                                        <EditIcon fontSize="small" />
-                                    </IconButton>
-                                )}
-                                {firefoxExtensionShortcut && (
-                                    <Tooltip title={t('settings.firefoxExtensionShortcutHelp')!}>
-                                        <span>
-                                            <IconButton disabled={true}>
-                                                <EditIcon fontSize="small" />
-                                            </IconButton>
-                                        </span>
-                                    </Tooltip>
-                                )}
-                            </InputAdornment>
-                        ),
+                    slotProps={{
+                        input: {
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    {!firefoxExtensionShortcut && (
+                                        <IconButton ref={ref} onClick={handleEditKeyBinding}>
+                                            <EditIcon fontSize="small" />
+                                        </IconButton>
+                                    )}
+                                    {firefoxExtensionShortcut && (
+                                        <Tooltip title={t('settings.firefoxExtensionShortcutHelp')!}>
+                                            <span>
+                                                <IconButton disabled={true}>
+                                                    <EditIcon fontSize="small" />
+                                                </IconButton>
+                                            </span>
+                                        </Tooltip>
+                                    )}
+                                </InputAdornment>
+                            ),
+                        },
                     }}
                 />
             </Grid>
@@ -617,20 +621,22 @@ function AddCustomField({ onAddCustomField }: AddCustomFieldProps) {
             value={fieldName}
             color="primary"
             onChange={(e) => setFieldName(e.target.value)}
-            InputProps={{
-                endAdornment: (
-                    <InputAdornment position="end">
-                        <IconButton
-                            disabled={fieldName.trim() === ''}
-                            onClick={() => {
-                                onAddCustomField(fieldName.trim());
-                                setFieldName('');
-                            }}
-                        >
-                            <AddIcon fontSize="small" />
-                        </IconButton>
-                    </InputAdornment>
-                ),
+            slotProps={{
+                input: {
+                    endAdornment: (
+                        <InputAdornment position="end">
+                            <IconButton
+                                disabled={fieldName.trim() === ''}
+                                onClick={() => {
+                                    onAddCustomField(fieldName.trim());
+                                    setFieldName('');
+                                }}
+                            >
+                                <AddIcon fontSize="small" />
+                            </IconButton>
+                        </InputAdornment>
+                    ),
+                },
             }}
         />
     );
@@ -701,14 +707,16 @@ function CustomStyleSetting({ customStyle, onCustomStyle, onDelete }: CustomStyl
             placeholder={t('settings.styleValue')!}
             value={customStyle.value}
             onChange={(e) => onCustomStyle({ key: customStyle.key, value: e.target.value })}
-            InputProps={{
-                endAdornment: (
-                    <InputAdornment position="end">
-                        <IconButton onClick={onDelete}>
-                            <DeleteIcon fontSize="small" />
-                        </IconButton>
-                    </InputAdornment>
-                ),
+            slotProps={{
+                input: {
+                    endAdornment: (
+                        <InputAdornment position="end">
+                            <IconButton onClick={onDelete}>
+                                <DeleteIcon fontSize="small" />
+                            </IconButton>
+                        </InputAdornment>
+                    ),
+                },
             }}
         />
     );
@@ -1563,14 +1571,16 @@ export default function SettingsForm({
                             helperText={ankiConnectUrlError}
                             color="primary"
                             onChange={(event) => handleSettingChanged('ankiConnectUrl', event.target.value)}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton onClick={requestAnkiConnect}>
-                                            <RefreshIcon />
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
+                            slotProps={{
+                                input: {
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton onClick={requestAnkiConnect}>
+                                                <RefreshIcon />
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                },
                             }}
                         />
                     </AnkiConnectTutorialBubble>
@@ -1947,12 +1957,14 @@ export default function SettingsForm({
                         value={audioPaddingStart}
                         color="primary"
                         onChange={(event) => handleSettingChanged('audioPaddingStart', Number(event.target.value))}
-                        inputProps={{
-                            min: 0,
-                            step: 1,
-                        }}
-                        InputProps={{
-                            endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                        slotProps={{
+                            htmlInput: {
+                                min: 0,
+                                step: 1,
+                            },
+                            input: {
+                                endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                            },
                         }}
                     />
                     <TextField
@@ -1962,12 +1974,14 @@ export default function SettingsForm({
                         value={audioPaddingEnd}
                         color="primary"
                         onChange={(event) => handleSettingChanged('audioPaddingEnd', Number(event.target.value))}
-                        inputProps={{
-                            min: 0,
-                            step: 1,
-                        }}
-                        InputProps={{
-                            endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                        slotProps={{
+                            htmlInput: {
+                                step: 1,
+                                min: 0,
+                            },
+                            input: {
+                                endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                            },
                         }}
                     />
                     <TextField
@@ -1977,9 +1991,11 @@ export default function SettingsForm({
                         value={maxImageWidth}
                         color="primary"
                         onChange={(event) => handleSettingChanged('maxImageWidth', Number(event.target.value))}
-                        inputProps={{
-                            min: 0,
-                            step: 1,
+                        slotProps={{
+                            htmlInput: {
+                                min: 0,
+                                step: 1,
+                            },
                         }}
                     />
                     <TextField
@@ -1989,9 +2005,11 @@ export default function SettingsForm({
                         value={maxImageHeight}
                         color="primary"
                         onChange={(event) => handleSettingChanged('maxImageHeight', Number(event.target.value))}
-                        inputProps={{
-                            min: 0,
-                            step: 1,
+                        slotProps={{
+                            htmlInput: {
+                                min: 0,
+                                step: 1,
+                            },
                         }}
                     />
                     <TextField
@@ -2003,9 +2021,11 @@ export default function SettingsForm({
                         onChange={(event) =>
                             handleSettingChanged('surroundingSubtitlesCountRadius', Number(event.target.value))
                         }
-                        inputProps={{
-                            min: 1,
-                            step: 1,
+                        slotProps={{
+                            htmlInput: {
+                                min: 1,
+                                step: 1,
+                            },
                         }}
                     />
                     <TextField
@@ -2017,12 +2037,14 @@ export default function SettingsForm({
                         onChange={(event) =>
                             handleSettingChanged('surroundingSubtitlesTimeRadius', Number(event.target.value))
                         }
-                        inputProps={{
-                            min: 0,
-                            step: 1,
-                        }}
-                        InputProps={{
-                            endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                        slotProps={{
+                            htmlInput: {
+                                min: 0,
+                                step: 1,
+                            },
+                            input: {
+                                endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                            },
                         }}
                     />
                 </FormGroup>
@@ -2084,9 +2106,11 @@ export default function SettingsForm({
                                     onChange={(event) =>
                                         handleSubtitleTextSettingChanged('subtitleSize', Number(event.target.value))
                                     }
-                                    inputProps={{
-                                        min: 1,
-                                        step: 1,
+                                    slotProps={{
+                                        htmlInput: {
+                                            min: 1,
+                                            step: 1,
+                                        },
                                     }}
                                 />
                             </div>
@@ -2138,9 +2162,11 @@ export default function SettingsForm({
                                             Number(event.target.value)
                                         )
                                     }
-                                    inputProps={{
-                                        min: 0,
-                                        step: 0.1,
+                                    slotProps={{
+                                        htmlInput: {
+                                            min: 0,
+                                            step: 0.1,
+                                        },
                                     }}
                                     color="primary"
                                 />
@@ -2173,9 +2199,11 @@ export default function SettingsForm({
                                             Number(event.target.value)
                                         )
                                     }
-                                    inputProps={{
-                                        min: 0,
-                                        step: 0.1,
+                                    slotProps={{
+                                        htmlInput: {
+                                            min: 0,
+                                            step: 0.1,
+                                        },
                                     }}
                                     color="primary"
                                 />
@@ -2201,10 +2229,12 @@ export default function SettingsForm({
                                     type="number"
                                     label={t('settings.subtitleBackgroundOpacity')}
                                     fullWidth
-                                    inputProps={{
-                                        min: 0,
-                                        max: 1,
-                                        step: 0.1,
+                                    slotProps={{
+                                        htmlInput: {
+                                            min: 0,
+                                            max: 1,
+                                            step: 0.1,
+                                        },
                                     }}
                                     value={subtitleBackgroundOpacity}
                                     color="primary"
@@ -2229,17 +2259,19 @@ export default function SettingsForm({
                                     onChange={(event) =>
                                         handleSubtitleTextSettingChanged('subtitleFontFamily', event.target.value)
                                     }
-                                    InputProps={{
-                                        endAdornment:
-                                            localFontFamilies.length === 0 &&
-                                            localFontsAvailable &&
-                                            localFontsPermission === 'prompt' ? (
-                                                <Tooltip title={t('settings.unlockLocalFonts')!}>
-                                                    <IconButton onClick={onUnlockLocalFonts}>
-                                                        <LockIcon fontSize="small" />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            ) : null,
+                                    slotProps={{
+                                        input: {
+                                            endAdornment:
+                                                localFontFamilies.length === 0 &&
+                                                localFontsAvailable &&
+                                                localFontsPermission === 'prompt' ? (
+                                                    <Tooltip title={t('settings.unlockLocalFonts')!}>
+                                                        <IconButton onClick={onUnlockLocalFonts}>
+                                                            <LockIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                ) : null,
+                                        },
                                     }}
                                 >
                                     {localFontFamilies.length > 0
@@ -2352,9 +2384,11 @@ export default function SettingsForm({
                                         fullWidth
                                         label={t('settings.subtitlePositionOffset')}
                                         value={subtitlePositionOffset}
-                                        inputProps={{
-                                            min: 0,
-                                            step: 1,
+                                        slotProps={{
+                                            htmlInput: {
+                                                min: 0,
+                                                step: 1,
+                                            },
                                         }}
                                         onChange={(e) =>
                                             handleSettingChanged('subtitlePositionOffset', Number(e.target.value))
@@ -2369,9 +2403,11 @@ export default function SettingsForm({
                                         fullWidth
                                         label={t('settings.topSubtitlePositionOffset')}
                                         value={topSubtitlePositionOffset}
-                                        inputProps={{
-                                            min: 0,
-                                            step: 1,
+                                        slotProps={{
+                                            htmlInput: {
+                                                min: 0,
+                                                step: 1,
+                                            },
                                         }}
                                         onChange={(e) =>
                                             handleSettingChanged('topSubtitlePositionOffset', Number(e.target.value))
@@ -2398,36 +2434,41 @@ export default function SettingsForm({
                                                     handleSettingChanged('subtitlesWidth', numberValue);
                                                 }
                                             }}
-                                            InputProps={{
-                                                endAdornment: (
-                                                    <>
-                                                        {subtitlesWidth === -1 && (
-                                                            <InputAdornment position="end">
-                                                                <IconButton
-                                                                    onClick={() =>
-                                                                        handleSettingChanged('subtitlesWidth', 100)
-                                                                    }
-                                                                >
-                                                                    <EditIcon />
-                                                                </IconButton>
-                                                            </InputAdornment>
-                                                        )}
-                                                        {subtitlesWidth !== -1 && (
-                                                            <>
-                                                                <InputAdornment position="end">%</InputAdornment>
+                                            slotProps={{
+                                                input: {
+                                                    endAdornment: (
+                                                        <>
+                                                            {subtitlesWidth === -1 && (
                                                                 <InputAdornment position="end">
                                                                     <IconButton
                                                                         onClick={() =>
-                                                                            handleSettingChanged('subtitlesWidth', -1)
+                                                                            handleSettingChanged('subtitlesWidth', 100)
                                                                         }
                                                                     >
-                                                                        <ClearIcon />
+                                                                        <EditIcon />
                                                                     </IconButton>
                                                                 </InputAdornment>
-                                                            </>
-                                                        )}
-                                                    </>
-                                                ),
+                                                            )}
+                                                            {subtitlesWidth !== -1 && (
+                                                                <>
+                                                                    <InputAdornment position="end">%</InputAdornment>
+                                                                    <InputAdornment position="end">
+                                                                        <IconButton
+                                                                            onClick={() =>
+                                                                                handleSettingChanged(
+                                                                                    'subtitlesWidth',
+                                                                                    -1
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <ClearIcon />
+                                                                        </IconButton>
+                                                                    </InputAdornment>
+                                                                </>
+                                                            )}
+                                                        </>
+                                                    ),
+                                                },
                                             }}
                                         />
                                     </div>
@@ -2438,10 +2479,12 @@ export default function SettingsForm({
                                         label={t('settings.imageBasedSubtitleScaleFactor')}
                                         placeholder="Inherited"
                                         fullWidth
-                                        inputProps={{
-                                            min: 0,
-                                            max: 1,
-                                            step: 0.1,
+                                        slotProps={{
+                                            htmlInput: {
+                                                min: 0,
+                                                max: 1,
+                                                step: 0.1,
+                                            },
                                         }}
                                         value={imageBasedSubtitleScaleFactor}
                                         color="primary"
@@ -2601,12 +2644,14 @@ export default function SettingsForm({
                                 onChange={(e) =>
                                     handleSettingChanged('streamingScreenshotDelay', Number(e.target.value))
                                 }
-                                inputProps={{
-                                    min: 0,
-                                    step: 1,
-                                }}
-                                InputProps={{
-                                    endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                                slotProps={{
+                                    htmlInput: {
+                                        min: 0,
+                                        step: 1,
+                                    },
+                                    input: {
+                                        endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                                    },
                                 }}
                             />
                         </FormGroup>
@@ -2667,12 +2712,14 @@ export default function SettingsForm({
                                         Number(e.target.value)
                                     )
                                 }
-                                inputProps={{
-                                    min: 0,
-                                    step: 1,
-                                }}
-                                InputProps={{
-                                    endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                                slotProps={{
+                                    htmlInput: {
+                                        min: 0,
+                                        step: 1,
+                                    },
+                                    input: {
+                                        endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                                    },
                                 }}
                             />
                         </FormGroup>
@@ -2774,9 +2821,11 @@ export default function SettingsForm({
                                 onChange={(event) =>
                                     handleSettingChanged('miningHistoryStorageLimit', Number(event.target.value))
                                 }
-                                inputProps={{
-                                    min: 0,
-                                    step: 1,
+                                slotProps={{
+                                    htmlInput: {
+                                        min: 0,
+                                        step: 1,
+                                    },
                                 }}
                             />
                             {insideApp && (
@@ -2913,14 +2962,16 @@ export default function SettingsForm({
                                     onChange={(e) => handleSettingChanged('webSocketServerUrl', e.target.value)}
                                     error={webSocketClientEnabled && webSocketConnectionSucceeded === false}
                                     helperText={webSocketServerUrlHelperText}
-                                    InputProps={{
-                                        endAdornment: (
-                                            <InputAdornment position="end">
-                                                <IconButton onClick={pingWebSocketServer}>
-                                                    <RefreshIcon />
-                                                </IconButton>
-                                            </InputAdornment>
-                                        ),
+                                    slotProps={{
+                                        input: {
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <IconButton onClick={pingWebSocketServer}>
+                                                        <RefreshIcon />
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            ),
+                                        },
                                     }}
                                 />
                             </Grid>
