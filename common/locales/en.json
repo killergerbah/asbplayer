@@ -232,7 +232,7 @@
         "overlayScroll": "<0>Scroll</0> the rightmost control to switch between <1>subtitle navigation</1>, <2>subtitle offset</2>, and <3>playback rate</3> controls.",
         "overlay": "Use the <0>Video Overlay</0> to <1>mine</1> and <2>toggle</2> subtitles, <3>switch playback modes</3>, and more.",
         "congrats": "That's it for the basics! Feel free to play around on this page.",
-        "loadSubtitles": "The first step to using asbplayer is always to load subtitles onto a video. Use the <0>Side Panel</0> to load subtitles onto the video on this page.<1/> Hint: The <2>Side Panel</2> can be accessed through the <3>Popup</3>.",
+        "loadSubtitles": "The first step to using asbplayer is always to load subtitles onto a video. Use the <0>Side Panel</0> to load subtitles onto the video on this page.<1/>Hint: The <2>Side Panel</2> can be accessed through the <3>Popup</3>.",
         "loadSubtitlesFirefox": "The first step to using asbplayer is always to load subtitles onto a video. <0>Right-click</0> on the video and find the asbplayer <1>context menu</1> to load subtitles.",
         "loadSubtitlesMobile": "The first step to using asbplayer is always to load subtitles onto a video. Open the track selector by selecting <0>asbplayer</0> in the <1>extensions</1> menu.",
         "ankiConnect": "<0>AnkiConnect</0> allows asbplayer to connect to <1>Anki</1>.",
