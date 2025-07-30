@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ -z "$CROWDIN_API_TOKEN" ]; then
+    echo "CROWDIN_API_TOKEN not defined"
+    exit 1
+fi
+
+if [ -z "$1" ]; then
+    echo "usage: $0 <language>"
+    exit 1
+fi
+
+LANGUAGE="$1"
+
+node loc-xliff.js
+crowdin --verbose push translations -l "$LANGUAGE" -T "$CROWDIN_API_TOKEN"
+
