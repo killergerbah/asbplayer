@@ -237,6 +237,10 @@ export interface KeyBindSet {
     readonly increasePlaybackRate: KeyBind;
     readonly toggleSidePanel: KeyBind;
     readonly toggleRepeat: KeyBind;
+    readonly increaseSubtitlePositionOffset: KeyBind;
+    readonly decreaseSubtitlePositionOffset: KeyBind;
+    readonly increaseTopSubtitlePositionOffset: KeyBind;
+    readonly decreaseTopSubtitlePositionOffset: KeyBind;
 
     // Bound from Chrome if extension is installed
     readonly copySubtitle: KeyBind;
@@ -278,7 +282,7 @@ export interface StreamingVideoSettings {
     readonly streamingEnableOverlay: boolean;
 }
 
-export type KeyBindName = keyof KeyBindSet;
+export type KeyBindName = keyof KeyBindSet; 
 
 export interface AsbplayerSettings
     extends MiscSettings,

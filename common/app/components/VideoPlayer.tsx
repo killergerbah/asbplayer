@@ -890,7 +890,26 @@ export default function VideoPlayer({
             () => false
         );
     }, [keyBinder]);
+    
+    useEffect(() => {
+        return keyBinder.bindAdjustSubtitlePositionOffset(
+            (event, increase) => {
+                let newSubtitleSettings = { ...subtitleSettings };
+                
+                event.preventDefault();
+                if (increase) {
+                    newSubtitleSettings.subtitlePositionOffset = subtitleSettings.subtitlePositionOffset + 20;
+                } else {
+                    newSubtitleSettings.subtitlePositionOffset = subtitleSettings.subtitlePositionOffset - 20;  
+                }
 
+                onSettingsChanged(newSubtitleSettings);
+                setSubtitleSettings(newSubtitleSettings);
+            },
+            () => false
+        );
+    }, [keyBinder]);
+    
     useEffect(() => {
         return keyBinder.bindToggleSubtitleTrackInList(
             (event, track) => {

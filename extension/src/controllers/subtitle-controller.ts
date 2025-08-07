@@ -141,6 +141,10 @@ export default class SubtitleController {
         }
     }
 
+    get bottomSubtitlePositionOffset(): number {
+        return this.bottomSubtitlesElementOverlay.contentPositionOffset;
+    }
+
     set bottomSubtitlePositionOffset(value: number) {
         this.bottomSubtitlesElementOverlay.contentPositionOffset = value;
     }
