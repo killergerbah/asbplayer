@@ -30,7 +30,7 @@ export default class KeyBindings {
     private _unbindAdjustPlaybackRate?: Unbinder = false;
     private _unbindToggleRepeat: Unbinder = false;
     private _unbindAdjustSubtitlePositionOffset: Unbinder = false;
-    
+
     private _bound: boolean;
 
     constructor() {
@@ -262,7 +262,7 @@ export default class KeyBindings {
             () => !context.synced,
             true
         );
-        
+
         this._unbindAdjustSubtitlePositionOffset = this._keyBinder.bindAdjustSubtitlePositionOffset(
             (event, increase) => {
                 event.preventDefault();
@@ -270,9 +270,9 @@ export default class KeyBindings {
 
                 const currentOffset = context.subtitleController.bottomSubtitlePositionOffset;
                 const newOffset = currentOffset + (increase ? 20 : -20);
-                
+
                 context.subtitleController.bottomSubtitlePositionOffset = newOffset;
-                context.settings.set({ 'subtitlePositionOffset': newOffset });
+                context.settings.set({ subtitlePositionOffset: newOffset });
             },
             () => context.subtitleController.subtitles.length === 0,
             true
@@ -361,7 +361,6 @@ export default class KeyBindings {
             this._unbindAdjustPlaybackRate();
             this._unbindAdjustPlaybackRate = false;
         }
-
 
         if (this._unbindAdjustSubtitlePositionOffset) {
             this._unbindAdjustSubtitlePositionOffset();

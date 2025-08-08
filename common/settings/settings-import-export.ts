@@ -270,6 +270,10 @@ const settingsSchema = {
                 increasePlaybackRate: { $ref: '/KeyBind' },
                 toggleSidePanel: { $ref: '/KeyBind' },
                 toggleRepeat: { $ref: '/KeyBind' },
+                increaseSubtitlePositionOffset: { $ref: '/KeyBind' },
+                decreaseSubtitlePositionOffset: { $ref: '/KeyBind' },
+                increaseTopSubtitlePositionOffset: { $ref: '/KeyBind' },
+                decreaseTopSubtitlePositionOffset: { $ref: '/KeyBind' },
             },
         },
         recordWithAudioPlayback: {

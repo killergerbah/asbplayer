@@ -331,7 +331,11 @@ export default class AppKeyBinder implements KeyBinder {
         disabledGetter: () => boolean,
         useCapture?: boolean | undefined
     ): () => void {
-        return this.defaultKeyBinder.bindAdjustSubtitlePositionOffset(onAdjustSubtitlePositionOffset, disabledGetter, useCapture);
+        return this.defaultKeyBinder.bindAdjustSubtitlePositionOffset(
+            onAdjustSubtitlePositionOffset,
+            disabledGetter,
+            useCapture
+        );
     }
 
     unsubscribeExtension() {

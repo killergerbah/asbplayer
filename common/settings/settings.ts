@@ -282,7 +282,7 @@ export interface StreamingVideoSettings {
     readonly streamingEnableOverlay: boolean;
 }
 
-export type KeyBindName = keyof KeyBindSet; 
+export type KeyBindName = keyof KeyBindSet;
 
 export interface AsbplayerSettings
     extends MiscSettings,

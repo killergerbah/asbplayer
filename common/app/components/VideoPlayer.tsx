@@ -890,17 +890,17 @@ export default function VideoPlayer({
             () => false
         );
     }, [keyBinder]);
-    
+
     useEffect(() => {
         return keyBinder.bindAdjustSubtitlePositionOffset(
             (event, increase) => {
                 let newSubtitleSettings = { ...subtitleSettings };
-                
+
                 event.preventDefault();
                 if (increase) {
                     newSubtitleSettings.subtitlePositionOffset = subtitleSettings.subtitlePositionOffset + 20;
                 } else {
-                    newSubtitleSettings.subtitlePositionOffset = subtitleSettings.subtitlePositionOffset - 20;  
+                    newSubtitleSettings.subtitlePositionOffset = subtitleSettings.subtitlePositionOffset - 20;
                 }
 
                 onSettingsChanged(newSubtitleSettings);
@@ -908,8 +908,8 @@ export default function VideoPlayer({
             },
             () => false
         );
-    }, [keyBinder]);
-    
+    }, [keyBinder, subtitleSettings, onSettingsChanged]);
+
     useEffect(() => {
         return keyBinder.bindToggleSubtitleTrackInList(
             (event, track) => {

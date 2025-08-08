@@ -594,7 +594,7 @@ export class DefaultKeyBinder implements KeyBinder {
 
             onAdjustPlaybackRate(event, increase);
             return true;
-        };        
+        };
         const increaseShortcut = this.keyBindSet.increasePlaybackRate.keys;
         const decreaseShortcut = this.keyBindSet.decreasePlaybackRate.keys;
         const decreaseHandler = (event: KeyboardEvent) => delegate(event, false);
@@ -632,13 +632,12 @@ export class DefaultKeyBinder implements KeyBinder {
 
         const increaseShortcut = this.keyBindSet.increaseSubtitlePositionOffset.keys;
         const decreaseShortcut = this.keyBindSet.decreaseSubtitlePositionOffset.keys;
-        
+
         const decreaseHandler = (event: KeyboardEvent) => delegate(event, false);
         const increaseHandler = (event: KeyboardEvent) => delegate(event, true);
 
         const unbindDecrease = decreaseShortcut ? this._bind(decreaseShortcut, capture, decreaseHandler) : () => {};
         const unbindIncrease = increaseShortcut ? this._bind(increaseShortcut, capture, increaseHandler) : () => {};
-        
 
         return () => {
             unbindDecrease();
