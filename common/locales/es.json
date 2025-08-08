@@ -139,10 +139,10 @@
         "exportCard": "Export card to Anki, bypassing dialog.",
         "toggleSidePanel": "Abrir/Cerrar Panel Lateral",
         "toggleRepeat": "Activar/Desactivar modo de repetición",
-        "increaseSubtitlePositionOffset": "Adjust subtitle offset from bottom by +20px",
-        "decreaseSubtitlePositionOffset": "Adjust subtitle offset from bottom by -20px",
-        "increaseTopSubtitlePositionOffset": "Adjust subtitle offset from top by +20px",
-        "decreaseTopSubtitlePositionOffset": "Adjust subtitle offset from top by -20px"
+        "increaseSubtitlePositionOffset": "Adjust subtitle position offset from bottom by +20px",
+        "decreaseSubtitlePositionOffset": "Adjust subtitle position offset from bottom by -20px",
+        "increaseTopSubtitlePositionOffset": "Adjust subtitle position offset from top by +20px",
+        "decreaseTopSubtitlePositionOffset": "Adjust subtitle position offset from top by -20px"
     },
     "controls": {
         "autoPauseMode": "Pausado Automático",

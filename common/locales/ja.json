@@ -139,10 +139,10 @@
         "exportCard": "直接カードをAnkiにエクスポート。",
         "toggleSidePanel": "サイドパネルを開く/閉じる",
         "toggleRepeat": "リピートプレイバックオン/オフ",
-        "increaseSubtitlePositionOffset": "Adjust subtitle offset from bottom by +20px",
-        "decreaseSubtitlePositionOffset": "Adjust subtitle offset from bottom by -20px",
-        "increaseTopSubtitlePositionOffset": "Adjust subtitle offset from top by +20px",
-        "decreaseTopSubtitlePositionOffset": "Adjust subtitle offset from top by -20px"
+        "increaseSubtitlePositionOffset": "Adjust subtitle position offset from bottom by +20px",
+        "decreaseSubtitlePositionOffset": "Adjust subtitle position offset from bottom by -20px",
+        "increaseTopSubtitlePositionOffset": "Adjust subtitle position offset from top by +20px",
+        "decreaseTopSubtitlePositionOffset": "Adjust subtitle position offset from top by -20px"
     },
     "controls": {
         "autoPauseMode": "自動一時停止",
