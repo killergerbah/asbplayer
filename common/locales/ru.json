@@ -138,7 +138,11 @@
         "updateLastCard": "Обновить последнюю созданную Anki карточку, добавив туда смайненную asbplayer'ом информацию.",
         "exportCard": "Экспортировать карточку в Anki, не показывая диалоговое окно.",
         "toggleSidePanel": "Показать/скрыть боковую панель",
-        "toggleRepeat": "Переключить режим повтора"
+        "toggleRepeat": "Переключить режим повтора",
+        "increaseSubtitlePositionOffset": "Adjust subtitle offset from bottom by +20px",
+        "decreaseSubtitlePositionOffset": "Adjust subtitle offset from bottom by -20px",
+        "increaseTopSubtitlePositionOffset": "Adjust subtitle offset from top by +20px",
+        "decreaseTopSubtitlePositionOffset": "Adjust subtitle offset from top by -20px"
     },
     "controls": {
         "autoPauseMode": "Режим с автоматической паузой",

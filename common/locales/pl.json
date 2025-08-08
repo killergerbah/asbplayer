@@ -138,7 +138,11 @@
         "updateLastCard": "Zaktualizuj ostatnio zapisaną kartę Anki o zrzuty ekranu",
         "exportCard": "Export card to Anki, bypassing dialog.",
         "toggleSidePanel": "Przełącz panel boczny",
-        "toggleRepeat": "Przełącz tryb zapętlenia"
+        "toggleRepeat": "Przełącz tryb zapętlenia",
+        "increaseSubtitlePositionOffset": "Adjust subtitle offset from bottom by +20px",
+        "decreaseSubtitlePositionOffset": "Adjust subtitle offset from bottom by -20px",
+        "increaseTopSubtitlePositionOffset": "Adjust subtitle offset from top by +20px",
+        "decreaseTopSubtitlePositionOffset": "Adjust subtitle offset from top by -20px"
     },
     "controls": {
         "autoPauseMode": "Automatyczna pauza",

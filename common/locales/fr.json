@@ -138,7 +138,11 @@
         "updateLastCard": "Mettre à jour la dernière carte Anki créée avec la capture d’écran, l’audio, etc., capturés par asbplayer",
         "exportCard": "Exporter la carte vers Anki sans passer par la boîte de dialogue.",
         "toggleSidePanel": "Activer/désactiver le panneau latéral",
-        "toggleRepeat": "Activer/désactiver le mode répétition"
+        "toggleRepeat": "Activer/désactiver le mode répétition",
+        "increaseSubtitlePositionOffset": "Adjust subtitle offset from bottom by +20px",
+        "decreaseSubtitlePositionOffset": "Adjust subtitle offset from bottom by -20px",
+        "increaseTopSubtitlePositionOffset": "Adjust subtitle offset from top by +20px",
+        "decreaseTopSubtitlePositionOffset": "Adjust subtitle offset from top by -20px"
     },
     "controls": {
         "autoPauseMode": "Pause automatique",
