@@ -1,0 +1,32 @@
+{
+    "extensionDescription": {
+        "message": "Tingkatkan pengalaman menonton video streaming untuk belajar bahasa."
+    },
+    "shortcutMineSubtitleDescription": {
+        "message": "Menambang takarir saat ini. Jika video disinkronkan tanpa berkas takarir, mulai/hentikan perekaman audio."
+    },
+    "shortcutMineSubtitleAndOpenDialogDescription": {
+        "message": "Menambang takarir saat ini dan buka dialog ekspor Anki. Jika video disinkronkan tanpa berkas takarir, mulai/hentikan perekaman audio."
+    },
+    "shortcutUpdateLastCardDescription": {
+        "message": "Perbarui kartu Anki terakhir yang dibuat dengan media yang diambil oleh asbplayer. Jika video disinkronkan tanpa berkas takarir, mulai/hentikan perekaman audio."
+    },
+    "shortcutExportCardDescription": {
+        "message": "Ekspor kartu langsung ke Anki tanpa membuka dialog."
+    },
+    "shortcutTakeScreenshotDescription": {
+        "message": "Ambil tangkapan layar secara manual menggantikan tangkapan otomatis saat menambang."
+    },
+    "shortcutToggleRecordingDescription": {
+        "message": "Mulai/hentikan perekaman audio secara manual, bahkan saat takarir telah dimuat."
+    },
+    "shortcutSelectSubtitleTrackDescription": {
+        "message": "Pilih trek takarir yang ingin dimuat."
+    },
+    "contextMenuMineSubtitle": {
+        "message": "Tambang Takarir"
+    },
+    "contextMenuLoadSubtitles": {
+        "message": "Muat Takarir"
+    }
+}
