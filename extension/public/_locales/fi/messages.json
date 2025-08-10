@@ -25,5 +25,8 @@
     },
     "contextMenuLoadSubtitles": {
         "message": "Avaa tekstitys"
+    },
+    "shortcutExportCardDescription": {
+        "message": "Vie kortti suoraan Ankiin, ohittaen dialogin."
     }
 }
