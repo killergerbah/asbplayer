@@ -635,8 +635,8 @@ export class DefaultKeyBinder implements KeyBinder {
             return true;
         };
 
-        const increaseShortcut = this.keyBindSet.increaseSubtitlePositionOffset.keys;
-        const decreaseShortcut = this.keyBindSet.decreaseSubtitlePositionOffset.keys;
+        const increaseShortcut = this.keyBindSet.moveBottomSubtitlesUp.keys;
+        const decreaseShortcut = this.keyBindSet.moveBottomSubtitlesDown.keys;
 
         const decreaseHandler = (event: KeyboardEvent) => delegate(event, false);
         const increaseHandler = (event: KeyboardEvent) => delegate(event, true);
@@ -664,8 +664,8 @@ export class DefaultKeyBinder implements KeyBinder {
             return true;
         };
 
-        const increaseShortcut = this.keyBindSet.increaseTopSubtitlePositionOffset.keys;
-        const decreaseShortcut = this.keyBindSet.decreaseTopSubtitlePositionOffset.keys;
+        const increaseShortcut = this.keyBindSet.moveTopSubtitlesDown.keys;
+        const decreaseShortcut = this.keyBindSet.moveTopSubtitlesUp.keys;
 
         const decreaseHandler = (event: KeyboardEvent) => delegate(event, false);
         const increaseHandler = (event: KeyboardEvent) => delegate(event, true);

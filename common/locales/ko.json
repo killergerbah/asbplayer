@@ -139,10 +139,10 @@
         "exportCard": "Anki로 바로 내보내기 (대화 상자 생략)",
         "toggleSidePanel": "측면 패널 켜기/끄기",
         "toggleRepeat": "반복 모드 켜기/끄기",
-        "increaseSubtitlePositionOffset": "Adjust subtitle position offset from bottom by +20px",
-        "decreaseSubtitlePositionOffset": "Adjust subtitle position offset from bottom by -20px",
-        "increaseTopSubtitlePositionOffset": "Adjust subtitle position offset from top by +20px",
-        "decreaseTopSubtitlePositionOffset": "Adjust subtitle position offset from top by -20px"
+        "moveBottomSubtitlesUp": "Move bottom subtitles up",
+        "moveBottomSubtitlesDown": "Move bottom subtitles down",
+        "moveTopSubtitlesUp": "Move top subtitles up",
+        "moveTopSubtitlesDown": "Move top subtitles down"
     },
     "controls": {
         "autoPauseMode": "자동 일시정지:",

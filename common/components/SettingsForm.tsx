@@ -1134,22 +1134,22 @@ export default function SettingsForm({
                 boundViaChrome: false,
                 hide: !extensionInstalled || !extensionSupportsSidePanel,
             },
-            increaseSubtitlePositionOffset: {
-                label: t('binds.increaseSubtitlePositionOffset')!,
+            moveBottomSubtitlesUp: {
+                label: t('binds.moveBottomSubtitlesUp')!,
                 boundViaChrome: false,
             },
-            decreaseSubtitlePositionOffset: {
-                label: t('binds.decreaseSubtitlePositionOffset')!,
+            moveBottomSubtitlesDown: {
+                label: t('binds.moveBottomSubtitlesDown')!,
                 boundViaChrome: false,
             },
-            increaseTopSubtitlePositionOffset: {
-                label: t('binds.increaseTopSubtitlePositionOffset')!,
+            moveTopSubtitlesUp: {
+                label: t('binds.moveTopSubtitlesUp')!,
                 boundViaChrome: false,
             },
-            decreaseTopSubtitlePositionOffset: {
-                label: t('binds.decreaseTopSubtitlePositionOffset')!,
+            moveTopSubtitlesDown: {
+                label: t('binds.moveTopSubtitlesDown')!,
                 boundViaChrome: false,
-            },
+            }
         }),
         [
             t,

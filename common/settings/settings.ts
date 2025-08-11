@@ -237,10 +237,10 @@ export interface KeyBindSet {
     readonly increasePlaybackRate: KeyBind;
     readonly toggleSidePanel: KeyBind;
     readonly toggleRepeat: KeyBind;
-    readonly increaseSubtitlePositionOffset: KeyBind;
-    readonly decreaseSubtitlePositionOffset: KeyBind;
-    readonly increaseTopSubtitlePositionOffset: KeyBind;
-    readonly decreaseTopSubtitlePositionOffset: KeyBind;
+    readonly moveBottomSubtitlesUp: KeyBind;
+    readonly moveBottomSubtitlesDown: KeyBind;
+    readonly moveTopSubtitlesUp: KeyBind;
+    readonly moveTopSubtitlesDown: KeyBind;
 
     // Bound from Chrome if extension is installed
     readonly copySubtitle: KeyBind;

@@ -139,10 +139,10 @@
         "exportCard": "Exporter la carte vers Anki sans passer par la boîte de dialogue.",
         "toggleSidePanel": "Activer/désactiver le panneau latéral",
         "toggleRepeat": "Activer/désactiver le mode répétition",
-        "increaseSubtitlePositionOffset": "Adjust subtitle position offset from bottom by +20px",
-        "decreaseSubtitlePositionOffset": "Adjust subtitle position offset from bottom by -20px",
-        "increaseTopSubtitlePositionOffset": "Adjust subtitle position offset from top by +20px",
-        "decreaseTopSubtitlePositionOffset": "Adjust subtitle position offset from top by -20px"
+        "moveBottomSubtitlesUp": "Move bottom subtitles up",
+        "moveBottomSubtitlesDown": "Move bottom subtitles down",
+        "moveTopSubtitlesUp": "Move top subtitles up",
+        "moveTopSubtitlesDown": "Move top subtitles down"
     },
     "controls": {
         "autoPauseMode": "Pause automatique",
