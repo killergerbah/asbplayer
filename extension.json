@@ -58,6 +58,11 @@
             "code": "ko",
             "url": "/locales/ko.json",
             "version": 2
+        },
+        {
+            "code": "id",
+            "url": "/locales/id.json",
+            "version": 1
         }
     ]
 }
