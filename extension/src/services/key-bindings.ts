@@ -1,5 +1,6 @@
 import {
     PlayMode,
+    SettingsUpdatedMessage,
     ToggleSubtitlesInListFromVideoMessage,
     ToggleSubtitlesMessage,
     VideoToExtensionCommand,
@@ -272,8 +273,19 @@ export default class KeyBindings {
                 const currentOffset = context.subtitleController.bottomSubtitlePositionOffset;
                 const newOffset = currentOffset + (increase ? 20 : -20);
 
-                context.subtitleController.bottomSubtitlePositionOffset = newOffset;
-                context.settings.set({ subtitlePositionOffset: newOffset });
+                context.settings
+                    .set({ subtitlePositionOffset: newOffset })
+                    .then(() => {
+                        const settingsUpdatedCommand: VideoToExtensionCommand<SettingsUpdatedMessage> = {
+                            sender: 'asbplayer-video',
+                            message: {
+                                command: 'settings-updated',
+                            },
+                            src: context.video.src,
+                        };
+                        browser.runtime.sendMessage(settingsUpdatedCommand);
+                    })
+                    .catch(console.error);
             },
             () => context.subtitleController.subtitles.length === 0,
             true
@@ -288,8 +300,19 @@ export default class KeyBindings {
 
                 const newOffset = currentOffset + (increase ? 20 : -20);
 
-                context.subtitleController.topSubtitlePositionOffset = newOffset;
-                context.settings.set({ topSubtitlePositionOffset: newOffset });
+                context.settings
+                    .set({ topSubtitlePositionOffset: newOffset })
+                    .then(() => {
+                        const settingsUpdatedCommand: VideoToExtensionCommand<SettingsUpdatedMessage> = {
+                            sender: 'asbplayer-video',
+                            message: {
+                                command: 'settings-updated',
+                            },
+                            src: context.video.src,
+                        };
+                        browser.runtime.sendMessage(settingsUpdatedCommand);
+                    })
+                    .catch(console.error);
             },
             () => context.subtitleController.subtitles.length === 0,
             true
