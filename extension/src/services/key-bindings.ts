@@ -1,5 +1,6 @@
 import {
     PlayMode,
+    SettingsUpdatedMessage,
     ToggleSubtitlesInListFromVideoMessage,
     ToggleSubtitlesMessage,
     VideoToExtensionCommand,
@@ -29,6 +30,8 @@ export default class KeyBindings {
     private _unbindResetOffset?: Unbinder = false;
     private _unbindAdjustPlaybackRate?: Unbinder = false;
     private _unbindToggleRepeat: Unbinder = false;
+    private _unbindAdjustSubtitlePositionOffset: Unbinder = false;
+    private _unbindAdjustTopSubtitlePositionOffset: Unbinder = false;
 
     private _bound: boolean;
 
@@ -262,6 +265,59 @@ export default class KeyBindings {
             true
         );
 
+        this._unbindAdjustSubtitlePositionOffset = this._keyBinder.bindAdjustSubtitlePositionOffset(
+            (event, increase) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                const currentOffset = context.subtitleController.bottomSubtitlePositionOffset;
+                const newOffset = currentOffset + (increase ? 20 : -20);
+
+                context.settings
+                    .set({ subtitlePositionOffset: newOffset })
+                    .then(() => {
+                        const settingsUpdatedCommand: VideoToExtensionCommand<SettingsUpdatedMessage> = {
+                            sender: 'asbplayer-video',
+                            message: {
+                                command: 'settings-updated',
+                            },
+                            src: context.video.src,
+                        };
+                        browser.runtime.sendMessage(settingsUpdatedCommand);
+                    })
+                    .catch(console.error);
+            },
+            () => context.subtitleController.subtitles.length === 0,
+            true
+        );
+
+        this._unbindAdjustTopSubtitlePositionOffset = this._keyBinder.bindAdjustTopSubtitlePositionOffset(
+            (event, increase) => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                const currentOffset = context.subtitleController.topSubtitlePositionOffset;
+
+                const newOffset = currentOffset + (increase ? 20 : -20);
+
+                context.settings
+                    .set({ topSubtitlePositionOffset: newOffset })
+                    .then(() => {
+                        const settingsUpdatedCommand: VideoToExtensionCommand<SettingsUpdatedMessage> = {
+                            sender: 'asbplayer-video',
+                            message: {
+                                command: 'settings-updated',
+                            },
+                            src: context.video.src,
+                        };
+                        browser.runtime.sendMessage(settingsUpdatedCommand);
+                    })
+                    .catch(console.error);
+            },
+            () => context.subtitleController.subtitles.length === 0,
+            true
+        );
+
         this._bound = true;
     }
 
@@ -344,6 +400,16 @@ export default class KeyBindings {
         if (this._unbindAdjustPlaybackRate) {
             this._unbindAdjustPlaybackRate();
             this._unbindAdjustPlaybackRate = false;
+        }
+
+        if (this._unbindAdjustSubtitlePositionOffset) {
+            this._unbindAdjustSubtitlePositionOffset();
+            this._unbindAdjustSubtitlePositionOffset = false;
+        }
+
+        if (this._unbindAdjustTopSubtitlePositionOffset) {
+            this._unbindAdjustTopSubtitlePositionOffset();
+            this._unbindAdjustTopSubtitlePositionOffset = false;
         }
 
         this._bound = false;

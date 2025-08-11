@@ -138,7 +138,11 @@
         "updateLastCard": "Actualizar la última tarjeta de Anki creada con captura de pantalla, audio, etc. capturado por asbplayer",
         "exportCard": "Export card to Anki, bypassing dialog.",
         "toggleSidePanel": "Abrir/Cerrar Panel Lateral",
-        "toggleRepeat": "Activar/Desactivar modo de repetición"
+        "toggleRepeat": "Activar/Desactivar modo de repetición",
+        "moveBottomSubtitlesUp": "Move bottom subtitles up",
+        "moveBottomSubtitlesDown": "Move bottom subtitles down",
+        "moveTopSubtitlesUp": "Move top subtitles up",
+        "moveTopSubtitlesDown": "Move top subtitles down"
     },
     "controls": {
         "autoPauseMode": "Pausado Automático",

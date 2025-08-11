@@ -1134,6 +1134,22 @@ export default function SettingsForm({
                 boundViaChrome: false,
                 hide: !extensionInstalled || !extensionSupportsSidePanel,
             },
+            moveBottomSubtitlesUp: {
+                label: t('binds.moveBottomSubtitlesUp')!,
+                boundViaChrome: false,
+            },
+            moveBottomSubtitlesDown: {
+                label: t('binds.moveBottomSubtitlesDown')!,
+                boundViaChrome: false,
+            },
+            moveTopSubtitlesUp: {
+                label: t('binds.moveTopSubtitlesUp')!,
+                boundViaChrome: false,
+            },
+            moveTopSubtitlesDown: {
+                label: t('binds.moveTopSubtitlesDown')!,
+                boundViaChrome: false,
+            },
         }),
         [
             t,

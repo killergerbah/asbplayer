@@ -892,6 +892,44 @@ export default function VideoPlayer({
     }, [keyBinder]);
 
     useEffect(() => {
+        return keyBinder.bindAdjustSubtitlePositionOffset(
+            (event, increase) => {
+                let newSubtitleSettings = { ...subtitleSettings };
+
+                event.preventDefault();
+                if (increase) {
+                    newSubtitleSettings.subtitlePositionOffset = subtitleSettings.subtitlePositionOffset + 20;
+                } else {
+                    newSubtitleSettings.subtitlePositionOffset = subtitleSettings.subtitlePositionOffset - 20;
+                }
+
+                onSettingsChanged(newSubtitleSettings);
+                setSubtitleSettings(newSubtitleSettings);
+            },
+            () => false
+        );
+    }, [keyBinder, subtitleSettings, onSettingsChanged]);
+
+    useEffect(() => {
+        return keyBinder.bindAdjustTopSubtitlePositionOffset(
+            (event, increase) => {
+                let newSubtitleSettings = { ...subtitleSettings };
+
+                event.preventDefault();
+                if (increase) {
+                    newSubtitleSettings.topSubtitlePositionOffset = subtitleSettings.topSubtitlePositionOffset + 20;
+                } else {
+                    newSubtitleSettings.topSubtitlePositionOffset = subtitleSettings.topSubtitlePositionOffset - 20;
+                }
+
+                onSettingsChanged(newSubtitleSettings);
+                setSubtitleSettings(newSubtitleSettings);
+            },
+            () => false
+        );
+    }, [keyBinder, subtitleSettings, onSettingsChanged]);
+
+    useEffect(() => {
         return keyBinder.bindToggleSubtitleTrackInList(
             (event, track) => {
                 event.preventDefault();

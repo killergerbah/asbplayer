@@ -138,7 +138,11 @@
         "updateLastCard": "asbplayer의 캡처 데이터를 사용하여 가장 최근의 Anki 카드를 업데이트합니다.",
         "exportCard": "Anki로 바로 내보내기 (대화 상자 생략)",
         "toggleSidePanel": "측면 패널 켜기/끄기",
-        "toggleRepeat": "반복 모드 켜기/끄기"
+        "toggleRepeat": "반복 모드 켜기/끄기",
+        "moveBottomSubtitlesUp": "Move bottom subtitles up",
+        "moveBottomSubtitlesDown": "Move bottom subtitles down",
+        "moveTopSubtitlesUp": "Move top subtitles up",
+        "moveTopSubtitlesDown": "Move top subtitles down"
     },
     "controls": {
         "autoPauseMode": "자동 일시정지:",
