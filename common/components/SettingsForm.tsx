@@ -1149,7 +1149,7 @@ export default function SettingsForm({
             moveTopSubtitlesDown: {
                 label: t('binds.moveTopSubtitlesDown')!,
                 boundViaChrome: false,
-            }
+            },
         }),
         [
             t,
