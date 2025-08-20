@@ -138,7 +138,11 @@
         "updateLastCard": "asbplayer でキャプチャしたスクリーンショットや音声を、最後に作成した Anki カードに添付して更新する",
         "exportCard": "直接カードをAnkiにエクスポート。",
         "toggleSidePanel": "サイドパネルを開く/閉じる",
-        "toggleRepeat": "リピートプレイバックオン/オフ"
+        "toggleRepeat": "リピートプレイバックオン/オフ",
+        "moveBottomSubtitlesUp": "Move bottom subtitles up",
+        "moveBottomSubtitlesDown": "Move bottom subtitles down",
+        "moveTopSubtitlesUp": "Move top subtitles up",
+        "moveTopSubtitlesDown": "Move top subtitles down"
     },
     "controls": {
         "autoPauseMode": "自動一時停止",

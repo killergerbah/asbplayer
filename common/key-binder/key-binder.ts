@@ -151,6 +151,16 @@ export interface KeyBinder {
         disabledGetter: () => boolean,
         capture?: boolean
     ): () => void;
+    bindAdjustSubtitlePositionOffset(
+        onAdjustSubtitlePositionOffset: (event: KeyboardEvent, increase: boolean) => void,
+        disabledGetter: () => boolean,
+        capture?: boolean
+    ): () => void;
+    bindAdjustTopSubtitlePositionOffset(
+        onAdjustTopSubtitlePositionOffset: (event: KeyboardEvent, increase: boolean) => void,
+        disabledGetter: () => boolean,
+        capture?: boolean
+    ): () => void;
 }
 
 export class DefaultKeyBinder implements KeyBinder {
@@ -608,6 +618,64 @@ export class DefaultKeyBinder implements KeyBinder {
         return () => {
             unbindDecrease?.();
             unbindIncrease?.();
+        };
+    }
+
+    bindAdjustSubtitlePositionOffset(
+        onAdjustSubtitlePositionOffset: (event: KeyboardEvent, increase: boolean) => void,
+        disabledGetter: () => boolean,
+        capture = false
+    ) {
+        const delegate = (event: KeyboardEvent, increase: boolean) => {
+            if (disabledGetter()) {
+                return false;
+            }
+
+            onAdjustSubtitlePositionOffset(event, increase);
+            return true;
+        };
+
+        const increaseShortcut = this.keyBindSet.moveBottomSubtitlesUp.keys;
+        const decreaseShortcut = this.keyBindSet.moveBottomSubtitlesDown.keys;
+
+        const decreaseHandler = (event: KeyboardEvent) => delegate(event, false);
+        const increaseHandler = (event: KeyboardEvent) => delegate(event, true);
+
+        const unbindDecrease = decreaseShortcut ? this._bind(decreaseShortcut, capture, decreaseHandler) : () => {};
+        const unbindIncrease = increaseShortcut ? this._bind(increaseShortcut, capture, increaseHandler) : () => {};
+
+        return () => {
+            unbindDecrease();
+            unbindIncrease();
+        };
+    }
+
+    bindAdjustTopSubtitlePositionOffset(
+        onAdjustTopSubtitlePositionOffset: (event: KeyboardEvent, increase: boolean) => void,
+        disabledGetter: () => boolean,
+        capture = false
+    ) {
+        const delegate = (event: KeyboardEvent, increase: boolean) => {
+            if (disabledGetter()) {
+                return false;
+            }
+
+            onAdjustTopSubtitlePositionOffset(event, increase);
+            return true;
+        };
+
+        const increaseShortcut = this.keyBindSet.moveTopSubtitlesDown.keys;
+        const decreaseShortcut = this.keyBindSet.moveTopSubtitlesUp.keys;
+
+        const decreaseHandler = (event: KeyboardEvent) => delegate(event, false);
+        const increaseHandler = (event: KeyboardEvent) => delegate(event, true);
+
+        const unbindDecrease = decreaseShortcut ? this._bind(decreaseShortcut, capture, decreaseHandler) : () => {};
+        const unbindIncrease = increaseShortcut ? this._bind(increaseShortcut, capture, increaseHandler) : () => {};
+
+        return () => {
+            unbindDecrease();
+            unbindIncrease();
         };
     }
 

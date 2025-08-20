@@ -138,7 +138,11 @@
         "updateLastCard": "Päivitä viime luotu Anki kortti asbplayer-kaapattu kuvakaappaus, ääni, jne.",
         "exportCard": "Vie kortti Ankiin, ohittaen valintaikkuna.",
         "toggleSidePanel": "Vaihda sivupaneelin tilaa",
-        "toggleRepeat": "Vaihda toistotilaa"
+        "toggleRepeat": "Vaihda toistotilaa",
+        "moveBottomSubtitlesUp": "Move bottom subtitles up",
+        "moveBottomSubtitlesDown": "Move bottom subtitles down",
+        "moveTopSubtitlesUp": "Move top subtitles up",
+        "moveTopSubtitlesDown": "Move top subtitles down"
     },
     "controls": {
         "autoPauseMode": "Automaattipysäytys",
