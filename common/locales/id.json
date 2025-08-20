@@ -138,7 +138,11 @@
         "updateLastCard": "Perbarui kartu Anki terakhir dengan tangkapan layar, audio, dan lainnya dari asbplayer",
         "exportCard": "Ekspor kartu ke Anki tanpa membuka dialog.",
         "toggleSidePanel": "Tampilkan/sembunyikan panel samping",
-        "toggleRepeat": "Aktifkan/nonaktifkan mode ulangi"
+        "toggleRepeat": "Aktifkan/nonaktifkan mode ulangi",
+        "moveBottomSubtitlesUp": "Move bottom subtitles up",
+        "moveBottomSubtitlesDown": "Move bottom subtitles down",
+        "moveTopSubtitlesUp": "Move top subtitles up",
+        "moveTopSubtitlesDown": "Move top subtitles down"
     },
     "controls": {
         "autoPauseMode": "Jeda Otomatis",
