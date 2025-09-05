@@ -9,7 +9,7 @@ import {
     StopRecordingErrorCode,
     StopRecordingResponse,
 } from '@project/common';
-import AudioRecorder, { TimedRecordingInProgressError } from '@/services/audio-recorder';
+import AudioRecorder, { TimedRecordingInProgressError, NoRecordingInProgressError } from '@/services/audio-recorder';
 import { Mp3Encoder } from '@project/common/audio-clip';
 import { bufferToBase64 } from '@project/common/base64';
 import { mp3WorkerFactory } from '@/services/mp3-worker-factory';
@@ -124,6 +124,9 @@ window.onload = async () => {
 
                             if (e instanceof TimedRecordingInProgressError) {
                                 errorCode = StopRecordingErrorCode.timedAudioRecordingInProgress;
+                            } else if (e instanceof NoRecordingInProgressError) {
+                                // Just no-op if nothing is recording--this can happen in bulk export.
+                                errorCode = StopRecordingErrorCode.other;
                             } else {
                                 console.error(e);
                                 errorCode = StopRecordingErrorCode.other;
