@@ -1075,6 +1075,7 @@ const Player = React.memo(function Player({
                         settings={settings}
                         keyBinder={keyBinder}
                         webSocketClient={webSocketClient}
+                        exporting={miningContext.bulkExporting}
                     />
                 </Grid>
             </Grid>
