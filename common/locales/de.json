@@ -6,6 +6,7 @@
         "downloadAudio": "Audio herunterladen",
         "downloadImage": "Bild herunterladen",
         "downloadSubtitlesAsSrt": "Untertitel als SRT herunterladen",
+        "bulkExportSubtitles": "Bulk Export Subtitles",
         "jumpTo": "Springe zu",
         "ok": "OK",
         "mineSubtitle": "Mine Subtitle",
@@ -269,6 +270,12 @@
         "enabledCondensedPlayback": "Condensed playback: On",
         "enabledFastForwardPlayback": "Fast forward playback: On",
         "exportedCard": "Exported card: {{result}}",
+        "bulkExporting": "Bulk exporting subtitles: {{current}}/{{total}}",
+        "bulkExport": {
+            "title": "Bulk Export in Progress",
+            "description": "Exporting subtitles to Anki. Please wait...",
+            "progressCompleted": "Exported {{current}} of {{total}}"
+        },
         "playbackRate": "Playback Rate: {{rate}}",
         "savedTimestamp": "Saved: {{timestamp}}",
         "updatedCard": "Updated card: {{result}}",
