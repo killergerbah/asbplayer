@@ -95,8 +95,6 @@
     "binds": {
         "adjustOffset": "Sesuaikan offset takarir ±100 ms",
         "adjustOffsetToNextSubtitle": "Sesuaikan offset takarir agar takarir berikutnya berada di waktu saat ini",
-        "increaseSubtitlePositionOffset": "Tambah Offset Posisi Takarir",
-        "increaseTopSubtitlePositionOffset": "Tambah Offset Posisi Takarir Atas"
         "adjustOffsetToPreviousSubtitle": "Sesuaikan offset takarir agar takarir sebelumnya berada di waktu saat ini",
         "adjustOffsetToSubtitle": "Sesuaikan offset takarir agar takarir sebelumnya/berikutnya berada di waktu saat ini",
         "adjustPlaybackRate": "Sesuaikan kecepatan pemutaran ±0.1",
@@ -104,8 +102,6 @@
         "copySubtitle": "Tambang takarir saat ini",
         "decreaseOffset": "Kurangi offset takarir sebesar 100 ms",
         "decreasePlaybackRate": "Perlambat kecepatan pemutaran",
-        "decreaseSubtitlePositionOffset": "Kurangi Offset Posisi Takarir",
-        "decreaseTopSubtitlePositionOffset": "Kurangi Offset Posisi Takarir Atas",
         "extensionAnkiDialog": "Tambang takarir saat ini dan buka dialog ekspor Anki. Jika video tersinkronisasi tanpa berkas takarir, mulai/hentikan rekaman audio.",
         "extensionCopySubtitle": "Tambang takarir saat ini. Jika video tersinkronisasi tanpa berkas takarir, mulai/hentikan rekaman audio.",
         "extensionSelectSubtitleTrack": "Pilih trek takarir untuk dimuat.",
@@ -143,10 +139,10 @@
         "exportCard": "Ekspor kartu ke Anki tanpa membuka dialog.",
         "toggleSidePanel": "Tampilkan/sembunyikan panel samping",
         "toggleRepeat": "Aktifkan/nonaktifkan mode ulangi",
-        "moveBottomSubtitlesUp": "Move bottom subtitles up",
-        "moveBottomSubtitlesDown": "Move bottom subtitles down",
-        "moveTopSubtitlesUp": "Move top subtitles up",
-        "moveTopSubtitlesDown": "Move top subtitles down"
+        "moveBottomSubtitlesUp": "Naikkan subtitle bawah",
+        "moveBottomSubtitlesDown": "Turunkan subtitle bawah",
+        "moveTopSubtitlesUp": "Naikkan subtitle atas",
+        "moveTopSubtitlesDown": "Turunkan subtitle atas"
     },
     "controls": {
         "autoPauseMode": "Jeda Otomatis",
