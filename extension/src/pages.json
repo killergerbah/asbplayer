@@ -149,6 +149,14 @@
             "autoSync": {
                 "enabled": true
             }
+        },
+        {
+            "host": "web.stremio.com",
+            "script": "stremio-page.js",
+            "path": ".*",
+            "autoSync": {
+             "enabled": true
+          }
         }
     ]
 }
