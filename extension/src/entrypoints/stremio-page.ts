@@ -1,13 +1,8 @@
-import {
-    VideoData,
-    VideoDataSubtitleTrack
-} from '@project/common';
-import {
-    trackFromDef
-} from '@/pages/util';
+import { VideoData, VideoDataSubtitleTrack } from '@project/common';
+import { trackFromDef } from '@/pages/util';
 
 export default defineUnlistedScript(() => {
-    const discoveredSubtitles = new Map < string, VideoDataSubtitleTrack > ();
+    const discoveredSubtitles = new Map<string, VideoDataSubtitleTrack>();
     let trackIndex = 1;
 
     const dispatchSubtitles = () => {
@@ -26,24 +21,20 @@ export default defineUnlistedScript(() => {
 
     const originalFetch = window.fetch;
     window.fetch = async (...args) => {
-        const url = typeof args[0] === 'string' ?
-            args[0] :
-            args[0] instanceof Request ?
-            args[0].url :
-            null;
+        const url = typeof args[0] === 'string' ? args[0] : args[0] instanceof Request ? args[0].url : null;
 
         if (url) {
             const stremioSubtitleMatch = url.match(/https:\/\/subs\d+\.strem\.io\/.+\/file\/\d+/);
             const opensubtitlesMatch = url.match(/https:\/\/opensubtitles\.stremio\.homes\/sub\.vtt/);
             //const babyBeamupMatch = url.match(/https:\/\/.*baby-beamup\.club\/subtitle\/sub\.vtt/);
-            
+
             let extension = null;
             if (stremioSubtitleMatch) {
                 extension = 'srt';
             } else if (opensubtitlesMatch) {
                 extension = 'vtt';
             }
-            
+
             if (extension) {
                 if (!discoveredSubtitles.has(url)) {
                     const track = trackFromDef({
