@@ -67,6 +67,7 @@ export default defineConfig({
                         'icon/image.png',
                         'netflix-page.js',
                         'youtube-page.js',
+                        'stremio-page.js',
                         'tver-page.js',
                         'bandai-channel-page.js',
                         'amazon-prime-page.js',
