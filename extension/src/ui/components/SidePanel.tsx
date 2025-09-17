@@ -16,7 +16,6 @@ import {
     DownloadImageMessage,
     DownloadAudioMessage,
     PostMineAction,
-    SubtitleModel,
     CardExportedMessage,
 } from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
@@ -46,7 +45,7 @@ import CopyHistory from '@project/common/app/components/CopyHistory';
 import CopyHistoryList from '@project/common/app/components/CopyHistoryList';
 import { useAppKeyBinder } from '@project/common/app/hooks/use-app-key-binder';
 import { download } from '@project/common/util';
-import { MiningContext, BulkExportItem } from '@project/common/app/services/mining-context';
+import { MiningContext } from '@project/common/app/services/mining-context';
 import BulkExportModal from '@project/common/app/components/BulkExportModal';
 import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
 import { mp3WorkerFactory } from '../../services/mp3-worker-factory';
@@ -292,37 +291,20 @@ export default function SidePanel({ settings, extension }: Props) {
         browser.runtime.sendMessage(cancelCommand);
     }, [syncedVideoTab]);
 
-    // Track latest bulk export state in a ref for the stable listener
-    const bulkStateRef = useRef<{ exporting: boolean; cancelled: boolean }>({ exporting: false, cancelled: false });
-    useEffect(() => {
-        bulkStateRef.current = {
-            exporting: miningContext.bulkExporting,
-            cancelled: miningContext.bulkExportCancelled,
-        };
-    }, [miningContext.bulkExporting, miningContext.bulkExportCancelled]);
+    // Local bulk export UI state
+    const [bulkOpen, setBulkOpen] = useState<boolean>(false);
+    const [bulkCurrent, setBulkCurrent] = useState<number>(0);
+    const [bulkTotal, setBulkTotal] = useState<number>(0);
 
-    // Force SidePanel to re-render on mining context bulk export events so UI reflects latest state
-    // Without this, a finished bulk export might hang the side panel indefinitely.
+    // Force SidePanel to re-render when mining starts/stops so UI can refresh
     const [, setBulkUiTick] = useState<number>(0);
     useEffect(() => {
-        const update = () => {
-            bulkStateRef.current = {
-                exporting: miningContext.bulkExporting,
-                cancelled: miningContext.bulkExportCancelled,
-            };
-            setBulkUiTick((t) => t + 1);
-        };
-
-        const unsubStarted = miningContext.onEvent('bulk-export-started', update);
-        const unsubItemCompleted = miningContext.onEvent('bulk-export-item-completed', update);
-        const unsubCompleted = miningContext.onEvent('bulk-export-completed', update);
-        const unsubCancelled = miningContext.onEvent('bulk-export-cancelled', update);
-
+        const update = () => setBulkUiTick((t) => t + 1);
+        const unsubStopped = miningContext.onEvent('stopped-mining', update);
+        const unsubStarted = miningContext.onEvent('started-mining', update);
         return () => {
             unsubStarted();
-            unsubItemCompleted();
-            unsubCompleted();
-            unsubCancelled();
+            unsubStopped();
         };
     }, []);
 
@@ -332,20 +314,22 @@ export default function SidePanel({ settings, extension }: Props) {
             // Start event published by controller with total count
             if (message?.sender === 'asbplayerv2' && message?.message?.command === 'bulk-export-started') {
                 const total = (message.message.total as number) ?? 0;
-                const dummy: BulkExportItem[] = Array.from({ length: total }, (_, i) => ({
-                    subtitle: {} as any as SubtitleModel,
-                    index: i,
-                }));
-                miningContext.startBulkExport(dummy, 0);
+                setBulkOpen(true);
+                setBulkTotal(total);
+                setBulkCurrent(0);
             } else if (message?.sender === 'asbplayer-extension-to-video' && message?.message?.command === 'card-exported') {
                 const exported = message.message as CardExportedMessage;
                 const isBulk = exported.isBulkExport || exported.exportMode === 'bulk';
                 if (!isBulk) return false;
-                miningContext.completeBulkExportItem();
+                setBulkCurrent((c) => c + 1);
             } else if (message?.sender === 'asbplayerv2' && message?.message?.command === 'bulk-export-cancelled') {
-                miningContext.cancelBulkExport();
+                setBulkOpen(false);
+                setBulkCurrent(0);
+                setBulkTotal(0);
             } else if (message?.sender === 'asbplayerv2' && message?.message?.command === 'bulk-export-completed') {
-                miningContext.completeBulkExport();
+                setBulkOpen(false);
+                setBulkCurrent(0);
+                setBulkTotal(0);
             }
             return false;
         };
@@ -638,12 +622,7 @@ export default function SidePanel({ settings, extension }: Props) {
             )}
             
             {/* Bulk Export Modal - rendered outside the main content to ensure it's always on top */}
-            <BulkExportModal
-                open={miningContext.bulkExporting}
-                currentIndex={miningContext.bulkExportProgress.current}
-                totalItems={miningContext.bulkExportProgress.total}
-                onCancel={handleBulkExportCancel}
-            />
+            <BulkExportModal open={bulkOpen} currentIndex={bulkCurrent} totalItems={bulkTotal} onCancel={handleBulkExportCancel} />
         </div>
     );
 }
