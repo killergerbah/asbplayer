@@ -65,6 +65,7 @@ import { MobileGestureController } from '../controllers/mobile-gesture-controlle
 import { MobileVideoOverlayController } from '../controllers/mobile-video-overlay-controller';
 import NotificationController from '../controllers/notification-controller';
 import SubtitleController, { SubtitleModelWithIndex } from '../controllers/subtitle-controller';
+import BulkExportController from '../controllers/bulk-export-controller';
 import VideoDataSyncController from '../controllers/video-data-sync-controller';
 import AudioRecorder, { TimedRecordingInProgressError } from './audio-recorder';
 import { isMobile } from '@project/common/device-detection/mobile';
@@ -141,6 +142,7 @@ export default class Binding {
     readonly keyBindings: KeyBindings;
     readonly settings: SettingsProvider;
     private readonly _audioRecorder = new AudioRecorder();
+    readonly bulkExportController: BulkExportController;
 
     private copyToClipboardOnMine: boolean;
     private takeScreenshot: boolean;
@@ -192,6 +194,7 @@ export default class Binding {
         this.mobileVideoOverlayController = new MobileVideoOverlayController(this, OffsetAnchor.top);
         this.subtitleController.onOffsetChange = () => this.mobileVideoOverlayController.updateModel();
         this.mobileGestureController = new MobileGestureController(this);
+        this.bulkExportController = new BulkExportController(this);
         this.recordMedia = true;
         this.takeScreenshot = true;
         this.cleanScreenshot = true;
@@ -425,6 +428,7 @@ export default class Binding {
         this.subtitleController.bind();
         this.dragController.bind(this);
         this.mobileGestureController.bind();
+        this.bulkExportController.bind();
 
         const seek = (forward: boolean) => {
             const subtitle = adjacentSubtitle(
@@ -646,6 +650,12 @@ export default class Binding {
                             currentSubtitle: currentSubtitle,
                             currentSubtitleIndex: currentSubtitleIndex >= 0 ? currentSubtitleIndex : null,
                         });
+                        break;
+                    case 'start-bulk-export':
+                        this.bulkExportController.start();
+                        break;
+                    case 'cancel-bulk-export':
+                        this.bulkExportController.cancel();
                         break;
                     case 'offset':
                         const offsetMessage = request.message as OffsetToVideoMessage;
@@ -1021,6 +1031,7 @@ export default class Binding {
         this.mobileVideoOverlayController.unbind();
         this.mobileGestureController.unbind();
         this.notificationController.unbind();
+        this.bulkExportController.unbind();
         this.subscribed = false;
 
         const command: VideoToExtensionCommand<VideoDisappearedMessage> = {
@@ -1124,6 +1135,11 @@ export default class Binding {
         };
 
         browser.runtime.sendMessage(command);
+    }
+
+    // Public helper for controllers to reuse copy-subtitle flow (e.g., bulk export)
+    async copySubtitleForBulk(message: CopySubtitleMessage) {
+        await this._copySubtitle(message);
     }
 
     async _toggleRecordingMedia(postMineAction: PostMineAction) {
