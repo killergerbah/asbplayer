@@ -6,33 +6,33 @@ interface PageConfig {
     // Regex for URLs where script should be loaded
     host: string;
 
-    // Script to load
-    script?: string;
+    // Page script to load
+    pageScript?: string;
 
     // URL relative path regex where subtitle track data syncing is allowed
-    path?: string;
+    syncAllowedAtPath?: string;
 
     // URL hash segment regex where subtitle track data syncing is allowed
-    hash?: string;
+    syncAllowedAtHash?: string;
 
     // Whether shadow roots should be searched for video elements on this page
-    searchShadowRoots?: boolean;
+    searchShadowRootsForVideoElements?: boolean;
 
     // Whether video elements with blank src should be bindable on this page
-    allowBlankSrc?: boolean;
+    allowVideoElementsWithBlankSrc?: boolean;
 
     autoSync?: {
         // Whether to attempt to load detected subtitles automatically
         enabled: boolean;
 
-        // Video src string regex for video elemennts that should be considered for auto-syync
+        // Video src string regex for video elements that should be considered for auto-sync
         videoSrc?: string;
 
         // Video element ID regex for video elements that should be considered for auto-sync
         elementId?: string;
     };
 
-    ignore?: {
+    ignoreVideoElements?: {
         // CSS classes that should cause video elements to be ignored for binding
         class?: string;
         // Styles that should cause video elements to be ignored for binding
@@ -58,8 +58,8 @@ export function currentPageDelegate(): PageDelegate | undefined {
         return new PageDelegate(
             {
                 host: window.location.host,
-                script: 'asbplayer-tutorial-page.js',
-                path: '.*',
+                pageScript: 'asbplayer-tutorial-page.js',
+                syncAllowedAtPath: '.*',
                 autoSync: {
                     enabled: false,
                 },
@@ -81,28 +81,31 @@ export class PageDelegate {
     }
 
     loadScripts() {
-        if (this.config.script === undefined) {
+        if (this.config.pageScript === undefined) {
             return;
         }
 
         const s = document.createElement('script');
-        s.src = browser.runtime.getURL(`${this.config.script}` as PublicPath);
+        s.src = browser.runtime.getURL(`${this.config.pageScript}` as PublicPath);
         s.onload = () => s.remove();
         (document.head || document.documentElement).appendChild(s);
     }
 
     shouldIgnore(element: HTMLMediaElement) {
-        if (this.config.ignore === undefined) {
+        if (this.config.ignoreVideoElements === undefined) {
             return false;
         }
 
-        if (this.config.ignore.class !== undefined && element.classList.contains(this.config.ignore.class)) {
+        if (
+            this.config.ignoreVideoElements.class !== undefined &&
+            element.classList.contains(this.config.ignoreVideoElements.class)
+        ) {
             return true;
         }
 
-        if (this.config.ignore.style !== undefined) {
-            for (const key of Object.keys(this.config.ignore.style)) {
-                if (element.style[key as keyof CSSStyleDeclaration] === this.config.ignore.style[key]) {
+        if (this.config.ignoreVideoElements.style !== undefined) {
+            for (const key of Object.keys(this.config.ignoreVideoElements.style)) {
+                if (element.style[key as keyof CSSStyleDeclaration] === this.config.ignoreVideoElements.style[key]) {
                     return true;
                 }
             }
@@ -123,11 +126,11 @@ export class PageDelegate {
     isVideoPage() {
         var hashMatch = true;
         var pathMatch = true;
-        if (this.config.hash) {
-            hashMatch = new RegExp(this.config.hash).test(this.url.hash);
+        if (this.config.syncAllowedAtHash) {
+            hashMatch = new RegExp(this.config.syncAllowedAtHash).test(this.url.hash);
         }
-        if (this.config.path) {
-            pathMatch = new RegExp(this.config.path).test(this.url.pathname);
+        if (this.config.syncAllowedAtPath) {
+            pathMatch = new RegExp(this.config.syncAllowedAtPath).test(this.url.pathname);
         }
         return hashMatch && pathMatch;
     }

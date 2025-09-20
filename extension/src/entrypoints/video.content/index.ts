@@ -61,7 +61,7 @@ export default defineContentScript({
         };
 
         const hasValidVideoSource = (videoElement: HTMLVideoElement, page?: PageDelegate) => {
-            if (page?.config?.allowBlankSrc) {
+            if (page?.config?.allowVideoElementsWithBlankSrc) {
                 return true;
             }
 
@@ -83,7 +83,7 @@ export default defineContentScript({
         const bind = () => {
             const bindings: Binding[] = [];
             const page = currentPageDelegate();
-            let hasPageScript = page?.config.script !== undefined;
+            let hasPageScript = page?.config.pageScript !== undefined;
             let frameInfoListener: FrameInfoListener | undefined;
             let frameInfoBroadcaster: FrameInfoBroadcaster | undefined;
             const isParentDocument = window.self === window.top;
@@ -153,7 +153,7 @@ export default defineContentScript({
 
             bindToVideoElements();
             const videoInterval = setInterval(bindToVideoElements, 1000);
-            const shadowRootInterval = page?.config.searchShadowRoots
+            const shadowRootInterval = page?.config.searchShadowRootsForVideoElements
                 ? setInterval(incrementallyFindShadowRoots, 100)
                 : undefined;
 
