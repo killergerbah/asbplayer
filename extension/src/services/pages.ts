@@ -40,7 +40,7 @@ interface PageConfig {
     };
 
     // Whether to hide "remember track preferences" toggle
-    hideRememberTrackPreferenceToggle?: boolean
+    hideRememberTrackPreferenceToggle?: boolean;
 }
 
 export function currentPageDelegate(): PageDelegate | undefined {
