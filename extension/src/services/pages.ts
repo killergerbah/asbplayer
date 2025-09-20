@@ -38,6 +38,9 @@ interface PageConfig {
         // Styles that should cause video elements to be ignored for binding
         style?: { [key: string]: string };
     };
+
+    // Whether to hide "remember track preferences" toggle
+    hideRememberTrackPreferenceToggle?: boolean
 }
 
 export function currentPageDelegate(): PageDelegate | undefined {

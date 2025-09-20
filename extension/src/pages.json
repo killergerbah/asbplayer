@@ -155,8 +155,9 @@
             "script": "stremio-page.js",
             "path": ".*",
             "autoSync": {
-             "enabled": true
-          }
+                "enabled": true
+            },
+            "hideRememberTrackPreferenceToggle": true
         }
     ]
 }

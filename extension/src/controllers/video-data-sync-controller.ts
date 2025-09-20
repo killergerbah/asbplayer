@@ -182,6 +182,7 @@ export default class VideoDataSyncController {
         const activeProfilePromise = this._context.settings.activeProfile();
         const hasSeenFtue = (await globalStateProvider.get(['ftueHasSeenSubtitleTrackSelector']))
             .ftueHasSeenSubtitleTrackSelector;
+        const hideRememberTrackPreferenceToggle = this._isTutorial || this._pageHidesTrackPrefToggle();
         return this._syncedData
             ? {
                   isLoading: this._syncedData.subtitles === undefined,
@@ -197,7 +198,7 @@ export default class VideoDataSyncController {
                       activeProfile: (await activeProfilePromise)?.name,
                   },
                   hasSeenFtue,
-                  hideRememberTrackPreferenceToggle: this._isTutorial,
+                  hideRememberTrackPreferenceToggle,
                   ...additionalFields,
               }
             : {
@@ -215,7 +216,7 @@ export default class VideoDataSyncController {
                       activeProfile: (await activeProfilePromise)?.name,
                   },
                   hasSeenFtue,
-                  hideRememberTrackPreferenceToggle: this._isTutorial,
+                  hideRememberTrackPreferenceToggle,
                   ...additionalFields,
               };
     }
@@ -302,6 +303,10 @@ export default class VideoDataSyncController {
         }
 
         return this._autoSync === true && page.canAutoSync(this._context.video);
+    }
+
+    private _pageHidesTrackPrefToggle() {
+        return currentPageDelegate()?.config?.hideRememberTrackPreferenceToggle ?? false;
     }
 
     private async _client() {
