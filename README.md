@@ -110,7 +110,7 @@ Thank you to all those who have translated asbplayer:
 **Kai Böse** (German),
 **Triline**, **nekorushi** (Polish),
 **NeverWinterSwor** (Simplified Chinese),
-**Yagxter** (Brazilian Portuguese),
+**Yagxter**, **Chatterine** (Brazilian Portuguese),
 **Leo Gonzalez** (Spanish),
 **Yuri (ganqqwerty)** (Russian),
 **Kellen (kputuhuk)** (Russian),
