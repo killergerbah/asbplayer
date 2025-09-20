@@ -6,6 +6,7 @@
         "downloadAudio": "Lataa ääni",
         "downloadImage": "Lataa kuva",
         "downloadSubtitlesAsSrt": "Lataa (SRT)",
+        "bulkExportSubtitles": "Bulk Export Subtitles",
         "jumpTo": "Siirry kohtaan",
         "ok": "Okei",
         "mineSubtitle": "Lähetä tekstitykset Ankin",
@@ -269,6 +270,12 @@
         "enabledCondensedPlayback": "Lyhennetty soitto: Päällä",
         "enabledFastForwardPlayback": "Nopea eteenpäin soitto: Päällä",
         "exportedCard": "Viedyt kortti: {{result}}",
+        "bulkExporting": "Bulk exporting subtitles: {{current}}/{{total}}",
+        "bulkExport": {
+            "title": "Bulk Export in Progress",
+            "description": "Exporting subtitles to Anki. Please wait...",
+            "progressCompleted": "Exported {{current}} of {{total}}"
+        },
         "playbackRate": "Toiston nopeus: {{rate}}",
         "savedTimestamp": "Tallennettu: {{timestamp}}",
         "updatedCard": "Päivitetty kortti: {{result}}",

@@ -15,6 +15,12 @@ import {
     JumpToSubtitleMessage,
     DownloadImageMessage,
     DownloadAudioMessage,
+    PostMineAction,
+    SubtitleModel,
+    RequestCurrentSubtitleMessage,
+    RequestCurrentSubtitleResponse,
+    PauseFromVideoMessage,
+    CardExportedMessage,
 } from '@project/common';
 import { AsbplayerSettings } from '@project/common/settings';
 import { AudioClip } from '@project/common/audio-clip';
@@ -42,8 +48,9 @@ import SidePanelTopControls from './SidePanelTopControls';
 import CopyHistory from '@project/common/app/components/CopyHistory';
 import CopyHistoryList from '@project/common/app/components/CopyHistoryList';
 import { useAppKeyBinder } from '@project/common/app/hooks/use-app-key-binder';
-import { download } from '@project/common/util';
-import { MiningContext } from '@project/common/app/services/mining-context';
+import { download, surroundingSubtitlesAroundInterval } from '@project/common/util';
+import { MiningContext, BulkExportItem } from '@project/common/app/services/mining-context';
+import BulkExportModal from '@project/common/app/components/BulkExportModal';
 import { IndexedDBCopyHistoryRepository } from '@project/common/copy-history';
 import { mp3WorkerFactory } from '../../services/mp3-worker-factory';
 import { pgsParserWorkerFactory } from '../../services/pgs-parser-worker-factory';
@@ -265,6 +272,219 @@ export default function SidePanel({ settings, extension }: Props) {
             download(new Blob([subtitleReader.subtitlesToSrt(subtitles)], { type: 'text/plain' }), fileName);
         }
     }, [subtitles, subtitleFileNames, subtitleReader]);
+
+    // Prevent overlapping sends when multiple messages arrive back-to-back (bulk export)
+    const bulkInFlightRef = useRef<boolean>(false);
+
+    const sendNextBulkItem = useCallback(() => {
+        if (
+            bulkInFlightRef.current ||
+            !miningContext.bulkExporting ||
+            miningContext.isBulkExportCancelled() ||
+            !syncedVideoTab ||
+            !subtitles
+        ) {
+            return;
+        }
+
+        if (miningContext.currentBulkExportIndex >= miningContext.bulkExportQueue.length) {
+            return;
+        }
+
+        const nextItem = miningContext.bulkExportQueue[miningContext.currentBulkExportIndex];
+        const nextSubtitle = nextItem.subtitle;
+        const around = surroundingSubtitlesAroundInterval(
+            subtitles,
+            nextSubtitle.start,
+            nextSubtitle.end,
+            settings.surroundingSubtitlesCountRadius,
+            settings.surroundingSubtitlesTimeRadius
+        );
+        const surroundingSubtitles = Array.isArray(around.surroundingSubtitles) && around.surroundingSubtitles.length > 0
+            ? around.surroundingSubtitles
+            : [nextSubtitle];
+
+        const nextMessage: AsbPlayerToVideoCommandV2<CopySubtitleMessage> = {
+            sender: 'asbplayerv2',
+            message: {
+                command: 'copy-subtitle',
+                subtitle: nextSubtitle,
+                surroundingSubtitles,
+                postMineAction: PostMineAction.exportCard,
+                exportMode: 'bulk',
+            },
+            tabId: syncedVideoTab.id,
+            src: syncedVideoTab.src,
+        };
+
+        bulkInFlightRef.current = true;
+        browser.runtime.sendMessage(nextMessage).catch(() => {
+            bulkInFlightRef.current = false;
+        });
+    }, [miningContext, syncedVideoTab, subtitles, settings.surroundingSubtitlesCountRadius, settings.surroundingSubtitlesTimeRadius]);
+
+    const handleBulkExportSubtitles = useCallback(async () => {
+        // If we have an active subtitle track, add all of its subtitles to the export queue.
+        if (syncedVideoTab && subtitles) {
+            // First, request the current subtitle from the video tab to determine where to start
+            let startIndex = 0;
+            const currentSubtitleMessage: AsbPlayerToVideoCommandV2<RequestCurrentSubtitleMessage> = {
+                sender: 'asbplayerv2',
+                message: { 
+                    command: 'request-current-subtitle'
+                },
+                tabId: syncedVideoTab.id,
+                src: syncedVideoTab.src,
+            };
+            
+            const currentSubtitleResponse = await browser.runtime.sendMessage(currentSubtitleMessage) as RequestCurrentSubtitleResponse;
+            
+            // Create bulk export items from subtitles, starting from the current subtitle
+            const bulkItems = subtitles
+                .filter(s => s.text !== '') // Skip empty subtitles
+                .map((s, i) => ({
+                    subtitle: s,
+                    index: i
+                }));
+            
+            if (bulkItems.length > 0) {
+                // Compute start index from current subtitle index if available
+                const currentSubtitleIndex = currentSubtitleResponse?.currentSubtitleIndex;
+                if (currentSubtitleIndex !== null && currentSubtitleIndex !== undefined) {
+                    const found = bulkItems.findIndex((b) => b.index >= currentSubtitleIndex);
+                    startIndex = found >= 0 ? found : 0;
+                }
+                // Slice queue to start from current subtitle index for simpler progress tracking
+                const sliced = startIndex > 0 ? bulkItems.slice(startIndex) : bulkItems;
+                miningContext.startBulkExport(sliced, 0);
+                // reset in-flight flag at start
+                bulkInFlightRef.current = false;
+                
+                // Send a message to the background script to notify card-publisher that bulk export started
+                const startedMessage = {
+                    sender: 'asbplayerv2',
+                    message: { 
+                        command: 'bulk-export-started'
+                    },
+                    tabId: syncedVideoTab.id,
+                    src: syncedVideoTab.src,
+                };
+                browser.runtime.sendMessage(startedMessage);
+                
+                // Send first item via the same helper for consistency
+                sendNextBulkItem();
+            }
+        }
+    }, [subtitles, syncedVideoTab, miningContext, sendNextBulkItem]);
+
+    const handleBulkExportCancel = useCallback(async () => {
+        // Check if already cancelled to prevent double-cancellation
+        if (miningContext.isBulkExportCancelled()) {
+            return;
+        }
+        
+        // Force cancel the bulk export
+        miningContext.cancelBulkExport();
+        // Ensure in-flight flag is cleared so a new bulk session can start
+        bulkInFlightRef.current = false;
+        
+        // Stop playback on the video tab directly
+        if (syncedVideoTab) {
+            const pauseToVideo: ExtensionToVideoCommand<PauseFromVideoMessage> = {
+                sender: 'asbplayer-extension-to-video',
+                message: {
+                    command: 'pause',
+                    echo: false,
+                },
+                src: syncedVideoTab.src,
+            };
+            await browser.tabs.sendMessage(syncedVideoTab.id, pauseToVideo);
+        }
+        
+        // Send a message to the background script to notify card-publisher about cancellation
+        const cancellationMessage = {
+            sender: 'asbplayerv2',
+            message: { 
+                command: 'bulk-export-cancelled'
+            },
+            tabId: syncedVideoTab?.id,
+            src: syncedVideoTab?.src,
+        };
+        browser.runtime.sendMessage(cancellationMessage);
+        
+    }, [miningContext, syncedVideoTab]);
+
+    // Keep latest sendNextBulkItem in a ref so the listener can call it without re-subscribing
+    const sendNextBulkItemRef = useRef<() => void>(() => {});
+    useEffect(() => {
+        sendNextBulkItemRef.current = sendNextBulkItem;
+    }, [sendNextBulkItem]);
+
+    // Track latest bulk export state in a ref for the stable listener
+    const bulkStateRef = useRef<{ exporting: boolean; cancelled: boolean }>({ exporting: false, cancelled: false });
+    useEffect(() => {
+        bulkStateRef.current = {
+            exporting: miningContext.bulkExporting,
+            cancelled: miningContext.bulkExportCancelled,
+        };
+    }, [miningContext.bulkExporting, miningContext.bulkExportCancelled]);
+
+    // Force SidePanel to re-render on mining context bulk export events so UI reflects latest state
+    // Without this, a finished bulk export might hang the side panel indefinitely.
+    const [, setBulkUiTick] = useState<number>(0);
+    useEffect(() => {
+        const update = () => {
+            bulkStateRef.current = {
+                exporting: miningContext.bulkExporting,
+                cancelled: miningContext.bulkExportCancelled,
+            };
+            setBulkUiTick((t) => t + 1);
+        };
+
+        const unsubStarted = miningContext.onEvent('bulk-export-started', update);
+        const unsubItemCompleted = miningContext.onEvent('bulk-export-item-completed', update);
+        const unsubCompleted = miningContext.onEvent('bulk-export-completed', update);
+        const unsubCancelled = miningContext.onEvent('bulk-export-cancelled', update);
+
+        return () => {
+            unsubStarted();
+            unsubItemCompleted();
+            unsubCompleted();
+            unsubCancelled();
+        };
+    }, []);
+
+    // Stable runtime listener for advancing bulk export queue
+    useEffect(() => {
+        const listener = (message: any) => {
+            if (!bulkStateRef.current.exporting || bulkStateRef.current.cancelled) {
+                return false;
+            }
+
+            if (
+                message.sender === 'asbplayer-extension-to-video' &&
+                message.message &&
+                message.message.command === 'card-exported'
+            ) {
+                const exported = message.message as CardExportedMessage;
+                const isBulk = exported.isBulkExport || exported.exportMode === 'bulk';
+                if (!isBulk) {
+                    return false;
+                }
+
+                bulkInFlightRef.current = false;
+                miningContext.completeBulkExportItem();
+                sendNextBulkItemRef.current();
+            }
+
+            return false;
+        };
+
+        browser.runtime.onMessage.addListener(listener);
+        return () => {
+            browser.runtime.onMessage.removeListener(listener);
+        };
+    }, []);
 
     const topControlsRef = useRef<HTMLDivElement>(null);
     const [showTopControls, setShowTopControls] = useState<boolean>(false);
@@ -531,6 +751,7 @@ export default function SidePanel({ settings, extension }: Props) {
                                 onLoadSubtitles={handleLoadSubtitles}
                                 canDownloadSubtitles={canDownloadSubtitles}
                                 onDownloadSubtitles={handleDownloadSubtitles}
+                                onBulkExportSubtitles={handleBulkExportSubtitles}
                                 onShowMiningHistory={handleShowCopyHistory}
                             />
                             <SidePanelBottomControls
@@ -545,6 +766,14 @@ export default function SidePanel({ settings, extension }: Props) {
                     )}
                 </>
             )}
+            
+            {/* Bulk Export Modal - rendered outside the main content to ensure it's always on top */}
+            <BulkExportModal
+                open={miningContext.bulkExporting}
+                currentIndex={miningContext.bulkExportProgress.current}
+                totalItems={miningContext.bulkExportProgress.total}
+                onCancel={handleBulkExportCancel}
+            />
         </div>
     );
 }

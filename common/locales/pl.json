@@ -6,6 +6,7 @@
         "downloadAudio": "Pobierz audio",
         "downloadImage": "Pobierz obraz",
         "downloadSubtitlesAsSrt": "Pobierz napisy w formacie SRT",
+        "bulkExportSubtitles": "Bulk Export Subtitles",
         "jumpTo": "Przeskocz do",
         "ok": "OK",
         "mineSubtitle": "Wykop napisy",
@@ -269,6 +270,12 @@
         "enabledCondensedPlayback": "Odtwarzanie skondensowane: Włączone",
         "enabledFastForwardPlayback": "Tryb przyspieszonego odtwarzania: Włączony",
         "exportedCard": "Wyeksportowana karta: {{result}}",
+        "bulkExporting": "Bulk exporting subtitles: {{current}}/{{total}}",
+        "bulkExport": {
+            "title": "Bulk Export in Progress",
+            "description": "Exporting subtitles to Anki. Please wait...",
+            "progressCompleted": "Exported {{current}} of {{total}}"
+        },
         "playbackRate": "Prędkość odtwarzania: {{rate}}",
         "savedTimestamp": "Zapisano: {{timestamp}}",
         "updatedCard": "Zaktualizowana karta: {{result}}",
