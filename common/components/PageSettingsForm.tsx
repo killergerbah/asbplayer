@@ -219,7 +219,10 @@ const DefaultPageSettingsForm = ({
                                 //     deleteDisableCspDnrRule();
                                 // }
 
-                                onPageChanged(pageKey, { ...page, additionalHosts });
+                                onPageChanged(pageKey, {
+                                    ...page,
+                                    additionalHosts: additionalHosts.length === 0 ? undefined : additionalHosts,
+                                });
                             }}
                         />
                         <TextField

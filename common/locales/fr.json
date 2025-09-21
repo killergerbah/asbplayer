@@ -24,7 +24,8 @@
         "decreaseOffsetButton": "Réduire le décalage pour que le sous-titre suivant soit à la position actuelle. Maintenez appuyé pour réduire de 100 ms.",
         "increaseOffsetButton": "Augmenter le décalage pour que le sous-titre précédent soit à la position actuelle. Maintenez appuyé pour augmenter de 100 ms.",
         "gotIt": "Got it",
-        "revert": "Revert"
+        "revert": "Revert",
+        "userGuide": "User guide"
     },
     "about": {
         "title": "À propos d'asbplayer",
@@ -211,7 +212,6 @@
             "updateAvailable": "Mise à jour disponible",
             "enableOverlay": "Activer la superposition des commandes",
             "pages": {
-                "title": "Pages",
                 "overridesWarning": "These settings have been modified.",
                 "host": "Host regex",
                 "additionalHosts": "Additional hosts",

@@ -17,6 +17,9 @@ import { isFirefoxBuild } from '../../services/build-flags';
 import { useTheme } from '@mui/material/styles';
 import SettingsProfileSelectMenu from '@project/common/components/SettingsProfileSelectMenu';
 import { settingsPageConfigs } from '@/services/pages';
+import Stack from '@mui/material/Stack';
+import TutorialIcon from '@project/common/components/TutorialIcon';
+import Paper from '@mui/material/Paper';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -25,6 +28,7 @@ interface Props {
     onOpenApp: () => void;
     onOpenSidePanel: () => void;
     onOpenExtensionShortcuts: () => void;
+    onOpenUserGuide: () => void;
     profiles: Profile[];
     activeProfile?: string;
     onNewProfile: (name: string) => void;
@@ -54,6 +58,7 @@ const Popup = ({
     onOpenSidePanel,
     onSettingsChanged,
     onOpenExtensionShortcuts,
+    onOpenUserGuide,
     ...profilesContext
 }: Props) => {
     const { t } = useTranslation();
@@ -74,84 +79,77 @@ const Popup = ({
     }
 
     return (
-        <Grid container direction="column" spacing={0}>
-            <Grid
-                item
-                style={{ marginLeft: theme.spacing(2), marginTop: theme.spacing(2), marginRight: theme.spacing(2) }}
-            >
-                <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<LaunchIcon />}
-                    onClick={onOpenApp}
-                    style={{ width: '100%' }}
-                >
-                    {t('action.openApp')}
-                </Button>
-            </Grid>
-            {!isMobile && !isFirefoxBuild && (
-                <Grid
-                    item
-                    style={{ marginLeft: theme.spacing(2), marginTop: theme.spacing(1), marginRight: theme.spacing(2) }}
-                >
+        <Paper>
+            <Stack direction="column" spacing={1.5} sx={{ padding: theme.spacing(1.5) }}>
+                <Stack direction="row" spacing={1.5}>
                     <Button
+                        style={{ width: '100%' }}
                         variant="contained"
                         color="primary"
-                        startIcon={<PanelIcon />}
-                        onClick={onOpenSidePanel}
-                        style={{ width: '100%' }}
+                        startIcon={<LaunchIcon />}
+                        onClick={onOpenApp}
                     >
-                        {t('action.openSidePanel')}
+                        {t('action.openApp')}
                     </Button>
+                    {!isMobile && !isFirefoxBuild && (
+                        <Button
+                            style={{ width: '100%' }}
+                            variant="contained"
+                            color="primary"
+                            startIcon={<PanelIcon />}
+                            onClick={onOpenSidePanel}
+                        >
+                            {t('action.openSidePanel')}
+                        </Button>
+                    )}
+                    <Button
+                        style={{ width: '100%' }}
+                        variant="contained"
+                        color="primary"
+                        startIcon={<TutorialIcon />}
+                        onClick={onOpenUserGuide}
+                    >
+                        {t('action.userGuide')}
+                    </Button>
+                </Stack>
+
+                <Grid
+                    item
+                    style={{
+                        height: isMobile ? 'auto' : 390,
+                    }}
+                >
+                    <SettingsForm
+                        extensionInstalled
+                        extensionVersion={browser.runtime.getManifest().version}
+                        extensionSupportsAppIntegration
+                        extensionSupportsOverlay
+                        extensionSupportsSidePanel={!isFirefoxBuild}
+                        extensionSupportsOrderableAnkiFields
+                        extensionSupportsTrackSpecificSettings
+                        extensionSupportsSubtitlesWidthSetting
+                        extensionSupportsPauseOnHover
+                        extensionSupportsExportCardBind
+                        extensionSupportsPageSettings
+                        forceVerticalTabs={false}
+                        anki={anki}
+                        chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}
+                        settings={settings}
+                        pageConfigs={settingsPageConfigs}
+                        localFontsAvailable={localFontsAvailable}
+                        localFontsPermission={localFontsPermission}
+                        localFontFamilies={localFontFamilies}
+                        supportedLanguages={supportedLanguages}
+                        onSettingsChanged={onSettingsChanged}
+                        onOpenChromeExtensionShortcuts={onOpenExtensionShortcuts}
+                        onUnlockLocalFonts={handleUnlockLocalFonts}
+                    />
                 </Grid>
-            )}
-            <Grid
-                item
-                style={{
-                    height: isMobile ? 'auto' : 390,
-                    marginLeft: theme.spacing(1),
-                    marginTop: theme.spacing(1),
-                    marginRight: theme.spacing(1),
-                }}
-            >
-                <SettingsForm
-                    extensionInstalled
-                    extensionVersion={browser.runtime.getManifest().version}
-                    extensionSupportsAppIntegration
-                    extensionSupportsOverlay
-                    extensionSupportsSidePanel={!isFirefoxBuild}
-                    extensionSupportsOrderableAnkiFields
-                    extensionSupportsTrackSpecificSettings
-                    extensionSupportsSubtitlesWidthSetting
-                    extensionSupportsPauseOnHover
-                    extensionSupportsExportCardBind
-                    extensionSupportsPageSettings
-                    forceVerticalTabs={false}
-                    anki={anki}
-                    chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}
-                    settings={settings}
-                    pageConfigs={settingsPageConfigs}
-                    localFontsAvailable={localFontsAvailable}
-                    localFontsPermission={localFontsPermission}
-                    localFontFamilies={localFontFamilies}
-                    supportedLanguages={supportedLanguages}
-                    onSettingsChanged={onSettingsChanged}
-                    onOpenChromeExtensionShortcuts={onOpenExtensionShortcuts}
-                    onUnlockLocalFonts={handleUnlockLocalFonts}
-                />
-            </Grid>
-            <Grid
-                item
-                style={{
-                    marginLeft: theme.spacing(2),
-                    marginTop: theme.spacing(1),
-                    marginRight: theme.spacing(2),
-                    marginBottom: theme.spacing(2),
-                }}
-            >
-                <SettingsProfileSelectMenu {...profilesContext} />
-            </Grid>
-        </Grid>
+                <Grid item>
+                    <SettingsProfileSelectMenu {...profilesContext} />
+                </Grid>
+            </Stack>
+        </Paper>
     );
 };
 

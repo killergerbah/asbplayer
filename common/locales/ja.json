@@ -24,7 +24,8 @@
         "decreaseOffsetButton": "次の字幕を現在のタイムスタンプに合わせる。長押しすると、字幕表示タイミングが100msずつ変わる。",
         "increaseOffsetButton": "前の字幕を現在のタイムスタンプに合わせる。長押しすると、字幕表示タイミングが100msずつ変わる。",
         "gotIt": "分かった",
-        "revert": "Revert"
+        "revert": "Revert",
+        "userGuide": "User guide"
     },
     "about": {
         "title": "asbplayerについて",
@@ -211,7 +212,6 @@
             "updateAvailable": "アップデートがあります",
             "enableOverlay": "コントロールオーバーレイを表示",
             "pages": {
-                "title": "Pages",
                 "overridesWarning": "These settings have been modified.",
                 "host": "Host regex",
                 "additionalHosts": "Additional hosts",

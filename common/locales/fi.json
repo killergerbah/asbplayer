@@ -24,7 +24,8 @@
         "decreaseOffsetButton": "Vähennä siirtymää niin, että seuraava tekstitys on nykyisessä asennossa. Pienennä sitä 100ms:llä.",
         "increaseOffsetButton": "Lisää siirtymää niin, että edellinen tekstitys on nykyisessä asennossa. Kasvata 100 ms:n tarkkuudella.",
         "gotIt": "Selvä",
-        "revert": "Revert"
+        "revert": "Revert",
+        "userGuide": "User guide"
     },
     "about": {
         "title": "Tietoja asbplayeristä",
@@ -211,7 +212,6 @@
             "updateAvailable": "Päivitys on saatavilla!",
             "enableOverlay": "Ota hallintaoikeudet käyttöön",
             "pages": {
-                "title": "Pages",
                 "overridesWarning": "These settings have been modified.",
                 "host": "Host regex",
                 "additionalHosts": "Additional hosts",

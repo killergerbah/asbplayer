@@ -2795,11 +2795,6 @@ export default function SettingsForm({
                             {pageConfigs && (
                                 <TableContainer variant="outlined" component={Paper} style={{ height: 'auto' }}>
                                     <Table>
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell colSpan={3}>{t('extension.settings.pages.title')}</TableCell>
-                                            </TableRow>
-                                        </TableHead>
                                         <TableBody>
                                             {Object.entries(pageMetadata).map(([key, metadata]) => {
                                                 const pageKey = key as keyof PageSettings;

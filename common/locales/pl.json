@@ -24,7 +24,8 @@
         "decreaseOffsetButton": "Zmniejsz przesunięcie, aby następne napisy znalazły się na obecnej pozycji. Przytrzymaj, aby zmniejszyć o 100 Ms.",
         "increaseOffsetButton": "Zwiększ przesunięcie, aby poprzednie napisy znalazły się na obecnej pozycji. Przytrzymaj, aby zwiększyć o 100 Ms.",
         "gotIt": "Got it",
-        "revert": "Revert"
+        "revert": "Revert",
+        "userGuide": "User guide"
     },
     "about": {
         "title": "About asbplayer",
@@ -211,7 +212,6 @@
             "updateAvailable": "Dostępna aktualizacja",
             "enableOverlay": "Pokaż panel kontrolny",
             "pages": {
-                "title": "Pages",
                 "overridesWarning": "These settings have been modified.",
                 "host": "Host regex",
                 "additionalHosts": "Additional hosts",

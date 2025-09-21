@@ -24,7 +24,8 @@
         "decreaseOffsetButton": "Kurangi offset agar takarir berikutnya berada di posisi saat ini. Tahan untuk mengurangi 100 ms.",
         "increaseOffsetButton": "Tambah offset agar takarir sebelumnya berada di posisi saat ini. Tahan untuk menambah 100 ms.",
         "gotIt": "Mengerti",
-        "revert": "Revert"
+        "revert": "Revert",
+        "userGuide": "User guide"
     },
     "about": {
         "title": "Tentang asbplayer",
@@ -211,7 +212,6 @@
             "updateAvailable": "Pembaruan Tersedia",
             "enableOverlay": "Aktifkan lapisan kontrol",
             "pages": {
-                "title": "Pages",
                 "overridesWarning": "These settings have been modified.",
                 "host": "Host regex",
                 "additionalHosts": "Additional hosts",

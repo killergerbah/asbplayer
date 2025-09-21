@@ -24,7 +24,8 @@
         "decreaseOffsetButton": "Diminui o deslocamento para que a próxima legenda esteja na posição atual, Segure para diminuir em 100ms.",
         "increaseOffsetButton": "Aumenta o deslocamento para que a legenda anterior esteja na posição atual. Segure para aumentar em 100ms.",
         "gotIt": "Peguei",
-        "revert": "Revert"
+        "revert": "Revert",
+        "userGuide": "User guide"
     },
     "about": {
         "title": "Sobre o asbplayer",
@@ -211,7 +212,6 @@
             "updateAvailable": "Atualização disponível",
             "enableOverlay": "Ativar sobreposição de controles",
             "pages": {
-                "title": "Pages",
                 "overridesWarning": "These settings have been modified.",
                 "host": "Host regex",
                 "additionalHosts": "Additional hosts",

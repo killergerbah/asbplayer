@@ -24,7 +24,8 @@
         "decreaseOffsetButton": "Decrease offset to so that next subtitle is at current position. Hold to decrease by 100ms.",
         "increaseOffsetButton": "Increase offset to so that previous subtitle is at current position. Hold to increase by 100ms.",
         "gotIt": "Got it",
-        "revert": "Revert"
+        "revert": "Revert",
+        "userGuide": "User guide"
     },
     "about": {
         "title": "About asbplayer",
@@ -211,7 +212,6 @@
             "updateAvailable": "Update Available",
             "enableOverlay": "Enable controls overlay",
             "pages": {
-                "title": "Pages",
                 "overridesWarning": "These settings have been modified.",
                 "host": "Host regex",
                 "additionalHosts": "Additional hosts",

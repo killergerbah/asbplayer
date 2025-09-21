@@ -24,7 +24,8 @@
         "decreaseOffsetButton": "Уменьшить задержку, чтобы следующий субтитр был на текущей временной метке. Удерживайте для уменьшения по 100 мс.",
         "increaseOffsetButton": "Увеличить задержку, чтобы предыдущий субтитр был на текущей временной метке. Удерживайте для увеличения по 100 мс.",
         "gotIt": "ОК",
-        "revert": "Revert"
+        "revert": "Revert",
+        "userGuide": "User guide"
     },
     "about": {
         "title": "О asbplayer",
@@ -211,7 +212,6 @@
             "updateAvailable": "Доступно обновление",
             "enableOverlay": "Включить оверлей",
             "pages": {
-                "title": "Pages",
                 "overridesWarning": "These settings have been modified.",
                 "host": "Host regex",
                 "additionalHosts": "Additional hosts",
