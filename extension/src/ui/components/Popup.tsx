@@ -1,11 +1,12 @@
 import Grid from '@mui/material/Grid';
 import { HttpPostMessage, PopupToExtensionCommand } from '@project/common';
 import { AsbplayerSettings, Profile, chromeCommandBindsToKeyBinds } from '@project/common/settings';
-import SettingsForm, { PageConfigMap } from '@project/common/components/SettingsForm';
+import SettingsForm from '@project/common/components/SettingsForm';
 import PanelIcon from '@project/common/components/PanelIcon';
 import LaunchIcon from '@mui/icons-material/Launch';
 import { useCallback, useMemo } from 'react';
 import Button from '@mui/material/Button';
+import ButtonGroup from '@mui/material/ButtonGroup';
 import { useTranslation } from 'react-i18next';
 import { Fetcher } from '@project/common/src/fetcher';
 import { useLocalFontFamilies } from '@project/common/hooks';
@@ -81,38 +82,19 @@ const Popup = ({
     return (
         <Paper>
             <Stack direction="column" spacing={1.5} sx={{ padding: theme.spacing(1.5) }}>
-                <Stack direction="row" spacing={1.5}>
-                    <Button
-                        style={{ width: '100%' }}
-                        variant="contained"
-                        color="primary"
-                        startIcon={<LaunchIcon />}
-                        onClick={onOpenApp}
-                    >
+                <ButtonGroup fullWidth variant="contained" color="primary" orientation="horizontal">
+                    <Button variant="contained" color="primary" startIcon={<LaunchIcon />} onClick={onOpenApp}>
                         {t('action.openApp')}
                     </Button>
                     {!isMobile && !isFirefoxBuild && (
-                        <Button
-                            style={{ width: '100%' }}
-                            variant="contained"
-                            color="primary"
-                            startIcon={<PanelIcon />}
-                            onClick={onOpenSidePanel}
-                        >
+                        <Button variant="contained" color="primary" startIcon={<PanelIcon />} onClick={onOpenSidePanel}>
                             {t('action.openSidePanel')}
                         </Button>
                     )}
-                    <Button
-                        style={{ width: '100%' }}
-                        variant="contained"
-                        color="primary"
-                        startIcon={<TutorialIcon />}
-                        onClick={onOpenUserGuide}
-                    >
+                    <Button variant="contained" color="primary" startIcon={<TutorialIcon />} onClick={onOpenUserGuide}>
                         {t('action.userGuide')}
                     </Button>
-                </Stack>
-
+                </ButtonGroup>
                 <Grid
                     item
                     style={{
