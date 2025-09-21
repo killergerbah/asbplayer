@@ -158,6 +158,8 @@ export interface CreateModelParams {
 export class Anki {
     private readonly settingsProvider: AnkiSettings;
     private readonly fetcher: Fetcher;
+    private readonly unsafeURLChars: RegExp = /[:\/\?#\[\]@!$&'()*+,;= "<>%{}|\\^`]/g;
+    private readonly replacement: string = '_';
 
     constructor(settingsProvider: AnkiSettings, fetcher = new HttpFetcher()) {
         this.settingsProvider = settingsProvider;
@@ -397,12 +399,19 @@ export class Anki {
         fields[fieldName] = newValue;
     }
 
+    private _sanitizeUnsafeURLChars(name: string) {
+        return name.replace(this.unsafeURLChars, this.replacement);
+    }
+
     private _sanitizeFileName(name: string) {
         if (typeof name.toWellFormed === 'function') {
             name = name.toWellFormed();
         }
 
-        return sanitize(name, { replacement: '_' });
+        // Sanitize unsafe URL characters for AnkiWeb compatibility.
+        name = this._sanitizeUnsafeURLChars(name);
+        // Sanitize for file system compatibility on various operating systems.
+        return sanitize(name, { replacement: this.replacement });
     }
 
     private async _storeMediaFile(name: string, base64: string, ankiConnectUrl?: string) {
