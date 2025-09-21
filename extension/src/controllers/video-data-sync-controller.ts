@@ -132,8 +132,14 @@ export default class VideoDataSyncController {
         }
     }
 
-    requestSubtitles() {
-        if (!this._context.hasPageScript || !currentPageDelegate()?.isVideoPage()) {
+    async requestSubtitles() {
+        if (!this._context.hasPageScript) {
+            return;
+        }
+
+        const pageDelegate = await currentPageDelegate();
+
+        if (!pageDelegate?.isVideoPage()) {
             return;
         }
 
@@ -182,7 +188,7 @@ export default class VideoDataSyncController {
         const activeProfilePromise = this._context.settings.activeProfile();
         const hasSeenFtue = (await globalStateProvider.get(['ftueHasSeenSubtitleTrackSelector']))
             .ftueHasSeenSubtitleTrackSelector;
-        const hideRememberTrackPreferenceToggle = this._isTutorial || this._pageHidesTrackPrefToggle();
+        const hideRememberTrackPreferenceToggle = this._isTutorial || (await this._pageHidesTrackPrefToggle());
         return this._syncedData
             ? {
                   isLoading: this._syncedData.subtitles === undefined,
@@ -270,7 +276,7 @@ export default class VideoDataSyncController {
     private async _setSyncedData(data: VideoData) {
         this._syncedData = data;
 
-        if (this._syncedData?.subtitles !== undefined && this._canAutoSync()) {
+        if (this._syncedData?.subtitles !== undefined && (await this._canAutoSync())) {
             if (!this._autoSyncAttempted) {
                 this._autoSyncAttempted = true;
                 const subs = this._matchLastSyncedWithAvailableTracks();
@@ -295,8 +301,8 @@ export default class VideoDataSyncController {
         }
     }
 
-    private _canAutoSync(): boolean {
-        const page = currentPageDelegate();
+    private async _canAutoSync(): Promise<boolean> {
+        const page = await currentPageDelegate();
 
         if (page === undefined) {
             return this._autoSync ?? false;
@@ -305,8 +311,8 @@ export default class VideoDataSyncController {
         return this._autoSync === true && page.canAutoSync(this._context.video);
     }
 
-    private _pageHidesTrackPrefToggle() {
-        return currentPageDelegate()?.config?.hideRememberTrackPreferenceToggle ?? false;
+    private async _pageHidesTrackPrefToggle() {
+        return (await currentPageDelegate())?.config?.hideRememberTrackPreferenceToggle ?? false;
     }
 
     private async _client() {

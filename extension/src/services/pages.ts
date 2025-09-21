@@ -1,10 +1,24 @@
 import pagesConfig from '../pages.json';
 import type { PublicPath } from 'wxt/browser';
 import { isOnTutorialPage } from './tutorial';
+import { ExtensionSettingsStorage } from './extension-settings-storage';
+import { SettingsProvider } from '@project/common/settings/settings-provider';
+import { PageConfig as SettingsPageConfig, PageSettings } from '@project/common/settings';
+
+export interface SettingsFormPageConfig extends SettingsPageConfig {
+    faviconUrl: string;
+}
+
+interface PageConfigFile {
+    pages: PageConfig[];
+}
 
 interface PageConfig {
     // Regex for URLs where script should be loaded
     host: string;
+
+    // Hosts specified as literal strings, not to be evaluated as regexes
+    literalHosts?: string[];
 
     // Page script to load
     pageScript?: string;
@@ -43,13 +57,52 @@ interface PageConfig {
     hideRememberTrackPreferenceToggle?: boolean;
 }
 
-export function currentPageDelegate(): PageDelegate | undefined {
-    const urlObj = new URL(window.location.href);
+const settings = new SettingsProvider(new ExtensionSettingsStorage());
 
-    for (const page of pagesConfig.pages) {
+async function pageConfigsMergedWithSettingsOverrides(): Promise<PageConfigFile> {
+    const pageSettings = await settings.getSingle('streamingPages');
+    const mergedPages = pagesConfig.pages.map((page) => {
+        const settingsPage = pageSettings[page.key as keyof PageSettings];
+        const overrides = settingsPage.overrides;
+
+        if (overrides === undefined) {
+            return page;
+        }
+
+        const autoSyncHasOverrides =
+            (overrides.autoSyncEnabled ?? overrides.autoSyncVideoSrc ?? overrides.autoSyncElementId) !== undefined;
+        const autoSync = autoSyncHasOverrides
+            ? {
+                  enabled: overrides.autoSyncEnabled ?? page.autoSync?.enabled ?? false,
+                  videoSrc: overrides.autoSyncVideoSrc ?? page.autoSync?.videoSrc,
+                  elementId: overrides.autoSyncElementId ?? page.autoSync?.elementId,
+              }
+            : page.autoSync;
+
+        return {
+            host: page.host,
+            literalHosts: settingsPage.additionalHosts,
+            pageScript: page.pageScript,
+            syncAllowedAtPath: overrides.syncAllowedAtPath ?? page.syncAllowedAtPath,
+            syncAllowedAtHash: overrides.syncAllowedAtHash ?? page.syncAllowedAtHash,
+            searchShadowRootsForVideoElements:
+                overrides.searchShadowRootsForVideoElements ?? page.searchShadowRootsForVideoElements,
+            allowVideoElementsWithBlankSrc:
+                overrides.allowVideoElementsWithBlankSrc ?? page.allowVideoElementsWithBlankSrc,
+            autoSync,
+        };
+    });
+
+    return { pages: mergedPages } as PageConfigFile;
+}
+
+export async function currentPageDelegate(): Promise<PageDelegate | undefined> {
+    const urlObj = new URL(window.location.href);
+    const mergedPageConfig = await pageConfigsMergedWithSettingsOverrides();
+    for (const page of mergedPageConfig.pages) {
         const regex = new RegExp(page.host);
 
-        if (regex.test(urlObj.host)) {
+        if (regex.test(urlObj.host) || (page.literalHosts !== undefined && page.literalHosts.includes(urlObj.host))) {
             return new PageDelegate(page, urlObj);
         }
     }
@@ -135,3 +188,21 @@ export class PageDelegate {
         return hashMatch && pathMatch;
     }
 }
+
+export const settingsPageConfigs: { [K in keyof PageSettings]: SettingsFormPageConfig } = Object.fromEntries(
+    pagesConfig.pages.map((config) => {
+        const settingsFormPageConfig: SettingsFormPageConfig = {
+            hostRegex: config.host,
+            syncAllowedAtPath: config.syncAllowedAtPath,
+            syncAllowedAtHash: config.syncAllowedAtHash,
+            searchShadowRootsForVideoElements: config.searchShadowRootsForVideoElements,
+            allowVideoElementsWithBlankSrc: config.allowVideoElementsWithBlankSrc,
+            autoSyncEnabled: config.autoSync?.enabled,
+            autoSyncVideoSrc: config.autoSync?.videoSrc,
+            autoSyncElementId: config.autoSync?.elementId,
+            ignoreVideoElementsClass: config.ignoreVideoElements?.class,
+            faviconUrl: chrome.runtime.getURL(`/page-favicons/${config.key}.ico`),
+        };
+        return [config.key, settingsFormPageConfig];
+    })
+) as { [K in keyof PageSettings]: SettingsFormPageConfig };

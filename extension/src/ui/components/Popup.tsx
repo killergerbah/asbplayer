@@ -1,7 +1,7 @@
 import Grid from '@mui/material/Grid';
 import { HttpPostMessage, PopupToExtensionCommand } from '@project/common';
 import { AsbplayerSettings, Profile, chromeCommandBindsToKeyBinds } from '@project/common/settings';
-import SettingsForm from '@project/common/components/SettingsForm';
+import SettingsForm, { PageConfigMap } from '@project/common/components/SettingsForm';
 import PanelIcon from '@project/common/components/PanelIcon';
 import LaunchIcon from '@mui/icons-material/Launch';
 import { useCallback, useMemo } from 'react';
@@ -16,6 +16,7 @@ import { isMobile } from 'react-device-detect';
 import { isFirefoxBuild } from '../../services/build-flags';
 import { useTheme } from '@mui/material/styles';
 import SettingsProfileSelectMenu from '@project/common/components/SettingsProfileSelectMenu';
+import { settingsPageConfigs } from '@/services/pages';
 
 interface Props {
     settings: AsbplayerSettings;
@@ -128,6 +129,7 @@ const Popup = ({
                     anki={anki}
                     chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}
                     settings={settings}
+                    pageConfigs={settingsPageConfigs}
                     localFontsAvailable={localFontsAvailable}
                     localFontsPermission={localFontsPermission}
                     localFontFamilies={localFontFamilies}

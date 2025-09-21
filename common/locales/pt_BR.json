@@ -23,7 +23,8 @@
         "openTutorial": "Abrir tutorial",
         "decreaseOffsetButton": "Diminui o deslocamento para que a próxima legenda esteja na posição atual, Segure para diminuir em 100ms.",
         "increaseOffsetButton": "Aumenta o deslocamento para que a legenda anterior esteja na posição atual. Segure para aumentar em 100ms.",
-        "gotIt": "Peguei"
+        "gotIt": "Peguei",
+        "revert": "Revert"
     },
     "about": {
         "title": "Sobre o asbplayer",
@@ -208,7 +209,18 @@
             "syncing": "Sincronização",
             "takeScreenshot": "Capturar tela ao minerar",
             "updateAvailable": "Atualização disponível",
-            "enableOverlay": "Ativar sobreposição de controles"
+            "enableOverlay": "Ativar sobreposição de controles",
+            "pages": {
+                "title": "Pages",
+                "overridesWarning": "These settings have been modified.",
+                "host": "Host regex",
+                "additionalHosts": "Additional hosts",
+                "syncAllowedAtPath": "Path regex for subtitle detection",
+                "syncAllowedAtHash": "Path hash regex for subtitle detection",
+                "autoSyncEnabled": "Allow auto-loading of detected subtitles",
+                "searchShadowRootsForVideoElements": "Search shadow roots for video elements",
+                "allowVideoElementsWithBlankSrc": "Allow video elements with blank src"
+            }
         },
         "videoDataSync": {
             "emptySubtitleTrack": "Vazio",

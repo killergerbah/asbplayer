@@ -1,6 +1,7 @@
 {
     "pages": [
         {
+            "key": "netflix",
             "host": "www\\.netflix\\.com",
             "pageScript": "netflix-page.js",
             "syncAllowedAtPath": "watch",
@@ -9,6 +10,7 @@
             }
         },
         {
+            "key": "youtube",
             "host": "(m|www)\\.youtube\\.com",
             "pageScript": "youtube-page.js",
             "syncAllowedAtPath": "watch|shorts|embed",
@@ -17,6 +19,7 @@
             }
         },
         {
+            "key": "tver",
             "host": "tver\\.jp",
             "pageScript": "tver-page.js",
             "syncAllowedAtPath": "episodes",
@@ -25,6 +28,7 @@
             }
         },
         {
+            "key": "bandaiChannel",
             "host": "www\\.b-ch\\.com",
             "pageScript": "bandai-channel-page.js",
             "syncAllowedAtPath": "titles",
@@ -33,6 +37,7 @@
             }
         },
         {
+            "key": "amazonPrime",
             "host": "www\\.amazon\\..+|www\\.primevideo\\.com",
             "pageScript": "amazon-prime-page.js",
             "syncAllowedAtPath": ".*",
@@ -48,6 +53,7 @@
             }
         },
         {
+            "key": "hulu",
             "host": "www\\.hulu\\..+",
             "pageScript": "hulu-page.js",
             "syncAllowedAtPath": "watch",
@@ -57,6 +63,7 @@
             }
         },
         {
+            "key": "disneyPlus",
             "host": "www\\.disneyplus\\..+",
             "pageScript": "disney-plus-page.js",
             "syncAllowedAtPath": "video|play",
@@ -66,6 +73,7 @@
             }
         },
         {
+            "key": "appsDisneyPlus",
             "host": "www\\.apps\\.disneyplus\\..+",
             "pageScript": "apps-disney-plus-page.js",
             "syncAllowedAtPath": "watch",
@@ -75,7 +83,8 @@
             }
         },
         {
-            "host": "video.unext.jp",
+            "key": "unext",
+            "host": "video\\.unext\\.jp",
             "pageScript": "unext-page.js",
             "syncAllowedAtPath": "play",
             "autoSync": {
@@ -83,6 +92,7 @@
             }
         },
         {
+            "key": "viki",
             "host": ".+\\.viki\\.(io|com)",
             "pageScript": "viki-page.js",
             "syncAllowedAtPath": "videos",
@@ -91,6 +101,7 @@
             }
         },
         {
+            "key": "embyJellyfin",
             "host": "(jellyfin.*)|(emby.*)|(:8096$)",
             "pageScript": "emby-jellyfin-page.js",
             "syncAllowedAtHash": "#!/videoosd/videoosd.html|#/video",
@@ -99,11 +110,13 @@
             }
         },
         {
-            "host": "www.twitch.tv",
+            "key": "twitch",
+            "host": "www\\.twitch\\.tv",
             "allowVideoElementsWithBlankSrc": true
         },
         {
-            "host": "osnplus.com",
+            "key": "osnPlus",
+            "host": "osnplus\\.com",
             "pageScript": "osnplus-page.js",
             "syncAllowedAtPath": "watch",
             "autoSync": {
@@ -111,7 +124,8 @@
             }
         },
         {
-            "host": "www.bilibili.tv",
+            "key": "bilibili",
+            "host": "www\\.bilibili\\.tv",
             "pageScript": "bilibili-page.js",
             "syncAllowedAtPath": "play|video",
             "autoSync": {
@@ -119,7 +133,8 @@
             }
         },
         {
-            "host": "tv.nrk.no",
+            "key": "nrktv",
+            "host": "tv\\.nrk\\.no",
             "pageScript": "nrk-tv-page.js",
             "syncAllowedAtPath": ".*",
             "autoSync": {
@@ -127,6 +142,7 @@
             }
         },
         {
+            "key": "plex",
             "host": "(plex.*)|(:32400$)",
             "pageScript": "plex-page.js",
             "syncAllowedAtPath": ".*",
@@ -135,7 +151,8 @@
             }
         },
         {
-            "host": "areena.yle.fi",
+            "key": "yleAreena",
+            "host": "areena\\.yle\\.fi",
             "pageScript": "areena-yle-page.js",
             "syncAllowedAtPath": ".*",
             "autoSync": {
@@ -143,7 +160,8 @@
             }
         },
         {
-            "host": "play.max.com",
+            "key": "hboMax",
+            "host": "play\\.max\\.com",
             "pageScript": "hbo-max-page.js",
             "syncAllowedAtPath": "watch",
             "autoSync": {
@@ -151,7 +169,8 @@
             }
         },
         {
-            "host": "web.stremio.com",
+            "key": "stremio",
+            "host": "web\\.stremio\\.com",
             "pageScript": "stremio-page.js",
             "syncAllowedAtPath": ".*",
             "autoSync": {

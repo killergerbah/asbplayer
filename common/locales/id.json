@@ -23,7 +23,8 @@
         "openTutorial": "Buka Tutorial",
         "decreaseOffsetButton": "Kurangi offset agar takarir berikutnya berada di posisi saat ini. Tahan untuk mengurangi 100 ms.",
         "increaseOffsetButton": "Tambah offset agar takarir sebelumnya berada di posisi saat ini. Tahan untuk menambah 100 ms.",
-        "gotIt": "Mengerti"
+        "gotIt": "Mengerti",
+        "revert": "Revert"
     },
     "about": {
         "title": "Tentang asbplayer",
@@ -208,7 +209,18 @@
             "syncing": "Sinkronisasi",
             "takeScreenshot": "Ambil tangkapan layar saat menambang",
             "updateAvailable": "Pembaruan Tersedia",
-            "enableOverlay": "Aktifkan lapisan kontrol"
+            "enableOverlay": "Aktifkan lapisan kontrol",
+            "pages": {
+                "title": "Pages",
+                "overridesWarning": "These settings have been modified.",
+                "host": "Host regex",
+                "additionalHosts": "Additional hosts",
+                "syncAllowedAtPath": "Path regex for subtitle detection",
+                "syncAllowedAtHash": "Path hash regex for subtitle detection",
+                "autoSyncEnabled": "Allow auto-loading of detected subtitles",
+                "searchShadowRootsForVideoElements": "Search shadow roots for video elements",
+                "allowVideoElementsWithBlankSrc": "Allow video elements with blank src"
+            }
         },
         "videoDataSync": {
             "emptySubtitleTrack": "Kosong",

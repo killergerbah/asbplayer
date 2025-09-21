@@ -80,9 +80,9 @@ export default defineContentScript({
             return false;
         };
 
-        const bind = () => {
+        const bind = async () => {
             const bindings: Binding[] = [];
-            const page = currentPageDelegate();
+            const page = await currentPageDelegate();
             let hasPageScript = page?.config.pageScript !== undefined;
             let frameInfoListener: FrameInfoListener | undefined;
             let frameInfoBroadcaster: FrameInfoBroadcaster | undefined;
@@ -265,11 +265,11 @@ export default defineContentScript({
         };
 
         if (document.readyState === 'complete') {
-            bind();
+            bind().catch(console.error);
         } else {
             document.addEventListener('readystatechange', (event) => {
                 if (document.readyState === 'complete') {
-                    bind();
+                    bind().catch(console.error);
                 }
             });
         }

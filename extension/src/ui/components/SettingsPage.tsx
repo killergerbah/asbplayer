@@ -17,6 +17,7 @@ import { isFirefoxBuild } from '../../services/build-flags';
 import SettingsProfileSelectMenu from '@project/common/components/SettingsProfileSelectMenu';
 import { AsbplayerSettings, Profile, testCard } from '@project/common/settings';
 import { useTheme, type Theme } from '@mui/material/styles';
+import { settingsPageConfigs } from '@/services/pages';
 
 const useStyles = makeStyles<Theme>((theme) => ({
     root: {
@@ -113,6 +114,7 @@ const SettingsPage = ({ settings, inTutorial, onSettingsChanged, ...profileConte
                         onOpenChromeExtensionShortcuts={handleOpenExtensionShortcuts}
                         onSettingsChanged={onSettingsChanged}
                         settings={settings}
+                        pageConfigs={settingsPageConfigs}
                         localFontsAvailable={localFontsAvailable}
                         localFontsPermission={localFontsPermission}
                         localFontFamilies={localFontFamilies}

@@ -1,7 +1,7 @@
 import { Validator } from 'jsonschema';
 import { AsbplayerSettings } from './settings';
 import { ensureConsistencyOnRead } from './settings-provider';
-import { exportCard } from '../anki';
+import { download } from '../util';
 
 const keyBindSchema = {
     id: '/KeyBind',
@@ -422,19 +422,44 @@ const settingsSchema = {
     },
 };
 
+const ignoreKeys: (keyof AsbplayerSettings)[] = [
+    'streamingPages', // Ignored due to security risk (e.g. disable CSP)
+];
+
+const withIgnoredKeysRemoved = (settings: any) => {
+    const copy = { ...settings };
+    for (const ignoreKey of ignoreKeys) {
+        delete copy[ignoreKey];
+    }
+    return copy;
+};
+
+export const exportSettings = (settings: AsbplayerSettings) => {
+    const now = new Date();
+    const timeString = `${now.getFullYear()}-${
+        now.getMonth() + 1
+    }-${now.getDate()}-${now.getHours()}-${now.getMinutes()}-${now.getSeconds()}`;
+
+    download(
+        new Blob([JSON.stringify(withIgnoredKeysRemoved(settings))], { type: 'appliction/json' }),
+        `asbplayer-settings-${timeString}.json`
+    );
+};
+
 export const validateSettings = (settings: any) => {
+    const copy = withIgnoredKeysRemoved(settings);
     const validator = new Validator();
     validator.addSchema(keyBindSchema);
     validator.addSchema(ankiFieldSchema);
     validator.addSchema(textSubtitleSettingsSchema);
-    const result = validator.validate(settings, settingsSchema);
-    validateAllKnownKeys(settings, []);
+    const result = validator.validate(copy, settingsSchema);
+    validateAllKnownKeys(copy, []);
 
     if (!result.valid) {
         throw new Error('Settings validation failed: ' + JSON.stringify(result.errors));
     }
 
-    return ensureConsistencyOnRead(settings as AsbplayerSettings);
+    return ensureConsistencyOnRead(copy as AsbplayerSettings);
 };
 
 const validateAllKnownKeys = (object: any, path: string[]) => {

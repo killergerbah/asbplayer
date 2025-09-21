@@ -29,12 +29,12 @@ import Typography from '@mui/material/Typography';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import DoneIcon from '@mui/icons-material/Done';
-import TagsTextField from './TagsTextField';
+import TagsTextField from './ListField';
 import { Anki, ExportParams } from '../anki';
 import { isFirefox } from '../browser-detection';
 import SentenceField from './SentenceField';
 import DefinitionField from './DefinitionField';
-import WordField from './WorldField';
+import WordField from './WordField';
 import CustomField from './CustomField';
 import AudioField from './AudioField';
 import ImageField from './ImageField';
@@ -901,8 +901,8 @@ const AnkiDialog = ({
                             helperText={t('ankiDialog.tagList')}
                             fullWidth
                             color="primary"
-                            tags={tags}
-                            onTagsChange={(newTags) => setTags(newTags)}
+                            items={tags}
+                            onItemsChange={(newTags) => setTags(newTags)}
                         />
                         {timestampInterval && timestampBoundaryInterval && timestampMarks && (
                             <Grid container direction="row">

@@ -23,7 +23,8 @@
         "openTutorial": "チュートリアルを開く",
         "decreaseOffsetButton": "次の字幕を現在のタイムスタンプに合わせる。長押しすると、字幕表示タイミングが100msずつ変わる。",
         "increaseOffsetButton": "前の字幕を現在のタイムスタンプに合わせる。長押しすると、字幕表示タイミングが100msずつ変わる。",
-        "gotIt": "分かった"
+        "gotIt": "分かった",
+        "revert": "Revert"
     },
     "about": {
         "title": "asbplayerについて",
@@ -208,7 +209,18 @@
             "syncing": "同期",
             "takeScreenshot": "マイニング時にスクリーンショットを撮る",
             "updateAvailable": "アップデートがあります",
-            "enableOverlay": "コントロールオーバーレイを表示"
+            "enableOverlay": "コントロールオーバーレイを表示",
+            "pages": {
+                "title": "Pages",
+                "overridesWarning": "These settings have been modified.",
+                "host": "Host regex",
+                "additionalHosts": "Additional hosts",
+                "syncAllowedAtPath": "Path regex for subtitle detection",
+                "syncAllowedAtHash": "Path hash regex for subtitle detection",
+                "autoSyncEnabled": "Allow auto-loading of detected subtitles",
+                "searchShadowRootsForVideoElements": "Search shadow roots for video elements",
+                "allowVideoElementsWithBlankSrc": "Allow video elements with blank src"
+            }
         },
         "videoDataSync": {
             "emptySubtitleTrack": "空",

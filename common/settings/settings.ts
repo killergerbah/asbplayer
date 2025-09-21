@@ -263,6 +263,47 @@ export enum SubtitleListPreference {
     app = 'app',
 }
 
+export interface PageConfig {
+    hostRegex: string;
+    syncAllowedAtPath?: string;
+    syncAllowedAtHash?: string;
+    searchShadowRootsForVideoElements?: boolean;
+    allowVideoElementsWithBlankSrc?: boolean;
+    autoSyncEnabled?: boolean;
+    autoSyncVideoSrc?: string;
+    autoSyncElementId?: string;
+    ignoreVideoElementsClass?: string;
+}
+
+export type MutablePageConfig = Omit<PageConfig, 'hostRegex'>;
+
+export interface Page {
+    overrides?: Partial<MutablePageConfig>;
+    additionalHosts?: string[];
+}
+
+export interface PageSettings {
+    netflix: Page;
+    youtube: Page;
+    tver: Page;
+    bandaiChannel: Page;
+    amazonPrime: Page;
+    hulu: Page;
+    disneyPlus: Page;
+    appsDisneyPlus: Page;
+    unext: Page;
+    viki: Page;
+    embyJellyfin: Page;
+    twitch: Page;
+    osnPlus: Page;
+    bilibili: Page;
+    nrktv: Page;
+    plex: Page;
+    yleAreena: Page;
+    hboMax: Page;
+    stremio: Page;
+}
+
 export interface StreamingVideoSettings {
     readonly streamingAppUrl: string;
     readonly streamingDisplaySubtitles: boolean;
@@ -280,6 +321,7 @@ export interface StreamingVideoSettings {
     readonly streamingScreenshotDelay: number;
     readonly streamingSubtitleListPreference: SubtitleListPreference;
     readonly streamingEnableOverlay: boolean;
+    readonly streamingPages: PageSettings;
 }
 
 export type KeyBindName = keyof KeyBindSet;
