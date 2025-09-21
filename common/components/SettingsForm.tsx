@@ -836,7 +836,7 @@ export default function SettingsForm({
     onUnlockLocalFonts,
 }: Props) {
     const theme = useTheme();
-    const smallScreen = useMediaQuery(theme.breakpoints.down('sm')) && !forceVerticalTabs;
+    const smallScreen = useMediaQuery(theme.breakpoints.down(500)) && !forceVerticalTabs;
     const classes = useStyles({ smallScreen });
     const handleSettingChanged = useCallback(
         async <K extends keyof AsbplayerSettings>(key: K, value: AsbplayerSettings[K]) => {
