@@ -104,7 +104,8 @@ export default function SettingsDialog({
                     extensionSupportsPauseOnHover={extension.supportsPauseOnHover}
                     extensionSupportsExportCardBind={extension.supportsExportCardBind}
                     extensionSupportsPageSettings={extension.supportsPageSettings}
-                    pageConfigs={extension.pageConfigs}
+                    // TODO supply page configs here
+                    // pageConfigs={extension.pageConfigs}
                     insideApp
                     appVersion={import.meta.env.VITE_APP_GIT_COMMIT}
                     chromeKeyBinds={extension.extensionCommands}

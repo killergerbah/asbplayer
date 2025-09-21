@@ -125,6 +125,7 @@ const Popup = ({
                     extensionSupportsSubtitlesWidthSetting
                     extensionSupportsPauseOnHover
                     extensionSupportsExportCardBind
+                    extensionSupportsPageSettings
                     forceVerticalTabs={false}
                     anki={anki}
                     chromeKeyBinds={chromeCommandBindsToKeyBinds(commands)}
