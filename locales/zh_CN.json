@@ -23,7 +23,9 @@
         "openTutorial": "Open Tutorial",
         "decreaseOffsetButton": "Decrease offset to so that next subtitle is at current position. Hold to decrease by 100ms.",
         "increaseOffsetButton": "Increase offset to so that previous subtitle is at current position. Hold to increase by 100ms.",
-        "gotIt": "Got it"
+        "gotIt": "Got it",
+        "revert": "Revert",
+        "userGuide": "User guide"
     },
     "about": {
         "title": "About asbplayer",
@@ -138,7 +140,11 @@
         "updateLastCard": "使用asbplayer捕获的屏幕截图、音频等更新上次创建的Anki卡。",
         "exportCard": "Export card to Anki, bypassing dialog.",
         "toggleSidePanel": "Toggle side panel",
-        "toggleRepeat": "Toggle repeat mode"
+        "toggleRepeat": "Toggle repeat mode",
+        "moveBottomSubtitlesUp": "Move bottom subtitles up",
+        "moveBottomSubtitlesDown": "Move bottom subtitles down",
+        "moveTopSubtitlesUp": "Move top subtitles up",
+        "moveTopSubtitlesDown": "Move top subtitles down"
     },
     "controls": {
         "autoPauseMode": "自动暂停",
@@ -204,7 +210,20 @@
             "syncing": "正在同步",
             "takeScreenshot": "截屏",
             "updateAvailable": "可用更新",
-            "enableOverlay": "Enable controls overlay"
+            "enableOverlay": "Enable controls overlay",
+            "pages": {
+                "overridesWarning": "These settings have been modified.",
+                "host": "Host regex",
+                "additionalHosts": "Additional hosts",
+                "syncAllowedAtPath": "Path regex for subtitle detection",
+                "syncAllowedAtHash": "Path hash regex for subtitle detection",
+                "autoSyncEnabled": "Allow auto-loading of detected subtitles",
+                "searchShadowRootsForVideoElements": "Search shadow roots for video elements",
+                "allowVideoElementsWithBlankSrc": "Allow video elements with blank src",
+                "youtube": {
+                    "targetLanguages": "Target language codes for machine translation"
+                }
+            }
         },
         "videoDataSync": {
             "emptySubtitleTrack": "空的",

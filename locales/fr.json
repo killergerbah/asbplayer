@@ -23,7 +23,9 @@
         "openTutorial": "Open Tutorial",
         "decreaseOffsetButton": "Réduire le décalage pour que le sous-titre suivant soit à la position actuelle. Maintenez appuyé pour réduire de 100 ms.",
         "increaseOffsetButton": "Augmenter le décalage pour que le sous-titre précédent soit à la position actuelle. Maintenez appuyé pour augmenter de 100 ms.",
-        "gotIt": "Got it"
+        "gotIt": "Got it",
+        "revert": "Revert",
+        "userGuide": "User guide"
     },
     "about": {
         "title": "À propos d'asbplayer",
@@ -138,7 +140,11 @@
         "updateLastCard": "Mettre à jour la dernière carte Anki créée avec la capture d’écran, l’audio, etc., capturés par asbplayer",
         "exportCard": "Exporter la carte vers Anki sans passer par la boîte de dialogue.",
         "toggleSidePanel": "Activer/désactiver le panneau latéral",
-        "toggleRepeat": "Activer/désactiver le mode répétition"
+        "toggleRepeat": "Activer/désactiver le mode répétition",
+        "moveBottomSubtitlesUp": "Move bottom subtitles up",
+        "moveBottomSubtitlesDown": "Move bottom subtitles down",
+        "moveTopSubtitlesUp": "Move top subtitles up",
+        "moveTopSubtitlesDown": "Move top subtitles down"
     },
     "controls": {
         "autoPauseMode": "Pause automatique",
@@ -204,7 +210,20 @@
             "syncing": "Synchronisation",
             "takeScreenshot": "Prendre une capture d’écran lors de l’extraction",
             "updateAvailable": "Mise à jour disponible",
-            "enableOverlay": "Activer la superposition des commandes"
+            "enableOverlay": "Activer la superposition des commandes",
+            "pages": {
+                "overridesWarning": "These settings have been modified.",
+                "host": "Host regex",
+                "additionalHosts": "Additional hosts",
+                "syncAllowedAtPath": "Path regex for subtitle detection",
+                "syncAllowedAtHash": "Path hash regex for subtitle detection",
+                "autoSyncEnabled": "Allow auto-loading of detected subtitles",
+                "searchShadowRootsForVideoElements": "Search shadow roots for video elements",
+                "allowVideoElementsWithBlankSrc": "Allow video elements with blank src",
+                "youtube": {
+                    "targetLanguages": "Target language codes for machine translation"
+                }
+            }
         },
         "videoDataSync": {
             "emptySubtitleTrack": "Vide",
