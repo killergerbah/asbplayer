@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { type TextFieldProps } from '@mui/material';
 import TextField from '@mui/material/TextField';
+import { useTranslation } from 'react-i18next';
 
 function extractTagsFromString(value: string) {
     if (value === '') {
@@ -22,7 +23,8 @@ export interface Props {
     onItemsChange: (tags: string[]) => void;
 }
 
-export default function TagsTextField({ items, onItemsChange, ...props }: Props & TextFieldProps) {
+export default function ListField({ items, onItemsChange, ...props }: Props & TextFieldProps) {
+    const { t } = useTranslation();
     const [value, setValue] = useState('');
 
     useEffect(() => {
@@ -50,5 +52,5 @@ export default function TagsTextField({ items, onItemsChange, ...props }: Props 
         [value, onItemsChange]
     );
 
-    return <TextField {...props} value={value} onChange={handleChange} />;
+    return <TextField {...props} helperText={t('settings.tagsHelperText')} value={value} onChange={handleChange} />;
 }

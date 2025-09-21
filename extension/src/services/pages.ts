@@ -20,6 +20,9 @@ interface PageConfig {
     // Hosts specified as literal strings, not to be evaluated as regexes
     literalHosts?: string[];
 
+    // Key to link this config with page-specific settings
+    key?: string;
+
     // Page script to load
     pageScript?: string;
 

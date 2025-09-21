@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { MutablePageConfig, Page, PageConfig, PageSettings } from '../settings';
+import { useState, useEffect, useCallback, JSX } from 'react';
+import { MutablePageConfig, Page, PageConfig, PageSettings, YoutubePage } from '../settings';
 import { useTranslation } from 'react-i18next';
 import Dialog from '@mui/material/Dialog';
 import Toolbar from '@mui/material/Toolbar';
@@ -21,6 +21,7 @@ import Tooltip from './Tooltip';
 import ConfirmDisableCspDialog from './ConfirmDisableCspDialog';
 
 const maxAdditionalHostsLength = 50;
+const youtubeTargetLanguageLimit = 3;
 
 const totalLength = (strings: string[]) => {
     let total = 0;
@@ -37,8 +38,10 @@ export interface PageSettingsFormProps {
     pageKey: keyof PageSettings;
     page: Page;
     defaultPageConfig: PageConfig;
+    additionalControls?: JSX.Element;
+    hasModifications: boolean;
     onClose: () => void;
-    onPageChanged: (key: keyof PageSettings, page: Page) => void;
+    onPageChanged: <K extends keyof PageSettings>(key: K, page: PageSettings[K]) => void;
 }
 
 const useDisableCspDnrRule = (pageKey: keyof PageSettings) => {
@@ -100,11 +103,44 @@ const useDisableCspDnrRule = (pageKey: keyof PageSettings) => {
     return { disableCspDnrRule: rule, createDisableCspDnrRule, deleteDisableCspDnrRule };
 };
 
-const PageSettingsForm = ({
+const PageSettingsForm = (props: PageSettingsFormProps) => {
+    if (props.pageKey === 'youtube') {
+        return <YoutubePageSettingsForm {...props} />;
+    }
+
+    return <DefaultPageSettingsForm {...props} />;
+};
+
+const YoutubePageSettingsForm = (props: PageSettingsFormProps) => {
+    const { t } = useTranslation();
+    const { onPageChanged, page } = props;
+    const { targetLanguages } = page as YoutubePage;
+
+    return (
+        <DefaultPageSettingsForm
+            {...props}
+            additionalControls={
+                <ListField
+                    label={t('extension.settings.pages.youtube.targetLanguages')}
+                    items={targetLanguages ?? []}
+                    onItemsChange={(newTargetLanguages) => {
+                        if (newTargetLanguages.length <= youtubeTargetLanguageLimit) {
+                            onPageChanged('youtube', { ...page, targetLanguages: newTargetLanguages });
+                        }
+                    }}
+                />
+            }
+        />
+    );
+};
+
+const DefaultPageSettingsForm = ({
     open,
     pageKey,
     page,
     defaultPageConfig,
+    additionalControls,
+    hasModifications,
     onClose,
     onPageChanged,
 }: PageSettingsFormProps) => {
@@ -123,17 +159,18 @@ const PageSettingsForm = ({
     const { disableCspDnrRule, createDisableCspDnrRule, deleteDisableCspDnrRule } = useDisableCspDnrRule(pageKey);
     const doNotAllowDisableCsp = page.additionalHosts !== undefined && page.additionalHosts.length > 0;
     const [confirmDisableCspDialogOpen, setConfirmDisableCspDialogOpen] = useState<boolean>(false);
-    const hasModifications = overrides !== undefined || page.additionalHosts !== undefined;
     return (
         <>
-            <ConfirmDisableCspDialog
-                open={confirmDisableCspDialogOpen}
-                onConfirm={() => {
-                    createDisableCspDnrRule(defaultPageConfig.hostRegex);
-                    setConfirmDisableCspDialogOpen(false);
-                }}
-                onClose={() => setConfirmDisableCspDialogOpen(false)}
-            />
+            {browser.declarativeNetRequest && (
+                <ConfirmDisableCspDialog
+                    open={confirmDisableCspDialogOpen}
+                    onConfirm={() => {
+                        createDisableCspDnrRule(defaultPageConfig.hostRegex);
+                        setConfirmDisableCspDialogOpen(false);
+                    }}
+                    onClose={() => setConfirmDisableCspDialogOpen(false)}
+                />
+            )}
             <Dialog fullWidth open={open} onClose={onClose}>
                 <Toolbar>
                     <Typography variant="h6" sx={{ flexGrow: 1 }}>
@@ -155,6 +192,7 @@ const PageSettingsForm = ({
                                                 ...page,
                                                 overrides: undefined,
                                                 additionalHosts: undefined,
+                                                targetLanguages: undefined,
                                             })
                                         }
                                         size="small"
@@ -213,6 +251,7 @@ const PageSettingsForm = ({
                             }
                             onChange={(e) => handleOverrideFieldChanged('ignoreVideoElementsClass', e.target.value)}
                         /> */}
+                        {additionalControls}
                         <LabelWithHoverEffect
                             control={
                                 <Switch

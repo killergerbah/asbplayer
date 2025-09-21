@@ -282,9 +282,13 @@ export interface Page {
     additionalHosts?: string[];
 }
 
+export interface YoutubePage extends Page {
+    targetLanguages?: string[];
+}
+
 export interface PageSettings {
     netflix: Page;
-    youtube: Page;
+    youtube: YoutubePage;
     tver: Page;
     bandaiChannel: Page;
     amazonPrime: Page;

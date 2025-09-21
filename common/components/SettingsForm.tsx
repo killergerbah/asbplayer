@@ -54,11 +54,13 @@ import {
     textSubtitleSettingsAreDirty,
     textSubtitleSettingsForTrack,
     exportSettings,
+    YoutubePage,
+    Page,
 } from '@project/common/settings';
 import { isNumeric } from '@project/common/util';
 import { CustomStyle, validateSettings } from '@project/common/settings';
 import { useOutsideClickListener } from '@project/common/hooks';
-import TagsTextField from './ListField';
+import ListField from './ListField';
 import hotkeys from 'hotkeys-js';
 import Typography from '@mui/material/Typography';
 import { isMacOs, isMobile } from 'react-device-detect';
@@ -137,6 +139,14 @@ const defaultNoteType = {
 {{URL}}`,
         },
     ],
+};
+
+const pageSettingsHasModifications = (page: Page) => {
+    return (
+        page.overrides !== undefined ||
+        page.additionalHosts !== undefined ||
+        (page as YoutubePage).targetLanguages !== undefined
+    );
 };
 
 interface StylesProps {
@@ -1568,6 +1578,7 @@ export default function SettingsForm({
                     open={pageSettingsFormOpen}
                     pageKey={pageSettingsFormKey}
                     page={settings.streamingPages[pageSettingsFormKey]}
+                    hasModifications={pageSettingsHasModifications(settings.streamingPages[pageSettingsFormKey])}
                     defaultPageConfig={pageConfigs[pageSettingsFormKey]}
                     onClose={() => setPageSettingsFormOpen(false)}
                     onPageChanged={(key, page) =>
@@ -1839,9 +1850,8 @@ export default function SettingsForm({
                         );
                     })}
                     <AddCustomField onAddCustomField={handleAddCustomField} />
-                    <TagsTextField
+                    <ListField
                         label={t('settings.tags')}
-                        helperText={t('settings.tagsHelperText')}
                         fullWidth
                         color="primary"
                         items={tags}
@@ -2785,17 +2795,13 @@ export default function SettingsForm({
                                     <Table>
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell>{t('extension.settings.pages.title')}</TableCell>
-                                                <TableCell />
-                                                <TableCell />
+                                                <TableCell colSpan={3}>{t('extension.settings.pages.title')}</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
                                             {Object.entries(pageMetadata).map(([key, metadata]) => {
                                                 const pageKey = key as keyof PageSettings;
                                                 const page = settings.streamingPages[pageKey];
-                                                const noChanges =
-                                                    page.overrides === undefined && page.additionalHosts === undefined;
 
                                                 return (
                                                     <TableRowWithHoverEffect
@@ -2807,16 +2813,17 @@ export default function SettingsForm({
                                                     >
                                                         <TableCell
                                                             sx={{
+                                                                width: 48,
                                                                 background: `url(${pageConfigs[pageKey].faviconUrl})`,
                                                                 backgroundRepeat: 'no-repeat',
-                                                                backgroundPosition: '25%',
+                                                                backgroundPosition: '75%',
                                                                 backgroundSize: 24,
                                                             }}
                                                         />
                                                         <TableCell align="left">{metadata.title}</TableCell>
                                                         <TableCell align="right">
                                                             <Badge
-                                                                invisible={noChanges}
+                                                                invisible={!pageSettingsHasModifications(page)}
                                                                 color="warning"
                                                                 badgeContent=" "
                                                                 variant="dot"

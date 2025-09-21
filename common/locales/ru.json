@@ -219,7 +219,10 @@
                 "syncAllowedAtHash": "Path hash regex for subtitle detection",
                 "autoSyncEnabled": "Allow auto-loading of detected subtitles",
                 "searchShadowRootsForVideoElements": "Search shadow roots for video elements",
-                "allowVideoElementsWithBlankSrc": "Allow video elements with blank src"
+                "allowVideoElementsWithBlankSrc": "Allow video elements with blank src",
+                "youtube": {
+                    "targetLanguages": "Target language codes for machine translation"
+                }
             }
         },
         "videoDataSync": {

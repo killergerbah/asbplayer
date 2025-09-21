@@ -29,7 +29,7 @@ import Typography from '@mui/material/Typography';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import DoneIcon from '@mui/icons-material/Done';
-import TagsTextField from './ListField';
+import ListField from './ListField';
 import { Anki, ExportParams } from '../anki';
 import { isFirefox } from '../browser-detection';
 import SentenceField from './SentenceField';
@@ -895,7 +895,7 @@ const AnkiDialog = ({
                                 </React.Fragment>
                             );
                         })}
-                        <TagsTextField
+                        <ListField
                             variant="filled"
                             label="Tags"
                             helperText={t('ankiDialog.tagList')}

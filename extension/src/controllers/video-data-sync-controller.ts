@@ -154,7 +154,15 @@ export default class VideoDataSyncController {
             document.addEventListener('asbplayer-synced-data', this._dataReceivedListener, false);
         }
 
-        document.dispatchEvent(new CustomEvent('asbplayer-get-synced-data'));
+        if (pageDelegate.config.key === 'youtube') {
+            const targetTranslationLanguageCodes =
+                (await this._settings.getSingle('streamingPages')).youtube.targetLanguages ?? [];
+            document.dispatchEvent(
+                new CustomEvent('asbplayer-get-synced-data', { detail: { targetTranslationLanguageCodes } })
+            );
+        } else {
+            document.dispatchEvent(new CustomEvent('asbplayer-get-synced-data'));
+        }
     }
 
     async show({ reason, fromAsbplayerId }: ShowOptions) {
