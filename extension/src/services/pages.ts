@@ -3,11 +3,7 @@ import type { PublicPath } from 'wxt/browser';
 import { isOnTutorialPage } from './tutorial';
 import { ExtensionSettingsStorage } from './extension-settings-storage';
 import { SettingsProvider } from '@project/common/settings/settings-provider';
-import { PageConfig as SettingsPageConfig, PageSettings } from '@project/common/settings';
-
-export interface SettingsFormPageConfig extends SettingsPageConfig {
-    faviconUrl: string;
-}
+import { SettingsFormPageConfig, PageSettings } from '@project/common/settings';
 
 interface PageConfigFile {
     pages: PageConfig[];

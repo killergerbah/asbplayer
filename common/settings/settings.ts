@@ -275,6 +275,10 @@ export interface PageConfig {
     ignoreVideoElementsClass?: string;
 }
 
+export interface SettingsFormPageConfig extends PageConfig {
+    faviconUrl: string;
+}
+
 export type MutablePageConfig = Omit<PageConfig, 'hostRegex'>;
 
 export interface Page {

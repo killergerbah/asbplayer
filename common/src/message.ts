@@ -1,4 +1,11 @@
-import type { AnkiSettings, AsbplayerSettings, MiscSettings, SubtitleSettings } from '../settings/settings';
+import type {
+    AnkiSettings,
+    AsbplayerSettings,
+    MiscSettings,
+    PageSettings,
+    SettingsFormPageConfig,
+    SubtitleSettings,
+} from '../settings/settings';
 import type { GlobalState } from '../global-state';
 import {
     RectModel,
@@ -546,10 +553,13 @@ export interface OpenAsbplayerSettingsMessage extends Message {
     readonly tutorial?: boolean;
 }
 
-export interface ExtensionVersionMessage extends Message {
-    readonly command: 'version';
+export interface ExtensionStateMessage extends Message {
+    readonly command: 'extension-state';
     version: string;
-    extensionCommands?: { [key: string]: string | undefined };
+    state: {
+        commands: { [key: string]: string | undefined };
+        pages: { [K in keyof PageSettings]: SettingsFormPageConfig };
+    };
 }
 
 export interface AlertMessage extends Message {

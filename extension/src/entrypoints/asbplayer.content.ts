@@ -163,17 +163,17 @@ export default defineContentScript({
         const manifest = browser.runtime.getManifest();
 
         window.addEventListener('DOMContentLoaded', async (e) => {
-            const extensionCommands = await browser.runtime.sendMessage({
+            const state = await browser.runtime.sendMessage({
                 sender: 'asbplayerv2',
                 message: {
-                    command: 'extension-commands',
+                    command: 'extension-state',
                 },
             });
 
             sendMessageToPlayer({
-                command: 'version',
+                command: 'extension-state',
                 version: manifest.version,
-                extensionCommands,
+                state,
             });
         });
     },

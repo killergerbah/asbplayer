@@ -1,4 +1,4 @@
-import { ExtensionVersionMessage } from '@project/common';
+import { ExtensionStateMessage } from '@project/common';
 import { chromeCommandBindsToKeyBinds } from '@project/common/settings';
 import ChromeExtension from '../services/chrome-extension';
 import { useEffect, useState } from 'react';
@@ -13,11 +13,13 @@ const listenForVersion = (callback: (extension: ChromeExtension) => void) => {
         }
 
         if (event.data.sender === 'asbplayer-extension-to-player') {
-            if (event.data.message.command === 'version') {
-                const message = event.data.message as ExtensionVersionMessage;
-                const extensionCommands = message.extensionCommands ?? {};
-
-                callback(new ChromeExtension(message.version, chromeCommandBindsToKeyBinds(extensionCommands)));
+            if (event.data.message.command === 'extension-state') {
+                const message = event.data.message as ExtensionStateMessage;
+                const extensionCommands = message.state.commands;
+                const pageConfig = message.state.pages;
+                callback(
+                    new ChromeExtension(message.version, chromeCommandBindsToKeyBinds(extensionCommands), pageConfig)
+                );
             }
         }
     };
