@@ -110,6 +110,7 @@ const SettingsPage = ({ settings, inTutorial, onSettingsChanged, ...profileConte
                         extensionSupportsSubtitlesWidthSetting
                         extensionSupportsPauseOnHover
                         extensionSupportsExportCardBind
+                        extensionSupportsPageSettings
                         chromeKeyBinds={commands}
                         onOpenChromeExtensionShortcuts={handleOpenExtensionShortcuts}
                         onSettingsChanged={onSettingsChanged}
