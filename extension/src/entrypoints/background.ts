@@ -60,7 +60,7 @@ import RequestCopyHistoryHandler from '@/handlers/asbplayerv2/request-copy-histo
 import DeleteCopyHistoryHandler from '@/handlers/asbplayerv2/delete-copy-history-handler';
 import ClearCopyHistoryHandler from '@/handlers/asbplayerv2/clear-copy-history-handler';
 import SaveCopyHistoryHandler from '@/handlers/asbplayerv2/save-copy-history-handler';
-import ExtensionStateHandler from '@/handlers/asbplayerv2/extension-state-handler';
+import PageConfigHandler from '@/handlers/asbplayerv2/page-config-handler';
 
 export default defineBackground(() => {
     if (!isFirefoxBuild) {
@@ -154,7 +154,7 @@ export default defineBackground(() => {
         new SettingsUpdatedHandler(tabRegistry, settings),
         new OpenExtensionShortcutsHandler(),
         new ExtensionCommandsHandler(),
-        new ExtensionStateHandler(),
+        new PageConfigHandler(),
         new AsbplayerV2ToVideoCommandForwardingHandler(),
         new CaptureVisibleTabHandler(),
         new RequestModelHandler(),

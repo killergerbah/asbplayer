@@ -553,13 +553,11 @@ export interface OpenAsbplayerSettingsMessage extends Message {
     readonly tutorial?: boolean;
 }
 
-export interface ExtensionStateMessage extends Message {
-    readonly command: 'extension-state';
+export interface ExtensionVersionMessage extends Message {
+    readonly command: 'version';
     version: string;
-    state: {
-        commands: { [key: string]: string | undefined };
-        pages: { [K in keyof PageSettings]: SettingsFormPageConfig };
-    };
+    extensionCommands?: { [key: string]: string | undefined };
+    pageConfig?: { [K in keyof PageSettings]: SettingsFormPageConfig };
 }
 
 export interface AlertMessage extends Message {
