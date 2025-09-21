@@ -818,6 +818,7 @@ interface Props {
     extensionSupportsSubtitlesWidthSetting: boolean;
     extensionSupportsPauseOnHover: boolean;
     extensionSupportsExportCardBind: boolean;
+    extensionSupportsPageSettings: boolean;
     insideApp?: boolean;
     appVersion?: string;
     settings: AsbplayerSettings;
@@ -853,6 +854,7 @@ export default function SettingsForm({
     extensionSupportsSubtitlesWidthSetting,
     extensionSupportsPauseOnHover,
     extensionSupportsExportCardBind,
+    extensionSupportsPageSettings,
     insideApp,
     appVersion,
     scrollToId,
@@ -1573,7 +1575,7 @@ export default function SettingsForm({
 
     return (
         <div className={classes.root}>
-            {pageConfigs && pageSettingsFormKey && (
+            {extensionSupportsPageSettings && pageConfigs && pageSettingsFormKey && (
                 <PageSettingsForm
                     open={pageSettingsFormOpen}
                     pageKey={pageSettingsFormKey}

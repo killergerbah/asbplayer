@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, JSX } from 'react';
+import { JSX } from 'react';
 import { MutablePageConfig, Page, PageConfig, PageSettings, YoutubePage } from '../settings';
 import { useTranslation } from 'react-i18next';
 import Dialog from '@mui/material/Dialog';
@@ -14,11 +14,8 @@ import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import Alert from '@mui/material/Alert';
 import LabelWithHoverEffect from './LabelWithHoverEffect';
-import { isFirefoxBuild } from '@/services/build-flags';
 import { pageMetadata } from '../pages';
 import ListField from './ListField';
-import Tooltip from './Tooltip';
-import ConfirmDisableCspDialog from './ConfirmDisableCspDialog';
 
 const maxAdditionalHostsLength = 50;
 const youtubeTargetLanguageLimit = 3;
@@ -44,64 +41,65 @@ export interface PageSettingsFormProps {
     onPageChanged: <K extends keyof PageSettings>(key: K, page: PageSettings[K]) => void;
 }
 
-const useDisableCspDnrRule = (pageKey: keyof PageSettings) => {
-    const [rule, setRule] = useState<Browser.declarativeNetRequest.Rule>();
-    const refreshRule = useCallback(() => {
-        setRule(undefined);
+// Commenting out "disable CSP" functionality in case it's useful later
+// const useDisableCspDnrRule = (pageKey: keyof PageSettings) => {
+//     const [rule, setRule] = useState<Browser.declarativeNetRequest.Rule>();
+//     const refreshRule = useCallback(() => {
+//         setRule(undefined);
 
-        if (browser.declarativeNetRequest) {
-            browser.declarativeNetRequest.getDynamicRules().then((rules) => {
-                setRule(rules.find((r) => r.id === pageMetadata[pageKey].disableCspRuleId));
-            });
-        }
-    }, [pageKey]);
-    useEffect(() => refreshRule(), [refreshRule]);
-    const createDisableCspDnrRule = useCallback(
-        (hostRegex: string) => {
-            if (!browser.declarativeNetRequest) {
-                return;
-            }
+//         if (browser.declarativeNetRequest) {
+//             browser.declarativeNetRequest.getDynamicRules().then((rules) => {
+//                 setRule(rules.find((r) => r.id === pageMetadata[pageKey].disableCspRuleId));
+//             });
+//         }
+//     }, [pageKey]);
+//     useEffect(() => refreshRule(), [refreshRule]);
+//     const createDisableCspDnrRule = useCallback(
+//         (hostRegex: string) => {
+//             if (!browser.declarativeNetRequest) {
+//                 return;
+//             }
 
-            const ruleId = pageMetadata[pageKey].disableCspRuleId;
-            browser.declarativeNetRequest
-                .updateDynamicRules({
-                    addRules: [
-                        {
-                            id: ruleId,
-                            condition: {
-                                regexFilter: hostRegex,
-                            },
-                            action: {
-                                type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
-                                responseHeaders: [
-                                    {
-                                        header: 'content-security-policy',
-                                        operation: chrome.declarativeNetRequest.HeaderOperation.REMOVE,
-                                    },
-                                ],
-                            },
-                        },
-                    ],
-                })
-                .then(refreshRule)
-                .catch(console.error);
-        },
-        [refreshRule, pageKey]
-    );
+//             const ruleId = pageMetadata[pageKey].disableCspRuleId;
+//             browser.declarativeNetRequest
+//                 .updateDynamicRules({
+//                     addRules: [
+//                         {
+//                             id: ruleId,
+//                             condition: {
+//                                 regexFilter: hostRegex,
+//                             },
+//                             action: {
+//                                 type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
+//                                 responseHeaders: [
+//                                     {
+//                                         header: 'content-security-policy',
+//                                         operation: chrome.declarativeNetRequest.HeaderOperation.REMOVE,
+//                                     },
+//                                 ],
+//                             },
+//                         },
+//                     ],
+//                 })
+//                 .then(refreshRule)
+//                 .catch(console.error);
+//         },
+//         [refreshRule, pageKey]
+//     );
 
-    const deleteDisableCspDnrRule = useCallback(() => {
-        if (!browser.declarativeNetRequest) {
-            return;
-        }
+//     const deleteDisableCspDnrRule = useCallback(() => {
+//         if (!browser.declarativeNetRequest) {
+//             return;
+//         }
 
-        const ruleId = pageMetadata[pageKey].disableCspRuleId;
-        browser.declarativeNetRequest
-            .updateDynamicRules({ removeRuleIds: [ruleId] })
-            .then(refreshRule)
-            .catch(console.error);
-    }, [refreshRule, pageKey]);
-    return { disableCspDnrRule: rule, createDisableCspDnrRule, deleteDisableCspDnrRule };
-};
+//         const ruleId = pageMetadata[pageKey].disableCspRuleId;
+//         browser.declarativeNetRequest
+//             .updateDynamicRules({ removeRuleIds: [ruleId] })
+//             .then(refreshRule)
+//             .catch(console.error);
+//     }, [refreshRule, pageKey]);
+//     return { disableCspDnrRule: rule, createDisableCspDnrRule, deleteDisableCspDnrRule };
+// };
 
 const PageSettingsForm = (props: PageSettingsFormProps) => {
     if (props.pageKey === 'youtube') {
@@ -156,12 +154,12 @@ const DefaultPageSettingsForm = ({
         const newOverridesAreEmpty = Object.keys(newOverrides).length === 0;
         onPageChanged(pageKey, { ...page, overrides: newOverridesAreEmpty ? undefined : newOverrides });
     };
-    const { disableCspDnrRule, createDisableCspDnrRule, deleteDisableCspDnrRule } = useDisableCspDnrRule(pageKey);
-    const doNotAllowDisableCsp = page.additionalHosts !== undefined && page.additionalHosts.length > 0;
-    const [confirmDisableCspDialogOpen, setConfirmDisableCspDialogOpen] = useState<boolean>(false);
+    // const { disableCspDnrRule, createDisableCspDnrRule, deleteDisableCspDnrRule } = useDisableCspDnrRule(pageKey);
+    // const doNotAllowDisableCsp = page.additionalHosts !== undefined && page.additionalHosts.length > 0;
+    // const [confirmDisableCspDialogOpen, setConfirmDisableCspDialogOpen] = useState<boolean>(false);
     return (
         <>
-            {browser.declarativeNetRequest && (
+            {/* {browser.declarativeNetRequest && (
                 <ConfirmDisableCspDialog
                     open={confirmDisableCspDialogOpen}
                     onConfirm={() => {
@@ -170,7 +168,7 @@ const DefaultPageSettingsForm = ({
                     }}
                     onClose={() => setConfirmDisableCspDialogOpen(false)}
                 />
-            )}
+            )} */}
             <Dialog fullWidth open={open} onClose={onClose}>
                 <Toolbar>
                     <Typography variant="h6" sx={{ flexGrow: 1 }}>
@@ -217,9 +215,9 @@ const DefaultPageSettingsForm = ({
                                     return;
                                 }
 
-                                if (disableCspDnrRule !== undefined) {
-                                    deleteDisableCspDnrRule();
-                                }
+                                // if (disableCspDnrRule !== undefined) {
+                                //     deleteDisableCspDnrRule();
+                                // }
 
                                 onPageChanged(pageKey, { ...page, additionalHosts });
                             }}
@@ -297,7 +295,7 @@ const DefaultPageSettingsForm = ({
                             label={t('extension.settings.pages.autoSyncEnabled')}
                             labelPlacement="start"
                         />
-                        {!isFirefoxBuild && browser.declarativeNetRequest && (
+                        {/* {!isFirefoxBuild && browser.declarativeNetRequest && (
                             <Tooltip
                                 disabled={!doNotAllowDisableCsp}
                                 title={t('extension.settings.pages.disableCspRestrictions')}
@@ -324,7 +322,7 @@ const DefaultPageSettingsForm = ({
                                     labelPlacement="start"
                                 />
                             </Tooltip>
-                        )}
+                        )} */}
                     </Stack>
                 </DialogContent>
                 <DialogActions>

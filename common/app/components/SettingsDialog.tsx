@@ -103,6 +103,8 @@ export default function SettingsDialog({
                     extensionSupportsSubtitlesWidthSetting={extension.supportsSubtitlesWidthSetting}
                     extensionSupportsPauseOnHover={extension.supportsPauseOnHover}
                     extensionSupportsExportCardBind={extension.supportsExportCardBind}
+                    extensionSupportsPageSettings={extension.supportsPageSettings}
+                    pageConfigs={extension.pageConfigs}
                     insideApp
                     appVersion={import.meta.env.VITE_APP_GIT_COMMIT}
                     chromeKeyBinds={extension.extensionCommands}
