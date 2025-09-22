@@ -7,6 +7,8 @@ import { extractText, sourceString } from '@project/common/util';
 
 const ankiQuerySpecialCharacters = ['"', '*', '_', '\\', ':'];
 const alphaNumericCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+const unsafeURLChars = /[:\/\?#\[\]@!$&'()*+,;= "<>%{}|\\^`]/g;
+const replacement = '_';
 
 const randomString = () => {
     let string = '';
@@ -158,8 +160,6 @@ export interface CreateModelParams {
 export class Anki {
     private readonly settingsProvider: AnkiSettings;
     private readonly fetcher: Fetcher;
-    private readonly unsafeURLChars: RegExp = /[:\/\?#\[\]@!$&'()*+,;= "<>%{}|\\^`]/g;
-    private readonly replacement: string = '_';
 
     constructor(settingsProvider: AnkiSettings, fetcher = new HttpFetcher()) {
         this.settingsProvider = settingsProvider;
@@ -400,7 +400,7 @@ export class Anki {
     }
 
     private _sanitizeUnsafeURLChars(name: string) {
-        return name.replace(this.unsafeURLChars, this.replacement);
+        return name.replace(unsafeURLChars, replacement);
     }
 
     private _sanitizeFileName(name: string) {
@@ -411,7 +411,7 @@ export class Anki {
         // Sanitize unsafe URL characters for AnkiWeb compatibility.
         name = this._sanitizeUnsafeURLChars(name);
         // Sanitize for file system compatibility on various operating systems.
-        return sanitize(name, { replacement: this.replacement });
+        return sanitize(name, { replacement: replacement });
     }
 
     private async _storeMediaFile(name: string, base64: string, ankiConnectUrl?: string) {
