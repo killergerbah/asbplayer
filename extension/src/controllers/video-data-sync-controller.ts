@@ -22,6 +22,10 @@ import i18n from 'i18next';
 import { ExtensionGlobalStateProvider } from '@/services/extension-global-state-provider';
 import { isOnTutorialPage } from '@/services/tutorial';
 
+declare global {
+    function cloneInto(obj: any, targetScope: any, options?: any): any;
+}
+
 async function html(lang: string) {
     return `<!DOCTYPE html>
             <html lang="en">
@@ -157,9 +161,11 @@ export default class VideoDataSyncController {
         if (pageDelegate.config.key === 'youtube') {
             const targetTranslationLanguageCodes =
                 (await this._settings.getSingle('streamingPages')).youtube.targetLanguages ?? [];
-            document.dispatchEvent(
-                new CustomEvent('asbplayer-get-synced-data', { detail: { targetTranslationLanguageCodes } })
-            );
+            let payload = { targetTranslationLanguageCodes };
+            if (typeof cloneInto === 'function') {
+                payload = cloneInto(payload, document.defaultView);
+            }
+            document.dispatchEvent(new CustomEvent('asbplayer-get-synced-data', { detail: payload }));
         } else {
             document.dispatchEvent(new CustomEvent('asbplayer-get-synced-data'));
         }
