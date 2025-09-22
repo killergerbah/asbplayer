@@ -37,7 +37,6 @@ export default defineConfig({
         'build:publicAssets': (wxt: Wxt, files: ResolvedPublicFile[]) => {
             for (const { srcDir, destDir } of commonAssets) {
                 moveToPublicAssets(srcDir, destDir, files);
-                moveToPublicAssets(srcDir, destDir, files);
             }
         },
         'prepare:publicPaths': (wxt: Wxt, paths: string[]) => {
