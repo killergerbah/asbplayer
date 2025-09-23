@@ -108,25 +108,17 @@ const includeTranslationsForLanguageCodes = async (tracks: VideoDataSubtitleTrac
 
         for (const languageCode of languageCodes) {
             if (track.language !== languageCode) {
-                try {
-                    const translationUrl = `${track.url}&tlang=${languageCode}`;
-                    const exists = (await fetch(translationUrl, { method: 'HEAD' })).status === 200;
-
-                    if (exists) {
-                        const newTrack = {
-                            ...track,
-                            language: `${languageCode}_from_${track.language}`,
-                            label: `${track.label} >> ${languageCode}`,
-                            url: translationUrl,
-                        };
-                        tracksIncludingTranslations.push({
-                            ...newTrack,
-                            id: trackId(newTrack),
-                        });
-                    }
-                } catch (e) {
-                    console.error(e);
-                }
+                const translationUrl = `${track.url}&tlang=${encodeURIComponent(languageCode)}`;
+                const newTrack = {
+                    ...track,
+                    language: `${languageCode}_from_${track.language}`,
+                    label: `${track.label} >> ${languageCode}`,
+                    url: translationUrl,
+                };
+                tracksIncludingTranslations.push({
+                    ...newTrack,
+                    id: trackId(newTrack),
+                });
             }
         }
     }
