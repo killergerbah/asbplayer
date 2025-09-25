@@ -61,7 +61,7 @@ export default defineContentScript({
         };
 
         const hasValidVideoSource = (videoElement: HTMLVideoElement, page?: PageDelegate) => {
-            if (page?.config?.allowBlankSrc) {
+            if (page?.config?.allowVideoElementsWithBlankSrc) {
                 return true;
             }
 
@@ -80,10 +80,10 @@ export default defineContentScript({
             return false;
         };
 
-        const bind = () => {
+        const bind = async () => {
             const bindings: Binding[] = [];
-            const page = currentPageDelegate();
-            let hasPageScript = page?.config.script !== undefined;
+            const page = await currentPageDelegate();
+            let hasPageScript = page?.config.pageScript !== undefined;
             let frameInfoListener: FrameInfoListener | undefined;
             let frameInfoBroadcaster: FrameInfoBroadcaster | undefined;
             const isParentDocument = window.self === window.top;
@@ -153,7 +153,7 @@ export default defineContentScript({
 
             bindToVideoElements();
             const videoInterval = setInterval(bindToVideoElements, 1000);
-            const shadowRootInterval = page?.config.searchShadowRoots
+            const shadowRootInterval = page?.config.searchShadowRootsForVideoElements
                 ? setInterval(incrementallyFindShadowRoots, 100)
                 : undefined;
 
@@ -265,11 +265,11 @@ export default defineContentScript({
         };
 
         if (document.readyState === 'complete') {
-            bind();
+            bind().catch(console.error);
         } else {
             document.addEventListener('readystatechange', (event) => {
                 if (document.readyState === 'complete') {
-                    bind();
+                    bind().catch(console.error);
                 }
             });
         }

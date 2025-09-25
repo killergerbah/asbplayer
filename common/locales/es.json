@@ -23,7 +23,9 @@
         "openTutorial": "Open Tutorial",
         "decreaseOffsetButton": "Reducir el offset para que el siguiente subtítulo esté en la posición actual. Mantenga pulsado para disminuir en 100ms.",
         "increaseOffsetButton": "Aumentar el offset para que el siguiente subtítulo esté en la posición actual. Mantenga pulsado para disminuir en 100ms.",
-        "gotIt": "Got it"
+        "gotIt": "Got it",
+        "revert": "Revert",
+        "userGuide": "User guide"
     },
     "about": {
         "title": "About asbplayer",
@@ -208,7 +210,20 @@
             "syncing": "Sincronización",
             "takeScreenshot": "Tomar captura de pantalla",
             "updateAvailable": "Actualización Disponible",
-            "enableOverlay": "Habilitar overlay"
+            "enableOverlay": "Habilitar overlay",
+            "pages": {
+                "overridesWarning": "These settings have been modified.",
+                "host": "Host regex",
+                "additionalHosts": "Additional hosts",
+                "syncAllowedAtPath": "Path regex for subtitle detection",
+                "syncAllowedAtHash": "Path hash regex for subtitle detection",
+                "autoSyncEnabled": "Allow auto-loading of detected subtitles",
+                "searchShadowRootsForVideoElements": "Search shadow roots for video elements",
+                "allowVideoElementsWithBlankSrc": "Allow video elements with blank src",
+                "youtube": {
+                    "targetLanguages": "Target language codes for machine translation"
+                }
+            }
         },
         "videoDataSync": {
             "emptySubtitleTrack": "En Blanco",

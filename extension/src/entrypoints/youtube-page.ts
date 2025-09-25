@@ -1,5 +1,5 @@
 import { VideoData, VideoDataSubtitleTrack } from '@project/common';
-import { trackFromDef } from '@/pages/util';
+import { trackFromDef, trackId } from '@/pages/util';
 import { decodePoToken, fetchPlayerContextForPage } from '@/services/youtube';
 
 declare global {
@@ -100,7 +100,37 @@ const timedTextTracksUsingPot = async (videoId: string) => {
     return { basename, subtitles };
 };
 
-const publishCurrentTracks = async () => {
+const includeTranslationsForLanguageCodes = async (tracks: VideoDataSubtitleTrack[], languageCodes: string[]) => {
+    const tracksIncludingTranslations: VideoDataSubtitleTrack[] = [];
+
+    for (const track of tracks) {
+        tracksIncludingTranslations.push(track);
+
+        for (const languageCode of languageCodes) {
+            if (track.language !== languageCode) {
+                const translationUrl = `${track.url}&tlang=${encodeURIComponent(languageCode)}`;
+                const newTrack = {
+                    ...track,
+                    language: `${languageCode}_from_${track.language}`,
+                    label: `${track.label} >> ${languageCode}`,
+                    url: translationUrl,
+                };
+                tracksIncludingTranslations.push({
+                    ...newTrack,
+                    id: trackId(newTrack),
+                });
+            }
+        }
+    }
+
+    return tracksIncludingTranslations;
+};
+
+const publishCurrentTracks = async ({
+    targetTranslationLanguageCodes,
+}: {
+    targetTranslationLanguageCodes: string[];
+}) => {
     const response: VideoData = { error: '', basename: '', subtitles: [] };
     let videoId: string | undefined;
 
@@ -131,6 +161,10 @@ const publishCurrentTracks = async () => {
             }
         }
 
+        if (subtitles !== undefined) {
+            subtitles = await includeTranslationsForLanguageCodes(subtitles, targetTranslationLanguageCodes);
+        }
+
         response.basename = basename || document.title;
         response.subtitles = subtitles ?? [];
         return videoId;
@@ -159,7 +193,9 @@ export default defineUnlistedScript(() => {
     document.addEventListener(
         'asbplayer-get-synced-data',
         async (e) => {
-            lastVideoIdDispatched = await publishCurrentTracks();
+            const targetTranslationLanguageCodes: string[] =
+                ((e as CustomEvent).detail?.targetTranslationLanguageCodes as string[] | undefined) ?? [];
+            lastVideoIdDispatched = await publishCurrentTracks({ targetTranslationLanguageCodes });
         },
         false
     );
@@ -176,7 +212,7 @@ export default defineUnlistedScript(() => {
             publishing = true;
             const videoId = inferVideoId();
             if (lastVideoIdDispatched && videoId && lastVideoIdDispatched !== videoId) {
-                lastVideoIdDispatched = await publishCurrentTracks();
+                lastVideoIdDispatched = await publishCurrentTracks({ targetTranslationLanguageCodes: [] });
             }
         } finally {
             publishing = false;

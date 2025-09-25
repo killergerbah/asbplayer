@@ -30,7 +30,7 @@ import {
     SetGlobalStateMessage,
     GetGlobalStateMessage,
 } from '@project/common';
-import { AsbplayerSettings, Profile } from '@project/common/settings';
+import { AsbplayerSettings, PageSettings, Profile, SettingsFormPageConfig } from '@project/common/settings';
 import { GlobalState } from '@project/common/global-state';
 import { v4 as uuidv4 } from 'uuid';
 import gte from 'semver/functions/gte';
@@ -49,6 +49,7 @@ const id = uuidv4();
 export default class ChromeExtension {
     readonly version: string;
     readonly extensionCommands: { [key: string]: string | undefined };
+    readonly pageConfig?: { [K in keyof PageSettings]: SettingsFormPageConfig };
 
     tabs: VideoTabModel[] | undefined;
     asbplayers: AsbplayerInstance[] | undefined;
@@ -64,12 +65,17 @@ export default class ChromeExtension {
     private onTabsCallbacks: Array<(tabs: VideoTabModel[]) => void>;
     private heartbeatInterval?: NodeJS.Timeout;
 
-    constructor(version?: string, extensionCommands?: { [key: string]: string | undefined }) {
+    constructor(
+        version?: string,
+        extensionCommands?: { [key: string]: string | undefined },
+        pageConfig?: { [K in keyof PageSettings]: SettingsFormPageConfig }
+    ) {
         this.onMessageCallbacks = [];
         this.onTabsCallbacks = [];
         this.installed = version !== undefined;
         this.version = version ?? '';
         this.extensionCommands = extensionCommands ?? {};
+        this.pageConfig = pageConfig;
         this.sidePanel = false;
         this.windowEventListener = (event: MessageEvent) => {
             if (event.source !== window) {
@@ -126,6 +132,10 @@ export default class ChromeExtension {
         };
 
         window.addEventListener('message', this.windowEventListener);
+    }
+
+    get supportsPageSettings() {
+        return this.installed && gte(this.version, '1.12.0');
     }
 
     get supportsExportCardBind() {
