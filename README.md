@@ -72,7 +72,9 @@ Peter,
 [@825i](https://github.com/825i),
 ags,
 Vannde3,
-Champ
+Champ,
+marcman3001,
+[@vladysor](https://github.com/vladysor)
 
 and to those who have donated privately.
 
